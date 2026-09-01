@@ -1,3 +1,11 @@
+## [7.406.1] - 2026-09-01
+### Fix (auditoría R8 · cron de mantenimiento)
+- `generate-recurring-maintenance`: el catch-up mensual se extrajo a `logic.ts` (testeable sin red) manteniendo las reglas de negocio.
+- Un `23505` contra el índice único parcial `(policy_id, policy_month)` se trata como mes ya generado: avanza `lastOkMonth` y continúa el catch-up (R8-01).
+- El rollback de `last_generated_month` es compare-and-set (`.eq('last_generated_month', month)`): una corrida concurrente no puede ser retrocedida (R8-07).
+- `claimErr` corta el bucle de meses de esa póliza (antes `continue`, que podía dejar un hueco permanente) (R8-08).
+- Nuevos tests Deno en `logic_test.ts`: recuperación tras fallo transitorio con duplicado posterior, rollback condicional y corte por claim fallido.
+
 ## [7.406.0] - 2026-09-01
 ### Fix (auditoría R7 · lote 3)
 - `get_income_statement`: nueva CTE `contributing_bill_ids` — el gasto operativo ligado a una `supplier_bill` sólo se deduplica si esa factura aporta al periodo/base (antes desaparecía del P&L si la factura estaba cancelada/draft/rechazada, sin TC o impaga en base cash) (R7-10).

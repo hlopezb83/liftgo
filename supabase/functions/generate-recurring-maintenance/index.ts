@@ -3,6 +3,11 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireServiceOrRole } from "../_shared/auth.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import {
+  generateForPolicies,
+  type MaintenanceClientLike,
+  type MaintenancePolicyRow,
+} from "./logic.ts";
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
@@ -32,7 +37,6 @@ Deno.serve(async (req) => {
     const currentMonth = `${nowMty.getFullYear()}-${
       String(nowMty.getMonth() + 1).padStart(2, "0")
     }`;
-    const firstOfMonth = `${currentMonth}-01`;
 
     // FIX-14: sin filtro de estatus en la query — las pólizas activas de
     // unidades no rentadas se clasifican como "omitidas por estado" y se
@@ -44,18 +48,7 @@ Deno.serve(async (req) => {
 
     if (pErr) throw pErr;
 
-    type Policy = {
-      id: string;
-      forklift_id: string;
-      service_type: string;
-      description: string | null;
-      provider_name: string | null;
-      monthly_cost: number;
-      last_generated_month: string | null;
-      forklifts?: { name?: string | null; status?: string | null } | null;
-    };
-
-    const pendingPolicies = ((policies ?? []) as Policy[]).filter(
+    const pendingPolicies = ((policies ?? []) as MaintenancePolicyRow[]).filter(
       (p) => !p.last_generated_month || p.last_generated_month < currentMonth,
     );
     const omittedByStatus = pendingPolicies.filter(
@@ -65,7 +58,6 @@ Deno.serve(async (req) => {
       (p) => p.forklifts?.status === "rented",
     );
 
-    let generated = 0;
     // skipped = ya generadas este mes (las omitidas por estado van aparte).
     let skipped = (policies?.length ?? 0) - pendingPolicies.length;
     const details: string[] = [];
@@ -79,110 +71,17 @@ Deno.serve(async (req) => {
       );
     }
 
-    // BL-41: claim atómico por póliza ANTES de insertar el log. Si otra corrida
-    // ya reclamó el mes, el claim devuelve false y omitimos la póliza
-    // (idempotente ante doble corrida / retry).
-    //
-    // R-REP-42703: no usar `.update().or(...)`: PostgREST rechaza filtros `or=`
-    // en mutaciones con `42703 column ... does not exist`. La condición vive en
-    // el RPC atómico `claim_maintenance_policy_month`.
-    // A3B-08: catch-up de meses saltados. Antes se comparaba únicamente
-    // `last_generated_month < currentMonth` y sólo se generaba el mes ACTUAL,
-    // por lo que si el cron dejó de correr 2+ meses, esos meses quedaban sin
-    // póliza generada para siempre (el claim del mes actual "tapaba" el hueco).
-    // Ahora se itera mes por mes desde el siguiente a `last_generated_month`
-    // hasta el mes actual, con un tope de 12 iteraciones por póliza (blindaje
-    // ante datos corruptos / pólizas muy antiguas).
-    const MAX_CATCHUP_MONTHS = 12;
-
-    function nextMonth(yyyyMm: string): string {
-      const [y, m] = yyyyMm.split("-").map(Number);
-      const d = new Date(Date.UTC(y, m - 1 + 1, 1));
-      return `${d.getUTCFullYear()}-${
-        String(d.getUTCMonth() + 1).padStart(2, "0")
-      }`;
-    }
-
-    for (const policy of candidates) {
-      const pendingMonths: string[] = [];
-      let cursor = policy.last_generated_month
-        ? nextMonth(policy.last_generated_month)
-        : currentMonth;
-      let iter = 0;
-      while (cursor <= currentMonth && iter < MAX_CATCHUP_MONTHS) {
-        pendingMonths.push(cursor);
-        cursor = nextMonth(cursor);
-        iter += 1;
-      }
-
-      let lastOkMonth = policy.last_generated_month;
-      for (const month of pendingMonths) {
-        const monthFirstDay = `${month}-01`;
-        const { data: claimed, error: claimErr } = await (supabase as unknown as {
-          rpc: (
-            fn: string,
-            args: Record<string, unknown>,
-          ) => Promise<
-            { data: boolean | null; error: { message?: string } | null }
-          >;
-        }).rpc("claim_maintenance_policy_month", {
-          p_policy_id: policy.id,
-          p_month: month,
-        });
-
-        if (claimErr) {
-          details.push(
-            `Error al reclamar ${policy.id} (${month}): ${claimErr.message}`,
-          );
-          continue;
-        }
-        if (claimed !== true) {
-          skipped += 1;
-          continue;
-        }
-
-        // BL-40: el log queda 'scheduled'; no carga P&L hasta que el mecánico
-        // lo confirme como 'completed'.
-        // FIX-R2-02 (N2): el importe va en manual_cost (el trigger
-        // recalc_maintenance_log_cost pisa `cost` a 0 sin partes/labor) y NO se
-        // escribe next_service_date: un servicio de póliza programado no debe
-        // activar el buffer de disponibilidad ±3 días (M17/FIX-R2-01).
-        const { error: insertErr } = await supabase
-          .from("maintenance_logs")
-          .insert({
-            forklift_id: policy.forklift_id,
-            service_type: policy.service_type,
-            description: policy.description ||
-              `Póliza mensual - ${policy.provider_name}`,
-            manual_cost: policy.monthly_cost,
-            performed_by: policy.provider_name,
-            performed_at: monthFirstDay,
-            work_status: "scheduled",
-            // R7-06: marca de idempotencia. El indice unico parcial
-            // (policy_id, policy_month) impide duplicar el log en un reintento.
-            policy_id: policy.id,
-            policy_month: month,
-          });
-
-        if (insertErr) {
-          // R7-06: el rollback devuelve el claim al ULTIMO mes generado con
-          // exito (no al valor original), y se corta el catch-up de esta
-          // poliza para no dejar huecos de meses reclamados sin log.
-          await supabase
-            .from("maintenance_policies")
-            .update({ last_generated_month: lastOkMonth })
-            .eq("id", policy.id);
-          details.push(
-            `Error al insertar log ${policy.id} (${month}): ${insertErr.message}`,
-          );
-          break;
-        }
-
-        lastOkMonth = month;
-        generated += 1;
-        details.push(`✓ ${policy.forklifts?.name ?? "(sin nombre)"} (${monthFirstDay})`);
-      }
-    }
+    // BL-41 / A3B-08 / R8-01·07·08: el catch-up mensual vive en logic.ts
+    // (secuencial, idempotente y monótono bajo concurrencia). Ver comentarios
+    // ahí para el detalle de cada invariante.
+    const run = await generateForPolicies(
+      supabase as unknown as MaintenanceClientLike,
+      candidates,
+      currentMonth,
+    );
+    const generated = run.generated;
+    skipped += run.skipped;
+    details.push(...run.details);
 
     return jsonResponse(req, {
       generated,
