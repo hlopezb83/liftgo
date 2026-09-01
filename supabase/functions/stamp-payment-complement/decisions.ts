@@ -80,7 +80,12 @@ export function validatePaymentExchange(
   // stamp-credit-note.
   const gate = checkStampFx(input.paymentCurrency, input.exchangeRate);
   if (!gate.ok) {
-    return { ok: false, message: gate.message! };
+    // Mensaje propio del pago (el del gate habla de la factura).
+    return {
+      ok: false,
+      message:
+        "El Tipo de Cambio es obligatorio y debe ser mayor a 0 para pagos en moneda extranjera.",
+    };
   }
   return { ok: true };
 }
