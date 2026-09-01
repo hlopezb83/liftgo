@@ -80,3 +80,49 @@ describe("buildLinesForBooking", () => {
     expect(items).toEqual([]);
   });
 });
+
+describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
+  it("reserva de 1 año que inicia a mitad de mes: sólo días hasta fin de mes, prorrateado", () => {
+    const items = buildLinesForBooking(
+      {
+        id: "bk-5",
+        forklift_id: "fk-1",
+        start_date: "2026-09-12",
+        end_date: "2027-09-11",
+        monthly_rate: 30_000,
+      },
+      [forklift],
+    );
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      description: "Toyota 8FGCU25 — Renta mensual (prorrateo 19 días)",
+      quantity: 1,
+      unit_price: 19_000,
+      total: 19_000,
+    });
+  });
+
+  it("reserva de 1 año que inicia el día 1: mes completo, sin prorrateo", () => {
+    const items = buildLinesForBooking(
+      {
+        id: "bk-6",
+        forklift_id: "fk-1",
+        start_date: "2026-09-01",
+        end_date: "2027-08-31",
+        monthly_rate: 30_000,
+      },
+      [forklift],
+    );
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ quantity: 1, unit_price: 30_000, total: 30_000 });
+  });
+
+  it("renta corta dentro del mismo mes: cálculo sin cambios", () => {
+    const items = buildLinesForBooking(
+      { id: "bk-7", forklift_id: "fk-1", start_date: "2026-09-05", end_date: "2026-09-11" },
+      [forklift],
+    );
+    expect(items.reduce((s, i) => s + i.total, 0)).toBeGreaterThan(0);
+    expect(items.every((i) => !i.description.includes("prorrateo"))).toBe(true);
+  });
+});
