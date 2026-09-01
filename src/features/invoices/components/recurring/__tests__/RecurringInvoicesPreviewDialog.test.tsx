@@ -82,7 +82,7 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     // El usuario desmarca una fila y cierra el diálogo.
-    fireEvent.click(screen.getByLabelText("Incluir la reserva a"));
+    fireEvent.click(screen.getByLabelText(/Incluir la reserva a /));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     rerenderWith(false, lines);
@@ -95,11 +95,45 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
     const { rerenderWith } = setup(lines);
 
-    fireEvent.click(screen.getByLabelText("Incluir la reserva a"));
+    fireEvent.click(screen.getByLabelText(/Incluir la reserva a /));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     // Refetch: mismas líneas (nuevos objetos) mientras sigue abierto.
     rerenderWith(true, lines.map((l) => ({ ...l })));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
+  });
+});
+
+// R9-18: la generación envía exclusivamente las combinaciones reserva+periodo
+// marcadas; excluir un periodo no arrastra a los demás de la misma reserva.
+describe("RecurringInvoicesPreviewDialog — selección por reserva + periodo", () => {
+  it("al excluir un periodo sólo se envía el otro", () => {
+    const selections: Array<Array<{ bookingId: string; periodStart: string }>> = [];
+    const lines = [
+      line({ bookingId: "a" }),
+      line({
+        bookingId: "a",
+        periodStart: "2026-09-01",
+        periodEnd: "2026-09-30",
+        periodLabel: "Septiembre 2026",
+      }),
+    ];
+    render(
+      <RecurringInvoicesPreviewDialog
+        open
+        onOpenChange={() => {}}
+        data={data(lines)}
+        isLoading={false}
+        isGenerating={false}
+        onConfirm={(s) => selections.push(s)}
+      />,
+    );
+
+    expect(generateButton()).toHaveTextContent("Generar 2 facturas");
+    fireEvent.click(screen.getByLabelText(/periodo Septiembre 2026/));
+    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+
+    fireEvent.click(generateButton());
+    expect(selections[0]).toEqual([{ bookingId: "a", periodStart: "2026-08-01" }]);
   });
 });

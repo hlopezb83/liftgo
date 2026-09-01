@@ -270,3 +270,47 @@ Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () =
     true,
   );
 });
+
+// R9-17: recuperación limitada a 12 meses por corrida, continuable.
+Deno.test("R9-17: más de 12 pendientes → genera exactamente 12 y reporta remanente", async () => {
+  const { client, rec } = makeClient({});
+  const res = await generateForPolicies(
+    client,
+    [policy({ last_generated_month: "2024-12" })],
+    "2026-03", // 15 meses pendientes (2025-01 … 2026-03)
+  );
+
+  assertStrictEquals(res.generated, 12);
+  assertStrictEquals(rec.claims.length, 12);
+  assertStrictEquals(rec.claims[0], "2025-01");
+  assertStrictEquals(rec.claims[11], "2025-12");
+  assertStrictEquals(res.pendingRemaining, 3);
+  assertStrictEquals(
+    res.details.some((d) => d.includes("quedan 3 período(s) pendiente(s)")),
+    true,
+  );
+});
+
+Deno.test("R9-17: la siguiente corrida continúa en el mes 13 sin duplicados", async () => {
+  const { client, rec } = makeClient({});
+  const res = await generateForPolicies(
+    client,
+    [policy({ last_generated_month: "2025-12" })], // cursor tras la 1ª corrida
+    "2026-03",
+  );
+
+  assertEquals(rec.claims, ["2026-01", "2026-02", "2026-03"]);
+  assertStrictEquals(res.generated, 3);
+  assertStrictEquals(res.pendingRemaining, 0);
+});
+
+Deno.test("R9-17: sin pendientes extra no se reporta remanente", async () => {
+  const { client } = makeClient({});
+  const res = await generateForPolicies(
+    client,
+    [policy({ last_generated_month: "2026-01" })],
+    "2026-02",
+  );
+  assertStrictEquals(res.pendingRemaining, 0);
+  assertStrictEquals(res.details.some((d) => d.includes("pendiente")), false);
+});

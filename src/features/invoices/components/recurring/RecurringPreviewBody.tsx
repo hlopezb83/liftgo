@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { recurringLineKey } from "../../lib/recurringSelection";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
 const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {
@@ -153,13 +154,12 @@ function LineRow({
 }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2 text-sm">
-      {/* Selección por reserva: el edge factura todos los períodos pendientes
-          de la reserva, por eso alternar una línea alterna toda la reserva. */}
+      {/* R9-18: selección por reserva + periodo; cada fila es independiente. */}
       <Checkbox
-        checked={selectable && selected.has(line.bookingId)}
+        checked={selectable && selected.has(recurringLineKey(line))}
         disabled={!selectable}
-        onCheckedChange={() => onToggle(line.bookingId)}
-        aria-label={`Incluir la reserva ${line.bookingCode ?? line.bookingId}`}
+        onCheckedChange={() => onToggle(recurringLineKey(line))}
+        aria-label={`Incluir la reserva ${line.bookingCode ?? line.bookingId} del periodo ${line.periodLabel}`}
       />
 
       <div className="flex-1 min-w-0">
@@ -205,7 +205,8 @@ function CustomerGroup({
   isSelectable: (line: RecurringPreviewLine) => boolean;
 }) {
   const groupEligible = groupLines.filter(isSelectable);
-  const allSelected = groupEligible.length > 0 && groupEligible.every((l) => selected.has(l.bookingId));
+  const allSelected = groupEligible.length > 0
+    && groupEligible.every((l) => selected.has(recurringLineKey(l)));
   return (
     <div className="border rounded-md overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 border-b">

@@ -23,6 +23,7 @@ import {
   claimRejectionMessage,
   computeRepExchange,
   validatePaymentExchange,
+  validateRelatedInvoiceExchange,
 } from "./decisions.ts";
 
 const BUCKET = "cfdi-files";
@@ -250,6 +251,18 @@ Deno.serve(async (req) => {
     // usamos el TC de la factura si difiere de la moneda del pago.
     // TESTS-ARQ2 v2 · DIFF 9: extraído a decisions.ts para test unitario del
     // invariante Anexo 20 EquivalenciaDR=1 (MonedaDR == MonedaP).
+    // R9-02: si la moneda de la factura difiere de la del pago, el TC de la
+    // factura DEBE ser válido; no se timbra con la caída silenciosa a 1.
+    const relatedCheck = validateRelatedInvoiceExchange({
+      paymentCurrency,
+      invoiceCurrency: invoice.moneda as string | null,
+      invoiceTipoCambio: invoice.tipo_cambio as number | string | null,
+    });
+    if (!relatedCheck.ok) {
+      await releaseClaim("Tipo de cambio inválido en la factura relacionada");
+      return jsonError(req, 422, relatedCheck.message);
+    }
+
     const { invoiceCurrency, invoiceExchange } = computeRepExchange({
       paymentCurrency,
       invoiceCurrency: invoice.moneda as string | null,

@@ -65,6 +65,15 @@ export function isLineSelectable(line: RecurringPreviewLine, allowStaleRate: boo
   return line.eligible && (!line.rateWarning || allowStaleRate);
 }
 
+/**
+ * R9-18: la unidad de selección es la combinación reserva + periodo, no la
+ * reserva completa. Desmarcar un periodo no puede afectar a los demás
+ * periodos de la misma reserva.
+ */
+export function recurringLineKey(line: RecurringPreviewLine): string {
+  return `${line.bookingId}|${line.periodStart}`;
+}
+
 /** Firma material de una línea: cambia si cambia el periodo, el monto o el IVA. */
 function lineSignature(line: RecurringPreviewLine): string {
   return [
@@ -76,16 +85,10 @@ function lineSignature(line: RecurringPreviewLine): string {
   ].join("~");
 }
 
-/** Firma por reserva: concatena (ordenadas) las firmas de todos sus periodos. */
+/** Firma por línea (reserva + periodo). */
 export function buildSignatures(lines: readonly RecurringPreviewLine[]): Record<string, string> {
-  const byBooking = new Map<string, string[]>();
-  for (const line of lines) {
-    const arr = byBooking.get(line.bookingId) ?? [];
-    arr.push(lineSignature(line));
-    byBooking.set(line.bookingId, arr);
-  }
   const out: Record<string, string> = {};
-  for (const [id, sigs] of byBooking) out[id] = sigs.slice().sort().join("|");
+  for (const line of lines) out[recurringLineKey(line)] = lineSignature(line);
   return out;
 }
 
@@ -99,7 +102,7 @@ export function recurringPreviewFingerprint(
 ): string {
   const sigs = buildSignatures(lines);
   const selectable = new Set(
-    lines.filter((l) => isLineSelectable(l, allowStaleRate)).map((l) => l.bookingId),
+    lines.filter((l) => isLineSelectable(l, allowStaleRate)).map(recurringLineKey),
   );
   return Object.keys(sigs)
     .sort()
@@ -140,7 +143,7 @@ export function reconcileRecurringSelection(
 ): RecurringSelectionState {
   const signatures = buildSignatures(lines);
   const selectable = new Set(
-    lines.filter((l) => isLineSelectable(l, allowStaleRate)).map((l) => l.bookingId),
+    lines.filter((l) => isLineSelectable(l, allowStaleRate)).map(recurringLineKey),
   );
 
   const selected = new Set<string>();
