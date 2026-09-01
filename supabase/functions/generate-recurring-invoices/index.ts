@@ -718,7 +718,7 @@ Deno.serve(async (req) => {
       return jsonResponse(req, {
         success: false,
         error: "Se requiere una selección explícita",
-      }, 400);
+      }, { status: 400 });
     }
 
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
