@@ -1,3 +1,13 @@
+## [7.413.0] - 2026-09-01
+### Fix (cierre R9 · recurrentes, REP y reportes)
+- R9-18 fail-closed: `supabase/functions/generate-recurring-invoices/selection.ts` filtra exclusivamente por `selections` (vacío/inválido ⇒ 0) o, si `selections` no vino, exclusivamente por `bookingIds` (vacío ⇒ 0). Sin ningún selector devuelve `null` y `index.ts` responde 400 "Se requiere una selección explícita" sin escribir. El cron mutante sigue siendo no-op.
+- R9-17: la recuperación de mantenimiento reporta `pendingRemaining` tras el tope de 12 meses y el cursor sólo avanza hasta lo realmente creado.
+- R9-02 (REP): `resolveRepExchange` es la única decisión compartida por `validateRelatedInvoiceExchange` y `computeRepExchange`. Misma moneda ⇒ 1; factura extranjera + pago MXN ⇒ TC de la factura (finito, > 0, != 1); factura MXN + pago extranjero ⇒ TC del pago; dos extranjeras distintas ⇒ falla cerrada antes del PAC. `index.ts` pasa `payment.exchange_rate`.
+- Reporte mensual: `report_revenue_by_month` no reinterpreta la moneda del pago con la de la factura. Estado de cuenta: `get_customer_summary` advierte también pagos sin conversión válida.
+- Pruebas: `selection_test.ts` cubre selección vacía, inválida, inexistente, legacy y sin selector; `decisions_test.ts` cubre la matriz de monedas del REP; `supabase/tests/r9_payment_fx_smoke.sql` ahora usa `ON_ERROR_STOP on` y `RAISE EXCEPTION` (mantiene BEGIN/ROLLBACK) y agrega una prueba semántica de `get_customer_summary`.
+- R9-12: la aplicabilidad de 629/630 se documenta contra el catálogo oficial del SAT descargado de omawww.sat.gob.mx (`catCFDI_V_33_23032023.xls`, hoja `c_RegimenFiscal`: Física="Sí", Moral="No", vigencia 01-01-2024). Sin cambios de aplicabilidad.
+- YAGNI: se elimina `roadmap.md`.
+
 ## [7.412.0] - 2026-09-01
 ### Fix (facturación recurrente manual)
 - Se desprogramó el cron `generate-recurring-invoices-daily` (migración con `cron.unschedule`): los borradores de renta mensual ya no se crean solos, porque agrupar/separar reservas en una factura es decisión del operador.
