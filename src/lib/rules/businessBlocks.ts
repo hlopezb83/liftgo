@@ -43,7 +43,8 @@ export type BusinessBlockCode =
   | "quote_already_converted"
   | "quote_sale_assignment_incomplete"
   | "supplier_bill_self_approval"
-  | "customer_outstanding_balance";
+  | "customer_outstanding_balance"
+  | "booking_not_final_for_delete";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
 export type BusinessBlockTone = "info" | "warning";
@@ -213,6 +214,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Registra los pagos o notas de crédito hasta dejar el saldo en cero y vuelve a intentarlo.",
     tone: "info",
   },
+  booking_not_final_for_delete: {
+    action: "No puedes eliminar esta reserva",
+    reason: "La reserva sigue confirmada (activa); sólo se pueden eliminar reservas canceladas o completadas.",
+    nextStep: "Primero usa Cancelar y después podrás eliminarla.",
+    tone: "info",
+  },
 };
 
 /** Devuelve la copia canónica del bloqueo, con overrides opcionales. */
@@ -254,6 +261,8 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /aprobar una factura que t(ú|u) mismo registraste/i, code: "supplier_bill_self_approval" },
   // Guard `trg_guard_customer_archive` y RPC `soft_delete_customer`.
   { pattern: /el cliente tiene saldo pendiente/i, code: "customer_outstanding_balance" },
+  // RPC `delete_booking`: sólo reservas canceladas o completadas.
+  { pattern: /solo se pueden eliminar reservas canceladas o completadas/i, code: "booking_not_final_for_delete" },
 ];
 
 
