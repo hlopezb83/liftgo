@@ -37,7 +37,6 @@ Deno.serve(async (req) => {
     const currentMonth = `${nowMty.getFullYear()}-${
       String(nowMty.getMonth() + 1).padStart(2, "0")
     }`;
-    const firstOfMonth = `${currentMonth}-01`;
 
     // FIX-14: sin filtro de estatus en la query — las pólizas activas de
     // unidades no rentadas se clasifican como "omitidas por estado" y se
@@ -59,7 +58,6 @@ Deno.serve(async (req) => {
       (p) => p.forklifts?.status === "rented",
     );
 
-    let generated = 0;
     // skipped = ya generadas este mes (las omitidas por estado van aparte).
     let skipped = (policies?.length ?? 0) - pendingPolicies.length;
     const details: string[] = [];
@@ -81,7 +79,7 @@ Deno.serve(async (req) => {
       candidates,
       currentMonth,
     );
-    generated = run.generated;
+    const generated = run.generated;
     skipped += run.skipped;
     details.push(...run.details);
 
