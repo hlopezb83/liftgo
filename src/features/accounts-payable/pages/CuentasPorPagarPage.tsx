@@ -39,8 +39,9 @@ export default function CuentasPorPagarPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const releaseLocks = useReleaseStalePaymentLocks();
-  // Solo tiene sentido ofrecer el barrido si hay facturas marcadas en proceso.
-  const lockedCount = visibleListRows(bills).filter((b) => b.payment_in_progress_at !== null).length;
+  // R7-12: el conteo viene del RPC (universo completo + las mismas
+  // precondiciones del barrido), no de las filas visibles de la página.
+  const { data: releasableLocks = 0 } = useReleasablePaymentLocksCount();
 
   const canCreate = useHasModuleAccess("Facturas de Proveedor", "full");
   usePageActions({ onNew: canCreate ? createDialog.openDialog : undefined, newLabel: "Nueva factura de proveedor" });
