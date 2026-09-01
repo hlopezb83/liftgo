@@ -1,0 +1,1 @@
+{"description": "Seis pruebas del timbrado fallaban porque el RFC ficticio usado en los datos de prueba no pasaba el dígito verificador del SAT, así que todas se detenían en la puerta de entrada. Se cambió por un RFC de prueba válido; sin cambios de lógica ni de comportamiento en producción."}
