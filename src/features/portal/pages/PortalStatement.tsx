@@ -100,6 +100,13 @@ export default function PortalStatement() {
         </CardContent></Card>
       </div>
 
+      {totals.fxMissingCount > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Los totales no incluyen {totals.fxMissingCount} factura(s) en moneda extranjera sin tipo de cambio registrado.
+        </p>
+      )}
+
+
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Facturas</CardTitle>
