@@ -21,14 +21,26 @@ export function derivePortalKpis<B extends { status: string }, I extends Invoice
   const invoiceList = invoices ?? [];
   const activeBookings = bookingList.filter((b) => b.status === "confirmed");
   const unpaidInvoices = invoiceList.filter((i) => i.status !== "paid" && i.status !== "cancelled");
+  // R7-05: una factura en moneda extranjera SIN tipo de cambio se sumaba 1:1
+  // (toMxn devuelve el monto tal cual), subestimando el saldo. Se excluye del
+  // total y se reporta el conteo para avisarlo en la UI.
+  const fxMissing = (i: Invoice) => {
+    const code = (i.moneda ?? "MXN").toUpperCase();
+    if (code === "MXN") return false;
+    const rate = Number(i.tipo_cambio ?? 0);
+    return !(Number.isFinite(rate) && rate > 0);
+  };
+  const convertible = unpaidInvoices.filter((i) => !fxMissing(i));
   const outstanding = sumMoney(
-    unpaidInvoices.map((i) => toMxn(Number(i.balance ?? 0), i.moneda ?? "MXN", i.tipo_cambio)),
+    convertible.map((i) => toMxn(Number(i.balance ?? 0), i.moneda ?? "MXN", i.tipo_cambio)),
   );
+  const fxMissingCount = unpaidInvoices.length - convertible.length;
   return {
     invoiceList,
     activeBookings,
     unpaidInvoices,
     recentInvoices: invoiceList.slice(0, 5),
     outstanding,
+    fxMissingCount,
   };
 }

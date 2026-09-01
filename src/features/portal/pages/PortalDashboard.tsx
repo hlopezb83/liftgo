@@ -49,7 +49,7 @@ export default function PortalDashboard() {
     );
   }
 
-  const { invoiceList, activeBookings, unpaidInvoices, recentInvoices, outstanding } =
+  const { invoiceList, activeBookings, unpaidInvoices, recentInvoices, outstanding, fxMissingCount } =
     derivePortalKpis(bookings, invoices);
   const welcome = customer?.name ? `Bienvenido, ${customer.name}` : "Bienvenido";
   // Oleada 3 (C-3/C-2): formato compacto + escala tipográfica para no truncar el saldo.
@@ -73,6 +73,9 @@ export default function PortalDashboard() {
           value={<span className={balanceClass} title={outstandingLabel}>{outstandingLabel}</span>}
           icon={ExpenseIcon}
           iconColor={outstanding > 0 ? "text-destructive" : "text-success"}
+          hint={fxMissingCount > 0
+            ? `No incluye ${fxMissingCount} factura(s) en moneda extranjera sin tipo de cambio registrado.`
+            : undefined}
         />
         <KpiTile
           label="Total de Facturas"
