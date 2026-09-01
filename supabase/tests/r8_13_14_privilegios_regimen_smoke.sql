@@ -67,11 +67,6 @@ SELECT pg_temp.expect_true('nulo/vacío => NULL',
 -- ---------------------------------------------------------------------------
 -- R8-14: la reparación toca SOLO borradores sin timbrar y deterministas.
 -- ---------------------------------------------------------------------------
-CREATE TEMP TABLE r8_14_probe AS
-SELECT id, status, cfdi_uuid, cfdi_status, receptor_regimen_fiscal
-  FROM public.invoices
- WHERE false;
-
 -- Simula el universo con una tabla espejo (no se modifican facturas reales).
 CREATE TEMP TABLE r8_14_cases (
   etiqueta text,
