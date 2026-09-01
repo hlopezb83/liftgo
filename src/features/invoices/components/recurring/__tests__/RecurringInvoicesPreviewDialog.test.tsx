@@ -82,7 +82,7 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     // El usuario desmarca una fila y cierra el diálogo.
-    fireEvent.click(screen.getByLabelText(/a/i, { selector: "button[role='checkbox']" }));
+    fireEvent.click(screen.getByLabelText("Incluir la reserva a"));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     rerenderWith(false, lines);
@@ -95,7 +95,7 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
     const { rerenderWith } = setup(lines);
 
-    fireEvent.click(screen.getByLabelText(/a/i, { selector: "button[role='checkbox']" }));
+    fireEvent.click(screen.getByLabelText("Incluir la reserva a"));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     // Refetch: mismas líneas (nuevos objetos) mientras sigue abierto.
