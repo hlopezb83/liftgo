@@ -4,6 +4,7 @@ import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/busines
 import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 import {
+  maintenanceLogQueries,
   useUpdateMaintenanceLog,
   type MaintenanceLog,
 } from "./useMaintenanceLogs";
