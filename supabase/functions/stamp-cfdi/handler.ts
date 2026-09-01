@@ -315,7 +315,7 @@ export async function handleStampCfdi(
     const paymentForm = isGlobal
       ? "01"
       : (paymentMethod === "PPD" ? "99" : (inv.forma_pago || "99"));
-    const usoCfdi = isGlobal ? "S01" : (inv.uso_cfdi || "G03");
+    const usoCfdi = isGlobal ? "S01" : String(inv.uso_cfdi || "G03");
     const legalName = isGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
       String(
         inv.receptor_razon_social ?? inv.customer_name ?? "Público General",
