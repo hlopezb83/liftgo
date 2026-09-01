@@ -1,3 +1,11 @@
+## [7.409.4] - 2026-09-01
+### Fix (auditoría R9 · régimen fiscal) — R9-03
+- La reparación de `receptor_regimen_fiscal` de R8-14 sólo cubría `status='draft'`, pero existen facturas `sent`/`partial`/`paid` sin timbrar (`cfdi_uuid IS NULL`) que siguen siendo fiscalmente mutables y timbrables.
+- Nueva migración inmutable con predicado por estado de emisión fiscal: `cfdi_uuid IS NULL AND cfdi_status NOT IN ('stamped','cancelled') AND status <> 'cancelled' AND cancellation_status IN ('none','')`. Las canceladas quedan fuera aunque no tengan UUID (evidencia congelada).
+- Reutiliza `public.normalize_regimen_fiscal(text)`; sólo escribe cuando la normalización es determinista y cambia el valor. Ambiguos intactos. Idempotente; 0 filas candidatas en vivo antes y después.
+- Sin cambios en notas de crédito, complementos de pago, snapshots fiscales ni otros campos de la factura. Ningún cambio de TypeScript.
+- Smoke: `supabase/tests/r9_03_regimen_fiscal_no_timbradas_smoke.sql`.
+
 ## [7.409.3] - 2026-09-01
 ### Fix (auditoría R9 · cuentas por pagar) — R9-08
 - `set_supplier_bill_approval_status()` sólo recalculaba desde `pending`/`not_required`: una factura rechazada que se corregía (total, moneda o tipo de cambio) seguía `rejected` y quedaba fuera de los KPIs y del aging de CxP pese a tener saldo. Ahora `rejected` también entra a la re-evaluación cuando cambia un campo financiero relevante.
