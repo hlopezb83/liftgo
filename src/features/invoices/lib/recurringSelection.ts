@@ -34,13 +34,30 @@ export interface RecurringSelectionState {
   deselected: ReadonlySet<string>;
   /** Reservas que alguna vez fueron seleccionables (para no re-ofrecerlas). */
   known: ReadonlySet<string>;
-  /** Firma material por reserva, para detectar cambios de periodo/monto. */
+  /** Firma material por reserva presente en el preview actual. */
   signatures: Readonly<Record<string, string>>;
+  /**
+   * R9-01: firma material de toda reserva vista durante la sesión abierta del
+   * diálogo (incluidas las que desaparecieron del preview). Permite reconocer
+   * una reserva que reaparece con la misma firma y respetar la intención del
+   * usuario en vez de tratarla como fila nueva.
+   */
+  history: Readonly<Record<string, string>>;
+  /** R9-01: última intención "marcada" del usuario, aunque la fila esté ausente. */
+  intentSelected: ReadonlySet<string>;
 }
 
 export function emptyRecurringSelection(): RecurringSelectionState {
-  return { selected: new Set(), deselected: new Set(), known: new Set(), signatures: {} };
+  return {
+    selected: new Set(),
+    deselected: new Set(),
+    known: new Set(),
+    signatures: {},
+    history: {},
+    intentSelected: new Set(),
+  };
 }
+
 
 /** Una reserva es seleccionable si es elegible y, si trae aviso de tarifa
  *  modificada, sólo cuando el operador confirmó explícitamente. */
@@ -90,6 +107,31 @@ export function recurringPreviewFingerprint(
     .join(";");
 }
 
+type IdOutcome = "deselected" | "selected" | "known-only" | "absent-known";
+
+/** Decide el destino de una reserva presente en el preview actual. */
+function resolveId(
+  prev: RecurringSelectionState,
+  id: string,
+  signature: string,
+  isSelectable: boolean,
+): IdOutcome {
+  // R9-01: la firma de referencia viene del histórico de la sesión, así una
+  // reserva que desapareció y volvió igual no se trata como fila nueva.
+  const prevSig = prev.history[id] ?? prev.signatures[id];
+  // Un cambio material obliga a re-aprobar: se olvida el histórico y la fila
+  // queda desmarcada sin volver a auto-seleccionarse.
+  const changed = prevSig !== undefined && prevSig !== signature;
+  const wasKnown = prev.known.has(id) && !changed;
+
+  if (changed || (prev.deselected.has(id) && !changed)) return "deselected";
+  // No seleccionable ahora (ineligible o bloqueada por tarifa sin confirmar):
+  // fuera de la selección, pero conservamos su historial de conocida.
+  if (!isSelectable) return wasKnown ? "absent-known" : "known-only";
+  if (!wasKnown) return "selected"; // Fila nueva y seleccionable: marcada por defecto.
+  return prev.intentSelected.has(id) ? "selected" : "known-only";
+}
+
 /** Reconcilia el estado previo contra las filas actuales del preview. */
 export function reconcileRecurringSelection(
   prev: RecurringSelectionState,
@@ -104,36 +146,37 @@ export function reconcileRecurringSelection(
   const selected = new Set<string>();
   const deselected = new Set<string>();
   const known = new Set<string>();
+  const intentSelected = new Set<string>();
 
   for (const id of Object.keys(signatures)) {
-    const changed = prev.signatures[id] !== undefined && prev.signatures[id] !== signatures[id];
-    const wasDeselected = prev.deselected.has(id) && !changed;
-    const wasKnown = prev.known.has(id) && !changed;
-
-    if (wasDeselected) deselected.add(id);
-    // Un cambio material obliga a re-aprobar: se olvida el histórico y la fila
-    // queda desmarcada sin volver a auto-seleccionarse.
-    if (changed) deselected.add(id);
-
-    if (!selectable.has(id)) {
-      // No seleccionable ahora (ineligible o bloqueada por tarifa sin confirmar):
-      // fuera de la selección, pero conservamos su historial de conocida.
-      if (wasKnown) known.add(id);
+    const isSelectable = selectable.has(id);
+    const outcome = resolveId(prev, id, signatures[id], isSelectable);
+    if (outcome === "deselected") {
+      deselected.add(id);
+      if (isSelectable) known.add(id);
+      else if (prev.known.has(id)) known.add(id);
       continue;
     }
-
-    known.add(id);
-    if (deselected.has(id)) continue;
-    if (wasKnown) {
-      if (prev.selected.has(id)) selected.add(id);
-    } else {
-      // Fila nueva y seleccionable: se ofrece marcada por defecto.
+    if (isSelectable) known.add(id);
+    else if (outcome === "absent-known") known.add(id);
+    if (outcome === "selected") {
       selected.add(id);
+      intentSelected.add(id);
     }
   }
 
-  return { selected, deselected, known, signatures };
+  // R9-01: mientras el diálogo siga abierto conservamos la intención de las
+  // reservas ausentes del preview actual (desmarcadas o marcadas). El reset por
+  // sesión ocurre al reabrir el diálogo (R9-02).
+  for (const id of prev.deselected) if (signatures[id] === undefined) deselected.add(id);
+  for (const id of prev.known) if (signatures[id] === undefined) known.add(id);
+  for (const id of prev.intentSelected) if (signatures[id] === undefined) intentSelected.add(id);
+
+  const history = { ...prev.history, ...signatures };
+
+  return { selected, deselected, known, signatures, history, intentSelected };
 }
+
 
 /** Alterna una reserva registrando la intención explícita del usuario. */
 export function toggleRecurringSelection(
@@ -142,14 +185,17 @@ export function toggleRecurringSelection(
 ): RecurringSelectionState {
   const selected = new Set(state.selected);
   const deselected = new Set(state.deselected);
+  const intentSelected = new Set(state.intentSelected);
   if (selected.has(id)) {
     selected.delete(id);
+    intentSelected.delete(id);
     deselected.add(id);
   } else {
     selected.add(id);
+    intentSelected.add(id);
     deselected.delete(id);
   }
-  return { ...state, selected, deselected };
+  return { ...state, selected, deselected, intentSelected };
 }
 
 /** Alterna un grupo completo (cliente) respetando la misma semántica. */
@@ -160,14 +206,18 @@ export function toggleRecurringGroup(
   const allSelected = ids.length > 0 && ids.every((id) => state.selected.has(id));
   const selected = new Set(state.selected);
   const deselected = new Set(state.deselected);
+  const intentSelected = new Set(state.intentSelected);
   for (const id of ids) {
     if (allSelected) {
       selected.delete(id);
+      intentSelected.delete(id);
       deselected.add(id);
     } else {
       selected.add(id);
+      intentSelected.add(id);
       deselected.delete(id);
     }
   }
-  return { ...state, selected, deselected };
+  return { ...state, selected, deselected, intentSelected };
 }
+

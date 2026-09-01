@@ -1,3 +1,11 @@
+## [7.409.2] - 2026-09-01
+### Fix (auditoría R9 · facturación recurrente) — R9-01 / R9-02
+- R9-01: `reconcileRecurringSelection` conserva `history` e `intentSelected` de las reservas ausentes del preview mientras el diálogo siga abierto, así una fila que desaparece y reaparece con la misma firma material mantiene la intención del operador en vez de auto-seleccionarse como nueva.
+- Una reaparición con firma distinta (periodo, monto facturable, IVA o prorrateo) sigue quedando desmarcada y requiere re-aprobación manual (comportamiento R8-05 intacto).
+- R9-02: `RecurringInvoicesPreviewDialog` detecta la transición de cierre→apertura y reinicia `allowStaleRate=false` y la selección desde el preview actual; el consentimiento de tarifa modificada es explícito por sesión y no se hereda al reabrir.
+- Dentro de una sesión abierta no cambia nada: los refrescos del preview no reinician las decisiones y el switch de tarifa modificada sólo afecta a las líneas con aviso.
+- Tests: `recurringSelection.test.ts` (+4) y nuevo `src/features/invoices/components/recurring/__tests__/RecurringInvoicesPreviewDialog.test.tsx` (3).
+
 ## [7.409.1] - 2026-09-01
 ### Fix (auditoría R8 · cierre de bajos) — R8-11 / R8-13 / R8-14
 - R8-11: el KPI "sin tipo de cambio" de CxP contaba antes de filtrar borradores mientras el aging los excluía; ahora ambos cuentan el mismo universo exigible (no borrador, con saldo) con el predicado canónico `isFxMissing`.
