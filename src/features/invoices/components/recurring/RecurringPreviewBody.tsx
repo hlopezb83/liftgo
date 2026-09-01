@@ -79,7 +79,36 @@ function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
   );
 }
 
+/**
+ * BUG-SEP1: explica por qué no hay nada elegible cuando el mes en curso ya
+ * quedó facturado y el siguiente periodo aún no empieza.
+ */
+function AlreadyInvoicedNotice({
+  eligibleCount,
+  alreadyInvoicedCount,
+}: {
+  eligibleCount: number;
+  alreadyInvoicedCount: number;
+}) {
+  if (eligibleCount > 0 || alreadyInvoicedCount === 0) return null;
+  return (
+    <div className="mb-3 flex items-start gap-3 rounded-md border border-blue-500/40 bg-blue-500/10 p-3 text-sm">
+      <InfoAlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div>
+        <p className="font-medium">El periodo en curso ya está facturado</p>
+        <p className="text-xs text-muted-foreground">
+          {alreadyInvoicedCount} reserva{alreadyInvoicedCount === 1 ? "" : "s"} ya tiene
+          {alreadyInvoicedCount === 1 ? "" : "n"} factura de este mes (revísalas en la lista de
+          facturas). Las líneas marcadas como “Período futuro” corresponden al siguiente ciclo y
+          se podrán generar cuando inicie ese mes.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 /** R6-F5: aviso de tarifa modificada después del periodo. */
+
 function StaleRateNotice({
   staleCount,
   allowStaleRate,
