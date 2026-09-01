@@ -1,3 +1,13 @@
+## [7.410.0] - 2026-09-01
+### Security (auditoría R10 · cuentas por pagar) — R10-01 / R10-02
+- R10-01: `public.request_bill_reapproval()` podía resolver una factura **rechazada** a `not_required` cuando el total en MXN quedaba bajo `company_settings.cxp_approval_threshold_mxn`, borrando además `rejected_by/rejected_at/approval_notes`. El propio solicitante (admin/administrativo) borraba así un rechazo explícito y la factura quedaba pagable sin segundo par de ojos.
+- R10-01: ahora la reaprobación fija **siempre** `approval_status = 'pending'` (nunca `not_required`, nunca `approved`), sin importar umbral ni tipo de cambio. Sólo limpia `approved_by/approved_at`; la evidencia del rechazo se conserva hasta que un aprobador resuelva el nuevo ciclo. `supplier_bill_approvals` y `activity_feed` siguen registrando el evento `reapproval_requested`.
+- R10-01: por coherencia, `set_supplier_bill_approval_status()` también fuerza `pending` cuando `OLD.approval_status = 'rejected'` y se corrige un campo financiero (antes podía caer en `not_required` por debajo del umbral). El resto de la re-evaluación de R9-08 no cambia.
+- R10-02: `set_supplier_bill_approval_status()` y `guard_supplier_bill_approval()` retornaban temprano cuando `auth.jwt() ->> 'role'` era NULL, es decir cualquier conexión sin JWT (SQL directo, backfills, herramientas internas) se saltaba el recálculo de aprobación y los candados de "ya aprobada" / "ya tiene pagos".
+- R10-02: se elimina ese bypass. Se conservan sólo los dos caminos confiables: rol de servicio real (`auth.jwt() ->> 'role' = 'service_role'` y, en el trigger no-DEFINER, `current_user = 'service_role'` por el `SET ROLE` de PostgREST) y la convención interna acotada `app.cxp_rpc = 'on'` que ya usan `approve_supplier_bill`, `reject_supplier_bill` y `request_bill_reapproval`.
+- Sin cambios en RLS, permisos, UI, portal, facturación recurrente, normalización fiscal ni mantenimiento.
+- Smoke: `supabase/tests/r10_cxp_approval_integrity_smoke.sql`.
+
 ## [7.409.6] - 2026-09-01
 ### Refactor (auditoría R9 · deduplicación y privilegios) — R9-04 / R9-06 / R9-10 / R9-05
 - R9-04: `stamp-cfdi/handler.ts` usa `resolveReceptorRegimenFiscal` del módulo compartido (igual que NC y REP). Comportamiento idéntico: global XAXX -> `"616"`, no global -> valor recortado + `isValidRegimenFiscalCode`. Sin cambios en el payload al PAC. Función redesplegada.
