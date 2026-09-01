@@ -1,3 +1,12 @@
+## [7.407.0] - 2026-09-01
+### Fix (auditoría R8 · consistencia FX) — R8-02 / R8-03 / R8-04
+- Nuevo helper SQL canónico `public.fx_is_missing(moneda, tipo_cambio)`: divisa con TC nulo, <= 0 o exactamente 1. MXN nunca es fx_missing.
+- `v_invoices_with_balance`: `fx_missing`, `total_mxn` y `balance_mxn` derivan del helper (TC = 1 en divisa ya no convierte 1:1). Se conserva `security_invoker = true`.
+- `get_financial_kpis`: MRR actual/previo y `overdue_total` excluyen documentos fx_missing y sus contadores (`mrr_fx_missing_count`, `mrr_prev_fx_missing_count`, `overdue_fx_missing_count`) usan el mismo predicado. Recreada con `CREATE OR REPLACE` completo (sin parcheo por string).
+- `get_portal_invoices`: deja de hacer `COALESCE(tipo_cambio, 1)`; devuelve el valor real (nullable). Guards de rol/RLS sin cambios.
+- Portal: `derivePortalKpis` y el nuevo `lib/statementRows.ts` reutilizan el helper TS canónico `isFxMissing` de cash-flow; el Estado de Cuenta excluye esas filas de los totales MXN, muestra el aviso y el filtro "Solo con saldo" usa `balanceMxn`.
+- Tests: `statementRows.test.ts`, `portalKpis.test.ts` y smoke `supabase/tests/r8_fx_missing_smoke.sql` (matriz MXN / USD null / 0 / negativo / 1 / 18).
+
 ## [7.406.2] - 2026-09-01
 ### Fix (monitoreo)
 - Kanban de mantenimiento: el optimistic update usaba la key `{forkliftId: null}` mientras la lista se cachea como `{forkliftId: null, archived: false}`; ahora ambos comparten `maintenanceLogQueries.list(...)`, así la tarjeta se queda en la columna destino sin esperar el refetch.
