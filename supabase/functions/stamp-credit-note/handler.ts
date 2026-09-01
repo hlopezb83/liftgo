@@ -2,6 +2,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
+import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
@@ -324,6 +325,14 @@ export async function handleStampCreditNote(
         }. Captúralos en el cliente o en la factura antes de timbrar.`;
         await releaseClaim(msg);
         return json({ error: msg }, 400, jsonHeaders);
+      }
+      // R7-03: el fail-fast de régimen fiscal (A4B-08) también aplica aquí;
+      // antes la NC enviaba el valor crudo (p. ej. "601 - General de Ley…").
+      if (!isValidRegimenFiscalCode(taxSystem)) {
+        const msg =
+          `El régimen fiscal del receptor "${taxSystem}" no es un código válido del catálogo del SAT (c_RegimenFiscal). Debe ser el código de 3 dígitos, p. ej. "601". Corrígelo en la factura origen (o en el cliente y vuelve a generar el borrador) antes de timbrar.`;
+        await releaseClaim(msg);
+        return json({ error: msg }, 422, jsonHeaders);
       }
     }
 

@@ -15,6 +15,7 @@ import {
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
+import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
 import {
   claimRejectionMessage,
   computeRepExchange,
@@ -305,6 +306,13 @@ Deno.serve(async (req) => {
         `Faltan datos fiscales del receptor: ${missing}. Captúralos en el cliente o en la factura antes de timbrar el complemento de pago.`;
       await releaseClaim(msg);
       return jsonError(req, 400, msg);
+    }
+    // R7-03: mismo fail-fast de régimen fiscal que stamp-cfdi.
+    if (!repIsGlobal && !isValidRegimenFiscalCode(repTaxSystem)) {
+      const msg =
+        `El régimen fiscal del receptor "${repTaxSystem}" no es un código válido del catálogo del SAT (c_RegimenFiscal). Debe ser el código de 3 dígitos, p. ej. "601". Corrígelo en la factura antes de timbrar el complemento de pago.`;
+      await releaseClaim(msg);
+      return jsonError(req, 422, msg);
     }
 
     const payload = {
