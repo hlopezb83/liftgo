@@ -61,6 +61,8 @@ export function prorateMonthlyAmount(
 ): number {
   if (!(monthlyRate > 0) || !(daysInMonth > 0) || billedDays <= 0) return 0;
   if (billedDays >= daysInMonth) return currency(monthlyRate).value;
-  return currency(monthlyRate).multiply(billedDays).distribute(daysInMonth)[0]
-    .value;
+  const cents = currency(monthlyRate).intValue;
+  return currency(Math.round((cents * billedDays) / daysInMonth), {
+    fromCents: true,
+  }).value;
 }
