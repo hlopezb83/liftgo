@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./layouts/ErrorBoundary";
-import { reloadForStaleChunk } from "./lib/staleChunkReload";
+import { isStaleChunkMessage, reloadForStaleChunk } from "./lib/staleChunkReload";
 import "./lib/forms/zodConfig";
 import "./index.css";
 
@@ -33,12 +33,12 @@ window.addEventListener("vite:preloadError", (event) => {
 });
 
 window.addEventListener("error", (event) => {
-  if (isStaleChunkError(event.message)) reloadForStaleChunk();
+  if (isStaleChunkMessage(event.message)) reloadForStaleChunk();
 });
 
 window.addEventListener("unhandledrejection", (event) => {
   const message = event.reason instanceof Error ? event.reason.message : String(event.reason ?? "");
-  if (isStaleChunkError(message)) reloadForStaleChunk();
+  if (isStaleChunkMessage(message)) reloadForStaleChunk();
 });
 
 // M-22: ya NO se borra la llave en `load` — eso causaba un bucle infinito

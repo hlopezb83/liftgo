@@ -2,7 +2,11 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { WarnIcon, RefreshIcon, HomeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Sentry } from "@/lib/observability/sentry";
-import { clearStaleChunkReloadGuard, reloadForStaleChunk } from "@/lib/staleChunkReload";
+import {
+  clearStaleChunkReloadGuard,
+  isStaleChunkMessage,
+  reloadForStaleChunk,
+} from "@/lib/staleChunkReload";
 
 interface Props {
   children: ReactNode;
@@ -18,15 +22,6 @@ interface State {
   hasError: boolean;
   error: Error | null;
   isChunkError: boolean;
-}
-
-function isStaleChunkMessage(msg: string): boolean {
-  return (
-    msg.includes("Failed to fetch dynamically imported module") ||
-    msg.includes("Importing a module script failed") ||
-    msg.includes("error loading dynamically imported module") ||
-    msg.includes("ChunkLoadError")
-  );
 }
 
 /**
