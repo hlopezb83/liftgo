@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { applyVat, DEFAULT_VAT_RATE, sumMoney } from "@/lib/money";
+import {
+  emptyRecurringSelection,
+  isLineSelectable,
+  recurringPreviewFingerprint,
+  reconcileRecurringSelection,
+  toggleRecurringGroup,
+  toggleRecurringSelection,
+  type RecurringSelectionState,
+} from "../../lib/recurringSelection";
 import { RecurringPreviewBody } from "./RecurringPreviewBody";
 import type {
   RecurringPreviewLine,
