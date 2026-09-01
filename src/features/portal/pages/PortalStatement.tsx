@@ -10,9 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { toMxn } from "@/lib/money";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { PortalInvoicesTable, type PortalPayment } from "../components/statement/PortalInvoicesTable";
+import { buildStatementRows, filterWithBalance, sumStatementTotals } from "../lib/statementRows";
 
 
 export default function PortalStatement() {
@@ -24,32 +24,11 @@ export default function PortalStatement() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const onlyBalanceId = useId();
 
-  const rows = (invoices ?? []).map((inv) => {
-    const invPayments = (payments ?? []).filter((p: PortalPayment) => p.invoice_id === inv.id);
-    // Saldos vienen del servidor (BL-43/44/45): total − pagado − NCs vigentes.
-    const paid = Number(inv.paid_amount ?? 0);
-    const credited = Number(inv.credited_amount ?? 0);
-    const balance = Number(inv.balance ?? Math.max(Number(inv.total) - paid - credited, 0));
-    // R6-B2: totales del estado de cuenta en MXN.
-    const moneda = (inv as { moneda?: string | null }).moneda ?? "MXN";
-    const tipoCambio = (inv as { tipo_cambio?: number | string | null }).tipo_cambio;
-    const totalMxn = toMxn(Number(inv.total), moneda, tipoCambio);
-    const paidMxn = toMxn(paid, moneda, tipoCambio);
-    const creditedMxn = toMxn(credited, moneda, tipoCambio);
-    const balanceMxn = toMxn(balance, moneda, tipoCambio);
-    return { inv, payments: invPayments, paid, credited, balance, moneda, tipoCambio, totalMxn, paidMxn, creditedMxn, balanceMxn };
-  });
+  // R6-B2 / R8-04: totales en MXN excluyendo divisas sin tipo de cambio.
+  const rows = buildStatementRows(invoices, (payments ?? []) as PortalPayment[]);
+  const filtered = onlyBalance ? filterWithBalance(rows) : rows;
+  const totals = sumStatementTotals(rows);
 
-
-  const filtered = onlyBalance ? rows.filter((r) => r.balance > 0.009) : rows;
-
-  const totals = (() => {
-    const invoiced = rows.reduce((s, r) => s + r.totalMxn, 0);
-    const paid = rows.reduce((s, r) => s + r.paidMxn, 0);
-    const credited = rows.reduce((s, r) => s + r.creditedMxn, 0);
-    const balance = rows.reduce((s, r) => s + r.balanceMxn, 0);
-    return { invoiced, paid, credited, balance };
-  })();
 
 
   const handleDownload = async () => {
