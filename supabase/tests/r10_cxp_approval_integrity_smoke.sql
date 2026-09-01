@@ -22,10 +22,13 @@ SELECT pg_temp.expect_true(
     ~* 'SET\s+approval_status\s*=\s*''pending'''
 );
 
+-- (la única mención a not_required permitida es el comentario explicativo)
 SELECT pg_temp.expect_true(
-  'R10-01 request_bill_reapproval ya no menciona not_required',
-  (SELECT prosrc FROM pg_proc WHERE proname = 'request_bill_reapproval') !~* 'not_required'
+  'R10-01 request_bill_reapproval no asigna not_required',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'request_bill_reapproval')
+    !~* 'approval_status\s*(:?=)\s*''not_required'''
 );
+
 
 -- 2) Evidencia del rechazo preservada: la función ya no limpia rejected_*.
 SELECT pg_temp.expect_true(
