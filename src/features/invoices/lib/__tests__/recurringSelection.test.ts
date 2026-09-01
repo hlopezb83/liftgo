@@ -113,14 +113,15 @@ describe("R8-05 — selección obsoleta tras cambios del preview", () => {
     expect(s.selected.has(K("a"))).toBe(false);
   });
 
-  it("desmarca la fila cuyo periodo cambió y no la re-agrega sola", () => {
+  it("R9-18: un periodo distinto es una fila nueva (el anterior desaparece)", () => {
     let s = reconcile(emptyRecurringSelection(), [line({ bookingId: "a" })]);
     const moved = [line({ bookingId: "a", periodStart: "2026-09-01", periodEnd: "2026-09-30" })];
     s = reconcile(s, moved);
-    expect(ids(s)).toEqual([]);
+    expect([...s.selected]).toEqual([K("a", "2026-09-01")]);
     s = reconcile(s, moved);
-    expect(ids(s)).toEqual([]);
+    expect([...s.selected]).toEqual([K("a", "2026-09-01")]);
   });
+
 
   it("desmarca la fila cuyo monto facturable cambió", () => {
     let s = reconcile(emptyRecurringSelection(), [line({ bookingId: "a" })]);
