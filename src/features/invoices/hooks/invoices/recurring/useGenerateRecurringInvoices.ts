@@ -22,6 +22,11 @@ export interface GenerateRecurringResponse {
 
 export interface GenerateRecurringArgs {
   bookingIds?: string[];
+  /**
+   * R9-18: combinaciones reserva + periodo seleccionadas. Cuando viene, el
+   * edge factura EXCLUSIVAMENTE esos periodos (no todos los de la reserva).
+   */
+  selections?: Array<{ bookingId: string; periodStart: string }>;
   /** R6-F5: confirmación explícita para facturar periodos con tarifa dudosa. */
   allowStaleRate?: boolean;
 }
@@ -41,6 +46,7 @@ export function useGenerateRecurringInvoices() {
           body: {
             preview: false,
             bookingIds: args?.bookingIds,
+            selections: args?.selections,
             allowStaleRate: args?.allowStaleRate === true,
           },
         },

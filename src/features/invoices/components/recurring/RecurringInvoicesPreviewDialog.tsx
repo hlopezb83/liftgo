@@ -8,6 +8,7 @@ import { applyVat, resolveVatRatePercent, sumMoney } from "@/lib/money";
 import {
   emptyRecurringSelection,
   isLineSelectable,
+  recurringLineKey,
   recurringPreviewFingerprint,
   reconcileRecurringSelection,
   toggleRecurringGroup,
@@ -26,7 +27,11 @@ interface Props {
   data: RecurringPreviewResponse | undefined;
   isLoading: boolean;
   isGenerating: boolean;
-  onConfirm: (bookingIds: string[], allowStaleRate: boolean) => void;
+  // R9-18: se envían exclusivamente las combinaciones reserva + periodo marcadas.
+  onConfirm: (
+    selections: Array<{ bookingId: string; periodStart: string }>,
+    allowStaleRate: boolean,
+  ) => void;
 }
 
 function periodTitle(period: string | null): string {
@@ -56,7 +61,8 @@ export function RecurringInvoicesPreviewDialog({
   const [allowStaleRate, setAllowStaleRate] = useState(false);
   const isSelectable = (l: RecurringPreviewLine) => isLineSelectable(l, allowStaleRate);
   const staleCount = lines.filter((l) => l.eligible && l.rateWarning).length;
-  const eligibleIds = lines.filter(isSelectable).map((l) => l.bookingId);
+  // R9-18: la unidad seleccionable es reserva + periodo.
+  const eligibleIds = lines.filter(isSelectable).map(recurringLineKey);
 
   // R8-05 / R8-12: la selección se reconcilia contra las filas actuales del
   // preview con un reducer puro, en vez de reconstruirse desde cero. Así las
@@ -99,20 +105,21 @@ export function RecurringInvoicesPreviewDialog({
   // 16% fijo, y acumulación con sumMoney (centavos) — sin drift de centavos.
   const totalSelected = sumMoney(
     lines
-      .filter((l) => isSelectable(l) && selected.has(l.bookingId))
+      .filter((l) => isSelectable(l) && selected.has(recurringLineKey(l)))
       .map((l) => applyVat(l.billedAmount, vatRateFor(l))),
   );
 
   const toggle = (id: string) => setSelection((prev) => toggleRecurringSelection(prev, id));
 
   const toggleGroup = (groupLines: RecurringPreviewLine[]) => {
-    const groupEligibleIds = groupLines.filter(isSelectable).map((l) => l.bookingId);
+    const groupEligibleIds = groupLines.filter(isSelectable).map(recurringLineKey);
     setSelection((prev) => toggleRecurringGroup(prev, groupEligibleIds));
   };
 
   // R14-I: el edge genera UNA factura por línea (período pendiente). Contar
   // facturas reales para que el botón no mienta ("Generar 1" cuando serán 3).
-  const selectedCount = lines.filter((l) => isSelectable(l) && selected.has(l.bookingId)).length;
+  const selectedLines = lines.filter((l) => isSelectable(l) && selected.has(recurringLineKey(l)));
+  const selectedCount = selectedLines.length;
 
 
   return (
@@ -151,7 +158,7 @@ export function RecurringInvoicesPreviewDialog({
         <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isGenerating} />
         <Button
           onClick={() => onConfirm(
-            lines.filter((l) => isSelectable(l) && selected.has(l.bookingId)).map((l) => l.bookingId),
+            selectedLines.map((l) => ({ bookingId: l.bookingId, periodStart: l.periodStart })),
             allowStaleRate,
           )}
 

@@ -34,8 +34,11 @@ function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpe
     previewRecurring.mutate();
   };
 
-  const handleConfirm = (bookingIds: string[], allowStaleRate = false) => {
-    generateRecurring.mutate({ bookingIds, allowStaleRate }, {
+  const handleConfirm = (
+    selections: Array<{ bookingId: string; periodStart: string }>,
+    allowStaleRate = false,
+  ) => {
+    generateRecurring.mutate({ selections, allowStaleRate }, {
       onSuccess: (data) => {
         setPreviewOpen(false);
         setResultOpen(true);

@@ -670,6 +670,8 @@ Deno.serve(async (req) => {
     let body: {
       preview?: boolean;
       bookingIds?: string[];
+      // R9-18: selección explícita reserva + periodo desde el asistente.
+      selections?: Array<{ bookingId?: string; periodStart?: string }>;
       allowStaleRate?: boolean;
     } = {};
     try {
@@ -706,9 +708,22 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { success: true, period: periodMonth, lines });
     }
 
-    const targetItems = body.bookingIds && body.bookingIds.length > 0
-      ? allItems.filter((i) => body.bookingIds!.includes(i.bookingId))
-      : allItems;
+    // R9-18: si el operador mandó combinaciones reserva+periodo, se procesan
+    // EXCLUSIVAMENTE esas. `bookingIds` se conserva para llamadas previas
+    // (reintento) que aún seleccionan por reserva completa.
+    const selectionKeys = new Set(
+      (body.selections ?? [])
+        .filter((s) => s?.bookingId && s?.periodStart)
+        .map((s) => `${s.bookingId}|${s.periodStart}`),
+    );
+    let targetItems = allItems;
+    if (selectionKeys.size > 0) {
+      targetItems = allItems.filter((i) =>
+        selectionKeys.has(`${i.bookingId}|${i.startStr}`)
+      );
+    } else if (body.bookingIds && body.bookingIds.length > 0) {
+      targetItems = allItems.filter((i) => body.bookingIds!.includes(i.bookingId));
+    }
 
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
     // facturar periodos cuya tarifa pudo cambiar después del periodo.
