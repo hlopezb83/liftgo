@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.414.3",
+    "date": "2026-09-01",
+    "title": "Eliminar reserva confirmada: bloqueo explicado",
+    "description": "El botón Eliminar en una reserva confirmada queda bloqueado con explicación ('cancela primero') en vez de fallar con un reporte de error tras el clic. Backend intacto.",
+    "type": "patch"
+  },
+  {
     "version": "7.414.2",
     "date": "2026-09-01",
     "type": "patch",
