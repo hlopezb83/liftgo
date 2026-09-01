@@ -6,6 +6,15 @@
  * `@/lib/domain/satCatalogs`) para no duplicar la fuente de verdad visual, y
  * agrega la información de aplicabilidad que faltaba para validar contra el
  * tipo de persona derivado de la longitud del RFC (12 = moral, 13 = física).
+ *
+ * R9-12: la matriz de aplicabilidad se verificó contra el catálogo oficial
+ * vigente c_RegimenFiscal del SAT (Anexo 20, CFDI 4.0; catálogo con vigencia
+ * de códigos 629/630 desde 01-01-2024), corroborado con dos réplicas
+ * estructuradas independientes del catálogo publicado por el SAT:
+ *   - bambucode/catalogos_sat_JSON (c_RegimenFiscal.json, sincronizado en
+ *     tiempo real desde el sitio del SAT)
+ *   - phpcfdi/resources-sat-catalogs (cfdi_regimenes_fiscales.sql)
+ * Ambas fuentes coinciden en que 629 y 630 son EXCLUSIVOS de persona física.
  */
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
@@ -46,8 +55,15 @@ const APLICABILIDAD: Record<string, { aplicaFisica: boolean; aplicaMoral: boolea
   "625": { aplicaFisica: true, aplicaMoral: false }, // Plataformas Tecnológicas
   "626": { aplicaFisica: true, aplicaMoral: true }, // Régimen Simplificado de Confianza
   "628": { aplicaFisica: false, aplicaMoral: true }, // Hidrocarburos
-  "629": { aplicaFisica: true, aplicaMoral: true }, // Regímenes Fiscales Preferentes y Empresas Multinacionales
-  "630": { aplicaFisica: true, aplicaMoral: true }, // Enajenación de acciones en bolsa de valores
+  // R9-12: corregido de {true,true} a solo persona física, según catálogo
+  // oficial vigente c_RegimenFiscal del SAT (Anexo 20 CFDI 4.0, vigencia desde
+  // 01-01-2024). Verificado contra dos fuentes independientes derivadas del
+  // catálogo publicado por el SAT: bambucode/catalogos_sat_JSON (c_RegimenFiscal.json,
+  // scrapeado en tiempo real del SAT) y phpcfdi/resources-sat-catalogs
+  // (cfdi_regimenes_fiscales.sql) — ambas listan 629 y 630 como fisica="Sí",
+  // moral="No".
+  "629": { aplicaFisica: true, aplicaMoral: false }, // Regímenes Fiscales Preferentes y Empresas Multinacionales (solo física)
+  "630": { aplicaFisica: true, aplicaMoral: false }, // Enajenación de acciones en bolsa de valores (solo física)
 };
 
 export const REGIMEN_FISCAL_CATALOG: RegimenFiscalDef[] = REGIMEN_FISCAL.map((r) => ({

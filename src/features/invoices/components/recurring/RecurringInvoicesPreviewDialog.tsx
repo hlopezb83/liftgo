@@ -4,7 +4,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
-import { applyVat, DEFAULT_VAT_RATE, sumMoney } from "@/lib/money";
+import { applyVat, resolveVatRatePercent, sumMoney } from "@/lib/money";
 import {
   emptyRecurringSelection,
   isLineSelectable,
@@ -36,10 +36,15 @@ function periodTitle(period: string | null): string {
   return `Vista previa — ${formatMonthLongEs(new Date(y, m - 1, 1))}`;
 }
 
-/** M-13: tasa de IVA de la línea como fracción (0.16 por defecto). */
+/**
+ * M-13 / R9-14: tasa de IVA de la línea como fracción (0.16 por defecto).
+ * Usa `resolveVatRatePercent` — el mismo resolutor que la Edge Function de
+ * generación — para que null/undefined/NaN caigan en DEFAULT_VAT_RATE_PERCENT
+ * y un 0% explícito del cliente se respete (antes `Number(null) === 0` los
+ * confundía).
+ */
 function vatRateFor(line: RecurringPreviewLine): number {
-  const pct = Number(line.taxRate);
-  return Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct / 100 : DEFAULT_VAT_RATE;
+  return resolveVatRatePercent(line.taxRate) / 100;
 }
 
 export function RecurringInvoicesPreviewDialog({

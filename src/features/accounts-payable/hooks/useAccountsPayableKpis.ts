@@ -40,28 +40,49 @@ function isAgingEligible(b: SupplierBillListItem): boolean {
   return b.status !== "draft" && Number(b.balance) > 0;
 }
 
+/**
+ * G-B4 / R9-11: factura en divisa sin tipo de cambio. No se puede convertir a
+ * MXN, así que no entra en ningún importe; pero sí sigue esperando aprobación
+ * y sus REP siguen pendientes.
+ */
+function accumulateFxMissing(
+  acc: AccountsPayableKpis,
+  b: SupplierBillListItem,
+  isPendingApproval: boolean,
+) {
+  if (isAgingEligible(b)) acc.fxMissingCount += 1;
+  acc.repPendientes += b.rep_summary.pending;
+  if (isPendingApproval) acc.countPorAprobar += 1;
+}
+
+/**
+ * BL-R8-02: un borrador con balance no es cartera vencida ni pendiente real
+ * (CP-0009 draft inflaba "Vencido $142K"). Se excluye de los tres KPIs de saldo.
+ */
+function accumulateBalance(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: KpiCtx) {
+  const balMxn = balanceMxn(b);
+  if (balMxn <= 0 || b.status === "draft") return;
+  acc.totalPendiente += balMxn;
+  if (b.due_date && b.due_date < ctx.todayYmd) acc.totalVencido += balMxn;
+  else if (b.due_date && b.due_date <= ctx.in7Ymd) acc.totalPorVencer += balMxn;
+}
+
 function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: KpiCtx) {
   if (b.status === "cancelled") return;
   // QA 2A-3: una factura rechazada en aprobación no es deuda vigente.
   if (b.approval_status === "rejected") return;
-  // G-B4: misma regla que el reporte de antigüedad. Una factura en divisa sin
-  // tipo de cambio se sumaba 1:1 e inflaba "Total pendiente/vencido", dejando
-  // la portada de CxP descuadrada contra el aging (que sí la excluye).
+
+  // BL-R8-03: una factura pagada puede quedar con approval_status huérfano en
+  // 'pending' (CP-0010) — no cuenta como "por aprobar". Los borradores SÍ
+  // cuentan aquí: son justo lo que está esperando aprobación.
+  const isPendingApproval = b.approval_status === "pending" && b.status !== "paid";
+
   if (isFxMissing(b.currency, b.exchange_rate)) {
-    if (isAgingEligible(b)) acc.fxMissingCount += 1;
-    acc.repPendientes += b.rep_summary.pending;
+    accumulateFxMissing(acc, b, isPendingApproval);
     return;
   }
 
-
-  const balMxn = balanceMxn(b);
-  // BL-R8-02: un borrador con balance no es cartera vencida ni pendiente real
-  // (CP-0009 draft inflaba "Vencido $142K"). Se excluye de los tres KPIs de saldo.
-  if (balMxn > 0 && b.status !== "draft") {
-    acc.totalPendiente += balMxn;
-    if (b.due_date && b.due_date < ctx.todayYmd) acc.totalVencido += balMxn;
-    else if (b.due_date && b.due_date <= ctx.in7Ymd) acc.totalPorVencer += balMxn;
-  }
+  accumulateBalance(acc, b, ctx);
   // B-10: "pagado mes actual" se calcula por la FECHA REAL DE PAGO
   // (supplier_payments.payment_date), no por issue_date — una factura emitida
   // en mayo y pagada en junio cuenta en junio. Se suman los amounts de los
@@ -72,15 +93,13 @@ function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: 
       acc.pagadoMesActual += toMxn(Number(p.amount), b.currency, b.exchange_rate);
     }
   }
-  // BL-R8-03: una factura pagada puede quedar con approval_status huérfano en
-  // 'pending' (CP-0010) — no cuenta como "por aprobar". Los borradores SÍ
-  // cuentan aquí: son justo lo que está esperando aprobación.
-  if (b.approval_status === "pending" && b.status !== "paid") {
+  if (isPendingApproval) {
     acc.countPorAprobar += 1;
     acc.totalPorAprobar += totalMxn(b);
   }
   acc.repPendientes += b.rep_summary.pending;
 }
+
 
 export function useAccountsPayableKpis() {
   const { data, isLoading, isError, refetch } = useSupplierBills();

@@ -30,12 +30,15 @@ const COLUMN_CONFIG: Record<string, { icon: typeof MaintenanceIcon; color: strin
 
 interface Props {
   logs: (MaintenanceLog & { forklift_name: string })[];
+  /** R9-21: vista actualmente visible (activos vs. archivados) en `MaintenancePage`,
+   * para que el optimistic update patchee exactamente esa query key. */
+  archived?: boolean;
 }
 
-export function MaintenanceKanban({ logs }: Props) {
+export function MaintenanceKanban({ logs, archived = false }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban();
+  const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban(archived);
   const pendingCloseLog = pendingCloseId ? logs.find((l) => l.id === pendingCloseId) ?? null : null;
 
 

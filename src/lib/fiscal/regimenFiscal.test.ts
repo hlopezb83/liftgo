@@ -20,9 +20,19 @@ describe("R8-09: matriz de aplicabilidad de regímenes fiscales", () => {
     expect(regimenAplicaPersona("611", "moral")).toBe(false); // Dividendos: solo física
     expect(regimenAplicaPersona("615", "moral")).toBe(false); // Premios: solo física
     expect(regimenAplicaPersona("607", "moral")).toBe(false); // Enajenación de bienes: solo física
-    expect(regimenAplicaPersona("629", "fisica")).toBe(true); // Aplica a ambos
-    expect(regimenAplicaPersona("629", "moral")).toBe(true);
+  });
+
+  // R9-12: 629 y 630 (vigentes desde 01-01-2024) son EXCLUSIVOS de persona
+  // física según el catálogo oficial c_RegimenFiscal del SAT (Anexo 20 CFDI
+  // 4.0). Fuentes de verificación: bambucode/catalogos_sat_JSON
+  // (c_RegimenFiscal.json, scrapeado en tiempo real del sitio del SAT) y
+  // phpcfdi/resources-sat-catalogs (cfdi_regimenes_fiscales.sql) — ambas
+  // reportan fisica="Sí"/moral="No" para ambos códigos.
+  it("629 y 630 solo aplican a persona física (catálogo SAT vigente desde 01-01-2024)", () => {
+    expect(regimenAplicaPersona("629", "fisica")).toBe(true);
+    expect(regimenAplicaPersona("629", "moral")).toBe(false);
     expect(regimenAplicaPersona("630", "fisica")).toBe(true);
+    expect(regimenAplicaPersona("630", "moral")).toBe(false);
   });
 
   it("un código fuera del catálogo nunca aplica", () => {

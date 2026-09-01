@@ -30,14 +30,19 @@ function policy(
 interface Recorded {
   claims: string[];
   inserts: string[];
+  checks: string[];
   rollbacks: { patch: Record<string, unknown>; filters: [string, unknown][] }[];
 }
 
 function makeClient(opts: {
   claim?: (month: string) => { data: boolean | null; error: PostgrestErrorLike | null };
   insert?: (month: string) => PostgrestErrorLike | null;
+  /** R9-05: ¿existe ya el log único de ese mes? */
+  logExists?: (month: string) => boolean;
+  /** R9-05: resultado del rollback compare-and-set. */
+  rollback?: () => { data: Record<string, unknown>[] | null; error: PostgrestErrorLike | null };
 }): { client: MaintenanceClientLike; rec: Recorded } {
-  const rec: Recorded = { claims: [], inserts: [], rollbacks: [] };
+  const rec: Recorded = { claims: [], inserts: [], checks: [], rollbacks: [] };
   const client: MaintenanceClientLike = {
     rpc(_fn, args) {
       const month = String(args.p_month);
@@ -53,6 +58,24 @@ function makeClient(opts: {
           rec.inserts.push(month);
           return Promise.resolve({ error: opts.insert?.(month) ?? null });
         },
+        select(_columns: string) {
+          const filters: [string, unknown][] = [];
+          const chain = {
+            eq(column: string, value: unknown) {
+              filters.push([column, value]);
+              return chain as never;
+            },
+            limit(_n: number) {
+              const month = String(filters[1]?.[1]);
+              rec.checks.push(month);
+              return Promise.resolve({
+                data: opts.logExists?.(month) ? [{ id: "log" }] : [],
+                error: null,
+              });
+            },
+          };
+          return chain as never;
+        },
         update(patch) {
           const filters: [string, unknown][] = [];
           const chain = {
@@ -62,6 +85,11 @@ function makeClient(opts: {
               if (filters.length === 2) rec.rollbacks.push({ patch, filters });
               return chain as never;
             },
+            select(_columns?: string) {
+              return Promise.resolve(
+                opts.rollback?.() ?? { data: [{ id: "p1" }], error: null },
+              );
+            },
           };
           return chain as never;
         },
@@ -70,6 +98,7 @@ function makeClient(opts: {
   };
   return { client, rec };
 }
+
 
 Deno.test("pendingMonthsFor: secuencia estricta y tope de 12 meses", () => {
   assertEquals(pendingMonthsFor("2025-11", "2026-02"), [
@@ -148,12 +177,13 @@ Deno.test("R8-08: un claim fallido corta el catch-up (no deja huecos)", async ()
   assertStrictEquals(res.skipped, 0);
 });
 
-Deno.test("claim ya tomado por otra corrida → skipped, sin insert", async () => {
+Deno.test("R9-05 A: claim tomado por otra corrida CON log existente → éxito idempotente", async () => {
   const { client, rec } = makeClient({
     claim: (m) =>
       m === "2026-01"
         ? { data: false, error: null }
         : { data: true, error: null },
+    logExists: (m) => m === "2026-01",
   });
 
   const res = await generateForPolicies(
@@ -162,7 +192,72 @@ Deno.test("claim ya tomado por otra corrida → skipped, sin insert", async () =
     "2026-02",
   );
 
+  assertEquals(rec.checks, ["2026-01"]);
   assertEquals(rec.inserts, ["2026-02"]);
   assertStrictEquals(res.skipped, 1);
   assertStrictEquals(res.generated, 1);
 });
+
+Deno.test("R9-05 B: claim tomado SIN log existente → corta la póliza y avisa", async () => {
+  const { client, rec } = makeClient({
+    claim: (m) =>
+      m === "2026-01"
+        ? { data: false, error: null }
+        : { data: true, error: null },
+    logExists: () => false,
+  });
+
+  const res = await generateForPolicies(
+    client,
+    [policy({ last_generated_month: "2025-12" })],
+    "2026-02",
+  );
+
+  // Nunca reclama M+1: cortar evita un hueco permanente.
+  assertEquals(rec.claims, ["2026-01"]);
+  assertEquals(rec.inserts, []);
+  assertStrictEquals(res.generated, 0);
+  assertStrictEquals(res.skipped, 0);
+  assertStrictEquals(
+    res.details.some((d) => d.includes("requiere revisión manual")),
+    true,
+  );
+});
+
+Deno.test("R9-05: el error del rollback CAS ya no se ignora", async () => {
+  const { client } = makeClient({
+    insert: (m) => (m === "2026-01" ? { code: "23514", message: "boom" } : null),
+    rollback: () => ({ data: null, error: { message: "connection lost" } }),
+  });
+
+  const res = await generateForPolicies(
+    client,
+    [policy({ last_generated_month: "2025-12" })],
+    "2026-02",
+  );
+
+  assertStrictEquals(res.generated, 0);
+  assertStrictEquals(
+    res.details.some((d) => d.includes("Rollback fallido")),
+    true,
+  );
+});
+
+Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () => {
+  const { client } = makeClient({
+    insert: (m) => (m === "2026-01" ? { code: "23514", message: "boom" } : null),
+    rollback: () => ({ data: [], error: null }),
+  });
+
+  const res = await generateForPolicies(
+    client,
+    [policy({ last_generated_month: "2025-12" })],
+    "2026-02",
+  );
+
+  assertStrictEquals(
+    res.details.some((d) => d.includes("Rollback desplazado")),
+    true,
+  );
+});
+
