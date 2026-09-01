@@ -3,7 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./layouts/ErrorBoundary";
-import { reloadForStaleChunk } from "./lib/staleChunkReload";
+import { isStaleChunkMessage, reloadForStaleChunk } from "./lib/staleChunkReload";
 import "./lib/forms/zodConfig";
 import "./index.css";
 
@@ -24,14 +24,8 @@ const LocaleShim = new Proxy(OrigLocale, {
 }) as typeof Intl.Locale;
 (Intl as { Locale: typeof Intl.Locale }).Locale = LocaleShim;
 
-function isStaleChunkError(message: string | undefined): boolean {
-  if (!message) return false;
-  return (
-    message.includes("Failed to fetch dynamically imported module") ||
-    message.includes("Importing a module script failed") ||
-    message.includes("error loading dynamically imported module")
-  );
-}
+
+
 
 window.addEventListener("vite:preloadError", (event) => {
   event.preventDefault();
@@ -39,12 +33,12 @@ window.addEventListener("vite:preloadError", (event) => {
 });
 
 window.addEventListener("error", (event) => {
-  if (isStaleChunkError(event.message)) reloadForStaleChunk();
+  if (isStaleChunkMessage(event.message)) reloadForStaleChunk();
 });
 
 window.addEventListener("unhandledrejection", (event) => {
   const message = event.reason instanceof Error ? event.reason.message : String(event.reason ?? "");
-  if (isStaleChunkError(message)) reloadForStaleChunk();
+  if (isStaleChunkMessage(message)) reloadForStaleChunk();
 });
 
 // M-22: ya NO se borra la llave en `load` — eso causaba un bucle infinito
