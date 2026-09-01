@@ -2,9 +2,7 @@ import { requireServiceOrRole } from "../_shared/auth.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import {
-  getAdminClient,
-} from "../_shared/supabaseClients.ts";
+import { getAdminClient } from "../_shared/supabaseClients.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
 import {
