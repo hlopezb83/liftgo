@@ -29,7 +29,9 @@ export function selectTargetItems<T extends SelectableItem>(
     return allItems.filter((i) => keys.has(`${i.bookingId}|${i.startStr}`));
   }
   if (Array.isArray(body.bookingIds)) {
-    const ids = new Set(body.bookingIds.filter((id) => typeof id === "string" && id));
+    const ids = new Set(
+      body.bookingIds.filter((id) => typeof id === "string" && id),
+    );
     if (ids.size === 0) return [];
     return allItems.filter((i) => ids.has(i.bookingId));
   }
