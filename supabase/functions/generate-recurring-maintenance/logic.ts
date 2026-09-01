@@ -132,7 +132,6 @@ export async function generateForPolicies(
   for (const policy of candidates) {
     let lastOkMonth = policy.last_generated_month;
 
-
     for (const month of pendingMonthsFor(lastOkMonth, currentMonth)) {
       const monthFirstDay = `${month}-01`;
 
@@ -271,4 +270,3 @@ export async function generateForPolicies(
 
   return { generated, skipped, details, pendingRemaining };
 }
-

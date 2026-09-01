@@ -722,7 +722,9 @@ Deno.serve(async (req) => {
         selectionKeys.has(`${i.bookingId}|${i.startStr}`)
       );
     } else if (body.bookingIds && body.bookingIds.length > 0) {
-      targetItems = allItems.filter((i) => body.bookingIds!.includes(i.bookingId));
+      targetItems = allItems.filter((i) =>
+        body.bookingIds!.includes(i.bookingId)
+      );
     }
 
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
