@@ -49,24 +49,6 @@ export function firstBillingPeriod(
   };
 }
 
-/**
- * Prorrateo de la tarifa mensual por días facturados. Misma fórmula que
- * `computeProrate` del edge function (redondeo a centavos) para que ambos
- * caminos den exactamente el mismo importe.
- */
-export function prorateMonthlyAmount(
-  monthlyRate: number,
-  billedDays: number,
-  daysInMonth: number,
-): number {
-  if (!(monthlyRate > 0) || !(daysInMonth > 0) || billedDays <= 0) return 0;
-  if (billedDays >= daysInMonth) return currency(monthlyRate).value;
-  const cents = currency(monthlyRate).intValue;
-  return currency(Math.round((cents * billedDays) / daysInMonth), {
-    fromCents: true,
-  }).value;
-}
-
 export interface ProratedLineAmounts {
   /** Días facturados = cantidad de la partida. */
   quantity: number;
@@ -80,7 +62,7 @@ export interface ProratedLineAmounts {
  * Desglose de la primera factura por DÍAS al precio diario derivado de la renta
  * mensual (renta / días del mes). Se mantiene la invariante timbrable
  * `total = quantity × unitPrice` (redondeada a centavos), quedando a lo sumo un
- * centavo del prorrateo canónico de `prorateMonthlyAmount`.
+ * centavo del prorrateo mensual exacto que aplica el motor recurrente.
  */
 export function prorateMonthlyLine(
   monthlyRate: number,
