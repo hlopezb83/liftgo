@@ -35,6 +35,8 @@ export function isFxMissing(inv: InvoiceMxnLike): boolean {
   const code = (inv.moneda ?? "MXN").toUpperCase();
   if (code === "MXN") return false;
   const rate = Number(inv.tipo_cambio ?? 0);
+  // R7-08: TC = 1 en moneda foránea no es un tipo de cambio real.
+  if (rate === 1) return true;
   return !(Number.isFinite(rate) && rate > 0);
 }
 
