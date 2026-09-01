@@ -1,3 +1,11 @@
+## [7.415.1] - 2026-09-01
+### Patch (UX: wizard recurrente sin preselección)
+- Reporte de usuario: al abrir la vista previa de facturas recurrentes, algunas líneas venían preseleccionadas. Era por diseño ("fila nueva y seleccionable se marca por defecto"), pero el equipo prefiere selección explícita.
+- Cambio (solo frontend, `src/features/invoices/lib/recurringSelection.ts`): `resolveId()` ya no devuelve `"selected"` para filas nuevas; la selección inicia vacía (fail-closed) y sólo el toggle del operador agrega filas. Activar la confirmación de tarifa modificada habilita las líneas con `rateWarning` pero ya no las marca solas.
+- Protecciones intactas: lo desmarcado no resucita con refrescos (R8-12), cambio de monto/periodo exige re-aprobación (R8-05), la intención sobrevive a ausencias temporales (R9-01) y la selección es por reserva + periodo (R9-18).
+- Texto del diálogo: "Desmarca las que quieras excluir" → "Marca las que quieras incluir".
+- Sin cambios en backend, elegibilidad, prorrateo ni en la Edge Function. Tests: `recurringSelection.test.ts` actualizado (19/19 ok).
+
 ## [7.414.3] - 2026-09-01
 ### Fix (UX: eliminar reserva confirmada terminaba en reporte de error)
 - Error reportado: admin intentaba eliminar una reserva `confirmed` y recibía `DB_PERMISSION_DENIED` con el mensaje crudo de la RPC `delete_booking` ("Solo se pueden eliminar reservas canceladas o completadas").

@@ -11,15 +11,16 @@
  *    silencio con datos distintos a los que el usuario aprobó (R8-05).
  *
  * Invariantes que garantiza este módulo (todo puro, sin React):
+ *  0. NADA se marca solo: al abrir el wizard la selección inicia vacía y sólo
+ *     el toggle explícito del operador agrega filas (fail-closed).
  *  1. Sólo permanecen seleccionadas las reservas presentes y seleccionables en
  *     el preview actual.
  *  2. Una reserva cuya identidad material cambió (periodos, monto, IVA) se
  *     deselecciona y NO se vuelve a marcar sola.
  *  3. Lo que el usuario desmarcó explícitamente nunca se vuelve a marcar por un
  *     refresh ni por activar/desactivar la confirmación de tarifa modificada.
- *  4. Alternar la confirmación de tarifa modificada sólo puede agregar las
- *     reservas con `rateWarning` que el usuario no había desmarcado; el resto de
- *     la selección queda intacta.
+ *  4. Alternar la confirmación de tarifa modificada sólo habilita las reservas
+ *     con `rateWarning` para marcarse a mano; nunca las agrega a la selección.
  *
  * NOTA de negocio: esto es sólo estado de UI. Las reglas de elegibilidad, el
  * prorrateo y el candado de tarifa desactualizada siguen siendo autoridad del
@@ -131,7 +132,9 @@ function resolveId(
   // No seleccionable ahora (ineligible o bloqueada por tarifa sin confirmar):
   // fuera de la selección, pero conservamos su historial de conocida.
   if (!isSelectable) return wasKnown ? "absent-known" : "known-only";
-  if (!wasKnown) return "selected"; // Fila nueva y seleccionable: marcada por defecto.
+  // Fail-closed: una fila nueva y seleccionable NO se marca sola; sólo el
+  // toggle explícito del operador la agrega a la selección.
+  if (!wasKnown) return "known-only";
   return prev.intentSelected.has(id) ? "selected" : "known-only";
 }
 

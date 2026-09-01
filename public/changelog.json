@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.415.1",
+    "date": "2026-09-01",
+    "type": "patch",
+    "category": "feature",
+    "title": "Facturación recurrente: la vista previa ya no preselecciona nada",
+    "tags": [
+      "facturacion",
+      "recurrente",
+      "ux"
+    ],
+    "description": "Al abrir la vista previa de facturas recurrentes ya no viene nada marcado: el operador selecciona explícitamente qué facturar (o usa 'seleccionar todos' por grupo), en vez de partir de todo marcado y desmarcar."
+  },
+  {
     "version": "7.415.0",
     "date": "2026-09-01",
     "type": "minor",
