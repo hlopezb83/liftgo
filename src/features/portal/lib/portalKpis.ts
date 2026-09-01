@@ -1,6 +1,8 @@
 import { isFxMissing } from "@/features/cash-flow";
 import { sumMoney, toMxn } from "@/lib/money";
 
+import { BALANCE_EPSILON } from "./statementRows";
+
 type Invoice = {
   status?: string | null;
   balance?: number | string | null;
@@ -29,7 +31,15 @@ export function derivePortalKpis<B extends { status: string }, I extends Invoice
   const outstanding = sumMoney(
     convertible.map((i) => toMxn(Number(i.balance ?? 0), i.moneda ?? "MXN", i.tipo_cambio)),
   );
-  const fxMissingCount = unpaidInvoices.length - convertible.length;
+  /**
+   * R9-09: solo avisamos por tipo de cambio faltante cuando hay saldo real por
+   * convertir. Una factura en dólares ya saldada no distorsiona ningún total,
+   * así que no debe generar alerta. Se usa la misma tolerancia monetaria
+   * (`BALANCE_EPSILON`) del Estado de Cuenta.
+   */
+  const fxMissingCount = unpaidInvoices.filter(
+    (i) => isFxMissing(i.moneda, i.tipo_cambio) && Number(i.balance ?? 0) > BALANCE_EPSILON,
+  ).length;
   return {
     invoiceList,
     activeBookings,
