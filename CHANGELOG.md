@@ -1,3 +1,11 @@
+## [7.409.3] - 2026-09-01
+### Fix (auditoría R9 · cuentas por pagar) — R9-08
+- `set_supplier_bill_approval_status()` sólo recalculaba desde `pending`/`not_required`: una factura rechazada que se corregía (total, moneda o tipo de cambio) seguía `rejected` y quedaba fuera de los KPIs y del aging de CxP pese a tener saldo. Ahora `rejected` también entra a la re-evaluación cuando cambia un campo financiero relevante.
+- La re-evaluación limpia `rejected_by`, `rejected_at` y `approval_notes`, y resuelve a `pending` (umbral superado o FX faltante, fail-closed con `public.fx_is_missing`) o `not_required`. Nunca auto-aprueba.
+- `public.request_bill_reapproval()` deja de forzar siempre `pending`: aplica el mismo umbral (`company_settings.cxp_approval_threshold_mxn`) y la regla canónica de tipo de cambio faltante.
+- Sin cambios en RLS, segregación de funciones, candados de factura aprobada/con pagos ni semántica de borradores. Las ediciones no financieras (p. ej. `notes`) no alteran el estado de aprobación.
+- Smoke: `supabase/tests/r9_08_supplier_bill_rejected_recalc_smoke.sql` (bajo umbral → not_required, sobre umbral → pending, USD TC=1 → pending, notas → rejected intacto, candado de aprobada intacto).
+
 ## [7.409.2] - 2026-09-01
 ### Fix (auditoría R9 · facturación recurrente) — R9-01 / R9-02
 - R9-01: `reconcileRecurringSelection` conserva `history` e `intentSelected` de las reservas ausentes del preview mientras el diálogo siga abierto, así una fila que desaparece y reaparece con la misma firma material mantiene la intención del operador en vez de auto-seleccionarse como nueva.
