@@ -121,9 +121,13 @@ export function reconcileRecurringSelection(
   const selected = new Set<string>();
   const deselected = new Set<string>();
   const known = new Set<string>();
+  const intentSelected = new Set<string>();
 
   for (const id of Object.keys(signatures)) {
-    const changed = prev.signatures[id] !== undefined && prev.signatures[id] !== signatures[id];
+    // R9-01: la firma de referencia viene del histórico de la sesión, así una
+    // reserva que desapareció y volvió igual no se trata como fila nueva.
+    const prevSig = prev.history[id] ?? prev.signatures[id];
+    const changed = prevSig !== undefined && prevSig !== signatures[id];
     const wasDeselected = prev.deselected.has(id) && !changed;
     const wasKnown = prev.known.has(id) && !changed;
 
@@ -142,14 +146,27 @@ export function reconcileRecurringSelection(
     known.add(id);
     if (deselected.has(id)) continue;
     if (wasKnown) {
-      if (prev.selected.has(id)) selected.add(id);
+      if (prev.intentSelected.has(id)) {
+        selected.add(id);
+        intentSelected.add(id);
+      }
     } else {
       // Fila nueva y seleccionable: se ofrece marcada por defecto.
       selected.add(id);
+      intentSelected.add(id);
     }
   }
 
-  return { selected, deselected, known, signatures };
+  // R9-01: mientras el diálogo siga abierto conservamos la intención de las
+  // reservas ausentes del preview actual (desmarcadas o marcadas). El reset por
+  // sesión ocurre al reabrir el diálogo (R9-02).
+  for (const id of prev.deselected) if (signatures[id] === undefined) deselected.add(id);
+  for (const id of prev.known) if (signatures[id] === undefined) known.add(id);
+  for (const id of prev.intentSelected) if (signatures[id] === undefined) intentSelected.add(id);
+
+  const history = { ...prev.history, ...signatures };
+
+  return { selected, deselected, known, signatures, history, intentSelected };
 }
 
 /** Alterna una reserva registrando la intención explícita del usuario. */
@@ -159,14 +176,17 @@ export function toggleRecurringSelection(
 ): RecurringSelectionState {
   const selected = new Set(state.selected);
   const deselected = new Set(state.deselected);
+  const intentSelected = new Set(state.intentSelected);
   if (selected.has(id)) {
     selected.delete(id);
+    intentSelected.delete(id);
     deselected.add(id);
   } else {
     selected.add(id);
+    intentSelected.add(id);
     deselected.delete(id);
   }
-  return { ...state, selected, deselected };
+  return { ...state, selected, deselected, intentSelected };
 }
 
 /** Alterna un grupo completo (cliente) respetando la misma semántica. */
@@ -177,14 +197,18 @@ export function toggleRecurringGroup(
   const allSelected = ids.length > 0 && ids.every((id) => state.selected.has(id));
   const selected = new Set(state.selected);
   const deselected = new Set(state.deselected);
+  const intentSelected = new Set(state.intentSelected);
   for (const id of ids) {
     if (allSelected) {
       selected.delete(id);
+      intentSelected.delete(id);
       deselected.add(id);
     } else {
       selected.add(id);
+      intentSelected.add(id);
       deselected.delete(id);
     }
   }
-  return { ...state, selected, deselected };
+  return { ...state, selected, deselected, intentSelected };
 }
+
