@@ -155,9 +155,16 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
 
     // H-6: al ligar una reserva, pre-llenar el periodo con el mes de la fecha
     // de emisión si el usuario aún no lo ha capturado (caso típico: mensualidad).
+    // Reserva de largo plazo: el primer periodo va del inicio de la reserva al
+    // fin de ese mes, para que el siguiente ciclo arranque limpio el día 1.
     if (selectedIds.length > 0 && !form.getValues("billingPeriodStart")) {
+      const first = selected[0]
+        ? firstBillingPeriod(selected[0].start_date, selected[0].end_date)
+        : null;
       const issue = form.getValues("issueDate") ?? nowMty();
-      const { start, end } = monthBounds(issue);
+      const { start, end } = first?.truncated
+        ? { start: first.start, end: first.end }
+        : monthBounds(issue);
       form.setValue("billingPeriodStart", start, { shouldDirty: true });
       form.setValue("billingPeriodEnd", end, { shouldDirty: true });
     }
