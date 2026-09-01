@@ -22,10 +22,11 @@ END; $$;
 CREATE OR REPLACE FUNCTION pg_temp.status_of(
   p_currency text, p_rate numeric, p_total numeric
 ) RETURNS text LANGUAGE plpgsql AS $$
-DECLARE v_id uuid; v_status text;
+DECLARE v_id uuid; v_status text; v_user uuid;
 BEGIN
+  SELECT id INTO v_user FROM auth.users LIMIT 1;
   PERFORM set_config('request.jwt.claims',
-    json_build_object('role', 'authenticated', 'sub', gen_random_uuid())::text, true);
+    json_build_object('role', 'authenticated', 'sub', v_user)::text, true);
 
   INSERT INTO public.supplier_bills
     (bill_number, issue_date, subtotal, tax_amount, total, status, currency, exchange_rate)
@@ -49,13 +50,12 @@ BEGIN
                      FROM public.company_settings ORDER BY created_at ASC LIMIT 1), 10000)
     INTO v_thr;
 
-  -- 1) MXN conserva el comportamiento por umbral.
+  -- 1) MXN conserva el comportamiento por umbral (la columna exchange_rate es
+  --    NOT NULL en la tabla, por eso el caso NULL solo se prueba en fx_is_missing).
   PERFORM pg_temp.expect_true('R8-10 MXN bajo umbral => not_required',
-    pg_temp.status_of('MXN', NULL, v_thr - 1) = 'not_required');
-  PERFORM pg_temp.expect_true('R8-10 MXN sobre umbral => pending',
-    pg_temp.status_of('MXN', NULL, v_thr + 1) = 'pending');
-  PERFORM pg_temp.expect_true('R8-10 MXN con TC=1 sigue por umbral',
     pg_temp.status_of('MXN', 1, v_thr - 1) = 'not_required');
+  PERFORM pg_temp.expect_true('R8-10 MXN sobre umbral => pending',
+    pg_temp.status_of('MXN', 1, v_thr + 1) = 'pending');
 
   -- 2) USD con TC válido: usa el total convertido a MXN.
   PERFORM pg_temp.expect_true('R8-10 USD TC=20 bajo umbral => not_required',
@@ -64,8 +64,6 @@ BEGIN
     pg_temp.status_of('USD', 20, (v_thr / 20) + 1) = 'pending');
 
   -- 3) USD sin TC válido: siempre pending (fail closed), aun con montos chicos.
-  PERFORM pg_temp.expect_true('R8-10 USD TC NULL => pending',
-    pg_temp.status_of('USD', NULL, 1) = 'pending');
   PERFORM pg_temp.expect_true('R8-10 USD TC 0 => pending',
     pg_temp.status_of('USD', 0, 1) = 'pending');
   PERFORM pg_temp.expect_true('R8-10 USD TC negativo => pending',
@@ -74,7 +72,17 @@ BEGIN
     pg_temp.status_of('USD', 1, 1) = 'pending');
 END $$;
 
--- 4) La regla canónica sigue siendo public.fx_is_missing.
+-- 4) La regla canónica cubre también el TC nulo.
+SELECT pg_temp.expect_true('R8-10 fx_is_missing: matriz canónica',
+  public.fx_is_missing('MXN', NULL) = false
+  AND public.fx_is_missing('MXN', 1) = false
+  AND public.fx_is_missing('USD', NULL) = true
+  AND public.fx_is_missing('USD', 0) = true
+  AND public.fx_is_missing('USD', -18) = true
+  AND public.fx_is_missing('USD', 1) = true
+  AND public.fx_is_missing('USD', 20) = false);
+
+-- 5) La regla canónica sigue siendo public.fx_is_missing.
 SELECT pg_temp.expect_true(
   'R8-10 el trigger usa public.fx_is_missing',
   pg_get_functiondef(p.oid) ILIKE '%fx_is_missing%'
@@ -84,11 +92,11 @@ FROM pg_proc p
 JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public' AND p.proname = 'set_supplier_bill_approval_status';
 
--- 5) No se tocaron las demás transiciones: la factura no puede nacer aprobada.
+-- 6) No se tocaron las demás transiciones: la factura no puede nacer aprobada.
 DO $$
 BEGIN
   PERFORM set_config('request.jwt.claims',
-    json_build_object('role', 'authenticated', 'sub', gen_random_uuid())::text, true);
+    json_build_object('role', 'authenticated', 'sub', (SELECT id FROM auth.users LIMIT 1))::text, true);
   BEGIN
     INSERT INTO public.supplier_bills
       (bill_number, issue_date, subtotal, tax_amount, total, status, approval_status)
