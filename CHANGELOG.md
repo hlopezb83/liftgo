@@ -1,3 +1,11 @@
+## [7.408.0] - 2026-09-01
+### Fix (auditoría R8 · facturación recurrente) — R8-05 / R8-12
+- Nuevo reducer puro `src/features/invoices/lib/recurringSelection.ts`: la selección del asistente se reconcilia contra las filas actuales del preview en vez de reconstruirse desde cero.
+- R8-05: las reservas que desaparecen, dejan de ser elegibles o cambian de periodo / monto facturable / IVA se desmarcan y no se vuelven a marcar solas (requieren re-aprobación explícita).
+- R8-12: lo que el operador desmarcó nunca se re-agrega por un refresh del preview ni por alternar la confirmación de tarifa modificada; ese switch sólo agrega las líneas con `rateWarning` no desmarcadas.
+- Sin cambios de backend: elegibilidad, prorrateo y el candado `allowStaleRate` siguen siendo autoridad del Edge Function.
+- Tests: `src/features/invoices/lib/__tests__/recurringSelection.test.ts` (19 casos).
+
 ## [7.407.1] - 2026-09-01
 ### Fix (auditoría R8 · CxP) — R8-10
 - `set_supplier_bill_approval_status`: el total en MXN se calculaba con `COALESCE(NEW.exchange_rate, 1)`, así que una divisa sin TC real (nulo, <= 0 o exactamente 1) se convertía 1:1 y podía quedar por debajo del umbral como `not_required`.

@@ -1,0 +1,8 @@
+{
+  "description": "Una factura de proveedor en moneda extranjera sin tipo de cambio real (vacío, cero, negativo o 1) ya no puede clasificarse como 'no requiere aprobación': queda pendiente de autorización.",
+  "changes": [
+    "El clasificador automático de aprobación usa la regla canónica de tipo de cambio faltante y ya no convierte 1:1 con un tipo de cambio inválido.",
+    "Facturas en pesos y en divisa con tipo de cambio válido conservan exactamente el mismo umbral y comportamiento.",
+    "Nueva prueba de humo SQL con la matriz de monedas y tipos de cambio."
+  ]
+}

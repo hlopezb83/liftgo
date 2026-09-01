@@ -1,0 +1,10 @@
+{
+  "description": "La selección de reservas ya no queda desincronizada cuando la vista previa cambia: lo que desmarcas se respeta y las filas que cambian de periodo o monto dejan de estar marcadas en silencio.",
+  "changes": [
+    "Nuevo reducer puro `recurringSelection.ts` que reconcilia la selección contra las filas actuales del preview (R8-05 / R8-12).",
+    "Las reservas que desaparecen, dejan de ser elegibles o cambian de periodo, monto o IVA se desmarcan y no se vuelven a marcar solas.",
+    "Lo que el usuario desmarca a propósito ya no reaparece tras un refresh ni al activar/desactivar la confirmación de tarifa modificada.",
+    "La confirmación de tarifa modificada sólo agrega las líneas con aviso; el resto de la selección queda intacta.",
+    "Pruebas nuevas: `src/features/invoices/lib/__tests__/recurringSelection.test.ts` (19 casos)."
+  ]
+}
