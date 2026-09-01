@@ -58,7 +58,8 @@ function makeClient(opts: {
           const chain = {
             eq(column: string, value: unknown) {
               filters.push([column, value]);
-              rec.rollbacks.push({ patch, filters });
+              // El rollback real encadena dos .eq(); registramos al cerrarse.
+              if (filters.length === 2) rec.rollbacks.push({ patch, filters });
               return chain as never;
             },
           };
