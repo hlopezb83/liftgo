@@ -18,15 +18,25 @@ interface RegimenFiscalDef {
   aplicaMoral: boolean;
 }
 
+/**
+ * R8-09: aplicabilidad explícita para TODOS los códigos vigentes del catálogo.
+ * Antes, los códigos sin entrada (607, 609, 611, 615, 628, 629, 630) caían en
+ * un fallback permisivo `{fisica:true, moral:true}` y dejaban pasar combinaciones
+ * inválidas que el PAC rechazaba después.
+ */
 const APLICABILIDAD: Record<string, { aplicaFisica: boolean; aplicaMoral: boolean }> = {
   "601": { aplicaFisica: false, aplicaMoral: true }, // General de Ley Personas Morales
   "603": { aplicaFisica: false, aplicaMoral: true }, // Personas Morales con Fines no Lucrativos
   "605": { aplicaFisica: true, aplicaMoral: false }, // Sueldos y Salarios
   "606": { aplicaFisica: true, aplicaMoral: true }, // Arrendamiento
+  "607": { aplicaFisica: true, aplicaMoral: false }, // Enajenación o Adquisición de Bienes
   "608": { aplicaFisica: true, aplicaMoral: true }, // Demás ingresos
+  "609": { aplicaFisica: false, aplicaMoral: true }, // Consolidación
   "610": { aplicaFisica: true, aplicaMoral: true }, // Residentes en el Extranjero
+  "611": { aplicaFisica: true, aplicaMoral: false }, // Ingresos por Dividendos
   "612": { aplicaFisica: true, aplicaMoral: false }, // Actividades Empresariales y Profesionales
   "614": { aplicaFisica: true, aplicaMoral: true }, // Ingresos por Intereses
+  "615": { aplicaFisica: true, aplicaMoral: false }, // Ingresos por obtención de premios
   "616": { aplicaFisica: true, aplicaMoral: false }, // Sin obligaciones fiscales
   "620": { aplicaFisica: false, aplicaMoral: true }, // Sociedades Cooperativas de Producción
   "621": { aplicaFisica: true, aplicaMoral: false }, // Incorporación Fiscal
@@ -35,13 +45,19 @@ const APLICABILIDAD: Record<string, { aplicaFisica: boolean; aplicaMoral: boolea
   "624": { aplicaFisica: false, aplicaMoral: true }, // Coordinados
   "625": { aplicaFisica: true, aplicaMoral: false }, // Plataformas Tecnológicas
   "626": { aplicaFisica: true, aplicaMoral: true }, // Régimen Simplificado de Confianza
+  "628": { aplicaFisica: false, aplicaMoral: true }, // Hidrocarburos
+  "629": { aplicaFisica: true, aplicaMoral: true }, // Regímenes Fiscales Preferentes y Empresas Multinacionales
+  "630": { aplicaFisica: true, aplicaMoral: true }, // Enajenación de acciones en bolsa de valores
 };
 
 export const REGIMEN_FISCAL_CATALOG: RegimenFiscalDef[] = REGIMEN_FISCAL.map((r) => ({
   code: r.code,
   label: r.label,
-  ...(APLICABILIDAD[r.code] ?? { aplicaFisica: true, aplicaMoral: true }),
+  // Sin fallback permisivo: un código sin matriz explícita no aplica a nadie
+  // (falla cerrado) y el test de cobertura obliga a declararlo.
+  ...(APLICABILIDAD[r.code] ?? { aplicaFisica: false, aplicaMoral: false }),
 }));
+
 
 const BY_CODE = new Map(REGIMEN_FISCAL_CATALOG.map((r) => [r.code, r]));
 
