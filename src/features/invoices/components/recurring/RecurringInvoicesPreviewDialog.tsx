@@ -62,11 +62,22 @@ export function RecurringInvoicesPreviewDialog({
   );
   const fingerprint = recurringPreviewFingerprint(lines, allowStaleRate);
   const [prevFingerprint, setPrevFingerprint] = useState(fingerprint);
-  if (prevFingerprint !== fingerprint) {
+  // R9-02: cada apertura del diálogo es una sesión nueva: sin consentimiento de
+  // tarifa heredado y con la selección reconstruida desde el preview actual.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (wasOpen !== open) {
+    setWasOpen(open);
+    if (open) {
+      setAllowStaleRate(false);
+      setSelection(emptyRecurringSelection());
+      setPrevFingerprint("");
+    }
+  } else if (prevFingerprint !== fingerprint) {
     // Patrón React "adjust state during render" (sin useEffect ni render extra).
     setPrevFingerprint(fingerprint);
     setSelection((prev) => reconcileRecurringSelection(prev, lines, allowStaleRate));
   }
+
   const selected = selection.selected as Set<string>;
 
   // Derivaciones puras: React Compiler las memoiza.
