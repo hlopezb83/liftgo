@@ -17,6 +17,33 @@ const RELOAD_KEY = "vite-preload-reload";
 const RELOAD_WINDOW_MS = 30_000;
 const MAX_RELOADS = 2;
 
+/**
+ * Patrones que indican que el navegador quedó con un bundle obsoleto tras un
+ * deploy. Además de los fallos de fetch clásicos, incluimos el caso en que el
+ * chunk sí carga pero evalúa a `undefined`: `React.lazy` lee `.default` del
+ * módulo y lanza "Cannot read properties of undefined (reading 'default')"
+ * (Safari: "undefined is not an object (evaluating '...default')").
+ */
+const STALE_CHUNK_PATTERNS = [
+  "Failed to fetch dynamically imported module",
+  "Importing a module script failed",
+  "error loading dynamically imported module",
+  "ChunkLoadError",
+  "Cannot read properties of undefined (reading 'default')",
+  "Cannot read property 'default' of undefined",
+  "undefined is not an object (evaluating",
+];
+
+/** `true` si el mensaje de error corresponde a un chunk obsoleto/roto. */
+export function isStaleChunkMessage(message: string | undefined | null): boolean {
+  if (!message) return false;
+  if (message.includes("undefined is not an object (evaluating")) {
+    return message.includes("default");
+  }
+  return STALE_CHUNK_PATTERNS.some((pattern) => message.includes(pattern));
+}
+
+
 interface ReloadGuardState {
   ts: number;
   count: number;
