@@ -44,11 +44,14 @@ export function ConvertQuoteDialog({
   open, onOpenChange, quote, durationDays, unitCount, needsCustomer,
   customers, needsAssignment, isPending, onConfirm,
 }: Props) {
-  const [recurring, setRecurring] = useState(false);
+  const canRecur = durationDays >= 30;
+  // Rentas de largo plazo se convertían sin recurrencia por descuido; ahora la
+  // sugerencia viene encendida y el usuario puede apagarla.
+  const [recurring, setRecurring] = useState(canRecur);
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
 
-  const canRecur = durationDays >= 30;
+
   const blocked = needsCustomer && !customerId;
 
   return (
