@@ -285,9 +285,9 @@ Deno.serve(async (req) => {
     const repTaxId = String(invoice.receptor_rfc || "XAXX010101000")
       .toUpperCase();
     const repIsGlobal = repTaxId === "XAXX010101000";
-    const repTaxSystem = repIsGlobal
-      ? String(invoice.receptor_regimen_fiscal || "616")
-      : String(invoice.receptor_regimen_fiscal ?? "").trim();
+    // R8-06: el receptor global siempre timbra con el código puro "616".
+    const repTaxSystem = resolveReceptorRegimenFiscal(repIsGlobal, invoice.receptor_regimen_fiscal);
+
     const repZip = repIsGlobal
       ? String(invoice.receptor_domicilio_fiscal_cp || "06600")
       : String(invoice.receptor_domicilio_fiscal_cp ?? "").trim();
