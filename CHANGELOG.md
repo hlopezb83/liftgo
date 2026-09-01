@@ -1,3 +1,10 @@
+## [7.414.2] - 2026-09-01
+### Fix (hotfix: ficha de cliente no cargaba)
+- Error reportado en producción: `/customers/:id` mostraba "No se pudo cargar la información" con `42702 column reference "fx_missing" is ambiguous`.
+- Causa: la CTE `scoped` de `public.get_customer_summary` hacía `SELECT v.*` sobre `v_invoices_with_balance` (que ya expone `fx_missing`) y además agregaba un alias calculado con el mismo nombre.
+- Corrección (solo SQL, `CREATE OR REPLACE`): se elimina el alias redundante; la función usa la columna `fx_missing` de la vista (misma regla canónica `fx_is_missing`). El JSON de salida es idéntico.
+- Sin cambios en RLS, permisos, reglas de negocio ni en la vista. Warnings del security linter posteriores a la migración son preexistentes del proyecto.
+
 ## [7.414.1] - 2026-09-01
 ### Fix (primer ciclo: días al precio diario)
 - `prorateMonthlyLine()` (`src/lib/domain/firstBillingPeriod.ts`): devuelve `quantity = días facturados`, `unitPrice = renta mensual / días del mes` (6 decimales, CFDI 4.0) y `total = round2(qty × precio)`. Reemplaza a `prorateMonthlyAmount()` (eliminado, sin otros consumidores).
