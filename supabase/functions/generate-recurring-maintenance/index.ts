@@ -115,6 +115,7 @@ Deno.serve(async (req) => {
         iter += 1;
       }
 
+      let lastOkMonth = policy.last_generated_month;
       for (const month of pendingMonths) {
         const monthFirstDay = `${month}-01`;
         const { data: claimed, error: claimErr } = await (supabase as unknown as {
@@ -157,20 +158,27 @@ Deno.serve(async (req) => {
             performed_by: policy.provider_name,
             performed_at: monthFirstDay,
             work_status: "scheduled",
+            // R7-06: marca de idempotencia. El indice unico parcial
+            // (policy_id, policy_month) impide duplicar el log en un reintento.
+            policy_id: policy.id,
+            policy_month: month,
           });
 
         if (insertErr) {
-          // Rollback del claim para permitir un reintento posterior.
+          // R7-06: el rollback devuelve el claim al ULTIMO mes generado con
+          // exito (no al valor original), y se corta el catch-up de esta
+          // poliza para no dejar huecos de meses reclamados sin log.
           await supabase
             .from("maintenance_policies")
-            .update({ last_generated_month: policy.last_generated_month })
+            .update({ last_generated_month: lastOkMonth })
             .eq("id", policy.id);
           details.push(
             `Error al insertar log ${policy.id} (${month}): ${insertErr.message}`,
           );
-          continue;
+          break;
         }
 
+        lastOkMonth = month;
         generated += 1;
         details.push(`✓ ${policy.forklifts?.name ?? "(sin nombre)"} (${monthFirstDay})`);
       }
