@@ -87,8 +87,9 @@ export function FormDialog({
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
           <FormDialogCloseContext.Provider value={closeValue}>
-            <div className="pt-2 pb-20">{children}</div>
+            <div className="pt-2">{children}</div>
           </FormDialogCloseContext.Provider>
+
         </DialogContent>
       </Dialog>
 
@@ -108,8 +109,9 @@ export function FormDialog({
 
 
 // Bloque 4.3 (R4): el footer sticky se superponía al último input del form.
-// Compensamos con `pb-16` en el cuerpo scrollable para dejar espacio libre
-// equivalente al alto del footer (py-3 + line-height ≈ 4rem).
+// Ahora el footer es el último hijo del scroll, así que no hace falta padding
+// extra debajo (antes `pb-20` dejaba un hueco muerto visible bajo las acciones).
+
 
 /**
  * Footer sticky para usar al final del `<form>` dentro de `<FormDialog>`.
