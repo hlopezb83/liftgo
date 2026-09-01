@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+
+import { isFxMissing as isFxMissingCanonical } from "@/features/cash-flow";
 import { amountInMxn, countFxMissing, isFxMissing } from "../collectionForecast";
 
 describe("H-2 · facturas en divisa sin tipo de cambio", () => {
@@ -35,5 +37,27 @@ describe("H-2 · facturas en divisa sin tipo de cambio", () => {
         { total: 1, balance: 1, moneda: "MXN" },
       ]),
     ).toBe(2);
+  });
+});
+
+describe("R9-10 · paridad con el helper canónico de cash-flow", () => {
+  const casos: Array<[string, number | null, boolean]> = [
+    ["MXN", null, false],
+    ["MXN", 1, false],
+    ["USD", null, true],
+    ["USD", 0, true],
+    ["USD", 1, true],
+    ["USD", -5, true],
+    ["USD", 18.5, false],
+    ["EUR", 20, false],
+  ];
+
+  it.each(casos)("%s con TC %s coincide con la regla canónica", (moneda, tc, esperado) => {
+    expect(isFxMissing({ total: 100, balance: 100, moneda, tipo_cambio: tc })).toBe(esperado);
+    expect(isFxMissingCanonical(moneda, tc)).toBe(esperado);
+  });
+
+  it("la bandera fx_missing de la vista sigue mandando aunque el TC sea válido", () => {
+    expect(isFxMissing({ total: 100, balance: 100, moneda: "USD", tipo_cambio: 18, fx_missing: true })).toBe(true);
   });
 });
