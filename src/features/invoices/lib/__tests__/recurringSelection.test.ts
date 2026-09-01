@@ -159,3 +159,44 @@ describe("recurringPreviewFingerprint", () => {
     expect(recurringPreviewFingerprint([line({ bookingId: "a", rateWarning: true })], true)).toBe(fp);
   });
 });
+
+describe("R9-01 — la intención sobrevive a la ausencia temporal de una reserva", () => {
+  it("una fila desmarcada que desaparece y vuelve igual sigue desmarcada", () => {
+    const all = [line({ bookingId: "a" }), line({ bookingId: "b" })];
+    let s = reconcile(emptyRecurringSelection(), all);
+    s = toggleRecurringSelection(s, "a");
+    // 'a' desaparece del preview (refetch parcial) y luego regresa idéntica.
+    s = reconcile(s, [line({ bookingId: "b" })]);
+    s = reconcile(s, all);
+    expect([...s.selected].sort()).toEqual(["b"]);
+    expect(s.deselected.has("a")).toBe(true);
+  });
+
+  it("una fila marcada que desaparece y vuelve igual sigue marcada", () => {
+    const all = [line({ bookingId: "a" }), line({ bookingId: "b" })];
+    let s = reconcile(emptyRecurringSelection(), all);
+    s = reconcile(s, [line({ bookingId: "b" })]);
+    s = reconcile(s, all);
+    expect([...s.selected].sort()).toEqual(["a", "b"]);
+  });
+
+  it("si reaparece con firma distinta exige re-aprobación manual (R8-05)", () => {
+    const all = [line({ bookingId: "a" }), line({ bookingId: "b" })];
+    let s = reconcile(emptyRecurringSelection(), all);
+    s = reconcile(s, [line({ bookingId: "b" })]);
+    s = reconcile(s, [line({ bookingId: "a", billedAmount: 12345 }), line({ bookingId: "b" })]);
+    expect([...s.selected]).toEqual(["b"]);
+    s = toggleRecurringSelection(s, "a");
+    expect([...s.selected].sort()).toEqual(["a", "b"]);
+  });
+
+  it("un refresh normal conserva selección y desmarcados", () => {
+    const all = [line({ bookingId: "a" }), line({ bookingId: "b" })];
+    let s = reconcile(emptyRecurringSelection(), all);
+    s = toggleRecurringSelection(s, "b");
+    s = reconcile(s, all);
+    s = reconcile(s, all);
+    expect([...s.selected]).toEqual(["a"]);
+    expect(s.deselected.has("b")).toBe(true);
+  });
+});
