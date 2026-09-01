@@ -1,3 +1,31 @@
+## [7.411.0] - 2026-09-01
+### Fix (auditoría R9 · lotes A, B y C — 17 hallazgos)
+LOTE A · integridad y fiscal
+- R9-01: `set_supplier_bill_approval_status()` compara también `NEW.total` vs `OLD.total`, de modo que un cambio de importe con TC faltante (ambos totales MXN en NULL) ya no sale por el no-op sin re-evaluar aprobación. Guards de pagos, aprobada y segregación de funciones intactos.
+- R9-02: nuevo `supabase/functions/_shared/fxGate.ts`; los tres timbrados comparten el mismo gate FX (`fx_is_missing` en TS): divisa sin TC válido (null, <= 0 o exactamente 1) no se timbra.
+- R9-03: `get_customer_summary()` se calcula desde `v_invoices_with_balance` y expone `fx_missing_count`; el PDF de estado de cuenta muestra la advertencia en lugar de sumar 1:1. Sigue SECURITY DEFINER con `search_path` fijo.
+- R9-13: `stamp-credit-note/handler.ts` usa actualización condicional y consulta al PAC antes de reintentar, eliminando el doble timbrado de una misma nota de crédito.
+
+LOTE B · barrido canónico de FX
+- Nuevos helpers SQL `public.fx_to_mxn` y `public.fx_convert_amount` como única autoridad de conversión.
+- R9-06: `v_invoices_with_balance` soporta pagos cross-currency en ambos sentidos y expone `payments_fx_missing`.
+- R9-07: `v_overdue_invoices` sin fallback 1:1.
+- R9-09: seis consumidores SQL (reportes, dashboard y rentabilidad) migrados a los helpers; `supabase/tests/r9_fx_canonical_guard.sql` impide reintroducir reglas FX duplicadas.
+- R9-10: `create_recurring_invoice()` falla cerrado ante TC inválido en divisa.
+- R9-11: en `useAccountsPayableKpis`, una bill en divisa sin TC cuenta en `countPorAprobar` sin sumar importe a `totalPorAprobar`.
+
+LOTE C · operación, reportes y coherencia
+- R9-04: nuevo `public.bank_amount_in_account_currency`; auto-match, candidatos y confirmación comparten una sola conversión. Sin TC no hay candidato (NULL, no importe crudo). Locks, roles e idempotencia sin cambios.
+- R9-23: `unmatch_bank_line()` sólo revierte líneas `matched`/`suggested` y ya no borra `ignored_reason`.
+- R9-05: `generate-recurring-maintenance/logic.ts` verifica la existencia real del log cuando el claim es rechazado (evita huecos permanentes) y reporta rollback fallido/desplazado en vez de silenciarlo.
+- R9-08: la depreciación de `get_income_statement()` filtra `forklifts.deleted_at IS NULL`.
+- R9-12: catálogo SAT — 629 y 630 sólo persona física.
+- R9-14: `resolveVatRatePercent` distingue 0% explícito de dato ausente (16%).
+- R9-16: `report_utilization_by_unit` y `report_utilization_by_model` comparten universo de flota (sin archivados, vendidos/retirados ni `is_e2e`).
+- R9-21: el drag & drop del Kanban de mantenimiento archivado ya no invalida la caché del tablero activo.
+- Excluidos por indicación explícita: R9-15, R9-17, R9-18, R9-19, R9-20; R9-22 ya resuelto.
+- Smoke: `supabase/tests/r9_lote_ac_smoke.sql`, `supabase/tests/r9_fx_canonical_guard.sql`. Pruebas: `src/lib/money/__tests__/vatRate.test.ts`, `useAccountsPayableKpis.fxMissing.test.ts`, `generate-recurring-maintenance/logic_test.ts`, `_shared/fxGate_test.ts`.
+
 ## [7.410.0] - 2026-09-01
 ### Security (auditoría R10 · cuentas por pagar) — R10-01 / R10-02
 - R10-01: `public.request_bill_reapproval()` podía resolver una factura **rechazada** a `not_required` cuando el total en MXN quedaba bajo `company_settings.cxp_approval_threshold_mxn`, borrando además `rejected_by/rejected_at/approval_notes`. El propio solicitante (admin/administrativo) borraba así un rechazo explícito y la factura quedaba pagable sin segundo par de ojos.
