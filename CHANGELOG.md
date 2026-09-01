@@ -1,3 +1,12 @@
+## [7.415.2] - 2026-09-01
+### Fix (pulido visual: sidebar colapsado y modales)
+- Auditoría visual con navegador sobre sidebar y modales.
+- `SidebarBranding.tsx`: en modo icono (riel de 3rem) el recuadro del logo (h-12, max-w-10rem) se desbordaba y quedaba cortado; ahora encoge a 8×8 con padding reducido.
+- `SidebarUserFooter.tsx`: correo, rol y número de versión se salían del riel al colapsar; ahora se ocultan y los botones (tema, contraseña, salir) se apilan verticalmente centrados.
+- `FormDialog.tsx`: el `pb-20` del cuerpo scrollable dejaba ~5rem de hueco muerto debajo del footer sticky en todos los modales de formulario. Eliminado (el footer ya es el último hijo del scroll, no hay solapamiento).
+- `dialog.tsx`: el botón de cerrar usa `CloseIcon` del registro en vez de importar `X` por el wildcard de lucide.
+- Sin cambios de backend, reglas de negocio, RLS ni permisos.
+
 ## [7.415.1] - 2026-09-01
 ### Patch (UX: wizard recurrente sin preselección)
 - Reporte de usuario: al abrir la vista previa de facturas recurrentes, algunas líneas venían preseleccionadas. Era por diseño ("fila nueva y seleccionable se marca por defecto"), pero el equipo prefiere selección explícita.

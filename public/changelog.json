@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.415.2",
+    "date": "2026-09-01",
+    "type": "patch",
+    "category": "fix",
+    "title": "Pulido visual: sidebar colapsado y modales sin hueco",
+    "description": "Al colapsar el menú lateral, el logo y los datos de usuario ya no se desbordan del riel; los modales dejaron de mostrar un espacio en blanco debajo de los botones.",
+    "tags": [
+      "ui",
+      "sidebar",
+      "modales"
+    ]
+  },
+  {
     "version": "7.415.1",
     "date": "2026-09-01",
     "type": "patch",
