@@ -28,3 +28,37 @@ describe("R8-03 · KPIs del portal con tipo de cambio", () => {
     expect(activeBookings).toHaveLength(1);
   });
 });
+
+describe("R9-09 · fxMissingCount solo con saldo real", () => {
+  it("divisa sin TC con saldo 0 no se cuenta", () => {
+    const { fxMissingCount, outstanding } = derivePortalKpis(bookings, [
+      { status: "sent", balance: 0, moneda: "USD", tipo_cambio: null },
+    ]);
+    expect(fxMissingCount).toBe(0);
+    expect(outstanding).toBe(0);
+  });
+
+  it("saldo dentro de la tolerancia (epsilon) no se cuenta", () => {
+    const { fxMissingCount } = derivePortalKpis(bookings, [
+      { status: "sent", balance: 0.005, moneda: "USD", tipo_cambio: 1 },
+    ]);
+    expect(fxMissingCount).toBe(0);
+  });
+
+  it("saldo por encima de la tolerancia sí se cuenta", () => {
+    const { fxMissingCount } = derivePortalKpis(bookings, [
+      { status: "sent", balance: 0.05, moneda: "USD", tipo_cambio: null },
+      { status: "sent", balance: 100, moneda: "USD", tipo_cambio: 0 },
+    ]);
+    expect(fxMissingCount).toBe(2);
+  });
+
+  it("MXN nunca se cuenta y divisa con TC válido tampoco", () => {
+    const { fxMissingCount, outstanding } = derivePortalKpis(bookings, [
+      { status: "sent", balance: 300, moneda: "MXN", tipo_cambio: null },
+      { status: "sent", balance: 100, moneda: "USD", tipo_cambio: 18 },
+    ]);
+    expect(fxMissingCount).toBe(0);
+    expect(outstanding).toBe(2100);
+  });
+});
