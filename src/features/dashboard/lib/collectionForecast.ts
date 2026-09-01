@@ -1,3 +1,4 @@
+import { isFxMissing as isFxMissingCanonical } from "@/features/cash-flow";
 import { toMxn } from "@/lib/money";
 
 export interface InvoiceMxnLike {
@@ -29,15 +30,15 @@ export function amountInMxn(inv: InvoiceMxnLike): number {
   return toMxn(base, inv.moneda ?? null, inv.tipo_cambio ?? null);
 }
 
-/** H-2: true cuando el documento está en divisa sin tipo de cambio usable. */
+/**
+ * H-2 / R9-10: true cuando el documento está en divisa sin tipo de cambio
+ * usable. La regla vive en el helper canónico de cash-flow (`isFxMissing`);
+ * aquí sólo se respeta además la bandera `fx_missing` que ya calcula la vista
+ * de base de datos.
+ */
 export function isFxMissing(inv: InvoiceMxnLike): boolean {
   if (inv.fx_missing === true) return true;
-  const code = (inv.moneda ?? "MXN").toUpperCase();
-  if (code === "MXN") return false;
-  const rate = Number(inv.tipo_cambio ?? 0);
-  // R7-08: TC = 1 en moneda foránea no es un tipo de cambio real.
-  if (rate === 1) return true;
-  return !(Number.isFinite(rate) && rate > 0);
+  return isFxMissingCanonical(inv.moneda, inv.tipo_cambio);
 }
 
 /** H-2: cuántos documentos quedaron fuera del agregado por falta de TC. */

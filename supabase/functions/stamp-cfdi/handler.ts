@@ -25,7 +25,7 @@ import {
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
-import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
+import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
@@ -317,7 +317,8 @@ export async function handleStampCfdi(
         inv.receptor_razon_social ?? inv.customer_name ?? "Público General",
       ),
     );
-    const taxSystem = isGlobal ? "616" : String(inv.receptor_regimen_fiscal ?? "");
+    // R9-04: misma resolución compartida que NC y REP (global XAXX -> "616").
+    const taxSystem = resolveReceptorRegimenFiscal(isGlobal, inv.receptor_regimen_fiscal as string | null | undefined);
     const zipCode = isGlobal
       ? String(inv.receptor_domicilio_fiscal_cp ?? "06600")
       : String(inv.receptor_domicilio_fiscal_cp ?? "");
