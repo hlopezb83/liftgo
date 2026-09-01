@@ -1,3 +1,8 @@
+## [7.406.0] - 2026-09-01
+### Fix (auditoría R7 · lote 3)
+- `get_income_statement`: nueva CTE `contributing_bill_ids` — el gasto operativo ligado a una `supplier_bill` sólo se deduplica si esa factura aporta al periodo/base (antes desaparecía del P&L si la factura estaba cancelada/draft/rechazada, sin TC o impaga en base cash) (R7-10).
+- CxP: el botón "Liberar bloqueos" se habilita con `count_releasable_payment_locks` (universo completo, mismas precondiciones del RPC) y muestra el conteo liberado en un toast (R7-12).
+
 ## [7.405.0] - 2026-09-01
 ### Fix (auditoría R7 · lote 2)
 - `_shared/regimenFiscal.ts`: catálogo `c_RegimenFiscal` completo (añadidos 609/628/629/630) y `normalizeRegimenFiscal` con frontera `(?!\d)` — "6010" ya no se normaliza a "601" (R7-04, R7-16).

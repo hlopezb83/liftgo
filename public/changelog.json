@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.406.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "fix",
+    "title": "Auditoría R7 (lote 3): gastos que desaparecían del Estado de Resultados y bloqueos de pago",
+    "description": "Los gastos ligados a facturas de proveedor que no aportan al periodo vuelven a contarse en el Estado de Resultados, y el botón para liberar bloqueos de pago ahora dice cuántos hay y confirma el resultado.",
+    "changes": [
+      "Estado de Resultados: un gasto operativo ligado a una factura de proveedor cancelada, en borrador, rechazada, sin tipo de cambio o aún no pagada (en base flujo) ya no desaparece del reporte; solo se omite cuando esa factura realmente aporta al periodo.",
+      "Cuentas por pagar: el botón \"Liberar bloqueos\" aparece según el conteo real de facturas liberables en toda la cartera, no solo en la página visible.",
+      "Al liberar bloqueos se muestra un aviso con cuántas facturas quedaron libres (o que no había ninguna), en lugar de un clic sin respuesta."
+    ]
+  },
+  {
     "version": "7.405.0",
     "date": "2026-09-01",
     "type": "minor",

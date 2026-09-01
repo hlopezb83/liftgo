@@ -21,7 +21,11 @@ import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillsFilters } from "../components/SupplierBillsFilters";
 import { useAccountsPayableFilters } from "../hooks/useAccountsPayableFilters";
 import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
-import { useReleaseStalePaymentLocks } from "../hooks/useReleaseStalePaymentLocks";
+import {
+  useReleasablePaymentLocksCount,
+  useReleaseStalePaymentLocks,
+  STALE_LOCK_HOURS,
+} from "../hooks/useReleaseStalePaymentLocks";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
 export default function CuentasPorPagarPage() {
@@ -35,8 +39,9 @@ export default function CuentasPorPagarPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const releaseLocks = useReleaseStalePaymentLocks();
-  // Solo tiene sentido ofrecer el barrido si hay facturas marcadas en proceso.
-  const lockedCount = visibleListRows(bills).filter((b) => b.payment_in_progress_at !== null).length;
+  // R7-12: el conteo viene del RPC (universo completo + las mismas
+  // precondiciones del barrido), no de las filas visibles de la página.
+  const { data: releasableLocks = 0 } = useReleasablePaymentLocksCount();
 
   const canCreate = useHasModuleAccess("Facturas de Proveedor", "full");
   usePageActions({ onNew: canCreate ? createDialog.openDialog : undefined, newLabel: "Nueva factura de proveedor" });
@@ -70,15 +75,15 @@ export default function CuentasPorPagarPage() {
             <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
               {/* R6 A2-3: lotes abandonados dejaban facturas marcadas como
                   "pago en proceso". El RPC decide cuáles son liberables. */}
-              {lockedCount > 0 && (
+              {releasableLocks > 0 && (
                 <Button
                   variant="outline"
-                  onClick={() => { releaseLocks.mutate(24); }}
+                  onClick={() => { releaseLocks.mutate(STALE_LOCK_HOURS); }}
                   disabled={releaseLocks.isPending}
                   aria-label="Liberar bloqueos de pago"
                 >
                   <KeyIcon className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Liberar bloqueos</span>
+                  <span className="hidden sm:inline">Liberar bloqueos ({releasableLocks})</span>
                 </Button>
               )}
               <Button onClick={createDialog.openDialog}>
