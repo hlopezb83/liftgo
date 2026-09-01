@@ -174,24 +174,8 @@ SELECT pg_temp.expect_true(
   AND pg_temp.src('report_utilization_by_model') ILIKE '%deleted_at IS NULL%'
   AND pg_temp.src('report_utilization_by_model') ILIKE '%is_e2e IS NOT TRUE%'
 );
--- Paridad de universo: las unidades listadas deben ser exactamente las
--- agregadas por modelo.
-DO $$
-DECLARE v_units int; v_model_units int;
-BEGIN
-  SELECT count(*) INTO v_units
-    FROM public.forklifts f
-   WHERE f.deleted_at IS NULL AND f.is_e2e IS NOT TRUE
-     AND lower(COALESCE(f.status, '')) NOT IN ('sold', 'retired', 'vendido', 'retirado');
-  SELECT count(*) INTO v_model_units
-    FROM public.forklifts f
-   WHERE f.deleted_at IS NULL AND f.is_e2e IS NOT TRUE
-     AND lower(COALESCE(f.status, '')) NOT IN ('sold', 'retired', 'vendido', 'retirado');
-  IF v_units = v_model_units THEN
-    RAISE NOTICE 'OK  R9-16 universo idéntico (% unidades)', v_units;
-  ELSE
-    RAISE WARNING 'FALLO  R9-16 universos distintos: % vs %', v_units, v_model_units;
-  END IF;
-END $$;
+-- YAGNI: la paridad real de universo se afirma sobre el fuente de ambas
+-- funciones (arriba); no se agrega un recuento espejo que sólo repetiría el
+-- mismo predicado en SQL.
 
 ROLLBACK;

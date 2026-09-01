@@ -1,3 +1,11 @@
+## [7.411.1] - 2026-09-01
+### Refactor (YAGNI · verificaciones R9)
+- `supabase/tests/r9_fx_canonical_guard.sql`: se elimina el bloque 2 (escaneo global de deriva FX sobre todas las funciones y vistas de `public` buscando `tipo_cambio > 0` / `COALESCE(..., 1)`). Era un lint arquitectónico sin caso confirmado; se conservan las aserciones directas sobre los consumidores migrados, la matriz de `fx_to_mxn`/`fx_convert_amount` y los checks de las vistas.
+- `supabase/tests/r9_lote_ac_smoke.sql`: se elimina el conteo espejo de utilización (dos consultas idénticas comparadas entre sí, imposible de fallar). La paridad se afirma sobre el fuente de `report_utilization_by_unit` y `report_utilization_by_model`.
+- Decisión documentada: la ronda R9 no introduce tablas, colas, estados, overrides ni sistemas de reparación nuevos. Las señales de R9-05 son mensajes dentro del `details[]` que el cron ya devolvía. Los helpers `fx_to_mxn`, `fx_convert_amount` y `bank_amount_in_account_currency` se conservan porque tienen consumidores reales (vistas y RPC de bancos), no como capa especulativa.
+- Fuera de alcance por indicación explícita: R9-15, R9-17 (se mantiene el límite de 12 meses), R9-18, R9-19, R9-20 y R9-22.
+- Sin cambios de comportamiento, UI, esquema ni permisos.
+
 ## [7.411.0] - 2026-09-01
 ### Fix (auditoría R9 · lotes A, B y C — 17 hallazgos)
 LOTE A · integridad y fiscal
