@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.415.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "feature",
+    "title": "Facturación recurrente visible y editable desde la reserva",
+    "description": "El detalle de la reserva ahora dice claramente si la facturación recurrente está activa y permite encenderla o apagarla; al convertir cotizaciones de largo plazo viene sugerida encendida."
+  },
+  {
     "version": "7.414.3",
     "date": "2026-09-01",
     "title": "Eliminar reserva confirmada: bloqueo explicado",

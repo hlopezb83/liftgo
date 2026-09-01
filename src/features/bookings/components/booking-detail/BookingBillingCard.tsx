@@ -2,12 +2,34 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { ClockIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
+import { useUpdateBooking } from "../../hooks/bookings/useBookingMutations";
 import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
+
+/** Estados donde ya no tiene sentido cambiar la recurrencia (no habrá más ciclos). */
+const CLOSED_STATUSES = new Set(["cancelled", "completed"]);
 
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {
   const fmt = (d: string) => formatMtyDate(d);
+  const { data: role } = useUserRole();
+  const { data: perms } = useRolePermissions();
+  const updateBooking = useUpdateBooking();
+
+  const canEdit = !!perms && getAccessLevel(perms, role ?? undefined, "Reservas") === "full";
+  const isClosed = CLOSED_STATUSES.has(booking.status);
+  const canToggle = canEdit && !isClosed;
+
+  const handleToggle = (next: boolean) => {
+    updateBooking.mutate({
+      id: booking.id,
+      recurring_billing: next,
+      expectedVersion: booking.version,
+    });
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -16,10 +38,29 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3">
           <span className="text-sm text-muted-foreground">Facturación recurrente</span>
-          <RecurringBillingBadge booking={booking} />
+          <div className="flex items-center gap-2">
+            {booking.recurring_billing ? (
+              <RecurringBillingBadge booking={booking} />
+            ) : (
+              <span className="text-sm text-muted-foreground">No activa</span>
+            )}
+            {canToggle && (
+              <Switch
+                aria-label="Activar facturación recurrente mensual"
+                checked={!!booking.recurring_billing}
+                disabled={updateBooking.isPending}
+                onCheckedChange={handleToggle}
+              />
+            )}
+          </div>
         </div>
+        {isClosed && booking.recurring_billing === false && (
+          <p className="text-xs text-muted-foreground">
+            La reserva ya está {booking.status === "cancelled" ? "cancelada" : "completada"}; la recurrencia ya no puede activarse.
+          </p>
+        )}
         {booking.last_billed_date && (
           <InfoRow label="Última facturación" value={fmt(booking.last_billed_date)} />
         )}
