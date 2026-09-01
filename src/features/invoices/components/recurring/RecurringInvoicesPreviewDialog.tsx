@@ -36,50 +36,29 @@ function vatRateFor(line: RecurringPreviewLine): number {
 export function RecurringInvoicesPreviewDialog({
   open, onOpenChange, data, isLoading, isGenerating, onConfirm,
 }: Props) {
-  // Derivaciones puras (React Compiler memoiza). Nota: `lines`/`eligibleIds`
-  // son arrays nuevos en cada render, por lo que la comparación de identidad
-  // NO es válida para el patrón "adjust state during render". Usamos una
-  // clave string estable derivada de los ids elegibles.
   const lines = data?.lines ?? [];
   // R6-F5: los periodos con `rateWarning` (reserva actualizada después del
   // periodo) sólo se pueden facturar con confirmación explícita.
   const [allowStaleRate, setAllowStaleRate] = useState(false);
-  const isSelectable = (l: RecurringPreviewLine) =>
-    l.eligible && (!l.rateWarning || allowStaleRate);
+  const isSelectable = (l: RecurringPreviewLine) => isLineSelectable(l, allowStaleRate);
   const staleCount = lines.filter((l) => l.eligible && l.rateWarning).length;
   const eligibleIds = lines.filter(isSelectable).map((l) => l.bookingId);
-  const staleIds = lines.filter((l) => l.eligible && l.rateWarning).map((l) => l.bookingId);
-  // R7-01: la clave de rehidratación depende SOLO de los datos del preview, no
-  // del switch `allowStaleRate`. Antes, activar el switch reconstruía la
-  // selección desde cero y borraba las líneas que el usuario había desmarcado.
-  const dataEligibleKey = lines.filter((l) => l.eligible).map((l) => l.bookingId).join("|");
-  const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
 
-  // Rehidratar la selección cuando cambia el conjunto de elegibles — patrón
-  // React "adjust state during render" en vez de un useEffect que agregaría
-  // una render extra. https://react.dev/learn/you-might-not-need-an-effect
-  const [prevEligibleKey, setPrevEligibleKey] = useState(dataEligibleKey);
-  if (prevEligibleKey !== dataEligibleKey) {
-    setPrevEligibleKey(dataEligibleKey);
-    setSelected(new Set(eligibleIds));
+  // R8-05 / R8-12: la selección se reconcilia contra las filas actuales del
+  // preview con un reducer puro, en vez de reconstruirse desde cero. Así las
+  // filas que desaparecen, dejan de ser elegibles o cambian de periodo/monto no
+  // quedan seleccionadas en silencio, y lo que el usuario desmarcó no vuelve.
+  const [selection, setSelection] = useState<RecurringSelectionState>(() =>
+    reconcileRecurringSelection(emptyRecurringSelection(), lines, allowStaleRate),
+  );
+  const fingerprint = recurringPreviewFingerprint(lines, allowStaleRate);
+  const [prevFingerprint, setPrevFingerprint] = useState(fingerprint);
+  if (prevFingerprint !== fingerprint) {
+    // Patrón React "adjust state during render" (sin useEffect ni render extra).
+    setPrevFingerprint(fingerprint);
+    setSelection((prev) => reconcileRecurringSelection(prev, lines, allowStaleRate));
   }
-
-  // R7-01: al activar el switch se agregan (no se reinician) las líneas con
-  // tarifa desactualizada; al desactivarlo simplemente dejan de ser
-  // seleccionables y no se envían.
-  const [prevAllowStale, setPrevAllowStale] = useState(allowStaleRate);
-  if (prevAllowStale !== allowStaleRate) {
-    setPrevAllowStale(allowStaleRate);
-    if (allowStaleRate && staleIds.length > 0) {
-      setSelected((prev) => {
-        const next = new Set(prev);
-        for (const id of staleIds) next.add(id);
-        return next;
-      });
-    }
-  }
-
-
+  const selected = selection.selected as Set<string>;
 
   // Derivaciones puras: React Compiler las memoiza.
   const groupMap = new Map<string, RecurringPreviewLine[]>();
@@ -95,33 +74,21 @@ export function RecurringInvoicesPreviewDialog({
   // 16% fijo, y acumulación con sumMoney (centavos) — sin drift de centavos.
   const totalSelected = sumMoney(
     lines
-      .filter((l) => selected.has(l.bookingId))
+      .filter((l) => isSelectable(l) && selected.has(l.bookingId))
       .map((l) => applyVat(l.billedAmount, vatRateFor(l))),
   );
 
-  const toggle = (id: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
+  const toggle = (id: string) => setSelection((prev) => toggleRecurringSelection(prev, id));
 
   const toggleGroup = (groupLines: RecurringPreviewLine[]) => {
     const groupEligibleIds = groupLines.filter(isSelectable).map((l) => l.bookingId);
-    const allSelected = groupEligibleIds.every((id) => selected.has(id));
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (allSelected) groupEligibleIds.forEach((id) => next.delete(id));
-      else groupEligibleIds.forEach((id) => next.add(id));
-      return next;
-    });
+    setSelection((prev) => toggleRecurringGroup(prev, groupEligibleIds));
   };
 
   // R14-I: el edge genera UNA factura por línea (período pendiente). Contar
   // facturas reales para que el botón no mienta ("Generar 1" cuando serán 3).
   const selectedCount = lines.filter((l) => isSelectable(l) && selected.has(l.bookingId)).length;
+
 
   return (
     <FormDialog
