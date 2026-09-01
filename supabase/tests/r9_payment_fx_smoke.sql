@@ -7,7 +7,7 @@
 -- Ejecutar:  psql -f supabase/tests/r9_payment_fx_smoke.sql
 -- Solo lecturas de catálogo: termina con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 
@@ -15,7 +15,7 @@ CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
   IF p_cond THEN RAISE NOTICE 'OK  %', p_label;
-  ELSE RAISE WARNING 'FALLO  %', p_label; END IF;
+  ELSE RAISE EXCEPTION 'FALLO  %', p_label; END IF;
 END; $$;
 
 -- 1) El fallback a la moneda de la factura quedó condicionado a misma moneda.
@@ -40,6 +40,27 @@ BEGIN
     'R9-5 get_customer_summary cuenta payments_fx_missing',
     v_src ILIKE '%payments_fx_missing%'
   );
+END $$;
+
+-- 2b) Semántica: la salida de get_customer_summary expone payments_fx_missing.
+DO $$
+DECLARE v_customer uuid; v_json jsonb;
+BEGIN
+  SELECT id INTO v_customer FROM public.customers LIMIT 1;
+  IF v_customer IS NULL THEN
+    RAISE NOTICE 'SKIP  R9-5 sin clientes en la base para probar semántica';
+  ELSE
+    SELECT to_jsonb(s) INTO v_json
+      FROM public.get_customer_summary(v_customer) s;
+    PERFORM pg_temp.expect_true(
+      'R9-5 get_customer_summary devuelve payments_fx_missing',
+      v_json ? 'payments_fx_missing'
+    );
+    PERFORM pg_temp.expect_true(
+      'R9-5 payments_fx_missing es numérico y >= 0',
+      COALESCE((v_json->>'payments_fx_missing')::numeric, -1) >= 0
+    );
+  END IF;
 END $$;
 
 -- 3) Semántica: pago USD sin tipo de cambio contra factura MXN no convierte.
