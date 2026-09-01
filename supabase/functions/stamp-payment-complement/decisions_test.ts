@@ -43,31 +43,67 @@ Deno.test("MonedaP != MonedaDR → usa tipo_cambio de la factura origen", () => 
   );
 });
 
-Deno.test("MonedaP != MonedaDR sin tipo_cambio válido → fallback 1 (evita NaN)", () => {
+Deno.test("MonedaP != MonedaDR sin tipo_cambio válido → falla cerrada (ya no cae a 1)", () => {
+  for (const tc of [null, "no-numero", -1, 1]) {
+    let threw = false;
+    try {
+      computeRepExchange({
+        paymentCurrency: "MXN",
+        invoiceCurrency: "USD",
+        invoiceTipoCambio: tc as never,
+      });
+    } catch {
+      threw = true;
+    }
+    assertEquals(threw, true);
+  }
+});
+
+// R9-02 (revisión): factura MXN + pago extranjero es un caso VÁLIDO; la
+// conversión sale del TC del pago, no del TC=1 legítimo de la factura MXN.
+Deno.test("factura MXN + pago USD con TC válido del pago → equivalencia = TC del pago", () => {
   assertEquals(
     computeRepExchange({
-      paymentCurrency: "MXN",
-      invoiceCurrency: "USD",
-      invoiceTipoCambio: null,
+      paymentCurrency: "USD",
+      invoiceCurrency: "MXN",
+      invoiceTipoCambio: 1,
+      paymentExchangeRate: 18.9,
     }),
-    { invoiceCurrency: "USD", invoiceExchange: 1 },
+    { invoiceCurrency: "MXN", invoiceExchange: 18.9 },
   );
   assertEquals(
-    computeRepExchange({
-      paymentCurrency: "MXN",
-      invoiceCurrency: "USD",
-      invoiceTipoCambio: "no-numero",
+    validateRelatedInvoiceExchange({
+      paymentCurrency: "USD",
+      invoiceCurrency: "MXN",
+      invoiceTipoCambio: 1,
+      paymentExchangeRate: 18.9,
     }),
-    { invoiceCurrency: "USD", invoiceExchange: 1 },
+    { ok: true },
   );
-  assertEquals(
-    computeRepExchange({
-      paymentCurrency: "MXN",
-      invoiceCurrency: "USD",
-      invoiceTipoCambio: -1,
-    }),
-    { invoiceCurrency: "USD", invoiceExchange: 1 },
-  );
+});
+
+Deno.test("factura MXN + pago USD sin TC válido del pago → bloqueo", () => {
+  for (const tc of [null, 0, 1, "abc"]) {
+    assertEquals(
+      validateRelatedInvoiceExchange({
+        paymentCurrency: "USD",
+        invoiceCurrency: "MXN",
+        invoiceTipoCambio: 1,
+        paymentExchangeRate: tc as never,
+      }).ok,
+      false,
+    );
+  }
+});
+
+Deno.test("dos monedas extranjeras distintas → falla cerrada (sin fórmula inequívoca)", () => {
+  const r = validateRelatedInvoiceExchange({
+    paymentCurrency: "EUR",
+    invoiceCurrency: "USD",
+    invoiceTipoCambio: 18.9,
+    paymentExchangeRate: 20.1,
+  });
+  assertEquals(r.ok, false);
 });
 
 Deno.test("normalización de mayúsculas: 'mxn'/'usd' se tratan como MXN/USD", () => {

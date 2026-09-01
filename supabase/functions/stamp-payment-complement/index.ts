@@ -257,6 +257,7 @@ Deno.serve(async (req) => {
       paymentCurrency,
       invoiceCurrency: invoice.moneda as string | null,
       invoiceTipoCambio: invoice.tipo_cambio as number | string | null,
+      paymentExchangeRate: payment.exchange_rate as number | string | null,
     });
     if (!relatedCheck.ok) {
       await releaseClaim("Tipo de cambio inválido en la factura relacionada");
@@ -267,6 +268,7 @@ Deno.serve(async (req) => {
       paymentCurrency,
       invoiceCurrency: invoice.moneda as string | null,
       invoiceTipoCambio: invoice.tipo_cambio as number | string | null,
+      paymentExchangeRate: payment.exchange_rate as number | string | null,
     });
 
     const relatedDoc: Record<string, unknown> = {

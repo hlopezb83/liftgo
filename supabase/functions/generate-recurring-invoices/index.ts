@@ -5,6 +5,7 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
+import { selectTargetItems } from "./selection.ts";
 import {
   fromCents,
   resolveVatRatePercent,
@@ -708,24 +709,10 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { success: true, period: periodMonth, lines });
     }
 
-    // R9-18: si el operador mandó combinaciones reserva+periodo, se procesan
-    // EXCLUSIVAMENTE esas. `bookingIds` se conserva para llamadas previas
-    // (reintento) que aún seleccionan por reserva completa.
-    const selectionKeys = new Set(
-      (body.selections ?? [])
-        .filter((s) => s?.bookingId && s?.periodStart)
-        .map((s) => `${s.bookingId}|${s.periodStart}`),
-    );
-    let targetItems = allItems;
-    if (selectionKeys.size > 0) {
-      targetItems = allItems.filter((i) =>
-        selectionKeys.has(`${i.bookingId}|${i.startStr}`)
-      );
-    } else if (body.bookingIds && body.bookingIds.length > 0) {
-      targetItems = allItems.filter((i) =>
-        body.bookingIds!.includes(i.bookingId)
-      );
-    }
+    // R9-18 (fix fail-open): decisión centralizada en `selection.ts`. Si el
+    // caller envió `selections` (aunque venga vacío o con entradas
+    // incompletas) se procesan EXCLUSIVAMENTE esas combinaciones.
+    const targetItems = selectTargetItems(allItems, body);
 
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
     // facturar periodos cuya tarifa pudo cambiar después del periodo.

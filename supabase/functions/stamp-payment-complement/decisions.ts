@@ -13,47 +13,97 @@ export interface RepExchangeInput {
   paymentCurrency: string | null | undefined;
   invoiceCurrency: string | null | undefined;
   invoiceTipoCambio: number | string | null | undefined;
+  /** TC del pago; requerido cuando la factura es MXN y el pago extranjero. */
+  paymentExchangeRate?: number | string | null | undefined;
+}
+
+type RepExchangeResolution =
+  | { ok: true; invoiceCurrency: string; invoiceExchange: number }
+  | { ok: false; invoiceCurrency: string; message: string };
+
+const isValidFxRate = (v: unknown): boolean => {
+  const n = Number(v ?? NaN);
+  return Number.isFinite(n) && n > 0 && n !== 1;
+};
+
+/**
+ * R9-02 (revisión): única fuente de la decisión de `EquivalenciaDR`. Casos:
+ *  - Misma moneda → 1 (Anexo 20).
+ *  - Factura extranjera + pago MXN → TC de la factura (válido, > 0 y != 1).
+ *  - Factura MXN + pago extranjero → TC del pago (la factura MXN tiene TC=1
+ *    legítimo; la conversión vive en el pago).
+ *  - Dos monedas extranjeras distintas → no hay fórmula inequívoca con los
+ *    datos actuales: falla cerrada en vez de timbrar un valor incorrecto.
+ */
+export function resolveRepExchange(
+  input: RepExchangeInput,
+): RepExchangeResolution {
+  const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();
+  const invoiceCurrency = (input.invoiceCurrency ?? "MXN").toUpperCase();
+  if (invoiceCurrency === paymentCurrency) {
+    return { ok: true, invoiceCurrency, invoiceExchange: 1 };
+  }
+  if (paymentCurrency === "MXN") {
+    if (!isValidFxRate(input.invoiceTipoCambio)) {
+      return {
+        ok: false,
+        invoiceCurrency,
+        message:
+          `La factura relacionada está en ${invoiceCurrency} y el pago en ${paymentCurrency}, ` +
+          `pero la factura no tiene un tipo de cambio válido (debe ser numérico, mayor a 0 y distinto de 1). ` +
+          `Corrige el tipo de cambio de la factura antes de timbrar el REP.`,
+      };
+    }
+    return {
+      ok: true,
+      invoiceCurrency,
+      invoiceExchange: Number(input.invoiceTipoCambio),
+    };
+  }
+  if (invoiceCurrency === "MXN") {
+    if (!isValidFxRate(input.paymentExchangeRate)) {
+      return {
+        ok: false,
+        invoiceCurrency,
+        message:
+          `El pago está en ${paymentCurrency} y la factura relacionada en MXN, ` +
+          `pero el pago no tiene un tipo de cambio válido (numérico, mayor a 0 y distinto de 1). ` +
+          `Corrige el tipo de cambio del pago antes de timbrar el REP.`,
+      };
+    }
+    return {
+      ok: true,
+      invoiceCurrency,
+      invoiceExchange: Number(input.paymentExchangeRate),
+    };
+  }
+  return {
+    ok: false,
+    invoiceCurrency,
+    message:
+      `No se puede timbrar el REP: la factura está en ${invoiceCurrency} y el pago en ${paymentCurrency}. ` +
+      `La conversión entre dos monedas extranjeras distintas no puede derivarse de forma inequívoca ` +
+      `con los tipos de cambio registrados. Registra el pago en la misma moneda de la factura o en MXN.`,
+  };
 }
 
 export function computeRepExchange(input: RepExchangeInput): {
   invoiceCurrency: string;
   invoiceExchange: number;
 } {
-  const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();
-  const invoiceCurrency = (input.invoiceCurrency ?? "MXN").toUpperCase();
-  if (invoiceCurrency === paymentCurrency) {
-    return { invoiceCurrency, invoiceExchange: 1 };
-  }
-  const rate = Number(input.invoiceTipoCambio ?? 1);
-  const invoiceExchange = Number.isFinite(rate) && rate > 0 ? rate : 1;
-  return { invoiceCurrency, invoiceExchange };
+  const res = resolveRepExchange(input);
+  if (!res.ok) throw new Error(res.message);
+  return {
+    invoiceCurrency: res.invoiceCurrency,
+    invoiceExchange: res.invoiceExchange,
+  };
 }
 
-/**
- * R9-02 (paquete final): el `EquivalenciaDR` que se envía al PAC sale del
- * tipo de cambio de la FACTURA relacionada, pero `computeRepExchange` cae a 1
- * en silencio si ese TC falta, es 0 o no es numérico. Cuando la moneda de la
- * factura difiere de la del pago SÍ hay conversión, así que un 1 ahí es el
- * sentinel inválido (mismo criterio que el gate de timbrado): se bloquea antes
- * de llamar al PAC. Con monedas iguales la equivalencia 1 sigue siendo válida.
- */
 export function validateRelatedInvoiceExchange(
   input: RepExchangeInput,
 ): PaymentExchangeValidation {
-  const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();
-  const invoiceCurrency = (input.invoiceCurrency ?? "MXN").toUpperCase();
-  if (invoiceCurrency === paymentCurrency) return { ok: true };
-  const rate = Number(input.invoiceTipoCambio ?? NaN);
-  if (!Number.isFinite(rate) || rate <= 0 || rate === 1) {
-    return {
-      ok: false,
-      message:
-        `La factura relacionada está en ${invoiceCurrency} y el pago en ${paymentCurrency}, ` +
-        `pero la factura no tiene un tipo de cambio válido (debe ser numérico, mayor a 0 y distinto de 1). ` +
-        `Corrige el tipo de cambio de la factura antes de timbrar el REP.`,
-    };
-  }
-  return { ok: true };
+  const res = resolveRepExchange(input);
+  return res.ok ? { ok: true } : { ok: false, message: res.message };
 }
 
 // v7.320.6: guardia defensiva para moneda extranjera. La edge function es la
