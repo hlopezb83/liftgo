@@ -34,13 +34,30 @@ export interface RecurringSelectionState {
   deselected: ReadonlySet<string>;
   /** Reservas que alguna vez fueron seleccionables (para no re-ofrecerlas). */
   known: ReadonlySet<string>;
-  /** Firma material por reserva, para detectar cambios de periodo/monto. */
+  /** Firma material por reserva presente en el preview actual. */
   signatures: Readonly<Record<string, string>>;
+  /**
+   * R9-01: firma material de toda reserva vista durante la sesión abierta del
+   * diálogo (incluidas las que desaparecieron del preview). Permite reconocer
+   * una reserva que reaparece con la misma firma y respetar la intención del
+   * usuario en vez de tratarla como fila nueva.
+   */
+  history: Readonly<Record<string, string>>;
+  /** R9-01: última intención "marcada" del usuario, aunque la fila esté ausente. */
+  intentSelected: ReadonlySet<string>;
 }
 
 export function emptyRecurringSelection(): RecurringSelectionState {
-  return { selected: new Set(), deselected: new Set(), known: new Set(), signatures: {} };
+  return {
+    selected: new Set(),
+    deselected: new Set(),
+    known: new Set(),
+    signatures: {},
+    history: {},
+    intentSelected: new Set(),
+  };
 }
+
 
 /** Una reserva es seleccionable si es elegible y, si trae aviso de tarifa
  *  modificada, sólo cuando el operador confirmó explícitamente. */
