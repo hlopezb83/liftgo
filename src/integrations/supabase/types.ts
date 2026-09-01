@@ -2151,6 +2151,8 @@ export type Database = {
           next_service_date: string | null
           performed_at: string
           performed_by: string | null
+          policy_id: string | null
+          policy_month: string | null
           service_type: string
           supplier_id: string | null
           updated_at: string
@@ -2170,6 +2172,8 @@ export type Database = {
           next_service_date?: string | null
           performed_at?: string
           performed_by?: string | null
+          policy_id?: string | null
+          policy_month?: string | null
           service_type: string
           supplier_id?: string | null
           updated_at?: string
@@ -2189,6 +2193,8 @@ export type Database = {
           next_service_date?: string | null
           performed_at?: string
           performed_by?: string | null
+          policy_id?: string | null
+          policy_month?: string | null
           service_type?: string
           supplier_id?: string | null
           updated_at?: string
@@ -2207,6 +2213,13 @@ export type Database = {
             columns: ["forklift_id"]
             isOneToOne: false
             referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_policies"
             referencedColumns: ["id"]
           },
           {
@@ -4045,6 +4058,10 @@ export type Database = {
           forklift_id: string
         }[]
       }
+      count_releasable_payment_locks: {
+        Args: { p_older_than_hours?: number }
+        Returns: number
+      }
       create_booking: {
         Args: {
           p_customer_contact?: string
@@ -4579,6 +4596,12 @@ export type Database = {
       reject_supplier_bill: {
         Args: { p_bill_id: string; p_notes: string }
         Returns: undefined
+      }
+      releasable_payment_locks: {
+        Args: { p_older_than_hours?: number }
+        Returns: {
+          id: string
+        }[]
       }
       release_stale_payment_locks: {
         Args: { p_older_than_hours?: number }

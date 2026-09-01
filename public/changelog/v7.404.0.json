@@ -1,0 +1,13 @@
+{
+  "description": "Se corrigieron fallas que impedían editar facturas de proveedor con pagos, podían duplicar registros de mantenimiento y subestimaban el saldo del portal.",
+  "changes": [
+    "Editar el monto o la moneda de una factura de proveedor que ya tiene pagos vuelve a funcionar: antes la operación fallaba con un error técnico en lugar del mensaje de bloqueo correspondiente.",
+    "Al borrar un lote de pago, una factura sólo se desbloquea si no sigue incluida en otro lote vivo, evitando pagarla dos veces.",
+    "La limpieza de bloqueos de pago antiguos ahora también libera facturas atoradas en lotes abandonados y sin pagos registrados.",
+    "El proceso automático de mantenimiento por póliza ya no puede duplicar la orden del mes: cada registro queda marcado con su póliza y mes, y un reintento fallido no salta meses pendientes.",
+    "La vista de ocupación de unidades calcula sus fechas en horario de Monterrey y respeta los permisos del usuario que consulta.",
+    "En el portal del cliente, el saldo pendiente excluye las facturas en moneda extranjera sin tipo de cambio y avisa cuántas quedaron fuera (antes se sumaban como si valieran lo mismo en pesos).",
+    "En la vista previa de facturación recurrente, activar la casilla de periodos con tarifa desactualizada ya no reinicia las líneas que habías desmarcado.",
+    "El indicador de renta mensual recurrente ignora tipos de cambio negativos en lugar de restar del total."
+  ]
+}

@@ -48,17 +48,37 @@ export function RecurringInvoicesPreviewDialog({
     l.eligible && (!l.rateWarning || allowStaleRate);
   const staleCount = lines.filter((l) => l.eligible && l.rateWarning).length;
   const eligibleIds = lines.filter(isSelectable).map((l) => l.bookingId);
-  const eligibleKey = eligibleIds.join("|");
+  const staleIds = lines.filter((l) => l.eligible && l.rateWarning).map((l) => l.bookingId);
+  // R7-01: la clave de rehidratación depende SOLO de los datos del preview, no
+  // del switch `allowStaleRate`. Antes, activar el switch reconstruía la
+  // selección desde cero y borraba las líneas que el usuario había desmarcado.
+  const dataEligibleKey = lines.filter((l) => l.eligible).map((l) => l.bookingId).join("|");
   const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
 
   // Rehidratar la selección cuando cambia el conjunto de elegibles — patrón
   // React "adjust state during render" en vez de un useEffect que agregaría
   // una render extra. https://react.dev/learn/you-might-not-need-an-effect
-  const [prevEligibleKey, setPrevEligibleKey] = useState(eligibleKey);
-  if (prevEligibleKey !== eligibleKey) {
-    setPrevEligibleKey(eligibleKey);
+  const [prevEligibleKey, setPrevEligibleKey] = useState(dataEligibleKey);
+  if (prevEligibleKey !== dataEligibleKey) {
+    setPrevEligibleKey(dataEligibleKey);
     setSelected(new Set(eligibleIds));
   }
+
+  // R7-01: al activar el switch se agregan (no se reinician) las líneas con
+  // tarifa desactualizada; al desactivarlo simplemente dejan de ser
+  // seleccionables y no se envían.
+  const [prevAllowStale, setPrevAllowStale] = useState(allowStaleRate);
+  if (prevAllowStale !== allowStaleRate) {
+    setPrevAllowStale(allowStaleRate);
+    if (allowStaleRate && staleIds.length > 0) {
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const id of staleIds) next.add(id);
+        return next;
+      });
+    }
+  }
+
 
 
   // Derivaciones puras: React Compiler las memoiza.
@@ -138,7 +158,11 @@ export function RecurringInvoicesPreviewDialog({
       <FormDialogFooter>
         <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isGenerating} />
         <Button
-          onClick={() => onConfirm(Array.from(selected), allowStaleRate)}
+          onClick={() => onConfirm(
+            lines.filter((l) => isSelectable(l) && selected.has(l.bookingId)).map((l) => l.bookingId),
+            allowStaleRate,
+          )}
+
           disabled={isLoading || isGenerating || selectedCount === 0}
         >
           {isGenerating
