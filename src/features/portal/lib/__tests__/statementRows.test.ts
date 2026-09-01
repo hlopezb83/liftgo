@@ -29,7 +29,7 @@ describe("R8-04 · estado de cuenta del portal", () => {
     ];
     const rows = rowsOf(invs);
     expect(rows.map((r) => r.fxMissing)).toEqual([false, true, true, true, true, false]);
-    expect(rows.at(-1)?.balanceMxn).toBe(1800);
+    expect(rows[rows.length - 1].balanceMxn).toBe(1800);
     expect(rows[1].balanceMxn).toBeNull();
   });
 
