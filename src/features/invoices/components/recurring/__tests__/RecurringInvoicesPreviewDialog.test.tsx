@@ -1,7 +1,6 @@
 // R9-02: cada apertura del diálogo es una sesión nueva (sin consentimiento de
 // tarifa heredado y con la selección reconstruida desde el preview actual).
-import { render, screen, cleanup } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, cleanup, fireEvent } from "@testing-library/react";
 import { describe, it, expect, afterEach } from "vitest";
 import { RecurringInvoicesPreviewDialog } from "../RecurringInvoicesPreviewDialog";
 import type {
@@ -62,12 +61,11 @@ const staleCheckbox = () =>
 const generateButton = () => screen.getByRole("button", { name: /Generar/ });
 
 describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
-  it("al reabrir se pierde el consentimiento de tarifa modificada", async () => {
-    const user = userEvent.setup();
+  it("al reabrir se pierde el consentimiento de tarifa modificada", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "s", rateWarning: true })];
     const { rerenderWith } = setup(lines);
 
-    await user.click(staleCheckbox());
+    fireEvent.click(staleCheckbox());
     expect(staleCheckbox()).toBeChecked();
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
@@ -78,14 +76,13 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
   });
 
-  it("al reabrir la selección se reconstruye desde el preview actual", async () => {
-    const user = userEvent.setup();
+  it("al reabrir la selección se reconstruye desde el preview actual", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
     const { rerenderWith } = setup(lines);
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     // El usuario desmarca una fila y cierra el diálogo.
-    await user.click(screen.getByLabelText(/a/i, { selector: "button[role='checkbox']" }));
+    fireEvent.click(screen.getByLabelText(/a/i, { selector: "button[role='checkbox']" }));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     rerenderWith(false, lines);
@@ -94,12 +91,11 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
   });
 
-  it("un refresh con el diálogo abierto conserva la selección del usuario", async () => {
-    const user = userEvent.setup();
+  it("un refresh con el diálogo abierto conserva la selección del usuario", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
     const { rerenderWith } = setup(lines);
 
-    await user.click(screen.getByLabelText(/a/i, { selector: "button[role='checkbox']" }));
+    fireEvent.click(screen.getByLabelText(/a/i, { selector: "button[role='checkbox']" }));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     // Refetch: mismas líneas (nuevos objetos) mientras sigue abierto.
