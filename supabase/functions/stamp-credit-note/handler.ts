@@ -2,7 +2,10 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
-import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
+import {
+  isValidRegimenFiscalCode,
+  resolveReceptorRegimenFiscal,
+} from "../_shared/regimenFiscal.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
@@ -46,7 +49,6 @@ type LineItem = {
   discount?: number;
   discount_type?: "%" | "$";
 };
-
 
 export async function handleStampCreditNote(
   req: Request,
@@ -316,7 +318,10 @@ export async function handleStampCreditNote(
     // CFDI global (RFC genérico XAXX010101000).
     const isGlobalReceptor = taxId === "XAXX010101000";
     // R8-06: el receptor global siempre timbra con el código puro "616".
-    const taxSystem = resolveReceptorRegimenFiscal(isGlobalReceptor, inv.receptor_regimen_fiscal);
+    const taxSystem = resolveReceptorRegimenFiscal(
+      isGlobalReceptor,
+      inv.receptor_regimen_fiscal,
+    );
 
     const zip = isGlobalReceptor
       ? String(inv.receptor_domicilio_fiscal_cp || "06600")
@@ -590,7 +595,6 @@ export async function handleStampCreditNote(
         jsonHeaders,
       );
     }
-
 
     // Folio diferido: si el credit_note_number sigue siendo placeholder
     // BORRADOR-NC-XXXX y Facturapi devolvió folio, promovemos a NC-<folio>.

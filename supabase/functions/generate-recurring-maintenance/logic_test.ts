@@ -35,12 +35,17 @@ interface Recorded {
 }
 
 function makeClient(opts: {
-  claim?: (month: string) => { data: boolean | null; error: PostgrestErrorLike | null };
+  claim?: (
+    month: string,
+  ) => { data: boolean | null; error: PostgrestErrorLike | null };
   insert?: (month: string) => PostgrestErrorLike | null;
   /** R9-05: ¿existe ya el log único de ese mes? */
   logExists?: (month: string) => boolean;
   /** R9-05: resultado del rollback compare-and-set. */
-  rollback?: () => { data: Record<string, unknown>[] | null; error: PostgrestErrorLike | null };
+  rollback?: () => {
+    data: Record<string, unknown>[] | null;
+    error: PostgrestErrorLike | null;
+  };
 }): { client: MaintenanceClientLike; rec: Recorded } {
   const rec: Recorded = { claims: [], inserts: [], checks: [], rollbacks: [] };
   const client: MaintenanceClientLike = {
@@ -99,7 +104,6 @@ function makeClient(opts: {
   return { client, rec };
 }
 
-
 Deno.test("pendingMonthsFor: secuencia estricta y tope de 12 meses", () => {
   assertEquals(pendingMonthsFor("2025-11", "2026-02"), [
     "2025-12",
@@ -136,7 +140,9 @@ Deno.test("R8-01: duplicado 23505 cuenta como mes ya generado y el catch-up sigu
 
 Deno.test("R8-07: el rollback es compare-and-set sobre el mes reclamado", async () => {
   const { client, rec } = makeClient({
-    insert: (m) => (m === "2026-02" ? { code: "23514", message: "boom" } : null),
+    insert: (
+      m,
+    ) => (m === "2026-02" ? { code: "23514", message: "boom" } : null),
   });
 
   const res = await generateForPolicies(
@@ -226,7 +232,9 @@ Deno.test("R9-05 B: claim tomado SIN log existente → corta la póliza y avisa"
 
 Deno.test("R9-05: el error del rollback CAS ya no se ignora", async () => {
   const { client } = makeClient({
-    insert: (m) => (m === "2026-01" ? { code: "23514", message: "boom" } : null),
+    insert: (
+      m,
+    ) => (m === "2026-01" ? { code: "23514", message: "boom" } : null),
     rollback: () => ({ data: null, error: { message: "connection lost" } }),
   });
 
@@ -245,7 +253,9 @@ Deno.test("R9-05: el error del rollback CAS ya no se ignora", async () => {
 
 Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () => {
   const { client } = makeClient({
-    insert: (m) => (m === "2026-01" ? { code: "23514", message: "boom" } : null),
+    insert: (
+      m,
+    ) => (m === "2026-01" ? { code: "23514", message: "boom" } : null),
     rollback: () => ({ data: [], error: null }),
   });
 
@@ -260,4 +270,3 @@ Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () =
     true,
   );
 });
-

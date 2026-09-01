@@ -41,7 +41,6 @@ interface QueueRow {
   last_error: string | null;
 }
 
-
 // EC-A1 fix: alineado con OPERATION en cfdi_retry_queue (`stamp | cancel |
 // cancel_nc | cancel_rep`) y con los nombres reales de las edge functions.
 // El mapping anterior apuntaba a `cancel-rep`, función inexistente.
@@ -194,8 +193,6 @@ async function isDocCancelled(
   return data.status === "cancelled" || data.cfdi_status === "cancelled" ||
     data.cancellation_status === "accepted";
 }
-
-
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -455,7 +452,9 @@ Deno.serve(async (req) => {
         // reconciliación del estado real en el SAT. Para `cancel` solo aplica
         // cuando el body trae code=CANCELLATION_IN_PROGRESS; el otro 409
         // ("no cancelable") sigue siendo terminal.
-        if (invRes.status === 409 && is409Deferrable(row.operation, invRes.body)) {
+        if (
+          invRes.status === 409 && is409Deferrable(row.operation, invRes.body)
+        ) {
           const deferrals = (row.deferrals ?? 0) + 1;
           // Best-effort: refresh-cancellation-status consulta al PAC y
           // actualiza cancellation_status; si falla, el próximo ciclo

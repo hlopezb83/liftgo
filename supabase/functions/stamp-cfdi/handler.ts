@@ -25,7 +25,10 @@ import {
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
-import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
+import {
+  isValidRegimenFiscalCode,
+  resolveReceptorRegimenFiscal,
+} from "../_shared/regimenFiscal.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 import { checkStampFx } from "../_shared/fxGate.ts";
 
@@ -319,7 +322,10 @@ export async function handleStampCfdi(
       ),
     );
     // R9-04: misma resolución compartida que NC y REP (global XAXX -> "616").
-    const taxSystem = resolveReceptorRegimenFiscal(isGlobal, inv.receptor_regimen_fiscal as string | null | undefined);
+    const taxSystem = resolveReceptorRegimenFiscal(
+      isGlobal,
+      inv.receptor_regimen_fiscal as string | null | undefined,
+    );
     const zipCode = isGlobal
       ? String(inv.receptor_domicilio_fiscal_cp ?? "06600")
       : String(inv.receptor_domicilio_fiscal_cp ?? "");
@@ -331,7 +337,9 @@ export async function handleStampCfdi(
     if (!isGlobal) {
       const missingFiscal: string[] = [];
       if (!taxSystem.trim()) missingFiscal.push("régimen fiscal del receptor");
-      if (!zipCode.trim()) missingFiscal.push("código postal fiscal del receptor");
+      if (!zipCode.trim()) {
+        missingFiscal.push("código postal fiscal del receptor");
+      }
       if (missingFiscal.length > 0) {
         await releaseClaim(
           `Faltan datos fiscales del receptor: ${missingFiscal.join(", ")}`,
@@ -357,7 +365,6 @@ export async function handleStampCfdi(
         return json({ error: msg }, 422, jsonHeaders);
       }
 
-
       // A4B-07: el default "G03" (Gastos en general) no es válido para todos
       // los regímenes (p. ej. 616 "Sin obligaciones fiscales" sólo admite
       // S01/CP01). Rechazar ANTES de timbrar en vez de dejar que el SAT
@@ -369,8 +376,6 @@ export async function handleStampCfdi(
         return json({ error: msg }, 422, jsonHeaders);
       }
     }
-
-
 
     if (isGlobal) {
       const missing: string[] = [];

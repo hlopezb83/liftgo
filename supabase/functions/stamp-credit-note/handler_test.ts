@@ -426,7 +426,12 @@ Deno.test("handler: respeta objeto_imp 01 y tax_rate por línea en el payload", 
       tax_rate: 16,
       currency: "MXN",
       line_items: [
-        { description: "No objeto", quantity: 1, unit_price: 100, objeto_imp: "01" },
+        {
+          description: "No objeto",
+          quantity: 1,
+          unit_price: 100,
+          objeto_imp: "01",
+        },
         { description: "Tasa 8", quantity: 1, unit_price: 100, tax_rate: 8 },
         { description: "Default", quantity: 1, unit_price: 100 },
       ],

@@ -673,7 +673,11 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
-              line_items: [{ description: "Renta", quantity: 1, unit_price: 1000 }],
+              line_items: [{
+                description: "Renta",
+                quantity: 1,
+                unit_price: 1000,
+              }],
               receptor_rfc: "AAA010101AAA",
               // Sin receptor_regimen_fiscal ni receptor_domicilio_fiscal_cp.
             },

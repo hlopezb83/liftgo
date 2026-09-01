@@ -3,8 +3,8 @@ import {
   fromCents,
   roundMoney,
   stampVariance,
-  sumMoney,
   sumLineTaxCents,
+  sumMoney,
   sumMoneyCents,
   toCents,
 } from "./money.ts";

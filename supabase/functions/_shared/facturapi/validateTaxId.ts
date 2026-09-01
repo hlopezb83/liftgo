@@ -109,7 +109,6 @@ export async function validateTaxIdWithPac(
   return { kind: "mismatch", errors };
 }
 
-
 const FIELD_LABEL: Record<string, string> = {
   tax_id: "RFC",
   legal_name: "Razón social",
@@ -164,7 +163,7 @@ export function normalizeTaxIdErrors(
     for (const entry of raw) consume(entry);
   } else if (raw && typeof raw === "object") {
     for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
-      if (Array.isArray(value)) for (const v of value) consume(v, key);
+      if (Array.isArray(value)) { for (const v of value) consume(v, key); }
       else consume(value, key);
     }
   } else if (typeof raw === "string") {
@@ -177,4 +176,3 @@ export function normalizeTaxIdErrors(
 
   return out;
 }
-

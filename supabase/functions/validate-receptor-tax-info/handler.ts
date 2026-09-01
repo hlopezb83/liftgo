@@ -148,7 +148,6 @@ export async function handleValidateReceptor(
     };
 
     return json(result, 200, jsonHeaders);
-
   } catch (err) {
     console.error("[validate-receptor-tax-info] unhandled", {
       message: err instanceof Error ? err.message : String(err),
