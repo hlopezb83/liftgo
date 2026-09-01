@@ -31,6 +31,15 @@ function totalMxn(b: SupplierBillListItem): number {
   return toMxn(Number(b.total), b.currency, b.exchange_rate);
 }
 
+/**
+ * R8-11: una factura sin TC sólo se avisa si pertenece al universo exigible
+ * (no borrador y con saldo), el mismo que usa `useAgingReport`. Antes el KPI
+ * contaba antes de filtrar borradores y no cuadraba con la antigüedad.
+ */
+function isAgingEligible(b: SupplierBillListItem): boolean {
+  return b.status !== "draft" && Number(b.balance) > 0;
+}
+
 function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: KpiCtx) {
   if (b.status === "cancelled") return;
   // QA 2A-3: una factura rechazada en aprobación no es deuda vigente.
@@ -39,14 +48,11 @@ function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: 
   // tipo de cambio se sumaba 1:1 e inflaba "Total pendiente/vencido", dejando
   // la portada de CxP descuadrada contra el aging (que sí la excluye).
   if (isFxMissing(b.currency, b.exchange_rate)) {
-    // R8-11: el aviso debe contar sobre el MISMO universo que el aging:
-    // sólo facturas exigibles (no borrador, con saldo). Antes se contaba
-    // antes de filtrar borradores y el KPI decía "3 sin TC" mientras el
-    // reporte de antigüedad mostraba 1.
-    if (b.status !== "draft" && Number(b.balance) > 0) acc.fxMissingCount += 1;
+    if (isAgingEligible(b)) acc.fxMissingCount += 1;
     acc.repPendientes += b.rep_summary.pending;
     return;
   }
+
 
   const balMxn = balanceMxn(b);
   // BL-R8-02: un borrador con balance no es cartera vencida ni pendiente real
