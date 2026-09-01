@@ -1,3 +1,10 @@
+## [7.414.3] - 2026-09-01
+### Fix (UX: eliminar reserva confirmada terminaba en reporte de error)
+- Error reportado: admin intentaba eliminar una reserva `confirmed` y recibía `DB_PERMISSION_DENIED` con el mensaje crudo de la RPC `delete_booking` ("Solo se pueden eliminar reservas canceladas o completadas").
+- Causa: `BookingActions.tsx` mostraba el botón **Eliminar** habilitado para reservas confirmadas, acción que siempre falla en el servidor.
+- Corrección (solo frontend): el botón usa `BlockedActionButton` y queda bloqueado con tooltip explicativo cuando la reserva está confirmada ("Primero usa Cancelar y después podrás eliminarla"); en `cancelled`/`completed` funciona como antes. Nuevo código de bloqueo `booking_not_final_for_delete` en `businessBlocks.ts` con patrón de error mapeado.
+- Backend intacto: `delete_booking`, triggers, RLS y máquina de estados sin cambios. Tests nuevos en `bookingDeleteGuard.test.ts`.
+
 ## [7.414.2] - 2026-09-01
 ### Fix (hotfix: ficha de cliente no cargaba)
 - Error reportado en producción: `/customers/:id` mostraba "No se pudo cargar la información" con `42702 column reference "fx_missing" is ambiguous`.
