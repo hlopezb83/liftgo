@@ -66,3 +66,30 @@ export function prorateMonthlyAmount(
     fromCents: true,
   }).value;
 }
+
+export interface ProratedLineAmounts {
+  /** Días facturados = cantidad de la partida. */
+  quantity: number;
+  /** Precio diario derivado de la renta mensual (hasta 6 decimales, CFDI 4.0). */
+  unitPrice: number;
+  /** Importe de la partida = quantity × unitPrice redondeado a centavos. */
+  total: number;
+}
+
+/**
+ * Desglose de la primera factura por DÍAS al precio diario derivado de la renta
+ * mensual (renta / días del mes). Se mantiene la invariante timbrable
+ * `total = quantity × unitPrice` (redondeada a centavos), quedando a lo sumo un
+ * centavo del prorrateo canónico de `prorateMonthlyAmount`.
+ */
+export function prorateMonthlyLine(
+  monthlyRate: number,
+  billedDays: number,
+  daysInMonth: number,
+): ProratedLineAmounts | null {
+  if (!(monthlyRate > 0) || !(daysInMonth > 0) || billedDays <= 0) return null;
+  const quantity = Math.min(billedDays, daysInMonth);
+  const unitPrice = Math.round((monthlyRate / daysInMonth) * 1e6) / 1e6;
+  const total = currency(unitPrice * quantity).value;
+  return { quantity, unitPrice, total };
+}
