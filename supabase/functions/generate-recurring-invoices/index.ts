@@ -708,25 +708,10 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { success: true, period: periodMonth, lines });
     }
 
-    // R9-18 (fix fail-open): si el caller ENVIÓ `selections` (aunque sea un
-    // arreglo vacío), se procesan EXCLUSIVAMENTE esas combinaciones; vacío o
-    // con entradas incompletas ⇒ 0 facturas (fail-closed). `bookingIds` sólo
-    // aplica cuando `selections` no viene (reintento legacy por reserva).
-    let targetItems = allItems;
-    if (Array.isArray(body.selections)) {
-      const selectionKeys = new Set(
-        body.selections
-          .filter((s) => s?.bookingId && s?.periodStart)
-          .map((s) => `${s.bookingId}|${s.periodStart}`),
-      );
-      targetItems = selectionKeys.size === 0 ? [] : allItems.filter((i) =>
-        selectionKeys.has(`${i.bookingId}|${i.startStr}`)
-      );
-    } else if (body.bookingIds && body.bookingIds.length > 0) {
-      targetItems = allItems.filter((i) =>
-        body.bookingIds!.includes(i.bookingId)
-      );
-    }
+    // R9-18 (fix fail-open): decisión centralizada en `selection.ts`. Si el
+    // caller envió `selections` (aunque venga vacío o con entradas
+    // incompletas) se procesan EXCLUSIVAMENTE esas combinaciones.
+    const targetItems = selectTargetItems(allItems, body);
 
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
     // facturar periodos cuya tarifa pudo cambiar después del periodo.
