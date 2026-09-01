@@ -1,5 +1,25 @@
 [
   {
+    "version": "7.409.1",
+    "date": "2026-09-01",
+    "type": "patch",
+    "category": "fix",
+    "title": "Cierre de hallazgos bajos R8: conteo FX de CxP, privilegios de bloqueos de pago y régimen fiscal en borradores",
+    "tags": [
+      "cxp",
+      "seguridad",
+      "facturacion",
+      "sat"
+    ],
+    "description": "El aviso de facturas sin tipo de cambio en Cuentas por Pagar ahora cuenta el mismo universo que el reporte de antigüedad, se deja explícito que la función interna de bloqueos de pago no es ejecutable directamente, y los borradores con régimen fiscal escrito como etiqueta se normalizan al código del SAT.",
+    "changes": [
+      "R8-11: `useAccountsPayableKpis` sólo cuenta como \"sin tipo de cambio\" las facturas exigibles (no borrador y con saldo), igual que `useAgingReport`; se reutiliza el predicado canónico `isFxMissing`, sin crear otra regla.",
+      "R8-13: migración idempotente que reafirma que `public.releasable_payment_locks(integer)` no tiene EXECUTE para anon ni authenticated; la autoridad sigue siendo el camino SECURITY DEFINER (`count_releasable_payment_locks` / `release_stale_payment_locks`), que no cambia. La exposición en `types.ts` es informativa: los tipos generados no son frontera de autorización.",
+      "R8-14: nuevo `public.normalize_regimen_fiscal(text)` (espejo SQL de `normalizeRegimenFiscal`) y reparación fail-safe que normaliza SÓLO facturas en borrador sin timbrar con prefijo determinista de un código SAT soportado. Cero filas candidatas en producción al momento de aplicarla; valores ambiguos y documentos timbrados/enviados/cancelados quedan intactos y la migración es rerunnable.",
+      "Tests: 2 casos nuevos en `useAccountsPayableKpis.test.ts` (borrador y factura saldada en divisa) y smoke `supabase/tests/r8_13_14_privilegios_regimen_smoke.sql` (privilegios, normalización determinista, no-borradores intactos, idempotencia)."
+    ]
+  },
+  {
     "version": "7.409.0",
     "date": "2026-09-01",
     "type": "minor",

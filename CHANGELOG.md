@@ -1,3 +1,10 @@
+## [7.409.1] - 2026-09-01
+### Fix (auditoría R8 · cierre de bajos) — R8-11 / R8-13 / R8-14
+- R8-11: el KPI "sin tipo de cambio" de CxP contaba antes de filtrar borradores mientras el aging los excluía; ahora ambos cuentan el mismo universo exigible (no borrador, con saldo) con el predicado canónico `isFxMissing`.
+- R8-13: migración idempotente que hace explícita la decisión de privilegios sobre `public.releasable_payment_locks(integer)` (sin EXECUTE para anon/authenticated). Los wrappers SECURITY DEFINER siguen funcionando. La entrada en `types.ts` es informativa, no una frontera de autorización.
+- R8-14: nuevo `public.normalize_regimen_fiscal(text)` y reparación fail-safe de `receptor_regimen_fiscal` sólo en facturas borrador sin timbrar con prefijo determinista de código SAT soportado (0 filas candidatas en vivo). No se toca ningún documento timbrado, enviado, pagado o cancelado.
+- Tests: `useAccountsPayableKpis.test.ts` (+2) y smoke `supabase/tests/r8_13_14_privilegios_regimen_smoke.sql`.
+
 ## [7.409.0] - 2026-09-01
 ### Fix (auditoría R8 · CFDI régimen fiscal) — R8-06 / R8-09
 - R8-06: nuevo helper compartido resolveReceptorRegimenFiscal; el receptor global (XAXX010101000) envía exactamente `616` al PAC en stamp-credit-note y stamp-payment-complement (antes podía ir la etiqueta heredada "616 - Sin obligaciones fiscales").

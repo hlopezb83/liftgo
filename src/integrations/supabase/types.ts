@@ -4480,6 +4480,7 @@ export type Database = {
       next_quote_number_e2e: { Args: never; Returns: string }
       next_stage_order: { Args: { p_stage: string }; Returns: number }
       next_supplier_bill_number: { Args: never; Returns: string }
+      normalize_regimen_fiscal: { Args: { p_value: string }; Returns: string }
       notify_admins: {
         Args: {
           p_entity_id?: string

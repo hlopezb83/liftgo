@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM anon;
