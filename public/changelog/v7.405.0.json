@@ -1,0 +1,12 @@
+{
+  "description": "El régimen fiscal se valida igual en facturas, notas de crédito y complementos de pago, el catálogo del SAT ya está completo y las facturas en dólares exigen tipo de cambio real.",
+  "changes": [
+    "El catálogo de régimen fiscal ahora incluye todos los códigos vigentes del SAT (609, 628, 629 y 630 incluidos) y es idéntico en la app y en el servidor.",
+    "Las notas de crédito y los complementos de pago validan el régimen fiscal antes de timbrar, igual que las facturas, con mensaje claro de qué corregir.",
+    "Un régimen mal capturado con más de 3 dígitos (por ejemplo 6010) ya no se convierte silenciosamente en un código válido distinto.",
+    "Una factura de proveedor en dólares ya no acepta tipo de cambio 1 por descuido: se pide el tipo de cambio real y el CFDI importado sin TipoCambio lo deja en blanco.",
+    "Los indicadores, la antigüedad de saldos y el flujo de efectivo dejan de sumar 1:1 documentos en divisa sin tipo de cambio real.",
+    "La antigüedad de saldos de cuentas por pagar usa el mismo universo de facturas que los indicadores de la misma pantalla: ya no muestran totales distintos.",
+    "La tarjeta de Ingreso Mensual Recurrente avisa solo de las rentas excluidas del mes vigente, no del mes previo."
+  ]
+}
