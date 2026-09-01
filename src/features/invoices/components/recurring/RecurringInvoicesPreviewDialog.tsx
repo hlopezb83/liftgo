@@ -131,7 +131,7 @@ export function RecurringInvoicesPreviewDialog({
       title={periodTitle(data?.period ?? null)}
       description={
         <>
-          Revisa las facturas recurrentes que se generarán. Desmarca las que quieras excluir.
+          Revisa las facturas recurrentes que se generarán. Marca las que quieras incluir.
           <span className="mt-1 block text-xs text-muted-foreground">
             Nota: se crean como <b>borradores</b> con folio interno LiftGo (FAC-XXXX). El{" "}
             <b>UUID SAT</b> y el <b>ID Facturapi</b> se asignan al timbrar cada una, y pueden no coincidir con el orden del folio interno si timbras fuera de secuencia.
