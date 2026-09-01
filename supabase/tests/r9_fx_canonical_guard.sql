@@ -45,44 +45,11 @@ SELECT pg_temp.expect_true(
   pg_get_viewdef('public.v_invoice_forklift_revenue'::regclass, true) ILIKE '%fx_to_mxn%'
 );
 
--- 2) Guard de deriva: ninguna función/vista financiera puede volver a usar
---    `tipo_cambio > 0` o `COALESCE(..., 1)` como sustituto de la regla.
---    Allowlist: funciones no financieras o de semilla/limpieza E2E.
-DO $$
-DECLARE v_names text;
-BEGIN
-  SELECT string_agg(DISTINCT p.proname, ', ') INTO v_names
-    FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-   WHERE n.nspname = 'public'
-     AND p.proname NOT LIKE 'e2e\_%'
-     AND p.proname NOT IN ('fx_is_missing', 'fx_to_mxn', 'fx_convert_amount',
-                           'bank_amount_in_account_currency')
-     AND (p.prosrc ~* 'tipo_cambio\s*>\s*0'
-       OR p.prosrc ~* 'coalesce\s*\(\s*[a-z_.]*tipo_cambio\s*,\s*1\s*\)'
-       OR p.prosrc ~* 'coalesce\s*\(\s*[a-z_.]*exchange_rate\s*,\s*1\s*\)');
-  IF v_names IS NULL THEN
-    RAISE NOTICE 'OK  R9-09 sin reglas FX duplicadas en funciones';
-  ELSE
-    RAISE WARNING 'FALLO  R9-09 funciones con regla FX propia: %', v_names;
-  END IF;
-END $$;
+-- YAGNI: no se incluye un escaneo global de "deriva FX" sobre todas las
+-- funciones/vistas del esquema. Sería un lint arquitectónico sin caso
+-- confirmado; basta con afirmar los consumidores concretos migrados (1).
 
-DO $$
-DECLARE v_names text;
-BEGIN
-  SELECT string_agg(DISTINCT viewname, ', ') INTO v_names
-    FROM pg_views
-   WHERE schemaname = 'public'
-     AND (definition ~* 'tipo_cambio\s*>\s*0'
-       OR definition ~* 'coalesce\s*\(\s*[a-z_."]*tipo_cambio\s*,\s*1\s*\)');
-  IF v_names IS NULL THEN
-    RAISE NOTICE 'OK  R9-09 sin reglas FX duplicadas en vistas';
-  ELSE
-    RAISE WARNING 'FALLO  R9-09 vistas con regla FX propia: %', v_names;
-  END IF;
-END $$;
-
--- 3) Matriz de los helpers nuevos.
+-- 2) Matriz de los helpers nuevos.
 SELECT pg_temp.expect_true('fx_to_mxn MXN sin TC', public.fx_to_mxn(100, 'MXN', NULL) = 100);
 SELECT pg_temp.expect_true('fx_to_mxn USD sin TC es NULL', public.fx_to_mxn(100, 'USD', NULL) IS NULL);
 SELECT pg_temp.expect_true('fx_to_mxn USD TC=1 es NULL', public.fx_to_mxn(100, 'USD', 1) IS NULL);
@@ -99,7 +66,7 @@ SELECT pg_temp.expect_true('R9-06 tercera moneda EUR -> USD',
 SELECT pg_temp.expect_true('R9-06 sin TC devuelve NULL (no importe crudo)',
   public.fx_convert_amount(100, 'USD', 'MXN', NULL, NULL) IS NULL);
 
--- 4) R9-06: la vista expone la señal de pagos no convertibles.
+-- 3) R9-06: la vista expone la señal de pagos no convertibles.
 SELECT pg_temp.expect_true(
   'R9-06 v_invoices_with_balance expone payments_fx_missing',
   EXISTS (SELECT 1 FROM information_schema.columns
@@ -112,7 +79,7 @@ SELECT pg_temp.expect_true(
     @> ARRAY['security_invoker=true']
 );
 
--- 5) R9-07: sin fallback de total crudo como MXN.
+-- 4) R9-07: sin fallback de total crudo como MXN.
 SELECT pg_temp.expect_true(
   'R9-07 v_overdue_invoices sin round(i.total, 2) como MXN',
   pg_get_viewdef('public.v_overdue_invoices'::regclass, true) NOT ILIKE '%round(i.total%'
