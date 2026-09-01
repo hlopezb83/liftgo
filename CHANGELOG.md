@@ -1,3 +1,11 @@
+## [7.414.0] - 2026-09-01
+### Feature (primer ciclo prorrateado en facturas desde reserva)
+- `src/lib/domain/firstBillingPeriod.ts` (nuevo): `firstBillingPeriod(start,end)` recorta el primer periodo al fin del mes de inicio cuando la reserva se extiende más allá, y `prorateMonthlyAmount()` replica la fórmula en centavos de `generate-recurring-invoices/prorate.ts`.
+- `buildLinesForBooking` (`useInvoiceFormHandlers.ts`): reserva de largo plazo que inicia a mitad de mes ⇒ una sola partida `Renta mensual (prorrateo N días)` con `quantity: 1` (invariante timbrable `total = qty × precio`); inicio el día 1 ⇒ `generateLineItems` sobre el rango recortado (mes completo). Rentas dentro del mismo mes: sin cambios.
+- `handleBookingsChange` precarga `billingPeriodStart/End` con el periodo recortado cuando aplica; si no, conserva el mes de emisión (H-6).
+- Sin cambios en el edge function recurrente, esquema, RLS, RPC, permisos ni reglas fiscales.
+- Pruebas: `src/lib/domain/__tests__/firstBillingPeriod.test.ts` (7) y 3 casos nuevos en `useInvoiceFormHandlers.test.ts`.
+
 ## [7.413.0] - 2026-09-01
 ### Fix (cierre R9 · recurrentes, REP y reportes)
 - R9-18 fail-closed: `supabase/functions/generate-recurring-invoices/selection.ts` filtra exclusivamente por `selections` (vacío/inválido ⇒ 0) o, si `selections` no vino, exclusivamente por `bookingIds` (vacío ⇒ 0). Sin ningún selector devuelve `null` y `index.ts` responde 400 "Se requiere una selección explícita" sin escribir. El cron mutante sigue siendo no-op.

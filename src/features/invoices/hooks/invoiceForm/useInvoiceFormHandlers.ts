@@ -1,5 +1,6 @@
 import type { Forklift } from "@/features/fleet";
 import { monthBounds } from "@/lib/date/monthBounds";
+import { firstBillingPeriod, prorateMonthlyAmount } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { nowMty } from "@/lib/utils";
@@ -41,6 +42,12 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
   });
 }
 
+const SAT_LINE_DEFAULTS = {
+  clave_prod_serv: "78181500",
+  clave_unidad: "DAY",
+  objeto_imp: "02",
+} as const;
+
 export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
@@ -53,12 +60,34 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
     weekly_rate: booking.weekly_rate ?? forklift.weekly_rate ?? 0,
     monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
   };
+
+  // Primera factura de una reserva de largo plazo: sólo del inicio al fin de
+  // mes (prorrateado). Los meses siguientes se facturan completos, igual que
+  // en el asistente de facturación recurrente.
+  const period = firstBillingPeriod(booking.start_date, booking.end_date);
+  if (period?.truncated) {
+    const monthly = rated.monthly_rate ?? 0;
+    if (period.isProrated && monthly > 0) {
+      const amount = prorateMonthlyAmount(monthly, period.billedDays, period.daysInMonth);
+      return [{
+        description: `${forklift.name} — Renta mensual (prorrateo ${period.billedDays} días)`,
+        // quantity 1 para preservar la invariante timbrable total = qty × precio.
+        quantity: 1,
+        unit_price: amount,
+        total: amount,
+        ...SAT_LINE_DEFAULTS,
+      }];
+    }
+    return generateLineItems(rated, period.start, period.end).map((item) => ({
+      ...item,
+      ...SAT_LINE_DEFAULTS,
+    }));
+  }
+
   const items = generateLineItems(rated, booking.start_date, booking.end_date);
   return items.map((item) => ({
     ...item,
-    clave_prod_serv: "78181500",
-    clave_unidad: "DAY",
-    objeto_imp: "02",
+    ...SAT_LINE_DEFAULTS,
   }));
 }
 
@@ -126,9 +155,16 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
 
     // H-6: al ligar una reserva, pre-llenar el periodo con el mes de la fecha
     // de emisión si el usuario aún no lo ha capturado (caso típico: mensualidad).
+    // Reserva de largo plazo: el primer periodo va del inicio de la reserva al
+    // fin de ese mes, para que el siguiente ciclo arranque limpio el día 1.
     if (selectedIds.length > 0 && !form.getValues("billingPeriodStart")) {
+      const first = selected[0]
+        ? firstBillingPeriod(selected[0].start_date, selected[0].end_date)
+        : null;
       const issue = form.getValues("issueDate") ?? nowMty();
-      const { start, end } = monthBounds(issue);
+      const { start, end } = first?.truncated
+        ? { start: first.start, end: first.end }
+        : monthBounds(issue);
       form.setValue("billingPeriodStart", start, { shouldDirty: true });
       form.setValue("billingPeriodEnd", end, { shouldDirty: true });
     }

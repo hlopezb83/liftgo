@@ -58,6 +58,7 @@ activityTranslations.ts
 contractTypes.ts
 customerTypes.ts
 errorCatalog.ts
+firstBillingPeriod.ts
 invoiceHelpers.ts
 invoiceTotals.ts
 lineItems.ts
