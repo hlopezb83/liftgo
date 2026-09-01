@@ -1,3 +1,13 @@
+## [7.404.0] - 2026-09-01
+### Fix (auditoría R7 · lote 1)
+- `set_supplier_bill_approval_status` usaba `supplier_payments.supplier_bill_id` (inexistente): toda edición de monto/moneda de una factura con pagos fallaba con 42703.
+- `release_bills_on_batch_delete` ya no libera facturas que siguen en otro lote vivo; `release_stale_payment_locks` comparte predicado con la nueva `releasable_payment_locks` y libera lotes abandonados sin pagos.
+- `maintenance_logs.policy_id`/`policy_month` + índice único parcial: el cron de pólizas es idempotente y el rollback del claim ya no salta meses.
+- `v_booking_occupancy` con `security_invoker = on` y casts de fecha en America/Monterrey.
+- `get_financial_kpis`: TC ≤ 0 se trata como faltante (antes restaba del MRR).
+- Portal: el saldo pendiente excluye facturas en divisa sin TC y muestra el conteo excluido.
+- Vista previa de recurrentes: activar `allowStaleRate` ya no reinicia las deselecciones manuales.
+
 ## [7.403.0] - 2026-09-01
 ### Fix (auditoría R6 · gastos + MRR)
 - `operating_expenses.supplier_bill_id` poblado por backfill 1:1 (131/142) y con índice único parcial; la heurística monto+fecha queda sólo como respaldo legacy.

@@ -1,1 +1,820 @@
-[{"version":"7.403.0","date":"2026-09-01","type":"minor","category":"fix","title":"Gastos ligados a su factura de proveedor y MRR sin conversiones silenciosas","description":"Se eliminó el riesgo de contar dos veces un mismo gasto y el indicador de renta mensual ahora avisa cuando deja fuera rentas en dólares sin tipo de cambio.","changes":["Los gastos operativos quedaron ligados a su factura de proveedor correspondiente (131 de 142 registros históricos), de modo que el Estado de Resultados deja de depender de una coincidencia por monto y fecha.","La base de datos ahora impide que dos gastos apunten a la misma factura de proveedor.","El KPI de Ingreso Mensual Recurrente muestra un aviso con cuántas rentas en divisa quedaron fuera por no tener tipo de cambio registrado (antes se omitían sin avisar), tanto del mes vigente como del mes previo.","En ningún cálculo se convierte dólares a pesos con paridad 1:1."]},{"version":"7.402.0","date":"2026-09-01","type":"minor","category":"fix","title":"Facturación recurrente a prueba de tarifas viejas y respaldo completo de contratos firmados","description":"Los periodos atrasados ya no se facturan automáticamente con una tarifa que pudo cambiar: requieren confirmación del operador. Además, todos los contratos firmados tienen su copia inmutable de cliente, unidad y plantilla.","changes":["Si una reserva se editó después de que terminó el periodo a facturar, ese periodo ya no se factura solo: queda pendiente y la vista previa pide confirmación explícita antes de incluirlo.","La tarea automática nunca puede confirmar por su cuenta esos periodos; solo un usuario administrador desde la vista previa.","La respuesta de la generación informa cuántos periodos se omitieron por posible cambio de tarifa y se avisa con un mensaje en pantalla.","Los contratos ya firmados que no tenían respaldo recibieron su copia inmutable (cliente, unidad y plantilla), para que el PDF firmado no cambie si esos datos se editan después."]},{"version":"7.401.0","date":"2026-09-01","type":"minor","category":"fix","title":"Régimen fiscal validado antes de timbrar y facturas de proveedor sin bloqueos huérfanos","description":"El timbrado rechaza de inmediato un régimen fiscal inválido, la lectura de la Constancia de Situación Fiscal entrega solo el código del SAT, y las facturas de proveedor ya no se quedan atoradas por un lote de pago abandonado.","changes":["Antes de timbrar, el sistema verifica que el régimen fiscal del receptor sea un código válido de 3 dígitos del catálogo del SAT y explica el error en vez de consumir un timbre en un CFDI que el PAC rechazaría.","Al leer una Constancia de Situación Fiscal, el régimen fiscal se guarda como código puro (por ejemplo '601'); si no se puede reconocer, el campo queda vacío para captura manual.","Si se elimina un lote de pago a proveedores, las facturas del lote que no tienen pagos registrados se liberan automáticamente del estado 'pago en proceso'.","Nuevo botón 'Liberar bloqueos' en Facturas de Proveedor (solo administradores): libera facturas marcadas como 'pago en proceso' hace más de 24 horas cuyo lote ya no existe y que no tienen pagos registrados."]},{"version":"7.400.0","date":"2026-09-01","type":"minor","category":"fix","title":"Integridad R5: archivado sin pérdida de datos, restauración y criterio único de devolución","description":"Archivar ya no borra información, se pueden restaurar órdenes de trabajo y daños archivados, y las cotizaciones convertidas regresan a 'Aceptada' cuando todas sus reservas se cancelan.","changes":["Archivar una orden de trabajo abierta ya no borra sus refacciones ni su mano de obra: solo se oculta el registro y se conserva el costo histórico.","Nueva vista 'Archivados' en Mantenimiento y en Seguimiento de Daños, con botón para restaurar (solo administradores). Cada restauración queda en la bitácora del equipo.","Una cotización convertida vuelve automáticamente a 'Aceptada' cuando todas sus reservas quedan canceladas, en lugar de quedar bloqueada.","Al cancelar o eliminar una factura de daños, la liberación del daño queda registrada en la bitácora del equipo con el folio de la factura.","Se unificó el criterio de 'unidad devuelta': ahora se reconoce por la inspección de retorno registrada. Antes algunas validaciones buscaban un tipo de movimiento que la app nunca genera."]},{"version":"7.399.0","date":"2026-09-01","type":"minor","category":"feature","title":"Reapertura de órdenes de trabajo y bloqueo optimista al cambiar estatus de reservas","description":"Los administradores ya pueden reabrir una OT cerrada por error desde la app, y los cambios de estatus de reserva dejan de pisar los cambios de otro usuario.","changes":["Nuevo botón “Reabrir OT” en el detalle de mantenimiento, visible sólo para administradores cuando la orden está cerrada. Pide un motivo obligatorio y deja registro en la bitácora.","Al reabrir, la orden vuelve a estado “En progreso” y se pueden capturar refacciones y mano de obra nuevamente.","Los cambios de estatus de una reserva ahora usan bloqueo optimista: si otra persona modificó la reserva mientras la tenías abierta, se avisa en lugar de sobrescribir su cambio."]},{"version":"7.398.2","date":"2026-09-01","type":"patch","category":"fix","title":"Cierre de pendientes de la auditoría R5: cotizaciones en limbo, ventana de mantenimiento y pruebas por zona horaria","description":"Se liberó el borrado de cotizaciones cuyas reservas fueron todas canceladas, el calendario dibuja la ventana real de mantenimiento y las pruebas dejan de depender de la zona horaria del servidor.","changes":["Una cotización cuyas reservas fueron todas canceladas ya puede eliminarse; las que tienen reservas vigentes o están aceptadas siguen protegidas.","En el calendario, el mantenimiento se dibuja como la ventana completa (fecha del servicio ± los días de holgura configurados) en lugar de una marca de un solo día.","Las pruebas automáticas se ejecutan con zona horaria fija, eliminando una falla intermitente en el cálculo de vencimientos de facturas de proveedor."]},{"version":"7.398.1","date":"2026-08-31","type":"patch","category":"fix","title":"La validación fiscal ya muestra el detalle correcto","description":"La pantalla marcaba a todos los clientes con “Diferencias” y dejaba la columna de detalle vacía. Ahora interpreta bien la respuesta del PAC y explica qué revisó.","changes":["Se corrigió la lectura de la respuesta del PAC: la consulta valida el RFC contra la lista EFOS (art. 69-B) del SAT y devuelve el resultado dentro de `efos`, que antes no se interpretaba y marcaba a todos como con diferencias.","Cuando el SAT responde sin detalle, se guarda y muestra el mensaje textual del SAT en vez de dejar la columna en blanco.","Los mensajes de error del PAC se normalizan a un texto legible con el nombre del campo (RFC, razón social, régimen fiscal, C.P.).","Se ajustaron los textos de la pantalla para reflejar lo que realmente se valida: “Sin observaciones” / “Con observaciones (EFOS 69-B)” y datos fiscales incompletos."]},{"version":"7.398.0","date":"2026-08-31","type":"minor","category":"feature","title":"Tareas programadas de CFDI operando y validación fiscal masiva contra el SAT","description":"Se corrigió el error 401 que impedía correr las tareas automáticas de facturación y se agregó una pantalla para validar toda la cartera de clientes contra su Constancia de Situación Fiscal.","changes":["Las tareas programadas (reintentos de timbrado, reconciliación, facturación y mantenimiento recurrente) vuelven a ejecutarse: ahora aceptan tanto el secreto del entorno como el guardado en la bóveda de la base de datos.","Se eliminaron tareas programadas obsoletas y se reagendaron las vigentes con la firma correcta.","Nueva pantalla “Validación fiscal contra el SAT” en Clientes: valida en lote hasta 40 clientes por corrida, sin consumir timbres, y muestra el estado (coincide, diferencias, error) con la fecha de la última validación.","Cada cliente guarda su estado de validación fiscal, la fecha y el detalle de diferencias.","La validación fiscal de facturas y la masiva comparten la misma lógica de consulta al PAC."]},{"version":"7.397.0","date":"2026-08-31","type":"minor","category":"refactor","title":"Pulido YAGNI: changelog progresivo, limpieza de backend y fechas unificadas","description":"Se aligeró la carga del historial de cambios, se retiraron funciones de backend sin uso y se unificó el formateo de fechas en toda la aplicación.","changes":["El historial de cambios abre mostrando las versiones recientes y carga el archivo completo solo cuando se pide, reduciendo la descarga inicial de ~650 KB a ~56 KB.","Se eliminaron tres funciones de servidor que ya no tenían consumidores.","Todas las pantallas usan un único formateador de fechas (zona horaria Monterrey), eliminando la variante duplicada en 61 archivos.","Se documentó en la arquitectura por qué se conservan las librerías con un solo punto de uso.","Sin cambios en reglas de negocio, permisos, RLS ni base de datos."]},{"version":"7.396.3","date":"2026-08-31","type":"patch","title":"Detalle completo del historial de cambios","category":"docs","description":"Se completaron los archivos de detalle de 28 versiones históricas del historial de cambios, de modo que la validación de versiones ya no reporta faltantes.","changes":["Cada versión del historial tiene ahora su archivo de detalle con descripción y lista de cambios.","La validación automática de versiones pasa sin advertencias."]},{"version":"7.396.2","date":"2026-08-31","type":"patch","title":"Pruebas SQL de humo alineadas al esquema actual","description":"Se corrigieron aserciones obsoletas de las pruebas SQL de humo y se cerró el acceso público a la tabla de periodos fiscales.","changes":["Las pruebas de humo usan `issue_date` (la columna `bill_date` ya no existe) y apuntan a `sync_invoice_status`.","Se actualizaron los textos verificados de `create_booking`, `sync_forklift_rental_status`, `complete_return_inspection`, `validate_transition`, `trg_payment_amount_mxn`, `soft_delete_maintenance_log` y `e2e_seed_portal_scenario`.","Los periodos fiscales ya no otorgan permisos al rol anónimo.","`useCustomerDetailPage` se simplificó para cumplir el límite de complejidad de ESLint."]},{"version":"7.396.1","date":"2026-08-31","type":"patch","title":"Pruebas de RFC alineadas al dígito verificador","description":"Se ajustaron las pruebas automáticas para usar RFCs con dígito verificador válido; sin cambios funcionales en la app.","changes":["Las pruebas del validador de RFC usan ejemplos con dígito verificador correcto.","Suite completa de pruebas en verde."]},{"version":"7.394.0","date":"2026-08-31","type":"minor","title":"Datos fiscales reales en facturación recurrente y devoluciones sin fechas futuras","description":"El estado de cuenta ya resta las notas de crédito, la facturación recurrente no inventa datos fiscales y una devolución no puede registrarse con fecha futura.","changes":["El PDF de estado de cuenta resta las notas de crédito del saldo.","El timbrado de notas de crédito y complementos de pago exige el régimen y código postal reales del cliente.","La facturación recurrente ya no mezcla monedas en una misma factura y pide el uso de CFDI del cliente.","La inspección de devolución sólo acepta fechas hasta hoy."]},{"version":"7.393.2","date":"2026-08-31","type":"patch","title":"Limpieza interna de código","description":"Reorganización técnica de algunos archivos; sin cambios visibles para el usuario.","changes":["Código de cotizaciones, contratos y calendario dividido en piezas más pequeñas."]},{"version":"7.393.1","date":"2026-08-31","type":"patch","title":"Limpieza interna de arquitectura","description":"Ajuste técnico en la organización del código; sin cambios visibles para el usuario.","changes":["Los módulos ahora se comunican por sus puntos de entrada oficiales."]},{"version":"7.393.0","date":"2026-08-31","type":"minor","title":"Utilización real de flota, daños re-facturables y órdenes cerradas protegidas","description":"El tablero calcula la utilización con las fechas reales de entrega y devolución, un daño vuelve a ser cobrable si su factura se cancela, y una orden de trabajo cerrada sólo se reabre con el proceso formal.","changes":["La utilización usa entregas y devoluciones reales; las rentas vencidas cuentan hasta hoy.","Al cancelar la factura de un daño, el daño regresa a 'reparado' y puede facturarse de nuevo.","No se puede arrastrar una orden cerrada a un estado abierto; se explica el motivo.","La búsqueda de facturas ignora el comodín '_'."]},{"version":"7.392.1","date":"2026-08-31","type":"patch","title":"Aviso explicable al intentar aprobar tu propia factura de proveedor","description":"Cuando un administrador intenta aprobar una factura que él mismo registró, el sistema explica el motivo dentro del diálogo en vez de mostrar un error genérico.","changes":["El diálogo de aprobación muestra el bloqueo explicable de segregación de funciones."]},{"version":"7.392.0","date":"2026-08-31","type":"minor","title":"Segregación de funciones en CxP y utilización de flota sin datos de prueba","description":"Quien registra una factura de proveedor ya no puede aprobarla: se requiere un segundo administrador. Además, el tablero deja de contar reservas de prueba en rentas vencidas y en la utilización mensual.","changes":["Una factura de proveedor debe ser aprobada por un administrador distinto al que la registró.","Mensaje explicable cuando se intenta la auto-aprobación.","El tablero excluye reservas de prueba (E2E) de rentas vencidas y de la utilización de flota."]},{"version":"7.391.0","date":"2026-08-31","type":"minor","title":"Lote 2/3 del catálogo QA: contratos firmados, depósito en garantía, estado de resultados y flujo de efectivo","description":"El PDF de un contrato firmado ahora es inmutable, el depósito en garantía tiene ciclo de vida propio, el estado de resultados excluye documentos en divisa sin tipo de cambio y la proyección de flujo de efectivo ya considera las rentas recurrentes futuras.","changes":["Al firmar un contrato se guarda una copia inmutable de sus datos, del cliente, de la unidad y de la plantilla; el PDF del contrato firmado ya no cambia si después se editan esos datos.","El depósito en garantía tiene estado (retenido, aplicado o devuelto), fecha, monto liquidado y notas, con una acción controlada para administradores y personal administrativo.","Estado de resultados: se excluyen facturas, notas de crédito y facturas de proveedor en divisa sin tipo de cambio válido y las facturas de proveedor rechazadas; el reporte informa cuántos documentos quedaron fuera.","Flujo de efectivo: la proyección incluye las rentas recurrentes aún no facturadas dentro del horizonte, marcadas como proyectadas y excluyendo divisas sin tipo de cambio.","Inspección de devolución: ya no se aceptan fechas futuras.","Nuevas acciones de restauración (desarchivar) para clientes y proveedores, disponibles sólo para administradores."]},{"version":"7.390.0","date":"2026-08-31","type":"minor","title":"Lote 1 de correcciones del catálogo QA: flota, reservas, CxP y facturación en divisa","description":"Se corrigieron hallazgos vigentes de la auditoría: órdenes de trabajo archivadas ya no distorsionan reportes ni bloquean cambios de estatus, las unidades rentadas regresan correctamente a “Rentado” al cerrar mantenimiento, la facturación recurrente respeta moneda y tipo de cambio, los complementos de pago descuentan notas de crédito y editar el monto de una factura de proveedor vuelve a exigir aprobación.","changes":["Reportes de rentabilidad, ROI y el contador de mantenimiento abierto ya no cuentan órdenes de trabajo archivadas ni datos de prueba.","Cerrar, cancelar o archivar una orden de trabajo de una unidad con renta activa la regresa a “Rentado” en vez de dejarla atorada en “Mantenimiento”.","La sincronización de estatus ya no libera unidades con daños u órdenes de trabajo abiertas y deja registro en la bitácora.","No se puede reservar un montacargas archivado, ni cancelar una reserva con facturas emitidas vigentes.","Cancelar una cotización ya convertida pasa por las mismas validaciones que una aceptada.","Las facturas recurrentes se generan con la moneda y el tipo de cambio de la reserva; sin tipo de cambio válido no se factura.","El complemento de pago (REP) descuenta las notas de crédito timbradas al calcular el saldo anterior.","Cambiar monto, moneda o tipo de cambio de una factura de proveedor reevalúa el umbral de aprobación y se bloquea si ya tiene pagos o está aprobada.","Importación bancaria: “1.500” se interpreta como mil quinientos, no como 1.50.","CxP: las facturas rechazadas ya no suman en los indicadores ni en la antigüedad de saldos.","Validaciones de fechas imposibles, archivos de estado de cuenta en Windows-1252, límite de 5 MB para la constancia fiscal, catálogo SAT de régimen fiscal y facturación recurrente por mes calendario."]},{"version":"7.389.1","date":"2026-08-31","type":"patch","title":"RFCs válidos ya no se rechazan en los datos fiscales","description":"La validación del dígito verificador del RFC calculaba mal dos casos del algoritmo del SAT, así que cerca de 2 de cada 11 RFCs reales se rechazaban al guardar los datos fiscales de la empresa. Ya se corrigió el mapeo y las pruebas ahora cubren esos casos borde.","changes":["Guardar un RFC real en los datos fiscales de la empresa o al capturar facturas ya no marca el error “el dígito verificador no coincide” por un cálculo incorrecto.","Las pruebas del validador ahora verifican el dígito esperado con una implementación de referencia independiente, incluyendo los casos que terminan en “A” y en “1”."]},{"version":"7.389.0","date":"2026-08-31","type":"minor","title":"Cierre de la auditoría QA: notas de crédito, entregas, lotes de pago y estados de cuenta","description":"Se cerraron los últimos hallazgos abiertos de la auditoría: las notas de crédito verifican que el CFDI timbrado cuadre con el documento, las entregas registradas como completadas respetan la ventana de renta, un lote de pagos fallido libera sus facturas y la importación bancaria deja de duplicar movimientos.","changes":["Si el CFDI de una nota de crédito no cuadra con el total del sistema, queda marcada como error para revisarla y cancelarla, en vez de darse por buena.","Registrar una entrega como “ya completada” ahora exige que la reserva esté confirmada y que la fecha caiga dentro del periodo de renta.","Si falla la generación del Excel de pagos, el lote se cancela solo y las facturas quedan liberadas para volver a exportarse.","La importación de estados de cuenta detecta duplicados por el contenido del movimiento, así que reimportar un archivo traslapado ya no duplica líneas y dos movimientos legítimamente idénticos sí se conservan.","Al editar una reserva se puede avisar si otro usuario la modificó antes, en vez de sobrescribir su cambio."]},{"version":"7.388.0","date":"2026-08-31","type":"minor","title":"Blindajes fiscales, gastos sin duplicados y mantenimientos en el calendario","description":"Las facturas timbradas como PUE ya no aceptan pagos parciales, los gastos operativos se pueden ligar a su factura de proveedor para no contarse dos veces, el RFC valida su dígito verificador y el Gantt muestra los mantenimientos programados.","changes":["Una factura timbrada como PUE (pago en una sola exhibición) sólo acepta el pago completo; para pagos parciales debe emitirse como PPD.","Cada gasto operativo puede ligarse a la factura de proveedor correspondiente, evitando que el estado de resultados lo cuente dos veces.","El RFC ahora valida su dígito verificador, no sólo el formato.","El Gantt del calendario muestra franjas de mantenimiento programado y órdenes de trabajo abiertas por equipo.","Al editar una cotización se avisa si otro usuario la modificó antes, en vez de sobrescribir su cambio.","El prorrateo de rentas recurrentes se calcula en centavos exactos y el año de vigencia del seguro ya no se corre por zona horaria."]},{"version":"7.387.0","date":"2026-08-30","type":"minor","title":"Flujo de efectivo usa el saldo real de cada factura","description":"La proyección de flujo de efectivo toma el saldo oficial de la factura (ya convertido a pesos) en vez de recalcularlo con los pagos, evitando montos incorrectos cuando el pago fue en otra moneda.","changes":["El saldo proyectado de cada factura viene de la misma fuente que cobranza y el portal.","Un pago en pesos sobre una factura en dólares ya no hace desaparecer ni subestimar la factura en la proyección.","La pantalla carga más rápido: ya no descarga la tabla de pagos para recalcular saldos."]},{"version":"7.386.0","date":"2026-08-30","type":"minor","title":"IVA exacto en facturas recurrentes y tipo de cambio en cotizaciones","description":"Las facturas recurrentes agrupadas calculan el IVA partida por partida y las cotizaciones en dólares ya piden el tipo de cambio, que se hereda al facturar.","changes":["El IVA de las facturas recurrentes agrupadas se calcula por partida, igual que en el resto del sistema y que el PAC.","Las cotizaciones en USD ahora exigen capturar el tipo de cambio (mayor a 0).","El tipo de cambio capturado se guarda en la cotización y se hereda al crear la factura, en vez de quedarse en 1."]},{"version":"7.385.0","date":"2026-08-30","type":"minor","title":"Archivar OT libera la unidad y datos fiscales obligatorios al timbrar","description":"Archivar una orden de trabajo abierta ya libera el montacargas, y el timbrado ya no emite facturas con datos fiscales genéricos del cliente.","changes":["Si archivas una orden de trabajo en proceso, la unidad regresa a Disponible en lugar de quedarse atorada en Mantenimiento.","La unidad sigue sin liberarse si tiene renta vigente, daños abiertos u otras órdenes de trabajo abiertas.","Al timbrar, si al cliente le falta régimen fiscal o código postal fiscal, se avisa antes de enviar al PAC en vez de usar datos genéricos."]},{"version":"7.384.0","date":"2026-08-30","type":"minor","title":"Correcciones críticas de cobro y de IVA en notas de crédito","description":"Se corrigió un sobrecobro de un día en rentas que cruzan meses cortos, se hizo timbrable la línea de prorrateo de extensiones y las notas de crédito ahora respetan el IVA real de cada línea de la factura origen.","changes":["Rentas que inician el 30 o 31 y cruzan a un mes corto (por ejemplo 31-ene a 1-mar) ya no cobran un día extra.","La línea de prorrateo de una extensión se emite con cantidad 1 y su importe exacto, para que el CFDI cuadre con la factura.","Las notas de crédito ya no acreditan IVA de más: respetan las líneas no objeto de impuesto y la tasa de cada línea.","La clave de producto SAT de la nota de crédito ahora reutiliza la de la línea original cuando existe."]},{"version":"7.383.1","date":"2026-08-30","type":"patch","title":"Unidades marcadas como rentadas ya se pueden corregir","description":"El botón de actualizar estado se quedaba deshabilitado para cualquier montacargas en estado Rentado, aun cuando la renta ya había sido devuelta. Ahora sólo bloquea cuando realmente hay una renta abierta.","changes":["La tarjeta de cambio de estado ya no bloquea por el simple estado Rentado.","Si la unidad sí tiene renta abierta (entregada y sin devolución), el sistema la sigue bloqueando y explica el motivo.","Se conservan las demás reglas: razón obligatoria para mantenimiento, venta y baja."]},{"version":"7.383.0","date":"2026-08-30","type":"minor","title":"Un cliente con saldo pendiente ya no se puede archivar","description":"Ahora es una regla dura del sistema: mientras el cliente deba dinero, no se puede archivar, ni desde la pantalla ni por cambios directos. Antes sólo era una advertencia de la pantalla.","changes":["El saldo pendiente del cliente usa el mismo cálculo oficial que el resumen financiero (facturas por cobrar, sin canceladas).","Archivar un cliente con saldo pendiente queda rechazado tanto por la acción oficial como por cualquier cambio directo.","Se conservan las reglas actuales: sólo administrador o personal administrativo archivan, y las reservas activas siguen bloqueando.","No se modifica, cancela ni elimina ninguna factura, pago o cobranza: sólo se rechaza el archivado.","La pantalla de archivado usa el mensaje explicativo estándar y también explica el rechazo si el saldo cambia mientras se confirma.","Desarchivar y las ediciones normales del cliente siguen igual."]},{"version":"7.382.0","date":"2026-08-30","type":"minor","title":"Archivar mantenimientos sólo por la vía oficial (P2)","description":"Archivar una orden de trabajo ahora sólo puede hacerse por la acción oficial del sistema, que ya aplica todas las reglas y la limpieza de refacciones y mano de obra. Los cambios directos por fuera quedan rechazados.","changes":["Archivar una orden de trabajo ahora sólo procede por la acción oficial del sistema.","Un cambio directo a la marca de archivado queda rechazado, para evitar registros archivados incompletos.","Se conservan las reglas actuales: quién puede archivar, la regla de órdenes cerradas (sólo administrador), la devolución de refacciones al inventario en órdenes abiertas y el desarchivado.","Las ediciones normales de mantenimientos, los costos, el inventario y los daños no cambian."]},{"version":"7.381.1","date":"2026-08-30","type":"patch","title":"Explicación clara si la asignación cambia justo antes de facturar","description":"Si alguien modifica la asignación de equipos de una cotización de venta mientras otra persona estaba llenando la factura, la pantalla ahora muestra la explicación del bloqueo en vez de un error genérico.","changes":["El rechazo de la base de datos por asignación incompleta muestra la misma pantalla explicativa que la prevención normal.","El mensaje indica que faltan equipos por asignar y permite ir directo a la cotización.","Los demás errores al crear facturas se comportan igual que antes."]},{"version":"7.381.0","date":"2026-08-30","type":"minor","title":"Protección en base de datos al facturar cotizaciones de venta (P1-B)","description":"Una cotización de venta con equipos sin asignar ya no puede convertirse en factura, aunque se intente por fuera de la pantalla normal. Las facturas de renta y las que no vienen de una cotización no cambian.","changes":["Facturar una cotización de venta exige que cada partida de venta tenga asignadas tantas unidades como su cantidad.","La regla ahora vive en la base de datos, así que no se puede evadir saltándose la pantalla.","Si faltan equipos, la aplicación explica cuántos faltan y cómo asignarlos.","Facturas sin cotización, cotizaciones de renta y cotizaciones completamente asignadas funcionan exactamente igual que antes.","El guard sólo acepta o rechaza el alta de la factura: no cambia asignaciones ni el estatus de las unidades.","El sembrado de pruebas automatizadas conserva su comportamiento."]},{"version":"7.380.0","date":"2026-08-30","type":"minor","title":"Protección en base de datos al archivar clientes (P1)","description":"Archivar un cliente ahora está protegido por la base de datos y no sólo por la pantalla: sólo admin o administrativo pueden archivar y nunca con reservas activas. El saldo pendiente sigue siendo advertencia de la interfaz.","changes":["Archivar un cliente ahora obedece las mismas reglas duras aunque se intente por fuera de la pantalla normal.","Sólo administrador o personal administrativo pueden archivar un cliente; ventas ya no puede hacerlo con una edición directa.","No se puede archivar un cliente con reservas activas (confirmadas o en progreso).","El saldo pendiente sigue siendo una advertencia de la pantalla y no un bloqueo de la base de datos.","Desarchivar un cliente y cualquier otra edición normal siguen funcionando igual.","Procesos internos y sembrado de pruebas conservan su comportamiento."]},{"version":"7.379.0","date":"2026-08-29","type":"minor","title":"Protección en base de datos al eliminar pagos a proveedor (P0)","description":"Eliminar un pago a proveedor ahora está protegido por la base de datos y no sólo por la pantalla: la regla se aplica aunque alguien intente saltarse la interfaz. No cambia saldos, REP ni conciliación.","changes":["No se puede eliminar un pago cuando ya se registró el REP fiscal recibido del proveedor.","No se puede eliminar un pago cuando la factura de proveedor está cancelada.","Sólo un administrador puede eliminar un pago a proveedor, igual que ya mostraba la pantalla.","Si el rechazo llega desde la base de datos (pantalla desactualizada), se explica con el mismo mensaje de siempre en vez de un error técnico.","Procesos internos y sembrado de pruebas conservan su comportamiento."]},{"version":"7.378.0","date":"2026-08-29","type":"minor","title":"Bloqueos explicables lote 3: proveedores, pagos, daños, prospectos, cotizaciones y portal","description":"Más acciones bloqueadas por el estado del negocio se explican en pantalla (qué está bloqueado, por qué y qué sigue) en vez de desaparecer o mostrar un mensaje técnico. No cambia ninguna regla, permiso ni cálculo.","changes":["Cuentas por pagar: Registrar pago permanece visible y deshabilitado cuando la factura está pagada, cancelada, rechazada o pendiente de aprobación, con el motivo y el siguiente paso.","Cuentas por pagar: eliminar un pago con REP recibido explica que primero hay que revertir el REP.","Facturas: el candado por complemento de pago timbrado ahora se explica igual en la lista de pagos y en la ventana de edición.","Daños: Archivar sigue visible y deshabilitada hasta que el daño esté reparado o cobrado en una factura.","CRM: cerrar un prospecto como Ganado fuera de la etapa Negociación se explica en el botón.","Cotizaciones: aceptar una cotización vencida y convertir una ya convertida se explican; además se agrega acceso directo a la reserva ligada.","Portal de clientes: si el saldo ya está cubierto por pagos reportados, se explica por qué no se puede reportar otro pago."]},{"version":"7.377.0","date":"2026-08-29","type":"minor","title":"Bloqueos explicables fase 2: factura timbrada, sobrepago y extensión facturada","description":"Segunda tanda de acciones bloqueadas por reglas del negocio que ahora se explican en pantalla en vez de desaparecer o fallar con un error técnico. No cambia ninguna regla, permiso ni cálculo.","changes":["Flotilla: el aviso de unidad rentada ahora nombra la acción exacta que elegiste (vender, dar de baja, mandar a mantenimiento o marcar disponible) con el mismo motivo y siguiente paso.","Facturas: el botón Editar permanece visible y deshabilitado en facturas timbradas, explicando que hay que cancelar el CFDI o emitir una nota de crédito.","Facturas: el botón Registrar pago con cancelación en proceso ante el SAT usa el mismo formato explicativo.","Pagos: si el monto capturado supera el saldo pendiente se explica al momento junto al campo y el botón queda deshabilitado; si otro pago consumió el saldo primero, se muestra la misma explicación en vez de un error técnico.","Reservas: la acción Facturar extensión ya no desaparece cuando la extensión ya se facturó; se muestra deshabilitada con el motivo y se conserva el acceso directo a la factura."]},{"version":"7.376.0","date":"2026-08-29","type":"minor","title":"Bloqueos de negocio explicables: qué está bloqueado, por qué y qué sigue","description":"Cuando el sistema impide una acción por una regla del negocio (unidad rentada, daño abierto, contrato firmado, factura de proveedor con pagos), ya no se muestra un error técnico ni desaparece el botón: la acción queda visible y deshabilitada, con una explicación clara y el siguiente paso. No cambia ninguna regla ni permiso.","changes":["Nuevo catálogo de bloqueos de negocio con textos en español mexicano: qué quedó bloqueado, por qué y qué hacer después.","Nuevos componentes reutilizables: aviso explicativo dentro de la pantalla y botón que se queda visible pero deshabilitado con la explicación en el tooltip.","Flotilla: al intentar vender, dar de baja o mandar a mantenimiento una unidad rentada se explica que primero hay que registrar la devolución; si el servidor lo rechaza, se ve la misma explicación en vez de un error genérico.","Mantenimiento: el cierre de orden de trabajo con daño abierto muestra el daño y un botón directo para resolverlo.","Contratos: los contratos firmados o completados ya muestran el botón Editar deshabilitado con el motivo, en vez de esconderlo.","Cuentas por pagar: editar, eliminar y cancelar facturas de proveedor explican el motivo exacto (tiene pagos, ya aprobada, rechazada, pagada o cancelada) y el siguiente paso."]},{"version":"7.375.0","date":"2026-08-29","type":"minor","title":"Limpieza extensa de la documentación","description":"El repositorio tenía 157 archivos de documentación, casi todos planes y auditorías viejas que ya no reflejaban el sistema actual. Se conservan solo 12 documentos vivos y se actualizaron para que digan la verdad. No hay cambios en la aplicación.","changes":["Se borraron 130 planes archivados y 10 reportes de auditoría con fecha fija; el historial funcional queda en el changelog.","Se borraron 5 README de carpeta dentro de src/ que repetían convenciones ya documentadas.","architecture.md y README.md actualizados: pruebas E2E y RLS reales, stack de PDF correcto y una sección clara de documentación vigente.","La carpeta de planes archivados ahora se ignora en Git para que no vuelva a acumularse."]},{"version":"7.374.4","date":"2026-08-29","type":"patch","title":"Sesión expirada ya no manda a \"Página no encontrada\"","description":"Cuando la sesión expiraba, la app enviaba al usuario a una dirección inexistente (/auth); al volver a iniciar sesión caía en \"Página no encontrada\" y perdía la pantalla donde estaba trabajando. Ahora se usa /login y, tras iniciar sesión, se regresa a la página original.","changes":["sessionExpiry: la redirección por sesión expirada ahora apunta a /login (ruta existente) en vez de /auth.","Router: /login respeta el parámetro redirect y regresa al usuario a su página original tras el login, con validación contra open redirects.","El guard de \"ya estoy en acceso\" ahora reconoce /login."]},{"version":"7.374.3","date":"2026-08-28","type":"patch","title":"Actions de CI actualizadas a su última versión","description":"Se actualizaron las acciones oficiales de GitHub que usa la integración continua. No hay cambios en la aplicación.","changes":["actions/checkout de v6 a v7 (20 usos en 8 flujos), con protección reforzada de credenciales en PRs de forks.","actions/download-artifact de v6 a v8, compatible con el upload-artifact v7 que ya se usaba.","actions/setup-node de v5 a v7 en la acción compuesta setup-bun-project.","actions/upload-artifact, actions/cache y github/codeql-action ya estaban en su última versión."]},{"version":"7.374.2","date":"2026-08-28","type":"patch","title":"Correcciones de lint: bloqueos optimistas más robustos","description":"Se corrigieron los avisos del linter: la protección contra guardados simultáneos en clientes, montacargas y facturas ahora usa el patrón recomendado por React, y la limpieza de fórmulas en archivos CSV dejó de usar una expresión prohibida.","changes":["Los candados de \"alguien más lo modificó\" en clientes, montacargas y facturas pasaron de refs a estado de React, eliminando lecturas de refs durante el renderizado.","La detección de fórmulas peligrosas al exportar CSV ahora compara caracteres en vez de una expresión regular con caracteres de control.","Se extrajeron componentes auxiliares en Entregas, Pólizas de mantenimiento y el detalle de mantenimiento para cumplir los límites de tamaño y complejidad.","Se corrigió el orden de imports en cuatro archivos de facturación."]},{"version":"7.374.1","date":"2026-08-28","type":"patch","title":"Limpieza de datos de pruebas ya no falla","description":"La limpieza automática de los datos de prueba dejó de intentar borrar archivos directamente del almacenamiento, algo que la plataforma bloquea y que hacía fallar toda la limpieza.","changes":["La limpieza de escenarios de prueba ya no se interrumpe con el error \"Direct deletion from storage tables is not allowed\".","Se corrigió la prueba del pagaré para reflejar que un 0% de mora capturado a propósito se respeta."]},{"version":"7.374.0","date":"2026-08-28","type":"minor","title":"Cierre de deals protegido y avisos de tipo de cambio en Cuentas por Pagar","description":"Marcar un prospecto como Cerrado Ganado ahora requiere permisos de administrador también a nivel base de datos, y Cuentas por Pagar avisa cuándo una factura en divisa queda fuera de los totales.","changes":["Solo administradores o personal administrativo pueden cerrar un prospecto como Ganado; la regla ya no depende únicamente de la pantalla.","La portada de Cuentas por Pagar avisa cuántas facturas en divisa sin tipo de cambio quedaron fuera de los totales en pesos.","La tabla de exportación de pagos marca con la etiqueta \"Sin TC\" las facturas en divisa sin tipo de cambio capturado."]},{"version":"7.373.2","date":"2026-08-28","type":"patch","title":"Pagos a proveedor en su moneda y cierre de sesión automático","description":"Los saldos por pagar se muestran con su moneda real, la exportación del lote distingue dólares de pesos y una sesión vencida te lleva de vuelta al acceso en lugar de dejar la pantalla muerta.","changes":["El diálogo de registro de pago a proveedor muestra el saldo con el código de moneda de la factura (USD/MXN), no siempre en pesos.","La tabla de exportación de pagos marca con una etiqueta las facturas en moneda extranjera.","Si tu sesión expira, la app cierra sesión y te regresa a la pantalla de acceso conservando la página en la que estabas.","Los nombres de meses y días en fechas ya salen en español de forma predeterminada."]},{"version":"7.371.0","date":"2026-08-28","type":"minor","title":"Portal del cliente en su moneda y datos fiscales correctos en el PDF","description":"Las cotizaciones del portal ya se muestran en su propia moneda, el saldo pendiente se calcula igual en todas las pantallas y el PDF de factura usa los datos fiscales congelados al emitirla.","changes":["Las cotizaciones del portal (lista, detalle y totales) muestran su código de moneda real; antes una cotización en dólares se veía como pesos.","El saldo pendiente del tablero del portal usa la misma conversión a pesos que el estado de cuenta, sin inflar facturas ya en pesos.","El PDF de factura toma la razón social y el código postal fiscal guardados en la factura; si el cliente cambió de domicilio o fue eliminado, el documento sigue siendo correcto.","Las tarjetas de facturas recientes y próximos vencimientos avisan cuántas facturas hay en total con un enlace a la lista completa."]},{"version":"7.370.0","date":"2026-08-28","type":"minor","title":"Archivado seguro de mantenimiento y saldos exactos","description":"Archivar una orden de trabajo cerrada ya no borra su historial de costos, los saldos de factura dejan de mostrar centavos fantasma y los formularios avisan antes de descartar cambios.","changes":["Solo un administrador puede archivar una orden de mantenimiento cerrada, y sus refacciones y mano de obra se conservan.","El saldo y las notas de crédito de una factura se calculan con redondeo monetario: se acabaron los saldos de -0.000000001 que pintaban una factura pagada como pendiente.","El detalle de cliente muestra un aviso con botón de reintentar cuando la consulta falla, en vez de decir que el cliente no existe.","Nueva póliza de mantenimiento, nueva nota de crédito y registro de pago a proveedor piden confirmación antes de cerrarse con cambios sin guardar.","Las métricas del CRM (ganados del mes y tasa de cierre a 30 días) usan siempre el horario de Monterrey."]},{"version":"7.369.1","date":"2026-08-28","type":"patch","title":"Limpieza completa de datos de prueba","description":"Los escenarios de prueba automatizada ahora se borran por completo: antes quedaban atorados cuando existía una nota de crédito y los comprobantes de pago se quedaban guardados sin dueño.","changes":["Al sembrar o limpiar un escenario de prueba se eliminan primero las notas de crédito ligadas a sus facturas o clientes, que antes bloqueaban el borrado.","Se eliminan los comprobantes de pago huérfanos de los clientes de prueba en el almacenamiento.","El resultado de la limpieza ahora reporta cuántas notas de crédito y archivos se borraron."]},{"version":"7.369.0","date":"2026-08-28","type":"minor","title":"Edición segura de clientes, montacargas y facturas","description":"Se corrigió la protección contra ediciones simultáneas: ya no se pisan cambios de otro usuario ni aparecen avisos falsos de conflicto, y abrir una factura inexistente muestra un mensaje claro en vez de quedarse cargando.","changes":["Clientes: al abrir el diálogo de edición se fija la versión del registro, para que un refresco de datos no anule la protección contra ediciones simultáneas.","Clientes y montacargas: si el guardado falla por falta de permisos ya no se muestra el mensaje engañoso de que otro usuario modificó el registro.","Montacargas: la protección usa la fecha del registro tal como se cargó el formulario y se reinicia al cambiar de unidad.","Facturas: al pasar de editar una factura a otra ya no se arrastra la protección de la anterior.","Facturas: si el guardado funciona pero falla la vinculación de reservas, volver a presionar Guardar ya no reporta un conflicto falso.","Facturas: abrir una factura inexistente o sin permisos muestra un aviso con botón para volver al listado."]},{"version":"7.368.0","date":"2026-08-28","type":"minor","title":"Cola de reintentos de cancelación CFDI","description":"Las cancelaciones de facturas, notas de crédito y complementos de pago que quedan esperando respuesta del timbrador ya no se reintentan indefinidamente: ahora hay un tope, la espera entre intentos crece y, si el SAT ya confirmó la cancelación, la tarea se cierra sola.","changes":["Las cancelaciones aplazadas tienen un tope de 10 aplazamientos; al superarlo la tarea se marca como agotada con el detalle del error.","La espera entre reintentos crece (2, 4, 8… minutos, máximo 60) en vez de reintentar cada 2 minutos.","Si al consultar al timbrador la cancelación ya quedó confirmada, la tarea se cierra como exitosa.","La consulta al timbrador tiene límite de 10 segundos y deja registro cuando falla.","Las cancelaciones de factura que se quedaron a medias también se reintentan; las facturas que no son cancelables siguen fallando de inmediato."]},{"version":"7.367.0","date":"2026-08-28","type":"minor","title":"Portal de pagos, conciliación bancaria y comprobantes","description":"Se reforzó la aprobación de reportes de pago del portal: ya no es posible sobrepasar el saldo de una factura con dos aprobaciones al mismo tiempo, los montos en otra moneda se convierten correctamente y los comprobantes de reportes ya procesados quedan protegidos.","changes":["Aprobación de reportes de pago: la factura se bloquea durante la aprobación y se descuentan los reportes que siguen pendientes de revisión.","Facturas en dólares: los pagos en otra moneda se convierten con el tipo de cambio correcto al calcular el saldo, tanto al aprobar como al reportar desde el portal.","Notas de crédito canceladas ya no reducen el saldo pendiente al aprobar un pago.","Conciliación bancaria: si un pago no trae tipo de cambio propio, se usa el de su factura, al sugerir candidatos y al confirmar el movimiento.","Portal: no se pueden reportar pagos sobre facturas canceladas o en borrador, y el comprobante debe subirse en la carpeta de la factura correspondiente.","Comprobantes: ya nadie puede borrar el archivo de un reporte aprobado o rechazado, y no se aceptan archivos sin tipo declarado; el buzón acepta hasta 10 MB."]},{"version":"7.366.0","date":"2026-08-28","type":"minor","title":"Ronda R6: notas de crédito, pagos en divisa y candados internos","description":"Se corrigieron seis fallas de fondo: el recálculo del estatus de factura al registrar o cancelar notas de crédito podía tronar, los pagos en dólares sobre facturas en pesos se rechazaban aunque hubiera tipo de cambio, y ciertos permisos internos temporales quedaban encendidos cuando una operación fallaba.","changes":["Notas de crédito: al crearlas, timbrarlas o cancelarlas, el estatus de la factura se recalcula correctamente y ya no falla.","Pagos: se acepta un pago en dólares sobre una factura en pesos (o al revés) siempre que exista tipo de cambio; sin tipo de cambio se sigue rechazando con un mensaje claro.","Pagos: si se edita el monto o el tipo de cambio de un pago existente, se vuelve a validar la conversión.","Reservas, devoluciones y sincronización de flota: los permisos internos temporales siempre se apagan, incluso si la operación falla a medio camino.","Panel: el desglose de facturas por estatus convierte los montos en dólares a pesos antes de sumarlos.","Indicadores: los contratos por vencer ya no incluyen clientes de prueba ni unidades eliminadas, y siguen apareciendo los contratos sin unidad asignada."]},{"version":"7.365.1","date":"2026-08-27","type":"patch","title":"Bitácora: se corrige el fallo al guardar movimientos sin sesión de pruebas","description":"El registro automático de la bitácora podía quedarse sin la marca de origen y rechazaba el movimiento, lo que además tumbaba el arranque de la base de datos en el entorno de pruebas.","changes":["Bitácora: la marca de 'registro de prueba' siempre se guarda como sí o no, nunca vacía.","Pruebas automatizadas: la base de datos vuelve a arrancar y las 21 suites de seguridad pueden ejecutarse."]},{"version":"7.365.0","date":"2026-08-27","type":"minor","title":"Ronda D de auditoría: montos, monedas y listas completas","description":"Nueva ronda de revisión encontró listas que se cortaban en silencio, montos formateados siempre en pesos aunque el pago fuera en dólares y sumas con centavos desviados. Todo quedó corregido.","changes":["Daños: la lista ya no se corta silenciosamente en 1000 registros, así los reportes de costos de reparación cuadran.","Conciliación fiscal: el total timbrado y los huecos de folio ya consideran rangos grandes sin truncarse.","Pagos: el monto se muestra en su propia moneda (por ejemplo USD) en lugar de formatearse siempre como pesos.","Órdenes de trabajo: los costos de refacciones y mano de obra se suman en centavos, sin desviaciones de redondeo.","Contratos: si las tarifas están en moneda extranjera, el balance restante ya no se compara 1:1 contra lo facturado en pesos.","Refacciones: las fechas de creación y actualización se muestran en horario de Monterrey."]},{"version":"7.364.0","date":"2026-08-27","type":"minor","title":"Bitácora limpia: se separan pruebas, sistema y usuarios","description":"La Bitácora de Cambios mezclaba rastros de las pruebas automatizadas y ajustes técnicos masivos con la actividad real. Ahora cada registro trae su origen, las pruebas se ocultan por defecto y un administrador puede borrarlas.","changes":["Bitácora: nuevo filtro Origen (usuarios y sistema, solo usuarios, solo sistema, solo pruebas, todos).","Bitácora: etiquetas 'Sistema' y 'Prueba' junto al usuario del movimiento.","Bitácora: los registros de pruebas automatizadas se ocultan por defecto.","Bitácora: acción de administrador para eliminar únicamente los registros marcados como prueba.","Base de datos: el registro automático detecta las sesiones de prueba aunque la tabla no tenga marca propia y etiqueta como 'sistema' los movimientos sin usuario."]},{"version":"7.363.1","date":"2026-08-27","type":"patch","title":"Facturas con reserva: ya no se traban por el periodo de facturación","description":"Al facturar una reserva, si el periodo de facturación quedaba vacío la factura era rechazada con un mensaje técnico. Ahora el periodo se completa solo con el mes de la fecha de emisión y, si algo falla, el aviso explica exactamente qué capturar.","changes":["Facturas: el periodo de facturación se deriva del mes de emisión cuando la factura está ligada a una reserva y el periodo viene vacío.","Errores: mensaje claro 'Falta el periodo de facturación' en lugar del texto técnico de la base de datos.","Errores: los mensajes de negocio ya no quedan tapados por el código genérico de validación."]},{"version":"7.363.0","date":"2026-08-27","type":"minor","title":"Entregas atrasadas visibles y fechas con reloj de Monterrey","description":"Las entregas programadas con fecha vencida ya se distinguen en la lista, la tabla muestra el tipo de movimiento y se pueden filtrar por estado y tipo. Además, los cortes de fechas del CRM y de los pagos usan el reloj del negocio en vez del reloj de la computadora.","changes":["Entregas: aviso y etiqueta 'Vencida' con los días de atraso en cada entrega programada fuera de fecha.","Entregas: nueva columna 'Tipo' (entrega, recolección, devolución) en la vista de escritorio.","Entregas: buscador y filtros por estado y tipo, con opción de limpiar filtros.","CRM: los indicadores del mes y de 30 días usan la fecha de Monterrey.","Pagos y factura global: los selectores de fecha bloquean el futuro según la fecha de Monterrey."]},{"version":"7.362.0","date":"2026-08-27","type":"minor","title":"Cierre de auditoría: errores de carga visibles, saldos por moneda y facturas sin vencimiento","description":"Un fallo de carga en el CRM se veía como historial vacío, el saldo de una factura restaba pagos de otra moneda 1 a 1, el estado de resultados sumaba gastos de proveedor en dólares como pesos y las facturas de proveedor sin fecha de vencimiento aparecían como si estuvieran al corriente.","changes":["CRM cerrados: si la consulta falla se muestra el error con botón de reintento en vez de listas vacías.","Detalle de proveedor: aviso cuando las listas de gastos y mantenimiento están truncadas y los totales no son completos.","Detalle de factura: los pagos se convierten a la moneda del documento y se avisa de los pagos sin tipo de cambio.","Estado de resultados: los gastos de proveedor se convierten a pesos y ya no se cuentan las facturas en borrador.","MRR y KPIs financieros: las rentas pactadas en dólares se convierten a pesos.","Antigüedad de saldos y Cuentas por pagar: columna y marca 'Sin vencimiento' para las facturas sin fecha."]},{"version":"7.361.0","date":"2026-08-27","type":"minor","title":"Ingresos por unidad, rentabilidad por cliente y montos en pesos","description":"Las facturas recurrentes que cubren varias reservas no se le acreditaban a ningún montacargas, la rentabilidad por cliente comparaba montos con IVA contra costos sin IVA, y varios totales sumaban dólares como si fueran pesos. Se corrigieron los cálculos y se liberaron para cotizar las unidades cuya renta ya terminó.","changes":["Nueva vista v_invoice_forklift_revenue: reparte el ingreso de facturas multi-reserva entre las unidades que cubren.","get_forklift_financials y la sección de utilización del Panel usan la nueva atribución (antes faltaban $716,300).","get_customer_profitability usa ingreso neto sin IVA, resta notas de crédito y ya no duplica costos de mantenimiento.","Flujo de efectivo del Panel incluye facturas pagadas antiguas sin registro en pagos.","El selector de equipos al cotizar ya no descarta unidades marcadas 'rentado' cuya reserva ya venció.","Detalle de proveedor y resumen financiero de contrato convierten los importes a pesos con su tipo de cambio."]},{"version":"7.360.0","date":"2026-08-27","type":"minor","title":"Panel: el Flujo de Efectivo vuelve a mostrar lo cobrado en todos los meses","description":"La barra 'Pagado' de la gráfica de Flujo de Efectivo solo mostraba agosto porque sumaba el monto en pesos de cada pago, un dato que se empezó a guardar hace poco y que estaba vacío en los pagos anteriores. Se rellenaron los pagos históricos con su monto en pesos y el Panel ahora lo calcula al momento cuando el dato falte.","changes":["Relleno único de payments.amount_mxn en pagos históricos usando el tipo de cambio del pago, o el de su factura, y 1 a 1 cuando el pago es en MXN.","get_dashboard_stats: paid_cte usa COALESCE(p.amount_mxn, p.amount * tipo de cambio) con precedencia pago → factura → 1 solo si el pago es MXN.","Se conservan SECURITY DEFINER, SET search_path = public, el guard de roles y la ausencia de EXECUTE para anon."]},{"version":"7.359.3","date":"2026-08-27","type":"patch","title":"Pruebas E2E: el seeding ya no se apaga a media corrida","description":"Al correr las pruebas divididas en shards, un shard podía apagar el interruptor de datos de prueba mientras el otro seguía trabajando, provocando fallos por 'E2E seeding disabled'. Ahora el seeding se auto-repara y el apagado se omite en corridas por shards.","changes":["tests/e2e/fixtures/seed.ts vuelve a habilitar allow_e2e_seed y reintenta una vez si el RPC responde 'seeding disabled'.","tests/e2e/global.teardown.ts conserva el interruptor cuando la corrida usa --shard o E2E_KEEP_SEED_FLAG=1."]}]
+[
+  {
+    "version": "7.404.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "fix",
+    "title": "Auditoría R7 (lote 1): pagos a proveedores, mantenimiento automático y saldos del portal",
+    "description": "Se corrigieron fallas que impedían editar facturas de proveedor con pagos, podían duplicar registros de mantenimiento y subestimaban el saldo del portal.",
+    "changes": [
+      "Editar el monto o la moneda de una factura de proveedor que ya tiene pagos vuelve a funcionar: antes la operación fallaba con un error técnico en lugar del mensaje de bloqueo correspondiente.",
+      "Al borrar un lote de pago, una factura sólo se desbloquea si no sigue incluida en otro lote vivo, evitando pagarla dos veces.",
+      "La limpieza de bloqueos de pago antiguos ahora también libera facturas atoradas en lotes abandonados y sin pagos registrados.",
+      "El proceso automático de mantenimiento por póliza ya no puede duplicar la orden del mes: cada registro queda marcado con su póliza y mes, y un reintento fallido no salta meses pendientes.",
+      "La vista de ocupación de unidades calcula sus fechas en horario de Monterrey y respeta los permisos del usuario que consulta.",
+      "En el portal del cliente, el saldo pendiente excluye las facturas en moneda extranjera sin tipo de cambio y avisa cuántas quedaron fuera (antes se sumaban como si valieran lo mismo en pesos).",
+      "En la vista previa de facturación recurrente, activar la casilla de periodos con tarifa desactualizada ya no reinicia las líneas que habías desmarcado.",
+      "El indicador de renta mensual recurrente ignora tipos de cambio negativos en lugar de restar del total."
+    ]
+  },
+  {
+    "version": "7.403.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "fix",
+    "title": "Gastos ligados a su factura de proveedor y MRR sin conversiones silenciosas",
+    "description": "Se eliminó el riesgo de contar dos veces un mismo gasto y el indicador de renta mensual ahora avisa cuando deja fuera rentas en dólares sin tipo de cambio.",
+    "changes": [
+      "Los gastos operativos quedaron ligados a su factura de proveedor correspondiente (131 de 142 registros históricos), de modo que el Estado de Resultados deja de depender de una coincidencia por monto y fecha.",
+      "La base de datos ahora impide que dos gastos apunten a la misma factura de proveedor.",
+      "El KPI de Ingreso Mensual Recurrente muestra un aviso con cuántas rentas en divisa quedaron fuera por no tener tipo de cambio registrado (antes se omitían sin avisar), tanto del mes vigente como del mes previo.",
+      "En ningún cálculo se convierte dólares a pesos con paridad 1:1."
+    ]
+  },
+  {
+    "version": "7.402.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "fix",
+    "title": "Facturación recurrente a prueba de tarifas viejas y respaldo completo de contratos firmados",
+    "description": "Los periodos atrasados ya no se facturan automáticamente con una tarifa que pudo cambiar: requieren confirmación del operador. Además, todos los contratos firmados tienen su copia inmutable de cliente, unidad y plantilla.",
+    "changes": [
+      "Si una reserva se editó después de que terminó el periodo a facturar, ese periodo ya no se factura solo: queda pendiente y la vista previa pide confirmación explícita antes de incluirlo.",
+      "La tarea automática nunca puede confirmar por su cuenta esos periodos; solo un usuario administrador desde la vista previa.",
+      "La respuesta de la generación informa cuántos periodos se omitieron por posible cambio de tarifa y se avisa con un mensaje en pantalla.",
+      "Los contratos ya firmados que no tenían respaldo recibieron su copia inmutable (cliente, unidad y plantilla), para que el PDF firmado no cambie si esos datos se editan después."
+    ]
+  },
+  {
+    "version": "7.401.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "fix",
+    "title": "Régimen fiscal validado antes de timbrar y facturas de proveedor sin bloqueos huérfanos",
+    "description": "El timbrado rechaza de inmediato un régimen fiscal inválido, la lectura de la Constancia de Situación Fiscal entrega solo el código del SAT, y las facturas de proveedor ya no se quedan atoradas por un lote de pago abandonado.",
+    "changes": [
+      "Antes de timbrar, el sistema verifica que el régimen fiscal del receptor sea un código válido de 3 dígitos del catálogo del SAT y explica el error en vez de consumir un timbre en un CFDI que el PAC rechazaría.",
+      "Al leer una Constancia de Situación Fiscal, el régimen fiscal se guarda como código puro (por ejemplo '601'); si no se puede reconocer, el campo queda vacío para captura manual.",
+      "Si se elimina un lote de pago a proveedores, las facturas del lote que no tienen pagos registrados se liberan automáticamente del estado 'pago en proceso'.",
+      "Nuevo botón 'Liberar bloqueos' en Facturas de Proveedor (solo administradores): libera facturas marcadas como 'pago en proceso' hace más de 24 horas cuyo lote ya no existe y que no tienen pagos registrados."
+    ]
+  },
+  {
+    "version": "7.400.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "fix",
+    "title": "Integridad R5: archivado sin pérdida de datos, restauración y criterio único de devolución",
+    "description": "Archivar ya no borra información, se pueden restaurar órdenes de trabajo y daños archivados, y las cotizaciones convertidas regresan a 'Aceptada' cuando todas sus reservas se cancelan.",
+    "changes": [
+      "Archivar una orden de trabajo abierta ya no borra sus refacciones ni su mano de obra: solo se oculta el registro y se conserva el costo histórico.",
+      "Nueva vista 'Archivados' en Mantenimiento y en Seguimiento de Daños, con botón para restaurar (solo administradores). Cada restauración queda en la bitácora del equipo.",
+      "Una cotización convertida vuelve automáticamente a 'Aceptada' cuando todas sus reservas quedan canceladas, en lugar de quedar bloqueada.",
+      "Al cancelar o eliminar una factura de daños, la liberación del daño queda registrada en la bitácora del equipo con el folio de la factura.",
+      "Se unificó el criterio de 'unidad devuelta': ahora se reconoce por la inspección de retorno registrada. Antes algunas validaciones buscaban un tipo de movimiento que la app nunca genera."
+    ]
+  },
+  {
+    "version": "7.399.0",
+    "date": "2026-09-01",
+    "type": "minor",
+    "category": "feature",
+    "title": "Reapertura de órdenes de trabajo y bloqueo optimista al cambiar estatus de reservas",
+    "description": "Los administradores ya pueden reabrir una OT cerrada por error desde la app, y los cambios de estatus de reserva dejan de pisar los cambios de otro usuario.",
+    "changes": [
+      "Nuevo botón “Reabrir OT” en el detalle de mantenimiento, visible sólo para administradores cuando la orden está cerrada. Pide un motivo obligatorio y deja registro en la bitácora.",
+      "Al reabrir, la orden vuelve a estado “En progreso” y se pueden capturar refacciones y mano de obra nuevamente.",
+      "Los cambios de estatus de una reserva ahora usan bloqueo optimista: si otra persona modificó la reserva mientras la tenías abierta, se avisa en lugar de sobrescribir su cambio."
+    ]
+  },
+  {
+    "version": "7.398.2",
+    "date": "2026-09-01",
+    "type": "patch",
+    "category": "fix",
+    "title": "Cierre de pendientes de la auditoría R5: cotizaciones en limbo, ventana de mantenimiento y pruebas por zona horaria",
+    "description": "Se liberó el borrado de cotizaciones cuyas reservas fueron todas canceladas, el calendario dibuja la ventana real de mantenimiento y las pruebas dejan de depender de la zona horaria del servidor.",
+    "changes": [
+      "Una cotización cuyas reservas fueron todas canceladas ya puede eliminarse; las que tienen reservas vigentes o están aceptadas siguen protegidas.",
+      "En el calendario, el mantenimiento se dibuja como la ventana completa (fecha del servicio ± los días de holgura configurados) en lugar de una marca de un solo día.",
+      "Las pruebas automáticas se ejecutan con zona horaria fija, eliminando una falla intermitente en el cálculo de vencimientos de facturas de proveedor."
+    ]
+  },
+  {
+    "version": "7.398.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "category": "fix",
+    "title": "La validación fiscal ya muestra el detalle correcto",
+    "description": "La pantalla marcaba a todos los clientes con “Diferencias” y dejaba la columna de detalle vacía. Ahora interpreta bien la respuesta del PAC y explica qué revisó.",
+    "changes": [
+      "Se corrigió la lectura de la respuesta del PAC: la consulta valida el RFC contra la lista EFOS (art. 69-B) del SAT y devuelve el resultado dentro de `efos`, que antes no se interpretaba y marcaba a todos como con diferencias.",
+      "Cuando el SAT responde sin detalle, se guarda y muestra el mensaje textual del SAT en vez de dejar la columna en blanco.",
+      "Los mensajes de error del PAC se normalizan a un texto legible con el nombre del campo (RFC, razón social, régimen fiscal, C.P.).",
+      "Se ajustaron los textos de la pantalla para reflejar lo que realmente se valida: “Sin observaciones” / “Con observaciones (EFOS 69-B)” y datos fiscales incompletos."
+    ]
+  },
+  {
+    "version": "7.398.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "category": "feature",
+    "title": "Tareas programadas de CFDI operando y validación fiscal masiva contra el SAT",
+    "description": "Se corrigió el error 401 que impedía correr las tareas automáticas de facturación y se agregó una pantalla para validar toda la cartera de clientes contra su Constancia de Situación Fiscal.",
+    "changes": [
+      "Las tareas programadas (reintentos de timbrado, reconciliación, facturación y mantenimiento recurrente) vuelven a ejecutarse: ahora aceptan tanto el secreto del entorno como el guardado en la bóveda de la base de datos.",
+      "Se eliminaron tareas programadas obsoletas y se reagendaron las vigentes con la firma correcta.",
+      "Nueva pantalla “Validación fiscal contra el SAT” en Clientes: valida en lote hasta 40 clientes por corrida, sin consumir timbres, y muestra el estado (coincide, diferencias, error) con la fecha de la última validación.",
+      "Cada cliente guarda su estado de validación fiscal, la fecha y el detalle de diferencias.",
+      "La validación fiscal de facturas y la masiva comparten la misma lógica de consulta al PAC."
+    ]
+  },
+  {
+    "version": "7.397.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "category": "refactor",
+    "title": "Pulido YAGNI: changelog progresivo, limpieza de backend y fechas unificadas",
+    "description": "Se aligeró la carga del historial de cambios, se retiraron funciones de backend sin uso y se unificó el formateo de fechas en toda la aplicación.",
+    "changes": [
+      "El historial de cambios abre mostrando las versiones recientes y carga el archivo completo solo cuando se pide, reduciendo la descarga inicial de ~650 KB a ~56 KB.",
+      "Se eliminaron tres funciones de servidor que ya no tenían consumidores.",
+      "Todas las pantallas usan un único formateador de fechas (zona horaria Monterrey), eliminando la variante duplicada en 61 archivos.",
+      "Se documentó en la arquitectura por qué se conservan las librerías con un solo punto de uso.",
+      "Sin cambios en reglas de negocio, permisos, RLS ni base de datos."
+    ]
+  },
+  {
+    "version": "7.396.3",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Detalle completo del historial de cambios",
+    "category": "docs",
+    "description": "Se completaron los archivos de detalle de 28 versiones históricas del historial de cambios, de modo que la validación de versiones ya no reporta faltantes.",
+    "changes": [
+      "Cada versión del historial tiene ahora su archivo de detalle con descripción y lista de cambios.",
+      "La validación automática de versiones pasa sin advertencias."
+    ]
+  },
+  {
+    "version": "7.396.2",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Pruebas SQL de humo alineadas al esquema actual",
+    "description": "Se corrigieron aserciones obsoletas de las pruebas SQL de humo y se cerró el acceso público a la tabla de periodos fiscales.",
+    "changes": [
+      "Las pruebas de humo usan `issue_date` (la columna `bill_date` ya no existe) y apuntan a `sync_invoice_status`.",
+      "Se actualizaron los textos verificados de `create_booking`, `sync_forklift_rental_status`, `complete_return_inspection`, `validate_transition`, `trg_payment_amount_mxn`, `soft_delete_maintenance_log` y `e2e_seed_portal_scenario`.",
+      "Los periodos fiscales ya no otorgan permisos al rol anónimo.",
+      "`useCustomerDetailPage` se simplificó para cumplir el límite de complejidad de ESLint."
+    ]
+  },
+  {
+    "version": "7.396.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Pruebas de RFC alineadas al dígito verificador",
+    "description": "Se ajustaron las pruebas automáticas para usar RFCs con dígito verificador válido; sin cambios funcionales en la app.",
+    "changes": [
+      "Las pruebas del validador de RFC usan ejemplos con dígito verificador correcto.",
+      "Suite completa de pruebas en verde."
+    ]
+  },
+  {
+    "version": "7.394.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Datos fiscales reales en facturación recurrente y devoluciones sin fechas futuras",
+    "description": "El estado de cuenta ya resta las notas de crédito, la facturación recurrente no inventa datos fiscales y una devolución no puede registrarse con fecha futura.",
+    "changes": [
+      "El PDF de estado de cuenta resta las notas de crédito del saldo.",
+      "El timbrado de notas de crédito y complementos de pago exige el régimen y código postal reales del cliente.",
+      "La facturación recurrente ya no mezcla monedas en una misma factura y pide el uso de CFDI del cliente.",
+      "La inspección de devolución sólo acepta fechas hasta hoy."
+    ]
+  },
+  {
+    "version": "7.393.2",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Limpieza interna de código",
+    "description": "Reorganización técnica de algunos archivos; sin cambios visibles para el usuario.",
+    "changes": [
+      "Código de cotizaciones, contratos y calendario dividido en piezas más pequeñas."
+    ]
+  },
+  {
+    "version": "7.393.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Limpieza interna de arquitectura",
+    "description": "Ajuste técnico en la organización del código; sin cambios visibles para el usuario.",
+    "changes": [
+      "Los módulos ahora se comunican por sus puntos de entrada oficiales."
+    ]
+  },
+  {
+    "version": "7.393.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Utilización real de flota, daños re-facturables y órdenes cerradas protegidas",
+    "description": "El tablero calcula la utilización con las fechas reales de entrega y devolución, un daño vuelve a ser cobrable si su factura se cancela, y una orden de trabajo cerrada sólo se reabre con el proceso formal.",
+    "changes": [
+      "La utilización usa entregas y devoluciones reales; las rentas vencidas cuentan hasta hoy.",
+      "Al cancelar la factura de un daño, el daño regresa a 'reparado' y puede facturarse de nuevo.",
+      "No se puede arrastrar una orden cerrada a un estado abierto; se explica el motivo.",
+      "La búsqueda de facturas ignora el comodín '_'."
+    ]
+  },
+  {
+    "version": "7.392.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Aviso explicable al intentar aprobar tu propia factura de proveedor",
+    "description": "Cuando un administrador intenta aprobar una factura que él mismo registró, el sistema explica el motivo dentro del diálogo en vez de mostrar un error genérico.",
+    "changes": [
+      "El diálogo de aprobación muestra el bloqueo explicable de segregación de funciones."
+    ]
+  },
+  {
+    "version": "7.392.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Segregación de funciones en CxP y utilización de flota sin datos de prueba",
+    "description": "Quien registra una factura de proveedor ya no puede aprobarla: se requiere un segundo administrador. Además, el tablero deja de contar reservas de prueba en rentas vencidas y en la utilización mensual.",
+    "changes": [
+      "Una factura de proveedor debe ser aprobada por un administrador distinto al que la registró.",
+      "Mensaje explicable cuando se intenta la auto-aprobación.",
+      "El tablero excluye reservas de prueba (E2E) de rentas vencidas y de la utilización de flota."
+    ]
+  },
+  {
+    "version": "7.391.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Lote 2/3 del catálogo QA: contratos firmados, depósito en garantía, estado de resultados y flujo de efectivo",
+    "description": "El PDF de un contrato firmado ahora es inmutable, el depósito en garantía tiene ciclo de vida propio, el estado de resultados excluye documentos en divisa sin tipo de cambio y la proyección de flujo de efectivo ya considera las rentas recurrentes futuras.",
+    "changes": [
+      "Al firmar un contrato se guarda una copia inmutable de sus datos, del cliente, de la unidad y de la plantilla; el PDF del contrato firmado ya no cambia si después se editan esos datos.",
+      "El depósito en garantía tiene estado (retenido, aplicado o devuelto), fecha, monto liquidado y notas, con una acción controlada para administradores y personal administrativo.",
+      "Estado de resultados: se excluyen facturas, notas de crédito y facturas de proveedor en divisa sin tipo de cambio válido y las facturas de proveedor rechazadas; el reporte informa cuántos documentos quedaron fuera.",
+      "Flujo de efectivo: la proyección incluye las rentas recurrentes aún no facturadas dentro del horizonte, marcadas como proyectadas y excluyendo divisas sin tipo de cambio.",
+      "Inspección de devolución: ya no se aceptan fechas futuras.",
+      "Nuevas acciones de restauración (desarchivar) para clientes y proveedores, disponibles sólo para administradores."
+    ]
+  },
+  {
+    "version": "7.390.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Lote 1 de correcciones del catálogo QA: flota, reservas, CxP y facturación en divisa",
+    "description": "Se corrigieron hallazgos vigentes de la auditoría: órdenes de trabajo archivadas ya no distorsionan reportes ni bloquean cambios de estatus, las unidades rentadas regresan correctamente a “Rentado” al cerrar mantenimiento, la facturación recurrente respeta moneda y tipo de cambio, los complementos de pago descuentan notas de crédito y editar el monto de una factura de proveedor vuelve a exigir aprobación.",
+    "changes": [
+      "Reportes de rentabilidad, ROI y el contador de mantenimiento abierto ya no cuentan órdenes de trabajo archivadas ni datos de prueba.",
+      "Cerrar, cancelar o archivar una orden de trabajo de una unidad con renta activa la regresa a “Rentado” en vez de dejarla atorada en “Mantenimiento”.",
+      "La sincronización de estatus ya no libera unidades con daños u órdenes de trabajo abiertas y deja registro en la bitácora.",
+      "No se puede reservar un montacargas archivado, ni cancelar una reserva con facturas emitidas vigentes.",
+      "Cancelar una cotización ya convertida pasa por las mismas validaciones que una aceptada.",
+      "Las facturas recurrentes se generan con la moneda y el tipo de cambio de la reserva; sin tipo de cambio válido no se factura.",
+      "El complemento de pago (REP) descuenta las notas de crédito timbradas al calcular el saldo anterior.",
+      "Cambiar monto, moneda o tipo de cambio de una factura de proveedor reevalúa el umbral de aprobación y se bloquea si ya tiene pagos o está aprobada.",
+      "Importación bancaria: “1.500” se interpreta como mil quinientos, no como 1.50.",
+      "CxP: las facturas rechazadas ya no suman en los indicadores ni en la antigüedad de saldos.",
+      "Validaciones de fechas imposibles, archivos de estado de cuenta en Windows-1252, límite de 5 MB para la constancia fiscal, catálogo SAT de régimen fiscal y facturación recurrente por mes calendario."
+    ]
+  },
+  {
+    "version": "7.389.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "RFCs válidos ya no se rechazan en los datos fiscales",
+    "description": "La validación del dígito verificador del RFC calculaba mal dos casos del algoritmo del SAT, así que cerca de 2 de cada 11 RFCs reales se rechazaban al guardar los datos fiscales de la empresa. Ya se corrigió el mapeo y las pruebas ahora cubren esos casos borde.",
+    "changes": [
+      "Guardar un RFC real en los datos fiscales de la empresa o al capturar facturas ya no marca el error “el dígito verificador no coincide” por un cálculo incorrecto.",
+      "Las pruebas del validador ahora verifican el dígito esperado con una implementación de referencia independiente, incluyendo los casos que terminan en “A” y en “1”."
+    ]
+  },
+  {
+    "version": "7.389.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Cierre de la auditoría QA: notas de crédito, entregas, lotes de pago y estados de cuenta",
+    "description": "Se cerraron los últimos hallazgos abiertos de la auditoría: las notas de crédito verifican que el CFDI timbrado cuadre con el documento, las entregas registradas como completadas respetan la ventana de renta, un lote de pagos fallido libera sus facturas y la importación bancaria deja de duplicar movimientos.",
+    "changes": [
+      "Si el CFDI de una nota de crédito no cuadra con el total del sistema, queda marcada como error para revisarla y cancelarla, en vez de darse por buena.",
+      "Registrar una entrega como “ya completada” ahora exige que la reserva esté confirmada y que la fecha caiga dentro del periodo de renta.",
+      "Si falla la generación del Excel de pagos, el lote se cancela solo y las facturas quedan liberadas para volver a exportarse.",
+      "La importación de estados de cuenta detecta duplicados por el contenido del movimiento, así que reimportar un archivo traslapado ya no duplica líneas y dos movimientos legítimamente idénticos sí se conservan.",
+      "Al editar una reserva se puede avisar si otro usuario la modificó antes, en vez de sobrescribir su cambio."
+    ]
+  },
+  {
+    "version": "7.388.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Blindajes fiscales, gastos sin duplicados y mantenimientos en el calendario",
+    "description": "Las facturas timbradas como PUE ya no aceptan pagos parciales, los gastos operativos se pueden ligar a su factura de proveedor para no contarse dos veces, el RFC valida su dígito verificador y el Gantt muestra los mantenimientos programados.",
+    "changes": [
+      "Una factura timbrada como PUE (pago en una sola exhibición) sólo acepta el pago completo; para pagos parciales debe emitirse como PPD.",
+      "Cada gasto operativo puede ligarse a la factura de proveedor correspondiente, evitando que el estado de resultados lo cuente dos veces.",
+      "El RFC ahora valida su dígito verificador, no sólo el formato.",
+      "El Gantt del calendario muestra franjas de mantenimiento programado y órdenes de trabajo abiertas por equipo.",
+      "Al editar una cotización se avisa si otro usuario la modificó antes, en vez de sobrescribir su cambio.",
+      "El prorrateo de rentas recurrentes se calcula en centavos exactos y el año de vigencia del seguro ya no se corre por zona horaria."
+    ]
+  },
+  {
+    "version": "7.387.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Flujo de efectivo usa el saldo real de cada factura",
+    "description": "La proyección de flujo de efectivo toma el saldo oficial de la factura (ya convertido a pesos) en vez de recalcularlo con los pagos, evitando montos incorrectos cuando el pago fue en otra moneda.",
+    "changes": [
+      "El saldo proyectado de cada factura viene de la misma fuente que cobranza y el portal.",
+      "Un pago en pesos sobre una factura en dólares ya no hace desaparecer ni subestimar la factura en la proyección.",
+      "La pantalla carga más rápido: ya no descarga la tabla de pagos para recalcular saldos."
+    ]
+  },
+  {
+    "version": "7.386.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "IVA exacto en facturas recurrentes y tipo de cambio en cotizaciones",
+    "description": "Las facturas recurrentes agrupadas calculan el IVA partida por partida y las cotizaciones en dólares ya piden el tipo de cambio, que se hereda al facturar.",
+    "changes": [
+      "El IVA de las facturas recurrentes agrupadas se calcula por partida, igual que en el resto del sistema y que el PAC.",
+      "Las cotizaciones en USD ahora exigen capturar el tipo de cambio (mayor a 0).",
+      "El tipo de cambio capturado se guarda en la cotización y se hereda al crear la factura, en vez de quedarse en 1."
+    ]
+  },
+  {
+    "version": "7.385.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Archivar OT libera la unidad y datos fiscales obligatorios al timbrar",
+    "description": "Archivar una orden de trabajo abierta ya libera el montacargas, y el timbrado ya no emite facturas con datos fiscales genéricos del cliente.",
+    "changes": [
+      "Si archivas una orden de trabajo en proceso, la unidad regresa a Disponible en lugar de quedarse atorada en Mantenimiento.",
+      "La unidad sigue sin liberarse si tiene renta vigente, daños abiertos u otras órdenes de trabajo abiertas.",
+      "Al timbrar, si al cliente le falta régimen fiscal o código postal fiscal, se avisa antes de enviar al PAC en vez de usar datos genéricos."
+    ]
+  },
+  {
+    "version": "7.384.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Correcciones críticas de cobro y de IVA en notas de crédito",
+    "description": "Se corrigió un sobrecobro de un día en rentas que cruzan meses cortos, se hizo timbrable la línea de prorrateo de extensiones y las notas de crédito ahora respetan el IVA real de cada línea de la factura origen.",
+    "changes": [
+      "Rentas que inician el 30 o 31 y cruzan a un mes corto (por ejemplo 31-ene a 1-mar) ya no cobran un día extra.",
+      "La línea de prorrateo de una extensión se emite con cantidad 1 y su importe exacto, para que el CFDI cuadre con la factura.",
+      "Las notas de crédito ya no acreditan IVA de más: respetan las líneas no objeto de impuesto y la tasa de cada línea.",
+      "La clave de producto SAT de la nota de crédito ahora reutiliza la de la línea original cuando existe."
+    ]
+  },
+  {
+    "version": "7.383.1",
+    "date": "2026-08-30",
+    "type": "patch",
+    "title": "Unidades marcadas como rentadas ya se pueden corregir",
+    "description": "El botón de actualizar estado se quedaba deshabilitado para cualquier montacargas en estado Rentado, aun cuando la renta ya había sido devuelta. Ahora sólo bloquea cuando realmente hay una renta abierta.",
+    "changes": [
+      "La tarjeta de cambio de estado ya no bloquea por el simple estado Rentado.",
+      "Si la unidad sí tiene renta abierta (entregada y sin devolución), el sistema la sigue bloqueando y explica el motivo.",
+      "Se conservan las demás reglas: razón obligatoria para mantenimiento, venta y baja."
+    ]
+  },
+  {
+    "version": "7.383.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Un cliente con saldo pendiente ya no se puede archivar",
+    "description": "Ahora es una regla dura del sistema: mientras el cliente deba dinero, no se puede archivar, ni desde la pantalla ni por cambios directos. Antes sólo era una advertencia de la pantalla.",
+    "changes": [
+      "El saldo pendiente del cliente usa el mismo cálculo oficial que el resumen financiero (facturas por cobrar, sin canceladas).",
+      "Archivar un cliente con saldo pendiente queda rechazado tanto por la acción oficial como por cualquier cambio directo.",
+      "Se conservan las reglas actuales: sólo administrador o personal administrativo archivan, y las reservas activas siguen bloqueando.",
+      "No se modifica, cancela ni elimina ninguna factura, pago o cobranza: sólo se rechaza el archivado.",
+      "La pantalla de archivado usa el mensaje explicativo estándar y también explica el rechazo si el saldo cambia mientras se confirma.",
+      "Desarchivar y las ediciones normales del cliente siguen igual."
+    ]
+  },
+  {
+    "version": "7.382.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Archivar mantenimientos sólo por la vía oficial (P2)",
+    "description": "Archivar una orden de trabajo ahora sólo puede hacerse por la acción oficial del sistema, que ya aplica todas las reglas y la limpieza de refacciones y mano de obra. Los cambios directos por fuera quedan rechazados.",
+    "changes": [
+      "Archivar una orden de trabajo ahora sólo procede por la acción oficial del sistema.",
+      "Un cambio directo a la marca de archivado queda rechazado, para evitar registros archivados incompletos.",
+      "Se conservan las reglas actuales: quién puede archivar, la regla de órdenes cerradas (sólo administrador), la devolución de refacciones al inventario en órdenes abiertas y el desarchivado.",
+      "Las ediciones normales de mantenimientos, los costos, el inventario y los daños no cambian."
+    ]
+  },
+  {
+    "version": "7.381.1",
+    "date": "2026-08-30",
+    "type": "patch",
+    "title": "Explicación clara si la asignación cambia justo antes de facturar",
+    "description": "Si alguien modifica la asignación de equipos de una cotización de venta mientras otra persona estaba llenando la factura, la pantalla ahora muestra la explicación del bloqueo en vez de un error genérico.",
+    "changes": [
+      "El rechazo de la base de datos por asignación incompleta muestra la misma pantalla explicativa que la prevención normal.",
+      "El mensaje indica que faltan equipos por asignar y permite ir directo a la cotización.",
+      "Los demás errores al crear facturas se comportan igual que antes."
+    ]
+  },
+  {
+    "version": "7.381.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Protección en base de datos al facturar cotizaciones de venta (P1-B)",
+    "description": "Una cotización de venta con equipos sin asignar ya no puede convertirse en factura, aunque se intente por fuera de la pantalla normal. Las facturas de renta y las que no vienen de una cotización no cambian.",
+    "changes": [
+      "Facturar una cotización de venta exige que cada partida de venta tenga asignadas tantas unidades como su cantidad.",
+      "La regla ahora vive en la base de datos, así que no se puede evadir saltándose la pantalla.",
+      "Si faltan equipos, la aplicación explica cuántos faltan y cómo asignarlos.",
+      "Facturas sin cotización, cotizaciones de renta y cotizaciones completamente asignadas funcionan exactamente igual que antes.",
+      "El guard sólo acepta o rechaza el alta de la factura: no cambia asignaciones ni el estatus de las unidades.",
+      "El sembrado de pruebas automatizadas conserva su comportamiento."
+    ]
+  },
+  {
+    "version": "7.380.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Protección en base de datos al archivar clientes (P1)",
+    "description": "Archivar un cliente ahora está protegido por la base de datos y no sólo por la pantalla: sólo admin o administrativo pueden archivar y nunca con reservas activas. El saldo pendiente sigue siendo advertencia de la interfaz.",
+    "changes": [
+      "Archivar un cliente ahora obedece las mismas reglas duras aunque se intente por fuera de la pantalla normal.",
+      "Sólo administrador o personal administrativo pueden archivar un cliente; ventas ya no puede hacerlo con una edición directa.",
+      "No se puede archivar un cliente con reservas activas (confirmadas o en progreso).",
+      "El saldo pendiente sigue siendo una advertencia de la pantalla y no un bloqueo de la base de datos.",
+      "Desarchivar un cliente y cualquier otra edición normal siguen funcionando igual.",
+      "Procesos internos y sembrado de pruebas conservan su comportamiento."
+    ]
+  },
+  {
+    "version": "7.379.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Protección en base de datos al eliminar pagos a proveedor (P0)",
+    "description": "Eliminar un pago a proveedor ahora está protegido por la base de datos y no sólo por la pantalla: la regla se aplica aunque alguien intente saltarse la interfaz. No cambia saldos, REP ni conciliación.",
+    "changes": [
+      "No se puede eliminar un pago cuando ya se registró el REP fiscal recibido del proveedor.",
+      "No se puede eliminar un pago cuando la factura de proveedor está cancelada.",
+      "Sólo un administrador puede eliminar un pago a proveedor, igual que ya mostraba la pantalla.",
+      "Si el rechazo llega desde la base de datos (pantalla desactualizada), se explica con el mismo mensaje de siempre en vez de un error técnico.",
+      "Procesos internos y sembrado de pruebas conservan su comportamiento."
+    ]
+  },
+  {
+    "version": "7.378.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Bloqueos explicables lote 3: proveedores, pagos, daños, prospectos, cotizaciones y portal",
+    "description": "Más acciones bloqueadas por el estado del negocio se explican en pantalla (qué está bloqueado, por qué y qué sigue) en vez de desaparecer o mostrar un mensaje técnico. No cambia ninguna regla, permiso ni cálculo.",
+    "changes": [
+      "Cuentas por pagar: Registrar pago permanece visible y deshabilitado cuando la factura está pagada, cancelada, rechazada o pendiente de aprobación, con el motivo y el siguiente paso.",
+      "Cuentas por pagar: eliminar un pago con REP recibido explica que primero hay que revertir el REP.",
+      "Facturas: el candado por complemento de pago timbrado ahora se explica igual en la lista de pagos y en la ventana de edición.",
+      "Daños: Archivar sigue visible y deshabilitada hasta que el daño esté reparado o cobrado en una factura.",
+      "CRM: cerrar un prospecto como Ganado fuera de la etapa Negociación se explica en el botón.",
+      "Cotizaciones: aceptar una cotización vencida y convertir una ya convertida se explican; además se agrega acceso directo a la reserva ligada.",
+      "Portal de clientes: si el saldo ya está cubierto por pagos reportados, se explica por qué no se puede reportar otro pago."
+    ]
+  },
+  {
+    "version": "7.377.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Bloqueos explicables fase 2: factura timbrada, sobrepago y extensión facturada",
+    "description": "Segunda tanda de acciones bloqueadas por reglas del negocio que ahora se explican en pantalla en vez de desaparecer o fallar con un error técnico. No cambia ninguna regla, permiso ni cálculo.",
+    "changes": [
+      "Flotilla: el aviso de unidad rentada ahora nombra la acción exacta que elegiste (vender, dar de baja, mandar a mantenimiento o marcar disponible) con el mismo motivo y siguiente paso.",
+      "Facturas: el botón Editar permanece visible y deshabilitado en facturas timbradas, explicando que hay que cancelar el CFDI o emitir una nota de crédito.",
+      "Facturas: el botón Registrar pago con cancelación en proceso ante el SAT usa el mismo formato explicativo.",
+      "Pagos: si el monto capturado supera el saldo pendiente se explica al momento junto al campo y el botón queda deshabilitado; si otro pago consumió el saldo primero, se muestra la misma explicación en vez de un error técnico.",
+      "Reservas: la acción Facturar extensión ya no desaparece cuando la extensión ya se facturó; se muestra deshabilitada con el motivo y se conserva el acceso directo a la factura."
+    ]
+  },
+  {
+    "version": "7.376.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Bloqueos de negocio explicables: qué está bloqueado, por qué y qué sigue",
+    "description": "Cuando el sistema impide una acción por una regla del negocio (unidad rentada, daño abierto, contrato firmado, factura de proveedor con pagos), ya no se muestra un error técnico ni desaparece el botón: la acción queda visible y deshabilitada, con una explicación clara y el siguiente paso. No cambia ninguna regla ni permiso.",
+    "changes": [
+      "Nuevo catálogo de bloqueos de negocio con textos en español mexicano: qué quedó bloqueado, por qué y qué hacer después.",
+      "Nuevos componentes reutilizables: aviso explicativo dentro de la pantalla y botón que se queda visible pero deshabilitado con la explicación en el tooltip.",
+      "Flotilla: al intentar vender, dar de baja o mandar a mantenimiento una unidad rentada se explica que primero hay que registrar la devolución; si el servidor lo rechaza, se ve la misma explicación en vez de un error genérico.",
+      "Mantenimiento: el cierre de orden de trabajo con daño abierto muestra el daño y un botón directo para resolverlo.",
+      "Contratos: los contratos firmados o completados ya muestran el botón Editar deshabilitado con el motivo, en vez de esconderlo.",
+      "Cuentas por pagar: editar, eliminar y cancelar facturas de proveedor explican el motivo exacto (tiene pagos, ya aprobada, rechazada, pagada o cancelada) y el siguiente paso."
+    ]
+  },
+  {
+    "version": "7.375.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Limpieza extensa de la documentación",
+    "description": "El repositorio tenía 157 archivos de documentación, casi todos planes y auditorías viejas que ya no reflejaban el sistema actual. Se conservan solo 12 documentos vivos y se actualizaron para que digan la verdad. No hay cambios en la aplicación.",
+    "changes": [
+      "Se borraron 130 planes archivados y 10 reportes de auditoría con fecha fija; el historial funcional queda en el changelog.",
+      "Se borraron 5 README de carpeta dentro de src/ que repetían convenciones ya documentadas.",
+      "architecture.md y README.md actualizados: pruebas E2E y RLS reales, stack de PDF correcto y una sección clara de documentación vigente.",
+      "La carpeta de planes archivados ahora se ignora en Git para que no vuelva a acumularse."
+    ]
+  },
+  {
+    "version": "7.374.4",
+    "date": "2026-08-29",
+    "type": "patch",
+    "title": "Sesión expirada ya no manda a \"Página no encontrada\"",
+    "description": "Cuando la sesión expiraba, la app enviaba al usuario a una dirección inexistente (/auth); al volver a iniciar sesión caía en \"Página no encontrada\" y perdía la pantalla donde estaba trabajando. Ahora se usa /login y, tras iniciar sesión, se regresa a la página original.",
+    "changes": [
+      "sessionExpiry: la redirección por sesión expirada ahora apunta a /login (ruta existente) en vez de /auth.",
+      "Router: /login respeta el parámetro redirect y regresa al usuario a su página original tras el login, con validación contra open redirects.",
+      "El guard de \"ya estoy en acceso\" ahora reconoce /login."
+    ]
+  },
+  {
+    "version": "7.374.3",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Actions de CI actualizadas a su última versión",
+    "description": "Se actualizaron las acciones oficiales de GitHub que usa la integración continua. No hay cambios en la aplicación.",
+    "changes": [
+      "actions/checkout de v6 a v7 (20 usos en 8 flujos), con protección reforzada de credenciales en PRs de forks.",
+      "actions/download-artifact de v6 a v8, compatible con el upload-artifact v7 que ya se usaba.",
+      "actions/setup-node de v5 a v7 en la acción compuesta setup-bun-project.",
+      "actions/upload-artifact, actions/cache y github/codeql-action ya estaban en su última versión."
+    ]
+  },
+  {
+    "version": "7.374.2",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Correcciones de lint: bloqueos optimistas más robustos",
+    "description": "Se corrigieron los avisos del linter: la protección contra guardados simultáneos en clientes, montacargas y facturas ahora usa el patrón recomendado por React, y la limpieza de fórmulas en archivos CSV dejó de usar una expresión prohibida.",
+    "changes": [
+      "Los candados de \"alguien más lo modificó\" en clientes, montacargas y facturas pasaron de refs a estado de React, eliminando lecturas de refs durante el renderizado.",
+      "La detección de fórmulas peligrosas al exportar CSV ahora compara caracteres en vez de una expresión regular con caracteres de control.",
+      "Se extrajeron componentes auxiliares en Entregas, Pólizas de mantenimiento y el detalle de mantenimiento para cumplir los límites de tamaño y complejidad.",
+      "Se corrigió el orden de imports en cuatro archivos de facturación."
+    ]
+  },
+  {
+    "version": "7.374.1",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Limpieza de datos de pruebas ya no falla",
+    "description": "La limpieza automática de los datos de prueba dejó de intentar borrar archivos directamente del almacenamiento, algo que la plataforma bloquea y que hacía fallar toda la limpieza.",
+    "changes": [
+      "La limpieza de escenarios de prueba ya no se interrumpe con el error \"Direct deletion from storage tables is not allowed\".",
+      "Se corrigió la prueba del pagaré para reflejar que un 0% de mora capturado a propósito se respeta."
+    ]
+  },
+  {
+    "version": "7.374.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Cierre de deals protegido y avisos de tipo de cambio en Cuentas por Pagar",
+    "description": "Marcar un prospecto como Cerrado Ganado ahora requiere permisos de administrador también a nivel base de datos, y Cuentas por Pagar avisa cuándo una factura en divisa queda fuera de los totales.",
+    "changes": [
+      "Solo administradores o personal administrativo pueden cerrar un prospecto como Ganado; la regla ya no depende únicamente de la pantalla.",
+      "La portada de Cuentas por Pagar avisa cuántas facturas en divisa sin tipo de cambio quedaron fuera de los totales en pesos.",
+      "La tabla de exportación de pagos marca con la etiqueta \"Sin TC\" las facturas en divisa sin tipo de cambio capturado."
+    ]
+  },
+  {
+    "version": "7.373.2",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Pagos a proveedor en su moneda y cierre de sesión automático",
+    "description": "Los saldos por pagar se muestran con su moneda real, la exportación del lote distingue dólares de pesos y una sesión vencida te lleva de vuelta al acceso en lugar de dejar la pantalla muerta.",
+    "changes": [
+      "El diálogo de registro de pago a proveedor muestra el saldo con el código de moneda de la factura (USD/MXN), no siempre en pesos.",
+      "La tabla de exportación de pagos marca con una etiqueta las facturas en moneda extranjera.",
+      "Si tu sesión expira, la app cierra sesión y te regresa a la pantalla de acceso conservando la página en la que estabas.",
+      "Los nombres de meses y días en fechas ya salen en español de forma predeterminada."
+    ]
+  },
+  {
+    "version": "7.371.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Portal del cliente en su moneda y datos fiscales correctos en el PDF",
+    "description": "Las cotizaciones del portal ya se muestran en su propia moneda, el saldo pendiente se calcula igual en todas las pantallas y el PDF de factura usa los datos fiscales congelados al emitirla.",
+    "changes": [
+      "Las cotizaciones del portal (lista, detalle y totales) muestran su código de moneda real; antes una cotización en dólares se veía como pesos.",
+      "El saldo pendiente del tablero del portal usa la misma conversión a pesos que el estado de cuenta, sin inflar facturas ya en pesos.",
+      "El PDF de factura toma la razón social y el código postal fiscal guardados en la factura; si el cliente cambió de domicilio o fue eliminado, el documento sigue siendo correcto.",
+      "Las tarjetas de facturas recientes y próximos vencimientos avisan cuántas facturas hay en total con un enlace a la lista completa."
+    ]
+  },
+  {
+    "version": "7.370.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Archivado seguro de mantenimiento y saldos exactos",
+    "description": "Archivar una orden de trabajo cerrada ya no borra su historial de costos, los saldos de factura dejan de mostrar centavos fantasma y los formularios avisan antes de descartar cambios.",
+    "changes": [
+      "Solo un administrador puede archivar una orden de mantenimiento cerrada, y sus refacciones y mano de obra se conservan.",
+      "El saldo y las notas de crédito de una factura se calculan con redondeo monetario: se acabaron los saldos de -0.000000001 que pintaban una factura pagada como pendiente.",
+      "El detalle de cliente muestra un aviso con botón de reintentar cuando la consulta falla, en vez de decir que el cliente no existe.",
+      "Nueva póliza de mantenimiento, nueva nota de crédito y registro de pago a proveedor piden confirmación antes de cerrarse con cambios sin guardar.",
+      "Las métricas del CRM (ganados del mes y tasa de cierre a 30 días) usan siempre el horario de Monterrey."
+    ]
+  },
+  {
+    "version": "7.369.1",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Limpieza completa de datos de prueba",
+    "description": "Los escenarios de prueba automatizada ahora se borran por completo: antes quedaban atorados cuando existía una nota de crédito y los comprobantes de pago se quedaban guardados sin dueño.",
+    "changes": [
+      "Al sembrar o limpiar un escenario de prueba se eliminan primero las notas de crédito ligadas a sus facturas o clientes, que antes bloqueaban el borrado.",
+      "Se eliminan los comprobantes de pago huérfanos de los clientes de prueba en el almacenamiento.",
+      "El resultado de la limpieza ahora reporta cuántas notas de crédito y archivos se borraron."
+    ]
+  },
+  {
+    "version": "7.369.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Edición segura de clientes, montacargas y facturas",
+    "description": "Se corrigió la protección contra ediciones simultáneas: ya no se pisan cambios de otro usuario ni aparecen avisos falsos de conflicto, y abrir una factura inexistente muestra un mensaje claro en vez de quedarse cargando.",
+    "changes": [
+      "Clientes: al abrir el diálogo de edición se fija la versión del registro, para que un refresco de datos no anule la protección contra ediciones simultáneas.",
+      "Clientes y montacargas: si el guardado falla por falta de permisos ya no se muestra el mensaje engañoso de que otro usuario modificó el registro.",
+      "Montacargas: la protección usa la fecha del registro tal como se cargó el formulario y se reinicia al cambiar de unidad.",
+      "Facturas: al pasar de editar una factura a otra ya no se arrastra la protección de la anterior.",
+      "Facturas: si el guardado funciona pero falla la vinculación de reservas, volver a presionar Guardar ya no reporta un conflicto falso.",
+      "Facturas: abrir una factura inexistente o sin permisos muestra un aviso con botón para volver al listado."
+    ]
+  },
+  {
+    "version": "7.368.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Cola de reintentos de cancelación CFDI",
+    "description": "Las cancelaciones de facturas, notas de crédito y complementos de pago que quedan esperando respuesta del timbrador ya no se reintentan indefinidamente: ahora hay un tope, la espera entre intentos crece y, si el SAT ya confirmó la cancelación, la tarea se cierra sola.",
+    "changes": [
+      "Las cancelaciones aplazadas tienen un tope de 10 aplazamientos; al superarlo la tarea se marca como agotada con el detalle del error.",
+      "La espera entre reintentos crece (2, 4, 8… minutos, máximo 60) en vez de reintentar cada 2 minutos.",
+      "Si al consultar al timbrador la cancelación ya quedó confirmada, la tarea se cierra como exitosa.",
+      "La consulta al timbrador tiene límite de 10 segundos y deja registro cuando falla.",
+      "Las cancelaciones de factura que se quedaron a medias también se reintentan; las facturas que no son cancelables siguen fallando de inmediato."
+    ]
+  },
+  {
+    "version": "7.367.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Portal de pagos, conciliación bancaria y comprobantes",
+    "description": "Se reforzó la aprobación de reportes de pago del portal: ya no es posible sobrepasar el saldo de una factura con dos aprobaciones al mismo tiempo, los montos en otra moneda se convierten correctamente y los comprobantes de reportes ya procesados quedan protegidos.",
+    "changes": [
+      "Aprobación de reportes de pago: la factura se bloquea durante la aprobación y se descuentan los reportes que siguen pendientes de revisión.",
+      "Facturas en dólares: los pagos en otra moneda se convierten con el tipo de cambio correcto al calcular el saldo, tanto al aprobar como al reportar desde el portal.",
+      "Notas de crédito canceladas ya no reducen el saldo pendiente al aprobar un pago.",
+      "Conciliación bancaria: si un pago no trae tipo de cambio propio, se usa el de su factura, al sugerir candidatos y al confirmar el movimiento.",
+      "Portal: no se pueden reportar pagos sobre facturas canceladas o en borrador, y el comprobante debe subirse en la carpeta de la factura correspondiente.",
+      "Comprobantes: ya nadie puede borrar el archivo de un reporte aprobado o rechazado, y no se aceptan archivos sin tipo declarado; el buzón acepta hasta 10 MB."
+    ]
+  },
+  {
+    "version": "7.366.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Ronda R6: notas de crédito, pagos en divisa y candados internos",
+    "description": "Se corrigieron seis fallas de fondo: el recálculo del estatus de factura al registrar o cancelar notas de crédito podía tronar, los pagos en dólares sobre facturas en pesos se rechazaban aunque hubiera tipo de cambio, y ciertos permisos internos temporales quedaban encendidos cuando una operación fallaba.",
+    "changes": [
+      "Notas de crédito: al crearlas, timbrarlas o cancelarlas, el estatus de la factura se recalcula correctamente y ya no falla.",
+      "Pagos: se acepta un pago en dólares sobre una factura en pesos (o al revés) siempre que exista tipo de cambio; sin tipo de cambio se sigue rechazando con un mensaje claro.",
+      "Pagos: si se edita el monto o el tipo de cambio de un pago existente, se vuelve a validar la conversión.",
+      "Reservas, devoluciones y sincronización de flota: los permisos internos temporales siempre se apagan, incluso si la operación falla a medio camino.",
+      "Panel: el desglose de facturas por estatus convierte los montos en dólares a pesos antes de sumarlos.",
+      "Indicadores: los contratos por vencer ya no incluyen clientes de prueba ni unidades eliminadas, y siguen apareciendo los contratos sin unidad asignada."
+    ]
+  },
+  {
+    "version": "7.365.1",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Bitácora: se corrige el fallo al guardar movimientos sin sesión de pruebas",
+    "description": "El registro automático de la bitácora podía quedarse sin la marca de origen y rechazaba el movimiento, lo que además tumbaba el arranque de la base de datos en el entorno de pruebas.",
+    "changes": [
+      "Bitácora: la marca de 'registro de prueba' siempre se guarda como sí o no, nunca vacía.",
+      "Pruebas automatizadas: la base de datos vuelve a arrancar y las 21 suites de seguridad pueden ejecutarse."
+    ]
+  },
+  {
+    "version": "7.365.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Ronda D de auditoría: montos, monedas y listas completas",
+    "description": "Nueva ronda de revisión encontró listas que se cortaban en silencio, montos formateados siempre en pesos aunque el pago fuera en dólares y sumas con centavos desviados. Todo quedó corregido.",
+    "changes": [
+      "Daños: la lista ya no se corta silenciosamente en 1000 registros, así los reportes de costos de reparación cuadran.",
+      "Conciliación fiscal: el total timbrado y los huecos de folio ya consideran rangos grandes sin truncarse.",
+      "Pagos: el monto se muestra en su propia moneda (por ejemplo USD) en lugar de formatearse siempre como pesos.",
+      "Órdenes de trabajo: los costos de refacciones y mano de obra se suman en centavos, sin desviaciones de redondeo.",
+      "Contratos: si las tarifas están en moneda extranjera, el balance restante ya no se compara 1:1 contra lo facturado en pesos.",
+      "Refacciones: las fechas de creación y actualización se muestran en horario de Monterrey."
+    ]
+  },
+  {
+    "version": "7.364.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Bitácora limpia: se separan pruebas, sistema y usuarios",
+    "description": "La Bitácora de Cambios mezclaba rastros de las pruebas automatizadas y ajustes técnicos masivos con la actividad real. Ahora cada registro trae su origen, las pruebas se ocultan por defecto y un administrador puede borrarlas.",
+    "changes": [
+      "Bitácora: nuevo filtro Origen (usuarios y sistema, solo usuarios, solo sistema, solo pruebas, todos).",
+      "Bitácora: etiquetas 'Sistema' y 'Prueba' junto al usuario del movimiento.",
+      "Bitácora: los registros de pruebas automatizadas se ocultan por defecto.",
+      "Bitácora: acción de administrador para eliminar únicamente los registros marcados como prueba.",
+      "Base de datos: el registro automático detecta las sesiones de prueba aunque la tabla no tenga marca propia y etiqueta como 'sistema' los movimientos sin usuario."
+    ]
+  },
+  {
+    "version": "7.363.1",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Facturas con reserva: ya no se traban por el periodo de facturación",
+    "description": "Al facturar una reserva, si el periodo de facturación quedaba vacío la factura era rechazada con un mensaje técnico. Ahora el periodo se completa solo con el mes de la fecha de emisión y, si algo falla, el aviso explica exactamente qué capturar.",
+    "changes": [
+      "Facturas: el periodo de facturación se deriva del mes de emisión cuando la factura está ligada a una reserva y el periodo viene vacío.",
+      "Errores: mensaje claro 'Falta el periodo de facturación' en lugar del texto técnico de la base de datos.",
+      "Errores: los mensajes de negocio ya no quedan tapados por el código genérico de validación."
+    ]
+  },
+  {
+    "version": "7.363.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Entregas atrasadas visibles y fechas con reloj de Monterrey",
+    "description": "Las entregas programadas con fecha vencida ya se distinguen en la lista, la tabla muestra el tipo de movimiento y se pueden filtrar por estado y tipo. Además, los cortes de fechas del CRM y de los pagos usan el reloj del negocio en vez del reloj de la computadora.",
+    "changes": [
+      "Entregas: aviso y etiqueta 'Vencida' con los días de atraso en cada entrega programada fuera de fecha.",
+      "Entregas: nueva columna 'Tipo' (entrega, recolección, devolución) en la vista de escritorio.",
+      "Entregas: buscador y filtros por estado y tipo, con opción de limpiar filtros.",
+      "CRM: los indicadores del mes y de 30 días usan la fecha de Monterrey.",
+      "Pagos y factura global: los selectores de fecha bloquean el futuro según la fecha de Monterrey."
+    ]
+  },
+  {
+    "version": "7.362.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Cierre de auditoría: errores de carga visibles, saldos por moneda y facturas sin vencimiento",
+    "description": "Un fallo de carga en el CRM se veía como historial vacío, el saldo de una factura restaba pagos de otra moneda 1 a 1, el estado de resultados sumaba gastos de proveedor en dólares como pesos y las facturas de proveedor sin fecha de vencimiento aparecían como si estuvieran al corriente.",
+    "changes": [
+      "CRM cerrados: si la consulta falla se muestra el error con botón de reintento en vez de listas vacías.",
+      "Detalle de proveedor: aviso cuando las listas de gastos y mantenimiento están truncadas y los totales no son completos.",
+      "Detalle de factura: los pagos se convierten a la moneda del documento y se avisa de los pagos sin tipo de cambio.",
+      "Estado de resultados: los gastos de proveedor se convierten a pesos y ya no se cuentan las facturas en borrador.",
+      "MRR y KPIs financieros: las rentas pactadas en dólares se convierten a pesos.",
+      "Antigüedad de saldos y Cuentas por pagar: columna y marca 'Sin vencimiento' para las facturas sin fecha."
+    ]
+  },
+  {
+    "version": "7.361.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Ingresos por unidad, rentabilidad por cliente y montos en pesos",
+    "description": "Las facturas recurrentes que cubren varias reservas no se le acreditaban a ningún montacargas, la rentabilidad por cliente comparaba montos con IVA contra costos sin IVA, y varios totales sumaban dólares como si fueran pesos. Se corrigieron los cálculos y se liberaron para cotizar las unidades cuya renta ya terminó.",
+    "changes": [
+      "Nueva vista v_invoice_forklift_revenue: reparte el ingreso de facturas multi-reserva entre las unidades que cubren.",
+      "get_forklift_financials y la sección de utilización del Panel usan la nueva atribución (antes faltaban $716,300).",
+      "get_customer_profitability usa ingreso neto sin IVA, resta notas de crédito y ya no duplica costos de mantenimiento.",
+      "Flujo de efectivo del Panel incluye facturas pagadas antiguas sin registro en pagos.",
+      "El selector de equipos al cotizar ya no descarta unidades marcadas 'rentado' cuya reserva ya venció.",
+      "Detalle de proveedor y resumen financiero de contrato convierten los importes a pesos con su tipo de cambio."
+    ]
+  },
+  {
+    "version": "7.360.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Panel: el Flujo de Efectivo vuelve a mostrar lo cobrado en todos los meses",
+    "description": "La barra 'Pagado' de la gráfica de Flujo de Efectivo solo mostraba agosto porque sumaba el monto en pesos de cada pago, un dato que se empezó a guardar hace poco y que estaba vacío en los pagos anteriores. Se rellenaron los pagos históricos con su monto en pesos y el Panel ahora lo calcula al momento cuando el dato falte.",
+    "changes": [
+      "Relleno único de payments.amount_mxn en pagos históricos usando el tipo de cambio del pago, o el de su factura, y 1 a 1 cuando el pago es en MXN.",
+      "get_dashboard_stats: paid_cte usa COALESCE(p.amount_mxn, p.amount * tipo de cambio) con precedencia pago → factura → 1 solo si el pago es MXN.",
+      "Se conservan SECURITY DEFINER, SET search_path = public, el guard de roles y la ausencia de EXECUTE para anon."
+    ]
+  },
+  {
+    "version": "7.359.3",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Pruebas E2E: el seeding ya no se apaga a media corrida",
+    "description": "Al correr las pruebas divididas en shards, un shard podía apagar el interruptor de datos de prueba mientras el otro seguía trabajando, provocando fallos por 'E2E seeding disabled'. Ahora el seeding se auto-repara y el apagado se omite en corridas por shards.",
+    "changes": [
+      "tests/e2e/fixtures/seed.ts vuelve a habilitar allow_e2e_seed y reintenta una vez si el RPC responde 'seeding disabled'.",
+      "tests/e2e/global.teardown.ts conserva el interruptor cuando la corrida usa --shard o E2E_KEEP_SEED_FLAG=1."
+    ]
+  }
+]
