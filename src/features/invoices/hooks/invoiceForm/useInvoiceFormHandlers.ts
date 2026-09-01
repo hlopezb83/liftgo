@@ -1,6 +1,6 @@
 import type { Forklift } from "@/features/fleet";
 import { monthBounds } from "@/lib/date/monthBounds";
-import { firstBillingPeriod, prorateMonthlyAmount } from "@/lib/domain/firstBillingPeriod";
+import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { nowMty } from "@/lib/utils";
@@ -47,6 +47,12 @@ const SAT_LINE_DEFAULTS = {
   clave_unidad: "DAY",
   objeto_imp: "02",
 } as const;
+
+function monthLabel(ymd: string): string {
+  const [y, m] = ymd.split("-").map(Number);
+  const name = new Date(y, (m ?? 1) - 1, 1).toLocaleDateString("es-MX", { month: "long" });
+  return `${name} ${y}`;
+}
 
 export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
