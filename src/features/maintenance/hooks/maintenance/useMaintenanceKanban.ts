@@ -19,6 +19,11 @@ import type { DragEndEvent } from "@dnd-kit/core";
  * se expone `pendingCloseId` para que la vista pida confirmación con el
  * resumen de costos antes de aplicar el cambio.
  */
+// El kanban lee la lista activa (no archivada) sin filtro de montacargas;
+// la key debe coincidir exactamente con la de `useMaintenanceLogs`.
+const KANBAN_LIST_KEY = maintenanceLogQueries.list({ forkliftId: null, archived: false })
+  .queryKey as readonly unknown[];
+
 export function useMaintenanceKanban() {
   const updateLog = useUpdateMaintenanceLog();
   const queryClient = useQueryClient();
@@ -55,7 +60,7 @@ export function useMaintenanceKanban() {
 
 
     queryClient.setQueryData<MaintenanceLog[]>(
-      maintenanceLogKeys.byFilter({ forkliftId: null }),
+      KANBAN_LIST_KEY,
       (old) => old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l)),
     );
 
@@ -69,7 +74,7 @@ export function useMaintenanceKanban() {
           const nextStatus = (serverRow as { work_status?: string }).work_status;
           if (!nextStatus || nextStatus === newStatus) return;
           queryClient.setQueryData<MaintenanceLog[]>(
-            maintenanceLogKeys.byFilter({ forkliftId: null }),
+            KANBAN_LIST_KEY,
             (old) => old?.map((l) => (l.id === logId ? { ...l, work_status: nextStatus } : l)),
           );
         },
