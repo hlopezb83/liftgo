@@ -669,7 +669,28 @@ Deno.serve(async (req) => {
       if (text) body = JSON.parse(text);
     } catch { /* legacy no-body call */ }
 
+    // POLÍTICA (v7.412.0): la facturación recurrente NUNCA se genera sola.
+    // Armar los borradores es una decisión del operador (puede juntar o
+    // separar reservas en una misma factura), así que el cron sólo puede
+    // consultar; cualquier intento de generar desde el cron es no-op.
+    if (cronAuth.ok && !body.preview) {
+      console.log(
+        "[generate-recurring-invoices] cron generation disabled (manual-only policy)",
+      );
+      return jsonResponse(req, {
+        success: true,
+        skipped: "automatic_generation_disabled",
+        invoicesCreated: 0,
+        bookingsBilled: 0,
+        created: [],
+        failed: [],
+        rateWarnings: [],
+        skippedStaleRate: [],
+      });
+    }
+
     const { lines, items: allItems } = await buildPlan(supabase);
+
 
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
