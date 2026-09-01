@@ -320,7 +320,7 @@ export async function handleStampCreditNote(
     // R8-06: el receptor global siempre timbra con el código puro "616".
     const taxSystem = resolveReceptorRegimenFiscal(
       isGlobalReceptor,
-      inv.receptor_regimen_fiscal,
+      inv.receptor_regimen_fiscal as string | null | undefined,
     );
 
     const zip = isGlobalReceptor
