@@ -4,7 +4,12 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
-import { fromCents, resolveVatRatePercent, sumLineTaxCents, sumMoneyCents } from "../_shared/money.ts";
+import {
+  fromCents,
+  resolveVatRatePercent,
+  sumLineTaxCents,
+  sumMoneyCents,
+} from "../_shared/money.ts";
 
 const TZ = "America/Monterrey";
 
@@ -396,7 +401,11 @@ async function buildPlan(supabase: any): Promise<{
       // atributos de la reserva, no del periodo). Se reporta explícitamente
       // en vez de facturar en MXN con TC=1 por default (bug crítico).
       if (!hasValidExchangeRate) {
-        lines.push({ ...baseLine, eligible: false, reason: "no_exchange_rate" });
+        lines.push({
+          ...baseLine,
+          eligible: false,
+          reason: "no_exchange_rate",
+        });
         break;
       }
       // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
@@ -502,7 +511,6 @@ async function executePlan(
     }
     items = items.filter((i) => !i.rateWarning);
   }
-
 
   // Agrupar por (customer_id, período)
   const groups = new Map<string, PlanItem[]>();
@@ -691,7 +699,6 @@ Deno.serve(async (req) => {
 
     const { lines, items: allItems } = await buildPlan(supabase);
 
-
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
 
@@ -730,7 +737,6 @@ Deno.serve(async (req) => {
       // R6-F5: periodos NO facturados por tarifa potencialmente desactualizada.
       skippedStaleRate,
     });
-
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
     return jsonError(req, 500, "Internal server error");

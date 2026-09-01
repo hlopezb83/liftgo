@@ -76,8 +76,5 @@ export async function authenticateCronRequest(
   const vaultSecret = await (opts.getVaultSecret ?? defaultVaultSecret)();
   if (matches(vaultSecret)) return { ok: true, via: "cron_secret" };
 
-
-
   return { ok: false, status: 401, error: "Unauthorized" };
 }
-

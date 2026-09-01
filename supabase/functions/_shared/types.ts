@@ -25,7 +25,6 @@ export interface QueryBuilderLike {
       v: { data: unknown; error: unknown; count?: number | null },
     ) => T,
   ) => Promise<T>;
-
 }
 
 export interface SupabaseLike {

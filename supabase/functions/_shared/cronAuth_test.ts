@@ -47,7 +47,9 @@ Deno.test("cronAuth: Bearer <service_role> válido → ok (via service_role)", a
 
 Deno.test("cronAuth: sin headers → 401", async () => {
   reset();
-  const res = await authenticateCronRequest(makeReq(), { getVaultSecret: () => Promise.resolve("") });
+  const res = await authenticateCronRequest(makeReq(), {
+    getVaultSecret: () => Promise.resolve(""),
+  });
   assertStrictEquals(res.ok, false);
   if (!res.ok) assertEquals(res.status, 401);
 });

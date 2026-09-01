@@ -1,5 +1,8 @@
 // R9-02: gate canónico de tipo de cambio previo al timbrado.
-import { assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import {
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   assertStampFxOrThrow,
   checkStampFx,
@@ -39,7 +42,9 @@ Deno.test("checkStampFx: mensaje en español claro cuando falta", () => {
   const r = checkStampFx("USD", null);
   assertEquals(r.ok, false);
   assertEquals(
-    r.message?.includes("La factura está en USD pero no tiene un tipo de cambio válido"),
+    r.message?.includes(
+      "La factura está en USD pero no tiene un tipo de cambio válido",
+    ),
     true,
   );
 });

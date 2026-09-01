@@ -81,7 +81,11 @@ export function checkStampFx(
         `Captura un tipo de cambio numérico mayor a 0 y distinto de 1 antes de timbrar.`,
     };
   }
-  return { ok: true, currency: code, exchange: effectiveStampExchange(code, rate) };
+  return {
+    ok: true,
+    currency: code,
+    exchange: effectiveStampExchange(code, rate),
+  };
 }
 
 /**

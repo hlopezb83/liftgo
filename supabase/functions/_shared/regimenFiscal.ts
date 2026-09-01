@@ -34,7 +34,9 @@ export const REGIMEN_FISCAL_CODES: ReadonlySet<string> = new Set([
 ]);
 
 /** true si el valor es exactamente un código válido del catálogo SAT. */
-export function isValidRegimenFiscalCode(value: string | null | undefined): boolean {
+export function isValidRegimenFiscalCode(
+  value: string | null | undefined,
+): boolean {
   const v = String(value ?? "").trim();
   return /^\d{3}$/.test(v) && REGIMEN_FISCAL_CODES.has(v);
 }
@@ -44,7 +46,9 @@ export function isValidRegimenFiscalCode(value: string | null | undefined): bool
  * código puro. Devuelve null si no se puede derivar un código válido.
  * Se usa solo en captura (parse-csf), NUNCA para relajar el timbrado.
  */
-export function normalizeRegimenFiscal(value: string | null | undefined): string | null {
+export function normalizeRegimenFiscal(
+  value: string | null | undefined,
+): string | null {
   const v = String(value ?? "").trim();
   if (!v) return null;
   const match = v.match(/^(\d{3})(?!\d)/);

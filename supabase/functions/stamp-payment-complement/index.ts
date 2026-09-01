@@ -15,7 +15,10 @@ import {
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
-import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
+import {
+  isValidRegimenFiscalCode,
+  resolveReceptorRegimenFiscal,
+} from "../_shared/regimenFiscal.ts";
 import {
   claimRejectionMessage,
   computeRepExchange,
@@ -173,7 +176,6 @@ Deno.serve(async (req) => {
       prep.amount_in_invoice_currency ?? payment.amount,
     );
 
-
     // Cargar los campos de invoice que el RPC no devuelve pero el payload de
     // Facturapi necesita (razón social, RFC, régimen, domicilio, uso CFDI).
     const { data: invoice } = await supabase
@@ -286,7 +288,10 @@ Deno.serve(async (req) => {
       .toUpperCase();
     const repIsGlobal = repTaxId === "XAXX010101000";
     // R8-06: el receptor global siempre timbra con el código puro "616".
-    const repTaxSystem = resolveReceptorRegimenFiscal(repIsGlobal, invoice.receptor_regimen_fiscal);
+    const repTaxSystem = resolveReceptorRegimenFiscal(
+      repIsGlobal,
+      invoice.receptor_regimen_fiscal,
+    );
 
     const repZip = repIsGlobal
       ? String(invoice.receptor_domicilio_fiscal_cp || "06600")

@@ -61,7 +61,6 @@ export interface MaintenanceClientLike {
   };
 }
 
-
 /** Blindaje ante datos corruptos / pólizas muy antiguas. */
 export const MAX_CATCHUP_MONTHS = 12;
 
@@ -81,7 +80,9 @@ export function pendingMonthsFor(
   currentMonth: string,
 ): string[] {
   const months: string[] = [];
-  let cursor = lastGeneratedMonth ? nextMonth(lastGeneratedMonth) : currentMonth;
+  let cursor = lastGeneratedMonth
+    ? nextMonth(lastGeneratedMonth)
+    : currentMonth;
   while (cursor <= currentMonth && months.length < MAX_CATCHUP_MONTHS) {
     months.push(cursor);
     cursor = nextMonth(cursor);
@@ -148,12 +149,13 @@ export async function generateForPolicies(
           continue;
         }
         details.push(
-          `⚠ ${policy.forklifts?.name ?? policy.id} (${month}) — mes reclamado ` +
+          `⚠ ${
+            policy.forklifts?.name ?? policy.id
+          } (${month}) — mes reclamado ` +
             `por otra corrida pero sin log generado: requiere revisión manual`,
         );
         break;
       }
-
 
       // BL-40: el log queda 'scheduled'; no carga P&L hasta que el mecánico lo
       // confirme como 'completed'.
@@ -180,7 +182,9 @@ export async function generateForPolicies(
         lastOkMonth = month;
         skipped += 1;
         details.push(
-          `= ${policy.forklifts?.name ?? "(sin nombre)"} (${monthFirstDay}) — ya generado`,
+          `= ${
+            policy.forklifts?.name ?? "(sin nombre)"
+          } (${monthFirstDay}) — ya generado`,
         );
         continue;
       }
@@ -215,7 +219,6 @@ export async function generateForPolicies(
         }
         break;
       }
-
 
       lastOkMonth = month;
       generated += 1;
