@@ -241,16 +241,22 @@ export function RecurringPreviewBody({
       />
     );
   }
+  const alreadyInvoicedCount = lines.filter((l) => l.reason === "already_invoiced").length;
   return (
     <>
       <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalSelected={totalSelected} />
       <div className="mt-3">
+        <AlreadyInvoicedNotice
+          eligibleCount={eligibleCount}
+          alreadyInvoicedCount={alreadyInvoicedCount}
+        />
         <StaleRateNotice
           staleCount={staleCount}
           allowStaleRate={allowStaleRate}
           onChange={onAllowStaleRateChange}
         />
       </div>
+
       {/* v7.307.0: aclarar el alcance — aquí sólo entran rentas mensuales recurrentes. */}
       <p className="text-xs text-muted-foreground">
         Sólo se listan reservas confirmadas con facturación recurrente mensual. Las extensiones de
