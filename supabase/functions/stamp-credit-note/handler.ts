@@ -301,9 +301,9 @@ export async function handleStampCreditNote(
     // fiscales genéricos. Se exigen los datos reales del receptor salvo en el
     // CFDI global (RFC genérico XAXX010101000).
     const isGlobalReceptor = taxId === "XAXX010101000";
-    const taxSystem = isGlobalReceptor
-      ? String(inv.receptor_regimen_fiscal || "616")
-      : String(inv.receptor_regimen_fiscal ?? "").trim();
+    // R8-06: el receptor global siempre timbra con el código puro "616".
+    const taxSystem = resolveReceptorRegimenFiscal(isGlobalReceptor, inv.receptor_regimen_fiscal);
+
     const zip = isGlobalReceptor
       ? String(inv.receptor_domicilio_fiscal_cp || "06600")
       : String(inv.receptor_domicilio_fiscal_cp ?? "").trim();
