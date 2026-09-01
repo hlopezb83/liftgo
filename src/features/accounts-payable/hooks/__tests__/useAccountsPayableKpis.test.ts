@@ -197,4 +197,32 @@ describe("useAccountsPayableKpis · G-B4/G-B6 tipo de cambio faltante", () => {
     const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
     expect(result.current.kpis.fxMissingCount).toBe(0);
   });
+
+  // R8-11: el conteo FX del KPI debe usar el mismo universo elegible que el aging.
+  it("no cuenta como faltante de TC un borrador en divisa", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [
+        bill({ status: "draft", currency: "USD", exchange_rate: null, balance: 900, total: 900 }),
+        bill({ currency: "USD", exchange_rate: null, balance: 500, total: 500 }),
+      ],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
+    expect(result.current.kpis.fxMissingCount).toBe(1);
+  });
+
+  it("no cuenta como faltante de TC una factura en divisa ya saldada", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [bill({ currency: "USD", exchange_rate: null, balance: 0, total: 500 })],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
+    expect(result.current.kpis.fxMissingCount).toBe(0);
+  });
 });
