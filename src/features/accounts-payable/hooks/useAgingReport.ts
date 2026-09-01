@@ -3,6 +3,7 @@
 import { isFxMissing } from "@/features/cash-flow";
 import { toYMD } from "@/lib/date/toYMD";
 import { sumMoney, toMxn } from "@/lib/money";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { nowMty } from "@/lib/utils";
 import { useSupplierBills } from "./useSupplierBills";
 
