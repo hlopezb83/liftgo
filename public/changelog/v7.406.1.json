@@ -1,0 +1,8 @@
+{
+  "description": "El generador automático de mantenimientos de póliza ya no se atora ni se salta meses cuando una corrida falla o cuando dos corridas coinciden.",
+  "changes": [
+    "Si el mantenimiento de un mes ya existía, el generador lo reconoce como hecho y continúa con los meses siguientes, en lugar de detenerse.",
+    "Cuando una corrida falla y deshace su avance, ya no puede empujar hacia atrás el progreso de otra corrida que iba más adelante.",
+    "Si falla el apartado de un mes, el proceso se detiene en ese punto de la póliza para no dejar meses sin generar de forma permanente."
+  ]
+}
