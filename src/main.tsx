@@ -24,14 +24,8 @@ const LocaleShim = new Proxy(OrigLocale, {
 }) as typeof Intl.Locale;
 (Intl as { Locale: typeof Intl.Locale }).Locale = LocaleShim;
 
-function isStaleChunkError(message: string | undefined): boolean {
-  if (!message) return false;
-  return (
-    message.includes("Failed to fetch dynamically imported module") ||
-    message.includes("Importing a module script failed") ||
-    message.includes("error loading dynamically imported module")
-  );
-}
+
+
 
 window.addEventListener("vite:preloadError", (event) => {
   event.preventDefault();
