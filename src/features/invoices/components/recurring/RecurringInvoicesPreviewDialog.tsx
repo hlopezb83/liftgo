@@ -158,7 +158,11 @@ export function RecurringInvoicesPreviewDialog({
       <FormDialogFooter>
         <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isGenerating} />
         <Button
-          onClick={() => onConfirm(Array.from(selected), allowStaleRate)}
+          onClick={() => onConfirm(
+            lines.filter((l) => isSelectable(l) && selected.has(l.bookingId)).map((l) => l.bookingId),
+            allowStaleRate,
+          )}
+
           disabled={isLoading || isGenerating || selectedCount === 0}
         >
           {isGenerating
