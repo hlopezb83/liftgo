@@ -5,6 +5,7 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
+import { selectTargetItems } from "./selection.ts";
 import {
   fromCents,
   resolveVatRatePercent,
