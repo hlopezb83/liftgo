@@ -107,6 +107,31 @@ export function recurringPreviewFingerprint(
     .join(";");
 }
 
+type IdOutcome = "deselected" | "selected" | "known-only" | "absent-known";
+
+/** Decide el destino de una reserva presente en el preview actual. */
+function resolveId(
+  prev: RecurringSelectionState,
+  id: string,
+  signature: string,
+  isSelectable: boolean,
+): IdOutcome {
+  // R9-01: la firma de referencia viene del histórico de la sesión, así una
+  // reserva que desapareció y volvió igual no se trata como fila nueva.
+  const prevSig = prev.history[id] ?? prev.signatures[id];
+  // Un cambio material obliga a re-aprobar: se olvida el histórico y la fila
+  // queda desmarcada sin volver a auto-seleccionarse.
+  const changed = prevSig !== undefined && prevSig !== signature;
+  const wasKnown = prev.known.has(id) && !changed;
+
+  if (changed || (prev.deselected.has(id) && !changed)) return "deselected";
+  // No seleccionable ahora (ineligible o bloqueada por tarifa sin confirmar):
+  // fuera de la selección, pero conservamos su historial de conocida.
+  if (!isSelectable) return wasKnown ? "absent-known" : "known-only";
+  if (!wasKnown) return "selected"; // Fila nueva y seleccionable: marcada por defecto.
+  return prev.intentSelected.has(id) ? "selected" : "known-only";
+}
+
 /** Reconcilia el estado previo contra las filas actuales del preview. */
 export function reconcileRecurringSelection(
   prev: RecurringSelectionState,
@@ -124,34 +149,17 @@ export function reconcileRecurringSelection(
   const intentSelected = new Set<string>();
 
   for (const id of Object.keys(signatures)) {
-    // R9-01: la firma de referencia viene del histórico de la sesión, así una
-    // reserva que desapareció y volvió igual no se trata como fila nueva.
-    const prevSig = prev.history[id] ?? prev.signatures[id];
-    const changed = prevSig !== undefined && prevSig !== signatures[id];
-    const wasDeselected = prev.deselected.has(id) && !changed;
-    const wasKnown = prev.known.has(id) && !changed;
-
-    if (wasDeselected) deselected.add(id);
-    // Un cambio material obliga a re-aprobar: se olvida el histórico y la fila
-    // queda desmarcada sin volver a auto-seleccionarse.
-    if (changed) deselected.add(id);
-
-    if (!selectable.has(id)) {
-      // No seleccionable ahora (ineligible o bloqueada por tarifa sin confirmar):
-      // fuera de la selección, pero conservamos su historial de conocida.
-      if (wasKnown) known.add(id);
+    const isSelectable = selectable.has(id);
+    const outcome = resolveId(prev, id, signatures[id], isSelectable);
+    if (outcome === "deselected") {
+      deselected.add(id);
+      if (isSelectable) known.add(id);
+      else if (prev.known.has(id)) known.add(id);
       continue;
     }
-
-    known.add(id);
-    if (deselected.has(id)) continue;
-    if (wasKnown) {
-      if (prev.intentSelected.has(id)) {
-        selected.add(id);
-        intentSelected.add(id);
-      }
-    } else {
-      // Fila nueva y seleccionable: se ofrece marcada por defecto.
+    if (isSelectable) known.add(id);
+    else if (outcome === "absent-known") known.add(id);
+    if (outcome === "selected") {
       selected.add(id);
       intentSelected.add(id);
     }
@@ -168,6 +176,7 @@ export function reconcileRecurringSelection(
 
   return { selected, deselected, known, signatures, history, intentSelected };
 }
+
 
 /** Alterna una reserva registrando la intención explícita del usuario. */
 export function toggleRecurringSelection(
