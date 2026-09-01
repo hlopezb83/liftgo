@@ -14,6 +14,7 @@ export const REGIMEN_FISCAL_CODES: ReadonlySet<string> = new Set([
   "606",
   "607",
   "608",
+  "609",
   "610",
   "611",
   "612",
@@ -27,6 +28,9 @@ export const REGIMEN_FISCAL_CODES: ReadonlySet<string> = new Set([
   "624",
   "625",
   "626",
+  "628",
+  "629",
+  "630",
 ]);
 
 /** true si el valor es exactamente un código válido del catálogo SAT. */
@@ -43,7 +47,7 @@ export function isValidRegimenFiscalCode(value: string | null | undefined): bool
 export function normalizeRegimenFiscal(value: string | null | undefined): string | null {
   const v = String(value ?? "").trim();
   if (!v) return null;
-  const match = v.match(/^(\d{3})/);
+  const match = v.match(/^(\d{3})(?!\d)/);
   if (!match) return null;
   return REGIMEN_FISCAL_CODES.has(match[1]) ? match[1] : null;
 }
