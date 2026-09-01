@@ -11,7 +11,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
   const { isMobile, setOpenMobile } = useSidebar();
   const name = razonSocial || "Lift Go";
   return (
-    <SidebarHeader className="relative p-4 border-b border-sidebar-border">
+    <SidebarHeader className="relative p-4 border-b border-sidebar-border group-data-[collapsible=icon]:p-2">
       {isMobile && (
         <Button
           variant="ghost"
@@ -27,7 +27,8 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
         {logoUrl ? (
           // intentional: bg-white required to guarantee logo contrast on dark sidebars
-          <div className="flex h-12 max-w-[10rem] items-center justify-center rounded-md bg-white px-3 py-1.5 shrink-0">
+          // En modo icono el rail mide 3rem: el recuadro debe encogerse o se desborda.
+          <div className="flex h-12 max-w-[10rem] items-center justify-center rounded-md bg-white px-3 py-1.5 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:max-w-8 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1">
             <img
               src={logoUrl}
               alt="Logo"
@@ -35,10 +36,11 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
             />
           </div>
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-gold text-sidebar-primary-foreground font-bold text-lg">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-gold text-sidebar-primary-foreground font-bold text-lg group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:text-2xs group-data-[collapsible=icon]:rounded-md">
             LG
           </div>
         )}
+
         <div className="min-w-0 group-data-[collapsible=icon]:hidden">
           <h2
             className="text-sm font-semibold text-sidebar-primary-foreground tracking-tight leading-tight line-clamp-2 break-words"
