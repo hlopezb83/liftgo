@@ -1,3 +1,10 @@
+## [7.407.1] - 2026-09-01
+### Fix (auditoría R8 · CxP) — R8-10
+- `set_supplier_bill_approval_status`: el total en MXN se calculaba con `COALESCE(NEW.exchange_rate, 1)`, así que una divisa sin TC real (nulo, <= 0 o exactamente 1) se convertía 1:1 y podía quedar por debajo del umbral como `not_required`.
+- Ahora usa el helper canónico `public.fx_is_missing(currency, exchange_rate)`: si el TC falta o es inválido en moneda extranjera, `approval_status` = `pending` (fail closed) y no se inventa total en pesos.
+- La comparación de UPDATE también considera el cambio de validez del TC; umbral, segregación de funciones, guards de pagos y transiciones de estatus quedan intactos.
+- Smoke: `supabase/tests/r8_10_supplier_bill_fx_approval_smoke.sql` (MXN bajo/sobre umbral, USD TC=20 bajo/sobre umbral, USD 0 / negativo / 1 => pending, matriz de `fx_is_missing`, alta pre-aprobada sigue bloqueada).
+
 ## [7.407.0] - 2026-09-01
 ### Fix (auditoría R8 · consistencia FX) — R8-02 / R8-03 / R8-04
 - Nuevo helper SQL canónico `public.fx_is_missing(moneda, tipo_cambio)`: divisa con TC nulo, <= 0 o exactamente 1. MXN nunca es fx_missing.
