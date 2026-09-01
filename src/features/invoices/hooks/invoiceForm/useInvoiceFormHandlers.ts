@@ -41,6 +41,12 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
   });
 }
 
+const SAT_LINE_DEFAULTS = {
+  clave_prod_serv: "78181500",
+  clave_unidad: "DAY",
+  objeto_imp: "02",
+} as const;
+
 export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
@@ -53,12 +59,34 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
     weekly_rate: booking.weekly_rate ?? forklift.weekly_rate ?? 0,
     monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
   };
+
+  // Primera factura de una reserva de largo plazo: sólo del inicio al fin de
+  // mes (prorrateado). Los meses siguientes se facturan completos, igual que
+  // en el asistente de facturación recurrente.
+  const period = firstBillingPeriod(booking.start_date, booking.end_date);
+  if (period?.truncated) {
+    const monthly = rated.monthly_rate ?? 0;
+    if (period.isProrated && monthly > 0) {
+      const amount = prorateMonthlyAmount(monthly, period.billedDays, period.daysInMonth);
+      return [{
+        description: `${forklift.name} — Renta mensual (prorrateo ${period.billedDays} días)`,
+        // quantity 1 para preservar la invariante timbrable total = qty × precio.
+        quantity: 1,
+        unit_price: amount,
+        total: amount,
+        ...SAT_LINE_DEFAULTS,
+      }];
+    }
+    return generateLineItems(rated, period.start, period.end).map((item) => ({
+      ...item,
+      ...SAT_LINE_DEFAULTS,
+    }));
+  }
+
   const items = generateLineItems(rated, booking.start_date, booking.end_date);
   return items.map((item) => ({
     ...item,
-    clave_prod_serv: "78181500",
-    clave_unidad: "DAY",
-    objeto_imp: "02",
+    ...SAT_LINE_DEFAULTS,
   }));
 }
 
