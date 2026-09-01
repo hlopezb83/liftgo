@@ -39,10 +39,15 @@ function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: 
   // tipo de cambio se sumaba 1:1 e inflaba "Total pendiente/vencido", dejando
   // la portada de CxP descuadrada contra el aging (que sí la excluye).
   if (isFxMissing(b.currency, b.exchange_rate)) {
-    acc.fxMissingCount += 1;
+    // R8-11: el aviso debe contar sobre el MISMO universo que el aging:
+    // sólo facturas exigibles (no borrador, con saldo). Antes se contaba
+    // antes de filtrar borradores y el KPI decía "3 sin TC" mientras el
+    // reporte de antigüedad mostraba 1.
+    if (b.status !== "draft" && Number(b.balance) > 0) acc.fxMissingCount += 1;
     acc.repPendientes += b.rep_summary.pending;
     return;
   }
+
   const balMxn = balanceMxn(b);
   // BL-R8-02: un borrador con balance no es cartera vencida ni pendiente real
   // (CP-0009 draft inflaba "Vencido $142K"). Se excluye de los tres KPIs de saldo.
