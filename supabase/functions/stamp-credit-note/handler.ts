@@ -2,7 +2,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
-import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
+import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";

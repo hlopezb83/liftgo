@@ -15,7 +15,7 @@ import {
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
-import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
+import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
 import {
   claimRejectionMessage,
   computeRepExchange,
