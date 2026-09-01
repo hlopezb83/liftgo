@@ -153,6 +153,9 @@ describe("recurringPreviewFingerprint", () => {
     expect(recurringPreviewFingerprint(base, false)).toBe(fp);
     expect(recurringPreviewFingerprint([line({ bookingId: "a", billedAmount: 1 })], false)).not.toBe(fp);
     expect(recurringPreviewFingerprint([line({ bookingId: "a", eligible: false })], false)).not.toBe(fp);
-    expect(recurringPreviewFingerprint([line({ bookingId: "a", rateWarning: true })], true)).not.toBe(fp);
+    // Con aviso de tarifa y sin confirmar, la fila deja de ser seleccionable.
+    expect(recurringPreviewFingerprint([line({ bookingId: "a", rateWarning: true })], false)).not.toBe(fp);
+    // Confirmada, vuelve a ser seleccionable (misma huella que la base).
+    expect(recurringPreviewFingerprint([line({ bookingId: "a", rateWarning: true })], true)).toBe(fp);
   });
 });
