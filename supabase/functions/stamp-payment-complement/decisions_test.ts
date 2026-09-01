@@ -7,6 +7,7 @@ import {
   claimRejectionMessage,
   computeRepExchange,
   validatePaymentExchange,
+  validateRelatedInvoiceExchange,
 } from "./decisions.ts";
 
 Deno.test("MonedaP == MonedaDR (ambos MXN) → exchange=1, ignorando tipo_cambio guardado", () => {
