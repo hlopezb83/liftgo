@@ -1,3 +1,13 @@
+## [7.405.0] - 2026-09-01
+### Fix (auditoría R7 · lote 2)
+- `_shared/regimenFiscal.ts`: catálogo `c_RegimenFiscal` completo (añadidos 609/628/629/630) y `normalizeRegimenFiscal` con frontera `(?!\d)` — "6010" ya no se normaliza a "601" (R7-04, R7-16).
+- `src/lib/domain/satCatalogs.ts` alineado 1:1 con el catálogo del servidor (R7-04).
+- `stamp-credit-note` y `stamp-payment-complement` aplican el fail-fast 422 de régimen fiscal antes de llamar al PAC (R7-03).
+- `isFxMissing` (cash-flow y `collectionForecast`) trata TC = 1 en moneda foránea como faltante; `parseCfdiXml` devuelve `exchangeRate: null` sin `TipoCambio` y el formulario de CxP rechaza TC = 1 en divisa (R7-08).
+- `useAgingReport` itera `visibleListRows` igual que los KPIs de CxP (R7-13).
+- `FinancialKpiCards`: la tarjeta de MRR vigente muestra sólo su propio conteo de exclusiones (R7-14).
+- Verificado en producción: sin snapshots legacy de régimen fiscal (R7-07) y sin duplicados que bloqueen `operating_expenses_supplier_bill_id_uniq` (R7-17).
+
 ## [7.404.0] - 2026-09-01
 ### Fix (auditoría R7 · lote 1)
 - `set_supplier_bill_approval_status` usaba `supplier_payments.supplier_bill_id` (inexistente): toda edición de monto/moneda de una factura con pagos fallaba con 42703.

@@ -89,7 +89,6 @@ export default function Dashboard() {
                 overdueTotal={financials.overdueTotal}
                 overdueFxMissingCount={financials.overdueFxMissingCount}
                 mrrFxMissingCount={financials.mrrFxMissingCount}
-                mrrPrevFxMissingCount={financials.mrrPrevFxMissingCount}
 
               />
             </section>

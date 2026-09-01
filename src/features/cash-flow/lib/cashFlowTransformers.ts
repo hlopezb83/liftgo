@@ -24,6 +24,9 @@ export function isFxMissing(
   const code = (currency ?? "MXN").toUpperCase();
   if (code === "MXN") return false;
   const rate = Number(fx ?? 0);
+  // R7-08: TC = 1 en moneda foránea es el default del formulario/parser CFDI,
+  // no un tipo de cambio capturado; tratarlo como válido sumaba USD 1:1.
+  if (rate === 1) return true;
   return !(Number.isFinite(rate) && rate > 0);
 }
 

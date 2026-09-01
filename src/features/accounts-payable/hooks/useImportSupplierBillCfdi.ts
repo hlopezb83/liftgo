@@ -41,7 +41,7 @@ function buildInitialValues(parsed: CfdiParsed, supplierId: string): Partial<Sup
   return {
     supplier_id: supplierId,
     currency: parsed.currency,
-    exchange_rate: parsed.exchangeRate,
+    exchange_rate: parsed.exchangeRate ?? undefined,
     subtotal: parsed.subtotal,
     discount: parsed.discount,
     tax_amount: parsed.taxAmount,

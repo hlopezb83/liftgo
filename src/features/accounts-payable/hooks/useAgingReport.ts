@@ -3,6 +3,7 @@
 import { isFxMissing } from "@/features/cash-flow";
 import { toYMD } from "@/lib/date/toYMD";
 import { sumMoney, toMxn } from "@/lib/money";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { nowMty } from "@/lib/utils";
 import { useSupplierBills } from "./useSupplierBills";
 
@@ -52,7 +53,8 @@ export function useAgingReport() {
     let fxMissingCount = 0;
     let noDueDateCount = 0;
 
-    for (const b of data ?? []) {
+    // R7-13: mismo universo que los KPIs (sin la fila centinela de paginación).
+    for (const b of visibleListRows(data)) {
       // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
       const balance = toMxn(Number(b.balance), b.currency, b.exchange_rate);
       // R12-FE-08 (P2 r11): la antigüedad excluye también borradores.

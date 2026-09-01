@@ -175,12 +175,24 @@ describe("supplierBillFormSchema — validación", () => {
     expect(r.success).toBe(false);
   });
 
+  it("R7-08: moneda extranjera con tipo de cambio 1 (default) se rechaza", () => {
+    const r = supplierBillFormSchema.safeParse({
+      supplier_id: "sup-1",
+      category: "servicios",
+      issue_date: new Date(2026, 0, 15),
+      currency: "USD" as const,
+      exchange_rate: 1,
+      subtotal: 100,
+    });
+    expect(r.success).toBe(false);
+  });
+
   it("aplica defaults en campos opcionales", () => {
     const minimal = {
       supplier_id: "sup-1",
       category: "servicios",
       issue_date: new Date(2026, 0, 15),
-      currency: "USD" as const,
+      currency: "MXN" as const,
       subtotal: 100,
     };
     const r = supplierBillFormSchema.safeParse(minimal);

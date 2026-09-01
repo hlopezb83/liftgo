@@ -42,6 +42,15 @@ export const supplierBillFormSchema = z.object({
   // F6 (Sprint M1): el descuento no puede exceder el subtotal — de lo
   // contrario el total (subtotal − descuento + impuestos − retenciones)
   // saldría negativo.
+  // R7-08: TC = 1 es el default del formulario; en moneda foránea significa
+  // "sin capturar" y contaminaría los totales en MXN (KPIs, aging, P&L).
+  if (v.currency !== "MXN" && v.exchange_rate === 1) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["exchange_rate"],
+      message: "Captura el tipo de cambio real de la factura (no puede ser 1 en moneda extranjera)",
+    });
+  }
   if (v.discount > v.subtotal) {
     ctx.addIssue({
       code: "custom",

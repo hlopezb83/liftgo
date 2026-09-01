@@ -15,7 +15,8 @@ export interface CfdiParsed {
   folio: string | null;
   issueDate: Date | null;
   currency: "MXN" | "USD";
-  exchangeRate: number;
+  /** R7-08: null cuando el CFDI en divisa no trae `TipoCambio` (no se asume 1). */
+  exchangeRate: number | null;
   subtotal: number;
   /** Atributo `Descuento` del Comprobante (0 si no viene). */
   discount: number;
@@ -128,10 +129,13 @@ function parseAndValidateDoc(xml: string): Element {
   return comprobante;
 }
 
-function extractCurrency(comprobante: Element): { currency: "MXN" | "USD"; exchangeRate: number } {
+function extractCurrency(comprobante: Element): { currency: "MXN" | "USD"; exchangeRate: number | null } {
   const monedaAttr = comprobante.getAttribute("Moneda");
   const currency: "MXN" | "USD" = monedaAttr === "USD" ? "USD" : "MXN";
-  const exchangeRate = num(comprobante.getAttribute("TipoCambio")) || 1;
+  const parsedRate = num(comprobante.getAttribute("TipoCambio"));
+  // R7-08: en MXN el TC es 1 por definición; en divisa, sin atributo válido
+  // devolvemos null para que el usuario capture el tipo de cambio real.
+  const exchangeRate = currency === "MXN" ? 1 : (parsedRate > 0 ? parsedRate : null);
   return { currency, exchangeRate };
 }
 
