@@ -1,0 +1,10 @@
+{
+  "description": "Se cerró la posibilidad de que una factura de proveedor rechazada se “desbloqueara” sola, y se eliminó un atajo que permitía saltarse las validaciones de montos cuando la base de datos se editaba fuera de la aplicación.",
+  "changes": [
+    "R10-01: al solicitar reaprobación de una factura rechazada, ahora siempre regresa a “Pendiente de aprobación”, sin importar si el monto está por debajo del umbral. Antes podía quedar como “No requiere aprobación” y volverse pagable sin que otra persona revisara el rechazo.",
+    "R10-01: se conserva la evidencia del rechazo (quién rechazó, cuándo y con qué notas) mientras la factura vuelve a revisión; el historial de aprobaciones y la bitácora de actividad siguen completos.",
+    "R10-01: corregir el monto, la moneda o el tipo de cambio de una factura rechazada tampoco la deja en “No requiere aprobación”: siempre pasa por un aprobador.",
+    "R10-02: las conexiones sin sesión de usuario (edición directa de base de datos, respaldos o scripts) ya no se saltan el recálculo de aprobación ni los candados de factura aprobada o con pagos. Sólo el rol de servicio real (tareas programadas y funciones del sistema) y los procedimientos internos autorizados mantienen la excepción.",
+    "Pruebas de humo SQL nuevas: supabase/tests/r10_cxp_approval_integrity_smoke.sql."
+  ]
+}
