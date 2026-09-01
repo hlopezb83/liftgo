@@ -1,3 +1,10 @@
+## [7.409.5] - 2026-09-01
+### Fix (auditoría R9 · portal) — R9-09
+- `derivePortalKpis` contaba en `fxMissingCount` cualquier factura en divisa sin tipo de cambio válido, incluidas las de saldo cero, que no distorsionan ningún total en MXN.
+- Ahora sólo se cuentan las facturas con saldo real por convertir (> `BALANCE_EPSILON`, la tolerancia ya usada por el Estado de Cuenta y el filtro "Solo con saldo").
+- Se reutiliza la regla canónica `isFxMissing` de cash-flow; sin nuevas reglas FX ni umbrales mágicos. Resto de KPIs del portal sin cambios.
+- Pruebas: `src/features/portal/lib/__tests__/portalKpis.test.ts`.
+
 ## [7.409.4] - 2026-09-01
 ### Fix (auditoría R9 · régimen fiscal) — R9-03
 - La reparación de `receptor_regimen_fiscal` de R8-14 sólo cubría `status='draft'`, pero existen facturas `sent`/`partial`/`paid` sin timbrar (`cfdi_uuid IS NULL`) que siguen siendo fiscalmente mutables y timbrables.
