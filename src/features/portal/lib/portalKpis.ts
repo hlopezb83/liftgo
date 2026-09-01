@@ -1,6 +1,5 @@
 import { isFxMissing } from "@/features/cash-flow";
 import { sumMoney, toMxn } from "@/lib/money";
-
 import { BALANCE_EPSILON } from "./statementRows";
 
 type Invoice = {
