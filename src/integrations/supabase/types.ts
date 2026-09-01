@@ -4170,6 +4170,10 @@ export type Database = {
         }
         Returns: string
       }
+      fx_is_missing: {
+        Args: { p_currency: string; p_rate: number }
+        Returns: boolean
+      }
       generate_feedback_number: { Args: never; Returns: string }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }

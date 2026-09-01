@@ -1,0 +1,9 @@
+{
+  "description": "Toda la app aplica el mismo criterio: una factura o renta en moneda extranjera sin tipo de cambio real (vacío, cero o 1) queda fuera de los totales en pesos y se avisa cuántas se excluyeron.",
+  "changes": [
+    "Indicadores financieros: la renta mensual recurrente (actual y del mes previo) y la cartera vencida excluyen documentos en divisa sin tipo de cambio real y los reportan en su aviso.",
+    "La lista de facturas con saldo marca como 'sin tipo de cambio' también los casos con tipo de cambio 1 en moneda extranjera, que antes se sumaban como si fueran pesos.",
+    "Portal del cliente: el listado de facturas ya no convierte un tipo de cambio vacío en 1; el saldo pendiente excluye esas facturas y avisa cuántas quedaron fuera.",
+    "Estado de cuenta del portal: los totales en pesos excluyen las facturas en divisa sin tipo de cambio, se muestra el aviso correspondiente y el filtro 'Solo con saldo' se calcula sobre el saldo en pesos."
+  ]
+}

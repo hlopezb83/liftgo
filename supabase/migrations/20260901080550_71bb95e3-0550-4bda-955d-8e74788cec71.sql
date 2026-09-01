@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) TO PUBLIC;
