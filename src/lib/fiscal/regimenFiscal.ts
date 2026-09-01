@@ -7,14 +7,15 @@
  * agrega la información de aplicabilidad que faltaba para validar contra el
  * tipo de persona derivado de la longitud del RFC (12 = moral, 13 = física).
  *
- * R9-12: la matriz de aplicabilidad se verificó contra el catálogo oficial
- * vigente c_RegimenFiscal del SAT (Anexo 20, CFDI 4.0; catálogo con vigencia
- * de códigos 629/630 desde 01-01-2024), corroborado con dos réplicas
- * estructuradas independientes del catálogo publicado por el SAT:
- *   - bambucode/catalogos_sat_JSON (c_RegimenFiscal.json, sincronizado en
- *     tiempo real desde el sitio del SAT)
- *   - phpcfdi/resources-sat-catalogs (cfdi_regimenes_fiscales.sql)
- * Ambas fuentes coinciden en que 629 y 630 son EXCLUSIVOS de persona física.
+ * R9-12: la matriz de aplicabilidad se verificó contra la FUENTE OFICIAL del
+ * SAT (descarga directa, 2026-09-01):
+ *   http://omawww.sat.gob.mx/tramitesyservicios/Paginas/anexo_20_version3-3.htm
+ *   → catCFDI_V_4_23032023.xls  (hoja c_RegimenFiscal, CFDI 4.0)
+ *   → catCFDI_V_33_23032023.xls (hoja c_RegimenFiscal, incluye 629 y 630)
+ * En el archivo del SAT, 629 ("De los Regímenes Fiscales Preferentes y de las
+ * Empresas Multinacionales") y 630 ("Enajenación de acciones en bolsa de
+ * valores") están publicados con Física="Sí", Moral="No" y fecha de inicio de
+ * vigencia 01-01-2024. No se usan réplicas de terceros como fuente.
  */
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
@@ -55,13 +56,10 @@ const APLICABILIDAD: Record<string, { aplicaFisica: boolean; aplicaMoral: boolea
   "625": { aplicaFisica: true, aplicaMoral: false }, // Plataformas Tecnológicas
   "626": { aplicaFisica: true, aplicaMoral: true }, // Régimen Simplificado de Confianza
   "628": { aplicaFisica: false, aplicaMoral: true }, // Hidrocarburos
-  // R9-12: corregido de {true,true} a solo persona física, según catálogo
-  // oficial vigente c_RegimenFiscal del SAT (Anexo 20 CFDI 4.0, vigencia desde
-  // 01-01-2024). Verificado contra dos fuentes independientes derivadas del
-  // catálogo publicado por el SAT: bambucode/catalogos_sat_JSON (c_RegimenFiscal.json,
-  // scrapeado en tiempo real del SAT) y phpcfdi/resources-sat-catalogs
-  // (cfdi_regimenes_fiscales.sql) — ambas listan 629 y 630 como fisica="Sí",
-  // moral="No".
+  // R9-12: corregido de {true,true} a solo persona física. Evidencia oficial
+  // verificada el 2026-09-01 descargando el catálogo del SAT desde
+  // omawww.sat.gob.mx (catCFDI_V_33_23032023.xls, hoja c_RegimenFiscal):
+  // 629 y 630 aparecen con Física="Sí", Moral="No", vigencia 01-01-2024.
   "629": { aplicaFisica: true, aplicaMoral: false }, // Regímenes Fiscales Preferentes y Empresas Multinacionales (solo física)
   "630": { aplicaFisica: true, aplicaMoral: false }, // Enajenación de acciones en bolsa de valores (solo física)
 };

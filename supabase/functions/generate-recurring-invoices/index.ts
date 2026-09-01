@@ -712,7 +712,14 @@ Deno.serve(async (req) => {
     // R9-18 (fix fail-open): decisión centralizada en `selection.ts`. Si el
     // caller envió `selections` (aunque venga vacío o con entradas
     // incompletas) se procesan EXCLUSIVAMENTE esas combinaciones.
+    // Sin selector explícito no se escribe nada (fail-closed).
     const targetItems = selectTargetItems(allItems, body);
+    if (targetItems === null) {
+      return jsonResponse(req, {
+        success: false,
+        error: "Se requiere una selección explícita",
+      }, { status: 400 });
+    }
 
     // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
     // facturar periodos cuya tarifa pudo cambiar después del periodo.
