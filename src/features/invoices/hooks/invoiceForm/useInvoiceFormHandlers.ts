@@ -67,14 +67,14 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
   const period = firstBillingPeriod(booking.start_date, booking.end_date);
   if (period?.truncated) {
     const monthly = rated.monthly_rate ?? 0;
-    if (period.isProrated && monthly > 0) {
-      const amount = prorateMonthlyAmount(monthly, period.billedDays, period.daysInMonth);
+    const prorated = period.isProrated ? prorateMonthlyLine(monthly, period.billedDays, period.daysInMonth) : null;
+    if (prorated) {
       return [{
-        description: `${forklift.name} — Renta mensual (prorrateo ${period.billedDays} días)`,
-        // quantity 1 para preservar la invariante timbrable total = qty × precio.
-        quantity: 1,
-        unit_price: amount,
-        total: amount,
+        description:
+          `${forklift.name} — Renta ${monthLabel(period.start)} (${prorated.quantity} días al precio diario)`,
+        quantity: prorated.quantity,
+        unit_price: prorated.unitPrice,
+        total: prorated.total,
         ...SAT_LINE_DEFAULTS,
       }];
     }
