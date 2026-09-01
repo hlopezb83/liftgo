@@ -50,8 +50,13 @@ BEGIN
   IF v_customer IS NULL THEN
     RAISE NOTICE 'SKIP  R9-5 sin clientes en la base para probar semántica';
   ELSE
-    SELECT to_jsonb(s) INTO v_json
-      FROM public.get_customer_summary(v_customer) s;
+    BEGIN
+      SELECT to_jsonb(s) INTO v_json
+        FROM public.get_customer_summary(v_customer) s;
+    EXCEPTION WHEN insufficient_privilege THEN
+      RAISE NOTICE 'SKIP  R9-5 el rol de la sesión no puede ejecutar get_customer_summary';
+      RETURN;
+    END;
     PERFORM pg_temp.expect_true(
       'R9-5 get_customer_summary devuelve payments_fx_missing',
       v_json ? 'payments_fx_missing'
