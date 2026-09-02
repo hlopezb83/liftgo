@@ -1,3 +1,10 @@
+## [7.417.1] - 2026-09-02
+### Corrección (estabilidad de CI y conciliación)
+- La conciliación bancaria dejó de consultar una columna inexistente en pagos a proveedores; conserva la exclusión de pagos de clientes marcados como pruebas.
+- Las pruebas del asistente recurrente ahora reflejan correctamente que nada inicia preseleccionado.
+- Vitest y su cobertura quedaron en la misma versión, y la configuración ya no depende de `__dirname`.
+- Se resolvieron los avisos de imports, complejidad y tamaño reportados por ESLint sin cambiar comportamiento.
+
 ## [7.417.0] - 2026-09-02
 ### Corrección (remediación integral R10)
 - Indicadores financieros, MRR y rentabilidad por montacargas usan la regla canónica de tipo de cambio; los equipos archivados permanecen en la depreciación histórica hasta su fecha de baja.
