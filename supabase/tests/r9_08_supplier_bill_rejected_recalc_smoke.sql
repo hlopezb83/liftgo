@@ -31,7 +31,7 @@ BEGIN
     v_user := gen_random_uuid();
     INSERT INTO auth.users (id, email, created_at, updated_at)
     VALUES (v_user, 'r9-08.smoke@test.local', now(), now()) ON CONFLICT DO NOTHING;
-    INSERT INTO public.profiles (id, email) VALUES (v_user, 'r9-08.smoke@test.local')
+    INSERT INTO public.profiles (id, user_id, email) VALUES (v_user, v_user, 'r9-08.smoke@test.local')
     ON CONFLICT DO NOTHING;
   END IF;
   INSERT INTO public.supplier_bills
