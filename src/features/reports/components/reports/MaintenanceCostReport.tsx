@@ -18,6 +18,7 @@ interface Props {
 type Row = { name: string; totalCost: number; count: number };
 
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
+  const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
   // FIX-FE-01: agregación server-side vía RPC; useMaintenanceLogs() está capado
   // a 501 filas y el costo total quedaba subestimado sin aviso.
   const { data = [], isError, isFetching, refetch } = useMaintenanceCostByUnitReport(startDate, endDate);
