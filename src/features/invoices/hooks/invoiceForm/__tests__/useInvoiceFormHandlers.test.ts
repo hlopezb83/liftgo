@@ -156,7 +156,7 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
       [forklift],
     );
     expect(items).toEqual(expect.arrayContaining([
-      expect.objectContaining({ description: "Renta mensual", quantity: 12 }),
+      expect.objectContaining({ quantity: 12, rate_type: "monthly" }),
     ]));
     expect(items.reduce((sum, item) => sum + item.total, 0)).toBeGreaterThan(30_000);
   });
