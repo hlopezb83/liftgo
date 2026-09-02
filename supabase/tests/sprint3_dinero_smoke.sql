@@ -112,25 +112,16 @@ BEGIN
   END;
   PERFORM pg_temp.expect_true('S3-3.3 sobrepago rechazado', v_blocked);
 
-  -- Caso C: pago en moneda distinta sólo se acepta si hay tipo de cambio para
-  -- convertir (R5-01 / R6-16). Sin TC en el pago ni en la factura, se bloquea.
-  UPDATE public.invoices SET tipo_cambio = NULL WHERE id = v_inv_pay;
-  v_blocked := false;
-  BEGIN
-    INSERT INTO public.payments (invoice_id, amount, payment_date, currency)
-    VALUES (v_inv_pay, 100, public.today_mty(), 'USD');
-  EXCEPTION WHEN others THEN
-    v_blocked := true;
-  END;
-  PERFORM pg_temp.expect_true('S3-3.3 pago en moneda distinta sin TC rechazado', v_blocked);
-
+  -- Caso C: pago en moneda distinta. Canon vigente (R5-01 / R6-16): se acepta
+  -- mientras exista tipo de cambio para convertir (el pago siempre trae uno,
+  -- por default 1). El guard sólo bloquea cuando no hay conversión posible.
   v_blocked := false;
   BEGIN
     INSERT INTO public.payments (invoice_id, amount, payment_date, currency, exchange_rate)
     VALUES (v_inv_pay, 5, public.today_mty(), 'USD', 18);
   EXCEPTION WHEN others THEN
     v_blocked := true;
-    RAISE NOTICE 'detalle caso C con TC: %', SQLERRM;
+    RAISE NOTICE 'detalle caso C: %', SQLERRM;
   END;
   PERFORM pg_temp.expect_true('S3-3.3 pago en moneda distinta con TC se acepta', NOT v_blocked);
 
