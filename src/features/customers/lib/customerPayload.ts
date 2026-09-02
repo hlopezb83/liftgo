@@ -12,7 +12,7 @@ export function buildCustomerPayload(form: CustomerFormData) {
     acc[key] = (form[key] as string | undefined) || null;
     return acc;
   }, {} as Record<NullableField, string | null>);
-  // FIX-3: tasa de IVA del cliente; vacío → null (el backend aplica el default).
+  // FIX-3: tasa de IVA del cliente; vacío → se omite (default de la BD).
   const rawRate = (form.tax_rate ?? "").trim();
   const taxRate = rawRate === "" ? null : Number(rawRate);
   // razon_social se mantiene sincronizada con name: el cliente ya no la captura
@@ -22,7 +22,8 @@ export function buildCustomerPayload(form: CustomerFormData) {
     company: form.name,
     razon_social: form.name,
     ...base,
-    tax_rate: taxRate != null && Number.isFinite(taxRate) ? taxRate : null,
+    // Vacío → no se envía la columna y la BD conserva/aplica su default.
+    ...(taxRate != null && Number.isFinite(taxRate) ? { tax_rate: taxRate } : {}),
   };
 }
 
