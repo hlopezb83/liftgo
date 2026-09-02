@@ -526,13 +526,18 @@ async function buildPlan(supabase: any): Promise<{
     }
     if (!exitedNaturally && virtualLastBilled) {
       const last = dateOnlyToMty(virtualLastBilled);
-      const next = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1));
-      const contractEnd = booking.end_date ? dateOnlyToMty(booking.end_date) : nowMty;
+      const next = new Date(
+        Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1),
+      );
+      const contractEnd = booking.end_date
+        ? dateOnlyToMty(booking.end_date)
+        : nowMty;
       const limit = contractEnd < nowMty ? contractEnd : nowMty;
       if (next <= limit) {
-        const remaining = Math.max(1,
+        const remaining = Math.max(
+          1,
           (limit.getUTCFullYear() - next.getUTCFullYear()) * 12 +
-          limit.getUTCMonth() - next.getUTCMonth() + 1,
+            limit.getUTCMonth() - next.getUTCMonth() + 1,
         );
         truncated = true;
         pendingCount += remaining;
@@ -615,7 +620,9 @@ async function executePlan(
       const extraLines: NonRentalLineDto[] = [];
       const seenQuotes = new Set<string>();
       for (const i of group) {
-        if (!i.isFirstInvoice || !i.quoteId || seenQuotes.has(i.quoteId)) continue;
+        if (!i.isFirstInvoice || !i.quoteId || seenQuotes.has(i.quoteId)) {
+          continue;
+        }
         seenQuotes.add(i.quoteId);
         const { data: quote } = await supabase
           .from("quotes")
@@ -788,14 +795,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { lines, items: allItems, truncated, pendingCount } = await buildPlan(supabase);
+    const { lines, items: allItems, truncated, pendingCount } = await buildPlan(
+      supabase,
+    );
 
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
 
     if (body.preview) {
       return jsonResponse(req, {
-        success: true, period: periodMonth, lines, truncated,
+        success: true,
+        period: periodMonth,
+        lines,
+        truncated,
         pending_count: pendingCount,
       });
     }

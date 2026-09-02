@@ -124,7 +124,9 @@ Deno.serve(async (req) => {
       await supabase
         .from("payments")
         .update({
-          rep_cfdi_status: preClaimStatus === "cancelled" ? "cancelled" : status,
+          rep_cfdi_status: preClaimStatus === "cancelled"
+            ? "cancelled"
+            : status,
           rep_stamping_started_at: null,
           rep_error_message: msg,
         })
