@@ -119,9 +119,19 @@ export function FormDialog({
  * aunque el formulario haga scroll.
  */
 export function FormDialogFooter({ children, className }: { children: ReactNode; className?: string }) {
+  // El scrollport del diálogo tiene `p-6`: un `sticky bottom-0` se detiene
+  // sobre ese padding y dejaba ~25px de contenido asomando por debajo del
+  // footer. `-mb-6` + padding inferior extra hacen que el footer cubra hasta
+  // el borde real del modal (incluye safe-area en móviles con notch).
   return (
-    <DialogFooter className={cn("sticky bottom-0 -mx-6 px-6 py-3 bg-card border-t", className)}>
+    <DialogFooter
+      className={cn(
+        "sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-card border-t",
+        className,
+      )}
+    >
       {children}
     </DialogFooter>
   );
 }
+
