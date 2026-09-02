@@ -11,7 +11,10 @@ export type Customer = {
   id: string; name: string;
   rfc?: string | null; razon_social?: string | null;
   regimen_fiscal?: string | null; domicilio_fiscal_cp?: string | null; uso_cfdi?: string | null;
+  /** FIX-3: tasa de IVA pactada del cliente (%); null → 16% por defecto. */
+  tax_rate?: number | string | null;
 };
+
 
 export type ExistingInvoice = {
   customer_name?: string | null; customer_id: string | null; booking_id?: string | null;
