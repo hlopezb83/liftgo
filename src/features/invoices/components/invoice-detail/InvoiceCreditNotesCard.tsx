@@ -205,6 +205,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
             repBacked={repBacked}
             invoiceTotal={Number(invoice.total)}
             priorCredits={activeCredits + draftCredits}
+            maxCreditable={maxCreditable}
             repPayments={repPayments}
             blockedByReps={blockedByReps}
             willCreateCredit={willCreateCredit}
