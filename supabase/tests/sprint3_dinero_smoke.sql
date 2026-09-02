@@ -86,7 +86,7 @@ BEGIN
 
   INSERT INTO public.credit_notes (invoice_id, credit_note_number, motive, reason_text,
                                    subtotal, tax_rate, tax_amount, total, status)
-  VALUES (v_inv_nc, 'S3-NC-CN-001', '01', 'Cancelación total de la factura',
+  VALUES (v_inv_nc, 'S3-NC-CN-001', 'return', 'Cancelación total de la factura',
           1000, 0, 0, 1000, 'stamped');
 
   SELECT status INTO v_status FROM public.invoices WHERE id = v_inv_nc;

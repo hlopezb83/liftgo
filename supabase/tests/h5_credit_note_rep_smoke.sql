@@ -64,9 +64,10 @@ BEGIN
   VALUES (v_pay, v_inv, 1160, public.today_mty(), 'MXN');
 
   BEGIN
-    INSERT INTO public.credit_notes (invoice_id, customer_id, motive, subtotal,
-                                     tax_amount, total, status)
-    VALUES (v_inv, v_cust, 'return', 1000, 160, 1160, 'draft');
+    INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
+                                     subtotal, tax_amount, total, status)
+    VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
+            1000, 160, 1160, 'draft');
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
@@ -81,9 +82,10 @@ BEGIN
    WHERE id = v_pay;
 
   BEGIN
-    INSERT INTO public.credit_notes (invoice_id, customer_id, motive, subtotal,
-                                     tax_amount, total, status)
-    VALUES (v_inv, v_cust, 'return', 1000, 160, 1160, 'draft');
+    INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
+                                     subtotal, tax_amount, total, status)
+    VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
+            1000, 160, 1160, 'draft');
     v_ok := false;
   EXCEPTION WHEN others THEN
     v_ok := true;
@@ -94,9 +96,10 @@ BEGIN
   UPDATE public.payments SET rep_cancelled_at = now() WHERE id = v_pay;
 
   BEGIN
-    INSERT INTO public.credit_notes (invoice_id, customer_id, motive, subtotal,
-                                     tax_amount, total, status)
-    VALUES (v_inv, v_cust, 'return', 1000, 160, 1160, 'draft');
+    INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
+                                     subtotal, tax_amount, total, status)
+    VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
+            1000, 160, 1160, 'draft');
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
