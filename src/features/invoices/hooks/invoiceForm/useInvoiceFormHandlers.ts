@@ -1,5 +1,6 @@
 import type { Forklift } from "@/features/fleet";
 import { monthBounds } from "@/lib/date/monthBounds";
+import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
@@ -7,6 +8,7 @@ import { nowMty } from "@/lib/utils";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
+
 
 type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;
@@ -33,6 +35,9 @@ interface Props {
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
   quotes?: QuoteSource[] | undefined;
+  /** FIX-4: reservas cuyas partidas extra (seguro/logística) YA se facturaron.
+   *  No se vuelven a pre-cargar para evitar doble cobro. */
+  bookingsWithBilledExtras?: Set<string> | undefined;
 }
 
 function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Customer) {
@@ -41,7 +46,14 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
     const v = patch[k];
     if (v !== undefined) form.setValue(`cfdi.${k}`, v, { shouldDirty: true });
   });
+  // FIX-3: la tasa de IVA del cliente (p. ej. frontera 8%) manda sobre el 16%
+  // por defecto. Sólo se aplica si está capturada y es un número válido.
+  const rate = Number(customer.tax_rate);
+  if (customer.tax_rate != null && Number.isFinite(rate) && rate >= 0) {
+    form.setValue("taxRate", rate, { shouldDirty: true });
+  }
 }
+
 
 const SAT_LINE_DEFAULTS = {
   clave_prod_serv: "78181500",
@@ -58,15 +70,16 @@ function monthLabel(ymd: string): string {
 export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
-  // La reserva puede traer tarifas pactadas distintas a las actuales del
-  // montacargas; prevalece la de la reserva y cae a la del montacargas si es
-  // null (mismo patrón que useExtendBookingPreview). ?? 0 garantiza number.
+  // FIX-2: misma regla canónica que las extensiones (`resolveBookingRates`):
+  // la tarifa pactada gana SÓLO si es > 0; en 0/null cae a la del catálogo.
+  const resolved = resolveBookingRates(forklift, booking);
   const rated: Forklift = {
     ...forklift,
-    daily_rate: booking.daily_rate ?? forklift.daily_rate ?? 0,
-    weekly_rate: booking.weekly_rate ?? forklift.weekly_rate ?? 0,
-    monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
+    daily_rate: resolved.daily,
+    weekly_rate: resolved.weekly,
+    monthly_rate: resolved.monthly,
   };
+
 
   // El corte al primer mes sólo pertenece al flujo recurrente. Una reserva no
   // recurrente se factura completa para no dejar meses fuera silenciosamente.
@@ -126,6 +139,7 @@ function applyPrimaryCurrency(form: UseFormReturn<InvoiceFormValues>, first: Boo
 function collectExtraLinesFromQuotes(
   selected: Booking[],
   quotes: QuoteSource[] | undefined,
+  alreadyBilled?: Set<string> | undefined,
 ): LineItemValues[] {
   // Arrastrar partidas no-renta (logística/entrega) desde la cotización origen.
   // Deduplicado por quote_id para no repetirlas si la cotización se dividió en varias reservas.
@@ -133,6 +147,9 @@ function collectExtraLinesFromQuotes(
   const extraLines: LineItemValues[] = [];
   for (const b of selected) {
     if (!b.quote_id || seenQuoteIds.has(b.quote_id)) continue;
+    // FIX-4: si la reserva ya tiene una factura vigente con partidas extra,
+    // no se vuelven a pre-cargar (se cobrarían dos veces).
+    if (alreadyBilled?.has(b.id)) continue;
     seenQuoteIds.add(b.quote_id);
     const q = quotes?.find((x) => x.id === b.quote_id);
     if (!q) continue;
@@ -142,7 +159,8 @@ function collectExtraLinesFromQuotes(
 }
 
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes }: Props) {
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, bookingsWithBilledExtras }: Props) {
+
   const handleCustomerSelect = (selectedCustomerId: string) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
     const customer = customers?.find((c) => c.id === selectedCustomerId);
@@ -183,7 +201,7 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     applyPrimaryCurrency(form, selected[0]);
 
     const rentalLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
-    const extraLines = collectExtraLinesFromQuotes(selected, quotes);
+    const extraLines = collectExtraLinesFromQuotes(selected, quotes, bookingsWithBilledExtras);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
   };

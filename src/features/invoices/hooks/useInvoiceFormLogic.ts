@@ -18,7 +18,9 @@ import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
+import { useBilledExtraBookings } from "./invoices/useBilledExtraBookings";
 import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
+
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
 
@@ -165,7 +167,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
-  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes });
+  // FIX-4: reservas cuyas partidas extra ya se facturaron (no re-precargar).
+  const { data: bookingsWithBilledExtras } = useBilledExtraBookings();
+  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes, bookingsWithBilledExtras });
+
   const totals = useInvoiceFormTotals(form);
 
   const invoicedBookingIds = collectInvoicedBookingIds(

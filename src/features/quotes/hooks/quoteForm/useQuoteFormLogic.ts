@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { useParams } from "react-router";
 import { useCustomers } from "@/features/customers";
@@ -22,6 +22,18 @@ export function useQuoteFormLogic() {
   const { data: equipmentModels, isLoading: equipmentModelsLoading, isSuccess: modelsSuccess } = useEquipmentModels();
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
+
+  // FIX-5: snapshot congelado de la versión leída al ABRIR el formulario.
+  // Antes se leía la versión viva de React Query, que un refetch en segundo
+  // plano actualizaba silenciosamente y neutralizaba el candado optimista
+  // (lost update). Mismo patrón que el formulario de facturas.
+  const [quoteVersion, setQuoteVersion] = useState<number | null>(null);
+  useEffect(() => { setQuoteVersion(null); }, [id]);
+  useEffect(() => {
+    const v = (existingQuote as { version?: number | null } | null | undefined)?.version;
+    if (typeof v === "number") setQuoteVersion((prev) => prev ?? v);
+  }, [existingQuote]);
+
 
   // R9-P0 (BL-R8-08): valores reactivos memoizados por quoteId — ver
   // `useQuotePrefillValues`. Se calculan ANTES de `useQuoteForm` para
@@ -108,8 +120,9 @@ export function useQuoteFormLogic() {
     if (id) {
       // A5-05: se envía la `version` leída al abrir el formulario para que el
       // UPDATE no pise los cambios de otro usuario (bloqueo optimista).
-      const expected = (existingQuote as { version?: number | null } | null | undefined)?.version;
+      const expected = quoteVersion;
       updateQuote.mutate({ id, version: typeof expected === "number" ? expected : undefined, ...payload }, {
+
 
         onSuccess: () => {
           notifySuccess("Cotización actualizada");

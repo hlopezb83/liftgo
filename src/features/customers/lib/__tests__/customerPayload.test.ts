@@ -15,6 +15,7 @@ const base: CustomerFormData = {
   uso_cfdi: "",
   domicilio_fiscal_cp: "",
   representante_legal: "",
+  tax_rate: "",
 };
 
 describe("buildCustomerPayload", () => {
@@ -39,5 +40,16 @@ describe("buildCustomerPayload", () => {
     window.localStorage.setItem("liftgo:e2e", "true");
     window.localStorage.setItem("liftgo:e2e_scope", "customer-create-test");
     expect(getE2ECustomerMetadata()).toEqual({ is_e2e: true, e2e_scope: "customer-create-test" });
+  });
+});
+
+describe("buildCustomerPayload · tax_rate (FIX-3)", () => {
+  it("omite tax_rate cuando el campo va vacío", () => {
+    expect("tax_rate" in buildCustomerPayload(base)).toBe(false);
+  });
+
+  it("envía la tasa capturada como número", () => {
+    const r = buildCustomerPayload({ ...base, tax_rate: "8" }) as { tax_rate?: number };
+    expect(r.tax_rate).toBe(8);
   });
 });

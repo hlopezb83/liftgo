@@ -74,7 +74,7 @@ export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
   // --- Reservas, facturación y traslapes ---
   no_overlapping_bookings: { message: "Las fechas se traslapan con otra reserva o con mantenimiento programado." },
   invoices_booking_period_uniq: { message: "Ya existe una factura para esa reserva y ese periodo." },
-  uniq_invoices_recurring_period: { message: "Ya se generó la factura recurrente de ese periodo." },
+  uniq_invoices_recurring_period: { message: "Ya existe una factura vigente (no cancelada) para ese periodo recurrente." },
   booking_extensions_invoice_id_uniq: { message: "Esa extensión de reserva ya fue facturada." },
   uq_damage_records_invoice_id: { message: "Ese registro de daño ya tiene una factura asociada." },
   payments_invoice_installment_uidx: { message: "Ya se registró un pago para esa parcialidad de la factura." },

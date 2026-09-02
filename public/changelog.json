@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.418.0",
+    "date": "2026-09-02",
+    "type": "minor",
+    "title": "Correcciones de facturación, IVA por cliente y candados de edición",
+    "category": "fix"
+  },
+  {
     "version": "7.417.2",
     "date": "2026-09-02",
     "type": "patch",

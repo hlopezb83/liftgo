@@ -1,0 +1,11 @@
+{
+  "description": "Correcciones de la auditoría fixes_lovable: facturación recurrente, tarifas, IVA por cliente y candados de edición.",
+  "changes": [
+    "Un periodo recurrente cuya factura fue cancelada vuelve a poder facturarse.",
+    "Factura manual y extensión usan la misma regla de tarifas: la pactada manda sólo si es mayor a cero.",
+    "Nuevo campo de tasa de IVA por cliente (por ejemplo 8% en frontera), que la factura toma automáticamente.",
+    "Los cargos de seguro y logística ya no se precargan si la reserva ya los tiene facturados.",
+    "La edición de cotizaciones congela la versión al abrir el formulario para que el candado optimista funcione.",
+    "Las facturas en moneda extranjera ya no aceptan tipo de cambio 1.00."
+  ]
+}

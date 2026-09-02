@@ -17,15 +17,20 @@ const EDIT_FIELDS = [
 
 type EditField = (typeof EDIT_FIELDS)[number];
 
-function buildEditInitialData(customer: Customer | undefined | null): Record<EditField, string> | undefined {
+function buildEditInitialData(
+  customer: Customer | undefined | null,
+): (Record<EditField, string> & { tax_rate: string }) | undefined {
   if (!customer) return undefined;
   const result = {} as Record<EditField, string>;
   for (const k of EDIT_FIELDS) {
     const v = customer[k as keyof Customer];
     result[k] = typeof v === "string" ? v : "";
   }
-  return result;
+  // FIX-3: la tasa de IVA se edita como texto (vacío = usar el 16% default).
+  const rate = (customer as { tax_rate?: number | string | null }).tax_rate;
+  return { ...result, tax_rate: rate == null ? "" : String(rate) };
 }
+
 
 type CustomerSummary = NonNullable<ReturnType<typeof useCustomerSummary>["data"]>;
 

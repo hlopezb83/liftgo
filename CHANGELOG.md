@@ -1,3 +1,12 @@
+## [7.418.0] - 2026-09-02
+### Corrección (auditoría fixes_lovable: facturación y datos fiscales)
+- Un periodo recurrente cuya factura fue cancelada vuelve a poder facturarse: el índice único ya sólo considera facturas vigentes.
+- Las tarifas de la factura manual y las de una extensión usan la misma regla: la tarifa pactada manda sólo si es mayor a cero; en cero o vacía se usa la del catálogo.
+- El cliente ahora tiene campo de tasa de IVA (por ejemplo 8% en frontera) y la factura la toma automáticamente al elegirlo.
+- Los cargos extra de seguro y logística ya no se vuelven a precargar si la reserva ya los tiene facturados, evitando doble cobro.
+- La edición de cotizaciones congela la versión al abrir el formulario, de modo que el candado contra cambios simultáneos vuelve a ser efectivo.
+- Una factura en moneda extranjera ya no acepta tipo de cambio 1.00: se exige el tipo de cambio real para que los indicadores no se distorsionen.
+
 ## [7.417.2] - 2026-09-02
 ### Mantenimiento (actualización de dependencias)
 - Se actualizaron dompurify (3.4.14), react-dropzone (20.1.1), jsdom (30.0.1), @types/node (26.4.1) y eslint-plugin-react-refresh (0.5.5) sin cambios de comportamiento.
