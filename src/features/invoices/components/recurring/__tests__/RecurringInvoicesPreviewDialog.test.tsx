@@ -67,23 +67,25 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
 
     fireEvent.click(staleCheckbox());
     expect(staleCheckbox()).toBeChecked();
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     rerenderWith(false, lines);
     rerenderWith(true, lines);
 
     expect(staleCheckbox()).not.toBeChecked();
-    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
   });
 
   it("al reabrir la selección se reconstruye desde el preview actual", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     const { rerenderWith } = setup(lines);
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     // El usuario desmarca una fila y cierra el diálogo.
     fireEvent.click(screen.getByLabelText(/Incluir la reserva a /));
-    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
 
     rerenderWith(false, lines);
     rerenderWith(true, lines);
@@ -96,11 +98,11 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     const { rerenderWith } = setup(lines);
 
     fireEvent.click(screen.getByLabelText(/Incluir la reserva a /));
-    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
 
     // Refetch: mismas líneas (nuevos objetos) mientras sigue abierto.
     rerenderWith(true, lines.map((l) => ({ ...l })));
-    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
   });
 });
 
@@ -127,11 +129,12 @@ describe("RecurringInvoicesPreviewDialog — selección por reserva + periodo", 
         isGenerating={false}
         onConfirm={(s) => selections.push(s)}
       />,
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     );
 
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
     fireEvent.click(screen.getByLabelText(/periodo Septiembre 2026/));
-    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
 
     fireEvent.click(generateButton());
     expect(selections[0]).toEqual([{ bookingId: "a", periodStart: "2026-08-01" }]);
