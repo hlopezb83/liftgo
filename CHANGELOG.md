@@ -1,3 +1,8 @@
+## [7.418.1] - 2026-09-02
+### Corrección (guardrail de arquitectura)
+- El chequeo arch-check ya reconoce `src/lib/domain/bookingRates.ts` como archivo legítimo: lo usan reservas y facturas, y moverlo a un solo feature violaría la regla de imports cruzados (G5).
+- Se documentó la excepción en el README de `lib/domain`.
+
 ## [7.418.0] - 2026-09-02
 ### Corrección (auditoría fixes_lovable: facturación y datos fiscales)
 - Un periodo recurrente cuya factura fue cancelada vuelve a poder facturarse: el índice único ya sólo considera facturas vigentes.

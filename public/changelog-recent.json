@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.418.1",
+    "date": "2026-09-02",
+    "type": "patch",
+    "title": "Guardrail de arquitectura actualizado para bookingRates",
+    "category": "fix"
+  },
+  {
     "version": "7.418.0",
     "date": "2026-09-02",
     "type": "minor",
