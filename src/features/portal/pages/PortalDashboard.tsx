@@ -25,6 +25,24 @@ function PortalDashboardSkeleton() {
   );
 }
 
+function PortalEmptyState() {
+  return (
+    <Card>
+      <CardContent className="pt-4 text-sm space-y-1">
+        <p className="font-medium">Aún no tienes rentas ni facturas.</p>
+        <p className="text-muted-foreground">
+          Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas?
+          Solicita una cotización con tu ejecutivo de cuenta o contáctanos.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function balanceColor(outstanding: number): string {
+  return outstanding > 0 ? "text-destructive" : "";
+}
+
 export default function PortalDashboard() {
   const { data: customer, isLoading: customerLoading, isError: customerError, refetch: refetchCustomer } = usePortalCustomer();
   const { data: bookings, isLoading: bookingsLoading, isError: bookingsError, refetch: refetchBookings } = usePortalBookings();
@@ -54,7 +72,7 @@ export default function PortalDashboard() {
   const welcome = customer?.name ? `Bienvenido, ${customer.name}` : "Bienvenido";
   // Oleada 3 (C-3/C-2): formato compacto + escala tipográfica para no truncar el saldo.
   const outstandingLabel = formatCompactCurrency(outstanding);
-  const balanceClass = `tabular-nums ${kpiSizeClass(outstandingLabel)} ${outstanding > 0 ? "text-destructive" : ""}`;
+  const balanceClass = `tabular-nums ${kpiSizeClass(outstandingLabel)} ${balanceColor(outstanding)}`;
 
 
   return (
@@ -89,17 +107,7 @@ export default function PortalDashboard() {
       {activeBookings.length > 0 && <PortalBookingsCard bookings={activeBookings} />}
       {recentInvoices.length > 0 && <PortalRecentInvoicesCard invoices={recentInvoices} totalCount={invoiceList.length} />}
       {/* R7-FE-06 (N7-POR-02): cliente nuevo — orientación + siguiente paso. */}
-      {activeBookings.length === 0 && invoiceList.length === 0 && (
-        <Card>
-          <CardContent className="pt-4 text-sm space-y-1">
-            <p className="font-medium">Aún no tienes rentas ni facturas.</p>
-            <p className="text-muted-foreground">
-              Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas?
-              Solicita una cotización con tu ejecutivo de cuenta o contáctanos.
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      {activeBookings.length === 0 && invoiceList.length === 0 && <PortalEmptyState />}
     </PageContainer>
   );
 }

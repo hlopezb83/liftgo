@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon } from "@/components/icons";
 import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
+import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateRange } from "@/lib/utils";
 import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
 import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
@@ -15,6 +15,48 @@ import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionD
 
 interface BookingActionsProps { booking: BookingWithForklift; }
 
+interface CancelBookingDialogProps {
+  booking: BookingWithForklift;
+  open: boolean;
+  reason: string;
+  isPending: boolean;
+  onOpenChange: (open: boolean) => void;
+  onReasonChange: (reason: string) => void;
+  onConfirm: () => void;
+}
+
+function CancelBookingDialog({
+  booking, open, reason, isPending, onOpenChange, onReasonChange, onConfirm,
+}: CancelBookingDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
+          <DialogDescription>
+            Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
+          <Textarea
+            id="cancel-reason"
+            value={reason}
+            onChange={(event) => onReasonChange(event.target.value)}
+            placeholder="Ej. cliente reprogramó, cambio de equipo, error de captura…"
+            rows={3}
+            maxLength={500}
+          />
+          <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>Volver</Button>
+          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>Cancelar Reserva</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export function BookingActions({ booking }: BookingActionsProps) {
   const {
@@ -133,44 +175,18 @@ export function BookingActions({ booking }: BookingActionsProps) {
       {cancelBlockReason && (
         <p className="basis-full text-xs text-muted-foreground">{cancelBlockReason}</p>
       )}
-      <Dialog
+      <CancelBookingDialog
+        booking={booking}
         open={cancelOpen}
-        onOpenChange={(o) => { setCancelOpen(o); if (!o) setCancelReason(""); }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
-            <DialogDescription>
-              Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
-            <Textarea
-              id="cancel-reason"
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Ej. cliente reprogramó, cambio de equipo, error de captura…"
-              rows={3}
-              maxLength={500}
-            />
-            <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" disabled={cancelBookingPending} onClick={() => setCancelOpen(false)}>Volver</Button>
-            <Button
-              variant="destructive"
-              disabled={cancelBookingPending}
-              onClick={() => handleCancel(cancelReason.trim() || undefined, () => {
-                setCancelOpen(false);
-                setCancelReason("");
-              })}
-            >
-              Cancelar Reserva
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        reason={cancelReason}
+        isPending={cancelBookingPending}
+        onOpenChange={(nextOpen) => { setCancelOpen(nextOpen); if (!nextOpen) setCancelReason(""); }}
+        onReasonChange={setCancelReason}
+        onConfirm={() => handleCancel(cancelReason.trim() || undefined, () => {
+          setCancelOpen(false);
+          setCancelReason("");
+        })}
+      />
 
       <BookingExtendDialog
         open={extendOpen}

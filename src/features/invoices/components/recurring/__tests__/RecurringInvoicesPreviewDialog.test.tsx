@@ -67,18 +67,23 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
 
     fireEvent.click(staleCheckbox());
     expect(staleCheckbox()).toBeChecked();
+    // R8-05: la selección inicial es vacía; seleccionamos todo para el test.
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     rerenderWith(false, lines);
     rerenderWith(true, lines);
 
     expect(staleCheckbox()).not.toBeChecked();
-    expect(generateButton()).toHaveTextContent("Generar 1 factura");
+    // R9-02: al reabrir la selección inicia vacía de nuevo.
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
   });
 
   it("al reabrir la selección se reconstruye desde el preview actual", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
     const { rerenderWith } = setup(lines);
+    // R8-05: selección inicial vacía.
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     // El usuario desmarca una fila y cierra el diálogo.
@@ -88,7 +93,8 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     rerenderWith(false, lines);
     rerenderWith(true, lines);
 
-    expect(generateButton()).toHaveTextContent("Generar 2 facturas");
+    // R9-02: al reabrir no se conserva lo desmarcado, se vuelve a "nada seleccionado".
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
   });
 
   it("un refresh con el diálogo abierto conserva la selección del usuario", () => {
@@ -129,7 +135,10 @@ describe("RecurringInvoicesPreviewDialog — selección por reserva + periodo", 
       />,
     );
 
+    // Seleccionar todo primero.
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
+
     fireEvent.click(screen.getByLabelText(/periodo Septiembre 2026/));
     expect(generateButton()).toHaveTextContent("Generar 1 factura");
 

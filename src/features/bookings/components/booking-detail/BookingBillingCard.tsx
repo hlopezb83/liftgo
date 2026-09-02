@@ -3,12 +3,12 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { ClockIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Switch } from "@/components/ui/switch";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
-import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
 import { useUpdateBooking } from "../../hooks/bookings/useBookingMutations";
+import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
 import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 
 /** Estados donde ya no tiene sentido cambiar la recurrencia (no habrá más ciclos). */
