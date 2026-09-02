@@ -22,8 +22,9 @@ const emptyCustomer: CustomerFormData = {
   name: "", email: "", phone: "", address: "", notes: "",
   website: "", contact_person: "",
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
-  representante_legal: "",
+  representante_legal: "", tax_rate: "",
 };
+
 
 interface CustomerFormDialogProps {
   open: boolean;
