@@ -61,15 +61,21 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
 
   const {
     activeCredits, draftCredits, repBacked, repPayments, otherPaid,
-    maxCreditable, blockedByReps, willCreateCredit,
-  } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments);
+    maxCreditable, blockedByReps, willCreateCredit, fxMissingReps, blockedByMissingFx,
+  } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments, {
+    moneda: invoice.moneda,
+    tipo_cambio: invoice.tipo_cambio,
+  });
 
-  const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0.005;
+  // FIX-1 (ronda 2): sin tipo de cambio el tope es incalculable → fail-closed.
+  const canCreate =
+    invoice.cfdi_status === "stamped" &&
+    invoice.status !== "cancelled" &&
+    maxCreditable > 0.005 &&
+    !blockedByMissingFx;
 
+  if (creditNotes.length === 0 && !canCreate && !blockedByReps && !blockedByMissingFx) return null;
 
-
-
-  if (creditNotes.length === 0 && !canCreate && !blockedByReps) return null;
 
   return (
     <>
@@ -83,7 +89,18 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
           )}
         </CardHeader>
         <CardContent className="p-0">
+          {blockedByMissingFx && (
+            <div className="mx-6 mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
+              <p className="font-medium">No se puede emitir una nota de crédito</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Esta factura tiene {fxMissingReps} complemento(s) de pago timbrado(s) en una moneda distinta a la
+                de la factura, sin tipo de cambio capturado. Sin ese dato no se puede calcular el máximo
+                acreditable. Captura el tipo de cambio del pago y vuelve a intentarlo.
+              </p>
+            </div>
+          )}
           {repBacked > 0.005 && (
+
             <CreditNoteRepLimitNotice
               invoiceTotal={Number(invoice.total)}
               priorCredits={activeCredits + draftCredits}

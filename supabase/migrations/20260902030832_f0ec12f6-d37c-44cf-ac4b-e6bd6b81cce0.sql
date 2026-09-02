@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.releasable_payment_locks(integer) FROM authenticated, anon, PUBLIC;

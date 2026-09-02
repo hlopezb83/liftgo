@@ -17,7 +17,7 @@ describe("recurringBookingItems (2A-9)", () => {
   it("proyecta periodos mensuales dentro del horizonte", () => {
     const items = recurringBookingItems([base], "2026-01-20", "2026-04-30");
     expect(items.map((i) => i.dueDate)).toEqual(["2026-02-15", "2026-03-15", "2026-04-15"]);
-    expect(items.every((i) => i.isProjected && i.kind === "in" && i.amountMxn === 10000)).toBe(true);
+    expect(items.every((i) => i.isProjected && i.kind === "in" && i.amountMxn === 11600)).toBe(true);
   });
 
   it("arranca después del último periodo facturado", () => {
@@ -45,6 +45,15 @@ describe("recurringBookingItems (2A-9)", () => {
       "2026-01-20",
       "2026-02-28",
     );
-    expect(items[0]?.amountMxn).toBe(180000);
+    expect(items[0]?.amountMxn).toBe(208800);
+  });
+
+  it("FIX-4: respeta una tasa de IVA 0 del cliente", () => {
+    const items = recurringBookingItems(
+      [{ ...base, customer_tax_rate: 0 }],
+      "2026-01-20",
+      "2026-02-28",
+    );
+    expect(items[0]?.amountMxn).toBe(10000);
   });
 });

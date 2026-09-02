@@ -3486,6 +3486,7 @@ export type Database = {
         Row: {
           amount: number
           bank_account: string | null
+          batch_id: string | null
           bill_id: string
           created_at: string
           created_by: string | null
@@ -3507,6 +3508,7 @@ export type Database = {
         Insert: {
           amount: number
           bank_account?: string | null
+          batch_id?: string | null
           bill_id: string
           created_at?: string
           created_by?: string | null
@@ -3528,6 +3530,7 @@ export type Database = {
         Update: {
           amount?: number
           bank_account?: string | null
+          batch_id?: string | null
           bill_id?: string
           created_at?: string
           created_by?: string | null
@@ -3547,6 +3550,13 @@ export type Database = {
           rep_xml_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "supplier_payments_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_payment_batches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "supplier_payments_bill_id_fkey"
             columns: ["bill_id"]

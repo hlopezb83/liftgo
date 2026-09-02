@@ -4,7 +4,9 @@
  * Aislados del cliente Supabase para poder testearse sin mocks y
  * mantener `useCashFlowProjection` reducido a orquestación de queries.
  */
-import { toMxn } from "@/lib/money";
+import currency from "currency.js";
+import { resolveVatRatePercent, toMxn } from "@/lib/money";
+
 import type { CashFlowItem } from "./cashFlowUtils";
 
 // Re-export para preservar retro-compatibilidad con importadores existentes.
@@ -155,7 +157,10 @@ export interface RecurringBookingRow {
   monthly_rate: number | string | null;
   currency: string | null;
   tipo_cambio: number | string | null;
+  /** FIX-4 (ronda 2): tasa de IVA del cliente (null → 16%, 0 explícito se respeta). */
+  customer_tax_rate?: number | string | null;
 }
+
 
 function addMonthsYmd(ymd: string, months: number): string {
   const [y, m, d] = ymd.split("-").map(Number);
@@ -181,8 +186,15 @@ export function recurringBookingItems(
     if (isFxMissing(b.currency, b.tipo_cambio)) continue;
     const rate = Number(b.monthly_rate ?? 0);
     if (!Number.isFinite(rate) || rate <= 0) continue;
-    const amountMxn = toMxn(rate, b.currency, b.tipo_cambio);
+    // FIX-4 (ronda 2): la proyección debe reflejar el TOTAL de la factura
+    // (renta + IVA del cliente), no el neto: la Edge Function factura con
+    // resolveVatRatePercent(customer.tax_rate).
+    const vatRate = resolveVatRatePercent(b.customer_tax_rate ?? null);
+    const gross = currency(rate, { precision: 2 }).multiply(1 + vatRate / 100).value;
+    if (!Number.isFinite(gross) || gross <= 0) continue;
+    const amountMxn = toMxn(gross, b.currency, b.tipo_cambio);
     if (!Number.isFinite(amountMxn) || amountMxn < MIN_PROJECTABLE_BALANCE_MXN) continue;
+
 
     const anchor = b.last_billed_date && b.last_billed_date > b.start_date ? b.last_billed_date : b.start_date;
     for (let i = 1; i <= 24; i++) {

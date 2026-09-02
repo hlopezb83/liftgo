@@ -2,6 +2,10 @@ import { requireServiceOrRole } from "../_shared/auth.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
+import {
+  extractNonRentalLines,
+  type NonRentalLineDto,
+} from "../_shared/nonRentalLines.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
@@ -135,6 +139,10 @@ type PlanItem = {
   tipoCambio: number;
   // B5-01: advertencia de tarifa potencialmente desactualizada para el periodo.
   rateWarning: boolean;
+  // FIX-6 (ronda 2): primera factura de la reserva → anexar extras pactados
+  // en la cotización (seguro, logística) una sola vez.
+  quoteId: string | null;
+  isFirstInvoice: boolean;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -147,7 +155,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
+      "id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
@@ -201,6 +209,9 @@ async function buildPlan(supabase: any): Promise<{
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
     // contradice — es la columna que se desincroniza (v6.110.0).
     let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
+    // FIX-6: ¿la reserva ya tiene alguna factura vigente? Si sí, los extras de
+    // la cotización ya se cobraron (o se decidieron omitir) y no se re-anexan.
+    let hasPriorInvoices = false;
     {
       const { data: linked } = await supabase
         .from("invoice_bookings")
@@ -212,6 +223,7 @@ async function buildPlan(supabase: any): Promise<{
       const rows = (linked ?? []) as Array<
         { invoices: { billing_period_end: string | null } }
       >;
+      hasPriorInvoices = rows.length > 0;
       if (rows.length === 0) {
         effectiveLastBilled = null;
       } else {
@@ -479,6 +491,9 @@ async function buildPlan(supabase: any): Promise<{
         tipoCambio: bookingCurrency === "MXN" ? 1 : bookingTipoCambio,
         // B5-01
         rateWarning,
+        // FIX-6
+        quoteId: (booking.quote_id as string | null) ?? null,
+        isFirstInvoice: !hasPriorInvoices && firstIteration,
       });
       virtualLastBilled = endStr;
       firstIteration = false;
@@ -569,7 +584,22 @@ async function executePlan(
         .eq("id", first.customerId)
         .maybeSingle();
 
-      const lineItems = group.map((i) => {
+      // FIX-6 (ronda 2): extras pactados en la cotización (seguro, logística)
+      // se cobran UNA sola vez, en la primera factura de la reserva.
+      const extraLines: NonRentalLineDto[] = [];
+      const seenQuotes = new Set<string>();
+      for (const i of group) {
+        if (!i.isFirstInvoice || !i.quoteId || seenQuotes.has(i.quoteId)) continue;
+        seenQuotes.add(i.quoteId);
+        const { data: quote } = await supabase
+          .from("quotes")
+          .select("line_items")
+          .eq("id", i.quoteId)
+          .maybeSingle();
+        extraLines.push(...extractNonRentalLines(quote?.line_items));
+      }
+
+      const rentalLines = group.map((i) => {
         const proratedLabel = i.isProrated
           ? ` — prorrateado ${i.proratedDays} días`
           : "";
@@ -584,11 +614,16 @@ async function executePlan(
           total: i.billedAmount,
         };
       });
+      const lineItems = [...rentalLines, ...extraLines];
+      const billedAmounts = [
+        ...group.map((i) => i.billedAmount),
+        ...extraLines.map((l) => l.total),
+      ];
 
       // M23: tasa por cliente (frontera 8%, exento 0%) en vez de 16 fijo,
       // y aritmética en centavos enteros (_shared/money.ts) en vez de floats
       // con Math.round — elimina el drift de centavos acumulado por período.
-      const subtotalCents = sumMoneyCents(group.map((i) => i.billedAmount));
+      const subtotalCents = sumMoneyCents(billedAmounts);
       // R9-14: `resolveVatRatePercent` distingue "sin dato" (null/undefined/NaN
       // -> DEFAULT_VAT_RATE_PERCENT) de "0% explícito" (se respeta). Antes
       // `Number(customer?.tax_rate)` convertía null en 0 y generaba IVA 0%
@@ -598,10 +633,7 @@ async function executePlan(
       // Facturapi al timbrar). Redondear una sola vez sobre el subtotal
       // agregado generaba varianzas de centavos que dejaban la factura
       // recurrente en cfdi_status='error' (BL-A5).
-      const taxAmountCents = sumLineTaxCents(
-        group.map((i) => i.billedAmount),
-        taxRate,
-      );
+      const taxAmountCents = sumLineTaxCents(billedAmounts, taxRate);
 
       const subtotal = fromCents(subtotalCents);
       const taxAmount = fromCents(taxAmountCents);

@@ -90,11 +90,14 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
       // 2A-9: rentas recurrentes vigentes, para proyectar los periodos aún no facturados.
+      // FIX-4 (ronda 2): se trae la tasa de IVA del cliente para proyectar el
+      // TOTAL facturado (renta + IVA), igual que la Edge Function recurrente.
       supabase.from("bookings")
-        .select("id, booking_number, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio")
+        .select("id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, customers(tax_rate)")
         .eq("recurring_billing", true)
         .in("status", ["confirmed", "in_progress"])
-        .returns<RecurringBookingRow[]>(),
+        .returns<(RecurringBookingRow & { customers: { tax_rate: number | string | null } | { tax_rate: number | string | null }[] | null })[]>(),
+
       countInvoicesWithoutDueDate(),
       countBillsWithoutDueDate(),
     ]);
@@ -118,7 +121,13 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     const horizonBuckets = buildWeekBuckets(today, weeks);
     const horizonEnd = horizonBuckets[horizonBuckets.length - 1]?.endDate ?? format(today, "yyyy-MM-dd");
     const todayYmd = format(today, "yyyy-MM-dd");
-    items.push(...recurringBookingItems(bookingRes.data ?? [], todayYmd, horizonEnd));
+    const recurringRows: RecurringBookingRow[] = (bookingRes.data ?? []).map((b) => {
+      const rel = b.customers;
+      const taxRate = Array.isArray(rel) ? rel[0]?.tax_rate ?? null : rel?.tax_rate ?? null;
+      return { ...b, customer_tax_rate: taxRate };
+    });
+    items.push(...recurringBookingItems(recurringRows, todayYmd, horizonEnd));
+
     const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
     return {
       buckets,
