@@ -1,6 +1,8 @@
 import { addDays, differenceInCalendarDays } from "date-fns";
 import { toYMD } from "@/lib/date/toYMD";
+import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { calculateRentalCost, type LineItem } from "@/lib/domain/invoiceHelpers";
+
 
 /**
  * Facturación de extensiones de reserva (v7.307.0).
