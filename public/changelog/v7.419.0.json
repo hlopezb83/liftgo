@@ -1,0 +1,11 @@
+{
+  "description": "Ronda 2 de remediación: notas de crédito con tipo de cambio, complementos de pago, lotes de proveedores, IVA en la proyección de flujo y extras de cotización en la primera factura recurrente.",
+  "changes": [
+    "Notas de crédito: el tope acreditable convierte los pagos con complemento vigente a la moneda de la factura; si falta el tipo de cambio se bloquea la emisión con aviso, en vez de asumir 1:1.",
+    "Complemento de pago: el saldo anterior considera todos los pagos válidos y el número de parcialidad sólo cuenta complementos vigentes.",
+    "Pagos a proveedores: cada pago queda ligado al lote vigente de su factura, de modo que cancelar un lote sólo se bloquea por pagos de ese lote.",
+    "Flujo de efectivo: las rentas recurrentes se proyectan con el IVA del cliente (16% por omisión, 0% si así está configurado), igual que la factura real.",
+    "Facturación recurrente: los cargos extra pactados en la cotización (seguro, logística) se anexan una sola vez, en la primera factura de la reserva.",
+    "Mantenimiento: se bloquea programar servicios que se traslapan con reservas confirmadas, respetando los días de colchón configurados."
+  ]
+}

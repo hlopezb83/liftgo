@@ -1,3 +1,12 @@
+## [7.419.0] - 2026-09-02
+### Corrección (auditoría ronda 2)
+- Notas de crédito: el máximo acreditable convierte los pagos con complemento vigente a la moneda de la factura; sin tipo de cambio se bloquea la emisión con explicación.
+- Complemento de pago: saldo anterior con todos los pagos válidos y parcialidad contada sólo con complementos vigentes.
+- Pagos a proveedores: cada pago se liga al lote vigente de su factura; cancelar un lote ya no se bloquea por abonos ajenos previos.
+- Flujo de efectivo: las rentas recurrentes se proyectan con IVA del cliente (16% por omisión, 0% si está configurado así).
+- Facturación recurrente: seguro y logística de la cotización se cobran una sola vez, en la primera factura de la reserva.
+- Mantenimiento: no se puede programar un servicio que se traslapa con reservas confirmadas (con días de colchón).
+
 ## [7.418.2] - 2026-09-02
 ### Corrección (pruebas)
 - Las 9 pruebas de documentos PDF fallaban tras la actualización de jsdom 30: el mock de react-pdf pasaba estilos como arreglo al DOM y jsdom lo rechaza. El mock ahora aplana los arreglos de estilos antes de renderizar; sin cambios en producción.
