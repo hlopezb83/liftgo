@@ -155,7 +155,9 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
       },
       [forklift],
     );
-    expect(items.length).toBeGreaterThan(1);
+    expect(items).toEqual(expect.arrayContaining([
+      expect.objectContaining({ description: "Renta mensual", quantity: 12 }),
+    ]));
     expect(items.reduce((sum, item) => sum + item.total, 0)).toBeGreaterThan(30_000);
   });
 });
