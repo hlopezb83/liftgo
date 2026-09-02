@@ -58,15 +58,16 @@ function monthLabel(ymd: string): string {
 export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
-  // La reserva puede traer tarifas pactadas distintas a las actuales del
-  // montacargas; prevalece la de la reserva y cae a la del montacargas si es
-  // null (mismo patrón que useExtendBookingPreview). ?? 0 garantiza number.
+  // FIX-2: misma regla canónica que las extensiones (`resolveBookingRates`):
+  // la tarifa pactada gana SÓLO si es > 0; en 0/null cae a la del catálogo.
+  const resolved = resolveBookingRates(forklift, booking);
   const rated: Forklift = {
     ...forklift,
-    daily_rate: booking.daily_rate ?? forklift.daily_rate ?? 0,
-    weekly_rate: booking.weekly_rate ?? forklift.weekly_rate ?? 0,
-    monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
+    daily_rate: resolved.daily,
+    weekly_rate: resolved.weekly,
+    monthly_rate: resolved.monthly,
   };
+
 
   // El corte al primer mes sólo pertenece al flujo recurrente. Una reserva no
   // recurrente se factura completa para no dejar meses fuera silenciosamente.
