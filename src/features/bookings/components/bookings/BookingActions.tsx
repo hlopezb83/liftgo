@@ -25,7 +25,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
     newEndDate, setNewEndDate,
     extendPreview,
     handleDelete, handleCancel, handleStatusChange, handleExtend,
-    extendBookingPending,
+    deleteBookingPending, cancelBookingPending, extendBookingPending,
   } = useBookingActionsLogic(booking);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -61,6 +61,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       description={`Se eliminará permanentemente la reserva de ${booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.`}
       confirmLabel="Eliminar"
       destructive
+      loading={deleteBookingPending}
       onConfirm={handleDelete}
     />
   );
@@ -68,7 +69,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
   // La RPC `delete_booking` sólo acepta reservas canceladas/completadas; con
   // la reserva confirmada el botón queda visible pero bloqueado y explicado,
   // en vez de fallar con un reporte de error tras el clic.
-  const deleteBlock = booking.status === "confirmed"
+  const deleteBlock = !["cancelled", "completed"].includes(booking.status)
     ? describeBusinessBlock("booking_not_final_for_delete")
     : null;
 
@@ -78,6 +79,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
         variant="destructive"
         size="sm"
         block={deleteBlock}
+        disabled={deleteBookingPending}
         onClick={() => setDeleteOpen(true)}
       >
         <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
@@ -124,7 +126,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       )}
 
       <span title={cancelBlockReason}>
-        <Button variant="destructive" size="sm" disabled={!canCancelBooking} onClick={() => setCancelOpen(true)}>
+        <Button variant="destructive" size="sm" disabled={!canCancelBooking || cancelBookingPending} onClick={() => setCancelOpen(true)}>
           <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
         </Button>
       </span>
@@ -155,10 +157,14 @@ export function BookingActions({ booking }: BookingActionsProps) {
             <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelOpen(false)}>Volver</Button>
+            <Button variant="outline" disabled={cancelBookingPending} onClick={() => setCancelOpen(false)}>Volver</Button>
             <Button
               variant="destructive"
-              onClick={() => { handleCancel(cancelReason.trim() || undefined); setCancelOpen(false); setCancelReason(""); }}
+              disabled={cancelBookingPending}
+              onClick={() => handleCancel(cancelReason.trim() || undefined, () => {
+                setCancelOpen(false);
+                setCancelReason("");
+              })}
             >
               Cancelar Reserva
             </Button>

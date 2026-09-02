@@ -141,6 +141,8 @@ type PlanItem = {
 async function buildPlan(supabase: any): Promise<{
   lines: PreviewLine[];
   items: PlanItem[];
+  truncated: boolean;
+  pendingCount: number;
 }> {
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
@@ -177,6 +179,8 @@ async function buildPlan(supabase: any): Promise<{
   const nowMty = nowInMonterrey();
   const lines: PreviewLine[] = [];
   const items: PlanItem[] = [];
+  let truncated = false;
+  let pendingCount = 0;
 
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
@@ -230,6 +234,7 @@ async function buildPlan(supabase: any): Promise<{
     let virtualLastBilled: string | null = effectiveLastBilled;
     let firstIteration = true;
 
+    let exitedNaturally = false;
     for (let iter = 0; iter < MAX_CATCHUP_ITERATIONS; iter++) {
       // B5-01: la tarifa se recalcula EN CADA iteración del catch-up (antes se
       // calculaba una sola vez fuera del loop y todos los periodos atrasados
@@ -335,6 +340,7 @@ async function buildPlan(supabase: any): Promise<{
         if (firstIteration) {
           lines.push({ ...baseLine, eligible: false, reason: "booking_ended" });
         }
+        exitedNaturally = true;
         break;
       }
       // Periodo aún no llega → detener catch-up. Sólo reportamos la línea si
@@ -391,11 +397,13 @@ async function buildPlan(supabase: any): Promise<{
             reason: "period_in_future",
           });
         }
+        exitedNaturally = true;
         break;
       }
 
       if (!booking.customer_id) {
         lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
+        exitedNaturally = true;
         break;
       }
       // A1-1: reserva en moneda distinta a MXN sin tipo de cambio válido → no
@@ -408,12 +416,14 @@ async function buildPlan(supabase: any): Promise<{
           eligible: false,
           reason: "no_exchange_rate",
         });
+        exitedNaturally = true;
         break;
       }
       // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
       // reserva y en la maestra). Una tarifa 0 pactada se factura por $0.
       if (configuredRate == null) {
         lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
+        exitedNaturally = true;
         break;
       }
 
@@ -473,9 +483,29 @@ async function buildPlan(supabase: any): Promise<{
       virtualLastBilled = endStr;
       firstIteration = false;
     }
+    if (!exitedNaturally && virtualLastBilled) {
+      const last = dateOnlyToMty(virtualLastBilled);
+      const next = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1));
+      const contractEnd = booking.end_date ? dateOnlyToMty(booking.end_date) : nowMty;
+      const limit = contractEnd < nowMty ? contractEnd : nowMty;
+      if (next <= limit) {
+        const remaining = Math.max(1,
+          (limit.getUTCFullYear() - next.getUTCFullYear()) * 12 +
+          limit.getUTCMonth() - next.getUTCMonth() + 1,
+        );
+        truncated = true;
+        pendingCount += remaining;
+        console.warn(JSON.stringify({
+          event: "recurring_catchup_truncated",
+          truncated: true,
+          bookingId: booking.id,
+          pendingCount: remaining,
+        }));
+      }
+    }
   }
 
-  return { lines, items };
+  return { lines, items, truncated, pendingCount };
 }
 
 async function executePlan(
@@ -700,13 +730,16 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { lines, items: allItems } = await buildPlan(supabase);
+    const { lines, items: allItems, truncated, pendingCount } = await buildPlan(supabase);
 
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
 
     if (body.preview) {
-      return jsonResponse(req, { success: true, period: periodMonth, lines });
+      return jsonResponse(req, {
+        success: true, period: periodMonth, lines, truncated,
+        pending_count: pendingCount,
+      });
     }
 
     // R9-18 (fix fail-open): decisión centralizada en `selection.ts`. Si el
@@ -747,6 +780,8 @@ Deno.serve(async (req) => {
       rateWarnings,
       // R6-F5: periodos NO facturados por tarifa potencialmente desactualizada.
       skippedStaleRate,
+      truncated,
+      pending_count: pendingCount,
     });
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);

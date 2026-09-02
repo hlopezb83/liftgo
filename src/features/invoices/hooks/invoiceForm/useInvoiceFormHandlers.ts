@@ -20,6 +20,7 @@ type Booking = {
    *  facturar en MXN montos cotizados/rentados en USD. */
   currency?: string | null;
   tipo_cambio?: number | string | null;
+  recurring_billing?: boolean | null;
 };
 
 type QuoteSource = { id: string; line_items: unknown };
@@ -67,11 +68,10 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
     monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
   };
 
-  // Primera factura de una reserva de largo plazo: sólo del inicio al fin de
-  // mes (prorrateado). Los meses siguientes se facturan completos, igual que
-  // en el asistente de facturación recurrente.
+  // El corte al primer mes sólo pertenece al flujo recurrente. Una reserva no
+  // recurrente se factura completa para no dejar meses fuera silenciosamente.
   const period = firstBillingPeriod(booking.start_date, booking.end_date);
-  if (period?.truncated) {
+  if (booking.recurring_billing === true && period?.truncated) {
     const monthly = rated.monthly_rate ?? 0;
     const prorated = period.isProrated ? prorateMonthlyLine(monthly, period.billedDays, period.daysInMonth) : null;
     if (prorated) {
@@ -161,14 +161,16 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
 
     // H-6: al ligar una reserva, pre-llenar el periodo con el mes de la fecha
     // de emisión si el usuario aún no lo ha capturado (caso típico: mensualidad).
-    // Reserva de largo plazo: el primer periodo va del inicio de la reserva al
-    // fin de ese mes, para que el siguiente ciclo arranque limpio el día 1.
+    // Sólo una reserva recurrente corta el primer periodo al fin de mes.
     if (selectedIds.length > 0 && !form.getValues("billingPeriodStart")) {
-      const first = selected[0]
+      const booking = selected[0];
+      const first = booking?.recurring_billing
         ? firstBillingPeriod(selected[0].start_date, selected[0].end_date)
         : null;
       const issue = form.getValues("issueDate") ?? nowMty();
-      const { start, end } = first?.truncated
+      const { start, end } = booking && !booking.recurring_billing
+        ? { start: booking.start_date, end: booking.end_date }
+        : first?.truncated
         ? { start: first.start, end: first.end }
         : monthBounds(issue);
       form.setValue("billingPeriodStart", start, { shouldDirty: true });

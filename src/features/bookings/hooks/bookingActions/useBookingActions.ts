@@ -32,10 +32,10 @@ export function useBookingActions(booking: BookingWithForklift) {
     });
   };
 
-  const handleCancel = (reason?: string) => {
+  const handleCancel = (reason?: string, onSuccess?: () => void) => {
     cancelBooking.mutate(
       { bookingId: booking.id, reason: reason ?? null },
-      { onSuccess: () => notifySuccess("Reserva cancelada") },
+      { onSuccess: () => { notifySuccess("Reserva cancelada"); onSuccess?.(); } },
     );
   };
 
@@ -88,6 +88,8 @@ export function useBookingActions(booking: BookingWithForklift) {
   return {
     navigate,
     handleDelete, handleCancel, handleStatusChange, handleExtend,
+    deleteBookingPending: deleteBooking.isPending,
+    cancelBookingPending: cancelBooking.isPending,
     extendBookingPending: extendBooking.isPending,
   };
 }

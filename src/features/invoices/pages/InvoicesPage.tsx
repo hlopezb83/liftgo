@@ -20,7 +20,7 @@ import { RecurringInvoicesPreviewDialog } from "../components/recurring/Recurrin
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
-import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
+import { fetchInvoicesForExport, invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 
 type Invoice = Tables<"invoices">;
@@ -153,11 +153,13 @@ export default function InvoicesPage() {
     resetKey: filterKey,
   });
 
-  const exportCsv = () =>
-    exportToCsv("facturas.csv", invoiceRows.map((inv) => ({
+  const exportCsv = async () => {
+    const rows = await fetchInvoicesForExport(queryFilters);
+    exportToCsv("facturas.csv", rows.map((inv) => ({
       "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total,
       Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "",
     })));
+  };
 
   return (
     <>
@@ -167,7 +169,7 @@ export default function InvoicesPage() {
         actions={
           <InvoicesActionsBar
             onOpenPreview={openPreview}
-            onExport={exportCsv}
+             onExport={() => { void exportCsv(); }}
             onNew={() => navigate("/invoices/new")}
             previewPending={previewRecurring.isPending}
           />
