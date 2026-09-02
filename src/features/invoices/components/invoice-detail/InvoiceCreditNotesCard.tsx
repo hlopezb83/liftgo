@@ -61,15 +61,21 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
 
   const {
     activeCredits, draftCredits, repBacked, repPayments, otherPaid,
-    maxCreditable, blockedByReps, willCreateCredit,
-  } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments);
+    maxCreditable, blockedByReps, willCreateCredit, fxMissingReps, blockedByMissingFx,
+  } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments, {
+    moneda: invoice.moneda,
+    tipo_cambio: invoice.tipo_cambio,
+  });
 
-  const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0.005;
+  // FIX-1 (ronda 2): sin tipo de cambio el tope es incalculable → fail-closed.
+  const canCreate =
+    invoice.cfdi_status === "stamped" &&
+    invoice.status !== "cancelled" &&
+    maxCreditable > 0.005 &&
+    !blockedByMissingFx;
 
+  if (creditNotes.length === 0 && !canCreate && !blockedByReps && !blockedByMissingFx) return null;
 
-
-
-  if (creditNotes.length === 0 && !canCreate && !blockedByReps) return null;
 
   return (
     <>
