@@ -78,6 +78,7 @@ DECLARE
   v_del  uuid := gen_random_uuid();
   v_pick uuid := gen_random_uuid();
   v_status text;
+  v_status_prev text;
   v_logs int;
   v_ok boolean;
 BEGIN
@@ -109,12 +110,13 @@ BEGIN
   VALUES (v_bk2, v_fk2, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
   INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date)
   VALUES (v_pick, v_bk2, v_fk2, 'pickup', 'scheduled', public.today_mty());
+  SELECT status INTO v_status_prev FROM public.forklifts WHERE id = v_fk2;
   UPDATE public.deliveries SET status = 'completed' WHERE id = v_pick;
 
   SELECT status INTO v_status FROM public.forklifts WHERE id = v_fk2;
-  RAISE NOTICE '%', CASE WHEN v_status = 'available'
-    THEN 'OK  M-7 una recolección no marca la unidad como rentada'
-    ELSE 'FALLO  M-7 recolección dejó la unidad en ' || v_status END;
+  RAISE NOTICE '%', CASE WHEN v_status = v_status_prev
+    THEN 'OK  M-7 una recolección no cambia el estatus de la unidad'
+    ELSE 'FALLO  M-7 recolección movió la unidad de ' || v_status_prev || ' a ' || v_status END;
 
   -- Caso C: reabrir una entrega completada está bloqueado.
   v_ok := true;
