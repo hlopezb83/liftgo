@@ -55,6 +55,7 @@ allowed=$(cat <<'EOF'
 README.md
 __tests__
 activityTranslations.ts
+bookingRates.ts
 contractTypes.ts
 customerTypes.ts
 errorCatalog.ts
