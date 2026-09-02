@@ -32,7 +32,7 @@ export function DeliveryDetailBody({
 }: DeliveryDetailBodyProps) {
   return (
     <>
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         <DeliveryStatusCard
           type={delivery.type}
           scheduledDate={delivery.scheduled_date}

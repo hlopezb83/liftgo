@@ -1,0 +1,19 @@
+{
+  "version": "7.416.0",
+  "date": "2026-09-02",
+  "type": "minor",
+  "category": "improvement",
+  "title": "Optimización móvil fase 2: gráficas y fichas a dos columnas",
+  "description": "Las gráficas de Reportes ya se adaptan a pantallas chicas (etiquetas sin recortes y ejes más angostos) y las fichas de detalle (Reserva, Cliente, Montacarga, Proveedor, Entrega, Devolución) muestran dos columnas desde 640 px, aprovechando el ancho de un celular plegable.",
+  "tags": [
+    "ui",
+    "movil",
+    "reportes"
+  ],
+  "changes": [
+    "Nuevo hook useChartSizing: alto del área de gráfica, ángulo/alto del eje X, ancho del eje Y y truncado de etiquetas según el ancho de pantalla.",
+    "Reportes de Utilización, Ingresos, Costos de Mantenimiento, Utilización por Modelo y Rentabilidad por Modelo adaptados.",
+    "Fichas de detalle: rejillas md:grid-cols-2 → sm:grid-cols-2 con separación compacta en móvil.",
+    "Sin cambios de backend, reglas de negocio, RLS ni permisos."
+  ]
+}

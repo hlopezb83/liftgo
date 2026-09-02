@@ -1,3 +1,10 @@
+## [7.416.0] - 2026-09-02
+### Mejora (optimización móvil, fase 2)
+- `src/lib/charts/useChartSizing.ts` (nuevo): medidas de gráficas dependientes del ancho (tick, eje X rotado, ancho de eje Y, alto del área, truncado de etiquetas).
+- Reportes adaptados: Utilización de Flota, Ingresos por Mes, Costos de Mantenimiento, Utilización por Modelo y Rentabilidad por Modelo.
+- Fichas de detalle (Reserva, Cliente, Montacarga, Proveedor, Entrega, Devolución): `md:grid-cols-2` → `sm:grid-cols-2` y `gap-4 sm:gap-6`, para dos columnas desde 640 px.
+- Sin cambios de backend, reglas de negocio, RLS ni permisos.
+
 ## [7.415.3] - 2026-09-02
 ### Fix (auditoría móvil en celular plegable 692×764)
 - Auditoría visual con navegador real a 692×764 en Panel, Reservas, Clientes, Facturas, Flota, Mantenimiento, Cotizaciones y Reportes: sin desbordamiento horizontal, cajón del menú lateral y tarjetas móviles correctos.

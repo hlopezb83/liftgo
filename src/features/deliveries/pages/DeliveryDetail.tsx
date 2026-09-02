@@ -38,7 +38,7 @@ export default function DeliveryDetail() {
     return (
       <PageContainer>
         <Skeleton className="h-10 w-64" />
-        <div className="grid gap-6 md:grid-cols-2"><Skeleton className="h-48" /><Skeleton className="h-48" /></div>
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2"><Skeleton className="h-48" /><Skeleton className="h-48" /></div>
       </PageContainer>
     );
   }
