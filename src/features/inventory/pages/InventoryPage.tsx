@@ -14,10 +14,10 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
 import { PartFormDialog } from "../components/inventory/PartFormDialog";
-import { PART_CATEGORIES } from "../lib/partConstants";
 import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
 import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
 import { partCategoryLabel } from "../lib/partCategories";
+import { PART_CATEGORIES } from "../lib/partConstants";
 
 export default function InventoryPage() {
   const { data: partsRaw, isLoading, isError, refetch } = usePartsInventory();

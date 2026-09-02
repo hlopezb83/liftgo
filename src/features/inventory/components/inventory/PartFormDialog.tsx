@@ -14,8 +14,8 @@ import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
-import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
 import { CATEGORY_OPTIONS } from "../../lib/partConstants";
+import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
 
 interface PartFormDialogProps {
   open: boolean;

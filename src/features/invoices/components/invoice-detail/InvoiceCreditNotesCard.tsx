@@ -45,6 +45,54 @@ function CnBadge({ cn }: { cn: CreditNote }) {
   return <Badge variant="secondary">Borrador</Badge>;
 }
 
+interface NoticeProps {
+  blockedByMissingFx: boolean;
+  fxMissingReps: number;
+  repBacked: number;
+  invoiceTotal: number;
+  priorCredits: number;
+  repPayments: number;
+  blockedByReps: boolean;
+  willCreateCredit: boolean;
+  otherPaid: number;
+}
+
+function CreditNoteNotices({
+  blockedByMissingFx, fxMissingReps, repBacked, invoiceTotal,
+  priorCredits, repPayments, blockedByReps, willCreateCredit, otherPaid,
+}: NoticeProps) {
+  return (
+    <>
+      {blockedByMissingFx && (
+        <div className="mx-6 mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
+          <p className="font-medium">No se puede emitir una nota de crédito</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Esta factura tiene {fxMissingReps} complemento(s) de pago timbrado(s) en una moneda distinta a la
+            de la factura, sin tipo de cambio capturado. Sin ese dato no se puede calcular el máximo
+            acreditable. Captura el tipo de cambio del pago y vuelve a intentarlo.
+          </p>
+        </div>
+      )}
+      {repBacked > 0.005 && (
+        <CreditNoteRepLimitNotice
+          invoiceTotal={invoiceTotal}
+          priorCredits={priorCredits}
+          repBacked={repBacked}
+          maxCreditable={invoiceTotal - priorCredits}
+          repPayments={repPayments}
+          blocked={blockedByReps}
+        />
+      )}
+      {willCreateCredit && (
+        <p className="mx-6 mb-4 text-xs text-muted-foreground">
+          Esta factura tiene {formatCurrency(otherPaid)} cobrados sin complemento de pago vigente. Una nota de
+          crédito por ese importe dejará saldo a favor del cliente, aplicable a facturas futuras.
+        </p>
+      )}
+    </>
+  );
+}
+
 interface ActionsProps {
   cn: CreditNote;
   stampMutation: ReturnType<typeof useStampCreditNote>;
@@ -150,34 +198,17 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
           )}
         </CardHeader>
         <CardContent className="p-0">
-          {blockedByMissingFx && (
-            <div className="mx-6 mb-4 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
-              <p className="font-medium">No se puede emitir una nota de crédito</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Esta factura tiene {fxMissingReps} complemento(s) de pago timbrado(s) en una moneda distinta a la
-                de la factura, sin tipo de cambio capturado. Sin ese dato no se puede calcular el máximo
-                acreditable. Captura el tipo de cambio del pago y vuelve a intentarlo.
-              </p>
-            </div>
-          )}
-          {repBacked > 0.005 && (
-
-            <CreditNoteRepLimitNotice
-              invoiceTotal={Number(invoice.total)}
-              priorCredits={activeCredits + draftCredits}
-              repBacked={repBacked}
-              maxCreditable={maxCreditable}
-              repPayments={repPayments}
-              blocked={blockedByReps}
-            />
-          )}
-
-          {willCreateCredit && (
-            <p className="mx-6 mb-4 text-xs text-muted-foreground">
-              Esta factura tiene {formatCurrency(otherPaid)} cobrados sin complemento de pago vigente. Una nota de
-              crédito por ese importe dejará saldo a favor del cliente, aplicable a facturas futuras.
-            </p>
-          )}
+          <CreditNoteNotices
+            blockedByMissingFx={blockedByMissingFx}
+            fxMissingReps={fxMissingReps}
+            repBacked={repBacked}
+            invoiceTotal={Number(invoice.total)}
+            priorCredits={activeCredits + draftCredits}
+            repPayments={repPayments}
+            blockedByReps={blockedByReps}
+            willCreateCredit={willCreateCredit}
+            otherPaid={otherPaid}
+          />
           {creditNotes.length === 0 ? (
             <p className="px-6 pb-4 text-sm text-muted-foreground">Sin notas de crédito emitidas.</p>
           ) : (

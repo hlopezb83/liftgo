@@ -3,9 +3,9 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { buildCustomerPayload } from "../../lib/customerPayload";
-import type { CustomerFormData } from "../../lib/customerFormSchema";
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
+import type { CustomerFormData } from "../../lib/customerFormSchema";
 
 /**
  * FIX-5 (ronda 3): la edición reusa el MISMO builder que el alta. Antes tenía
