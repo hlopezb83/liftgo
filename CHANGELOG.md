@@ -1,3 +1,13 @@
+## [7.417.0] - 2026-09-02
+### Corrección (remediación integral R10)
+- Indicadores financieros, MRR y rentabilidad por montacargas usan la regla canónica de tipo de cambio; los equipos archivados permanecen en la depreciación histórica hasta su fecha de baja.
+- La conciliación bancaria excluye datos E2E y `fx_is_missing` queda restringida a roles autenticados y de servicio.
+- Las reservas no recurrentes se precargan completas al facturar manualmente; las recurrentes conservan su primer periodo prorrateado.
+- El proceso recurrente informa cuando alcanza el límite de 24 periodos y cuántos quedan pendientes, sin generar periodos adicionales.
+- Eliminar y cancelar reservas evita dobles envíos; el diálogo de cancelación sólo cierra cuando la operación termina correctamente.
+- Los totales y CSV de mantenimiento respetan filtros; la exportación de facturas consulta hasta 10,000 filas con los filtros activos.
+- Desactivar recurrencia requiere confirmación explícita. Los smoke tests SQL ahora fallan de verdad ante una regresión.
+
 ## [7.416.0] - 2026-09-02
 ### Mejora (optimización móvil, fase 2)
 - `src/lib/charts/useChartSizing.ts` (nuevo): medidas de gráficas dependientes del ancho (tick, eje X rotado, ancho de eje Y, alto del área, truncado de etiquetas).
