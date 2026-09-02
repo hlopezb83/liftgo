@@ -57,9 +57,17 @@ BEGIN
   VALUES ('SMOKE FIX09 Proveedor')
   RETURNING id INTO v_supplier;
 
-  INSERT INTO public.supplier_bills (supplier_id, subtotal, tax_amount, total, status, approval_status, issue_date)
-  VALUES (v_supplier, 1000, 0, 1000, 'pending', 'approved', public.today_mty())
+  -- Canon vigente: una factura de proveedor no puede nacer aprobada; se registra
+  -- pendiente y la aprobación se aplica por la vía del RPC (bypass app.cxp_rpc).
+  INSERT INTO public.supplier_bills (supplier_id, subtotal, tax_amount, total, status, issue_date)
+  VALUES (v_supplier, 1000, 0, 1000, 'pending', public.today_mty())
   RETURNING id INTO v_bill;
+
+  PERFORM set_config('app.cxp_rpc', 'on', true);
+  UPDATE public.supplier_bills
+     SET approval_status = 'approved', approved_at = now()
+   WHERE id = v_bill;
+  PERFORM set_config('app.cxp_rpc', 'off', true);
 
   INSERT INTO public.supplier_payments (bill_id, payment_date, amount)
   VALUES (v_bill, public.today_mty(), 600) RETURNING id INTO v_pay1;
