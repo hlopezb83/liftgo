@@ -137,7 +137,10 @@ BEGIN
 
   -- Factura pagada (status 'paid'): NO bloquea.
   INSERT INTO public.invoices (customer_id, customer_name, invoice_number, subtotal, tax_amount, total, status, line_items)
-  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-B-' || substr(v_cust::text,1,8), 1000, 0, 1000, 'paid', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
+  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-B-' || substr(v_cust::text,1,8), 1000, 0, 1000, 'draft', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb)
+  RETURNING id INTO v_inv;
+  -- Tampoco puede nacer pagada: se crea en borrador y se marca pagada.
+  UPDATE public.invoices SET status = 'paid' WHERE id = v_inv;
   PERFORM pg_temp.expect_true(
     'factura pagada no bloquea el archivado',
     NOT public.customer_has_outstanding_balance(v_cust)
