@@ -125,7 +125,10 @@ BEGIN
 
   -- Factura cancelada: NO genera saldo.
   INSERT INTO public.invoices (customer_id, customer_name, subtotal, tax_amount, total, status, line_items)
-  VALUES (v_cust, 'SMOKE saldo archivo', 5000, 0, 5000, 'cancelled', '[{"description":"SMOKE","quantity":1,"unit_price":5000,"amount":5000}]'::jsonb);
+  VALUES (v_cust, 'SMOKE saldo archivo', 5000, 0, 5000, 'draft', '[{"description":"SMOKE","quantity":1,"unit_price":5000,"amount":5000}]'::jsonb)
+  RETURNING id INTO v_inv;
+  -- El canon no permite nacer cancelada: se crea en borrador y se cancela.
+  UPDATE public.invoices SET status = 'cancelled' WHERE id = v_inv;
   PERFORM pg_temp.expect_true(
     'factura cancelada no crea saldo pendiente',
     public.customer_outstanding_balance(v_cust) = 0
