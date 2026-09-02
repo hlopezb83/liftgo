@@ -84,10 +84,12 @@ BEGIN
   VALUES (v_inv_nc, 'S3-NC-001', 'Cliente Sprint 3', 1000, 0, 0, 1000, 'sent',
           public.today_mty() - 5, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
+  -- Criterio canónico de NC vigente: además de status, debe estar timbrada
+  -- (cfdi_status = 'stamped') y sin cancelación aceptada.
   INSERT INTO public.credit_notes (invoice_id, credit_note_number, motive, reason_text,
-                                   subtotal, tax_rate, tax_amount, total, status)
+                                   subtotal, tax_rate, tax_amount, total, status, cfdi_status)
   VALUES (v_inv_nc, 'S3-NC-CN-001', 'return', 'Cancelación total de la factura',
-          1000, 0, 0, 1000, 'stamped');
+          1000, 0, 0, 1000, 'stamped', 'stamped');
 
   SELECT status INTO v_status FROM public.invoices WHERE id = v_inv_nc;
   PERFORM pg_temp.expect_true(
@@ -110,7 +112,9 @@ BEGIN
   END;
   PERFORM pg_temp.expect_true('S3-3.3 sobrepago rechazado', v_blocked);
 
-  -- Caso C: pago en moneda distinta a la factura bloqueado.
+  -- Caso C: pago en moneda distinta sólo se acepta si hay tipo de cambio para
+  -- convertir (R5-01 / R6-16). Sin TC en el pago ni en la factura, se bloquea.
+  UPDATE public.invoices SET tipo_cambio = NULL WHERE id = v_inv_pay;
   v_blocked := false;
   BEGIN
     INSERT INTO public.payments (invoice_id, amount, payment_date, currency)
@@ -118,7 +122,17 @@ BEGIN
   EXCEPTION WHEN others THEN
     v_blocked := true;
   END;
-  PERFORM pg_temp.expect_true('S3-3.3 pago en moneda distinta rechazado', v_blocked);
+  PERFORM pg_temp.expect_true('S3-3.3 pago en moneda distinta sin TC rechazado', v_blocked);
+
+  v_blocked := false;
+  BEGIN
+    INSERT INTO public.payments (invoice_id, amount, payment_date, currency, exchange_rate)
+    VALUES (v_inv_pay, 5, public.today_mty(), 'USD', 18);
+  EXCEPTION WHEN others THEN
+    v_blocked := true;
+    RAISE NOTICE 'detalle caso C con TC: %', SQLERRM;
+  END;
+  PERFORM pg_temp.expect_true('S3-3.3 pago en moneda distinta con TC se acepta', NOT v_blocked);
 
   -- Caso D: borrar el único pago de una factura vencida la deja en 'overdue'.
   INSERT INTO public.invoices (id, invoice_number, customer_name, subtotal, tax_rate,
