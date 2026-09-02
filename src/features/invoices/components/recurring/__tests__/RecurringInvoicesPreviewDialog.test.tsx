@@ -67,6 +67,7 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
 
     fireEvent.click(staleCheckbox());
     expect(staleCheckbox()).toBeChecked();
+    // R8-05: la selección inicial es vacía; seleccionamos todo para el test.
     fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
@@ -74,23 +75,26 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     rerenderWith(true, lines);
 
     expect(staleCheckbox()).not.toBeChecked();
+    // R9-02: al reabrir la selección inicia vacía de nuevo.
     expect(generateButton()).toHaveTextContent("Generar 0 facturas");
   });
 
   it("al reabrir la selección se reconstruye desde el preview actual", () => {
     const lines = [line({ bookingId: "a" }), line({ bookingId: "b" })];
-    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     const { rerenderWith } = setup(lines);
+    // R8-05: selección inicial vacía.
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
 
     // El usuario desmarca una fila y cierra el diálogo.
     fireEvent.click(screen.getByLabelText(/Incluir la reserva a /));
-    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
+    expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     rerenderWith(false, lines);
     rerenderWith(true, lines);
 
-    expect(generateButton()).toHaveTextContent("Generar 2 facturas");
+    // R9-02: al reabrir no se conserva lo desmarcado, se vuelve a "nada seleccionado".
+    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
   });
 
   it("un refresh con el diálogo abierto conserva la selección del usuario", () => {
@@ -98,11 +102,11 @@ describe("RecurringInvoicesPreviewDialog — sesión por apertura", () => {
     const { rerenderWith } = setup(lines);
 
     fireEvent.click(screen.getByLabelText(/Incluir la reserva a /));
-    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
+    expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     // Refetch: mismas líneas (nuevos objetos) mientras sigue abierto.
     rerenderWith(true, lines.map((l) => ({ ...l })));
-    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
+    expect(generateButton()).toHaveTextContent("Generar 1 factura");
   });
 });
 
@@ -129,12 +133,14 @@ describe("RecurringInvoicesPreviewDialog — selección por reserva + periodo", 
         isGenerating={false}
         onConfirm={(s) => selections.push(s)}
       />,
-    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     );
 
+    // Seleccionar todo primero.
+    fireEvent.click(screen.getByLabelText(/Seleccionar todas de Acme/));
     expect(generateButton()).toHaveTextContent("Generar 2 facturas");
+
     fireEvent.click(screen.getByLabelText(/periodo Septiembre 2026/));
-    expect(generateButton()).toHaveTextContent("Generar 0 facturas");
+    expect(generateButton()).toHaveTextContent("Generar 1 factura");
 
     fireEvent.click(generateButton());
     expect(selections[0]).toEqual([{ bookingId: "a", periodStart: "2026-08-01" }]);
