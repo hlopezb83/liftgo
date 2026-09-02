@@ -139,6 +139,7 @@ function applyPrimaryCurrency(form: UseFormReturn<InvoiceFormValues>, first: Boo
 function collectExtraLinesFromQuotes(
   selected: Booking[],
   quotes: QuoteSource[] | undefined,
+  alreadyBilled?: Set<string> | undefined,
 ): LineItemValues[] {
   // Arrastrar partidas no-renta (logística/entrega) desde la cotización origen.
   // Deduplicado por quote_id para no repetirlas si la cotización se dividió en varias reservas.
@@ -146,6 +147,9 @@ function collectExtraLinesFromQuotes(
   const extraLines: LineItemValues[] = [];
   for (const b of selected) {
     if (!b.quote_id || seenQuoteIds.has(b.quote_id)) continue;
+    // FIX-4: si la reserva ya tiene una factura vigente con partidas extra,
+    // no se vuelven a pre-cargar (se cobrarían dos veces).
+    if (alreadyBilled?.has(b.id)) continue;
     seenQuoteIds.add(b.quote_id);
     const q = quotes?.find((x) => x.id === b.quote_id);
     if (!q) continue;
@@ -155,7 +159,8 @@ function collectExtraLinesFromQuotes(
 }
 
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes }: Props) {
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, bookingsWithBilledExtras }: Props) {
+
   const handleCustomerSelect = (selectedCustomerId: string) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
     const customer = customers?.find((c) => c.id === selectedCustomerId);
