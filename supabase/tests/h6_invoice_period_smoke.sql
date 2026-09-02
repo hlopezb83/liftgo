@@ -155,6 +155,7 @@ BEGIN
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
+    RAISE NOTICE 'detalle caso C: %', SQLERRM;
   END;
   PERFORM pg_temp.expect_true(
     'H-6 caso C: factura sin reserva y sin periodo se permite', v_ok);
