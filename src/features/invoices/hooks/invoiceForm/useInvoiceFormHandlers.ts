@@ -201,7 +201,7 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     applyPrimaryCurrency(form, selected[0]);
 
     const rentalLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
-    const extraLines = collectExtraLinesFromQuotes(selected, quotes);
+    const extraLines = collectExtraLinesFromQuotes(selected, quotes, bookingsWithBilledExtras);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
   };
