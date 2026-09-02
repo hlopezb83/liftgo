@@ -6,7 +6,6 @@
  */
 import currency from "currency.js";
 import { resolveVatRatePercent, toMxn } from "@/lib/money";
-
 import type { CashFlowItem } from "./cashFlowUtils";
 
 // Re-export para preservar retro-compatibilidad con importadores existentes.
