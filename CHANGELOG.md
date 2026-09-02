@@ -1,3 +1,10 @@
+## [7.415.3] - 2026-09-02
+### Fix (auditoría móvil en celular plegable 692×764)
+- Auditoría visual con navegador real a 692×764 en Panel, Reservas, Clientes, Facturas, Flota, Mantenimiento, Cotizaciones y Reportes: sin desbordamiento horizontal, cajón del menú lateral y tarjetas móviles correctos.
+- `FormDialog.tsx`: el `p-6` del contenedor scrollable impedía que el footer sticky llegara al borde; quedaban ~25 px de formulario asomando bajo los botones. Ahora `pb-0` en el scrollport, `pb-6` en el cuerpo y `-mb-6` en el footer.
+- `FormDialogFooter`: padding inferior con `env(safe-area-inset-bottom)` para la barra de gestos del teléfono.
+- Sin cambios de backend, reglas de negocio, RLS ni permisos.
+
 ## [7.415.2] - 2026-09-01
 ### Fix (pulido visual: sidebar colapsado y modales)
 - Auditoría visual con navegador sobre sidebar y modales.
