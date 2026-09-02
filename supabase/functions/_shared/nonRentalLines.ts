@@ -23,11 +23,15 @@ function isRentalOrSaleLine(description: string | undefined): boolean {
   return GENERATED_RENTAL_LINE.test(description);
 }
 
-export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto[] {
+export function extractNonRentalLines(
+  quoteLineItems: unknown,
+): NonRentalLineDto[] {
   if (!Array.isArray(quoteLineItems)) return [];
   const items = quoteLineItems as Array<Record<string, unknown>>;
   return items
-    .filter((item) => !isRentalOrSaleLine(item?.description as string | undefined))
+    .filter((item) =>
+      !isRentalOrSaleLine(item?.description as string | undefined)
+    )
     .map((item) => {
       const description = String(item?.description ?? "");
       const quantity = Number(item?.quantity ?? 1) || 0;
