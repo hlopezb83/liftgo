@@ -104,8 +104,8 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('get_financial_kpis') LIKE '%(f.id IS NULL OR f.deleted_at IS NULL)%'
 );
 SELECT pg_temp.expect_true(
-  'R6-20 no se perdió el FIX A4 (MRR convertido a MXN)',
-  pg_temp.fndef('get_financial_kpis') LIKE '%NULLIF(b.tipo_cambio, 0)%'
+  'R6-20 no se perdió el FIX A4 (MRR convertido a MXN con el guard canónico de TC)',
+  pg_temp.fndef('get_financial_kpis') LIKE '%fx_is_missing(b.currency, b.tipo_cambio)%'
 );
 
 -- R6-21: desglose del panel en MXN, conservando FIX A1
