@@ -70,14 +70,14 @@ export default function MaintenancePage() {
   const isBoard = viewMode === "board";
   const kanbanContent = isBoard ? <MaintenanceKanban logs={filtered} archived={showArchived} /> : undefined;
 
-  const totalCost = sumCost(logs);
-  const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(logs, forkliftMap));
+  const totalCost = sumCost(filtered);
+  const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(filtered, forkliftMap));
 
   return (
     <>
       <ListPageLayout
         title="Mantenimiento"
-        subtitle={`${logs?.length ?? 0} registros de servicio — ${formatCurrency(totalCost)} costo total`}
+        subtitle={`${filtered.length} registros de servicio — ${formatCurrency(totalCost)} costo total`}
         actions={
           <MaintenancePageActions
             viewMode={viewMode}

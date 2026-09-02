@@ -103,6 +103,17 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
   return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
 }
 
+export async function fetchInvoicesForExport(filters?: InvoiceListFilters, limit = 10_000) {
+  const normalized = createInvoiceListFilters(filters);
+  const { data, error } = await baseInvoiceQuery(normalized)
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit)
+    .returns<InvoiceRow[]>();
+  if (error) throw error;
+  return data ?? [];
+}
+
 
 async function fetchInvoiceDetail(id: string) {
   const { data, error } = await supabase

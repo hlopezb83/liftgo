@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { ClockIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
@@ -17,17 +19,30 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
   const updateBooking = useUpdateBooking();
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
 
   const canEdit = !!perms && getAccessLevel(perms, role ?? undefined, "Reservas") === "full";
   const isClosed = CLOSED_STATUSES.has(booking.status);
   const canToggle = canEdit && !isClosed;
 
   const handleToggle = (next: boolean) => {
+    if (!next) {
+      setDisableConfirmOpen(true);
+      return;
+    }
     updateBooking.mutate({
       id: booking.id,
       recurring_billing: next,
       expectedVersion: booking.version,
     });
+  };
+
+  const disableRecurring = () => {
+    updateBooking.mutate({
+      id: booking.id,
+      recurring_billing: false,
+      expectedVersion: booking.version,
+    }, { onSuccess: () => setDisableConfirmOpen(false) });
   };
 
   return (
@@ -71,6 +86,16 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
           </div>
         )}
       </CardContent>
+      <ConfirmDialog
+        open={disableConfirmOpen}
+        onOpenChange={setDisableConfirmOpen}
+        title="¿Desactivar la facturación recurrente?"
+        description="Los periodos todavía no facturados dejarán de aparecer en el asistente recurrente. Las facturas ya creadas no cambian."
+        confirmLabel="Desactivar recurrencia"
+        destructive
+        loading={updateBooking.isPending}
+        onConfirm={disableRecurring}
+      />
     </Card>
   );
 }

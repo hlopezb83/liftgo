@@ -88,6 +88,8 @@ export function useBookingActions(booking: BookingWithForklift) {
   return {
     navigate,
     handleDelete, handleCancel, handleStatusChange, handleExtend,
+    deleteBookingPending: deleteBooking.isPending,
+    cancelBookingPending: cancelBooking.isPending,
     extendBookingPending: extendBooking.isPending,
   };
 }

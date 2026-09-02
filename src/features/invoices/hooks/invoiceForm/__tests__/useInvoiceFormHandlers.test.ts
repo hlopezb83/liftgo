@@ -90,6 +90,7 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
         start_date: "2026-09-12",
         end_date: "2027-09-11",
         monthly_rate: 30_000,
+        recurring_billing: true,
       },
       [forklift],
     );
@@ -110,6 +111,7 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
         start_date: "2026-10-15",
         end_date: "2027-10-14",
         monthly_rate: 10_000,
+        recurring_billing: true,
       },
       [forklift],
     );
@@ -124,6 +126,7 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
         start_date: "2026-09-01",
         end_date: "2027-08-31",
         monthly_rate: 30_000,
+        recurring_billing: true,
       },
       [forklift],
     );
@@ -138,5 +141,21 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
     );
     expect(items.reduce((s, i) => s + i.total, 0)).toBeGreaterThan(0);
     expect(items.every((i) => !i.description.includes("prorrateo"))).toBe(true);
+  });
+
+  it("reserva no recurrente de un año conserva el rango completo", () => {
+    const items = buildLinesForBooking(
+      {
+        id: "bk-9",
+        forklift_id: "fk-1",
+        start_date: "2026-09-12",
+        end_date: "2027-09-11",
+        monthly_rate: 30_000,
+        recurring_billing: false,
+      },
+      [forklift],
+    );
+    expect(items.length).toBeGreaterThan(1);
+    expect(items.reduce((sum, item) => sum + item.total, 0)).toBeGreaterThan(30_000);
   });
 });
