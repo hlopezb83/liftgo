@@ -88,17 +88,15 @@ VALUES ('c3333333-3333-4333-8333-333333333333', 'Proveedor smoke P0');
 INSERT INTO public.supplier_bills (id, supplier_id, bill_number, total, status)
 VALUES
   ('d1111111-3333-4333-8333-333333333333', 'c3333333-3333-4333-8333-333333333333', 'SMOKE-P0-1', 10000, 'pending'),
-  ('d2222222-3333-4333-8333-333333333333', 'c3333333-3333-4333-8333-333333333333', 'SMOKE-P0-2', 10000, 'pending');
+  -- La factura 2 nace cancelada: el canon vigente ya no permite cancelar una
+  -- factura que ya tiene pagos registrados.
+  ('d2222222-3333-4333-8333-333333333333', 'c3333333-3333-4333-8333-333333333333', 'SMOKE-P0-2', 10000, 'cancelled');
 
 INSERT INTO public.supplier_payments (id, bill_id, amount, payment_date, rep_status) VALUES
   ('e1111111-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required'),
   ('e2222222-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'received'),
   ('e3333333-3333-4333-8333-333333333333', 'd2222222-3333-4333-8333-333333333333', 1000, current_date, 'not_required'),
   ('e4444444-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required');
-
--- La factura 2 se cancela DESPUÉS de registrar su pago.
-UPDATE public.supplier_bills SET status = 'cancelled'
- WHERE id = 'd2222222-3333-4333-8333-333333333333';
 
 -- 2.a administrativo NO puede borrar (regla admin-only, ahora en la base).
 SET LOCAL role = 'authenticated';
