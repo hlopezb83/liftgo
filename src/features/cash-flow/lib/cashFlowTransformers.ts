@@ -4,7 +4,9 @@
  * Aislados del cliente Supabase para poder testearse sin mocks y
  * mantener `useCashFlowProjection` reducido a orquestación de queries.
  */
-import { toMxn } from "@/lib/money";
+import currency from "currency.js";
+import { resolveVatRatePercent, toMxn } from "@/lib/money";
+
 import type { CashFlowItem } from "./cashFlowUtils";
 
 // Re-export para preservar retro-compatibilidad con importadores existentes.
