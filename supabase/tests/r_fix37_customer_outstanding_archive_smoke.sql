@@ -124,8 +124,11 @@ BEGIN
   RETURNING id INTO v_cust;
 
   -- Factura cancelada: NO genera saldo.
-  INSERT INTO public.invoices (customer_id, customer_name, total, status)
-  VALUES (v_cust, 'SMOKE saldo archivo', 5000, 'cancelled');
+  INSERT INTO public.invoices (customer_id, customer_name, invoice_number, subtotal, tax_amount, total, status, line_items)
+  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-A-' || substr(v_cust::text,1,8), 5000, 0, 5000, 'draft', '[{"description":"SMOKE","quantity":1,"unit_price":5000,"amount":5000}]'::jsonb)
+  RETURNING id INTO v_inv;
+  -- El canon no permite nacer cancelada: se crea en borrador y se cancela.
+  UPDATE public.invoices SET status = 'cancelled' WHERE id = v_inv;
   PERFORM pg_temp.expect_true(
     'factura cancelada no crea saldo pendiente',
     public.customer_outstanding_balance(v_cust) = 0
@@ -133,16 +136,19 @@ BEGIN
   );
 
   -- Factura pagada (status 'paid'): NO bloquea.
-  INSERT INTO public.invoices (customer_id, customer_name, total, status)
-  VALUES (v_cust, 'SMOKE saldo archivo', 1000, 'paid');
+  INSERT INTO public.invoices (customer_id, customer_name, invoice_number, subtotal, tax_amount, total, status, line_items)
+  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-B-' || substr(v_cust::text,1,8), 1000, 0, 1000, 'draft', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb)
+  RETURNING id INTO v_inv;
+  -- Tampoco puede nacer pagada: se crea en borrador y se marca pagada.
+  UPDATE public.invoices SET status = 'paid' WHERE id = v_inv;
   PERFORM pg_temp.expect_true(
     'factura pagada no bloquea el archivado',
     NOT public.customer_has_outstanding_balance(v_cust)
   );
 
   -- Factura enviada sin pagos: SÍ genera saldo.
-  INSERT INTO public.invoices (customer_id, customer_name, total, status)
-  VALUES (v_cust, 'SMOKE saldo archivo', 1160, 'sent')
+  INSERT INTO public.invoices (customer_id, customer_name, invoice_number, subtotal, tax_amount, total, status, line_items)
+  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-C-' || substr(v_cust::text,1,8), 1000, 160, 1160, 'sent', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb)
   RETURNING id INTO v_inv;
   PERFORM pg_temp.expect_true(
     'factura por cobrar genera saldo pendiente',

@@ -74,15 +74,17 @@ DECLARE
   v_fk   uuid := gen_random_uuid();
   v_fk2  uuid := gen_random_uuid();
   v_bk   uuid := gen_random_uuid();
+  v_bk2  uuid := gen_random_uuid();
   v_del  uuid := gen_random_uuid();
   v_pick uuid := gen_random_uuid();
   v_status text;
+  v_status_prev text;
   v_logs int;
   v_ok boolean;
 BEGIN
   INSERT INTO public.customers (id, name) VALUES (v_cust, 'FIX03 Smoke SA de CV');
-  INSERT INTO public.forklifts (id, name, status) VALUES (v_fk, 'FIX03-U1', 'available');
-  INSERT INTO public.forklifts (id, name, status) VALUES (v_fk2, 'FIX03-U2', 'available');
+  INSERT INTO public.forklifts (id, name, model, status) VALUES (v_fk, 'FIX03-U1', 'SMOKE', 'available');
+  INSERT INTO public.forklifts (id, name, model, status) VALUES (v_fk2, 'FIX03-U2', 'SMOKE', 'available');
   INSERT INTO public.bookings (id, forklift_id, customer_id, customer_name, start_date, end_date, status)
   VALUES (v_bk, v_fk, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
 
@@ -103,14 +105,18 @@ BEGIN
     ELSE 'FALLO  M-7 movimientos en bitácora: ' || v_logs END;
 
   -- Caso B: recolección completada NO marca la unidad como rentada.
+  -- La entrega debe apuntar al montacargas de su propia reserva (guard vigente).
+  INSERT INTO public.bookings (id, forklift_id, customer_id, customer_name, start_date, end_date, status)
+  VALUES (v_bk2, v_fk2, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
   INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date)
-  VALUES (v_pick, v_bk, v_fk2, 'pickup', 'scheduled', public.today_mty());
+  VALUES (v_pick, v_bk2, v_fk2, 'pickup', 'scheduled', public.today_mty());
+  SELECT status INTO v_status_prev FROM public.forklifts WHERE id = v_fk2;
   UPDATE public.deliveries SET status = 'completed' WHERE id = v_pick;
 
   SELECT status INTO v_status FROM public.forklifts WHERE id = v_fk2;
-  RAISE NOTICE '%', CASE WHEN v_status = 'available'
-    THEN 'OK  M-7 una recolección no marca la unidad como rentada'
-    ELSE 'FALLO  M-7 recolección dejó la unidad en ' || v_status END;
+  RAISE NOTICE '%', CASE WHEN v_status = v_status_prev
+    THEN 'OK  M-7 una recolección no cambia el estatus de la unidad'
+    ELSE 'FALLO  M-7 recolección movió la unidad de ' || v_status_prev || ' a ' || v_status END;
 
   -- Caso C: reabrir una entrega completada está bloqueado.
   v_ok := true;

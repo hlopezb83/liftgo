@@ -53,18 +53,21 @@ BEGIN
   INSERT INTO public.customers (id, name) VALUES (v_cust, 'H5 Smoke SA de CV');
 
   INSERT INTO public.invoices (id, customer_id, customer_name, invoice_number,
-                               subtotal, tax_amount, total, status, issued_at, due_date)
+                               subtotal, tax_amount, total, status, issued_at, due_date,
+                               line_items)
   VALUES (v_inv, v_cust, 'H5 Smoke SA de CV', 'H5-FAC-001',
-          1000, 160, 1160, 'sent', public.today_mty(), public.today_mty() + 30);
+          1000, 160, 1160, 'sent', public.today_mty(), public.today_mty() + 30,
+          '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
   -- Caso A: pago SIN REP timbrado → la NC completa se permite (saldo a favor).
   INSERT INTO public.payments (id, invoice_id, amount, payment_date, currency)
   VALUES (v_pay, v_inv, 1160, public.today_mty(), 'MXN');
 
   BEGIN
-    INSERT INTO public.credit_notes (invoice_id, customer_id, motive, subtotal,
-                                     tax_amount, total, status)
-    VALUES (v_inv, v_cust, 'return', 1000, 160, 1160, 'draft');
+    INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
+                                     reason_text, subtotal, tax_amount, total, status)
+    VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
+            'Devolución total de la renta', 1000, 160, 1160, 'draft');
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
@@ -79,9 +82,10 @@ BEGIN
    WHERE id = v_pay;
 
   BEGIN
-    INSERT INTO public.credit_notes (invoice_id, customer_id, motive, subtotal,
-                                     tax_amount, total, status)
-    VALUES (v_inv, v_cust, 'return', 1000, 160, 1160, 'draft');
+    INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
+                                     reason_text, subtotal, tax_amount, total, status)
+    VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
+            'Devolución total de la renta', 1000, 160, 1160, 'draft');
     v_ok := false;
   EXCEPTION WHEN others THEN
     v_ok := true;
@@ -92,9 +96,10 @@ BEGIN
   UPDATE public.payments SET rep_cancelled_at = now() WHERE id = v_pay;
 
   BEGIN
-    INSERT INTO public.credit_notes (invoice_id, customer_id, motive, subtotal,
-                                     tax_amount, total, status)
-    VALUES (v_inv, v_cust, 'return', 1000, 160, 1160, 'draft');
+    INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
+                                     reason_text, subtotal, tax_amount, total, status)
+    VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
+            'Devolución total de la renta', 1000, 160, 1160, 'draft');
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;

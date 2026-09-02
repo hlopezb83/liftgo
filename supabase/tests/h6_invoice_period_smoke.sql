@@ -89,8 +89,11 @@ BEGIN
   -- Usuario admin + rol (para que RLS permita insertar facturas).
   INSERT INTO auth.users (id, email, created_at, updated_at)
   VALUES (v_user, 'h6.admin@test.local', now(), now()) ON CONFLICT DO NOTHING;
+  -- Un trigger de auth ya puede haber creado el rol por defecto y existe un
+  -- único rol por usuario: se promueve a admin en lugar de insertar otro.
   INSERT INTO public.user_roles (user_id, role) VALUES (v_user, 'admin')
-  ON CONFLICT (user_id, role) DO NOTHING;
+  ON CONFLICT DO NOTHING;
+  UPDATE public.user_roles SET role = 'admin' WHERE user_id = v_user;
 
   -- Cadena mínima como superuser (RLS y triggers de asignación se ejecutan).
   INSERT INTO public.customers (id, name) VALUES (v_cust, 'H6 Smoke SA de CV');
@@ -99,7 +102,12 @@ BEGIN
   INSERT INTO public.bookings (id, forklift_id, start_date, end_date)
   VALUES (v_book, v_fork, public.today_mty(), public.today_mty() + 30);
 
-  -- A partir de aquí nos hacemos pasar por un operador autenticado (admin).
+  -- El guard exime a 'postgres'/'service_role', así que hay que ejecutar como
+  -- operador autenticado. En CI los privilegios de tabla se otorgan dentro de la
+  -- transacción (se revierten con el ROLLBACK final).
+  GRANT SELECT, INSERT, UPDATE ON public.invoices TO authenticated;
+  GRANT SELECT ON public.user_roles TO authenticated;
+  GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
   SET LOCAL ROLE authenticated;
   SET LOCAL request.jwt.claims TO '{"sub":"12111111-0000-4000-8000-000000000006","role":"authenticated"}';
 
@@ -108,10 +116,10 @@ BEGIN
     INSERT INTO public.invoices (invoice_number, customer_name, customer_id,
                                   booking_id, subtotal, tax_amount, total,
                                   status, issued_at, due_date,
-                                  billing_period_start, billing_period_end)
+                                  billing_period_start, billing_period_end, line_items)
     VALUES ('H6-FAC-A', 'H6 Smoke SA de CV', v_cust, v_book,
             1000, 160, 1160, 'draft', public.today_mty(), public.today_mty() + 30,
-            NULL, NULL);
+            NULL, NULL, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
     v_ok := false;
   EXCEPTION WHEN check_violation THEN
     v_ok := true;
@@ -124,10 +132,10 @@ BEGIN
     INSERT INTO public.invoices (invoice_number, customer_name, customer_id,
                                   booking_id, subtotal, tax_amount, total,
                                   status, issued_at, due_date,
-                                  billing_period_start, billing_period_end)
+                                  billing_period_start, billing_period_end, line_items)
     VALUES ('H6-FAC-B', 'H6 Smoke SA de CV', v_cust, v_book,
             1000, 160, 1160, 'draft', public.today_mty(), public.today_mty() + 30,
-            public.today_mty(), public.today_mty() + 30);
+            public.today_mty(), public.today_mty() + 30, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
@@ -140,13 +148,14 @@ BEGIN
     INSERT INTO public.invoices (invoice_number, customer_name, customer_id,
                                   booking_id, subtotal, tax_amount, total,
                                   status, issued_at, due_date,
-                                  billing_period_start, billing_period_end)
+                                  billing_period_start, billing_period_end, line_items)
     VALUES ('H6-FAC-C', 'H6 Smoke SA de CV', v_cust, NULL,
             500, 80, 580, 'draft', public.today_mty(), public.today_mty() + 15,
-            NULL, NULL);
+            NULL, NULL, '[{"description":"Smoke","quantity":1,"unit_price":500,"amount":500}]'::jsonb);
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
+    RAISE NOTICE 'detalle caso C: %', SQLERRM;
   END;
   PERFORM pg_temp.expect_true(
     'H-6 caso C: factura sin reserva y sin periodo se permite', v_ok);

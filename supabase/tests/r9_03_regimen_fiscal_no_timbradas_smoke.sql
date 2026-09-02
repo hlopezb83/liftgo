@@ -90,7 +90,7 @@ SELECT pg_temp.expect_true(
   'R9-03 sin filas deterministas pendientes en el universo seguro',
   NOT EXISTS (
     SELECT 1 FROM public.invoices i
-     WHERE pg_temp.r9_03_es_mutable(i.status::text, i.cfdi_status, i.cfdi_uuid, i.cancellation_status)
+     WHERE pg_temp.r9_03_es_mutable(i.status::text, i.cfdi_status, i.cfdi_uuid::text, i.cancellation_status)
        AND i.receptor_regimen_fiscal IS NOT NULL
        AND btrim(i.receptor_regimen_fiscal) <> ''
        AND public.normalize_regimen_fiscal(i.receptor_regimen_fiscal) IS NOT NULL
