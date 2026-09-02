@@ -1,0 +1,7 @@
+{
+  "description": "Corrección de las pruebas de documentos PDF tras la actualización de jsdom.",
+  "changes": [
+    "Las 9 pruebas de documentos PDF fallaban porque el mock de react-pdf pasaba estilos en forma de arreglo directo al DOM y jsdom 30 lo rechaza; ahora el mock aplana los arreglos de estilos antes de renderizar.",
+    "Sin cambios de comportamiento en producción: sólo se ajustó el archivo de pruebas."
+  ]
+}

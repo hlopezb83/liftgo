@@ -1,3 +1,7 @@
+## [7.418.2] - 2026-09-02
+### Corrección (pruebas)
+- Las 9 pruebas de documentos PDF fallaban tras la actualización de jsdom 30: el mock de react-pdf pasaba estilos como arreglo al DOM y jsdom lo rechaza. El mock ahora aplana los arreglos de estilos antes de renderizar; sin cambios en producción.
+
 ## [7.418.1] - 2026-09-02
 ### Corrección (guardrail de arquitectura)
 - El chequeo arch-check ya reconoce `src/lib/domain/bookingRates.ts` como archivo legítimo: lo usan reservas y facturas, y moverlo a un solo feature violaría la regla de imports cruzados (G5).
