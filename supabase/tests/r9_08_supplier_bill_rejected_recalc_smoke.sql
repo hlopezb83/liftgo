@@ -26,6 +26,14 @@ CREATE OR REPLACE FUNCTION pg_temp.make_rejected(
 DECLARE v_id uuid; v_user uuid;
 BEGIN
   SELECT id INTO v_user FROM public.profiles LIMIT 1;
+  IF v_user IS NULL THEN
+    -- En una base recién creada no hay perfiles: se crea uno de prueba.
+    v_user := gen_random_uuid();
+    INSERT INTO auth.users (id, email, created_at, updated_at)
+    VALUES (v_user, 'r9-08.smoke@test.local', now(), now()) ON CONFLICT DO NOTHING;
+    INSERT INTO public.profiles (id, email) VALUES (v_user, 'r9-08.smoke@test.local')
+    ON CONFLICT DO NOTHING;
+  END IF;
   INSERT INTO public.supplier_bills
     (bill_number, issue_date, subtotal, tax_amount, total, status, currency, exchange_rate)
   VALUES ('SMOKE-R9-08-' || gen_random_uuid()::text, public.today_mty(),
@@ -71,15 +79,17 @@ BEGIN
                      FROM public.company_settings ORDER BY created_at ASC LIMIT 1), 10000)
     INTO v_thr;
 
-  -- 1) Rechazada + corregida por debajo del umbral => not_required.
+  -- 1) Canon vigente (R10-01): un rechazo explícito NUNCA se auto-limpia. Aun
+  --    corrigiendo por debajo del umbral, la factura regresa a 'pending' y la
+  --    evidencia del rechazo se conserva para auditoría.
   v_id := pg_temp.make_rejected('MXN', 1, v_thr + 5000);
-  PERFORM pg_temp.expect_true('R9-08 corregida bajo umbral => not_required',
-    pg_temp.correct(v_id, 'MXN', 1, v_thr - 1) = 'not_required');
+  PERFORM pg_temp.expect_true('R9-08/R10-01 corregida bajo umbral => pending',
+    pg_temp.correct(v_id, 'MXN', 1, v_thr - 1) = 'pending');
 
   SELECT rejected_by, approval_notes INTO v_rej_by, v_notes
     FROM public.supplier_bills WHERE id = v_id;
-  PERFORM pg_temp.expect_true('R9-08 se limpia la metadata de rechazo',
-    v_rej_by IS NULL AND v_notes IS NULL);
+  PERFORM pg_temp.expect_true('R9-08/R10-01 se conserva la evidencia del rechazo',
+    v_rej_by IS NOT NULL AND v_notes IS NOT NULL);
 
   -- 2) Rechazada + corregida por encima del umbral => pending (nunca approved).
   v_id := pg_temp.make_rejected('MXN', 1, 100);
@@ -140,9 +150,9 @@ END $$;
 
 -- 6) request_bill_reapproval aplica umbral y regla FX (no siempre 'pending').
 SELECT pg_temp.expect_true(
-  'R9-08 request_bill_reapproval usa fx_is_missing y umbral',
-  pg_get_functiondef(p.oid) ILIKE '%fx_is_missing%'
-  AND pg_get_functiondef(p.oid) ILIKE '%cxp_approval_threshold_mxn%'
+  'R9-08/R10-01 request_bill_reapproval siempre manda a pending',
+  pg_get_functiondef(p.oid) ILIKE '%approval_status = ''pending''%'
+  AND pg_get_functiondef(p.oid) ILIKE '%Solo facturas rechazadas%'
 )
 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
 WHERE n.nspname = 'public' AND p.proname = 'request_bill_reapproval';
