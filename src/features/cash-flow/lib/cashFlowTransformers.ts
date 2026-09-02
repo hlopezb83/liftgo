@@ -6,7 +6,6 @@
  */
 import currency from "currency.js";
 import { resolveVatRatePercent, toMxn } from "@/lib/money";
-
 import type { CashFlowItem } from "./cashFlowUtils";
 
 // Re-export para preservar retro-compatibilidad con importadores existentes.
@@ -176,6 +175,48 @@ function addMonthsYmd(ymd: string, months: number): string {
  * y hasta el fin de la reserva; excluye monedas foráneas sin TC válido.
  * No crea reglas de negocio: es una estimación visual marcada como proyectada.
  */
+function recurringGrossMxn(b: RecurringBookingRow): number | null {
+  if (isFxMissing(b.currency, b.tipo_cambio)) return null;
+  const rate = Number(b.monthly_rate ?? 0);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
+  // FIX-4 (ronda 2): la proyección debe reflejar el TOTAL de la factura
+  // (renta + IVA del cliente), no el neto: la Edge Function factura con
+  // resolveVatRatePercent(customer.tax_rate).
+  const vatRate = resolveVatRatePercent(b.customer_tax_rate ?? null);
+  const gross = currency(rate, { precision: 2 }).multiply(1 + vatRate / 100).value;
+  if (!Number.isFinite(gross) || gross <= 0) return null;
+  const amountMxn = toMxn(gross, b.currency, b.tipo_cambio);
+  if (!Number.isFinite(amountMxn) || amountMxn < MIN_PROJECTABLE_BALANCE_MXN) return null;
+  return amountMxn;
+}
+
+function recurringBookingItemsFor(
+  b: RecurringBookingRow,
+  todayYmd: string,
+  horizonEndYmd: string,
+): CashFlowItem[] {
+  const amountMxn = recurringGrossMxn(b);
+  if (amountMxn === null) return [];
+  const items: CashFlowItem[] = [];
+  const anchor = b.last_billed_date && b.last_billed_date > b.start_date ? b.last_billed_date : b.start_date;
+  for (let i = 1; i <= 24; i++) {
+    const dueDate = addMonthsYmd(anchor, i);
+    if (dueDate > horizonEndYmd || dueDate > b.end_date) break;
+    if (dueDate < todayYmd) continue;
+    items.push({
+      id: `recurring:${b.id}:${dueDate}`,
+      number: b.booking_number,
+      partyName: b.customer_name ?? "—",
+      dueDate,
+      amountMxn,
+      kind: "in",
+      navigatePath: `/bookings/${b.id}`,
+      isProjected: true,
+    });
+  }
+  return items;
+}
+
 export function recurringBookingItems(
   bookings: ReadonlyArray<RecurringBookingRow>,
   todayYmd: string,
@@ -183,35 +224,7 @@ export function recurringBookingItems(
 ): CashFlowItem[] {
   const items: CashFlowItem[] = [];
   for (const b of bookings) {
-    if (isFxMissing(b.currency, b.tipo_cambio)) continue;
-    const rate = Number(b.monthly_rate ?? 0);
-    if (!Number.isFinite(rate) || rate <= 0) continue;
-    // FIX-4 (ronda 2): la proyección debe reflejar el TOTAL de la factura
-    // (renta + IVA del cliente), no el neto: la Edge Function factura con
-    // resolveVatRatePercent(customer.tax_rate).
-    const vatRate = resolveVatRatePercent(b.customer_tax_rate ?? null);
-    const gross = currency(rate, { precision: 2 }).multiply(1 + vatRate / 100).value;
-    if (!Number.isFinite(gross) || gross <= 0) continue;
-    const amountMxn = toMxn(gross, b.currency, b.tipo_cambio);
-    if (!Number.isFinite(amountMxn) || amountMxn < MIN_PROJECTABLE_BALANCE_MXN) continue;
-
-
-    const anchor = b.last_billed_date && b.last_billed_date > b.start_date ? b.last_billed_date : b.start_date;
-    for (let i = 1; i <= 24; i++) {
-      const dueDate = addMonthsYmd(anchor, i);
-      if (dueDate > horizonEndYmd || dueDate > b.end_date) break;
-      if (dueDate < todayYmd) continue;
-      items.push({
-        id: `recurring:${b.id}:${dueDate}`,
-        number: b.booking_number,
-        partyName: b.customer_name ?? "—",
-        dueDate,
-        amountMxn,
-        kind: "in",
-        navigatePath: `/bookings/${b.id}`,
-        isProjected: true,
-      });
-    }
+    items.push(...recurringBookingItemsFor(b, todayYmd, horizonEndYmd));
   }
   return items;
 }

@@ -4,7 +4,6 @@ import {
   SelectField,
   NumberField,
   CurrencyField,
-  type SelectOption,
 } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -15,11 +14,8 @@ import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
+import { CATEGORY_OPTIONS } from "../../lib/partConstants";
 import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
-
-const PART_CATEGORIES = ["Filtros", "Llantas", "Aceites", "Baterías", "Otros"] as const;
-
-const CATEGORY_OPTIONS: SelectOption[] = PART_CATEGORIES.map((c) => ({ value: c, label: c }));
 
 interface PartFormDialogProps {
   open: boolean;
@@ -136,5 +132,3 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
     </FormDialog>
   );
 }
-
-export { PART_CATEGORIES };
