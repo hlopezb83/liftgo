@@ -8,7 +8,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BOOKINGS_RANGE_LIMIT, useBookingsRange } from "@/features/bookings";
-import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
+import { chartGridProps } from "@/lib/charts/chartTheme";
+import { useChartSizing } from "@/lib/charts/useChartSizing";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useUtilizationByUnitReport } from "../../hooks/useUtilizationReportData";
 import { bookingsForForkliftInRange, type ClampedBooking, type DrilldownBooking } from "../../lib/drilldown";
@@ -35,6 +36,7 @@ function TruncatedRangeAlert() {
 }
 
 function UtilizationChartCard({ data }: { data: Row[] }) {
+  const { tick, rotatedXAxis, isMobile, chartHeightClass } = useChartSizing();
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -45,12 +47,12 @@ function UtilizationChartCard({ data }: { data: Row[] }) {
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto -mx-2 px-2">
-          <div className="h-64" style={{ minWidth: `${Math.max(data.length * 32, 320)}px` }}>
+          <div className={chartHeightClass} style={{ minWidth: `${Math.max(data.length * (isMobile ? 28 : 32), 300)}px` }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid {...chartGridProps} />
-                <XAxis dataKey="name" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
-                <YAxis unit="%" width={40} tick={chartTick} />
+                <XAxis dataKey="name" tick={tick} {...rotatedXAxis} />
+                <YAxis unit="%" width={isMobile ? 34 : 40} tick={tick} />
                 <Tooltip formatter={(val) => `${Number(val)}%`} />
                 <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>

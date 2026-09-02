@@ -5,7 +5,7 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { chartTick } from "@/lib/charts/chartTheme";
+import { useChartSizing } from "@/lib/charts/useChartSizing";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCompactCurrency, formatCurrency } from "@/lib/format/formatCurrency";
 import { useMaintenanceCostByUnitReport } from "../../hooks/useMaintenanceCostByUnitReport";
@@ -18,6 +18,7 @@ interface Props {
 type Row = { name: string; totalCost: number; count: number };
 
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
+  const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
   // FIX-FE-01: agregación server-side vía RPC; useMaintenanceLogs() está capado
   // a 501 filas y el costo total quedaba subestimado sin aviso.
   const { data = [], isError, isFetching, refetch } = useMaintenanceCostByUnitReport(startDate, endDate);
@@ -59,14 +60,14 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
+          <div className={chartHeightClass}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                 {/* R6-FE-11e: nombres de unidad se cortaban a 402px; mismo
                     patrón que UtilizationReport (ángulo + altura). */}
-                <XAxis dataKey="name" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
-                <YAxis tick={{ fontSize: 11 }} width={72} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
+                <XAxis dataKey="name" tick={tick} {...rotatedXAxis} />
+                <YAxis tick={tick} width={moneyAxisWidth} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
               </BarChart>

@@ -7,7 +7,7 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { chartTick } from "@/lib/charts/chartTheme";
+import { useChartSizing } from "@/lib/charts/useChartSizing";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
@@ -34,6 +34,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
   // FIX-FE-01: agregación server-side (patrón useProfitByModelReport).
   // useInvoices() está capado a LIST_FETCH_LIMIT (501 filas) y el reporte
   // subestimaba ingresos silenciosamente con más de 500 facturas.
+  const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
   const { data: rows = [], isError, isFetching, refetch } = useRevenueByMonthReport(startDate, endDate);
   const [selected, setSelected] = useState<Row | null>(null);
   const data: Row[] = rows.map((r) => ({
@@ -93,13 +94,13 @@ export function RevenueReport({ startDate, endDate }: Props) {
               tipo de cambio para que sumen al reporte.
             </p>
           )}
-          <div className="h-64">
+          <div className={chartHeightClass}>
 
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
-                <XAxis dataKey="month" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
-                <YAxis width={80} tickFormatter={(v) => compactMoneyMxn(Number(v))} tick={{ fontSize: 11 }} />
+                <XAxis dataKey="month" tick={tick} {...rotatedXAxis} />
+                <YAxis width={moneyAxisWidth} tickFormatter={(v) => compactMoneyMxn(Number(v))} tick={tick} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />
