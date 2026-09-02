@@ -4,27 +4,17 @@ import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
+import { buildCustomerPayload } from "../../lib/customerPayload";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
 
-const OPTIONAL_NULL_FIELDS = [
-  "email", "phone", "address", "notes", "website", "contact_person",
-  "rfc", "regimen_fiscal", "uso_cfdi", "domicilio_fiscal_cp", "representante_legal",
-] as const;
-
+/**
+ * FIX-5 (ronda 3): la edición reusa el MISMO builder que el alta. Antes tenía
+ * su propia lista de campos y omitía `tax_rate`: el usuario cambiaba la tasa
+ * de IVA, veía "Cliente actualizado" y el cambio se perdía en silencio.
+ * R7 Bloque 9: `razon_social` se mantiene sincronizada con `name`.
+ */
 function customerFormToUpdate(form: CustomerFormData) {
-  // R7 Bloque 9: `razon_social` alimenta CFDI 4.0 y PDFs; sincronizamos con
-  // `name`/`company` (misma regla que `buildCustomerPayload` en create) para
-  // que un rename desde detalle no deje la razón social obsoleta.
-  const base: Record<string, string | null> = {
-    name: form.name,
-    company: form.name,
-    razon_social: form.name,
-  };
-  for (const k of OPTIONAL_NULL_FIELDS) {
-    const v = form[k as keyof CustomerFormData];
-    base[k] = (typeof v === "string" ? v : "") || null;
-  }
-  return base;
+  return buildCustomerPayload(form);
 }
 
 interface Params {

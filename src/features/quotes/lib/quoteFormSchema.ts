@@ -115,13 +115,15 @@ export const quoteFormSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["insuranceCost"], message: "Ingresa el costo del seguro" });
   }
 
-  // A5-02: moneda foránea exige tipo de cambio > 0 (mismo criterio que
-  // `invoiceFormSchema`); un TC 0/1 falsearía la conversión a MXN.
-  if (val.currency !== "MXN" && !(val.tipoCambio > 0)) {
+  // A5-02 + FIX-7 (ronda 3): moneda foránea exige tipo de cambio real. Regla
+  // canónica `fx_is_missing`: nulo, ≤ 0 o exactamente 1 = faltante (mismo
+  // criterio que `invoiceFormSchema` desde v7.418.0). Un TC de 1 en USD
+  // propagaba paridad ficticia a la reserva y a la facturación recurrente.
+  if (val.currency !== "MXN" && (!(val.tipoCambio > 0) || val.tipoCambio === 1)) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["tipoCambio"],
-      message: "El tipo de cambio debe ser mayor a 0 para moneda distinta de MXN",
+      message: "Captura el tipo de cambio real (no puede ser 0 ni 1) para moneda distinta de MXN",
     });
   }
 
