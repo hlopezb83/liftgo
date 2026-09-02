@@ -108,12 +108,12 @@ SELECT pg_temp.expect_true(
     LIKE '%solo un administrador puede archivarla%'
 );
 
+-- Canon vigente (R5-A5): el archivado NUNCA borra refacciones ni mano de obra,
+-- para que al restaurar la OT siga completa.
 SELECT pg_temp.expect_true(
-  'el RPC limpia refacciones y mano de obra sólo de OT no cerradas',
-  pg_temp.fndef('soft_delete_maintenance_log')
-    LIKE '%v_status <> ''completed''%'
-  AND pg_temp.fndef('soft_delete_maintenance_log') LIKE '%DELETE FROM public.maintenance_parts%'
-  AND pg_temp.fndef('soft_delete_maintenance_log') LIKE '%DELETE FROM public.maintenance_labor%'
+  'el RPC no borra refacciones ni mano de obra al archivar',
+  pg_temp.fndef('soft_delete_maintenance_log') NOT LIKE '%DELETE FROM public.maintenance_parts%'
+  AND pg_temp.fndef('soft_delete_maintenance_log') NOT LIKE '%DELETE FROM public.maintenance_labor%'
 );
 
 SELECT pg_temp.expect_true(

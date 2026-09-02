@@ -100,8 +100,8 @@ BEGIN
   VALUES (v_fk2, 'SMOKE A6-1 daño', 'M', 'SMOKE-A62-' || v_fk2, 'available');
   INSERT INTO public.maintenance_logs (id, forklift_id, service_type, work_status, performed_at)
   VALUES (v_ot2, v_fk2, 'preventivo', 'in_progress', now());
-  INSERT INTO public.damage_records (id, forklift_id, description, status, reported_at)
-  VALUES (gen_random_uuid(), v_fk2, 'smoke daño', 'reported', now());
+  INSERT INTO public.damage_records (id, forklift_id, description, status)
+  VALUES (gen_random_uuid(), v_fk2, 'smoke daño', 'reported');
 
   UPDATE public.maintenance_logs SET deleted_at = now() WHERE id = v_ot2;
   SELECT status INTO v_st FROM public.forklifts WHERE id = v_fk2;
