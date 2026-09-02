@@ -1,5 +1,6 @@
 import type { Forklift } from "@/features/fleet";
 import { monthBounds } from "@/lib/date/monthBounds";
+import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
@@ -7,6 +8,7 @@ import { nowMty } from "@/lib/utils";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
+
 
 type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;
