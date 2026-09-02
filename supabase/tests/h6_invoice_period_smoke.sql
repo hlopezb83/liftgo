@@ -106,6 +106,8 @@ BEGIN
   -- operador autenticado. En CI los privilegios de tabla se otorgan dentro de la
   -- transacción (se revierten con el ROLLBACK final).
   GRANT SELECT, INSERT, UPDATE ON public.invoices TO authenticated;
+  GRANT SELECT ON public.user_roles TO authenticated;
+  GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
   SET LOCAL ROLE authenticated;
   SET LOCAL request.jwt.claims TO '{"sub":"12111111-0000-4000-8000-000000000006","role":"authenticated"}';
 
