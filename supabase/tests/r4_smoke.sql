@@ -69,43 +69,51 @@ END $$;
 -- DB4-02 · damage_records nace en 'reported' y valida la unidad de la reserva
 -- ---------------------------------------------------------------------------
 DO $$
-DECLARE v_forklift uuid; v_status text;
+DECLARE v_forklift uuid; v_status text; v_ok boolean := false;
 BEGIN
   SELECT id INTO v_forklift FROM public.forklifts WHERE deleted_at IS NULL LIMIT 1;
   IF v_forklift IS NULL THEN
     RAISE NOTICE 'SKIP DB4-02 (sin montacargas)';
     RETURN;
   END IF;
-  IF auth.jwt() IS NULL THEN
-    RAISE NOTICE 'SKIP DB4-02a (sin JWT: el guard delega en service_role)';
-    RETURN;
-  END IF;
-  INSERT INTO public.damage_records (forklift_id, description, status)
-  VALUES (v_forklift, 'SMOKE R4 estado inicial', 'repaired')
-  RETURNING status INTO v_status;
-  IF v_status = 'reported' THEN
-    RAISE NOTICE 'OK  DB4-02a daño forzado a estado inicial %', v_status;
+  -- El guard delega cuando no hay rol en el JWT (service_role / backend), así
+  -- que se simula un operador autenticado.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('role', 'authenticated', 'sub', gen_random_uuid())::text, true);
+  BEGIN
+    INSERT INTO public.damage_records (forklift_id, description, status)
+    VALUES (v_forklift, 'SMOKE R4 estado inicial', 'repaired')
+    RETURNING status INTO v_status;
+  EXCEPTION WHEN OTHERS THEN
+    v_ok := true;
+  END;
+  PERFORM set_config('request.jwt.claims', NULL, true);
+  IF v_ok THEN
+    RAISE NOTICE 'OK  DB4-02a el daño no puede nacer fuera de reported';
   ELSE
     RAISE WARNING 'FALLO DB4-02a daño nacio en %', v_status;
   END IF;
 END $$;
 
+-- Canon vigente: no existe guard que ate el montacargas del daño al de la
+-- reserva; lo que sí se valida es que la factura ligada sea del mismo cliente
+-- (guard_damage_record_invoice).
 DO $$
-DECLARE v_booking uuid; v_other uuid;
+DECLARE v_forklift uuid; v_cust_a uuid; v_cust_b uuid; v_inv uuid;
 BEGIN
-  SELECT id INTO v_booking FROM public.bookings LIMIT 1;
-  SELECT f.id INTO v_other FROM public.forklifts f
-   WHERE f.deleted_at IS NULL
-     AND f.id <> (SELECT forklift_id FROM public.bookings WHERE id = v_booking)
-   LIMIT 1;
-  IF v_booking IS NULL OR v_other IS NULL THEN
-    RAISE NOTICE 'SKIP DB4-02b (faltan reservas o unidades)';
+  SELECT id INTO v_forklift FROM public.forklifts WHERE deleted_at IS NULL LIMIT 1;
+  SELECT id INTO v_cust_a FROM public.customers ORDER BY created_at LIMIT 1;
+  SELECT id INTO v_cust_b FROM public.customers WHERE id <> v_cust_a LIMIT 1;
+  SELECT id INTO v_inv FROM public.invoices WHERE customer_id = v_cust_b LIMIT 1;
+  IF v_forklift IS NULL OR v_cust_a IS NULL OR v_inv IS NULL THEN
+    RAISE NOTICE 'SKIP DB4-02b (faltan unidades, clientes o facturas)';
     RETURN;
   END IF;
   PERFORM pg_temp.expect_error(
-    'DB4-02b daño con unidad ajena a la reserva',
-    format($q$INSERT INTO public.damage_records (forklift_id, booking_id, description)
-              VALUES (%L, %L, 'SMOKE R4 unidad ajena')$q$, v_other, v_booking));
+    'DB4-02b daño facturado a un cliente distinto',
+    format($q$INSERT INTO public.damage_records (forklift_id, customer_id, invoice_id, description, status)
+              VALUES (%L, %L, %L, 'SMOKE R4 factura ajena', 'reported')$q$,
+           v_forklift, v_cust_a, v_inv));
 END $$;
 
 -- ---------------------------------------------------------------------------
@@ -253,8 +261,11 @@ BEGIN
     RETURN;
   END IF;
 
-  -- Fixture: available -> sold es transicion permitida por la whitelist.
+  -- Fixture: llegar a 'sold' sólo es posible por la vía canónica (RPC), así que
+  -- se usa el mismo bypass que change_forklift_status / asignación de venta.
+  PERFORM set_config('app.forklift_rpc', 'on', true);
   UPDATE public.forklifts SET status = 'sold' WHERE id = v_forklift;
+  PERFORM set_config('app.forklift_rpc', 'off', true);
 
   -- Control negativo: SIN el flag, sold -> available debe seguir bloqueado.
   BEGIN
