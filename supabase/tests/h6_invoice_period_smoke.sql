@@ -151,7 +151,7 @@ BEGIN
                                   billing_period_start, billing_period_end, line_items)
     VALUES ('H6-FAC-C', 'H6 Smoke SA de CV', v_cust, NULL,
             500, 80, 580, 'draft', public.today_mty(), public.today_mty() + 15,
-            NULL, NULL, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
+            NULL, NULL, '[{"description":"Smoke","quantity":1,"unit_price":500,"amount":500}]'::jsonb);
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
