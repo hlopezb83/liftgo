@@ -39,6 +39,10 @@ function PortalEmptyState() {
   );
 }
 
+function balanceColor(outstanding: number): string {
+  return outstanding > 0 ? "text-destructive" : "";
+}
+
 export default function PortalDashboard() {
   const { data: customer, isLoading: customerLoading, isError: customerError, refetch: refetchCustomer } = usePortalCustomer();
   const { data: bookings, isLoading: bookingsLoading, isError: bookingsError, refetch: refetchBookings } = usePortalBookings();
@@ -68,7 +72,7 @@ export default function PortalDashboard() {
   const welcome = customer?.name ? `Bienvenido, ${customer.name}` : "Bienvenido";
   // Oleada 3 (C-3/C-2): formato compacto + escala tipográfica para no truncar el saldo.
   const outstandingLabel = formatCompactCurrency(outstanding);
-  const balanceClass = `tabular-nums ${kpiSizeClass(outstandingLabel)} ${outstanding > 0 ? "text-destructive" : ""}`;
+  const balanceClass = `tabular-nums ${kpiSizeClass(outstandingLabel)} ${balanceColor(outstanding)}`;
 
 
   return (

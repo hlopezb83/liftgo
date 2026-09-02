@@ -8,8 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
 import { useUpdateBooking } from "../../hooks/bookings/useBookingMutations";
-import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
+import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 
 /** Estados donde ya no tiene sentido cambiar la recurrencia (no habrá más ciclos). */
 const CLOSED_STATUSES = new Set(["cancelled", "completed"]);
