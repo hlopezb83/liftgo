@@ -23,6 +23,18 @@ export function useQuoteFormLogic() {
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
 
+  // FIX-5: snapshot congelado de la versión leída al ABRIR el formulario.
+  // Antes se leía la versión viva de React Query, que un refetch en segundo
+  // plano actualizaba silenciosamente y neutralizaba el candado optimista
+  // (lost update). Mismo patrón que el formulario de facturas.
+  const [quoteVersion, setQuoteVersion] = useState<number | null>(null);
+  useEffect(() => { setQuoteVersion(null); }, [id]);
+  useEffect(() => {
+    const v = (existingQuote as { version?: number | null } | null | undefined)?.version;
+    if (typeof v === "number") setQuoteVersion((prev) => prev ?? v);
+  }, [existingQuote]);
+
+
   // R9-P0 (BL-R8-08): valores reactivos memoizados por quoteId — ver
   // `useQuotePrefillValues`. Se calculan ANTES de `useQuoteForm` para
   // pasarlos como opción `values` de RHF (reemplaza el `form.reset()`
