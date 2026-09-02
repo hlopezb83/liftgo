@@ -62,3 +62,13 @@ export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto
       objeto_imp: "02",
     }));
 }
+
+/**
+ * FIX-4: ¿las partidas de una factura incluyen al menos una partida extra
+ * (no renta ni venta de equipo)? Se usa para no volver a pre-cargar seguro /
+ * logística en una segunda factura de la misma reserva.
+ */
+export function hasNonRentalLines(lineItems: unknown): boolean {
+  if (!Array.isArray(lineItems)) return false;
+  return (lineItems as LineItem[]).some((item) => !isRentalOrSaleLine(item.description));
+}
