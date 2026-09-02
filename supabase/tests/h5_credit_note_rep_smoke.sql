@@ -53,9 +53,11 @@ BEGIN
   INSERT INTO public.customers (id, name) VALUES (v_cust, 'H5 Smoke SA de CV');
 
   INSERT INTO public.invoices (id, customer_id, customer_name, invoice_number,
-                               subtotal, tax_amount, total, status, issued_at, due_date)
+                               subtotal, tax_amount, total, status, issued_at, due_date,
+                               line_items)
   VALUES (v_inv, v_cust, 'H5 Smoke SA de CV', 'H5-FAC-001',
-          1000, 160, 1160, 'sent', public.today_mty(), public.today_mty() + 30);
+          1000, 160, 1160, 'sent', public.today_mty(), public.today_mty() + 30,
+          '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
   -- Caso A: pago SIN REP timbrado → la NC completa se permite (saldo a favor).
   INSERT INTO public.payments (id, invoice_id, amount, payment_date, currency)

@@ -80,9 +80,9 @@ DECLARE
 BEGIN
   -- Caso A: factura con NC timbrada por el total → 'paid', nunca 'overdue'.
   INSERT INTO public.invoices (id, invoice_number, customer_name, subtotal, tax_rate,
-                               tax_amount, total, status, due_date)
+                               tax_amount, total, status, due_date, line_items)
   VALUES (v_inv_nc, 'S3-NC-001', 'Cliente Sprint 3', 1000, 0, 0, 1000, 'sent',
-          public.today_mty() - 5);
+          public.today_mty() - 5, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
   INSERT INTO public.credit_notes (invoice_id, credit_note_number, motive, reason_text,
                                    subtotal, tax_rate, tax_amount, total, status)
@@ -97,9 +97,9 @@ BEGIN
 
   -- Caso B: sobrepago bloqueado.
   INSERT INTO public.invoices (id, invoice_number, customer_name, subtotal, tax_rate,
-                               tax_amount, total, status, due_date)
+                               tax_amount, total, status, due_date, line_items)
   VALUES (v_inv_pay, 'S3-PAY-001', 'Cliente Sprint 3', 1000, 0, 0, 1000, 'sent',
-          public.today_mty() + 5);
+          public.today_mty() + 5, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
   v_blocked := false;
   BEGIN
@@ -122,9 +122,9 @@ BEGIN
 
   -- Caso D: borrar el único pago de una factura vencida la deja en 'overdue'.
   INSERT INTO public.invoices (id, invoice_number, customer_name, subtotal, tax_rate,
-                               tax_amount, total, status, due_date)
+                               tax_amount, total, status, due_date, line_items)
   VALUES (v_inv_due, 'S3-DUE-001', 'Cliente Sprint 3', 1000, 0, 0, 1000, 'sent',
-          public.today_mty() - 3);
+          public.today_mty() - 3, '[{"description":"Smoke","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
   INSERT INTO public.payments (id, invoice_id, amount, payment_date, currency)
   VALUES (v_pay, v_inv_due, 400, public.today_mty(), 'MXN');

@@ -60,7 +60,7 @@ SELECT pg_temp.expect_true(
 -- 03-FIX-R2-08: la vista de vencidas corre con permisos del invocador.
 SELECT pg_temp.expect_true(
   'R2-08 v_overdue_invoices con security_invoker',
-  (SELECT reloptions::text FROM pg_class WHERE relname = 'v_overdue_invoices') ILIKE '%security_invoker=on%'
+  (SELECT reloptions::text FROM pg_class WHERE relname = 'v_overdue_invoices') ILIKE ANY (ARRAY['%security_invoker=on%', '%security_invoker=true%'])
 );
 
 -- 02-FIX-R2-06: horómetro no negativo en base de datos.
