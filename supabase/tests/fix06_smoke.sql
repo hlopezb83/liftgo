@@ -143,27 +143,45 @@ VALUES ('66666666-0000-4000-8000-000000000031', '66666666-0000-4000-8000-0000000
         public.today_mty(), 'USD', 18);
 
 SELECT pg_temp.expect_true(
-  'M-2 amount_mxn usa el tipo_cambio de la factura (50 x 20 = 1000)',
-  (SELECT amount_mxn FROM public.payments WHERE id = '66666666-0000-4000-8000-000000000031') = 1000
+  'M-2 amount_mxn usa el tipo_cambio del pago cuando existe (50 x 18 = 900)',
+  (SELECT amount_mxn FROM public.payments WHERE id = '66666666-0000-4000-8000-000000000031') = 900
 );
 
 UPDATE public.payments SET amount = 25 WHERE id = '66666666-0000-4000-8000-000000000031';
 
 SELECT pg_temp.expect_true(
-  'M-2 amount_mxn se recalcula al editar el importe (25 x 20 = 500)',
-  (SELECT amount_mxn FROM public.payments WHERE id = '66666666-0000-4000-8000-000000000031') = 500
+  'M-2 amount_mxn se recalcula al editar el importe (25 x 18 = 450)',
+  (SELECT amount_mxn FROM public.payments WHERE id = '66666666-0000-4000-8000-000000000031') = 450
 );
 
+-- Canon vigente (trg_invoice_tipo_cambio_inmutable): el tipo_cambio sólo se
+-- congela cuando la factura ya está timbrada (cfdi_uuid) o tiene pagos con REP
+-- timbrado. Sin timbre, corregir el TC es una edición válida.
 DO $$
 DECLARE v_ok boolean := false;
 BEGIN
   BEGIN
     UPDATE public.invoices SET tipo_cambio = 21
      WHERE id = '66666666-0000-4000-8000-000000000030';
+    v_ok := true;
+  EXCEPTION WHEN others THEN
+    v_ok := false;
+    RAISE NOTICE 'detalle: %', SQLERRM;
+  END;
+  PERFORM pg_temp.expect_true('M-2 tipo_cambio editable sin timbre ni REP', v_ok);
+
+  -- Con un REP timbrado el candado sí aplica.
+  UPDATE public.payments
+     SET rep_cfdi_status = 'stamped', rep_cfdi_uuid = gen_random_uuid()
+   WHERE id = '66666666-0000-4000-8000-000000000031';
+  v_ok := false;
+  BEGIN
+    UPDATE public.invoices SET tipo_cambio = 22
+     WHERE id = '66666666-0000-4000-8000-000000000030';
   EXCEPTION WHEN others THEN
     v_ok := SQLERRM ILIKE '%tipo_cambio es inmutable%';
   END;
-  PERFORM pg_temp.expect_true('M-2 tipo_cambio inmutable con pagos registrados', v_ok);
+  PERFORM pg_temp.expect_true('M-2 tipo_cambio inmutable con REP timbrado', v_ok);
 END $$;
 
 ROLLBACK;

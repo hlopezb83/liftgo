@@ -81,8 +81,8 @@ DECLARE
   v_ok boolean;
 BEGIN
   INSERT INTO public.customers (id, name) VALUES (v_cust, 'FIX03 Smoke SA de CV');
-  INSERT INTO public.forklifts (id, name, status) VALUES (v_fk, 'FIX03-U1', 'available');
-  INSERT INTO public.forklifts (id, name, status) VALUES (v_fk2, 'FIX03-U2', 'available');
+  INSERT INTO public.forklifts (id, name, model, status) VALUES (v_fk, 'FIX03-U1', 'SMOKE', 'available');
+  INSERT INTO public.forklifts (id, name, model, status) VALUES (v_fk2, 'FIX03-U2', 'SMOKE', 'available');
   INSERT INTO public.bookings (id, forklift_id, customer_id, customer_name, start_date, end_date, status)
   VALUES (v_bk, v_fk, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
 
