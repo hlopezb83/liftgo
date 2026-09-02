@@ -22,6 +22,16 @@ const customerFormBaseSchema = z.object({
   uso_cfdi: z.string().default(""),
   domicilio_fiscal_cp: cpOptional,
   representante_legal: z.string().trim().max(200, "Máximo 200 caracteres").default(""),
+  // FIX-3: tasa de IVA del cliente (%). Vacío = usar el 16% por defecto.
+  tax_rate: z
+    .string()
+    .trim()
+    .default("")
+    .refine(
+      (v) => v === "" || (Number.isFinite(Number(v)) && Number(v) >= 0 && Number(v) <= 100),
+      { message: "La tasa de IVA debe estar entre 0 y 100" },
+    ),
+
 });
 
 export const customerFormSchema = customerFormBaseSchema.refine(
