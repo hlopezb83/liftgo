@@ -135,6 +135,10 @@ type PlanItem = {
   tipoCambio: number;
   // B5-01: advertencia de tarifa potencialmente desactualizada para el periodo.
   rateWarning: boolean;
+  // FIX-6 (ronda 2): primera factura de la reserva → anexar extras pactados
+  // en la cotización (seguro, logística) una sola vez.
+  quoteId: string | null;
+  isFirstInvoice: boolean;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -147,7 +151,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
+      "id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
@@ -201,6 +205,9 @@ async function buildPlan(supabase: any): Promise<{
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
     // contradice — es la columna que se desincroniza (v6.110.0).
     let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
+    // FIX-6: ¿la reserva ya tiene alguna factura vigente? Si sí, los extras de
+    // la cotización ya se cobraron (o se decidieron omitir) y no se re-anexan.
+    let hasPriorInvoices = false;
     {
       const { data: linked } = await supabase
         .from("invoice_bookings")
@@ -212,6 +219,7 @@ async function buildPlan(supabase: any): Promise<{
       const rows = (linked ?? []) as Array<
         { invoices: { billing_period_end: string | null } }
       >;
+      hasPriorInvoices = rows.length > 0;
       if (rows.length === 0) {
         effectiveLastBilled = null;
       } else {
@@ -479,6 +487,9 @@ async function buildPlan(supabase: any): Promise<{
         tipoCambio: bookingCurrency === "MXN" ? 1 : bookingTipoCambio,
         // B5-01
         rateWarning,
+        // FIX-6
+        quoteId: (booking.quote_id as string | null) ?? null,
+        isFirstInvoice: !hasPriorInvoices && firstIteration,
       });
       virtualLastBilled = endStr;
       firstIteration = false;
