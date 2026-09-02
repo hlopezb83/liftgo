@@ -1,3 +1,9 @@
+## [7.417.2] - 2026-09-02
+### Mantenimiento (actualización de dependencias)
+- Se actualizaron dompurify (3.4.14), react-dropzone (20.1.1), jsdom (30.0.1), @types/node (26.4.1) y eslint-plugin-react-refresh (0.5.5) sin cambios de comportamiento.
+- react-table permanece en v8: la v9 cambia la API por completo y exigiría migrar el DataTable; se evaluará como proyecto aparte.
+- TypeScript permanece en 5.x hasta que typescript-eslint soporte la v7.
+
 ## [7.417.1] - 2026-09-02
 ### Corrección (estabilidad de CI y conciliación)
 - La conciliación bancaria dejó de consultar una columna inexistente en pagos a proveedores; conserva la exclusión de pagos de clientes marcados como pruebas.
