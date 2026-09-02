@@ -59,7 +59,7 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_on_booking_exit usa la renta físicamente activa',
-  pg_temp.fndef('sync_forklift_on_booking_exit') ILIKE '%booking_is_returned%'
+  pg_temp.fndef('sync_forklift_on_booking_exit') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_rental_status no degrada rentas vencidas sin devolución',
