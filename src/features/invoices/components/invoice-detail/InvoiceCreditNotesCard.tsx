@@ -51,6 +51,7 @@ interface NoticeProps {
   repBacked: number;
   invoiceTotal: number;
   priorCredits: number;
+  maxCreditable: number;
   repPayments: number;
   blockedByReps: boolean;
   willCreateCredit: boolean;
@@ -59,7 +60,7 @@ interface NoticeProps {
 
 function CreditNoteNotices({
   blockedByMissingFx, fxMissingReps, repBacked, invoiceTotal,
-  priorCredits, repPayments, blockedByReps, willCreateCredit, otherPaid,
+  priorCredits, maxCreditable, repPayments, blockedByReps, willCreateCredit, otherPaid,
 }: NoticeProps) {
   return (
     <>
@@ -78,7 +79,7 @@ function CreditNoteNotices({
           invoiceTotal={invoiceTotal}
           priorCredits={priorCredits}
           repBacked={repBacked}
-          maxCreditable={invoiceTotal - priorCredits}
+          maxCreditable={maxCreditable}
           repPayments={repPayments}
           blocked={blockedByReps}
         />
