@@ -155,7 +155,10 @@ export interface RecurringBookingRow {
   monthly_rate: number | string | null;
   currency: string | null;
   tipo_cambio: number | string | null;
+  /** FIX-4 (ronda 2): tasa de IVA del cliente (null → 16%, 0 explícito se respeta). */
+  customer_tax_rate?: number | string | null;
 }
+
 
 function addMonthsYmd(ymd: string, months: number): string {
   const [y, m, d] = ymd.split("-").map(Number);
