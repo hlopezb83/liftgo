@@ -161,7 +161,10 @@ export function BookingActions({ booking }: BookingActionsProps) {
             <Button
               variant="destructive"
               disabled={cancelBookingPending}
-              onClick={() => handleCancel(cancelReason.trim() || undefined)}
+              onClick={() => handleCancel(cancelReason.trim() || undefined, () => {
+                setCancelOpen(false);
+                setCancelReason("");
+              })}
             >
               Cancelar Reserva
             </Button>

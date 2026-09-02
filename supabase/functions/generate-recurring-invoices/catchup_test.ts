@@ -51,6 +51,16 @@ function planPeriods(
   return periods;
 }
 
+function pendingAfterLimit(lastPeriodEnd: string, endDate: string | null, today: string): number {
+  const last = dateOnlyToMty(lastPeriodEnd);
+  const next = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1));
+  const now = dateOnlyToMty(today);
+  const end = endDate ? dateOnlyToMty(endDate) : now;
+  const limit = end < now ? end : now;
+  if (next > limit) return 0;
+  return (limit.getUTCFullYear() - next.getUTCFullYear()) * 12 + limit.getUTCMonth() - next.getUTCMonth() + 1;
+}
+
 Deno.test("catch-up: 2 meses atrasado genera 2 facturas de recuperación", () => {
   // lastBilled=2026-04-30, hoy=2026-07-21 → debe generar may/jun/jul (jul
   // porque ya estamos dentro del mes actual).
@@ -91,4 +101,12 @@ Deno.test("catch-up: tope duro MAX_CATCHUP_ITERATIONS respetado", () => {
   // lastBilled muy antiguo, hoy muy adelante → no debe exceder 24 iteraciones.
   const r = planPeriods("2020-01-31", "2019-01-01", "2050-01-01", "2026-07-21");
   assertEquals(r.length, MAX_CATCHUP_ITERATIONS);
+  assertEquals(pendingAfterLimit(r.at(-1)?.end ?? "", "2050-01-01", "2026-07-21"), 54);
+});
+
+Deno.test("catch-up: primer periodo prorrateado conserva su rango exacto", () => {
+  const first = planPeriods(null, "2026-09-12", "2027-09-11", "2026-09-20");
+  assertEquals(first[0], { start: "2026-09-12", end: "2026-09-30" });
+  const afterInvoice = planPeriods(first[0].end, "2026-09-12", "2027-09-11", "2026-10-20");
+  assertEquals(afterInvoice[0], { start: "2026-10-01", end: "2026-10-31" });
 });

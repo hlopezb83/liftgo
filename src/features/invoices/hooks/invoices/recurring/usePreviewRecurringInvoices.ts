@@ -40,6 +40,8 @@ export interface RecurringPreviewLine {
 export interface RecurringPreviewResponse {
   period: string | null;
   lines: RecurringPreviewLine[];
+  truncated?: boolean;
+  pending_count?: number;
 }
 
 /**
@@ -56,6 +58,8 @@ export function usePreviewRecurringInvoices() {
       return {
         period: res.period ?? null,
         lines: Array.isArray(res.lines) ? res.lines : [],
+        truncated: res.truncated === true,
+        pending_count: Number(res.pending_count ?? 0),
       };
     },
     errorTitle: "Error al calcular vista previa",

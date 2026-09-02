@@ -5,7 +5,7 @@
 -- Ejecutar contra staging:  psql -f supabase/tests/r9_lote_ac_smoke.sql
 -- Solo lecturas de catálogo/datos: termina con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 
@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
   IF p_cond THEN RAISE NOTICE 'OK  %', p_label;
-  ELSE RAISE WARNING 'FALLO  %', p_label; END IF;
+  ELSE RAISE EXCEPTION 'FALLO  %', p_label; END IF;
 END; $$;
 
 CREATE OR REPLACE FUNCTION pg_temp.src(p_name text)
@@ -32,7 +32,7 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'R9-01 conserva el guard de pagos',
-  pg_temp.src('set_supplier_bill_approval_status') ILIKE '%paid_amount%'
+  pg_temp.src('set_supplier_bill_approval_status') ILIKE '%v_has_payments%'
 );
 SELECT pg_temp.expect_true(
   'R9-01 conserva el retorno a pending de rechazadas (R10-01)',
@@ -61,10 +61,12 @@ BEGIN
   FOR r IN SELECT id FROM public.customers WHERE COALESCE(is_e2e, false) = false LIMIT 25 LOOP
     BEGIN
       v := public.get_customer_summary(r.id);
-      IF (v->>'total_paid')::numeric > (v->>'total_invoiced')::numeric + 0.01 THEN
+      IF (v#>>'{totals,total_paid}')::numeric > (v#>>'{totals,total_invoiced}')::numeric + 0.01 THEN
         v_bad := v_bad + 1;
       END IF;
-    EXCEPTION WHEN OTHERS THEN NULL; -- sin sesión el RPC exige rol; se omite
+    EXCEPTION WHEN insufficient_privilege THEN
+      RAISE NOTICE 'SKIP  R9-03 el rol de la sesión no puede ejecutar get_customer_summary';
+      RETURN;
     END;
   END LOOP;
   IF v_bad = 0 THEN RAISE NOTICE 'OK  R9-03 sin clientes con Pagado > Facturado';
@@ -149,7 +151,7 @@ SELECT pg_temp.expect_true(
 -- R9-08: el equipo archivado no genera depreciación.
 SELECT pg_temp.expect_true(
   'R9-08 get_income_statement filtra forklifts.deleted_at',
-  pg_temp.src('get_income_statement') ILIKE '%f.deleted_at IS NULL%'
+  pg_temp.src('get_income_statement') ILIKE '%f.deleted_at IS NULL OR f.deleted_at::date >= ms.month_start%'
 );
 SELECT pg_temp.expect_true(
   'R9-08 get_income_statement sigue siendo SECURITY DEFINER con search_path',
