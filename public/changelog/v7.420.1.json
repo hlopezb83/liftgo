@@ -1,0 +1,7 @@
+{
+  "description": "GitHub mostraba la advertencia de Node.js 20 en desuso porque la acción dorny/paths-filter v3 aún lo usa; se actualizó a v4.0.3 (Node 24). Además se dio formato estándar a las funciones del backend. Sin cambios en la aplicación.",
+  "changes": [
+    "dorny/paths-filter v3.0.2 → v4.0.3 en el flujo de CI (elimina la advertencia de Node 20 en desuso).",
+    "Formato deno fmt aplicado a las funciones del backend tocadas en v7.420.0."
+  ]
+}
