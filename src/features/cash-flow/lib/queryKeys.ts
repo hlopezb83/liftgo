@@ -90,11 +90,14 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
       // 2A-9: rentas recurrentes vigentes, para proyectar los periodos aún no facturados.
+      // FIX-4 (ronda 2): se trae la tasa de IVA del cliente para proyectar el
+      // TOTAL facturado (renta + IVA), igual que la Edge Function recurrente.
       supabase.from("bookings")
-        .select("id, booking_number, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio")
+        .select("id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, customers(tax_rate)")
         .eq("recurring_billing", true)
         .in("status", ["confirmed", "in_progress"])
-        .returns<RecurringBookingRow[]>(),
+        .returns<(RecurringBookingRow & { customers: { tax_rate: number | string | null } | { tax_rate: number | string | null }[] | null })[]>(),
+
       countInvoicesWithoutDueDate(),
       countBillsWithoutDueDate(),
     ]);
