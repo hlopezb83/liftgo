@@ -71,20 +71,17 @@ export interface ExtensionLineItemsInput {
 /**
  * Tarifas efectivas: CADA tarifa pactada en la reserva (diaria, semanal y
  * mensual) pisa a la maestra si es > 0; en 0 o nula se usa el catálogo.
+ *
+ * FIX-2: delega en `resolveBookingRates` (regla canónica compartida con la
+ * facturación manual) para que ambos caminos nunca diverjan.
  */
 export function resolveExtensionRates(
   forkliftRates: ExtensionRates,
   bookingRates?: ExtensionRates | null,
 ): Required<Record<"daily" | "weekly" | "monthly", number>> {
-  const bookedDaily = Number(bookingRates?.daily_rate) || 0;
-  const bookedWeekly = Number(bookingRates?.weekly_rate) || 0;
-  const bookedMonthly = Number(bookingRates?.monthly_rate) || 0;
-  return {
-    daily: bookedDaily > 0 ? bookedDaily : Number(forkliftRates.daily_rate) || 0,
-    weekly: bookedWeekly > 0 ? bookedWeekly : Number(forkliftRates.weekly_rate) || 0,
-    monthly: bookedMonthly > 0 ? bookedMonthly : Number(forkliftRates.monthly_rate) || 0,
-  };
+  return resolveBookingRates(forkliftRates, bookingRates);
 }
+
 
 /**
  * Partidas de factura para el tramo extendido. Reutiliza `calculateRentalCost`
