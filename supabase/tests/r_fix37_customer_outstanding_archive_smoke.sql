@@ -124,8 +124,8 @@ BEGIN
   RETURNING id INTO v_cust;
 
   -- Factura cancelada: NO genera saldo.
-  INSERT INTO public.invoices (customer_id, customer_name, total, status)
-  VALUES (v_cust, 'SMOKE saldo archivo', 5000, 'cancelled');
+  INSERT INTO public.invoices (customer_id, customer_name, subtotal, tax_amount, total, status)
+  VALUES (v_cust, 'SMOKE saldo archivo', 5000, 0, 5000, 'cancelled');
   PERFORM pg_temp.expect_true(
     'factura cancelada no crea saldo pendiente',
     public.customer_outstanding_balance(v_cust) = 0
@@ -133,16 +133,16 @@ BEGIN
   );
 
   -- Factura pagada (status 'paid'): NO bloquea.
-  INSERT INTO public.invoices (customer_id, customer_name, total, status)
-  VALUES (v_cust, 'SMOKE saldo archivo', 1000, 'paid');
+  INSERT INTO public.invoices (customer_id, customer_name, subtotal, tax_amount, total, status)
+  VALUES (v_cust, 'SMOKE saldo archivo', 1000, 0, 1000, 'paid');
   PERFORM pg_temp.expect_true(
     'factura pagada no bloquea el archivado',
     NOT public.customer_has_outstanding_balance(v_cust)
   );
 
   -- Factura enviada sin pagos: SÍ genera saldo.
-  INSERT INTO public.invoices (customer_id, customer_name, total, status)
-  VALUES (v_cust, 'SMOKE saldo archivo', 1160, 'sent')
+  INSERT INTO public.invoices (customer_id, customer_name, subtotal, tax_amount, total, status)
+  VALUES (v_cust, 'SMOKE saldo archivo', 1000, 160, 1160, 'sent')
   RETURNING id INTO v_inv;
   PERFORM pg_temp.expect_true(
     'factura por cobrar genera saldo pendiente',
