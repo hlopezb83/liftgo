@@ -65,9 +65,9 @@ BEGIN
 
   BEGIN
     INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
-                                     subtotal, tax_amount, total, status)
+                                     reason_text, subtotal, tax_amount, total, status)
     VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
-            1000, 160, 1160, 'draft');
+            'Devolución total de la renta', 1000, 160, 1160, 'draft');
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;
@@ -83,9 +83,9 @@ BEGIN
 
   BEGIN
     INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
-                                     subtotal, tax_amount, total, status)
+                                     reason_text, subtotal, tax_amount, total, status)
     VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
-            1000, 160, 1160, 'draft');
+            'Devolución total de la renta', 1000, 160, 1160, 'draft');
     v_ok := false;
   EXCEPTION WHEN others THEN
     v_ok := true;
@@ -97,9 +97,9 @@ BEGIN
 
   BEGIN
     INSERT INTO public.credit_notes (invoice_id, customer_id, credit_note_number, motive,
-                                     subtotal, tax_amount, total, status)
+                                     reason_text, subtotal, tax_amount, total, status)
     VALUES (v_inv, v_cust, 'H5-NC-' || gen_random_uuid()::text, 'return',
-            1000, 160, 1160, 'draft');
+            'Devolución total de la renta', 1000, 160, 1160, 'draft');
     v_ok := true;
   EXCEPTION WHEN others THEN
     v_ok := false;

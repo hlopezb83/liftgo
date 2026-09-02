@@ -102,11 +102,12 @@ BEGIN
   INSERT INTO public.bookings (id, forklift_id, start_date, end_date)
   VALUES (v_book, v_fork, public.today_mty(), public.today_mty() + 30);
 
-  -- El guard de periodo es un trigger de tabla: aplica con cualquier rol. Se
-  -- declaran las claims del operador, pero sin cambiar de rol (en CI el rol
-  -- authenticated no tiene privilegios sobre la tabla).
-  PERFORM set_config('request.jwt.claims',
-    '{"sub":"12111111-0000-4000-8000-000000000006","role":"authenticated"}', true);
+  -- El guard exime a 'postgres'/'service_role', así que hay que ejecutar como
+  -- operador autenticado. En CI los privilegios de tabla se otorgan dentro de la
+  -- transacción (se revierten con el ROLLBACK final).
+  GRANT SELECT, INSERT, UPDATE ON public.invoices TO authenticated;
+  SET LOCAL ROLE authenticated;
+  SET LOCAL request.jwt.claims TO '{"sub":"12111111-0000-4000-8000-000000000006","role":"authenticated"}';
 
   -- Caso A: reserva SIN periodo -> debe bloquear.
   BEGIN
