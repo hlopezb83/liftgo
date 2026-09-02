@@ -35,6 +35,9 @@ interface Props {
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
   quotes?: QuoteSource[] | undefined;
+  /** FIX-4: reservas cuyas partidas extra (seguro/logística) YA se facturaron.
+   *  No se vuelven a pre-cargar para evitar doble cobro. */
+  bookingsWithBilledExtras?: Set<string> | undefined;
 }
 
 function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Customer) {
@@ -43,7 +46,14 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
     const v = patch[k];
     if (v !== undefined) form.setValue(`cfdi.${k}`, v, { shouldDirty: true });
   });
+  // FIX-3: la tasa de IVA del cliente (p. ej. frontera 8%) manda sobre el 16%
+  // por defecto. Sólo se aplica si está capturada y es un número válido.
+  const rate = Number(customer.tax_rate);
+  if (customer.tax_rate != null && Number.isFinite(rate) && rate >= 0) {
+    form.setValue("taxRate", rate, { shouldDirty: true });
+  }
 }
+
 
 const SAT_LINE_DEFAULTS = {
   clave_prod_serv: "78181500",
