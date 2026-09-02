@@ -17,7 +17,7 @@ import {
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
 import { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
-import { usePayments } from "../../hooks/usePayments";
+import { usePayments, type Payment } from "../../hooks/usePayments";
 import { computeCreditNoteLimits } from "../../lib/creditNoteLimits";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
@@ -52,7 +52,7 @@ interface NoticeProps {
   invoiceTotal: number;
   priorCredits: number;
   maxCreditable: number;
-  repPayments: number;
+  repPayments: Payment[];
   blockedByReps: boolean;
   willCreateCredit: boolean;
   otherPaid: number;
