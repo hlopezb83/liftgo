@@ -99,6 +99,10 @@ INSERT INTO public.supplier_payments (id, bill_id, amount, payment_date, rep_sta
   ('e2222222-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'received'),
   ('e4444444-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required');
 
+-- En una base recién creada (CI) el rol authenticated puede no tener EXECUTE
+-- sobre has_role; se otorga dentro de la transacción (se revierte al ROLLBACK).
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated;
+
 -- 2.a administrativo NO puede borrar (regla admin-only, ahora en la base).
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"b3333333-3333-4333-8333-333333333333","role":"authenticated"}';
