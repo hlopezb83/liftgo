@@ -96,8 +96,13 @@ VALUES
 
 INSERT INTO public.supplier_payments (id, bill_id, amount, payment_date, rep_status) VALUES
   ('e1111111-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required'),
-  ('e2222222-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'received'),
+  ('e2222222-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required'),
   ('e4444444-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required');
+
+-- El trigger trg_sp_set_rep_required normaliza rep_status al insertar según el
+-- método SAT de la factura; el REP recibido se marca después.
+UPDATE public.supplier_payments SET rep_status = 'received'
+ WHERE id = 'e2222222-3333-4333-8333-333333333333';
 
 -- En una base recién creada (CI) el rol authenticated puede no tener EXECUTE
 -- sobre has_role; se otorga dentro de la transacción (se revierte al ROLLBACK).
