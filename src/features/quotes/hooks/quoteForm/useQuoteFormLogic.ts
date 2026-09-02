@@ -120,8 +120,9 @@ export function useQuoteFormLogic() {
     if (id) {
       // A5-05: se envía la `version` leída al abrir el formulario para que el
       // UPDATE no pise los cambios de otro usuario (bloqueo optimista).
-      const expected = (existingQuote as { version?: number | null } | null | undefined)?.version;
+      const expected = quoteVersion;
       updateQuote.mutate({ id, version: typeof expected === "number" ? expected : undefined, ...payload }, {
+
 
         onSuccess: () => {
           notifySuccess("Cotización actualizada");
