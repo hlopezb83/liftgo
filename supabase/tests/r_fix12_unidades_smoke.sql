@@ -36,12 +36,12 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('create_booking') ILIKE '%renta vencida sin devolución%'
 );
 SELECT pg_temp.expect_true(
-  'N-6 create_booking evalúa return_status',
-  pg_temp.fndef('create_booking') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
+  'N-6 create_booking usa el predicado canónico booking_is_returned',
+  pg_temp.fndef('create_booking') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
   'N-6 get_available_forklifts oculta unidades con renta vencida sin devolución',
-  pg_temp.fndef('get_available_forklifts') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
+  pg_temp.fndef('get_available_forklifts') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
   'N-6 create_booking conserva el guard de cotización aceptada',
@@ -55,15 +55,15 @@ SELECT pg_temp.expect_true(
 -- N-41: las tres rutas de liberación usan la definición ampliada.
 SELECT pg_temp.expect_true(
   'N-41 cancel_booking no libera una unidad con renta vencida sin devolución',
-  pg_temp.fndef('cancel_booking') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
+  pg_temp.fndef('cancel_booking') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_on_booking_exit usa la renta físicamente activa',
-  pg_temp.fndef('sync_forklift_on_booking_exit') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
+  pg_temp.fndef('sync_forklift_on_booking_exit') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_rental_status no degrada rentas vencidas sin devolución',
-  pg_temp.fndef('sync_forklift_rental_status') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
+  pg_temp.fndef('sync_forklift_rental_status') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_rental_status conserva el guard de admin',
