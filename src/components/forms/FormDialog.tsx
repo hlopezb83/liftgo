@@ -129,7 +129,7 @@ export function FormDialogFooter({ children, className }: { children: ReactNode;
   return (
     <DialogFooter
       className={cn(
-        "sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-card border-t",
+        "sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-card border-t",
         className,
       )}
     >
