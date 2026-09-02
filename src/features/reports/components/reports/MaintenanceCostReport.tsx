@@ -5,7 +5,7 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { chartTick } from "@/lib/charts/chartTheme";
+import { useChartSizing } from "@/lib/charts/useChartSizing";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCompactCurrency, formatCurrency } from "@/lib/format/formatCurrency";
 import { useMaintenanceCostByUnitReport } from "../../hooks/useMaintenanceCostByUnitReport";
