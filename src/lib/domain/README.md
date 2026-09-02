@@ -9,6 +9,10 @@ Auditado en v6 (P3-8). Estado actual:
 - `invoiceHelpers`, `invoiceTotals`, `lineItems`, `rentalCalculation` — matemática monetaria
 - `roles`, `templateUtils`, `activityTranslations` — utilidades compartidas
 - `errorCatalog`, `satCatalogs` — catálogos globales
+- `bookingRates` (v7.418.0, FIX-2) — resolución canónica de tarifas
+  pactadas vs. catálogo; consumido por `bookings` (extensionBilling) e
+  `invoices` (useInvoiceFormHandlers). Moverlo a un solo feature crearía un
+  cross-feature deep import prohibido por G5.
 
 **Migrados al feature dueño en v7.179.0 (P3-8):**
 - `creditNoteMotives` → `@/features/invoices/lib/creditNoteMotives`

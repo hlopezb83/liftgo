@@ -1,0 +1,7 @@
+{
+  "description": "Corrección del guardrail de arquitectura tras agregar bookingRates a lib/domain.",
+  "changes": [
+    "El chequeo de arquitectura (arch-check) ahora reconoce bookingRates.ts como archivo legítimo de dominio compartido.",
+    "Se documentó en el README de lib/domain por qué vive ahí: lo usan reservas y facturas, y moverlo rompería otra regla de arquitectura."
+  ]
+}
