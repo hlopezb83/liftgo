@@ -74,6 +74,7 @@ DECLARE
   v_fk   uuid := gen_random_uuid();
   v_fk2  uuid := gen_random_uuid();
   v_bk   uuid := gen_random_uuid();
+  v_bk2  uuid := gen_random_uuid();
   v_del  uuid := gen_random_uuid();
   v_pick uuid := gen_random_uuid();
   v_status text;
@@ -103,8 +104,11 @@ BEGIN
     ELSE 'FALLO  M-7 movimientos en bitácora: ' || v_logs END;
 
   -- Caso B: recolección completada NO marca la unidad como rentada.
+  -- La entrega debe apuntar al montacargas de su propia reserva (guard vigente).
+  INSERT INTO public.bookings (id, forklift_id, customer_id, customer_name, start_date, end_date, status)
+  VALUES (v_bk2, v_fk2, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
   INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date)
-  VALUES (v_pick, v_bk, v_fk2, 'pickup', 'scheduled', public.today_mty());
+  VALUES (v_pick, v_bk2, v_fk2, 'pickup', 'scheduled', public.today_mty());
   UPDATE public.deliveries SET status = 'completed' WHERE id = v_pick;
 
   SELECT status INTO v_status FROM public.forklifts WHERE id = v_fk2;
