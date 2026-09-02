@@ -59,14 +59,14 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
+          <div className={chartHeightClass}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                 {/* R6-FE-11e: nombres de unidad se cortaban a 402px; mismo
                     patrón que UtilizationReport (ángulo + altura). */}
-                <XAxis dataKey="name" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
-                <YAxis tick={{ fontSize: 11 }} width={72} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
+                <XAxis dataKey="name" tick={tick} {...rotatedXAxis} />
+                <YAxis tick={tick} width={moneyAxisWidth} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
               </BarChart>
