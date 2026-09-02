@@ -23,12 +23,14 @@ LiftGo es elegible para la migración (stack clásico Vite + React Router). La m
 
 ## Riesgos conocidos y mitigación
 
-| Riesgo | Mitigación |
-|---|---|
+
+| Riesgo                            | Mitigación                                                                             |
+| --------------------------------- | -------------------------------------------------------------------------------------- |
 | Ola de errores TS por strict mode | Se absorben en el paso de verificación; el plan de edge-cases tiene recetas por patrón |
-| Guards anidados (~58 rutas) | Inventario + verificación mecánica de que ninguno se pierda |
-| Suite Vitest sin config | El script `test` se conserva pero necesitará re-cableado posterior (follow-up) |
-| Workflows de CI apuntan a Vite | Se listan al final como follow-ups; no bloquean la migración |
+| Guards anidados (~58 rutas)       | Inventario + verificación mecánica de que ninguno se pierda                            |
+| Suite Vitest sin config           | El script `test` se conserva pero necesitará re-cableado posterior (follow-up)         |
+| Workflows de CI apuntan a Vite    | Se listan al final como follow-ups; no bloquean la migración                           |
+
 
 ## Después de la migración (follow-ups opcionales)
 
@@ -42,3 +44,5 @@ LiftGo es elegible para la migración (stack clásico Vite + React Router). La m
 - `src/integrations/supabase/client.ts` se parchea (referencia a `localStorage` con guard SSR).
 - 7 archivos usan `useSearchParams`: siguen funcionando con un shim de compatibilidad; migración idiomática es opcional.
 - Sin PWA/service worker detectado: se omite ese paso completo.
+
+No hacemos nada por ahora
