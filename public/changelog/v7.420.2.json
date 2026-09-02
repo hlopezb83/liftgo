@@ -1,0 +1,11 @@
+{
+  "description": "Se corrigieron 7 avisos de ESLint (líneas entre imports, orden de imports, complejidad y fast-refresh). Se extrajo PART_CATEGORIES a su propio archivo, se dividieron funciones complejas en notas de crédito y flujo de efectivo, y se reubicaron imports fuera de orden. Sin cambios de comportamiento.",
+  "changes": [
+    "useInvoiceFormLogic: línea en blanco entre grupos de imports eliminada.",
+    "InvoiceCreditNotesCard: se extrajo CreditNoteActions y CreditNoteNotices para bajar complejidad (17→<15) y líneas (157→<150).",
+    "PartFormDialog: PART_CATEGORIES movido a lib/partConstants.ts para habilitar fast-refresh.",
+    "useCustomerDetailActions: orden de imports corregido (parent antes que sibling).",
+    "cashFlowTransformers: línea en blanco entre imports eliminada; recurringBookingItems dividido en recurringGrossMxn + recurringBookingItemsFor (complejidad 18→<15).",
+    "InventoryPage: orden de imports corregido (partCategories antes que partConstants)."
+  ]
+}
