@@ -121,7 +121,13 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     const horizonBuckets = buildWeekBuckets(today, weeks);
     const horizonEnd = horizonBuckets[horizonBuckets.length - 1]?.endDate ?? format(today, "yyyy-MM-dd");
     const todayYmd = format(today, "yyyy-MM-dd");
-    items.push(...recurringBookingItems(bookingRes.data ?? [], todayYmd, horizonEnd));
+    const recurringRows: RecurringBookingRow[] = (bookingRes.data ?? []).map((b) => {
+      const rel = b.customers;
+      const taxRate = Array.isArray(rel) ? rel[0]?.tax_rate ?? null : rel?.tax_rate ?? null;
+      return { ...b, customer_tax_rate: taxRate };
+    });
+    items.push(...recurringBookingItems(recurringRows, todayYmd, horizonEnd));
+
     const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
     return {
       buckets,
