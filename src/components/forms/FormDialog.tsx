@@ -77,7 +77,7 @@ export function FormDialog({
     <>
       <Dialog open={open} onOpenChange={(v) => { if (v) { onOpenChange(true); return; } requestClose(); }}>
         <DialogContent
-          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto", className)}
+          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto pb-0", className)}
           data-testid={testId}
           onEscapeKeyDown={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
           onInteractOutside={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
@@ -87,8 +87,11 @@ export function FormDialog({
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
           <FormDialogCloseContext.Provider value={closeValue}>
-            <div className="pt-2">{children}</div>
+            {/* `pb-6` reemplaza el padding inferior que se le quitó al scrollport
+                para que el footer sticky pueda pegarse al borde real del modal. */}
+            <div className="pt-2 pb-6">{children}</div>
           </FormDialogCloseContext.Provider>
+
 
         </DialogContent>
       </Dialog>
