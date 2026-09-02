@@ -32,7 +32,7 @@ export default function BookingDetail() {
     return (
       <PageContainer maxWidth="wide">
         <Skeleton className="h-10 w-64" />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
@@ -78,7 +78,7 @@ export default function BookingDetail() {
       />
 
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         <BookingEquipmentCard name={forkliftName} model={forkliftModel} />
         <BookingCustomerCard
           customerName={booking.customer_name}

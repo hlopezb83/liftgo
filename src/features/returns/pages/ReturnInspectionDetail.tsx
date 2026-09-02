@@ -19,7 +19,7 @@ export default function ReturnInspectionDetail() {
     return (
       <PageContainer maxWidth="wide">
         <Skeleton className="h-10 w-64" />
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
@@ -54,7 +54,7 @@ export default function ReturnInspectionDetail() {
         backTo="/returns"
       />
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         <EquipmentCard ins={ins} />
         <BookingCard ins={ins} />
         <InspectionCard ins={ins} />
