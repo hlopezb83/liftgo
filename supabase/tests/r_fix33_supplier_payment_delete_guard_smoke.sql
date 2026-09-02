@@ -90,15 +90,13 @@ VALUES
   ('d1111111-3333-4333-8333-333333333333', 'c3333333-3333-4333-8333-333333333333', 'SMOKE-P0-1', 10000, 'pending'),
   ('d2222222-3333-4333-8333-333333333333', 'c3333333-3333-4333-8333-333333333333', 'SMOKE-P0-2', 10000, 'pending');
 
--- La factura 2 se cancela ANTES de registrar su pago: el canon vigente ya no
--- permite cancelar una factura que ya tiene pagos registrados.
-UPDATE public.supplier_bills SET status = 'cancelled'
- WHERE id = 'd2222222-3333-4333-8333-333333333333';
+-- Nota: hoy el estado "pago vivo sobre factura cancelada" ya no es alcanzable
+-- (no se puede cancelar una factura con pagos ni pagar una cancelada), así que
+-- esa rama del guard se verifica leyendo su definición, más abajo.
 
 INSERT INTO public.supplier_payments (id, bill_id, amount, payment_date, rep_status) VALUES
   ('e1111111-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required'),
   ('e2222222-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'received'),
-  ('e3333333-3333-4333-8333-333333333333', 'd2222222-3333-4333-8333-333333333333', 1000, current_date, 'not_required'),
   ('e4444444-3333-4333-8333-333333333333', 'd1111111-3333-4333-8333-333333333333', 1000, current_date, 'not_required');
 
 -- 2.a administrativo NO puede borrar (regla admin-only, ahora en la base).
@@ -126,13 +124,6 @@ BEGIN
   EXCEPTION WHEN raise_exception THEN
     RAISE NOTICE 'OK  REP recibido bloquea el borrado';
   END;
-
-  BEGIN
-    DELETE FROM public.supplier_payments WHERE id = 'e3333333-3333-4333-8333-333333333333';
-    RAISE WARNING 'FALLO  se borró un pago de una factura cancelada';
-  EXCEPTION WHEN raise_exception THEN
-    RAISE NOTICE 'OK  factura cancelada bloquea el borrado';
-  END;
 END $$;
 
 -- Los rechazos dejan las filas intactas.
@@ -140,8 +131,7 @@ SELECT pg_temp.expect_true(
   'los pagos rechazados siguen existiendo',
   (SELECT count(*) FROM public.supplier_payments
     WHERE id IN ('e2222222-3333-4333-8333-333333333333',
-                 'e3333333-3333-4333-8333-333333333333',
-                 'e4444444-3333-4333-8333-333333333333')) = 3
+                 'e4444444-3333-4333-8333-333333333333')) = 2
 );
 
 -- Borrado permitido: admin, sin REP recibido y factura vigente.
@@ -161,6 +151,13 @@ SELECT pg_temp.expect_true(
   'el borrado permitido recalcula el saldo de la factura',
   (SELECT balance FROM public.supplier_bills
     WHERE id = 'd1111111-3333-4333-8333-333333333333') = 8000
+);
+
+-- La rama de factura cancelada sigue viva en el guard aunque hoy sea
+-- inalcanzable desde el flujo normal.
+SELECT pg_temp.expect_true(
+  'el guard conserva la rama de factura cancelada',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'guard_supplier_payment_delete') ILIKE '%cancelled%'
 );
 
 ROLLBACK;
