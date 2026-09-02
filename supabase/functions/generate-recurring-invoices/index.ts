@@ -580,7 +580,22 @@ async function executePlan(
         .eq("id", first.customerId)
         .maybeSingle();
 
-      const lineItems = group.map((i) => {
+      // FIX-6 (ronda 2): extras pactados en la cotización (seguro, logística)
+      // se cobran UNA sola vez, en la primera factura de la reserva.
+      const extraLines: NonRentalLineDto[] = [];
+      const seenQuotes = new Set<string>();
+      for (const i of group) {
+        if (!i.isFirstInvoice || !i.quoteId || seenQuotes.has(i.quoteId)) continue;
+        seenQuotes.add(i.quoteId);
+        const { data: quote } = await supabase
+          .from("quotes")
+          .select("line_items")
+          .eq("id", i.quoteId)
+          .maybeSingle();
+        extraLines.push(...extractNonRentalLines(quote?.line_items));
+      }
+
+      const rentalLines = group.map((i) => {
         const proratedLabel = i.isProrated
           ? ` — prorrateado ${i.proratedDays} días`
           : "";
@@ -595,11 +610,16 @@ async function executePlan(
           total: i.billedAmount,
         };
       });
+      const lineItems = [...rentalLines, ...extraLines];
+      const billedAmounts = [
+        ...group.map((i) => i.billedAmount),
+        ...extraLines.map((l) => l.total),
+      ];
 
       // M23: tasa por cliente (frontera 8%, exento 0%) en vez de 16 fijo,
       // y aritmética en centavos enteros (_shared/money.ts) en vez de floats
       // con Math.round — elimina el drift de centavos acumulado por período.
-      const subtotalCents = sumMoneyCents(group.map((i) => i.billedAmount));
+      const subtotalCents = sumMoneyCents(billedAmounts);
       // R9-14: `resolveVatRatePercent` distingue "sin dato" (null/undefined/NaN
       // -> DEFAULT_VAT_RATE_PERCENT) de "0% explícito" (se respeta). Antes
       // `Number(customer?.tax_rate)` convertía null en 0 y generaba IVA 0%
@@ -609,10 +629,7 @@ async function executePlan(
       // Facturapi al timbrar). Redondear una sola vez sobre el subtotal
       // agregado generaba varianzas de centavos que dejaban la factura
       // recurrente en cfdi_status='error' (BL-A5).
-      const taxAmountCents = sumLineTaxCents(
-        group.map((i) => i.billedAmount),
-        taxRate,
-      );
+      const taxAmountCents = sumLineTaxCents(billedAmounts, taxRate);
 
       const subtotal = fromCents(subtotalCents);
       const taxAmount = fromCents(taxAmountCents);
