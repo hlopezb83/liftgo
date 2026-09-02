@@ -1,0 +1,13 @@
+{
+  "description": "Ronda 3 de remediación: IVA del complemento de pago por partida, recuperación de REP cancelados, tasa de IVA del cliente al editar, extras recurrentes, tipo de cambio real y exportación de facturas con moneda.",
+  "changes": [
+    "Complemento de pago: el IVA se desglosa a partir de las partidas de la factura original (exentas, tasa 0, tasas mixtas) en vez de aplicar una sola tasa de encabezado; una factura totalmente exenta ya no declara IVA ficticio.",
+    "Complemento de pago: un REP cancelado que falla al re-timbrarse regresa a 'cancelado' y puede reintentarse, en lugar de quedar atorado sin posibilidad de complemento.",
+    "Saldo anterior del complemento: un pago cuyo complemento fue cancelado ya no reduce el saldo declarado.",
+    "Pagos a proveedores: el pago se liga al lote de forma explícita, así un abono manual ya no bloquea la cancelación de un lote.",
+    "Clientes: al editar un cliente ahora sí se guarda su tasa de IVA (por ejemplo 8% en frontera).",
+    "Facturación recurrente: los cargos extra se consideran cobrados sólo si existe una factura vigente con esas partidas, revisando también las facturas ligadas directamente a la reserva.",
+    "Cotizaciones y vista previa recurrente: una moneda extranjera exige tipo de cambio real (ya no se acepta 0 ni 1).",
+    "Exportación de facturas a CSV: se agregaron las columnas Moneda y Tipo de cambio."
+  ]
+}
