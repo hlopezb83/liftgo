@@ -1,0 +1,18 @@
+{
+  "version": "7.415.3",
+  "date": "2026-09-02",
+  "type": "patch",
+  "category": "fix",
+  "title": "Auditoría móvil (celular plegable): modales con el pie pegado al borde",
+  "description": "Revisión de la app en pantalla de 692×764 (celular plegable). Los modales de formulario mostraban ~25 px de contenido asomando por debajo de la barra de botones; ahora el pie queda pegado al borde inferior del modal y respeta el área segura del teléfono.",
+  "tags": [
+    "ui",
+    "movil",
+    "modales"
+  ],
+  "changes": [
+    "FormDialog: el scrollport ya no lleva padding inferior (lo asume el contenido), así el pie sticky se ancla al borde real del modal.",
+    "FormDialogFooter: padding inferior con env(safe-area-inset-bottom) para teléfonos con notch/barra de gestos.",
+    "Sin cambios de backend, reglas de negocio, RLS ni permisos."
+  ]
+}

@@ -77,7 +77,7 @@ export function FormDialog({
     <>
       <Dialog open={open} onOpenChange={(v) => { if (v) { onOpenChange(true); return; } requestClose(); }}>
         <DialogContent
-          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto", className)}
+          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto pb-0", className)}
           data-testid={testId}
           onEscapeKeyDown={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
           onInteractOutside={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
@@ -87,8 +87,11 @@ export function FormDialog({
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
           <FormDialogCloseContext.Provider value={closeValue}>
-            <div className="pt-2">{children}</div>
+            {/* `pb-6` reemplaza el padding inferior que se le quitó al scrollport
+                para que el footer sticky pueda pegarse al borde real del modal. */}
+            <div className="pt-2 pb-6">{children}</div>
           </FormDialogCloseContext.Provider>
+
 
         </DialogContent>
       </Dialog>
@@ -119,9 +122,19 @@ export function FormDialog({
  * aunque el formulario haga scroll.
  */
 export function FormDialogFooter({ children, className }: { children: ReactNode; className?: string }) {
+  // El scrollport del diálogo tiene `p-6`: un `sticky bottom-0` se detiene
+  // sobre ese padding y dejaba ~25px de contenido asomando por debajo del
+  // footer. `-mb-6` + padding inferior extra hacen que el footer cubra hasta
+  // el borde real del modal (incluye safe-area en móviles con notch).
   return (
-    <DialogFooter className={cn("sticky bottom-0 -mx-6 px-6 py-3 bg-card border-t", className)}>
+    <DialogFooter
+      className={cn(
+        "sticky bottom-0 -mx-6 -mb-6 px-6 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-card border-t",
+        className,
+      )}
+    >
       {children}
     </DialogFooter>
   );
 }
+
