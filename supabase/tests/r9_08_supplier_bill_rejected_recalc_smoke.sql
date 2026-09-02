@@ -25,7 +25,7 @@ CREATE OR REPLACE FUNCTION pg_temp.make_rejected(
 ) RETURNS uuid LANGUAGE plpgsql AS $$
 DECLARE v_id uuid; v_user uuid;
 BEGIN
-  SELECT id INTO v_user FROM public.profiles LIMIT 1;
+  SELECT user_id INTO v_user FROM public.profiles LIMIT 1;
   IF v_user IS NULL THEN
     -- En una base recién creada no hay perfiles: se crea uno de prueba.
     v_user := gen_random_uuid();
@@ -58,7 +58,7 @@ DECLARE v_status text;
 BEGIN
   PERFORM set_config('request.jwt.claims',
     json_build_object('role', 'authenticated',
-                      'sub', (SELECT id FROM public.profiles LIMIT 1))::text, true);
+                      'sub', (SELECT user_id FROM public.profiles LIMIT 1))::text, true);
   UPDATE public.supplier_bills
      SET total = p_total, subtotal = p_total, currency = p_currency, exchange_rate = p_rate
    WHERE id = p_id;
@@ -111,7 +111,7 @@ BEGIN
   v_id := pg_temp.make_rejected('MXN', 1, 500);
   PERFORM set_config('request.jwt.claims',
     json_build_object('role', 'authenticated',
-                      'sub', (SELECT id FROM public.profiles LIMIT 1))::text, true);
+                      'sub', (SELECT user_id FROM public.profiles LIMIT 1))::text, true);
   UPDATE public.supplier_bills SET notes = 'comentario interno' WHERE id = v_id;
   PERFORM set_config('request.jwt.claims', NULL, true);
   SELECT approval_status::text, rejected_by INTO v_status, v_rej_by
@@ -125,7 +125,7 @@ END $$;
 DO $$
 DECLARE v_id uuid; v_user uuid;
 BEGIN
-  SELECT id INTO v_user FROM public.profiles LIMIT 1;
+  SELECT user_id INTO v_user FROM public.profiles LIMIT 1;
   INSERT INTO public.supplier_bills
     (bill_number, issue_date, subtotal, tax_amount, total, status, currency, exchange_rate)
   VALUES ('SMOKE-R9-08-APR', public.today_mty(), 100, 0, 100, 'pending', 'MXN', 1)
