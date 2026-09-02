@@ -49,12 +49,22 @@ export function FiscalSection() {
           placeholder="Seleccionar"
         />
       </div>
-      <TextField
-        control={control}
-        name="representante_legal"
-        label="Representante Legal (opcional)"
-        placeholder="Lic. Juan Pérez"
-      />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <TextField
+          control={control}
+          name="representante_legal"
+          label="Representante Legal (opcional)"
+          placeholder="Lic. Juan Pérez"
+        />
+        <TextField
+          control={control}
+          name="tax_rate"
+          label="Tasa de IVA (%)"
+          placeholder="16"
+          description="Déjalo vacío para usar 16%. Usa 8 para región fronteriza."
+        />
+      </div>
     </FormSection>
   );
 }
+
