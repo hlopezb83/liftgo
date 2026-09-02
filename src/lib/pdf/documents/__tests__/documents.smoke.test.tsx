@@ -19,6 +19,13 @@ vi.mock("@react-pdf/renderer", () => {
       Object.keys(props).forEach((k) => {
         if (k === "children" || k === "style" || k === "src" || k === "id") safe[k] = props[k];
       });
+      // react-pdf permite `style={[a, b]}`; al mockear con elementos DOM,
+      // React asignaría style['0']=... y jsdom 30 lo rechaza con
+      // "'set' on proxy: trap returned falsish". Aplanamos arrays a objeto.
+      const style = safe.style;
+      if (Array.isArray(style)) {
+        safe.style = Object.assign({}, ...style.filter(Boolean));
+      }
       return createElement("pdf-" + name, safe, props.children as ReactNode);
     };
   return {
