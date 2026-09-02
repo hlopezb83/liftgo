@@ -155,8 +155,11 @@ export default function InvoicesPage() {
 
   const exportCsv = async () => {
     const rows = await fetchInvoicesForExport(queryFilters);
+    // FIX-9 (ronda 3): sin Moneda ni Tipo de cambio, sumar la columna Total
+    // mezclaba MXN y USD 1:1.
     exportToCsv("facturas.csv", rows.map((inv) => ({
       "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total,
+      Moneda: inv.moneda || "MXN", "Tipo de cambio": inv.tipo_cambio ?? "",
       Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "",
     })));
   };

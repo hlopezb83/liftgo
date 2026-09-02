@@ -13,6 +13,12 @@ export interface RegisterPaymentInput {
   reference?: string;
   receipt_url?: string;
   notes?: string;
+  /**
+   * FIX-2 (ronda 3): liga EXPLÍCITA con un lote de pago. Sólo lo envía el
+   * flujo de pago desde el lote; un abono manual va sin lote para no bloquear
+   * la cancelación del lote.
+   */
+  batchId?: string | null;
 }
 
 export function useRegisterSupplierPayment() {
@@ -27,6 +33,7 @@ export function useRegisterSupplierPayment() {
         p_reference: input.reference,
         p_receipt_url: input.receipt_url,
         p_notes: input.notes,
+        p_batch_id: input.batchId ?? null,
       }),
     // R-M3: incluir la proyección de flujo de caja para que "POR PAGAR" baje
     // de inmediato tras registrar un pago (antes requería F5).

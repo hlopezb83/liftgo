@@ -4,6 +4,7 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import {
   extractNonRentalLines,
+  hasNonRentalLines,
   type NonRentalLineDto,
 } from "../_shared/nonRentalLines.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
@@ -196,8 +197,12 @@ async function buildPlan(supabase: any): Promise<{
     // A1-1: moneda y tipo de cambio de la reserva (default MXN/1 si no hay dato).
     const bookingCurrency = String(booking.currency ?? "MXN").toUpperCase();
     const bookingTipoCambio = Number(booking.tipo_cambio ?? 1);
+    // FIX-8 (ronda 3): regla canónica `fx_is_missing` — en divisa, un TC nulo,
+    // ≤ 0 o exactamente 1 es "faltante". Antes el preview decía "elegible" con
+    // TC=1 y la generación fallaba tarde con el error crudo del RPC.
     const hasValidExchangeRate = bookingCurrency === "MXN" ||
-      (Number.isFinite(bookingTipoCambio) && bookingTipoCambio > 0);
+      (Number.isFinite(bookingTipoCambio) && bookingTipoCambio > 0 &&
+        bookingTipoCambio !== 1);
 
     // B5-01: última actualización de la reserva, usada como proxy de "última
     // actualización de tarifa" (no existe historial de tarifas dedicado).
@@ -209,21 +214,42 @@ async function buildPlan(supabase: any): Promise<{
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
     // contradice — es la columna que se desincroniza (v6.110.0).
     let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
-    // FIX-6: ¿la reserva ya tiene alguna factura vigente? Si sí, los extras de
-    // la cotización ya se cobraron (o se decidieron omitir) y no se re-anexan.
-    let hasPriorInvoices = false;
+    // FIX-3 (ronda 3): "extras ya cobrados" = existe una factura VIGENTE de la
+    // reserva (ligada por el pivote O por invoices.booking_id) que además trae
+    // partidas no-renta. Antes bastaba cualquier factura vigente del pivote:
+    // una factura manual sin pivote provocaba doble cobro, y una factura de
+    // pura renta hacía que los extras nunca se cobraran.
+    let extrasAlreadyBilled = false;
     {
       const { data: linked } = await supabase
         .from("invoice_bookings")
-        .select("invoices!inner(billing_period_end, status, cfdi_status)")
+        .select(
+          "invoices!inner(billing_period_end, status, cfdi_status, line_items)",
+        )
         .eq("booking_id", booking.id)
         .neq("invoices.status", "cancelled")
         .neq("invoices.cfdi_status", "cancelled");
 
       const rows = (linked ?? []) as Array<
-        { invoices: { billing_period_end: string | null } }
+        {
+          invoices: { billing_period_end: string | null; line_items: unknown };
+        }
       >;
-      hasPriorInvoices = rows.length > 0;
+      extrasAlreadyBilled = rows.some((r) =>
+        hasNonRentalLines(r.invoices?.line_items)
+      );
+
+      if (!extrasAlreadyBilled) {
+        const { data: direct } = await supabase
+          .from("invoices")
+          .select("line_items")
+          .eq("booking_id", booking.id)
+          .neq("status", "cancelled")
+          .neq("cfdi_status", "cancelled");
+        extrasAlreadyBilled = ((direct ?? []) as Array<{ line_items: unknown }>)
+          .some((r) => hasNonRentalLines(r.line_items));
+      }
+
       if (rows.length === 0) {
         effectiveLastBilled = null;
       } else {
@@ -493,7 +519,7 @@ async function buildPlan(supabase: any): Promise<{
         rateWarning,
         // FIX-6
         quoteId: (booking.quote_id as string | null) ?? null,
-        isFirstInvoice: !hasPriorInvoices && firstIteration,
+        isFirstInvoice: !extrasAlreadyBilled && firstIteration,
       });
       virtualLastBilled = endStr;
       firstIteration = false;

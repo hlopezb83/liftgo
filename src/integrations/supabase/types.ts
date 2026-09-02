@@ -4576,19 +4576,34 @@ export type Database = {
         }
         Returns: Json
       }
-      register_supplier_payment: {
-        Args: {
-          p_amount: number
-          p_bank_account?: string
-          p_bill_id: string
-          p_notes?: string
-          p_payment_date?: string
-          p_payment_method?: string
-          p_receipt_url?: string
-          p_reference?: string
-        }
-        Returns: string
-      }
+      register_supplier_payment:
+        | {
+            Args: {
+              p_amount: number
+              p_bank_account?: string
+              p_bill_id: string
+              p_notes?: string
+              p_payment_date?: string
+              p_payment_method?: string
+              p_receipt_url?: string
+              p_reference?: string
+            }
+            Returns: string
+          }
+        | {
+            Args: {
+              p_amount: number
+              p_bank_account?: string
+              p_batch_id?: string
+              p_bill_id: string
+              p_notes?: string
+              p_payment_date?: string
+              p_payment_method?: string
+              p_receipt_url?: string
+              p_reference?: string
+            }
+            Returns: string
+          }
       reject_payment_intent: {
         Args: { p_intent_id: string; p_review_notes?: string }
         Returns: string

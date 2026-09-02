@@ -1,3 +1,14 @@
+## [7.420.0] - 2026-09-02
+### Corrección (auditoría ronda 3)
+- Complemento de pago: el IVA se desglosa por partida de la factura original (exentas, tasa 0 y tasas mixtas) en vez de una sola tasa de encabezado.
+- Complemento de pago: un REP cancelado que falla al re-timbrarse vuelve a estado cancelado y puede reintentarse.
+- Saldo anterior del complemento: un pago con complemento cancelado ya no reduce el saldo declarado.
+- Pagos a proveedores: la liga pago-lote es explícita; un abono manual ya no bloquea la cancelación del lote.
+- Clientes: la edición guarda la tasa de IVA del cliente.
+- Facturación recurrente: los extras se consideran cobrados sólo si hay factura vigente con esas partidas, incluyendo las ligadas directo a la reserva.
+- Moneda extranjera: cotizaciones y vista previa recurrente exigen tipo de cambio real (no 0 ni 1).
+- Exportación de facturas a CSV con columnas Moneda y Tipo de cambio.
+
 ## [7.419.0] - 2026-09-02
 ### Corrección (auditoría ronda 2)
 - Notas de crédito: el máximo acreditable convierte los pagos con complemento vigente a la moneda de la factura; sin tipo de cambio se bloquea la emisión con explicación.

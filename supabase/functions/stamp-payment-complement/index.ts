@@ -110,17 +110,30 @@ Deno.serve(async (req) => {
       return jsonError(req, 409, claimRejectionMessage(st));
     }
 
-    // Helper: liberar el claim ante un early-return no-fatal. Deja el pago en
-    // 'pending' para que el operador o el retry queue puedan re-intentar.
-    const releaseClaim = async (msg?: string) => {
+    // FIX-6 (ronda 3): estado previo al claim. El claim exige
+    // `rep_cfdi_uuid IS NULL` para entrar desde pending|error|none; si el pago
+    // venía de 'cancelled' (re-timbrado, conserva el uuid viejo), dejarlo en
+    // pending/error tras un fallo lo atrapaba en un 409 permanente.
+    const preClaimStatus = String(payment.rep_cfdi_status ?? "");
+
+    /** Salida de fallo post-claim: vuelve a 'cancelled' si de ahí venía. */
+    const failAfterClaim = async (
+      status: "pending" | "error",
+      msg: string | null,
+    ) => {
       await supabase
         .from("payments")
         .update({
-          rep_cfdi_status: "pending",
+          rep_cfdi_status: preClaimStatus === "cancelled" ? "cancelled" : status,
           rep_stamping_started_at: null,
-          rep_error_message: msg ?? null,
+          rep_error_message: msg,
         })
         .eq("id", payment_id);
+    };
+
+    // Helper: liberar el claim ante un early-return no-fatal.
+    const releaseClaim = async (msg?: string) => {
+      await failAfterClaim("pending", msg ?? null);
     };
 
     // BLOQUE 2.2: un solo RPC transaccional bloquea la factura, calcula
@@ -152,15 +165,8 @@ Deno.serve(async (req) => {
       );
       // Falla del RPC → dejar en 'error' (no re-intentable automático) con
       // mensaje descriptivo. Cubre validación de monto inválido y estados
-      // inconsistentes.
-      await supabase
-        .from("payments")
-        .update({
-          rep_cfdi_status: "error",
-          rep_stamping_started_at: null,
-          rep_error_message: errMsg.slice(0, 1000),
-        })
-        .eq("id", payment_id);
+      // inconsistentes. FIX-6: si venía de 'cancelled', regresa a 'cancelled'.
+      await failAfterClaim("error", errMsg.slice(0, 1000));
       return jsonError(
         req,
         500,
@@ -182,7 +188,7 @@ Deno.serve(async (req) => {
     const { data: invoice } = await supabase
       .from("invoices")
       .select(
-        "id, customer_id, total, tax_rate, metodo_pago, moneda, tipo_cambio, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
+        "id, customer_id, total, tax_rate, line_items, metodo_pago, moneda, tipo_cambio, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
       )
       .eq("id", payment.invoice_id)
       .single();
@@ -207,15 +213,75 @@ Deno.serve(async (req) => {
       );
     }
 
-    // BL-004: tax rate viene de la factura relacionada (16, 8, 0…).
-    // `invoices.tax_rate` se guarda como porcentaje (ej. 16 = 16%).
-    const invoiceTaxRatePct = invoice.tax_rate == null
+    // FIX-4 (ronda 3): la descomposición del IVA del REP se deriva de las
+    // LÍNEAS del CFDI de ingreso (objeto_imp / tax_rate por línea, mismo
+    // criterio de stamp-cfdi/handler.ts C-1), no de invoices.tax_rate de
+    // encabezado. Antes una factura exenta o con tasas mixtas generaba un REP
+    // con IVA ficticio o mal descompuesto.
+    const headerRatePct = invoice.tax_rate == null
       ? DEFAULT_IVA_RATE * 100
       : Number(invoice.tax_rate);
-    const ivaRate = Number((invoiceTaxRatePct / 100).toFixed(6));
-    const base = ivaRate > 0
-      ? Number((amount / (1 + ivaRate)).toFixed(2))
-      : Number(amount.toFixed(2));
+    const rawLines = Array.isArray(invoice.line_items)
+      ? invoice.line_items as Array<{
+        quantity?: number;
+        unit_price?: number;
+        total?: number;
+        objeto_imp?: string;
+        tax_rate?: number;
+      }>
+      : [];
+
+    let subtotalLines = 0;
+    const baseByRate = new Map<string, number>();
+    for (const li of rawLines) {
+      const lineBase =
+        Number(li.total ?? (li.quantity || 1) * (li.unit_price || 0)) || 0;
+      if (lineBase <= 0) continue;
+      subtotalLines += lineBase;
+      if ((li.objeto_imp ?? "02") === "01") {
+        baseByRate.set("exento", (baseByRate.get("exento") ?? 0) + lineBase);
+      } else {
+        const ratePct =
+          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
+            ? li.tax_rate
+            : headerRatePct;
+        const key = ratePct.toFixed(2);
+        baseByRate.set(key, (baseByRate.get(key) ?? 0) + lineBase);
+      }
+    }
+
+    // Fail-fast: sin partidas legibles no se adivina con la tasa de encabezado
+    // (ese es justo el bug). Se libera el claim para reintentar tras corregir.
+    if (subtotalLines <= 0) {
+      await releaseClaim(
+        "La factura no tiene partidas legibles para descomponer el IVA del complemento",
+      );
+      return jsonError(
+        req,
+        422,
+        "Invoice without line items for REP tax breakdown",
+      );
+    }
+
+    // Prorrateo del pago (IVA incluido) por grupo de tasa, en centavos enteros.
+    const taxes: Array<
+      { base: number; type: "IVA"; rate: number; factor: "Tasa" }
+    > = [];
+    let assignedCents = 0;
+    const amountCents = Math.round(amount * 100);
+    const groups = [...baseByRate.entries()];
+    groups.forEach(([key, groupBase], idx) => {
+      const shareCents = idx === groups.length - 1
+        ? amountCents - assignedCents
+        : Math.round(amountCents * (groupBase / subtotalLines));
+      assignedCents += shareCents;
+      if (key === "exento") return; // objeto_imp "01": sin TrasladoDR
+      const rate = Number((Number(key) / 100).toFixed(6));
+      const baseCents = rate > 0
+        ? Math.round(shareCents / (1 + rate))
+        : shareCents;
+      taxes.push({ base: baseCents / 100, type: "IVA", rate, factor: "Tasa" });
+    });
 
     const { apiKey } = await getFacturapiConfig(
       supabase,
@@ -280,12 +346,14 @@ Deno.serve(async (req) => {
       exchange: invoiceExchange,
     };
 
-    // M21: incluir TrasladoDR TAMBIÉN con tasa 0. Si la factura origen gravó
-    // IVA al 0% (ObjetoImp "02"), el Anexo 20 exige el nodo TrasladoDR con
-    // TasaOCuotaDR=0.000000 e ImporteDR=0; omitirlo provoca rechazo del PAC.
-    // (invoice.tax_rate null ya cayó al default 16% arriba, así que aquí la
-    // única forma de ivaRate===0 es una tasa 0 legítima que SÍ debe declararse.)
-    relatedDoc.taxes = [{ base, type: "IVA", rate: ivaRate, factor: "Tasa" }];
+    // M21: incluir TrasladoDR TAMBIÉN con tasa 0 (ObjetoImp "02" con tasa 0
+    // legítima): el Anexo 20 exige el nodo con TasaOCuotaDR=0.000000.
+    // FIX-4 (ronda 3): un TrasladoDR por cada tasa real del CFDI origen; una
+    // factura totalmente exenta (todas las líneas objeto_imp "01") no lleva
+    // nodo de traslados en vez de declarar IVA ficticio.
+    if (taxes.length > 0) {
+      relatedDoc.taxes = taxes;
+    }
 
     const dataEntry: Record<string, unknown> = {
       payment_form: payment.payment_form_sat,
@@ -379,14 +447,9 @@ Deno.serve(async (req) => {
       }
       const desc = describeFacturapiError(err);
       console.error("Facturapi REP create error:", desc.detail);
-      await supabase
-        .from("payments")
-        .update({
-          rep_cfdi_status: "error",
-          rep_stamping_started_at: null,
-          rep_error_message: desc.detail.slice(0, 1000),
-        })
-        .eq("id", payment_id);
+      // FIX-6: si el pago venía de un REP cancelado, regresa a 'cancelled'
+      // para que el siguiente reintento pueda volver a reclamar el timbrado.
+      await failAfterClaim("error", desc.detail.slice(0, 1000));
       return jsonError(req, 502, `Facturapi error: ${desc.status}`, {
         detail: desc.detail,
       });

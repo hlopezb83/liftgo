@@ -45,3 +45,16 @@ export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto
     })
     .filter((l) => l.description.trim() !== "" && l.total > 0);
 }
+
+/**
+ * FIX-3 (ronda 3): ¿las partidas de una factura ya incluyen al menos un extra
+ * (no renta ni venta)? Espejo Deno de `hasNonRentalLines` en
+ * `src/lib/domain/nonRentalLines.ts`. Sin esto, una factura de pura renta
+ * marcaba los extras como "ya cobrados" y nunca se facturaban.
+ */
+export function hasNonRentalLines(lineItems: unknown): boolean {
+  if (!Array.isArray(lineItems)) return false;
+  return (lineItems as Array<Record<string, unknown>>).some((item) =>
+    !isRentalOrSaleLine(item?.description as string | undefined)
+  );
+}
