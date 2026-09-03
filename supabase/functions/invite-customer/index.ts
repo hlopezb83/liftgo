@@ -2,7 +2,7 @@ import { handleCors } from "../_shared/cors.ts";
 import {
   enforceRateLimit,
   generateSecurePassword,
-  requireAdmin,
+  requireRole,
 } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isEmail, isUUID } from "../_shared/validate.ts";
