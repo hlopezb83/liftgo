@@ -2,9 +2,11 @@
 --   H1 get_insurance_alerts excluye equipos E2E (COALESCE(is_e2e,false)=false)
 --      y sus cifras coinciden con la flota real (sin E2E, sin sold/retired,
 --      sin archivados).
---   H7 índice único parcial contracts_one_active_per_booking impide un segundo
---      contrato no cancelado por reserva, preservando los duplicados
---      históricos CTR-0002/CTR-0003.
+--   H7 (v7.421.2) el candado de un contrato no cancelado por reserva vive en
+--      el trigger trg_contract_one_active_per_booking (el índice parcial con
+--      corte por fecha se eliminó), preservando los duplicados históricos
+--      CTR-0002/CTR-0003. Cobertura funcional completa en
+--      r_fix40_contratos_duplicado_trigger_smoke.sql.
 --   psql -f supabase/tests/r_fix39_hallazgos_seguros_contratos_smoke.sql
 -- Solo lecturas: no toca datos.
 
@@ -78,14 +80,20 @@ SELECT pg_temp.expect_true(
   )
 );
 
--- H7: el índice único parcial existe y su predicado no toca cancelados.
+-- H7 (v7.421.2): el candado vive en un trigger transaccional que valida
+-- contra todos los contratos de la reserva, sin importar su fecha.
 SELECT pg_temp.expect_true(
-  'H7 índice contracts_one_active_per_booking existe',
-  EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'contracts_one_active_per_booking')
+  'H7 trigger trg_contract_one_active_per_booking existe',
+  EXISTS (
+    SELECT 1 FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'contracts'
+      AND t.tgname = 'trg_contract_one_active_per_booking'
+      AND NOT t.tgisinternal
+  )
 );
 SELECT pg_temp.expect_true(
-  'H7 predicado excluye contratos cancelados',
-  (SELECT indexdef FROM pg_indexes WHERE indexname = 'contracts_one_active_per_booking')
+  'H7 la validación excluye contratos cancelados',
+  pg_temp.fndef('enforce_one_active_contract_per_booking')
     LIKE '%status <> ''cancelled''%'
 );
 

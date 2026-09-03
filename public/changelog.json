@@ -1,5 +1,19 @@
 [
  {
+  "version": "7.421.2",
+  "date": "2026-09-03",
+  "type": "patch",
+  "category": "fix",
+  "title": "Contratos: candado real de un contrato vigente por reserva",
+  "description": "El bloqueo de contratos duplicados se movió a una validación transaccional en la base de datos que revisa todos los contratos de la reserva, sin importar su fecha, cerrando el hueco del índice con corte por fecha frente a duplicados históricos.",
+  "changes": [
+   "Contratos: la regla de \"un contrato vigente por reserva\" vive ahora en un trigger de base de datos que valida contra todos los contratos, sin importar su fecha (el índice con corte por fecha dejaba pasar un contrato nuevo frente a duplicados históricos).",
+   "Bloquea también mover un contrato a una reserva ocupada y reactivar un contrato cancelado cuando produciría duplicado.",
+   "Cancelar sigue permitido, incluidos varios contratos cancelados por reserva; los históricos CTR-0002/CTR-0003 permanecen intactos.",
+   "Seguro ante concurrencia (candado transaccional por reserva) y ante inserciones directas de otros clientes; la interfaz conserva el aviso \"Ya existe un contrato para esta reserva\"."
+  ]
+ },
+ {
   "version": "7.421.1",
   "date": "2026-09-03",
   "type": "patch",

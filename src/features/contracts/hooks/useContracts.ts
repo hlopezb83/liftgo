@@ -61,9 +61,12 @@ export function useContract(id: string | undefined) {
 /**
  * Hallazgo 7: antes de crear un contrato ligado a una reserva, buscar si ya
  * existe uno vigente (status <> 'cancelled') para abrirlo en vez de duplicar.
- * El respaldo concurrente vive en el índice único parcial
- * `contracts_one_active_per_booking` (sólo aplica a registros nuevos; los
- * duplicados históricos CTR-0002/CTR-0003 se conservan).
+ * El respaldo real vive en el trigger de DB
+ * `trg_contract_one_active_per_booking` (v7.421.2), que valida contra TODOS
+ * los contratos de la reserva —sin importar fecha— con candado transaccional
+ * por booking_id y responde 23505 con el nombre
+ * `contracts_one_active_per_booking`. Los duplicados históricos
+ * CTR-0002/CTR-0003 se conservan intactos.
  */
 export async function findActiveContractForBooking(bookingId: string) {
   const { data, error } = await supabase
@@ -93,9 +96,9 @@ export function useCreateContract() {
         .select()
         .single();
       if (error) {
-        // Hallazgo 7: el índice único rechaza el segundo contrato no
-        // cancelado de una misma reserva (carrera/doble clic). Traducimos el
-        // 23505 a un mensaje claro en vez del error técnico de Postgres.
+        // Hallazgo 7: el trigger de DB rechaza el segundo contrato no
+        // cancelado de una misma reserva (carrera/doble clic/otros clientes).
+        // Traducimos el 23505 a un mensaje claro en vez del error técnico.
         const pgErr = error as { code?: string; message?: string };
         if (pgErr.code === "23505" && (pgErr.message ?? "").includes("contracts_one_active_per_booking")) {
           throw new Error("Ya existe un contrato para esta reserva");

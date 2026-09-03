@@ -7,7 +7,8 @@
 - [x] 4. Títulos KPI: wrap de hasta 2 líneas en `KpiTile` (title accesible conservado).
 - [x] 5. Entregas vacías: no reproducible en HEAD (32 registros visibles; join tolerante ya existente). Verificado en navegador.
 - [x] 6. Entregas atrasadas: badge "Atrasada" con fecha local Monterrey; orden ascendente ya coloca atrasadas primero.
-- [x] 7. Contratos duplicados: pre-verificación + índice único parcial (históricos CTR-0002/CTR-0003 intactos) + mensaje "Ya existe un contrato para esta reserva".
+- [x] 7. Contratos duplicados: pre-verificación + candado en DB (históricos CTR-0002/CTR-0003 intactos) + mensaje "Ya existe un contrato para esta reserva".
+  - [x] Corrección v7.421.2: el índice con corte por fecha no bloqueaba contratos nuevos frente a duplicados históricos; se reemplazó por trigger transaccional (`trg_contract_one_active_per_booking`) con candado advisory por reserva, 23505 reconocible por la UI y smoke SQL propio (`r_fix40_contratos_duplicado_trigger_smoke.sql`).
 - [x] 8. Bitácora: "Sistema" único + traducciones de campos técnicos + fallback legible.
 - [x] 9. Devoluciones: `inspected_by` automático con usuario autenticado; solo admin edita; helper con pruebas.
 - [x] 10. Estado de resultados: "Egresos antes de depreciación" + tarjeta "Depreciación total" (sin cambiar cálculos).
