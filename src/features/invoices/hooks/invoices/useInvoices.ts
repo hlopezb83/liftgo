@@ -1,7 +1,7 @@
 import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Json, Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
@@ -13,7 +13,7 @@ import {
   sanitizeInvoiceSearchForQuery,
   type InvoiceListFilters,
 } from "../../lib/invoiceListFilters";
-import { invoiceKeys } from "../../lib/queryKeys";
+import { invoiceBookingKeys, invoiceKeys } from "../../lib/queryKeys";
 
 type InvoiceRow = Tables<"invoices">;
 
@@ -183,6 +183,47 @@ export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBloc
     // v7.381.1: si el guard de BD `trg_guard_invoice_sale_assignment` rechaza
     // por carrera/estado obsoleto (cotización de venta con equipos sin
     // asignar), la UI muestra el bloque explicable en vez del toast genérico.
+    onBusinessBlock: opts?.onBusinessBlock,
+  });
+}
+
+export interface SaveInvoiceWithBookingsArgs {
+  payload: Omit<TablesInsert<"invoices">, "invoice_number">;
+  bookingIds: string[];
+  /** null/undefined → crear; uuid → editar. */
+  invoiceId?: string | null;
+  /** R4-25: versión de la factura al abrir el formulario (sólo edición). */
+  expectedVersion?: number | null;
+}
+
+/**
+ * Regresión v7.423.0 (P1): guardado transaccional de factura + reservas.
+ * UN solo RPC (`save_invoice_with_bookings`, SECURITY INVOKER — aplican las
+ * mismas RLS/triggers/guards del flujo anterior) crea o actualiza la factura
+ * Y sincroniza el pivote `invoice_bookings` en UNA transacción de BD, con
+ * candados advisory por reserva (misma clave/orden que
+ * `create_recurring_invoice`). Si el sync rechaza (reserva+período ya
+ * facturados, período fuera del rango de la reserva, etc.), TODO se
+ * revierte: no quedan facturas parciales ni huérfanas.
+ * El bloqueo optimista se conserva: `expectedVersion` viaja al RPC y un
+ * conflicto regresa el mensaje canónico "stale_write…".
+ */
+export function useSaveInvoiceWithBookings(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
+  return useEntityMutation({
+    mutationFn: async ({ payload, bookingIds, invoiceId, expectedVersion }: SaveInvoiceWithBookingsArgs) => {
+      const { data, error } = await supabase.rpc("save_invoice_with_bookings", {
+        p_invoice: payload as unknown as Json,
+        p_booking_ids: bookingIds,
+        p_invoice_id: invoiceId ?? undefined,
+        p_expected_version: expectedVersion ?? undefined,
+      });
+      if (error) throw error;
+      const row = (Array.isArray(data) ? data[0] : data) as InvoiceRow | undefined;
+      if (!row) throw new Error("No se pudo guardar la factura.");
+      return row;
+    },
+    invalidateKeys: [invoiceKeys.all, reportKeys.all, invoiceBookingKeys.all],
+    errorTitle: "Error al guardar factura",
     onBusinessBlock: opts?.onBusinessBlock,
   });
 }

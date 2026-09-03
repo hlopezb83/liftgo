@@ -8,6 +8,12 @@ import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/featur
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { nowMty } from "@/lib/utils";
+import {
+  periodOutsideBookingsError,
+  validateBookingSelection,
+  type BillableBooking,
+} from "../lib/bookingCompatibility";
 import {
   invoiceFormSchema,
   buildEmptyInvoiceValues,

@@ -1,23 +1,19 @@
-# Roadmap — 9 bugs pendientes (YAGNI estricto)
+# Roadmap
 
-Restricciones: no tocar datos históricos (FAC-0113, ENT-0027, ENT-0028/0029/0031/0032/0033), CFDI timbrados, importes, pagos ni estados existentes. Sin dependencias nuevas ni rediseños.
+## Revisión de regresión v7.422.0 (en curso — NO publicar)
+Restricciones: no tocar datos históricos (FAC-0113, ENT-0027, ENT-0028/0029/0031/0032/0033), CFDI timbrados, importes, pagos ni estados. YAGNI estricto; sin tabla ledger ni rearquitectura.
 
-## Tareas
-- [x] 1. Entregas `completed` sin `completed_at`: reloj de servidor en toda transición + protección prospectiva en DB (compatible con ENT-0027). → trigger `trg_set_delivery_completed_at`.
-- [x] 2. `completed_at` < `created_at`: dejar de calcular en navegador; usar tiempo de transacción del servidor. → el cliente ya no envía `completed_at`.
-- [x] 3. Evidencia operativa: advertencia + justificación (`completed_no_evidence_reason`) al completar sin operador/firma, en detalle, alta histórica y post-reserva.
-- [x] 4. Período de facturación inicial: `prefillBillingPeriod` siempre acota a las fechas de la reserva (incluida recurrente que termina en su mes inicial); pruebas mitad/fin de mes, cambio de mes/año y TZ; FAC-0113 intacta.
-- [x] 5. Factura agrupada multi-reserva: RPC atómico `sync_invoice_bookings` (delete+insert en una transacción) con idempotencia reserva+período (pivote y `booking_id` legado).
-- [x] 6. Dashboard ceros falsos: `financialSectionState` distingue error ("No disponible"+reintento), loading (skeleton) y cero real.
-- [x] 7. "Búsqueda global" → "Navegación rápida" / "Ir a…"; Ctrl+K conservado.
-- [x] 8. Pestañas de Cotizaciones en plural (`QUOTE_STATUS_TAB_LABELS`); badges siguen en singular.
-- [x] 9. Cuentas bancarias: aria-label contextual, tooltip y botones `iconSm` en la tabla desktop.
+- [ ] P1 Atomicidad extremo a extremo: crear/editar factura + pivote `invoice_bookings` en UNA transacción de BD (RPC `save_invoice_with_bookings`), con candados advisory por todos los bookingIds ordenados usando la misma clave que `create_recurring_invoice`, y chequeo de duplicados reserva+período DESPUÉS de adquirirlos. `sync_invoice_bookings` también toma los candados. Conservar bloqueo optimista (`expectedVersion`/stale_write), permisos, `booking_id` legado y regla canónica de cancelación.
+- [ ] P2 Multi-selección coherente: sólo reservas del mismo cliente + misma moneda/TC + exactamente el mismo periodo canónico (`prefillBillingPeriod`/`firstBillingPeriod`); deshabilitar incompatibles con razón breve; validar lo mismo al guardar (no sólo filtro visual). Sin conversión automática de monedas.
+- [ ] P3 Validación de periodo: `billingPeriodEnd` requerido con reserva, `start <= end`, y periodo dentro del rango de TODAS las reservas seleccionadas — en cliente y en servidor (RPC transaccional). Sin fallback silencioso a un mes ajeno.
+- [ ] Pruebas obligatorias: (1) concurrencia real — sólo un intento persiste y el perdedor no deja factura; (2) fallo de sync en creación/edición revierte todo; (3) multi-select rechaza periodo/moneda/TC distintos y acepta compatibles; (4) periodEnd requerido, start<=end, periodo fuera de reserva rechazado; (5) regresión simple/recurrente/extensión/daño/edición y FAC-0113 intacta; (6) typecheck + suite completa.
+- [ ] Changelog MD + JSON + versión; reportar commit, migración, versión y conteo de pruebas. NO publicar.
 
-## Validación
-- [x] Migraciones prospectivas que preservan inconsistencias históricas (ENT-0027 NULL y desfases 0028/29/31/32/33 intactos; verificado en DB).
-- [x] Pruebas unitarias: 77 pruebas en 7 suites (payload/justificación, schema, RPC, períodos, KPI states, labels).
-- [x] Pruebas transaccionales en DB (con rollback): trigger T1/T2 y RPC T3/T4/T5 pasaron; sin residuos.
-- [x] Build + typecheck + lint + suites relacionadas (advertencias de lint restantes son preexistentes en archivos no tocados).
-- [x] Verificación visual: Dashboard, Entregas, Cotizaciones, navegación rápida, Cuentas bancarias.
-- [x] RLS de objetos nuevos revisado (RPC `SECURITY INVOKER`; grants a `authenticated`/`service_role`).
-- [x] Changelog actualizado (v7.422.0).
+## Cerrado — 9 bugs pendientes (v7.422.0)
+- [x] 1-3 Entregas: reloj de servidor (`trg_set_delivery_completed_at`), sin `completed_at` de cliente, justificación de evidencia (`completed_no_evidence_reason`). Históricos intactos.
+- [x] 4 Período inicial: `prefillBillingPeriod` acotado a la reserva.
+- [x] 5 Factura agrupada: RPC `sync_invoice_bookings` (superseded por P1 arriba).
+- [x] 6 Dashboard: estados loading/error/cero real.
+- [x] 7 "Navegación rápida" / "Ir a…".
+- [x] 8 Pestañas de Cotizaciones en plural.
+- [x] 9 Cuentas bancarias accesibles (aria-label, tooltip, iconSm).

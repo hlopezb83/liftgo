@@ -72,6 +72,28 @@ export const invoiceFormSchema = z
         message: "El periodo de facturación es requerido para facturas con reserva",
       });
     }
+    // Regresión v7.423.0 (P3): el fin del periodo también es obligatorio —
+    // sin él, un fallback silencioso completaba un fin de mes ajeno a la
+    // reserva. El servidor (sync_invoice_bookings) impone la misma regla.
+    if (hasBooking && !values.billingPeriodEnd) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["billingPeriodEnd"],
+        message: "El fin del periodo es requerido para facturas con reserva",
+      });
+    }
+    // start <= end (comparación lexicográfica, segura en YYYY-MM-DD).
+    if (
+      values.billingPeriodStart &&
+      values.billingPeriodEnd &&
+      values.billingPeriodStart > values.billingPeriodEnd
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["billingPeriodEnd"],
+        message: "El fin del periodo no puede ser anterior al inicio",
+      });
+    }
 
     const rfc = (values.cfdi.receptorRfc || "").toUpperCase();
     if (rfc === "XAXX010101000") {

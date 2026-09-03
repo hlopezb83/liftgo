@@ -15,26 +15,39 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import type { BookingWithForklift } from "@/features/bookings";
-import { cn, formatDateRange } from "@/lib/utils";
+import { cn, formatDateRange, nowMty } from "@/lib/utils";
+import { bookingIncompatibilityReason, type BillableBooking } from "../../lib/bookingCompatibility";
 
 interface Props {
   bookings: BookingWithForklift[];
   selectedIds: string[];
   onChange: (ids: string[]) => void;
+  /** Fecha de emisión de la factura — ancla el periodo facturable canónico. */
+  issueDate?: Date;
 }
 
 /**
  * Selector múltiple de reservas para una factura.
- * Solo permite reservas del mismo cliente: una vez elegida la primera,
- * el resto se filtra para mostrar únicamente reservas con el mismo customer_id.
+ * Regresión v7.423.0 (P2): la factura tiene UN periodo, UNA moneda y UN tipo
+ * de cambio globales, así que sólo se pueden combinar reservas del mismo
+ * cliente con la misma moneda/TC y exactamente el mismo periodo facturable
+ * canónico. Las incompatibles se deshabilitan con la razón visible; la misma
+ * regla se re-valida al guardar (y el servidor es la autoridad final).
  */
-export function MultiBookingSelector({ bookings, selectedIds, onChange }: Props) {
+export function MultiBookingSelector({ bookings, selectedIds, onChange, issueDate }: Props) {
   const selected = bookings.filter((b) => selectedIds.includes(b.id));
   const lockedCustomerId = selected[0]?.customer_id ?? null;
+  const anchor = selected[0] as BillableBooking | undefined;
+  const issue = issueDate ?? nowMty();
 
   const visibleBookings = lockedCustomerId
     ? bookings.filter((b) => b.customer_id === lockedCustomerId || selectedIds.includes(b.id))
     : bookings;
+
+  const incompatibilityFor = (b: BookingWithForklift): string | null => {
+    if (!anchor || selectedIds.includes(b.id)) return null;
+    return bookingIncompatibilityReason(anchor, b as BillableBooking, issue);
+  };
 
   const toggle = (id: string) => {
     if (selectedIds.includes(id)) {
@@ -70,12 +83,14 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange }: Props)
               <CommandGroup>
                 {visibleBookings.map((b) => {
                   const isSelected = selectedIds.includes(b.id);
+                  const reason = incompatibilityFor(b);
                   return (
                     <CommandItem
                       key={b.id}
                       value={`${b.forklifts?.name ?? ""} ${b.customer_name ?? ""}`}
+                      disabled={!!reason}
                       onSelect={() => toggle(b.id)}
-                      className="flex items-start gap-2"
+                      className={cn("flex items-start gap-2", reason && "opacity-60")}
                     >
                       <SuccessIcon className={cn("h-4 w-4 mt-1", isSelected ? "opacity-100" : "opacity-0")} />
                       <div className="flex flex-col">
@@ -85,6 +100,11 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange }: Props)
                         <span className="text-xs text-muted-foreground">
                           {formatDateRange(b.start_date, b.end_date)}
                         </span>
+                        {reason && (
+                          <span className="text-xs text-muted-foreground">
+                            No combinable: {reason}
+                          </span>
+                        )}
                       </div>
                     </CommandItem>
                   );
@@ -121,7 +141,8 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange }: Props)
 
       {lockedCustomerId && (
         <p className="text-xs text-muted-foreground">
-          Solo se muestran reservas del mismo cliente.
+          Sólo se combinan reservas del mismo cliente con la misma moneda, tipo
+          de cambio y periodo facturable; las demás aparecen deshabilitadas.
         </p>
       )}
     </div>
