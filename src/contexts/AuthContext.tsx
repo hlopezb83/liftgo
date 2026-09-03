@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AUTH_SIGNIN_ERROR_TOAST_ID, dismissNotification } from "@/lib/ui/appFeedback";
+import { dismissAuthError } from "@/lib/ui/appFeedback";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface AuthContextValue {
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false);
       // Hallazgo 3: con sesión válida establecida, el error de un intento
       // fallido previo ya no aplica — se descarta obligatoriamente aquí.
-      if (nextSession) dismissNotification(AUTH_SIGNIN_ERROR_TOAST_ID);
+      if (nextSession) dismissAuthError();
     });
 
     // Defensive bootstrap: if INITIAL_SESSION never fires (SDK bug, network blip)
