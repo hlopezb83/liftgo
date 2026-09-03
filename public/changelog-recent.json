@@ -1,1 +1,323 @@
-[{"version": "7.420.3", "date": "2026-09-02", "type": "patch", "category": "fix", "title": "Pagos ligados a su lote y trabajos automáticos de timbrado más estables", "description": "Cada pago a proveedor vuelve a ligarse al lote vigente de la factura y los procesos automáticos de timbrado ya no exceden su tiempo de ejecución.", "changes": ["CxP: register_supplier_payment resuelve el lote vigente cuando no se envía uno; un lote ya pagado no puede cancelarse ni reexportarse.", "Cola de reintentos CFDI: presupuesto de 50s por corrida y lotes de 10 pendientes / 5 atascadas.", "Reconciliación de timbrado: presupuesto de 50s por corrida y 10 documentos por tipo.", "Los dos crons de timbrado se escalonan (ya no corren en el mismo minuto)."]}, {"version": "7.420.2", "date": "2026-09-02", "type": "patch", "category": "chore", "title": "Lint: 7 avisos corregidos (imports, complejidad, fast-refresh)", "description": "Se corrigieron 7 avisos de ESLint: líneas entre imports, orden de imports, complejidad excesiva y fast-refresh. Sin cambios de comportamiento.", "changes": ["useInvoiceFormLogic: línea en blanco entre grupos de imports eliminada.", "InvoiceCreditNotesCard: se extrajo CreditNoteActions y CreditNoteNotices (complejidad 17→<15, líneas 157→<150).", "PartFormDialog: PART_CATEGORIES movido a lib/partConstants.ts para fast-refresh.", "useCustomerDetailActions: orden de imports corregido.", "cashFlowTransformers: línea en blanco eliminada; recurringBookingItems dividido en dos funciones (complejidad 18→<15).", "InventoryPage: orden de imports corregido."]}, {"version": "7.420.1", "date": "2026-09-02", "type": "patch", "category": "chore", "title": "CI: acción de detección de cambios actualizada a Node 24", "description": "GitHub mostraba la advertencia de Node.js 20 en desuso porque la acción dorny/paths-filter v3 aún lo usa; se actualizó a v4.0.3 (Node 24). Además se dio formato estándar a las funciones del backend. Sin cambios en la aplicación.", "changes": ["dorny/paths-filter v3.0.2 → v4.0.3 en el flujo de CI (elimina la advertencia de Node 20 en desuso).", "Formato deno fmt aplicado a las funciones del backend tocadas en v7.420.0."]}, {"version": "7.420.0", "date": "2026-09-02", "type": "minor", "category": "fix", "title": "Ronda 3 de remediación: IVA por partida en complementos, REP recuperables y tipo de cambio real", "tags": ["auditoria", "facturacion", "cfdi", "proveedores", "clientes"], "description": "Ronda 3 de remediación: IVA del complemento de pago por partida, recuperación de REP cancelados, tasa de IVA del cliente al editar, extras recurrentes, tipo de cambio real y exportación de facturas con moneda.", "changes": ["Complemento de pago: el IVA se desglosa a partir de las partidas de la factura original (exentas, tasa 0, tasas mixtas) en vez de aplicar una sola tasa de encabezado; una factura totalmente exenta ya no declara IVA ficticio.", "Complemento de pago: un REP cancelado que falla al re-timbrarse regresa a 'cancelado' y puede reintentarse, en lugar de quedar atorado sin posibilidad de complemento.", "Saldo anterior del complemento: un pago cuyo complemento fue cancelado ya no reduce el saldo declarado.", "Pagos a proveedores: el pago se liga al lote de forma explícita, así un abono manual ya no bloquea la cancelación de un lote.", "Clientes: al editar un cliente ahora sí se guarda su tasa de IVA (por ejemplo 8% en frontera).", "Facturación recurrente: los cargos extra se consideran cobrados sólo si existe una factura vigente con esas partidas, revisando también las facturas ligadas directamente a la reserva.", "Cotizaciones y vista previa recurrente: una moneda extranjera exige tipo de cambio real (ya no se acepta 0 ni 1).", "Exportación de facturas a CSV: se agregaron las columnas Moneda y Tipo de cambio."]}, {"version": "7.419.0", "date": "2026-09-02", "type": "minor", "category": "fix", "title": "Ronda 2 de remediación: divisas en notas de crédito, lotes de pago, IVA proyectado y extras recurrentes", "tags": ["auditoria", "facturacion", "proveedores", "flujo-de-efectivo"], "description": "Ronda 2 de remediación: notas de crédito con tipo de cambio, complementos de pago, lotes de proveedores, IVA en la proyección de flujo y extras de cotización en la primera factura recurrente.", "changes": ["Notas de crédito: el tope acreditable convierte los pagos con complemento vigente a la moneda de la factura; si falta el tipo de cambio se bloquea la emisión con aviso, en vez de asumir 1:1.", "Complemento de pago: el saldo anterior considera todos los pagos válidos y el número de parcialidad sólo cuenta complementos vigentes.", "Pagos a proveedores: cada pago queda ligado al lote vigente de su factura, de modo que cancelar un lote sólo se bloquea por pagos de ese lote.", "Flujo de efectivo: las rentas recurrentes se proyectan con el IVA del cliente (16% por omisión, 0% si así está configurado), igual que la factura real.", "Facturación recurrente: los cargos extra pactados en la cotización (seguro, logística) se anexan una sola vez, en la primera factura de la reserva.", "Mantenimiento: se bloquea programar servicios que se traslapan con reservas confirmadas, respetando los días de colchón configurados."]}, {"version": "7.418.2", "date": "2026-09-02", "type": "patch", "category": "fix", "title": "Pruebas PDF: estilos en arreglo incompatibles con jsdom 30", "description": "Las 9 pruebas de documentos PDF fallaban tras la actualización de jsdom 30: el mock de react-pdf pasaba estilos como arreglo al DOM y jsdom lo rechaza. El mock ahora aplana los arreglos de estilos antes de renderizar; sin cambios en producción."}, {"version": "7.418.1", "date": "2026-09-02", "type": "patch", "title": "Guardrail de arquitectura actualizado para bookingRates", "category": "fix"}, {"version": "7.418.0", "date": "2026-09-02", "type": "minor", "title": "Correcciones de facturación, IVA por cliente y candados de edición", "category": "fix"}, {"version": "7.417.2", "date": "2026-09-02", "type": "patch", "category": "chore", "title": "Actualización de dependencias", "description": "Se actualizaron dependencias de seguridad y herramientas (dompurify, react-dropzone, jsdom, @types/node, eslint-plugin-react-refresh). react-table v9 y TypeScript 7 se posponen por sus cambios incompatibles.", "tags": ["dependencias", "mantenimiento"], "changes": ["dompurify 3.4.14 y react-dropzone 20.1.1 en producción.", "jsdom 30.0.1, @types/node 26.4.1 y eslint-plugin-react-refresh 0.5.5 en desarrollo.", "react-table permanece en v8: la v9 exige migrar el DataTable completo.", "TypeScript permanece en 5.x hasta que typescript-eslint soporte la v7."]}, {"version": "7.417.1", "date": "2026-09-02", "type": "patch", "category": "fix", "title": "Estabilidad de CI y conciliación bancaria", "description": "La conciliación ya no consulta una columna inexistente en pagos a proveedores; las pruebas recurrentes, dependencias de Vitest y avisos de lint quedaron alineados con el comportamiento actual.", "tags": ["ci", "bancos", "pruebas"], "changes": ["Se retiró de pagos a proveedores la referencia inválida a is_e2e.", "Las pruebas recurrentes respetan que nada inicia preseleccionado.", "Vitest y coverage-v8 usan exactamente la misma versión.", "La configuración de pruebas usa import.meta.url en vez de __dirname.", "Se corrigieron los avisos reportados de imports, complejidad y tamaño de función."]}, {"version": "7.417.0", "date": "2026-09-02", "type": "minor", "category": "fix", "title": "Remediación R10: dinero, periodos, exportaciones e integridad operativa", "description": "Los reportes financieros ya aplican la regla canónica de tipo de cambio y conservan la depreciación histórica; la facturación manual, recurrentes, conciliación, reservas y exportaciones cierran los hallazgos vigentes de R10.", "tags": ["auditoria", "finanzas", "facturacion", "reservas", "reportes"], "changes": ["KPIs, MRR y rentabilidad por montacargas usan la regla canónica de tipo de cambio.", "Los equipos archivados permanecen en la depreciación histórica hasta el mes de su baja.", "La conciliación excluye pagos E2E y la validación cambiaria interna requiere sesión.", "Reservas no recurrentes se facturan completas; recurrentes conservan el primer periodo prorrateado.", "El asistente recurrente reporta el límite de 24 periodos y cuántos siguen pendientes.", "Acciones de reserva evitan doble envío y los diálogos sólo cierran tras éxito.", "CSV de facturas consulta hasta 10,000 filas filtradas; mantenimiento calcula y exporta el conjunto filtrado.", "Los smoke tests SQL fallan ante regresiones en vez de ocultarlas."]}, {"version": "7.416.0", "date": "2026-09-02", "type": "minor", "category": "improvement", "title": "Optimización móvil fase 2: gráficas y fichas a dos columnas", "description": "Las gráficas de Reportes ya se adaptan a pantallas chicas (etiquetas sin recortes y ejes más angostos) y las fichas de detalle (Reserva, Cliente, Montacarga, Proveedor, Entrega, Devolución) muestran dos columnas desde 640 px, aprovechando el ancho de un celular plegable.", "tags": ["ui", "movil", "reportes"], "changes": ["Nuevo hook useChartSizing: alto del área de gráfica, ángulo/alto del eje X, ancho del eje Y y truncado de etiquetas según el ancho de pantalla.", "Reportes de Utilización, Ingresos, Costos de Mantenimiento, Utilización por Modelo y Rentabilidad por Modelo adaptados.", "Fichas de detalle: rejillas md:grid-cols-2 → sm:grid-cols-2 con separación compacta en móvil.", "Sin cambios de backend, reglas de negocio, RLS ni permisos."]}, {"version": "7.415.3", "date": "2026-09-02", "type": "patch", "category": "fix", "title": "Auditoría móvil (celular plegable): modales con el pie pegado al borde", "description": "Revisión de la app en pantalla de 692×764 (celular plegable). Los modales de formulario mostraban ~25 px de contenido asomando por debajo de la barra de botones; ahora el pie queda pegado al borde inferior del modal y respeta el área segura del teléfono.", "tags": ["ui", "movil", "modales"], "changes": ["FormDialog: el scrollport ya no lleva padding inferior (lo asume el contenido), así el pie sticky se ancla al borde real del modal.", "FormDialogFooter: padding inferior con env(safe-area-inset-bottom) para teléfonos con notch/barra de gestos.", "Sin cambios de backend, reglas de negocio, RLS ni permisos."]}, {"version": "7.415.2", "date": "2026-09-01", "type": "patch", "category": "fix", "title": "Pulido visual: sidebar colapsado y modales sin hueco", "description": "Al colapsar el menú lateral, el logo y los datos de usuario ya no se desbordan del riel; los modales dejaron de mostrar un espacio en blanco debajo de los botones.", "tags": ["ui", "sidebar", "modales"]}, {"version": "7.415.1", "date": "2026-09-01", "type": "patch", "category": "feature", "title": "Facturación recurrente: la vista previa ya no preselecciona nada", "tags": ["facturacion", "recurrente", "ux"], "description": "Al abrir la vista previa de facturas recurrentes ya no viene nada marcado: el operador selecciona explícitamente qué facturar (o usa 'seleccionar todos' por grupo), en vez de partir de todo marcado y desmarcar."}, {"version": "7.415.0", "date": "2026-09-01", "type": "minor", "category": "feature", "title": "Facturación recurrente visible y editable desde la reserva", "description": "El detalle de la reserva ahora dice claramente si la facturación recurrente está activa y permite encenderla o apagarla; al convertir cotizaciones de largo plazo viene sugerida encendida."}, {"version": "7.414.3", "date": "2026-09-01", "title": "Eliminar reserva confirmada: bloqueo explicado", "description": "El botón Eliminar en una reserva confirmada queda bloqueado con explicación ('cancela primero') en vez de fallar con un reporte de error tras el clic. Backend intacto.", "type": "patch"}, {"version": "7.414.2", "date": "2026-09-01", "type": "patch", "category": "fix", "title": "Ficha de cliente: error 'fx_missing ambiguo' al cargar el resumen", "tags": ["clientes", "facturacion", "fx", "hotfix"], "description": "Al abrir el detalle de un cliente aparecía 'No se pudo cargar la información' (error 42702). La función de resumen calculaba una columna fx_missing con el mismo nombre que la que ya trae la vista de facturas; se eliminó el cálculo redundante y ahora se usa la columna de la vista, con la misma regla de siempre.", "changes": ["get_customer_summary: la CTE scoped ya no recalcula fx_missing; usa la columna de v_invoices_with_balance (misma regla canónica fx_is_missing).", "Sin cambios en reglas de negocio, RLS, permisos ni en el JSON que recibe la pantalla.", "Los warnings del linter de seguridad reportados tras la migración son preexistentes del proyecto y no fueron introducidos por este cambio."]}, {"version": "7.414.1", "date": "2026-09-01", "type": "patch", "category": "fix", "title": "Primera factura: se cobran los días del mes al precio diario", "tags": ["facturacion", "reservas", "prorrateo"], "description": "En la factura manual de una reserva de largo plazo, la partida ya no aparece como 1 día con el importe prorrateado: ahora muestra los días restantes del mes como cantidad, al precio diario derivado de la renta mensual, de modo que cuadre con la mensualidad.", "changes": ["Partida precargada: cantidad = días del inicio al fin de mes, precio unitario = renta mensual / días del mes (hasta 6 decimales, permitido por CFDI 4.0), importe = cantidad × precio.", "Descripción de la partida: 'Renta <mes año> (N días al precio diario)'.", "Sin cambios en el motor de facturación recurrente, reglas fiscales, RLS, RPC ni permisos."]}, {"version": "7.414.0", "date": "2026-09-01", "type": "minor", "category": "feature", "title": "Primera factura de reservas largas: sólo los días del mes de inicio", "tags": ["facturacion", "reservas", "prorrateo"], "description": "Al crear una factura desde una reserva que dura más de un mes (por ejemplo, un año), el sistema precarga únicamente el periodo del inicio de la reserva al fin de ese mes, con el monto prorrateado por días. A partir del mes siguiente se factura el mes completo.", "changes": ["Reserva de largo plazo que inicia a mitad de mes: la factura precargada cubre del día de inicio al último día de ese mes, con la tarifa mensual prorrateada por días (misma fórmula que el asistente de facturación recurrente).", "Reserva que inicia el día 1: primer periodo de mes completo, sin prorrateo.", "El periodo de facturación (inicio y fin) se precarga con ese mismo rango, para que el siguiente ciclo arranque el día 1 del mes siguiente.", "Las rentas que empiezan y terminan dentro del mismo mes se calculan igual que antes; las partidas de logística y entrega arrastradas de la cotización no cambian.", "Los montos siguen siendo editables: esto sólo afecta el valor precargado. Sin cambios en reglas fiscales, permisos, base de datos ni en la generación recurrente."]}]
+[
+{
+"version": "7.420.4",
+"date": "2026-09-03",
+"type": "patch",
+"category": "fix",
+"title": "Invitar al portal disponible para el rol administrativo",
+"description": "El rol administrativo ya puede invitar clientes al portal y los errores de esta acción muestran el motivo real.",
+"changes": [
+"invite-customer acepta los roles admin y administrativo, alineado con la matriz de permisos del módulo Clientes.",
+"El hook de invitación extrae el error real de la función y lo traduce al español en vez de mostrar el mensaje genérico del SDK."
+]
+},
+{
+"version": "7.420.3",
+"date": "2026-09-02",
+"type": "patch",
+"category": "fix",
+"title": "Pagos ligados a su lote y trabajos automáticos de timbrado más estables",
+"description": "Cada pago a proveedor vuelve a ligarse al lote vigente de la factura y los procesos automáticos de timbrado ya no exceden su tiempo de ejecución.",
+"changes": [
+"CxP: register_supplier_payment resuelve el lote vigente cuando no se envía uno; un lote ya pagado no puede cancelarse ni reexportarse.",
+"Cola de reintentos CFDI: presupuesto de 50s por corrida y lotes de 10 pendientes / 5 atascadas.",
+"Reconciliación de timbrado: presupuesto de 50s por corrida y 10 documentos por tipo.",
+"Los dos crons de timbrado se escalonan (ya no corren en el mismo minuto)."
+]
+},
+{
+"version": "7.420.2",
+"date": "2026-09-02",
+"type": "patch",
+"category": "chore",
+"title": "Lint: 7 avisos corregidos (imports, complejidad, fast-refresh)",
+"description": "Se corrigieron 7 avisos de ESLint: líneas entre imports, orden de imports, complejidad excesiva y fast-refresh. Sin cambios de comportamiento.",
+"changes": [
+"useInvoiceFormLogic: línea en blanco entre grupos de imports eliminada.",
+"InvoiceCreditNotesCard: se extrajo CreditNoteActions y CreditNoteNotices (complejidad 17→<15, líneas 157→<150).",
+"PartFormDialog: PART_CATEGORIES movido a lib/partConstants.ts para fast-refresh.",
+"useCustomerDetailActions: orden de imports corregido.",
+"cashFlowTransformers: línea en blanco eliminada; recurringBookingItems dividido en dos funciones (complejidad 18→<15).",
+"InventoryPage: orden de imports corregido."
+]
+},
+{
+"version": "7.420.1",
+"date": "2026-09-02",
+"type": "patch",
+"category": "chore",
+"title": "CI: acción de detección de cambios actualizada a Node 24",
+"description": "GitHub mostraba la advertencia de Node.js 20 en desuso porque la acción dorny/paths-filter v3 aún lo usa; se actualizó a v4.0.3 (Node 24). Además se dio formato estándar a las funciones del backend. Sin cambios en la aplicación.",
+"changes": [
+"dorny/paths-filter v3.0.2 → v4.0.3 en el flujo de CI (elimina la advertencia de Node 20 en desuso).",
+"Formato deno fmt aplicado a las funciones del backend tocadas en v7.420.0."
+]
+},
+{
+"version": "7.420.0",
+"date": "2026-09-02",
+"type": "minor",
+"category": "fix",
+"title": "Ronda 3 de remediación: IVA por partida en complementos, REP recuperables y tipo de cambio real",
+"tags": [
+"auditoria",
+"facturacion",
+"cfdi",
+"proveedores",
+"clientes"
+],
+"description": "Ronda 3 de remediación: IVA del complemento de pago por partida, recuperación de REP cancelados, tasa de IVA del cliente al editar, extras recurrentes, tipo de cambio real y exportación de facturas con moneda.",
+"changes": [
+"Complemento de pago: el IVA se desglosa a partir de las partidas de la factura original (exentas, tasa 0, tasas mixtas) en vez de aplicar una sola tasa de encabezado; una factura totalmente exenta ya no declara IVA ficticio.",
+"Complemento de pago: un REP cancelado que falla al re-timbrarse regresa a 'cancelado' y puede reintentarse, en lugar de quedar atorado sin posibilidad de complemento.",
+"Saldo anterior del complemento: un pago cuyo complemento fue cancelado ya no reduce el saldo declarado.",
+"Pagos a proveedores: el pago se liga al lote de forma explícita, así un abono manual ya no bloquea la cancelación de un lote.",
+"Clientes: al editar un cliente ahora sí se guarda su tasa de IVA (por ejemplo 8% en frontera).",
+"Facturación recurrente: los cargos extra se consideran cobrados sólo si existe una factura vigente con esas partidas, revisando también las facturas ligadas directamente a la reserva.",
+"Cotizaciones y vista previa recurrente: una moneda extranjera exige tipo de cambio real (ya no se acepta 0 ni 1).",
+"Exportación de facturas a CSV: se agregaron las columnas Moneda y Tipo de cambio."
+]
+},
+{
+"version": "7.419.0",
+"date": "2026-09-02",
+"type": "minor",
+"category": "fix",
+"title": "Ronda 2 de remediación: divisas en notas de crédito, lotes de pago, IVA proyectado y extras recurrentes",
+"tags": [
+"auditoria",
+"facturacion",
+"proveedores",
+"flujo-de-efectivo"
+],
+"description": "Ronda 2 de remediación: notas de crédito con tipo de cambio, complementos de pago, lotes de proveedores, IVA en la proyección de flujo y extras de cotización en la primera factura recurrente.",
+"changes": [
+"Notas de crédito: el tope acreditable convierte los pagos con complemento vigente a la moneda de la factura; si falta el tipo de cambio se bloquea la emisión con aviso, en vez de asumir 1:1.",
+"Complemento de pago: el saldo anterior considera todos los pagos válidos y el número de parcialidad sólo cuenta complementos vigentes.",
+"Pagos a proveedores: cada pago queda ligado al lote vigente de su factura, de modo que cancelar un lote sólo se bloquea por pagos de ese lote.",
+"Flujo de efectivo: las rentas recurrentes se proyectan con el IVA del cliente (16% por omisión, 0% si así está configurado), igual que la factura real.",
+"Facturación recurrente: los cargos extra pactados en la cotización (seguro, logística) se anexan una sola vez, en la primera factura de la reserva.",
+"Mantenimiento: se bloquea programar servicios que se traslapan con reservas confirmadas, respetando los días de colchón configurados."
+]
+},
+{
+"version": "7.418.2",
+"date": "2026-09-02",
+"type": "patch",
+"category": "fix",
+"title": "Pruebas PDF: estilos en arreglo incompatibles con jsdom 30",
+"description": "Las 9 pruebas de documentos PDF fallaban tras la actualización de jsdom 30: el mock de react-pdf pasaba estilos como arreglo al DOM y jsdom lo rechaza. El mock ahora aplana los arreglos de estilos antes de renderizar; sin cambios en producción."
+},
+{
+"version": "7.418.1",
+"date": "2026-09-02",
+"type": "patch",
+"title": "Guardrail de arquitectura actualizado para bookingRates",
+"category": "fix"
+},
+{
+"version": "7.418.0",
+"date": "2026-09-02",
+"type": "minor",
+"title": "Correcciones de facturación, IVA por cliente y candados de edición",
+"category": "fix"
+},
+{
+"version": "7.417.2",
+"date": "2026-09-02",
+"type": "patch",
+"category": "chore",
+"title": "Actualización de dependencias",
+"description": "Se actualizaron dependencias de seguridad y herramientas (dompurify, react-dropzone, jsdom, @types/node, eslint-plugin-react-refresh). react-table v9 y TypeScript 7 se posponen por sus cambios incompatibles.",
+"tags": [
+"dependencias",
+"mantenimiento"
+],
+"changes": [
+"dompurify 3.4.14 y react-dropzone 20.1.1 en producción.",
+"jsdom 30.0.1, @types/node 26.4.1 y eslint-plugin-react-refresh 0.5.5 en desarrollo.",
+"react-table permanece en v8: la v9 exige migrar el DataTable completo.",
+"TypeScript permanece en 5.x hasta que typescript-eslint soporte la v7."
+]
+},
+{
+"version": "7.417.1",
+"date": "2026-09-02",
+"type": "patch",
+"category": "fix",
+"title": "Estabilidad de CI y conciliación bancaria",
+"description": "La conciliación ya no consulta una columna inexistente en pagos a proveedores; las pruebas recurrentes, dependencias de Vitest y avisos de lint quedaron alineados con el comportamiento actual.",
+"tags": [
+"ci",
+"bancos",
+"pruebas"
+],
+"changes": [
+"Se retiró de pagos a proveedores la referencia inválida a is_e2e.",
+"Las pruebas recurrentes respetan que nada inicia preseleccionado.",
+"Vitest y coverage-v8 usan exactamente la misma versión.",
+"La configuración de pruebas usa import.meta.url en vez de __dirname.",
+"Se corrigieron los avisos reportados de imports, complejidad y tamaño de función."
+]
+},
+{
+"version": "7.417.0",
+"date": "2026-09-02",
+"type": "minor",
+"category": "fix",
+"title": "Remediación R10: dinero, periodos, exportaciones e integridad operativa",
+"description": "Los reportes financieros ya aplican la regla canónica de tipo de cambio y conservan la depreciación histórica; la facturación manual, recurrentes, conciliación, reservas y exportaciones cierran los hallazgos vigentes de R10.",
+"tags": [
+"auditoria",
+"finanzas",
+"facturacion",
+"reservas",
+"reportes"
+],
+"changes": [
+"KPIs, MRR y rentabilidad por montacargas usan la regla canónica de tipo de cambio.",
+"Los equipos archivados permanecen en la depreciación histórica hasta el mes de su baja.",
+"La conciliación excluye pagos E2E y la validación cambiaria interna requiere sesión.",
+"Reservas no recurrentes se facturan completas; recurrentes conservan el primer periodo prorrateado.",
+"El asistente recurrente reporta el límite de 24 periodos y cuántos siguen pendientes.",
+"Acciones de reserva evitan doble envío y los diálogos sólo cierran tras éxito.",
+"CSV de facturas consulta hasta 10,000 filas filtradas; mantenimiento calcula y exporta el conjunto filtrado.",
+"Los smoke tests SQL fallan ante regresiones en vez de ocultarlas."
+]
+},
+{
+"version": "7.416.0",
+"date": "2026-09-02",
+"type": "minor",
+"category": "improvement",
+"title": "Optimización móvil fase 2: gráficas y fichas a dos columnas",
+"description": "Las gráficas de Reportes ya se adaptan a pantallas chicas (etiquetas sin recortes y ejes más angostos) y las fichas de detalle (Reserva, Cliente, Montacarga, Proveedor, Entrega, Devolución) muestran dos columnas desde 640 px, aprovechando el ancho de un celular plegable.",
+"tags": [
+"ui",
+"movil",
+"reportes"
+],
+"changes": [
+"Nuevo hook useChartSizing: alto del área de gráfica, ángulo/alto del eje X, ancho del eje Y y truncado de etiquetas según el ancho de pantalla.",
+"Reportes de Utilización, Ingresos, Costos de Mantenimiento, Utilización por Modelo y Rentabilidad por Modelo adaptados.",
+"Fichas de detalle: rejillas md:grid-cols-2 → sm:grid-cols-2 con separación compacta en móvil.",
+"Sin cambios de backend, reglas de negocio, RLS ni permisos."
+]
+},
+{
+"version": "7.415.3",
+"date": "2026-09-02",
+"type": "patch",
+"category": "fix",
+"title": "Auditoría móvil (celular plegable): modales con el pie pegado al borde",
+"description": "Revisión de la app en pantalla de 692×764 (celular plegable). Los modales de formulario mostraban ~25 px de contenido asomando por debajo de la barra de botones; ahora el pie queda pegado al borde inferior del modal y respeta el área segura del teléfono.",
+"tags": [
+"ui",
+"movil",
+"modales"
+],
+"changes": [
+"FormDialog: el scrollport ya no lleva padding inferior (lo asume el contenido), así el pie sticky se ancla al borde real del modal.",
+"FormDialogFooter: padding inferior con env(safe-area-inset-bottom) para teléfonos con notch/barra de gestos.",
+"Sin cambios de backend, reglas de negocio, RLS ni permisos."
+]
+},
+{
+"version": "7.415.2",
+"date": "2026-09-01",
+"type": "patch",
+"category": "fix",
+"title": "Pulido visual: sidebar colapsado y modales sin hueco",
+"description": "Al colapsar el menú lateral, el logo y los datos de usuario ya no se desbordan del riel; los modales dejaron de mostrar un espacio en blanco debajo de los botones.",
+"tags": [
+"ui",
+"sidebar",
+"modales"
+]
+},
+{
+"version": "7.415.1",
+"date": "2026-09-01",
+"type": "patch",
+"category": "feature",
+"title": "Facturación recurrente: la vista previa ya no preselecciona nada",
+"tags": [
+"facturacion",
+"recurrente",
+"ux"
+],
+"description": "Al abrir la vista previa de facturas recurrentes ya no viene nada marcado: el operador selecciona explícitamente qué facturar (o usa 'seleccionar todos' por grupo), en vez de partir de todo marcado y desmarcar."
+},
+{
+"version": "7.415.0",
+"date": "2026-09-01",
+"type": "minor",
+"category": "feature",
+"title": "Facturación recurrente visible y editable desde la reserva",
+"description": "El detalle de la reserva ahora dice claramente si la facturación recurrente está activa y permite encenderla o apagarla; al convertir cotizaciones de largo plazo viene sugerida encendida."
+},
+{
+"version": "7.414.3",
+"date": "2026-09-01",
+"title": "Eliminar reserva confirmada: bloqueo explicado",
+"description": "El botón Eliminar en una reserva confirmada queda bloqueado con explicación ('cancela primero') en vez de fallar con un reporte de error tras el clic. Backend intacto.",
+"type": "patch"
+},
+{
+"version": "7.414.2",
+"date": "2026-09-01",
+"type": "patch",
+"category": "fix",
+"title": "Ficha de cliente: error 'fx_missing ambiguo' al cargar el resumen",
+"tags": [
+"clientes",
+"facturacion",
+"fx",
+"hotfix"
+],
+"description": "Al abrir el detalle de un cliente aparecía 'No se pudo cargar la información' (error 42702). La función de resumen calculaba una columna fx_missing con el mismo nombre que la que ya trae la vista de facturas; se eliminó el cálculo redundante y ahora se usa la columna de la vista, con la misma regla de siempre.",
+"changes": [
+"get_customer_summary: la CTE scoped ya no recalcula fx_missing; usa la columna de v_invoices_with_balance (misma regla canónica fx_is_missing).",
+"Sin cambios en reglas de negocio, RLS, permisos ni en el JSON que recibe la pantalla.",
+"Los warnings del linter de seguridad reportados tras la migración son preexistentes del proyecto y no fueron introducidos por este cambio."
+]
+},
+{
+"version": "7.414.1",
+"date": "2026-09-01",
+"type": "patch",
+"category": "fix",
+"title": "Primera factura: se cobran los días del mes al precio diario",
+"tags": [
+"facturacion",
+"reservas",
+"prorrateo"
+],
+"description": "En la factura manual de una reserva de largo plazo, la partida ya no aparece como 1 día con el importe prorrateado: ahora muestra los días restantes del mes como cantidad, al precio diario derivado de la renta mensual, de modo que cuadre con la mensualidad.",
+"changes": [
+"Partida precargada: cantidad = días del inicio al fin de mes, precio unitario = renta mensual / días del mes (hasta 6 decimales, permitido por CFDI 4.0), importe = cantidad × precio.",
+"Descripción de la partida: 'Renta <mes año> (N días al precio diario)'.",
+"Sin cambios en el motor de facturación recurrente, reglas fiscales, RLS, RPC ni permisos."
+]
+},
+{
+"version": "7.414.0",
+"date": "2026-09-01",
+"type": "minor",
+"category": "feature",
+"title": "Primera factura de reservas largas: sólo los días del mes de inicio",
+"tags": [
+"facturacion",
+"reservas",
+"prorrateo"
+],
+"description": "Al crear una factura desde una reserva que dura más de un mes (por ejemplo, un año), el sistema precarga únicamente el periodo del inicio de la reserva al fin de ese mes, con el monto prorrateado por días. A partir del mes siguiente se factura el mes completo.",
+"changes": [
+"Reserva de largo plazo que inicia a mitad de mes: la factura precargada cubre del día de inicio al último día de ese mes, con la tarifa mensual prorrateada por días (misma fórmula que el asistente de facturación recurrente).",
+"Reserva que inicia el día 1: primer periodo de mes completo, sin prorrateo.",
+"El periodo de facturación (inicio y fin) se precarga con ese mismo rango, para que el siguiente ciclo arranque el día 1 del mes siguiente.",
+"Las rentas que empiezan y terminan dentro del mismo mes se calculan igual que antes; las partidas de logística y entrega arrastradas de la cotización no cambian.",
+"Los montos siguen siendo editables: esto sólo afecta el valor precargado. Sin cambios en reglas fiscales, permisos, base de datos ni en la generación recurrente."
+]
+}
+]

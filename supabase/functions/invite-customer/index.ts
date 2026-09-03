@@ -2,7 +2,7 @@ import { handleCors } from "../_shared/cors.ts";
 import {
   enforceRateLimit,
   generateSecurePassword,
-  requireAdmin,
+  requireRole,
 } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isEmail, isUUID } from "../_shared/validate.ts";
@@ -13,7 +13,9 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    const auth = await requireAdmin(req);
+    // El módulo Clientes concede acceso "full" a admin y administrativo; la
+    // invitación al portal se alinea con esa matriz (antes exigía sólo admin).
+    const auth = await requireRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
 
     const limited = await enforceRateLimit(
