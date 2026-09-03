@@ -27,6 +27,7 @@ export function InvoiceDetailsCard({
 }: Props) {
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!isEdit);
   const bookingIds = useWatch({ control: form.control, name: "bookingIds" }) ?? [];
+  const issueDate = useWatch({ control: form.control, name: "issueDate" });
   const hasBooking = bookingIds.length > 0 || !!form.getValues("bookingId");
 
   return (
@@ -53,6 +54,7 @@ export function InvoiceDetailsCard({
                   bookings={(availableBookings ?? []) as Parameters<typeof MultiBookingSelector>[0]["bookings"]}
                   selectedIds={field.value ?? []}
                   onChange={handleBookingsChange}
+                  issueDate={issueDate}
                 />
               </FormControl>
               <FormMessage />

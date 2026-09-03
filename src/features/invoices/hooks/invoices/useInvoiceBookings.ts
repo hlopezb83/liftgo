@@ -1,9 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { invoiceBookingKeys } from "../../lib/queryKeys";
-import { invoiceKeys } from "../../lib/queryKeys";
 
 export type InvoiceBookingRow = {
   invoice_id: string;
@@ -81,27 +79,8 @@ export function useAllInvoiceBookings() {
   });
 }
 
-/**
- * Sincroniza las reservas de una factura.
- * Bug 5: delega en el RPC `sync_invoice_bookings` (SECURITY INVOKER) que
- * ejecuta delete+insert en UNA transacción — un fallo a mitad ya no deja la
- * factura sin sus reservas ligadas — y valida idempotencia reserva+período
- * (misma regla que `create_recurring_invoice`): si otra factura no cancelada
- * ya cubre una reserva con el mismo período, rechaza con error claro.
- * El RPC también verifica que las filas insertadas == solicitadas (PERF-003).
- */
-export function useSyncInvoiceBookings() {
-  return useEntityMutation({
-    mutationFn: async ({ invoiceId, bookingIds }: { invoiceId: string; bookingIds: string[] }) => {
-      const { error } = await supabase.rpc("sync_invoice_bookings", {
-        p_invoice_id: invoiceId,
-        p_booking_ids: bookingIds,
-      });
-      if (error) throw error;
-      return { invoiceId };
-    },
-    invalidateKeys: [invoiceBookingKeys.all, invoiceKeys.all],
-    invalidateKeysFn: (_data, vars) => [invoiceBookingKeys.byInvoice(vars.invoiceId)],
-    errorTitle: "Error al sincronizar reservas",
-  });
-}
+// Regresión v7.423.0 (P1): `useSyncInvoiceBookings` se eliminó. Crear/editar
+// la factura y ligar sus reservas ya NO son dos peticiones: todo pasa por el
+// RPC transaccional `save_invoice_with_bookings` (ver `useInvoices.ts`), que
+// llama a `sync_invoice_bookings` DENTRO de la misma transacción — un fallo
+// del sync revierte también la factura (cero facturas parciales/huérfanas).

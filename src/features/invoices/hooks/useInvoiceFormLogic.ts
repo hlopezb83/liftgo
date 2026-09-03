@@ -8,6 +8,12 @@ import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/featur
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { nowMty } from "@/lib/utils";
+import {
+  periodOutsideBookingsError,
+  validateBookingSelection,
+  type BillableBooking,
+} from "../lib/bookingCompatibility";
 import {
   invoiceFormSchema,
   buildEmptyInvoiceValues,
@@ -202,17 +208,41 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     existingQuoteId: existing?.quote_id,
   });
 
+  /**
+   * Regresión v7.423.0 (P2/P3): validación al GUARDAR — no depende del filtro
+   * visual del selector. Reglas: (a) las reservas seleccionadas deben ser
+   * compatibles entre sí (cliente, moneda/TC, mismo periodo canónico) y
+   * (b) el periodo capturado debe caber en el rango de TODAS. El servidor
+   * re-valida lo mismo dentro del RPC transaccional (autoridad final).
+   */
+  const validateSelection = (
+    values: InvoiceFormValues,
+  ): { field: "bookingIds" | "billingPeriodStart"; message: string } | null => {
+    const selected = (values.bookingIds ?? [])
+      .map((bid) => bookings?.find((b) => b.id === bid))
+      .filter(Boolean) as unknown as BillableBooking[];
+    if (selected.length === 0) return null;
+    const issue = values.issueDate ?? nowMty();
+    const mix = validateBookingSelection(selected, issue);
+    if (mix) return { field: "bookingIds", message: mix };
+    const range = periodOutsideBookingsError(
+      selected,
+      values.billingPeriodStart,
+      values.billingPeriodEnd,
+    );
+    if (range) return { field: "billingPeriodStart", message: range };
+    return null;
+  };
+
   return {
     form, isEdit, id, fromQuoteId,
     existing,
     isLoadingInvoice: isLoadingExisting,
-    // FIX R6-13: setter del snapshot — tras un `updateInvoice` exitoso el
-    // trigger ya incrementó `version`; actualizar el ref permite reintentar el
-    // sync posterior sin disparar un falso stale_write contra la propia
-    // escritura.
-    setInvoiceVersion,
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
+    // (El snapshot interno `setInvoiceVersion` ya no se expone: con el RPC
+    // transaccional un fallo revierte también el bump de versión, así que el
+    // reintento usa el mismo expectedVersion sin falso stale_write.)
     invoiceVersion,
     customers, availableBookings,
     sourceQuote,
@@ -221,10 +251,9 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     extension,
     handleCustomerSelect, handleBookingSelect, handleBookingsChange,
     onSubmit,
-    createInvoice: submit.createInvoice,
-    updateInvoice: submit.updateInvoice,
+    validateSelection,
+    saveInvoice: submit.saveInvoice,
     updateQuote: submit.updateQuote,
-    syncInvoiceBookings: submit.syncInvoiceBookings,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
     isPending: submit.isPending,
   };

@@ -1,13 +1,17 @@
 import type { Forklift } from "@/features/fleet";
-import { monthBounds } from "@/lib/date/monthBounds";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { nowMty } from "@/lib/utils";
+import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
+
+// Regla canónica del periodo pre-llenado: vive en `lib/bookingCompatibility`
+// porque también la usan el selector multi-reserva y la validación al guardar.
+export { prefillBillingPeriod };
 
 
 type Booking = {
@@ -158,26 +162,6 @@ function collectExtraLinesFromQuotes(
   return extraLines;
 }
 
-/**
- * H-6 / Bug 4: periodo pre-llenado al ligar una reserva.
- * - No recurrente → exactamente el rango de la reserva.
- * - Recurrente → primer ciclo (inicio de reserva → fin de ese mes o fin de la
- *   reserva si termina antes). Antes sólo `truncated` usaba la reserva y una
- *   recurrente que terminaba dentro de su mes inicial caía a `monthBounds`
- *   de la fecha de emisión, proponiendo un mes ajeno a la reserva.
- * - Sin reserva o fechas inválidas → mes de la fecha de emisión (fallback).
- */
-export function prefillBillingPeriod(
-  booking: Pick<Booking, "start_date" | "end_date" | "recurring_billing"> | undefined,
-  issueDate: Date,
-): { start: string; end: string } {
-  if (booking && !booking.recurring_billing) {
-    return { start: booking.start_date, end: booking.end_date };
-  }
-  const first = booking ? firstBillingPeriod(booking.start_date, booking.end_date) : null;
-  if (first) return { start: first.start, end: first.end };
-  return monthBounds(issueDate);
-}
 
 export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, bookingsWithBilledExtras }: Props) {
 

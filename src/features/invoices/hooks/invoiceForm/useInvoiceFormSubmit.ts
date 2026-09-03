@@ -7,8 +7,7 @@ import { toJsonArray } from "@/lib/domain/lineItems";
 import { roundMoney } from "@/lib/money";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
-import { useSyncInvoiceBookings } from "../invoices/useInvoiceBookings";
-import { useCreateInvoice, useUpdateInvoice } from "../invoices/useInvoices";
+import { useSaveInvoiceWithBookings } from "../invoices/useInvoices";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 
 
@@ -42,6 +41,9 @@ const nn = (s: string | null | undefined): string | null => (s ? s : null);
  * Si falta alguno de los extremos, se deriva del mes de la fecha de emisión
  * (mismo criterio que el pre-llenado del formulario), porque la BD prohíbe
  * guardar una factura con reserva y periodo nulo.
+ * Regresión v7.423.0 (P3): este fallback ya no puede "colar" un mes ajeno a
+ * la reserva — el schema exige ambos extremos cuando hay reserva y el RPC
+ * transaccional rechaza en servidor cualquier periodo fuera de su rango.
  */
 export function resolveBillingPeriod(
   start: string | null | undefined,
@@ -82,11 +84,16 @@ interface UseInvoiceFormSubmitOpts {
   onBusinessBlock?: (block: BusinessBlock) => void;
 }
 
+/**
+ * Regresión v7.423.0 (P1): el submit ya no encadena crear/actualizar + sync
+ * en dos peticiones (eso podía dejar una factura sin sus reservas ligadas).
+ * `saveInvoice` envía factura + bookingIds JUNTOS al RPC transaccional
+ * `save_invoice_with_bookings`; el guard de venta y el resto de reglas de BD
+ * se conservan (SECURITY INVOKER).
+ */
 export function useInvoiceFormSubmit(opts?: UseInvoiceFormSubmitOpts) {
-  const createInvoice = useCreateInvoice({ onBusinessBlock: opts?.onBusinessBlock });
-  const updateInvoice = useUpdateInvoice();
+  const saveInvoice = useSaveInvoiceWithBookings({ onBusinessBlock: opts?.onBusinessBlock });
   const updateQuote = useUpdateQuote();
-  const syncInvoiceBookings = useSyncInvoiceBookings();
 
   const buildPayload = ({ values, isEdit, fromQuoteId, existingBookingId, existingQuoteId }: BuildPayloadArgs) => {
     const { bookingIds, customerId, customerName, lineItems, taxRate, dueDate, issueDate, notes, cfdi } = values;
@@ -119,8 +126,8 @@ export function useInvoiceFormSubmit(opts?: UseInvoiceFormSubmitOpts) {
   };
 
   return {
-    createInvoice, updateInvoice, updateQuote, syncInvoiceBookings,
+    saveInvoice, updateQuote,
     buildPayload,
-    isPending: createInvoice.isPending || updateInvoice.isPending || syncInvoiceBookings.isPending,
+    isPending: saveInvoice.isPending,
   };
 }

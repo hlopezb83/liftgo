@@ -44,7 +44,7 @@ export default function InvoiceForm() {
   });
 
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
-  const isSubmitting = f.createInvoice.isPending || f.updateInvoice.isPending;
+  const isSubmitting = f.saveInvoice.isPending;
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
@@ -53,6 +53,14 @@ export default function InvoiceForm() {
   );
 
   const onSubmit = (values: InvoiceFormValues) => {
+    // Regresión v7.423.0 (P2/P3): compatibilidad de la selección y periodo
+    // dentro del rango de TODAS las reservas — validado al guardar, no sólo
+    // en el filtro visual. El servidor re-valida dentro del RPC.
+    const selectionError = f.validateSelection(values);
+    if (selectionError) {
+      f.form.setError(selectionError.field, { type: "validate", message: selectionError.message });
+      return;
+    }
     const payload = f.onSubmit(values);
     const bookingIds = values.bookingIds ?? [];
     const finalize = (successMsg: string, invoiceId: string) => {
@@ -61,46 +69,43 @@ export default function InvoiceForm() {
       notifySuccess(successMsg);
       navigate(`/invoices/${invoiceId}`);
     };
-    if (f.isEdit && f.id) {
-      const invoiceId = f.id;
-      f.updateInvoice.mutate({ id: invoiceId, expectedVersion: f.invoiceVersion, ...payload }, {
-        onSuccess: async (data) => {
-          // FIX R6-13: el trigger ya incrementó `version` en esta escritura;
-          // actualizar el snapshot ANTES del sync para que, si
-          // syncInvoiceBookings falla, el reintento de Guardar no dispare un
-          // falso stale_write contra nuestra propia escritura.
-          f.setInvoiceVersion(data?.version ?? null);
-          await f.syncInvoiceBookings.mutateAsync({ invoiceId, bookingIds });
-          finalize("Factura actualizada", invoiceId);
-        },
-      });
-    } else {
-      f.createInvoice.mutate(payload, {
-        onSuccess: async (data) => {
-          await f.syncInvoiceBookings.mutateAsync({ invoiceId: data.id, bookingIds });
-          // A-3b: cerrar el ciclo del daño — sin esto quedaba `repaired`
-          // y se podía cobrar dos veces (la UI ya muestra "Completo" en invoiced).
-          if (damageId && damageId !== "null") {
-            // N4-r3: ligar el daño a la factura creada — sin invoice_id no hay
-            // trazabilidad de qué factura cubre el daño.
-            // FIX-03 (H9): UPDATE condicional — solo cierra el daño si nadie
-            // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
-            await closeDamageOnInvoice(damageId, data.id, data.invoice_number);
-          }
-          // v7.307.0: sellar la extensión como facturada (guard en BD impide
-          // ligarla a una segunda factura).
-          if (extensionId && f.extension?.booking_id) {
-            await markExtensionBilled.mutateAsync({
-              extensionId,
-              bookingId: f.extension.booking_id,
-              invoiceId: data.id,
-            });
-          }
-          if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
-          finalize(`Factura ${data.invoice_number} creada`, data.id);
-        },
-      });
-    }
+    // Regresión v7.423.0 (P1): factura + reservas viajan JUNTAS al RPC
+    // transaccional `save_invoice_with_bookings`. Si el sync rechaza (reserva
+    // ya facturada en el período, período fuera de rango, stale_write…), NADA
+    // persiste: ni la factura nueva ni los cambios de la edición.
+    f.saveInvoice.mutate({
+      payload,
+      bookingIds,
+      invoiceId: f.isEdit ? f.id ?? null : null,
+      expectedVersion: f.isEdit ? f.invoiceVersion : null,
+    }, {
+      onSuccess: async (data) => {
+        if (f.isEdit) {
+          finalize("Factura actualizada", data.id);
+          return;
+        }
+        // A-3b: cerrar el ciclo del daño — sin esto quedaba `repaired`
+        // y se podía cobrar dos veces (la UI ya muestra "Completo" en invoiced).
+        if (damageId && damageId !== "null") {
+          // N4-r3: ligar el daño a la factura creada — sin invoice_id no hay
+          // trazabilidad de qué factura cubre el daño.
+          // FIX-03 (H9): UPDATE condicional — solo cierra el daño si nadie
+          // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
+          await closeDamageOnInvoice(damageId, data.id, data.invoice_number);
+        }
+        // v7.307.0: sellar la extensión como facturada (guard en BD impide
+        // ligarla a una segunda factura).
+        if (extensionId && f.extension?.booking_id) {
+          await markExtensionBilled.mutateAsync({
+            extensionId,
+            bookingId: f.extension.booking_id,
+            invoiceId: data.id,
+          });
+        }
+        if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
+        finalize(`Factura ${data.invoice_number} creada`, data.id);
+      },
+    });
   };
 
   // v7.381.1: además del bloqueo determinístico, el guard de BD pudo rechazar
