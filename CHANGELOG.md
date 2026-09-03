@@ -1,3 +1,7 @@
+## [7.421.3] - 2026-09-03
+### Corrección
+- Facturas: la lista ya no descarga todo el historial en cadena al abrirla o filtrar; sólo pide la siguiente página del servidor cuando el usuario llega a la última página ya cargada.
+
 ## [7.421.2] - 2026-09-03
 ### Corrección
 - Contratos: el candado de "un contrato vigente por reserva" ahora vive en la base de datos (trigger transaccional) y valida contra todos los contratos, sin importar su fecha; el índice con corte por fecha dejaba pasar un contrato nuevo frente a duplicados históricos.
