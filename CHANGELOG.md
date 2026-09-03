@@ -1,3 +1,7 @@
+## [7.420.5] - 2026-09-03
+### Corrección
+- Invitación al portal: ahora sí se envía el correo de acceso (antes sólo se generaba el enlace sin enviarlo).
+
 ## [7.420.4] - 2026-09-03
 ### Corrección
 - Invitar al portal: el rol administrativo ya puede crear accesos de cliente (antes sólo admin), y los errores muestran el motivo real en español.
