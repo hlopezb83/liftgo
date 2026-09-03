@@ -93,23 +93,37 @@ Deno.serve(async (req) => {
       return jsonError(req, 500, "Internal server error");
     }
 
-    // IMPORTANTE: admin.generateLink() sólo genera el enlace, NO envía correo.
-    // resetPasswordForEmail() sí dispara el correo de acceso al portal.
+    // Sin dominio de correo propio, la plantilla por defecto llega en inglés
+    // y sin contexto (y en varios casos ni llega). En vez de depender de ese
+    // envío, generamos el enlace de acceso de un solo uso y lo devolvemos al
+    // staff para compartirlo con el mensaje de invitación de LiftGo.
+    // NOTA: sólo un token de recuperación es válido a la vez; por eso NO se
+    // dispara además el correo por defecto (invalidaría este enlace).
     const redirectTo = `${
       Deno.env.get("PORTAL_SITE_URL") ?? "https://liftgo.lovable.app"
     }/auth`;
-    const { error: resetErr } = await auth.adminClient.auth
-      .resetPasswordForEmail(email, { redirectTo });
-
-    if (resetErr) {
-      console.error("Password reset email failed", {
-        code: (resetErr as { code?: string }).code ?? "unknown",
-        status: (resetErr as { status?: number }).status ?? 0,
+    const { data: linkData, error: linkErr } = await auth.adminClient.auth.admin
+      .generateLink({
+        type: "recovery",
+        email,
+        options: { redirectTo },
       });
+
+    if (linkErr || !linkData?.properties?.action_link) {
+      console.error("[invite-customer] generateLink failed", {
+        code: (linkErr as { code?: string } | null)?.code ?? "unknown",
+        status: (linkErr as { status?: number } | null)?.status ?? 0,
+      });
+      // El acceso ya quedó creado; el staff puede reintentar el enlace.
+      return jsonResponse(req, { success: true, user_id: userId });
     }
 
+    return jsonResponse(req, {
+      success: true,
+      user_id: userId,
+      portal_link: linkData.properties.action_link,
+    });
 
-    return jsonResponse(req, { success: true, user_id: userId });
   } catch (_err) {
     console.error("invite-customer error:", _err);
     return jsonError(req, 500, "Internal server error");
