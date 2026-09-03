@@ -75,11 +75,34 @@ export function toastDedupeId(kind: string, title: string, description?: string)
 }
 
 /**
- * Hallazgo 3: id estable del toast de error de autenticación. Un intento
- * nuevo de inicio de sesión y el establecimiento de una sesión válida lo
- * descartan para que no sobreviva a un login exitoso.
+ * Hallazgo 3: manejo del toast de error de autenticación. Un intento nuevo
+ * de inicio de sesión y el establecimiento de una sesión válida lo descartan
+ * para que no sobreviva a un login exitoso.
+ *
+ * Nota: no se reutiliza un id fijo porque sonner ignora un toast creado con
+ * el mismo id de uno recién descartado (el error del segundo intento fallido
+ * no se mostraría). Se usa un id único por intento y se rastrea el activo.
  */
-export const AUTH_SIGNIN_ERROR_TOAST_ID = "auth-signin-error";
+const AUTH_SIGNIN_ERROR_PREFIX = "auth-signin-error";
+let activeAuthErrorToastId: string | number | null = null;
+let authErrorAttempt = 0;
+
+/** Muestra el error de autenticación del intento actual. */
+export function notifyAuthError(input: NotifyErrorInput): void {
+  authErrorAttempt += 1;
+  activeAuthErrorToastId = notifyError({
+    ...input,
+    dedupeKey: `${AUTH_SIGNIN_ERROR_PREFIX}-${authErrorAttempt}`,
+  });
+}
+
+/** Descarta el error de autenticación activo (intento nuevo o sesión válida). */
+export function dismissAuthError(): void {
+  if (activeAuthErrorToastId !== null) {
+    toast.dismiss(activeAuthErrorToastId);
+    activeAuthErrorToastId = null;
+  }
+}
 
 /** Descarta un toast activo por id (p. ej. limpiar un error ya obsoleto). */
 export function dismissNotification(id: string | number): void {
