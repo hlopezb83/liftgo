@@ -1,5 +1,18 @@
 [
  {
+  "version": "7.421.3",
+  "date": "2026-09-03",
+  "type": "patch",
+  "category": "fix",
+  "title": "Facturas: carga bajo demanda en lugar de descargar todo el historial",
+  "description": "La lista de facturas pedía página tras página hasta descargar todo el historial al abrirla o cambiar filtros; ahora sólo solicita la siguiente página del servidor cuando el usuario llega a la última página ya cargada.",
+  "changes": [
+   "Facturas: se eliminó la descarga automática en cadena de todas las páginas del servidor (crecía sin límite con el historial y movía el conteo/ordenamiento mientras llegaban datos).",
+   "La paginación por páginas se conserva sin botón \"Cargar más\": al llegar a la última página cargada se pide la siguiente página del servidor.",
+   "Filtros, búsqueda y orden se mantienen; cambiar filtros reinicia la paginación."
+  ]
+ },
+ {
   "version": "7.421.2",
   "date": "2026-09-03",
   "type": "patch",
