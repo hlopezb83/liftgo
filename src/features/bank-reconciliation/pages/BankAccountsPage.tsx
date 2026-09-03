@@ -9,6 +9,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -110,8 +111,19 @@ export default function BankAccountsPage() {
                         <Badge variant={a.is_active ? "default" : "secondary"}>{a.is_active ? "Activa" : "Inactiva"}</Badge>
                       </td>
                       <td className="px-3 py-2 text-right whitespace-nowrap">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5" /></Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDelete(a)}><DeleteIcon className="h-3.5 w-3.5" /></Button>
+                        {/* Bug 9: botones de solo icono con aria-label + tooltip. */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" aria-label={`Editar cuenta ${a.name}`} onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5" /></Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar cuenta</TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button variant="ghost" size="sm" aria-label={`Eliminar cuenta ${a.name}`} onClick={() => handleDelete(a)}><DeleteIcon className="h-3.5 w-3.5" /></Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Eliminar cuenta</TooltipContent>
+                        </Tooltip>
                       </td>
                     </tr>
                   ))}

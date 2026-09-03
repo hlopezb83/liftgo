@@ -19,6 +19,7 @@ import {
   buildFinancials,
   buildAlertsProps,
   computeUtilizationPercent,
+  financialSectionState,
 } from "../../lib/dashboardSectionHelpers";
 import { useDashboardStats } from "../useDashboardStats";
 import { useFinancialKpis } from "../useFinancialKpis";
@@ -97,7 +98,11 @@ export function useDashboardSections() {
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
   const { data: role } = useUserRole();
   const { canSeeFinancials, canSeeInsuranceAlerts } = dashboardAccess(role);
-  const { data: kpis } = useFinancialKpis(canSeeFinancials);
+  // Bug 6: exponer loading/error de los KPIs financieros — su query es
+  // independiente de `useDashboardStats` y sin guard propio la sección
+  // Finanzas renderizaba ceros falsos ($0) durante carga o fallo del RPC.
+  const kpisQuery = useFinancialKpis(canSeeFinancials);
+  const kpis = kpisQuery.data;
   const { data: insuranceData } = useInsuranceAlerts(canSeeInsuranceAlerts);
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
   const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
@@ -139,6 +144,13 @@ export function useDashboardSections() {
     invoiceBreakdown: mapInvoiceBreakdown(stats?.invoice_stats?.breakdown),
     cashFlowData: mapCashFlow(stats),
     financials: buildFinancials(kpis),
+    // Bug 6: la página decide skeleton/error para la sección Finanzas.
+    financialsState: financialSectionState({
+      isError: kpisQuery.isError,
+      isLoading: kpisQuery.isLoading,
+    }),
+    financialsIsFetching: kpisQuery.isFetching,
+    refetchFinancials: kpisQuery.refetch,
     alertsProps: buildAlertsProps(stats, upcomingInvoices, kpis),
   };
 }

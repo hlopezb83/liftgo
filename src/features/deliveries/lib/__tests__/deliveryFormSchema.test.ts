@@ -71,3 +71,37 @@ describe("deliverySchema — TZ Monterrey (Auditoría R9)", () => {
     expect(r.success).toBe(true);
   });
 });
+
+describe("deliverySchema — Bug 3: justificación sin operador ni firma", () => {
+  it("rechaza histórico completado sin operador y sin justificación", () => {
+    const r = deliverySchema.safeParse({
+      ...base, alreadyCompleted: true, scheduledDate: nowMty(), driverName: "",
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some((i) =>
+        i.path.join(".") === "noEvidenceReason" && i.message.includes("quién autorizó"),
+      )).toBe(true);
+    }
+  });
+
+  it("acepta histórico sin operador CON justificación", () => {
+    const r = deliverySchema.safeParse({
+      ...base, alreadyCompleted: true, scheduledDate: nowMty(), driverName: "",
+      noEvidenceReason: "Autorizó el supervisor por teléfono",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("con operador asignado no exige justificación (hay evidencia)", () => {
+    const r = deliverySchema.safeParse({
+      ...base, alreadyCompleted: true, scheduledDate: nowMty(), driverName: "Juan",
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("programada (no histórica) nunca exige justificación", () => {
+    const r = deliverySchema.safeParse({ ...base, driverName: "", scheduledDate: nowMty() });
+    expect(r.success).toBe(true);
+  });
+});

@@ -105,6 +105,7 @@ export default function DeliveryDetail() {
         pickupPrompt={completion.pickupPrompt}
         onPickupClose={() => completion.setPickupPrompt(null)}
         minHours={completion.minHours}
+        operatorName={delivery.driver_name}
       />
     </>
   );

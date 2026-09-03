@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { CheckboxField, DateField, NumberField, TextField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -35,7 +35,17 @@ const schema = z.object({
   scheduledTime: z.string().default(""),
   hoursReading: z.number().min(0).nullable().default(null),
   notes: z.string().default(""),
+  // Bug 3: justificación cuando nace completada sin operador (sin firma aquí).
+  noEvidenceReason: z.string().default(""),
 }).superRefine((values, ctx) => {
+  // Bug 3: histórico sin operador → exigir justificación breve.
+  if (values.alreadyCompleted && !values.driverName.trim() && !values.noEvidenceReason.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["noEvidenceReason"],
+      message: "Sin operador ni firma: escribe quién autorizó o por qué se registra así",
+    });
+  }
   // La DB rechaza entregas programadas en el pasado salvo que ya estén
   // completadas. Validamos aquí para mostrar el error en el campo.
   if (values.alreadyCompleted) return;
@@ -73,9 +83,13 @@ export function PostBookingDeliveryDialog({
     defaultValues: {
       scheduledDate: defaultDate, alreadyCompleted: false,
       address: customerAddress || "", driverName: "", driverPhone: "",
-      scheduledTime: "", hoursReading: null, notes: "",
+      scheduledTime: "", hoursReading: null, notes: "", noEvidenceReason: "",
     },
   });
+
+  // Bug 3: histórico sin operador → pedir justificación de evidencia.
+  const watchedCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
+  const watchedDriver = useWatch({ control: form.control, name: "driverName" });
 
   useEffect(() => {
     // Reset local UI y form al abrir/cerrar el diálogo. `form.reset` de
@@ -86,7 +100,7 @@ export function PostBookingDeliveryDialog({
       form.reset({
         scheduledDate: defaultDate, alreadyCompleted: false,
         address: customerAddress || "", driverName: "", driverPhone: "",
-        scheduledTime: "", hoursReading: null, notes: "",
+        scheduledTime: "", hoursReading: null, notes: "", noEvidenceReason: "",
       });
     }
   }, [open, customerAddress, defaultDate, form]);
@@ -98,9 +112,13 @@ export function PostBookingDeliveryDialog({
         booking_id: bookingId,
         scheduled_date: toYMD(values.scheduledDate),
         status: values.alreadyCompleted ? "completed" : "scheduled",
-        // Si nace completada, sellar completed_at (las queries de horas e
-        // historial filtran por completed_at NOT NULL).
-        completed_at: values.alreadyCompleted ? new Date().toISOString() : null,
+        // Bugs 1-2: completed_at lo sella el trigger de DB con el reloj del
+        // servidor (el reloj del navegador producía timestamps < created_at).
+        // Bug 3: histórico sin operador → guardar la justificación capturada.
+        completed_no_evidence_reason:
+          values.alreadyCompleted && !values.driverName.trim() && values.noEvidenceReason.trim()
+            ? values.noEvidenceReason.trim()
+            : null,
         scheduled_time: values.scheduledTime || null,
         address: values.address || null,
         driver_name: values.driverName || null,
@@ -158,6 +176,17 @@ export function PostBookingDeliveryDialog({
               <TextField control={form.control} name="driverName" label="Nombre del Operador" placeholder="Opcional" />
               <TextField control={form.control} name="driverPhone" label="Teléfono del Operador" placeholder="Opcional" type="tel" />
             </div>
+            {/* Bug 3: histórico sin operador ni firma → justificación obligatoria. */}
+            {watchedCompleted && !watchedDriver?.trim() && (
+              <TextareaField
+                control={form.control}
+                name="noEvidenceReason"
+                label="Justificación (sin operador ni firma)"
+                rows={2}
+                placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
+                description="La entrega quedará completada sin evidencia operativa; registra quién la autorizó."
+              />
+            )}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField control={form.control} name="scheduledTime" label="Hora Programada" type="time" />
               <NumberField control={form.control} name="hoursReading" label="Horómetro (hrs)" min={0} step={0.1} placeholder="Ej: 1250" />

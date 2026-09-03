@@ -24,6 +24,34 @@ describe("firstBillingPeriod", () => {
     expect(p).toMatchObject({ end: "2026-09-20", truncated: false, billedDays: 16 });
   });
 
+  it("fin de mes: reserva que inicia el último día del mes factura 1 día", () => {
+    const p = firstBillingPeriod("2026-01-31", "2027-01-30");
+    expect(p).toMatchObject({
+      start: "2026-01-31",
+      end: "2026-01-31",
+      billedDays: 1,
+      daysInMonth: 31,
+      truncated: true,
+    });
+  });
+
+  it("cambio de mes/año: diciembre corta al 31-dic (no arrastra a enero)", () => {
+    const p = firstBillingPeriod("2026-12-15", "2027-12-14");
+    expect(p).toMatchObject({ start: "2026-12-15", end: "2026-12-31", billedDays: 17 });
+  });
+
+  it("febrero: el fin de mes es el 28 (no 30/31)", () => {
+    const p = firstBillingPeriod("2026-02-10", "2026-08-09");
+    expect(p).toMatchObject({ end: "2026-02-28", daysInMonth: 28 });
+  });
+
+  it("zonas horarias: fechas YYYY-MM-DD se interpretan como calendario local (sin drift UTC)", () => {
+    // parseDateLocal evita el clásico off-by-one de `new Date("2026-09-12")`
+    // (UTC) en TZ negativas como America/Monterrey.
+    const p = firstBillingPeriod("2026-09-12", "2026-09-12");
+    expect(p).toMatchObject({ start: "2026-09-12", end: "2026-09-12", billedDays: 1 });
+  });
+
   it("devuelve null con fecha inválida", () => {
     expect(firstBillingPeriod(null, "2026-09-20")).toBeNull();
   });

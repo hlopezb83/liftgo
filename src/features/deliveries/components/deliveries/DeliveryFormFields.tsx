@@ -14,6 +14,8 @@ export type DeliveryFormValues = {
   alreadyCompleted: boolean;
   scheduledDate: Date; scheduledTime: string;
   address: string; driverName: string; driverPhone: string; notes: string;
+  /** Bug 3: justificación si se registra completada sin operador. */
+  noEvidenceReason: string;
 };
 
 type Forklift = { id: string; name: string; model: string };
@@ -35,6 +37,8 @@ const TYPE_OPTIONS: SelectOption[] = [
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
+  // Bug 3: histórico sin operador → pedir justificación de evidencia.
+  const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
 
   const visibleBookings = selectableBookings(bookings, forkliftId);
 
@@ -139,6 +143,18 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
             placeholder="+52 55 1234 5678"
           />
         </div>
+
+        {/* Bug 3: histórico sin operador ni firma → justificación obligatoria. */}
+        {alreadyCompleted && !driverName?.trim() && (
+          <TextareaField
+            control={form.control}
+            name="noEvidenceReason"
+            label="Justificación (sin operador ni firma)"
+            rows={2}
+            placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
+            description="La entrega quedará completada sin evidencia operativa; registra quién la autorizó."
+          />
+        )}
 
         <TextareaField
           control={form.control}

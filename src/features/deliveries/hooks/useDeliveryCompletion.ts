@@ -94,14 +94,14 @@ export function useDeliveryCompletion(
     });
   };
 
-  const markComplete = (signature?: string) => {
+  const markComplete = (signature?: string, noEvidenceReason?: string) => {
     if (!delivery) return;
     try {
       const payload = buildCompletionPayload(
-        // R6-FE-06 (N6-DIS-07): timestamp UTC real. `nowMty().toISOString()`
-        // aplicaba doble offset (Date ya desplazado a MTY re-interpretado como
-        // UTC) y completed_at quedaba ~6h antes del instante real.
-        delivery.id, new Date().toISOString(), signature, hoursReading, minHours,
+        // Bugs 1-2: el trigger de DB sella completed_at con now() del servidor;
+        // el cliente ya no envía timestamps (relojes de navegador desfasados
+        // producían completed_at < created_at o NULL).
+        delivery.id, signature, hoursReading, minHours, noEvidenceReason,
       );
       updateDelivery.mutate(payload, {
         onSuccess: () => {

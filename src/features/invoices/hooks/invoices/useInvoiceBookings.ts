@@ -81,35 +81,23 @@ export function useAllInvoiceBookings() {
   });
 }
 
-/** Sincroniza las reservas de una factura (delete + insert). */
+/**
+ * Sincroniza las reservas de una factura.
+ * Bug 5: delega en el RPC `sync_invoice_bookings` (SECURITY INVOKER) que
+ * ejecuta delete+insert en UNA transacción — un fallo a mitad ya no deja la
+ * factura sin sus reservas ligadas — y valida idempotencia reserva+período
+ * (misma regla que `create_recurring_invoice`): si otra factura no cancelada
+ * ya cubre una reserva con el mismo período, rechaza con error claro.
+ * El RPC también verifica que las filas insertadas == solicitadas (PERF-003).
+ */
 export function useSyncInvoiceBookings() {
   return useEntityMutation({
     mutationFn: async ({ invoiceId, bookingIds }: { invoiceId: string; bookingIds: string[] }) => {
-      // PERF-003 / robustez: `.select("invoice_id")` para observar filas afectadas.
-      // El delete puede retornar 0 legítimamente (primer sync); no assert aquí.
-      const { error: delErr } = await supabase
-        .from("invoice_bookings")
-        .delete()
-        .eq("invoice_id", invoiceId)
-        .select("invoice_id");
-      if (delErr) throw delErr;
-      if (bookingIds.length === 0) return { invoiceId };
-      const rows = bookingIds.map((booking_id, line_index) => ({
-        invoice_id: invoiceId,
-        booking_id,
-        line_index,
-      }));
-      const { data: inserted, error: insErr } = await supabase
-        .from("invoice_bookings")
-        .insert(rows)
-        .select("invoice_id");
-      if (insErr) throw insErr;
-      // Si RLS o un trigger silenciaron el insert, detectarlo aquí y no en la UI.
-      if (!inserted || inserted.length !== rows.length) {
-        throw new Error(
-          `Sincronizar reservas: se esperaban ${rows.length} filas, se insertaron ${inserted?.length ?? 0}.`,
-        );
-      }
+      const { error } = await supabase.rpc("sync_invoice_bookings", {
+        p_invoice_id: invoiceId,
+        p_booking_ids: bookingIds,
+      });
+      if (error) throw error;
       return { invoiceId };
     },
     invalidateKeys: [invoiceBookingKeys.all, invoiceKeys.all],

@@ -3,12 +3,28 @@ import {
   buildPieData,
   buildFinancials,
   computeUtilizationPercent,
+  financialSectionState,
   mapMaintenanceAlerts,
   mapInvoiceBreakdown,
   mapMonthlyUtilization,
   mapCashFlow,
   EMPTY_COUNTS,
 } from "../dashboardSectionHelpers";
+
+describe("financialSectionState (Bug 6: ceros falsos en KPIs)", () => {
+  it("error manda sobre loading: nunca renderizar $0 con la query fallida", () => {
+    expect(financialSectionState({ isError: true, isLoading: true })).toBe("error");
+    expect(financialSectionState({ isError: true, isLoading: false })).toBe("error");
+  });
+
+  it("loading sin error → skeleton, no ceros", () => {
+    expect(financialSectionState({ isError: false, isLoading: true })).toBe("loading");
+  });
+
+  it("sin error ni loading → ready (un $0 aquí es un cero real)", () => {
+    expect(financialSectionState({ isError: false, isLoading: false })).toBe("ready");
+  });
+});
 
 describe("buildPieData", () => {
   it("filtra segmentos con value 0", () => {
