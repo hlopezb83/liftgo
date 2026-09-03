@@ -220,7 +220,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   ): { field: "bookingIds" | "billingPeriodStart"; message: string } | null => {
     const selected = (values.bookingIds ?? [])
       .map((bid) => bookings?.find((b) => b.id === bid))
-      .filter((b): b is BookingWithForklift => !!b) as unknown as BillableBooking[];
+      .filter(Boolean) as unknown as BillableBooking[];
     if (selected.length === 0) return null;
     const issue = values.issueDate ?? nowMty();
     const mix = validateBookingSelection(selected, issue);
