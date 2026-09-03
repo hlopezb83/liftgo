@@ -93,10 +93,13 @@ Deno.serve(async (req) => {
       return jsonError(req, 500, "Internal server error");
     }
 
-    const { error: resetErr } = await auth.adminClient.auth.admin.generateLink({
-      type: "recovery",
-      email,
-    });
+    // IMPORTANTE: admin.generateLink() sólo genera el enlace, NO envía correo.
+    // resetPasswordForEmail() sí dispara el correo de acceso al portal.
+    const redirectTo = `${
+      Deno.env.get("PORTAL_SITE_URL") ?? "https://liftgo.lovable.app"
+    }/auth`;
+    const { error: resetErr } = await auth.adminClient.auth
+      .resetPasswordForEmail(email, { redirectTo });
 
     if (resetErr) {
       console.error("Password reset email failed", {
@@ -104,6 +107,7 @@ Deno.serve(async (req) => {
         status: (resetErr as { status?: number }).status ?? 0,
       });
     }
+
 
     return jsonResponse(req, { success: true, user_id: userId });
   } catch (_err) {
