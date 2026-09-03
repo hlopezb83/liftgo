@@ -1,5 +1,19 @@
 [
  {
+  "version": "7.421.0",
+  "date": "2026-09-03",
+  "type": "minor",
+  "category": "feature",
+  "title": "Invitación al portal con contexto y mensaje listo para compartir",
+  "description": "Al crear el acceso al portal se genera un enlace de un solo uso y un mensaje en español con el branding de la empresa, listo para copiar y enviar por el canal que prefieras.",
+  "changes": [
+   "El diálogo de invitación muestra el enlace de acceso y un mensaje que explica qué puede hacer el cliente en el portal (rentas, facturas, estado de cuenta).",
+   "Botones para copiar el enlace o el mensaje completo.",
+   "invite-customer devuelve el enlace de acceso en vez de depender del correo genérico en inglés del proveedor por defecto.",
+   "Sin cambios en permisos, validaciones, RLS ni en la creación del acceso."
+  ]
+ },
+ {
   "version": "7.420.5",
   "date": "2026-09-03",
   "type": "patch",

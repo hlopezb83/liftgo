@@ -1,3 +1,7 @@
+## [7.421.0] - 2026-09-03
+### Función
+- Invitación al portal: enlace de acceso + mensaje en español con contexto del portal, listos para copiar y compartir.
+
 ## [7.420.5] - 2026-09-03
 ### Corrección
 - Invitación al portal: ahora sí se envía el correo de acceso (antes sólo se generaba el enlace sin enviarlo).

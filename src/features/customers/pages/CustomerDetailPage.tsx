@@ -151,7 +151,10 @@ export default function CustomerDetailPage() {
         customerName={s.customer.name}
         isPending={s.inviteCustomer.isPending}
         onInvite={s.handleInvite}
+        inviteResult={s.inviteResult}
+        onClearResult={() => s.setInviteResult(null)}
       />
+
     </PageContainer>
   );
 }
