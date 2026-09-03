@@ -1,3 +1,9 @@
+## [7.421.2] - 2026-09-03
+### Corrección
+- Contratos: el candado de "un contrato vigente por reserva" ahora vive en la base de datos (trigger transaccional) y valida contra todos los contratos, sin importar su fecha; el índice con corte por fecha dejaba pasar un contrato nuevo frente a duplicados históricos.
+- Bloquea también mover un contrato a una reserva ocupada y reactivar uno cancelado si duplicaría; cancelar sigue permitido (incluso varios cancelados por reserva).
+- Seguro ante concurrencia y clientes externos; los históricos CTR-0002/CTR-0003 permanecen intactos y la UI conserva su aviso "Ya existe un contrato para esta reserva".
+
 ## [7.421.1] - 2026-09-03
 ### Corrección (10 hallazgos confirmados)
 - Panel: alerta de seguros sin equipos de prueba (E2E); refleja la flota real.
