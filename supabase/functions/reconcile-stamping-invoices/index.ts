@@ -45,7 +45,16 @@ interface StuckRow extends PureStuckRow {
   updated_at: string;
 }
 
+// MON-02: presupuesto de reloj por corrida y lotes más chicos. Sin ellos una
+// corrida con muchas llamadas al PAC excedía el runtime (504) o moría a media
+// ejecución (502). El cron corre cada 5 min y retoma lo que falte.
+export const RUN_BUDGET_MS = 50_000;
+export const RUN_ROW_LIMIT = 10;
+
 Deno.serve(async (req) => {
+  const RUN_STARTED_AT = Date.now();
+  const outOfBudget = () => Date.now() - RUN_STARTED_AT > RUN_BUDGET_MS;
+  let truncated = false;
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
@@ -66,7 +75,7 @@ Deno.serve(async (req) => {
     )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
-    .limit(20);
+    .limit(RUN_ROW_LIMIT);
 
   if (error) {
     console.error("[reconcile-stamping] fetch failed", error);
@@ -83,7 +92,7 @@ Deno.serve(async (req) => {
     )
     .eq("rep_cfdi_status", "stamping")
     .lt("rep_stamping_started_at", cutoff)
-    .limit(20);
+    .limit(RUN_ROW_LIMIT);
 
   if (payErr) {
     console.error("[reconcile-stamping] payments fetch failed", payErr);
@@ -96,7 +105,7 @@ Deno.serve(async (req) => {
     )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
-    .limit(20);
+    .limit(RUN_ROW_LIMIT);
 
   if (ncErr) {
     console.error("[reconcile-stamping] credit_notes fetch failed", ncErr);
@@ -149,6 +158,10 @@ Deno.serve(async (req) => {
   > = [];
 
   for (const row of stuck) {
+    if (outOfBudget()) {
+      truncated = true;
+      break;
+    }
     if (!(await claimRow("invoices", row.id, "updated_at", row.updated_at))) {
       results.push({ invoice_id: row.id, status: "claimed_by_other_run" });
       continue;
@@ -382,6 +395,10 @@ Deno.serve(async (req) => {
   // tras un timeout del PAC. Sin esto, el claim stale re-timbraba un duplicado.
   // N4: la consulta se movió ARRIBA del early return (bloque inicial).
   for (const p of payments) {
+    if (outOfBudget()) {
+      truncated = true;
+      break;
+    }
     const paymentId = p.id as string;
     if (
       !(await claimRow(
@@ -589,6 +606,10 @@ Deno.serve(async (req) => {
   // credit_notes: una NC en 'stamping' tras timeout quedaba ingestionable.
   // N4: la consulta se movió ARRIBA del early return (bloque inicial).
   for (const nc of ncs) {
+    if (outOfBudget()) {
+      truncated = true;
+      break;
+    }
     const ncId = nc.id as string;
     if (!(await claimRow("credit_notes", ncId, "updated_at", nc.updated_at))) {
       results.push({ invoice_id: ncId, status: "claimed_by_other_run" });
@@ -769,5 +790,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return json({ processed: results.length, results }, 200);
+  return json({ processed: results.length, truncated, results }, 200);
 });

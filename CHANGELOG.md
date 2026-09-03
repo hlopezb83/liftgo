@@ -1,3 +1,8 @@
+## [7.420.3] - 2026-09-02
+### Corrección
+- Pagos a proveedores: cada pago se liga al lote vigente de su factura (si existe), evitando cancelar un lote ya pagado y volver a exportarlo.
+- Timbrado automático: la cola de reintentos y la reconciliación tienen presupuesto de tiempo por corrida y lotes más chicos; sus crons se escalonan para no encimarse.
+
 ## [7.420.0] - 2026-09-02
 ### Corrección (auditoría ronda 3)
 - Complemento de pago: el IVA se desglosa por partida de la factura original (exentas, tasa 0 y tasas mixtas) en vez de una sola tasa de encabezado.

@@ -194,7 +194,14 @@ async function isDocCancelled(
     data.cancellation_status === "accepted";
 }
 
+// MON-02: presupuesto de tiempo y lotes más chicos por corrida (el cron
+// corre cada 5 min, así que el trabajo restante se procesa enseguida).
+export const RUN_BUDGET_MS = 50_000;
+export const RUN_PENDING_LIMIT = 10;
+export const RUN_STALE_LIMIT = 5;
+
 Deno.serve(async (req) => {
+  const RUN_STARTED_AT = Date.now();
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
@@ -228,7 +235,7 @@ Deno.serve(async (req) => {
     .eq("status", "pending")
     .lte("next_retry_at", nowIso)
     .order("next_retry_at", { ascending: true })
-    .limit(25);
+    .limit(RUN_PENDING_LIMIT);
 
   if (error) {
     console.error("[process-cfdi-retry-queue] fetch failed", error);
@@ -243,7 +250,7 @@ Deno.serve(async (req) => {
     .eq("status", "processing")
     .lt("updated_at", staleCutoff)
     .order("updated_at", { ascending: true })
-    .limit(10);
+    .limit(RUN_STALE_LIMIT);
 
   if (staleErr) {
     console.error(
@@ -256,10 +263,18 @@ Deno.serve(async (req) => {
   const queue = [
     ...((pendingRows ?? []) as QueueRow[]),
     ...((staleRows ?? []) as QueueRow[]),
-  ].slice(0, 25);
+  ].slice(0, RUN_PENDING_LIMIT);
   const results: Array<{ id: string; status: string; http?: number }> = [];
+  let truncated = false;
 
   for (const row of queue) {
+    // MON-02: presupuesto de reloj por ejecución. Sin él, un lote con varias
+    // llamadas lentas al PAC excedía el límite del runtime (504) o moría a
+    // media corrida (502). Lo que no alcanza se retoma en el siguiente cron.
+    if (Date.now() - RUN_STARTED_AT > RUN_BUDGET_MS) {
+      truncated = true;
+      break;
+    }
     const fnName = OPERATION_TO_FUNCTION[row.operation];
     if (!fnName) {
       // Operación desconocida → terminal.
@@ -598,5 +613,5 @@ Deno.serve(async (req) => {
     }
   }
 
-  return json({ processed: results.length, results }, 200);
+  return json({ processed: results.length, truncated, results }, 200);
 });
