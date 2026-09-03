@@ -1,0 +1,12 @@
+{
+ "version": "7.420.5",
+ "date": "2026-09-03",
+ "type": "patch",
+ "category": "fix",
+ "title": "La invitación al portal ahora sí envía el correo",
+ "description": "El correo de acceso al portal no se enviaba porque sólo se generaba el enlace internamente; ahora se dispara el envío real.",
+ "changes": [
+  "invite-customer usa resetPasswordForEmail (envía correo) en lugar de admin.generateLink (sólo genera el enlace sin enviarlo).",
+  "El enlace de acceso redirige a /auth del sitio publicado."
+ ]
+}
