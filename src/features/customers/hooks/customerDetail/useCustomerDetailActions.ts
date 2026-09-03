@@ -34,13 +34,25 @@ export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, s
   const deleteCustomer = useDeleteCustomer({ onBusinessBlock: setArchiveBlock });
   const inviteCustomer = useInviteCustomer();
 
+  // Sin dominio de correo propio no hay plantilla con branding: la edge
+  // function devuelve el enlace de acceso y el staff lo comparte con el
+  // mensaje de invitación que arma el diálogo.
+  const [inviteResult, setInviteResult] = useState<{ email: string; link: string } | null>(null);
+
   const handleInvite = (email: string) => {
     if (!email || !id) return;
+    setInviteResult(null);
     inviteCustomer.mutate(
       { customerId: id, email },
-      { onSuccess: () => setInviteOpen(false) },
+      {
+        onSuccess: (data) => {
+          if (data?.portal_link) setInviteResult({ email, link: data.portal_link });
+          else setInviteOpen(false);
+        },
+      },
     );
   };
+
 
   const handleEditSubmit = (form: CustomerFormData) => {
     if (!id) return;
