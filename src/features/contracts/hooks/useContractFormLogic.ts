@@ -4,11 +4,11 @@ import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 import { buildContractPayload } from "../lib/contractPayload";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { useContractFormState } from "./contractForm/useContractFormState";
-import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
+import { findActiveContractForBooking, useContract, useCreateContract, useUpdateContract } from "./useContracts";
 import type { ContractFormValues } from "../lib/contractFormSchema";
 
 export function useContractFormLogic() {
@@ -58,13 +58,33 @@ export function useContractFormLogic() {
         },
       });
     } else {
-      createContract.mutate(payload, {
-        onSuccess: (data) => {
-          notifySuccess("Contrato creado");
-          form.reset(values);
-          navigate(`/contracts/${data.id}`);
-        },
-      });
+      void (async () => {
+        // Hallazgo 7: si la reserva ya tiene un contrato no cancelado, se abre
+        // ese contrato con un aviso claro en vez de crear un duplicado.
+        if (payload.booking_id) {
+          try {
+            const dup = await findActiveContractForBooking(payload.booking_id);
+            if (dup) {
+              notifyWarning("Ya existe un contrato para esta reserva", {
+                description: `Se abrió el contrato ${dup.contract_number} en lugar de crear otro.`,
+              });
+              form.reset(values); // libera el guard de cambios sin guardar
+              navigate(`/contracts/${dup.id}`);
+              return;
+            }
+          } catch {
+            // Si la verificación falla (red), el índice único de la DB respalda
+            // y useCreateContract traduce el 23505 a un mensaje claro.
+          }
+        }
+        createContract.mutate(payload, {
+          onSuccess: (data) => {
+            notifySuccess("Contrato creado");
+            form.reset(values);
+            navigate(`/contracts/${data.id}`);
+          },
+        });
+      })();
     }
   };
 

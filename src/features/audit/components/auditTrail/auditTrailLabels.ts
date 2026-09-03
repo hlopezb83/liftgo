@@ -68,9 +68,43 @@ const FIELD_LABELS: Record<string, string> = {
   user_id: "Usuario", version: "Versión",
   // BL-R8-16
   role: "Rol", full_name: "Nombre Completo", avatar_url: "Foto de Perfil",
+  // Hallazgo 8: campos técnicos que hoy aparecen crudos en la bitácora
+  // (CFDI/timbrado, REP, receptor, cotizaciones y varios de operación).
+  cfdi_xml: "XML del CFDI", cfdi_uuid: "Folio Fiscal (UUID)",
+  cfdi_pdf_url: "PDF del CFDI", cfdi_xml_url: "URL del XML CFDI",
+  cfdi_error_message: "Error de Timbrado", cfdi_xml_pending: "XML Pendiente",
+  facturapi_env: "Ambiente de Timbrado", facturapi_invoice_id: "ID de Timbrado",
+  stamping_attempts: "Intentos de Timbrado",
+  stamp_variance: "Variación de Timbrado", stamp_variance_checked_at: "Variación Verificada el",
+  sat_validated_at: "Validado ante SAT el", sat_validation_status: "Validación SAT",
+  sat_validation_errors: "Errores de Validación SAT",
+  serie: "Serie", folio: "Folio", forma_pago: "Forma de Pago",
+  metodo_pago: "Método de Pago", uso_cfdi: "Uso de CFDI",
+  moneda: "Moneda", tipo_cambio: "Tipo de Cambio", amount_mxn: "Monto (MXN)",
+  balance: "Saldo", prior_balance: "Saldo Anterior", installment_number: "Número de Parcialidad",
+  rep_number: "Número de REP", rep_folio: "Folio del REP", rep_cfdi_uuid: "UUID del REP",
+  rep_cfdi_status: "Estado CFDI del REP", rep_pdf_url: "PDF del REP", rep_xml_url: "XML del REP",
+  rep_facturapi_id: "ID de Timbrado del REP", rep_stamping_started_at: "Timbrado del REP Iniciado el",
+  receptor_rfc: "RFC del Receptor", receptor_razon_social: "Razón Social del Receptor",
+  receptor_regimen_fiscal: "Régimen Fiscal del Receptor", receptor_domicilio_fiscal_cp: "C.P. Fiscal del Receptor",
+  accepted_by_user_id: "Aceptado por", accepted_at: "Fecha de Aceptación",
+  supplier_id: "Proveedor", supplier_bill_id: "Factura de Proveedor",
+  acquisition_cost: "Costo de Adquisición", expense_date: "Fecha del Gasto",
+  delivery_number: "Número de Entrega", booking_number: "Número de Reserva",
+  cancelled_at: "Fecha de Cancelación", cancellation_motive: "Motivo de Cancelación",
+  created_by: "Creado por", is_e2e: "Registro de Prueba", e2e_scope: "Alcance de Prueba",
+  default_mast_height_m: "Altura de Mástil Predeterminada (m)",
 };
 
-export const translateField = (field: string) => FIELD_LABELS[field] || field.replace(/_/g, " ");
+// Hallazgo 8: fallback legible — snake_case a texto con mayúscula inicial
+// ("stamp_variance_checked_at" → "Stamp variance checked at") sin construir
+// un sistema de i18n nuevo.
+export const translateField = (field: string) => {
+  const known = FIELD_LABELS[field];
+  if (known) return known;
+  const readable = field.replace(/_/g, " ").trim();
+  return readable.charAt(0).toUpperCase() + readable.slice(1);
+};
 export const translateAction = (action: string) => ACTION_LABELS[action] || action;
 export const translateTable = (table: string) => TABLE_LABELS[table] || table.replace(/_/g, " ");
 

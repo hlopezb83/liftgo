@@ -8,8 +8,16 @@ describe("auditTrailLabels", () => {
     expect(translateField("customer_name")).toBe("Nombre del Cliente");
   });
 
-  it("fallback: reemplaza _ por espacio en campos desconocidos", () => {
-    expect(translateField("foo_bar_baz")).toBe("foo bar baz");
+  it("fallback: convierte snake_case a texto legible con mayúscula inicial", () => {
+    expect(translateField("foo_bar_baz")).toBe("Foo bar baz");
+  });
+
+  it("Hallazgo 8 · traduce los campos técnicos que aparecían crudos", () => {
+    expect(translateField("cfdi_xml")).toBe("XML del CFDI");
+    expect(translateField("stamp_variance_checked_at")).toBe("Variación Verificada el");
+    expect(translateField("accepted_by_user_id")).toBe("Aceptado por");
+    expect(translateField("sat_validation_status")).toBe("Validación SAT");
+    expect(translateField("rep_cfdi_uuid")).toBe("UUID del REP");
   });
 
   it("traduce acciones INSERT/UPDATE/DELETE", () => {

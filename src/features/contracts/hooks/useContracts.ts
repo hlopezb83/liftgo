@@ -58,6 +58,26 @@ export function useContract(id: string | undefined) {
   });
 }
 
+/**
+ * Hallazgo 7: antes de crear un contrato ligado a una reserva, buscar si ya
+ * existe uno vigente (status <> 'cancelled') para abrirlo en vez de duplicar.
+ * El respaldo concurrente vive en el índice único parcial
+ * `contracts_one_active_per_booking` (sólo aplica a registros nuevos; los
+ * duplicados históricos CTR-0002/CTR-0003 se conservan).
+ */
+export async function findActiveContractForBooking(bookingId: string) {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("id, contract_number, status")
+    .eq("booking_id", bookingId)
+    .neq("status", "cancelled")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 // R17-C: `status` y `signed_at` los define la DB (default 'draft') o la RPC de
 // cambio de estatus. `buildContractPayload` ya no los envía desde el form.
 type NewContract = Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name" | "status" | "signed_at">;
@@ -72,7 +92,16 @@ export function useCreateContract() {
         .insert({ ...contract, contract_number: num as string })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        // Hallazgo 7: el índice único rechaza el segundo contrato no
+        // cancelado de una misma reserva (carrera/doble clic). Traducimos el
+        // 23505 a un mensaje claro en vez del error técnico de Postgres.
+        const pgErr = error as { code?: string; message?: string };
+        if (pgErr.code === "23505" && (pgErr.message ?? "").includes("contracts_one_active_per_booking")) {
+          throw new Error("Ya existe un contrato para esta reserva");
+        }
+        throw error;
+      }
       return data;
     },
     invalidateKeys: [contractKeys.all],

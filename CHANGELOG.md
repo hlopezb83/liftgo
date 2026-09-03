@@ -1,3 +1,15 @@
+## [7.421.1] - 2026-09-03
+### Corrección (10 hallazgos confirmados)
+- Panel: alerta de seguros sin equipos de prueba (E2E); refleja la flota real.
+- Facturas: una sola paginación por páginas (sin "Mostrando…" ni "Cargar más").
+- Inicio de sesión: el error de un intento fallido se descarta al reintentar o al entrar con éxito.
+- KPIs: títulos largos con wrap de dos líneas en vez de truncarse.
+- Entregas: badge "Atrasada" derivado con fecha local (sin desfase UTC).
+- Contratos: candado de un contrato vigente por reserva (aviso claro + índice único; históricos intactos).
+- Bitácora: identidad "Sistema" única y campos técnicos traducidos al español.
+- Devoluciones: el inspector se registra automáticamente con el usuario autenticado (solo admin puede cambiarlo).
+- Estado de resultados: "Egresos antes de depreciación" + tarjeta "Depreciación total".
+
 ## [7.421.0] - 2026-09-03
 ### Función
 - Invitación al portal: enlace de acceso + mensaje en español con contexto del portal, listos para copiar y compartir.

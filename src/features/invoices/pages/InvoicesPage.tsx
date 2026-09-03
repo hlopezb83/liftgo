@@ -1,5 +1,5 @@
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ViewIcon, ChevronRightIcon, InvoiceIcon } from "@/components/icons";
@@ -134,6 +134,13 @@ export default function InvoicesPage() {
 
   const invoicesQuery = useInvoicesInfinite(queryFilters);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
+  // Hallazgo 2: convivían dos paginaciones (páginas + "Cargar más"). Se
+  // conserva sólo la paginación por páginas; las páginas restantes del
+  // servidor se cargan en segundo plano para que la navegación cubra todos
+  // los registros. Cambiar filtros/búsqueda reinicia la queryKey (página 0).
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, isError, fetchNextPage]);
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
@@ -206,12 +213,6 @@ export default function InvoicesPage() {
         onEmptyAction={canCreate ? () => navigate("/invoices/new") : undefined}
         skeletonColumns={7}
         mobileCardRender={(inv) => <InvoiceCard inv={inv} onClick={() => navigate(`/invoices/${inv.id}`)} />}
-        loadMore={{
-          hasMore: !!hasNextPage,
-          isLoading: isFetchingNextPage,
-          onClick: () => { void fetchNextPage(); },
-          loaded: invoiceRows.length,
-        }}
       />
       <RecurringInvoicesPreviewDialog
         open={previewOpen}

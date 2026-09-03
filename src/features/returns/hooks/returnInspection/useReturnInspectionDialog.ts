@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useSearchParams } from "react-router";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Booking } from "@/features/bookings";
+import { useUserRole } from "@/features/users";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { pickInspectorName, resolveInspectorName } from "../../lib/inspectorIdentity";
 import {
   returnInspectionSchema,
   initialReturnInspectionForm,
@@ -17,9 +20,20 @@ export type { ReturnInspectionFormValues } from "../../lib/returnInspectionSchem
 
 export function useReturnInspectionDialog(bookings: Booking[] | undefined, activeBookings: Booking[] | undefined) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  // Hallazgo 9: el inspector se registra automáticamente con el usuario
+  // autenticado; sólo un admin puede editar el campo (capacidad ya existente
+  // como texto libre). Mientras el rol carga, el campo queda bloqueado.
+  const { user } = useAuth();
+  const { data: role } = useUserRole();
+  const isAdmin = role === "admin";
+  const currentInspectorName = resolveInspectorName(user);
+  const defaultFormValues: ReturnInspectionFormValues = {
+    ...initialReturnInspectionForm,
+    inspectedBy: currentInspectorName,
+  };
   const form = useForm<ReturnInspectionFormValues>({
     resolver: zodResolver(returnInspectionSchema),
-    defaultValues: initialReturnInspectionForm,
+    defaultValues: defaultFormValues,
   });
   const createInspection = useCreateReturnInspection();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -30,7 +44,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   usePrefillEffect(() => {
     const bookingId = searchParams.get("booking_id");
     if (bookingId && activeBookings?.some((b) => b.id === bookingId)) {
-      form.reset({ ...initialReturnInspectionForm, bookingId });
+      form.reset({ ...defaultFormValues, bookingId });
       setDialogOpen(true);
     }
   }, [searchParams, activeBookings]);
@@ -46,7 +60,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   };
 
   const openNew = () => {
-    form.reset(initialReturnInspectionForm);
+    form.reset(defaultFormValues);
     setDialogOpen(true);
   };
 
@@ -54,6 +68,19 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
     const booking = bookings?.find((b) => b.id === values.bookingId);
     if (!booking) {
       notifyValidation({ message: "Reserva no encontrada" });
+      return;
+    }
+    // Hallazgo 9: nunca guardar una inspección sin inspector identificado.
+    const inspectorName = pickInspectorName({
+      isAdmin,
+      formValue: values.inspectedBy,
+      currentUserName: currentInspectorName,
+    });
+    if (!inspectorName) {
+      notifyValidation({
+        title: "Inspector no identificado",
+        message: "No se pudo identificar al usuario autenticado. Vuelve a iniciar sesión e intenta de nuevo.",
+      });
       return;
     }
     const damageCost = values.damageCost ? parseFloat(values.damageCost) : 0;
@@ -66,7 +93,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
         damage_cost: damageCost,
         hours_used: values.hoursUsed ? parseFloat(values.hoursUsed) : null,
         fuel_level: values.fuelLevel || null,
-        inspected_by: values.inspectedBy || null,
+        inspected_by: inspectorName,
         inspected_at: values.inspectedAt.toISOString(),
       },
       {
@@ -86,7 +113,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
               : "Inspección de devolución registrada — montacargas marcado como disponible",
           );
           setDialogOpen(false);
-          form.reset(initialReturnInspectionForm);
+          form.reset(defaultFormValues);
         },
       },
     );
@@ -99,5 +126,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
     openNew,
     handleSubmit: form.handleSubmit(onSubmit),
     isPending: createInspection.isPending,
+    /** Hallazgo 9: sólo un admin puede cambiar el inspector. */
+    inspectorLocked: !isAdmin,
   };
 }

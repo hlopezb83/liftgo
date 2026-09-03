@@ -74,6 +74,18 @@ export function toastDedupeId(kind: string, title: string, description?: string)
   return `${kind}-${hash.toString(36)}`;
 }
 
+/**
+ * Hallazgo 3: id estable del toast de error de autenticación. Un intento
+ * nuevo de inicio de sesión y el establecimiento de una sesión válida lo
+ * descartan para que no sobreviva a un login exitoso.
+ */
+export const AUTH_SIGNIN_ERROR_TOAST_ID = "auth-signin-error";
+
+/** Descarta un toast activo por id (p. ej. limpiar un error ya obsoleto). */
+export function dismissNotification(id: string | number): void {
+  toast.dismiss(id);
+}
+
 // ---------------------------------------------------------------------------
 // notifyError — toast persistente con reporte estructurado
 // ---------------------------------------------------------------------------

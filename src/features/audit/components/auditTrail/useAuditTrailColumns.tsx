@@ -64,17 +64,23 @@ export function useAuditTrailColumns(
         id: "user",
         header: "Usuario",
         accessorFn: (l) => l.user_email || "Sistema",
-        cell: ({ row }) => (
-          <span className="flex items-center gap-2 text-sm text-muted-foreground">
-            {row.original.user_email || "Sistema"}
-            {/* v7.364.0: distinguir movimientos automáticos y rastros de pruebas. */}
-            {row.original.is_e2e ? (
-              <Badge variant="outline">Prueba</Badge>
-            ) : row.original.source === "system" ? (
-              <Badge variant="secondary">Sistema</Badge>
-            ) : null}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const email = row.original.user_email;
+          return (
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              {email || "Sistema"}
+              {/* v7.364.0: distinguir movimientos automáticos y rastros de pruebas.
+                  Hallazgo 8: si no hay email, el texto ya dice "Sistema" — el
+                  badge duplicado ("Sistema Sistema") sólo se muestra cuando hay
+                  un correo que acompañar. */}
+              {row.original.is_e2e ? (
+                <Badge variant="outline">Prueba</Badge>
+              ) : email && row.original.source === "system" ? (
+                <Badge variant="secondary">Sistema</Badge>
+              ) : null}
+            </span>
+          );
+        },
       },
 
       {

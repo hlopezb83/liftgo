@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { AUTH_SIGNIN_ERROR_TOAST_ID, dismissNotification, notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
 import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
 
@@ -36,21 +36,25 @@ export default function AuthPage() {
   useAuthPasswordRecoveryListener(() => setMode("reset"));
 
   const runSubmit = async () => {
+    // Hallazgo 3: un intento nuevo descarta el error del intento anterior
+    // (el toast crítico es persistente y sobrevivía al login exitoso).
+    dismissNotification(AUTH_SIGNIN_ERROR_TOAST_ID);
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
-      if (error) notifyError({ error: error });
+      if (error) notifyError({ error, dedupeKey: AUTH_SIGNIN_ERROR_TOAST_ID });
       else notifySuccess("Revisa tu correo para restablecer tu contraseña");
       return;
     }
     if (mode === "reset") {
       const { error } = await updatePassword(password);
-      if (error) { notifyError({ error: error }); return; }
+      if (error) { notifyError({ error, dedupeKey: AUTH_SIGNIN_ERROR_TOAST_ID }); return; }
       notifySuccess("Contraseña actualizada");
       setMode("sign-in");
       return;
     }
     const { error } = await signIn(email, password);
-    if (error) notifyError({ error: error });
+    if (error) notifyError({ error, dedupeKey: AUTH_SIGNIN_ERROR_TOAST_ID });
+    else dismissNotification(AUTH_SIGNIN_ERROR_TOAST_ID);
   };
 
   const handleSubmit = async (e: ReactFormEvent) => {

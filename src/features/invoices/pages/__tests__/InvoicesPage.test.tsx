@@ -111,13 +111,22 @@ describe("InvoicesPage smoke tests", () => {
     expect(container.textContent).toContain("No se encontraron facturas");
   });
 
-  it("renders 'Cargar más' button when hasNextPage", () => {
+  // Hallazgo 2: convivían dos paginaciones ("1–25 de N" + "Mostrando… /
+  // Cargar más"). Ahora sólo queda la paginación por páginas y las páginas
+  // restantes del servidor se piden solas en segundo plano.
+  it("no muestra 'Cargar más' ni 'Mostrando…' y auto-carga la siguiente página", () => {
+    const fetchNextPage = vi.fn();
     vi.mocked(hooks.useInvoicesInfinite).mockReturnValue({
       ...buildInfiniteReturn(mockInvoices),
       hasNextPage: true,
+      fetchNextPage,
     } as unknown as ReturnType<typeof hooks.useInvoicesInfinite>);
     const container = renderPage();
-    expect(container.textContent).toContain("Cargar más");
-    expect(container.textContent).toMatch(/Mostrando 2 registros/);
+    expect(container.textContent).not.toContain("Cargar más");
+    expect(container.textContent).not.toMatch(/Mostrando \d+ registros/);
+    // La paginación por páginas sigue presente…
+    expect(container.textContent).toContain("Filas por página");
+    // …y el resto de los registros se solicita automáticamente.
+    expect(fetchNextPage).toHaveBeenCalled();
   });
 });

@@ -28,10 +28,12 @@ interface Props {
   forkliftMap: Map<string, Forklift>;
   isPending: boolean;
   onSubmit: (e: ReactFormEvent) => void;
+  /** Hallazgo 9: el inspector se registra con el usuario autenticado; sólo un admin puede editarlo. */
+  inspectorLocked?: boolean;
 }
 
 export function ReturnInspectionDialog({
-  open, onOpenChange, form, activeBookings, forkliftMap, isPending, onSubmit,
+  open, onOpenChange, form, activeBookings, forkliftMap, isPending, onSubmit, inspectorLocked = false,
 }: Props) {
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   // R7-FE-07a (N7-UX-01): señalar la obligatoriedad ANTES del submit
@@ -150,6 +152,12 @@ export function ReturnInspectionDialog({
               name="inspectedBy"
               label="Inspeccionado Por"
               placeholder="Nombre del inspector"
+              disabled={inspectorLocked}
+              description={
+                inspectorLocked
+                  ? "Se registra automáticamente con tu usuario."
+                  : "Prellenado con tu usuario; como administrador puedes registrar a otro inspector."
+              }
             />
           </div>
 
