@@ -1,3 +1,7 @@
+## [7.420.4] - 2026-09-03
+### Corrección
+- Invitar al portal: el rol administrativo ya puede crear accesos de cliente (antes sólo admin), y los errores muestran el motivo real en español.
+
 ## [7.420.3] - 2026-09-02
 ### Corrección
 - Pagos a proveedores: cada pago se liga al lote vigente de su factura (si existe), evitando cancelar un lote ya pagado y volver a exportarlo.
