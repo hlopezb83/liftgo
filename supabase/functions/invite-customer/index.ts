@@ -13,7 +13,9 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    const auth = await requireAdmin(req);
+    // El módulo Clientes concede acceso "full" a admin y administrativo; la
+    // invitación al portal se alinea con esa matriz (antes exigía sólo admin).
+    const auth = await requireRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
 
     const limited = await enforceRateLimit(
