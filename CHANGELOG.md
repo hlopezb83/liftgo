@@ -1,3 +1,12 @@
+## [7.423.0] - 2026-09-03
+### Corrección (regresión v7.422.0 — atomicidad y coherencia de facturas agrupadas)
+- Facturas: crear o editar una factura con sus reservas ahora ocurre en UNA sola transacción de base de datos (RPC `save_invoice_with_bookings`); un fallo al ligar cualquier reserva revierte todo — ya no pueden quedar facturas parciales o huérfanas.
+- Concurrencia: candados advisory por reserva (misma clave md5/60-bits y orden ascendente que la facturación recurrente) adquiridos ANTES del chequeo de duplicados; dos intentos simultáneos con la misma reserva+período (incluida como secundaria) dejan exactamente una factura y el perdedor recibe un error claro sin persistir nada. Verificado con 4 POST simultáneos y carrera de reserva secundaria contra la base real.
+- Multi-selección: sólo se pueden agrupar reservas del mismo cliente, misma moneda/tipo de cambio y exactamente el mismo periodo facturable canónico; las incompatibles se deshabilitan con la razón ("moneda distinta", "periodo facturable distinto", etc.) y la misma regla se valida al guardar (cliente y servidor). Sin conversión automática de monedas.
+- Periodo: `billingPeriodEnd` obligatorio con reserva, inicio ≤ fin, y el periodo debe caber en el rango de TODAS las reservas seleccionadas — validado en el formulario y de nuevo dentro del RPC transaccional; se eliminó el fallback silencioso a un mes ajeno a la reserva.
+- Bloqueo optimista intacto: `expectedVersion`/`stale_write` se conserva y un guardado fallido ya no consume la versión (el reintento usa la misma sin falso conflicto).
+- Datos históricos intactos: FAC-0113 (hash y versión verificados), reservas legadas por `booking_id` directo y regla canónica de facturas canceladas sin cambios.
+
 ## [7.422.0] - 2026-09-03
 ### Corrección (9 bugs de auditoría)
 - Entregas: `completed_at` lo sella el servidor en toda transición a completada (trigger en DB); el navegador ya no envía fecha, eliminando completadas sin fecha o con fecha anterior a la creación. Históricos ENT-0027/0028/0029/0031/0032/0033 intactos.
