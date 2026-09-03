@@ -1,0 +1,14 @@
+{
+ "version": "7.417.2",
+ "date": "2026-09-02",
+ "type": "patch",
+ "category": "refactor",
+ "title": "Actualización de dependencias",
+ "description": "Se actualizaron dependencias de seguridad y herramientas (dompurify, react-dropzone, jsdom, @types/node, eslint-plugin-react-refresh). react-table v9 y TypeScript 7 se posponen por sus cambios incompatibles.",
+ "changes": [
+  "dompurify 3.4.14 y react-dropzone 20.1.1 en producción.",
+  "jsdom 30.0.1, @types/node 26.4.1 y eslint-plugin-react-refresh 0.5.5 en desarrollo.",
+  "react-table permanece en v8: la v9 exige migrar el DataTable completo.",
+  "TypeScript permanece en 5.x hasta que typescript-eslint soporte la v7."
+ ]
+}

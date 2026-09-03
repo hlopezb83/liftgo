@@ -1,0 +1,14 @@
+{
+ "version": "7.420.3",
+ "date": "2026-09-02",
+ "type": "patch",
+ "category": "fix",
+ "title": "Pagos ligados a su lote y trabajos automáticos de timbrado más estables",
+ "description": "Cada pago a proveedor vuelve a ligarse al lote vigente de la factura y los procesos automáticos de timbrado ya no exceden su tiempo de ejecución.",
+ "changes": [
+  "CxP: register_supplier_payment resuelve el lote vigente cuando no se envía uno; un lote ya pagado no puede cancelarse ni reexportarse.",
+  "Cola de reintentos CFDI: presupuesto de 50s por corrida y lotes de 10 pendientes / 5 atascadas.",
+  "Reconciliación de timbrado: presupuesto de 50s por corrida y 10 documentos por tipo.",
+  "Los dos crons de timbrado se escalonan (ya no corren en el mismo minuto)."
+ ]
+}

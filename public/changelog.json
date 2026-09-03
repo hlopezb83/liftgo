@@ -74,7 +74,7 @@
   "version": "7.420.2",
   "date": "2026-09-02",
   "type": "patch",
-  "category": "chore",
+  "category": "refactor",
   "title": "Lint: 7 avisos corregidos (imports, complejidad, fast-refresh)",
   "description": "Se corrigieron 7 avisos de ESLint: líneas entre imports, orden de imports, complejidad excesiva y fast-refresh. Sin cambios de comportamiento.",
   "changes": [
@@ -90,7 +90,7 @@
   "version": "7.420.1",
   "date": "2026-09-02",
   "type": "patch",
-  "category": "chore",
+  "category": "refactor",
   "title": "CI: acción de detección de cambios actualizada a Node 24",
   "description": "GitHub mostraba la advertencia de Node.js 20 en desuso porque la acción dorny/paths-filter v3 aún lo usa; se actualizó a v4.0.3 (Node 24). Además se dio formato estándar a las funciones del backend. Sin cambios en la aplicación.",
   "changes": [
@@ -171,7 +171,7 @@
   "version": "7.417.2",
   "date": "2026-09-02",
   "type": "patch",
-  "category": "chore",
+  "category": "refactor",
   "title": "Actualización de dependencias",
   "description": "Se actualizaron dependencias de seguridad y herramientas (dompurify, react-dropzone, jsdom, @types/node, eslint-plugin-react-refresh). react-table v9 y TypeScript 7 se posponen por sus cambios incompatibles.",
   "tags": [
@@ -234,7 +234,7 @@
   "version": "7.416.0",
   "date": "2026-09-02",
   "type": "minor",
-  "category": "improvement",
+  "category": "feature",
   "title": "Optimización móvil fase 2: gráficas y fichas a dos columnas",
   "description": "Las gráficas de Reportes ya se adaptan a pantallas chicas (etiquetas sin recortes y ejes más angostos) y las fichas de detalle (Reserva, Cliente, Montacarga, Proveedor, Entrega, Devolución) muestran dos columnas desde 640 px, aprovechando el ancho de un celular plegable.",
   "tags": [

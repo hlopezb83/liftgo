@@ -1,0 +1,15 @@
+{
+ "version": "7.417.1",
+ "date": "2026-09-02",
+ "type": "patch",
+ "category": "fix",
+ "title": "Estabilidad de CI y conciliación bancaria",
+ "description": "La conciliación ya no consulta una columna inexistente en pagos a proveedores; las pruebas recurrentes, dependencias de Vitest y avisos de lint quedaron alineados con el comportamiento actual.",
+ "changes": [
+  "Se retiró de pagos a proveedores la referencia inválida a is_e2e.",
+  "Las pruebas recurrentes respetan que nada inicia preseleccionado.",
+  "Vitest y coverage-v8 usan exactamente la misma versión.",
+  "La configuración de pruebas usa import.meta.url en vez de __dirname.",
+  "Se corrigieron los avisos reportados de imports, complejidad y tamaño de función."
+ ]
+}
