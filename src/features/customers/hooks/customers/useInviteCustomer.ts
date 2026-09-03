@@ -11,6 +11,8 @@ interface InviteCustomerVars {
 interface InviteCustomerResponse {
   success?: boolean;
   user_id?: string;
+  /** Enlace de acceso de un solo uso para compartir con el cliente. */
+  portal_link?: string;
 }
 
 /**
