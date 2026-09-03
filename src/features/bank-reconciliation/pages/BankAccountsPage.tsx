@@ -114,13 +114,13 @@ export default function BankAccountsPage() {
                         {/* Bug 9: botones de solo icono con aria-label + tooltip. */}
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" aria-label={`Editar cuenta ${a.name}`} onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5" /></Button>
+                            <Button variant="ghost" size="iconSm" aria-label={`Editar cuenta ${a.name}`} onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5" /></Button>
                           </TooltipTrigger>
                           <TooltipContent>Editar cuenta</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" aria-label={`Eliminar cuenta ${a.name}`} onClick={() => handleDelete(a)}><DeleteIcon className="h-3.5 w-3.5" /></Button>
+                            <Button variant="ghost" size="iconSm" aria-label={`Eliminar cuenta ${a.name}`} onClick={() => handleDelete(a)}><DeleteIcon className="h-3.5 w-3.5" /></Button>
                           </TooltipTrigger>
                           <TooltipContent>Eliminar cuenta</TooltipContent>
                         </Tooltip>
