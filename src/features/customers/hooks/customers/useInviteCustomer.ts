@@ -50,8 +50,8 @@ export function useInviteCustomer() {
     },
     invalidateKeys: [customerKeys.all],
     onSuccess: (_data, { email }) => {
-      notifySuccess("Invitación enviada", {
-        description: `Acceso al portal creado para ${email}`,
+      notifySuccess("Acceso al portal creado", {
+        description: `Comparte el enlace de acceso con ${email}`,
       });
     },
     errorTitle: "No se pudo invitar al portal",
