@@ -195,6 +195,60 @@ describe("invoiceFormSchema", () => {
   });
 });
 
+describe("invoiceFormSchema — periodo de facturación (P3 v7.423.0)", () => {
+  const withBooking = (over: Record<string, unknown> = {}) => ({
+    ...buildEmptyInvoiceValues(),
+    customerId: "cust-1",
+    bookingId: "b-1",
+    bookingIds: ["b-1"],
+    lineItems: [{ ...EMPTY_LINE, description: "Renta", quantity: 1, unit_price: 1000, total: 1000 }],
+    ...over,
+  });
+
+  it("rechaza reserva sin billingPeriodStart", () => {
+    const res = invoiceFormSchema.safeParse(withBooking({ billingPeriodStart: "", billingPeriodEnd: "2026-09-30" }));
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues.some((i) => i.path.join(".") === "billingPeriodStart")).toBe(true);
+    }
+  });
+
+  it("rechaza reserva sin billingPeriodEnd (antes caía a un fallback silencioso)", () => {
+    const res = invoiceFormSchema.safeParse(withBooking({ billingPeriodStart: "2026-09-01", billingPeriodEnd: "" }));
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues.some(
+        (i) => i.path.join(".") === "billingPeriodEnd" && i.message.includes("requerido"),
+      )).toBe(true);
+    }
+  });
+
+  it("rechaza fin anterior al inicio", () => {
+    const res = invoiceFormSchema.safeParse(withBooking({ billingPeriodStart: "2026-09-30", billingPeriodEnd: "2026-09-01" }));
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues.some(
+        (i) => i.message === "El fin del periodo no puede ser anterior al inicio",
+      )).toBe(true);
+    }
+  });
+
+  it("acepta periodo completo con inicio ≤ fin", () => {
+    const res = invoiceFormSchema.safeParse(withBooking({ billingPeriodStart: "2026-09-01", billingPeriodEnd: "2026-09-30" }));
+    expect(res.success).toBe(true);
+  });
+
+  it("acepta periodo de un solo día (inicio == fin)", () => {
+    const res = invoiceFormSchema.safeParse(withBooking({ billingPeriodStart: "2026-09-15", billingPeriodEnd: "2026-09-15" }));
+    expect(res.success).toBe(true);
+  });
+
+  it("sin reserva NO exige periodo (facturas de daño/venta sin reserva)", () => {
+    const res = invoiceFormSchema.safeParse(withBooking({ bookingId: "", bookingIds: [], billingPeriodStart: "", billingPeriodEnd: "" }));
+    expect(res.success).toBe(true);
+  });
+});
+
 describe("buildEmptyInvoiceValues", () => {
   it("aplica defaults coherentes (IVA 16%, MXN, sin partidas)", () => {
     const v = buildEmptyInvoiceValues();
