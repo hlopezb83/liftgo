@@ -1,0 +1,7 @@
+{
+  "description": "El rol administrativo ya puede invitar clientes al portal (antes la acción aparecía en pantalla pero el servidor la rechazaba), y cuando algo falla se muestra el motivo real en español.",
+  "changes": [
+    "Invitar al portal: la función acepta los roles admin y administrativo, alineada con la matriz de permisos del módulo Clientes. No cambian otros permisos, RLS ni validaciones.",
+    "Errores claros: la invitación muestra mensajes como “Este cliente ya tiene acceso al portal” en vez de “Edge Function returned a non-2xx status code”."
+  ]
+}
