@@ -19,3 +19,19 @@ export const QUOTE_STATUS_LABELS: Record<string, string> = {
 
 export const quoteStatusLabel = (status: string): string =>
   QUOTE_STATUS_LABELS[status] ?? status;
+
+/**
+ * Bug 8: labels PLURALES para las pestañas-filtro de la lista (cada pestaña
+ * representa un conjunto). El badge de una cotización individual sigue usando
+ * el singular de QUOTE_STATUS_LABELS.
+ */
+export const QUOTE_STATUS_TAB_LABELS: Record<string, string> = {
+  all: "Todas",
+  draft: "Borradores",
+  sent: "Enviadas",
+  accepted: "Aceptadas",
+  converted: "Convertidas",
+  rejected: "Rechazadas",
+  expired: "Expiradas",
+  cancelled: "Canceladas",
+};

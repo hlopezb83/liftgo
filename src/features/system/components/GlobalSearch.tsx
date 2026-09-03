@@ -113,15 +113,17 @@ export function GlobalSearch() {
 
   return (
     <>
+      {/* Bug 7: "Buscar…" prometía búsqueda de contenido; el cajón navega a
+          módulos y entidades (facturas/clientes/reservas) → "Ir a…". */}
       <Button
         variant="outline"
         size="sm"
         onClick={() => setOpen(true)}
         className="h-8 gap-2 text-muted-foreground hover:text-foreground px-2.5 touch:h-11 touch:min-w-11"
-        aria-label="Búsqueda global"
+        aria-label="Navegación rápida"
       >
         <SearchIcon className="h-3.5 w-3.5" />
-        <span className="hidden md:inline text-xs">Buscar…</span>
+        <span className="hidden md:inline text-xs">Ir a…</span>
         <Badge variant="secondary" className="hidden md:inline-flex text-3xs px-1.5 py-0 font-mono opacity-70">
           Ctrl+K
         </Badge>

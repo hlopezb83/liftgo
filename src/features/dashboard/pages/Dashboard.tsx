@@ -25,6 +25,7 @@ export default function Dashboard() {
     monthlyUtilization, revenuePerUnit, cashFlowData,
     overdueInvoices,
     financials, alertsProps, canSeeFinancials,
+    financialsState, financialsIsFetching, refetchFinancials,
   } = useDashboardSections();
 
   if (isError) {
@@ -82,15 +83,31 @@ export default function Dashboard() {
           {canSeeFinancials && (
             <section className="order-3 md:order-2 border-t border-border/60 pt-5">
               <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
-              <FinancialKpiCards
-                mrr={financials.mrr}
-                utilizationPercent={utilizationPercent}
-                dso={financials.dso}
-                overdueTotal={financials.overdueTotal}
-                overdueFxMissingCount={financials.overdueFxMissingCount}
-                mrrFxMissingCount={financials.mrrFxMissingCount}
-
-              />
+              {/* Bug 6: la query de KPIs financieros es independiente del resto
+                  del tablero; sin guard propio esta sección mostraba $0 falsos
+                  durante carga o error de get_financial_kpis. */}
+              {financialsState === "error" ? (
+                <QueryErrorState
+                  bare
+                  entity="los KPIs financieros"
+                  onRetry={() => { void refetchFinancials(); }}
+                  isRetrying={financialsIsFetching}
+                />
+              ) : financialsState === "loading" ? (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4" role="status">
+                  <span className="sr-only">Cargando KPIs financieros…</span>
+                  {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+                </div>
+              ) : (
+                <FinancialKpiCards
+                  mrr={financials.mrr}
+                  utilizationPercent={utilizationPercent}
+                  dso={financials.dso}
+                  overdueTotal={financials.overdueTotal}
+                  overdueFxMissingCount={financials.overdueFxMissingCount}
+                  mrrFxMissingCount={financials.mrrFxMissingCount}
+                />
+              )}
             </section>
           )}
           <div className="order-1 md:order-3">

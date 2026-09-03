@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildLinesForBooking } from "@/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers";
+import { buildLinesForBooking, prefillBillingPeriod } from "@/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers";
 import type { Forklift } from "@/features/fleet";
 
 const forklift: Forklift = {
@@ -159,5 +159,63 @@ describe("buildLinesForBooking · primer ciclo de reservas largas", () => {
       expect.objectContaining({ quantity: 12, rate_type: "monthly" }),
     ]));
     expect(items.reduce((sum, item) => sum + item.total, 0)).toBeGreaterThan(30_000);
+  });
+});
+
+describe("prefillBillingPeriod (Bug 4: periodo acotado a la reserva)", () => {
+  const issue = new Date(2026, 9, 15); // 15-oct-2026 (emisión posterior a la reserva)
+
+  it("no recurrente: exactamente el rango de la reserva", () => {
+    const p = prefillBillingPeriod(
+      { start_date: "2026-09-05", end_date: "2026-09-20", recurring_billing: false },
+      issue,
+    );
+    expect(p).toEqual({ start: "2026-09-05", end: "2026-09-20" });
+  });
+
+  it("recurrente que termina DENTRO de su mes inicial: usa la reserva, no el mes de emisión", () => {
+    // Regresión del bug: antes caía a monthBounds(issue) → 2026-10-01..31,
+    // un mes completamente fuera de la reserva.
+    const p = prefillBillingPeriod(
+      { start_date: "2026-09-10", end_date: "2026-09-25", recurring_billing: true },
+      issue,
+    );
+    expect(p).toEqual({ start: "2026-09-10", end: "2026-09-25" });
+  });
+
+  it("recurrente multi-mes: primer ciclo (inicio → fin del mes inicial)", () => {
+    const p = prefillBillingPeriod(
+      { start_date: "2026-09-12", end_date: "2027-09-11", recurring_billing: true },
+      issue,
+    );
+    expect(p).toEqual({ start: "2026-09-12", end: "2026-09-30" });
+  });
+
+  it("fin de mes: reserva recurrente que inicia el último día del mes", () => {
+    const p = prefillBillingPeriod(
+      { start_date: "2026-01-31", end_date: "2026-06-30", recurring_billing: true },
+      issue,
+    );
+    expect(p).toEqual({ start: "2026-01-31", end: "2026-01-31" });
+  });
+
+  it("cambio de mes/año: diciembre corta al 31-dic aunque la emisión sea en enero", () => {
+    const p = prefillBillingPeriod(
+      { start_date: "2026-12-15", end_date: "2027-12-14", recurring_billing: true },
+      new Date(2027, 0, 5),
+    );
+    expect(p).toEqual({ start: "2026-12-15", end: "2026-12-31" });
+  });
+
+  it("sin reserva: cae al mes de la fecha de emisión (fallback)", () => {
+    expect(prefillBillingPeriod(undefined, new Date(2026, 9, 15)))
+      .toEqual({ start: "2026-10-01", end: "2026-10-31" });
+  });
+
+  it("zonas horarias: la fecha de emisión usa componentes locales, no UTC", () => {
+    // 23:59 local del 31-oct → sigue siendo octubre aunque en UTC ya sea 1-nov.
+    const lateNight = new Date(2026, 9, 31, 23, 59, 0);
+    expect(prefillBillingPeriod(undefined, lateNight))
+      .toEqual({ start: "2026-10-01", end: "2026-10-31" });
   });
 });

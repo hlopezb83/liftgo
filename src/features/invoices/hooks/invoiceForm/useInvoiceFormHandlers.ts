@@ -158,6 +158,26 @@ function collectExtraLinesFromQuotes(
   return extraLines;
 }
 
+/**
+ * H-6 / Bug 4: periodo pre-llenado al ligar una reserva.
+ * - No recurrente → exactamente el rango de la reserva.
+ * - Recurrente → primer ciclo (inicio de reserva → fin de ese mes o fin de la
+ *   reserva si termina antes). Antes sólo `truncated` usaba la reserva y una
+ *   recurrente que terminaba dentro de su mes inicial caía a `monthBounds`
+ *   de la fecha de emisión, proponiendo un mes ajeno a la reserva.
+ * - Sin reserva o fechas inválidas → mes de la fecha de emisión (fallback).
+ */
+export function prefillBillingPeriod(
+  booking: Pick<Booking, "start_date" | "end_date" | "recurring_billing"> | undefined,
+  issueDate: Date,
+): { start: string; end: string } {
+  if (booking && !booking.recurring_billing) {
+    return { start: booking.start_date, end: booking.end_date };
+  }
+  const first = booking ? firstBillingPeriod(booking.start_date, booking.end_date) : null;
+  if (first) return { start: first.start, end: first.end };
+  return monthBounds(issueDate);
+}
 
 export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, bookingsWithBilledExtras }: Props) {
 
@@ -177,20 +197,11 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     form.setValue("bookingIds", selectedIds, { shouldDirty: true });
     form.setValue("bookingId", selectedIds[0] ?? "", { shouldDirty: true });
 
-    // H-6: al ligar una reserva, pre-llenar el periodo con el mes de la fecha
-    // de emisión si el usuario aún no lo ha capturado (caso típico: mensualidad).
-    // Sólo una reserva recurrente corta el primer periodo al fin de mes.
+    // H-6 / Bug 4: pre-llenar el periodo sólo si el usuario no lo capturó;
+    // siempre acotado a las fechas de la reserva (ver prefillBillingPeriod).
     if (selectedIds.length > 0 && !form.getValues("billingPeriodStart")) {
-      const booking = selected[0];
-      const first = booking?.recurring_billing
-        ? firstBillingPeriod(selected[0].start_date, selected[0].end_date)
-        : null;
       const issue = form.getValues("issueDate") ?? nowMty();
-      const { start, end } = booking && !booking.recurring_billing
-        ? { start: booking.start_date, end: booking.end_date }
-        : first?.truncated
-        ? { start: first.start, end: first.end }
-        : monthBounds(issue);
+      const { start, end } = prefillBillingPeriod(selected[0], issue);
       form.setValue("billingPeriodStart", start, { shouldDirty: true });
       form.setValue("billingPeriodEnd", end, { shouldDirty: true });
     }

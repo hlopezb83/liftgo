@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
-import { computeHoursUsed, buildCompletionPayload, buildDeliverySubtitle } from "../deliveryDetailHelpers";
+import { computeHoursUsed, buildCompletionPayload, buildDeliverySubtitle, isMissingOperationalEvidence } from "../deliveryDetailHelpers";
 
 type Delivery = Tables<"deliveries">;
 
@@ -27,31 +27,53 @@ describe("computeHoursUsed", () => {
 
 describe("buildCompletionPayload", () => {
   it("incluye signature_base64 sólo si viene firma", () => {
-    const p = buildCompletionPayload("d1", "2026-05-26T10:00:00Z", "data:image/png;base64,abc");
+    const p = buildCompletionPayload("d1", "data:image/png;base64,abc");
     expect(p.signature_base64).toBe("data:image/png;base64,abc");
     expect(p.status).toBe("completed");
   });
 
+  it("Bugs 1-2: NUNCA envía completed_at — lo sella el trigger con reloj del servidor", () => {
+    const p = buildCompletionPayload("d1", "data:image/png;base64,abc", "1234.5");
+    expect(p).not.toHaveProperty("completed_at");
+  });
+
   it("omite signature y hours cuando no se envían", () => {
-    const p = buildCompletionPayload("d1", "2026-05-26T10:00:00Z");
+    const p = buildCompletionPayload("d1");
     expect(p).not.toHaveProperty("signature_base64");
     expect(p).not.toHaveProperty("hours_reading");
   });
 
   it("convierte hours_reading a número", () => {
-    const p = buildCompletionPayload("d1", "2026-05-26T10:00:00Z", undefined, "1234.5");
+    const p = buildCompletionPayload("d1", undefined, "1234.5");
     expect(p.hours_reading).toBe(1234.5);
   });
 
   it("R10 Bloque 4: rechaza pickup horómetro menor al de entrega", () => {
     expect(() =>
-      buildCompletionPayload("d1", "2026-05-26T10:00:00Z", undefined, "1000", 1250.5)
+      buildCompletionPayload("d1", undefined, "1000", 1250.5)
     ).toThrow(/1250\.5/);
   });
 
   it("R10 Bloque 4: acepta pickup horómetro >= entrega", () => {
-    const p = buildCompletionPayload("d1", "2026-05-26T10:00:00Z", undefined, "1300", 1250.5);
+    const p = buildCompletionPayload("d1", undefined, "1300", 1250.5);
     expect(p.hours_reading).toBe(1300);
+  });
+
+  it("Bug 3: incluye la justificación recortada sólo cuando viene con contenido", () => {
+    const p = buildCompletionPayload("d1", undefined, undefined, null, "  Autorizó Juan  ");
+    expect(p.completed_no_evidence_reason).toBe("Autorizó Juan");
+    const sin = buildCompletionPayload("d1", undefined, undefined, null, "   ");
+    expect(sin).not.toHaveProperty("completed_no_evidence_reason");
+  });
+});
+
+describe("isMissingOperationalEvidence (Bug 3)", () => {
+  it("falta evidencia sólo sin firma Y sin operador", () => {
+    expect(isMissingOperationalEvidence(null)).toBe(true);
+    expect(isMissingOperationalEvidence("   ")).toBe(true);
+    expect(isMissingOperationalEvidence("Juan Pérez")).toBe(false);
+    expect(isMissingOperationalEvidence(null, "data:image/png;base64,abc")).toBe(false);
+    expect(isMissingOperationalEvidence("Juan", "data:image/png;base64,abc")).toBe(false);
   });
 });
 

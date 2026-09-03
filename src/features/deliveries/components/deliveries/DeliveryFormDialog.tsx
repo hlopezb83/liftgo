@@ -19,6 +19,7 @@ const initialForm: DeliveryFormValues = {
   alreadyCompleted: false,
   scheduledDate: nowMty(), scheduledTime: "",
   address: "", driverName: "", driverPhone: "", notes: "",
+  noEvidenceReason: "",
 };
 
 interface DeliveryFormDialogProps {
@@ -59,9 +60,13 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
         driver_phone: values.driverPhone || null,
         notes: values.notes || null,
         status: values.alreadyCompleted ? "completed" : "scheduled",
-        // Si nace completada, sellar completed_at (las queries de horas e
-        // historial filtran por completed_at NOT NULL).
-        completed_at: values.alreadyCompleted ? new Date().toISOString() : null,
+        // Bugs 1-2: completed_at lo sella el trigger de DB con el reloj del
+        // servidor (el reloj del navegador producía timestamps < created_at).
+        // Bug 3: histórico sin operador → guardar la justificación capturada.
+        completed_no_evidence_reason:
+          values.alreadyCompleted && !values.driverName.trim() && values.noEvidenceReason.trim()
+            ? values.noEvidenceReason.trim()
+            : null,
       },
       {
         onSuccess: () => {

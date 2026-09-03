@@ -14,7 +14,18 @@ export const deliverySchema = z.object({
   driverName: z.string(),
   driverPhone: z.string(),
   notes: z.string(),
+  // Bug 3: justificación cuando se registra como completada sin operador
+  // (no hay firma en este flujo; el operador es la única evidencia).
+  noEvidenceReason: z.string().default(""),
 }).superRefine((values, ctx) => {
+  // Bug 3: histórico sin operador → exigir justificación breve.
+  if (values.alreadyCompleted && !values.driverName.trim() && !values.noEvidenceReason.trim()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["noEvidenceReason"],
+      message: "Sin operador ni firma: escribe quién autorizó o por qué se registra así",
+    });
+  }
   // La fecha pasada sólo es válida si se registra como completada.
   if (values.alreadyCompleted) return;
   const day = new Date(values.scheduledDate); day.setHours(0, 0, 0, 0);

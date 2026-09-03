@@ -108,6 +108,23 @@ export function buildFinancials(kpis?: KpisLike) {
   };
 }
 
+/**
+ * Bug 6: estado de la sección Finanzas del panel. `buildFinancials` rellena
+ * con `?? 0` cuando los KPIs no llegaron; sin esta distinción el panel
+ * mostraba ceros falsos (MRR $0, cartera $0) durante carga o error de
+ * `get_financial_kpis`, indistinguibles de un cero real.
+ */
+export function financialSectionState(flags: {
+  isError: boolean;
+  isLoading: boolean;
+}): "error" | "loading" | "ready" {
+  if (flags.isError) return "error";
+  if (flags.isLoading) return "loading";
+  return "ready";
+}
+
+
+
 
 export function buildAlertsProps<B, I, C>(
   stats: { overdue_bookings?: B[] } | undefined,

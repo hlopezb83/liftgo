@@ -12,16 +12,18 @@ interface Props {
   setSignatureOpen: (open: boolean) => void;
   hoursReading: string;
   setHoursReading: (value: string) => void;
-  onComplete: (signature?: string) => void;
+  onComplete: (signature?: string, noEvidenceReason?: string) => void;
   pickupPrompt: PickupPrompt | null;
   onPickupClose: () => void;
   /** R10 Bloque 4: horómetro de entrega si el detalle actual es pickup. */
   minHours?: number | null;
+  /** Bug 3: operador asignado de la entrega (evidencia operativa). */
+  operatorName?: string | null;
 }
 
 export function DeliveryDetailDialogs({
   signatureOpen, setSignatureOpen, hoursReading, setHoursReading, onComplete,
-  pickupPrompt, onPickupClose, minHours,
+  pickupPrompt, onPickupClose, minHours, operatorName,
 }: Props) {
   return (
     <>
@@ -32,7 +34,9 @@ export function DeliveryDetailDialogs({
         onHoursReadingChange={setHoursReading}
         onComplete={onComplete}
         minHours={minHours}
+        operatorName={operatorName}
       />
+
 
       {pickupPrompt && (
         <PostDeliveryPickupDialog

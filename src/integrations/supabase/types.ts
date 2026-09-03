@@ -1360,6 +1360,7 @@ export type Database = {
           booking_id: string | null
           charged_to_customer: boolean | null
           completed_at: string | null
+          completed_no_evidence_reason: string | null
           created_at: string
           delivery_number: string
           driver_name: string | null
@@ -1381,6 +1382,7 @@ export type Database = {
           booking_id?: string | null
           charged_to_customer?: boolean | null
           completed_at?: string | null
+          completed_no_evidence_reason?: string | null
           created_at?: string
           delivery_number: string
           driver_name?: string | null
@@ -1402,6 +1404,7 @@ export type Database = {
           booking_id?: string | null
           charged_to_customer?: boolean | null
           completed_at?: string | null
+          completed_no_evidence_reason?: string | null
           created_at?: string
           delivery_number?: string
           driver_name?: string | null
@@ -4802,6 +4805,10 @@ export type Database = {
           new_status: string
           previous_status: string
         }[]
+      }
+      sync_invoice_bookings: {
+        Args: { p_booking_ids: string[]; p_invoice_id: string }
+        Returns: number
       }
       sync_invoice_status: {
         Args: { p_invoice_id: string }

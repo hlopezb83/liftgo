@@ -15,12 +15,13 @@ export const computeHoursUsed = (
 
 export const buildCompletionPayload = (
   id: string,
-  completedAtIso: string,
   signature?: string,
   hoursReading?: string,
   /** R10 Bloque 4 / FIX-R2-06 (03-FIX-07): piso del horómetro = máximo entre
    *  la entrega hermana y la última lectura global de la unidad (monótono). */
   minHours?: number | null,
+  /** Bug 3: justificación breve cuando se completa sin operador ni firma. */
+  noEvidenceReason?: string | null,
 ) => {
   const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
   if (hrs !== undefined) {
@@ -33,14 +34,27 @@ export const buildCompletionPayload = (
       );
     }
   }
+  const reason = noEvidenceReason?.trim();
   return {
     id,
     status: "completed" as const,
-    completed_at: completedAtIso,
+    // Bugs 1-2: completed_at YA NO se envía desde el cliente. El trigger
+    // `trg_set_delivery_completed_at` lo sella con el reloj del servidor
+    // (nunca NULL, nunca anterior a created_at por reloj del navegador).
     ...(signature ? { signature_base64: signature } : {}),
     ...(hrs !== undefined ? { hours_reading: hrs } : {}),
+    ...(reason ? { completed_no_evidence_reason: reason } : {}),
   };
 };
+
+/**
+ * Bug 3: una entrega completada sin firma NI operador asignado carece de
+ * evidencia operativa; en ese caso se exige una justificación breve.
+ */
+export const isMissingOperationalEvidence = (
+  driverName: string | null | undefined,
+  signature?: string | null,
+): boolean => !signature && !driverName?.trim();
 
 
 export const buildDeliverySubtitle = (

@@ -1,3 +1,14 @@
+## [7.422.0] - 2026-09-03
+### Corrección (9 bugs de auditoría)
+- Entregas: `completed_at` lo sella el servidor en toda transición a completada (trigger en DB); el navegador ya no envía fecha, eliminando completadas sin fecha o con fecha anterior a la creación. Históricos ENT-0027/0028/0029/0031/0032/0033 intactos.
+- Entregas: completar sin operador ni firma exige una justificación breve (nuevo campo `completed_no_evidence_reason`) en detalle, alta histórica y registro post-reserva.
+- Facturas: el período inicial prellenado siempre se acota a las fechas de la reserva; una recurrente que termina dentro de su mes inicial ya no hereda el mes de emisión.
+- Facturas agrupadas: la sincronización de reservas es atómica en DB (RPC `sync_invoice_bookings`) con bloqueo de duplicados por reserva+período contra facturas no canceladas (incluye `booking_id` legado).
+- Panel: los KPIs financieros distinguen carga (skeleton), error ("No disponible" + reintentar) y cero real; se acabaron los $0 falsos.
+- Navegación: "Búsqueda global" ahora es "Navegación rápida" con placeholder "Ir a…" (Ctrl+K se conserva).
+- Cotizaciones: pestañas en plural (Todas, Borradores, Enviadas, Aceptadas, Convertidas, Rechazadas, Expiradas, Canceladas); badges siguen en singular.
+- Cuentas bancarias: botones de editar/eliminar con aria-label contextual, tooltip y tamaño de icono consistente.
+
 ## [7.421.3] - 2026-09-03
 ### Corrección
 - Facturas: la lista ya no descarga todo el historial en cadena al abrirla o filtrar; sólo pide la siguiente página del servidor cuando el usuario llega a la última página ya cargada.
