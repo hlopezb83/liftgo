@@ -135,17 +135,6 @@ export default function InvoicesPage() {
   const invoicesQuery = useInvoicesInfinite(queryFilters);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
   const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
-  // Hallazgo 2: convivían dos paginaciones (páginas + "Cargar más"); se
-  // conserva sólo la paginación por páginas. La siguiente página del servidor
-  // se pide SOLO cuando el usuario llega a la última página ya cargada
-  // (QA: antes se descargaba todo el historial en cadena al montar/filtrar).
-  // Cambiar filtros/búsqueda reinicia la queryKey (página 0).
-  const tablePageIndex = tablePagination.pageIndex;
-  const tablePageSize = tablePagination.pageSize;
-  const reachedLoadedEnd = (tablePageIndex + 1) * tablePageSize >= invoiceRows.length;
-  useEffect(() => {
-    if (reachedLoadedEnd && hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();
-  }, [reachedLoadedEnd, hasNextPage, isFetchingNextPage, isError, fetchNextPage]);
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
@@ -154,7 +143,6 @@ export default function InvoicesPage() {
 
   const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
     useRecurringHandlers(setPreviewOpen, setResultOpen);
-  const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
 
   const columns = useInvoiceColumns();
   const table = useLiftgoTable<Invoice>({
@@ -164,6 +152,17 @@ export default function InvoicesPage() {
     initialSorting: [{ id: "invoice_number", desc: true }],
     resetKey: filterKey,
   });
+
+  // Hallazgo 2: convivían dos paginaciones (páginas + "Cargar más"); se
+  // conserva sólo la paginación por páginas. La siguiente página del servidor
+  // se pide SOLO cuando el usuario llega a la última página ya cargada
+  // (QA: antes se descargaba todo el historial en cadena al montar/filtrar).
+  // Cambiar filtros/búsqueda reinicia la queryKey (página 0).
+  const { pageIndex, pageSize } = table.getState().pagination;
+  const reachedLoadedEnd = (pageIndex + 1) * pageSize >= invoiceRows.length;
+  useEffect(() => {
+    if (reachedLoadedEnd && hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();
+  }, [reachedLoadedEnd, hasNextPage, isFetchingNextPage, isError, fetchNextPage]);
 
   const exportCsv = async () => {
     const rows = await fetchInvoicesForExport(queryFilters);
