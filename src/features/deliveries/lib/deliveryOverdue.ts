@@ -31,7 +31,7 @@ export function countOverdueDeliveries(deliveries: ReadonlyArray<DeliveryLike> |
   return (deliveries ?? []).reduce((n, d) => (isDeliveryOverdue(d) ? n + 1 : n), 0);
 }
 
-/** Etiqueta corta para el badge de atraso ("Vencida · 3 d"). */
+/** Etiqueta corta para el badge de atraso ("Atrasada · 3 días"). */
 export function deliveryOverdueLabel(days: number): string {
-  return days === 1 ? "Vencida · 1 día" : `Vencida · ${days} días`;
+  return days === 1 ? "Atrasada · 1 día" : `Atrasada · ${days} días`;
 }

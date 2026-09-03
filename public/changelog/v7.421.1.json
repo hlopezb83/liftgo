@@ -1,0 +1,19 @@
+{
+ "version": "7.421.1",
+ "date": "2026-09-03",
+ "type": "patch",
+ "category": "fix",
+ "title": "Diez correcciones de auditoría: panel, facturas, entregas, contratos y reportes",
+ "description": "Correcciones puntuales confirmadas por auditoría, aplicando cambios mínimos sin alterar reglas de negocio, permisos ni datos históricos.",
+ "changes": [
+  "Panel: la alerta de seguros excluye equipos de prueba (mostraba 100 sin seguro; ahora refleja la flota real).",
+  "Facturas: una sola paginación por páginas; se eliminó el pie duplicado con \"Mostrando…\" y \"Cargar más\".",
+  "Inicio de sesión: el error de un intento fallido se descarta al reintentar y al establecerse una sesión válida.",
+  "Panel: los títulos de KPI largos (\"Ingreso Mensual Recurrente\", \"DSO\") permiten dos líneas en vez de truncarse.",
+  "Entregas: el badge de atraso ahora dice \"Atrasada\" y se deriva con fecha local de Monterrey (sin desfase UTC).",
+  "Contratos: una reserva no puede tener dos contratos vigentes; si ya existe uno se abre con aviso claro y un índice único en la base respalda la regla (CTR-0002/CTR-0003 históricos se conservan).",
+  "Bitácora: se corrigió la identidad duplicada \"Sistema Sistema\" y se tradujeron los campos técnicos (XML del CFDI, Validación SAT, Aceptado por, etc.).",
+  "Devoluciones: el inspector se registra automáticamente con el usuario autenticado; solo un administrador puede capturar a otro.",
+  "Estado de resultados: la tarjeta se renombró a \"Egresos antes de depreciación\" y se agregó \"Depreciación total\" (rentada + ociosa) con los datos ya cargados."
+ ]
+}

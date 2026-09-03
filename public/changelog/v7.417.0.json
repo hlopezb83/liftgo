@@ -1,0 +1,18 @@
+{
+ "version": "7.417.0",
+ "date": "2026-09-02",
+ "type": "minor",
+ "category": "fix",
+ "title": "Remediación R10: dinero, periodos, exportaciones e integridad operativa",
+ "description": "Los reportes financieros ya aplican la regla canónica de tipo de cambio y conservan la depreciación histórica; la facturación manual, recurrentes, conciliación, reservas y exportaciones cierran los hallazgos vigentes de R10.",
+ "changes": [
+  "KPIs, MRR y rentabilidad por montacargas usan la regla canónica de tipo de cambio.",
+  "Los equipos archivados permanecen en la depreciación histórica hasta el mes de su baja.",
+  "La conciliación excluye pagos E2E y la validación cambiaria interna requiere sesión.",
+  "Reservas no recurrentes se facturan completas; recurrentes conservan el primer periodo prorrateado.",
+  "El asistente recurrente reporta el límite de 24 periodos y cuántos siguen pendientes.",
+  "Acciones de reserva evitan doble envío y los diálogos sólo cierran tras éxito.",
+  "CSV de facturas consulta hasta 10,000 filas filtradas; mantenimiento calcula y exporta el conjunto filtrado.",
+  "Los smoke tests SQL fallan ante regresiones en vez de ocultarlas."
+ ]
+}

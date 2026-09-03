@@ -46,7 +46,7 @@ export default function ReturnInspectionPage() {
       && (isEarlyReturn || parseDateLocal(b.end_date) <= today),
   );
 
-  const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending } =
+  const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending, inspectorLocked } =
     useReturnInspectionDialog(bookings, activeBookings);
 
 
@@ -171,6 +171,7 @@ export default function ReturnInspectionPage() {
         forkliftMap={forkliftMap}
         isPending={isPending}
         onSubmit={handleSubmit}
+        inspectorLocked={inspectorLocked}
       />
     </>
   );

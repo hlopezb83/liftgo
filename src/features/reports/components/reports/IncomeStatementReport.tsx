@@ -61,9 +61,14 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
   const netPositive = totals.netProfit >= 0;
   const marginPositive = totals.margin >= 0;
+  // Hallazgo 10: la tarjeta de egresos NO incluye depreciación (la utilidad
+  // neta sí la descuenta) — se renombra y se muestra la depreciación total
+  // (rentada + ociosa) con los mismos datos ya cargados, sin cambiar cálculos.
+  const totalDepreciation = totals.depreciationRented + totals.depreciationIdle;
   const kpis = [
     { label: "Ingresos", value: formatCurrency(totals.revenue), icon: RevenueIcon, color: "text-chart-2" },
-    { label: "Total Egresos", value: formatCurrency(totals.totalExpenses), icon: TrendingDownIcon, color: "text-destructive" },
+    { label: "Egresos antes de depreciación", value: formatCurrency(totals.totalExpenses), icon: TrendingDownIcon, color: "text-destructive" },
+    { label: "Depreciación total", value: formatCurrency(totalDepreciation), icon: TrendingDownIcon, color: "text-muted-foreground" },
     { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: netPositive ? TrendingUpIcon : TrendingDownIcon, color: netPositive ? "text-chart-2" : "text-destructive" },
     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: marginPositive ? "text-chart-2" : "text-destructive" },
   ];
@@ -140,7 +145,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
 
       {!isComparison && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {kpis.map((kpi) => (
             <Card key={kpi.label}>
               <CardContent className="p-4 flex items-center gap-3">
@@ -148,7 +153,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
                   <kpi.icon className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm text-muted-foreground truncate">{kpi.label}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-tight" title={kpi.label}>{kpi.label}</p>
                   <p className="text-lg font-bold truncate">{kpi.value}</p>
                 </div>
               </CardContent>

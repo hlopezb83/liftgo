@@ -105,7 +105,11 @@ export function KpiTile({
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
-            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight truncate" title={label}>
+            {/* Hallazgo 4: nombres largos ("Ingreso Mensual Recurrente", "DSO
+                (Días de Cobro)") se truncaban en desktop — se permite wrap de
+                hasta 2 líneas y se conserva el title accesible por si aún se
+                recortara en pantallas muy angostas. */}
+            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight line-clamp-2" title={label}>
               {label}
             </p>
             <p className={valueClass} title={isPrimitive ? String(value) : undefined}>

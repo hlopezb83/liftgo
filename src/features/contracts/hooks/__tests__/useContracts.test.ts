@@ -110,6 +110,28 @@ describe("useCreateContract", () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
+
+  it("Hallazgo 7 · traduce el 23505 del índice único a 'Ya existe un contrato para esta reserva'", async () => {
+    insertResp = {
+      data: null,
+      error: {
+        message: 'duplicate key value violates unique constraint "contracts_one_active_per_booking"',
+        code: "23505",
+      } as never,
+    };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateContract(), { wrapper: Wrapper });
+
+    let caught: unknown;
+    await act(async () => {
+      await result.current
+        .mutateAsync({ customer_id: "c-1", booking_id: "b-1" } as never)
+        .catch((e) => { caught = e; });
+    });
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect((caught as Error).message).toBe("Ya existe un contrato para esta reserva");
+  });
 });
 
 describe("useUpdateContract", () => {
