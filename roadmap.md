@@ -13,9 +13,11 @@
 - [x] 10. Estado de resultados: "Egresos antes de depreciación" + tarjeta "Depreciación total" (sin cambiar cálculos).
 
 ## Validación
-- [ ] Pruebas unitarias relacionadas (contratos, bitácora, devoluciones).
-- [ ] Typecheck/build sin errores.
-- [ ] Revisión en navegador: Entregas (estados loading/error/vacío), filtros de Facturas.
+- [x] Pruebas unitarias relacionadas (contratos, bitácora, devoluciones, facturas): 44 pruebas en verde.
+- [x] Typecheck/build sin errores; lint limpio en archivos cambiados.
+- [x] Navegador: panel (Seguros 52, títulos KPI completos), Facturas (solo paginación por páginas, 1–25 de 118, pestañas/filtros activos), Entregas (32 resultados, badges "Atrasada", atrasadas primero), Bitácora (sin "Sistema Sistema" ni campos técnicos), Estado de resultados (5 tarjetas).
+- [x] Auth verificado en navegador: el error se descarta al reintentar y el segundo fallo sí muestra su error (se corrigió reuso de id de toast que lo ocultaba).
+- [x] Validador de changelog en verde (se repararon 9 entradas previas: categorías y archivos de detalle faltantes).
 
 ## Cierre
 - [x] Changelog v7.421.1 (CHANGELOG.md + JSON + version.json).
