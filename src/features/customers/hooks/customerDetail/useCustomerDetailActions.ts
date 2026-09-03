@@ -81,6 +81,7 @@ export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, s
   return {
     inviteCustomer, updateCustomer, deleteCustomer,
     handleInvite, handleEditSubmit, handleDelete,
+    inviteResult, setInviteResult,
     archiveBlock, setArchiveBlock,
     navigate,
   };
