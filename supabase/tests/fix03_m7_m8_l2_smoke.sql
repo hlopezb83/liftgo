@@ -110,8 +110,8 @@ BEGIN
   -- La entrega debe apuntar al montacargas de su propia reserva (guard vigente).
   INSERT INTO public.bookings (id, forklift_id, customer_id, customer_name, start_date, end_date, status)
   VALUES (v_bk2, v_fk2, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
-  INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date)
-  VALUES (v_pick, v_bk2, v_fk2, 'pickup', 'scheduled', public.today_mty());
+  INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date, driver_name)
+  VALUES (v_pick, v_bk2, v_fk2, 'pickup', 'scheduled', public.today_mty(), 'FIX03 Operador');
   SELECT status INTO v_status_prev FROM public.forklifts WHERE id = v_fk2;
   UPDATE public.deliveries SET status = 'completed' WHERE id = v_pick;
 
