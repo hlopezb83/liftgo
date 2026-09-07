@@ -130,26 +130,25 @@ BEGIN
     (SELECT status FROM public.deliveries WHERE id = v_d5) = 'scheduled'
   );
 
-  -- Históricos: una fila que YA estaba completed sin evidencia sigue editable.
-  SELECT id, notes INTO v_hist, v_hist_notes
-    FROM public.deliveries
-   WHERE status = 'completed'
-     AND NULLIF(btrim(driver_name), '') IS NULL
-     AND NULLIF(btrim(signature_base64), '') IS NULL
-     AND NULLIF(btrim(completed_no_evidence_reason), '') IS NULL
-   ORDER BY created_at
-   LIMIT 1;
-  IF v_hist IS NULL THEN
-    RAISE NOTICE 'SKIP histórico: no hay entregas completadas sin evidencia en esta base';
-  ELSE
-    BEGIN
-      UPDATE public.deliveries SET notes = COALESCE(notes, '') || ' [r41]' WHERE id = v_hist;
-      v_ok := true;
-    EXCEPTION WHEN OTHERS THEN
-      v_ok := false; v_msg := SQLERRM;
-    END;
-    PERFORM pg_temp.expect_true('Histórico completed sin evidencia sigue editable (sin bloqueo)' || COALESCE(' (' || v_msg || ')', ''), v_ok);
-  END IF;
+  -- Históricos: una fila que YA estaba completed no se evalúa. Se simula con
+  -- un fixture efímero (nunca se tocan las entregas reales sin evidencia): la
+  -- fila entra completed con operador y luego se le quita; a partir de ahí
+  -- sus ediciones (notas, costos…) deben seguir pasando aunque no tenga
+  -- evidencia — mismo escenario que ENT-0027 y compañía.
+  v_hist := v_d2; -- ya está completed (Caso 2) con operador
+  UPDATE public.deliveries SET driver_name = NULL WHERE id = v_hist;
+  BEGIN
+    UPDATE public.deliveries SET notes = COALESCE(notes, '') || ' [r41]' WHERE id = v_hist;
+    v_ok := true;
+  EXCEPTION WHEN OTHERS THEN
+    v_ok := false; v_msg := SQLERRM;
+  END;
+  PERFORM pg_temp.expect_true('Histórico: fila ya completed sin evidencia sigue editable (sin bloqueo)' || COALESCE(' (' || v_msg || ')', ''), v_ok);
+  PERFORM pg_temp.expect_true(
+    'Histórico: sigue completed y sin evidencia tras la edición',
+    (SELECT status = 'completed' AND driver_name IS NULL AND notes LIKE '%[r41]%'
+       FROM public.deliveries WHERE id = v_hist)
+  );
 END $$;
 
 ROLLBACK;
