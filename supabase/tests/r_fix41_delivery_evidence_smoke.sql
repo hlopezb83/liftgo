@@ -47,7 +47,6 @@ DECLARE
   v_d4   uuid := gen_random_uuid();
   v_d5   uuid := gen_random_uuid();
   v_hist uuid;
-  v_hist_notes text;
   v_ok   boolean;
   v_state text;
   v_msg  text;
