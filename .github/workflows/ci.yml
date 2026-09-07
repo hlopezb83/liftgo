@@ -322,7 +322,7 @@ jobs:
       # cobertura y el comentario sería engañoso.
       - name: Comentar cobertura en el PR
         if: github.event_name == 'pull_request' && needs.changes.outputs.vitest_mode == 'full'
-        uses: davelosert/vitest-coverage-report-action@8b157684c6a6b259b97d45e72b44242865c0f6a5 # v2.12.2
+        uses: davelosert/vitest-coverage-report-action@c4bbc33a89b7ace0e63d35f1f7d4bcee31155a73 # v2.13.0
         with:
           json-summary-path: reports/coverage/coverage-summary.json
           json-final-path: reports/coverage/coverage-final.json
@@ -599,7 +599,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Run actionlint
-        uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+        uses: reviewdog/action-actionlint@d290e336d5a743810aef4404f757dc862276d2ae # v1.73.4
         with:
           # `fail_on_error` está deprecado; usamos `fail_level` para que solo
           # errores (no warnings/shellcheck info) hagan rojo el step.
