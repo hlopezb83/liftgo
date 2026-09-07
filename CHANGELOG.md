@@ -1,3 +1,9 @@
+## [7.423.1] - 2026-09-07
+### Corrección (Bug 3 endurecido en base de datos)
+- Entregas: la justificación para completar sin operador ni firma ya no depende sólo de la pantalla; un trigger de base de datos (`trg_delivery_completed_evidence`) exige `completed_no_evidence_reason` con contenido al dar de alta una entrega ya completada o al pasarla a completada cuando `driver_name` y `signature_base64` están vacíos (espacios en blanco no cuentan).
+- Históricos intactos: la regla sólo se evalúa en el alta o en la transición a completada; las entregas que ya estaban completadas sin evidencia (ENT-0027 y compañía) siguen siendo editables y no se modificó ningún dato.
+- Pruebas: nuevo smoke SQL `r_fix41_delivery_evidence_smoke.sql` (firma, operador, razón, rechazo en alta y en transición, histórico editable) y ajuste mínimo del fixture de `fix03_m7_m8_l2_smoke.sql` (sus entregas de prueba ahora llevan operador). Sin cambios de RLS, permisos ni máquinas de estado. No publicado.
+
 ## [7.423.0] - 2026-09-03
 ### Corrección (regresión v7.422.0 — atomicidad y coherencia de facturas agrupadas)
 - Facturas: crear o editar una factura con sus reservas ahora ocurre en UNA sola transacción de base de datos (RPC `save_invoice_with_bookings`); un fallo al ligar cualquier reserva revierte todo — ya no pueden quedar facturas parciales o huérfanas.

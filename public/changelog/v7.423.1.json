@@ -1,0 +1,14 @@
+{
+  "version": "7.423.1",
+  "date": "2026-09-07",
+  "type": "patch",
+  "category": "fix",
+  "title": "Entregas: la justificación sin operador ni firma ahora también se exige en la base de datos",
+  "description": "La regla de completar una entrega sin operador ni firma sólo con una justificación vivía únicamente en la pantalla. Ahora un trigger de base de datos la exige al dar de alta una entrega ya completada o al pasarla a completada; las entregas históricas que ya estaban completadas sin evidencia siguen editables y no se tocó ningún dato.",
+  "changes": [
+    "Entregas: trigger trg_delivery_completed_evidence — alta ya completada o transición a completada sin driver_name ni signature_base64 exige completed_no_evidence_reason con contenido (espacios en blanco no cuentan); error 23514 en español.",
+    "Históricos intactos: sólo se evalúa en alta/transición; filas que ya estaban completadas (ENT-0027 y compañía) siguen editables sin backfill.",
+    "Pruebas: smoke SQL r_fix41_delivery_evidence_smoke.sql con los casos firma, operador, razón, rechazo (alta y transición) e histórico editable; fixture de fix03 ajustado con operador.",
+    "Sin cambios de RLS, permisos, máquinas de estado ni datos. No publicado."
+  ]
+}
