@@ -63,9 +63,21 @@ Deno.serve(async (req) => {
 
     if (createErr) {
       // M-16b: mensaje genérico al cliente; el error crudo queda en el log.
+      // BUG-03: distinguir el choque de email ya registrado en auth.users
+      // (mismo patrón que `invite-user`): solo el status cambia, sin exponer
+      // el mensaje crudo de Auth.
+      const msg = createErr.message || "";
+      const status = /already|registered|exists/i.test(msg) ? 409 : 400;
       console.error("[invite-customer] createUser:", createErr);
-      return jsonError(req, 400, "No se pudo procesar la solicitud");
+      return jsonError(
+        req,
+        status,
+        status === 409
+          ? "Ya existe un usuario con ese correo"
+          : "No se pudo procesar la solicitud",
+      );
     }
+
 
     const userId = newUser.user.id;
 

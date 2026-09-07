@@ -25,6 +25,11 @@ const ERROR_MESSAGES: Array<[RegExp, string]> = [
   [/insufficient role|forbidden/i, "No tienes permisos para invitar clientes al portal."],
   [/already has portal access/i, "Este cliente ya tiene acceso al portal."],
   [/archived or not found/i, "El cliente está archivado o no existe."],
+  [
+    /ya existe un usuario con ese correo/i,
+    "Ese correo ya está registrado con otra cuenta. Usa un correo distinto o pide al equipo que libere esa cuenta.",
+  ],
+
   [/valid email/i, "El correo electrónico no es válido."],
   [/valid uuid/i, "El cliente indicado no es válido."],
   [/rate limit|too many/i, "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."],
