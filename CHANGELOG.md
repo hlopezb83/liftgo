@@ -1,3 +1,8 @@
+## [7.423.2] - 2026-09-07
+### Corrección (auditoría externa verificada)
+- Invitación al portal: si el correo ya pertenece a otra cuenta, la edge function `invite-customer` responde 409 "Ya existe un usuario con ese correo" y la pantalla muestra el motivo real en español, en vez de un error genérico.
+- Verificación de la auditoría externa (9 hallazgos): 6 no existen en el código actual (`v_supplier_bills`, `pickupHorometerSchema.ts`, policy "public access" en facturas, tolerancia bancaria ya presente, limpieza de caché al cerrar sesión ya presente, periodos recurrentes ya calculados en America/Monterrey en el servidor). Sin cambios de reglas de negocio, RLS, importes ni datos. No publicado.
+
 ## [7.423.1] - 2026-09-07
 ### Corrección (Bug 3 endurecido en base de datos)
 - Entregas: la justificación para completar sin operador ni firma ya no depende sólo de la pantalla; un trigger de base de datos (`trg_delivery_completed_evidence`) exige `completed_no_evidence_reason` con contenido al dar de alta una entrega ya completada o al pasarla a completada cuando `driver_name` y `signature_base64` están vacíos (espacios en blanco no cuentan).
