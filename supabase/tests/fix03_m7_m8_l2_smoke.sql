@@ -89,8 +89,10 @@ BEGIN
   VALUES (v_bk, v_fk, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
 
   -- Caso A: entrega completada → unidad rentada + bitácora.
-  INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date)
-  VALUES (v_del, v_bk, v_fk, 'delivery', 'scheduled', public.today_mty());
+  -- v7.423.1: completar exige evidencia (operador/firma/razón); el fixture
+  -- lleva operador para no chocar con trg_delivery_completed_evidence.
+  INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date, driver_name)
+  VALUES (v_del, v_bk, v_fk, 'delivery', 'scheduled', public.today_mty(), 'FIX03 Operador');
   UPDATE public.deliveries SET status = 'completed' WHERE id = v_del;
 
   SELECT status INTO v_status FROM public.forklifts WHERE id = v_fk;
