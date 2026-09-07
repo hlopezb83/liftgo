@@ -1,5 +1,12 @@
 # Roadmap
 
+## Cerrado — Bug 3 endurecido en BD (v7.423.1; NO publicado por instrucción)
+- [x] Trigger `trg_delivery_completed_evidence` (`enforce_delivery_completed_evidence`): INSERT ya completed o transición → completed sin `driver_name` ni `signature_base64` exige `completed_no_evidence_reason` con contenido (blancos no cuentan). Error 23514 en español, constraint `deliveries_completed_evidence_required`. Bypass sólo `app.audit_revert` (patrón R4-19); sin bypass por rol.
+- [x] Históricos intactos: filas con OLD.status = 'completed' no se evalúan → ENT-0027 y las 6 completadas sin evidencia siguen editables; 0 datos modificados (verificado: 7 completadas / 6 sin evidencia antes y después).
+- [x] Smoke SQL `supabase/tests/r_fix41_delivery_evidence_smoke.sql` (10 checks: catálogo, firma, operador, razón, rechazo alta, rechazo transición, histórico editable) — corrido contra la BD real en transacción abortada, 10/10 OK, sin residuos. Fixture de `fix03_m7_m8_l2_smoke.sql` con operador (11/11 OK).
+- [x] Changelog MD + JSON + detalle + version.json → 7.423.1 (también se crearon los detalles faltantes v7.422.0 y v7.423.0). Migración: `20260907030827_0267bc99-778a-4758-9bd8-788f0a789131.sql`.
+- Nota conocida (fuera de alcance por instrucción): una fila ya completed puede perder su operador en una edición posterior sin exigir razón — es la consecuencia de no bloquear ediciones de históricos.
+
 ## Cerrado — Revisión de regresión v7.422.0 → v7.423.0 (validada; NO publicada por instrucción)
 Restricciones respetadas: datos históricos intactos (FAC-0113 hash/versión verificados, ENT-0027, ENT-0028/0029/0031/0032/0033), CFDI timbrados, importes, pagos y estados sin cambios. YAGNI; sin tabla ledger ni rearquitectura.
 

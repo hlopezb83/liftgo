@@ -1,0 +1,16 @@
+{
+  "version": "7.423.0",
+  "date": "2026-09-03",
+  "type": "minor",
+  "category": "fix",
+  "title": "Facturas agrupadas: guardado 100% transaccional, candados de concurrencia y coherencia multi-reserva",
+  "description": "Cierre de la regresión de v7.422.0: crear/editar una factura con sus reservas ahora es una sola transacción de base de datos con candados por reserva (misma convención que la facturación recurrente); dos intentos simultáneos con la misma reserva y período dejan exactamente una factura. La multi-selección sólo agrupa reservas compatibles (cliente, moneda/TC y periodo canónico) y el periodo se valida completo, ordenado y dentro del rango de todas las reservas, en cliente y servidor. Datos históricos (FAC-0113) intactos.",
+  "changes": [
+    "Facturas: RPC transaccional save_invoice_with_bookings — un fallo al ligar reservas revierte factura y pivote (sin facturas parciales/huérfanas).",
+    "Concurrencia: candados advisory por reserva (clave md5/60-bits, orden ascendente, paridad con create_recurring_invoice) antes del chequeo de duplicados; verificado con carreras reales de 4 intentos y de reserva secundaria compartida.",
+    "Multi-selección: sólo reservas del mismo cliente + misma moneda/TC + mismo periodo canónico; incompatibles deshabilitadas con razón y re-validadas al guardar.",
+    "Periodo: fin obligatorio con reserva, inicio ≤ fin y dentro del rango de TODAS las reservas — validado en formulario y en servidor; sin fallback silencioso a un mes ajeno.",
+    "Bloqueo optimista intacto: un guardado fallido no consume versión (reintento sin falso stale_write).",
+    "Históricos intactos: FAC-0113 con hash y versión idénticos; booking_id legado y regla de canceladas sin cambios."
+  ]
+}
