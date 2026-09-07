@@ -1,0 +1,13 @@
+{
+  "version": "7.423.2",
+  "date": "2026-09-07",
+  "type": "patch",
+  "category": "fix",
+  "title": "Invitación al portal: mensaje claro cuando el correo ya está registrado",
+  "description": "Al invitar a un cliente con un correo que ya pertenece a otra cuenta del sistema, la pantalla mostraba un error genérico sin explicar el motivo. Ahora responde 409 y muestra el motivo real en español.",
+  "changes": [
+    "invite-customer: el choque de correo ya registrado en auth.users responde 409 'Ya existe un usuario con ese correo' (mismo patrón que invite-user); el resto de fallos sigue en 400 genérico y el error crudo sólo va al log.",
+    "useInviteCustomer: traducción del mensaje a español mexicano con la acción sugerida.",
+    "Auditoría externa verificada: de 9 hallazgos, 6 resultaron inexistentes (vista v_supplier_bills, archivo pickupHorometerSchema.ts, RLS 'public access' en facturas, tolerancia bancaria, limpieza de caché al cerrar sesión, TZ en facturación recurrente). Sin cambios de reglas de negocio, RLS ni importes."
+  ]
+}
