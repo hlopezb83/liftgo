@@ -29,6 +29,22 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // Fuera del sandbox de Lovable (p. ej. GitHub Actions) nitro cae a su salida
+  // por defecto `.output/`, y el CI espera `dist/`. Fijamos la MISMA salida que
+  // el sandbox (cloudflare-module → dist/{client,server}) para que el build sea
+  // idéntico en local, CI y hosting. wrangler.jsonc apunta a estas rutas.
+  nitro: {
+    preset: "cloudflare-module",
+    output: {
+      dir: "dist",
+      serverDir: "dist/server",
+      publicDir: "dist/client",
+    },
+    cloudflare: {
+      nodeCompat: true,
+      deployConfig: true,
+    },
+  },
   vite: {
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
