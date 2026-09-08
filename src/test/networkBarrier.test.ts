@@ -18,24 +18,22 @@ describe("barrera de red de la suite", () => {
     expect(String(import.meta.env.VITE_SUPABASE_URL)).not.toMatch(/supabase\.co/);
   });
 
-  it("un cliente Supabase real falla de forma visible, no en falso verde", async () => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const client = createClient(
-      import.meta.env.VITE_SUPABASE_URL as string,
-      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
-      {
-        auth: { persistSession: false, autoRefreshToken: false },
-        // El cliente debe usar el fetch de la barrera, no uno propio.
-        global: { fetch: (...args) => globalThis.fetch(...args) },
-      },
-    );
-    const { data, error } = await client
-      .from("customer_payment_intents")
-      .select("id")
-      .limit(1);
+  it("bloquea también escrituras REST hacia cualquier host Supabase", async () => {
+    // La prueba retirada hacía PATCH real contra producción. Aquí sólo se
+    // comprueba que la barrera corta la salida: nunca sale tráfico.
+    await expect(
+      fetch("https://zxefrzfaynnfwazqhwxp.supabase.co/rest/v1/customer_payment_intents", {
+        method: "PATCH",
+      }),
+    ).rejects.toThrow(NETWORK_BLOCKED_MESSAGE);
+  });
 
-    expect(data).toBeNull();
-    expect(error).toBeTruthy();
-    expect(NETWORK_BLOCKED_MESSAGE).toContain("offline");
+  it("rechaza, nunca devuelve una respuesta falsa que simule éxito", async () => {
+    const result = await fetch("https://example.invalid/x").then(
+      (r) => ({ kind: "resolved" as const, ok: r.ok }),
+      (e: Error) => ({ kind: "rejected" as const, ok: false, message: e.message }),
+    );
+    expect(result.kind).toBe("rejected");
+    expect(result.ok).toBe(false);
   });
 });
