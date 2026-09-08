@@ -1,8 +1,10 @@
 name: Prod smoke
 
 # Único monitoreo automático: dos peticiones de LECTURA a la app publicada.
-# No escribe nada, no autentica y no toca la base. Detecta caídas y rollbacks
-# silenciosos entre releases.
+# No escribe nada, no autentica y no toca la base. Detecta caídas y que
+# `version.json` siga siendo parseable; NO detecta rollbacks: no compara la
+# versión servida contra ninguna referencia.
+
 
 on:
   schedule:

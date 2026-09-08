@@ -1,8 +1,10 @@
 name: CodeQL
 
-# Análisis profundo de seguridad. Solo semanal y manual: en cada push tardaba
-# ~15 min y encontraba lo mismo que la corrida semanal. Los errores que sí
-# deben bloquear un PR ya los cubren ESLint, typecheck y dependency-review.
+# Análisis profundo de seguridad (análisis semántico de flujo de datos). Solo
+# semanal y manual para mantenerlo fuera del camino crítico del PR: no es
+# sustituible por ESLint ni por dependency-review, que cubren otras clases de
+# problema. Un hallazgo aquí se atiende igual, solo que no bloquea el merge.
+
 
 on:
   schedule:
