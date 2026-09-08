@@ -13,7 +13,7 @@ import {
   Navigate as TSNavigate,
   Outlet as TSOutlet,
 } from "@tanstack/react-router";
-import { useMemo, useCallback, useEffect, useState, forwardRef, type ComponentProps, type ReactNode } from "react";
+import { useMemo, useCallback, useEffect, useRef, useState, forwardRef, type ComponentProps, type ReactNode } from "react";
 
 // ---------- shared URL parsing ----------
 
@@ -82,15 +82,21 @@ export function useLocation() {
   return useMemo(() => {
     const search = normalizeSearchStr(loc.searchStr);
     const hash = loc.hash ? (loc.hash.startsWith("#") ? loc.hash : `#${loc.hash}`) : "";
+    // TS-04: cada entrada del historial tiene su identidad nativa. Derivar la
+    // clave de pathname+search+hash hacía que dos visitas distintas a la misma
+    // URL compartieran posición de scroll.
+    const st = (loc.state ?? {}) as { __TSR_key?: string; key?: string };
+    const key = st.__TSR_key ?? st.key ?? loc.pathname + search + hash;
     return {
       pathname: loc.pathname,
       search,
       hash,
       state: (loc.state ?? null) as unknown,
-      key: loc.pathname + search + hash,
+      key,
     };
   }, [loc.pathname, loc.searchStr, loc.hash, loc.state]);
 }
+
 
 // ---------- useParams ----------
 
@@ -218,9 +224,16 @@ export function useBlocker(shouldBlock: boolean | ((args: BlockerFnArgs) => bool
     withResolver: true,
     enableBeforeUnload: false,
   });
-  return {
-    state: blocker.status === "blocked" ? "blocked" : "unblocked",
-    proceed: blocker.proceed,
-    reset: blocker.reset,
-  };
+  // TS-03: identidad estable. Antes se devolvía un objeto nuevo en cada
+  // render y el efecto consumidor volvía a pedir confirmación, cancelando el
+  // intento de navegación original.
+  const latest = useRef(blocker);
+  useEffect(() => {
+    latest.current = blocker;
+  });
+  const proceed = useCallback(() => latest.current.proceed?.(), []);
+  const reset = useCallback(() => latest.current.reset?.(), []);
+  const state: "blocked" | "unblocked" = blocker.status === "blocked" ? "blocked" : "unblocked";
+  return useMemo(() => ({ state, proceed, reset }), [state, proceed, reset]);
+
 }
