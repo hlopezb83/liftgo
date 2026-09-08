@@ -88,6 +88,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
 
   it("rechaza submit sin cliente (no llama mutate, marca error)", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     await submit(result);
     expect(createMutate).not.toHaveBeenCalled();
     expect(result.current.form.formState.errors.customerId).toBeTruthy();
@@ -95,6 +96,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
 
   it("rechaza renta sin dateRange", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("customerId", "cust-1");
       result.current.form.setValue("customerName", "Cliente Uno");
@@ -109,6 +111,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
 
   it("rechaza partida de renta sin ninguna tarifa > 0", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("customerId", "cust-1");
       result.current.form.setValue("customerName", "Cliente Uno");
@@ -125,6 +128,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
 
   it("submit renta válida — mutate recibe payload rental_meta y quote_type='rental'", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("customerId", "cust-1");
       result.current.form.setValue("customerName", "Cliente Uno");
@@ -145,6 +149,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
 
   it("submit venta válida — rental_meta=null y quote_type='sale'", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.handleTypeChange("sale");
       result.current.form.setValue("customerId", "cust-1");
@@ -162,6 +167,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
 
   it("post-submit exitoso limpia isDirty (guard cleanup)", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("customerId", "cust-1", { shouldDirty: true });
       result.current.form.setValue("customerName", "Cliente Uno", { shouldDirty: true });
@@ -176,8 +182,9 @@ describe("useQuoteFormLogic — submit + guard", () => {
     await waitFor(() => expect(result.current.form.formState.isDirty).toBe(false));
   });
 
-  it("handleTypeChange('sale') resetea dateRange, rentalLines, saleLines, logística", () => {
+  it("handleTypeChange('sale') resetea dateRange, rentalLines, saleLines, logística", async () => {
     const { result } = renderHook(() => useQuoteFormLogic(), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("dateRange", { from: new Date("2026-05-01"), to: new Date("2026-05-31") });
       result.current.form.setValue("includeLogistics", true);

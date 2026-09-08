@@ -36,7 +36,6 @@ export function TestRouter({
     const render = () => <>{children}</>;
     // Los tipos de rutas de TanStack son literales por path; en pruebas
     // construimos el árbol dinámicamente, así que relajamos el tipado aquí.
-    /* eslint-disable @typescript-eslint/no-explicit-any */
     const routes: any[] = [
       createRoute({ getParentRoute: () => rootRoute, path: "/", component: render }),
       createRoute({ getParentRoute: () => rootRoute, path: "$", component: render }),

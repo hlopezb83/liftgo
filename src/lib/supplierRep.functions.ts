@@ -17,7 +17,7 @@ export function extractAttr(xml: string, tag: string, attr: string): string | nu
     "i",
   );
   const m = xml.match(re);
-  return m ? m[1]! : null;
+  return m?.[1] ?? null;
 }
 
 export function extractAllAttr(xml: string, tag: string, attr: string): string[] {
@@ -27,7 +27,10 @@ export function extractAllAttr(xml: string, tag: string, attr: string): string[]
   );
   const out: string[] = [];
   let m: RegExpExecArray | null;
-  while ((m = re.exec(xml)) !== null) out.push(m[1]!);
+  while ((m = re.exec(xml)) !== null) {
+    const value = m[1];
+    if (value !== undefined) out.push(value);
+  }
   return out;
 }
 
@@ -41,7 +44,7 @@ export function isWellFormedXml(xml: string): boolean {
   let sawRoot = false;
   while ((m = re.exec(xml)) !== null) {
     const closing = m[1];
-    const name = m[2]!;
+    const name = m[2] ?? "";
     const selfClose = m[4];
     if (closing) {
       if (stack.pop() !== name) return false;

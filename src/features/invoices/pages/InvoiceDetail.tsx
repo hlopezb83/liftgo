@@ -1,4 +1,3 @@
-import { useParams } from "@/lib/router-compat";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -11,6 +10,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import { roundMoney, sumMoney } from "@/lib/money";
+import { useParams } from "@/lib/router-compat";
 import { InvoiceDetailBody } from "../components/invoice-detail/InvoiceDetailBody";
 import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
 import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetailActions";

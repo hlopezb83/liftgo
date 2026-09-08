@@ -1,5 +1,4 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
-import { useLocation } from "@/lib/router-compat";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useLocation } from "@/lib/router-compat";
 import { dismissAuthError, notifyAuthError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
 import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";

@@ -22,15 +22,15 @@ function renderCard(ext: Record<string, unknown>) {
 }
 
 describe("BookingExtensionsCard · extensión ya facturada", () => {
-  it("mantiene visible el botón de facturar pero deshabilitado, junto a Ver factura", () => {
+  it("mantiene visible el botón de facturar pero deshabilitado, junto a Ver factura", async () => {
     renderCard({ invoice_id: "inv-9" });
-    expect(screen.getByRole("button", { name: /facturar extensión/i })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: /facturar extensión/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /ver factura/i })).toBeInTheDocument();
     expect(screen.getByText("Facturada")).toBeInTheDocument();
   });
 
-  it("permite facturar cuando la extensión aún no tiene factura", () => {
+  it("permite facturar cuando la extensión aún no tiene factura", async () => {
     renderCard({});
-    expect(screen.getByRole("button", { name: /facturar extensión/i })).toBeEnabled();
+    expect(await screen.findByRole("button", { name: /facturar extensión/i })).toBeEnabled();
   });
 });

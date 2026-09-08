@@ -3,6 +3,7 @@
  * Fiscal, vía el PAC). No consume timbre. Sólo Clientes con acceso `full`.
  */
 import { useMemo, useState } from "react";
+import { ROUTES } from "@/app-routes/routes";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +20,6 @@ import {
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { ROUTES } from "@/app-routes/routes";
 import {
   useSatValidationOverview,
   useValidateCustomersTaxInfo,

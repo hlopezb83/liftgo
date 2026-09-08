@@ -56,7 +56,7 @@ beforeEach(() => {
 });
 
 describe("MrrDetailPage", () => {
-  it("en tablet/mobile renderiza MobileCardList (sin table) y conserva el Total MRR", () => {
+  it("en tablet/mobile renderiza MobileCardList (sin table) y conserva el Total MRR", async () => {
     useIsTabletOrBelowMock.mockReturnValue(true);
     useMrrDetailMock.mockReturnValue({
       data: { items: [sampleItem], total_mrr: 12000 },
@@ -65,15 +65,15 @@ describe("MrrDetailPage", () => {
 
     renderPage();
 
+    // La card muestra el equipo (espera a que monte el router).
+    expect(await screen.findByText("FK-001")).toBeInTheDocument();
     // El fallback mobile no debe renderizar el <table> del DataTableV2.
     expect(screen.queryByRole("table")).toBeNull();
     // Total MRR sigue visible como subtotal debajo de las cards.
     expect(screen.getAllByText(/Total MRR/i).length).toBeGreaterThan(0);
-    // La card muestra el equipo.
-    expect(screen.getByText("FK-001")).toBeInTheDocument();
   });
 
-  it("en desktop renderiza la tabla (DataTableV2)", () => {
+  it("en desktop renderiza la tabla (DataTableV2)", async () => {
     useIsTabletOrBelowMock.mockReturnValue(false);
     useMrrDetailMock.mockReturnValue({
       data: { items: [sampleItem], total_mrr: 12000 },
@@ -82,6 +82,6 @@ describe("MrrDetailPage", () => {
 
     renderPage();
 
-    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(await screen.findByRole("table")).toBeInTheDocument();
   });
 });

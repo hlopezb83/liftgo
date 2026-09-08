@@ -38,28 +38,30 @@ describe("StampErrorDialog", () => {
     });
   });
 
-  it("muestra los 4 campos del receptor con kind receptor_data", () => {
+  it("muestra los 4 campos del receptor con kind receptor_data", async () => {
     renderDialog();
-    expect(screen.getByText("Datos enviados al SAT")).toBeInTheDocument();
+    expect(await screen.findByText("Datos enviados al SAT")).toBeInTheDocument();
     expect(screen.getByText("AAA010101AAA")).toBeInTheDocument();
     expect(screen.getByText("EMPRESA DE PRUEBA")).toBeInTheDocument();
     expect(screen.getByText("601")).toBeInTheDocument();
     expect(screen.getByText("64000")).toBeInTheDocument();
   });
 
-  it("oculta el bloque cuando kind no es receptor_data", () => {
+  it("oculta el bloque cuando kind no es receptor_data", async () => {
     renderDialog({ kind: "csd" });
+    await screen.findByRole("dialog");
     expect(screen.queryByText("Datos enviados al SAT")).not.toBeInTheDocument();
   });
 
-  it("oculta el bloque cuando no hay receptor aunque el kind sea receptor_data", () => {
+  it("oculta el bloque cuando no hay receptor aunque el kind sea receptor_data", async () => {
     renderDialog({ receptor: undefined });
+    await screen.findByRole("dialog");
     expect(screen.queryByText("Datos enviados al SAT")).not.toBeInTheDocument();
   });
 
-  it("copia el valor al portapapeles al pulsar el botón copiar", () => {
+  it("copia el valor al portapapeles al pulsar el botón copiar", async () => {
     renderDialog();
-    fireEvent.click(screen.getByLabelText("Copiar RFC"));
+    fireEvent.click(await screen.findByLabelText("Copiar RFC"));
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith("AAA010101AAA");
   });
 });

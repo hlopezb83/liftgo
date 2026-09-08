@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "@/lib/router-compat";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { AddIcon, FileClock, ChartIcon, FileSpreadsheet, KeyIcon } from "@/components/icons";
@@ -10,6 +9,7 @@ import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { Link } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 import {

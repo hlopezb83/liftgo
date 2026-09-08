@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { useWatch } from "react-hook-form";
-import { useParams, useSearchParams } from "@/lib/router-compat";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
@@ -12,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useMarkExtensionBilled } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";

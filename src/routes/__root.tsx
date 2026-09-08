@@ -1,15 +1,15 @@
 // ported from main.tsx — Sentry debe cargarse antes que cualquier feature
 import "@/lib/observability/sentry";
 import "@/lib/forms/zodConfig";
-import { lazy, Suspense, useEffect, type ReactNode } from "react";
-import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts, useRouter } from "@tanstack/react-router";
+import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { PageFallback } from "@/app-routes/RouteSkeletons";
 import { AppProviders } from "@/layouts/AppProviders";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
 import { isStaleChunkMessage, reloadForStaleChunk } from "@/lib/staleChunkReload";
 import appCss from "../styles.css?url";
+import type { QueryClient } from "@tanstack/react-query";
 
 // ported from main.tsx — Shim: react-day-picker v10 llama
 // `new Intl.Locale(defaultLocale.code)` al cargar su chunk. El `code`

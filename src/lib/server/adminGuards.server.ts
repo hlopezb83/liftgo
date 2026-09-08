@@ -5,8 +5,8 @@
  * runtime de TanStack Start. Mismas reglas, mismos mensajes en español: sólo
  * cambia el transporte (antes Edge Function HTTP, ahora server function RPC).
  */
-import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type AdminClient = SupabaseClient<Database>;
@@ -76,8 +76,8 @@ export function generateSecurePassword(length = 20): string {
   const buf = new Uint8Array(1);
   while (out.length < length) {
     crypto.getRandomValues(buf);
-    const byte = buf[0]!;
-    if (byte < max) out.push(charset[byte % charset.length]!);
+    const byte = buf[0] ?? 0;
+    if (byte < max) out.push(charset.charAt(byte % charset.length));
   }
   return out.join("");
 }

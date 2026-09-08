@@ -27,7 +27,7 @@ function renderWithRouter(ui: React.ReactNode) {
 }
 
 describe("PortalInvoices", () => {
-  it("renders QueryErrorState when the invoices query fails (FE2-04)", () => {
+  it("renders QueryErrorState when the invoices query fails (FE2-04)", async () => {
     (usePortalInvoices as ReturnType<typeof vi.fn>).mockReturnValue({
       data: undefined,
       isLoading: false,
@@ -37,7 +37,7 @@ describe("PortalInvoices", () => {
 
     renderWithRouter(<PortalInvoices />);
 
-    expect(screen.getByText("No se pudo cargar tus facturas")).toBeInTheDocument();
+    expect(await screen.findByText("No se pudo cargar tus facturas")).toBeInTheDocument();
     expect(
       screen.getByText(
         "Revisa tu conexión e inténtalo de nuevo. Los valores en pantalla no son confiables.",
@@ -46,7 +46,7 @@ describe("PortalInvoices", () => {
     expect(screen.getByRole("button", { name: /Reintentar/i })).toBeInTheDocument();
   });
 
-  it("renders the table when invoices load successfully", () => {
+  it("renders the table when invoices load successfully", async () => {
     (usePortalInvoices as ReturnType<typeof vi.fn>).mockReturnValue({
       data: [
         {
@@ -66,7 +66,7 @@ describe("PortalInvoices", () => {
 
     renderWithRouter(<PortalInvoices />);
 
-    expect(screen.getByText("FAC-0001")).toBeInTheDocument();
+    expect(await screen.findByText("FAC-0001")).toBeInTheDocument();
     expect(screen.getByText("$12,000.00")).toBeInTheDocument();
   });
 });

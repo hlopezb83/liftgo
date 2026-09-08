@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "@/lib/router-compat";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SettingsIcon } from "@/components/icons";
@@ -11,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { Link } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { BankReconciliationWorkspace } from "../components/BankReconciliationWorkspace";
 import { BankStatementUploader } from "../components/BankStatementUploader";

@@ -1,5 +1,5 @@
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { inviteCustomerFn } from "@/lib/customerPortal.functions";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { customerKeys } from "../../lib/queryKeys";
 

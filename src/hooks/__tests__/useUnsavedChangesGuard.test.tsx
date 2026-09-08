@@ -1,4 +1,4 @@
-import { render, act } from "@testing-library/react";
+import { render, act, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { TestRouter } from "@/test/router";
 import { useUnsavedChangesGuard } from "../useUnsavedChangesGuard";
@@ -6,7 +6,7 @@ import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 
 function Harness({ isDirty }: { isDirty: boolean }) {
   useUnsavedChangesGuard(isDirty);
-  return null;
+  return <div data-testid="harness-ready" />;
 }
 
 function renderWithProviders(isDirty: boolean) {
@@ -38,20 +38,23 @@ describe("useUnsavedChangesGuard", () => {
   }
 
 
-  it("no registra beforeunload cuando isDirty=false", () => {
+  it("no registra beforeunload cuando isDirty=false", async () => {
     renderWithProviders(false);
+    await screen.findByTestId("harness-ready");
     expect(countBeforeunload(addSpy)).toBe(0);
   });
 
-  it("registra beforeunload cuando isDirty=true y lo remueve al desmontar", () => {
+  it("registra beforeunload cuando isDirty=true y lo remueve al desmontar", async () => {
     const { unmount } = renderWithProviders(true);
+    await screen.findByTestId("harness-ready");
     expect(countBeforeunload(addSpy)).toBe(1);
     unmount();
     expect(countBeforeunload(removeSpy)).toBeGreaterThanOrEqual(1);
   });
 
-  it("previene el evento y setea returnValue cuando hay cambios sin guardar", () => {
+  it("previene el evento y setea returnValue cuando hay cambios sin guardar", async () => {
     renderWithProviders(true);
+    await screen.findByTestId("harness-ready");
     const handler = (addSpy.mock.calls as unknown[][]).find((c) => c[0] === "beforeunload")?.[1] as
       | ((e: BeforeUnloadEvent) => void)
       | undefined;

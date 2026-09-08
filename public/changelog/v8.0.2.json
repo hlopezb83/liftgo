@@ -1,0 +1,14 @@
+{
+  "version": "8.0.2",
+  "date": "2026-09-08",
+  "type": "patch",
+  "category": "infra",
+  "title": "Suite de pruebas adaptada al enrutador nuevo",
+  "description": "Tras la migración a TanStack Start, 21 archivos de prueba fallaban porque el enrutador nuevo monta la pantalla un instante después del render y las verificaciones ocurrían antes. Se adaptaron las esperas sin debilitar ninguna aserción ni tocar el comportamiento de la aplicación.",
+  "changes": [
+    "21 archivos de prueba adaptados al montaje asíncrono del enrutador (findBy/waitFor en la primera consulta); 2,200 pruebas en verde.",
+    "useInviteUser: el mock apuntaba al módulo viejo de funciones del borde; ahora apunta a la función de servidor migrada.",
+    "Se restauraron las configuraciones de ESLint y Vitest del proyecto que la migración había reemplazado, y se ordenaron importaciones automáticamente (0 errores de lint).",
+    "Guardarraíles de arquitectura, chequeo de tipos, knip y build en verde."
+  ]
+}

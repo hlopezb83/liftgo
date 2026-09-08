@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { useLocation } from "@/lib/router-compat";
+import { routeLoaders } from "@/app-routes/routes-config";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useCurrentVersion } from "@/features/changelog";
 import { NavLink } from "@/layouts/NavLink";
-import { routeLoaders } from "@/app-routes/routes-config";
+import { useLocation } from "@/lib/router-compat";
 import { isNavItemActive } from "./isNavItemActive";
 import { useSidebarBadgeCounts } from "./useSidebarBadgeCounts";
 import type { NavGroup, NavItem } from "./navConfig";

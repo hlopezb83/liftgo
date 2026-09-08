@@ -1,4 +1,3 @@
-import { Link, Outlet, useLocation } from "@/lib/router-compat";
 import { BrandMark } from "@/components/BrandMark";
 import { LogOut, Menu, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -13,6 +12,7 @@ import { usePublicBranding } from "@/features/company-settings";
 import { FeedbackFab } from "@/features/feedback";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
+import { Link, Outlet, useLocation } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 
 const tabs = [

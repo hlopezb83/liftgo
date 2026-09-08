@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useLocation } from "@/lib/router-compat";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Form } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { useLocation } from "@/lib/router-compat";
 import { useCreateFeedback } from "../hooks/useCreateFeedback";
 import { useFeedbackContext } from "../hooks/useFeedbackContext";
 import { captureScreenshotFile } from "../lib/captureScreenshot";

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useParams } from "@/lib/router-compat";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -17,6 +16,7 @@ import { DamagePhotosSection } from "@/features/damage";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { ForkliftBookingsList } from "../components/forklift-detail/ForkliftBookingsList";

@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, beforeEach } from "vitest";
@@ -25,7 +25,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 describe("useTableFilters", () => {
   beforeEach(() => sessionStorage.clear());
 
-  it("sin filtros activos devuelve todos los items y hasActive=false", () => {
+  it("sin filtros activos devuelve todos los items y hasActive=false", async () => {
     const { result } = renderHook(
       () =>
         useTableFilters<Row, {
@@ -40,12 +40,13 @@ describe("useTableFilters", () => {
         }),
       { wrapper },
     );
+    await waitFor(() => expect(result.current).not.toBeNull());
 
     expect(result.current.filtered).toHaveLength(4);
     expect(result.current.hasActive).toBe(false);
   });
 
-  it("filtro de texto reduce el dataset usando match-sorter", () => {
+  it("filtro de texto reduce el dataset usando match-sorter", async () => {
     const { result } = renderHook(
       () =>
         useTableFilters<Row, { q: { type: "text"; fields: (keyof Row)[] } }>({
@@ -54,6 +55,7 @@ describe("useTableFilters", () => {
         }),
       { wrapper },
     );
+    await waitFor(() => expect(result.current).not.toBeNull());
 
     act(() => result.current.set("q", "acme"));
 
@@ -61,7 +63,7 @@ describe("useTableFilters", () => {
     expect(result.current.hasActive).toBe(true);
   });
 
-  it("filtro de enum aplica igualdad y respeta 'all'", () => {
+  it("filtro de enum aplica igualdad y respeta 'all'", async () => {
     const { result } = renderHook(
       () =>
         useTableFilters<Row, {
@@ -74,6 +76,7 @@ describe("useTableFilters", () => {
         }),
       { wrapper },
     );
+    await waitFor(() => expect(result.current).not.toBeNull());
 
     act(() => result.current.set("status", "active"));
     expect(result.current.filtered.map((r) => r.id).sort()).toEqual(["1", "3"]);
@@ -84,7 +87,7 @@ describe("useTableFilters", () => {
     expect(result.current.hasActive).toBe(false);
   });
 
-  it("reset limpia todos los facets", () => {
+  it("reset limpia todos los facets", async () => {
     const { result } = renderHook(
       () =>
         useTableFilters<Row, {
@@ -99,6 +102,7 @@ describe("useTableFilters", () => {
         }),
       { wrapper },
     );
+    await waitFor(() => expect(result.current).not.toBeNull());
 
     act(() => {
       result.current.set("q", "acme");
@@ -111,7 +115,7 @@ describe("useTableFilters", () => {
     expect(result.current.filtered).toHaveLength(4);
   });
 
-  it("filterKey cambia cuando cambian los valores primitivos", () => {
+  it("filterKey cambia cuando cambian los valores primitivos", async () => {
     const { result } = renderHook(
       () =>
         useTableFilters<Row, { q: { type: "text"; fields: (keyof Row)[] } }>({
@@ -120,6 +124,7 @@ describe("useTableFilters", () => {
         }),
       { wrapper },
     );
+    await waitFor(() => expect(result.current).not.toBeNull());
 
     const initial = result.current.filterKey;
     act(() => result.current.set("q", "acme"));

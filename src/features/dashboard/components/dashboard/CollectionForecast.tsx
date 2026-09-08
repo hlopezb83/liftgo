@@ -1,9 +1,9 @@
 import { parseISO, addDays, startOfDay } from "date-fns";
-import { Link } from "@/lib/router-compat";
 import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { amountInMxn, countFxMissing } from "@/features/dashboard/lib/collectionForecast";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
 
 interface OverdueInvoice {

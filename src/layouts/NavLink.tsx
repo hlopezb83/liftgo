@@ -1,6 +1,6 @@
-import type { ComponentProps, Ref } from "react";
 import { Link, useLocation } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
+import type { ComponentProps, Ref } from "react";
 
 interface NavLinkCompatProps extends Omit<ComponentProps<typeof Link>, "className"> {
   className?: string;

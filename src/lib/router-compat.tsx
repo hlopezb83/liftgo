@@ -65,18 +65,31 @@ export function useNavigate(): NavigateFn {
 
 // ---------- useLocation ----------
 
+/**
+ * Contrato react-router: `location.search` es "" o empieza con exactamente
+ * un "?". TanStack ya entrega `searchStr` con el "?" incluido (stringifySearch
+ * lo prefija), así que anteponerlo otra vez producía "??status=overdue" y
+ * `new URLSearchParams(search).get("status")` devolvía null.
+ */
+export function normalizeSearchStr(searchStr: string | undefined | null): string {
+  if (!searchStr) return "";
+  const trimmed = searchStr.replace(/^\?+/, "");
+  return trimmed ? `?${trimmed}` : "";
+}
+
 export function useLocation() {
   const loc = tsLocation();
-  return useMemo(
-    () => ({
+  return useMemo(() => {
+    const search = normalizeSearchStr(loc.searchStr);
+    const hash = loc.hash ? (loc.hash.startsWith("#") ? loc.hash : `#${loc.hash}`) : "";
+    return {
       pathname: loc.pathname,
-      search: loc.searchStr ? `?${loc.searchStr}` : "",
-      hash: loc.hash ?? "",
+      search,
+      hash,
       state: (loc.state ?? null) as unknown,
-      key: loc.pathname + (loc.searchStr ?? ""),
-    }),
-    [loc.pathname, loc.searchStr, loc.hash, loc.state],
-  );
+      key: loc.pathname + search + hash,
+    };
+  }, [loc.pathname, loc.searchStr, loc.hash, loc.state]);
 }
 
 // ---------- useParams ----------

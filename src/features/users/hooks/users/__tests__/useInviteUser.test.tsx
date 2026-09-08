@@ -7,8 +7,8 @@ const { invokeMock, notifySuccessMock } = vi.hoisted(() => ({
   notifySuccessMock: vi.fn(),
 }));
 
-vi.mock("@/lib/supabase/invokeEdgeFunction", () => ({
-  invokeEdgeFunction: invokeMock,
+vi.mock("@/lib/userAdmin.functions", () => ({
+  inviteUserFn: invokeMock,
 }));
 
 vi.mock("@/lib/ui/appFeedback", () => ({

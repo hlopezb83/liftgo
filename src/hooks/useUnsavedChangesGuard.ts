@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
-import { useBlocker } from "@/lib/router-compat";
 import { useConfirm } from "@/components/feedback/useConfirm";
+import { useBlocker } from "@/lib/router-compat";
 
 /**
  * UX-A4 + R16 F-03: bloquea la navegación cuando el formulario tiene cambios sin guardar.

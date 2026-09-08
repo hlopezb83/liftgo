@@ -35,9 +35,9 @@ function renderLayout(props: Partial<Parameters<typeof ListPageLayout>[0]> = {})
 }
 
 describe("ListPageLayout — UX-M6 EmptyState honesto", () => {
-  it("sin filtros activos muestra copy default de sin registros", () => {
+  it("sin filtros activos muestra copy default de sin registros", async () => {
     renderLayout({ emptyMessage: "No se encontraron resultados" });
-    expect(screen.getByText("No se encontraron resultados")).toBeInTheDocument();
+    expect(await screen.findByText("No se encontraron resultados")).toBeInTheDocument();
     expect(
       screen.getByText(/Aún no hay registros aquí/i),
     ).toBeInTheDocument();
@@ -45,11 +45,11 @@ describe("ListPageLayout — UX-M6 EmptyState honesto", () => {
     expect(screen.queryByRole("button", { name: /limpiar filtros/i })).toBeNull();
   });
 
-  it("con filtros activos muestra copy alterno y botón limpiar", () => {
+  it("con filtros activos muestra copy alterno y botón limpiar", async () => {
     const onClear = vi.fn();
     renderLayout({ hasActiveFilters: true, onClearFilters: onClear });
     expect(
-      screen.getByText("No hay resultados con los filtros actuales"),
+      await screen.findByText("No hay resultados con los filtros actuales"),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Ajusta o limpia los filtros/i),
@@ -59,10 +59,10 @@ describe("ListPageLayout — UX-M6 EmptyState honesto", () => {
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
-  it("con filtros activos pero sin callback, no renderiza botón (evita dead-end mudo)", () => {
+  it("con filtros activos pero sin callback, no renderiza botón (evita dead-end mudo)", async () => {
     renderLayout({ hasActiveFilters: true });
     expect(
-      screen.getByText("No hay resultados con los filtros actuales"),
+      await screen.findByText("No hay resultados con los filtros actuales"),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /limpiar filtros/i })).toBeNull();
   });

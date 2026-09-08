@@ -1,9 +1,9 @@
-import { useParams, useSearchParams } from "@/lib/router-compat";
 import { useBookings } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 import { buildContractPayload } from "../lib/contractPayload";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";

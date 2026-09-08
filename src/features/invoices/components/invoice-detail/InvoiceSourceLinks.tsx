@@ -1,9 +1,9 @@
-import { Link } from "@/lib/router-compat";
 import { DocumentIcon, CalendarIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
+import { Link } from "@/lib/router-compat";
 import { formatDateRange } from "@/lib/utils";
 
 interface Props {

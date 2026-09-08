@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "@/lib/router-compat";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Booking } from "@/features/bookings";
 import { useUserRole } from "@/features/users";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { useSearchParams } from "@/lib/router-compat";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { pickInspectorName, resolveInspectorName } from "../../lib/inspectorIdentity";
 import {
