@@ -46,98 +46,94 @@ export const cfdiSchema = z.object({
   globalYear: z.number().int().optional(),
 });
 
-export const invoiceFormSchema = z
-  .object({
-    bookingId: z.string(),
-    bookingIds: z.array(z.string()).default([]),
-    customerId: z.string().min(1, "El cliente es requerido"),
-    customerName: z.string(),
-    lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
-    taxRate: z.number().min(0),
-    issueDate: z.date(),
-    dueDate: z.date().optional(),
-    /** H-6: periodo de facturación obligatorio cuando la factura tiene reserva. */
-    billingPeriodStart: z.string().default(""),
-    billingPeriodEnd: z.string().default(""),
-    notes: z.string(),
-    cfdi: cfdiSchema,
-  })
-  .superRefine((values, ctx) => {
-    // H-6: una factura vinculada a reserva debe llevar periodo de facturación.
-    const hasBooking = values.bookingIds.length > 0 || values.bookingId.trim() !== "";
-    if (hasBooking && !values.billingPeriodStart) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["billingPeriodStart"],
-        message: "El periodo de facturación es requerido para facturas con reserva",
-      });
-    }
-    // Regresión v7.423.0 (P3): el fin del periodo también es obligatorio —
-    // sin él, un fallback silencioso completaba un fin de mes ajeno a la
-    // reserva. El servidor (sync_invoice_bookings) impone la misma regla.
-    if (hasBooking && !values.billingPeriodEnd) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["billingPeriodEnd"],
-        message: "El fin del periodo es requerido para facturas con reserva",
-      });
-    }
-    // start <= end (comparación lexicográfica, segura en YYYY-MM-DD).
-    if (
-      values.billingPeriodStart &&
-      values.billingPeriodEnd &&
-      values.billingPeriodStart > values.billingPeriodEnd
-    ) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["billingPeriodEnd"],
-        message: "El fin del periodo no puede ser anterior al inicio",
-      });
-    }
+const baseInvoiceSchema = z.object({
+  bookingId: z.string(),
+  bookingIds: z.array(z.string()).default([]),
+  customerId: z.string().min(1, "El cliente es requerido"),
+  customerName: z.string(),
+  lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
+  taxRate: z.number().min(0),
+  issueDate: z.date(),
+  dueDate: z.date().optional(),
+  /** H-6: periodo de facturación obligatorio cuando la factura tiene reserva. */
+  billingPeriodStart: z.string().default(""),
+  billingPeriodEnd: z.string().default(""),
+  notes: z.string(),
+  cfdi: cfdiSchema,
+});
 
-    const rfc = (values.cfdi.receptorRfc || "").toUpperCase();
-    if (rfc === "XAXX010101000") {
-      if (!values.cfdi.globalPeriodicity) {
-        ctx.addIssue({ code: "custom", path: ["cfdi", "globalPeriodicity"], message: "Requerido para Público en General" });
-      }
-      if (!values.cfdi.globalMonths) {
-        ctx.addIssue({ code: "custom", path: ["cfdi", "globalMonths"], message: "Requerido para Público en General" });
-      }
-      if (!values.cfdi.globalYear) {
-        ctx.addIssue({ code: "custom", path: ["cfdi", "globalYear"], message: "Requerido para Público en General" });
-      }
-    }
-    // B-11: tipoCambio admite 0 en el schema base, pero para moneda foránea
-    // un tipo de cambio 0 es inválido (colapsaría la conversión a MXN).
-    // FIX-6: un TC exactamente 1 en moneda foránea es el patrón "sin capturar"
-    // que la BD trata como faltante (`fx_is_missing`) y distorsiona los KPIs.
-    if (values.cfdi.moneda !== "MXN" && !(values.cfdi.tipoCambio > 0)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["cfdi", "tipoCambio"],
-        message: "El tipo de cambio debe ser mayor a 0 para moneda distinta de MXN",
-      });
-    } else if (values.cfdi.moneda !== "MXN" && values.cfdi.tipoCambio === 1) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["cfdi", "tipoCambio"],
-        message: "Captura el tipo de cambio real: 1.00 no es válido para moneda distinta de MXN",
-      });
-    }
+type InvoiceValues = z.infer<typeof baseInvoiceSchema>;
+type Ctx = z.RefinementCtx;
 
-    // M2: una factura con todas las partidas en $0 no debe poder crearse.
-    const invoiceTotal = values.lineItems.reduce(
-      (sum, l) => sum + (l.quantity || 0) * (l.unit_price || 0),
-      0,
-    );
-    if (invoiceTotal <= 0) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["lineItems"],
-        message: "El total de la factura debe ser mayor a $0",
-      });
-    }
-  });
+const issue = (ctx: Ctx, path: (string | number)[], message: string) => {
+  ctx.addIssue({ code: "custom", path, message });
+};
+
+/**
+ * H-6 + regresión v7.423.0 (P3): con reserva, inicio y fin del periodo son
+ * obligatorios y el fin no puede ser anterior al inicio (comparación
+ * lexicográfica, segura en YYYY-MM-DD). El servidor (sync_invoice_bookings)
+ * impone la misma regla.
+ */
+function validateBillingPeriod(values: InvoiceValues, ctx: Ctx) {
+  const hasBooking = values.bookingIds.length > 0 || values.bookingId.trim() !== "";
+  if (hasBooking && !values.billingPeriodStart) {
+    issue(ctx, ["billingPeriodStart"], "El periodo de facturación es requerido para facturas con reserva");
+  }
+  if (hasBooking && !values.billingPeriodEnd) {
+    issue(ctx, ["billingPeriodEnd"], "El fin del periodo es requerido para facturas con reserva");
+  }
+  if (
+    values.billingPeriodStart &&
+    values.billingPeriodEnd &&
+    values.billingPeriodStart > values.billingPeriodEnd
+  ) {
+    issue(ctx, ["billingPeriodEnd"], "El fin del periodo no puede ser anterior al inicio");
+  }
+}
+
+/** Factura global (Público en General): periodicidad, meses y año requeridos. */
+function validateGlobalCfdi(values: InvoiceValues, ctx: Ctx) {
+  if ((values.cfdi.receptorRfc || "").toUpperCase() !== "XAXX010101000") return;
+  const required = "Requerido para Público en General";
+  if (!values.cfdi.globalPeriodicity) issue(ctx, ["cfdi", "globalPeriodicity"], required);
+  if (!values.cfdi.globalMonths) issue(ctx, ["cfdi", "globalMonths"], required);
+  if (!values.cfdi.globalYear) issue(ctx, ["cfdi", "globalYear"], required);
+}
+
+/**
+ * B-11: tipoCambio admite 0 en el schema base, pero para moneda foránea un
+ * tipo de cambio 0 es inválido (colapsaría la conversión a MXN).
+ * FIX-6: un TC exactamente 1 en moneda foránea es el patrón "sin capturar"
+ * que la BD trata como faltante (fx_is_missing) y distorsiona los KPIs.
+ */
+function validateExchangeRate(values: InvoiceValues, ctx: Ctx) {
+  const { moneda, tipoCambio } = values.cfdi;
+  if (moneda === "MXN") return;
+  if (!(tipoCambio > 0)) {
+    issue(ctx, ["cfdi", "tipoCambio"], "El tipo de cambio debe ser mayor a 0 para moneda distinta de MXN");
+  } else if (tipoCambio === 1) {
+    issue(ctx, ["cfdi", "tipoCambio"], "Captura el tipo de cambio real: 1.00 no es válido para moneda distinta de MXN");
+  }
+}
+
+/** M2: una factura con todas las partidas en $0 no debe poder crearse. */
+function validateInvoiceTotal(values: InvoiceValues, ctx: Ctx) {
+  const total = values.lineItems.reduce(
+    (sum, l) => sum + (l.quantity || 0) * (l.unit_price || 0),
+    0,
+  );
+  if (total <= 0) {
+    issue(ctx, ["lineItems"], "El total de la factura debe ser mayor a $0");
+  }
+}
+
+export const invoiceFormSchema = baseInvoiceSchema.superRefine((values, ctx) => {
+  validateBillingPeriod(values, ctx);
+  validateGlobalCfdi(values, ctx);
+  validateExchangeRate(values, ctx);
+  validateInvoiceTotal(values, ctx);
+});
 
 export type LineItemValues = z.infer<typeof lineItemSchema>;
 export type CfdiFormValues = z.infer<typeof cfdiSchema>;
