@@ -1,9 +1,11 @@
 import { useIsRestoring } from "@tanstack/react-query";
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRecoveryStatus } from "@/features/auth/hooks/useRecoveryStatus";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { Navigate, useLocation } from "@/lib/router-compat";
+
 
 // R6-FE-10 (offline): sin red la carga de auth/rol nunca resuelve y el splash
 // era infinito. Tras ~8s se muestra pantalla de error con Reintentar.
@@ -53,12 +55,14 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const { data: role, isLoading: roleLoading } = useUserRole();
   const location = useLocation();
   const inPortal = location.pathname.startsWith("/portal");
+  const recovery = useRecoveryStatus();
   // R7 Bloque 17b: durante la restauración del caché persistido, muchas queries
   // reportan `isLoading=false` con `data=undefined`, lo que provocaba un flash
   // del portal o del `NoAccess` antes de que TanStack hidratara el rol.
   const isRestoring = useIsRestoring();
 
   const stillLoading = isRestoring || isLoading || (user && roleLoading);
+
   const [timedOut, setTimedOut] = useState(false);
   // El reset se hace como estado derivado durante el render (patrón soportado
   // por React) para no encadenar renders con un setState dentro del efecto.
