@@ -10,7 +10,8 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useLocation } from "@/lib/router-compat";
 import { dismissAuthError, notifyAuthError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
-import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
+import { useRecoveryStatus } from "../hooks/useRecoveryStatus";
+import { endRecovery } from "../recoverySession";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
@@ -19,21 +20,40 @@ const TITLES: Record<AuthMode, { title: string; desc: string }> = {
 };
 
 export default function AuthPage() {
-  const { signIn, resetPassword, updatePassword } = useAuth();
+  const { signIn, signOut, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigateTransition();
+  const recovery = useRecoveryStatus();
   // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
   // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
-  const unknownPath = pathname !== "/" && pathname !== "/login";
+  const unknownPath = recovery === "idle" && pathname !== "/" && pathname !== "/login" && pathname !== "/auth";
   const { data: company } = usePublicBranding();
-  const [mode, setMode] = useState<AuthMode>("sign-in");
+  const [mode, setMode] = useState<AuthMode>(recovery === "idle" ? "sign-in" : "reset");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const currentVersion = useCurrentVersion();
 
-  useAuthPasswordRecoveryListener(() => setMode("reset"));
+  // AUTH-REC-01: el modo sigue al estado del flujo (estado derivado en render,
+  // no un efecto tardío que dejaría un frame con el formulario equivocado).
+  const [prevRecovery, setPrevRecovery] = useState(recovery);
+  if (prevRecovery !== recovery) {
+    setPrevRecovery(recovery);
+    setMode(recovery === "idle" ? "sign-in" : "reset");
+  }
+
+  // Sólo con la sesión de recuperación CONFIRMADA se permite cambiar la
+  // contraseña; así un enlace inválido no aprovecha otra sesión ya abierta.
+  const canSubmitReset = recovery === "active";
+
+  const cancelRecovery = async () => {
+    endRecovery();
+    setPassword("");
+    // La sesión creada por el enlace no debe quedar viva tras cancelar.
+    await signOut();
+    setMode("sign-in");
+  };
 
   const runSubmit = async () => {
     // Hallazgo 3: un intento nuevo descarta el error del intento anterior
@@ -46,9 +66,12 @@ export default function AuthPage() {
       return;
     }
     if (mode === "reset") {
+      if (!canSubmitReset) return;
       const { error } = await updatePassword(password);
       if (error) { notifyAuthError({ error }); return; }
       notifySuccess("Contraseña actualizada");
+      setPassword("");
+      endRecovery();
       setMode("sign-in");
       return;
     }
@@ -63,6 +86,7 @@ export default function AuthPage() {
     await runSubmit();
     setLoading(false);
   };
+
 
   return (
     <main className="min-h-[100dvh] flex">
