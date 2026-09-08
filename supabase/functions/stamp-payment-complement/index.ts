@@ -470,9 +470,12 @@ Deno.serve(async (req) => {
       // FIX-6: si el pago venía de un REP cancelado, regresa a 'cancelled'
       // para que el siguiente reintento pueda volver a reclamar el timbrado.
       await failAfterClaim("error", desc.detail.slice(0, 1000));
-      return jsonError(req, 502, `Facturapi error: ${desc.status}`, {
+      // El mensaje del SAT/PAC se expone tal cual: "Facturapi error: 400" no
+      // le decía al usuario que el problema era la razón social del receptor.
+      return jsonError(req, 502, desc.message || `Facturapi error: ${desc.status}`, {
         detail: desc.detail,
       });
+
     }
 
     const repId = repInvoice.id;
