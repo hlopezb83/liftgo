@@ -1,0 +1,14 @@
+{
+  "version": "8.0.4",
+  "date": "2026-09-08",
+  "type": "patch",
+  "category": "infra",
+  "title": "Limpieza de tipos exportados sin uso (knip)",
+  "description": "El paso informativo de knip en CI terminaba en error por tipos exportados que ya nadie importa. Se quitaron exportaciones sobrantes o se volvieron locales sin tocar comportamiento; el paso bloqueante (archivos/dependencias) sigue en verde.",
+  "changes": [
+    "router-compat: se eliminó el alias duplicado NavLink (nadie lo importaba).",
+    "knip.json: se excluye src/integrations/supabase/types.ts (archivo autogenerado).",
+    "~30 tipos sin uso en features (dashboard, fleet, help, invoices, portal, quotes, reports, system) y lib/hooks: eliminados o vuelven locales tras verificar referencias con búsqueda global.",
+    "Pendiente conocido: aún quedan ~120 exports/tipos señalados por el paso informativo (no bloquea CI; continuará en la siguiente iteración)."
+  ]
+}
