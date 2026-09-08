@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import SupplierDetailPage from "../SupplierDetailPage";
 
@@ -40,11 +40,9 @@ function createTestQueryClient() {
 function renderPage() {
   return render(
     <QueryClientProvider client={createTestQueryClient()}>
-      <MemoryRouter initialEntries={["/suppliers/sp-1"]}>
-        <Routes>
-          <Route path="/suppliers/:id" element={<SupplierDetailPage />} />
-        </Routes>
-      </MemoryRouter>
+      <TestRouter initialEntries={["/suppliers/sp-1"]} path="/suppliers/$id">
+        <SupplierDetailPage />
+      </TestRouter>
     </QueryClientProvider>,
   );
 }
