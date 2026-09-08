@@ -38,3 +38,6 @@ test-results/
 
 # Lovable: planes archivados (el historial funcional vive en CHANGELOG.md)
 .lovable/plan/
+
+# Wrangler (preview local del build SSR)
+.wrangler/
