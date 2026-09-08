@@ -107,6 +107,18 @@ export function createSupabaseChainMock(opts: {
     return { data: paths.map((p) => ({ path: p, signedUrl })), error: null };
   });
   return {
+    // Superficie mínima de Auth: cualquier módulo que importe `AuthContext`
+    // (y con él la captura de recuperación) se suscribe al montar. El mock
+    // debe ofrecerla explícitamente — la producción NO tolera un SDK parcial.
+    auth: {
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+      getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
+      getUser: vi.fn(async () => ({ data: { user: null }, error: null })),
+      signOut: vi.fn(async () => ({ error: null })),
+    },
+
     from: vi.fn((table?: string) => {
       const t = table ?? "";
       if (tableResolvers[t]) return createTableChainable(tableResolvers[t]);
