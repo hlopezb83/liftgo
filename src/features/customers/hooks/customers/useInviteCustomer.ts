@@ -1,5 +1,5 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { inviteCustomerFn } from "@/lib/customerPortal.functions";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { customerKeys } from "../../lib/queryKeys";
 
@@ -16,7 +16,7 @@ interface InviteCustomerResponse {
 }
 
 /**
- * Traducción de los mensajes que devuelve la edge function (en inglés) a
+ * Traducción de los mensajes que devuelve el servidor (en inglés) a
  * español. Los códigos HTTP y las reglas del backend no cambian: esto es
  * únicamente capa de presentación para que el usuario vea el motivo real en
  * vez de "Edge Function returned a non-2xx status code".
@@ -42,16 +42,12 @@ function translateInviteError(raw: string): string {
 }
 
 /**
- * Crea acceso al portal de clientes mediante el edge function `invite-customer`.
+ * Crea acceso al portal de clientes mediante la función de servidor `inviteCustomerFn`.
  */
 export function useInviteCustomer() {
   return useEntityMutation<InviteCustomerVars, InviteCustomerResponse | null>({
     mutationFn: async ({ customerId, email }: InviteCustomerVars) => {
-      // `invokeEdgeFunction` extrae el cuerpo JSON de las respuestas no-2xx,
-      // que el SDK de Supabase esconde tras un mensaje genérico.
-      return await invokeEdgeFunction<InviteCustomerResponse | null>("invite-customer", {
-        body: { customer_id: customerId, email },
-      });
+      return await inviteCustomerFn({ data: { customer_id: customerId, email } });
     },
     invalidateKeys: [customerKeys.all],
     onSuccess: (_data, { email }) => {
