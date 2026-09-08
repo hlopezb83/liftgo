@@ -15,6 +15,8 @@ import {
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
+import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+
 import {
   isValidRegimenFiscalCode,
   resolveReceptorRegimenFiscal,
@@ -405,6 +407,22 @@ Deno.serve(async (req) => {
       return jsonError(req, 422, msg);
     }
 
+    // CFDI40145: el SAT compara la razón social contra el padrón del RFC. Se
+    // usa la MISMA normalización que stamp-cfdi/stamp-credit-note (mayúsculas,
+    // sin acentos, sin régimen societario). Para receptores con RFC real no se
+    // cae a "Público General": eso garantiza el rechazo del PAC.
+    const repLegalName = repIsGlobal
+      ? "PUBLICO EN GENERAL"
+      : sanitizeLegalName(
+        String(invoice.receptor_razon_social ?? invoice.customer_name ?? ""),
+      );
+    if (!repIsGlobal && !repLegalName) {
+      const msg =
+        "Falta la razón social del receptor. Captúrala en el cliente o en la factura, tal como está registrada en el SAT, antes de timbrar el complemento de pago.";
+      await releaseClaim(msg);
+      return jsonError(req, 400, msg);
+    }
+
     const payload = {
       type: "P",
       // H4: external_id = payment_id. Si el PAC timbra pero la respuesta se
@@ -412,14 +430,14 @@ Deno.serve(async (req) => {
       // invoices.list({ q: payment_id }) en vez de re-timbrar un duplicado.
       external_id: payment_id as string,
       customer: {
-        legal_name: invoice.receptor_razon_social || invoice.customer_name ||
-          "Público General",
+        legal_name: repLegalName,
         tax_id: repTaxId,
         tax_system: repTaxSystem,
         address: { zip: repZip },
       },
       complements: [{ type: "pago", data: [dataEntry] }],
     };
+
 
     const client = createFacturapiClient(apiKey);
     let repInvoice: {
