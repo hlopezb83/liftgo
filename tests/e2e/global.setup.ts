@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { test as setup, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { TIMEOUTS } from "./fixtures/helpers";
+import { assertNonProductionBackend } from "./fixtures/productionGuard";
 import {
   assertIsStaffUser,
   buildStorageState,
@@ -51,6 +52,8 @@ async function ensureE2eSeedEnabled(accessToken: string): Promise<void> {
  * la app hidrata la sesión — si no, fallamos loud antes de correr la suite.
  */
 setup("authenticate as admin", async ({ page, baseURL }) => {
+  // Guard fail-closed ANTES del login, de activar el seed y de sembrar.
+  assertNonProductionBackend("global.setup");
   const email = process.env.E2E_TEST_EMAIL;
   const password = process.env.E2E_TEST_PASSWORD;
 
