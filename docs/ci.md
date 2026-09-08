@@ -102,13 +102,19 @@ Defensa en profundidad — `tests/e2e/fixtures/productionGuard.ts`:
 - `resolveEnvValue(name)` es la **única** resolución de configuración
   (proceso → `.env` → `.env.local`) y `apiAuth` la consume. Antes cada módulo
   leía por su cuenta, así que el valor auditado y el usado podían diferir.
-- `collectConfiguredTargets()` audita **todas** las procedencias, no solo la que
-  gana: una variable local inofensiva ya no puede tapar un `.env` productivo.
+- `collectConfiguredTargets()` audita el valor **efectivo** de cada clave, con
+  la misma precedencia que usa el cliente. Sobreescribir la MISMA clave a un
+  backend local sí gana (si no, el `.env` versionado, que apunta a producción,
+  haría inusable el flujo local); pero cada clave se audita por separado, así
+  que un `E2E_SUPABASE_URL` local **no** tapa un `VITE_SUPABASE_URL` productivo.
+- `apiAuth` revalida además la URL ya resuelta (`assertUrlNotProduction`) justo
+  antes de crear el cliente.
 - Se ejecuta antes del login, del seed y de la purga. Exige
   `E2E_ISOLATED_BACKEND=1`, destino presente y host local (escape remoto
   explícito, y aun así la lista negra manda).
-- Cubierto por `src/test/e2eProductionGuard.test.ts` (12 casos, sobre un
-  directorio temporal con su propio `.env`).
+- Cubierto por `src/test/e2eProductionGuard.test.ts` (18 casos, sobre un
+  directorio temporal con su propio `.env`, sin red).
+
 
 ## Base de datos — `rls-db-tests.yml`
 
@@ -125,7 +131,7 @@ retirados: una excepción que no excluye nada es solo mantenimiento.
 
 | Workflow | Cuándo | Nota |
 | --- | --- | --- |
-| `gitleaks.yml` | PR, push, manual | Sin cron: un secreto solo entra por push o PR. Permiso `contents: read` |
+| `gitleaks.yml` | PR, push, manual | Sin cron: un secreto solo entra por push o PR. Permiso `contents: read`; `GITLEAKS_ENABLE_COMMENTS` fijado a `"false"` (su default es `true` y pediría `pull-requests: write`), reporte en el resumen |
 | `codeql.yml` | Semanal (lunes 12:00 UTC), manual | Fuera del camino crítico del PR |
 | `prod-smoke.yml` | Cada hora (minuto 17), manual | Dos peticiones de **lectura**; abre issue en fallo |
 
