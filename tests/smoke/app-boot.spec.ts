@@ -8,50 +8,64 @@ import { expect, test, type Page, type Route } from "@playwright/test";
  * ningún otro check.
  */
 
+/** Destino ficticio con el que se compiló el bundle del smoke. */
+const FAKE_BACKEND_HOST = "127.0.0.1:54321";
+
 /**
- * Corta cualquier petición que salga del origen de la app. El build del smoke
- * apunta a un Supabase inexistente a propósito; esto garantiza además que la
- * prueba no puede tocar un backend real ni depender de red.
+ * Corta cualquier petición que salga del origen EXACTO de la app. El build del
+ * smoke apunta a un Supabase inexistente a propósito; esto garantiza además
+ * que la prueba no puede tocar un backend real ni depender de red.
  *
  * Solo se bloquea red externa: los scripts y assets de la aplicación se sirven
- * y se ejecutan tal cual salen del empaquetado.
+ * y se ejecutan tal cual salen del empaquetado. Devuelve la lista de URLs
+ * abortadas para poder distinguir su ruido del de un asset propio roto.
  */
-async function blockExternalRequests(page: Page, origin: string): Promise<void> {
+async function blockExternalRequests(page: Page, origin: string): Promise<string[]> {
+  const blocked: string[] = [];
   await page.route("**/*", (route: Route) => {
     const url = route.request().url();
-    if (url.startsWith(origin) || url.startsWith("data:") || url.startsWith("blob:")) {
-      return route.continue();
+    if (url.startsWith("data:") || url.startsWith("blob:")) return route.continue();
+    let sameOrigin = false;
+    try {
+      sameOrigin = new URL(url).origin === origin;
+    } catch {
+      sameOrigin = false;
     }
+    if (sameOrigin) return route.continue();
+    blocked.push(url);
     return route.abort();
   });
+  return blocked;
 }
 
 /**
- * Ruido de red esperado por no tener backend. Se acota al destino inexistente
- * y a los errores de transporte del cliente de Supabase: cualquier otro error
- * de consola (incluidos los de React, el router o el tema) hace fallar.
+ * Ruido esperado: solo el atribuible al backend ficticio o a una petición
+ * externa que ESTA prueba abortó. Un `Failed to load resource` o un
+ * `net::ERR_*` de un script o asset propio de la app SÍ debe hacer fallar: es
+ * exactamente el tipo de fallo de empaquetado que este smoke persigue.
  */
-function isExpectedBackendNoise(text: string): boolean {
-  return (
-    /127\.0\.0\.1:54321/.test(text) ||
-    /net::ERR_FAILED|net::ERR_CONNECTION_REFUSED|ERR_BLOCKED_BY_CLIENT/.test(text) ||
-    /AuthRetryableFetchError/.test(text) ||
-    /Failed to load resource/.test(text)
-  );
+function isExpectedBackendNoise(text: string, blocked: string[]): boolean {
+  if (text.includes(FAKE_BACKEND_HOST)) return true;
+  if (/AuthRetryableFetchError/.test(text)) return true;
+  return blocked.some((url) => text.includes(url));
 }
 
 /** Instala los colectores de error y devuelve las listas para aserción final. */
-function collectErrors(page: Page): { pageErrors: string[]; consoleErrors: string[] } {
+function collectErrors(
+  page: Page,
+  blocked: string[],
+): { pageErrors: string[]; consoleErrors: string[] } {
   const pageErrors: string[] = [];
   const consoleErrors: string[] = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
   page.on("console", (msg) => {
-    if (msg.type() === "error" && !isExpectedBackendNoise(msg.text())) {
+    if (msg.type() === "error" && !isExpectedBackendNoise(msg.text(), blocked)) {
       consoleErrors.push(msg.text());
     }
   });
   return { pageErrors, consoleErrors };
 }
+
 
 /** Comprobaciones comunes de arranque: SSR con contenido + hidratación real. */
 async function expectBooted(page: Page, route: string): Promise<void> {
