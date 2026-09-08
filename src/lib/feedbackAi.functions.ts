@@ -99,6 +99,34 @@ Elige el módulo más probable basándote en la URL y la descripción. Si nada e
 Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning": "1-2 frases en español"}`;
 }
 
+/**
+ * N-46: guarda la clasificación en el contexto sin pisar overrides manuales
+ * de severidad o módulo.
+ */
+function buildUpdatePayload(
+  report: { severity: string | null; module: string | null },
+  ctx: Record<string, unknown>,
+  classification: z.infer<typeof ClassificationSchema>,
+) {
+  const payload: { context_json: Record<string, unknown>; severity?: string; module?: string } = {
+    context_json: {
+      ...ctx,
+      ai_classification: {
+        severity: classification.severity,
+        module: classification.module,
+        reasoning: classification.reasoning,
+        model: MODEL,
+        classified_at: new Date().toISOString(),
+      },
+    },
+  };
+  if (report.severity == null) payload.severity = classification.severity;
+  if (report.module == null || report.module === "" || report.module === "Sin clasificar") {
+    payload.module = classification.module;
+  }
+  return payload;
+}
+
 export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { report_id: string; force?: boolean }) => data)
@@ -174,31 +202,7 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
       throw new g.HttpError(502, "Respuesta de AI inválida");
     }
 
-    const newContext = {
-      ...ctx,
-      ai_classification: {
-        severity: classification.severity,
-        module: classification.module,
-        reasoning: classification.reasoning,
-        model: MODEL,
-        classified_at: new Date().toISOString(),
-      },
-    };
-
-    // N-46: no pisar overrides manuales de severity/module.
-    const updatePayload: {
-      context_json: typeof newContext;
-      severity?: string;
-      module?: string;
-    } = { context_json: newContext };
-    if (report.severity == null) updatePayload.severity = classification.severity;
-    if (
-      report.module == null || report.module === "" ||
-      report.module === "Sin clasificar"
-    ) {
-      updatePayload.module = classification.module;
-    }
-
+    const updatePayload = buildUpdatePayload(report, ctx, classification);
 
     const { data: updated, error: updateErr } = await admin
       .from("feedback_reports")
