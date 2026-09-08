@@ -1,3 +1,10 @@
+## [7.423.3] - 2026-09-08
+### Corrección (timbrado de complemento de pago)
+- REP: la razón social del receptor se normaliza con `sanitizeLegalName` (mayúsculas, sin acentos, sin régimen societario), igual que en `stamp-cfdi` y `stamp-credit-note`. Corrige el rechazo del SAT CFDI40145 "El campo Nombre del receptor debe pertenecer al nombre asociado al RFC".
+- Receptor global (XAXX010101000) timbra como "PUBLICO EN GENERAL"; se elimina el fallback a "Público General" para receptores con RFC real.
+- Fail-fast (400) en español si falta la razón social del receptor, liberando el claim para reintentar tras corregir el cliente.
+- El 502 del PAC ahora devuelve el mensaje real del SAT en vez de "Facturapi error: 400". Sin cambios de reglas de negocio, RLS, importes ni datos.
+
 ## [7.423.2] - 2026-09-07
 ### Corrección (auditoría externa verificada)
 - Invitación al portal: si el correo ya pertenece a otra cuenta, la edge function `invite-customer` responde 409 "Ya existe un usuario con ese correo" y la pantalla muestra el motivo real en español, en vez de un error genérico.
