@@ -79,17 +79,17 @@ async function linkPortalAccess(
   };
 
   // El trigger handle_new_user ya creó profile + rol customer: upsert/update.
-  const steps: [string, Promise<{ error: unknown }>][] = [
+  const steps: [string, () => Promise<{ error: unknown }>][] = [
     [
       "upsert user_roles",
-      admin.from("user_roles").upsert({ user_id: userId, role: "customer" }, { onConflict: "user_id" }),
+      () => admin.from("user_roles").upsert({ user_id: userId, role: "customer" }, { onConflict: "user_id" }),
     ],
-    ["update profiles", admin.from("profiles").update({ full_name: fullName }).eq("user_id", userId)],
-    ["link customer", admin.from("customers").update({ user_id: userId }).eq("id", customerId)],
+    ["update profiles", () => admin.from("profiles").update({ full_name: fullName }).eq("user_id", userId)],
+    ["link customer", () => admin.from("customers").update({ user_id: userId }).eq("id", customerId)],
   ];
 
   for (const [label, step] of steps) {
-    const { error } = await step;
+    const { error } = await step();
     if (error) {
       console.error(`invite-customer ${label} failed:`, error);
       await cleanup();
