@@ -5,9 +5,13 @@ import { useEffect, useState } from "react";
  * No había ningún listener online/offline en src (grep verificado).
  */
 export function OfflineBanner() {
-  const [online, setOnline] = useState(() => navigator.onLine);
+  // SSR-safe: el servidor no conoce la conectividad del cliente; se asume
+  // online (banner oculto) y el estado real se sincroniza tras la hidratación
+  // para no provocar mismatch de HTML servidor/cliente.
+  const [online, setOnline] = useState(true);
 
   useEffect(() => {
+    setOnline(navigator.onLine);
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
     window.addEventListener("online", onOnline);
