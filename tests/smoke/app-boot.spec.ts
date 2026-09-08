@@ -83,8 +83,9 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   page,
   baseURL,
 }) => {
-  const { pageErrors, consoleErrors } = collectErrors(page);
-  await blockExternalRequests(page, new URL(baseURL!).origin);
+  const blocked = await blockExternalRequests(page, new URL(baseURL!).origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked);
+
 
   const response = await page.goto("/", { waitUntil: "domcontentloaded" });
   expect(response?.status(), "status de /").toBeLessThan(400);
@@ -109,16 +110,29 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   await page.getByRole("button", { name: "Volver a Iniciar Sesión" }).click();
   await expect(page.locator("#auth-password")).toBeVisible();
 
+  // Recarga: segunda hidratación desde cero (assets ya cacheados, otro camino
+  // de arranque) y el formulario debe volver a responder.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expectBooted(page, "/ (recarga)");
+  const reloaded = page.locator("#auth-password");
+  await expect(reloaded).toBeVisible({ timeout: 30_000 });
+  await reloaded.fill("clave-de-prueba");
+  await expect(reloaded).toHaveValue("clave-de-prueba");
+  await page.getByRole("button", { name: "Mostrar contraseña" }).click();
+  await expect(reloaded).toHaveAttribute("type", "text");
+
   expect(pageErrors, "errores de página en /").toEqual([]);
   expect(consoleErrors, "errores de consola en /").toEqual([]);
+
 });
 
 test("portal de clientes: carga y navega entre modos del formulario", async ({
   page,
   baseURL,
 }) => {
-  const { pageErrors, consoleErrors } = collectErrors(page);
-  await blockExternalRequests(page, new URL(baseURL!).origin);
+  const blocked = await blockExternalRequests(page, new URL(baseURL!).origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked);
+
 
   const response = await page.goto("/portal/login", { waitUntil: "domcontentloaded" });
   expect(response?.status(), "status de /portal/login").toBeLessThan(400);
