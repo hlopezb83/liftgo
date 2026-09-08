@@ -2,6 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createClient, type Session } from "@supabase/supabase-js";
 import type { Page } from "@playwright/test";
+import { assertNonProductionBackend } from "./productionGuard";
 
 /**
  * Autenticación E2E por API (Fase 4 de la auditoría de tests).
@@ -38,6 +39,8 @@ function envVar(name: string): string | undefined {
 }
 
 export function supabaseEnv(): { url: string; anonKey: string; storageKey: string } {
+  // Guard fail-closed: este es el chokepoint de TODO acceso E2E a Supabase.
+  assertNonProductionBackend("supabaseEnv");
   const url = envVar("VITE_SUPABASE_URL");
   const anonKey = envVar("VITE_SUPABASE_PUBLISHABLE_KEY");
   if (!url || !anonKey) {

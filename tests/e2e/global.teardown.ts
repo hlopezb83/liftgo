@@ -13,8 +13,11 @@
  * Requiere credenciales admin (mismas vars que `global.setup.ts`).
  */
 import { createClient } from "@supabase/supabase-js";
+import { assertNonProductionBackend } from "./fixtures/productionGuard";
 
 export default async function globalTeardown(): Promise<void> {
+  // Guard fail-closed ANTES del login y del purge: purge_e2e_data es destructivo.
+  assertNonProductionBackend("global.teardown");
   const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
   const SUPABASE_KEY =
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;

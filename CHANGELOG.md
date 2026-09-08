@@ -1,3 +1,10 @@
+## [8.1.0] - 2026-09-08
+### Seguridad de pruebas (producción protegida)
+- Nuevo guard fail-closed `tests/e2e/fixtures/productionGuard.ts`: lista negra del ref productivo, exigencia de `E2E_ISOLATED_BACKEND=1`, destino obligatorio y host local/efímero (escape remoto explícito y aun así sujeto a la lista negra). Comprueba variables de cliente (VITE_*) y de servidor (SUPABASE_*).
+- Invocado antes de login, de `ensureE2eSeedEnabled`, del seeding y del teardown (`purge_e2e_data`), y en `supabaseEnv()` como chokepoint único.
+- CI: el job `e2e` deja de recibir secretos productivos, exige `E2E_SUPABASE_URL` aislado y verifica que `dist/client` no fue compilado contra producción; sin precondición el job falla explícitamente (no se silencian tests).
+- Los suites SQL ya usaban Postgres local efímero (127.0.0.1:54322) con rollback: sin cambios.
+
 ## [8.0.0] - 2026-09-08
 ### Mayor (migración de framework)
 - Migración completa del stack Classic (Vite + React Router) a TanStack Start con SSR. 62 rutas convertidas a archivos TanStack Router; guards de acceso (AuthGuard, RoleGuard, AdminRouteGuard) preservados y verificados mecánicamente uno a uno (56 entradas de cobertura).

@@ -2,6 +2,7 @@
 import { test as base, type Page, type TestInfo } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getAuthToken } from "./helpers";
+import { assertNonProductionBackend } from "./productionGuard";
 
 export type SeedIds = {
   model_id: string;
@@ -24,6 +25,9 @@ export type SeedIds = {
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY =
   process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+
+// Guard fail-closed antes de cualquier seed/teardown con escritura.
+assertNonProductionBackend("seed fixtures");
 
 if (!SUPABASE_URL || !SUPABASE_KEY) {
   throw new Error(
