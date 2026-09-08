@@ -241,4 +241,65 @@ describe("AUTH-REC-01 — recuperación de contraseña", () => {
     expect(h.updateUser).not.toHaveBeenCalled();
     expect(h.signOut).not.toHaveBeenCalled();
   });
+
+  it("P1b: recovery de A y luego SIGNED_IN de B invalida el flujo (ni updateUser ni signOut de B)", async () => {
+    initRecoveryFromLocation("http://localhost/auth#type=recovery");
+    emit("PASSWORD_RECOVERY", SESSION);
+    renderApp();
+    await screen.findByLabelText("Nueva contraseña", {}, { timeout: 5000 });
+
+    // Otra pestaña cambia de cuenta: el SDK sincroniza la sesión de B.
+    emit("SIGNED_IN", FOREIGN_SESSION);
+
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(getRecoveryStatus()).toBe("error");
+    expect(screen.queryByLabelText("Nueva contraseña")).toBeNull();
+
+    fireEvent.click(screen.getByText("Solicitar un enlace nuevo"));
+    await screen.findByText("Restablecer Contraseña");
+    expect(h.updateUser).not.toHaveBeenCalled();
+    expect(h.signOut).not.toHaveBeenCalled();
+  });
+
+  it("P1b: recovery de A y luego SIGNED_OUT deja el formulario inutilizable", async () => {
+    initRecoveryFromLocation("http://localhost/auth#type=recovery");
+    emit("PASSWORD_RECOVERY", SESSION);
+    renderApp();
+    await screen.findByLabelText("Nueva contraseña", {}, { timeout: 5000 });
+
+    emit("SIGNED_OUT", null);
+
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(getRecoveryStatus()).toBe("error");
+    expect(screen.queryByTestId("auth-submit")).toBeNull();
+    expect(h.updateUser).not.toHaveBeenCalled();
+  });
+
+  it("P1b: TOKEN_REFRESHED del MISMO usuario mantiene el formulario de recuperación", async () => {
+    initRecoveryFromLocation("http://localhost/auth#type=recovery");
+    emit("PASSWORD_RECOVERY", SESSION);
+    renderApp();
+    await screen.findByLabelText("Nueva contraseña", {}, { timeout: 5000 });
+
+    emit("TOKEN_REFRESHED", { ...SESSION, access_token: "z" });
+    emit("INITIAL_SESSION", null);
+
+    expect(getRecoveryStatus()).toBe("active");
+    const input = await screen.findByLabelText("Nueva contraseña");
+    fireEvent.change(input, { target: { value: "otraClave456" } });
+    fireEvent.click(screen.getByTestId("auth-submit"));
+    await waitFor(() => expect(h.updateUser).toHaveBeenCalledWith({ password: "otraClave456" }));
+  });
+
+  it("P1b: evento de otro usuario ANTES de montar React ya invalida el flujo", async () => {
+    initRecoveryFromLocation("http://localhost/auth#type=recovery");
+    emit("PASSWORD_RECOVERY", SESSION);
+    emit("SIGNED_IN", FOREIGN_SESSION);
+
+    renderApp();
+    expect(await screen.findByRole("alert", {}, { timeout: 5000 })).toBeTruthy();
+    expect(screen.queryByLabelText("Nueva contraseña")).toBeNull();
+    expect(h.updateUser).not.toHaveBeenCalled();
+    expect(h.signOut).not.toHaveBeenCalled();
+  });
 });
