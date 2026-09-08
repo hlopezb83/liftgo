@@ -1,7 +1,7 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { SuccessIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import type { GenerateRecurringResponse } from "../../hooks/invoices/recurring/useGenerateRecurringInvoices";
 
 interface Props {

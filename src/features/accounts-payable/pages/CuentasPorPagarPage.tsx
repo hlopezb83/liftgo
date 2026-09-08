@@ -9,7 +9,7 @@ import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 import {

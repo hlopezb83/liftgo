@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 
 interface Row {
   id: string;

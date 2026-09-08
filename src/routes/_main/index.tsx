@@ -4,7 +4,7 @@ import { PageFallback } from "@/app-routes/RouteSkeletons";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { NoAccess } from "@/layouts/NoAccess";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Navigate } from "@/lib/router-compat";
+import { Navigate } from "@/lib/router-compat-ui";
 
 const DashboardLazy = lazy(() => import("@/features/dashboard/pages/Dashboard"));
 

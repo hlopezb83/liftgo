@@ -14,7 +14,7 @@ import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { TopbarUserMenu } from "@/layouts/TopbarUserMenu";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
-import { Outlet } from "@/lib/router-compat";
+import { Outlet } from "@/lib/router-compat-ui";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 
 function focusSearchInput() {

@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRecoveryStatus } from "@/features/auth/hooks/useRecoveryStatus";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
-import { Navigate, useLocation } from "@/lib/router-compat";
+import { useLocation } from "@/lib/router-compat";
+import { Navigate } from "@/lib/router-compat-ui";
 
 
 // R6-FE-10 (offline): sin red la carga de auth/rol nunca resuelve y el splash

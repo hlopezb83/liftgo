@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { BackIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 
 interface PageHeaderProps {
   title: string;

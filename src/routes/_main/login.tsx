@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Navigate, useSearchParams } from "@/lib/router-compat";
+import { useSearchParams } from "@/lib/router-compat";
+import { Navigate } from "@/lib/router-compat-ui";
 
 /**
  * GUI-FE-09 (G-UX-08) + G-C3: destino tras el login — honra `?redirect=` sólo

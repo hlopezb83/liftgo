@@ -1,4 +1,5 @@
-import { Link, useLocation } from "@/lib/router-compat";
+import { useLocation } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { cn } from "@/lib/utils";
 import type { ComponentProps, Ref } from "react";
 
