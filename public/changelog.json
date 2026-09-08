@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.1.4",
+    "date": "2026-09-08",
+    "type": "patch",
+    "category": "tech",
+    "title": "Limpieza interna de código",
+    "description": "Se reorganizaron archivos grandes en piezas más pequeñas para quitar 10 avisos de calidad. La aplicación se ve y funciona exactamente igual.",
+    "changes": [
+      "El puente de navegación se dividió en tres archivos (utilidades, componentes y hooks) y la creación del caché de datos vive en su propio módulo.",
+      "Validaciones de factura, invitación al portal, clasificación con IA, pantalla de acceso y selector de cliente se dividieron en funciones enfocadas, sin cambiar reglas, mensajes ni orden de operaciones."
+    ]
+  },
+  {
     "version": "8.1.3",
     "date": "2026-09-08",
     "type": "patch",
