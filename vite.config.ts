@@ -1,20 +1,21 @@
+// @lovable.dev/vite-tanstack-config already includes the following — do NOT add them manually
+// or the app will break with duplicate plugins:
+//   - TanStack devtools (dev-only, first), tanstackStart, viteReact, tailwindcss, tsConfigPaths,
+//     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
+//     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
 import { readFileSync } from "node:fs";
-import path from "path";
-import babel from "@rolldown/plugin-babel";
+import path from "node:path";
+import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
-import react, { reactCompilerPreset } from "@vitejs/plugin-react";
-import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
-import { defineConfig } from "vite";
 
 // Versión resuelta desde public/version.json (generado por scripts/gen-version.mjs
 // en el prebuild). Se usa para (a) inyectar VITE_APP_VERSION al bundle y así
 // etiquetar el `release` en Sentry.init, y (b) nombrar el release al subir
-// sourcemaps con @sentry/vite-plugin. Fallback "unknown" en builds locales sin
-// el prebuild ejecutado.
+// sourcemaps con @sentry/vite-plugin. Fallback "unknown" en builds locales.
 const APP_VERSION = (() => {
   try {
-    const raw = readFileSync(path.resolve(__dirname, "public/version.json"), "utf8");
+    const raw = readFileSync(path.resolve(process.cwd(), "public/version.json"), "utf8");
     return String(JSON.parse(raw)?.version ?? "unknown");
   } catch {
     return "unknown";
@@ -22,181 +23,43 @@ const APP_VERSION = (() => {
 })();
 const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
 
-// https://vitejs.dev/config/
-// ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
-// SENTRY_AUTH_TOKEN presente en CI → sube sourcemaps a Sentry y los elimina del
-// bundle final (stack traces legibles en producción sin exponer el código
-// fuente al cliente). Ausencia del token = no-op silencioso, útil para builds
-// locales sin secretos.
-// React Compiler (babel-plugin-react-compiler) auto-memoiza componentes/hooks
-// que cumplen las Reglas de React; los que las violan quedan intactos (bail-out
-// silencioso). El linter `react-compiler/react-compiler` marca esos bail-outs.
-export default defineConfig(({ mode }) => ({
-  define: {
-    // Expuesto como `import.meta.env.VITE_APP_VERSION` en el bundle. Sentry.init
-    // lo lee para etiquetar cada evento con el mismo release que se subió.
-    "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
+export default defineConfig({
+  tanstackStart: {
+    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
+    // nitro/vite builds from this
+    server: { entry: "server" },
   },
-  server: {
-    host: "::",
-    port: 8080,
-    hmr: {
-      overlay: false,
+  vite: {
+    define: {
+      "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
     },
-    // Warmup: precalienta el grafo de módulos de las rutas críticas para
-    // que el primer render en dev no espere transforms secuenciales.
-    // `routes/router.tsx` es el punto de arranque real tras la migración
-    // a react-router v8 (Data Router).
-    warmup: {
-      clientFiles: [
-        "./src/main.tsx",
-        "./src/routes/router.tsx",
-        "./src/layouts/AppSidebar.tsx",
-        "./src/routes/routes-config.tsx",
-      ],
-    },
+    plugins: [
+      // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
+      process.env.ANALYZE === "1" &&
+        visualizer({
+          filename: "/tmp/bundle-stats.html",
+          template: "treemap",
+          gzipSize: true,
+          brotliSize: false,
+        }),
+      // Sourcemaps para Sentry: sólo cuando el token está presente (CI/hosting).
+      process.env.SENTRY_AUTH_TOKEN &&
+        sentryVitePlugin({
+          org: process.env.SENTRY_ORG ?? "elogistix",
+          project: process.env.SENTRY_PROJECT ?? "liftgo",
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+          release: {
+            name: process.env.SENTRY_RELEASE ?? SENTRY_RELEASE,
+            setCommits: process.env.SENTRY_RELEASE_COMMIT
+              ? { repo: "elogistix/liftgo", commit: process.env.SENTRY_RELEASE_COMMIT, auto: false }
+              : { auto: true, ignoreMissing: true, ignoreEmpty: true },
+          },
+          sourcemaps: {
+            assets: "./dist/**",
+            filesToDeleteAfterUpload: "./dist/**/*.map",
+          },
+          telemetry: false,
+        }),
+    ].filter(Boolean) as import("vite").PluginOption[],
   },
-  preview: {
-    host: "::",
-    port: 8080,
-  },
-  plugins: [
-    // plugin-react v6 usa Oxc para JSX/HMR. El React Compiler corre como
-    // preset de Babel vía @rolldown/plugin-babel: auto-memoiza componentes/hooks
-    // que cumplen las Reglas de React y hace bail-out silencioso en los que no.
-    // El linter `react-compiler/react-compiler` reporta los bail-outs.
-    react(),
-    babel({
-      presets: [reactCompilerPreset({ target: "19" })],
-    }),
-    mode === "development" && componentTagger(),
-    process.env.ANALYZE === "1" &&
-      visualizer({
-        filename: "/tmp/bundle-stats.html",
-        template: "treemap",
-        gzipSize: true,
-        brotliSize: false,
-      }),
-    // Sourcemaps para Sentry: sólo cuando el token está presente (CI/hosting).
-    // Debe ir al final para procesar los assets ya emitidos por Rollup.
-    // - `release.name` fija el mismo identificador que Sentry.init reporta en
-    //   runtime, para que los eventos se asocien a los sourcemaps subidos.
-    // - `sourcemaps.filesToDeleteAfterUpload` borra los .map del bundle final
-    //   una vez subidos: los stack traces se resuelven en Sentry sin exponer
-    //   el código fuente al cliente.
-    process.env.SENTRY_AUTH_TOKEN &&
-      sentryVitePlugin({
-        org: process.env.SENTRY_ORG ?? "elogistix",
-        project: process.env.SENTRY_PROJECT ?? "liftgo",
-        authToken: process.env.SENTRY_AUTH_TOKEN,
-        release: {
-          name: process.env.SENTRY_RELEASE ?? SENTRY_RELEASE,
-          // Sube el commit asociado al release cuando CI expone SENTRY_RELEASE_COMMIT
-          // (opcional). Sentry usa esto para el link "Suspect commits".
-          setCommits: process.env.SENTRY_RELEASE_COMMIT
-            ? { repo: "elogistix/liftgo", commit: process.env.SENTRY_RELEASE_COMMIT, auto: false }
-            : { auto: true, ignoreMissing: true, ignoreEmpty: true },
-        },
-        sourcemaps: {
-          assets: "./dist/**",
-          filesToDeleteAfterUpload: "./dist/**/*.map",
-        },
-        telemetry: false,
-      }),
-  ].filter(Boolean) as import("vite").PluginOption[],
-
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-    dedupe: ["react", "react-dom"],
-  },
-  // Deps críticas de primer render pre-bundleadas para evitar el ciclo
-  // "new dependency detected → full reload" en el primer `vite dev` frío.
-  optimizeDeps: {
-    include: [
-      "react",
-      "react-dom",
-      "react-router",
-      "@tanstack/react-query",
-      "sonner",
-      "date-fns",
-      "zod",
-    ],
-  },
-  // Nota: NO usar `css.transformer: "lightningcss"` — eso salta PostCSS y
-  // rompe Tailwind v4 (`@import "tailwindcss"` / `@utility` quedan sin
-  // procesar). Mantenemos PostCSS (con `@tailwindcss/postcss`) como
-  // transformer y sólo usamos LightningCSS para minificar el output
-  // final vía `build.cssMinify`.
-  // `drop: ["debugger"]` sólo en producción: elimina cualquier `debugger;` que
-  // se cuele en el bundle. `console` se preserva porque Sentry captura
-  // `console.error` como breadcrumbs — dropearlo reduciría visibilidad.
-  esbuild: {
-    drop: mode === "production" ? ["debugger"] : [],
-  },
-  build: {
-    // Explícito para que quien lea el config sepa qué se compila. Cubre
-    // Safari 16.4+, Chrome 111+, Firefox 128+ (equivalente al default
-    // `baseline-widely-available` de Vite 7 y suficiente para el ERP interno).
-    target: "es2022",
-    // `hidden`: emite los .map pero SIN la línea `//# sourceMappingURL=...` en
-    // los .js. Sentry los consume localmente durante el build; los clientes
-    // nunca reciben la URL. Combinado con `filesToDeleteAfterUpload` en el
-    // plugin de Sentry, los .map no llegan al hosting.
-    sourcemap: "hidden",
-    // Lightning CSS: ~15% mejor compresión que esbuild sobre Tailwind v4
-    // (Vite 8 lo trae bundleado, no requiere dep extra).
-    cssMinify: "lightningcss",
-    // El cálculo de gzip por asset suma 3-5s a cada build en CI. Con el
-    // visualizer bajo flag ANALYZE=1, no se necesita en el flujo normal.
-    reportCompressedSize: false,
-    // Target es2022 → todos los navegadores destino soportan
-    // <link rel="modulepreload"> nativo. Sin polyfill: ~1.5 KB menos
-    // inline en el HTML de entrada.
-    modulePreload: { polyfill: false },
-    // Con chunks vendor dedicados (react-pdf ~1.5 MB, recharts ~500 KB) el
-    // warning default (500 KB) es ruido. 800 sigue detectando regresiones
-    // sin falsos positivos.
-    chunkSizeWarningLimit: 800,
-    rollupOptions: {
-      output: {
-        manualChunks: (id) => {
-          if (!id.includes("node_modules")) return;
-          for (const { name, match } of CHUNK_GROUPS) {
-            if (match.some((frag) => id.includes(frag))) return name;
-          }
-        },
-      },
-    },
-  },
-}));
-
-// Orden importa: los grupos específicos (recharts, radix, react-pdf...) van
-// primero; `vendor` es el fallback explícito para react/react-dom/router/query.
-// Los fragmentos usan separadores para evitar falsos positivos (p.ej. "react/"
-// no matchea "react-hook-form").
-const CHUNK_GROUPS: ReadonlyArray<{ name: string; match: readonly string[] }> = [
-  // R-Perf P0-3.1: `ui-utils` DEBE ir antes que `recharts`. `clsx`/`tailwind-merge`
-  // los importa `src/lib/utils.ts` (cn) en todo el shell; sin este grupo caían al
-  // chunk de recharts por match parcial ("recharts") y arrastraban ~109 KB gz al
-  // primer paint aunque el usuario no visitara ninguna vista con gráficas.
-  { name: "ui-utils", match: ["/clsx/", "tailwind-merge", "class-variance-authority"] },
-  { name: "recharts", match: ["recharts", "d3-"] },
-  { name: "radix", match: ["@radix-ui"] },
-  { name: "react-pdf", match: ["@react-pdf"] },
-  // v7.219.0 (M3): removido chunk jspdf — dependencias ya no presentes.
-  { name: "xlsx", match: ["xlsx"] },
-  { name: "date-fns", match: ["date-fns"] },
-  { name: "icons", match: ["lucide-react"] },
-  {
-    name: "vendor",
-    match: [
-      "/react/",
-      "/react-dom/",
-      "/scheduler/",
-      "/react-router/",
-      "@tanstack/react-query",
-    ],
-  },
-];
+});
