@@ -150,7 +150,7 @@ export function DateRangePickerField({
         </div>
 
         <RangeDialogBody
-          label={label}
+          label={fieldName}
           liveLabel={liveLabel}
           localRange={localRange}
           isMobile={isMobile}
