@@ -174,3 +174,13 @@ bun run build && bun run test:e2e:smoke
 bun run test:functions          # tests Deno offline
 bun run knip:deep               # exports/tipos sin uso (informativo)
 ```
+
+## Versión y artefactos de release (nota de mantenimiento)
+
+El trabajo sobre CI **no** publica release. Se retiró la entrada y el archivo
+`public/changelog/v8.2.0.json` que este trabajo había añadido y se restauraron
+los artefactos de release al estado de referencia: `package.json` en `7.420.0`
+y `public/changelog.json` / `public/version.json` en `8.1.0`. Esa discrepancia
+entre `package.version` y el changelog es **previa** y se deja tal cual: no se
+resuelve inventando un release. Los cambios de CI se documentan solo aquí, no
+en el changelog de la app.
