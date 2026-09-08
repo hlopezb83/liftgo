@@ -79,7 +79,7 @@ async function linkPortalAccess(
   };
 
   // El trigger handle_new_user ya creó profile + rol customer: upsert/update.
-  const steps: [string, () => Promise<{ error: unknown }>][] = [
+  const steps: [string, () => PromiseLike<{ error: unknown }>][] = [
     [
       "upsert user_roles",
       () => admin.from("user_roles").upsert({ user_id: userId, role: "customer" }, { onConflict: "user_id" }),

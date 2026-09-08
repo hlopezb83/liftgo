@@ -55,7 +55,7 @@ function AuthCardHeader({
   unknownPath,
   pathname,
 }: {
-  company: { logo_url?: string | null; razon_social?: string | null } | undefined;
+  company: { logo_url?: string | null; razon_social?: string | null } | null | undefined;
   mode: AuthMode;
   unknownPath: boolean;
   pathname: string;
