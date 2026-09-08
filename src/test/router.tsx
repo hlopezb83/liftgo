@@ -7,6 +7,7 @@ import {
   RouterProvider,
 } from "@tanstack/react-router";
 import { type ReactNode, useMemo } from "react";
+import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
 
 interface TestRouterProps {
   children: ReactNode;
@@ -49,6 +50,8 @@ export function TestRouter({
       routeTree: rootRoute.addChildren(routes),
       history: createMemoryHistory({ initialEntries }),
       defaultPendingMinMs: 0,
+      parseSearch,
+      stringifySearch,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entriesKey, path, children]);

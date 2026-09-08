@@ -1,4 +1,5 @@
 import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/react-start";
+import { attachSupabaseAuth } from "./lib/authAttacher";
 import { renderErrorPage } from "./lib/error-page";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
@@ -25,4 +26,6 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [errorMiddleware, csrfMiddleware],
+  // TS-01: adjunta el Bearer de la sesión a todas las server functions.
+  functionMiddleware: [attachSupabaseAuth],
 }));

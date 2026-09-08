@@ -1,5 +1,6 @@
 import { createRouter } from "@tanstack/react-router";
 import { createAppQueryClient } from "@/layouts/AppProviders";
+import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
@@ -12,6 +13,9 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreloadStaleTime: 0,
+    // TS-02: mismo contrato de query string que URLSearchParams.
+    parseSearch,
+    stringifySearch,
   });
 
   return router;
