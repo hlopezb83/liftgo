@@ -224,7 +224,7 @@ export function QuoteDetailActions({
       {quote.status === "accepted" && (
         <CancelQuoteButton quoteNumber={quote.quote_number} onCancel={() => onSetStatus("cancelled")} />
       )}
-      <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} />
+      <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} deemphasized={alreadyConverted} />
     </>
   );
 }
