@@ -35,7 +35,19 @@ export default defineConfig({
 
     // Zona horaria fija: la aritmética de fechas de negocio (vencimientos,
     // periodos de renta) daba resultados distintos según el TZ del runner.
-    env: { TZ: "UTC" },
+    //
+    // Supabase ficticio (loopback): la suite es OFFLINE. Sin esto, Bun/Vite
+    // cargan el .env del proyecto y cualquier cliente creado en un test
+    // apuntaría al backend PRODUCTIVO. Estos valores ganan sobre .env.
+    env: {
+      TZ: "UTC",
+      VITE_SUPABASE_URL: "http://127.0.0.1:54321",
+      VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_offline",
+      VITE_SUPABASE_PROJECT_ID: "test-offline",
+      SUPABASE_URL: "http://127.0.0.1:54321",
+      SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_offline",
+      SUPABASE_PROJECT_ID: "test-offline",
+    },
 
 
     // En CI emitimos JUnit + JSON para que el job pueda subir artifacts y
@@ -44,8 +56,10 @@ export default defineConfig({
     // que consume el check "RLS results" de mikepenz/action-junit-report.
     // Mantener la salida en config (no CLI) evita problemas de parseo de flags
     // múltiples por parte de bun/vitest v4 entre entornos.
+    // En modo shard añadimos el reporter humano junto al blob: el merge sigue
+    // consumiendo el blob, pero el log del shard muestra QUÉ test falló.
     reporters: IS_SHARD
-      ? ["blob"]
+      ? ["default", "blob"]
       : process.env.VITEST_RLS_JUNIT
       ? ["default", ["junit", { outputFile: "reports/rls-junit.xml" }]]
       : process.env.CI

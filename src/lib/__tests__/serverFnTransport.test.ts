@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * TS-01 (transporte real): ejecuta la cadena de middleware GLOBAL de Start
@@ -10,7 +10,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Authorization no llega al receptor.
  */
 
-process.env["TSS_SERVER_FN_BASE"] = "/_serverFn/";
+// Entorno autocontenido: valores ficticios de loopback. El guard real sigue
+// intacto; no hay backend detrás (fetch y getClaims están interceptados).
+const FAKE_ENV = {
+  TSS_SERVER_FN_BASE: "/_serverFn/",
+  SUPABASE_URL: "http://127.0.0.1:54321",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_offline",
+} as const;
 
 const getSession = vi.fn();
 const getClaims = vi.fn();
@@ -93,6 +99,7 @@ function authHeaderSentToReceiver(): string | null {
 
 describe("TS-01 · transporte real de server functions", () => {
   beforeEach(() => {
+    for (const [key, value] of Object.entries(FAKE_ENV)) vi.stubEnv(key, value);
     getSession.mockReset();
     getClaims.mockReset();
     business.mockClear();
@@ -100,6 +107,11 @@ describe("TS-01 · transporte real de server functions", () => {
     capturedUrl = "";
     capturedInit = undefined;
     vi.stubGlobal("fetch", receive);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   it("entrega el Bearer de la sesión al receptor y ejecuta el negocio", async () => {
