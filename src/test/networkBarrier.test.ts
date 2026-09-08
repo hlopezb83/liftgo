@@ -19,8 +19,13 @@ describe("barrera de red de la suite", () => {
   });
 
   it("un cliente Supabase real falla de forma visible, no en falso verde", async () => {
-    const { supabase } = await import("@/integrations/supabase/client");
-    const { data, error } = await supabase
+    const { createClient } = await import("@supabase/supabase-js");
+    const client = createClient(
+      import.meta.env.VITE_SUPABASE_URL as string,
+      import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string,
+      { auth: { persistSession: false, autoRefreshToken: false } },
+    );
+    const { data, error } = await client
       .from("customer_payment_intents")
       .select("id")
       .limit(1);
