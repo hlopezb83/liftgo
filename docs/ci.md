@@ -16,11 +16,24 @@ misma rama se cancelan.
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
 | `dependency-review` | solo PR | CVEs altos y licencias no permitidas |
-| `actionlint` | solo PR | YAML de workflows |
+| `actionlint` | push y PR si cambió `.github/**`, o manual | YAML de workflows |
 
-No hay job agregador: branch protection lista los jobs requeridos directamente.
-Un `ci-success` que solo relee resultados añade un runner y un punto de fallo
-propio sin poder detectar nada.
+No hay job agregador. `main` **no tiene branch protection ni checks requeridos**
+hoy: los resultados se leen en la propia corrida. Un `ci-success` que solo relee
+resultados añade un runner y un punto de fallo propio sin poder detectar nada.
+
+El job `changes` (detector de rutas) necesita `pull-requests: read` además del
+`contents: read` heredado: sin ese permiso `dorny/paths-filter` recibe 403 en
+`pull_request` y los jobs condicionales se quedan sin señal. `actionlint` usa
+`reporter: local` y `filter_mode: nofilter` porque publicar un check exigiría
+`checks: write` y filtrar por líneas añadidas oculta errores que el propio
+cambio provoca en el resto del archivo. `dependency-review` fija
+`comment-summary-in-pr: never` para no requerir permisos de escritura.
+
+Los cambios de `public/changelog.json` y `public/changelog/**` **no** están en
+`paths-ignore`: su validación vive ahora en el build, así que un cambio solo ahí
+tiene que correr CI.
+
 
 Knip **no corre en CI**: no puede fallar por una regresión funcional y su
 señal (archivos y dependencias sin uso) se revisa en local con `bun run knip`.
@@ -38,12 +51,26 @@ de vuelta; en `/portal/login` hace lo equivalente. Eso ejercita hidratación,
 manejadores de eventos y re-render — un `pageerror` al hidratar deja la página
 visible pero muerta, y una prueba que solo hace `goto` no lo ve.
 
-Aislamiento: el spec **aborta toda petición que salga del origen de la app**.
-No se mockea nada de la aplicación (sus scripts y assets se ejecutan tal cual
-salen del bundle); simplemente no hay salida a internet, así que es imposible
-que toque un backend real. El build usa `VITE_SUPABASE_URL=http://127.0.0.1:54321`
-a propósito. El filtro de ruido de consola se acota a ese destino y a errores
-de transporte; cualquier otro error de consola o de página falla la prueba.
+Tras cada flujo hay una **recarga** con una interacción nueva (escribir en el
+campo de contraseña), que ejercita una segunda hidratación.
+
+Aislamiento: el spec **aborta toda petición cuyo `URL.origin` no sea
+exactamente el de la app** (antes bastaba con que la URL empezara por el
+origen). No se mockea nada de la aplicación —sus scripts y assets se ejecutan
+tal cual salen del bundle—; simplemente no hay salida a internet. Los service
+workers están bloqueados para que ninguna respuesta venga de caché.
+
+El build y el preview reciben configuración **ficticia explícita**
+(`SUPABASE_URL`, `VITE_SUPABASE_URL=http://127.0.0.1:54321`,
+`VITE_SUPABASE_PROJECT_ID=smoke-placeholder`, clave placeholder), `SMOKE_BASE_URL`
+remoto se rechaza y `reuseExistingServer` está siempre en `false`. Con
+`SMOKE_REUSE_BUILD=1` se inspecciona `dist/` antes de arrancar: si contiene un
+ref productivo o le falta el destino ficticio, la corrida aborta.
+
+El filtro de ruido de consola se acota al destino ficticio y a las URLs externas
+que el propio spec abortó; un `Failed to load resource` o un `net::ERR_*` de un
+script o asset **propio** falla la prueba.
+
 
 ### Vitest en un solo runner
 
