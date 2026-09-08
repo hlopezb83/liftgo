@@ -34,5 +34,19 @@ export default defineConfig({
     timeout: 180_000,
     reuseExistingServer: !process.env.CI,
   },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    {
+      name: "chromium",
+      use: {
+        ...devices["Desktop Chrome"],
+        // Escape para entornos donde ya hay un Chromium instalado con otra
+        // versión (p. ej. el sandbox de desarrollo). En CI se omite y se usa
+        // el navegador que instala `playwright install --with-deps chromium`.
+        launchOptions: process.env.SMOKE_CHROMIUM_PATH
+          ? { executablePath: process.env.SMOKE_CHROMIUM_PATH }
+          : {},
+      },
+    },
+  ],
+
 });
