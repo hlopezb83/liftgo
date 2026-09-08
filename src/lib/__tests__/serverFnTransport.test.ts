@@ -99,6 +99,7 @@ function authHeaderSentToReceiver(): string | null {
 
 describe("TS-01 · transporte real de server functions", () => {
   beforeEach(() => {
+    for (const [key, value] of Object.entries(FAKE_ENV)) vi.stubEnv(key, value);
     getSession.mockReset();
     getClaims.mockReset();
     business.mockClear();
@@ -106,6 +107,11 @@ describe("TS-01 · transporte real de server functions", () => {
     capturedUrl = "";
     capturedInit = undefined;
     vi.stubGlobal("fetch", receive);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
   });
 
   it("entrega el Bearer de la sesión al receptor y ejecuta el negocio", async () => {
