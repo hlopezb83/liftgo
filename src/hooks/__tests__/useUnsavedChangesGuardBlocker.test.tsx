@@ -53,7 +53,7 @@ describe("useUnsavedChangesGuard + useBlocker", () => {
 
     // Render ajeno al bloqueo mientras el diálogo está abierto.
     await act(async () => {
-      forceRerender?.();
+      harness.forceRerender?.();
     });
     expect(screen.getAllByText("¿Descartar cambios?")).toHaveLength(1);
 
