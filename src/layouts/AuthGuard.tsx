@@ -77,8 +77,20 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [stillLoading]);
 
+  // AUTH-REC-01: mientras haya un flujo de recuperación en curso (enlace en
+  // frío, evento del SDK o enlace inválido) SIEMPRE se muestra AuthPage,
+  // aunque ya exista `user` — antes la sesión de recuperación desmontaba el
+  // formulario de nueva contraseña.
+  if (recovery !== "idle") {
+    return (
+      <Suspense fallback={<AppLoader />}>
+        <AuthPage />
+      </Suspense>
+    );
+  }
 
   if (stillLoading) {
+
     return (
       <>
         <OfflineBanner />
