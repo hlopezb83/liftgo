@@ -31,8 +31,8 @@ vi.mock("@supabase/supabase-js", () => ({
 
 import { createServerFn } from "@tanstack/react-start";
 import { createClientRpc } from "@tanstack/react-start/client-rpc";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { runWithStartContext } from "@tanstack/start-storage-context";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { startInstance } from "@/start";
 
 type ServerMw = (ctx: { next: (o?: unknown) => unknown }) => Promise<{ context: { userId: string } }>;
@@ -43,6 +43,7 @@ const business = vi.fn(async () => ({ ok: true }));
 let capturedUrl = "";
 let capturedInit: RequestInit | undefined;
 
+/** `fetch` interceptado: hace de servidor y corre el guard real. */
 async function receive(url: string, init?: RequestInit): Promise<Response> {
   capturedUrl = url;
   capturedInit = init;
@@ -72,13 +73,12 @@ const callFn = createServerFn({ method: "POST" })
   .inputValidator((data: { note: string }) => data)
   .handler(createClientRpc("src_lib_test--transportFn") as never, business as never);
 
-/**
- * Invoca la server function con las opciones GLOBALES reales de Start
- * (las de `src/start.ts`), tal como las resuelve el runtime.
- */
-async function call(data: { note: string }, startOptions?: unknown) {
+/** Invoca la server function con las opciones GLOBALES reales de Start. */
+async function call(note: string, startOptions?: unknown) {
   const options = startOptions ?? (await startInstance.getOptions());
-  return runWithStartContext({ startOptions } as never, () => callFn({ data })) as Promise<unknown>;
+  return runWithStartContext({ startOptions: options } as never, () =>
+    callFn({ data: { note } }),
+  ) as Promise<{ ok?: boolean; userId?: string }>;
 }
 
 function authHeaderSentToReceiver(): string | null {
@@ -86,17 +86,13 @@ function authHeaderSentToReceiver(): string | null {
 }
 
 describe("TS-01 · transporte real de server functions", () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     getSession.mockReset();
     getClaims.mockReset();
     business.mockClear();
     interceptedRequest = null;
     capturedUrl = "";
     capturedInit = undefined;
-    // Registro global REAL: la app expone las opciones de Start en el cliente.
-    (globalThis as { window?: unknown }).window ??= globalThis;
-    (window as unknown as Record<string, unknown>)["__TSS_START_OPTIONS__"] =
-      await startInstance.getOptions();
     vi.stubGlobal("fetch", receive);
   });
 
@@ -104,7 +100,7 @@ describe("TS-01 · transporte real de server functions", () => {
     getSession.mockResolvedValue({ data: { session: { access_token: "a.b.c" } } });
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } }, error: null });
 
-    const res = (await callFn({ data: { note: "hola" } })) as { ok: boolean; userId: string };
+    const res = await call("hola");
 
     expect(authHeaderSentToReceiver()).toBe("Bearer a.b.c");
     expect(res.userId).toBe("user-1");
@@ -114,20 +110,18 @@ describe("TS-01 · transporte real de server functions", () => {
   it("usa el token actualizado en una llamada posterior", async () => {
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } }, error: null });
     getSession.mockResolvedValueOnce({ data: { session: { access_token: "viejo.j.w" } } });
-    await callFn({ data: { note: "1" } });
+    await call("1");
     expect(authHeaderSentToReceiver()).toBe("Bearer viejo.j.w");
 
     getSession.mockResolvedValueOnce({ data: { session: { access_token: "nuevo.j.w" } } });
-    await callFn({ data: { note: "2" } });
+    await call("2");
     expect(authHeaderSentToReceiver()).toBe("Bearer nuevo.j.w");
   });
 
   it("sin sesión el receptor rechaza y el negocio no corre", async () => {
     getSession.mockResolvedValue({ data: { session: null } });
 
-    await expect(callFn({ data: { note: "x" } })).rejects.toThrow(
-      /No authorization header provided/,
-    );
+    await expect(call("x")).rejects.toThrow(/No authorization header provided/);
     expect(authHeaderSentToReceiver()).toBeNull();
     expect(business).not.toHaveBeenCalled();
   });
@@ -136,7 +130,7 @@ describe("TS-01 · transporte real de server functions", () => {
     getSession.mockResolvedValue({ data: { session: { access_token: "a.b.c" } } });
     getClaims.mockResolvedValue({ data: null, error: new Error("bad") });
 
-    await expect(callFn({ data: { note: "x" } })).rejects.toThrow(/Invalid token/);
+    await expect(call("x")).rejects.toThrow(/Invalid token/);
     expect(business).not.toHaveBeenCalled();
   });
 
@@ -144,7 +138,7 @@ describe("TS-01 · transporte real de server functions", () => {
     getSession.mockResolvedValue({ data: { session: { access_token: "secreto.j.w" } } });
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } }, error: null });
 
-    await callFn({ data: { note: "hola" } });
+    await call("hola");
 
     expect(capturedUrl).not.toContain("secreto");
     expect(String(capturedInit?.body ?? "")).not.toContain("secreto");
@@ -152,11 +146,8 @@ describe("TS-01 · transporte real de server functions", () => {
   });
 
   it("si el middleware global no está registrado, el Authorization no llega", async () => {
-    (window as unknown as Record<string, unknown>)["__TSS_START_OPTIONS__"] = {};
     getSession.mockResolvedValue({ data: { session: { access_token: "a.b.c" } } });
 
-    await expect(callFn({ data: { note: "x" } })).rejects.toThrow(
-      /No authorization header provided/,
-    );
+    await expect(call("x", {})).rejects.toThrow(/No authorization header provided/);
   });
 });
