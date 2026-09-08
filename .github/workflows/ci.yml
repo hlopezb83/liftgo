@@ -100,7 +100,6 @@ jobs:
             app:
               - 'src/**'
               - 'tests/**'
-              - 'index.html'
               - 'package.json'
               - 'bun.lock'
               - 'vite.config.ts'
@@ -153,7 +152,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
-      - run: bunx tsc --noEmit -p tsconfig.app.json
+      - run: bun run typecheck
 
   arch-check:
     name: Arch check (guardrails)

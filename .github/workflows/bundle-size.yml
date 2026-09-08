@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TOTAL=$(find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
+          TOTAL=$(find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
           TOTAL_KB=$(awk "BEGIN {printf \"%.1f\", $TOTAL/1024}")
           {
             echo "pr_bytes=$TOTAL"
@@ -79,7 +79,7 @@ jobs:
           {
             echo "## Bundle (gzip)"
             echo "PR total: **${TOTAL_KB} kB**"
-            find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%f %s\n' \
+            find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -printf '%f %s\n' \
               | sort -k2 -n -r | head -20
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -95,7 +95,7 @@ jobs:
           cd /tmp/base
           bun install --frozen-lockfile
           bun run build
-          TOTAL=$(find dist/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
+          TOTAL=$(find dist/client/assets -type f \( -name '*.js' -o -name '*.css' \) -exec gzip -c {} \; | wc -c)
           cd "$GITHUB_WORKSPACE"
           mkdir -p .bundle-size-base
           echo "$TOTAL" > .bundle-size-base/bytes
