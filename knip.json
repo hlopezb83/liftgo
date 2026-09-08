@@ -17,7 +17,8 @@
   "ignore": [
     "src/components/ui/**",
     "supabase/functions/_shared/**",
-    "supabase/tests/**"
+    "supabase/tests/**",
+    "scripts/check-version.mjs"
   ],
   "ignoreDependencies": [
     "lovable-tagger",
