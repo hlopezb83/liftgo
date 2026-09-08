@@ -1,7 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import "@/features/auth/recoveryCapture";
-import { markRecoveryActive } from "@/features/auth/recoverySession";
 import { supabase } from "@/integrations/supabase/client";
 import { dismissAuthError } from "@/lib/ui/appFeedback";
 import type { User, Session } from "@supabase/supabase-js";
@@ -30,10 +29,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setIsLoading(false);
-      // AUTH-REC-01 / P1: SÓLO `PASSWORD_RECOVERY` confirma la recuperación.
-      // Una sesión cualquiera (incluida una previa de otro usuario que el SDK
-      // conserva cuando el enlace falla) NO autoriza cambiar la contraseña.
-      if (_event === "PASSWORD_RECOVERY") markRecoveryActive();
+      // AUTH-REC-01 / P1b: el estado del flujo de recuperación lo lleva un
+      // ÚNICO listener (`recoveryCapture`), con identidad de usuario. Aquí no
+      // se reactiva ninguna bandera para no perder esa identidad.
       // Hallazgo 3: con sesión válida establecida, el error de un intento
       // fallido previo ya no aplica — se descarta obligatoriamente aquí.
       if (nextSession) dismissAuthError();

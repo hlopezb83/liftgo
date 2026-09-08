@@ -21,6 +21,14 @@ export type RecoveryStatus = "idle" | "pending" | "active" | "error";
 export const RECOVERY_PENDING_TIMEOUT_MS = 15_000;
 
 let status: RecoveryStatus = "idle";
+/**
+ * P1b: identidad del usuario cuya recuperación fue confirmada. Sólo el id
+ * (nunca tokens, nunca persistido). `active` por sí solo probaba que ALGUNA
+ * sesión de recuperación existió, no que siga siendo la sesión actual: si el
+ * SDK cambiaba de cuenta (otra pestaña) el formulario habría actuado sobre
+ * la sesión ajena.
+ */
+let recoveryUserId: string | null = null;
 const listeners = new Set<() => void>();
 let pendingTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -68,8 +76,28 @@ export function markRecoveryPending(): void {
  * puede usarse. Es la ÚNICA vía de confirmación; `SIGNED_IN`/`INITIAL_SESSION`
  * ordinarios no autorizan nada.
  */
-export function markRecoveryActive(): void {
+export function markRecoveryActive(userId: string | null | undefined): void {
+  // Sin identidad no hay recuperación verificable: se trata como enlace roto.
+  if (!userId) { set("error"); return; }
+  recoveryUserId = userId;
   set("active");
+}
+
+/** Usuario de la recuperación confirmada (sólo id, en memoria). */
+export function getRecoveryUserId(): string | null {
+  return recoveryUserId;
+}
+
+/**
+ * Sincroniza el flujo con la sesión actual del SDK. Un `TOKEN_REFRESHED` del
+ * MISMO usuario no rompe nada; cerrar sesión o cambiar de usuario invalida el
+ * flujo activo (el formulario deja de ser utilizable) sin tocar esa sesión.
+ */
+export function syncRecoverySessionUser(userId: string | null | undefined): void {
+  if (status !== "active") return;
+  if (userId && userId === recoveryUserId) return;
+  recoveryUserId = null;
+  set("error");
 }
 
 /** Enlace inválido/expirado: se muestra el error, nunca el formulario. */
@@ -79,12 +107,14 @@ export function markRecoveryError(): void {
 
 /** Fin del flujo (éxito o cancelación). */
 export function endRecovery(): void {
+  recoveryUserId = null;
   set("idle");
 }
 
 /** Sólo para pruebas: vuelve el store a su estado inicial. */
 export function resetRecoveryForTests(): void {
   clearPendingTimer();
+  recoveryUserId = null;
   status = "idle";
   for (const l of listeners) l();
 }

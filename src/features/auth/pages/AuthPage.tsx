@@ -10,9 +10,8 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useLocation } from "@/lib/router-compat";
 import { dismissAuthError, notifyAuthError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
-import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
 import { useRecoveryStatus } from "../hooks/useRecoveryStatus";
-import { endRecovery, markRecoveryActive } from "../recoverySession";
+import { endRecovery, getRecoveryUserId } from "../recoverySession";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
@@ -50,7 +49,7 @@ function RecoveryNotice({
 
 
 export default function AuthPage() {
-  const { signIn, signOut, resetPassword, updatePassword } = useAuth();
+  const { user, signIn, signOut, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigateTransition();
   const recovery = useRecoveryStatus();
@@ -64,9 +63,6 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const currentVersion = useCurrentVersion();
-
-  // Evento del SDK con la página ya montada (además del store en arranque frío).
-  useAuthPasswordRecoveryListener(markRecoveryActive);
 
   /**
    * P3: `/auth` es una ruta pública que NO pasa por `AuthGuard`, así que con
@@ -99,13 +95,17 @@ export default function AuthPage() {
 
   // Sólo con la sesión de recuperación CONFIRMADA se permite cambiar la
   // contraseña; así un enlace inválido no aprovecha otra sesión ya abierta.
-  const canSubmitReset = recovery === "active";
+  // P1b: además de `active`, la sesión ACTUAL debe seguir siendo la del
+  // usuario cuya recuperación se confirmó (otra pestaña puede cambiar de
+  // cuenta y el SDK sincroniza la sesión entre pestañas).
+  const recoverySessionMatches = recovery === "active" && !!user && user.id === getRecoveryUserId();
+  const canSubmitReset = recoverySessionMatches;
 
   const cancelRecovery = async () => {
     setPassword("");
     // Sólo se cierra la sesión cuando ES la de recuperación (`active`).
     // Con `pending`/`error` puede haber una sesión ajena previa: no se toca.
-    if (recovery === "active") await signOut();
+    if (recoverySessionMatches) await signOut();
     finishRecovery("sign-in");
   };
 
