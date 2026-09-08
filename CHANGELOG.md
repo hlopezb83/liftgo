@@ -1,3 +1,7 @@
+## [8.1.3] - 2026-09-08
+### Corrección visual puntual V26-03
+- El rango «Fecha de emisión» apila inicio y fin únicamente en móvil y reserva una columna fija para el calendario; el contenedor del filtro puede encogerse junto al botón de quitar filtro. Las fechas completas DD/MM/AAAA quedan legibles a 320 px sin recortar texto ni ocultar desbordamiento, mientras que desde 640 px se conserva la distribución horizontal.
+
 ## [8.1.2] - 2026-09-08
 ### Auditoría visual V26 (presentación y accesibilidad, sin reglas de negocio)
 - V26-01 `DataTablePaginationV2` / `TablePagination`: el pie apila selector+rango sobre la navegación en móvil (`sm:` vuelve a una fila) y sustituye la numeración por «N de M»; Anterior/Siguiente conservan handlers y estados. Regresión: `src/components/feedback/__tests__/TablePagination.test.tsx`.

@@ -103,8 +103,8 @@ export function InvoicesFiltersBar({
         {/* V26-03: etiqueta visible + ancho suficiente para que dd/mm/aaaa se
             lea completo; los nombres accesibles pasan a ser
             "Fecha de emisión — inicio/fin" y "Abrir calendario de …". */}
-        <div className="flex items-end gap-1 w-full sm:w-auto">
-          <div className="w-full sm:w-80">
+        <div className="flex w-full min-w-0 items-end gap-1 sm:w-auto">
+          <div className="min-w-0 flex-1 sm:w-80 sm:flex-none">
             <DateRangePickerField
               label="Fecha de emisión"
               dateRange={dateRange}
