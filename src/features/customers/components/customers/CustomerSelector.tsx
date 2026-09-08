@@ -57,6 +57,136 @@ function buildTriggerLabel(
   return required ? "Seleccionar cliente *" : "Seleccionar cliente (opcional)";
 }
 
+/** Combobox de clientes existentes (búsqueda incremental con cmdk). */
+function CustomerCombobox({
+  items,
+  customerId,
+  required,
+  compact,
+  helpText,
+  onSelect,
+  onClear,
+}: {
+  items: Customer[];
+  customerId: string;
+  required?: boolean;
+  compact?: boolean;
+  helpText?: string;
+  onSelect: (id: string) => void;
+  onClear: (e: React.MouseEvent) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = useMemo(() => items.find((c) => c.id === customerId), [items, customerId]);
+  const triggerLabel = buildTriggerLabel(selected, required);
+
+  return (
+    <div className="space-y-1.5">
+      {compact ? null : <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            role="combobox"
+            aria-label={compact ? `Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}` : undefined}
+            aria-expanded={open}
+            className={cn(
+              "w-full justify-between font-normal",
+              !selected && "text-muted-foreground",
+            )}
+          >
+            <span className="truncate text-left">{triggerLabel}</span>
+            <span className="ml-2 flex shrink-0 items-center gap-1">
+              {selected && !required && (
+                // R17-X: usar <span role="button"> para evitar anidar
+                // dos <button> (el trigger del Popover y este clear).
+                <span
+                  role="button"
+                  tabIndex={-1}
+                  aria-label="Limpiar cliente"
+                  onClick={onClear}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClear(e as unknown as React.MouseEvent); }}
+                  className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100 cursor-pointer"
+                >
+                  <XIcon className="h-3.5 w-3.5" />
+                </span>
+              )}
+              <ChevronDownIcon className="h-4 w-4 opacity-50" />
+            </span>
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="p-0"
+          align="start"
+          style={{ width: "var(--radix-popover-trigger-width)" }}
+        >
+          <Command
+            filter={(value, search) => {
+              // `value` es el `value` del <CommandItem>: nombre + razón social.
+              if (!search) return 1;
+              return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
+            }}
+          >
+            <CommandInput placeholder="Buscar cliente…" />
+            <CommandList>
+              <CommandEmpty>Sin resultados.</CommandEmpty>
+              <CommandGroup>
+                {items.map((c) => {
+                  const label = `${c.name}${c.company && c.company !== c.name ? ` — ${c.company}` : ""}`;
+                  return (
+                    <CommandItem
+                      key={c.id}
+                      value={label}
+                      onSelect={() => { onSelect(c.id); setOpen(false); }}
+                    >
+                      <CheckIcon
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          customerId === c.id ? "opacity-100" : "opacity-0",
+                        )}
+                      />
+                      <span className="truncate">{label}</span>
+                    </CommandItem>
+                  );
+                })}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+      {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+    </div>
+  );
+}
+
+/** Captura manual de nombre y contacto cuando no se elige un cliente del catálogo. */
+function ManualCustomerFields({
+  customerName,
+  onCustomerNameChange,
+  customerContact,
+  onCustomerContactChange,
+}: {
+  customerName: string;
+  onCustomerNameChange: (name: string) => void;
+  customerContact?: string;
+  onCustomerContactChange?: (contact: string) => void;
+}) {
+  return (
+    <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
+      <div className="space-y-1.5">
+        <Label>Nombre del Cliente</Label>
+        <Input value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
+      </div>
+      {onCustomerContactChange && (
+        <div className="space-y-1.5">
+          <Label>Contacto</Label>
+          <Input placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CustomerSelector({
   customers,
   customerId,
@@ -71,15 +201,7 @@ export function CustomerSelector({
   error,
   compact,
 }: CustomerSelectorProps) {
-  const [open, setOpen] = useState(false);
-
   const items = useMemo(() => customers ?? [], [customers]);
-  const selected = useMemo(
-    () => items.find((c) => c.id === customerId),
-    [items, customerId],
-  );
-
-  const triggerLabel = buildTriggerLabel(selected, required);
 
   const handleSelect = (id: string) => {
     onCustomerIdChange(id);
@@ -88,7 +210,6 @@ export function CustomerSelector({
       onCustomerNameChange(c.name);
       if (onCustomerContactChange && c.email) onCustomerContactChange(c.email);
     }
-    setOpen(false);
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -103,98 +224,23 @@ export function CustomerSelector({
       )}
       <CardContent className={cn("space-y-4", compact && "p-4")}>
         {items.length > 0 && (
-          <div className="space-y-1.5">
-            {compact ? null : <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>}
-            <Popover open={open} onOpenChange={setOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  role="combobox"
-                  aria-label={compact ? `Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}` : undefined}
-                  aria-expanded={open}
-                  className={cn(
-                    "w-full justify-between font-normal",
-                    !selected && "text-muted-foreground",
-                  )}
-                >
-                  <span className="truncate text-left">{triggerLabel}</span>
-                  <span className="ml-2 flex shrink-0 items-center gap-1">
-                    {selected && !required && (
-                      // R17-X: usar <span role="button"> para evitar anidar
-                      // dos <button> (el trigger del Popover y este clear).
-                      <span
-                        role="button"
-                        tabIndex={-1}
-                        aria-label="Limpiar cliente"
-                        onClick={handleClear}
-                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClear(e as unknown as React.MouseEvent); }}
-                        className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100 cursor-pointer"
-                      >
-                        <XIcon className="h-3.5 w-3.5" />
-                      </span>
-                    )}
-                    <ChevronDownIcon className="h-4 w-4 opacity-50" />
-                  </span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="p-0"
-                align="start"
-                style={{ width: "var(--radix-popover-trigger-width)" }}
-              >
-                <Command
-                  filter={(value, search) => {
-                    // `value` es el `value` que se pone en <CommandItem>: aquí
-                    // el nombre + razón social del cliente. Búsqueda case-insensitive
-                    // con normalización básica.
-                    if (!search) return 1;
-                    return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
-                  }}
-                >
-                  <CommandInput placeholder="Buscar cliente…" />
-                  <CommandList>
-                    <CommandEmpty>Sin resultados.</CommandEmpty>
-                    <CommandGroup>
-                      {items.map((c) => {
-                        const label = `${c.name}${c.company && c.company !== c.name ? ` — ${c.company}` : ""}`;
-                        return (
-                          <CommandItem
-                            key={c.id}
-                            value={label}
-                            onSelect={() => handleSelect(c.id)}
-                          >
-                            <CheckIcon
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                customerId === c.id ? "opacity-100" : "opacity-0",
-                              )}
-                            />
-                            <span className="truncate">{label}</span>
-                          </CommandItem>
-                        );
-                      })}
-                    </CommandGroup>
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
+          <CustomerCombobox
+            items={items}
+            customerId={customerId}
+            required={required}
+            compact={compact}
+            helpText={helpText}
+            onSelect={handleSelect}
+            onClear={handleClear}
+          />
         )}
         {!hideManualName && (
-          <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
-            <div className="space-y-1.5">
-              <Label>Nombre del Cliente</Label>
-              <Input value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
-            </div>
-            {onCustomerContactChange && (
-              <div className="space-y-1.5">
-                <Label>Contacto</Label>
-                <Input placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
-              </div>
-            )}
-          </div>
+          <ManualCustomerFields
+            customerName={customerName}
+            onCustomerNameChange={onCustomerNameChange}
+            customerContact={customerContact}
+            onCustomerContactChange={onCustomerContactChange}
+          />
         )}
         {error && <p className="text-sm text-destructive">{error}</p>}
       </CardContent>
