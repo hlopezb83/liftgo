@@ -118,23 +118,29 @@ export function DateRangePickerField({
         </Label>
       ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
-        {/* Captura rápida con teclado (DD/MM/AAAA) para inicio y fin. */}
-        <div className="flex items-start gap-2">
-          <MaskedDateInput
-            value={dateRange?.from}
-            onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
-            today={nowMty()}
-            aria-label={`${fieldName} — inicio`}
-            className="flex-1 min-w-0"
-          />
-          <span className="pt-2 text-muted-foreground">—</span>
-          <MaskedDateInput
-            value={dateRange?.to}
-            onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
-            today={nowMty()}
-            aria-label={`${fieldName} — fin`}
-            className="flex-1 min-w-0"
-          />
+        {/* V26-03: en móvil las fechas se apilan y el calendario ocupa una
+            columna fija. Así DD/MM/AAAA conserva ancho legible incluso junto
+            al botón externo para quitar el filtro; desde `sm` vuelve la fila. */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch gap-2 sm:flex sm:items-start">
+          <div className="col-start-1 row-start-1 min-w-0 sm:flex-1">
+            <MaskedDateInput
+              value={dateRange?.from}
+              onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
+              today={nowMty()}
+              aria-label={`${fieldName} — inicio`}
+              className="min-w-0"
+            />
+          </div>
+          <span className="hidden pt-2 text-muted-foreground sm:block">—</span>
+          <div className="col-start-1 row-start-2 min-w-0 sm:flex-1">
+            <MaskedDateInput
+              value={dateRange?.to}
+              onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
+              today={nowMty()}
+              aria-label={`${fieldName} — fin`}
+              className="min-w-0"
+            />
+          </div>
           <DialogTrigger asChild>
             <Button
               type="button"
@@ -142,7 +148,10 @@ export function DateRangePickerField({
               size="icon"
               title={triggerLabel}
               aria-label={`Abrir calendario de ${fieldName}`}
-              className={cn("shrink-0", !dateRange?.from && "text-muted-foreground")}
+              className={cn(
+                "col-start-2 row-span-2 row-start-1 h-full min-h-10 shrink-0 sm:h-10",
+                !dateRange?.from && "text-muted-foreground",
+              )}
             >
               <CalendarIcon className="h-4 w-4" />
             </Button>
