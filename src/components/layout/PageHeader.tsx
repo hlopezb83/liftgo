@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Link } from "react-router";
+import { Link } from "@/lib/router-compat";
 import { BackIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 

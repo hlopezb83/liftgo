@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CONTRACT_STATUS_LABELS } from "../../lib/contractStatusLabels";
 import { useContract, useUpdateContract } from "../useContracts";

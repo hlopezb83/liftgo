@@ -8,7 +8,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateRange } from "@/lib/utils";
-import { ROUTES } from "@/routes/routes";
+import { ROUTES } from "@/app-routes/routes";
 import { extensionBillableRange } from "../../lib/extensionBilling";
 
 interface Extension {

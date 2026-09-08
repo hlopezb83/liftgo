@@ -1,5 +1,5 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "@/lib/router-compat";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";

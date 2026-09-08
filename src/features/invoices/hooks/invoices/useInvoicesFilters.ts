@@ -1,6 +1,6 @@
 import { isValid, parseISO } from "date-fns";
 import { useCallback, useMemo } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "@/lib/router-compat";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/date/toYMD";
 import {

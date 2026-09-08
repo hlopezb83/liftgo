@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useParams } from "react-router";
+import { useParams } from "@/lib/router-compat";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { forkliftFormSchema, type ForkliftFormData } from "../lib/forkliftFormSchema";
 import { useForkliftFormState } from "./forkliftForm/useForkliftFormState";

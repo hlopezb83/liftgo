@@ -23,42 +23,47 @@ import type { ReactNode } from "react";
  * mostramos un toast persistente con botón "Ver detalles" que abre el reporte
  * estructurado. Mutaciones/queries que ya manejan su propio error pueden
  * silenciar el global con `meta: { silent: true }`.
+ *
+ * El QueryClient ahora lo instancia el router (src/router.tsx) para que SSR
+ * cree un cliente por request; esta fábrica preserva la configuración previa.
  */
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60_000,
-      gcTime: 5 * 60_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
+export function createAppQueryClient(): QueryClient {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60_000,
+        gcTime: 5 * 60_000,
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
     },
-  },
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      // G-C3: un JWT vencido cierra sesión y manda al login antes de cualquier toast.
-      void handleSessionExpired(error).then((handled) => {
-        if (handled || query.meta?.silent) return;
-        // Oleada 1 (A-11): título humano; la página muestra ErrorState con reintentar.
-        notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
-      });
-    },
-  }),
-  mutationCache: new MutationCache({
-    onError: (error, _vars, _ctx, mutation) => {
-      void handleSessionExpired(error).then((handled) => {
-        if (handled || mutation.meta?.silent) return;
-        // Si la mutación ya tiene un onError local, dejamos que él maneje el toast
-        // (típicamente usando notifyError) para evitar notificaciones duplicadas.
-        if (mutation.options.onError) return;
-        notifyError({ error, phase: "mutation" });
-      });
-    },
-  }),
-});
+    queryCache: new QueryCache({
+      onError: (error, query) => {
+        // G-C3: un JWT vencido cierra sesión y manda al login antes de cualquier toast.
+        void handleSessionExpired(error).then((handled) => {
+          if (handled || query.meta?.silent) return;
+          notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
+        });
+      },
+    }),
+    mutationCache: new MutationCache({
+      onError: (error, _vars, _ctx, mutation) => {
+        void handleSessionExpired(error).then((handled) => {
+          if (handled || mutation.meta?.silent) return;
+          // Si la mutación ya tiene un onError local, dejamos que él maneje el toast.
+          if (mutation.options.onError) return;
+          notifyError({ error, phase: "mutation" });
+        });
+      },
+    }),
+  });
+}
 
+// `createBrowserPersister` tiene fallback in-memory cuando no hay `window`
+// (SSR) — seguro a nivel módulo.
 const persister = createBrowserPersister();
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({ queryClient, children }: { queryClient: QueryClient; children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
       <PersistQueryClientProvider

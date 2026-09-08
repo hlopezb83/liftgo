@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/lib/router-compat";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Booking } from "@/features/bookings";
 import { useUserRole } from "@/features/users";

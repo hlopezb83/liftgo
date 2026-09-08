@@ -1,5 +1,5 @@
 import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "@/lib/router-compat";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { applyFacetFilters } from "./applyFacetFilters";
 import { defaultForFacet, normalizeValue } from "./normalizeValue";

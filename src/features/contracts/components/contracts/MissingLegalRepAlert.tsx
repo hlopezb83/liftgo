@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "@/lib/router-compat";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 interface Props {

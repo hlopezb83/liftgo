@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, type RefObject } from "react";
-import { useLocation, useNavigationType } from "react-router";
+import { useLocation, useNavigationType } from "@/lib/router-compat";
 
 /**
  * Restaura el scroll del elemento `<main>` al navegar:

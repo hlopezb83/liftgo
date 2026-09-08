@@ -1,4 +1,4 @@
-import { useLocation } from "react-router";
+import { useLocation } from "@/lib/router-compat";
 
 export interface FeedbackContext {
   route: string;

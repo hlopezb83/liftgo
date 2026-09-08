@@ -3,16 +3,13 @@ import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
-import { PageFallback } from "@/routes/routes-config";
+import { Navigate, useLocation } from "@/lib/router-compat";
 
 // R6-FE-10 (offline): sin red la carga de auth/rol nunca resuelve y el splash
 // era infinito. Tras ~8s se muestra pantalla de error con Reintentar.
 const LOADING_TIMEOUT_MS = 8_000;
 
 const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
-const CustomerPortalRoutes = lazy(() =>
-  import("@/layouts/CustomerPortalRoutes").then((m) => ({ default: m.CustomerPortalRoutes })),
-);
 
 function AppLoader({ hint }: { hint?: string }) {
   return (
@@ -54,6 +51,8 @@ function LoadingError({ onRetry }: { onRetry: () => void }) {
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const { data: role, isLoading: roleLoading } = useUserRole();
+  const location = useLocation();
+  const inPortal = location.pathname.startsWith("/portal");
   // R7 Bloque 17b: durante la restauración del caché persistido, muchas queries
   // reportan `isLoading=false` con `data=undefined`, lo que provocaba un flash
   // del portal o del `NoAccess` antes de que TanStack hidratara el rol.
@@ -100,13 +99,15 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     );
   }
 
+  // Los clientes viven en /portal/* y los usuarios internos fuera de él.
+  // Antes CustomerPortalRoutes renderizaba el portal en cualquier URL para
+  // clientes; ahora cada árbol tiene su layout y el guard redirige al correcto.
   if (role === "customer") {
-    return (
-      <Suspense fallback={<PageFallback />}>
-        <CustomerPortalRoutes />
-      </Suspense>
-    );
+    if (!inPortal) return <Navigate to="/portal" replace />;
+    return <>{children}</>;
   }
+
+  if (inPortal) return <Navigate to="/" replace />;
 
   return <>{children}</>;
 }

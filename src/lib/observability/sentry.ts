@@ -12,7 +12,9 @@ const env = import.meta.env.MODE;
 const appVersion = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? "unknown";
 const release = `liftgo@${appVersion}`;
 
-if (dsn && env !== "test") {
+// SSR-safe: la instrumentación de navegador (tracing, replay) sólo se
+// inicializa en el cliente; en el servidor este módulo es un no-op.
+if (typeof window !== "undefined" && dsn && env !== "test") {
   Sentry.init({
     dsn,
     environment: env, // "development" | "production"

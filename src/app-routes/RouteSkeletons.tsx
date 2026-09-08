@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "@/lib/router-compat";
 
 // ---------------------------------------------------------------------------
 // Skeletons semánticos por tipo de ruta.
