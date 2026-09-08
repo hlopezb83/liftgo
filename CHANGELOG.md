@@ -1,3 +1,18 @@
+## [8.2.0] - 2026-09-08
+### Infra (revisiones automáticas)
+- `ci.yml` reescrito: 2 jobs base (`quality`, `tests`) + condicionales (`deno-functions`, `supabase-lint`) + `dependency-review`/`actionlint` en PR + gate `ci-success`. Sin cron y sin secretos de producción (build con `VITE_SUPABASE_URL=http://127.0.0.1:54321`).
+- Nuevo smoke de arranque (`playwright.smoke.config.ts` + `tests/smoke/app-boot.spec.ts`): sirve `dist/` con `wrangler dev` y falla ante `pageerror`/console errors en `/` y `/portal/login`. Es el único check que detecta fallos de empaquetado tipo `__name is not defined`. Verificado local: 2 passed contra el build real.
+- Vitest deja el sharding 3x + merge: un runner corre la suite completa con umbrales de cobertura en TODOS los PRs (antes `--changed` sin gate). Verificado: 325 archivos / 2213 tests, exit 0, 537 s.
+- `scripts/deno-test-selection.sh` + `scripts/deno-tests-offline.sh`: separa los tests Deno offline (30 archivos, 255 tests, en CI) de los 18 que hacen HTTP contra funciones desplegadas (fuera de CI, exigen backend real). `bun run test:functions`.
+- `productionGuard.ts` amplía la auditoría a `.env`/`.env.local` del repo (contenían el ref productivo) además de las variables de entorno; cubierto por `src/test/e2eProductionGuard.test.ts` (6 casos).
+- E2E completas movidas a `e2e-on-demand.yml` (`workflow_dispatch` con confirmación escrita + secrets `E2E_SUPABASE_*`).
+- `scripts/changelog-entry.mjs` valida semver, fecha, título, duplicados y orden; `gen-version.mjs` ahora falla (exit 1) en vez de escribir `version: "unknown"`. Cubierto por `src/test/changelogEntry.test.ts` (7 casos). `bun run changelog:check`.
+- `prod-smoke.yml` nuevo (cada hora, minuto 17, 2 GET de lectura, abre/actualiza issue). `gitleaks` sin cron; `codeql` solo semanal + manual; dependabot mensual agrupado.
+- Smoke SQL autocontenidos declarados en `supabase/tests/selfcontained.txt` y bloqueantes en `rls-db-tests.yml` vía `scripts/check-selfcontained-smoke.py`.
+- Retirados: `bundle-size.yml`, `lighthouse.yml` + `lighthouserc.json` + `scripts/lighthouse-baseline.sh`, `changelog-check.yml` + `scripts/check-version.mjs`.
+- `package.json` vuelve a estar sincronizado con el changelog (estaba en 7.420.0 con changelog en 8.1.0).
+- Nueva documentación: `docs/ci.md`.
+
 ## [8.1.0] - 2026-09-08
 ### Seguridad de pruebas (producción protegida)
 - Nuevo guard fail-closed `tests/e2e/fixtures/productionGuard.ts`: lista negra del ref productivo, exigencia de `E2E_ISOLATED_BACKEND=1`, destino obligatorio y host local/efímero (escape remoto explícito y aun así sujeto a la lista negra). Comprueba variables de cliente (VITE_*) y de servidor (SUPABASE_*).
