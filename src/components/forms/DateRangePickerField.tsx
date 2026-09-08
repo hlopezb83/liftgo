@@ -193,15 +193,17 @@ function RangeDialogBody({
   return (
     // El ancho se fija (no `max-w-fit`) para que el diálogo no se re-centre
     // al cambiar la etiqueta viva: el reflow provocaba clics inestables.
-    <DialogContent className="w-fit min-w-[22rem] max-w-[95vw] p-0 gap-0">
-      <DialogHeader className="px-5 pt-5 pb-3 border-b">
+    // V26-05: `min-w-[22rem]` (352px) ganaba a `max-w-[95vw]` y a 320px el
+    // diálogo se salía de pantalla. El mínimo ahora está acotado al viewport.
+    <DialogContent className="w-fit min-w-[min(22rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0 gap-0">
+      <DialogHeader className="px-4 pt-5 pb-3 border-b sm:px-5">
         <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
-        <p className="text-sm text-muted-foreground font-mono mt-1 h-5 whitespace-nowrap overflow-hidden">
+        <p className="text-sm text-muted-foreground font-mono mt-1 h-5 whitespace-nowrap overflow-hidden text-ellipsis">
           {liveLabel}
         </p>
 
       </DialogHeader>
-      <div className="p-3">
+      <div className="p-2 sm:p-3 overflow-x-auto">
         <Calendar
           mode="range"
           selected={localRange}
