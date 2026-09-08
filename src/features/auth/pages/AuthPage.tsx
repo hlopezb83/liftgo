@@ -122,24 +122,13 @@ export default function AuthPage() {
           )}
         </CardHeader>
         <CardContent>
-          {recovery === "error" ? (
-            <div className="space-y-3 text-center">
-              <p role="alert" className="text-sm text-destructive">
-                El enlace para restablecer tu contraseña es inválido o ya expiró.
-                Solicita uno nuevo para continuar.
-              </p>
-              <Button
-                className="w-full touch:min-h-11"
-                onClick={() => { endRecovery(); setMode("forgot"); }}
-              >
-                Solicitar un enlace nuevo
-              </Button>
-            </div>
-          ) : recovery === "pending" ? (
-            <p className="text-sm text-center text-muted-foreground">
-              Validando tu enlace de recuperación…
-            </p>
+          {recovery === "error" || recovery === "pending" ? (
+            <RecoveryNotice
+              status={recovery}
+              onRequestNew={() => { endRecovery(); setMode("forgot"); }}
+            />
           ) : (
+
             <AuthForm
               mode={mode}
               email={email}
