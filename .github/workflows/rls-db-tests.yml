@@ -10,7 +10,6 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
-      - "src/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
@@ -18,7 +17,6 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
-      - "src/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
@@ -160,6 +158,13 @@ jobs:
             --junit reports/sql-smoke-junit.xml \
             --suite-name "SQL smoke" \
             --mode smoke
+
+      # Los smoke autocontenidos (fixtures propias + ROLLBACK) NO son
+      # informativos: su fallo es real y rompe el job. Lista explícita en
+      # supabase/tests/selfcontained.txt — sin exclusiones genéricas.
+      - name: Smoke SQL autocontenidos (bloqueante)
+        if: always()
+        run: python3 scripts/check-selfcontained-smoke.py reports/sql-smoke-junit.xml supabase/tests/selfcontained.txt
 
       - name: Upload SQL reports
         if: always()

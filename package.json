@@ -20,7 +20,11 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
+    "test:e2e:smoke": "playwright test --config playwright.smoke.config.ts",
+    "test:functions": "bash scripts/deno-tests-offline.sh",
+    "changelog:check": "bun scripts/validate-changelog.ts",
     "knip": "knip",
+
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write ."
   },

@@ -18,8 +18,11 @@
  * proyectos distintos.
  */
 
+import { readFileSync } from "node:fs";
+
 /** Ref del proyecto PRODUCTIVO. Confirmado por el usuario: no es staging. */
 export const PRODUCTION_PROJECT_REFS = ["zxefrzfaynnfwazqhwxp"] as const;
+
 
 const TARGET_ENV_VARS = [
   "VITE_SUPABASE_URL",
@@ -30,6 +33,51 @@ const TARGET_ENV_VARS = [
 ] as const;
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "host.docker.internal"]);
+
+/** Ficheros que `apiAuth.envVar()` usa como fallback y que el guard debe auditar. */
+const DOTENV_FILES = [".env", ".env.local"] as const;
+
+function readDotenv(file: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  let raw: string;
+  try {
+    raw = readFileSync(file, "utf8");
+  } catch {
+    return out; // Ausente en CI: se esperan env vars inyectadas.
+  }
+  for (const line of raw.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const idx = trimmed.indexOf("=");
+    if (idx === -1) continue;
+    const key = trimmed.slice(0, idx).trim();
+    const value = trimmed.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
+    if (value) out[key] = value;
+  }
+  return out;
+}
+
+/**
+ * Destinos efectivos: env vars del proceso MÁS el `.env` del repo. El fallback a
+ * `.env` existe en `apiAuth.envVar()`, así que sin auditarlo aquí un `.env` con
+ * la URL productiva pasaba el guard y luego se usaba para conectarse.
+ */
+export function collectConfiguredTargets(): Array<readonly [string, string]> {
+  const out: Array<readonly [string, string]> = [];
+  for (const name of TARGET_ENV_VARS) {
+    const value = process.env[name];
+    if (value) out.push([name, value] as const);
+  }
+  for (const file of DOTENV_FILES) {
+    const parsed = readDotenv(file);
+    for (const name of TARGET_ENV_VARS) {
+      if (process.env[name]) continue; // La env var explícita gana; ya auditada arriba.
+      const value = parsed[name];
+      if (value) out.push([`${name} (${file})`, value] as const);
+    }
+  }
+  return out;
+}
 
 function forbiddenRefs(): string[] {
   const extra = (process.env.E2E_FORBIDDEN_PROJECT_REFS ?? "")
@@ -43,6 +91,7 @@ function isLocalHostname(hostname: string): boolean {
   const h = hostname.toLowerCase();
   return LOCAL_HOSTS.has(h) || h.endsWith(".local") || h.endsWith(".internal");
 }
+
 
 function fail(context: string, reason: string): never {
   throw new Error(
@@ -60,9 +109,7 @@ function fail(context: string, reason: string): never {
  * puntos de entrada con escritura, antes de cualquier petición.
  */
 export function assertNonProductionBackend(context: string): void {
-  const configured = TARGET_ENV_VARS.map((name) => [name, process.env[name]] as const).filter(
-    (entry): entry is readonly [string, string] => Boolean(entry[1]),
-  );
+  const configured = collectConfiguredTargets();
 
   // 2. Lista negra explícita del ref productivo (antes que cualquier otra cosa).
   const refs = forbiddenRefs();
@@ -75,7 +122,8 @@ export function assertNonProductionBackend(context: string): void {
   }
 
   // 1. Destino obligatorio.
-  const urls = configured.filter(([name]) => name.endsWith("_URL"));
+  const urls = configured.filter(([name]) => name.split(" ")[0].endsWith("_URL"));
+
   if (urls.length === 0) {
     fail(context, "no hay ninguna URL de Supabase configurada para las pruebas.");
   }

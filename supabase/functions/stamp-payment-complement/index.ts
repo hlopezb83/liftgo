@@ -411,11 +411,9 @@ Deno.serve(async (req) => {
     // usa la MISMA normalización que stamp-cfdi/stamp-credit-note (mayúsculas,
     // sin acentos, sin régimen societario). Para receptores con RFC real no se
     // cae a "Público General": eso garantiza el rechazo del PAC.
-    const repLegalName = repIsGlobal
-      ? "PUBLICO EN GENERAL"
-      : sanitizeLegalName(
-        String(invoice.receptor_razon_social ?? invoice.customer_name ?? ""),
-      );
+    const repLegalName = repIsGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
+      String(invoice.receptor_razon_social ?? invoice.customer_name ?? ""),
+    );
     if (!repIsGlobal && !repLegalName) {
       const msg =
         "Falta la razón social del receptor. Captúrala en el cliente o en la factura, tal como está registrada en el SAT, antes de timbrar el complemento de pago.";
@@ -437,7 +435,6 @@ Deno.serve(async (req) => {
       },
       complements: [{ type: "pago", data: [dataEntry] }],
     };
-
 
     const client = createFacturapiClient(apiKey);
     let repInvoice: {
@@ -472,10 +469,14 @@ Deno.serve(async (req) => {
       await failAfterClaim("error", desc.detail.slice(0, 1000));
       // El mensaje del SAT/PAC se expone tal cual: "Facturapi error: 400" no
       // le decía al usuario que el problema era la razón social del receptor.
-      return jsonError(req, 502, desc.message || `Facturapi error: ${desc.status}`, {
-        detail: desc.detail,
-      });
-
+      return jsonError(
+        req,
+        502,
+        desc.message || `Facturapi error: ${desc.status}`,
+        {
+          detail: desc.detail,
+        },
+      );
     }
 
     const repId = repInvoice.id;

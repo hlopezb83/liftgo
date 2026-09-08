@@ -4,56 +4,49 @@ updates:
   #
   # v7.297.2 — antes era "npm". Dependabot npm actualiza package.json pero NO
   # regenera `bun.lock`, así que `bun install --frozen-lockfile` (en
-  # .github/actions/setup-bun-project) reventaba en TODOS los PRs de deps y
-  # tumbaba changelog-check. El ecosistema "bun" sí entiende el
-  # lockfile de texto `bun.lock` (lockfileVersion 1) y lo regenera en el mismo
-  # commit del PR.
+  # .github/actions/setup-bun-project) reventaba en TODOS los PRs de deps.
+  # El ecosistema "bun" sí entiende el lockfile de texto `bun.lock`
+  # (lockfileVersion 1) y lo regenera en el mismo commit del PR.
   #
-  # Si en algún momento Dependabot dejara de resolver "bun", la alternativa es
-  # volver a "npm" y añadir un paso de re-lock; mientras tanto, el `if:` de
-  # dependabot en changelog-check.yml es la red de seguridad.
+  # Cadencia MENSUAL y agrupada: semanal con 5 PRs abiertos generaba más
+  # revisiones y más corridas de CI que valor. Las vulnerabilidades reales no
+  # esperan a la cadencia — Dependabot abre security updates aparte.
   - package-ecosystem: "bun"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "06:00"
       timezone: "America/Monterrey"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 2
     labels:
       - "dependencies"
-    # Títulos/commits tipo "chore(deps): bump ..." (Conventional Commits).
     commit-message:
       prefix: "chore"
       include: "scope"
     groups:
-      dev-minor-patch:
+      # Un solo PR para desarrollo y otro para producción: menos ruido y menos
+      # corridas de CI que un PR por paquete.
+      dev-dependencies:
         dependency-type: "development"
-        update-types:
-          - "minor"
-          - "patch"
-      prod-patch:
+        update-types: ["minor", "patch"]
+      prod-dependencies:
         dependency-type: "production"
-        update-types:
-          - "patch"
-    # v7.302.4 — ignorar TypeScript 7.x hasta que typescript-eslint lo soporte;
-    # el PR "Bump typescript to 7.0.2" rompe el job ESLint. Menores/parches de
-    # la línea 6.x siguen permitidos.
+        update-types: ["minor", "patch"]
+    # v7.302.4 — ignorar TypeScript 7.x hasta que typescript-eslint lo soporte.
     ignore:
       - dependency-name: "typescript"
         versions: [">= 7"]
-    # v7.219.0 (M3): removidos ignores de jspdf/jspdf-autotable — la app ya
-    # no depende de ellos (migrada a @react-pdf en Ola anterior).
 
-  # GitHub Actions: mantener actions/* y setup-* actualizados
+  # GitHub Actions: un único PR agrupado al mes.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
       day: "monday"
       time: "06:00"
       timezone: "America/Monterrey"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 1
     labels:
       - "ci"
       - "dependencies"
@@ -61,7 +54,5 @@ updates:
       prefix: "chore"
       include: "scope"
     groups:
-      actions-minor-patch:
-        update-types:
-          - "minor"
-          - "patch"
+      actions:
+        update-types: ["minor", "patch"]

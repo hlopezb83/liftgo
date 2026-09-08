@@ -11,6 +11,7 @@
     "supabase/functions/**/handler.ts",
     "supabase/functions/**/*_test.ts",
     "playwright.config.ts",
+    "playwright.smoke.config.ts",
     "vite.config.ts"
   ],
   "project": ["src/**", "scripts/**", "supabase/functions/**"],
@@ -18,9 +19,9 @@
     "src/components/ui/**",
     "supabase/functions/_shared/**",
     "src/integrations/supabase/types.ts",
-    "supabase/tests/**",
-    "scripts/check-version.mjs"
+    "supabase/tests/**"
   ],
+
   "ignoreDependencies": [
     "lovable-tagger",
     "tailwindcss-animate",
