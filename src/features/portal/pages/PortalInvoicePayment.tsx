@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router";
+import { useParams } from "@/lib/router-compat";
 import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";

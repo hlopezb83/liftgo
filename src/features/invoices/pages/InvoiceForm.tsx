@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { useWatch } from "react-hook-form";
-import { useParams, useSearchParams } from "react-router";
+import { useParams, useSearchParams } from "@/lib/router-compat";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";

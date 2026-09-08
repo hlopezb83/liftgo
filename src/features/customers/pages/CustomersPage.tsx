@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/lib/router-compat";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { AddIcon, UsersIcon } from "@/components/icons";

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/lib/router-compat";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";

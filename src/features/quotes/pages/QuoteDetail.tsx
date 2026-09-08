@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useParams } from "@/lib/router-compat";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";

@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation } from "@/lib/router-compat";
 import { BrandMark } from "@/components/BrandMark";
 import { LogOut, Menu, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";

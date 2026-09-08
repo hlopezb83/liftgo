@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router";
+import { Link } from "@/lib/router-compat";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { OpenLinkIcon } from "@/components/icons";
 import { APP_LOCALE } from "@/lib/format/dateFormats";

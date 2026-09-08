@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "@/lib/router-compat";
 
 /**
  * v7 Data Router envuelve automáticamente cada navegación en `startTransition`

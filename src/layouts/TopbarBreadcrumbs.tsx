@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "@/lib/router-compat";
 import { ChevronRightIcon, HomeIcon } from "@/components/icons";
 import { useBreadcrumbEntityLabel } from "@/layouts/hooks/useBreadcrumbEntityLabel";
 

@@ -1,4 +1,4 @@
-import { useParams, useSearchParams } from "react-router";
+import { useParams, useSearchParams } from "@/lib/router-compat";
 import { useBookings } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";

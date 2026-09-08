@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useBlocker } from "react-router";
+import { useBlocker } from "@/lib/router-compat";
 import { useConfirm } from "@/components/feedback/useConfirm";
 
 /**

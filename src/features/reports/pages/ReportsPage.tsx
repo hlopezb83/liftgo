@@ -1,6 +1,6 @@
 import { subMonths } from "date-fns";
 import { useState } from "react";
-import { useSearchParams } from "react-router";
+import { useSearchParams } from "@/lib/router-compat";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";

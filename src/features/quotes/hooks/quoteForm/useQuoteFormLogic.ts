@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { useParams } from "react-router";
+import { useParams } from "@/lib/router-compat";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";

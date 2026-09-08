@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link } from "react-router";
+import { Link } from "@/lib/router-compat";
 import {
   DataTableV2,
   useLiftgoTable,

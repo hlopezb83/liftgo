@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useLocation } from "react-router";
+import { useLocation } from "@/lib/router-compat";
 import { deriveFlow, sanitizeRoute } from "@/lib/observability/routeContext";
 import { Sentry } from "@/lib/observability/sentry";
 
