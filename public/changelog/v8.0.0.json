@@ -1,0 +1,16 @@
+{
+  "version": "8.0.0",
+  "date": "2026-09-08",
+  "type": "major",
+  "category": "refactor",
+  "title": "Migración a TanStack Start (SSR)",
+  "description": "La aplicación migró del stack Classic (Vite + React Router) a TanStack Start con renderizado en servidor. Todas las pantallas, permisos y reglas de negocio se conservan sin cambios; las páginas ahora se sirven pre-renderizadas desde el servidor.",
+  "changes": [
+    "62 rutas migradas a archivos TanStack Router con los mismos guards de acceso (AuthGuard, RoleGuard, AdminRouteGuard) verificados mecánicamente uno a uno.",
+    "Los alias históricos (/expenses, /payments, /prospects, /availability, /cash-flow, /conciliacion, /bank-reconciliation, /customers/new) siguen redirigiendo igual.",
+    "El portal de clientes conserva sus 11 vistas y su login independiente en /portal/login.",
+    "Metadatos SEO, favicon, fuentes y monitoreo de errores (Sentry) portados al nuevo árbol raíz; tema visual conservado (147 estilos verificados).",
+    "Los 23 servicios backend (timbrado CFDI, invitaciones, tareas programadas) permanecen sin cambios de URL ni de comportamiento.",
+    "Corrección del banner 'Sin conexión' para el renderizado en servidor (evita discrepancia de hidratación)."
+  ]
+}
