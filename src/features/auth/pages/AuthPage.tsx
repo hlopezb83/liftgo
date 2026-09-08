@@ -10,8 +10,9 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useLocation } from "@/lib/router-compat";
 import { dismissAuthError, notifyAuthError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
+import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
 import { useRecoveryStatus } from "../hooks/useRecoveryStatus";
-import { endRecovery } from "../recoverySession";
+import { endRecovery, markRecoveryActive } from "../recoverySession";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
@@ -34,6 +35,9 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const currentVersion = useCurrentVersion();
+
+  // Evento del SDK con la página ya montada (además del store en arranque frío).
+  useAuthPasswordRecoveryListener(markRecoveryActive);
 
   // AUTH-REC-01: el modo sigue al estado del flujo (estado derivado en render,
   // no un efecto tardío que dejaría un frame con el formulario equivocado).
