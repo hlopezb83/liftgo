@@ -30,12 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setIsLoading(false);
-      // AUTH-REC-01: la sesión creada por un enlace de recuperación NO debe
-      // tratarse como un login normal. `PASSWORD_RECOVERY` puede no llegar si
-      // el SDK consumió el fragmento antes del montaje, así que también se
-      // confirma cuando aparece sesión con una recuperación ya detectada.
+      // AUTH-REC-01 / P1: SÓLO `PASSWORD_RECOVERY` confirma la recuperación.
+      // Una sesión cualquiera (incluida una previa de otro usuario que el SDK
+      // conserva cuando el enlace falla) NO autoriza cambiar la contraseña.
       if (_event === "PASSWORD_RECOVERY") markRecoveryActive();
-      else if (nextSession && getRecoveryStatus() === "pending") markRecoveryActive();
       // Hallazgo 3: con sesión válida establecida, el error de un intento
       // fallido previo ya no aplica — se descarta obligatoriamente aquí.
       if (nextSession) dismissAuthError();
@@ -48,8 +46,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         setIsLoading(false);
-        if (initialSession && getRecoveryStatus() === "pending") markRecoveryActive();
       })
+
       .catch(() => setIsLoading(false));
 
     return () => subscription.unsubscribe();
