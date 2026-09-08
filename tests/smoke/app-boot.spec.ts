@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { classifyConsoleError, normalizeUrl } from "./consoleNoise";
 
 /**
  * Smoke de arranque contra el build REAL. No hay backend ni credenciales: se
@@ -8,20 +9,18 @@ import { expect, test, type Page, type Route } from "@playwright/test";
  * ningún otro check.
  */
 
-/** Destino ficticio con el que se compiló el bundle del smoke. */
-const FAKE_BACKEND_HOST = "127.0.0.1:54321";
-
 /**
  * Corta cualquier petición que salga del origen EXACTO de la app. El build del
  * smoke apunta a un Supabase inexistente a propósito; esto garantiza además
  * que la prueba no puede tocar un backend real ni depender de red.
  *
  * Solo se bloquea red externa: los scripts y assets de la aplicación se sirven
- * y se ejecutan tal cual salen del empaquetado. Devuelve la lista de URLs
- * abortadas para poder distinguir su ruido del de un asset propio roto.
+ * y se ejecutan tal cual salen del empaquetado. Devuelve el conjunto de URLs
+ * abortadas (normalizadas) para poder correlacionar el ruido de transporte con
+ * una causa demostrable.
  */
-async function blockExternalRequests(page: Page, origin: string): Promise<string[]> {
-  const blocked: string[] = [];
+async function blockExternalRequests(page: Page, origin: string): Promise<Set<string>> {
+  const blocked = new Set<string>();
   await page.route("**/*", (route: Route) => {
     const url = route.request().url();
     if (url.startsWith("data:") || url.startsWith("blob:")) return route.continue();
@@ -32,39 +31,36 @@ async function blockExternalRequests(page: Page, origin: string): Promise<string
       sameOrigin = false;
     }
     if (sameOrigin) return route.continue();
-    blocked.push(url);
+    blocked.add(normalizeUrl(url));
     return route.abort();
   });
   return blocked;
 }
 
 /**
- * Ruido esperado: solo el atribuible al backend ficticio o a una petición
- * externa que ESTA prueba abortó. Un `Failed to load resource` o un
- * `net::ERR_*` de un script o asset propio de la app SÍ debe hacer fallar: es
- * exactamente el tipo de fallo de empaquetado que este smoke persigue.
+ * Instala los colectores de error. El texto del error de transporte de
+ * Chromium no incluye la URL, así que la atribución sale de
+ * `msg.location().url`; ver `consoleNoise.ts` para la regla completa.
  */
-function isExpectedBackendNoise(text: string, blocked: string[]): boolean {
-  if (text.includes(FAKE_BACKEND_HOST)) return true;
-  if (/AuthRetryableFetchError/.test(text)) return true;
-  return blocked.some((url) => text.includes(url));
-}
-
-/** Instala los colectores de error y devuelve las listas para aserción final. */
 function collectErrors(
   page: Page,
-  blocked: string[],
+  blocked: ReadonlySet<string>,
+  origin: string,
 ): { pageErrors: string[]; consoleErrors: string[] } {
   const pageErrors: string[] = [];
   const consoleErrors: string[] = [];
   page.on("pageerror", (err) => pageErrors.push(err.message));
   page.on("console", (msg) => {
-    if (msg.type() === "error" && !isExpectedBackendNoise(msg.text(), blocked)) {
-      consoleErrors.push(msg.text());
-    }
+    if (msg.type() !== "error") return;
+    const verdict = classifyConsoleError(
+      { text: msg.text(), url: msg.location().url || undefined },
+      { origin, blocked },
+    );
+    if (!verdict.ignored) consoleErrors.push(verdict.diagnostic);
   });
   return { pageErrors, consoleErrors };
 }
+
 
 
 /** Comprobaciones comunes de arranque: SSR con contenido + hidratación real. */
@@ -83,8 +79,9 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   page,
   baseURL,
 }) => {
-  const blocked = await blockExternalRequests(page, new URL(baseURL!).origin);
-  const { pageErrors, consoleErrors } = collectErrors(page, blocked);
+  const origin = new URL(baseURL!).origin;
+  const blocked = await blockExternalRequests(page, origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked, origin);
 
 
   const response = await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -130,8 +127,9 @@ test("portal de clientes: carga y navega entre modos del formulario", async ({
   page,
   baseURL,
 }) => {
-  const blocked = await blockExternalRequests(page, new URL(baseURL!).origin);
-  const { pageErrors, consoleErrors } = collectErrors(page, blocked);
+  const origin = new URL(baseURL!).origin;
+  const blocked = await blockExternalRequests(page, origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked, origin);
 
 
   const response = await page.goto("/portal/login", { waitUntil: "domcontentloaded" });

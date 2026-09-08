@@ -67,9 +67,15 @@ remoto se rechaza y `reuseExistingServer` está siempre en `false`. Con
 `SMOKE_REUSE_BUILD=1` se inspecciona `dist/` antes de arrancar: si contiene un
 ref productivo o le falta el destino ficticio, la corrida aborta.
 
-El filtro de ruido de consola se acota al destino ficticio y a las URLs externas
-que el propio spec abortó; un `Failed to load resource` o un `net::ERR_*` de un
-script o asset **propio** falla la prueba.
+El filtro de ruido de consola vive en `tests/smoke/consoleNoise.ts`. El texto
+del error de transporte de Chromium (`Failed to load resource: net::ERR_*`) no
+incluye la URL, así que la atribución se toma de `ConsoleMessage.location().url`
+y se correlaciona con las URLs exactas que el propio spec abortó. Solo eso se
+ignora: un asset del **propio origen** con el mismo texto, un error sin URL
+atribuible, una URL externa que la prueba no bloqueó y cualquier error que no
+sea de transporte (`Failed to fetch`, Supabase, React/hidratación) fallan.
+Cubierto por `src/test/smokeConsoleNoise.test.ts`.
+
 
 
 ### Vitest en un solo runner
