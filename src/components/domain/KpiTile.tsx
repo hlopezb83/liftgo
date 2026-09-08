@@ -113,7 +113,10 @@ export function KpiTile({
                 (Días de Cobro)") se truncaban en desktop — se permite wrap de
                 hasta 2 líneas y se conserva el title accesible por si aún se
                 recortara en pantallas muy angostas. */}
-            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight line-clamp-2" title={label}>
+            {/* V26-06: se reserva la altura de 2 líneas (2 × leading-tight)
+                para que el valor arranque a la misma altura en todas las
+                tarjetas, sin truncar ni ocultar títulos largos. */}
+            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight line-clamp-2 min-h-[2.5em]" title={label}>
               {label}
             </p>
             <p className={valueClass} title={isPrimitive ? String(value) : undefined}>
