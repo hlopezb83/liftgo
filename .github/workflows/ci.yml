@@ -493,6 +493,32 @@ jobs:
         if: steps.playwright-cache.outputs.cache-hit == 'true'
         run: bunx playwright install-deps chromium
 
+      # PRECONDICIÓN FAIL-CLOSED: las E2E escriben en la base (seed, purge,
+      # company_settings). El proyecto Supabase de la app es PRODUCCIÓN, así que
+      # este job solo puede correr contra un backend aislado declarado
+      # explícitamente. Sin él, el job FALLA con la precondición faltante:
+      # no se silencian tests ni se declara verde.
+      - name: Precondición — backend E2E aislado
+        env:
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          PROD_REF: zxefrzfaynnfwazqhwxp
+        run: |
+          if [ -z "${E2E_SUPABASE_URL}" ]; then
+            echo "::error::PRECONDICIÓN FALTANTE: no hay backend E2E aislado configurado (secret E2E_SUPABASE_URL)."
+            echo "::error::Las E2E escriben en la base y el proyecto de la app es PRODUCCIÓN. Job detenido a propósito."
+            exit 1
+          fi
+          case "${E2E_SUPABASE_URL}" in
+            *"${PROD_REF}"*)
+              echo "::error::E2E_SUPABASE_URL apunta al proyecto PRODUCTIVO. Job detenido."
+              exit 1;;
+          esac
+          # Destino del CLIENTE: el bundle descargado no puede hablar con producción.
+          if grep -rql "${PROD_REF}" dist/client 2>/dev/null; then
+            echo "::error::El bundle dist/client fue compilado contra PRODUCCIÓN. Recompila el artefacto E2E con el backend aislado."
+            exit 1
+          fi
+
       - name: Run E2E tests (shard ${{ matrix.shard }}/${{ matrix.total }})
         env:
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
@@ -502,12 +528,13 @@ jobs:
           SHARD_INDEX: ${{ matrix.shard }}
           SHARD_TOTAL: ${{ matrix.total }}
           E2E_REUSE_BUILD: "1"
-          # Vite necesita estas variables en build time para embeber el cliente
-          # de Supabase en el bundle. Sin ellas las E2E fallan de forma opaca.
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          # Backend AISLADO (nunca los secretos productivos VITE_SUPABASE_*).
+          E2E_ISOLATED_BACKEND: "1"
+          VITE_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.E2E_SUPABASE_PROJECT_ID }}
         run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
+
 
       - name: Upload Playwright HTML report
         if: always()
