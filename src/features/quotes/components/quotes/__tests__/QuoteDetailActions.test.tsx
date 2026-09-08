@@ -128,9 +128,18 @@ describe("QuoteDetailActions · bloqueos explicables (lote 3)", () => {
     expect(onSetStatus).not.toHaveBeenCalled();
   });
 
+  // V26-08: la acción útil es "Ver reserva"; la CTA deshabilitada
+  // "Ya convertida a Reserva" se retiró por redundante con el badge de estado.
   it("ofrece 'Ver reserva' cuando la cotización ya fue convertida", async () => {
     renderActions(vi.fn(), quote, { alreadyConverted: true, linkedBookingId: "b-1" });
-    expect(await screen.findByRole("button", { name: /ya convertida a reserva/i })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /ver reserva/i })).toBeInTheDocument();
+    const ver = await screen.findByRole("button", { name: /ver reserva/i });
+    expect(ver).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /ya convertida a reserva/i })).toBeNull();
+  });
+
+  it("sin reserva ligada conserva el aviso de estado convertida", async () => {
+    renderActions(vi.fn(), quote, { alreadyConverted: true, linkedBookingId: null });
+    expect(await screen.findByText(/ya convertida a reserva/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /convertir a reserva/i })).toBeNull();
   });
 });
