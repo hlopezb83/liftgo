@@ -17,6 +17,7 @@
   "ignore": [
     "src/components/ui/**",
     "supabase/functions/_shared/**",
+    "src/integrations/supabase/types.ts",
     "supabase/tests/**",
     "scripts/check-version.mjs"
   ],
