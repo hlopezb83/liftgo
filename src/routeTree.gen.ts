@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as PortalRouteImport } from './routes/_portal'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as V26DateLayoutRouteImport } from './routes/v26-date-layout'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSplatRouteImport } from './routes/_main/$'
 import { Route as MainAccountsPayableRouteImport } from './routes/_main/accounts-payable'
@@ -106,6 +107,11 @@ const PortalRoute = PortalRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const V26DateLayoutRoute = V26DateLayoutRouteImport.update({
+  id: '/v26-date-layout',
+  path: '/v26-date-layout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
@@ -532,6 +538,7 @@ const PortalPortalInvoicesIdPagoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
   '/auth': typeof AuthRoute
+  '/v26-date-layout': typeof V26DateLayoutRoute
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -617,6 +624,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
   '/auth': typeof AuthRoute
+  '/v26-date-layout': typeof V26DateLayoutRoute
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -704,6 +712,7 @@ export interface FileRoutesById {
   '/_main': typeof MainRouteWithChildren
   '/_portal': typeof PortalRouteWithChildren
   '/auth': typeof AuthRoute
+  '/v26-date-layout': typeof V26DateLayoutRoute
   '/_main/$': typeof MainSplatRoute
   '/_main/accounts-payable': typeof MainAccountsPayableRoute
   '/_main/activity': typeof MainActivityRoute
@@ -792,6 +801,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/v26-date-layout'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -877,6 +887,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/v26-date-layout'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -963,6 +974,7 @@ export interface FileRouteTypes {
     | '/_main'
     | '/_portal'
     | '/auth'
+    | '/v26-date-layout'
     | '/_main/$'
     | '/_main/accounts-payable'
     | '/_main/activity'
@@ -1051,6 +1063,7 @@ export interface RootRouteChildren {
   MainRoute: typeof MainRouteWithChildren
   PortalRoute: typeof PortalRouteWithChildren
   AuthRoute: typeof AuthRoute
+  V26DateLayoutRoute: typeof V26DateLayoutRoute
   PortalLoginRoute: typeof PortalLoginRoute
 }
 
@@ -1075,6 +1088,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/v26-date-layout': {
+      id: '/v26-date-layout'
+      path: '/v26-date-layout'
+      fullPath: '/v26-date-layout'
+      preLoaderRoute: typeof V26DateLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main/': {
@@ -1838,6 +1858,7 @@ const rootRouteChildren: RootRouteChildren = {
   MainRoute: MainRouteWithChildren,
   PortalRoute: PortalRouteWithChildren,
   AuthRoute: AuthRoute,
+  V26DateLayoutRoute: V26DateLayoutRoute,
   PortalLoginRoute: PortalLoginRoute,
 }
 export const routeTree = rootRouteImport
