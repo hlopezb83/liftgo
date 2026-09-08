@@ -32,6 +32,7 @@ vi.mock("@supabase/supabase-js", () => ({
 import { createServerFn } from "@tanstack/react-start";
 import { createClientRpc } from "@tanstack/react-start/client-rpc";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { runWithStartContext } from "@tanstack/start-storage-context";
 import { startInstance } from "@/start";
 
 type ServerMw = (ctx: { next: (o?: unknown) => unknown }) => Promise<{ context: { userId: string } }>;
@@ -70,6 +71,15 @@ const callFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { note: string }) => data)
   .handler(createClientRpc("src_lib_test--transportFn") as never, business as never);
+
+/**
+ * Invoca la server function con las opciones GLOBALES reales de Start
+ * (las de `src/start.ts`), tal como las resuelve el runtime.
+ */
+async function call(data: { note: string }, startOptions?: unknown) {
+  const options = startOptions ?? (await startInstance.getOptions());
+  return runWithStartContext({ startOptions } as never, () => callFn({ data })) as Promise<unknown>;
+}
 
 function authHeaderSentToReceiver(): string | null {
   return interceptedRequest?.headers.get("authorization") ?? null;
