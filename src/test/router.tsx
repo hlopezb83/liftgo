@@ -34,13 +34,16 @@ export function TestRouter({
   const router = useMemo(() => {
     const rootRoute = createRootRoute({ component: () => <Outlet /> });
     const render = () => <>{children}</>;
-    const routes = [
+    // Los tipos de rutas de TanStack son literales por path; en pruebas
+    // construimos el árbol dinámicamente, así que relajamos el tipado aquí.
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    const routes: any[] = [
       createRoute({ getParentRoute: () => rootRoute, path: "/", component: render }),
       createRoute({ getParentRoute: () => rootRoute, path: "$", component: render }),
     ];
     if (path) {
       routes.push(
-        createRoute({ getParentRoute: () => rootRoute, path, component: render }),
+        createRoute({ getParentRoute: () => rootRoute, path: path as any, component: render }),
       );
     }
     return createRouter({
