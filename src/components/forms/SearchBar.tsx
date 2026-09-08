@@ -74,7 +74,9 @@ export function SearchBar({
       <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         ref={inputRef}
+        type="search"
         placeholder={placeholder}
+        aria-label={ariaLabel ?? placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
         className={captureCtrlK ? "pl-9 pr-16" : "pl-9"}
