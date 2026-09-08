@@ -22,9 +22,12 @@ export function DataTablePaginationV2<T>({ table }: Props<T>) {
   // dataVersion (contenido) invalida el memo del compiler por sí solo.
   return (
     // R24-B: el paginador no se imprime (la tabla sale completa multipágina).
-    <div className="flex items-center justify-between gap-3 px-2 no-print">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-        <span>Filas por página</span>
+    // V26-01: a 320/390px el pie no cabía en una sola fila (scrollWidth 541 >
+    // clientWidth 380) y "Siguiente" quedaba fuera de pantalla. En móvil se
+    // apila selector+rango sobre la navegación; desde `sm` vuelve a una fila.
+    <div className="flex flex-col gap-2 px-2 no-print sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
+        <span className="whitespace-nowrap">Filas por página</span>
         <Select
           value={String(pageSize)}
           onValueChange={(v) => table.setPageSize(Number(v))}
@@ -39,7 +42,7 @@ export function DataTablePaginationV2<T>({ table }: Props<T>) {
             ))}
           </SelectContent>
         </Select>
-        <span>
+        <span className="whitespace-nowrap">
           {rangeStart}–{rangeEnd} de {totalRows}
         </span>
       </div>
