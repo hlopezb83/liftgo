@@ -71,10 +71,11 @@ export default defineConfig({
     ? undefined
     : {
         // E2E_REUSE_BUILD=1 (CI, Fase 5.1): el `dist/` ya viene del job `build`,
-        // así que solo se sirve con `vite preview` en vez de recompilar aquí.
+        // así que solo se sirve con `wrangler dev` (preset cloudflare-module del
+        // build SSR) en vez de recompilar aquí. `vite preview` ya no aplica.
         command: process.env.E2E_REUSE_BUILD
-          ? "bun run preview --port 4173 --strictPort"
-          : "bun run build && bun run preview --port 4173 --strictPort",
+          ? "bun run preview"
+          : "bun run build && bun run preview",
         url: baseURL,
         timeout: 180_000,
         reuseExistingServer: !process.env.CI,
