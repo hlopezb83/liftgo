@@ -1,5 +1,23 @@
 [
   {
+    "version": "8.1.2",
+    "date": "2026-09-08",
+    "type": "patch",
+    "category": "ui",
+    "title": "Pantallas más legibles en celular y menús accesibles con teclado",
+    "description": "Ajustes visuales y de accesibilidad: el pie de las tablas ya cabe en pantallas pequeñas, los grupos del menú lateral se usan con teclado, el filtro de fechas muestra su etiqueta y los buscadores tienen nombre propio.",
+    "changes": [
+      "Facturas: el pie de la tabla ya no se sale de la pantalla en celular; en móvil muestra 'Anterior / página actual de total / Siguiente' y en escritorio conserva la numeración.",
+      "Menú lateral: los grupos (Dinero, etc.) son botones reales, se alcanzan con Tab y se abren con Enter o Espacio.",
+      "Filtro de fechas de Facturas: etiqueta visible 'Fecha de emisión', más ancho para leer dd/mm/aaaa y nombres completos para inicio, fin y calendario.",
+      "Buscadores de Reservas, Clientes, Facturas, Cotizaciones y Equipos: nombre accesible aunque ya haya texto escrito.",
+      "Calendario de Período de Renta: el diálogo se ajusta a pantallas de 320 px sin recortarse.",
+      "Panel: las tarjetas financieras quedan a la misma altura y con títulos y cifras alineados.",
+      "Nueva cotización: bloques de Tipo de Cotización y Cliente más compactos para ver antes equipo y tarifas.",
+      "Cotizaciones convertidas: 'Ver reserva' es la acción principal, se quitó el botón deshabilitado redundante y Eliminar baja de énfasis (mismos permisos y confirmación)."
+    ]
+  },
+  {
     "version": "8.1.0",
     "date": "2026-09-08",
     "type": "minor",
