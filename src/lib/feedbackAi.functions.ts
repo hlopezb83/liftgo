@@ -178,14 +178,19 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     };
 
     // N-46: no pisar overrides manuales de severity/module.
-    const updatePayload: Record<string, unknown> = { context_json: newContext };
-    if (report.severity == null) updatePayload["severity"] = classification.severity;
+    const updatePayload: {
+      context_json: typeof newContext;
+      severity?: string;
+      module?: string;
+    } = { context_json: newContext };
+    if (report.severity == null) updatePayload.severity = classification.severity;
     if (
       report.module == null || report.module === "" ||
       report.module === "Sin clasificar"
     ) {
-      updatePayload["module"] = classification.module;
+      updatePayload.module = classification.module;
     }
+
 
     const { data: updated, error: updateErr } = await admin
       .from("feedback_reports")
