@@ -1,60 +1,32 @@
 {
-  "$schema": "https://unpkg.com/knip@6/schema.json",
-  "paths": {
-    "/src/*": ["src/*"]
-  },
+  "$schema": "https://unpkg.com/knip@5/schema.json",
   "entry": [
-    "index.html",
-    "src/**/*.{test,spec}.{ts,tsx}",
-    "src/test/**/*.{ts,tsx}",
-    "tests/e2e/**/*.{ts,tsx}",
-    "supabase/functions/**/index.ts"
+    // TanStack Start: entradas reales del build SSR (router/start/server).
+    "src/router.tsx",
+    "src/start.ts",
+    "src/server.ts",
+    "playwright.config.ts",
+    "vite.config.ts"
   ],
-  "project": ["src/**/*.{ts,tsx}"],
+  "project": ["src/**", "scripts/**", "supabase/functions/**"],
   "ignore": [
-    "src/integrations/supabase/**",
     "src/components/ui/**",
-    "src/components/forms/fields/CustomerField.tsx",
-    "src/components/forms/fields/DateRangeField.tsx",
-    "src/components/forms/fields/ForkliftField.tsx",
-    "src/components/forms/fields/index.ts",
-    "src/components/dataTable/v2/index.ts",
-    "src/components/icons/index.ts",
-    "src/features/suppliers/components/suppliers/SupplierSelector.tsx",
-    "src/features/suppliers/lib/queryKeys.ts",
-    "src/features/accounts-payable/hooks/useSupplierBills.ts",
-    "src/lib/domain/errorCatalog.ts",
-    "src/features/crm/lib/constants.ts",
-    "src/components/feedback/CardListSkeleton.tsx",
-    "src/components/feedback/FormSkeleton.tsx",
-    "src/components/layout/DetailLayout.tsx",
-    "src/features/invoices/index.ts",
-    "src/features/portal/hooks/usePaymentIntents.ts",
-    "src/features/portal/hooks/usePortalExtras.ts",
-    "src/features/invoices/hooks/paymentIntents/index.ts",
-    "src/features/crm/hooks/useProspectForm.ts",
-    "src/features/invoices/hooks/invoiceForm/useInvoicePrefill.ts",
-    "src/features/reports/hooks/useIncomeStatementData.ts",
-    "src/features/returns/hooks/returnInspection/useReturnInspectionDialog.ts",
-    "src/features/users/hooks/useUserManagement.ts",
-    "src/hooks/filters/useTableFilters.ts",
-    "src/features/audit/hooks/useActivityMetrics.ts",
-    "src/features/cash-flow/hooks/useCashFlowSettings.ts",
-    "src/features/company-settings/hooks/useBillingSecrets.ts",
-    "src/features/customers/hooks/customers/useCustomerSummary.ts",
-    "src/features/damage/hooks/useDamageRecords.ts",
-    "src/features/dashboard/hooks/useDashboardStats.ts",
-    "src/features/dashboard/hooks/useFinancialKpis.ts",
-    "src/features/dashboard/hooks/useMrrDetail.ts",
-    "src/features/invoices/hooks/useInvoiceFormLogic.ts",
-    "src/features/portal/hooks/usePortalCollectionAccount.ts",
-    "src/features/quotes/hooks/quoteDetail/useQuoteDetailLogic.ts",
-    "src/lib/domain/invoiceHelpers.ts"
+    "supabase/functions/_shared/**",
+    "supabase/tests/**"
   ],
   "ignoreDependencies": [
-    "tailwindcss",
-    "@tailwindcss/typography",
-    "tw-animate-css"
+    "lovable-tagger",
+    "tailwindcss-animate",
+    "tw-animate-css",
+    "@tailwindcss/vite",
+    "vitest-sonner-reporter",
+    "@vitest/coverage-v8",
+    "wrangler"
   ],
-  "ignoreExportsUsedInFile": true
+  "ignoreBinaries": ["knip", "tsc", "tsx", "wrangler"],
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "binaries": "error"
+  }
 }
