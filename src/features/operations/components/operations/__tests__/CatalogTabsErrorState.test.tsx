@@ -50,6 +50,24 @@ vi.mock("@/features/maintenance", () => ({
   useDeleteMaintenancePolicy: idleMutation,
 }));
 
+// Dependencias auxiliares de MaintenancePoliciesTab, ajenas al escenario de
+// error de la query principal: sin estos mocks harían fetch real (la barrera
+// de red del setup las bloquearía). No mockean el componente bajo prueba.
+vi.mock("@/features/bookings", () => ({
+  useBookings: () => idleQueryResult,
+}));
+
+vi.mock("@/features/availability", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/availability")>();
+  return { ...actual, useServerTodayMty: () => "2026-09-08" };
+});
+
+// MaintenanceBufferCard consulta company-settings; no forma parte del
+// comportamiento evaluado (error/reintento de la lista de pólizas).
+vi.mock("../MaintenanceBufferCard", () => ({
+  MaintenanceBufferCard: () => null,
+}));
+
 function createTestQueryClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
 }
