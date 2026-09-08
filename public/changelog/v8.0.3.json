@@ -1,0 +1,12 @@
+{
+  "version": "8.0.3",
+  "date": "2026-09-08",
+  "type": "patch",
+  "category": "infra",
+  "title": "Build en CI genera la misma carpeta dist/ que en local",
+  "description": "El build en GitHub Actions depositaba el resultado en .output/ (la carpeta por defecto del motor de despliegue fuera del entorno de Lovable), así que el paso que empaqueta dist/ fallaba con 'No files were found'. Se fijó la salida a dist/{client,server} para que el build sea idéntico en local, CI y hosting.",
+  "changes": [
+    "vite.config.ts: configuración explícita de salida nitro (preset cloudflare-module, dist/, dist/server/, dist/client/) igual a la que el entorno de Lovable aplica por defecto.",
+    "Verificado con build limpio simulando CI (sin variables del sandbox): dist/client y dist/server/index.mjs se generan correctamente y el build local del sandbox sigue intacto."
+  ]
+}
