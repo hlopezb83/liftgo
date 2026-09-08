@@ -77,13 +77,22 @@ async function receive(url: string, init?: RequestInit): Promise<Response> {
 
 // El plugin de Babel de Start reescribe `.handler(fn)` a
 // `.handler(rpcExtraído, fn)`; en pruebas se emula esa firma post-transform.
-const builder = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: { note: string }) => data);
-const callFn = (builder.handler as unknown as (...args: unknown[]) => (opts: { data: { note: string } }) => Promise<unknown>)(
-  createClientRpc("src_lib_test--transportFn"),
-  business,
-);
+// IMPORTANTE: `createClientRpc` calcula su URL (`TSS_SERVER_FN_BASE + id`) al
+// CONSTRUIRSE, así que sólo puede crearse DESPUÉS de stubear el entorno.
+const FUNCTION_ID = "src_lib_test--transportFn";
+const EXPECTED_URL_PREFIX = `${FAKE_ENV.TSS_SERVER_FN_BASE}${FUNCTION_ID}`;
+
+function buildCallFn() {
+  const builder = createServerFn({ method: "POST" })
+    .middleware([requireSupabaseAuth])
+    .inputValidator((data: { note: string }) => data);
+  return (builder.handler as unknown as (...args: unknown[]) => (opts: { data: { note: string } }) => Promise<unknown>)(
+    createClientRpc(FUNCTION_ID),
+    business,
+  );
+}
+
+let callFn: ReturnType<typeof buildCallFn>;
 
 /** Invoca la server function con las opciones GLOBALES reales de Start. */
 async function call(note: string, startOptions?: unknown) {
@@ -107,6 +116,8 @@ describe("TS-01 · transporte real de server functions", () => {
     capturedUrl = "";
     capturedInit = undefined;
     vi.stubGlobal("fetch", receive);
+    // El RPC se construye tras los stubs para que la URL sea la real.
+    callFn = buildCallFn();
   });
 
   afterEach(() => {
@@ -122,6 +133,8 @@ describe("TS-01 · transporte real de server functions", () => {
 
     expect(authHeaderSentToReceiver()).toBe("Bearer a.b.c");
     expect(res.userId).toBe("user-1");
+    expect(capturedUrl.startsWith(EXPECTED_URL_PREFIX)).toBe(true);
+    expect(capturedUrl).not.toContain("undefined");
     expect(business).toHaveBeenCalledTimes(1);
   });
 
