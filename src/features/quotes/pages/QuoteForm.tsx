@@ -25,7 +25,9 @@ export default function QuoteForm() {
         subtitle={f.id ? f.quoteNumber ?? undefined : undefined}
       />
       <Form {...form}>
-        <form onSubmit={f.handleSubmit} className="space-y-6">
+        {/* V26-07: separación compacta entre bloques para que equipo y
+            tarifas entren antes del pliegue a 1280x720. */}
+        <form onSubmit={f.handleSubmit} className="space-y-4">
           <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
 
           <CustomerField form={form} customers={f.customers ?? []} />
