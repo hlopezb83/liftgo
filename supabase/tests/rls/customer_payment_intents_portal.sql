@@ -30,12 +30,12 @@ INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, sub
    '[{"description":"Renta CPI B","quantity":1,"unit_price":300,"amount":300}]'::jsonb);
 
 INSERT INTO public.customer_payment_intents
-  (id, invoice_id, customer_id, amount, currency, transfer_date, status)
+  (id, invoice_id, customer_id, amount, transfer_date, status)
 VALUES (
   'd3333333-3333-4333-8333-333333333333',
   'f1111111-1111-4111-8111-111111111111',
   'c1111111-1111-4111-8111-111111111111',
-  250, 'MXN', current_date, 'pending_review'
+  250, current_date, 'pending_review'
 );
 
 -- ---------------------------------------------------------------------------
@@ -68,11 +68,11 @@ BEGIN
   -- éxito: cualquier enum/FK/NOT NULL incorrecto revienta el test.
   BEGIN
     INSERT INTO public.customer_payment_intents
-      (invoice_id, customer_id, amount, currency, transfer_date, status)
+      (invoice_id, customer_id, amount, transfer_date, status)
     VALUES (
       'f2222222-2222-4222-8222-222222222222',
       'c2222222-2222-4222-8222-222222222222',
-      100, 'MXN', current_date, 'pending_review'
+      100, current_date, 'pending_review'
     );
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
