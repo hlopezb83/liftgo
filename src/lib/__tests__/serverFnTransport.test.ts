@@ -57,7 +57,8 @@ async function receive(url: string, init?: RequestInit): Promise<Response> {
   try {
     const out = await serverMw({ next: (o?: unknown) => o as never });
     const result = await business();
-    return new Response(JSON.stringify({ ...result, userId: out.context.userId }), {
+    // El transporte espera la envoltura { result } / { error } del servidor.
+    return new Response(JSON.stringify({ result: { ...result, userId: out.context.userId } }), {
       headers: { "content-type": "application/json" },
     });
   } catch (error) {
