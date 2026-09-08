@@ -78,12 +78,6 @@ jobs:
       - name: Guardrails de arquitectura
         run: bash scripts/arch-check.sh
 
-      # Solo lo que bloquea: archivos huérfanos, dependencias y binarios sin uso.
-      # `exports`/`types` es ruido informativo y ya no se ejecuta en CI
-      # (`bun run knip:deep` en local cuando se quiera revisar).
-      - name: Knip
-        run: bunx knip --include files,dependencies,binaries --reporter compact
-
       # Build con destino DELIBERADAMENTE inexistente: el smoke solo verifica
       # arranque y render, nunca datos. Así el CI no necesita secretos.
       - name: Build
@@ -135,10 +129,6 @@ jobs:
     name: Pruebas (Vitest + cobertura)
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
@@ -147,26 +137,6 @@ jobs:
         env:
           NODE_OPTIONS: --max-old-space-size=6144
         run: bunx vitest run --coverage
-
-      # Conserva el check dedicado de RLS extrayéndolo del JUnit consolidado
-      # (sin una segunda corrida de Vitest).
-      - name: Extraer JUnit de RLS
-        if: always()
-        run: python3 scripts/extract-rls-junit.py reports/vitest-junit.xml reports/rls-junit.xml
-
-      - name: Publicar resultados RLS
-        if: always()
-        uses: ./.github/actions/publish-test-results
-        with:
-          report_paths: reports/rls-junit.xml
-          check_name: RLS results
-
-      - name: Publicar resultados Vitest
-        if: always()
-        uses: ./.github/actions/publish-test-results
-        with:
-          report_paths: reports/vitest-junit.xml
-          check_name: Vitest results
 
       - name: Subir reportes
         if: always()
@@ -299,18 +269,3 @@ jobs:
           fail_level: error
           filter_mode: added
           reporter: github-pr-check
-
-  # Gate único para branch protection.
-  ci-success:
-    name: CI success
-    runs-on: ubuntu-latest
-    needs: [changes, quality, tests, deno-functions, supabase-lint, dependency-review, actionlint]
-    if: always()
-    steps:
-      - name: Verificar que ningún job falló
-        run: |
-          if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
-            echo "::error::Uno o más jobs de CI fallaron"
-            exit 1
-          fi
-          echo "Todos los jobs pasaron"

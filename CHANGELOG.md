@@ -1,16 +1,17 @@
 ## [8.2.0] - 2026-09-08
 ### Infra (revisiones automáticas)
-- `ci.yml` reescrito: 2 jobs base (`quality`, `tests`) + condicionales (`deno-functions`, `supabase-lint`) + `dependency-review`/`actionlint` en PR + gate `ci-success`. Sin cron y sin secretos de producción (build con `VITE_SUPABASE_URL=http://127.0.0.1:54321`).
-- Nuevo smoke de arranque (`playwright.smoke.config.ts` + `tests/smoke/app-boot.spec.ts`): sirve `dist/` con `wrangler dev` y falla ante `pageerror`/console errors en `/` y `/portal/login`. Es el único check que detecta fallos de empaquetado tipo `__name is not defined`. Verificado local: 2 passed contra el build real.
-- Vitest deja el sharding 3x + merge: un runner corre la suite completa con umbrales de cobertura en TODOS los PRs (antes `--changed` sin gate). Verificado: 325 archivos / 2213 tests, exit 0, 537 s.
-- `scripts/deno-test-selection.sh` + `scripts/deno-tests-offline.sh`: separa los tests Deno offline (30 archivos, 255 tests, en CI) de los 18 que hacen HTTP contra funciones desplegadas (fuera de CI, exigen backend real). `bun run test:functions`.
-- `productionGuard.ts` amplía la auditoría a `.env`/`.env.local` del repo (contenían el ref productivo) además de las variables de entorno; cubierto por `src/test/e2eProductionGuard.test.ts` (6 casos).
-- E2E completas movidas a `e2e-on-demand.yml` (`workflow_dispatch` con confirmación escrita + secrets `E2E_SUPABASE_*`).
-- `scripts/changelog-entry.mjs` valida semver, fecha, título, duplicados y orden; `gen-version.mjs` ahora falla (exit 1) en vez de escribir `version: "unknown"`. Cubierto por `src/test/changelogEntry.test.ts` (7 casos). `bun run changelog:check`.
-- `prod-smoke.yml` nuevo (cada hora, minuto 17, 2 GET de lectura, abre/actualiza issue). `gitleaks` sin cron; `codeql` solo semanal + manual; dependabot mensual agrupado.
-- Smoke SQL autocontenidos declarados en `supabase/tests/selfcontained.txt` y bloqueantes en `rls-db-tests.yml` vía `scripts/check-selfcontained-smoke.py`.
+- `ci.yml`: dos jobs base (`quality`, `tests`) + condicionales (`deno-functions`, `supabase-lint`) + `dependency-review`/`actionlint` en PR. Sin cron, sin secretos de producción (build con `VITE_SUPABASE_URL=http://127.0.0.1:54321`), sin gate agregador (branch protection lista los jobs).
+- Nuevo smoke de arranque (`playwright.smoke.config.ts` + `tests/smoke/app-boot.spec.ts`): sirve `dist/` con `wrangler dev`, **bloquea toda petición fuera del origen** y ejercita interacción real (mostrar/ocultar contraseña, cambio de modo del formulario) en `/` y `/portal/login`. Único check que detecta fallos de empaquetado tipo `__name is not defined`.
+- Guard de producción: `resolveEnvValue()` en `productionGuard.ts` es ahora la ÚNICA resolución de configuración y `apiAuth` la consume (antes cada uno leía distinto). `collectConfiguredTargets()` audita todas las procedencias, incluida la ruta "variable local no productiva tapando un `.env` productivo". `src/test/e2eProductionGuard.test.ts`: 12 casos sobre directorio temporal.
+- Vitest: un solo runner con umbrales de cobertura en todos los PRs (antes 3 shards + merge, y `--changed` sin gate).
+- `scripts/deno-test-selection.sh` + `scripts/deno-tests-offline.sh`: 30 archivos offline (255 tests) en CI; los 18 que hacen HTTP contra funciones desplegadas quedan fuera.
+- `rls-db-tests.yml`: el paso de smoke SQL deja de ser `continue-on-error` — las 42 suites son bloqueantes. Retirados `scripts/check-selfcontained-smoke.py` y `supabase/tests/selfcontained.txt` (ya no hacen falta).
+- E2E completas fuera de GitHub Actions (`e2e-on-demand.yml` eliminado): se corren a mano con backend aislado.
+- Knip sale del CI (`bun run knip` / `knip:deep` en local); `scripts/extract-rls-junit.py` y los publicadores de JUnit en el job `tests` retirados con él.
+- Permisos mínimos: `gitleaks` queda en `contents: read` (resumen en el job, sin comentarios en PR); el job `tests` pierde `checks`/`pull-requests: write`.
+- `scripts/changelog-entry.mjs` valida semver, fecha, título, duplicados y orden; `gen-version.mjs` falla (exit 1) en vez de escribir `version: "unknown"`. Cubierto por `src/test/changelogEntry.test.ts`.
+- `prod-smoke.yml` nuevo (cada hora, minuto 17, 2 peticiones de lectura). `codeql` semanal + manual. Dependabot mensual agrupado.
 - Retirados: `bundle-size.yml`, `lighthouse.yml` + `lighthouserc.json` + `scripts/lighthouse-baseline.sh`, `changelog-check.yml` + `scripts/check-version.mjs`.
-- `package.json` vuelve a estar sincronizado con el changelog (estaba en 7.420.0 con changelog en 8.1.0).
 - Nueva documentación: `docs/ci.md`.
 
 ## [8.1.0] - 2026-09-08

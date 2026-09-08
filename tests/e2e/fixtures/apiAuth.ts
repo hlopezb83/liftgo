@@ -1,8 +1,8 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createClient, type Session } from "@supabase/supabase-js";
 import type { Page } from "@playwright/test";
-import { assertNonProductionBackend } from "./productionGuard";
+import { assertNonProductionBackend, resolveEnvValue } from "./productionGuard";
 
 /**
  * Autenticación E2E por API (Fase 4 de la auditoría de tests).
@@ -21,28 +21,11 @@ export type StorageState = {
   origins: { origin: string; localStorage: { name: string; value: string }[] }[];
 };
 
-/** Lee una env var, con fallback al `.env` del repo (no cargado por Playwright). */
-function envVar(name: string): string | undefined {
-  if (process.env[name]) return process.env[name];
-  try {
-    const raw = readFileSync(".env", "utf8");
-    for (const line of raw.split("\n")) {
-      const idx = line.indexOf("=");
-      if (idx === -1) continue;
-      if (line.slice(0, idx).trim() !== name) continue;
-      return line.slice(idx + 1).trim().replace(/^["']|["']$/g, "");
-    }
-  } catch {
-    // .env ausente en CI — se espera que las env vars estén inyectadas.
-  }
-  return undefined;
-}
-
 export function supabaseEnv(): { url: string; anonKey: string; storageKey: string } {
   // Guard fail-closed: este es el chokepoint de TODO acceso E2E a Supabase.
   assertNonProductionBackend("supabaseEnv");
-  const url = envVar("VITE_SUPABASE_URL");
-  const anonKey = envVar("VITE_SUPABASE_PUBLISHABLE_KEY");
+  const url = resolveEnvValue("VITE_SUPABASE_URL");
+  const anonKey = resolveEnvValue("VITE_SUPABASE_PUBLISHABLE_KEY");
   if (!url || !anonKey) {
     throw new Error(
       "[e2e] Faltan VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY para el login por API.",
