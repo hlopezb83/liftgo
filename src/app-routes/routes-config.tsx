@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { lazy, type ComponentType } from "react";
 
-export { PageFallback } from "@/routes/RouteSkeletons";
+export { PageFallback } from "@/app-routes/RouteSkeletons";
 
 // -----------------------------------------------------------------------------
 // Ruta canónica: `path`, `loader` (import dinámico), `module` para permisos.

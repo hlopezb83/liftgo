@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/sidebar";
 import { useCurrentVersion } from "@/features/changelog";
 import { NavLink } from "@/layouts/NavLink";
-import { routeLoaders } from "@/routes/routes-config";
+import { routeLoaders } from "@/app-routes/routes-config";
 import { isNavItemActive } from "./isNavItemActive";
 import { useSidebarBadgeCounts } from "./useSidebarBadgeCounts";
 import type { NavGroup, NavItem } from "./navConfig";

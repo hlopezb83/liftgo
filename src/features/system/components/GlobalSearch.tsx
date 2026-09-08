@@ -9,7 +9,7 @@ import { useEntitySearch } from "@/features/system/hooks/useEntitySearch";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { routeLoaders } from "@/routes/routes-config";
+import { routeLoaders } from "@/app-routes/routes-config";
 
 type Item = { title: string; url: string; icon: ElementType; group: string; keywords?: string };
 

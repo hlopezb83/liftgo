@@ -4,7 +4,7 @@ import { PlusCircle, DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
-import { ROUTES } from "@/routes/routes";
+import { ROUTES } from "@/app-routes/routes";
 import type { Customer } from "../../hooks/customers/useCustomers";
 
 interface Props {

@@ -19,7 +19,7 @@ import {
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { ROUTES } from "@/routes/routes";
+import { ROUTES } from "@/app-routes/routes";
 import {
   useSatValidationOverview,
   useValidateCustomersTaxInfo,

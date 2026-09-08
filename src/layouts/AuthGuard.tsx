@@ -3,7 +3,7 @@ import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
-import { PageFallback } from "@/routes/routes-config";
+import { PageFallback } from "@/app-routes/routes-config";
 
 // R6-FE-10 (offline): sin red la carga de auth/rol nunca resuelve y el splash
 // era infinito. Tras ~8s se muestra pantalla de error con Reintentar.
