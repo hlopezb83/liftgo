@@ -56,7 +56,7 @@ function DateRangeFooter({
 }) {
   const canApply = !!localRange?.from && !!localRange?.to;
   return (
-    <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2">
+    <DialogFooter className="px-4 py-3 border-t flex-row flex-wrap justify-between sm:px-5 sm:justify-between gap-2">
       <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from}>
         Limpiar
       </Button>
