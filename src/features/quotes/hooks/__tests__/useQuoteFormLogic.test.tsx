@@ -45,8 +45,8 @@ vi.mock("@/hooks/useUnsavedChangesGuard", () => ({
   useUnsavedChangesGuard: () => {},
 }));
 
-vi.mock("react-router", async () => {
-  const actual = await vi.importActual<typeof import("react-router")>("react-router");
+vi.mock("@/lib/router-compat", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/router-compat")>("@/lib/router-compat");
   return {
     ...actual,
     useParams: () => ({}),
