@@ -178,7 +178,8 @@ export default function AuthPage() {
           {recovery === "error" || recovery === "pending" ? (
             <RecoveryNotice
               status={recovery}
-              onRequestNew={() => { endRecovery(); setMode("forgot"); }}
+              onRequestNew={() => { finishRecovery("forgot"); }}
+
             />
           ) : (
 
