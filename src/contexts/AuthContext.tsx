@@ -1,9 +1,11 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getRecoveryStatus, markRecoveryActive } from "@/features/auth/recoverySession";
+import "@/features/auth/recoveryCapture";
+import { markRecoveryActive } from "@/features/auth/recoverySession";
 import { supabase } from "@/integrations/supabase/client";
 import { dismissAuthError } from "@/lib/ui/appFeedback";
 import type { User, Session } from "@supabase/supabase-js";
+
 
 interface AuthContextValue {
   user: User | null;
