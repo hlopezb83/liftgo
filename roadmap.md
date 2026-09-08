@@ -1,32 +1,10 @@
-# Roadmap
+# Roadmap — Estabilización CI TanStack Start
 
-## Cerrado — Bug 3 endurecido en BD (v7.423.1; NO publicado por instrucción)
-- [x] Trigger `trg_delivery_completed_evidence` (`enforce_delivery_completed_evidence`): INSERT ya completed o transición → completed sin `driver_name` ni `signature_base64` exige `completed_no_evidence_reason` con contenido (blancos no cuentan). Error 23514 en español, constraint `deliveries_completed_evidence_required`. Bypass sólo `app.audit_revert` (patrón R4-19); sin bypass por rol.
-- [x] Históricos intactos: filas con OLD.status = 'completed' no se evalúan → ENT-0027 y las 6 completadas sin evidencia siguen editables; 0 datos modificados (verificado: 7 completadas / 6 sin evidencia antes y después).
-- [x] Smoke SQL `supabase/tests/r_fix41_delivery_evidence_smoke.sql` (10 checks: catálogo, firma, operador, razón, rechazo alta, rechazo transición, histórico editable) — corrido contra la BD real en transacción abortada, 10/10 OK, sin residuos. Fixture de `fix03_m7_m8_l2_smoke.sql` con operador (11/11 OK).
-- [x] Changelog MD + JSON + detalle + version.json → 7.423.1 (también se crearon los detalles faltantes v7.422.0 y v7.423.0). Migración: `20260907030827_0267bc99-778a-4758-9bd8-788f0a789131.sql`.
-- Nota conocida (fuera de alcance por instrucción): una fila ya completed puede perder su operador en una edición posterior sin exigir razón — es la consecuencia de no bloquear ediciones de históricos.
+- [x] Fix build CI: nitro output explícito a dist/ (v8.0.3) — confirmado en GitHub run 34190853585
+- [ ] Limpieza knip exports/types (paso informativo rojo): 3 grupos de agentes + fix NavLink duplicado + ignorar types.ts autogenerado → verificar knip local + typecheck + changelog
+- [ ] A) E2E falla: `__name is not defined` transversal (desktop+mobile, smoke-nav.spec.ts:70/99 y otras suites). Investigar causa real (transforms, page.evaluate/addInitScript serializadas, bundles). NO parche con global genérico. Shard1: portal-statement sin auth token en localStorage tras 30s + expect visible. Verificar login/storage con migración.
+- [ ] B) SQL smoke `supabase/tests/r_fix40_contratos_duplicado_trigger_smoke.sql` falla (T1 y T6): depende de datos productivos (CTR-0002/CTR-0003, admin user_roles). Reescribir autocontenido con fixtures en transacción + rollback, preservando casos (duplicado histórico, concurrencia/candado, cancelación, reactivación). Validar en Supabase local. No usar continue-on-error para declarar verde.
+- [ ] C) Revalidar workflows consumidores de build: bundle-size (cliente), lighthouse/prod-smoke, preview wrangler, sourcemaps Sentry. Confirmar generación/upload real o reportar credenciales faltantes.
+- [ ] Verificación final: build con config GitHub + bun frozen lockfile, E2E contra ese artefacto, suites SQL. Reportar SHA, causas, comandos/resultados, pendientes. No declarar CI verde hasta confirmación de GitHub.
 
-## Cerrado — Revisión de regresión v7.422.0 → v7.423.0 (validada; NO publicada por instrucción)
-Restricciones respetadas: datos históricos intactos (FAC-0113 hash/versión verificados, ENT-0027, ENT-0028/0029/0031/0032/0033), CFDI timbrados, importes, pagos y estados sin cambios. YAGNI; sin tabla ledger ni rearquitectura.
-
-- [x] P1 Atomicidad extremo a extremo: RPC `save_invoice_with_bookings` (SECURITY INVOKER) crea/edita factura + pivote en UNA transacción; `lock_bookings_for_billing` toma candados advisory por booking ordenados con la MISMA clave md5/60-bits que `create_recurring_invoice` (paridad verificada en pg_locks); duplicados reserva+período chequeados DESPUÉS de los candados; `sync_invoice_bookings` endurecido igual. `expectedVersion`/stale_write, permisos, `booking_id` legado y regla de canceladas intactos.
-- [x] P2 Multi-selección coherente: `bookingCompatibility.ts` (cliente + moneda/TC + periodo canónico); selector deshabilita incompatibles con razón; `validateSelection` re-valida al guardar; servidor re-valida en el RPC. Sin conversión de monedas.
-- [x] P3 Validación de periodo: `billingPeriodEnd` requerido con reserva, start ≤ end, y periodo dentro del rango de TODAS las reservas — schema Zod + guard del RPC. El fallback a mes de emisión quedó inalcanzable (schema exige ambos extremos) y el servidor rechaza cualquier periodo fuera de rango.
-- [x] Pruebas obligatorias contra la BD real (fixtures 2031 "BORRAR", limpiados):
-  (1) 4 POST simultáneos misma reserva+período → 1 éxito, 3×23505 sin residuos; carrera de reserva SECUNDARIA compartida → 1 éxito, perdedor 23505 sin factura.
-  (2) Edición con reserva duplicada → rechazo y rollback total (la versión NO se consumió: edición válida posterior pasó con la misma expectedVersion); stale_write con versión obsoleta OK.
-  (3) Multi-select: cubierto por unit tests de `bookingCompatibility` (cliente/moneda/TC/periodo).
-  (4) Servidor: fin<inicio, fuera de rango y sin fin → 23514 con mensaje claro; periodo válido → 200.
-  (5) FAC-0113: hash `11a72a…`/pivote `c9c8a…`/versión 6 idénticos antes y después. Nota: re-guardar FAC-0113 con su periodo histórico fuera de rango ahora lo rechaza el servidor (regla nueva intencional); sus datos no se tocaron.
-  (6) Typecheck OK + suite completa (ver reporte del turno).
-- [x] Changelog MD + JSON + version.json → 7.423.0. Migración: `20260903215543_3f0d73fb-b8e1-4620-9e06-42f4ffe7af0d.sql`. NO publicado.
-
-## Cerrado — 9 bugs pendientes (v7.422.0)
-- [x] 1-3 Entregas: reloj de servidor (`trg_set_delivery_completed_at`), sin `completed_at` de cliente, justificación de evidencia (`completed_no_evidence_reason`). Históricos intactos.
-- [x] 4 Período inicial: `prefillBillingPeriod` acotado a la reserva.
-- [x] 5 Factura agrupada: RPC `sync_invoice_bookings` (superseded por P1 arriba).
-- [x] 6 Dashboard: estados loading/error/cero real.
-- [x] 7 "Navegación rápida" / "Ir a…".
-- [x] 8 Pestañas de Cotizaciones en plural.
-- [x] 9 Cuentas bancarias accesibles (aria-label, tooltip, iconSm).
+Restricciones: YAGNI, no publicar, no tocar datos productivos/secretos/protecciones, no bajar cobertura ni quitar tests/reglas, no silenciamientos, preservar cambios ajenos en HEAD (0b7b242c).
