@@ -5,6 +5,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Json } from "@/integrations/supabase/types";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const MODULES = [
@@ -108,7 +109,7 @@ function buildUpdatePayload(
   ctx: Record<string, unknown>,
   classification: z.infer<typeof ClassificationSchema>,
 ) {
-  const payload: { context_json: Record<string, unknown>; severity?: string; module?: string } = {
+  const payload: { context_json: Json; severity?: string; module?: string } = {
     context_json: {
       ...ctx,
       ai_classification: {
