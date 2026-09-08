@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
 import { ListPageLayout } from "../ListPageLayout";
@@ -22,14 +22,14 @@ function renderLayout(props: Partial<Parameters<typeof ListPageLayout>[0]> = {})
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={qc}>
-      <MemoryRouter>
+      <TestRouter>
         <ListPageLayout
           title="Facturas"
           isLoading={false}
           table={makeTableStub([])}
           {...props}
         />
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
 }

@@ -1,12 +1,12 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { deleteUserFn } from "@/lib/userAdmin.functions";
 import { userKeys } from "../../../lib/queryKeys";
 
 export function useDeleteUser() {
   return useEntityMutation({
     mutationFn: async (userId: string) => {
-      // R14-K: extraer el body real (ej. LAST_ADMIN_CANNOT_BE_DELETED).
-      return await invokeEdgeFunction("delete-user", { body: { user_id: userId } });
+      // El mensaje real (ej. LAST_ADMIN_CANNOT_BE_DELETED) llega en error.message.
+      return await deleteUserFn({ data: { user_id: userId } });
     },
     invalidateKeys: [userKeys.all],
     successMsg: "Usuario eliminado",

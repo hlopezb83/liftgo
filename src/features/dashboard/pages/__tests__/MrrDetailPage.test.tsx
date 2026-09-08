@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 
@@ -43,9 +43,9 @@ function renderPage() {
   const { Wrapper } = createQueryWrapper();
   return render(
     <Wrapper>
-      <MemoryRouter>
+      <TestRouter>
         <MrrDetailPage />
-      </MemoryRouter>
+      </TestRouter>
     </Wrapper>,
   );
 }

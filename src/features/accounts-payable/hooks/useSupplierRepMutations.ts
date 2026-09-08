@@ -1,6 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
+import { validateSupplierRepFn } from "@/lib/supplierRep.functions";
 import { supplierBillKeys } from "./useSupplierBills";
 
 const invalidationKeys = (billId?: string | null) => {
@@ -22,20 +22,6 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-function parseFunctionsError(error: unknown): never {
-  type FnErr = Error & { context?: { body?: unknown } };
-  const ctxBody = (error as FnErr).context?.body;
-  if (typeof ctxBody === "string" && ctxBody.length > 0) {
-    try {
-      const parsed = JSON.parse(ctxBody) as { error?: string };
-      if (parsed?.error) throw new Error(parsed.error);
-    } catch (e: unknown) {
-      if (e instanceof Error && e.message) throw e;
-    }
-  }
-  throw error;
-}
-
 export function useUploadSupplierRep() {
   return useEntityMutation({
     mutationFn: async ({
@@ -43,12 +29,9 @@ export function useUploadSupplierRep() {
     }: { paymentId: string; xmlFile: File; pdfFile?: File | null; billId?: string | null }) => {
       const xml_base64 = await fileToBase64(xmlFile);
       const pdf_base64 = pdfFile ? await fileToBase64(pdfFile) : null;
-      const { data, error } = await supabase.functions.invoke("validate-supplier-rep", {
-        body: { payment_id: paymentId, xml_base64, pdf_base64 },
+      return await validateSupplierRepFn({
+        data: { payment_id: paymentId, xml_base64, pdf_base64 },
       });
-      if (error) parseFunctionsError(error);
-      if (data?.error) throw new Error(data.error);
-      return data;
     },
     invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId ?? null),
     successMsg: "REP recibido y validado",

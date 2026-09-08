@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 // @vitest-environment jsdom
 import { render, screen, fireEvent } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StampErrorDialog } from "../StampErrorDialog";
 
@@ -11,7 +11,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 
 function renderDialog(props: Partial<ComponentProps<typeof StampErrorDialog>> = {}) {
   return render(
-    <MemoryRouter>
+    <TestRouter>
       <StampErrorDialog
         open
         onOpenChange={() => {}}
@@ -26,7 +26,7 @@ function renderDialog(props: Partial<ComponentProps<typeof StampErrorDialog>> = 
         }}
         {...props}
       />
-    </MemoryRouter>,
+    </TestRouter>,
   );
 }
 

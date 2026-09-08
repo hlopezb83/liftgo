@@ -1,11 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import type { ReactNode } from "react";
 import { useInvoicesFilters } from "../useInvoicesFilters";
 
 const wrapper = (initial: string) => ({ children }: { children: ReactNode }) => (
-  <MemoryRouter initialEntries={[initial]}>{children}</MemoryRouter>
+  <TestRouter initialEntries={[initial]}>{children}</TestRouter>
 );
 
 describe("useInvoicesFilters", () => {
