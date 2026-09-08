@@ -13,6 +13,7 @@ import {
   PRODUCTION_PROJECT_REFS,
   resolveEnvValue,
 } from "../../tests/e2e/fixtures/productionGuard";
+import { supabaseEnv } from "../../tests/e2e/fixtures/apiAuth";
 
 const PROD_REF = PRODUCTION_PROJECT_REFS[0];
 
@@ -81,21 +82,36 @@ describe("assertNonProductionBackend", () => {
     expect(() => assertNonProductionBackend("test")).toThrow(/proyecto productivo bloqueado/);
   });
 
-  it("bloquea aunque una variable local no productiva tape el .env productivo", () => {
-    // La ruta que dejaba pasar producción: el guard veía solo el valor que
-    // gana la precedencia. Ahora se auditan TODAS las procedencias.
+  it("permite sobreescribir explícitamente la MISMA clave del .env productivo", () => {
+    // El `.env` versionado apunta a producción. Sobreescribir esa misma clave
+    // a un backend local es la forma soportada de correr E2E en local: el
+    // valor productivo queda tapado y nunca llega al cliente.
     writeDotenv(`VITE_SUPABASE_URL="https://${PROD_REF}.supabase.co"\n`);
     setLocalTargets();
+    process.env.E2E_ISOLATED_BACKEND = "1";
+    expect(() => assertNonProductionBackend("test")).not.toThrow();
+  });
+
+  it("bloquea un .env productivo tapado por OTRO alias local (clave distinta)", () => {
+    // E2E_SUPABASE_URL no sustituye a VITE_SUPABASE_URL: son claves distintas
+    // y cada una se audita por separado.
+    writeDotenv(`VITE_SUPABASE_URL="https://${PROD_REF}.supabase.co"\n`);
+    process.env.E2E_SUPABASE_URL = "http://127.0.0.1:54321";
     process.env.E2E_ISOLATED_BACKEND = "1";
     expect(() => assertNonProductionBackend("test")).toThrow(/proyecto productivo bloqueado/);
   });
 
+
   it("bloquea el ref productivo escondido en .env.local", () => {
     writeDotenv(`SUPABASE_PROJECT_ID=${PROD_REF}\n`, ".env.local");
     setLocalTargets();
+    // Esa clave NO viene sobreescrita en el proceso: el valor efectivo es el
+    // del archivo, y es productivo.
+    delete process.env.SUPABASE_PROJECT_ID;
     process.env.E2E_ISOLATED_BACKEND = "1";
     expect(() => assertNonProductionBackend("test")).toThrow(/proyecto productivo bloqueado/);
   });
+
 
   it("bloquea cuando falta la declaración de entorno aislado", () => {
     setLocalTargets();
@@ -144,5 +160,58 @@ describe("resolveEnvValue (misma fuente que usa el cliente E2E)", () => {
 
   it("devuelve undefined si el valor no está en ninguna fuente", () => {
     expect(resolveEnvValue("VITE_SUPABASE_URL")).toBeUndefined();
+  });
+});
+
+/**
+ * `supabaseEnv` es la función real que construye el cliente E2E. Estas pruebas
+ * son offline (solo `process.env` y archivos temporales): nunca abre una
+ * conexión, solo resuelve configuración.
+ */
+describe("supabaseEnv (resolución real que alimenta al cliente)", () => {
+  const PROD_URL = `https://${PROD_REF}.supabase.co`;
+  const LOCAL_URL = "http://127.0.0.1:54321";
+
+  function isolated(): void {
+    process.env.E2E_ISOLATED_BACKEND = "1";
+    process.env.VITE_SUPABASE_PUBLISHABLE_KEY = "clave-local";
+  }
+
+  it("con la clave duplicada en .env (producción y luego local) jamás devuelve producción", () => {
+    writeDotenv(`VITE_SUPABASE_URL="${PROD_URL}"\nVITE_SUPABASE_URL="${LOCAL_URL}"\n`);
+    isolated();
+    let url: string | undefined;
+    expect(() => {
+      url = supabaseEnv().url;
+    }).not.toThrow();
+    expect(url).not.toContain(PROD_REF);
+  });
+
+  it("con la clave duplicada en .env (local y luego producción) bloquea", () => {
+    writeDotenv(`VITE_SUPABASE_URL="${LOCAL_URL}"\nVITE_SUPABASE_URL="${PROD_URL}"\n`);
+    isolated();
+    expect(() => supabaseEnv()).toThrow(/proyecto productivo bloqueado/);
+  });
+
+  it("bloquea un .env productivo tapado por otro alias local", () => {
+    writeDotenv(`VITE_SUPABASE_URL="${PROD_URL}"\n`);
+    process.env.E2E_SUPABASE_URL = LOCAL_URL;
+    isolated();
+    expect(() => supabaseEnv()).toThrow(/proyecto productivo bloqueado/);
+  });
+
+  it("permite el override explícito de todas las claves a local", () => {
+    writeDotenv(`VITE_SUPABASE_URL="${PROD_URL}"\nSUPABASE_URL="${PROD_URL}"\n`);
+    setLocalTargets();
+    isolated();
+    expect(supabaseEnv().url).toBe(LOCAL_URL);
+  });
+
+  it("bloquea producción aunque se declare el escape de backend remoto", () => {
+    setLocalTargets();
+    isolated();
+    process.env.E2E_ALLOW_REMOTE_BACKEND = "1";
+    process.env.VITE_SUPABASE_URL = PROD_URL;
+    expect(() => supabaseEnv()).toThrow(/proyecto productivo bloqueado/);
   });
 });

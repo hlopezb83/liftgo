@@ -16,11 +16,24 @@ misma rama se cancelan.
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
 | `dependency-review` | solo PR | CVEs altos y licencias no permitidas |
-| `actionlint` | solo PR | YAML de workflows |
+| `actionlint` | push y PR si cambió `.github/**`, o manual | YAML de workflows |
 
-No hay job agregador: branch protection lista los jobs requeridos directamente.
-Un `ci-success` que solo relee resultados añade un runner y un punto de fallo
-propio sin poder detectar nada.
+No hay job agregador. `main` **no tiene branch protection ni checks requeridos**
+hoy: los resultados se leen en la propia corrida. Un `ci-success` que solo relee
+resultados añade un runner y un punto de fallo propio sin poder detectar nada.
+
+El job `changes` (detector de rutas) necesita `pull-requests: read` además del
+`contents: read` heredado: sin ese permiso `dorny/paths-filter` recibe 403 en
+`pull_request` y los jobs condicionales se quedan sin señal. `actionlint` usa
+`reporter: local` y `filter_mode: nofilter` porque publicar un check exigiría
+`checks: write` y filtrar por líneas añadidas oculta errores que el propio
+cambio provoca en el resto del archivo. `dependency-review` fija
+`comment-summary-in-pr: never` para no requerir permisos de escritura.
+
+Los cambios de `public/changelog.json` y `public/changelog/**` **no** están en
+`paths-ignore`: su validación vive ahora en el build, así que un cambio solo ahí
+tiene que correr CI.
+
 
 Knip **no corre en CI**: no puede fallar por una regresión funcional y su
 señal (archivos y dependencias sin uso) se revisa en local con `bun run knip`.
@@ -38,12 +51,26 @@ de vuelta; en `/portal/login` hace lo equivalente. Eso ejercita hidratación,
 manejadores de eventos y re-render — un `pageerror` al hidratar deja la página
 visible pero muerta, y una prueba que solo hace `goto` no lo ve.
 
-Aislamiento: el spec **aborta toda petición que salga del origen de la app**.
-No se mockea nada de la aplicación (sus scripts y assets se ejecutan tal cual
-salen del bundle); simplemente no hay salida a internet, así que es imposible
-que toque un backend real. El build usa `VITE_SUPABASE_URL=http://127.0.0.1:54321`
-a propósito. El filtro de ruido de consola se acota a ese destino y a errores
-de transporte; cualquier otro error de consola o de página falla la prueba.
+Tras cada flujo hay una **recarga** con una interacción nueva (escribir en el
+campo de contraseña), que ejercita una segunda hidratación.
+
+Aislamiento: el spec **aborta toda petición cuyo `URL.origin` no sea
+exactamente el de la app** (antes bastaba con que la URL empezara por el
+origen). No se mockea nada de la aplicación —sus scripts y assets se ejecutan
+tal cual salen del bundle—; simplemente no hay salida a internet. Los service
+workers están bloqueados para que ninguna respuesta venga de caché.
+
+El build y el preview reciben configuración **ficticia explícita**
+(`SUPABASE_URL`, `VITE_SUPABASE_URL=http://127.0.0.1:54321`,
+`VITE_SUPABASE_PROJECT_ID=smoke-placeholder`, clave placeholder), `SMOKE_BASE_URL`
+remoto se rechaza y `reuseExistingServer` está siempre en `false`. Con
+`SMOKE_REUSE_BUILD=1` se inspecciona `dist/` antes de arrancar: si contiene un
+ref productivo o le falta el destino ficticio, la corrida aborta.
+
+El filtro de ruido de consola se acota al destino ficticio y a las URLs externas
+que el propio spec abortó; un `Failed to load resource` o un `net::ERR_*` de un
+script o asset **propio** falla la prueba.
+
 
 ### Vitest en un solo runner
 
@@ -75,13 +102,19 @@ Defensa en profundidad — `tests/e2e/fixtures/productionGuard.ts`:
 - `resolveEnvValue(name)` es la **única** resolución de configuración
   (proceso → `.env` → `.env.local`) y `apiAuth` la consume. Antes cada módulo
   leía por su cuenta, así que el valor auditado y el usado podían diferir.
-- `collectConfiguredTargets()` audita **todas** las procedencias, no solo la que
-  gana: una variable local inofensiva ya no puede tapar un `.env` productivo.
+- `collectConfiguredTargets()` audita el valor **efectivo** de cada clave, con
+  la misma precedencia que usa el cliente. Sobreescribir la MISMA clave a un
+  backend local sí gana (si no, el `.env` versionado, que apunta a producción,
+  haría inusable el flujo local); pero cada clave se audita por separado, así
+  que un `E2E_SUPABASE_URL` local **no** tapa un `VITE_SUPABASE_URL` productivo.
+- `apiAuth` revalida además la URL ya resuelta (`assertUrlNotProduction`) justo
+  antes de crear el cliente.
 - Se ejecuta antes del login, del seed y de la purga. Exige
   `E2E_ISOLATED_BACKEND=1`, destino presente y host local (escape remoto
   explícito, y aun así la lista negra manda).
-- Cubierto por `src/test/e2eProductionGuard.test.ts` (12 casos, sobre un
-  directorio temporal con su propio `.env`).
+- Cubierto por `src/test/e2eProductionGuard.test.ts` (18 casos, sobre un
+  directorio temporal con su propio `.env`, sin red).
+
 
 ## Base de datos — `rls-db-tests.yml`
 
@@ -98,7 +131,7 @@ retirados: una excepción que no excluye nada es solo mantenimiento.
 
 | Workflow | Cuándo | Nota |
 | --- | --- | --- |
-| `gitleaks.yml` | PR, push, manual | Sin cron: un secreto solo entra por push o PR. Permiso `contents: read` |
+| `gitleaks.yml` | PR, push, manual | Sin cron: un secreto solo entra por push o PR. Permiso `contents: read`; `GITLEAKS_ENABLE_COMMENTS` fijado a `"false"` (su default es `true` y pediría `pull-requests: write`), reporte en el resumen |
 | `codeql.yml` | Semanal (lunes 12:00 UTC), manual | Fuera del camino crítico del PR |
 | `prod-smoke.yml` | Cada hora (minuto 17), manual | Dos peticiones de **lectura**; abre issue en fallo |
 
@@ -141,3 +174,13 @@ bun run build && bun run test:e2e:smoke
 bun run test:functions          # tests Deno offline
 bun run knip:deep               # exports/tipos sin uso (informativo)
 ```
+
+## Versión y artefactos de release (nota de mantenimiento)
+
+El trabajo sobre CI **no** publica release. Se retiró la entrada y el archivo
+`public/changelog/v8.2.0.json` que este trabajo había añadido y se restauraron
+los artefactos de release al estado de referencia: `package.json` en `7.420.0`
+y `public/changelog.json` / `public/version.json` en `8.1.0`. Esa discrepancia
+entre `package.version` y el changelog es **previa** y se deja tal cual: no se
+resuelve inventando un release. Los cambios de CI se documentan solo aquí, no
+en el changelog de la app.
