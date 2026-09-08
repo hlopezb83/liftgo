@@ -42,13 +42,30 @@ export default defineConfig({
     },
     cloudflare: {
       nodeCompat: true,
-      deployConfig: true,
+      // deployConfig genera .wrangler/deploy/config.json apuntando a
+      // dist/server/wrangler.json, archivo que nitro NO emite cuando serverDir
+      // es personalizado → `wrangler dev` aborta. Usamos wrangler.jsonc raíz.
+      deployConfig: false,
     },
   },
   vite: {
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
     },
+    // rolldown activa `keepNames` por defecto e inyecta llamadas al helper
+    // `__name(fn, "…")` DENTRO del cuerpo de las funciones. next-themes
+    // serializa su script anti-parpadeo con `fn.toString()` e inyecta el
+    // resultado como <script> inline: ese helper no existe en ese contexto y
+    // el navegador lanza "__name is not defined" en cada carga (rompe los E2E
+    // y la hidratación del tema). Sin keepNames el cuerpo serializado es puro.
+    build: {
+      rolldownOptions: { output: { keepNames: false } },
+    },
+    environments: {
+      client: { build: { rolldownOptions: { output: { keepNames: false } } } },
+      ssr: { build: { rolldownOptions: { output: { keepNames: false } } } },
+    },
+
     plugins: [
       // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
       process.env.ANALYZE === "1" &&
