@@ -14,7 +14,15 @@ const notifyError = vi.fn();
 const notifyValidation = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { rpc: (fn: string, args: RpcArgs) => rpcMock(fn, args) },
+  supabase: {
+    rpc: (fn: string, args: RpcArgs) => rpcMock(fn, args),
+    // `AuthContext` (y su captura de recuperación) se suscribe al montar:
+    // el doble del SDK debe exponer Auth explícitamente.
+    auth: {
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => undefined } } }),
+      getSession: async () => ({ data: { session: null }, error: null }),
+    },
+  },
 }));
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: invalidateSpy }),
