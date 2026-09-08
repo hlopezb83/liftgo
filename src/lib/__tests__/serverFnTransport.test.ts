@@ -10,7 +10,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
  * Authorization no llega al receptor.
  */
 
-process.env["TSS_SERVER_FN_BASE"] = "/_serverFn/";
+// Entorno autocontenido: valores ficticios de loopback. El guard real sigue
+// intacto; no hay backend detrás (fetch y getClaims están interceptados).
+const FAKE_ENV = {
+  TSS_SERVER_FN_BASE: "/_serverFn/",
+  SUPABASE_URL: "http://127.0.0.1:54321",
+  SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test_offline",
+} as const;
 
 const getSession = vi.fn();
 const getClaims = vi.fn();
