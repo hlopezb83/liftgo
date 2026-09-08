@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "arch:check": "bash scripts/arch-check.sh",
-    "preview": "vite preview",
+    "preview": "wrangler dev --port 4173",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:rls": "VITEST_RLS_JUNIT=1 vitest run src/test/roleMatrix.test.ts src/test/rolePermissions.test.ts \"src/**/*.rls.test.ts\"",
