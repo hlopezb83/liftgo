@@ -23,12 +23,20 @@ const NavLink = ({
 }: NavLinkCompatProps) => {
   const { pathname } = useLocation();
   const path = to.split(/[?#]/)[0] || "/";
-  const isActive =
-    path === "/" || end ? pathname === path : pathname === path || pathname.startsWith(`${path}/`);
+  const exact = path === "/" || !!end;
+  const isActive = exact
+    ? pathname === path
+    : pathname === path || pathname.startsWith(`${path}/`);
   return (
     <Link
       ref={ref}
       to={to}
+      // TS-05: el estado activo NATIVO de TanStack (aria-current="page") debe
+      // seguir la misma regla que el estilo. Sin esto, en
+      // /invoices/reconciliation tanto «Facturas» como «Conciliación CFDI»
+      // quedaban con aria-current. `includeSearch: false` mantiene activas las
+      // URLs con filtros dentro de su sección.
+      activeOptions={{ exact, includeSearch: false }}
       className={cn(
         "transition-all duration-150",
         className,
