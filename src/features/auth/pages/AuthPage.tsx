@@ -76,16 +76,27 @@ export default function AuthPage() {
     setMode(recovery === "idle" ? "sign-in" : "reset");
   }
 
+  /**
+   * P4: al terminar el flujo de forma explícita (cancelar, pedir enlace nuevo,
+   * éxito) hay que sincronizar `prevRecovery`; si no, la transición a `idle`
+   * volvía a forzar `sign-in` y pisaba el modo elegido (p. ej. `forgot`).
+   */
+  const finishRecovery = (nextMode: AuthMode) => {
+    endRecovery();
+    setPrevRecovery("idle");
+    setMode(nextMode);
+  };
+
   // Sólo con la sesión de recuperación CONFIRMADA se permite cambiar la
   // contraseña; así un enlace inválido no aprovecha otra sesión ya abierta.
   const canSubmitReset = recovery === "active";
 
   const cancelRecovery = async () => {
-    endRecovery();
     setPassword("");
-    // La sesión creada por el enlace no debe quedar viva tras cancelar.
-    await signOut();
-    setMode("sign-in");
+    // Sólo se cierra la sesión cuando ES la de recuperación (`active`).
+    // Con `pending`/`error` puede haber una sesión ajena previa: no se toca.
+    if (recovery === "active") await signOut();
+    finishRecovery("sign-in");
   };
 
   const runSubmit = async () => {
@@ -104,14 +115,17 @@ export default function AuthPage() {
       if (error) { notifyAuthError({ error }); return; }
       notifySuccess("Contraseña actualizada");
       setPassword("");
-      endRecovery();
-      setMode("sign-in");
+      finishRecovery("sign-in");
+      // P3: /auth es pública y queda fuera del guard; sin navegar el usuario
+      // se quedaba viendo el login pese a tener sesión válida.
+      leaveAuthRoute();
       return;
     }
     const { error } = await signIn(email, password);
     if (error) notifyAuthError({ error });
-    else dismissAuthError();
+    else { dismissAuthError(); leaveAuthRoute(); }
   };
+
 
   const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
