@@ -1,5 +1,5 @@
 import { createRouter } from "@tanstack/react-router";
-import { createAppQueryClient } from "@/layouts/AppProviders";
+import { createAppQueryClient } from "@/lib/query/appQueryClient";
 import { SCROLL_TO_TOP_SELECTORS } from "@/lib/routerScroll";
 import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
 import { routeTree } from "./routeTree.gen";
