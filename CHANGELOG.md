@@ -1,3 +1,14 @@
+## [8.1.2] - 2026-09-08
+### Auditoría visual V26 (presentación y accesibilidad, sin reglas de negocio)
+- V26-01 `DataTablePaginationV2` / `TablePagination`: el pie apila selector+rango sobre la navegación en móvil (`sm:` vuelve a una fila) y sustituye la numeración por «N de M»; Anterior/Siguiente conservan handlers y estados. Regresión: `src/components/feedback/__tests__/TablePagination.test.tsx`.
+- V26-02 `SidebarNavSection`: el disparador de grupo es un `<button type="button">` real vía `SidebarGroupLabel asChild` (Tab, Enter/Espacio, foco visible), sin listeners manuales ni botones anidados; estilo y estado recordado intactos.
+- V26-03 `InvoicesToolbar` / `DateRangePickerField`: etiqueta visible «Fecha de emisión», ancho `sm:w-80` y nombres accesibles completos («Fecha de emisión — inicio/fin», «Abrir calendario de Fecha de emisión»); con `label` vacío se usa «Rango de fechas» y no se renderiza `<Label>` vacío.
+- V26-04 `SearchBar`: `type="search"` y `aria-label` (por defecto el placeholder contextual del módulo, sobreescribible); placeholder, debounce, limpieza y atajo sin cambios. Regresión: `src/components/forms/__tests__/SearchBar.test.tsx`.
+- V26-05 `DateRangePickerField`: el diálogo pasa de `min-w-[22rem]` a `min-w-[min(22rem,calc(100vw-2rem))]` con `max-w-[calc(100vw-2rem)]`, padding responsive y footer que envuelve; dos meses en escritorio, uno en móvil.
+- V26-06 `KpiTile`: `h-full` en enlace/botón y tarjeta, contenido alineado arriba y altura reservada de 2 líneas en la etiqueta: todas las tarjetas de la fila miden lo mismo sin truncar importes ni títulos.
+- V26-07 `QuoteTypeCard`, `CustomerSelector` (nueva prop `compact`, usada sólo desde `CustomerField`) y `QuoteForm` (`space-y-4`): se retiran encabezados redundantes y se reduce el padding; orden, validaciones, controles táctiles y ayuda se conservan.
+- V26-08 `QuoteDetailActions`: en convertidas se elimina la CTA deshabilitada «Ya convertida a Reserva» (redundante con el badge), «Ver reserva» pasa a acción principal y Eliminar baja de énfasis manteniendo `RoleGuard` y confirmación; sin reserva ligada queda el aviso de estado en texto.
+
 ## [8.1.1] - 2026-09-08
 ### Correcciones (auditoría ronda 2)
 - TS-05 (accesibilidad del menú): `NavLink` ahora pasa `activeOptions={{ exact, includeSearch: false }}` al enlace de TanStack, de modo que el estado activo nativo (`aria-current="page"`) coincide con el resaltado visual. En `/invoices/reconciliation` sólo «Conciliación CFDI» queda como página actual; las listas con filtros y los detalles siguen activando su sección. Regresión con router real en `src/layouts/__tests__/NavLinkActive.test.tsx`.
