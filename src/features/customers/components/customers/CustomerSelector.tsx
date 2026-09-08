@@ -98,17 +98,20 @@ export function CustomerSelector({
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-      <CardContent className="space-y-4">
+      {!compact && (
+        <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
+      )}
+      <CardContent className={cn("space-y-4", compact && "p-4")}>
         {items.length > 0 && (
           <div className="space-y-1.5">
-            <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>
+            {compact ? null : <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>}
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
                   role="combobox"
+                  aria-label={required ? "Cliente (obligatorio)" : "Cliente"}
                   aria-expanded={open}
                   className={cn(
                     "w-full justify-between font-normal",
