@@ -1,0 +1,15 @@
+{
+  "version": "8.0.1",
+  "date": "2026-09-08",
+  "type": "patch",
+  "category": "infra",
+  "title": "Pipelines de CI adaptados al build SSR",
+  "description": "Tras la migración a TanStack Start, los flujos de integración continua apuntaban a piezas del stack anterior (index.html, tsconfig.app.json, vite preview, dist/assets). Se actualizaron para el nuevo build sin tocar la aplicación.",
+  "changes": [
+    "El chequeo de tipos en CI usa el script unificado del proyecto (el archivo tsconfig.app.json ya no existe).",
+    "El análisis de código sin uso (knip) ahora parte de las entradas reales del servidor SSR; se eliminaron codemods de migración ya aplicados y dependencias obsoletas de React Router.",
+    "Las pruebas de extremo a extremo sirven el build de producción con wrangler (runtime real de despliegue) en lugar de vite preview, que ya no es compatible.",
+    "La medición de tamaño del bundle apunta a dist/client/assets, la nueva ubicación de los archivos del navegador.",
+    "El filtro de cambios de CI ya no incluye index.html, que dejó de existir."
+  ]
+}
