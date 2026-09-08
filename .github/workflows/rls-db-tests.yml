@@ -144,13 +144,14 @@ jobs:
             --suite-name "RLS DB" \
             --mode strict
 
-      # Los smoke (c1_c2, r2, r3, r4, r9, r10) verifican catálogo/estructura y
-      # reportan con RAISE WARNING 'FALLO ...' en vez de abortar. Informativos:
-      # algunos asumen datos de staging que no existen en una DB recién creada.
+      # Los smoke verifican catálogo/estructura y reportan con
+      # RAISE WARNING 'FALLO ...' en vez de abortar; `--mode smoke` convierte
+      # ese FALLO en un caso rojo. Son BLOQUEANTES: las 42 suites pasan contra
+      # una base recién creada desde las migraciones, así que un rojo aquí es
+      # una regresión real, no datos ausentes.
       - name: Smoke SQL (supabase/tests/*.sql)
         id: smoke
         if: always()
-        continue-on-error: true
         run: |
           python3 scripts/run_sql_suites.py \
             --db-url "$DB_URL" \
@@ -158,13 +159,6 @@ jobs:
             --junit reports/sql-smoke-junit.xml \
             --suite-name "SQL smoke" \
             --mode smoke
-
-      # Los smoke autocontenidos (fixtures propias + ROLLBACK) NO son
-      # informativos: su fallo es real y rompe el job. Lista explícita en
-      # supabase/tests/selfcontained.txt — sin exclusiones genéricas.
-      - name: Smoke SQL autocontenidos (bloqueante)
-        if: always()
-        run: python3 scripts/check-selfcontained-smoke.py reports/sql-smoke-junit.xml supabase/tests/selfcontained.txt
 
       - name: Upload SQL reports
         if: always()
@@ -188,11 +182,6 @@ jobs:
         with:
           report_paths: reports/sql-smoke-junit.xml
           check_name: SQL smoke results
-          # Smoke es informativo y no-fatal (el step "Smoke SQL" lleva
-          # continue-on-error: true). Si el reporte trae fallos, NO queremos
-          # que la publicación tumbe el job: sólo publicar el check para revisión.
-          fail_on_failure: "false"
-          require_tests: "false"
 
 
       - name: Stop Supabase

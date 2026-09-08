@@ -58,9 +58,32 @@ function readDotenv(file: string): Record<string, string> {
 }
 
 /**
- * Destinos efectivos: env vars del proceso MÁS el `.env` del repo. El fallback a
- * `.env` existe en `apiAuth.envVar()`, así que sin auditarlo aquí un `.env` con
- * la URL productiva pasaba el guard y luego se usaba para conectarse.
+ * Resolución ÚNICA de un valor de configuración para las pruebas E2E.
+ *
+ * Este es el mismo orden de precedencia que consume `apiAuth`: variable de
+ * proceso, y si no existe, `.env` y luego `.env.local`. Antes cada módulo
+ * tenía su propio lector (el guard auditaba `.env` y `.env.local`; `apiAuth`
+ * solo `.env`), así que un valor podía ser auditado y otro distinto acabar en
+ * el cliente. Ahora hay una sola función y los dos la usan.
+ */
+export function resolveEnvValue(name: string): string | undefined {
+  const fromProcess = process.env[name];
+  if (fromProcess) return fromProcess;
+  for (const file of DOTENV_FILES) {
+    const value = readDotenv(file)[name];
+    if (value) return value;
+  }
+  return undefined;
+}
+
+/**
+ * Destinos a auditar: TODAS las procedencias, no solo la que gana.
+ *
+ * Se listan la variable de proceso y además cada aparición en `.env` y
+ * `.env.local`, aunque queden tapadas por la anterior. Auditar solo el valor
+ * resuelto dejaba pasar un `.env` productivo detrás de una variable local, y
+ * cualquier divergencia futura entre resolución y auditoría volvería a abrir
+ * la brecha. Con esto, un valor productivo en cualquier procedencia bloquea.
  */
 export function collectConfiguredTargets(): Array<readonly [string, string]> {
   const out: Array<readonly [string, string]> = [];
@@ -71,13 +94,13 @@ export function collectConfiguredTargets(): Array<readonly [string, string]> {
   for (const file of DOTENV_FILES) {
     const parsed = readDotenv(file);
     for (const name of TARGET_ENV_VARS) {
-      if (process.env[name]) continue; // La env var explícita gana; ya auditada arriba.
       const value = parsed[name];
       if (value) out.push([`${name} (${file})`, value] as const);
     }
   }
   return out;
 }
+
 
 function forbiddenRefs(): string[] {
   const extra = (process.env.E2E_FORBIDDEN_PROJECT_REFS ?? "")
