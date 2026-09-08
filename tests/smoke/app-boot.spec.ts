@@ -149,6 +149,15 @@ test("portal de clientes: carga y navega entre modos del formulario", async ({
   await page.getByRole("button", { name: "Volver a iniciar sesión" }).click();
   await expect(page.locator("#auth-password")).toBeVisible();
 
+  // Recarga: el portal debe volver a hidratar y aceptar interacción.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expectBooted(page, "/portal/login (recarga)");
+  const reloaded = page.locator("#auth-password");
+  await expect(reloaded).toBeVisible({ timeout: 30_000 });
+  await reloaded.fill("clave-de-prueba");
+  await expect(reloaded).toHaveValue("clave-de-prueba");
+
   expect(pageErrors, "errores de página en /portal/login").toEqual([]);
   expect(consoleErrors, "errores de consola en /portal/login").toEqual([]);
+
 });
