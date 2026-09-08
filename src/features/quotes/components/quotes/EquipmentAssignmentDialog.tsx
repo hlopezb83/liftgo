@@ -25,7 +25,7 @@ type EquipmentModel = Tables<"equipment_models">;
 const BLOCKED_STATUSES = new Set(["maintenance", "retired", "sold", "out_of_service"]);
 
 
-export interface AssignmentResult {
+interface AssignmentResult {
   forkliftId: string;
   dailyRate: number;
   weeklyRate: number;

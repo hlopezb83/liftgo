@@ -174,7 +174,7 @@ export const Outlet = TSOutlet;
 
 // ---------- NavLink (minimal) ----------
 
-export const NavLink = Link;
+
 
 // ---------- useNavigationType (react-router compat) ----------
 

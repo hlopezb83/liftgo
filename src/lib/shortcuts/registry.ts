@@ -1,7 +1,7 @@
 // Catálogo central de atajos de teclado. Fuente de verdad para el
 // dialogo de ayuda y para los handlers globales en MainLayout.
 
-export type ShortcutGroup = "global" | "navigation" | "page";
+type ShortcutGroup = "global" | "navigation" | "page";
 
 export interface ShortcutDef {
   /** Texto del combo, p.ej. "Ctrl+K" o "g d" */

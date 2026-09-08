@@ -12,7 +12,7 @@ import { extractErrorDetails } from "@/lib/ui/errorDetailsExtract";
  * porque muchos errores llegan como string plano desde Edge Functions.
  */
 
-export type ErrorSeverity = "critical" | "warning";
+type ErrorSeverity = "critical" | "warning";
 
 export interface PgErrorTranslation {
   title: string;

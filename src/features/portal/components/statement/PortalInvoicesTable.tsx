@@ -21,7 +21,7 @@ export interface PortalPayment {
   amount: number | string;
 }
 
-export interface PortalInvoiceRow {
+interface PortalInvoiceRow {
   inv: {
     id: string;
     invoice_number: string;

@@ -3,7 +3,6 @@
 // and usePortalCollectionAccount.
 export {
   usePortalCollectionAccount,
-  type PortalCollectionAccount,
 } from "./usePortalCollectionAccount";
 export {
   usePortalQuotes,
@@ -16,5 +15,4 @@ export {
   useCreatePaymentIntent,
   useAdminPaymentIntents,
   useReviewPaymentIntent,
-  type PaymentIntentInput,
 } from "./usePaymentIntents";

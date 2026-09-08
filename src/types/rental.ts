@@ -15,11 +15,11 @@ export type Booking = Tables<"bookings">;
 export type Forklift = Tables<"forklifts">;
 export type Quote = Tables<"quotes">;
 
-export type DamageRecord = Tables<"damage_records">;
-export type ReturnInspection = Tables<"return_inspections">;
+type DamageRecord = Tables<"damage_records">;
+type ReturnInspection = Tables<"return_inspections">;
 
 // ─── Joined forklift snippet (reused across many views) ──────────────────────
-export interface ForkliftSnippet {
+interface ForkliftSnippet {
   name: string;
   model: string;
 }
