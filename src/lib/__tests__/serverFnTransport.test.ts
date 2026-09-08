@@ -69,10 +69,15 @@ async function receive(url: string, init?: RequestInit): Promise<Response> {
   }
 }
 
-const callFn = createServerFn({ method: "POST" })
+// El plugin de Babel de Start reescribe `.handler(fn)` a
+// `.handler(rpcExtraído, fn)`; en pruebas se emula esa firma post-transform.
+const builder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { note: string }) => data)
-  .handler(createClientRpc("src_lib_test--transportFn") as never, business as never);
+  .inputValidator((data: { note: string }) => data);
+const callFn = (builder.handler as unknown as (...args: unknown[]) => (opts: { data: { note: string } }) => Promise<unknown>)(
+  createClientRpc("src_lib_test--transportFn"),
+  business,
+);
 
 /** Invoca la server function con las opciones GLOBALES reales de Start. */
 async function call(note: string, startOptions?: unknown) {
