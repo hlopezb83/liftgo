@@ -104,12 +104,19 @@ export function DateRangePickerField({
     setOpen(false);
   };
 
+  // V26-03: sin etiqueta visible los nombres accesibles quedaban en
+  // " — inicio" / " — fin" / "Abrir calendario de ". `fieldName` garantiza un
+  // nombre completo aunque el consumidor no pase label.
+  const fieldName = label.replace(/\s*\*\s*$/, "").trim() || "Rango de fechas";
+
   return (
     <div className="space-y-1.5">
-      <Label>
-        {label}
-        {required && <RequiredMark />}
-      </Label>
+      {label.trim() ? (
+        <Label>
+          {label}
+          {required && <RequiredMark />}
+        </Label>
+      ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
         {/* Captura rápida con teclado (DD/MM/AAAA) para inicio y fin. */}
         <div className="flex items-start gap-2">
@@ -117,7 +124,7 @@ export function DateRangePickerField({
             value={dateRange?.from}
             onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
             today={nowMty()}
-            aria-label={`${label} — inicio`}
+            aria-label={`${fieldName} — inicio`}
             className="flex-1 min-w-0"
           />
           <span className="pt-2 text-muted-foreground">—</span>
@@ -125,7 +132,7 @@ export function DateRangePickerField({
             value={dateRange?.to}
             onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
             today={nowMty()}
-            aria-label={`${label} — fin`}
+            aria-label={`${fieldName} — fin`}
             className="flex-1 min-w-0"
           />
           <DialogTrigger asChild>
@@ -134,7 +141,7 @@ export function DateRangePickerField({
               variant="outline"
               size="icon"
               title={triggerLabel}
-              aria-label={`Abrir calendario de ${label.replace(/\s*\*\s*$/, "")}`}
+              aria-label={`Abrir calendario de ${fieldName}`}
               className={cn("shrink-0", !dateRange?.from && "text-muted-foreground")}
             >
               <CalendarIcon className="h-4 w-4" />
