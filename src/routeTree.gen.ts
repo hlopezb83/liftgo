@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as PortalRouteImport } from './routes/_portal'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSplatRouteImport } from './routes/_main/$'
 import { Route as MainAccountsPayableRouteImport } from './routes/_main/accounts-payable'
@@ -100,6 +101,11 @@ const MainRoute = MainRouteImport.update({
 } as any)
 const PortalRoute = PortalRouteImport.update({
   id: '/_portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
@@ -525,6 +531,7 @@ const PortalPortalInvoicesIdPagoRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
+  '/auth': typeof AuthRoute
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -609,6 +616,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof MainIndexRoute
+  '/auth': typeof AuthRoute
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -695,6 +703,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_main': typeof MainRouteWithChildren
   '/_portal': typeof PortalRouteWithChildren
+  '/auth': typeof AuthRoute
   '/_main/$': typeof MainSplatRoute
   '/_main/accounts-payable': typeof MainAccountsPayableRoute
   '/_main/activity': typeof MainActivityRoute
@@ -782,6 +791,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/auth'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -866,6 +876,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -951,6 +962,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_main'
     | '/_portal'
+    | '/auth'
     | '/_main/$'
     | '/_main/accounts-payable'
     | '/_main/activity'
@@ -1038,6 +1050,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   MainRoute: typeof MainRouteWithChildren
   PortalRoute: typeof PortalRouteWithChildren
+  AuthRoute: typeof AuthRoute
   PortalLoginRoute: typeof PortalLoginRoute
 }
 
@@ -1055,6 +1068,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof PortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main/': {
@@ -1817,6 +1837,7 @@ const PortalRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   MainRoute: MainRouteWithChildren,
   PortalRoute: PortalRouteWithChildren,
+  AuthRoute: AuthRoute,
   PortalLoginRoute: PortalLoginRoute,
 }
 export const routeTree = rootRouteImport
