@@ -1,8 +1,13 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { createClient, type Session } from "@supabase/supabase-js";
 import type { Page } from "@playwright/test";
-import { assertNonProductionBackend, resolveEnvValue } from "./productionGuard";
+import {
+  assertNonProductionBackend,
+  assertUrlNotProduction,
+  resolveEnvValue,
+} from "./productionGuard";
+
 
 /**
  * Autenticación E2E por API (Fase 4 de la auditoría de tests).
@@ -31,9 +36,14 @@ export function supabaseEnv(): { url: string; anonKey: string; storageKey: strin
       "[e2e] Faltan VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY para el login por API.",
     );
   }
+  // Última verificación sobre la URL EXACTA que va a recibir el cliente, ya
+  // resuelta: el guard audita todas las claves, esto cierra el hueco de que
+  // una futura divergencia de resolución cuele otro valor aquí.
+  assertUrlNotProduction("supabaseEnv", "VITE_SUPABASE_URL", url);
   const ref = new URL(url).hostname.split(".")[0];
   return { url, anonKey, storageKey: `sb-${ref}-auth-token` };
 }
+
 
 /** Login por API. Falla loud (throw) si las credenciales no sirven. */
 export async function signInViaApi(email: string, password: string): Promise<Session> {

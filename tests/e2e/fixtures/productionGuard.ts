@@ -67,39 +67,54 @@ function readDotenv(file: string): Record<string, string> {
  * el cliente. Ahora hay una sola función y los dos la usan.
  */
 export function resolveEnvValue(name: string): string | undefined {
+  return resolveEnvEntry(name)?.[1];
+}
+
+/** Igual que `resolveEnvValue`, pero conservando de dónde salió el valor. */
+function resolveEnvEntry(name: string): readonly [string, string] | undefined {
   const fromProcess = process.env[name];
-  if (fromProcess) return fromProcess;
+  if (fromProcess) return [name, fromProcess] as const;
   for (const file of DOTENV_FILES) {
     const value = readDotenv(file)[name];
-    if (value) return value;
+    if (value) return [`${name} (${file})`, value] as const;
   }
   return undefined;
 }
 
 /**
- * Destinos a auditar: TODAS las procedencias, no solo la que gana.
+ * Destinos a auditar: el valor EFECTIVO de cada clave, resuelto exactamente
+ * con la misma precedencia que usa el cliente E2E (`supabaseEnv`).
  *
- * Se listan la variable de proceso y además cada aparición en `.env` y
- * `.env.local`, aunque queden tapadas por la anterior. Auditar solo el valor
- * resuelto dejaba pasar un `.env` productivo detrás de una variable local, y
- * cualquier divergencia futura entre resolución y auditoría volvería a abrir
- * la brecha. Con esto, un valor productivo en cualquier procedencia bloquea.
+ * Auditar además los valores tapados hacía inusable el flujo local: el `.env`
+ * versionado apunta a producción y una sobreescritura explícita de esa misma
+ * clave a un backend local quedaba bloqueada aunque nunca llegara a usarse.
+ *
+ * Cada clave se resuelve por separado, así que la protección real se conserva:
+ * `E2E_SUPABASE_URL` local NO tapa un `VITE_SUPABASE_URL` productivo del
+ * `.env` — son claves distintas y ambas se auditan. Solo la sobreescritura de
+ * la MISMA clave gana, que es justo lo que el cliente terminará usando.
  */
 export function collectConfiguredTargets(): Array<readonly [string, string]> {
   const out: Array<readonly [string, string]> = [];
   for (const name of TARGET_ENV_VARS) {
-    const value = process.env[name];
-    if (value) out.push([name, value] as const);
-  }
-  for (const file of DOTENV_FILES) {
-    const parsed = readDotenv(file);
-    for (const name of TARGET_ENV_VARS) {
-      const value = parsed[name];
-      if (value) out.push([`${name} (${file})`, value] as const);
-    }
+    const entry = resolveEnvEntry(name);
+    if (entry) out.push(entry);
   }
   return out;
 }
+
+/**
+ * Verificación puntual de una URL ya resuelta, justo antes de crear el
+ * cliente. Redundante con `assertNonProductionBackend` por diseño.
+ */
+export function assertUrlNotProduction(context: string, name: string, value: string): void {
+  const lowered = value.toLowerCase();
+  const hit = forbiddenRefs().find((ref) => lowered.includes(ref));
+  if (hit) {
+    fail(context, `${name} apunta al proyecto productivo bloqueado (ref "${hit}").`);
+  }
+}
+
 
 
 function forbiddenRefs(): string[] {

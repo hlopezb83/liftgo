@@ -36,3 +36,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_SUMMARY: true
+          # El README de esta revisión pineada documenta TRUE como valor por
+          # defecto: sin fijarlo, la acción intenta comentar en la PR y
+          # necesitaría pull-requests:write. El reporte vive en el resumen.
+          GITLEAKS_ENABLE_COMMENTS: "false"
+

@@ -24,7 +24,6 @@
     "test:functions": "bash scripts/deno-tests-offline.sh",
     "changelog:check": "bun scripts/validate-changelog.ts",
     "knip": "knip",
-
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write ."
   },
@@ -149,7 +148,7 @@
     "vite": "8.1.5",
     "vitest": "4.1.11"
   },
-  "version": "8.2.0",
+  "version": "7.420.0",
   "engines": {
     "node": ">=24.0.0"
   }
