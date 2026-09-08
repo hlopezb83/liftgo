@@ -3,5 +3,11 @@
   "compatibility_date": "2026-09-07",
   "compatibility_flags": ["nodejs_compat"],
   "main": "./dist/server/index.mjs",
-  "assets": { "directory": "./dist/client" }
+  "assets": { "directory": "./dist/client" },
+  // `wrangler dev` re-empaqueta el worker con esbuild y por defecto activa
+  // keep_names, que inserta llamadas al helper `__name(fn, "…")` DENTRO del
+  // cuerpo de las funciones. next-themes serializa su script anti-parpadeo con
+  // `fn.toString()` y lo inyecta como <script> inline: ahí `__name` no existe y
+  // el navegador lanza "__name is not defined" en TODA página (rompía los E2E).
+  "keep_names": false
 }

@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.0.5",
+    "date": "2026-09-08",
+    "type": "patch",
+    "category": "infra",
+    "title": "Pruebas de extremo a extremo y smoke SQL de contratos reparados",
+    "description": "Las pruebas automáticas fallaban por un error transversal en el servidor de vista previa y por un smoke SQL que dependía de datos reales de producción. Ambos quedaron corregidos de raíz, sin tocar reglas de negocio.",
+    "changes": [
+      "wrangler.jsonc: keep_names en false. El servidor local reempaquetaba el worker e insertaba llamadas a un ayudante interno dentro del cuerpo de las funciones; el script del tema se serializa con toString() y el navegador lanzaba '__name is not defined' en cada página.",
+      "vite.config.ts: se revirtió el ajuste temporal de keepNames del build (la salida de producción nunca estuvo afectada).",
+      "supabase/tests/r_fix40_contratos_duplicado_trigger_smoke.sql: ahora es autocontenido. Crea sus propias fixtures (cliente, montacargas, reservas y dos contratos duplicados 'históricos') dentro de la transacción con rollback, en lugar de depender de CTR-0002/CTR-0003 y de un admin existente."
+    ]
+  },
+  {
     "version": "8.0.4",
     "date": "2026-09-08",
     "type": "patch",

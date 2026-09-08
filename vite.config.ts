@@ -42,13 +42,19 @@ export default defineConfig({
     },
     cloudflare: {
       nodeCompat: true,
-      deployConfig: true,
+      // deployConfig genera .wrangler/deploy/config.json apuntando a
+      // dist/server/wrangler.json, archivo que nitro NO emite cuando serverDir
+      // es personalizado → `wrangler dev` aborta. Usamos wrangler.jsonc raíz.
+      deployConfig: false,
     },
   },
   vite: {
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
     },
+
+
+
     plugins: [
       // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
       process.env.ANALYZE === "1" &&
