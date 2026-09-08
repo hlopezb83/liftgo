@@ -41,7 +41,6 @@ function buildRouter(opts: { scrollToTopSelectors?: string[] }) {
     createRoute({ getParentRoute: () => rootRoute, path: "/", component: () => <p>inicio</p> }),
     createRoute({ getParentRoute: () => rootRoute, path: "/invoices", component: () => <p>facturas</p> }),
     createRoute({ getParentRoute: () => rootRoute, path: "/bookings", component: () => <p>rentas</p> }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ] as any[];
   return createRouter({
     routeTree: rootRoute.addChildren(routes),
@@ -51,7 +50,6 @@ function buildRouter(opts: { scrollToTopSelectors?: string[] }) {
     parseSearch,
     stringifySearch,
     ...(opts.scrollToTopSelectors ? { scrollToTopSelectors: opts.scrollToTopSelectors } : {}),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 }
 
@@ -78,7 +76,6 @@ function scrollMainTo(top: number) {
   });
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function go(router: any, to: string) {
   await act(async () => {
     await router.navigate({ to });
