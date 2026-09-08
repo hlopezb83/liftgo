@@ -118,25 +118,50 @@ export default function AuthPage() {
           )}
         </CardHeader>
         <CardContent>
-          <AuthForm
-            mode={mode}
-            email={email}
-            password={password}
-            showPassword={showPassword}
-            loading={loading}
-            onEmailChange={setEmail}
-            onPasswordChange={setPassword}
-            onToggleShowPassword={() => setShowPassword((v) => !v)}
-            onSubmit={handleSubmit}
-          />
+          {recovery === "error" ? (
+            <div className="space-y-3 text-center">
+              <p role="alert" className="text-sm text-destructive">
+                El enlace para restablecer tu contraseña es inválido o ya expiró.
+                Solicita uno nuevo para continuar.
+              </p>
+              <Button
+                className="w-full touch:min-h-11"
+                onClick={() => { endRecovery(); setMode("forgot"); }}
+              >
+                Solicitar un enlace nuevo
+              </Button>
+            </div>
+          ) : recovery === "pending" ? (
+            <p className="text-sm text-center text-muted-foreground">
+              Validando tu enlace de recuperación…
+            </p>
+          ) : (
+            <AuthForm
+              mode={mode}
+              email={email}
+              password={password}
+              showPassword={showPassword}
+              loading={loading}
+              onEmailChange={setEmail}
+              onPasswordChange={setPassword}
+              onToggleShowPassword={() => setShowPassword((v) => !v)}
+              onSubmit={handleSubmit}
+            />
+          )}
           <div className="mt-4 text-center space-y-1">
             {mode === "sign-in" && (
               <Button variant="link" className="touch:min-h-11" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
             )}
-            {mode !== "sign-in" && (
+            {mode !== "sign-in" && recovery === "idle" && (
               <Button variant="link" className="touch:min-h-11" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
             )}
+            {recovery !== "idle" && (
+              <Button variant="link" className="touch:min-h-11" onClick={() => { void cancelRecovery(); }}>
+                Cancelar y volver a Iniciar Sesión
+              </Button>
+            )}
           </div>
+
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
