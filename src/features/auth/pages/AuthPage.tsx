@@ -68,6 +68,16 @@ export default function AuthPage() {
   // Evento del SDK con la página ya montada (además del store en arranque frío).
   useAuthPasswordRecoveryListener(markRecoveryActive);
 
+  /**
+   * P3: `/auth` es una ruta pública que NO pasa por `AuthGuard`, así que con
+   * sesión válida hay que salir de ella. El destino por rol lo sigue
+   * decidiendo el guard de `/` (los clientes acaban en `/portal`).
+   */
+  function leaveAuthRoute() {
+    if (pathname === "/auth") navigate("/");
+  }
+
+
   // AUTH-REC-01: el modo sigue al estado del flujo (estado derivado en render,
   // no un efecto tardío que dejaría un frame con el formulario equivocado).
   const [prevRecovery, setPrevRecovery] = useState(recovery);
