@@ -42,10 +42,10 @@ export default defineConfig({
     },
     cloudflare: {
       nodeCompat: true,
-      // deployConfig genera .wrangler/deploy/config.json apuntando a
-      // dist/server/wrangler.json, archivo que nitro NO emite cuando serverDir
-      // es personalizado → `wrangler dev` aborta. Usamos wrangler.jsonc raíz.
-      deployConfig: false,
+      // deployConfig genera dist/server/wrangler.json (no_bundle:true + binding
+      // ASSETS) y .wrangler/deploy/config.json. Lo usamos como config real de
+      // preview: sin no_bundle, `wrangler dev` reempaqueta el worker.
+      deployConfig: true,
     },
   },
   vite: {
