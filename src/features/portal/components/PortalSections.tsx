@@ -2,7 +2,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { formatDateRange } from "@/lib/utils";
 
 interface Booking {

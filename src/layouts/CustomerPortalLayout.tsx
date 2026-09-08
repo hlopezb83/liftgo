@@ -12,7 +12,8 @@ import { usePublicBranding } from "@/features/company-settings";
 import { FeedbackFab } from "@/features/feedback";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
-import { Link, Outlet, useLocation } from "@/lib/router-compat";
+import { useLocation } from "@/lib/router-compat";
+import { Link, Outlet } from "@/lib/router-compat-ui";
 import { cn } from "@/lib/utils";
 
 const tabs = [

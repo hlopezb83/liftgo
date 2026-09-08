@@ -48,6 +48,72 @@ function RecoveryNotice({
 }
 
 
+/** Encabezado con logo/marca y título del modo actual. */
+function AuthCardHeader({
+  company,
+  mode,
+  unknownPath,
+  pathname,
+}: {
+  company: { logo_url?: string | null; razon_social?: string | null } | null | undefined;
+  mode: AuthMode;
+  unknownPath: boolean;
+  pathname: string;
+}) {
+  return (
+    <CardHeader className="text-center pt-8 pb-2">
+      <div className="flex justify-center mb-5">
+        {company?.logo_url ? (
+          <img
+            src={company.logo_url}
+            alt={`Logo ${company.razon_social ?? "LiftGo"}`}
+            className="h-14 w-auto max-w-[200px] object-contain"
+          />
+        ) : (
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
+        )}
+      </div>
+      <CardTitle>{TITLES[mode].title}</CardTitle>
+      <CardDescription>{TITLES[mode].desc}</CardDescription>
+      {unknownPath && (
+        <p className="text-xs text-muted-foreground mt-2">
+          La página «{pathname}» no existe o requiere sesión. Inicia sesión para continuar.
+        </p>
+      )}
+    </CardHeader>
+  );
+}
+
+/** Enlaces secundarios: olvidé mi contraseña, volver, cancelar recuperación. */
+function AuthModeLinks({
+  mode,
+  recovery,
+  onMode,
+  onCancelRecovery,
+}: {
+  mode: AuthMode;
+  recovery: string;
+  onMode: (m: AuthMode) => void;
+  onCancelRecovery: () => void;
+}) {
+  return (
+    <div className="mt-4 text-center space-y-1">
+      {mode === "sign-in" && (
+        <Button variant="link" className="touch:min-h-11" onClick={() => onMode("forgot")}>¿Olvidaste tu contraseña?</Button>
+      )}
+      {mode !== "sign-in" && recovery === "idle" && (
+        <Button variant="link" className="touch:min-h-11" onClick={() => onMode("sign-in")}>Volver a Iniciar Sesión</Button>
+      )}
+      {recovery !== "idle" && (
+        <Button variant="link" className="touch:min-h-11" onClick={onCancelRecovery}>
+          Cancelar y volver a Iniciar Sesión
+        </Button>
+      )}
+    </div>
+  );
+}
+
+
 export default function AuthPage() {
   const { user, signIn, signOut, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
@@ -154,26 +220,7 @@ export default function AuthPage() {
       />
       <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
-        <CardHeader className="text-center pt-8 pb-2">
-          <div className="flex justify-center mb-5">
-            {company?.logo_url ? (
-              <img
-                src={company.logo_url}
-                alt={`Logo ${company.razon_social ?? "LiftGo"}`}
-                className="h-14 w-auto max-w-[200px] object-contain"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
-            )}
-          </div>
-          <CardTitle>{TITLES[mode].title}</CardTitle>
-          <CardDescription>{TITLES[mode].desc}</CardDescription>
-          {unknownPath && (
-            <p className="text-xs text-muted-foreground mt-2">
-              La página «{pathname}» no existe o requiere sesión. Inicia sesión para continuar.
-            </p>
-          )}
-        </CardHeader>
+        <AuthCardHeader company={company} mode={mode} unknownPath={unknownPath} pathname={pathname} />
         <CardContent>
           {recovery === "error" || recovery === "pending" ? (
             <RecoveryNotice
@@ -195,19 +242,12 @@ export default function AuthPage() {
               onSubmit={handleSubmit}
             />
           )}
-          <div className="mt-4 text-center space-y-1">
-            {mode === "sign-in" && (
-              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
-            )}
-            {mode !== "sign-in" && recovery === "idle" && (
-              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
-            )}
-            {recovery !== "idle" && (
-              <Button variant="link" className="touch:min-h-11" onClick={() => { void cancelRecovery(); }}>
-                Cancelar y volver a Iniciar Sesión
-              </Button>
-            )}
-          </div>
+          <AuthModeLinks
+            mode={mode}
+            recovery={recovery}
+            onMode={setMode}
+            onCancelRecovery={() => { void cancelRecovery(); }}
+          />
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>

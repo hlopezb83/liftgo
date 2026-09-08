@@ -1,11 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import {
-  normalizeSearchStr,
-  useLocation,
-  useNavigate,
-  useSearchParams,
-} from "@/lib/router-compat";
+import { normalizeSearchStr, useLocation, useNavigate, useSearchParams } from "@/lib/router-compat";
 import { createRouterWrapper } from "@/test/router";
 
 describe("normalizeSearchStr", () => {

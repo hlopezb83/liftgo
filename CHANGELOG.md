@@ -1,3 +1,10 @@
+## [8.1.4] - 2026-09-08
+### Calidad interna (sin cambios funcionales)
+- `router-compat` se separa en tres módulos: `src/lib/router-compat-url.ts` (parseo de URLs), `src/lib/router-compat-ui.tsx` (`Link`, `Navigate`, `Outlet`) y `src/lib/router-compat.ts` (hooks). Se actualizaron ~60 importaciones; API y comportamiento idénticos.
+- `createAppQueryClient` se mueve a `src/lib/query/appQueryClient.ts`; `AppProviders.tsx` exporta sólo el componente.
+- Complejidad reducida sin alterar reglas ni mensajes: `invoiceFormSchema` divide su `superRefine` en validaciones por tema; `customerPortal.functions.ts` extrae validación, alta de usuario, enlazado con limpieza y generación del enlace (pasos secuenciales, mismo orden y mismos errores); `feedbackAi.functions.ts` extrae la construcción del prompt y del payload de actualización; `AuthPage` extrae encabezado y enlaces secundarios; `CustomerSelector` extrae combobox y captura manual.
+- La prueba `useUnsavedChangesGuardBlocker` deja de asignar una variable externa durante el render (se registra en un efecto), conservando todas sus aserciones.
+
 ## [8.1.3] - 2026-09-08
 ### Corrección visual puntual V26-03
 - El rango «Fecha de emisión» apila inicio y fin únicamente en móvil y reserva una columna fija para el calendario; el contenedor del filtro puede encogerse junto al botón de quitar filtro. Las fechas completas DD/MM/AAAA quedan legibles a 320 px sin recortar texto ni ocultar desbordamiento, mientras que desde 640 px se conserva la distribución horizontal.

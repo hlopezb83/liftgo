@@ -1,7 +1,8 @@
 /**
  * Router-compat shim — bridges react-router-dom v6 call sites to
  * @tanstack/react-router without hand-rewriting every component.
- * This is the same load-bearing pattern used in Klar's dev-copy migration.
+ * Sólo hooks: los componentes (Link/Navigate/Outlet) viven en
+ * `router-compat-ui.tsx` para no romper Fast Refresh.
  */
 import {
   useNavigate as tsNavigate,
@@ -9,25 +10,11 @@ import {
   useParams as tsParams,
   useRouter,
   useBlocker as tsUseBlocker,
-  Link as TSLink,
-  Navigate as TSNavigate,
-  Outlet as TSOutlet,
 } from "@tanstack/react-router";
-import { useMemo, useCallback, useEffect, useRef, useState, forwardRef, type ComponentProps, type ReactNode } from "react";
+import { useMemo, useCallback, useEffect, useRef, useState } from "react";
+import { normalizeSearchStr, parseTo } from "./router-compat-url";
 
-// ---------- shared URL parsing ----------
-
-function parseTo(to: string): { pathname: string; search?: Record<string, string>; hash?: string } {
-  const [beforeHash, hashStr] = (to ?? "").split("#");
-  const [pathname, searchStr] = beforeHash.split("?");
-  return {
-    // react-router keeps the current path for search-only ("?a=1") and
-    // hash-only ("#section") targets; TanStack's "." means current route.
-    pathname: pathname || ".",
-    search: searchStr ? Object.fromEntries(new URLSearchParams(searchStr)) : undefined,
-    hash: hashStr || undefined,
-  };
-}
+export { normalizeSearchStr } from "./router-compat-url";
 
 // ---------- useNavigate ----------
 
@@ -40,6 +27,13 @@ type NavigateFn = {
   (delta: number): void;
 };
 
+function toPathString(to: string | PartialPath): string {
+  if (typeof to === "string") return to;
+  const search = to.search ? (to.search.startsWith("?") ? to.search : `?${to.search}`) : "";
+  const hash = to.hash ? (to.hash.startsWith("#") ? to.hash : `#${to.hash}`) : "";
+  return `${to.pathname ?? "."}${search}${hash}`;
+}
+
 export function useNavigate(): NavigateFn {
   const tsNav = tsNavigate();
   const router = useRouter();
@@ -48,11 +42,7 @@ export function useNavigate(): NavigateFn {
       router.history.go(to);
       return;
     }
-    const str =
-      typeof to === "string"
-        ? to
-        : `${to.pathname ?? "."}${to.search ? (to.search.startsWith("?") ? to.search : `?${to.search}`) : ""}${to.hash ? (to.hash.startsWith("#") ? to.hash : `#${to.hash}`) : ""}`;
-    const { pathname, search, hash } = parseTo(str);
+    const { pathname, search, hash } = parseTo(toPathString(to));
     tsNav({
       to: pathname,
       search: search as never,
@@ -64,18 +54,6 @@ export function useNavigate(): NavigateFn {
 }
 
 // ---------- useLocation ----------
-
-/**
- * Contrato react-router: `location.search` es "" o empieza con exactamente
- * un "?". TanStack ya entrega `searchStr` con el "?" incluido (stringifySearch
- * lo prefija), así que anteponerlo otra vez producía "??status=overdue" y
- * `new URLSearchParams(search).get("status")` devolvía null.
- */
-export function normalizeSearchStr(searchStr: string | undefined | null): string {
-  if (!searchStr) return "";
-  const trimmed = searchStr.replace(/^\?+/, "");
-  return trimmed ? `?${trimmed}` : "";
-}
 
 export function useLocation() {
   const loc = tsLocation();
@@ -97,13 +75,11 @@ export function useLocation() {
   }, [loc.pathname, loc.searchStr, loc.hash, loc.state]);
 }
 
-
 // ---------- useParams ----------
 
 export function useParams<T extends Record<string, string | undefined> = Record<string, string | undefined>>(): T {
   return tsParams({ strict: false } as never) as T;
 }
-
 
 // ---------- useSearchParams (react-router-dom compat) ----------
 
@@ -136,51 +112,6 @@ export function useSearchParams(): [URLSearchParams, (init: URLSearchParams | Re
   );
   return [params, setParams];
 }
-
-// ---------- Link ----------
-
-type LinkProps = Omit<ComponentProps<typeof TSLink>, "to"> & {
-  to: string;
-  replace?: boolean;
-  state?: unknown;
-  children?: ReactNode;
-};
-
-export const Link = forwardRef<HTMLAnchorElement, LinkProps>(function Link(
-  { to, replace, state, children, ...rest },
-  ref,
-) {
-  const { pathname, search, hash } = parseTo(to);
-  return (
-    <TSLink
-      ref={ref as never}
-      to={pathname as never}
-      search={search as never}
-      hash={hash}
-      replace={replace}
-      state={state as never}
-      {...((rest ?? {}) as Record<string, unknown>)}
-    >
-      {children}
-    </TSLink>
-  );
-});
-
-
-// ---------- Navigate ----------
-
-export function Navigate({ to, replace, state }: { to: string; replace?: boolean; state?: unknown }) {
-  const { pathname, search, hash } = parseTo(to);
-  return <TSNavigate to={pathname as never} search={search as never} hash={hash} state={state as never} replace={replace} />;
-}
-
-// ---------- Outlet ----------
-
-export const Outlet = TSOutlet;
-
-// ---------- NavLink (minimal) ----------
-
-
 
 // ---------- useNavigationType (react-router compat) ----------
 
@@ -235,5 +166,4 @@ export function useBlocker(shouldBlock: boolean | ((args: BlockerFnArgs) => bool
   const reset = useCallback(() => latest.current.reset?.(), []);
   const state: "blocked" | "unblocked" = blocker.status === "blocked" ? "blocked" : "unblocked";
   return useMemo(() => ({ state, proceed, reset }), [state, proceed, reset]);
-
 }

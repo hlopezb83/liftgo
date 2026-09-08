@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { describe, expect, it } from "vitest";
 import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { useLocation, useNavigate } from "@/lib/router-compat";
@@ -11,11 +11,14 @@ import { useUnsavedChangesGuard } from "../useUnsavedChangesGuard";
  * formulario vuelva a renderizar por un estado ajeno al bloqueo.
  */
 
-let forceRerender: (() => void) | null = null;
+const harness: { forceRerender: (() => void) | null } = { forceRerender: null };
 
 function Harness({ dirty }: { dirty: boolean }) {
   const [tick, setTick] = useState(0);
-  forceRerender = () => setTick((t) => t + 1);
+  useEffect(() => {
+    harness.forceRerender = () => setTick((t) => t + 1);
+    return () => { harness.forceRerender = null; };
+  }, []);
   useUnsavedChangesGuard(dirty);
   const navigate = useNavigate();
   const location = useLocation();
@@ -50,7 +53,7 @@ describe("useUnsavedChangesGuard + useBlocker", () => {
 
     // Render ajeno al bloqueo mientras el diálogo está abierto.
     await act(async () => {
-      forceRerender?.();
+      harness.forceRerender?.();
     });
     expect(screen.getAllByText("¿Descartar cambios?")).toHaveLength(1);
 

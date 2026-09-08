@@ -3,7 +3,7 @@ import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { amountInMxn, countFxMissing } from "@/features/dashboard/lib/collectionForecast";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { nowMty } from "@/lib/utils";
 
 interface OverdueInvoice {

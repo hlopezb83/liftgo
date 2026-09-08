@@ -1,4 +1,3 @@
-import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ThemeProvider } from "next-themes";
@@ -8,56 +7,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthSnapshotSync } from "@/features/users";
-import { handleSessionExpired } from "@/lib/auth/sessionExpiry";
 import {
   createBrowserPersister,
   shouldPersistQuery,
   PERSIST_MAX_AGE_MS,
 } from "@/lib/query/persister";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
+import type { QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-
-/**
- * Handlers globales: si una query/mutación no marca `meta.silent = true`,
- * mostramos un toast persistente con botón "Ver detalles" que abre el reporte
- * estructurado. Mutaciones/queries que ya manejan su propio error pueden
- * silenciar el global con `meta: { silent: true }`.
- *
- * El QueryClient ahora lo instancia el router (src/router.tsx) para que SSR
- * cree un cliente por request; esta fábrica preserva la configuración previa.
- */
-export function createAppQueryClient(): QueryClient {
-  return new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 60_000,
-        gcTime: 5 * 60_000,
-        retry: 1,
-        refetchOnWindowFocus: false,
-      },
-    },
-    queryCache: new QueryCache({
-      onError: (error, query) => {
-        // G-C3: un JWT vencido cierra sesión y manda al login antes de cualquier toast.
-        void handleSessionExpired(error).then((handled) => {
-          if (handled || query.meta?.silent) return;
-          notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
-        });
-      },
-    }),
-    mutationCache: new MutationCache({
-      onError: (error, _vars, _ctx, mutation) => {
-        void handleSessionExpired(error).then((handled) => {
-          if (handled || mutation.meta?.silent) return;
-          // Si la mutación ya tiene un onError local, dejamos que él maneje el toast.
-          if (mutation.options.onError) return;
-          notifyError({ error, phase: "mutation" });
-        });
-      },
-    }),
-  });
-}
 
 // `createBrowserPersister` tiene fallback in-memory cuando no hay `window`
 // (SSR) — seguro a nivel módulo.

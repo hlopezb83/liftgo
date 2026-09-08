@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import { nowMty } from "@/lib/utils";
 
 export interface UpcomingDueInvoice {

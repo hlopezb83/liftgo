@@ -1,7 +1,7 @@
 import { TrendingUpIcon, TrophyIcon, ArrowRight } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Link } from "@/lib/router-compat";
+import { Link } from "@/lib/router-compat-ui";
 import type { CRMMetrics } from "../hooks/useCRMMetrics";
 
 interface Props {
