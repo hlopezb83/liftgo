@@ -1,4 +1,10 @@
+## [8.1.1] - 2026-09-08
+### Correcciones (auditoría ronda 2)
+- TS-05 (accesibilidad del menú): `NavLink` ahora pasa `activeOptions={{ exact, includeSearch: false }}` al enlace de TanStack, de modo que el estado activo nativo (`aria-current="page"`) coincide con el resaltado visual. En `/invoices/reconciliation` sólo «Conciliación CFDI» queda como página actual; las listas con filtros y los detalles siguen activando su sección. Regresión con router real en `src/layouts/__tests__/NavLinkActive.test.tsx`.
+- AUTH-REC-01 (recuperación de contraseña): nuevo estado explícito del flujo (`src/features/auth/recoverySession.ts`) detectado en arranque en frío antes de que el SDK limpie el fragmento, confirmado por `PASSWORD_RECOVERY` o por la sesión resultante. `AuthGuard` mantiene `AuthPage` mientras el flujo esté activo (antes la sesión de recuperación desmontaba el formulario) y se añade la ruta pública `/auth`, destino de los enlaces de restablecimiento e invitación. El formulario sólo permite cambiar la contraseña con la sesión de recuperación confirmada; un enlace inválido/expirado muestra error y no puede modificar otra sesión abierta; cancelar cierra la sesión del enlace. Sin cambios de guards, RLS ni reglas de negocio; no se registran ni se propagan tokens.
+
 ## [8.1.0] - 2026-09-08
+
 ### Seguridad de pruebas (producción protegida)
 - Nuevo guard fail-closed `tests/e2e/fixtures/productionGuard.ts`: lista negra del ref productivo, exigencia de `E2E_ISOLATED_BACKEND=1`, destino obligatorio y host local/efímero (escape remoto explícito y aun así sujeto a la lista negra). Comprueba variables de cliente (VITE_*) y de servidor (SUPABASE_*).
 - Invocado antes de login, de `ensureE2eSeedEnabled`, del seeding y del teardown (`purge_e2e_data`), y en `supabaseEnv()` como chokepoint único.
