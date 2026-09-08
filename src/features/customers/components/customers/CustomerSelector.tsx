@@ -111,7 +111,7 @@ export function CustomerSelector({
                   type="button"
                   variant="outline"
                   role="combobox"
-                  aria-label={required ? "Cliente (obligatorio)" : "Cliente"}
+                  aria-label={compact ? `Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}` : undefined}
                   aria-expanded={open}
                   className={cn(
                     "w-full justify-between font-normal",
