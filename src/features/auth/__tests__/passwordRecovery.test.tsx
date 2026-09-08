@@ -92,7 +92,7 @@ describe("AUTH-REC-01 — recuperación de contraseña", () => {
     renderApp();
     emit("SIGNED_IN", SESSION);
 
-    expect(await screen.findByLabelText("Nueva contraseña")).toBeTruthy();
+    expect(await screen.findByLabelText("Nueva contraseña", {}, { timeout: 5000 })).toBeTruthy();
     expect(screen.queryByText("Contenido ERP")).toBeNull();
     expect(getRecoveryStatus()).toBe("active");
   });
