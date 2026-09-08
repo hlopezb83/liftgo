@@ -179,8 +179,8 @@ export default function AuthPage() {
             <RecoveryNotice
               status={recovery}
               onRequestNew={() => { finishRecovery("forgot"); }}
-
             />
+
           ) : (
 
             <AuthForm
