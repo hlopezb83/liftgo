@@ -36,7 +36,7 @@ export interface UseTableFiltersOptions<T, F extends Record<string, Facet<T>>> {
 }
 
 type FacetValue = string;
-export type FacetValues<F> = { [K in keyof F]: FacetValue };
+type FacetValues<F> = { [K in keyof F]: FacetValue };
 
 export interface UseTableFiltersResult<T, F extends Record<string, Facet<T>>> {
   values: FacetValues<F>;

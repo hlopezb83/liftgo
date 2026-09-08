@@ -3,12 +3,12 @@
  * builders de error). Se actualiza vía `setAuthSnapshot` desde un puente React.
  * LiftGo es single-tenant hoy; `organization` queda `null` reservado para futuro.
  */
-export interface AuthSnapshotUser {
+interface AuthSnapshotUser {
   id: string;
   email: string | null;
 }
 
-export interface AuthSnapshotOrganization {
+interface AuthSnapshotOrganization {
   id: string;
   name: string;
 }

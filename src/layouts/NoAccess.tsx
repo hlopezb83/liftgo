@@ -7,7 +7,7 @@ import { useUserRole } from "@/features/users";
 import type { AccessLevel } from "@/features/users";
 import { ROLE_LABELS } from "@/lib/constants";
 
-export type NoAccessReason = "forbidden" | "no-role" | "error";
+type NoAccessReason = "forbidden" | "no-role" | "error";
 
 interface NoAccessProps {
   module?: string;

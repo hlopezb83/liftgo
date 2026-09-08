@@ -41,7 +41,7 @@ export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
 export { EXPENSE_CATEGORY_LABELS };
 export type { ExpenseCategory };
 
-export interface ExpenseDetailLine {
+interface ExpenseDetailLine {
   supplier: string;
   description: string;
   amount: number;

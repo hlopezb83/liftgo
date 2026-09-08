@@ -1,7 +1,7 @@
 import { ERROR_CODES, type ErrorCode } from "@/lib/domain/errorCatalog";
 
 /** Detalle de un error de validación Zod normalizado. */
-export interface ValidationErrorDetail {
+interface ValidationErrorDetail {
   path: string;
   message: string;
   code: string;

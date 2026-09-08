@@ -4,7 +4,6 @@ import { useStatementTotals } from "./incomeStatement/useStatementTotals";
 import type { AccountingBasis } from "./incomeStatement/types";
 
 export type {
-  MonthData, StatementRow, YearTotals, ComparisonRow, ExpenseCategory,
 } from "./incomeStatement/types";
 export {
   EXPENSE_CATEGORIES, DIRECT_COST_CATEGORIES, EXPENSE_CATEGORY_LABELS,

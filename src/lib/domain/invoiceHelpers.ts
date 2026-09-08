@@ -2,7 +2,6 @@
 // Split per Power-of-10 size limits while preserving the public API.
 export {
   type LineItem,
-  type SaleLineInput,
   lineItemTotal,
   applyDiscountToBase,
   applyDiscount,

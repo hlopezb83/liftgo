@@ -27,13 +27,13 @@ export interface PostgrestErrorLike {
   code?: string;
 }
 
-export interface MaintenanceRowsResult {
+interface MaintenanceRowsResult {
   data: Record<string, unknown>[] | null;
   error: PostgrestErrorLike | null;
 }
 
 /** Filtro encadenado que además puede devolver las filas afectadas. */
-export type MaintenanceUpdateFilter =
+type MaintenanceUpdateFilter =
   & Promise<{ error: PostgrestErrorLike | null }>
   & { select(columns?: string): Promise<MaintenanceRowsResult> };
 

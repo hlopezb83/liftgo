@@ -4,7 +4,7 @@
  * Mismos timeouts, mismo mapeo de errores 429/402/5xx.
  */
 
-export interface AiMessage {
+interface AiMessage {
   role: "system" | "user" | "assistant";
   content: string | Array<Record<string, unknown>>;
 }

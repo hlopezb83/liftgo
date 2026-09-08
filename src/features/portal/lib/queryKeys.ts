@@ -14,7 +14,7 @@ import { callRpc } from "@/lib/rpc";
  */
 const sel = (s: string): string => s;
 
-export interface PortalQuoteListRow {
+interface PortalQuoteListRow {
   id: string;
   quote_number: string;
   status: string;
@@ -24,7 +24,7 @@ export interface PortalQuoteListRow {
   created_at: string;
 }
 
-export interface PortalQuoteDetailRow extends PortalQuoteListRow {
+interface PortalQuoteDetailRow extends PortalQuoteListRow {
   subtotal: number;
   tax_rate: number;
   tax_amount: number;

@@ -11,7 +11,7 @@ import { CustomerSelector, type Customer } from "@/features/customers";
 import type { Tables } from "@/integrations/supabase/types";
 import { ConvertQuoteSummary } from "./ConvertQuoteSummary";
 
-export interface ConvertQuoteConfirmPayload {
+interface ConvertQuoteConfirmPayload {
   recurring: boolean;
   customerId: string;
   customerName: string;

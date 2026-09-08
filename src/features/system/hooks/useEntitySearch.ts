@@ -8,7 +8,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface EntityHit {
+interface EntityHit {
   id: string;
   label: string;
   sub?: string;
