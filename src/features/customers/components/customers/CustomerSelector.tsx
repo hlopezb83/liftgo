@@ -29,6 +29,12 @@ interface CustomerSelectorProps {
   hideManualName?: boolean;
   helpText?: string;
   error?: string;
+  /**
+   * V26-07: variante compacta (usada en Nueva cotización). Quita el encabezado
+   * redundante y la etiqueta duplicada del combobox, y reduce el padding.
+   * No cambia comportamiento, validaciones ni el nombre accesible del control.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -63,6 +69,7 @@ export function CustomerSelector({
   hideManualName,
   helpText,
   error,
+  compact,
 }: CustomerSelectorProps) {
   const [open, setOpen] = useState(false);
 
