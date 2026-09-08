@@ -50,12 +50,12 @@ beforeEach(() => {
 });
 
 describe("BookingDetail (FE4-02)", () => {
-  it("muestra QueryErrorState cuando la reserva falla, no el mensaje de 'no encontrada'", () => {
+  it("muestra QueryErrorState cuando la reserva falla, no el mensaje de 'no encontrada'", async () => {
     useBookingMock.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
 
     renderPage();
 
-    expect(screen.getByText("No se pudo cargar la reserva")).toBeInTheDocument();
+    expect(await screen.findByText("No se pudo cargar la reserva")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Reintentar/i })).toBeInTheDocument();
     expect(screen.queryByText("Reserva no encontrada")).not.toBeInTheDocument();
   });

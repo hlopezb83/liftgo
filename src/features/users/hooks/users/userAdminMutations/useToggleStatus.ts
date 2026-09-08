@@ -1,6 +1,6 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { toggleUserStatusFn } from "@/lib/userAdmin.functions";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { toggleUserStatusFn } from "@/lib/userAdmin.functions";
 import { userKeys } from "../../../lib/queryKeys";
 
 export function useToggleStatus() {

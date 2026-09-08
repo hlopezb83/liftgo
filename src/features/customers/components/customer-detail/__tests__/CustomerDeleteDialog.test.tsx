@@ -25,27 +25,27 @@ describe("mapeo del bloqueo por saldo pendiente", () => {
 });
 
 describe("CustomerDeleteDialog", () => {
-  it("usa la copia canónica del bloqueo cuando hay saldo pendiente", () => {
+  it("usa la copia canónica del bloqueo cuando hay saldo pendiente", async () => {
     const copy = describeBusinessBlock("customer_outstanding_balance");
     render(<CustomerDeleteDialog {...baseProps} outstanding={1160} />);
-    expect(screen.getByText(new RegExp(copy.reason.slice(0, 30), "i"))).toBeInTheDocument();
+    expect(await screen.findByText(new RegExp(copy.reason.slice(0, 30), "i"))).toBeInTheDocument();
     expect(screen.getByText(copy.nextStep)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archivar" })).not.toBeInTheDocument();
   });
 
-  it("permite archivar cuando el saldo está en cero y no hay reservas activas", () => {
+  it("permite archivar cuando el saldo está en cero y no hay reservas activas", async () => {
     render(<CustomerDeleteDialog {...baseProps} outstanding={0} />);
-    expect(screen.getByRole("button", { name: "Archivar" })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: "Archivar" })).toBeInTheDocument();
   });
 
-  it("muestra el bloque explicable cuando la BD rechaza por carrera", () => {
+  it("muestra el bloque explicable cuando la BD rechaza por carrera", async () => {
     const block = describeBusinessBlock("customer_outstanding_balance");
     render(
       <TestRouter>
         <CustomerDeleteDialog {...baseProps} outstanding={0} serverBlock={block} />
       </TestRouter>,
     );
-    expect(screen.getByTestId("blocked-action-notice")).toBeInTheDocument();
+    expect(await screen.findByTestId("blocked-action-notice")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archivar" })).not.toBeInTheDocument();
   });
 });

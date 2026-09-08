@@ -1,10 +1,10 @@
-import { Link } from "@/lib/router-compat";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { InfoAlertIcon, InvoiceIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat";
 import { recurringLineKey } from "../../lib/recurringSelection";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as hooks from "../../hooks/invoices/useInvoices";
@@ -82,16 +82,18 @@ describe("InvoicesPage smoke tests", () => {
     vi.mocked(hooks.useInvoicesInfinite).mockReturnValue(buildInfiniteReturn(mockInvoices));
   });
 
-  it("renders all invoices with correct statuses", () => {
+  it("renders all invoices with correct statuses", async () => {
     const container = renderPage();
+    await screen.findByText("FAC-0001");
     expect(container.textContent).toContain("FAC-0001");
     expect(container.textContent).toContain("FAC-0002");
     expect(container.textContent).toContain("Sin pagar");
     expect(container.textContent).toContain("Pagado");
   });
 
-  it("paid status persists and is displayed correctly", () => {
+  it("paid status persists and is displayed correctly", async () => {
     const container = renderPage();
+    await screen.findByText("FAC-0002");
     const rows = container.querySelectorAll("tbody tr") as NodeListOf<HTMLElement>;
     const paidRow = Array.from(rows).find((r) => r.textContent?.includes("FAC-0002"));
     expect(paidRow).toBeTruthy();
@@ -99,22 +101,24 @@ describe("InvoicesPage smoke tests", () => {
     expect(paidRow?.textContent).toMatch(/2,000\.00/);
   });
 
-  it("displays correct totals", () => {
+  it("displays correct totals", async () => {
     const container = renderPage();
+    await screen.findByText("FAC-0001");
     expect(container.textContent).toMatch(/1,700\.00/);
     expect(container.textContent).toMatch(/2,000\.00/);
   });
 
-  it("shows empty state when no invoices match", () => {
+  it("shows empty state when no invoices match", async () => {
     vi.mocked(hooks.useInvoicesInfinite).mockReturnValue(buildInfiniteReturn([]));
     const container = renderPage();
+    await screen.findByText("No se encontraron facturas");
     expect(container.textContent).toContain("No se encontraron facturas");
   });
 
   // Hallazgo 2: convivían dos paginaciones ("1–25 de N" + "Mostrando… /
   // Cargar más"). Ahora sólo queda la paginación por páginas y las páginas
   // restantes del servidor se piden solas en segundo plano.
-  it("no muestra 'Cargar más' ni 'Mostrando…' y auto-carga la siguiente página", () => {
+  it("no muestra 'Cargar más' ni 'Mostrando…' y auto-carga la siguiente página", async () => {
     const fetchNextPage = vi.fn();
     vi.mocked(hooks.useInvoicesInfinite).mockReturnValue({
       ...buildInfiniteReturn(mockInvoices),
@@ -122,6 +126,7 @@ describe("InvoicesPage smoke tests", () => {
       fetchNextPage,
     } as unknown as ReturnType<typeof hooks.useInvoicesInfinite>);
     const container = renderPage();
+    await screen.findByText("FAC-0001");
     expect(container.textContent).not.toContain("Cargar más");
     expect(container.textContent).not.toMatch(/Mostrando \d+ registros/);
     // La paginación por páginas sigue presente…

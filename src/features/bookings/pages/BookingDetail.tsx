@@ -1,4 +1,3 @@
-import { useParams } from "@/lib/router-compat";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -7,6 +6,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeliveries } from "@/features/deliveries";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useParams } from "@/lib/router-compat";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
 import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";

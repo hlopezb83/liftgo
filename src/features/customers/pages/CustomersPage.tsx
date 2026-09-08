@@ -1,5 +1,4 @@
 import { useEffect, useEffectEvent, useState } from "react";
-import { useSearchParams } from "@/lib/router-compat";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { AddIcon, UsersIcon } from "@/components/icons";
@@ -9,6 +8,7 @@ import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";

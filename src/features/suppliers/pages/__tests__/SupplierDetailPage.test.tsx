@@ -58,12 +58,12 @@ beforeEach(() => {
 });
 
 describe("SupplierDetailPage (FE4-02)", () => {
-  it("muestra QueryErrorState cuando los proveedores fallan, no el mensaje de 'no encontrado'", () => {
+  it("muestra QueryErrorState cuando los proveedores fallan, no el mensaje de 'no encontrado'", async () => {
     useSuppliersMock.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
 
     renderPage();
 
-    expect(screen.getByText("No se pudo cargar los proveedores")).toBeInTheDocument();
+    expect(await screen.findByText("No se pudo cargar los proveedores")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Reintentar/i })).toBeInTheDocument();
     expect(screen.queryByText("Proveedor no encontrado")).not.toBeInTheDocument();
   });

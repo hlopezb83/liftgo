@@ -1,6 +1,6 @@
-import { Link, useLocation } from "@/lib/router-compat";
 import { ChevronRightIcon, HomeIcon } from "@/components/icons";
 import { useBreadcrumbEntityLabel } from "@/layouts/hooks/useBreadcrumbEntityLabel";
+import { Link, useLocation } from "@/lib/router-compat";
 
 // Etiquetas de segmentos comunes (es-MX). Si no está en el mapa se capitaliza el slug.
 const SEGMENT_LABELS: Record<string, string> = {

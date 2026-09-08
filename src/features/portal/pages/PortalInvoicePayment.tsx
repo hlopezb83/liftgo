@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useParams } from "@/lib/router-compat";
 import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -16,6 +15,7 @@ import {
 } from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useParams } from "@/lib/router-compat";
 import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { ReportTransferDialog } from "../components/ReportTransferDialog";
 import { StpTransferCard } from "../components/StpTransferCard";

@@ -1,5 +1,5 @@
-import { lazy, Suspense, type ReactElement } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { lazy, Suspense, type ReactElement } from "react";
 import { PageFallback } from "@/app-routes/RouteSkeletons";
 import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import { RoleGuard } from "@/layouts/RoleGuard";

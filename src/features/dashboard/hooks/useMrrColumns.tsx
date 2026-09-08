@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { Link } from "@/lib/router-compat";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { OpenLinkIcon } from "@/components/icons";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat";
 import { formatMtyDate } from "@/lib/utils";
 import type { useMrrDetail } from "./useMrrDetail";
 

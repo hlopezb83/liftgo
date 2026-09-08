@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import { useState } from "react";
-import { useSearchParams } from "@/lib/router-compat";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -14,6 +13,7 @@ import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";

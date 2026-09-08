@@ -1,4 +1,3 @@
-import { useParams } from "@/lib/router-compat";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
@@ -6,6 +5,7 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "@/lib/router-compat";
 import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
 import { QuoteConversionDialogs } from "../components/quotes/QuoteConversionDialogs";
 import { QuoteCustomerCard } from "../components/quotes/QuoteCustomerCard";

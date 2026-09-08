@@ -1,8 +1,8 @@
-import { Link } from "@/lib/router-compat";
 import { OpenLinkIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat";
 import { formatMrrDate as fmt, type MrrItem } from "../hooks/useMrrColumns";
 
 interface Props {

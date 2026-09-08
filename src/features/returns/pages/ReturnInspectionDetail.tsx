@@ -1,9 +1,9 @@
-import { useParams } from "@/lib/router-compat";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useParams } from "@/lib/router-compat";
 import { BookingCard } from "../components/return-inspection/BookingCard";
 import { DamagesCard } from "../components/return-inspection/DamagesCard";
 import { EquipmentCard } from "../components/return-inspection/EquipmentCard";

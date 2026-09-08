@@ -42,11 +42,11 @@ function renderDialog() {
 }
 
 describe("CloseWorkOrderDialog — bloqueo de cierre con daño abierto (R8-FE-03)", () => {
-  it("deshabilita el botón 'Cerrar OT' cuando hay un daño abierto y muestra la razón", () => {
+  it("deshabilita el botón 'Cerrar OT' cuando hay un daño abierto y muestra la razón", async () => {
     openDamage = { id: "d1", description: "Llanta ponchada", status: "reported" };
     renderDialog();
 
-    const submit = screen.getByRole("button", { name: /cerrar ot/i });
+    const submit = await screen.findByRole("button", { name: /cerrar ot/i });
     expect(submit).toBeDisabled();
     // Bloque explicable: qué está bloqueado → por qué → qué sigue.
     expect(screen.getByText(/no puedes cerrar esta orden de trabajo/i)).toBeInTheDocument();
@@ -54,20 +54,20 @@ describe("CloseWorkOrderDialog — bloqueo de cierre con daño abierto (R8-FE-03
     expect(screen.getByRole("button", { name: /resolver daño/i })).toBeInTheDocument();
   });
 
-  it("no invoca la mutación de cierre aunque se intente enviar el form con daño abierto", () => {
+  it("no invoca la mutación de cierre aunque se intente enviar el form con daño abierto", async () => {
     openDamage = { id: "d1", description: "Llanta ponchada", status: "reported" };
     renderDialog();
 
-    const submit = screen.getByRole("button", { name: /cerrar ot/i });
+    const submit = await screen.findByRole("button", { name: /cerrar ot/i });
     fireEvent.click(submit);
     expect(closeMutate).not.toHaveBeenCalled();
   });
 
-  it("habilita el botón cuando no hay daño abierto", () => {
+  it("habilita el botón cuando no hay daño abierto", async () => {
     openDamage = null;
     renderDialog();
 
-    const submit = screen.getByRole("button", { name: /cerrar ot/i });
+    const submit = await screen.findByRole("button", { name: /cerrar ot/i });
     expect(submit).not.toBeDisabled();
   });
 });

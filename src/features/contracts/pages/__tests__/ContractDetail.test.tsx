@@ -34,7 +34,7 @@ beforeEach(() => {
 });
 
 describe("ContractDetail (FE4-02)", () => {
-  it("muestra QueryErrorState cuando el contrato falla, no el mensaje de 'no encontrado'", () => {
+  it("muestra QueryErrorState cuando el contrato falla, no el mensaje de 'no encontrado'", async () => {
     useContractDetailLogicMock.mockReturnValue({
       id: "ct-1",
       contract: undefined,
@@ -46,7 +46,7 @@ describe("ContractDetail (FE4-02)", () => {
 
     renderPage();
 
-    expect(screen.getByText("No se pudo cargar el contrato")).toBeInTheDocument();
+    expect(await screen.findByText("No se pudo cargar el contrato")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Reintentar/i })).toBeInTheDocument();
     expect(screen.queryByText("Contrato no encontrado")).not.toBeInTheDocument();
   });

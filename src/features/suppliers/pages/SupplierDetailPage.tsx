@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useParams } from "@/lib/router-compat";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
@@ -18,6 +17,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
+import { useParams } from "@/lib/router-compat";
 import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
 import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";

@@ -1,6 +1,6 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { inviteUserFn } from "@/lib/userAdmin.functions";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { inviteUserFn } from "@/lib/userAdmin.functions";
 import { userKeys } from "../../../lib/queryKeys";
 
 export function useInviteUser() {

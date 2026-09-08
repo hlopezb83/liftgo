@@ -1,5 +1,5 @@
-import { Link } from "@/lib/router-compat";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Link } from "@/lib/router-compat";
 
 interface Props {
   customerId: string;

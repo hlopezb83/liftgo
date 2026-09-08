@@ -1,5 +1,5 @@
-import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
+import { lazy, Suspense } from "react";
 import { PageFallback } from "@/app-routes/RouteSkeletons";
 
 const NotFound = lazy(() => import("@/features/system/pages/NotFound"));

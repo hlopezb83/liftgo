@@ -1,10 +1,10 @@
-import { Link } from "@/lib/router-compat";
+import { ROUTES } from "@/app-routes/routes";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
-import { ROUTES } from "@/app-routes/routes";
+import { Link } from "@/lib/router-compat";
 import type { Customer } from "../../hooks/customers/useCustomers";
 
 interface Props {

@@ -70,6 +70,7 @@ describe("useSupplierBillForm (UX-M2)", () => {
 
   it("rechaza submit sin proveedor/categoría (no llama mutate)", async () => {
     const { result } = renderHook(() => useSupplierBillForm(true, onClose), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     await submit(result);
     expect(createMutate).not.toHaveBeenCalled();
     expect(result.current.form.formState.errors.supplier_id).toBeTruthy();
@@ -78,6 +79,7 @@ describe("useSupplierBillForm (UX-M2)", () => {
 
   it("crea la factura con payload normalizado (fechas YMD, total calculado)", async () => {
     const { result } = renderHook(() => useSupplierBillForm(true, onClose), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("supplier_id", "sup-1");
       result.current.form.setValue("category", "renta");
@@ -99,6 +101,7 @@ describe("useSupplierBillForm (UX-M2)", () => {
 
   it("aplica dueDate sugerido según default_payment_terms_days del proveedor", async () => {
     const { result } = renderHook(() => useSupplierBillForm(true, onClose), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     act(() => {
       result.current.form.setValue("supplier_id", "sup-1");
       result.current.form.setValue("issue_date", new Date(2026, 0, 1));
@@ -138,6 +141,7 @@ describe("useSupplierBillForm (UX-M2)", () => {
     } as unknown as SupplierBillDetail;
 
     const { result } = renderHook(() => useSupplierBillForm(true, onClose, bill), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     await waitFor(() => {
       expect(result.current.form.getValues("supplier_id")).toBe("sup-1");
     });
@@ -177,6 +181,7 @@ describe("useSupplierBillForm (UX-M2)", () => {
     } as unknown as SupplierBillDetail;
 
     const { result } = renderHook(() => useSupplierBillForm(true, onClose, bill), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     await waitFor(() => expect(result.current.form.getValues("supplier_id")).toBe("sup-1"));
     await submit(result);
     expect(updateMutate).toHaveBeenCalledTimes(1);
@@ -187,6 +192,7 @@ describe("useSupplierBillForm (UX-M2)", () => {
 
   it("useUnsavedChangesGuard se sincroniza con isDirty y open", async () => {
     const { result } = renderHook(() => useSupplierBillForm(true, onClose), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     // arranque: no dirty
     expect(guardSpy).toHaveBeenLastCalledWith(false);
     act(() => {
@@ -197,8 +203,9 @@ describe("useSupplierBillForm (UX-M2)", () => {
     });
   });
 
-  it("no dispara el guard cuando el diálogo está cerrado", () => {
-    renderHook(() => useSupplierBillForm(false, onClose), { wrapper });
+  it("no dispara el guard cuando el diálogo está cerrado", async () => {
+    const { result } = renderHook(() => useSupplierBillForm(false, onClose), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
     expect(guardSpy).toHaveBeenLastCalledWith(false);
   });
 });

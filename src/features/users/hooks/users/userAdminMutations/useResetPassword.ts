@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { resetUserPasswordFn } from "@/lib/userAdmin.functions";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { resetUserPasswordFn } from "@/lib/userAdmin.functions";
 
 export function useResetPassword() {
   return useMutation({

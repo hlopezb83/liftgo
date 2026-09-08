@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { useParams } from "@/lib/router-compat";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
+import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";

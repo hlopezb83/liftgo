@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { Outlet } from "@/lib/router-compat";
 import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { usePageActionsContext } from "@/contexts/pageActions";
@@ -15,6 +14,7 @@ import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { TopbarUserMenu } from "@/layouts/TopbarUserMenu";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
+import { Outlet } from "@/lib/router-compat";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 
 function focusSearchInput() {

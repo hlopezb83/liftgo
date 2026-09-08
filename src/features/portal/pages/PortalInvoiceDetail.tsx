@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { useParams } from "@/lib/router-compat";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -12,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useParams } from "@/lib/router-compat";
 import { InvoiceSummaryCards } from "../components/InvoiceSummaryCards";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import { useCfdiDownload } from "../hooks/useCfdiDownload";

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
 import type { ReactNode } from "react";
 import { useInvoicesFilters } from "../useInvoicesFilters";
@@ -9,10 +9,11 @@ const wrapper = (initial: string) => ({ children }: { children: ReactNode }) => 
 );
 
 describe("useInvoicesFilters", () => {
-  it("reads search/status/date range from URL", () => {
+  it("reads search/status/date range from URL", async () => {
     const { result } = renderHook(() => useInvoicesFilters(), {
       wrapper: wrapper("/invoices?q=abc&status=paid&from=2026-01-01&to=2026-01-31"),
     });
+    await waitFor(() => expect(result.current).not.toBeNull());
     expect(result.current.search).toBe("abc");
     expect(result.current.statusFilter).toBe("paid");
     expect(result.current.dateRange?.from).toBeInstanceOf(Date);
@@ -20,10 +21,11 @@ describe("useInvoicesFilters", () => {
     expect(result.current.hasActive).toBe(true);
   });
 
-  it("clearAll wipes all filters and marks hasActive=false", () => {
+  it("clearAll wipes all filters and marks hasActive=false", async () => {
     const { result } = renderHook(() => useInvoicesFilters(), {
       wrapper: wrapper("/invoices?q=abc&status=paid"),
     });
+    await waitFor(() => expect(result.current).not.toBeNull());
     expect(result.current.hasActive).toBe(true);
     act(() => result.current.clearAll());
     expect(result.current.search).toBe("");
@@ -31,10 +33,11 @@ describe("useInvoicesFilters", () => {
     expect(result.current.hasActive).toBe(false);
   });
 
-  it("filterKey stays stable across renders when inputs don't change", () => {
+  it("filterKey stays stable across renders when inputs don't change", async () => {
     const { result, rerender } = renderHook(() => useInvoicesFilters(), {
       wrapper: wrapper("/invoices?q=abc&status=paid"),
     });
+    await waitFor(() => expect(result.current).not.toBeNull());
     const first = result.current.filterKey;
     rerender();
     expect(result.current.filterKey).toBe(first);

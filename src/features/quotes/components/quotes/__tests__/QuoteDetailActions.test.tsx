@@ -60,7 +60,7 @@ describe("QuoteDetailActions (DB3-06)", () => {
   it("usa el estado 'rejected' del dominio de la base de datos al rechazar, con motivo (R8-FE-15)", async () => {
     const onSetStatus = vi.fn();
     renderActions(onSetStatus);
-    fireEvent.click(screen.getByRole("button", { name: /rechazar/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /rechazar/i }));
     const dialog = screen.getByRole("dialog");
     fireEvent.change(within(dialog).getByLabelText(/motivo del rechazo/i), {
       target: { value: "El cliente encontró mejor precio" },
@@ -71,44 +71,46 @@ describe("QuoteDetailActions (DB3-06)", () => {
     );
   });
 
-  it("acepta solo desde 'sent' y con el estado 'accepted'", () => {
+  it("acepta solo desde 'sent' y con el estado 'accepted'", async () => {
     const onSetStatus = vi.fn();
     renderActions(onSetStatus);
-    fireEvent.click(screen.getByRole("button", { name: /aceptar/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /aceptar/i }));
     expect(onSetStatus).toHaveBeenCalledWith("accepted");
   });
 });
 
 describe("QuoteDetailActions - Cancelar cotización (FE4-03 / N-R4-C)", () => {
-  it("muestra el botón para admin en una cotización aceptada", () => {
+  it("muestra el botón para admin en una cotización aceptada", async () => {
     useUserRoleMock.mockReturnValue({ data: "admin" });
     renderActions(vi.fn(), acceptedQuote);
-    expect(screen.getByRole("button", { name: /cancelar cotización/i })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /cancelar cotización/i })).toBeInTheDocument();
   });
 
-  it("muestra el botón para administrativo en una cotización aceptada", () => {
+  it("muestra el botón para administrativo en una cotización aceptada", async () => {
     useUserRoleMock.mockReturnValue({ data: "administrativo" });
     renderActions(vi.fn(), acceptedQuote);
-    expect(screen.getByRole("button", { name: /cancelar cotización/i })).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /cancelar cotización/i })).toBeInTheDocument();
   });
 
-  it("oculta el botón para otros roles", () => {
+  it("oculta el botón para otros roles", async () => {
     useUserRoleMock.mockReturnValue({ data: "ventas" });
     renderActions(vi.fn(), acceptedQuote);
+    await screen.findByRole("button", { name: /pdf/i });
     expect(screen.queryByRole("button", { name: /cancelar cotización/i })).not.toBeInTheDocument();
   });
 
-  it("no aparece si la cotización no está en 'accepted'", () => {
+  it("no aparece si la cotización no está en 'accepted'", async () => {
     useUserRoleMock.mockReturnValue({ data: "admin" });
     renderActions(vi.fn());
+    await screen.findByRole("button", { name: /aceptar/i });
     expect(screen.queryByRole("button", { name: /cancelar cotización/i })).not.toBeInTheDocument();
   });
 
-  it("al confirmar, invoca onSetStatus con 'cancelled'", () => {
+  it("al confirmar, invoca onSetStatus con 'cancelled'", async () => {
     useUserRoleMock.mockReturnValue({ data: "admin" });
     const onSetStatus = vi.fn();
     renderActions(onSetStatus, acceptedQuote);
-    fireEvent.click(screen.getByRole("button", { name: /cancelar cotización/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /cancelar cotización/i }));
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar cotización" }));
     expect(onSetStatus).toHaveBeenCalledWith("cancelled");
@@ -116,19 +118,19 @@ describe("QuoteDetailActions - Cancelar cotización (FE4-03 / N-R4-C)", () => {
 });
 
 describe("QuoteDetailActions · bloqueos explicables (lote 3)", () => {
-  it("mantiene 'Aceptar' visible pero deshabilitada cuando la cotización venció", () => {
+  it("mantiene 'Aceptar' visible pero deshabilitada cuando la cotización venció", async () => {
     const expired = { ...quote, valid_until: "2020-01-01" } as unknown as Tables<"quotes">;
     const onSetStatus = vi.fn();
     renderActions(onSetStatus, expired);
-    const accept = screen.getByRole("button", { name: /aceptar/i });
+    const accept = await screen.findByRole("button", { name: /aceptar/i });
     expect(accept).toBeDisabled();
     fireEvent.click(accept);
     expect(onSetStatus).not.toHaveBeenCalled();
   });
 
-  it("ofrece 'Ver reserva' cuando la cotización ya fue convertida", () => {
+  it("ofrece 'Ver reserva' cuando la cotización ya fue convertida", async () => {
     renderActions(vi.fn(), quote, { alreadyConverted: true, linkedBookingId: "b-1" });
-    expect(screen.getByRole("button", { name: /ya convertida a reserva/i })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: /ya convertida a reserva/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /ver reserva/i })).toBeInTheDocument();
   });
 });

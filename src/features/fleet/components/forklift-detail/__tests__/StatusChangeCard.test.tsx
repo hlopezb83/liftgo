@@ -22,7 +22,7 @@ describe("StatusChangeCard", () => {
     // El backend sólo bloquea si hay renta ABIERTA (entrega sin devolución);
     // la UI no debe bloquear por el simple estado 'rented'.
     renderCard("rented");
-    fireEvent.click(screen.getByRole("combobox", { name: /nuevo estado/i }));
+    fireEvent.click(await screen.findByRole("combobox", { name: /nuevo estado/i }));
     fireEvent.click(await screen.findByRole("option", { name: /disponible/i }));
     const button = screen.getByRole("button", { name: /actualizar estado/i });
     expect(button).toBeEnabled();
@@ -31,7 +31,7 @@ describe("StatusChangeCard", () => {
 
   it("exige razón para mantenimiento", async () => {
     renderCard("available");
-    fireEvent.click(screen.getByRole("combobox", { name: /nuevo estado/i }));
+    fireEvent.click(await screen.findByRole("combobox", { name: /nuevo estado/i }));
     fireEvent.click(await screen.findByRole("option", { name: /mantenimiento/i }));
     expect(screen.getByRole("button", { name: /actualizar estado/i })).toBeDisabled();
   });

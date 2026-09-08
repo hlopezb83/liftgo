@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "@/lib/router-compat";
 import {
   DataTableV2,
   useLiftgoTable,
@@ -9,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat";
 
 interface Row {
   id: string;
