@@ -1,0 +1,14 @@
+{
+  "version": "8.1.0",
+  "date": "2026-09-08",
+  "type": "minor",
+  "category": "infra",
+  "title": "Candado de seguridad: las pruebas automáticas ya no pueden tocar producción",
+  "description": "Las pruebas de extremo a extremo escriben y borran datos (siembra, purga, interruptor de siembra). Ahora un candado a prueba de fallos las detiene antes de conectarse si el destino puede ser la base productiva.",
+  "changes": [
+    "tests/e2e/fixtures/productionGuard.ts: bloqueo explícito del proyecto productivo conocido, exigencia de declarar el backend aislado (E2E_ISOLATED_BACKEND=1), destino obligatorio y host local; sin configuración válida las pruebas se detienen, no continúan.",
+    "El candado corre ANTES del inicio de sesión, de activar la siembra, de sembrar y de la limpieza final (global.setup, global.teardown, fixtures de siembra y el punto único de acceso a Supabase).",
+    "CI: el trabajo de pruebas de extremo a extremo ya no recibe los secretos productivos; exige un backend aislado y además verifica que el paquete del navegador no haya sido compilado contra producción. Si falta la precondición, el trabajo falla informándolo con claridad en vez de simular verde.",
+    "Las pruebas SQL ya corrían contra una base local efímera del runner; se conservan sin cambios."
+  ]
+}
