@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { describe, expect, it } from "vitest";
 import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { useLocation, useNavigate } from "@/lib/router-compat";
