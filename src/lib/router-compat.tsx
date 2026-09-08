@@ -33,20 +33,26 @@ function parseTo(to: string): { pathname: string; search?: Record<string, string
 
 type NavigateOptions = { replace?: boolean; state?: unknown };
 
+type PartialPath = { pathname?: string; search?: string; hash?: string };
+
 type NavigateFn = {
-  (to: string | number, options?: NavigateOptions): void;
+  (to: string | PartialPath | number, options?: NavigateOptions): void;
   (delta: number): void;
 };
 
 export function useNavigate(): NavigateFn {
   const tsNav = tsNavigate();
   const router = useRouter();
-  return useCallback((to: string | number, options?: NavigateOptions) => {
+  return useCallback((to: string | PartialPath | number, options?: NavigateOptions) => {
     if (typeof to === "number") {
       router.history.go(to);
       return;
     }
-    const { pathname, search, hash } = parseTo(to);
+    const str =
+      typeof to === "string"
+        ? to
+        : `${to.pathname ?? "."}${to.search ? (to.search.startsWith("?") ? to.search : `?${to.search}`) : ""}${to.hash ? (to.hash.startsWith("#") ? to.hash : `#${to.hash}`) : ""}`;
+    const { pathname, search, hash } = parseTo(str);
     tsNav({
       to: pathname,
       search: search as never,

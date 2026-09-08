@@ -7,6 +7,8 @@ interface NavLinkCompatProps extends Omit<ComponentProps<typeof Link>, "classNam
   activeClassName?: string;
   /** Conservado por compatibilidad de llamada; TanStack no expone isPending aquí. */
   pendingClassName?: string;
+  /** react-router: activo sólo en match exacto (sin subrutas). */
+  end?: boolean;
   ref?: Ref<HTMLAnchorElement>;
 }
 
@@ -14,13 +16,15 @@ const NavLink = ({
   className,
   activeClassName,
   pendingClassName: _pendingClassName,
+  end,
   to,
   ref,
   ...props
 }: NavLinkCompatProps) => {
   const { pathname } = useLocation();
   const path = to.split(/[?#]/)[0] || "/";
-  const isActive = path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
+  const isActive =
+    path === "/" || end ? pathname === path : pathname === path || pathname.startsWith(`${path}/`);
   return (
     <Link
       ref={ref}
