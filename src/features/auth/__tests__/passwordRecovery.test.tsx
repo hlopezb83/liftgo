@@ -282,7 +282,6 @@ describe("AUTH-REC-01 — recuperación de contraseña", () => {
     await screen.findByLabelText("Nueva contraseña", {}, { timeout: 5000 });
 
     emit("TOKEN_REFRESHED", { ...SESSION, access_token: "z" });
-    emit("INITIAL_SESSION", null);
 
     expect(getRecoveryStatus()).toBe("active");
     const input = await screen.findByLabelText("Nueva contraseña");
