@@ -1,3 +1,13 @@
+## [8.0.0] - 2026-09-08
+### Mayor (migración de framework)
+- Migración completa del stack Classic (Vite + React Router) a TanStack Start con SSR. 62 rutas convertidas a archivos TanStack Router; guards de acceso (AuthGuard, RoleGuard, AdminRouteGuard) preservados y verificados mecánicamente uno a uno (56 entradas de cobertura).
+- Alias históricos (/expenses, /accounts-payable, /payments, /prospects, /availability, /cash-flow, /conciliacion, /bank-reconciliation, /customers/new) y /login siguen redirigiendo igual; portal de clientes con sus 11 vistas y login en /portal/login.
+- Compat layer `src/lib/router-compat.tsx` (useNavigate, useLocation, useParams, useSearchParams, useBlocker, useNavigationType, Link, Navigate, Outlet) — las pantallas no cambian de comportamiento.
+- Metadatos SEO, favicon, fuentes, Sentry, shim Intl.Locale y recarga por chunks stale portados a `src/routes/__root.tsx`; tema Tailwind conservado (147 tokens/utilities re-aplicados).
+- Los 23 servicios backend (Edge Functions) permanecen en su lugar sin cambio de URL: 4 cron, clúster fiscal CFDI compartido, 2 con dependencias Deno y 7 internos candidatos a migrar después.
+- Fix: `OfflineBanner` asumía `navigator.onLine` en el servidor y causaba mismatch de hidratación; ahora sincroniza tras hidratar.
+- Gates verificados: build limpio, `tsc --noEmit` 0 errores, 62/62 rutas responden 200 en SSR, sin errores de runtime tras hidratación.
+
 ## [7.423.3] - 2026-09-08
 ### Corrección (timbrado de complemento de pago)
 - REP: la razón social del receptor se normaliza con `sanitizeLegalName` (mayúsculas, sin acentos, sin régimen societario), igual que en `stamp-cfdi` y `stamp-credit-note`. Corrige el rechazo del SAT CFDI40145 "El campo Nombre del receptor debe pertenecer al nombre asociado al RFC".
