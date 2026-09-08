@@ -79,8 +79,9 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   page,
   baseURL,
 }) => {
-  const blocked = await blockExternalRequests(page, new URL(baseURL!).origin);
-  const { pageErrors, consoleErrors } = collectErrors(page, blocked);
+  const origin = new URL(baseURL!).origin;
+  const blocked = await blockExternalRequests(page, origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked, origin);
 
 
   const response = await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -126,8 +127,9 @@ test("portal de clientes: carga y navega entre modos del formulario", async ({
   page,
   baseURL,
 }) => {
-  const blocked = await blockExternalRequests(page, new URL(baseURL!).origin);
-  const { pageErrors, consoleErrors } = collectErrors(page, blocked);
+  const origin = new URL(baseURL!).origin;
+  const blocked = await blockExternalRequests(page, origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked, origin);
 
 
   const response = await page.goto("/portal/login", { waitUntil: "domcontentloaded" });
