@@ -1,0 +1,106 @@
+name: E2E (bajo demanda)
+
+# Las pruebas E2E ESCRIBEN en la base (siembran, activan allow_e2e_seed y
+# purgan al final). El proyecto Supabase de la app es PRODUCCIÓN, así que este
+# workflow:
+#   - nunca corre solo (sin cron, sin push, sin PR);
+#   - exige un backend aislado declarado explícitamente;
+#   - falla ruidosamente si falta la precondición, en vez de saltarse tests y
+#     reportar verde.
+# El guard de `tests/e2e/fixtures/productionGuard.ts` repite estas
+# comprobaciones dentro del proceso de pruebas, antes de login, seed y purga.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Escribe "backend-aislado" para confirmar que NO es producción'
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-on-demand
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    name: Playwright (backend aislado)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Confirmación explícita
+        if: inputs.confirm != 'backend-aislado'
+        run: |
+          echo "::error::Confirmación faltante. Vuelve a lanzar el workflow escribiendo 'backend-aislado'."
+          exit 1
+
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-bun-project
+
+      - name: Precondición — backend E2E aislado
+        env:
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          PROD_REF: zxefrzfaynnfwazqhwxp
+        run: |
+          set -euo pipefail
+          if [ -z "${E2E_SUPABASE_URL}" ] || [ -z "${E2E_SUPABASE_PUBLISHABLE_KEY}" ]; then
+            echo "::error::PRECONDICIÓN FALTANTE: no hay backend E2E aislado configurado (secrets E2E_SUPABASE_*)."
+            echo "::error::Las E2E escriben en la base y el proyecto de la app es PRODUCCIÓN. Job detenido a propósito."
+            exit 1
+          fi
+          case "${E2E_SUPABASE_URL}" in
+            *"${PROD_REF}"*)
+              echo "::error::E2E_SUPABASE_URL apunta al proyecto PRODUCTIVO. Job detenido."
+              exit 1;;
+          esac
+
+      # El bundle se compila AQUÍ contra el backend aislado. Nunca se reutiliza
+      # un dist del CI (que apunta a un destino inexistente) ni uno productivo.
+      - name: Build contra el backend aislado
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.E2E_SUPABASE_PROJECT_ID }}
+        run: bun run build
+
+      - name: Verificar que el bundle no apunta a producción
+        env:
+          PROD_REF: zxefrzfaynnfwazqhwxp
+        run: |
+          if grep -rql "${PROD_REF}" dist/client 2>/dev/null; then
+            echo "::error::El bundle fue compilado contra PRODUCCIÓN. Job detenido."
+            exit 1
+          fi
+
+      - name: Instalar Chromium
+        run: bunx playwright install --with-deps chromium
+
+      - name: Playwright
+        env:
+          E2E_REUSE_BUILD: "1"
+          E2E_ISOLATED_BACKEND: "1"
+          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          E2E_PORTAL_EMAIL: ${{ secrets.E2E_PORTAL_EMAIL }}
+          E2E_PORTAL_PASSWORD: ${{ secrets.E2E_PORTAL_PASSWORD }}
+          VITE_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.E2E_SUPABASE_PROJECT_ID }}
+          SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          SUPABASE_PROJECT_ID: ${{ secrets.E2E_SUPABASE_PROJECT_ID }}
+        run: bunx playwright test
+
+      - name: Subir reporte
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore

@@ -78,7 +78,6 @@ Deno.serve(async (req) => {
       );
     }
 
-
     const userId = newUser.user.id;
 
     // Compensacion: si alguna escritura falla, borrar el usuario de auth
@@ -135,7 +134,6 @@ Deno.serve(async (req) => {
       user_id: userId,
       portal_link: linkData.properties.action_link,
     });
-
   } catch (_err) {
     console.error("invite-customer error:", _err);
     return jsonError(req, 500, "Internal server error");

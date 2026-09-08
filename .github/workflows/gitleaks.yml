@@ -1,22 +1,22 @@
 name: Gitleaks
 
+# Detección de secretos. Sin cron: un secreto solo entra al repo por un push o
+# un PR, y ambos ya están cubiertos. La corrida semanal repetía el mismo
+# escaneo sobre commits ya revisados.
+
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
-  schedule:
-    - cron: "0 13 * * 1"
   workflow_dispatch:
 
 permissions:
   contents: read
   pull-requests: write
-  security-events: write
 
 concurrency:
-  group: gitleaks-${{ github.workflow }}-${{ github.ref }}
-  # Cancelar solo en PRs; en push:main y schedule preservamos histórico de escaneos por SHA.
+  group: gitleaks-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
@@ -27,13 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Full history para detectar leaks históricos en PRs.
+          # Historia completa: también detecta secretos en commits anteriores.
           fetch-depth: 0
 
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0 (Node 24)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Falla el job si encuentra hallazgos verificados.
           GITLEAKS_ENABLE_COMMENTS: true
           GITLEAKS_ENABLE_SUMMARY: true

@@ -1,5 +1,12 @@
 name: CI
 
+# CI mínimo y honesto (ver docs/ci.md):
+#   - Dos jobs base que siempre corren: `quality` (estático + build + arranque
+#     real del bundle) y `tests` (Vitest completo con umbrales de cobertura).
+#   - Jobs condicionales que solo corren cuando su área cambió.
+#   - CERO secretos de producción: el build de CI apunta a un backend
+#     inexistente a propósito. Las pruebas con escritura viven fuera de aquí.
+
 on:
   pull_request:
     branches: [main]
@@ -15,246 +22,119 @@ on:
       - "public/changelog.json"
       - "**/*.md"
       - ".lovable/**"
-  # v7.219.0 (M5): corrida semanal para detectar rot silencioso (cachés vencidos,
-  # tests flaky que dependen de fechas relativas, deps con CVEs recién publicados).
-  schedule:
-    - cron: "0 11 * * 1" # Lunes 11:00 UTC (05:00 America/Monterrey)
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# Concurrencia por workflow+ref: un push nuevo cancela el run anterior del mismo branch.
-# En `push: main` NO cancelamos para preservar histórico de CI por SHA.
+# Un push nuevo cancela la corrida obsoleta de la misma rama.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  # ---------------------------------------------------------------------------
-  # Job barato (~5s) que detecta secrets ausentes para que e2e/edge-functions
-  # se salten en PRs desde forks o repos sin configurar, en lugar de fallar
-  # con 40+ errores opacos. Skipped cuenta como success en el gate.
-  # ---------------------------------------------------------------------------
-  secrets-check:
-    name: Secrets check
-    runs-on: ubuntu-latest
-    timeout-minutes: 2
-    outputs:
-      has_supabase: ${{ steps.check.outputs.has_supabase }}
-      has_e2e: ${{ steps.check.outputs.has_e2e }}
-    steps:
-      - id: check
-        env:
-          SUPA_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          SUPA_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          E2E_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_PASS: ${{ secrets.E2E_TEST_PASSWORD }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          has_supabase=false
-          has_e2e=false
-          if [[ -n "${SUPA_URL:-}" && -n "${SUPA_KEY:-}" ]]; then
-            has_supabase=true
-          else
-            echo "::warning::Faltan secrets VITE_SUPABASE_URL/VITE_SUPABASE_PUBLISHABLE_KEY — edge-functions y e2e se saltarán."
-          fi
-          if [[ -n "${E2E_EMAIL:-}" && -n "${E2E_PASS:-}" ]]; then
-            has_e2e=true
-          else
-            echo "::warning::Faltan secrets E2E_TEST_EMAIL/E2E_TEST_PASSWORD — e2e se saltará."
-          fi
-          {
-            echo "has_supabase=${has_supabase}"
-            echo "has_e2e=${has_e2e}"
-          } >> "$GITHUB_OUTPUT"
-
-  # ---------------------------------------------------------------------------
-  # Jobs en paralelo (todos comparten cache de bun install).
-  # Antes era un único job "quality" serializado: lint → typecheck → knip → tests → build (~12 min).
-  # Ahora wall time = job más lento (tests con coverage).
-  # ---------------------------------------------------------------------------
-
-
-  # ---------------------------------------------------------------------------
-  # Fase 5.4/5.3: un solo job barato calcula qué tocó el diff para saltar e2e y
-  # edge-functions cuando no aplican, y decide si Vitest corre completo o solo
-  # los tests afectados (`--changed`).
-  # ---------------------------------------------------------------------------
   changes:
     name: Detectar cambios
     runs-on: ubuntu-latest
     timeout-minutes: 3
     outputs:
-      app: ${{ steps.filter.outputs.app }}
       functions: ${{ steps.filter.outputs.functions }}
       migrations: ${{ steps.filter.outputs.migrations }}
-      vitest_mode: ${{ steps.mode.outputs.vitest_mode }}
     steps:
       - uses: actions/checkout@v7
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         id: filter
         with:
           filters: |
-            app:
-              - 'src/**'
-              - 'tests/**'
-              - 'package.json'
-              - 'bun.lock'
-              - 'vite.config.ts'
-              - 'playwright.config.ts'
-              - '.github/workflows/ci.yml'
-              - '.github/actions/**'
             functions:
               - 'supabase/functions/**'
+              - 'scripts/deno-test-selection.sh'
               - '.github/workflows/ci.yml'
             migrations:
               - 'supabase/migrations/**'
               - 'scripts/lint-migrations.ts'
               - '.github/workflows/ci.yml'
-            vitest_full:
-              - 'src/test/setup.ts'
-              - 'vitest.config.ts'
-              - 'package.json'
-              - 'bun.lock'
 
-      # `changed` solo en PRs que no tocan la config de tests: en push a main,
-      # cron y workflow_dispatch siempre corre la suite completa (es la corrida
-      # que evalúa los umbrales de cobertura).
-      - id: mode
-        shell: bash
-        env:
-          EVENT: ${{ github.event_name }}
-          VITEST_FULL: ${{ steps.filter.outputs.vitest_full }}
-        run: |
-          set -euo pipefail
-          MODE=full
-          if [[ "$EVENT" == "pull_request" && "$VITEST_FULL" != "true" ]]; then
-            MODE=changed
-          fi
-          echo "vitest_mode=$MODE" >> "$GITHUB_OUTPUT"
-          echo "Modo Vitest: $MODE"
-
-  lint:
-    name: ESLint
+  # ---------------------------------------------------------------------------
+  # BASE 1 — ¿compila, cumple las reglas y arranca de verdad?
+  # El smoke de navegador sirve el bundle real con `wrangler dev`: es el único
+  # punto donde se detectan fallos de empaquetado (p. ej. `__name is not
+  # defined`) que el typecheck y los tests unitarios no ven.
+  # ---------------------------------------------------------------------------
+  quality:
+    name: Calidad (lint, tipos, build y arranque)
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
-      - run: bun run lint
 
-  typecheck:
-    name: Typecheck (tsc --noEmit)
-    runs-on: ubuntu-latest
-    timeout-minutes: 6
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-      - run: bun run typecheck
+      - name: ESLint
+        run: bun run lint
 
-  arch-check:
-    name: Arch check (guardrails)
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    steps:
-      - uses: actions/checkout@v7
-      - name: Ejecutar guardrails de arquitectura
-        # Ver docs/architecture-guardrails.md (G1–G5).
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Guardrails de arquitectura
         run: bash scripts/arch-check.sh
 
-  dependency-review:
-    name: Dependency review
-    runs-on: ubuntu-latest
-    timeout-minutes: 3
-    # v7.219.0 (M1): bloquea PRs que introducen dependencias con CVE alto/crítico
-    # o licencias no permitidas. Solo aplica en pull_request (necesita base/head).
-    if: github.event_name == 'pull_request'
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0 (Node 24)
-        with:
-          fail-on-severity: high
-          comment-summary-in-pr: on-failure
-          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, Unlicense, Python-2.0, MPL-2.0, CC-BY-4.0, BlueOak-1.0.0
-
-  knip:
-    name: Knip (archivos y dependencias sin uso)
-    runs-on: ubuntu-latest
-    timeout-minutes: 6
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-
-      # Bloquea PRs si hay archivos huérfanos o dependencias sin uso.
-      - name: Knip (blocker)
+      # Solo lo que bloquea: archivos huérfanos, dependencias y binarios sin uso.
+      # `exports`/`types` es ruido informativo y ya no se ejecuta en CI
+      # (`bun run knip:deep` en local cuando se quiera revisar).
+      - name: Knip
         run: bunx knip --include files,dependencies,binaries --reporter compact
 
-      # Informativo: exports/tipos sin uso, no rompe el PR.
-      - name: Knip (informativo)
-        run: bunx knip --include exports,types --reporter compact
-        continue-on-error: true
-
-  # Sharding: la suite (1400+ tests) se reparte en 3 runners que corren en
-  # paralelo con todos los núcleos del runner. Cada shard emite un reporte
-  # "blob" y el job `tests-merge` los une para calcular cobertura global y
-  # aplicar los umbrales (que no tienen sentido por shard).
-  tests:
-    name: Tests (shard ${{ matrix.shard }}/3)
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
-    needs: changes
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3]
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          # `--changed` necesita historia para diffear contra la base del PR.
-          fetch-depth: ${{ needs.changes.outputs.vitest_mode == 'changed' && 0 || 1 }}
-      - uses: ./.github/actions/setup-bun-project
-
-      - name: Tests (Vitest) + Coverage · shard ${{ matrix.shard }}
+      # Build con destino DELIBERADAMENTE inexistente: el smoke solo verifica
+      # arranque y render, nunca datos. Así el CI no necesita secretos.
+      - name: Build
         env:
-          # Reporter blob + umbrales desactivados por shard (ver vitest.config.ts).
-          VITEST_SHARD_BLOB: "1"
-          # Heap generoso: los runners tienen 16 GB y el pool de forks usa
-          # todos los núcleos disponibles.
-          NODE_OPTIONS: --max-old-space-size=6144
-          MODE: ${{ needs.changes.outputs.vitest_mode }}
-          BASE_REF: ${{ github.base_ref }}
+          VITE_SUPABASE_URL: http://127.0.0.1:54321
+          VITE_SUPABASE_PUBLISHABLE_KEY: ci-smoke-placeholder
+          VITE_SUPABASE_PROJECT_ID: ci-smoke
+        run: bun run build
+
+      - name: Resolver versión de Playwright
+        id: pw-version
+        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache de navegadores Playwright
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
+
+      - name: Instalar Chromium
         run: |
-          set -euo pipefail
-          if [[ "$MODE" == "changed" ]]; then
-            git fetch --no-tags --depth=100 origin "$BASE_REF"
-            echo "Corriendo solo los tests afectados por el diff contra origin/$BASE_REF"
-            bunx vitest run --changed "origin/$BASE_REF" \
-              --shard=${{ matrix.shard }}/3 --passWithNoTests
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
+            bunx playwright install-deps chromium
           else
-            bunx vitest run --shard=${{ matrix.shard }}/3 --coverage
+            bunx playwright install --with-deps chromium
           fi
 
-      - name: Upload blob report
-        if: always()
+      - name: Smoke de arranque (build real)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+        run: bunx playwright test --config playwright.smoke.config.ts
+
+      - name: Subir diagnóstico del smoke
+        if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: vitest-blob-${{ matrix.shard }}
-          path: .vitest-reports/
-          retention-days: 1
-          if-no-files-found: error
-          # `.vitest-reports/` empieza con punto: sin esta bandera el upload
-          # ignora los blobs y el job de merge falla ("no blob files found").
-          include-hidden-files: true
+          name: smoke-artifacts
+          path: test-results/
+          retention-days: 3
+          if-no-files-found: ignore
 
-
-  tests-merge:
-    name: Tests (Vitest + Coverage)
+  # ---------------------------------------------------------------------------
+  # BASE 2 — suite completa de Vitest, en un solo runner y siempre con
+  # cobertura. El sharding en 3 runners + merge costaba más orquestación que
+  # tiempo ahorrado, y el modo `--changed` dejaba PRs sin gate de cobertura.
+  # ---------------------------------------------------------------------------
+  tests:
+    name: Pruebas (Vitest + cobertura)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: [tests, changes]
-    if: always()
+    timeout-minutes: 20
     permissions:
       contents: read
       checks: write
@@ -263,125 +143,49 @@ jobs:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
 
-      # Pre-crear reports/ defensivamente: si vitest falla antes de inicializar
-      # los reporters, el step de junit-action muestra el error real.
-      - name: Prepare reports directory
-        run: mkdir -p reports .vitest-reports
-
-      - name: Download blob reports
-        uses: actions/download-artifact@v8
-        with:
-          pattern: vitest-blob-*
-          merge-multiple: true
-          path: .vitest-reports
-
-      - name: Merge reports + coverage thresholds
-        # Umbrales definidos en vitest.config.ts; bajar de threshold rompe el job.
-        # En modo `changed` (PRs) la cobertura de una corrida parcial no es
-        # comparable contra los umbrales globales, así que solo se consolida el
-        # JUnit; el gate de cobertura lo evalúa la corrida completa de push a
-        # main / cron, que es donde vive el umbral.
+      - name: Vitest
         env:
           NODE_OPTIONS: --max-old-space-size=6144
-          MODE: ${{ needs.changes.outputs.vitest_mode }}
-        run: |
-          set -euo pipefail
-          if [[ "$MODE" == "changed" ]]; then
-            bunx vitest --merge-reports --passWithNoTests
-          else
-            bunx vitest --merge-reports --coverage
-          fi
+        run: bunx vitest run --coverage
 
-      # Fase 5.2: los *.rls.test.ts ya corrieron dentro de los shards; aquí solo
-      # se extrae su subconjunto del JUnit consolidado para conservar el check
-      # "RLS results" sin una segunda corrida de Vitest.
+      # Conserva el check dedicado de RLS extrayéndolo del JUnit consolidado
+      # (sin una segunda corrida de Vitest).
       - name: Extraer JUnit de RLS
         if: always()
         run: python3 scripts/extract-rls-junit.py reports/vitest-junit.xml reports/rls-junit.xml
 
-      - name: Publish RLS results to PR summary
+      - name: Publicar resultados RLS
         if: always()
         uses: ./.github/actions/publish-test-results
         with:
           report_paths: reports/rls-junit.xml
           check_name: RLS results
 
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: coverage-report
-          path: reports/coverage/
-          retention-days: 7
-          if-no-files-found: warn
-
-      # E3: comentario de cobertura en el PR a partir del mismo reporte que se
-      # sube como artifact `coverage-report` (json-summary + json-final).
-      # Solo aplica en la corrida completa: en modo `--changed` no se genera
-      # cobertura y el comentario sería engañoso.
-      - name: Comentar cobertura en el PR
-        if: github.event_name == 'pull_request' && needs.changes.outputs.vitest_mode == 'full'
-        uses: davelosert/vitest-coverage-report-action@8b157684c6a6b259b97d45e72b44242865c0f6a5 # v2.12.2
-        with:
-          json-summary-path: reports/coverage/coverage-summary.json
-          json-final-path: reports/coverage/coverage-final.json
-          file-coverage-mode: changes
-
-      - name: Upload Vitest reports
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: vitest-reports
-          path: reports/
-          retention-days: 14
-          if-no-files-found: ignore
-
-      - name: Publish Vitest results to PR summary
+      - name: Publicar resultados Vitest
         if: always()
         uses: ./.github/actions/publish-test-results
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
 
-  build:
-    name: Build (Vite)
-    runs-on: ubuntu-latest
-    timeout-minutes: 8
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-      # Fase 5.1: este es el ÚNICO build de la app en el CI. Las variables
-      # VITE_* se embeben aquí para que el mismo `dist/` sirva a las E2E.
-      - run: bun run build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-
-      - name: Upload dist
+      - name: Subir reportes
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: dist
-          path: dist/
-          retention-days: 1
-          if-no-files-found: error
+          name: vitest-reports
+          path: reports/
+          retention-days: 7
+          if-no-files-found: ignore
 
-      # Mismo build reutilizado por bundle-size.yml cuando se dispara a mano
-      # (otro workflow no puede descargar artifacts sin permisos extra, pero sí
-      # comparte el cache).
-      - name: Cache dist para bundle-size
-        uses: actions/cache/save@v6
-        with:
-          path: dist
-          key: ci-dist-${{ github.event.pull_request.head.sha || github.sha }}
-
-  edge-functions:
-    name: Edge Functions (Deno smoke tests)
+  # ---------------------------------------------------------------------------
+  # CONDICIONALES
+  # ---------------------------------------------------------------------------
+  deno-functions:
+    name: Funciones Supabase (Deno, sin red)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: [secrets-check, changes]
-    if: needs.secrets-check.outputs.has_supabase == 'true' && needs.changes.outputs.functions == 'true'
-
+    needs: changes
+    if: needs.changes.outputs.functions == 'true'
     steps:
       - uses: actions/checkout@v7
 
@@ -390,7 +194,7 @@ jobs:
         with:
           deno-version: v2.x
 
-      - name: Cache Deno dependencies
+      - name: Cache de dependencias Deno
         uses: actions/cache@v6
         with:
           path: ~/.cache/deno
@@ -398,182 +202,40 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deno-
 
-      - name: Deno fmt --check
-        run: cd supabase/functions && deno fmt --check
+      - name: Deno fmt + lint
+        run: cd supabase/functions && deno fmt --check && deno lint
 
-      - name: Deno lint
-        run: cd supabase/functions && deno lint
-
-      - name: Run Deno tests
-        # Detecta el caso "0 tests" (exit 1). SUPABASE_URL explícito para no depender
-        # del fallback localhost del helper.
-        env:
-          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+      # Solo los tests UNITARIOS/de handler. Los smoke remotos (que hacen HTTP
+      # contra funciones desplegadas) NO corren aquí: exigirían apuntar a un
+      # backend real, y el de la app es producción. Ver docs/ci.md.
+      - name: Tests Deno offline
         run: |
           set -euo pipefail
-          mkdir -p reports
-          # TESTS-ARQ2 (v7.220.0 DIFF 1): descubrir TODOS los tests Deno.
-          # v7.224.0: correr desde supabase/functions para que Deno lea
-          # `deno.json` (nodeModulesDir=auto) y auto-instale `npm:facturapi`.
           cd supabase/functions
-          mapfile -d '' TEST_FILES < <(find . -name '*_test.ts' -print0)
-          if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
-            echo "::error::No se encontraron archivos *_test.ts en supabase/functions"
+          mapfile -t FILES < <(bash ../../scripts/deno-test-selection.sh offline)
+          if [[ ${#FILES[@]} -eq 0 ]]; then
+            echo "::error::No se encontraron tests Deno offline"
             exit 1
           fi
-          echo "Ejecutando ${#TEST_FILES[@]} archivos de test Deno"
-          deno test --parallel --allow-net --allow-env --allow-read --allow-write --allow-run --node-modules-dir=auto \
-            --junit-path ../../reports/deno-junit.xml \
-            "${TEST_FILES[@]}"
+          echo "Ejecutando ${#FILES[@]} archivos"
+          # Descarga de dependencias (necesita red) separada de la ejecución.
+          deno cache --node-modules-dir=auto "${FILES[@]}"
+          # `--allow-net` acotado al bind local que hace `Deno.serve` al importar
+          # un `index.ts`: sin salida a internet, imposible tocar ningún backend.
+          deno test --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
+            --node-modules-dir=auto --junit-path ../../reports/deno-junit.xml "${FILES[@]}"
 
-      - name: Upload Deno reports
+      - name: Subir reporte Deno
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: deno-reports
           path: reports/
-          retention-days: 14
-          if-no-files-found: ignore
-
-  e2e:
-    name: E2E (Playwright shard ${{ matrix.shard }}/${{ matrix.total }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [secrets-check, changes, build]
-    if: needs.secrets-check.outputs.has_supabase == 'true' && needs.secrets-check.outputs.has_e2e == 'true' && needs.changes.outputs.app == 'true'
-    permissions:
-      contents: read
-      checks: write
-      pull-requests: write
-
-    # Sharding: 2 shards × 2 workers por shard = 4 tests en paralelo, aislados por e2e_scope.
-    # CRÍTICO: el `globalTeardown` solo corre en el último shard (lógica en playwright.config.ts
-    # vía env SHARD_INDEX === SHARD_TOTAL) para evitar race conditions.
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2]
-        total: [2]
-    steps:
-      - uses: actions/checkout@v7
-      - uses: ./.github/actions/setup-bun-project
-
-      # Fase 5.1: se reutiliza el dist/ del job `build` en vez de recompilar
-      # dentro del webServer de Playwright (E2E_REUSE_BUILD hace que el
-      # webServer solo levante `vite preview` sobre este dist).
-      - name: Download dist del job build
-        uses: actions/download-artifact@v8
-        with:
-          name: dist
-          path: dist
-
-      # Cache de browsers (~130MB). Key basada en la versión EFECTIVA de Playwright resuelta
-      # tras `bun install` (no el rango `^1.x` del package.json, que puede resolver distinto).
-      - name: Get Playwright version
-        id: pw-version
-        shell: bash
-        run: |
-          VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Playwright resuelto: ${VERSION}"
-
-
-      - name: Cache Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
-
-      - name: Install Playwright browsers
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: bunx playwright install --with-deps chromium
-
-      - name: Install Playwright system deps (cache hit)
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: bunx playwright install-deps chromium
-
-      # PRECONDICIÓN FAIL-CLOSED: las E2E escriben en la base (seed, purge,
-      # company_settings). El proyecto Supabase de la app es PRODUCCIÓN, así que
-      # este job solo puede correr contra un backend aislado declarado
-      # explícitamente. Sin él, el job FALLA con la precondición faltante:
-      # no se silencian tests ni se declara verde.
-      - name: Precondición — backend E2E aislado
-        env:
-          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          PROD_REF: zxefrzfaynnfwazqhwxp
-        run: |
-          if [ -z "${E2E_SUPABASE_URL}" ]; then
-            echo "::error::PRECONDICIÓN FALTANTE: no hay backend E2E aislado configurado (secret E2E_SUPABASE_URL)."
-            echo "::error::Las E2E escriben en la base y el proyecto de la app es PRODUCCIÓN. Job detenido a propósito."
-            exit 1
-          fi
-          case "${E2E_SUPABASE_URL}" in
-            *"${PROD_REF}"*)
-              echo "::error::E2E_SUPABASE_URL apunta al proyecto PRODUCTIVO. Job detenido."
-              exit 1;;
-          esac
-          # Destino del CLIENTE: el bundle descargado no puede hablar con producción.
-          if grep -rql "${PROD_REF}" dist/client 2>/dev/null; then
-            echo "::error::El bundle dist/client fue compilado contra PRODUCCIÓN. Recompila el artefacto E2E con el backend aislado."
-            exit 1
-          fi
-
-      - name: Run E2E tests (shard ${{ matrix.shard }}/${{ matrix.total }})
-        env:
-          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
-          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
-          E2E_PORTAL_EMAIL: ${{ secrets.E2E_PORTAL_EMAIL }}
-          E2E_PORTAL_PASSWORD: ${{ secrets.E2E_PORTAL_PASSWORD }}
-          SHARD_INDEX: ${{ matrix.shard }}
-          SHARD_TOTAL: ${{ matrix.total }}
-          E2E_REUSE_BUILD: "1"
-          # Backend AISLADO (nunca los secretos productivos VITE_SUPABASE_*).
-          E2E_ISOLATED_BACKEND: "1"
-          VITE_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.E2E_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ secrets.E2E_SUPABASE_PROJECT_ID }}
-        run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
-
-
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-report-shard${{ matrix.shard }}
-          path: playwright-report-shard${{ matrix.shard }}/
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Upload Playwright traces, videos & screenshots
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-test-results-shard${{ matrix.shard }}
-          path: test-results/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Upload Playwright JUnit/JSON
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: playwright-reports-shard${{ matrix.shard }}
-          path: reports/
-          retention-days: 14
-          if-no-files-found: ignore
-
-      - name: Publish Playwright results to PR summary
-        if: always()
-        uses: ./.github/actions/publish-test-results
-        with:
-          report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
-          check_name: Playwright results (shard ${{ matrix.shard }})
-
-  # v7.306.5: fusionado desde el workflow separado supabase-lint.yml.
-  # Solo corre cuando cambian migraciones o el linter (filtro `migrations`).
   supabase-lint:
-    name: Supabase migrations lint
+    name: Lint de migraciones
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: changes
@@ -581,26 +243,28 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          # Necesario para el diff contra base_ref.
           fetch-depth: 0
       - uses: ./.github/actions/setup-bun-project
 
+      # El linter valida el CONTRATO de una migración nueva (CREATE TABLE +
+      # GRANT + RLS + POLICY en el mismo archivo). El histórico reparte esas
+      # piezas entre archivos, así que solo se linta lo que agrega el diff.
       - name: Resolver migraciones nuevas/modificadas
         id: files
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
         shell: bash
         run: |
           set -euo pipefail
-          # El linter valida el CONTRATO de una migración nueva (CREATE TABLE +
-          # GRANT + RLS + POLICY en el mismo archivo). Las migraciones históricas
-          # reparten esas piezas entre varios archivos, así que NUNCA se linta el
-          # histórico completo: solo lo que agrega/modifica el commit o el PR.
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            git fetch origin "${{ github.base_ref }}" --depth=1
-            FILES=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
-          elif [[ "${{ github.event_name }}" == "push" ]]; then
-            FILES=$(git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.sha }}" -- 'supabase/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
+          if [[ "$EVENT" == "pull_request" ]]; then
+            git fetch origin "$BASE_REF" --depth=1
+            FILES=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
+          elif [[ "$EVENT" == "push" ]]; then
+            FILES=$(git diff --name-only --diff-filter=AM "$BEFORE" "$SHA" -- 'supabase/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
           else
-            # schedule / workflow_dispatch: sin diff de referencia, no hay nada que validar.
             FILES=""
           fi
           echo "list=${FILES}" >> "$GITHUB_OUTPUT"
@@ -610,44 +274,43 @@ jobs:
         if: steps.files.outputs.list != ''
         run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
 
-      # v7.306.7: eliminado `supabase db lint`. Ese comando NO es un lint
-      # sintáctico de archivos: requiere una base de datos (linked o local) y
-      # falla con "Cannot find project ref". La validación real de las
-      # migraciones contra una DB limpia ya la hace rls-db-tests.yml
-      # (supabase start + db reset + suites SQL).
-
-
-
-  actionlint:
-    name: Actionlint (workflows YAML)
+  dependency-review:
+    name: Dependency review
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v7
-      - name: Run actionlint
-        uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0 (Node 24)
         with:
-          # `fail_on_error` está deprecado; usamos `fail_level` para que solo
-          # errores (no warnings/shellcheck info) hagan rojo el step.
+          fail-on-severity: high
+          comment-summary-in-pr: on-failure
+          allow-licenses: MIT, Apache-2.0, BSD-2-Clause, BSD-3-Clause, ISC, 0BSD, CC0-1.0, Unlicense, Python-2.0, MPL-2.0, CC-BY-4.0, BlueOak-1.0.0
+
+  actionlint:
+    name: Actionlint
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
+        with:
           fail_level: error
-          # Solo reportar issues introducidos por el PR, evita el límite
-          # "Too many results in diff" cuando hay nits históricos.
           filter_mode: added
           reporter: github-pr-check
 
-  # Gate único para branch protection: requiere todos los jobs anteriores.
+  # Gate único para branch protection.
   ci-success:
     name: CI success
     runs-on: ubuntu-latest
-    needs: [secrets-check, changes, lint, typecheck, arch-check, dependency-review, knip, tests, tests-merge, build, edge-functions, supabase-lint, e2e, actionlint]
+    needs: [changes, quality, tests, deno-functions, supabase-lint, dependency-review, actionlint]
     if: always()
-
     steps:
-      - name: Check all jobs succeeded
+      - name: Verificar que ningún job falló
         run: |
           if [[ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
             echo "::error::Uno o más jobs de CI fallaron"
             exit 1
           fi
           echo "Todos los jobs pasaron"
-

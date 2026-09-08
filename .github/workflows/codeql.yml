@@ -1,23 +1,21 @@
 name: CodeQL
 
+# Análisis profundo de seguridad. Solo semanal y manual: en cada push tardaba
+# ~15 min y encontraba lo mismo que la corrida semanal. Los errores que sí
+# deben bloquear un PR ya los cubren ESLint, typecheck y dependency-review.
+
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - "public/changelog/**"
-      - "public/changelog.json"
-      - "**/*.md"
-      - ".lovable/**"
   schedule:
     # Lunes 12:00 UTC (06:00 America/Monterrey)
     - cron: "0 12 * * 1"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
-  group: codeql-${{ github.workflow }}-${{ github.ref }}
-  # `paths-ignore` en push/PR sí filtra; en `schedule` NO aplica y siempre corre CodeQL completo.
-  # En `push: main` preservamos runs (no cancelamos) para mantener histórico de seguridad por SHA.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: codeql
+  cancel-in-progress: false
 
 jobs:
   analyze:
@@ -28,20 +26,16 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: ["javascript-typescript"]
     steps:
       - uses: actions/checkout@v7
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
         with:
-          languages: ${{ matrix.language }}
+          languages: javascript-typescript
           queries: security-and-quality
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
         with:
-          category: "/language:${{ matrix.language }}"
+          category: "/language:javascript-typescript"

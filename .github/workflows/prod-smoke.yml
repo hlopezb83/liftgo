@@ -1,9 +1,14 @@
 name: Prod smoke
 
+# Único monitoreo automático: dos peticiones de LECTURA a la app publicada.
+# No escribe nada, no autentica y no toca la base. Detecta caídas y rollbacks
+# silenciosos entre releases.
+
 on:
   schedule:
-    # Cada hora.
-    - cron: "0 * * * *"
+    # Cada hora, en el minuto 17: el minuto 0 es el más congestionado en
+    # GitHub Actions y la corrida se retrasaba o se saltaba.
+    - cron: "17 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -11,8 +16,11 @@ permissions:
   issues: write
 
 concurrency:
-  group: prod-smoke-${{ github.workflow }}
+  group: prod-smoke
   cancel-in-progress: true
+
+env:
+  APP_URL: https://liftgo.lovable.app
 
 jobs:
   ping:
@@ -20,53 +28,45 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      # v7.219.0 (B2): detecta caídas o rollbacks silenciosos entre releases.
       - name: HEAD /
         run: |
           set -euo pipefail
           curl --retry 3 --retry-delay 5 --fail-with-body --silent --show-error \
-            --max-time 15 -I https://liftgo.lovable.app/ | head -1
+            --max-time 15 -I "$APP_URL/" | head -1
 
       - name: GET /version.json
-        id: version
         run: |
           set -euo pipefail
           BODY=$(curl --retry 3 --retry-delay 5 --fail-with-body --silent --show-error \
-            --max-time 15 https://liftgo.lovable.app/version.json)
+            --max-time 15 "$APP_URL/version.json")
           echo "$BODY"
-          echo "$BODY" | grep -q '"version"' || {
-            echo "::error::version.json no contiene el campo 'version'"
+          # Validación real: JSON parseable con una versión semver no vacía.
+          VERSION=$(printf '%s' "$BODY" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))')
+          if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::version.json no expone una versión semver válida (recibido: '${VERSION}')"
             exit 1
-          }
+          fi
+          echo "Versión publicada: $VERSION"
 
-      - name: Abrir issue en fallos consecutivos
+      - name: Abrir o actualizar issue en fallo
         if: failure()
         uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0 (Node 24)
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         with:
           script: |
-            const title = "🚨 Prod smoke fallando";
+            const { owner, repo } = context.repo;
+            const title = "Prod smoke fallando";
+            const body = `El smoke de producción falló.\n\nRun: ${process.env.RUN_URL}`;
             const { data: issues } = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: "open",
-              labels: "prod-smoke",
+              owner, repo, state: "open", labels: "prod-smoke",
             });
-            const body = `El smoke test de producción falló.\n\nRun: ${process.env.RUN_URL}`;
             if (issues.length === 0) {
               await github.rest.issues.create({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                title,
-                body,
-                labels: ["prod-smoke", "incident"],
+                owner, repo, title, body, labels: ["prod-smoke", "incident"],
               });
             } else {
               await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issues[0].number,
-                body,
+                owner, repo, issue_number: issues[0].number, body,
               });
             }
