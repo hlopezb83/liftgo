@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PortalInvoices from "./PortalInvoices";
 
@@ -21,7 +21,7 @@ function createTestQueryClient() {
 function renderWithRouter(ui: React.ReactNode) {
   return render(
     <QueryClientProvider client={createTestQueryClient()}>
-      <MemoryRouter>{ui}</MemoryRouter>
+      <TestRouter>{ui}</TestRouter>
     </QueryClientProvider>,
   );
 }

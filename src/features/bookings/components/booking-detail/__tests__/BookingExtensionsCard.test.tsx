@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true }));
@@ -15,9 +15,9 @@ const base = {
 
 function renderCard(ext: Record<string, unknown>) {
   return render(
-    <MemoryRouter>
+    <TestRouter>
       <BookingExtensionsCard extensions={[{ ...base, ...ext }] as never} />
-    </MemoryRouter>,
+    </TestRouter>,
   );
 }
 

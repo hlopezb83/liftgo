@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, expect, it, vi } from "vitest";
 
 const mutate = vi.fn();
@@ -11,9 +11,9 @@ import { StatusChangeCard } from "../StatusChangeCard";
 
 function renderCard(currentStatus: string) {
   return render(
-    <MemoryRouter>
+    <TestRouter>
       <StatusChangeCard forkliftId="f1" currentStatus={currentStatus} />
-    </MemoryRouter>,
+    </TestRouter>,
   );
 }
 

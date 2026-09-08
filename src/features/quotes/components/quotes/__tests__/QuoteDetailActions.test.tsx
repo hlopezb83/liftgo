@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
-import { BrowserRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
 import type { AppRole } from "@/features/users";
@@ -35,7 +35,7 @@ function renderActions(
   extra: { alreadyConverted?: boolean; linkedBookingId?: string | null } = {},
 ) {
   render(
-    <BrowserRouter>
+    <TestRouter>
       <QuoteDetailActions
         quote={quoteOverride}
         isSale={false}
@@ -48,7 +48,7 @@ function renderActions(
         onConvertClick={vi.fn()}
         onDelete={vi.fn()}
       />
-    </BrowserRouter>,
+    </TestRouter>,
   );
 }
 

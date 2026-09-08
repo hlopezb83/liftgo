@@ -1,6 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, it, expect, beforeEach } from "vitest";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 
@@ -19,7 +19,7 @@ const rows: Row[] = [
 ];
 
 const wrapper = ({ children }: { children: ReactNode }) => (
-  <MemoryRouter initialEntries={["/list"]}>{children}</MemoryRouter>
+  <TestRouter initialEntries={["/list"]}>{children}</TestRouter>
 );
 
 describe("useTableFilters", () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { CloseWorkOrderDialog } from "../CloseWorkOrderDialog";
 
@@ -33,9 +33,9 @@ function renderDialog() {
   const { queryClient } = createQueryWrapper();
   render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
+      <TestRouter>
         <CloseWorkOrderDialog open onOpenChange={onOpenChange} log={baseLog} />
-      </MemoryRouter>
+      </TestRouter>
     </QueryClientProvider>,
   );
   return { onOpenChange };

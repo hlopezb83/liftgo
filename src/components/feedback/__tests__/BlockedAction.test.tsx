@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, expect, it, vi } from "vitest";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { BlockedActionButton } from "../BlockedActionButton";
@@ -8,7 +8,7 @@ import { BlockedActionNotice } from "../BlockedActionNotice";
 const block = describeBusinessBlock("forklift_active_rental");
 
 function renderWithRouter(ui: React.ReactElement) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  return render(<TestRouter>{ui}</TestRouter>);
 }
 
 describe("BlockedActionNotice", () => {

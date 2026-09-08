@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // --- Mocks (antes del import del hook) ---
@@ -41,7 +41,7 @@ function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
     <QueryClientProvider client={qc}>
-      <MemoryRouter>{children}</MemoryRouter>
+      <TestRouter>{children}</TestRouter>
     </QueryClientProvider>
   );
 }

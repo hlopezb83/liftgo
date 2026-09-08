@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter } from "react-router";
+import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // --- Mocks (declarados antes de importar el hook bajo prueba) ---
@@ -60,7 +60,7 @@ function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
     <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={["/quotes/nueva"]}>{children}</MemoryRouter>
+      <TestRouter initialEntries={["/quotes/nueva"]}>{children}</TestRouter>
     </QueryClientProvider>
   );
 }
