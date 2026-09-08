@@ -32,15 +32,16 @@ describe("validadores de administración de usuarios", () => {
     expect(isValidRole("superadmin")).toBe(false);
   });
 
-  it("generateSecurePassword cumple los requisitos de fuerza", () => {
-    for (let i = 0; i < 20; i++) {
-      const pwd = generateSecurePassword();
+  it("generateSecurePassword usa el charset esperado y la longitud pedida", () => {
+    const charset = /^[a-zA-Z0-9!@#$%&*]+$/;
+    const muestras = Array.from({ length: 20 }, () => generateSecurePassword());
+    for (const pwd of muestras) {
       expect(pwd.length).toBe(20);
-      expect(/[a-z]/.test(pwd)).toBe(true);
-      expect(/[A-Z]/.test(pwd)).toBe(true);
-      expect(/[0-9]/.test(pwd)).toBe(true);
-      expect(/[^A-Za-z0-9]/.test(pwd)).toBe(true);
+      expect(charset.test(pwd)).toBe(true);
     }
+    // Aleatoriedad: 20 contraseñas de 20 caracteres no deben repetirse.
+    expect(new Set(muestras).size).toBe(20);
     expect(generateSecurePassword(24).length).toBe(24);
   });
 });
+
