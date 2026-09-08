@@ -23,7 +23,3 @@ export const getRouter = () => {
 
   return router;
 };
-
-
-  return router;
-};
