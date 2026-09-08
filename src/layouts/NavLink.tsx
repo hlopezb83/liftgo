@@ -1,10 +1,11 @@
-import { NavLink as RouterNavLink, NavLinkProps } from "react-router";
+import type { ComponentProps, Ref } from "react";
+import { Link, useLocation } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
-import type { Ref } from "react";
 
-interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
+interface NavLinkCompatProps extends Omit<ComponentProps<typeof Link>, "className"> {
   className?: string;
   activeClassName?: string;
+  /** Conservado por compatibilidad de llamada; TanStack no expone isPending aquí. */
   pendingClassName?: string;
   ref?: Ref<HTMLAnchorElement>;
 }
@@ -12,24 +13,24 @@ interface NavLinkCompatProps extends Omit<NavLinkProps, "className"> {
 const NavLink = ({
   className,
   activeClassName,
-  pendingClassName,
+  pendingClassName: _pendingClassName,
   to,
   ref,
   ...props
 }: NavLinkCompatProps) => {
+  const { pathname } = useLocation();
+  const path = to.split(/[?#]/)[0] || "/";
+  const isActive = path === "/" ? pathname === "/" : pathname === path || pathname.startsWith(`${path}/`);
   return (
-    <RouterNavLink
+    <Link
       ref={ref}
       to={to}
-      className={({ isActive, isPending }) =>
-        cn(
-          "transition-all duration-150",
-          className,
-          isActive && "border-l-2 border-primary pl-1",
-          isActive && activeClassName,
-          isPending && pendingClassName,
-        )
-      }
+      className={cn(
+        "transition-all duration-150",
+        className,
+        isActive && "border-l-2 border-primary pl-1",
+        isActive && activeClassName,
+      )}
       {...props}
     />
   );
