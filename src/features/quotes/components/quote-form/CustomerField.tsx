@@ -26,6 +26,7 @@ export function CustomerField({ form, customers }: Props) {
               onCustomerNameChange={(name) => form.setValue("customerName", name, { shouldDirty: true })}
               required
               hideManualName
+              compact
               helpText="Si tu cliente no aparece en la lista, selecciona 'Público en General' o regístralo primero en el módulo de Clientes."
             />
           </FormControl>

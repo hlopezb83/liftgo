@@ -19,6 +19,12 @@ interface SearchBarProps {
    * Default: false.
    */
   captureCtrlK?: boolean;
+  /**
+   * V26-04: nombre accesible estable. Si no se pasa, se usa el placeholder del
+   * módulo ("Buscar facturas…"), que ya es contextual. El placeholder solo no
+   * basta como nombre cuando el campo tiene texto escrito.
+   */
+  "aria-label"?: string;
   /** `data-testid` opcional para selectors estables en E2E. */
   "data-testid"?: string;
 }
@@ -30,6 +36,7 @@ export function SearchBar({
   className = "max-w-sm",
   debounceMs = 200,
   captureCtrlK = false,
+  "aria-label": ariaLabel,
   "data-testid": testId,
 }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -67,7 +74,9 @@ export function SearchBar({
       <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         ref={inputRef}
+        type="search"
         placeholder={placeholder}
+        aria-label={ariaLabel ?? placeholder}
         value={local}
         onChange={(e) => setLocal(e.target.value)}
         className={captureCtrlK ? "pl-9 pr-16" : "pl-9"}

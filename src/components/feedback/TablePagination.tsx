@@ -39,21 +39,29 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
   if (totalPages <= 1) return null;
 
   return (
-    <Pagination className="py-4">
-      <PaginationContent>
+    <Pagination className="py-4 sm:mx-0 sm:w-auto sm:justify-end">
+      <PaginationContent className="flex-nowrap">
         <PaginationItem>
           <PaginationPrevious
             onClick={goPrev}
             disabled={page === 1}
           />
         </PaginationItem>
+        {/* V26-01: en móvil la numeración completa desbordaba el ancho del
+            contenedor. Se sustituye por un indicador compacto "N de M"
+            (mismo estado, mismos handlers); desde `sm` vuelven los números. */}
+        <PaginationItem className="sm:hidden">
+          <span className="px-2 text-xs text-muted-foreground whitespace-nowrap tabular-nums">
+            {page} de {totalPages}
+          </span>
+        </PaginationItem>
         {visiblePages.map((p, i) =>
           p === "ellipsis" ? (
-            <PaginationItem key={`e-${i}`}>
+            <PaginationItem key={`e-${i}`} className="hidden sm:block">
               <PaginationEllipsis />
             </PaginationItem>
           ) : (
-            <PaginationItem key={p}>
+            <PaginationItem key={p} className="hidden sm:block">
               <PaginationLink
                 isActive={p === page}
                 onClick={() => onPageChange(p)}

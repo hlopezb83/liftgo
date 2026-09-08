@@ -39,22 +39,21 @@ function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isCon
   const navigate = useNavigateTransition();
   const canConvert = canConvertQuote(quote, { isSale, alreadyConverted });
   if (alreadyConverted) {
+    // V26-08: se retira la CTA deshabilitada "Ya convertida a Reserva"
+    // (redundante con el badge "Convertida" del encabezado) y la acción útil
+    // —ir a la reserva— pasa a ser la principal. Si no hay reserva ligada
+    // cargada, se conserva el aviso de estado en texto.
+    if (!linkedBookingId) {
+      return (
+        <span className="text-sm text-muted-foreground self-center">
+          Ya convertida a reserva
+        </span>
+      );
+    }
     return (
-      <>
-        <BlockedActionButton
-          size="sm"
-          variant="outline"
-          className="opacity-70"
-          block={describeBusinessBlock("quote_already_converted")}
-        >
-          <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
-        </BlockedActionButton>
-        {linkedBookingId && (
-          <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.bookings.detail(linkedBookingId))}>
-            Ver reserva
-          </Button>
-        )}
-      </>
+      <Button size="sm" variant="default" onClick={() => navigate(ROUTES.bookings.detail(linkedBookingId))}>
+        <BookOpen className="h-4 w-4 mr-1" />Ver reserva
+      </Button>
     );
   }
   if (!canConvert) return null;
@@ -99,11 +98,22 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
   );
 }
 
-function DeleteDialog({ quoteNumber, onDelete }: { quoteNumber: string; onDelete: () => void }) {
+function DeleteDialog({ quoteNumber, onDelete, deemphasized }: {
+  quoteNumber: string;
+  onDelete: () => void;
+  /** V26-08: en cotizaciones convertidas Eliminar baja de énfasis (mismo
+   *  permiso y misma confirmación); en el resto no cambia nada. */
+  deemphasized?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
-      <Button size="sm" variant="destructive" onClick={() => setOpen(true)}>
+      <Button
+        size="sm"
+        variant={deemphasized ? "outline" : "destructive"}
+        className={deemphasized ? "text-destructive hover:text-destructive" : undefined}
+        onClick={() => setOpen(true)}
+      >
         <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
       </Button>
       <ConfirmDialog
@@ -214,7 +224,7 @@ export function QuoteDetailActions({
       {quote.status === "accepted" && (
         <CancelQuoteButton quoteNumber={quote.quote_number} onCancel={() => onSetStatus("cancelled")} />
       )}
-      <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} />
+      <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} deemphasized={alreadyConverted} />
     </>
   );
 }

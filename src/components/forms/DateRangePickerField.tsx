@@ -56,7 +56,7 @@ function DateRangeFooter({
 }) {
   const canApply = !!localRange?.from && !!localRange?.to;
   return (
-    <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2">
+    <DialogFooter className="px-4 py-3 border-t flex-row flex-wrap justify-between sm:px-5 sm:justify-between gap-2">
       <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from}>
         Limpiar
       </Button>
@@ -104,12 +104,19 @@ export function DateRangePickerField({
     setOpen(false);
   };
 
+  // V26-03: sin etiqueta visible los nombres accesibles quedaban en
+  // " — inicio" / " — fin" / "Abrir calendario de ". `fieldName` garantiza un
+  // nombre completo aunque el consumidor no pase label.
+  const fieldName = label.replace(/\s*\*\s*$/, "").trim() || "Rango de fechas";
+
   return (
     <div className="space-y-1.5">
-      <Label>
-        {label}
-        {required && <RequiredMark />}
-      </Label>
+      {label.trim() ? (
+        <Label>
+          {label}
+          {required && <RequiredMark />}
+        </Label>
+      ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
         {/* Captura rápida con teclado (DD/MM/AAAA) para inicio y fin. */}
         <div className="flex items-start gap-2">
@@ -117,7 +124,7 @@ export function DateRangePickerField({
             value={dateRange?.from}
             onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
             today={nowMty()}
-            aria-label={`${label} — inicio`}
+            aria-label={`${fieldName} — inicio`}
             className="flex-1 min-w-0"
           />
           <span className="pt-2 text-muted-foreground">—</span>
@@ -125,7 +132,7 @@ export function DateRangePickerField({
             value={dateRange?.to}
             onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
             today={nowMty()}
-            aria-label={`${label} — fin`}
+            aria-label={`${fieldName} — fin`}
             className="flex-1 min-w-0"
           />
           <DialogTrigger asChild>
@@ -134,7 +141,7 @@ export function DateRangePickerField({
               variant="outline"
               size="icon"
               title={triggerLabel}
-              aria-label={`Abrir calendario de ${label.replace(/\s*\*\s*$/, "")}`}
+              aria-label={`Abrir calendario de ${fieldName}`}
               className={cn("shrink-0", !dateRange?.from && "text-muted-foreground")}
             >
               <CalendarIcon className="h-4 w-4" />
@@ -143,7 +150,7 @@ export function DateRangePickerField({
         </div>
 
         <RangeDialogBody
-          label={label}
+          label={fieldName}
           liveLabel={liveLabel}
           localRange={localRange}
           isMobile={isMobile}
@@ -186,15 +193,17 @@ function RangeDialogBody({
   return (
     // El ancho se fija (no `max-w-fit`) para que el diálogo no se re-centre
     // al cambiar la etiqueta viva: el reflow provocaba clics inestables.
-    <DialogContent className="w-fit min-w-[22rem] max-w-[95vw] p-0 gap-0">
-      <DialogHeader className="px-5 pt-5 pb-3 border-b">
+    // V26-05: `min-w-[22rem]` (352px) ganaba a `max-w-[95vw]` y a 320px el
+    // diálogo se salía de pantalla. El mínimo ahora está acotado al viewport.
+    <DialogContent className="w-fit min-w-[min(22rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0 gap-0">
+      <DialogHeader className="px-4 pt-5 pb-3 border-b sm:px-5">
         <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
-        <p className="text-sm text-muted-foreground font-mono mt-1 h-5 whitespace-nowrap overflow-hidden">
+        <p className="text-sm text-muted-foreground font-mono mt-1 h-5 whitespace-nowrap overflow-hidden text-ellipsis">
           {liveLabel}
         </p>
 
       </DialogHeader>
-      <div className="p-3">
+      <div className="p-2 sm:p-3 overflow-x-auto">
         <Calendar
           mode="range"
           selected={localRange}

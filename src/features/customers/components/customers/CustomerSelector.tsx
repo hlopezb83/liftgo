@@ -29,6 +29,12 @@ interface CustomerSelectorProps {
   hideManualName?: boolean;
   helpText?: string;
   error?: string;
+  /**
+   * V26-07: variante compacta (usada en Nueva cotización). Quita el encabezado
+   * redundante y la etiqueta duplicada del combobox, y reduce el padding.
+   * No cambia comportamiento, validaciones ni el nombre accesible del control.
+   */
+  compact?: boolean;
 }
 
 /**
@@ -63,6 +69,7 @@ export function CustomerSelector({
   hideManualName,
   helpText,
   error,
+  compact,
 }: CustomerSelectorProps) {
   const [open, setOpen] = useState(false);
 
@@ -91,17 +98,20 @@ export function CustomerSelector({
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-      <CardContent className="space-y-4">
+      {!compact && (
+        <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
+      )}
+      <CardContent className={cn("space-y-4", compact && "p-4")}>
         {items.length > 0 && (
           <div className="space-y-1.5">
-            <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>
+            {compact ? null : <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>}
             <Popover open={open} onOpenChange={setOpen}>
               <PopoverTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
                   role="combobox"
+                  aria-label={compact ? `Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}` : undefined}
                   aria-expanded={open}
                   className={cn(
                     "w-full justify-between font-normal",

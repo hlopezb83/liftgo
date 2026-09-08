@@ -100,17 +100,26 @@ export function InvoicesFiltersBar({
             </SelectContent>
           </Select>
         </div>
-        <div className="flex items-center gap-1">
-          <div className="w-full sm:w-64">
+        {/* V26-03: etiqueta visible + ancho suficiente para que dd/mm/aaaa se
+            lea completo; los nombres accesibles pasan a ser
+            "Fecha de emisión — inicio/fin" y "Abrir calendario de …". */}
+        <div className="flex items-end gap-1 w-full sm:w-auto">
+          <div className="w-full sm:w-80">
             <DateRangePickerField
-              label=""
+              label="Fecha de emisión"
               dateRange={dateRange}
               onSelect={setDateRange}
               placeholder="Filtrar por fecha de emisión"
             />
           </div>
           {(dateRange?.from || dateRange?.to) && (
-            <Button variant="ghost" size="sm" onClick={() => setDateRange(undefined)}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="mb-0.5"
+              aria-label="Quitar filtro de fecha de emisión"
+              onClick={() => setDateRange(undefined)}
+            >
               <X className="h-4 w-4" />
             </Button>
           )}
