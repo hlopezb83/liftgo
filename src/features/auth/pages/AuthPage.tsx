@@ -20,6 +20,35 @@ const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   reset: { title: "Nueva contraseña", desc: "Ingresa tu nueva contraseña" },
 };
 
+/** Enlace de recuperación en validación o inválido: nunca se muestra el formulario. */
+function RecoveryNotice({
+  status,
+  onRequestNew,
+}: {
+  status: "pending" | "error";
+  onRequestNew: () => void;
+}) {
+  if (status === "pending") {
+    return (
+      <p className="text-sm text-center text-muted-foreground">
+        Validando tu enlace de recuperación…
+      </p>
+    );
+  }
+  return (
+    <div className="space-y-3 text-center">
+      <p role="alert" className="text-sm text-destructive">
+        El enlace para restablecer tu contraseña es inválido o ya expiró.
+        Solicita uno nuevo para continuar.
+      </p>
+      <Button className="w-full touch:min-h-11" onClick={onRequestNew}>
+        Solicitar un enlace nuevo
+      </Button>
+    </div>
+  );
+}
+
+
 export default function AuthPage() {
   const { signIn, signOut, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
