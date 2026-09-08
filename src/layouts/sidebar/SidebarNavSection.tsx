@@ -184,14 +184,20 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
           manda — antes el click persistía false y el grupo seguía abierto,
           así que la UI no respondía al gesto. */}
       <Collapsible open={open} onOpenChange={handleOpenChange}>
+        {/* V26-02: el disparador es un <button> real (vía SidebarGroupLabel
+            asChild) — foco con Tab, activación con Enter/Espacio y semántica
+            nativa, sin listeners manuales ni botones anidados. */}
         <CollapsibleTrigger asChild>
-          <SidebarGroupLabel
-            className="cursor-pointer flex items-center justify-between hover:text-sidebar-foreground"
-          >
-            <span>{group.label}</span>
-            <ChevronRightIcon
-              className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-90" : ""}`}
-            />
+          <SidebarGroupLabel asChild>
+            <button
+              type="button"
+              className="w-full cursor-pointer flex items-center justify-between hover:text-sidebar-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            >
+              <span>{group.label}</span>
+              <ChevronRightIcon
+                className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-90" : ""}`}
+              />
+            </button>
           </SidebarGroupLabel>
         </CollapsibleTrigger>
         <CollapsibleContent>

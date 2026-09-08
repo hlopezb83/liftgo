@@ -67,8 +67,10 @@ function KpiInteractiveWrapper({
   onClick?: () => void;
   children: ReactNode;
 }) {
-  if (href) return <Link to={href} className="group">{children}</Link>;
-  if (onClick) return <button type="button" onClick={onClick} className="group text-left w-full">{children}</button>;
+  // V26-06: `h-full` en el enlace/botón para que la tarjeta ocupe toda la
+  // celda del grid y todas las tarjetas de una fila midan lo mismo.
+  if (href) return <Link to={href} className="group block h-full">{children}</Link>;
+  if (onClick) return <button type="button" onClick={onClick} className="group text-left w-full h-full">{children}</button>;
   return <>{children}</>;
 }
 
@@ -93,12 +95,14 @@ export function KpiTile({
     <KpiInteractiveWrapper href={href} onClick={onClick}>
       <Card
         className={cn(
-          "hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
+          "h-full hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
           isInteractive && "cursor-pointer group-hover:ring-2 group-hover:ring-primary/20",
           className,
         )}
       >
-        <CardContent className="p-4 flex items-center gap-2 sm:gap-3 overflow-hidden">
+        {/* V26-06: contenido alineado arriba para que título y valor queden a
+            la misma altura entre tarjetas con etiquetas de 1 y 2 líneas. */}
+        <CardContent className="p-4 h-full flex items-start gap-2 sm:gap-3 overflow-hidden">
           {Icon ? (
             <div className={cn("p-2 sm:p-2.5 rounded-xl shrink-0", bg)}>
               <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />
