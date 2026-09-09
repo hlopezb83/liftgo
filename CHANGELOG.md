@@ -1,3 +1,7 @@
+## [8.1.8] - 2026-09-09
+### Permisos de facturación recurrente
+- El interruptor «Facturación recurrente» del detalle de reserva ahora también está disponible para quien tiene acceso completo al módulo Facturas (rol administrativo), además de quien tiene acceso completo a Reservas. La recurrencia es una decisión de facturación y el backend ya permitía la operación a ese rol. Sin cambios en RLS, reglas de negocio ni en los estados cerrados (cancelada/completada siguen bloqueando el cambio). Pruebas: `src/features/bookings/components/booking-detail/__tests__/BookingBillingCard.test.tsx`.
+
 ## [8.1.7] - 2026-09-09
 ### Mantenimiento YAGNI — lote DEP-01 (dependencias puntuales)
 - Actualización mínima de tres librerías sin cambios de comportamiento: `dompurify` 3.4.14 → 3.4.15 (parche de sanitización, versión exacta), `marked` 18.0.11 → 18.0.12 (manifiesto `^18.0.12`) y `@tanstack/react-virtual` 3.14.10 → 3.14.11 (manifiesto `^3.14.11`). Dependencia transitiva: `@tanstack/virtual-core` 3.17.8 → 3.17.9 (parche requerido por react-virtual 3.14.11). Sin cambios de API en los consumidores (`VirtualBody`, manual de ayuda Markdown). Pruebas focalizadas: sanitización/renderizado Markdown (13) y tabla virtual (14) verdes.
