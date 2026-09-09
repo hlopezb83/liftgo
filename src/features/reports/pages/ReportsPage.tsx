@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { useSearchParams } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
 import { AgingReport } from "../components/reports/AgingReport";
@@ -78,7 +79,16 @@ export default function ReportsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <DateRangePickerField label="Rango de Fechas" dateRange={dateRange} onSelect={(r) => r && setDateRange(r)} />
+            {/* V27-02: «Antigüedad de Cartera» siempre calcula la cartera
+                vencida a hoy; mostrar un rango que no aplica confundía. */}
+            {reportType === "aging" ? (
+              <p className="text-sm text-muted-foreground pb-2">
+                Cartera vencida al día de hoy ({formatDateMty(nowMty())})
+              </p>
+            ) : (
+              <DateRangePickerField label="Rango de Fechas" dateRange={dateRange} onSelect={(r) => r && setDateRange(r)} />
+            )}
+
           </div>
         </CardContent>
       </Card>
