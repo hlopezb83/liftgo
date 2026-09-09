@@ -3,9 +3,9 @@ description: Checkout, instalar Node, Bun, restaurar cache e instalar deps con f
 
 inputs:
   bun-version:
-    description: Versión exacta de Bun (pineada para reproducibilidad; dependabot actualiza vía github-actions).
+    description: Versión exacta de Bun (pineada para reproducibilidad; el pin se actualiza mediante un lote validado en CI).
     required: false
-    default: "1.2.23"
+    default: "1.4.2"
   node-version:
     description: Versión de Node.js a instalar en el runner.
     required: false
