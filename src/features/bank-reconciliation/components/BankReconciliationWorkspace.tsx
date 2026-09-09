@@ -16,6 +16,10 @@ interface Props {
   currency: string;
   isLoading: boolean;
   virtualized?: boolean;
+  status: BankLineStatus | "all";
+  search: string;
+  onStatusChange: (status: BankLineStatus | "all") => void;
+  onSearchChange: (search: string) => void;
 }
 
 const STATUS_OPTIONS = [
@@ -26,29 +30,15 @@ const STATUS_OPTIONS = [
   })),
 ];
 
-function matchesSearch(line: BankStatementLine, term: string): boolean {
-  if (!term) return true;
-  const q = term.toLowerCase();
-  return (
-    (line.description ?? "").toLowerCase().includes(q) ||
-    (line.reference ?? "").toLowerCase().includes(q) ||
-    String(Math.abs(line.signed_amount)).includes(q)
-  );
-}
-
-export function BankReconciliationWorkspace({ lines, bankAccountId, currency, isLoading, virtualized }: Props) {
+export function BankReconciliationWorkspace({
+  lines, bankAccountId, currency, isLoading, virtualized,
+  status, search, onStatusChange, onSearchChange,
+}: Props) {
   const isMobile = useIsMobile();
-  const [status, setStatus] = useState<BankLineStatus | "all">("unmatched");
-  const [search, setSearch] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const visible = useMemo(
-    () =>
-      lines.filter(
-        (l) => (status === "all" || l.status === status) && matchesSearch(l, search.trim()),
-      ),
-    [lines, status, search],
-  );
+  // `lines` ya corresponde al filtro y página ejecutados en el servidor.
+  const visible = lines;
 
   const activeLine = useMemo(
     () => visible.find((l) => l.id === activeId) ?? null,
@@ -110,12 +100,12 @@ export function BankReconciliationWorkspace({ lines, bankAccountId, currency, is
       <FiltersToolbar>
         <FiltersToolbar.StatusTabs
           value={status}
-          onChange={setStatus}
+          onChange={(next) => { setActiveId(null); onStatusChange(next); }}
           options={STATUS_OPTIONS}
         />
         <FiltersToolbar.Search
           value={search}
-          onChange={setSearch}
+          onChange={(next) => { setActiveId(null); onSearchChange(next); }}
           placeholder="Descripción, referencia o monto…"
         />
       </FiltersToolbar>

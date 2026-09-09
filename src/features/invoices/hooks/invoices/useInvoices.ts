@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json, Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { callRpc } from "@/lib/rpc";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
@@ -194,6 +195,8 @@ export interface SaveInvoiceWithBookingsArgs {
   invoiceId?: string | null;
   /** R4-25: versión de la factura al abrir el formulario (sólo edición). */
   expectedVersion?: number | null;
+  /** Daño reparado que se liga a la factura dentro de la misma transacción. */
+  damageId?: string | null;
 }
 
 /**
@@ -210,14 +213,19 @@ export interface SaveInvoiceWithBookingsArgs {
  */
 export function useSaveInvoiceWithBookings(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
   return useEntityMutation({
-    mutationFn: async ({ payload, bookingIds, invoiceId, expectedVersion }: SaveInvoiceWithBookingsArgs) => {
-      const { data, error } = await supabase.rpc("save_invoice_with_bookings", {
+    mutationFn: async ({ payload, bookingIds, invoiceId, expectedVersion, damageId }: SaveInvoiceWithBookingsArgs) => {
+      const rpcArgs = {
         p_invoice: payload as unknown as Json,
         p_booking_ids: bookingIds,
-        p_invoice_id: invoiceId ?? undefined,
-        p_expected_version: expectedVersion ?? undefined,
-      });
-      if (error) throw error;
+        // El overload con daño requiere los cinco argumentos para que PostgREST
+        // lo resuelva sin ambigüedad; el flujo ordinario conserva los defaults.
+        p_invoice_id: damageId ? (invoiceId ?? null) : (invoiceId ?? undefined),
+        p_expected_version: damageId ? (expectedVersion ?? null) : (expectedVersion ?? undefined),
+        ...(damageId ? { p_damage_id: damageId } : {}),
+      };
+      // callRpc mantiene el cast aislado fuera de los tipos generados. El
+      // overload de cinco parámetros se incorporará al regenerar Supabase.
+      const data = await callRpc<InvoiceRow[]>("save_invoice_with_bookings", rpcArgs);
       const row = (Array.isArray(data) ? data[0] : data) as InvoiceRow | undefined;
       if (!row) throw new Error("No se pudo guardar la factura.");
       return row;

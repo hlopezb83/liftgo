@@ -11,7 +11,15 @@ import { BankStatementPreview } from "./BankStatementPreview";
 import { BankXmlFieldMapper } from "./BankXmlFieldMapper";
 
 // Oleada 1 (A-13): file picker on-brand para reemplazar el input nativo en inglés.
-function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: File | null) => void }) {
+function BankFilePicker({
+  file,
+  onChange,
+  disabled = false,
+}: {
+  file: File | null;
+  onChange: (f: File | null) => void;
+  disabled?: boolean;
+}) {
   const ref = useRef<HTMLInputElement>(null);
   return (
     <>
@@ -20,6 +28,7 @@ function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: F
         type="file"
         accept=".csv,.xml,text/csv,text/xml,application/xml"
         className="hidden"
+        disabled={disabled}
         onChange={(e) => {
           const picked = e.target.files?.[0] ?? null;
           e.target.value = "";
@@ -38,7 +47,13 @@ function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: F
           onChange(picked);
         }}
       />
-      <Button type="button" variant="outline" onClick={() => ref.current?.click()} className="justify-start">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => ref.current?.click()}
+        className="justify-start"
+        disabled={disabled}
+      >
         <UploadIcon className="h-4 w-4 mr-2" />
         <span className="truncate">{file?.name ?? "Elegir archivo…"}</span>
       </Button>
@@ -53,6 +68,7 @@ interface Props {
 export function BankStatementUploader({ bankAccountId }: Props) {
   const up = useStatementUpload(bankAccountId);
   const showMapper = up.xmlFields.length > 0;
+  const busy = up.isAnalyzing || up.isPending;
 
   return (
     <div className="space-y-4">
@@ -65,7 +81,11 @@ export function BankStatementUploader({ bankAccountId }: Props) {
         <CardContent className="grid sm:grid-cols-3 gap-3">
           <div className="grid gap-1.5">
             <Label>Perfil del banco</Label>
-            <Select value={up.profile} onValueChange={(v) => up.setProfile(v as StatementProfile)}>
+            <Select
+              value={up.profile}
+              onValueChange={(v) => up.setProfile(v as StatementProfile)}
+              disabled={busy}
+            >
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
                 {CSV_PROFILES.map((p) => (
@@ -77,19 +97,24 @@ export function BankStatementUploader({ bankAccountId }: Props) {
           <div className="grid gap-1.5">
             <Label>Archivo (CSV o XML)</Label>
             {/* Oleada 1 (A-13): el input nativo sale en inglés ("Choose File") */}
-            <BankFilePicker file={up.file} onChange={(f) => { up.reset(); up.setFile(f); }} />
+            <BankFilePicker file={up.file} onChange={up.setFile} disabled={busy} />
           </div>
           <div className="flex items-end">
-            <Button onClick={() => void up.analyze()} disabled={!up.file || up.isPending} className="w-full">
-              {up.isPending ? <SpinnerIcon className="h-4 w-4 animate-spin mr-2" /> : <UploadIcon className="h-4 w-4 mr-2" />}
-              Analizar archivo
+            <Button onClick={() => void up.analyze()} disabled={!up.file || up.isPending || up.isAnalyzing} className="w-full">
+              {up.isPending || up.isAnalyzing ? <SpinnerIcon className="h-4 w-4 animate-spin mr-2" /> : <UploadIcon className="h-4 w-4 mr-2" />}
+              {up.isAnalyzing ? "Analizando…" : "Analizar archivo"}
             </Button>
           </div>
         </CardContent>
       </Card>
 
       {showMapper && (
-        <BankXmlFieldMapper availableFields={up.xmlFields} mapping={up.mapping} onChange={up.remap} />
+        <BankXmlFieldMapper
+          availableFields={up.xmlFields}
+          mapping={up.mapping}
+          onChange={up.remap}
+          disabled={busy}
+        />
       )}
 
       {up.preview && up.preview.lines.length === 0 && up.preview.errors.length > 0 && (

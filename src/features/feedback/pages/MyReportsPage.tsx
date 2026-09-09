@@ -1,26 +1,35 @@
-
-import { DataTableV2, DataTablePaginationV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { useState } from "react";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
-import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
+import {
+  useMyFeedbackPointsTotal,
+  useMyFeedbackReports,
+  type FeedbackReport,
+} from "../hooks/useFeedbackReports";
 import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
 
-type Report = NonNullable<ReturnType<typeof useMyFeedbackReports>["data"]>[number];
+type Report = FeedbackReport;
+
+const PAGE_SIZE = 25;
 
 export default function MyReportsPage() {
-  const { data: reports, isLoading, isError, refetch } = useMyFeedbackReports();
-
-  // N3-02: el hook pide limit+1; renderizamos solo las filas visibles.
-  // El crudo (`reports`) queda solo para ListTruncationNotice.
-  const visibleReports = visibleListRows(reports);
-  const totalPoints = visibleReports.reduce((sum, r) => sum + (r.points_awarded ?? 0), 0);
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading, isError, refetch } = useMyFeedbackReports(page, PAGE_SIZE);
+  const pointsQuery = useMyFeedbackPointsTotal();
+  const reports = result?.rows ?? [];
+  const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
+  const pointsLabel = pointsQuery.isLoading
+    ? "Cargando puntos…"
+    : pointsQuery.isError
+      ? "Puntos no disponibles"
+      : `${pointsQuery.data ?? 0} puntos`;
 
   const columns: ColumnDef<Report>[] = [
     {
@@ -69,10 +78,11 @@ export default function MyReportsPage() {
   ];
 
   const table = useLiftgoTable<Report>({
-    data: visibleReports,
+    data: reports,
     columns,
     getRowId: (r) => r.id,
     initialSorting: [{ id: "created_at", desc: true }],
+    paginated: false,
   });
 
   return (
@@ -82,16 +92,14 @@ export default function MyReportsPage() {
         subtitle="Tus bugs reportados y mejoras propuestas."
         actions={
           <Badge variant="secondary" className="text-base px-3 py-1.5">
-            {totalPoints} puntos
+            {pointsLabel}
           </Badge>
         }
       />
 
-      <ListTruncationNotice rows={reports} />
-
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{visibleReports.length} reportes</CardTitle>
+          <CardTitle className="text-base">{result?.totalCount ?? 0} reportes</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isError ? (
@@ -103,9 +111,9 @@ export default function MyReportsPage() {
               emptyMessage="Sin reportes todavía. Usa el botón “Reportar” para enviar el primero."
             />
           )}
-          {!isError && (reports?.length ?? 0) > 0 && (
+          {!isError && reports.length > 0 && (
             <div className="border-t p-3">
-              <DataTablePaginationV2 table={table} />
+              <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           )}
         </CardContent>

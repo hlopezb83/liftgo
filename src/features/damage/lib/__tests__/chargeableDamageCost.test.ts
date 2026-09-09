@@ -12,8 +12,8 @@ describe("chargeableDamageCost (Fix A v7.90.0)", () => {
   it("repaired sin actual_cost → cae al estimado", () => {
     expect(chargeableDamageCost(r({ status: "repaired", estimated_cost: 500 }))).toBe(500);
   });
-  it("reported → cobra el estimado", () => {
-    expect(chargeableDamageCost(r({ status: "reported", estimated_cost: 300 }))).toBe(300);
+  it("reported → no permite cobrar antes de reparar", () => {
+    expect(chargeableDamageCost(r({ status: "reported", estimated_cost: 300 }))).toBeNull();
   });
   it("sin ambos costos → null", () => {
     expect(chargeableDamageCost(r({ status: "repaired" }))).toBeNull();

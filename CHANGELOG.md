@@ -1,3 +1,13 @@
+## [8.2.0] - 2026-09-09
+### Correcciones integrales de lógica de negocio
+- Facturas: `paid` sólo persiste con saldo cubierto por pagos convertidos y notas de crédito timbradas; el dashboard abre el flujo de pago y una reconciliación corrige facturas históricas inconsistentes.
+- Notas de crédito: los descuentos fijos se prorratean por la cantidad acreditada; cada línea se liga a su partida fiscal origen y el claim atómico congela el snapshot que se envía al PAC.
+- Flota: una reserva no convierte físicamente la unidad en rentada antes de completar la entrega; entrega, devolución, venta, contratos, daños y mantenimiento validan transiciones terminales y compromisos concurrentes bajo bloqueo.
+- Daños y mantenimiento: reparar, facturar, archivar y restaurar conservan evidencia y estados coherentes; `pending`, `in_progress` y `waiting_parts` bloquean disponibilidad de forma uniforme.
+- Conciliación bancaria: el fingerprint usa la descripción completa, el parser corta antes de hashear más de 50,000 líneas, la importación usa staging transaccional idempotente y los filtros/KPI se calculan en servidor con paginación real.
+- Portal, feedback y ayuda: consultas de detalle independientes, colecciones paginadas, totales globales, cargas/errores recuperables, Kanban por estado y puntos agregados sin truncamiento.
+- Validación local: typecheck y linter de migraciones limpios; lint conserva únicamente los 14 avisos preexistentes; 748 pruebas focalizadas verdes. Las migraciones y Edge Functions requieren el entorno Supabase/PAC de staging antes de producción.
+
 ## [8.1.12] - 2026-09-08
 ### UI-DEP-01 — Cabecera de detalle de reserva comprimida en escritorio mediano
 - Estado original: a 1280 px los botones de acción (Crear contrato, Extender, Devolución Anticipada, Cambiar Estatus, Eliminar, Cancelar) comprimían la columna de texto y el número de reserva caía a dos líneas con el subtítulo casi sin espacio; a 1024 px título y subtítulo dejaban de verse y las acciones desbordaban con scroll horizontal. Resultado final: el bloque de acciones baja a su propia fila cuando no cabe y sus botones envuelven dentro del ancho disponible, sin desbordamiento en 1024/1280/1440.

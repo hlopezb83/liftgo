@@ -21,6 +21,10 @@ export const portalKeys = {
   customer: (userId?: string) => [...portalKeys.all, "customer", userId] as const,
   bookings: (userId?: string) => [...portalKeys.all, "bookings", userId] as const,
   invoices: (userId?: string) => [...portalKeys.all, "invoices", userId] as const,
+  invoice: (invoiceId?: string, userId?: string) =>
+    [...portalKeys.all, "invoice", userId, invoiceId] as const,
   contracts: (userId?: string) => [...portalKeys.all, "contracts", userId] as const,
   payments: (userId?: string) => [...portalKeys.all, "payments", userId] as const,
+  invoicePayments: (invoiceId?: string, userId?: string) =>
+    [...portalKeys.all, "payments", userId, "invoice", invoiceId] as const,
 } as const;

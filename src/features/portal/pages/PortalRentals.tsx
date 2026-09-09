@@ -1,19 +1,26 @@
+import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePortalBookings } from "@/features/customers";
+import { usePortalBookingsPage, type PortalBookingRow } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty } from "@/lib/format/dateFormats";
 
-type Booking = NonNullable<ReturnType<typeof usePortalBookings>["data"]>[number];
+type Booking = PortalBookingRow;
+
+const PAGE_SIZE = 25;
 
 export default function PortalRentals() {
-  const { data: bookings, isLoading, isError, refetch } = usePortalBookings();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading, isError, refetch } = usePortalBookingsPage(page, PAGE_SIZE);
+  const bookings = result?.rows ?? [];
+  const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const isMobile = useIsMobile();
 
   const columns: ColumnDef<Booking>[] = [
@@ -55,6 +62,7 @@ export default function PortalRentals() {
     columns,
     getRowId: (b) => b.id,
     initialSorting: [{ id: "start_date", desc: true }],
+    enableSorting: false,
     paginated: false,
   });
 
@@ -78,7 +86,7 @@ export default function PortalRentals() {
           {isMobile ? (
             <div className="p-3">
               <MobileCardList
-                items={bookings ?? []}
+                items={bookings}
                 keyExtractor={(b) => b.id}
                 emptyMessage="Aún no tienes rentas. Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas? Solicita una cotización con tu ejecutivo de cuenta."
                 renderCard={(b) => (
@@ -102,6 +110,9 @@ export default function PortalRentals() {
           ) : (
             <DataTableV2 table={table} emptyMessage="Aún no tienes rentas. Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas? Solicita una cotización con tu ejecutivo de cuenta." />
           )}
+          <div className="border-t px-4">
+            <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
     </PageContainer>

@@ -1,33 +1,28 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import type { BankStatementLine } from "../hooks/useBankStatementLines";
+import type { BankReconciliationKpis } from "../hooks/useBankStatementLines";
 
 interface Props {
-  lines: BankStatementLine[];
+  kpis: BankReconciliationKpis;
   /** Moneda de la cuenta bancaria seleccionada (evita mostrar todo como MXN). */
   currency?: string;
 }
 
-export function ReconciliationKpiCards({ lines, currency = "MXN" }: Props) {
-  const total = lines.length;
-  const matched = lines.filter((l) => l.status === "matched").length;
-  const pending = lines.filter((l) => l.status === "unmatched" || l.status === "suggested").length;
-  const charges = lines.filter((l) => l.signed_amount < 0).reduce((s, l) => s + Math.abs(l.signed_amount), 0);
-  const credits = lines.filter((l) => l.signed_amount > 0).reduce((s, l) => s + l.signed_amount, 0);
-  // R23-12: las líneas ignoradas no cuentan como pendientes ni como universo a conciliar.
-  const ignored = lines.filter((l) => l.status === "ignored").length;
-  const conciliable = total - ignored;
-  const pct = conciliable === 0 ? 0 : Math.round((matched / conciliable) * 100);
+export function ReconciliationKpiCards({ kpis, currency = "MXN" }: Props) {
+  const conciliable = kpis.totalCount - kpis.ignoredCount;
+  const pct = conciliable === 0 ? 0 : Math.round((kpis.matchedCount / conciliable) * 100);
 
   const cards = [
-    { key: "charges", label: "Cargos del periodo", value: formatCurrencyWithCode(charges, currency) },
-    { key: "credits", label: "Abonos del periodo", value: formatCurrencyWithCode(credits, currency) },
-    { key: "net", label: "Neto del periodo", value: formatCurrencyWithCode(credits - charges, currency) },
+    { key: "charges", label: "Cargos del periodo", value: formatCurrencyWithCode(kpis.charges, currency) },
+    { key: "credits", label: "Abonos del periodo", value: formatCurrencyWithCode(kpis.credits, currency) },
+    { key: "net", label: "Neto del periodo", value: formatCurrencyWithCode(kpis.credits - kpis.charges, currency) },
     {
       key: "reconciled",
       label: "% conciliado",
-      value: `${pct}% (${matched}/${conciliable})`,
-      hint: ignored > 0 ? `${pending} pendientes · ${ignored} ignorados` : `${pending} pendientes`,
+      value: `${pct}% (${kpis.matchedCount}/${conciliable})`,
+      hint: kpis.ignoredCount > 0
+        ? `${kpis.pendingCount} pendientes · ${kpis.ignoredCount} ignorados`
+        : `${kpis.pendingCount} pendientes`,
     },
   ];
 

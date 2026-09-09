@@ -1,0 +1,9 @@
+{
+  "description": "Corrección integral de 24 defectos de lógica de negocio en facturación, operaciones, conciliación bancaria y portales.",
+  "changes": [
+    "Facturas pagadas y notas de crédito usan saldos, descuentos y snapshots fiscales autoritativos.",
+    "Reservas, entregas, ventas, contratos, daños y mantenimiento preservan transiciones y disponibilidad física bajo concurrencia.",
+    "La importación bancaria es transaccional, idempotente y paginada en servidor, con KPI globales y análisis cancelable.",
+    "Portal, feedback y ayuda muestran datos completos y estados de carga, error y reintento sin truncamientos silenciosos."
+  ]
+}

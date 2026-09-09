@@ -11,6 +11,7 @@ export const forkliftKeys = {
     [...forkliftKeys.lists(), filters] as const,
   available: (params: Record<string, unknown>) =>
     [...forkliftKeys.all, "available", params] as const,
+  saleAvailable: () => [...forkliftKeys.all, "sale-available"] as const,
   details: () => [...forkliftKeys.all, "detail"] as const,
   detail: (id: string) => [...forkliftKeys.details(), id] as const,
   financials: (id: string) => [...forkliftKeys.detail(id), "financials"] as const,

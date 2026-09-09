@@ -8,6 +8,7 @@ export * from "./hooks/forklifts/useAssignForklifts";
 export * from "./hooks/forklifts/useAvailableForklifts";
 export * from "./hooks/forklifts/useForkliftMap";
 export * from "./hooks/forklifts/useForklifts";
+export * from "./hooks/forklifts/useSaleAvailableForklifts";
 export * from "./hooks/useDrivers";
 export * from "./hooks/useEquipmentModels";
 export * from "./hooks/useInsuranceAlerts";

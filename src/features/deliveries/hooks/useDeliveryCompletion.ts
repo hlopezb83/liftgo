@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { buildCompletionPayload } from "../lib/deliveryDetailHelpers";
-import { deliveryKeys, useUpdateDelivery } from "./useDeliveries";
+import { deliveryKeys, useCompleteDelivery } from "./useDeliveries";
 
 type Delivery = Tables<"deliveries">;
 type Booking = { end_date: string };
@@ -33,7 +33,7 @@ export function useDeliveryCompletion(
   linkedBooking: Booking | null | undefined,
   forklift: Forklift | undefined,
 ) {
-  const updateDelivery = useUpdateDelivery();
+  const completeDelivery = useCompleteDelivery();
   const [signatureOpen, setSignatureOpen] = useState(false);
   const [hoursReading, setHoursReading] = useState("");
   const [pickupPrompt, setPickupPrompt] = useState<PickupPrompt | null>(null);
@@ -103,7 +103,7 @@ export function useDeliveryCompletion(
         // producían completed_at < created_at o NULL).
         delivery.id, signature, hoursReading, minHours, noEvidenceReason,
       );
-      updateDelivery.mutate(payload, {
+      completeDelivery.mutate(payload, {
         onSuccess: () => {
           notifySuccess("Marcado como completado");
           setSignatureOpen(false);

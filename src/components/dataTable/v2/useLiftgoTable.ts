@@ -23,6 +23,7 @@ interface Options<T> {
   initialSorting?: SortingState;
   initialPageSize?: number;
   enableRowSelection?: boolean | ((row: T) => boolean);
+  enableSorting?: boolean;
   globalFilter?: string;
   paginated?: boolean;
   resetKey?: string | number;
@@ -43,6 +44,7 @@ export function useLiftgoTable<T>({
   initialSorting = [],
   initialPageSize = APP_CONFIG.PAGE_SIZE,
   enableRowSelection = false,
+  enableSorting = true,
   globalFilter,
   paginated = true,
   resetKey,
@@ -125,6 +127,7 @@ export function useLiftgoTable<T>({
     onRowSelectionChange: handleSelectionChange,
     onPaginationChange: paginated ? setPagination : undefined,
     enableRowSelection: resolveSelectable,
+    enableSorting,
     getRowId,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),

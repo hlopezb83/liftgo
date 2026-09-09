@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { callRpc } from "@/lib/rpc";
 import { nowMty } from "@/lib/utils";
 import {
   invoiceToItem,
@@ -92,18 +93,13 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
       // 2A-9: rentas recurrentes vigentes, para proyectar los periodos aún no facturados.
       // FIX-4 (ronda 2): se trae la tasa de IVA del cliente para proyectar el
       // TOTAL facturado (renta + IVA), igual que la Edge Function recurrente.
-      supabase.from("bookings")
-        .select("id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, customers(tax_rate)")
-        .eq("recurring_billing", true)
-        .in("status", ["confirmed", "in_progress"])
-        .returns<(RecurringBookingRow & { customers: { tax_rate: number | string | null } | { tax_rate: number | string | null }[] | null })[]>(),
+      callRpc<RecurringBookingRow[]>("get_cash_flow_recurring_bookings"),
 
       countInvoicesWithoutDueDate(),
       countBillsWithoutDueDate(),
     ]);
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
-    if (bookingRes.error) throw bookingRes.error;
 
     // A2-1: ya no se recalcula el saldo con `payments` en el cliente; la vista
     // `v_invoices_with_balance` expone `balance_mxn` FX-aware. Además ahorra
@@ -121,12 +117,7 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     const horizonBuckets = buildWeekBuckets(today, weeks);
     const horizonEnd = horizonBuckets[horizonBuckets.length - 1]?.endDate ?? format(today, "yyyy-MM-dd");
     const todayYmd = format(today, "yyyy-MM-dd");
-    const recurringRows: RecurringBookingRow[] = (bookingRes.data ?? []).map((b) => {
-      const rel = b.customers;
-      const taxRate = Array.isArray(rel) ? rel[0]?.tax_rate ?? null : rel?.tax_rate ?? null;
-      return { ...b, customer_tax_rate: taxRate };
-    });
-    items.push(...recurringBookingItems(recurringRows, todayYmd, horizonEnd));
+    items.push(...recurringBookingItems(bookingRes ?? [], todayYmd, horizonEnd));
 
     const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
     return {
@@ -137,4 +128,3 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
   },
   staleTime: 60_000,
 });
-

@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -10,13 +12,19 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { usePortalQuotes } from "../hooks/usePortalExtras";
+import { usePortalQuotesPage } from "../hooks/usePortalExtras";
 import { quoteStatusLabel } from "../lib/quoteStatus";
+import type { PortalQuoteListRow } from "../lib/queryKeys";
 
-type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];
+type Quote = PortalQuoteListRow;
+
+const PAGE_SIZE = 25;
 
 export default function PortalQuotes() {
-  const { data, isLoading, isError, refetch } = usePortalQuotes();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading, isError, refetch } = usePortalQuotesPage(page, PAGE_SIZE);
+  const data = result?.rows ?? [];
+  const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const navigate = useNavigateTransition();
   const isMobile = useIsMobile();
 
@@ -36,6 +44,7 @@ export default function PortalQuotes() {
   const table = useLiftgoTable<Quote>({
     data, columns, getRowId: (q) => q.id,
     initialSorting: [{ id: "created_at", desc: true }],
+    enableSorting: false,
     paginated: false,
   });
 
@@ -59,7 +68,7 @@ export default function PortalQuotes() {
           {isMobile ? (
             <div className="p-3">
               <MobileCardList
-                items={data ?? []}
+                items={data}
                 keyExtractor={(q) => q.id}
                 emptyMessage="Aún no tienes cotizaciones. Cuando solicites una cotización aparecerá aquí; contáctanos para cotizar tu próximo montacargas."
                 renderCard={(q) => (
@@ -95,6 +104,9 @@ export default function PortalQuotes() {
               onRowClick={(q) => navigate(`/portal/quotes/${q.id}`)}
             />
           )}
+          <div className="border-t px-4">
+            <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
     </PageContainer>

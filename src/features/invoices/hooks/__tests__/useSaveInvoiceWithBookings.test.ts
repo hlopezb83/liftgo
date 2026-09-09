@@ -122,4 +122,20 @@ describe("useSaveInvoiceWithBookings — RPC transaccional save_invoice_with_boo
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect((rpcCalls[0].args as { p_booking_ids: string[] }).p_booking_ids).toEqual([]);
   });
+
+  it("daño: lo envía al overload atómico y no deja una factura huérfana", async () => {
+    rpcResp = { data: [{ id: "inv-d", invoice_number: "BORRADOR-0003", version: 1 }], error: null };
+    rpcCalls.length = 0;
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useSaveInvoiceWithBookings(), { wrapper: Wrapper });
+
+    result.current.mutate({ payload, bookingIds: [], damageId: "damage-1" });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(rpcCalls[0].args).toMatchObject({
+      p_damage_id: "damage-1",
+      p_invoice_id: null,
+      p_expected_version: null,
+    });
+  });
 });

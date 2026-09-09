@@ -1,21 +1,28 @@
+import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { usePortalInvoices } from "@/features/customers";
+import { usePortalInvoicesPage, type PortalInvoiceRow } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
-type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
+type Invoice = PortalInvoiceRow;
+
+const PAGE_SIZE = 25;
 
 export default function PortalInvoices() {
-  const { data: invoices, isLoading, isError, refetch } = usePortalInvoices();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading, isError, refetch } = usePortalInvoicesPage(page, PAGE_SIZE);
+  const invoices = result?.rows ?? [];
+  const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const navigate = useNavigateTransition();
   const isMobile = useIsMobile();
 
@@ -61,6 +68,7 @@ export default function PortalInvoices() {
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "issued_at", desc: true }],
+    enableSorting: false,
     paginated: false,
   });
 
@@ -84,7 +92,7 @@ export default function PortalInvoices() {
           {isMobile ? (
             <div className="p-3">
               <MobileCardList
-                items={invoices ?? []}
+                items={invoices}
                 keyExtractor={(i) => i.id}
                 emptyMessage="Aún no tienes facturas. Cuando se emita tu primera factura aparecerá aquí. ¿Dudas? Contáctanos."
                 renderCard={(inv) => (
@@ -118,6 +126,9 @@ export default function PortalInvoices() {
               onRowClick={(inv) => navigate(`/portal/invoices/${inv.id}`)}
             />
           )}
+          <div className="border-t px-4">
+            <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
     </PageContainer>

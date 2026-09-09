@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseBankCsv } from "../csvParsers";
 import { parseBankXml } from "../xmlParsers";
+import { BankStatementLineLimitError } from "../bankParseUtils";
 
 const CFDI_ECB = `<?xml version="1.0" encoding="UTF-8"?>
 <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/3" xmlns:ecb="http://www.sat.gob.mx/ecb">
@@ -91,5 +92,11 @@ describe("parseBankXml", () => {
     const fromXml = (await parseBankXml(xml)).lines[0];
     const fromCsv = (await parseBankCsv(csv, "bbva")).lines[0];
     expect(fromXml.hash).toBe(fromCsv.hash);
+  });
+
+  it("corta antes de mapear y hashear nodos por encima del máximo", async () => {
+    await expect(parseBankXml(CFDI_ECB, {}, 1)).rejects.toBeInstanceOf(
+      BankStatementLineLimitError,
+    );
   });
 });

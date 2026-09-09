@@ -22,7 +22,12 @@ interface Props {
 export function FeedbackDetailSheet({ report, onClose }: Props) {
   const statusUpdate = useFeedbackStatusUpdate(report);
   const classify = useClassifyFeedback();
-  const { data: history } = useFeedbackHistory(report?.id ?? null);
+  const {
+    data: history,
+    isLoading: historyLoading,
+    isError: historyError,
+    refetch: refetchHistory,
+  } = useFeedbackHistory(report?.id ?? null);
   const { data: signedUrl, isError: screenshotError, refetch: refetchScreenshot } = useFeedbackScreenshotUrl(report?.screenshot_url);
 
   // Auto-trigger AI classification when report opens with no classification yet.
@@ -138,7 +143,12 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <Separator />
 
-          <FeedbackHistoryList history={history} />
+          <FeedbackHistoryList
+            history={history}
+            isLoading={historyLoading}
+            isError={historyError}
+            onRetry={() => { void refetchHistory(); }}
+          />
         </div>
         </Activity>
       </SheetContent>

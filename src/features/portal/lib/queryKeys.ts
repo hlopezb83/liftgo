@@ -14,7 +14,7 @@ import { callRpc } from "@/lib/rpc";
  */
 const sel = (s: string): string => s;
 
-interface PortalQuoteListRow {
+export interface PortalQuoteListRow {
   id: string;
   quote_number: string;
   status: string;

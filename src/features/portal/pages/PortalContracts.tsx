@@ -1,26 +1,32 @@
 
+import { useState } from "react";
 import {
   DataTableV2,
-  DataTablePaginationV2,
   useLiftgoTable,
   type ColumnDef,
 } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CONTRACT_STATUS_LABELS } from "@/features/contracts";
-import { usePortalContracts } from "@/features/customers";
+import { usePortalContractsPage, type PortalContractRow } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty } from "@/lib/format/dateFormats";
 
-type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
+type Contract = PortalContractRow;
+
+const PAGE_SIZE = 25;
 
 export default function PortalContracts() {
-  const { data: contracts, isLoading, isError, refetch } = usePortalContracts();
+  const [page, setPage] = useState(1);
+  const { data: result, isLoading, isError, refetch } = usePortalContractsPage(page, PAGE_SIZE);
+  const contracts = result?.rows ?? [];
+  const totalPages = Math.max(1, Math.ceil((result?.totalCount ?? 0) / PAGE_SIZE));
   const isMobile = useIsMobile();
 
   const columns: ColumnDef<Contract>[] = [
@@ -68,6 +74,8 @@ export default function PortalContracts() {
     columns,
     getRowId: (c) => c.id,
     initialSorting: [{ id: "start_date", desc: true }],
+    enableSorting: false,
+    paginated: false,
   });
 
   if (isLoading) return <Skeleton className="h-96" />;
@@ -92,7 +100,7 @@ export default function PortalContracts() {
           {isMobile ? (
             <div className="p-3">
               <MobileCardList
-                items={contracts ?? []}
+                items={contracts}
                 keyExtractor={(c) => c.id}
                 emptyMessage="Aún no tienes contratos. Cuando tu renta tenga un contrato aparecerá aquí."
                 renderCard={(c) => (
@@ -115,16 +123,14 @@ export default function PortalContracts() {
               />
             </div>
           ) : (
-            <>
-              <DataTableV2
-                table={table}
-                emptyMessage="Aún no tienes contratos. Cuando tu renta tenga un contrato aparecerá aquí."
-              />
-              <div className="px-4">
-                <DataTablePaginationV2 table={table} />
-              </div>
-            </>
+            <DataTableV2
+              table={table}
+              emptyMessage="Aún no tienes contratos. Cuando tu renta tenga un contrato aparecerá aquí."
+            />
           )}
+          <div className="border-t px-4">
+            <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
     </PageContainer>

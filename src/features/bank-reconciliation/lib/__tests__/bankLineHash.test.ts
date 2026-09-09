@@ -32,6 +32,13 @@ describe("bankParseUtils · hash de contenido + occurrence (A5-09)", () => {
     expect(a.hash).not.toBe(b.hash);
   });
 
+  it("incluye la descripción completa, no sólo los primeros 80 caracteres", async () => {
+    const prefix = "X".repeat(80);
+    const a = await buildLine({ ...base, description: `${prefix}-A`, lineSeq: 0 });
+    const b = await buildLine({ ...base, description: `${prefix}-B`, lineSeq: 0 });
+    expect(a.hash).not.toBe(b.hash);
+  });
+
   it("assignOccurrences numera las repeticiones idénticas", async () => {
     const lines = await Promise.all([
       buildLine({ ...base, lineSeq: 1 }),

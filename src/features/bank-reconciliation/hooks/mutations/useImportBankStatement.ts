@@ -1,12 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { assignOccurrences } from "../../lib/bankParseUtils";
 import { bankImportKeys } from "../../lib/queryKeys";
 import { bankLinesKey } from "../useBankStatementLines";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 
-interface ImportArgs {
+export interface ImportArgs {
+  uploadId: string;
   bankAccountId: string;
   fileName: string;
   lines: ParsedBankLine[];
@@ -14,99 +14,105 @@ interface ImportArgs {
   periodEnd: string | null;
 }
 
+interface ImportRpcRow {
+  import_id: string | null;
+  inserted_count: number;
+  matched_count: number;
+  suggested_count: number;
+  unmatched_count: number;
+}
+
+interface BeginUploadRpcRow {
+  upload_id: string;
+  upload_state: "staging" | "finalized";
+  staged_count: number;
+  result: Record<string, unknown> | null;
+}
+
+export interface ImportResult {
+  insertedCount: number;
+  summary: null | {
+    matched_count: number;
+    suggested_count: number;
+    unmatched_count: number;
+  };
+}
+
+type UntypedRpc = (
+  name: string,
+  args: Record<string, unknown>,
+) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
+
+export const BANK_IMPORT_CHUNK_SIZE = 500;
+
+function normalizeImportResult(row: ImportRpcRow | Record<string, unknown> | null): ImportResult {
+  if (!row) throw new Error("La importación no devolvió un resultado.");
+  const insertedCount = Number(row.inserted_count ?? 0);
+  return {
+    insertedCount,
+    summary: insertedCount === 0 ? null : {
+      matched_count: Number(row.matched_count ?? 0),
+      suggested_count: Number(row.suggested_count ?? 0),
+      unmatched_count: Number(row.unmatched_count ?? 0),
+    },
+  };
+}
+
+function rpcRow<T>(data: unknown): T | null {
+  return ((Array.isArray(data) ? data[0] : data) ?? null) as T | null;
+}
+
+/**
+ * Staging reintentable en bloques pequeños. Sólo `finalize` toca las tablas
+ * canónicas y lo hace dentro de una única transacción de base de datos.
+ */
+export async function importBankStatement(args: ImportArgs): Promise<ImportResult> {
+  const rpc = supabase.rpc as unknown as UntypedRpc;
+  const { data: beginData, error: beginError } = await rpc("begin_bank_statement_upload", {
+    p_upload_id: args.uploadId,
+    p_bank_account_id: args.bankAccountId,
+    p_file_name: args.fileName,
+    p_period_start: args.periodStart,
+    p_period_end: args.periodEnd,
+    p_expected_count: args.lines.length,
+  });
+  if (beginError) throw beginError;
+
+  const begin = rpcRow<BeginUploadRpcRow>(beginData);
+  if (!begin) throw new Error("No se pudo iniciar la carga del estado de cuenta.");
+  if (begin.upload_state === "finalized") {
+    return normalizeImportResult(begin.result);
+  }
+
+  const serializedLines = args.lines.map((line) => ({
+    posted_date: line.posted_date,
+    description: line.description,
+    signed_amount: line.signed_amount,
+    reference: line.reference,
+    line_seq: line.line_seq,
+  }));
+
+  for (let offset = 0; offset < serializedLines.length; offset += BANK_IMPORT_CHUNK_SIZE) {
+    const { error: stageError } = await rpc("stage_bank_statement_chunk", {
+      p_upload_id: args.uploadId,
+      p_chunk_index: Math.floor(offset / BANK_IMPORT_CHUNK_SIZE),
+      p_lines: serializedLines.slice(offset, offset + BANK_IMPORT_CHUNK_SIZE),
+    });
+    if (stageError) throw stageError;
+  }
+
+  const { data: finalizeData, error: finalizeError } = await rpc(
+    "finalize_bank_statement_upload",
+    { p_upload_id: args.uploadId },
+  );
+  if (finalizeError) throw finalizeError;
+
+  return normalizeImportResult(rpcRow<ImportRpcRow>(finalizeData));
+}
+
 export function useImportBankStatement() {
   return useEntityMutation({
-    mutationFn: async (args: ImportArgs) => {
-      const { data: imp, error: impErr } = await supabase
-        .from("bank_statement_imports")
-        .insert({
-          bank_account_id: args.bankAccountId,
-          file_name: args.fileName,
-          period_start: args.periodStart,
-          period_end: args.periodEnd,
-          lines_count: args.lines.length,
-        })
-        .select("id")
-        .single();
-      if (impErr) throw impErr;
-
-      // A5-09: la dedup es (bank_account_id, hash, occurrence). `occurrence`
-      // numera las repeticiones de un movimiento identico dentro del archivo,
-      // asi que el resultado no depende del orden de las lineas.
-      const rows = assignOccurrences(args.lines).map((l) => ({
-        import_id: imp.id,
-        bank_account_id: args.bankAccountId,
-        posted_date: l.posted_date,
-        description: l.description,
-        signed_amount: l.signed_amount,
-        reference: l.reference,
-        line_seq: l.line_seq,
-        hash: l.hash,
-        occurrence: l.occurrence,
-      }));
-
-      // M-12: upsert en lotes de 1000 filas. Un único upsert con archivos
-      // grandes excede los límites de payload / statement_timeout de PostgREST.
-      // Si cualquier lote falla, se borran las líneas ya insertadas y el header
-      // para no dejar importaciones a medias.
-      const CHUNK_SIZE = 1000;
-      let insertedCount = 0;
-      try {
-        for (let offset = 0; offset < rows.length; offset += CHUNK_SIZE) {
-          const chunk = rows.slice(offset, offset + CHUNK_SIZE);
-          // R23-11: `select()` nos dice cuántas líneas eran realmente nuevas.
-          const { data: inserted, error: insErr } = await supabase
-            .from("bank_statement_lines")
-            .upsert(chunk, { onConflict: "bank_account_id,hash,occurrence", ignoreDuplicates: true })
-            .select("id");
-          if (insErr) throw insErr;
-          insertedCount += inserted?.length ?? 0;
-        }
-      } catch (chunkErr) {
-        const { error: cleanupLinesErr } = await supabase
-          .from("bank_statement_lines").delete().eq("import_id", imp.id);
-        const { error: cleanupImpErr } = await supabase
-          .from("bank_statement_imports").delete().eq("id", imp.id);
-        if (cleanupLinesErr || cleanupImpErr) {
-          const cleanupError = new Error(
-            "La importación falló y no se pudo limpiar por completo. Revisa el estado de cuenta antes de reintentar.",
-          );
-          (cleanupError as Error & { cause?: unknown }).cause = chunkErr;
-          throw cleanupError;
-        }
-        throw chunkErr;
-      }
-
-      if (insertedCount === 0) {
-        // Reimportación del mismo archivo: no dejamos un import huérfano en 0.
-        // N-24: borramos también las líneas del import previo (si las hubiera)
-        // antes del header, para no dejar líneas huérfanas.
-        await supabase.from("bank_statement_lines").delete().eq("import_id", imp.id);
-        await supabase.from("bank_statement_imports").delete().eq("id", imp.id);
-        return { summary: null, insertedCount: 0 };
-      }
-
-      if (insertedCount !== args.lines.length) {
-        await supabase
-          .from("bank_statement_imports")
-          .update({ lines_count: insertedCount })
-          .eq("id", imp.id);
-      }
-
-      // N-24: si el emparejamiento falla, limpiamos líneas + header igual que en
-      // el fallo del upsert, para no dejar importaciones a medias.
-      try {
-        const { data: matchRes, error: matchErr } = await supabase.rpc("match_bank_statement_lines", {
-          p_import_id: imp.id,
-        });
-        if (matchErr) throw matchErr;
-        return { summary: Array.isArray(matchRes) && matchRes[0] ? matchRes[0] : null, insertedCount };
-      } catch (matchErr) {
-        await supabase.from("bank_statement_lines").delete().eq("import_id", imp.id);
-        await supabase.from("bank_statement_imports").delete().eq("id", imp.id);
-        throw matchErr;
-      }
-    },
+    mutationFn: importBankStatement,
     invalidateKeysFn: (_res, vars) => [bankImportKeys.all, bankLinesKey(vars.bankAccountId)],
     errorTitle: "Error al importar estado de cuenta",
     onSuccess: (res) => {
@@ -125,4 +131,3 @@ export function useImportBankStatement() {
     },
   });
 }
-

@@ -1,12 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { callRpc } from "@/lib/rpc";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 
 type DeliveryRow = Awaited<ReturnType<typeof fetchDeliveryDetail>>;
 type DeliveryList = Awaited<ReturnType<typeof fetchDeliveryList>>;
+
+export type CompleteDeliveryInput = {
+  id: string;
+  signature_base64?: string;
+  hours_reading?: number;
+  completed_no_evidence_reason?: string;
+};
 
 async function fetchDeliveryDetail(id: string) {
   const { data, error } = await supabase
@@ -71,6 +79,32 @@ export function useUpdateDelivery() {
     },
     invalidateKeys: [deliveryKeys.all],
     errorTitle: "Error al actualizar entrega",
+  });
+}
+
+/**
+ * Completa la entrega mediante la frontera transaccional de dominio. La RPC
+ * bloquea reserva, entrega y unidad antes de validar la transición, evitando
+ * que una vista obsoleta reviva una entrega cancelada o rente una unidad que
+ * entró a mantenimiento en otra sesión.
+ */
+export function useCompleteDelivery() {
+  return useEntityMutation({
+    mutationFn: async ({
+      id,
+      signature_base64,
+      hours_reading,
+      completed_no_evidence_reason,
+    }: CompleteDeliveryInput) => {
+      return callRpc<Tables<"deliveries">>("complete_delivery", {
+        p_delivery_id: id,
+        p_signature_base64: signature_base64,
+        p_hours_reading: hours_reading,
+        p_completed_no_evidence_reason: completed_no_evidence_reason,
+      });
+    },
+    invalidateKeys: [deliveryKeys.all, ["forklifts"] as const, ["status_logs"] as const],
+    errorTitle: "Error al completar entrega",
   });
 }
 

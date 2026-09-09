@@ -154,3 +154,46 @@ describe("useCreditNoteForm — impuestos línea por línea (computeTotals)", ()
     expect(result.current.total).toBe(0);
   });
 });
+
+describe("useCreditNoteForm — descuento fijo en NC parcial", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("prorratea el descuento, el IVA y persiste la referencia a la línea origen", () => {
+    const invoice = mkInvoice({
+      tax_rate: 16,
+      line_items: [
+        {
+          description: "Renta",
+          quantity: 10,
+          unit_price: 100,
+          total: 1_000,
+          discount: 100,
+          discount_type: "$",
+          objeto_imp: "02",
+        },
+      ] as unknown as Tables<"invoices">["line_items"],
+    });
+    const { result } = render(99_999, invoice);
+
+    act(() => result.current.updateLine(0, { quantity: 5 }));
+
+    expect(result.current.subtotal).toBe(450);
+    expect(result.current.taxAmount).toBe(72);
+    expect(result.current.total).toBe(522);
+
+    act(() => result.current.setReason("Devolución de cinco unidades"));
+    act(() => result.current.submit(false));
+
+    const [payload] = createMutate.mock.calls[0];
+    expect(payload.line_items).toEqual([
+      expect.objectContaining({
+        quantity: 5,
+        unit_price: 100,
+        discount: 50,
+        discount_type: "$",
+        total: 450,
+        source_line_index: 0,
+      }),
+    ]);
+  });
+});

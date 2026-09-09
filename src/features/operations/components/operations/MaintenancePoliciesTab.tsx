@@ -42,8 +42,7 @@ export function MaintenancePoliciesTab() {
   const set = (key: keyof MaintenancePolicyFormValues, value: string) =>
     setForm((p) => ({ ...p, [key]: value }));
 
-  // R7-FE-01: sin reservas cargadas no remapeamos (fallback al status crudo)
-  // para no ocultar unidades rentadas mientras llega la query de bookings.
+  // La política aplica a unidades cuyo estado físico canónico es rented.
   const rentedIds = useMemo(
     () =>
       fleetBookings
@@ -53,7 +52,7 @@ export function MaintenancePoliciesTab() {
   );
   const rentedForklifts = forklifts?.filter((f) => {
     if (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id) return true;
-    // maintenance/retired/sold mandan sobre la reserva (regla del helper).
+    // Estados no operativos quedan fuera aunque existan reservas.
     if (f.status !== "available" && f.status !== "rented") return false;
     return rentedIds ? rentedIds.has(f.id) : f.status === "rented";
   });

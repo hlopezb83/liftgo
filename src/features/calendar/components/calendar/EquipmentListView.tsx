@@ -51,9 +51,8 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   // largas (SPA abierta de un día a otro). Se calcula en cada render.
   // R10.9: fecha del servidor; el fallback al reloj local vive dentro del hook.
   const todayYmd = useServerTodayMty();
-  // R7-FE-01 (N7-UX-02): el badge usa la MISMA definición derivada que el
-  // encabezado del Calendario y el Panel (helper único), no `forklifts.status`
-  // crudo, que el seed deja desincronizado. Sin reservas cargadas → status crudo.
+  // El badge usa el estado físico canónico; una reserva vigente se presenta
+  // aparte y no convierte por sí sola la unidad en `rented`.
   const rentedIds = useMemo(
     () => (bookings ? computeFleetAvailability(forklifts, bookings, todayYmd)?.rentedForkliftIds : undefined),
     [forklifts, bookings, todayYmd],
@@ -92,7 +91,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {activeBooking && <span className="text-primary font-medium">Rentado</span>}
+                {activeBooking && <span className="text-primary font-medium">Reserva vigente</span>}
                 {upcoming.length > 0 && <span>{upcoming.length} próxima{upcoming.length !== 1 ? "s" : ""}</span>}
                 {!activeBooking && upcoming.length === 0 && <span>Sin reservas</span>}
               </div>

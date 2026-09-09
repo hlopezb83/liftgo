@@ -6,6 +6,7 @@ export {
 } from "./usePortalCollectionAccount";
 export {
   usePortalQuotes,
+  usePortalQuotesPage,
   usePortalQuote,
   useAcceptPortalQuote,
   useRejectPortalQuote,

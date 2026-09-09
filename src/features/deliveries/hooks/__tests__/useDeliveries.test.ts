@@ -20,6 +20,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
 const inserts: unknown[] = [];
 const updates: Array<{ patch: unknown; eqArgs: unknown[] }> = [];
 const deletes: unknown[][] = [];
+const completeCalls: unknown[] = [];
 
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "d-1", delivery_number: "ENT-0001" }, error: null,
@@ -30,9 +31,18 @@ let updateResp: { data: unknown; error: { message: string } | null } = {
 let deleteResp: { data: unknown; error: { message: string } | null } = {
   data: null, error: null,
 };
+let completeResp: { data: unknown; error: { message: string } | null } = {
+  data: { id: "d-1", status: "completed" }, error: null,
+};
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
+    rpcResolvers: {
+      complete_delivery: (args) => {
+        completeCalls.push(args);
+        return completeResp;
+      },
+    },
     tableResolvers: {
       deliveries: (calls) => {
         const ins = calls.find((c) => c.method === "insert");
@@ -55,14 +65,15 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "../useDeliveries";
+import { useCompleteDelivery, useCreateDelivery, useUpdateDelivery, useDeleteDelivery } from "../useDeliveries";
 
 beforeEach(() => {
-  inserts.length = 0; updates.length = 0; deletes.length = 0;
+  inserts.length = 0; updates.length = 0; deletes.length = 0; completeCalls.length = 0;
   notifyErrorMock.mockReset();
   insertResp = { data: { id: "d-1", delivery_number: "ENT-0001" }, error: null };
   updateResp = { data: { id: "d-1" }, error: null };
   deleteResp = { data: null, error: null };
+  completeResp = { data: { id: "d-1", status: "completed" }, error: null };
 });
 
 describe("useCreateDelivery", () => {
@@ -121,6 +132,43 @@ describe("useUpdateDelivery", () => {
 
     await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
     expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({ title: "Error al actualizar entrega" });
+  });
+});
+
+describe("useCompleteDelivery", () => {
+  it("usa la RPC atómica y no hace UPDATE directo de status", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCompleteDelivery(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        id: "d-1",
+        signature_base64: "data:image/png;base64,abc",
+        hours_reading: 123.4,
+        completed_no_evidence_reason: "Autorizó recepción",
+      });
+    });
+
+    expect(completeCalls).toEqual([{
+      p_delivery_id: "d-1",
+      p_signature_base64: "data:image/png;base64,abc",
+      p_hours_reading: 123.4,
+      p_completed_no_evidence_reason: "Autorizó recepción",
+    }]);
+    expect(updates).toHaveLength(0);
+  });
+
+  it("propaga el rechazo transaccional con título localizado", async () => {
+    completeResp = { data: null, error: { message: "La entrega ya fue cancelada" } };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCompleteDelivery(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({ id: "d-1" }).catch(() => {});
+    });
+
+    await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
+    expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({ title: "Error al completar entrega" });
   });
 });
 

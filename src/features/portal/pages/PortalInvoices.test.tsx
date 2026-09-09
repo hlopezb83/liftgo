@@ -5,10 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PortalInvoices from "./PortalInvoices";
 
 vi.mock("@/features/customers", () => ({
-  usePortalInvoices: vi.fn(),
+  usePortalInvoicesPage: vi.fn(),
 }));
 
-import { usePortalInvoices } from "@/features/customers";
+import { usePortalInvoicesPage } from "@/features/customers";
 
 function createTestQueryClient() {
   return new QueryClient({
@@ -28,7 +28,7 @@ function renderWithRouter(ui: React.ReactNode) {
 
 describe("PortalInvoices", () => {
   it("renders QueryErrorState when the invoices query fails (FE2-04)", async () => {
-    (usePortalInvoices as ReturnType<typeof vi.fn>).mockReturnValue({
+    (usePortalInvoicesPage as ReturnType<typeof vi.fn>).mockReturnValue({
       data: undefined,
       isLoading: false,
       isError: true,
@@ -47,9 +47,9 @@ describe("PortalInvoices", () => {
   });
 
   it("renders the table when invoices load successfully", async () => {
-    (usePortalInvoices as ReturnType<typeof vi.fn>).mockReturnValue({
-      data: [
-        {
+    (usePortalInvoicesPage as ReturnType<typeof vi.fn>).mockReturnValue({
+      data: {
+        rows: [{
           id: "inv-1",
           invoice_number: "FAC-0001",
           issued_at: "2026-07-01",
@@ -57,8 +57,9 @@ describe("PortalInvoices", () => {
           total: "12000.00",
           moneda: "MXN",
           status: "sent",
-        },
-      ],
+        }],
+        totalCount: 1,
+      },
       isLoading: false,
       isError: false,
       refetch: vi.fn(),

@@ -26,6 +26,14 @@ export interface ParseResult {
   periodEnd: string | null;
 }
 
+/** Corte deliberado antes de hashear miles de filas que no se podrán importar. */
+export class BankStatementLineLimitError extends Error {
+  constructor(readonly lineCount: number, readonly maxLines: number) {
+    super(`El estado de cuenta contiene ${lineCount} movimientos; el límite es ${maxLines}.`);
+    this.name = "BankStatementLineLimitError";
+  }
+}
+
 const MONTHS_ES: Record<string, string> = {
   ene: "01", feb: "02", mar: "03", abr: "04", may: "05", jun: "06",
   jul: "07", ago: "08", sep: "09", oct: "10", nov: "11", dic: "12",
@@ -171,7 +179,9 @@ export async function buildLine(input: {
     // duplicados. Los movimientos legitimamente identicos se distinguen ahora
     // con `occurrence` (ver `assignOccurrences`), y el indice unico de la BD es
     // (bank_account_id, hash, occurrence).
-    hash: await hashLine([postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
+    // La descripción completa forma parte de la identidad. Truncarla hacía que
+    // dos conceptos con el mismo prefijo de 80 caracteres colisionaran.
+    hash: await hashLine([postedDate, signedAmount.toFixed(2), reference ?? "", description]),
     occurrence: 1,
   };
 }

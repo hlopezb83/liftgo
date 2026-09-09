@@ -36,6 +36,11 @@ describe("DamageActionButtons", () => {
     render(<DamageActionButtons status="repaired" {...baseProps} />);
     expect(screen.queryByRole("button", { name: /marcar reparado/i })).not.toBeInTheDocument();
   });
+
+  it("permite cerrar la reparación de una fila histórica ya facturada", () => {
+    render(<DamageActionButtons status="invoiced" needsRepairCompletion {...baseProps} />);
+    expect(screen.getByRole("button", { name: /marcar reparado/i })).toBeInTheDocument();
+  });
 });
 
 describe("DamageActionButtons · archivar bloqueado", () => {

@@ -1,14 +1,9 @@
-import { MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
+import { MaintenanceIcon, PaymentIcon, ClipboardList, OverdueIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useUpdateInvoice } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { toYMD } from "@/lib/date/toYMD";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { notifySuccess } from "@/lib/ui/appFeedback";
-import { nowMty } from "@/lib/utils";
 import { AlertCard, AlertRow } from "./AlertCard";
-import type { MouseEvent as ReactMouseEvent } from "react";
 
 interface OverdueInvoice {
   id: string;
@@ -45,23 +40,8 @@ interface AlertsRowProps {
 
 export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings }: AlertsRowProps) {
   const navigate = useNavigateTransition();
-  const updateInvoice = useUpdateInvoice();
 
   if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0 && overdueBookings.length === 0) return null;
-
-  const handleMarkPaid = (inv: OverdueInvoice, e: ReactMouseEvent) => {
-    e.stopPropagation();
-    updateInvoice.mutate(
-      { id: inv.id, status: "paid", paid_at: toYMD(nowMty()) },
-      {
-        onSuccess: () => {
-          notifySuccess(`${inv.invoice_number} marcada como pagada`);
-          // A3-04: completar la reserva requiere la inspección de devolución;
-          // no se fuerza con un UPDATE directo desde el tablero.
-        },
-      }
-    );
-  };
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -132,7 +112,15 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               onClick={() => navigate(`/invoices/${inv.id}`)}
               rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(Number(inv.total))}</span>}
               rightBottom={`Vence: ${formatDateMty(inv.due_date)}`}
-              action={{ icon: SuccessIcon, title: "Marcar pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
+              action={{
+                icon: PaymentIcon,
+                title: "Registrar pago",
+                onClick: (e) => {
+                  e.stopPropagation();
+                  navigate(`/invoices/${inv.id}`);
+                },
+                className: "text-status-available",
+              }}
             />
           ))}
         </AlertCard>
