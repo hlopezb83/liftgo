@@ -1,0 +1,13 @@
+{
+  "version": "8.1.12",
+  "date": "2026-09-08",
+  "type": "patch",
+  "category": "fix",
+  "title": "Cabecera de detalle de reserva comprimida en escritorio mediano",
+  "description": "La cabecera del detalle de reserva comprimía el número y el subtítulo, y a 1024 px cortaba los botones de acción por desbordamiento horizontal. Se ajusta solo el CSS del componente de cabecera para reservar ancho útil al título/subtítulo y contener el bloque de acciones dentro del ancho disponible.",
+  "changes": [
+    "Antes del cambio, a 1280 px los botones comprimían el número de reserva a dos líneas y dejaban el subtítulo casi sin espacio; a 1024 px las acciones desbordaban con scroll horizontal. Ahora el bloque de acciones baja a su propia fila cuando no cabe junto al título.",
+    "El título reserva al menos 20 rem y el bloque de acciones deja de ser rígido, de modo que sus botones envuelven sin desbordar el contenedor.",
+    "Sin cambios en botones, permisos, handlers, accesibilidad ni en el comportamiento móvil apilado. No se tocaron consumidores ni lógica de negocio."
+  ]
+}
