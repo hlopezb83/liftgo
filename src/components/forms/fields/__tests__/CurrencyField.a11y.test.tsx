@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { describe, it, expect } from "vitest";
 import { Form } from "@/components/ui/form";
@@ -30,11 +29,14 @@ describe("V27-05 · CurrencyField asocia etiqueta y descripción al input", () =
     expect(screen.getByRole("textbox", { name: /costo/i })).toBeInTheDocument();
   });
 
-  it("click en la etiqueta enfoca el input", async () => {
-    const user = userEvent.setup();
+  it("click en la etiqueta enfoca el input", () => {
     render(<Harness />);
-    await user.click(screen.getByText("Costo"));
-    expect(screen.getByRole("textbox", { name: /costo/i })).toHaveFocus();
+    const input = screen.getByRole("textbox", { name: /costo/i });
+    const label = screen.getByText("Costo") as HTMLLabelElement;
+    // La etiqueta apunta al input (no al contenedor) y el click lo enfoca.
+    expect(label.htmlFor).toBe(input.id);
+    fireEvent.click(label);
+    expect(input).toHaveFocus();
   });
 
   it("la descripción queda asociada al input vía aria-describedby", () => {
