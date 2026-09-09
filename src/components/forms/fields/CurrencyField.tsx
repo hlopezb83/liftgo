@@ -113,11 +113,14 @@ function CurrencyFieldInner<TFieldValues extends FieldValues, TName extends Fiel
         {label}
         {required && <RequiredMark />}
       </FormLabel>
-      <FormControl>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-            $
-          </span>
+      {/* V27-05: FormControl envuelve el Input (no el contenedor), para que el
+          id/aria-describedby/aria-invalid caigan en el textbox y la etiqueta
+          lo enfoque. El div sólo aporta el prefijo/sufijo visual. */}
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+          $
+        </span>
+        <FormControl>
           <Input
             {...field}
             type="text"
@@ -152,11 +155,12 @@ function CurrencyFieldInner<TFieldValues extends FieldValues, TName extends Fiel
             disabled={disabled}
             className="pl-6 pr-14 text-right tabular-nums"
           />
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none">
-            {currency}
-          </span>
-        </div>
-      </FormControl>
+        </FormControl>
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none">
+          {currency}
+        </span>
+      </div>
+
       {description && <FormDescription>{description}</FormDescription>}
       <FormMessage />
     </FormItem>

@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.1.5",
+    "date": "2026-09-09",
+    "type": "patch",
+    "category": "ui",
+    "title": "Reportes más claros y pantallas accesibles",
+    "description": "El detalle de Ingresos ya coincide con el rango de fechas elegido, Antigüedad de Cartera deja de ofrecer un filtro que no aplicaba y se corrigieron tres detalles de uso en móvil y formularios.",
+    "changes": [
+      "Al abrir un mes en el reporte de Ingresos sólo se listan y exportan las facturas dentro del rango seleccionado.",
+      "Antigüedad de Cartera indica que muestra la cartera vencida al día de hoy y ya no muestra un selector de fechas inoperante.",
+      "El menú lateral en celular se cierra al elegir una sección y las tarjetas de reservas se pueden recorrer con el teclado.",
+      "El campo de costo queda correctamente etiquetado: al tocar «Costo» se enfoca el campo y los mensajes de ayuda o error se leen junto a él."
+    ]
+  },
+  {
     "version": "8.1.4",
     "date": "2026-09-08",
     "type": "patch",

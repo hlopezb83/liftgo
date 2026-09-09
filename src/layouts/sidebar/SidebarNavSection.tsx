@@ -70,6 +70,9 @@ function NavMenuItem({ item }: { item: NavItem }) {
   const loader = routeLoaders[item.url];
   const { pathname } = useLocation();
   const isActive = isNavItemActive(pathname, item.url);
+  // V27-03: en móvil el panel es un overlay; al navegar tapaba el destino.
+  const { isMobile, setOpenMobile } = useSidebar();
+
 
   const { data: counts } = useSidebarBadgeCounts();
   const currentVersion = useCurrentVersion();
@@ -119,6 +122,14 @@ function NavMenuItem({ item }: { item: NavItem }) {
           onMouseLeave={cancelPrefetch}
           onFocus={schedulePrefetch}
           onBlur={cancelPrefetch}
+          onClick={(e) => {
+            // Sólo la navegación normal cierra el panel móvil: con Ctrl/Cmd/
+            // Shift/Alt o botón central el navegador abre otra pestaña.
+            if (!isMobile) return;
+            if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+            setOpenMobile(false);
+          }}
+
         >
           <item.icon className="h-4 w-4" />
           <span>{item.title}</span>

@@ -1,3 +1,11 @@
+## [8.1.5] - 2026-09-09
+### Correcciones V27 (presentación y accesibilidad, sin reglas de negocio)
+- V27-01 Ingresos: el detalle mensual, su contador y su exportación se recortan al rango activo del reporte (límites inclusivos por día calendario, sin desplazamientos UTC) mediante `invoicesWithinRange` en `src/features/reports/lib/drilldown.ts`. No cambia SQL/RPC ni las reglas de importes, pagos o notas de crédito. Regresión: `src/features/reports/lib/__tests__/invoicesWithinRange.test.ts`.
+- V27-02 Antigüedad de Cartera: se oculta el selector de rango que el reporte nunca usaba y se muestra «Cartera vencida al día de hoy (fecha)». Los demás reportes conservan su rango al volver a ellos.
+- V27-03 Menú lateral móvil: los enlaces de `SidebarNavSection` cierran el panel móvil al navegar (sólo con clic normal; Ctrl/Cmd/Shift/Alt o botón no primario lo respetan). Escritorio, prefetch y grupos recordados sin cambios.
+- V27-04 Tarjetas de reservas: cada tarjeta móvil es un `Link` real con nombre accesible «Reserva NÚMERO» y foco visible; Tab/Enter y el tap siguen abriendo el detalle correcto.
+- V27-05 `CurrencyField`: `FormControl` envuelve directamente el `Input`, de modo que la etiqueta, la descripción y el error quedan asociados al campo (por ejemplo «Costo» en Mantenimiento). Parseo, formato y estado de RHF intactos. Regresión: `src/components/forms/fields/__tests__/CurrencyField.a11y.test.tsx`.
+
 ## [8.1.4] - 2026-09-08
 ### Calidad interna (sin cambios funcionales)
 - `router-compat` se separa en tres módulos: `src/lib/router-compat-url.ts` (parseo de URLs), `src/lib/router-compat-ui.tsx` (`Link`, `Navigate`, `Outlet`) y `src/lib/router-compat.ts` (hooks). Se actualizaron ~60 importaciones; API y comportamiento idénticos.
