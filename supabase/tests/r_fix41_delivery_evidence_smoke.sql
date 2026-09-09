@@ -98,6 +98,11 @@ BEGIN
   END;
   PERFORM pg_temp.expect_true('Caso 3 razón: alta completed con justificación y sin operador/firma pasa' || COALESCE(' (' || v_msg || ')', ''), v_ok);
   v_msg := NULL;
+  -- Cada alta completed puede sincronizar la unidad a rented; devolver este
+  -- fixture a available para que el rechazo del caso 4 ejercite evidencia.
+  PERFORM set_config('app.forklift_rpc', 'on', true);
+  UPDATE public.forklifts SET status = 'available' WHERE id = v_fk;
+  PERFORM set_config('app.forklift_rpc', 'off', true);
 
   -- Caso 4a · RECHAZO en INSERT: alta completed sin operador, sin firma, sin razón.
   v_ok := false; v_state := NULL;
