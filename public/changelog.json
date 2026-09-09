@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.1.11",
+    "date": "2026-09-08",
+    "type": "patch",
+    "category": "mantenimiento",
+    "title": "Mantenimiento de dependencias (lote DEP-04)",
+    "description": "Actualización de mantenimiento de la herramienta interna que compila la aplicación. Sin cambios de funcionalidad.",
+    "changes": [
+      "Herramienta de compilación actualizada a la versión 8.2.2 y su motor interno a la 1.2.7 (versiones exactas y compatibles entre sí).",
+      "Se actualizaron únicamente los componentes internos que ese par exige; el resto de librerías se conserva sin cambios.",
+      "Sin cambios en pantallas, permisos, datos ni en el comportamiento de la aplicación."
+    ]
+  },
+  {
     "version": "8.1.10",
     "date": "2026-09-08",
     "type": "patch",

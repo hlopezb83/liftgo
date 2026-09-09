@@ -1,3 +1,10 @@
+## [8.1.11] - 2026-09-08
+### Mantenimiento YAGNI - lote DEP-04 (Vite/Rolldown)
+- Actualizacion dirigida con pins exactos: `vite` 8.1.5 -> 8.2.2 (devDependencies) y el override `rolldown` 1.2.1 -> 1.2.7. Se conserva el override para que Vite y Nitro sigan resolviendo la misma version controlada; no se agrego `rolldown` como dependencia directa.
+- Transitivas movidas por exigencia del par: bindings nativos `@rolldown/binding-*` a 1.2.7 y `@oxc-project/types` a 0.148.0 (requerido exactamente por Rolldown 1.2.7). Sin otras familias tocadas.
+- Sin cambios en Start 1.168.50, Router 1.170.33, Nitro 3.0.260603-beta, `@lovable.dev/vite-tanstack-config` 2.21.0, `@vitejs/plugin-react` 5.2.0, TypeScript, ESLint, Vitest/cobertura, Table, React, Tailwind, Supabase ni Bun. `@rolldown/plugin-babel` permanece en 0.2.3. Se conservan DEP-01/02/03 y el ajuste de `ErrorComponentProps`. Sin cambios en `vite.config.ts`, `wrangler.jsonc` ni `playwright.smoke.config.ts`.
+- Validacion puntual en Lovable: `tsc --noEmit` limpio (exit 0), `lint` sin errores (exit 0, 14 avisos preexistentes) y 114 pruebas focalizadas verdes en 7 archivos de transporte, red, serializacion, rutas y recarga por chunk stale. Suite completa, cobertura y smoke del bundle real quedan a cargo de GitHub Actions.
+
 ## [8.1.10] - 2026-09-08
 ### Mantenimiento YAGNI - lote DEP-03 (par Start/Router)
 - Actualizacion dirigida del par de enrutamiento con versiones exactas: `@tanstack/react-start` 1.168.32 -> 1.168.50 y `@tanstack/react-router` 1.170.18 -> 1.170.33 (Start 1.168.50 depende exactamente de Router 1.170.33). No se instalo el peer OPCIONAL `@rsbuild/core` ni se activaron RSC, React Compiler o plugins nuevos.
