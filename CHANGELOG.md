@@ -1,3 +1,9 @@
+## [8.1.12] - 2026-09-09
+### UI-DEP-01 — Cabecera de detalle de reserva comprimida en escritorio mediano
+- A 1024 px los botones de acción (Crear contrato, Extender, Devolución Anticipada, Cambiar Estatus, Eliminar, Cancelar) se cortaban por desbordamiento horizontal y el número/subtítulo se comprimían a dos líneas. A 1280/1440 el bloque de acciones ya bajaba a su propia fila, pero el bloque era rígido (`shrink-0`) y a 1024 desbordaba.
+- Ajuste mínimo de CSS en `src/components/layout/DetailPageHeader.tsx`: la fila de escritorio permite envolver (`lg:flex-wrap`), el título reserva al menos 20 rem (`lg:min-w-[20rem]`) y el bloque de acciones deja de ser rígido (`min-w-0` sin `shrink-0`) para que sus botones envuelvan dentro del ancho disponible sin desbordar.
+- Sin cambios en botones, etiquetas, permisos, handlers, accesibilidad ni en el comportamiento móvil apilado. No se tocaron consumidores ni lógica de negocio. Verificación visual con sesión administrativa a 390/1024/1280/1440 px: título en una línea, subtítulo visible, los 6 botones visibles sin recorte. `tsc --noEmit` limpio, `lint` sin errores (14 avisos preexistentes), prueba focalizada `BookingDetail.test.tsx` 1/1. Suite completa, cobertura y smoke quedan a cargo de GitHub Actions.
+
 ## [8.1.11] - 2026-09-08
 ### Mantenimiento YAGNI - lote DEP-04 (Vite/Rolldown)
 - Actualizacion dirigida con pins exactos: `vite` 8.1.5 -> 8.2.2 (devDependencies) y el override `rolldown` 1.2.1 -> 1.2.7. Se conserva el override para que Vite y Nitro sigan resolviendo la misma version controlada; no se agrego `rolldown` como dependencia directa.

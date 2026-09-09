@@ -40,14 +40,14 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions, pri
         <BackIcon className="h-3.5 w-3.5 mr-1" />
         Volver
       </Button>
-      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3">
-        <div className="min-w-0 lg:flex-1">
+      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
+        <div className="min-w-0 lg:flex-1 lg:min-w-[20rem]">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight line-clamp-2">{title}</h1>
           {subtitle && <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{subtitle}</p>}
           {badges && <div className="flex items-center gap-2 flex-wrap mt-1">{badges}</div>}
         </div>
         {(primaryAction || actions) && (
-          <div className="shrink-0 flex gap-2 flex-wrap items-center">
+          <div className="flex min-w-0 gap-2 flex-wrap items-center">
             {primaryAction}
             {actions}
           </div>
