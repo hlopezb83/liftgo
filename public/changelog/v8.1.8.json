@@ -1,0 +1,12 @@
+{
+  "version": "8.1.8",
+  "date": "2026-09-09",
+  "type": "minor",
+  "category": "ui",
+  "title": "El rol administrativo puede prender y apagar la facturación recurrente",
+  "description": "El interruptor de facturación recurrente en el detalle de reserva ahora está disponible para usuarios con acceso completo a Facturas.",
+  "changes": [
+    "Usuarios administrativos pueden activar o desactivar la facturación recurrente de una reserva.",
+    "Las reservas canceladas o completadas siguen sin permitir el cambio."
+  ]
+}
