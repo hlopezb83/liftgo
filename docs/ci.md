@@ -207,3 +207,10 @@ y `public/changelog.json` / `public/version.json` en `8.1.0`. Esa discrepancia
 entre `package.version` y el changelog es **previa** y se deja tal cual: no se
 resuelve inventando un release. Los cambios de CI se documentan solo aquí, no
 en el changelog de la app.
+
+## Herramienta de CI (nota de mantenimiento)
+
+GitHub Actions instala Bun 1.4.2 y Node 24 vía `.github/actions/setup-bun-project`
+con `bun install --frozen-lockfile`. El pin exacto de Bun se actualiza mediante un
+lote validado en CI (no Dependabot). Las suites completas, cobertura, build real y
+smoke se ejecutan únicamente en GitHub Actions.
