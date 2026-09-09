@@ -1,7 +1,7 @@
 // ported from main.tsx — Sentry debe cargarse antes que cualquier feature
 import "@/lib/observability/sentry";
 import "@/lib/forms/zodConfig";
-import { createRootRouteWithContext, HeadContent, Outlet, Scripts, useRouter } from "@tanstack/react-router";
+import { createRootRouteWithContext, HeadContent, Outlet, Scripts, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { PageFallback } from "@/app-routes/RouteSkeletons";
 import { AppProviders } from "@/layouts/AppProviders";
@@ -118,7 +118,7 @@ function RootNotFound() {
   );
 }
 
-function RootErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function RootErrorComponent({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
   console.error(error);
   useEffect(() => {

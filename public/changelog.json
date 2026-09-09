@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.1.10",
+    "date": "2026-09-08",
+    "type": "patch",
+    "category": "mantenimiento",
+    "title": "Mantenimiento de dependencias (lote DEP-03)",
+    "description": "Actualización de mantenimiento del par de librerías de navegación de la aplicación, con un ajuste de compatibilidad interno. Sin cambios de funcionalidad.",
+    "changes": [
+      "Librería de aplicación actualizada a 1.168.50 y librería de navegación a 1.170.33 (versiones exactas, ambas compatibles entre sí).",
+      "Adaptación de compatibilidad: la pantalla de error general se ajustó al nuevo contrato de tipos de la librería de navegación; el mensaje y las acciones mostradas al usuario no cambian.",
+      "Sin cambios en el resto de librerías, en el arranque de la aplicación, en el inicio de sesión, en el desplazamiento de página ni en los filtros de la barra de direcciones."
+    ]
+  },
+  {
     "version": "8.1.9",
     "date": "2026-09-08",
     "type": "patch",

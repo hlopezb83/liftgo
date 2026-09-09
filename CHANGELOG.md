@@ -1,3 +1,10 @@
+## [8.1.10] - 2026-09-08
+### Mantenimiento YAGNI - lote DEP-03 (par Start/Router)
+- Actualizacion dirigida del par de enrutamiento con versiones exactas: `@tanstack/react-start` 1.168.32 -> 1.168.50 y `@tanstack/react-router` 1.170.18 -> 1.170.33 (Start 1.168.50 depende exactamente de Router 1.170.33). No se instalo el peer OPCIONAL `@rsbuild/core` ni se activaron RSC, React Compiler o plugins nuevos.
+- Adaptacion de compatibilidad requerida por el typecheck: Router 1.170.33 tipa el `error` de los boundaries como `unknown`. En `src/routes/__root.tsx`, `RootErrorComponent` pasa de `{ error: Error; reset: () => void }` a `ErrorComponentProps` (tipo publico de la libreria). Sin casts a `any`, sin normalizadores nuevos y sin extraer componentes; `reportLovableError` ya acepta `unknown` y la UI no lee `error.message`. Ningun otro consumidor requirio cambios.
+- Sin cambios en Vite/Rolldown, Nitro, TypeScript 5.9.3, ESLint, Vitest/cobertura, Table, React, Tailwind, Bun, workflows ni en la configuracion de Lovable; se conservan los lotes DEP-01 y DEP-02 y las guardas de chunks stale, shell, QueryClient por peticion, auth, scroll y serializacion de busquedas.
+- Validacion puntual en Lovable: `tsc --noEmit` limpio, `lint` sin errores (14 avisos preexistentes) y 112 pruebas focalizadas verdes en 7 archivos de rutas y transporte (`routes.test.ts`, `routerCompatLocation.test.tsx`, `searchSerialization.test.ts`, `NavLinkActive.test.tsx`, `mainScrollRestoration.test.tsx`, `serverFnTransport.test.ts`, `authAttacher.test.ts`). Suite completa, cobertura y smoke quedan a cargo de GitHub Actions.
+
 ## [8.1.9] - 2026-09-08
 ### Mantenimiento YAGNI - lote DEP-02 (dependencias puntuales)
 - Actualizacion de mantenimiento, sin cambios de comportamiento ni de API en los consumidores: `@supabase/supabase-js` 2.115.0 -> 2.116.0 (manifiesto `^2.116.0`), `typescript-eslint` 8.69.0 -> 8.70.0 (manifiesto `^8.70.0`) y `@types/node` 22.20.1 -> 24.13.3 (manifiesto `^24.13.3`, alineado con Node 24 de `.nvmrc`/CI).
