@@ -40,7 +40,10 @@ export function creditNoteDiscountForSelection({
   const originalDiscountCents = Math.max(0, toCents(discount));
   if (originalGrossCents === 0 || selectedGrossCents === 0) return 0;
 
-  const selectedRatioNumerator = Math.min(selectedGrossCents, originalGrossCents);
+  const selectedRatioNumerator = Math.min(
+    selectedGrossCents,
+    originalGrossCents,
+  );
   const allocatedCents = Math.round(
     (originalDiscountCents * selectedRatioNumerator) / originalGrossCents,
   );

@@ -170,7 +170,10 @@ BEGIN
 
   -- Simula una fila persistida antes de instalar el guard. La reconciliación
   -- de la migración llama exactamente al mismo helper para cada paid histórica.
-  PERFORM set_config('app.e2e_seed', 'on', true);
+  -- Reproduce a genuinely historical row by bypassing every current user
+  -- trigger. The legacy state predates both the generic insert-state guard and
+  -- the financial guard under test; re-enable them before reconciliation.
+  ALTER TABLE public.invoices DISABLE TRIGGER USER;
   INSERT INTO public.invoices (
     id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
     total, status, paid_at, issued_at, due_date, moneda, tipo_cambio, line_items
@@ -180,7 +183,7 @@ BEGIN
     public.today_mty(), public.today_mty() + 30, 'MXN', 1,
     '[{"description":"Renta histórica","quantity":1,"unit_price":250,"total":250}]'::jsonb
   );
-  PERFORM set_config('app.e2e_seed', 'off', true);
+  ALTER TABLE public.invoices ENABLE TRIGGER USER;
 
   PERFORM public.sync_invoice_status(v_legacy_invoice);
   SELECT status::text INTO v_status
@@ -190,7 +193,7 @@ BEGIN
     v_status = 'sent'
   );
 EXCEPTION WHEN OTHERS THEN
-  PERFORM set_config('app.e2e_seed', 'off', true);
+  ALTER TABLE public.invoices ENABLE TRIGGER USER;
   RAISE WARNING 'FALLO  C-01 escenario funcional: %', SQLERRM;
   RAISE;
 END $$;

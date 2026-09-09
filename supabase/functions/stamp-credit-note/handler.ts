@@ -220,15 +220,20 @@ export async function handleStampCreditNote(
     const invoiceTotal = Number(inv.total ?? 0);
     if (activeNcTotal - 0.01 > invoiceTotal) {
       await releaseClaim(
-        `Notas de crédito acumuladas (${activeNcTotal.toFixed(
-          2,
-        )}) exceden el total facturado (${invoiceTotal.toFixed(2)}).`,
+        `Notas de crédito acumuladas (${
+          activeNcTotal.toFixed(
+            2,
+          )
+        }) exceden el total facturado (${invoiceTotal.toFixed(2)}).`,
       );
       return json(
         {
-          error: `El monto total de notas de crédito excede el importe de la factura. Suma NCs: ${activeNcTotal.toFixed(
-            2,
-          )} > factura ${invoiceTotal.toFixed(2)}.`,
+          error:
+            `El monto total de notas de crédito excede el importe de la factura. Suma NCs: ${
+              activeNcTotal.toFixed(
+                2,
+              )
+            } > factura ${invoiceTotal.toFixed(2)}.`,
         },
         400,
         jsonHeaders,
@@ -291,10 +296,9 @@ export async function handleStampCreditNote(
           unit_key: li.unitKey,
           price: li.unitPrice,
           tax_included: false,
-          taxes:
-            li.objetoImp === "01"
-              ? []
-              : [{ type: "IVA", rate: li.taxRatePct / 100 }],
+          taxes: li.objetoImp === "01"
+            ? []
+            : [{ type: "IVA", rate: li.taxRatePct / 100 }],
         },
         quantity: li.quantity,
       };
@@ -338,16 +342,19 @@ export async function handleStampCreditNote(
       if (!taxSystem) missingFiscal.push("régimen fiscal del receptor");
       if (!zip) missingFiscal.push("código postal fiscal del receptor");
       if (missingFiscal.length > 0) {
-        const msg = `Faltan datos fiscales del receptor: ${missingFiscal.join(
-          ", ",
-        )}. Captúralos en el cliente o en la factura antes de timbrar.`;
+        const msg = `Faltan datos fiscales del receptor: ${
+          missingFiscal.join(
+            ", ",
+          )
+        }. Captúralos en el cliente o en la factura antes de timbrar.`;
         await releaseClaim(msg);
         return json({ error: msg }, 400, jsonHeaders);
       }
       // R7-03: el fail-fast de régimen fiscal (A4B-08) también aplica aquí;
       // antes la NC enviaba el valor crudo (p. ej. "601 - General de Ley…").
       if (!isValidRegimenFiscalCode(taxSystem)) {
-        const msg = `El régimen fiscal del receptor "${taxSystem}" no es un código válido del catálogo del SAT (c_RegimenFiscal). Debe ser el código de 3 dígitos, p. ej. "601". Corrígelo en la factura origen (o en el cliente y vuelve a generar el borrador) antes de timbrar.`;
+        const msg =
+          `El régimen fiscal del receptor "${taxSystem}" no es un código válido del catálogo del SAT (c_RegimenFiscal). Debe ser el código de 3 dígitos, p. ej. "601". Corrígelo en la factura origen (o en el cliente y vuelve a generar el borrador) antes de timbrar.`;
         await releaseClaim(msg);
         return json({ error: msg }, 422, jsonHeaders);
       }
@@ -360,7 +367,9 @@ export async function handleStampCreditNote(
     // R9-02: gate canónico de tipo de cambio ANTES de llamar al PAC. El viejo
     // fallback `|| 1` timbraba NC en moneda foránea con paridad 1:1 falsa.
     const fxCurrency = (ncRow.currency ?? inv.moneda ?? "MXN") as
-      string | null | undefined;
+      | string
+      | null
+      | undefined;
     const fxGate = checkStampFx(
       fxCurrency,
       inv.tipo_cambio as number | string | null | undefined,
@@ -405,7 +414,7 @@ export async function handleStampCreditNote(
     };
     try {
       fa = (await sdkCallWithTimeout((signal) =>
-        createInvoiceWithSignal(client, payload, { signal }),
+        createInvoiceWithSignal(client, payload, { signal })
       )) as {
         id: string;
         uuid: string;
@@ -523,16 +532,21 @@ export async function handleStampCreditNote(
     const hasVariance = Boolean(
       varianceCheck && !varianceCheck.withinTolerance,
     );
-    const varianceMessage =
-      hasVariance && varianceCheck
-        ? `Error BL-A5: el total timbrado (${Number(stampedTotal).toFixed(
-            2,
-          )}) difiere del total de la nota de crédito (${Number(
-            ncRow.total,
-          ).toFixed(2)}); varianza ${varianceCheck.variance.toFixed(
-            2,
-          )}. El CFDI de egreso existe ante el SAT: cancélalo y corrige tasas/descuentos.`
-        : null;
+    const varianceMessage = hasVariance && varianceCheck
+      ? `Error BL-A5: el total timbrado (${
+        Number(stampedTotal).toFixed(
+          2,
+        )
+      }) difiere del total de la nota de crédito (${
+        Number(
+          ncRow.total,
+        ).toFixed(2)
+      }); varianza ${
+        varianceCheck.variance.toFixed(
+          2,
+        )
+      }. El CFDI de egreso existe ante el SAT: cancélalo y corrige tasas/descuentos.`
+      : null;
     if (hasVariance && varianceCheck) {
       console.error("[stamp-credit-note] BL-A5 stamp variance detectada", {
         credit_note_id,
@@ -557,9 +571,9 @@ export async function handleStampCreditNote(
         cfdi_error_message: varianceMessage,
         ...(varianceCheck
           ? {
-              stamp_variance: varianceCheck.variance,
-              stamp_variance_checked_at: new Date().toISOString(),
-            }
+            stamp_variance: varianceCheck.variance,
+            stamp_variance_checked_at: new Date().toISOString(),
+          }
           : {}),
       })
       .eq("id", credit_note_id)
@@ -592,8 +606,7 @@ export async function handleStampCreditNote(
     if (hasVariance) {
       return json(
         {
-          error:
-            varianceMessage ??
+          error: varianceMessage ??
             "Stamp variance exceeds tolerance; credit note not stamped",
           cfdi_uuid: cfdiUuid,
         },
@@ -694,10 +707,9 @@ export async function handleStampCreditNote(
       } catch (releaseErr) {
         console.error("[stamp-credit-note] release-on-exception failed", {
           credit_note_id,
-          err:
-            releaseErr instanceof Error
-              ? releaseErr.message
-              : String(releaseErr),
+          err: releaseErr instanceof Error
+            ? releaseErr.message
+            : String(releaseErr),
         });
       }
     }

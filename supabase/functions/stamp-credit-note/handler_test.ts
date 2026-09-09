@@ -53,9 +53,9 @@ function makeDeps(opts: {
   const defaultClaim =
     configuredCreditNote && typeof configuredCreditNote === "object"
       ? {
-          ...(configuredCreditNote as Record<string, unknown>),
-          cfdi_status: "stamping",
-        }
+        ...(configuredCreditNote as Record<string, unknown>),
+        cfdi_status: "stamping",
+      }
       : null;
   const service = buildSupabaseMock({
     ...serviceConfig,
@@ -322,10 +322,12 @@ Deno.test(
 Deno.test(
   "handler: limita cantidad y precio unitario a la partida fuente",
   async () => {
-    for (const line of [
-      { quantity: 2, unit_price: 100, source_line_index: 0 },
-      { quantity: 1, unit_price: 100.01, source_line_index: 0 },
-    ]) {
+    for (
+      const line of [
+        { quantity: 2, unit_price: 100, source_line_index: 0 },
+        { quantity: 1, unit_price: 100.01, source_line_index: 0 },
+      ]
+    ) {
       const result = await runSourceValidationCase({
         ...VALID_CREDIT_NOTE,
         line_items: [line],

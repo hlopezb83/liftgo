@@ -43,12 +43,12 @@ type ValidationFailure = {
 
 export type CreditNoteSourceValidation =
   | {
-      ok: true;
-      lines: SourceBoundCreditNoteLine[];
-      subtotal: number;
-      taxAmount: number;
-      total: number;
-    }
+    ok: true;
+    lines: SourceBoundCreditNoteLine[];
+    subtotal: number;
+    taxAmount: number;
+    total: number;
+  }
   | ValidationFailure;
 
 function fail(
@@ -99,10 +99,9 @@ export function validateCreditNoteSourceLines(
     );
   }
 
-  const sourceTaxRate =
-    sourceInvoice.tax_rate == null
-      ? 16
-      : presentFiniteNumber(sourceInvoice.tax_rate);
+  const sourceTaxRate = sourceInvoice.tax_rate == null
+    ? 16
+    : presentFiniteNumber(sourceInvoice.tax_rate);
   if (sourceTaxRate === null || sourceTaxRate < 0 || sourceTaxRate > 100) {
     return fail(
       "INVALID_CREDIT_NOTE_LINE",
@@ -137,7 +136,9 @@ export function validateCreditNoteSourceLines(
     if (!Number.isInteger(selected.source_line_index)) {
       return fail(
         "INVALID_SOURCE_LINE_INDEX",
-        `La partida ${lineIndex + 1} tiene un source_line_index inválido. Recrea el borrador antes de timbrar.`,
+        `La partida ${
+          lineIndex + 1
+        } tiene un source_line_index inválido. Recrea el borrador antes de timbrar.`,
         true,
       );
     }
@@ -146,14 +147,18 @@ export function validateCreditNoteSourceLines(
     if (sourceLineIndex < 0 || sourceLineIndex >= sourceLines.length) {
       return fail(
         "INVALID_SOURCE_LINE_INDEX",
-        `La partida ${lineIndex + 1} no corresponde a una partida de la factura origen. Recrea el borrador antes de timbrar.`,
+        `La partida ${
+          lineIndex + 1
+        } no corresponde a una partida de la factura origen. Recrea el borrador antes de timbrar.`,
         true,
       );
     }
     if (seenSourceIndexes.has(sourceLineIndex)) {
       return fail(
         "DUPLICATE_SOURCE_LINE_INDEX",
-        `La partida origen ${sourceLineIndex + 1} aparece más de una vez en la nota de crédito.`,
+        `La partida origen ${
+          sourceLineIndex + 1
+        } aparece más de una vez en la nota de crédito.`,
       );
     }
     seenSourceIndexes.add(sourceLineIndex);
@@ -188,7 +193,9 @@ export function validateCreditNoteSourceLines(
     if (quantity > sourceQuantity || unitPrice > sourceUnitPrice) {
       return fail(
         "CREDIT_NOTE_LINE_EXCEEDS_SOURCE",
-        `La partida ${lineIndex + 1} excede la cantidad o el precio unitario de la factura origen.`,
+        `La partida ${
+          lineIndex + 1
+        } excede la cantidad o el precio unitario de la factura origen.`,
       );
     }
 
@@ -198,7 +205,9 @@ export function validateCreditNoteSourceLines(
     if (canonicalUnitPrice <= 0 || selectedGross <= 0 || originalGross <= 0) {
       return fail(
         "INVALID_CREDIT_NOTE_LINE",
-        `La partida ${lineIndex + 1} no produce un importe acreditable positivo.`,
+        `La partida ${
+          lineIndex + 1
+        } no produce un importe acreditable positivo.`,
       );
     }
 
@@ -207,7 +216,9 @@ export function validateCreditNoteSourceLines(
     if (sourceDiscount < 0) {
       return fail(
         "INVALID_CREDIT_NOTE_LINE",
-        `La partida origen ${sourceLineIndex + 1} contiene un descuento inválido.`,
+        `La partida origen ${
+          sourceLineIndex + 1
+        } contiene un descuento inválido.`,
       );
     }
     const normalizedDiscount = creditNoteDiscountForSelection({
@@ -216,29 +227,28 @@ export function validateCreditNoteSourceLines(
       originalDiscount: sourceDiscount,
       discountType,
     });
-    const discountAmount =
-      discountType === "$"
-        ? roundMoney(normalizedDiscount)
-        : roundMoney((selectedGross * normalizedDiscount) / 100);
+    const discountAmount = discountType === "$"
+      ? roundMoney(normalizedDiscount)
+      : roundMoney((selectedGross * normalizedDiscount) / 100);
     const lineSubtotal = roundMoney(
       Math.max(0, selectedGross - discountAmount),
     );
 
-    const sourceLineRate =
-      source.tax_rate == null
-        ? sourceTaxRate
-        : presentFiniteNumber(source.tax_rate);
+    const sourceLineRate = source.tax_rate == null
+      ? sourceTaxRate
+      : presentFiniteNumber(source.tax_rate);
     if (sourceLineRate === null || sourceLineRate < 0 || sourceLineRate > 100) {
       return fail(
         "INVALID_CREDIT_NOTE_LINE",
-        `La partida origen ${sourceLineIndex + 1} contiene una tasa de IVA inválida.`,
+        `La partida origen ${
+          sourceLineIndex + 1
+        } contiene una tasa de IVA inválida.`,
       );
     }
     const objetoImp = sourceString(source.objeto_imp, "02");
-    const lineTax =
-      objetoImp === "01"
-        ? 0
-        : roundMoney((lineSubtotal * sourceLineRate) / 100);
+    const lineTax = objetoImp === "01"
+      ? 0
+      : roundMoney((lineSubtotal * sourceLineRate) / 100);
 
     subtotalCents += toCents(lineSubtotal);
     taxCents += toCents(lineTax);
@@ -279,7 +289,11 @@ export function validateCreditNoteSourceLines(
     const [field, stored, canonical] = mismatch;
     return fail(
       "CREDIT_NOTE_TOTALS_MISMATCH",
-      `El ${field} guardado en la nota de crédito (${String(stored)}) no coincide con el cálculo de la factura origen (${canonical.toFixed(2)}). Recrea el borrador antes de timbrar.`,
+      `El ${field} guardado en la nota de crédito (${
+        String(stored)
+      }) no coincide con el cálculo de la factura origen (${
+        canonical.toFixed(2)
+      }). Recrea el borrador antes de timbrar.`,
       true,
     );
   }
