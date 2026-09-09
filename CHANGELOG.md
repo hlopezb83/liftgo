@@ -1,3 +1,10 @@
+## [8.1.9] - 2026-09-08
+### Mantenimiento YAGNI - lote DEP-02 (dependencias puntuales)
+- Actualizacion de mantenimiento, sin cambios de comportamiento ni de API en los consumidores: `@supabase/supabase-js` 2.115.0 -> 2.116.0 (manifiesto `^2.116.0`), `typescript-eslint` 8.69.0 -> 8.70.0 (manifiesto `^8.70.0`) y `@types/node` 22.20.1 -> 24.13.3 (manifiesto `^24.13.3`, alineado con Node 24 de `.nvmrc`/CI).
+- Transitivas movidas por exigencia de esos paquetes: `@supabase/auth-js`, `@supabase/functions-js`, `@supabase/postgrest-js`, `@supabase/realtime-js` y `@supabase/storage-js` a 2.116.0; familia `@typescript-eslint/*` (eslint-plugin, parser, project-service, tsconfig-utils, type-utils, typescript-estree, visitor-keys) a 8.70.0; `undici-types` a 7.18.2 requerido por `@types/node` 24.
+- Sin cambios en TypeScript 5.9.3, ESLint 9, Bun, Vite/Rolldown, Start/Router, Nitro, Vitest, Tailwind ni configuracion de Lovable. Sin nuevas funciones de backend, sin regenerar tipos de BD y sin cambios de cliente/sesion.
+- Validacion puntual en Lovable: `tsc --noEmit` limpio, lint sin errores (14 avisos preexistentes) y 32 pruebas focalizadas de sesion, transporte autenticado y barrera de red verdes (todas con mocks, sin backend real). Suite completa y cobertura quedan a cargo de GitHub Actions.
+
 ## [8.1.8] - 2026-09-09
 ### Permisos de facturación recurrente
 - El interruptor «Facturación recurrente» del detalle de reserva ahora también está disponible para quien tiene acceso completo al módulo Facturas (rol administrativo), además de quien tiene acceso completo a Reservas. La recurrencia es una decisión de facturación y el backend ya permitía la operación a ese rol. Sin cambios en RLS, reglas de negocio ni en los estados cerrados (cancelada/completada siguen bloqueando el cambio). Pruebas: `src/features/bookings/components/booking-detail/__tests__/BookingBillingCard.test.tsx`.
