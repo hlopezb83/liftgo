@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.1.7",
+    "date": "2026-09-09",
+    "type": "patch",
+    "category": "infra",
+    "title": "Mantenimiento de dependencias: dompurify, marked y react-virtual",
+    "description": "Actualización puntual de dompurify 3.4.15, marked 18.0.12 y @tanstack/react-virtual 3.14.11, sin cambios de comportamiento.",
+    "changes": [
+      "dompurify 3.4.14 → 3.4.15 (parche de seguridad de sanitización; versión exacta).",
+      "marked 18.0.11 → 18.0.12 (rango mínimo ^18.0.12).",
+      "@tanstack/react-virtual 3.14.10 → 3.14.11 (rango mínimo ^3.14.11); transitivo @tanstack/virtual-core 3.17.8 → 3.17.9."
+    ]
+  },
+  {
     "version": "8.1.6",
     "date": "2026-09-09",
     "type": "patch",
