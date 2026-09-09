@@ -1,6 +1,6 @@
 
 import { parseISO } from "date-fns";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -11,6 +11,7 @@ import { useChartSizing } from "@/lib/charts/useChartSizing";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
+import { invoicesWithinRange } from "../../lib/drilldown";
 import { useRevenueByMonthReport, useRevenueMonthInvoices } from "../../hooks/useRevenueByMonthReport";
 import { RevenueMonthDetailSheet } from "./drilldown/RevenueMonthDetailSheet";
 
@@ -48,7 +49,13 @@ export function RevenueReport({ startDate, endDate }: Props) {
   const fxMissingTotal = rows.reduce((s, r) => s + r.fxMissingCount, 0);
 
   // Drilldown: solo las facturas del mes seleccionado (RPC, sin límite de filas).
-  const { data: selectedInvoices = [] } = useRevenueMonthInvoices(selected?.key ?? null);
+  // V27-01: el RPC devuelve el mes completo; recortamos al rango activo para
+  // que panel, contador y CSV coincidan con el resumen.
+  const { data: monthInvoices = [] } = useRevenueMonthInvoices(selected?.key ?? null);
+  const selectedInvoices = useMemo(
+    () => invoicesWithinRange(monthInvoices, startDate, endDate),
+    [monthInvoices, startDate, endDate],
+  );
 
 
   const columns: ColumnDef<Row>[] = [
