@@ -1,3 +1,7 @@
+## [8.1.7] - 2026-09-09
+### Mantenimiento YAGNI — lote DEP-01 (dependencias puntuales)
+- Actualización mínima de tres librerías sin cambios de comportamiento: `dompurify` 3.4.14 → 3.4.15 (parche de sanitización, versión exacta), `marked` 18.0.11 → 18.0.12 (manifiesto `^18.0.12`) y `@tanstack/react-virtual` 3.14.10 → 3.14.11 (manifiesto `^3.14.11`). Dependencia transitiva: `@tanstack/virtual-core` 3.17.8 → 3.17.9 (parche requerido por react-virtual 3.14.11). Sin cambios de API en los consumidores (`VirtualBody`, manual de ayuda Markdown). Pruebas focalizadas: sanitización/renderizado Markdown (13) y tabla virtual (14) verdes.
+
 ## [8.1.6] - 2026-09-09
 ### Corrección puntual V27-02 (regresión de zona horaria)
 - La etiqueta «Cartera vencida al día de hoy» en Reportes → Antigüedad de Cartera usaba `formatDateMty(nowMty())`. `nowMty()` ya aplica `toZonedTime(…, America/Monterrey)` y `formatDateMty`, al recibir un instante, volvía a aplicarlo; en navegadores con TZ distinta a Monterrey mostraba el día anterior. Se cambusa a `formatDateMty(toYMD(nowMty()))` (date-only), que evita la doble conversión y muestra siempre la fecha actual de Monterrey, también de madrugada. No cambia `nowMty` ni `formatDateMty` globalmente. Regresión: `src/features/reports/lib/__tests__/agingCuttoffLabel.test.ts` (reloj fijo 2026-09-09T07:00:00Z bajo TZ=UTC).
