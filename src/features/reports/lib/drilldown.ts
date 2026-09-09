@@ -104,3 +104,23 @@ export function invoicesForMonth(
     .filter((i) => i.status !== "draft" && i.status !== "cancelled" && invoiceMonthKey(i) === monthKey)
     .sort((a, b) => invoiceTotalMxn(b) - invoiceTotalMxn(a));
 }
+
+/**
+ * V27-01: recorta el detalle mensual al rango activo del reporte.
+ * El RPC devuelve el mes completo; el resumen sí limita `issued_at` al rango,
+ * así que el panel/CSV mostraban facturas fuera de la selección.
+ * Comparación por "YYYY-MM-DD" (día calendario, límites inclusivos) para no
+ * introducir desplazamientos UTC.
+ */
+export function invoicesWithinRange(
+  invoices: DrilldownInvoice[],
+  rangeStart: Date,
+  rangeEnd: Date,
+): DrilldownInvoice[] {
+  const start = toYMD(rangeStart);
+  const end = toYMD(rangeEnd);
+  return invoices.filter((i) => {
+    const day = String(i.issued_at).slice(0, 10);
+    return day >= start && day <= end;
+  });
+}
