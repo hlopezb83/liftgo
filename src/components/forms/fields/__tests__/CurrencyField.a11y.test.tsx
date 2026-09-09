@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { describe, it, expect } from "vitest";
 import { Form } from "@/components/ui/form";
@@ -6,9 +7,9 @@ import { CurrencyField } from "../CurrencyField";
 
 function Harness({ error }: { error?: boolean }) {
   const form = useForm<{ cost: number | null }>({ defaultValues: { cost: null } });
-  if (error && !form.formState.errors.cost) {
-    form.setError("cost", { type: "manual", message: "Captura el costo" });
-  }
+  useEffect(() => {
+    if (error) form.setError("cost", { type: "manual", message: "Captura el costo" });
+  }, [error, form]);
   return (
     <Form {...form}>
       <form>
