@@ -13,6 +13,7 @@ import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { Link } from "@/lib/router-compat-ui";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
@@ -158,26 +159,35 @@ export default function BookingsPage() {
       onEmptyAction={isAdmin ? () => navigate("/bookings/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(b) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <Untranslated className="font-mono font-semibold text-sm">{b.booking_number}</Untranslated>
-              <StatusBadge status={b.status} />
-            </div>
-            <span className="text-sm font-medium">{b.forklifts?.name ? <Untranslated>{b.forklifts.name}</Untranslated> : "—"}</span>
-            <p className="text-sm text-muted-foreground">{b.customer_name ? <Untranslated>{b.customer_name}</Untranslated> : "Sin cliente"}</p>
-            <div className="flex items-center gap-2 mt-1">
-              <RecurringBillingBadge booking={b} />
-            </div>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-muted-foreground">
-                {formatDate(b.start_date)} → {formatDate(b.end_date)} · {getDuration(b.start_date, b.end_date)}
-              </span>
-              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
+        // V27-04: la tarjeta es un Link real (Tab/Enter y foco visible),
+        // no un div con onClick. Sin controles interactivos anidados.
+        <Link
+          to={`/bookings/${b.id}`}
+          aria-label={`Reserva ${b.booking_number}`}
+          className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <Card className="cursor-pointer active:scale-[0.98] transition-transform">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <Untranslated className="font-mono font-semibold text-sm">{b.booking_number}</Untranslated>
+                <StatusBadge status={b.status} />
+              </div>
+              <span className="text-sm font-medium">{b.forklifts?.name ? <Untranslated>{b.forklifts.name}</Untranslated> : "—"}</span>
+              <p className="text-sm text-muted-foreground">{b.customer_name ? <Untranslated>{b.customer_name}</Untranslated> : "Sin cliente"}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <RecurringBillingBadge booking={b} />
+              </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <span className="text-xs text-muted-foreground">
+                  {formatDate(b.start_date)} → {formatDate(b.end_date)} · {getDuration(b.start_date, b.end_date)}
+                </span>
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       )}
+
     />
   );
 }
