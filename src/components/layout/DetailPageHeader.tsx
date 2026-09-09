@@ -47,7 +47,7 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions, pri
           {badges && <div className="flex items-center gap-2 flex-wrap mt-1">{badges}</div>}
         </div>
         {(primaryAction || actions) && (
-          <div className="shrink-0 flex gap-2 flex-wrap items-center">
+          <div className="flex min-w-0 gap-2 flex-wrap items-center">
             {primaryAction}
             {actions}
           </div>
