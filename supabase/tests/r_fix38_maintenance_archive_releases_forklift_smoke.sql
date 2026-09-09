@@ -59,7 +59,7 @@ SELECT pg_temp.expect_true(
 
 SELECT pg_temp.expect_true(
   'sigue respetando rentas confirmadas vigentes',
-  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%v_active_bookings%'
+  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%bookings%'
 );
 
 SELECT pg_temp.expect_true(

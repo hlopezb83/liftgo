@@ -21,7 +21,7 @@ END; $$;
 SELECT pg_temp.expect_true(
   'S4-4.1 completed dentro de la lista bloqueada de contratos',
   (SELECT prosrc FROM pg_proc WHERE proname = 'enforce_signed_contract_lock')
-    ILIKE '%''signed'',''active'',''cancelled'',''completed''%'
+    ILIKE '%''signed'', ''active'', ''cancelled'', ''completed''%'
 );
 
 SELECT pg_temp.expect_true(

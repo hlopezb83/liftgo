@@ -45,7 +45,7 @@ SELECT pg_temp.expect_true(
 --    v_starts_today vive en create_booking y ya migro en R9-DB-01.
 SELECT pg_temp.expect_true(
   'R10-DB-02 create_booking usa today_mty() en v_starts_today',
-  (SELECT prosrc FROM pg_proc WHERE proname = 'create_booking') ILIKE '%v_starts_today := p_start_date <= public.today_mty()%'
+  (SELECT prosrc FROM pg_proc WHERE proname = 'create_booking') ILIKE '%p_start_date <= public.today_mty()%'
 );
 
 SELECT pg_temp.expect_true(

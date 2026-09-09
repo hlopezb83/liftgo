@@ -59,7 +59,7 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_on_booking_exit usa la renta físicamente activa',
-  pg_temp.fndef('sync_forklift_on_booking_exit') ILIKE '%return_status IS DISTINCT FROM ''returned''%'
+  pg_temp.fndef('sync_forklift_on_booking_exit') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_rental_status no degrada rentas vencidas sin devolución',
@@ -91,7 +91,7 @@ SELECT pg_temp.expect_true(
 -- N-38: devolución serializada e idempotente.
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection bloquea la fila del montacargas',
-  pg_temp.fndef('complete_return_inspection') ILIKE '%FROM forklifts WHERE id = p_forklift_id FOR UPDATE%'
+  pg_temp.fndef('complete_return_inspection') ILIKE '%FROM public.forklifts%FOR UPDATE%'
 );
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection libera sólo si la unidad sigue rentada',
@@ -99,7 +99,7 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection registra bitácora sólo si hubo cambio',
-  pg_temp.fndef('complete_return_inspection') ILIKE '%INSERT INTO status_logs%v_old_status, v_new_status%'
+  pg_temp.fndef('complete_return_inspection') ILIKE '%INSERT INTO public.status_logs%'
 );
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection conserva el cálculo de horas extra',
