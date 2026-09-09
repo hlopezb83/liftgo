@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.1.6",
+    "date": "2026-09-09",
+    "type": "patch",
+    "category": "ui",
+    "title": "Fecha de corte correcta en Antigüedad de Cartera",
+    "description": "La etiqueta «Cartera vencida al día de hoy» ahora muestra siempre la fecha actual de Monterrey sin importar la zona horaria del navegador, evitando una doble conversión de zona.",
+    "changes": [
+      "Antigüedad de Cartera muestra la fecha de corte correcta (hoy en Monterrey) en cualquier zona horaria del navegador, también de madrugada."
+    ]
+  },
+  {
     "version": "8.1.5",
     "date": "2026-09-09",
     "type": "patch",
