@@ -21,7 +21,11 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
   const updateBooking = useUpdateBooking();
   const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
 
-  const canEdit = !!perms && getAccessLevel(perms, role ?? undefined, "Reservas") === "full";
+  // La recurrencia es una decisión de facturación: acceso completo en Reservas o en Facturas.
+  const canEdit =
+    !!perms &&
+    (getAccessLevel(perms, role ?? undefined, "Reservas") === "full" ||
+      getAccessLevel(perms, role ?? undefined, "Facturas") === "full");
   const isClosed = CLOSED_STATUSES.has(booking.status);
   const canToggle = canEdit && !isClosed;
 
