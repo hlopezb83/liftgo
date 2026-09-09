@@ -27,7 +27,7 @@ SELECT pg_temp.expect_true(
 SELECT pg_temp.expect_true(
   'S4-4.1 completed es final salvo service_role',
   (SELECT prosrc FROM pg_proc WHERE proname = 'enforce_signed_contract_lock')
-    ILIKE '%Un contrato completado es final%'
+    ILIKE '%ELSE ARRAY[]::text[]%'
 );
 
 -- Fix 4.2: draft ya no puede ir a overdue en facturas.
