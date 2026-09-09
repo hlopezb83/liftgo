@@ -1,3 +1,7 @@
+## [8.1.6] - 2026-09-09
+### Corrección puntual V27-02 (regresión de zona horaria)
+- La etiqueta «Cartera vencida al día de hoy» en Reportes → Antigüedad de Cartera usaba `formatDateMty(nowMty())`. `nowMty()` ya aplica `toZonedTime(…, America/Monterrey)` y `formatDateMty`, al recibir un instante, volvía a aplicarlo; en navegadores con TZ distinta a Monterrey mostraba el día anterior. Se cambusa a `formatDateMty(toYMD(nowMty()))` (date-only), que evita la doble conversión y muestra siempre la fecha actual de Monterrey, también de madrugada. No cambia `nowMty` ni `formatDateMty` globalmente. Regresión: `src/features/reports/lib/__tests__/agingCuttoffLabel.test.ts` (reloj fijo 2026-09-09T07:00:00Z bajo TZ=UTC).
+
 ## [8.1.5] - 2026-09-09
 ### Correcciones V27 (presentación y accesibilidad, sin reglas de negocio)
 - V27-01 Ingresos: el detalle mensual, su contador y su exportación se recortan al rango activo del reporte (límites inclusivos por día calendario, sin desplazamientos UTC) mediante `invoicesWithinRange` en `src/features/reports/lib/drilldown.ts`. No cambia SQL/RPC ni las reglas de importes, pagos o notas de crédito. Regresión: `src/features/reports/lib/__tests__/invoicesWithinRange.test.ts`.

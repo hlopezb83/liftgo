@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { useSearchParams } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
 import { AgingReport } from "../components/reports/AgingReport";
@@ -80,10 +80,14 @@ export default function ReportsPage() {
               </Select>
             </div>
             {/* V27-02: «Antigüedad de Cartera» siempre calcula la cartera
-                vencida a hoy; mostrar un rango que no aplica confundía. */}
+                vencida a hoy; mostrar un rango que no aplica confundía.
+                Usa toYMD(nowMty()) para evitar la doble conversión de zona:
+                nowMty() ya aplica toZonedTime(…, America/Monterrey) y
+                formatDateMty sobre un instante vuelve a aplicarla, lo que en
+                navegadores con TZ distinta mostraba el día anterior. */}
             {reportType === "aging" ? (
               <p className="text-sm text-muted-foreground pb-2">
-                Cartera vencida al día de hoy ({formatDateMty(nowMty())})
+                Cartera vencida al día de hoy ({formatDateMty(toYMD(nowMty()))})
               </p>
             ) : (
               <DateRangePickerField label="Rango de Fechas" dateRange={dateRange} onSelect={(r) => r && setDateRange(r)} />
