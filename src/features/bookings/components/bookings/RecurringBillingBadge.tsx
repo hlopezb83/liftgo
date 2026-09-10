@@ -6,11 +6,17 @@ import { parseDateLocal } from "@/lib/utils";
 import type { Booking } from "../../hooks/bookings/useBookings";
 
 interface RecurringBillingBadgeProps {
-  booking: Pick<Booking, "recurring_billing" | "last_billed_date" | "start_date">;
+  booking: Pick<Booking, "recurring_billing" | "last_billed_date" | "start_date"> & {
+    status?: string | null;
+  };
 }
+
+/** Bloque 3B: una reserva cerrada ya no genera ciclos: no se muestra "Recurrente". */
+const CLOSED_STATUSES = new Set(["completed", "cancelled"]);
 
 export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
   if (!booking.recurring_billing) return null;
+  if (booking.status && CLOSED_STATUSES.has(booking.status)) return null;
 
   // R6-B2: `parseISO("YYYY-MM-DD")` interpreta UTC-00:00 y en TZ negativa
   // (Monterrey UTC-6) retrocede al día anterior. `parseDateLocal` preserva
