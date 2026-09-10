@@ -305,6 +305,97 @@ export type Database = {
           },
         ]
       }
+      bank_statement_upload_chunks: {
+        Row: {
+          chunk_hash: string
+          chunk_index: number
+          created_at: string
+          line_count: number
+          lines: Json
+          upload_id: string
+        }
+        Insert: {
+          chunk_hash: string
+          chunk_index: number
+          created_at?: string
+          line_count: number
+          lines: Json
+          upload_id: string
+        }
+        Update: {
+          chunk_hash?: string
+          chunk_index?: number
+          created_at?: string
+          line_count?: number
+          lines?: Json
+          upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_upload_chunks_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statement_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_statement_uploads: {
+        Row: {
+          bank_account_id: string
+          created_at: string
+          created_by: string
+          expected_count: number
+          file_name: string
+          finalized_at: string | null
+          id: string
+          period_end: string | null
+          period_start: string | null
+          result: Json | null
+          staged_count: number
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          bank_account_id: string
+          created_at?: string
+          created_by: string
+          expected_count: number
+          file_name: string
+          finalized_at?: string | null
+          id: string
+          period_end?: string | null
+          period_start?: string | null
+          result?: Json | null
+          staged_count?: number
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          bank_account_id?: string
+          created_at?: string
+          created_by?: string
+          expected_count?: number
+          file_name?: string
+          finalized_at?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          result?: Json | null
+          staged_count?: number
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_uploads_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_secrets: {
         Row: {
           created_at: string
@@ -3986,6 +4077,22 @@ export type Database = {
         }
         Returns: number
       }
+      begin_bank_statement_upload: {
+        Args: {
+          p_bank_account_id: string
+          p_expected_count: number
+          p_file_name: string
+          p_period_end: string
+          p_period_start: string
+          p_upload_id: string
+        }
+        Returns: {
+          result: Json
+          staged_count: number
+          upload_id: string
+          upload_state: string
+        }[]
+      }
       booking_is_returned: { Args: { p_booking_id: string }; Returns: boolean }
       cancel_booking: {
         Args: { p_booking_id: string; p_reason?: string }
@@ -4037,6 +4144,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_credit_note_for_stamping: {
+        Args: { p_credit_note_id: string }
+        Returns: Json
+      }
       claim_maintenance_policy_month: {
         Args: { p_month: string; p_policy_id: string }
         Returns: boolean
@@ -4044,6 +4155,43 @@ export type Database = {
       claim_payment_rep_stamping: {
         Args: { p_payment_id: string; p_stale_minutes?: number }
         Returns: string
+      }
+      cleanup_bank_statement_uploads: { Args: never; Returns: number }
+      complete_delivery: {
+        Args: {
+          p_completed_no_evidence_reason?: string
+          p_delivery_id: string
+          p_hours_reading?: number
+          p_signature_base64?: string
+        }
+        Returns: {
+          address: string | null
+          booking_id: string | null
+          charged_to_customer: boolean | null
+          completed_at: string | null
+          completed_no_evidence_reason: string | null
+          created_at: string
+          delivery_number: string
+          driver_name: string | null
+          driver_phone: string | null
+          forklift_id: string
+          hours_reading: number | null
+          id: string
+          notes: string | null
+          scheduled_date: string
+          scheduled_time: string | null
+          signature_base64: string | null
+          status: string
+          transport_cost: number | null
+          type: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deliveries"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       complete_return_inspection: {
         Args: {
@@ -4185,6 +4333,10 @@ export type Database = {
       }
       e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
       e2e_teardown: { Args: { p_scope: string }; Returns: Json }
+      ensure_forklift_maintenance_for_open_damage: {
+        Args: { p_forklift_id: string; p_note: string }
+        Returns: undefined
+      }
       expire_stale_quotes: { Args: never; Returns: number }
       extend_booking: {
         Args: {
@@ -4193,6 +4345,16 @@ export type Database = {
           p_reason?: string
         }
         Returns: string
+      }
+      finalize_bank_statement_upload: {
+        Args: { p_upload_id: string }
+        Returns: {
+          import_id: string
+          inserted_count: number
+          matched_count: number
+          suggested_count: number
+          unmatched_count: number
+        }[]
       }
       fx_convert_amount: {
         Args: {
@@ -4277,6 +4439,17 @@ export type Database = {
           score: number
         }[]
       }
+      get_bank_reconciliation_kpis: {
+        Args: { p_bank_account_id: string }
+        Returns: {
+          charges: number
+          credits: number
+          ignored_count: number
+          matched_count: number
+          pending_count: number
+          total_count: number
+        }[]
+      }
       get_bank_statement_lines_page: {
         Args: {
           p_bank_account_id: string
@@ -4295,6 +4468,7 @@ export type Database = {
           id: string
         }[]
       }
+      get_cash_flow_recurring_bookings: { Args: never; Returns: Json[] }
       get_customer_forklifts_brief: {
         Args: never
         Returns: {
@@ -4322,6 +4496,15 @@ export type Database = {
           total_reports: number
         }[]
       }
+      get_feedback_reports_by_status: {
+        Args: {
+          p_before_created_at?: string
+          p_before_id?: string
+          p_limit?: number
+          p_status: string
+        }
+        Returns: Json
+      }
       get_financial_kpis: { Args: never; Returns: Json }
       get_forklift_financials: {
         Args: { p_forklift_id: string }
@@ -4333,6 +4516,7 @@ export type Database = {
       }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
+      get_my_feedback_points_total: { Args: never; Returns: number }
       get_portal_collection_account: {
         Args: never
         Returns: {
@@ -4356,6 +4540,36 @@ export type Database = {
           start_date: string
           status: string
           usage_location: string
+        }[]
+      }
+      get_portal_contracts_page: {
+        Args: { p_offset?: number; p_page_size?: number }
+        Returns: Json
+      }
+      get_portal_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          balance: number
+          billing_period_end: string
+          billing_period_start: string
+          cfdi_pdf_url: string
+          cfdi_uuid: string
+          credited_amount: number
+          customer_id: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issued_at: string
+          line_items: Json
+          moneda: string
+          paid_amount: number
+          paid_at: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          tipo_cambio: number
+          total: number
         }[]
       }
       get_portal_invoices: {
@@ -4384,12 +4598,60 @@ export type Database = {
           total: number
         }[]
       }
+      get_portal_invoices_page: {
+        Args: {
+          p_offset?: number
+          p_only_balance?: boolean
+          p_page_size?: number
+        }
+        Returns: Json
+      }
       get_public_branding: {
         Args: never
         Returns: {
           logo_url: string
           razon_social: string
         }[]
+      }
+      get_sale_available_forklifts: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          capacity_kg: number | null
+          created_at: string
+          daily_rate: number | null
+          deleted_at: string | null
+          deleted_by: string | null
+          e2e_scope: string | null
+          equipment_model_id: string | null
+          fuel_type: string | null
+          id: string
+          image_url: string | null
+          insurance_cost: number | null
+          insurance_expiry: string | null
+          insurance_policy_number: string | null
+          insurance_provider: string | null
+          is_e2e: boolean
+          manufacturer: string | null
+          mast_height_m: number | null
+          model: string
+          monthly_rate: number | null
+          name: string
+          notes: string | null
+          serial_number: string | null
+          sold_at: string | null
+          status: string
+          updated_at: string
+          weekly_rate: number | null
+          year: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "forklifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
       guard_fiscal_period_open: {
@@ -4778,80 +5040,156 @@ export type Database = {
       restore_supplier: { Args: { p_supplier_id: string }; Returns: undefined }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
       revoke_user_sessions: { Args: { _user_id: string }; Returns: undefined }
-      save_invoice_with_bookings: {
-        Args: {
-          p_booking_ids?: string[]
-          p_expected_version?: number
-          p_invoice: Json
-          p_invoice_id?: string
-        }
-        Returns: {
-          acuse_pdf_url: string | null
-          acuse_xml_url: string | null
-          billing_period_end: string | null
-          billing_period_start: string | null
-          booking_id: string | null
-          cancellation_motive: string | null
-          cancellation_reason: string | null
-          cancellation_requested_at: string | null
-          cancellation_status: string
-          cancelled_at: string | null
-          cfdi_error_message: string | null
-          cfdi_pdf_url: string | null
-          cfdi_status: string | null
-          cfdi_uuid: string | null
-          cfdi_xml: string | null
-          cfdi_xml_pending: boolean
-          cfdi_xml_url: string | null
-          created_at: string
-          customer_id: string | null
-          customer_name: string | null
-          due_date: string | null
-          e2e_scope: string | null
-          facturapi_env: string | null
-          facturapi_invoice_id: string | null
-          folio: string | null
-          forma_pago: string | null
-          global_months: string | null
-          global_periodicity: string | null
-          global_year: number | null
-          id: string
-          invoice_number: string
-          invoice_type: string
-          is_e2e: boolean
-          issued_at: string
-          line_items: Json
-          metodo_pago: string | null
-          moneda: string | null
-          notes: string | null
-          paid_at: string | null
-          quote_id: string | null
-          receptor_domicilio_fiscal_cp: string | null
-          receptor_razon_social: string | null
-          receptor_regimen_fiscal: string | null
-          receptor_rfc: string | null
-          serie: string | null
-          stamp_variance: number | null
-          stamp_variance_checked_at: string | null
-          stamping_attempts: number
-          status: string
-          substitution_uuid: string | null
-          subtotal: number
-          tax_amount: number
-          tax_rate: number
-          tipo_cambio: number | null
-          total: number
-          updated_at: string
-          uso_cfdi: string | null
-          version: number
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "invoices"
-          isOneToOne: false
-          isSetofReturn: true
-        }
-      }
+      save_invoice_with_bookings:
+        | {
+            Args: {
+              p_booking_ids?: string[]
+              p_expected_version?: number
+              p_invoice: Json
+              p_invoice_id?: string
+            }
+            Returns: {
+              acuse_pdf_url: string | null
+              acuse_xml_url: string | null
+              billing_period_end: string | null
+              billing_period_start: string | null
+              booking_id: string | null
+              cancellation_motive: string | null
+              cancellation_reason: string | null
+              cancellation_requested_at: string | null
+              cancellation_status: string
+              cancelled_at: string | null
+              cfdi_error_message: string | null
+              cfdi_pdf_url: string | null
+              cfdi_status: string | null
+              cfdi_uuid: string | null
+              cfdi_xml: string | null
+              cfdi_xml_pending: boolean
+              cfdi_xml_url: string | null
+              created_at: string
+              customer_id: string | null
+              customer_name: string | null
+              due_date: string | null
+              e2e_scope: string | null
+              facturapi_env: string | null
+              facturapi_invoice_id: string | null
+              folio: string | null
+              forma_pago: string | null
+              global_months: string | null
+              global_periodicity: string | null
+              global_year: number | null
+              id: string
+              invoice_number: string
+              invoice_type: string
+              is_e2e: boolean
+              issued_at: string
+              line_items: Json
+              metodo_pago: string | null
+              moneda: string | null
+              notes: string | null
+              paid_at: string | null
+              quote_id: string | null
+              receptor_domicilio_fiscal_cp: string | null
+              receptor_razon_social: string | null
+              receptor_regimen_fiscal: string | null
+              receptor_rfc: string | null
+              serie: string | null
+              stamp_variance: number | null
+              stamp_variance_checked_at: string | null
+              stamping_attempts: number
+              status: string
+              substitution_uuid: string | null
+              subtotal: number
+              tax_amount: number
+              tax_rate: number
+              tipo_cambio: number | null
+              total: number
+              updated_at: string
+              uso_cfdi: string | null
+              version: number
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "invoices"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
+        | {
+            Args: {
+              p_booking_ids: string[]
+              p_damage_id: string
+              p_expected_version: number
+              p_invoice: Json
+              p_invoice_id: string
+            }
+            Returns: {
+              acuse_pdf_url: string | null
+              acuse_xml_url: string | null
+              billing_period_end: string | null
+              billing_period_start: string | null
+              booking_id: string | null
+              cancellation_motive: string | null
+              cancellation_reason: string | null
+              cancellation_requested_at: string | null
+              cancellation_status: string
+              cancelled_at: string | null
+              cfdi_error_message: string | null
+              cfdi_pdf_url: string | null
+              cfdi_status: string | null
+              cfdi_uuid: string | null
+              cfdi_xml: string | null
+              cfdi_xml_pending: boolean
+              cfdi_xml_url: string | null
+              created_at: string
+              customer_id: string | null
+              customer_name: string | null
+              due_date: string | null
+              e2e_scope: string | null
+              facturapi_env: string | null
+              facturapi_invoice_id: string | null
+              folio: string | null
+              forma_pago: string | null
+              global_months: string | null
+              global_periodicity: string | null
+              global_year: number | null
+              id: string
+              invoice_number: string
+              invoice_type: string
+              is_e2e: boolean
+              issued_at: string
+              line_items: Json
+              metodo_pago: string | null
+              moneda: string | null
+              notes: string | null
+              paid_at: string | null
+              quote_id: string | null
+              receptor_domicilio_fiscal_cp: string | null
+              receptor_razon_social: string | null
+              receptor_regimen_fiscal: string | null
+              receptor_rfc: string | null
+              serie: string | null
+              stamp_variance: number | null
+              stamp_variance_checked_at: string | null
+              stamping_attempts: number
+              status: string
+              substitution_uuid: string | null
+              subtotal: number
+              tax_amount: number
+              tax_rate: number
+              tipo_cambio: number | null
+              total: number
+              updated_at: string
+              uso_cfdi: string | null
+              version: number
+            }[]
+            SetofOptions: {
+              from: "*"
+              to: "invoices"
+              isOneToOne: false
+              isSetofReturn: true
+            }
+          }
       set_contract_deposit_status: {
         Args: {
           p_amount?: number
@@ -4876,6 +5214,10 @@ export type Database = {
       soft_delete_supplier: {
         Args: { p_supplier_id: string }
         Returns: undefined
+      }
+      stage_bank_statement_chunk: {
+        Args: { p_chunk_index: number; p_lines: Json; p_upload_id: string }
+        Returns: number
       }
       start_repair_work_order: {
         Args: {

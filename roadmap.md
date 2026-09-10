@@ -11,3 +11,6 @@
 - [ ] BLOQUEADO (requiere al usuario): provisionar backend Supabase aislado para correr las E2E completas A MANO. Ya no existe workflow de E2E: mientras la base de la app sea la productiva, no debe haber botón que las dispare.
 
 Restricciones: YAGNI, no publicar, no tocar datos productivos/secretos/protecciones, no bajar cobertura ni quitar tests/reglas, no silenciamientos, preservar cambios ajenos en HEAD (0b7b242c).
+
+- [x] Reparación desfase migraciones (Lote A y Lote B): objetos faltantes, guards financieros, daños, ciclo de vida y validate_transition aplicados en producción sin escrituras de datos.
+- [ ] PENDIENTE (requiere autorización del usuario): reconciliaciones históricas (16 facturas 'paid' con saldo, estados de montacargas), recálculo de hashes bancarios, cambios de permisos de inserción en tablas bancarias y (des)programación de cron.
