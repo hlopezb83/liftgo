@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.6.0",
+    "date": "2026-09-10",
+    "type": "minor",
+    "category": "improvement",
+    "title": "Horómetro confiable, recurrencia que se apaga sola y facturación sin duplicados",
+    "description": "Al cerrar una devolución, las horas usadas se calculan con las lecturas reales del horómetro y el cierre se bloquea si la lectura de recolección es menor que la de entrega. Una reserva completada o cancelada apaga su facturación recurrente y deja de mostrarse como recurrente. En cotizaciones, un borrador de factura ya no bloquea la acción: se retoma en lugar de crear un duplicado, y el resumen financiero del contrato sólo cuenta facturas realmente emitidas.",
+    "changes": [
+      "Devoluciones: las horas usadas se reconcilian con la diferencia de horómetro cuando hay lecturas válidas; la captura manual se conserva sólo si no hay lecturas.",
+      "Devoluciones: lecturas inconsistentes (recolección menor que entrega) bloquean el cierre con un mensaje explicable, sin guardar un consumo incorrecto.",
+      "Horómetro en pantalla: se usa la última lectura completada, con orden estable por fecha de entrega/recolección y de creación.",
+      "Reservas: al completarse o cancelarse, la facturación recurrente queda desactivada en la misma operación y la etiqueta 'Recurrente' deja de mostrarse.",
+      "Cotizaciones: sólo una factura emitida marca 'Ya facturada'; un borrador ligado ofrece 'Continuar factura' para retomarla sin duplicar.",
+      "Contratos: el resumen financiero cuenta sólo facturas enviadas, parciales, vencidas o pagadas; borradores, canceladas y anuladas quedan fuera."
+    ]
+  },
+  {
     "version": "8.5.0",
     "date": "2026-09-10",
     "type": "minor",
