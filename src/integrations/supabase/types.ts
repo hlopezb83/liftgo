@@ -429,6 +429,7 @@ export type Database = {
           invoice_id: string | null
           new_end_date: string
           original_end_date: string
+          pending_invoice_id: string | null
           reason: string | null
         }
         Insert: {
@@ -439,6 +440,7 @@ export type Database = {
           invoice_id?: string | null
           new_end_date: string
           original_end_date: string
+          pending_invoice_id?: string | null
           reason?: string | null
         }
         Update: {
@@ -449,6 +451,7 @@ export type Database = {
           invoice_id?: string | null
           new_end_date?: string
           original_end_date?: string
+          pending_invoice_id?: string | null
           reason?: string | null
         }
         Relationships: [
@@ -483,6 +486,27 @@ export type Database = {
           {
             foreignKeyName: "booking_extensions_invoice_id_fkey"
             columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_extensions_pending_invoice_id_fkey"
+            columns: ["pending_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_extensions_pending_invoice_id_fkey"
+            columns: ["pending_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_extensions_pending_invoice_id_fkey"
+            columns: ["pending_invoice_id"]
             isOneToOne: false
             referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
@@ -4345,6 +4369,10 @@ export type Database = {
           p_reason?: string
         }
         Returns: string
+      }
+      extension_invoice_is_issued: {
+        Args: { p_invoice: Database["public"]["Tables"]["invoices"]["Row"] }
+        Returns: boolean
       }
       finalize_bank_statement_upload: {
         Args: { p_upload_id: string }
