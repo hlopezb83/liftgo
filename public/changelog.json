@@ -1,5 +1,24 @@
 [
   {
+    "version": "8.3.0",
+    "date": "2026-09-10",
+    "type": "minor",
+    "category": "feature",
+    "title": "Reparación del desfase de migraciones: reglas de integridad de facturas, daños y ciclo de vida",
+    "description": "Se restauraron en la base de datos las reglas de negocio que faltaban por un desfase en el historial de migraciones. Ningún dato histórico fue modificado.",
+    "changes": [
+      "Facturas: una factura sólo puede quedar marcada como pagada si sus pagos y notas de crédito cubren el total, incluso al crearla o al cambiar total, moneda o tipo de cambio.",
+      "Notas de crédito: apartado seguro para timbrado y bloqueo de cambios fiscales mientras se timbra.",
+      "Flujo de efectivo: la proyección de rentas recurrentes usa el historial real de facturación.",
+      "Daños: sólo se facturan después de reparar, en una sola operación con la factura; el daño archivado es inmutable y su restauración concilia facturas canceladas.",
+      "Rentas: una unidad sólo se marca rentada al completar la entrega, nunca por la fecha de inicio; cancelar o eliminar una reserva libera la unidad sólo si no queda otra renta entregada.",
+      "Entregas: validación de reserva, unidad, ventana de fechas, mantenimientos y daños abiertos antes de completar.",
+      "Ventas: no se puede vender una unidad con reservas confirmadas pendientes; nueva lista paginada de unidades disponibles para venta.",
+      "Mantenimiento: las órdenes en espera de refacciones bloquean la unidad igual que las que están en proceso, y al cerrarlas la unidad sólo se libera si no quedan daños ni otras órdenes abiertas.",
+      "Contratos: sólo un administrador puede finalizar o cancelar un contrato firmado o activo."
+    ]
+  },
+  {
     "version": "8.2.1",
     "date": "2026-09-10",
     "type": "patch",
