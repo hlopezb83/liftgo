@@ -51,12 +51,19 @@ interface AlertsRowProps {
   maintenanceAlerts: MaintenanceAlert[];
   agingBuckets: AgingBucket[];
   overdueBookings: OverdueBooking[];
+  /** Entregas programadas con fecha ya pasada que nadie cerró. */
+  pendingDeliveriesCount?: number;
 }
 
-export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings }: AlertsRowProps) {
+export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings, pendingDeliveriesCount = 0 }: AlertsRowProps) {
   const navigate = useNavigateTransition();
 
-  if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0 && overdueBookings.length === 0) return null;
+  if (
+    overdueInvoices.length === 0 &&
+    maintenanceAlerts.length === 0 &&
+    overdueBookings.length === 0 &&
+    pendingDeliveriesCount === 0
+  ) return null;
 
   return (
     <div className="grid grid-cols-1 gap-4">
