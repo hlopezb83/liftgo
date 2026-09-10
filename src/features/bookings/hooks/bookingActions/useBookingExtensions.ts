@@ -8,7 +8,7 @@ import { bookingKeys } from "../../lib/queryKeys";
 const sel = (s: string): string => s;
 
 const BOOKING_EXTENSION_COLUMNS = sel(
-  "id, booking_id, original_end_date, new_end_date, reason, created_at, invoice_id, billed_at",
+  "id, booking_id, original_end_date, new_end_date, reason, created_at, invoice_id, billed_at, pending_invoice_id",
 );
 
 export function useBookingExtensions(bookingId?: string) {
