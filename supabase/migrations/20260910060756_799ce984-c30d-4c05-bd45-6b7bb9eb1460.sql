@@ -1,0 +1,2 @@
+REVOKE ALL ON FUNCTION public.enforce_extension_pending_invoice() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.link_pending_extensions_on_invoice_issued() FROM PUBLIC, anon, authenticated;
