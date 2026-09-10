@@ -4577,6 +4577,46 @@ export type Database = {
           razon_social: string
         }[]
       }
+      get_sale_available_forklifts: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          acquisition_cost: number | null
+          acquisition_date: string | null
+          capacity_kg: number | null
+          created_at: string
+          daily_rate: number | null
+          deleted_at: string | null
+          deleted_by: string | null
+          e2e_scope: string | null
+          equipment_model_id: string | null
+          fuel_type: string | null
+          id: string
+          image_url: string | null
+          insurance_cost: number | null
+          insurance_expiry: string | null
+          insurance_policy_number: string | null
+          insurance_provider: string | null
+          is_e2e: boolean
+          manufacturer: string | null
+          mast_height_m: number | null
+          model: string
+          monthly_rate: number | null
+          name: string
+          notes: string | null
+          serial_number: string | null
+          sold_at: string | null
+          status: string
+          updated_at: string
+          weekly_rate: number | null
+          year: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "forklifts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
       guard_fiscal_period_open: {
         Args: { _date: string; _table_name: string }
