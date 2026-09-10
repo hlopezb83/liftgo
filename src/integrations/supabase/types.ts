@@ -4254,6 +4254,18 @@ export type Database = {
           forklift_id: string
         }[]
       }
+      correct_return_inspection: {
+        Args: {
+          p_condition?: string
+          p_damage_cost?: number
+          p_damage_notes?: string
+          p_fuel_level?: string
+          p_hours_used?: number
+          p_inspection_id: string
+          p_reason: string
+        }
+        Returns: string
+      }
       count_releasable_payment_locks: {
         Args: { p_older_than_hours?: number }
         Returns: number
