@@ -4157,6 +4157,42 @@ export type Database = {
         Returns: string
       }
       cleanup_bank_statement_uploads: { Args: never; Returns: number }
+      complete_delivery: {
+        Args: {
+          p_completed_no_evidence_reason?: string
+          p_delivery_id: string
+          p_hours_reading?: number
+          p_signature_base64?: string
+        }
+        Returns: {
+          address: string | null
+          booking_id: string | null
+          charged_to_customer: boolean | null
+          completed_at: string | null
+          completed_no_evidence_reason: string | null
+          created_at: string
+          delivery_number: string
+          driver_name: string | null
+          driver_phone: string | null
+          forklift_id: string
+          hours_reading: number | null
+          id: string
+          notes: string | null
+          scheduled_date: string
+          scheduled_time: string | null
+          signature_base64: string | null
+          status: string
+          transport_cost: number | null
+          type: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "deliveries"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       complete_return_inspection: {
         Args: {
           p_booking_id: string
