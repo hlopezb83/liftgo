@@ -1,4 +1,4 @@
-import { computeHourometer } from "@/features/bookings/hooks/bookingDetail/useBookingHourometer";
+import { computeHourometer } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Delivery = Tables<"deliveries">;
