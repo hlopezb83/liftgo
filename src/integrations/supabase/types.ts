@@ -305,6 +305,97 @@ export type Database = {
           },
         ]
       }
+      bank_statement_upload_chunks: {
+        Row: {
+          chunk_hash: string
+          chunk_index: number
+          created_at: string
+          line_count: number
+          lines: Json
+          upload_id: string
+        }
+        Insert: {
+          chunk_hash: string
+          chunk_index: number
+          created_at?: string
+          line_count: number
+          lines: Json
+          upload_id: string
+        }
+        Update: {
+          chunk_hash?: string
+          chunk_index?: number
+          created_at?: string
+          line_count?: number
+          lines?: Json
+          upload_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_upload_chunks_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statement_uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_statement_uploads: {
+        Row: {
+          bank_account_id: string
+          created_at: string
+          created_by: string
+          expected_count: number
+          file_name: string
+          finalized_at: string | null
+          id: string
+          period_end: string | null
+          period_start: string | null
+          result: Json | null
+          staged_count: number
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          bank_account_id: string
+          created_at?: string
+          created_by: string
+          expected_count: number
+          file_name: string
+          finalized_at?: string | null
+          id: string
+          period_end?: string | null
+          period_start?: string | null
+          result?: Json | null
+          staged_count?: number
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          bank_account_id?: string
+          created_at?: string
+          created_by?: string
+          expected_count?: number
+          file_name?: string
+          finalized_at?: string | null
+          id?: string
+          period_end?: string | null
+          period_start?: string | null
+          result?: Json | null
+          staged_count?: number
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_statement_uploads_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billing_secrets: {
         Row: {
           created_at: string
@@ -3986,6 +4077,22 @@ export type Database = {
         }
         Returns: number
       }
+      begin_bank_statement_upload: {
+        Args: {
+          p_bank_account_id: string
+          p_expected_count: number
+          p_file_name: string
+          p_period_end: string
+          p_period_start: string
+          p_upload_id: string
+        }
+        Returns: {
+          result: Json
+          staged_count: number
+          upload_id: string
+          upload_state: string
+        }[]
+      }
       booking_is_returned: { Args: { p_booking_id: string }; Returns: boolean }
       cancel_booking: {
         Args: { p_booking_id: string; p_reason?: string }
@@ -4045,6 +4152,7 @@ export type Database = {
         Args: { p_payment_id: string; p_stale_minutes?: number }
         Returns: string
       }
+      cleanup_bank_statement_uploads: { Args: never; Returns: number }
       complete_return_inspection: {
         Args: {
           p_booking_id: string
@@ -4194,6 +4302,16 @@ export type Database = {
         }
         Returns: string
       }
+      finalize_bank_statement_upload: {
+        Args: { p_upload_id: string }
+        Returns: {
+          import_id: string
+          inserted_count: number
+          matched_count: number
+          suggested_count: number
+          unmatched_count: number
+        }[]
+      }
       fx_convert_amount: {
         Args: {
           p_amount: number
@@ -4277,6 +4395,17 @@ export type Database = {
           score: number
         }[]
       }
+      get_bank_reconciliation_kpis: {
+        Args: { p_bank_account_id: string }
+        Returns: {
+          charges: number
+          credits: number
+          ignored_count: number
+          matched_count: number
+          pending_count: number
+          total_count: number
+        }[]
+      }
       get_bank_statement_lines_page: {
         Args: {
           p_bank_account_id: string
@@ -4322,6 +4451,15 @@ export type Database = {
           total_reports: number
         }[]
       }
+      get_feedback_reports_by_status: {
+        Args: {
+          p_before_created_at?: string
+          p_before_id?: string
+          p_limit?: number
+          p_status: string
+        }
+        Returns: Json
+      }
       get_financial_kpis: { Args: never; Returns: Json }
       get_forklift_financials: {
         Args: { p_forklift_id: string }
@@ -4333,6 +4471,7 @@ export type Database = {
       }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
+      get_my_feedback_points_total: { Args: never; Returns: number }
       get_portal_collection_account: {
         Args: never
         Returns: {
@@ -4356,6 +4495,36 @@ export type Database = {
           start_date: string
           status: string
           usage_location: string
+        }[]
+      }
+      get_portal_contracts_page: {
+        Args: { p_offset?: number; p_page_size?: number }
+        Returns: Json
+      }
+      get_portal_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: {
+          balance: number
+          billing_period_end: string
+          billing_period_start: string
+          cfdi_pdf_url: string
+          cfdi_uuid: string
+          credited_amount: number
+          customer_id: string
+          due_date: string
+          id: string
+          invoice_number: string
+          issued_at: string
+          line_items: Json
+          moneda: string
+          paid_amount: number
+          paid_at: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_rate: number
+          tipo_cambio: number
+          total: number
         }[]
       }
       get_portal_invoices: {
@@ -4383,6 +4552,14 @@ export type Database = {
           tipo_cambio: number
           total: number
         }[]
+      }
+      get_portal_invoices_page: {
+        Args: {
+          p_offset?: number
+          p_only_balance?: boolean
+          p_page_size?: number
+        }
+        Returns: Json
       }
       get_public_branding: {
         Args: never
@@ -4876,6 +5053,10 @@ export type Database = {
       soft_delete_supplier: {
         Args: { p_supplier_id: string }
         Returns: undefined
+      }
+      stage_bank_statement_chunk: {
+        Args: { p_chunk_index: number; p_lines: Json; p_upload_id: string }
+        Returns: number
       }
       start_repair_work_order: {
         Args: {
