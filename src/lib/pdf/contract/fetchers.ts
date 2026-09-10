@@ -30,13 +30,20 @@ interface SignedSnapshot {
   template?: Partial<TemplateData> | null;
 }
 
+/**
+ * Estados en los que el contrato ya no debe leer datos vivos: el PDF se rinde
+ * desde la copia congelada al firmar (bloque 2 · C).
+ */
+const SNAPSHOT_STATUSES = new Set(["signed", "active", "completed"]);
+
 /** Devuelve el snapshot del contrato firmado, o null si no aplica. */
 export function readSignedSnapshot(contract: ContractData): SignedSnapshot | null {
-  if (contract.status !== "signed") return null;
+  if (!SNAPSHOT_STATUSES.has(contract.status ?? "")) return null;
   const snap = contract.signed_snapshot;
   if (!snap || typeof snap !== "object") return null;
   return snap as SignedSnapshot;
 }
+
 
 export interface TemplateData {
   intro_text: string | null;

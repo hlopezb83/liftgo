@@ -17,6 +17,8 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
   // El backend bloquea editar un contrato firmado (`enforce_signed_contract_lock`).
   // En vez de esconder la acción, se muestra deshabilitada con el motivo.
   const isLocked = status === "signed" || status === "completed";
+  const hasSigner = !!contract.signed_by && contract.signed_by.trim() !== "";
+
   return (
     <>
       {status === "draft" && (
@@ -40,10 +42,23 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
         </BlockedActionButton>
       )}
       {status === "sent" && (
-        <Button size="sm" onClick={() => onSetStatus("signed", { signed_at: new Date().toISOString() })}>
-          <SignIcon className="h-4 w-4 mr-1" />Marcar Firmado
-        </Button>
+        hasSigner ? (
+          <Button size="sm" onClick={() => onSetStatus("signed", { signed_at: new Date().toISOString() })}>
+            <SignIcon className="h-4 w-4 mr-1" />Marcar Firmado
+          </Button>
+        ) : (
+          // El backend exige `signed_at` y `signed_by` al firmar
+          // (`enforce_signed_contract_lock`): sin firmante la acción se explica.
+          <BlockedActionButton
+            size="sm"
+            block={describeBusinessBlock("contract_missing_signer")}
+            onClick={() => navigate(`/contracts/${id}/edit`)}
+          >
+            <SignIcon className="h-4 w-4 mr-1" />Marcar Firmado
+          </BlockedActionButton>
+        )
       )}
+
       {(status === "draft" || status === "sent") && (
         <Button variant="destructive" size="sm" onClick={() => onSetStatus("cancelled")}>
           <ErrorIcon className="h-4 w-4 mr-1" />Cancelar

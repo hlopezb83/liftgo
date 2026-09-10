@@ -23,6 +23,7 @@ export type BusinessBlockCode =
   | "maintenance_work_order_closed"
 
   | "contract_signed_locked"
+  | "contract_missing_signer"
   | "invoice_stamped_locked"
   | "invoice_cancellation_pending"
   | "supplier_bill_has_payments"
@@ -86,6 +87,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     action: "No puedes editar este contrato",
     reason: "El contrato ya está firmado y sus condiciones quedaron en firme.",
     nextStep: "Genera un contrato nuevo si necesitas cambiar las condiciones.",
+    tone: "info",
+  },
+  contract_missing_signer: {
+    action: "No puedes marcar este contrato como firmado",
+    reason: "Falta registrar quién firmó el contrato.",
+    nextStep: "Edita el contrato, captura el nombre de quien firma y vuelve a intentarlo.",
     tone: "info",
   },
   invoice_stamped_locked: {
@@ -247,6 +254,8 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /orden de trabajo ya est(á|a) cerrada/i, code: "maintenance_work_order_closed" },
 
   { pattern: /contrato firmado|signed contract|contrato ya fue firmado/i, code: "contract_signed_locked" },
+  // Guard `enforce_signed_contract_lock`: exige signed_at y signed_by al firmar.
+  { pattern: /se requieren la fecha de firma/i, code: "contract_missing_signer" },
   { pattern: /ya fue timbrada|cfdi timbrado|factura timbrada/i, code: "invoice_stamped_locked" },
   { pattern: /cancelaci(ó|o)n en proceso|cancellation_in_progress|cancelaci(ó|o)n pendiente/i, code: "invoice_cancellation_pending" },
   { pattern: /excede el saldo|exceeds .*balance|payment_exceeds/i, code: "payment_exceeds_balance" },

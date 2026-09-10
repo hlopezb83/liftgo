@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.5.0",
+    "date": "2026-09-10",
+    "type": "minor",
+    "category": "security",
+    "title": "Evidencia fiscal, devoluciones y contratos a prueba de ediciones",
+    "description": "Las inspecciones de devolución quedan inmutables al completarse y sólo un administrador puede corregirlas con motivo, recalculando en el mismo momento daños, estado del equipo y de la reserva. Las notas de crédito timbradas o canceladas ya no se pueden borrar ni alterar fuera del flujo fiscal. Un contrato firmado congela también cliente, equipo y reserva, exige registrar quién firmó y su PDF se genera siempre desde la copia guardada al firmar.",
+    "changes": [
+      "Devoluciones: sin edición ni borrado directo; nueva corrección administrativa auditable que recalcula daños, montacargas y reserva en una sola operación.",
+      "Devoluciones: la condición sólo acepta bueno, daño menor, daño mayor o requiere reparación, y el combustible sólo Full, 3/4, 1/2, 1/4 o Empty, validado también en la base.",
+      "Notas de crédito: las timbradas o canceladas no cambian de contenido ni de estado por edición directa y no pueden eliminarse; los borradores siguen editables y el saldo de la factura se sigue sincronizando.",
+      "Contratos: tras firmado, activo, completado o cancelado se congelan cliente, equipo, reserva y demás datos de identidad; sólo quedan editables notas, depósito y estado.",
+      "Contratos: para marcar firmado o activo se requieren fecha de firma y firmante; la pantalla explica el motivo cuando falta el firmante.",
+      "Contratos: el PDF de firmado, activo y completado se genera desde la copia congelada, nunca desde datos vivos."
+    ]
+  },
+  {
     "version": "8.4.1",
     "date": "2026-09-10",
     "type": "patch",
