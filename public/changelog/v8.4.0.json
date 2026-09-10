@@ -1,0 +1,20 @@
+{
+  "version": "8.4.0",
+  "date": "2026-09-10",
+  "type": "minor",
+  "category": "feature",
+  "title": "Bloque 1 de auditoría: integridad de facturación, cotizaciones, asignaciones y pagos",
+  "description": "Se reforzaron en el servidor las validaciones de coherencia entre facturas, reservas, cotizaciones y pagos a proveedores. No se modificó ningún dato histórico.",
+  "changes": [
+    "Facturas: la reserva principal, el cliente y la cotización deben ser coherentes entre sí y con las reservas ligadas.",
+    "Facturas emitidas o timbradas: ya no pueden cambiar sus vínculos ni sus reservas ligadas; sólo mediante cancelación.",
+    "Facturas: no se pueden quitar todas las reservas ligadas sin una acción explícita de desvinculación.",
+    "Cotizaciones de venta: la revisión de equipos sin asignar también aplica al modificar la factura, no sólo al crearla.",
+    "Facturación recurrente: valida existencia, cliente, estado facturable, facturación recurrente activa y período dentro del rango de cada reserva antes de tocar la última fecha facturada.",
+    "Conversión de cotización a reservas: sólo cotizaciones de renta, con tantas asignaciones como unidades cotizadas, sin unidades repetidas, validando modelo y usando únicamente las tarifas de la cotización.",
+    "Alta de reserva desde cotización: cliente, fechas, tipo y equipo/modelo deben coincidir, y no se pueden crear más reservas vigentes que unidades cotizadas.",
+    "Asignación de unidades a venta: se valida que la línea exista y que no se exceda su cantidad antes de marcar cualquier unidad como vendida.",
+    "Pagos a proveedores: se rechazan facturas en borrador, canceladas o no aprobadas, y el lote ya no acepta sobrepagos por redondeo.",
+    "Extensiones de renta: la factura ligada debe ser de la misma reserva y cliente, no estar cancelada, tener importe y cubrir el período extendido."
+  ]
+}
