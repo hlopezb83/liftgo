@@ -90,7 +90,11 @@ function useQuoteLinks(id: string | undefined) {
     alreadyConverted: (linkedBookings?.length ?? 0) > 0 || isBookingsError,
     // Ya está en memoria: no se agrega ninguna consulta nueva.
     linkedBookingId: linkedBookings?.[0]?.id ?? null,
-    alreadyInvoiced: (linkedInvoices ?? []).some((i) => i.status !== "cancelled") || isInvoicesError,
+    // Bloque 3C: solo una factura EMITIDA bloquea el CTA. Un borrador sigue
+    // siendo reanudable (se retoma en vez de crear un duplicado).
+    alreadyInvoiced: (linkedInvoices ?? []).some((i) => isIssuedInvoiceStatus(i.status)) || isInvoicesError,
+    draftInvoiceId:
+      (linkedInvoices ?? []).find((i) => (i.status ?? "draft") === "draft")?.id ?? null,
   };
 }
 
