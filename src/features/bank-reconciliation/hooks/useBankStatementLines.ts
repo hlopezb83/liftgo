@@ -77,7 +77,7 @@ export function useBankStatementLines(
     enabled: !!bankAccountId,
     staleTime: 30_000,
     queryFn: async () => {
-      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
       const { data, error } = await rpc("get_bank_statement_lines_page", {
         p_bank_account_id: bankAccountId,
         p_status: status === "all" ? null : status,
@@ -114,7 +114,7 @@ export function useBankReconciliationKpis(bankAccountId: string | null) {
     enabled: !!bankAccountId,
     staleTime: 30_000,
     queryFn: async (): Promise<BankReconciliationKpis> => {
-      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
       const { data, error } = await rpc("get_bank_reconciliation_kpis", {
         p_bank_account_id: bankAccountId,
       });

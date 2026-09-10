@@ -10,8 +10,23 @@ interface OverdueInvoice {
   invoice_number: string;
   customer_name: string | null;
   total: number;
+  /** Saldo pendiente convertido a MXN (v_invoices_with_balance). */
+  balance_mxn?: number | null;
+  /** Saldo pendiente en la moneda del documento (fallback). */
+  balance?: number | null;
   due_date: string | null;
   booking_id?: string | null;
+}
+
+/**
+ * QA-DASH-02: la alerta debe mostrar el SALDO pendiente en MXN, no el total
+ * original de la factura. `balance_mxn` viene de la vista; se mantiene un
+ * fallback a `balance` y luego a `total` para fixtures/datos legacy.
+ */
+function pendingAmountMxn(inv: OverdueInvoice): number {
+  if (inv.balance_mxn != null) return Number(inv.balance_mxn);
+  if (inv.balance != null) return Number(inv.balance);
+  return Number(inv.total);
 }
 
 interface MaintenanceAlert {
@@ -110,7 +125,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               primary={inv.invoice_number}
               secondary={inv.customer_name}
               onClick={() => navigate(`/invoices/${inv.id}`)}
-              rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(Number(inv.total))}</span>}
+              rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(pendingAmountMxn(inv))}</span>}
               rightBottom={`Vence: ${formatDateMty(inv.due_date)}`}
               action={{
                 icon: PaymentIcon,

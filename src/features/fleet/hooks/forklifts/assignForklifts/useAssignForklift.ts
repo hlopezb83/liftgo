@@ -29,7 +29,7 @@ export function useAssignForklift() {
         group.push(a);
         byQuote.set(a.quoteId, group);
       }
-      const rpc = supabase.rpc as unknown as AssignForkliftRpc;
+      const rpc = supabase.rpc.bind(supabase) as unknown as AssignForkliftRpc;
       for (const [quoteId, group] of byQuote) {
         const { error } = await rpc("assign_forklift_to_sale_quote", {
           p_quote_id: quoteId,

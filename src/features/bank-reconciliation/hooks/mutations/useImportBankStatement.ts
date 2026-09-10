@@ -67,7 +67,7 @@ function rpcRow<T>(data: unknown): T | null {
  * canónicas y lo hace dentro de una única transacción de base de datos.
  */
 export async function importBankStatement(args: ImportArgs): Promise<ImportResult> {
-  const rpc = supabase.rpc as unknown as UntypedRpc;
+  const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
   const { data: beginData, error: beginError } = await rpc("begin_bank_statement_upload", {
     p_upload_id: args.uploadId,
     p_bank_account_id: args.bankAccountId,

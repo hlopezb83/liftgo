@@ -35,8 +35,18 @@ function TruncatedRangeAlert() {
   );
 }
 
+/** QA-REP-03: recorta el nombre para que la etiqueta del eje no se solape. */
+function truncateLabel(value: string, max = 18): string {
+  return value.length > max ? `${value.slice(0, max - 1)}…` : value;
+}
+
+const BAR_HEIGHT = 28;
+
 function UtilizationChartCard({ data }: { data: Row[] }) {
-  const { tick, rotatedXAxis, isMobile, chartHeightClass } = useChartSizing();
+  const { tick, isMobile } = useChartSizing();
+  // QA-REP-03: barras horizontales + scroll interno. Con muchas unidades el
+  // gráfico vertical volvía ilegibles las etiquetas del eje X.
+  const chartHeight = Math.max(data.length * BAR_HEIGHT + 24, 160);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
@@ -46,15 +56,22 @@ function UtilizationChartCard({ data }: { data: Row[] }) {
         </Button>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto -mx-2 px-2">
-          <div className={chartHeightClass} style={{ minWidth: `${Math.max(data.length * (isMobile ? 28 : 32), 300)}px` }}>
+        <div className="max-h-[26rem] overflow-y-auto pr-1">
+          <div style={{ height: `${chartHeight}px` }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid {...chartGridProps} />
-                <XAxis dataKey="name" tick={tick} {...rotatedXAxis} />
-                <YAxis unit="%" width={isMobile ? 34 : 40} tick={tick} />
+              <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 4 }}>
+                <CartesianGrid {...chartGridProps} horizontal={false} />
+                <XAxis type="number" unit="%" domain={[0, 100]} tick={tick} />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={isMobile ? 96 : 140}
+                  tick={tick}
+                  interval={0}
+                  tickFormatter={(value: string) => truncateLabel(value, isMobile ? 12 : 18)}
+                />
                 <Tooltip formatter={(val) => `${Number(val)}%`} />
-                <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} barSize={16} />
               </BarChart>
             </ResponsiveContainer>
           </div>
