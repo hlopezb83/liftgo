@@ -28,6 +28,12 @@ interface Props {
   recurringBilling?: boolean | null;
 }
 
+function billingBadgeLabel(isBilled: boolean, isPendingIssue: boolean, days: number): string {
+  if (isBilled) return "Facturada";
+  if (isPendingIssue) return "Pendiente de emisión";
+  return `${days} día(s) por facturar`;
+}
+
 export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
   const navigate = useNavigateTransition();
   const canInvoice = useHasModuleAccess("Facturas", "full");
