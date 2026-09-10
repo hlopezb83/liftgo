@@ -75,11 +75,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
               {range && !recurringBilling && (
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={isBilled ? "secondary" : "outline"}>
-                    {isBilled
-                      ? "Facturada"
-                      : isPendingIssue
-                        ? "Pendiente de emisión"
-                        : `${range.days} día(s) por facturar`}
+                    {billingBadgeLabel(isBilled, isPendingIssue, range.days)}
                   </Badge>
                   {(invoiceId || pendingInvoiceId) && (
                     <Button
