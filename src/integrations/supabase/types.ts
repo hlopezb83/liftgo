@@ -4277,6 +4277,16 @@ export type Database = {
           score: number
         }[]
       }
+      get_bank_statement_lines_page: {
+        Args: {
+          p_bank_account_id: string
+          p_offset?: number
+          p_page_size?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       get_billing_secrets_status: {
         Args: never
         Returns: {
