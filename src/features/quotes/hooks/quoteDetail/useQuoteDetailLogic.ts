@@ -22,6 +22,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
     alreadyConverted: data.alreadyConverted,
     linkedBookingId: data.linkedBookingId,
     alreadyInvoiced: data.alreadyInvoiced,
+    draftInvoiceId: data.draftInvoiceId,
     durationDays: data.durationDays,
     rentalMeta: data.rentalMeta,
     isModelBasedQuote: data.isModelBasedQuote,

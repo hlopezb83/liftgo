@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
+import { isIssuedInvoiceStatus } from "@/lib/domain/invoiceStatus";
 import { useQuote } from "../quotes/useQuotes";
 import { resolveLegacyForkliftIds } from "./quoteBookingBuilders";
 
@@ -104,7 +105,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const { data: forklifts } = useForklifts();
   const { data: equipmentModels } = useEquipmentModels();
 
-  const { alreadyConverted, linkedBookingId, alreadyInvoiced } = useQuoteLinks(id);
+  const { alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId } = useQuoteLinks(id);
 
   const customerMatch = customers?.find((c) => c.id === quote?.customer_id);
   const quoteType = quote?.quote_type || "rental";
@@ -123,6 +124,6 @@ export function useQuoteDetailData(id: string | undefined) {
   return {
     quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
-    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, linkedBookingId, alreadyInvoiced,
+    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId,
   };
 }

@@ -27,6 +27,7 @@ interface Props {
   isConverting: boolean;
   canInvoice: boolean;
   invoiceBlockedReason?: string;
+  draftInvoiceId?: string | null;
   onSetStatus: (status: string, opts?: { rejectionReason?: string }) => void;
   onConvertClick: () => void;
   onDelete: () => void;
@@ -64,11 +65,20 @@ function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isCon
   );
 }
 
-function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBlockedReason }: {
-  quote: Tables<"quotes">; isSale: boolean; alreadyInvoiced: boolean; canInvoice: boolean; invoiceBlockedReason?: string;
+function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBlockedReason, draftInvoiceId }: {
+  quote: Tables<"quotes">; isSale: boolean; alreadyInvoiced: boolean; canInvoice: boolean;
+  invoiceBlockedReason?: string; draftInvoiceId?: string | null;
 }) {
   const navigate = useNavigateTransition();
   if (!isSale) return null;
+  // Bloque 3C: un borrador ligado NO bloquea; se retoma para no duplicar la factura.
+  if (!alreadyInvoiced && draftInvoiceId) {
+    return (
+      <Button size="sm" variant="outline" onClick={() => navigate(`/invoices/${draftInvoiceId}/edit`)}>
+        <InvoiceIcon className="h-4 w-4 mr-1" />Continuar factura
+      </Button>
+    );
+  }
   if (alreadyInvoiced) {
     return (
       <Button size="sm" variant="outline" disabled className="opacity-70">
@@ -158,7 +168,7 @@ function CancelQuoteButton({ quoteNumber, onCancel }: { quoteNumber: string; onC
 }
 
 export function QuoteDetailActions({
-  quote, isSale, alreadyConverted, linkedBookingId, alreadyInvoiced, isConverting,
+  quote, isSale, alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId, isConverting,
   canInvoice, invoiceBlockedReason,
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
@@ -185,6 +195,7 @@ export function QuoteDetailActions({
       />
       <InvoiceButton
         quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
+        draftInvoiceId={draftInvoiceId}
         canInvoice={canInvoice} invoiceBlockedReason={invoiceBlockedReason}
       />
       {quote.status === "sent" && (() => {
