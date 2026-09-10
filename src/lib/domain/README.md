@@ -7,6 +7,7 @@ Auditado en v6 (P3-8). Estado actual:
 
 **Genuinamente cross-domain (mantener aquí):**
 - `invoiceHelpers`, `invoiceTotals`, `lineItems`, `rentalCalculation` — matemática monetaria
+- `invoiceStatus` — estados de factura emitida; usado por invoices, quotes y contracts (Bloque 3C)
 - `roles`, `templateUtils`, `activityTranslations` — utilidades compartidas
 - `errorCatalog`, `satCatalogs` — catálogos globales
 - `bookingRates` (v7.418.0, FIX-2) — resolución canónica de tarifas
