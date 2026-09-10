@@ -33,6 +33,7 @@ export function TestRouter({
 }: TestRouterProps) {
   const entriesKey = initialEntries.join("|");
   const router = useMemo(() => {
+    const entries = entriesKey.split("|");
     const rootRoute = createRootRoute({ component: () => <Outlet /> });
     const render = () => <>{children}</>;
     // Los tipos de rutas de TanStack son literales por path; en pruebas
@@ -48,24 +49,12 @@ export function TestRouter({
     }
     return createRouter({
       routeTree: rootRoute.addChildren(routes),
-      history: createMemoryHistory({ initialEntries }),
+      history: createMemoryHistory({ initialEntries: entries }),
       defaultPendingMinMs: 0,
       parseSearch,
       stringifySearch,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [entriesKey, path, children]);
 
   return <RouterProvider router={router} />;
-}
-
-/** Wrapper listo para `renderHook`/`render` de testing-library. */
-export function createRouterWrapper(initialEntries: string[] = ["/"], path?: string) {
-  return function Wrapper({ children }: { children: ReactNode }) {
-    return (
-      <TestRouter initialEntries={initialEntries} path={path}>
-        {children}
-      </TestRouter>
-    );
-  };
 }

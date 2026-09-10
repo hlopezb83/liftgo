@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.6.1",
+    "date": "2026-09-10",
+    "type": "patch",
+    "category": "improvement",
+    "title": "Limpieza de calidad: funciones más simples y sin advertencias",
+    "description": "Se dividieron funciones muy largas de administración de usuarios, validación de complementos de pago y del servicio de IA en piezas más pequeñas, sin cambiar ninguna regla, mensaje ni comportamiento. También se separó el ayudante de pruebas de navegación. El resultado es código más fácil de mantener y sin advertencias de calidad.",
+    "changes": [
+      "Invitación y restablecimiento de usuarios: validaciones y compensaciones movidas a funciones auxiliares, con los mismos mensajes y límites.",
+      "Validación de complementos de pago (REP): parseo de CFDI separado en su propio módulo y validaciones divididas por paso; mismas reglas fiscales.",
+      "Servicio de IA: envío y mapeo de errores separados, sin cambiar tiempos de espera ni mensajes.",
+      "Pruebas: el envoltorio de navegación vive en su propio archivo y ya no requiere desactivar reglas de React."
+    ]
+  },
+  {
     "version": "8.6.0",
     "date": "2026-09-10",
     "type": "minor",

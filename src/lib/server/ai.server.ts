@@ -33,16 +33,7 @@ export class AiGatewayError extends Error {
   }
 }
 
-export async function aiChatCompletion(
-  opts: AiChatOptions,
-): Promise<AiChatResult> {
-  const endpoint = process.env["AI_GATEWAY_ENDPOINT"] ??
-    "https://ai.gateway.lovable.dev/v1/chat/completions";
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) {
-    throw new AiGatewayError(500, "LOVABLE_API_KEY no configurada");
-  }
-
+function buildRequestBody(opts: AiChatOptions): Record<string, unknown> {
   const body: Record<string, unknown> = {
     model: opts.model,
     messages: opts.messages,
@@ -50,10 +41,16 @@ export async function aiChatCompletion(
   if (opts.responseFormat) body["response_format"] = opts.responseFormat;
   if (typeof opts.temperature === "number") body["temperature"] = opts.temperature;
   if (typeof opts.maxTokens === "number") body["max_tokens"] = opts.maxTokens;
+  return body;
+}
 
-  let resp: Response;
+async function postToGateway(
+  endpoint: string,
+  apiKey: string,
+  body: Record<string, unknown>,
+): Promise<Response> {
   try {
-    resp = await fetch(endpoint, {
+    return await fetch(endpoint, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -75,25 +72,32 @@ export async function aiChatCompletion(
       err instanceof Error ? err.message : String(err),
     );
   }
+}
 
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => "");
-    if (resp.status === 429) {
-      throw new AiGatewayError(
-        429,
-        "Demasiadas solicitudes, intenta de nuevo en un momento.",
-        errText,
-      );
-    }
-    if (resp.status === 402) {
-      throw new AiGatewayError(
-        402,
-        "Créditos insuficientes para el servicio de IA.",
-        errText,
-      );
-    }
-    throw new AiGatewayError(500, "Error al procesar la solicitud con IA", errText);
+/** Mismo mapeo de errores 429/402/5xx que la Edge Function original. */
+async function throwGatewayError(resp: Response): Promise<never> {
+  const errText = await resp.text().catch(() => "");
+  const messages: Record<number, string> = {
+    429: "Demasiadas solicitudes, intenta de nuevo en un momento.",
+    402: "Créditos insuficientes para el servicio de IA.",
+  };
+  const message = messages[resp.status];
+  if (message) throw new AiGatewayError(resp.status, message, errText);
+  throw new AiGatewayError(500, "Error al procesar la solicitud con IA", errText);
+}
+
+export async function aiChatCompletion(
+  opts: AiChatOptions,
+): Promise<AiChatResult> {
+  const endpoint = process.env["AI_GATEWAY_ENDPOINT"] ??
+    "https://ai.gateway.lovable.dev/v1/chat/completions";
+  const apiKey = process.env["LOVABLE_API_KEY"];
+  if (!apiKey) {
+    throw new AiGatewayError(500, "LOVABLE_API_KEY no configurada");
   }
+
+  const resp = await postToGateway(endpoint, apiKey, buildRequestBody(opts));
+  if (!resp.ok) await throwGatewayError(resp);
 
   const data = await resp.json() as {
     choices?: Array<{ message?: { content?: unknown } }>;
