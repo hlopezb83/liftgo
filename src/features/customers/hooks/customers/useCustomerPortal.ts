@@ -178,7 +178,7 @@ export function usePortalInvoice(invoiceId: string | undefined) {
     enabled: !!user && !!invoiceId,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalInvoiceRow | null> => {
-      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
       const { data, error } = await rpc("get_portal_invoice", { p_invoice_id: invoiceId });
       if (error) throw error;
       return ((Array.isArray(data) ? data[0] : data) ?? null) as PortalInvoiceRow | null;
@@ -194,7 +194,7 @@ export function usePortalInvoicesPage(page: number, pageSize = 25, onlyBalance =
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalPage<PortalInvoiceRow>> => {
-      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
       const { data, error } = await rpc("get_portal_invoices_page", {
         p_page_size: safeSize,
         p_offset: from,
@@ -234,7 +234,7 @@ export function usePortalContractsPage(page: number, pageSize = 25) {
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalPage<PortalContractRow>> => {
-      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
       const [{ data, error }, forkliftMap] = await Promise.all([
         rpc("get_portal_contracts_page", { p_page_size: safeSize, p_offset: from }),
         fetchForkliftsBriefMap(),

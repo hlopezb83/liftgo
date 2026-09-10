@@ -22,7 +22,7 @@ export async function callRpc<TResult>(
   args?: Record<string, any>,
 ): Promise<TResult> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.rpc as any)(fn, args ?? {});
+  const { data, error } = await (supabase.rpc.bind(supabase) as any)(fn, args ?? {});
   if (error) throw error;
   return data as TResult;
 }

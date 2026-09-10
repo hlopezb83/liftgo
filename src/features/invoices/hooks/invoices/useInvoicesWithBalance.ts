@@ -58,7 +58,7 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
     staleTime: 60_000,
     queryFn: async (): Promise<InvoiceWithBalance[]> => {
       // SEC-005 + PERF-001: RPC parametrizada que filtra y pagina en servidor.
-      const { data, error } = await (supabase.rpc as unknown as (
+      const { data, error } = await (supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: { message?: string } | null }>)(
