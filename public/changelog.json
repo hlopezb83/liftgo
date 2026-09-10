@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.4.1",
+    "date": "2026-09-10",
+    "type": "patch",
+    "category": "fix",
+    "title": "Extensiones: sólo se marcan como facturadas al emitir la factura",
+    "description": "Una extensión de renta ya no queda 'facturada' con una factura en borrador. La pantalla puede guardar el borrador y la extensión queda 'Pendiente de emisión'; al emitir esa factura el sistema liga la extensión de forma automática y atómica. Se conserva la protección contra doble cobro.",
+    "changes": [
+      "Nuevo campo de factura reservada en extensiones (pendiente de emisión) con validación de reserva, cliente y factura no cancelada.",
+      "La factura en borrador ya no puede marcar la extensión como facturada.",
+      "Al emitir la factura, la extensión se liga y se sella como facturada en la misma operación.",
+      "La ficha de reserva muestra el estado 'Pendiente de emisión' y evita volver a facturar la misma extensión.",
+      "create_booking mantiene el límite por unidades cotizadas (no una sola reserva por cotización), con validación de cliente, fechas, tipo y equipo/modelo."
+    ]
+  },
+  {
     "version": "8.4.0",
     "date": "2026-09-10",
     "type": "minor",
