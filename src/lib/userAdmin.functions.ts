@@ -5,6 +5,11 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  assertResettableTarget,
+  finalizeInvitedUser,
+  validateInviteInput,
+} from "./userAdmin.helpers";
 
 export interface InviteUserInput {
   email: string;
@@ -28,30 +33,8 @@ export const inviteUserFn = createServerFn({ method: "POST" })
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
     await g.enforceRateLimit(admin, "invite-user", context.userId);
 
-    const { email, full_name, role, password } = data;
-
-    if (!g.isEmail(email)) {
-      throw new g.HttpError(400, "A valid email is required (max 255 chars)");
-    }
-    if (!g.isNonEmptyString(full_name, 200)) {
-      throw new g.HttpError(400, "full_name is required (max 200 chars)");
-    }
-    if (!g.isValidRole(role)) {
-      throw new g.HttpError(400, "Invalid role");
-    }
-    // SEC-B5: contraseña manual debe ser fuerte (12-72, 4 clases).
-    if (password !== undefined) {
-      const strong = typeof password === "string" &&
-        password.length >= 12 && password.length <= 72 &&
-        /[a-z]/.test(password) && /[A-Z]/.test(password) &&
-        /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
-      if (!strong) {
-        throw new g.HttpError(
-          400,
-          "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
-        );
-      }
-    }
+    const { email, full_name, password } = data;
+    validateInviteInput(g, data);
 
     // AUTH-001 / B-2: unicidad de email con comparación exacta en minúsculas.
     const emailLc = email.toLowerCase();
@@ -86,33 +69,7 @@ export const inviteUserFn = createServerFn({ method: "POST" })
 
     const userId = newUser.user.id;
 
-    // N-30: compensación — borrar el usuario auth si algo posterior falla.
-    const cleanupInvitedUser = async () => {
-      const { error: delErr } = await admin.auth.admin.deleteUser(userId);
-      if (delErr) console.error("invite-user cleanup deleteUser failed:", delErr);
-      await admin.from("user_roles").delete().eq("user_id", userId);
-      await admin.from("profiles").delete().eq("user_id", userId);
-    };
-
-    // DB2-01: upsert sobre (user_id), el índice único vigente.
-    const { error: roleErr } = await admin
-      .from("user_roles")
-      .upsert({ user_id: userId, role }, { onConflict: "user_id" });
-    if (roleErr) {
-      console.error("[invite-user] assignRoleToUser:", roleErr.message);
-      await cleanupInvitedUser();
-      throw new g.HttpError(500, "No se pudo completar la invitación");
-    }
-
-    const { error: profileErr } = await admin
-      .from("profiles")
-      .update({ full_name, email })
-      .eq("user_id", userId);
-    if (profileErr) {
-      console.error("[invite-user] profiles update:", profileErr);
-      await cleanupInvitedUser();
-      throw new g.HttpError(500, "No se pudo completar la invitación");
-    }
+    await finalizeInvitedUser(g, admin, userId, data);
 
     // SEC-B5: recovery link para que el invitado defina su contraseña.
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
@@ -188,29 +145,7 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
     await g.enforceRateLimit(admin, "reset-user-password", context.userId);
 
     const userId = data.user_id;
-    if (!g.isUUID(userId)) {
-      throw new g.HttpError(400, "user_id must be a valid UUID");
-    }
-    if (userId === context.userId) {
-      throw new g.HttpError(
-        400,
-        "Para tu propia cuenta usa 'Olvidé mi contraseña' en el login",
-      );
-    }
-
-    // Guarda anti-takeover: prohibido restablecer la contraseña de un admin.
-    const { data: targetAdmin } = await admin
-      .from("user_roles")
-      .select("user_id")
-      .eq("user_id", userId)
-      .eq("role", "admin")
-      .maybeSingle();
-    if (targetAdmin) {
-      throw new g.HttpError(
-        403,
-        "No puedes restablecer la contraseña de un administrador",
-      );
-    }
+    await assertResettableTarget(g, admin, userId, context.userId);
 
     const { data: userData, error: getUserErr } = await admin.auth.admin
       .getUserById(userId);

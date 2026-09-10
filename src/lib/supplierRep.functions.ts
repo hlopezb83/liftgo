@@ -4,92 +4,184 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  base64ToBytes,
+  extractAllAttr,
+  extractAttr,
+  extractPagoNodes,
+  isWellFormedXml,
+  REP_BUCKET as BUCKET,
+  REP_MAX_FILE_BYTES as MAX_FILE_BYTES,
+  REP_TOLERANCE as TOLERANCE,
+} from "./supplierRepXml";
 
-const BUCKET = "cfdi-files";
-const TOLERANCE = 0.01;
-const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB (mismo cap que parse-csf)
-
-// ---------- Helpers (parsing XML sin DOM) ----------
-
-export function extractAttr(xml: string, tag: string, attr: string): string | null {
-  const re = new RegExp(
-    `<(?:[a-zA-Z0-9]+:)?${tag}\\b[^>]*\\b${attr}\\s*=\\s*"([^"]*)"`,
-    "i",
-  );
-  const m = xml.match(re);
-  return m?.[1] ?? null;
-}
-
-export function extractAllAttr(xml: string, tag: string, attr: string): string[] {
-  const re = new RegExp(
-    `<(?:[a-zA-Z0-9]+:)?${tag}\\b[^>]*\\b${attr}\\s*=\\s*"([^"]*)"`,
-    "ig",
-  );
-  const out: string[] = [];
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(xml)) !== null) {
-    const value = m[1];
-    if (value !== undefined) out.push(value);
-  }
-  return out;
-}
-
-// L-8: chequeo estructural mínimo de XML bien formado.
-export function isWellFormedXml(xml: string): boolean {
-  if (!/^\s*</.test(xml)) return false;
-  const stack: string[] = [];
-  const re =
-    /<(\/?)([a-zA-Z_][\w.-]*(?::[\w.-]+)?)((?:"[^"]*"|'[^']*'|[^"'<>])*?)(\/?)>/g;
-  let m: RegExpExecArray | null;
-  let sawRoot = false;
-  while ((m = re.exec(xml)) !== null) {
-    const closing = m[1];
-    const name = m[2] ?? "";
-    const selfClose = m[4];
-    if (closing) {
-      if (stack.pop() !== name) return false;
-    } else if (!selfClose) {
-      stack.push(name);
-      sawRoot = true;
-    } else {
-      sawRoot = true;
-    }
-  }
-  return sawRoot && stack.length === 0;
-}
-
-export function extractPagoNodes(
-  xml: string,
-): Array<{ monto: number; doctos: string[] }> {
-  const reOpen = /<(?:[a-zA-Z0-9]+:)?Pago\b[^>]*>/g;
-  const result: Array<{ monto: number; doctos: string[] }> = [];
-  let m: RegExpExecArray | null;
-  while ((m = reOpen.exec(xml)) !== null) {
-    const start = m.index;
-    const closeRe = /<\/(?:[a-zA-Z0-9]+:)?Pago>/g;
-    closeRe.lastIndex = reOpen.lastIndex;
-    const c = closeRe.exec(xml);
-    if (!c) break;
-    const block = xml.slice(start, c.index + c[0].length);
-    const monto = Number(extractAttr(m[0], "Pago", "Monto") ?? "0");
-    const doctos = extractAllAttr(block, "DoctoRelacionado", "IdDocumento");
-    result.push({ monto, doctos });
-  }
-  return result;
-}
-
-function base64ToBytes(b64: string): Uint8Array {
-  const bin = atob(b64);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
-}
+// Reexportados para las pruebas y consumidores existentes.
+export { extractAllAttr, extractAttr, extractPagoNodes, isWellFormedXml };
 
 export interface ValidateSupplierRepInput {
   payment_id: string;
   xml_base64: string;
   pdf_base64?: string | null;
   force?: boolean;
+}
+
+type Guards = typeof import("./server/adminGuards.server");
+type AdminClient = Awaited<ReturnType<Guards["requireRole"]>>["admin"];
+
+const MAX_BASE64_CHARS = Math.ceil(MAX_FILE_BYTES * 4 / 3);
+
+function validateRepInput(g: Guards, data: ValidateSupplierRepInput): void {
+  const { payment_id, xml_base64, pdf_base64 } = data ?? {};
+  if (!g.isUUID(payment_id)) {
+    throw new g.HttpError(400, "payment_id inválido");
+  }
+  if (!xml_base64 || typeof xml_base64 !== "string") {
+    throw new g.HttpError(400, "xml_base64 es obligatorio");
+  }
+  if (xml_base64.length > MAX_BASE64_CHARS) {
+    throw new g.HttpError(413, "El XML excede el tamaño máximo permitido (5MB)");
+  }
+  if (typeof pdf_base64 === "string" && pdf_base64.length > MAX_BASE64_CHARS) {
+    throw new g.HttpError(413, "El PDF excede el tamaño máximo permitido (5MB)");
+  }
+}
+
+/** Carga el pago y su factura, aplicando las guardas de estado (N-32). */
+async function loadPaymentAndBill(
+  g: Guards,
+  supabase: AdminClient,
+  paymentId: string,
+  force: boolean | undefined,
+) {
+  const { data: payment, error: payErr } = await supabase
+    .from("supplier_payments")
+    .select("id, bill_id, amount, rep_status, rep_required, rep_cfdi_uuid")
+    .eq("id", paymentId)
+    .single();
+  if (payErr || !payment) throw new g.HttpError(404, "Pago no encontrado");
+  if (!payment.rep_required) {
+    throw new g.HttpError(400, "Este pago no requiere REP");
+  }
+  if (payment.rep_status === "received" && payment.rep_cfdi_uuid && !force) {
+    throw new g.HttpError(
+      409,
+      `Este pago ya tiene un REP validado (${payment.rep_cfdi_uuid}). Envía force=true para reemplazarlo.`,
+    );
+  }
+
+  const { data: bill } = await supabase
+    .from("supplier_bills")
+    .select("id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)")
+    .eq("id", payment.bill_id)
+    .single();
+  if (!bill) throw new g.HttpError(404, "Factura no encontrada");
+  if (!bill.cfdi_uuid) {
+    throw new g.HttpError(400, "La factura no tiene UUID CFDI");
+  }
+  return { payment, bill, billUuid: bill.cfdi_uuid };
+}
+
+function decodeRepXml(g: Guards, xmlBase64: string): string {
+  let xmlText: string;
+  try {
+    xmlText = new TextDecoder("utf-8").decode(base64ToBytes(xmlBase64));
+  } catch {
+    throw new g.HttpError(400, "XML inválido (base64)");
+  }
+  if (!isWellFormedXml(xmlText)) {
+    throw new g.HttpError(
+      400,
+      "XML malformado: el documento no está bien formado (tags desbalanceados o truncado)",
+    );
+  }
+  if (extractAttr(xmlText, "Comprobante", "TipoDeComprobante") !== "P") {
+    throw new g.HttpError(
+      400,
+      "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
+    );
+  }
+  return xmlText;
+}
+
+function assertEmisorMatchesSupplier(
+  g: Guards,
+  xmlText: string,
+  suppliers: { rfc?: string | null } | null,
+): void {
+  const rfcEmisor = extractAttr(xmlText, "Emisor", "Rfc");
+  const supplierRfc = suppliers?.rfc?.trim().toUpperCase();
+  if (!supplierRfc) {
+    throw new g.HttpError(400, "El proveedor no tiene RFC capturado");
+  }
+  if (!rfcEmisor || rfcEmisor.trim().toUpperCase() !== supplierRfc) {
+    throw new g.HttpError(
+      400,
+      `RFC emisor (${rfcEmisor ?? "n/a"}) no coincide con el proveedor (${supplierRfc})`,
+    );
+  }
+}
+
+/** Verifica que algún nodo Pago referencie la factura por el monto esperado. */
+function assertPagoMatchesInvoice(
+  g: Guards,
+  xmlText: string,
+  billUuid: string,
+  expectedAmount: number,
+): void {
+  const pagos = extractPagoNodes(xmlText);
+  if (pagos.length === 0) {
+    throw new g.HttpError(400, "El XML no contiene nodos Pago");
+  }
+  const targetUuid = billUuid.toLowerCase();
+  const referencesBill = (doctos: string[]) =>
+    doctos.some((d) => d.toLowerCase() === targetUuid);
+  const match = pagos.find((p) =>
+    referencesBill(p.doctos) && Math.abs(p.monto - expectedAmount) <= TOLERANCE
+  );
+  if (match) return;
+
+  const partial = pagos.some((p) => referencesBill(p.doctos));
+  throw new g.HttpError(
+    400,
+    partial
+      ? `El REP referencia la factura pero el monto no coincide (esperado ${
+        expectedAmount.toFixed(2)
+      })`
+      : `El REP no incluye la factura ${billUuid}`,
+  );
+}
+
+async function uploadRepFiles(
+  g: Guards,
+  supabase: AdminClient,
+  billId: string,
+  paymentId: string,
+  xmlText: string,
+  pdfBase64: string | null | undefined,
+): Promise<{ xmlPath: string; pdfPath: string | null }> {
+  const xmlPath = `supplier-rep/${billId}/${paymentId}.xml`;
+  const { error: xmlErr } = await supabase.storage.from(BUCKET).upload(
+    xmlPath,
+    new Blob([xmlText], { type: "application/xml" }),
+    { contentType: "application/xml", upsert: true },
+  );
+  if (xmlErr) {
+    throw new g.HttpError(500, `No se pudo subir XML: ${xmlErr.message}`);
+  }
+
+  if (typeof pdfBase64 !== "string" || !pdfBase64) return { xmlPath, pdfPath: null };
+  try {
+    const p = `supplier-rep/${billId}/${paymentId}.pdf`;
+    const { error: pdfErr } = await supabase.storage.from(BUCKET).upload(
+      p,
+      base64ToBytes(pdfBase64),
+      { contentType: "application/pdf", upsert: true },
+    );
+    return { xmlPath, pdfPath: pdfErr ? null : p };
+  } catch (e) {
+    console.error("PDF upload failed:", e);
+    return { xmlPath, pdfPath: null };
+  }
 }
 
 export const validateSupplierRepFn = createServerFn({ method: "POST" })
@@ -107,114 +199,28 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
     await g.enforceRateLimit(supabase, "validate-supplier-rep", userId, 5, 60);
 
     const { payment_id, xml_base64, pdf_base64, force } = data ?? {};
-    if (!g.isUUID(payment_id)) {
-      throw new g.HttpError(400, "payment_id inválido");
-    }
-    if (!xml_base64 || typeof xml_base64 !== "string") {
-      throw new g.HttpError(400, "xml_base64 es obligatorio");
-    }
-    if (xml_base64.length > Math.ceil(MAX_FILE_BYTES * 4 / 3)) {
-      throw new g.HttpError(413, "El XML excede el tamaño máximo permitido (5MB)");
-    }
-    if (
-      pdf_base64 != null && typeof pdf_base64 === "string" &&
-      pdf_base64.length > Math.ceil(MAX_FILE_BYTES * 4 / 3)
-    ) {
-      throw new g.HttpError(413, "El PDF excede el tamaño máximo permitido (5MB)");
-    }
+    validateRepInput(g, data);
 
-    const { data: payment, error: payErr } = await supabase
-      .from("supplier_payments")
-      .select("id, bill_id, amount, rep_status, rep_required, rep_cfdi_uuid")
-      .eq("id", payment_id)
-      .single();
-    if (payErr || !payment) throw new g.HttpError(404, "Pago no encontrado");
-    if (!payment.rep_required) {
-      throw new g.HttpError(400, "Este pago no requiere REP");
-    }
-    // N-32: no sobrescribir un REP ya validado sin intención explícita.
-    if (payment.rep_status === "received" && payment.rep_cfdi_uuid && !force) {
-      throw new g.HttpError(
-        409,
-        `Este pago ya tiene un REP validado (${payment.rep_cfdi_uuid}). Envía force=true para reemplazarlo.`,
-      );
-    }
+    const { payment, bill, billUuid } = await loadPaymentAndBill(
+      g,
+      supabase,
+      payment_id,
+      force,
+    );
 
-    const { data: bill } = await supabase
-      .from("supplier_bills")
-      .select("id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)")
-      .eq("id", payment.bill_id)
-      .single();
-    if (!bill) throw new g.HttpError(404, "Factura no encontrada");
-    if (!bill.cfdi_uuid) {
-      throw new g.HttpError(400, "La factura no tiene UUID CFDI");
-    }
-
-    let xmlText: string;
-    try {
-      xmlText = new TextDecoder("utf-8").decode(base64ToBytes(xml_base64));
-    } catch {
-      throw new g.HttpError(400, "XML inválido (base64)");
-    }
-
-    if (!isWellFormedXml(xmlText)) {
-      throw new g.HttpError(
-        400,
-        "XML malformado: el documento no está bien formado (tags desbalanceados o truncado)",
-      );
-    }
-
-    const tipo = extractAttr(xmlText, "Comprobante", "TipoDeComprobante");
-    if (tipo !== "P") {
-      throw new g.HttpError(
-        400,
-        "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
-      );
-    }
-
-    const rfcEmisor = extractAttr(xmlText, "Emisor", "Rfc");
-    const supplierRfc = (bill.suppliers as { rfc?: string | null } | null)?.rfc
-      ?.trim().toUpperCase();
-    if (!supplierRfc) {
-      throw new g.HttpError(400, "El proveedor no tiene RFC capturado");
-    }
-    if (!rfcEmisor || rfcEmisor.trim().toUpperCase() !== supplierRfc) {
-      throw new g.HttpError(
-        400,
-        `RFC emisor (${rfcEmisor ?? "n/a"}) no coincide con el proveedor (${supplierRfc})`,
-      );
-    }
+    const xmlText = decodeRepXml(g, xml_base64);
+    assertEmisorMatchesSupplier(
+      g,
+      xmlText,
+      bill.suppliers as { rfc?: string | null } | null,
+    );
 
     const repUuid = extractAttr(xmlText, "TimbreFiscalDigital", "UUID");
     if (!repUuid || !g.isUUID(repUuid)) {
       throw new g.HttpError(400, "No se encontró UUID válido en TimbreFiscalDigital");
     }
 
-    const pagos = extractPagoNodes(xmlText);
-    if (pagos.length === 0) {
-      throw new g.HttpError(400, "El XML no contiene nodos Pago");
-    }
-
-    const targetUuid = bill.cfdi_uuid.toLowerCase();
-    const expectedAmount = Number(payment.amount);
-    const match = pagos.find((p) =>
-      p.doctos.some((d) => d.toLowerCase() === targetUuid) &&
-      Math.abs(p.monto - expectedAmount) <= TOLERANCE
-    );
-
-    if (!match) {
-      const partial = pagos.some((p) =>
-        p.doctos.some((d) => d.toLowerCase() === targetUuid)
-      );
-      throw new g.HttpError(
-        400,
-        partial
-          ? `El REP referencia la factura pero el monto no coincide (esperado ${
-            expectedAmount.toFixed(2)
-          })`
-          : `El REP no incluye la factura ${bill.cfdi_uuid}`,
-      );
-    }
+    assertPagoMatchesInvoice(g, xmlText, billUuid, Number(payment.amount));
 
     const { data: dup } = await supabase
       .from("supplier_payments")
@@ -226,30 +232,14 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
       throw new g.HttpError(409, `El UUID ${repUuid} ya está registrado en otro pago`);
     }
 
-    const xmlPath = `supplier-rep/${bill.id}/${payment_id}.xml`;
-    const { error: xmlErr } = await supabase.storage.from(BUCKET).upload(
-      xmlPath,
-      new Blob([xmlText], { type: "application/xml" }),
-      { contentType: "application/xml", upsert: true },
+    const { xmlPath, pdfPath } = await uploadRepFiles(
+      g,
+      supabase,
+      bill.id,
+      payment_id,
+      xmlText,
+      pdf_base64,
     );
-    if (xmlErr) {
-      throw new g.HttpError(500, `No se pudo subir XML: ${xmlErr.message}`);
-    }
-
-    let pdfPath: string | null = null;
-    if (pdf_base64 && typeof pdf_base64 === "string") {
-      try {
-        const p = `supplier-rep/${bill.id}/${payment_id}.pdf`;
-        const { error: pdfErr } = await supabase.storage.from(BUCKET).upload(
-          p,
-          base64ToBytes(pdf_base64),
-          { contentType: "application/pdf", upsert: true },
-        );
-        if (!pdfErr) pdfPath = p;
-      } catch (e) {
-        console.error("PDF upload failed:", e);
-      }
-    }
 
     const { error: updErr } = await supabase
       .from("supplier_payments")
