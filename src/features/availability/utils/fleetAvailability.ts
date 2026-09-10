@@ -13,31 +13,47 @@ export interface FleetAvailability {
 }
 
 /**
- * El estado de la unidad es canónico: una reserva sólo compromete fechas y la
- * entrega completada es el evento que cambia `forklifts.status` a `rented`.
- * Mantener `bookings` y `todayYmd` en la firma evita romper consumidores que
- * todavía los usan para disponibilidad de calendario, pero no derivamos el
- * ciclo de vida de la unidad a partir de esas consultas.
+ * El estado persistido de la unidad sigue mandando para mantenimiento, retiro
+ * y venta, pero una unidad `available` con reserva confirmada VIGENTE hoy se
+ * cuenta como ocupada.
+ *
+ * Motivo (bug del tablero, 2026-09-10): cerrar la entrega es el único evento
+ * que pasa `forklifts.status` a `rented`; con 21 entregas nunca cerradas el
+ * tablero reportaba como disponibles unidades que llevaban meses en campo.
+ * Contar la ocupación real evita volver a "vender" equipo ya entregado.
  */
 export function computeFleetAvailability(
   forklifts: ForkliftLike[] | undefined,
-  _bookings: BookingLike[] | undefined,
-  _todayYmd?: string,
+  bookings: BookingLike[] | undefined,
+  todayYmd?: string,
 ): FleetAvailability | null {
   if (!forklifts) return null;
 
+  const occupiedByBooking = new Set<string>();
+  if (todayYmd && bookings) {
+    for (const b of bookings) {
+      if (b.status !== "confirmed") continue;
+      if (b.start_date <= todayYmd && b.end_date >= todayYmd) occupiedByBooking.add(b.forklift_id);
+    }
+  }
+
+  const effectiveStatus = (forklift: ForkliftLike) =>
+    forklift.status === FORKLIFT_STATUS.available && occupiedByBooking.has(forklift.id)
+      ? FORKLIFT_STATUS.rented
+      : forklift.status;
+
+  const statuses = forklifts.map((f) => ({ id: f.id, status: effectiveStatus(f) }));
+
   const rentedForkliftIds = new Set(
-    forklifts
-      .filter((forklift) => forklift.status === FORKLIFT_STATUS.rented)
-      .map((forklift) => forklift.id),
+    statuses.filter((f) => f.status === FORKLIFT_STATUS.rented).map((f) => f.id),
   );
 
   const isActive = (status: string) =>
     status !== FORKLIFT_STATUS.retired && status !== FORKLIFT_STATUS.sold;
-  const maintenance = forklifts.filter((f) => f.status === FORKLIFT_STATUS.maintenance).length;
-  const rented = forklifts.filter((f) => f.status === FORKLIFT_STATUS.rented).length;
-  const available = forklifts.filter((f) => f.status === FORKLIFT_STATUS.available).length;
-  const totalActive = forklifts.filter((f) => isActive(f.status)).length;
+  const maintenance = statuses.filter((f) => f.status === FORKLIFT_STATUS.maintenance).length;
+  const rented = statuses.filter((f) => f.status === FORKLIFT_STATUS.rented).length;
+  const available = statuses.filter((f) => f.status === FORKLIFT_STATUS.available).length;
+  const totalActive = statuses.filter((f) => isActive(f.status)).length;
 
   return { rentedForkliftIds, rented, available, maintenance, totalActive };
 }

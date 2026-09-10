@@ -1,0 +1,14 @@
+{
+  "version": "8.7.0",
+  "date": "2026-09-10",
+  "type": "minor",
+  "category": "improvement",
+  "title": "El panel ya no cuenta como disponibles los montacargas que están en renta",
+  "description": "El panel mostraba 47 unidades disponibles y sólo 5 rentadas. La causa: cerrar la entrega es lo único que pasa una unidad a 'rentado', y 21 entregas quedaron en 'programada' aunque el equipo llevaba meses en campo. Ahora el conteo considera las rentas vigentes, se avisa de las entregas por cerrar y se regularizaron las unidades afectadas.",
+  "changes": [
+    "Conteo de flota: una unidad con renta confirmada vigente hoy se cuenta como rentada aunque su entrega siga abierta; utilización y gráfica de flota usan el mismo criterio.",
+    "Nuevo aviso en el panel: 'Entregas pendientes de cerrar', con acceso directo a la lista para cerrarlas.",
+    "Regularización de datos: 21 montacargas con renta vigente pasaron a 'rentado', con registro en la bitácora de estatus.",
+    "Las entregas siguen requiriendo evidencia (operador, firma o justificación) para cerrarse; no se cerraron automáticamente."
+  ]
+}

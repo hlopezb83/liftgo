@@ -51,12 +51,19 @@ interface AlertsRowProps {
   maintenanceAlerts: MaintenanceAlert[];
   agingBuckets: AgingBucket[];
   overdueBookings: OverdueBooking[];
+  /** Entregas programadas con fecha ya pasada que nadie cerró. */
+  pendingDeliveriesCount?: number;
 }
 
-export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings }: AlertsRowProps) {
+export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings, pendingDeliveriesCount = 0 }: AlertsRowProps) {
   const navigate = useNavigateTransition();
 
-  if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0 && overdueBookings.length === 0) return null;
+  if (
+    overdueInvoices.length === 0 &&
+    maintenanceAlerts.length === 0 &&
+    overdueBookings.length === 0 &&
+    pendingDeliveriesCount === 0
+  ) return null;
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -179,6 +186,8 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
         </AlertCard>
       )}
 
+      <PendingDeliveriesCard count={pendingDeliveriesCount} />
+
       {maintenanceAlerts.length > 0 && (
         <AlertCard icon={MaintenanceIcon} title="Servicio Pendiente" count={maintenanceAlerts.length} tone="maintenance">
           {maintenanceAlerts.map((a) => (
@@ -198,5 +207,35 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
         </AlertCard>
       )}
     </div>
+  );
+}
+
+/**
+ * Bug tablero 2026-09-10: cerrar la entrega es el único evento que pasa la
+ * unidad a "rentada". Con entregas programadas vencidas sin cerrar, el
+ * catálogo seguía ofreciendo equipo que ya estaba en campo.
+ */
+function PendingDeliveriesCard({ count }: { count: number }) {
+  const navigate = useNavigateTransition();
+  if (count === 0) return null;
+  return (
+    <AlertCard icon={ClipboardList} title="Entregas pendientes de cerrar" count={count} tone="warning"
+      footer={
+        <Button
+          type="button"
+          variant="link"
+          size="sm"
+          onClick={() => navigate("/deliveries?status=scheduled")}
+          className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning"
+        >
+          Ver entregas por cerrar →
+        </Button>
+      }
+    >
+      <p className="text-sm text-muted-foreground">
+        Su fecha programada ya pasó. Mientras no se cierren, esas unidades siguen
+        apareciendo como disponibles en el catálogo.
+      </p>
+    </AlertCard>
   );
 }

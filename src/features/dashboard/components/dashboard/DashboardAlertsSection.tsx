@@ -17,6 +17,7 @@ interface DashboardAlertsSectionProps {
   upcomingInvoices: CollectionForecastProps["upcomingInvoices"];
   expiringContracts: ExpiringContractsAlertProps["contracts"];
   insuranceData: InsuranceAlertProps["data"];
+  pendingDeliveriesCount?: number;
   /** GUI-FE-05 (G-VEN-05/06): roles sin acceso a Facturas no ven widgets
    *  ni links de cobranza (evita "Sin permisos" y toast Forbidden). */
   canSeeFinancials?: boolean;
@@ -31,6 +32,7 @@ export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
         maintenanceAlerts={props.maintenanceAlerts}
         agingBuckets={props.agingBuckets}
         overdueBookings={props.overdueBookings}
+        pendingDeliveriesCount={props.pendingDeliveriesCount}
       />
       {showFinancials && (
         <CollectionForecast overdueInvoices={props.overdueInvoices} upcomingInvoices={props.upcomingInvoices} />
