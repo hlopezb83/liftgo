@@ -7,8 +7,8 @@ import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 import { isIssuedInvoiceStatus } from "@/lib/domain/invoiceStatus";
+import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 import { useQuote } from "../quotes/useQuotes";
 import { resolveLegacyForkliftIds } from "./quoteBookingBuilders";
 
