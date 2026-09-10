@@ -8,7 +8,7 @@ import { bookingKeys } from "../../lib/queryKeys";
 const sel = (s: string): string => s;
 
 const BOOKING_EXTENSION_COLUMNS = sel(
-  "id, booking_id, original_end_date, new_end_date, reason, created_at, invoice_id, billed_at",
+  "id, booking_id, original_end_date, new_end_date, reason, created_at, invoice_id, billed_at, pending_invoice_id",
 );
 
 export function useBookingExtensions(bookingId?: string) {
@@ -72,19 +72,40 @@ export function useBookingExtension(extensionId?: string) {
   });
 }
 
+/** Estados de factura que ya cuentan como emitida (no borrador, no cancelada). */
+export function isIssuedInvoiceStatus(status: string | null | undefined): boolean {
+  return !!status && status !== "draft" && status !== "cancelled";
+}
+
 /**
- * Sella la extensión como facturada. El trigger de BD impide re-vincularla a
- * otra factura si ya tenía una (guard contra doble cobro).
+ * Bloque 1 · G: la extensión sólo se marca como facturada cuando la factura ya
+ * está emitida y no cancelada. Mientras la factura sea borrador se reserva en
+ * `pending_invoice_id` y el trigger de BD la liga (invoice_id + billed_at) de
+ * forma atómica al emitirla. El guard de BD impide re-vincular una extensión
+ * ya facturada (protección contra doble cobro).
  */
-export function useMarkExtensionBilled() {
+export function useLinkExtensionInvoice() {
   return useEntityMutation({
     mutationFn: async (vars: { extensionId: string; bookingId: string; invoiceId: string }) => {
-      // Fix 5.4: UPDATE condicional — si otra pestaña/proceso ya ligó una
-      // factura a esta extensión, `.is("invoice_id", null)` no afecta filas y
-      // lanzamos error explícito en vez de dejarlo pasar en silencio.
+      const { data: invoice, error: invoiceError } = await supabase
+        .from("invoices")
+        .select("id, status, cfdi_status")
+        .eq("id", vars.invoiceId)
+        .maybeSingle();
+      if (invoiceError) throw invoiceError;
+      if (!invoice) throw new Error("La factura de la extensión no existe");
+
+      const issued =
+        isIssuedInvoiceStatus(invoice.status) && invoice.cfdi_status !== "cancelled";
+
+      // UPDATE condicional: si otra pestaña/proceso ya ligó una factura a esta
+      // extensión, `.is("invoice_id", null)` no afecta filas y avisamos.
+      const patch = issued
+        ? { invoice_id: vars.invoiceId, billed_at: new Date().toISOString() }
+        : { pending_invoice_id: vars.invoiceId };
       const { data, error } = await supabase
         .from("booking_extensions")
-        .update({ invoice_id: vars.invoiceId, billed_at: new Date().toISOString() })
+        .update(patch)
         .eq("id", vars.extensionId)
         .is("invoice_id", null)
         .select("id");
@@ -92,10 +113,10 @@ export function useMarkExtensionBilled() {
       if (!data || data.length === 0) {
         throw new Error("Esta extensión ya fue facturada");
       }
-      return vars;
+      return { ...vars, issued };
     },
     invalidateKeysFn: (_d, vars) => [bookingKeys.extensions(vars.bookingId), bookingKeys.all],
-    errorTitle: "Error al marcar la extensión como facturada",
+    errorTitle: "Error al ligar la extensión con la factura",
   });
 }
 

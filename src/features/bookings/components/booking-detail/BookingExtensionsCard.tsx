@@ -19,12 +19,19 @@ interface Extension {
   reason?: string | null;
   invoice_id?: string | null;
   billed_at?: string | null;
+  pending_invoice_id?: string | null;
 }
 
 interface Props {
   extensions: Extension[];
   /** Las reservas con facturación recurrente ya cobran los días extra en la mensualidad. */
   recurringBilling?: boolean | null;
+}
+
+function billingBadgeLabel(isBilled: boolean, isPendingIssue: boolean, days: number): string {
+  if (isBilled) return "Facturada";
+  if (isPendingIssue) return "Pendiente de emisión";
+  return `${days} día(s) por facturar`;
 }
 
 export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
@@ -51,6 +58,10 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
           const range = extensionBillableRange(ext.original_end_date, ext.new_end_date);
           const invoiceId = ext.invoice_id ?? null;
           const isBilled = !!invoiceId;
+          // Bloque 1 · G: reservada a una factura en borrador — pendiente de
+          // emisión, todavía no cuenta como facturada.
+          const pendingInvoiceId = ext.pending_invoice_id ?? null;
+          const isPendingIssue = !isBilled && !!pendingInvoiceId;
 
           // La acción permitida por permisos permanece visible: si ya está
           // facturada se muestra deshabilitada con el motivo, junto al enlace
@@ -70,15 +81,15 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
               {range && !recurringBilling && (
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={isBilled ? "secondary" : "outline"}>
-                    {isBilled
-                      ? "Facturada"
-                      : `${range.days} día(s) por facturar`}
+                    {billingBadgeLabel(isBilled, isPendingIssue, range.days)}
                   </Badge>
-                  {invoiceId && (
+                  {(invoiceId || pendingInvoiceId) && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => navigate(ROUTES.invoices.detail(invoiceId))}
+                      onClick={() =>
+                        navigate(ROUTES.invoices.detail((invoiceId ?? pendingInvoiceId) as string))
+                      }
                     >
                       Ver factura
                     </Button>
@@ -87,7 +98,11 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
 
                   {showBillAction && (
                     <BlockedActionButton
-                      block={isBilled ? describeBusinessBlock("extension_already_billed") : null}
+                      block={
+                        isBilled || isPendingIssue
+                          ? describeBusinessBlock("extension_already_billed")
+                          : null
+                      }
                       size="sm"
                       variant="outline"
                       onClick={() => navigate(`${ROUTES.invoices.new}?extension_id=${ext.id}`)}

@@ -33,4 +33,11 @@ describe("BookingExtensionsCard · extensión ya facturada", () => {
     renderCard({});
     expect(await screen.findByRole("button", { name: /facturar extensión/i })).toBeEnabled();
   });
+
+  it("muestra pendiente de emisión cuando la factura sigue en borrador", async () => {
+    renderCard({ pending_invoice_id: "inv-draft" });
+    expect(await screen.findByText("Pendiente de emisión")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /facturar extensión/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /ver factura/i })).toBeInTheDocument();
+  });
 });

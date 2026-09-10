@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { useMarkExtensionBilled } from "@/features/bookings";
+import { useLinkExtensionInvoice } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { useParams, useSearchParams } from "@/lib/router-compat";
@@ -30,7 +30,7 @@ export default function InvoiceForm() {
   const extensionId = searchParams.get("extension_id");
 
   const f = useInvoiceFormLogic({ id, fromQuoteId, extensionId });
-  const markExtensionBilled = useMarkExtensionBilled();
+  const linkExtensionInvoice = useLinkExtensionInvoice();
 
   useDamagePrefill({
     isEdit: f.isEdit,
@@ -85,10 +85,10 @@ export default function InvoiceForm() {
         }
         // El daño, cuando existe, ya quedó ligado por el mismo RPC que creó la
         // factura. Un conflicto revierte la factura completa y no llega aquí.
-        // v7.307.0: sellar la extensión como facturada (guard en BD impide
-        // ligarla a una segunda factura).
+        // Bloque 1 · G: la extensión queda reservada a esta factura; sólo se
+        // marca como facturada cuando la factura se emite (trigger en BD).
         if (extensionId && f.extension?.booking_id) {
-          await markExtensionBilled.mutateAsync({
+          await linkExtensionInvoice.mutateAsync({
             extensionId,
             bookingId: f.extension.booking_id,
             invoiceId: data.id,
