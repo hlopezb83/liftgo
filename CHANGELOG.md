@@ -1,3 +1,12 @@
+## [8.2.1] - 2026-09-10
+### Correcciones de la auditoría QA
+- RPC desligado: todas las llamadas que guardan `supabase.rpc` en una variable usan `supabase.rpc.bind(supabase)` (conciliación bancaria: consulta/KPIs/importación, portal de clientes, asignación de montacargas, puntos de feedback, facturas con saldo y el wrapper compartido `callRpc`).
+- Dashboard: la alerta de facturas vencidas muestra el saldo pendiente en MXN (`balance_mxn`), con fallback a `balance` y luego a `total` para fixtures legacy; regresión añadida para factura parcialmente pagada.
+- Reportes: utilización de flota con barras horizontales, nombre por barra, etiquetas truncadas y scroll interno; se conservan tooltip, porcentajes y exportación CSV.
+- Conciliación bancaria: `get_bank_statement_lines_page` escapa `%`, `_` y `\` y aplica `ESCAPE '\'`; migración posterior para entornos donde la original ya corrió, sin tocar datos.
+- Móvil: la acción primaria de Clientes, Reservas y Cotizaciones se renderiza al final de la lista, en flujo, con espacio de safe-area, en lugar del overlay fijo que tapaba las tarjetas.
+- Validación local: `tsc --noEmit` limpio, ESLint sin errores en los archivos tocados y 366 pruebas focalizadas (1 timeout por carga, verde al reejecutar aislado). Suite completa y cobertura en GitHub Actions.
+
 ## [8.2.0] - 2026-09-09
 ### Correcciones integrales de lógica de negocio
 - Facturas: `paid` sólo persiste con saldo cubierto por pagos convertidos y notas de crédito timbradas; el dashboard abre el flujo de pago y una reconciliación corrige facturas históricas inconsistentes.
