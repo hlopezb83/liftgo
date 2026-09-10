@@ -16,7 +16,10 @@ interface ListPageLayoutProps<T> {
   subtitle?: string;
   totalCount?: number;
   actions?: ReactNode;
-  /** Acción primaria opcional para mostrar como FAB flotante en móvil. */
+  /**
+   * Acción primaria opcional para móvil. QA-UX-05: se renderiza al final de la
+   * lista, en el flujo normal, para no tapar las tarjetas.
+   */
   mobileFab?: ReactNode;
   filters?: ReactNode;
   /**
@@ -105,7 +108,7 @@ export function ListPageLayout<T extends { id?: string }>({
         ref={sentinelRef}
         className={cn(
           "p-4 sm:p-6 space-y-6",
-          hasMobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]",
+          hasMobileFab && "pb-[calc(env(safe-area-inset-bottom)+1.5rem)]",
         )}
       >
         <PullToRefreshIndicator
@@ -148,19 +151,24 @@ export function ListPageLayout<T extends { id?: string }>({
           skeletonColumns={skeletonColumns}
           loadMore={loadMore}
         />
+        {hasMobileFab && <MobileActionFooter>{mobileFab}</MobileActionFooter>}
       </div>
-      {hasMobileFab && <MobileFabOverlay>{mobileFab}</MobileFabOverlay>}
     </PageTransition>
   );
 }
 
-function MobileFabOverlay({ children }: { children: ReactNode }) {
+/**
+ * QA-UX-05: la acción primaria móvil vivía en un overlay `fixed` que cubría la
+ * última tarjeta de Clientes, Reservas y Cotizaciones. Ahora se coloca en el
+ * flujo, al final de la lista, reservando el safe-area inferior.
+ */
+function MobileActionFooter({ children }: { children: ReactNode }) {
   return (
     <div
-      className="fixed right-4 z-40 pointer-events-none"
-      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+      className="flex justify-center pt-2 [&_button]:w-full"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="pointer-events-auto">{children}</div>
+      {children}
     </div>
   );
 }
