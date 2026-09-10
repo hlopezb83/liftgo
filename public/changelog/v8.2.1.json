@@ -1,0 +1,15 @@
+{
+  "version": "8.2.1",
+  "date": "2026-09-10",
+  "type": "patch",
+  "category": "fix",
+  "title": "Correcciones QA: contexto RPC, saldo vencido, utilización, búsqueda bancaria y acción móvil",
+  "description": "Cinco defectos detectados en la auditoría QA reciente, sin cambios en permisos, RLS ni contratos públicos.",
+  "changes": [
+    "Las llamadas a funciones de base de datos guardadas en variables conservan su contexto (conciliación bancaria, portal de clientes, asignación de montacargas, puntos de feedback, facturas con saldo y el envoltorio compartido).",
+    "Dashboard: las alertas de facturas vencidas muestran el saldo pendiente convertido a MXN, con respaldo seguro para datos antiguos.",
+    "Reportes: la utilización de flota usa barras horizontales con nombre por barra, etiquetas truncadas y desplazamiento interno; se conservan tooltip, porcentajes y exportación.",
+    "Conciliación bancaria: la búsqueda trata %, _ y \\ como texto literal mediante patrón escapado con cláusula ESCAPE.",
+    "Móvil: la acción principal de Clientes, Reservas y Cotizaciones ya no cubre las tarjetas; se muestra al final de la lista respetando el área segura."
+  ]
+}
