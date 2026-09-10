@@ -17,6 +17,8 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
   // El backend bloquea editar un contrato firmado (`enforce_signed_contract_lock`).
   // En vez de esconder la acción, se muestra deshabilitada con el motivo.
   const isLocked = status === "signed" || status === "completed";
+  const hasSigner = !!contract.signed_by && contract.signed_by.trim() !== "";
+
   return (
     <>
       {status === "draft" && (
