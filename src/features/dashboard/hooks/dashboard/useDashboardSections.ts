@@ -155,6 +155,7 @@ export function useDashboardSections() {
     }),
     financialsIsFetching: kpisQuery.isFetching,
     refetchFinancials: kpisQuery.refetch,
+    pendingDeliveriesCount: countOverdueDeliveries(deliveries),
     alertsProps: buildAlertsProps(stats, upcomingInvoices, kpis),
   };
 }
