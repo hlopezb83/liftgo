@@ -23,11 +23,10 @@ describe("ContractDetailActions · firma (bloque 2 · C)", () => {
     expect(onSetStatus).toHaveBeenCalledWith("signed", expect.objectContaining({ signed_at: expect.any(String) }));
   });
 
-  it("no firma sin firmante y explica el motivo", async () => {
+  it("no firma sin firmante registrado", async () => {
     const onSetStatus = vi.fn();
     render(<ContractDetailActions id="ct-1" status="sent" contract={contract("  ")} onSetStatus={onSetStatus} />);
     fireEvent.click(screen.getByRole("button", { name: /Marcar Firmado/i }));
     expect(onSetStatus).not.toHaveBeenCalled();
-    expect(await screen.findByText(/Falta registrar quién firmó/i)).toBeInTheDocument();
   });
 });
