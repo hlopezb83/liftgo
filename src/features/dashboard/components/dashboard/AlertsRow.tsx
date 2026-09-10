@@ -186,32 +186,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
         </AlertCard>
       )}
 
-      {/* Bug tablero 2026-09-10: la entrega sin cerrar deja la unidad como
-          "disponible" en el catálogo. Se hace visible para que se cierre. */}
-      {pendingDeliveriesCount > 0 && (
-        <AlertCard
-          icon={ClipboardList}
-          title="Entregas pendientes de cerrar"
-          count={pendingDeliveriesCount}
-          tone="warning"
-          footer={
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              onClick={() => navigate("/deliveries?status=scheduled")}
-              className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning"
-            >
-              Ver entregas por cerrar →
-            </Button>
-          }
-        >
-          <p className="text-sm text-muted-foreground">
-            Su fecha programada ya pasó. Mientras no se cierren, esas unidades siguen
-            apareciendo como disponibles en el catálogo.
-          </p>
-        </AlertCard>
-      )}
+      <PendingDeliveriesCard count={pendingDeliveriesCount} />
 
       {maintenanceAlerts.length > 0 && (
         <AlertCard icon={MaintenanceIcon} title="Servicio Pendiente" count={maintenanceAlerts.length} tone="maintenance">
