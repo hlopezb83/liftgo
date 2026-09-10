@@ -23,7 +23,7 @@ export default function Dashboard() {
     statCards, utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
     monthlyUtilization, revenuePerUnit, cashFlowData,
-    overdueInvoices,
+    overdueInvoices, pendingDeliveriesCount,
     financials, alertsProps, canSeeFinancials,
     financialsState, financialsIsFetching, refetchFinancials,
   } = useDashboardSections();
@@ -116,6 +116,7 @@ export default function Dashboard() {
               maintenanceAlerts={maintenanceAlerts}
               agingBuckets={agingBuckets}
               insuranceData={insuranceData}
+              pendingDeliveriesCount={pendingDeliveriesCount}
               canSeeFinancials={canSeeFinancials}
               {...alertsProps}
             />
