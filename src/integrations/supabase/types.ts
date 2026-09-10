@@ -4144,6 +4144,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_credit_note_for_stamping: {
+        Args: { p_credit_note_id: string }
+        Returns: Json
+      }
       claim_maintenance_policy_month: {
         Args: { p_month: string; p_policy_id: string }
         Returns: boolean
@@ -4424,6 +4428,7 @@ export type Database = {
           id: string
         }[]
       }
+      get_cash_flow_recurring_bookings: { Args: never; Returns: Json[] }
       get_customer_forklifts_brief: {
         Args: never
         Returns: {
