@@ -9,9 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  usePortalInvoices,
-  usePortalPayments,
+  usePortalInvoice,
+  usePortalInvoicePayments,
   usePortalCustomer,
+  type PortalInvoiceRow,
+  type PortalPaymentRow,
 } from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -191,22 +193,23 @@ export default function PortalInvoicePayment() {
   // A3-01: capturar error/refetch de las 3 queries — sin esto un fallo de red
   // mostraba "Factura no encontrada" o un saldo falso en la pantalla de cobro
   // (riesgo de pago duplicado).
-  const inv = usePortalInvoices();
-  const pay = usePortalPayments();
-  const { data: customer } = usePortalCustomer();
+  const inv = usePortalInvoice(id);
+  const pay = usePortalInvoicePayments(id);
+  const customerQuery = usePortalCustomer();
   const int = usePortalPaymentIntents(id);
   const [dlgOpen, setDlgOpen] = useState(false);
 
-  const invoices = inv.data;
+  const customer = customerQuery.data;
   const intents = int.data;
-  const invoice = invoices?.find((i) => i.id === id);
-  const invoicePayments = pay.data?.filter((p) => p.invoice_id === id) ?? [];
+  const invoice = inv.data;
+  const invoicePayments = pay.data ?? [];
 
-  const isLoading = inv.isLoading || pay.isLoading;
-  const hasError = inv.isError || pay.isError || int.isError;
+  const isLoading = inv.isLoading || pay.isLoading || customerQuery.isLoading || int.isLoading;
+  const hasError = inv.isError || pay.isError || customerQuery.isError || int.isError;
   const retryAll = () => {
     void inv.refetch();
     void pay.refetch();
+    void customerQuery.refetch();
     void int.refetch();
   };
 
@@ -227,8 +230,8 @@ export default function PortalInvoicePayment() {
 }
 
 interface PaymentBodyProps {
-  invoice: NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
-  invoicePayments: NonNullable<ReturnType<typeof usePortalPayments>["data"]>;
+  invoice: PortalInvoiceRow;
+  invoicePayments: PortalPaymentRow[];
   intents: Intent[];
   customer: ReturnType<typeof usePortalCustomer>["data"];
   dlgOpen: boolean;
@@ -284,4 +287,3 @@ function PaymentBody({
     </PageContainer>
   );
 }
-

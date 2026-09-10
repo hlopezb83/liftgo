@@ -32,11 +32,18 @@ export function useDamagePermissions(): DamagePermissions {
 }
 
 /**
- * Condiciones reales de `soft_delete_damage_record`: cargo facturado
- * (invoice_id) o reparado sin cargo.
+ * Condiciones de `soft_delete_damage_record`: la reparación física debe estar
+ * cerrada; si el estado es facturado, además exige una factura consistente.
  */
-export function damageArchiveBlockReason(record: { invoice_id: string | null; status: string }) {
-  const canArchive = record.invoice_id != null || record.status === "repaired";
+export function damageArchiveBlockReason(record: {
+  invoice_id: string | null;
+  repaired_at?: string | null;
+  status: string;
+}) {
+  const repairFinished =
+    !!record.repaired_at && (record.status === "repaired" || record.status === "invoiced");
+  const billingConsistent = record.status !== "invoiced" || record.invoice_id != null;
+  const canArchive = repairFinished && billingConsistent;
   const archiveBlock = canArchive ? null : describeBusinessBlock("damage_not_repaired");
   return {
     canArchive,

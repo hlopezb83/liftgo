@@ -1,5 +1,6 @@
 import {
   buildLine,
+  BankStatementLineLimitError,
   computePeriod,
   parseAmount,
   parseDateFlexible,
@@ -93,7 +94,11 @@ async function parseRow(
 }
 
 
-export async function parseBankCsv(content: string, profile: StatementProfile): Promise<ParseResult> {
+export async function parseBankCsv(
+  content: string,
+  profile: StatementProfile,
+  maxLines = Number.POSITIVE_INFINITY,
+): Promise<ParseResult> {
   const rows = splitCsv(content);
   const errors: string[] = [];
   const lines: ParsedBankLine[] = [];
@@ -111,6 +116,10 @@ export async function parseBankCsv(content: string, profile: StatementProfile): 
   // partió la fila y corrió los datos.
   const maxCols = maxColumns(map);
   const startIdx = parseDateFlexible(rows[0][0] ?? "") ? 0 : 1;
+  const movementCount = rows.length - startIdx;
+  if (movementCount > maxLines) {
+    throw new BankStatementLineLimitError(movementCount, maxLines);
+  }
   for (let i = startIdx; i < rows.length; i++) {
     // Ignoramos celdas vacías al final (exportaciones que dejan la coma final).
     const row = [...rows[i]];

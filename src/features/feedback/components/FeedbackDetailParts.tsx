@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Separator } from "@/components/ui/separator";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateTimeMty } from "@/lib/format/dateFormats";
@@ -37,14 +38,30 @@ export function FeedbackMetaList({
   );
 }
 
-export function FeedbackHistoryList({ history }: { history: FeedbackHistoryEntry[] | undefined }) {
+export function FeedbackHistoryList({
+  history,
+  isLoading = false,
+  isError = false,
+  onRetry,
+}: {
+  history: FeedbackHistoryEntry[] | undefined;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+}) {
   const list = history ?? [];
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">Historial</h4>
-      {list.length === 0 && <p className="text-xs text-muted-foreground">Sin cambios todavía.</p>}
+      {isLoading && <p className="text-xs text-muted-foreground">Cargando historial…</p>}
+      {isError && (
+        <QueryErrorState entity="el historial del reporte" onRetry={() => onRetry?.()} bare />
+      )}
+      {!isLoading && !isError && list.length === 0 && (
+        <p className="text-xs text-muted-foreground">Sin cambios todavía.</p>
+      )}
       <ul className="space-y-2">
-        {list.map((h) => {
+        {!isLoading && !isError && list.map((h) => {
           const fromLabel = h.from_status
             ? `${FEEDBACK_STATUS_LABELS[h.from_status as FeedbackStatus] ?? h.from_status} → `
             : "";

@@ -20,9 +20,10 @@ interface Props {
   availableFields: string[];
   mapping: XmlFieldMapping;
   onChange: (mapping: XmlFieldMapping) => void;
+  disabled?: boolean;
 }
 
-export function BankXmlFieldMapper({ availableFields, mapping, onChange }: Props) {
+export function BankXmlFieldMapper({ availableFields, mapping, onChange, disabled = false }: Props) {
   const setField = (key: XmlFieldKey, value: string) => {
     const next = { ...mapping };
     if (value === NONE) delete next[key];
@@ -43,7 +44,11 @@ export function BankXmlFieldMapper({ availableFields, mapping, onChange }: Props
           {FIELD_ORDER.map((key) => (
             <div key={key} className="grid gap-1.5">
               <Label className="text-xs">{FIELD_LABELS[key]}</Label>
-              <Select value={mapping[key] ?? NONE} onValueChange={(v) => setField(key, v)}>
+              <Select
+                value={mapping[key] ?? NONE}
+                onValueChange={(v) => setField(key, v)}
+                disabled={disabled}
+              >
                 <SelectTrigger><SelectValue placeholder="Sin asignar" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE}>Sin asignar</SelectItem>

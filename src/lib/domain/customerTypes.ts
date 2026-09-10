@@ -37,5 +37,7 @@ export interface CustomerSummary {
     /** B5-02: notas de crédito aplicadas (MXN), restan al saldo del estado de cuenta. */
     total_credited?: number;
     outstanding_revenue?: number;
+    /** Documentos excluidos de los totales MXN por carecer de tipo de cambio. */
+    fx_missing_count?: number;
   };
 }

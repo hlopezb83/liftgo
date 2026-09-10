@@ -115,6 +115,9 @@ export function useUserManual() {
     generate: () => generateMutation.mutate(undefined),
     isGenerating: generateMutation.isPending,
     versions: versionsQuery.data ?? [],
+    versionsIsLoading: versionsQuery.isLoading,
+    versionsIsError: versionsQuery.isError,
+    refetchVersions: versionsQuery.refetch,
     selectedVersion,
     setSelectedVersion,
   };

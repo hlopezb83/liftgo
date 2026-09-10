@@ -17,13 +17,10 @@ import type { Tables } from "@/integrations/supabase/types";
 import type { RentalLineMeta } from "@/lib/domain/lineItems";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { isForkliftSelectableForAssignment } from "../../lib/equipmentAssignmentAvailability";
 
 type Forklift = Tables<"forklifts">;
 type EquipmentModel = Tables<"equipment_models">;
-
-/** Estados en los que una unidad NO puede asignarse a una cotización. */
-const BLOCKED_STATUSES = new Set(["maintenance", "retired", "sold", "out_of_service"]);
-
 
 interface AssignmentResult {
   forkliftId: string;
@@ -104,11 +101,8 @@ export function EquipmentAssignmentDialog({
     startDate && endDate ? { from: parseISO(startDate), to: parseISO(endDate) } : undefined,
   );
   const rpcAvailableIds = datesSelected ? new Set(availableForklifts.map((f) => f.id)) : null;
-  // FIX A5: el `status` crudo se desincroniza (unidades `rented` cuya reserva
-  // ya terminó y nadie cerró la devolución). Antes quedaban fuera del selector
-  // aunque estuvieran libres. Usamos la misma definición operativa que Flota:
-  // los estados explícitos (maintenance/retired/sold/out_of_service) mandan y
-  // el resto se valida contra la RPC de disponibilidad de la ventana elegida.
+  // El estado físico es canónico; la RPC valida por separado compromisos de la
+  // ventana elegida y mantenimiento operativo.
   const { data: assignmentBookings } = useBookings();
   const todayYmd = useServerTodayMty();
   const rentedIds = useMemo(
@@ -118,11 +112,8 @@ export function EquipmentAssignmentDialog({
         : undefined,
     [forklifts, assignmentBookings, todayYmd],
   );
-  const isSelectable = (f: Forklift) => {
-    if (BLOCKED_STATUSES.has(f.status)) return false;
-    if (rpcAvailableIds) return true; // la RPC ya validó la ventana de fechas
-    return rentedIds ? !rentedIds.has(f.id) : f.status === "available";
-  };
+  const isSelectable = (f: Forklift) =>
+    isForkliftSelectableForAssignment(f, rpcAvailableIds, rentedIds);
 
 
   const form = useForm<FormValues>({

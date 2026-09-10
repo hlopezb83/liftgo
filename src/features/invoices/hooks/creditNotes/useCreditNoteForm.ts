@@ -3,9 +3,14 @@ import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { applyDiscountToBase, computeTotals, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
+import { creditNoteDiscountForSelection } from "../../lib/creditNoteDiscount";
 import { useCreateCreditNote } from "./useCreditNotes";
 
-export type EditableCreditNoteLine = LineItem & { _selected: boolean };
+export type EditableCreditNoteLine = LineItem & {
+  _selected: boolean;
+  /** Posición inmutable de la línea en la factura origen, también persistida en la NC. */
+  source_line_index: number;
+};
 
 export function useCreditNoteForm(
   invoice: Tables<"invoices">,
@@ -16,9 +21,36 @@ export function useCreditNoteForm(
   const [motive, setMotive] = useState<string>("return");
   const [reason, setReason] = useState("");
   const [lines, setLines] = useState<EditableCreditNoteLine[]>(() =>
-    original.map((li) => ({ ...li, _selected: true })),
+    original.map((li, sourceLineIndex) => ({
+      ...li,
+      source_line_index: sourceLineIndex,
+      _selected: true,
+    })),
   );
   const createMutation = useCreateCreditNote();
+
+  const normalizeSelectedLine = (line: EditableCreditNoteLine): LineItem & {
+    source_line_index: number;
+  } => {
+    const { _selected: _ignored, ...persisted } = line;
+    const source = original[persisted.source_line_index];
+    const selectedGross = lineItemTotal(persisted.quantity, persisted.unit_price);
+    const originalGross = source
+      ? lineItemTotal(source.quantity, source.unit_price)
+      : selectedGross;
+    const discount = creditNoteDiscountForSelection({
+      originalGross,
+      selectedGross,
+      originalDiscount: source?.discount ?? persisted.discount,
+      discountType: source?.discount_type ?? persisted.discount_type,
+    });
+    return {
+      ...persisted,
+      discount,
+      discount_type: source?.discount_type ?? persisted.discount_type,
+      total: selectedGross,
+    };
+  };
 
   const taxRate = Number(invoice.tax_rate) || 0;
   // BL-001: el cálculo vía currency.js (dentro de computeTotals) evita drift
@@ -31,10 +63,7 @@ export function useCreditNoteForm(
   // global sobre todo el subtotal, inflando el IVA de NCs con líneas exentas.
   const selectedItems: LineItem[] = lines
     .filter((l) => l._selected)
-    .map((l) => ({
-      ...l,
-      total: lineItemTotal(l.quantity, l.unit_price),
-    }));
+    .map(normalizeSelectedLine);
   const totals = computeTotals(selectedItems, taxRate);
   const subtotal = totals.subtotal;
   const taxAmount = totals.taxAmount;
@@ -56,7 +85,11 @@ export function useCreditNoteForm(
   const reset = () => {
     setMotive("return");
     setReason("");
-    setLines(original.map((li) => ({ ...li, _selected: true })));
+    setLines(original.map((li, sourceLineIndex) => ({
+      ...li,
+      source_line_index: sourceLineIndex,
+      _selected: true,
+    })));
   };
 
   // Fix 8.1: cap por línea contra la factura original. Sin esto se puede
@@ -67,7 +100,7 @@ export function useCreditNoteForm(
       prev.map((l, i) => {
         if (i !== idx) return l;
         const merged = { ...l, ...patch };
-        const src = original[idx];
+        const src = original[l.source_line_index];
         if (!src) return merged;
         if (patch.quantity !== undefined) {
           merged.quantity = Math.min(Number(patch.quantity) || 0, Number(src.quantity) || 0);
@@ -82,8 +115,8 @@ export function useCreditNoteForm(
 
   /** Máximo facturado por línea (para hints "Máximo: N unidades facturadas"). */
   const lineMax = (idx: number) => ({
-    quantity: Number(original[idx]?.quantity) || 0,
-    unit_price: Number(original[idx]?.unit_price) || 0,
+    quantity: Number(original[lines[idx]?.source_line_index]?.quantity) || 0,
+    unit_price: Number(original[lines[idx]?.source_line_index]?.unit_price) || 0,
   });
 
   const submit = (stamp: boolean) => {
@@ -91,12 +124,13 @@ export function useCreditNoteForm(
       .filter((l) => l._selected && Number(l.quantity) > 0 && Number(l.unit_price) > 0)
       // M24: persistir el total NETO de línea (con descuento aplicado) para que
       // la NC y su CFDI reflejen lo realmente acreditado.
-      .map(({ _selected: _s, ...rest }) => ({
-        ...rest,
+      .map(normalizeSelectedLine)
+      .map((line) => ({
+        ...line,
         total: applyDiscountToBase(
-          lineItemTotal(rest.quantity, rest.unit_price),
-          rest.discount,
-          rest.discount_type,
+          lineItemTotal(line.quantity, line.unit_price),
+          line.discount,
+          line.discount_type,
         ),
       }));
 

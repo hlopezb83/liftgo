@@ -19,15 +19,15 @@ function availabilityFor(status: string, hasBooking: boolean) {
   return { forklift, availability: computeFleetAvailability([forklift], bookings) };
 }
 
-describe("deriveForkliftDisplayStatus (R9-05)", () => {
-  it("muestra 'rentado' cuando el status crudo dice disponible pero hay reserva vigente", () => {
+describe("deriveForkliftDisplayStatus", () => {
+  it("muestra 'disponible' aunque exista una reserva vigente sin entrega", () => {
     const { forklift, availability } = availabilityFor(FORKLIFT_STATUS.available, true);
-    expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.rented);
+    expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.available);
   });
 
-  it("muestra 'disponible' cuando el status crudo dice rentado pero no hay reserva vigente", () => {
+  it("muestra 'rentado' aunque la consulta no incluya la reserva que originó la entrega", () => {
     const { forklift, availability } = availabilityFor(FORKLIFT_STATUS.rented, false);
-    expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.available);
+    expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.rented);
   });
 
   it("respeta mantenimiento aunque exista una reserva vigente", () => {

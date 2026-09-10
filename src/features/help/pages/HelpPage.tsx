@@ -9,7 +9,11 @@ import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualState
 import { useUserManual } from "../hooks/useUserManual";
 
 export default function HelpPage() {
-  const { manual, isLoading, isError, refetch, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();
+  const {
+    manual, isLoading, isError, refetch, generate, isGenerating,
+    versions, versionsIsLoading, versionsIsError, refetchVersions,
+    selectedVersion, setSelectedVersion,
+  } = useUserManual();
   const { data: role } = useUserRole();
   const [search, setSearch] = useState("");
   const isAdmin = role === "admin";
@@ -55,6 +59,17 @@ export default function HelpPage() {
         hasManual={!!manual}
         onGenerate={() => generate()}
       />
+
+      {versionsIsLoading && (
+        <p className="text-xs text-muted-foreground">Cargando versiones del manual…</p>
+      )}
+      {versionsIsError && (
+        <QueryErrorState
+          entity="las versiones del manual"
+          onRetry={() => { void refetchVersions(); }}
+          bare
+        />
+      )}
 
       {isGenerating && <ManualGeneratingCard />}
       {!manual && !isGenerating && <ManualEmptyCard isAdmin={isAdmin} onGenerate={() => generate()} />}

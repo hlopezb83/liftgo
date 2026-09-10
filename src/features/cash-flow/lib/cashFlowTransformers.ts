@@ -161,21 +161,31 @@ export interface RecurringBookingRow {
 }
 
 
-function addMonthsYmd(ymd: string, months: number): string {
-  const [y, m, d] = ymd.split("-").map(Number);
-  const date = new Date(Date.UTC(y, m - 1 + months, 1));
-  const lastDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
-  const day = Math.min(d, lastDay);
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+function toYmdUtc(date: Date): string {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+}
+
+function firstOfNextMonthYmd(ymd: string): string {
+  const [year, month] = ymd.split("-").map(Number);
+  return toYmdUtc(new Date(Date.UTC(year, month, 1)));
+}
+
+function lastOfMonthYmd(ymd: string): string {
+  const [year, month] = ymd.split("-").map(Number);
+  return toYmdUtc(new Date(Date.UTC(year, month, 0)));
 }
 
 /**
  * 2A-9: rentas recurrentes aún NO facturadas dentro del horizonte.
- * Sólo proyecta periodos mensuales completos posteriores al último facturado
- * y hasta el fin de la reserva; excluye monedas foráneas sin TC válido.
+ * Usa los mismos periodos calendario y prorrateo en centavos que
+ * `generate-recurring-invoices`; excluye monedas foráneas sin TC válido.
  * No crea reglas de negocio: es una estimación visual marcada como proyectada.
  */
-function recurringGrossMxn(b: RecurringBookingRow): number | null {
+function recurringGrossMxn(
+  b: RecurringBookingRow,
+  billedDays: number,
+  daysInMonth: number,
+): number | null {
   if (isFxMissing(b.currency, b.tipo_cambio)) return null;
   const rate = Number(b.monthly_rate ?? 0);
   if (!Number.isFinite(rate) || rate <= 0) return null;
@@ -183,7 +193,15 @@ function recurringGrossMxn(b: RecurringBookingRow): number | null {
   // (renta + IVA del cliente), no el neto: la Edge Function factura con
   // resolveVatRatePercent(customer.tax_rate).
   const vatRate = resolveVatRatePercent(b.customer_tax_rate ?? null);
-  const gross = currency(rate, { precision: 2 }).multiply(1 + vatRate / 100).value;
+  // Paridad con computeProrate + sumLineTaxCents del generador: primero se
+  // redondea el periodo a centavos y luego el IVA de esa línea.
+  const subtotal = currency(rate, { precision: 2 })
+    .multiply(billedDays)
+    .divide(daysInMonth).value;
+  const tax = currency(subtotal, { precision: 2 })
+    .multiply(vatRate)
+    .divide(100).value;
+  const gross = currency(subtotal, { precision: 2 }).add(tax).value;
   if (!Number.isFinite(gross) || gross <= 0) return null;
   const amountMxn = toMxn(gross, b.currency, b.tipo_cambio);
   if (!Number.isFinite(amountMxn) || amountMxn < MIN_PROJECTABLE_BALANCE_MXN) return null;
@@ -195,24 +213,37 @@ function recurringBookingItemsFor(
   todayYmd: string,
   horizonEndYmd: string,
 ): CashFlowItem[] {
-  const amountMxn = recurringGrossMxn(b);
-  if (amountMxn === null) return [];
   const items: CashFlowItem[] = [];
-  const anchor = b.last_billed_date && b.last_billed_date > b.start_date ? b.last_billed_date : b.start_date;
-  for (let i = 1; i <= 24; i++) {
-    const dueDate = addMonthsYmd(anchor, i);
-    if (dueDate > horizonEndYmd || dueDate > b.end_date) break;
-    if (dueDate < todayYmd) continue;
-    items.push({
-      id: `recurring:${b.id}:${dueDate}`,
-      number: b.booking_number,
-      partyName: b.customer_name ?? "—",
-      dueDate,
-      amountMxn,
-      kind: "in",
-      navigatePath: `/bookings/${b.id}`,
-      isProjected: true,
-    });
+  let periodStart = b.last_billed_date
+    ? firstOfNextMonthYmd(b.last_billed_date)
+    : b.start_date;
+
+  for (let i = 0; i < 24; i++) {
+    if (periodStart > b.end_date) break;
+
+    const monthEnd = lastOfMonthYmd(periodStart);
+    const dueDate = monthEnd < b.end_date ? monthEnd : b.end_date;
+    if (dueDate > horizonEndYmd) break;
+
+    const daysInMonth = Number(monthEnd.slice(8, 10));
+    const billedDays = Number(dueDate.slice(8, 10)) - Number(periodStart.slice(8, 10)) + 1;
+    const amountMxn = recurringGrossMxn(b, billedDays, daysInMonth);
+    if (amountMxn === null) return [];
+    if (dueDate >= todayYmd) {
+      items.push({
+        id: `recurring:${b.id}:${dueDate}`,
+        number: b.booking_number,
+        partyName: b.customer_name ?? "—",
+        dueDate,
+        amountMxn,
+        kind: "in",
+        navigatePath: `/bookings/${b.id}`,
+        isProjected: true,
+      });
+    }
+
+    if (dueDate >= b.end_date) break;
+    periodStart = firstOfNextMonthYmd(periodStart);
   }
   return items;
 }

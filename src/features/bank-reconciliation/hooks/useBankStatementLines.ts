@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { hasReachedListLimit, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { bankLineKeys } from "../lib/queryKeys";
 import type { BankLineStatus } from "../lib/bankReconciliationConstants";
 
 export interface BankStatementLine {
@@ -22,55 +21,133 @@ export interface BankStatementLine {
   ignored_reason: string | null;
 }
 
-export const bankLineQueries = defineEntityQueries<
-  "bank_statement_lines",
-  BankStatementLine[],
-  never
->("bank_statement_lines", {
-  staleTime: 30_000,
-  list: (filter) => async () => {
-    const bankAccountId = (filter?.bankAccountId as string | null | undefined) ?? null;
-    if (!bankAccountId) return [];
-    const { data, error } = await supabase
-      .from("bank_statement_lines")
-      .select(
-        "id, import_id, bank_account_id, posted_date, description, signed_amount, reference, status, matched_payment_id, matched_supplier_payment_id, suggested_payment_id, suggested_supplier_payment_id, match_score, matched_at, ignored_reason",
-      )
-      .eq("bank_account_id", bankAccountId)
-      .order("posted_date", { ascending: false })
-      .limit(LIST_FETCH_LIMIT);
-    if (error) throw error;
-    return (data ?? []).map((r) => ({
-      ...r,
-      signed_amount: Number(r.signed_amount),
-    })) as BankStatementLine[];
-  },
-});
+export interface BankStatementLineFilters {
+  status?: BankLineStatus | "all";
+  search?: string;
+  page?: number;
+  pageSize?: number;
+}
+
+export interface BankReconciliationKpis {
+  totalCount: number;
+  matchedCount: number;
+  pendingCount: number;
+  ignoredCount: number;
+  charges: number;
+  credits: number;
+}
+
+interface BankStatementLinePageRpc {
+  rows?: BankStatementLine[];
+  total_count?: number | string;
+}
+
+interface BankKpiRpcRow {
+  total_count: number | string;
+  matched_count: number | string;
+  pending_count: number | string;
+  ignored_count: number | string;
+  charges: number | string;
+  credits: number | string;
+}
+
+type UntypedRpc = (
+  name: string,
+  args: Record<string, unknown>,
+) => PromiseLike<{ data: unknown; error: { message: string } | null }>;
 
 /** Query key para las líneas de un estado de cuenta, filtradas por cuenta bancaria. */
 export const bankLinesKey = (bankAccountId: string | null) =>
-  bankLineQueries.list({ bankAccountId }).queryKey;
+  [...bankLineKeys.all, "account", bankAccountId] as const;
 
-export function useBankStatementLines(bankAccountId: string | null) {
+export function useBankStatementLines(
+  bankAccountId: string | null,
+  filters: BankStatementLineFilters = {},
+) {
+  const status = filters.status ?? "all";
+  const search = filters.search?.trim() ?? "";
+  const page = Math.max(1, filters.page ?? 1);
+  const pageSize = Math.min(100, Math.max(1, filters.pageSize ?? 50));
   const query = useQuery({
-    ...bankLineQueries.list({ bankAccountId }),
+    queryKey: [
+      ...bankLinesKey(bankAccountId),
+      "page",
+      { status, search, page, pageSize },
+    ] as const,
     enabled: !!bankAccountId,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const { data, error } = await rpc("get_bank_statement_lines_page", {
+        p_bank_account_id: bankAccountId,
+        p_status: status === "all" ? null : status,
+        p_search: search || null,
+        p_page_size: pageSize,
+        p_offset: (page - 1) * pageSize,
+      });
+      if (error) throw error;
+      const pageData = (
+        data && typeof data === "object" && !Array.isArray(data) ? data : {}
+      ) as BankStatementLinePageRpc;
+      const rows = Array.isArray(pageData.rows) ? pageData.rows : [];
+      return {
+        rows: rows.map((row) => ({
+          ...row,
+          signed_amount: Number(row.signed_amount),
+        })),
+        totalCount: Number(pageData.total_count ?? 0),
+      };
+    },
   });
-  // R4-29: exponer flag de truncado (patrón H-10a) para que la UI avise con
-  // ListTruncationNotice en vez de ocultar silenciosamente las líneas más
-  // viejas cuando la cuenta supera el tope de la lista.
-  return { ...query, isTruncated: hasReachedListLimit(query.data) };
+  return {
+    ...query,
+    data: query.data?.rows,
+    totalCount: query.data?.totalCount ?? 0,
+    page,
+    pageSize,
+  };
 }
 
+export function useBankReconciliationKpis(bankAccountId: string | null) {
+  return useQuery({
+    queryKey: [...bankLinesKey(bankAccountId), "kpis"] as const,
+    enabled: !!bankAccountId,
+    staleTime: 30_000,
+    queryFn: async (): Promise<BankReconciliationKpis> => {
+      const rpc = supabase.rpc as unknown as UntypedRpc;
+      const { data, error } = await rpc("get_bank_reconciliation_kpis", {
+        p_bank_account_id: bankAccountId,
+      });
+      if (error) throw error;
+      const row = (
+        Array.isArray(data) ? data[0] : data
+      ) as BankKpiRpcRow | null;
+      return {
+        totalCount: Number(row?.total_count ?? 0),
+        matchedCount: Number(row?.matched_count ?? 0),
+        pendingCount: Number(row?.pending_count ?? 0),
+        ignoredCount: Number(row?.ignored_count ?? 0),
+        charges: Number(row?.charges ?? 0),
+        credits: Number(row?.credits ?? 0),
+      };
+    },
+  });
+}
 
 /**
  * F8: ¿la cuenta tiene líneas de estado de cuenta importadas?
  * Se usa para bloquear el cambio de moneda en edición (rompería el scoring FX
  * del matching). Conteo head-only, sin traer filas.
  */
-export function useBankAccountHasLines(bankAccountId: string | null | undefined) {
+export function useBankAccountHasLines(
+  bankAccountId: string | null | undefined,
+) {
   return useQuery({
-    queryKey: [...bankLineQueries.keys.all, "has-lines", bankAccountId ?? null] as const,
+    queryKey: [
+      ...bankLineKeys.all,
+      "has-lines",
+      bankAccountId ?? null,
+    ] as const,
     enabled: !!bankAccountId,
     staleTime: 30_000,
     queryFn: async (): Promise<boolean> => {

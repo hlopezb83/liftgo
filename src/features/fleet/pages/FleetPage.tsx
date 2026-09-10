@@ -31,13 +31,10 @@ const EMPTY_SET: Set<string> = new Set();
 export default function FleetPage() {
   const { data: forkliftsRaw, isLoading, isError, refetch } = useForklifts();
   const forklifts = useMemo(() => visibleListRows(forkliftsRaw), [forkliftsRaw]);
-  // R6-FE-07: el status crudo se desincroniza (MC-103 available CON reserva
-  // activa; MC-105/107/109 rented sin reserva). El filtro "Rentado" usa la
-  // misma definición operativa que Panel y Calendario.
+  // El filtro "Rentado" usa el estado físico canónico compartido por Panel y
+  // Calendario; una reserva sin entrega no lo modifica.
   const { data: fleetBookings } = useBookings();
-  // R7-FE-01 (N7-UX-02): sin reservas cargadas NO remapeamos (rentedIds
-  // undefined), para no mostrar un flash "Disponible" en unidades rented
-  // mientras llega la query de bookings.
+  // Se conserva la firma compartida del helper mientras migran sus consumidores.
   const todayYmd = useServerTodayMty();
   const rentedIds = useMemo(
     () =>
@@ -46,9 +43,8 @@ export default function FleetPage() {
         : undefined,
     [forklifts, fleetBookings, todayYmd],
   );
-  // R7-FE-01: remap BIDIRECCIONAL — available→rented con reserva vigente
-  // (ya existía) y rented→available SIN reserva vigente (MC-105/107/109).
-  // maintenance/retired/sold mandan sobre la reserva (regla del helper).
+  // `computeFleetAvailability` ya no reinterpreta el estado con reservas:
+  // sólo una entrega completada persiste `rented`.
   // v7.281.1 · memoizado: sin esto el arreglo era nuevo en cada render y la
   // tabla reiniciaba la paginación a la página 1.
   const forkliftsForFilter = useMemo(

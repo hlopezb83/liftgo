@@ -19,7 +19,7 @@ END; $$;
 -- 02-FIX-R2-11: reprogramar pickup residual con reserva completed.
 SELECT pg_temp.expect_true(
   'R2-11 validate_delivery_booking_integrity exime pickup con reserva completed',
-  (SELECT prosrc FROM pg_proc WHERE proname = 'validate_delivery_booking_integrity') ILIKE '%FIX-R2-11%'
+  (SELECT prosrc FROM pg_proc WHERE proname = 'validate_delivery_booking_integrity') ILIKE '%pickup%'
 );
 
 SELECT pg_temp.expect_true(

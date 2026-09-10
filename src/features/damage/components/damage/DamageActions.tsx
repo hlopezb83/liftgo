@@ -5,7 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { maintenanceLogKeys } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { damageArchiveBlockReason, useDamagePermissions } from "../../hooks/useDamagePermissions";
@@ -29,7 +28,6 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const archiveDamage = useArchiveDamageRecord();
   const { tryStartRepairWorkOrder } = useStartRepairWorkOrder();
   const [archiveOpen, setArchiveOpen] = useState(false);
-  const [chargeOpen, setChargeOpen] = useState(false);
 
   const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
   const { canArchive, archiveBlock, archiveBlockReason } = damageArchiveBlockReason(record);
@@ -63,14 +61,20 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   // el handler es agnóstico al status previo — solo sella repaired_at.
   const handleMarkRepaired = () => {
     updateDamage.mutate(
-      // R7-FE-03 (N7-MOV-08): el FE sella `repaired_at`.
-      { id: record.id, status: "repaired", repaired_at: new Date().toISOString() },
+      // Las filas históricas pudieron quedar `invoiced` sin reparación. En ese
+      // caso se conserva el estado de cobro y se sella únicamente la reparación.
+      {
+        id: record.id,
+        status: record.status === "invoiced" ? "invoiced" : "repaired",
+        repaired_at: new Date().toISOString(),
+      },
       { onSuccess: () => notifySuccess("Daño marcado como reparado") },
     );
   };
 
   const cost = chargeableDamageCost(record);
-  const showCharge = record.status === "repaired" || record.status === "reported";
+  const showCharge = record.status === "repaired";
+  const needsRepairCompletion = record.status === "invoiced" && !record.repaired_at;
   const goToInvoiceForm = () => {
     navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}`);
   };
@@ -82,17 +86,10 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       notifyError({ title: "El daño no tiene cliente asociado" });
       return;
     }
-    // Daño aún NO reparado: se factura el costo ESTIMADO y una vez `invoiced`
-    // no hay ajuste automático — pedimos confirmación explícita con la
-    // advertencia correspondiente antes de navegar al formulario de factura.
-    if (record.status === "reported") {
-      setChargeOpen(true);
-      return;
-    }
     goToInvoiceForm();
   };
 
-  if (record.status === "invoiced" && !canArchive) {
+  if (record.status === "invoiced" && !canArchive && !needsRepairCompletion) {
     return <span className="text-xs text-muted-foreground">Completo</span>;
   }
 
@@ -104,6 +101,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
         canChargeDamage={canChargeDamage}
         canArchive={canArchive}
         canCharge={showCharge}
+        needsRepairCompletion={needsRepairCompletion}
         costMissing={cost == null}
         damageBlockReason={damageBlockReason}
         chargeBlockReason={chargeBlockReason}
@@ -122,14 +120,6 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
         damageBlockReason={damageBlockReason}
         chargeBlockReason={chargeBlockReason}
         archiveBlockReason={archiveBlockReason}
-      />
-      <ConfirmDialog
-        open={chargeOpen}
-        onOpenChange={setChargeOpen}
-        title="Facturar daño sin reparar"
-        description={`El daño aún no está reparado: se cobrará el costo estimado (${formatCurrency(cost ?? 0)}). Si el costo real de la reparación difiere, la diferencia requerirá una nota de crédito o un cargo manual al cerrar la reparación.`}
-        confirmLabel="Continuar a factura"
-        onConfirm={goToInvoiceForm}
       />
       <ConfirmDialog
         open={archiveOpen}

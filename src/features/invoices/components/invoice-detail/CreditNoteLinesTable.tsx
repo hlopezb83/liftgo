@@ -1,5 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { creditNoteDiscountForSelection } from "@/features/invoices/lib/creditNoteDiscount";
+import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { EditableCreditNoteLine } from "../../hooks/creditNotes/useCreditNoteForm";
 
@@ -11,6 +13,21 @@ interface Props {
 }
 
 export function CreditNoteLinesTable({ lines, onUpdate, lineMax }: Props) {
+  const netSubtotal = (line: EditableCreditNoteLine, index: number) => {
+    const selectedGross = lineItemTotal(line.quantity, line.unit_price);
+    const maximum = lineMax?.(index);
+    const originalGross = maximum
+      ? lineItemTotal(maximum.quantity, maximum.unit_price)
+      : selectedGross;
+    const discount = creditNoteDiscountForSelection({
+      originalGross,
+      selectedGross,
+      originalDiscount: line.discount,
+      discountType: line.discount_type,
+    });
+    return applyDiscountToBase(selectedGross, discount, line.discount_type);
+  };
+
   return (
     <div className="border rounded-md">
       <Table>
@@ -67,7 +84,7 @@ export function CreditNoteLinesTable({ lines, onUpdate, lineMax }: Props) {
                 )}
               </TableCell>
               <TableCell className="text-right font-mono text-sm">
-                {formatCurrency(Number(l.quantity || 0) * Number(l.unit_price || 0))}
+                {formatCurrency(netSubtotal(l, i))}
               </TableCell>
             </TableRow>
           ))}

@@ -17,13 +17,11 @@ import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
-import { useCloseDamageOnInvoice } from "../hooks/useCloseDamageOnInvoice";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 
 export default function InvoiceForm() {
-  const { closeDamageOnInvoice } = useCloseDamageOnInvoice();
   const navigate = useNavigateTransition();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -78,21 +76,15 @@ export default function InvoiceForm() {
       bookingIds,
       invoiceId: f.isEdit ? f.id ?? null : null,
       expectedVersion: f.isEdit ? f.invoiceVersion : null,
+      damageId: !f.isEdit && damageId && damageId !== "null" ? damageId : null,
     }, {
       onSuccess: async (data) => {
         if (f.isEdit) {
           finalize("Factura actualizada", data.id);
           return;
         }
-        // A-3b: cerrar el ciclo del daño — sin esto quedaba `repaired`
-        // y se podía cobrar dos veces (la UI ya muestra "Completo" en invoiced).
-        if (damageId && damageId !== "null") {
-          // N4-r3: ligar el daño a la factura creada — sin invoice_id no hay
-          // trazabilidad de qué factura cubre el daño.
-          // FIX-03 (H9): UPDATE condicional — solo cierra el daño si nadie
-          // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
-          await closeDamageOnInvoice(damageId, data.id, data.invoice_number);
-        }
+        // El daño, cuando existe, ya quedó ligado por el mismo RPC que creó la
+        // factura. Un conflicto revierte la factura completa y no llega aquí.
         // v7.307.0: sellar la extensión como facturada (guard en BD impide
         // ligarla a una segunda factura).
         if (extensionId && f.extension?.booking_id) {

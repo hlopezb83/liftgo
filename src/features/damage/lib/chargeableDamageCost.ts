@@ -5,7 +5,8 @@ import type { DamageRecordWithJoins } from "@/types/rental";
  *
  * - `repaired` con `actual_cost` → costo real de la reparación (manda).
  * - `repaired` sin `actual_cost` → cae al estimado (edge legacy).
- * - `reported` (no reparado aún) → cobra el estimado como anticipo.
+ * - Un daño todavía no reparado nunca es cobrable. Esto evita que el estado
+ *   de facturación sustituya la evidencia de reparación y libere la unidad.
  * - Cualquier otro estado, o sin ambos costos → `null` (no cobrable).
  *
  * Regla: la orden de mantenimiento se crea con el estimado (es el presupuesto);
@@ -20,9 +21,6 @@ export function chargeableDamageCost(
   if (record.status === "repaired") {
     const value = actual ?? estimated;
     return value != null ? Number(value) : null;
-  }
-  if (record.status === "reported") {
-    return estimated != null ? Number(estimated) : null;
   }
   return null;
 }

@@ -1,5 +1,6 @@
 import {
   buildLine,
+  BankStatementLineLimitError,
   computePeriod,
   parseAmount,
   parseDateFlexible,
@@ -141,13 +142,20 @@ function readDocument(content: string): Document | string {
   return doc;
 }
 
-export async function parseBankXml(content: string, override: XmlFieldMapping = {}): Promise<XmlParseResult> {
+export async function parseBankXml(
+  content: string,
+  override: XmlFieldMapping = {},
+  maxLines = Number.POSITIVE_INFINITY,
+): Promise<XmlParseResult> {
   const doc = readDocument(content);
   if (typeof doc === "string") return { ...EMPTY_RESULT, errors: [doc] };
 
   const nodes = detectMovementNodes(doc);
   if (nodes.length === 0) {
     return { ...EMPTY_RESULT, errors: ["No se encontraron movimientos repetidos en el XML."] };
+  }
+  if (nodes.length > maxLines) {
+    throw new BankStatementLineLimitError(nodes.length, maxLines);
   }
 
   const parsedNodes = nodes.map(nodeFields);

@@ -9,6 +9,8 @@ interface DamageActionButtonsProps {
   canChargeDamage: boolean;
   canArchive: boolean;
   canCharge: boolean;
+  /** Permite cerrar reparaciones históricas facturadas antes del guard atómico. */
+  needsRepairCompletion?: boolean;
   costMissing: boolean;
   damageBlockReason?: string;
   chargeBlockReason?: string;
@@ -31,6 +33,7 @@ export function DamageActionButtons({
   canChargeDamage,
   canArchive,
   canCharge,
+  needsRepairCompletion = false,
   costMissing,
   damageBlockReason,
   chargeBlockReason,
@@ -52,10 +55,10 @@ export function DamageActionButtons({
           </Button>
         </span>
       )}
-      {/* F6: un daño `reported` reparado internamente sin OT quedaba en callejón
-          sin salida (archivar exige invoice_id o status repaired). Se permite la
-          transición reported → repaired con el mismo botón/permiso que in_repair. */}
-      {(status === "in_repair" || status === "reported") && (
+      {/* Un daño reportado puede repararse internamente sin OT. Para históricos
+          facturados antes del guard, el mismo control sella repaired_at sin
+          perder el vínculo de facturación. */}
+      {(status === "in_repair" || status === "reported" || needsRepairCompletion) && (
         <span title={damageBlockReason}>
           <Button variant="ghost" size="sm" onClick={onMarkRepaired} disabled={!canManageDamage || isUpdating}>
             <SuccessIcon className="h-3.5 w-3.5 mr-1" />Marcar reparado

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseBankCsv } from "../csvParsers";
+import { BankStatementLineLimitError } from "../bankParseUtils";
 
 describe("parseBankCsv", () => {
   it("parsea perfil genérico con encabezados", async () => {
@@ -49,5 +50,14 @@ no-valida,X,-100,R1`;
     const res = await parseBankCsv(csv, "generico");
     expect(res.errors.length).toBeGreaterThan(0);
     expect(res.lines).toHaveLength(0);
+  });
+
+  it("corta antes de hashear cuando el archivo rebasa el máximo", async () => {
+    const csv = `Fecha,Desc,Monto,Ref
+05/05/2026,A,-100,R1
+06/05/2026,B,-200,R2`;
+    await expect(parseBankCsv(csv, "generico", 1)).rejects.toBeInstanceOf(
+      BankStatementLineLimitError,
+    );
   });
 });

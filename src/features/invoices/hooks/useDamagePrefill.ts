@@ -42,8 +42,9 @@ export function useDamagePrefill({
     let cancelled = false;
     supabase
       .from("damage_records")
-      .select("status, estimated_cost, actual_cost")
+      .select("status, estimated_cost, actual_cost, repaired_at")
       .eq("id", damageId)
+      .is("deleted_at", null)
       .maybeSingle()
       .then(({ data: damage, error }) => {
         if (cancelled || prefilledRef.current) return;
@@ -51,6 +52,13 @@ export function useDamagePrefill({
         prefilledRef.current = true;
         if (damage.status === "invoiced") {
           notifyError({ title: "Este daño ya fue facturado" });
+          return;
+        }
+        if (damage.status !== "repaired" || !damage.repaired_at) {
+          notifyError({
+            title: "Primero completa la reparación",
+            description: "El daño debe estar reparado antes de crear su factura.",
+          });
           return;
         }
         handleCustomerSelect(damageCustomerId);

@@ -9,6 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { usePortalInvoicePayments } from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 
@@ -75,6 +76,7 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
 
 function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: boolean; onToggle: () => void }) {
   const r = row;
+  const paymentsQuery = usePortalInvoicePayments(r.inv.id, isOpen);
   return (
     <>
       <TableRow>
@@ -118,7 +120,18 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
       {isOpen && (
         <TableRow className="bg-muted/30">
           <TableCell colSpan={9} className="px-6 py-3">
-            <PaymentDetailTable payments={r.payments} />
+            {paymentsQuery.isLoading ? (
+              <p className="text-xs text-muted-foreground">Cargando pagos…</p>
+            ) : paymentsQuery.isError ? (
+              <div className="flex items-center gap-2 text-xs text-destructive">
+                <span>No se pudieron cargar los pagos.</span>
+                <Button size="sm" variant="outline" onClick={() => { void paymentsQuery.refetch(); }}>
+                  Reintentar
+                </Button>
+              </div>
+            ) : (
+              <PaymentDetailTable payments={(paymentsQuery.data ?? []) as PortalPayment[]} />
+            )}
           </TableCell>
         </TableRow>
       )}

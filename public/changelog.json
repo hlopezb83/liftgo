@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.2.0",
+    "date": "2026-09-09",
+    "type": "minor",
+    "category": "fix",
+    "title": "Integridad financiera, operativa y navegación a escala",
+    "description": "Corrección integral de 24 defectos detectados en facturación, notas de crédito, rentas, daños, mantenimiento, conciliación bancaria, portal, feedback y ayuda.",
+    "changes": [
+      "Facturas y notas de crédito: el estado pagado se deriva del saldo real, se concilian registros históricos y el descuento fijo parcial se prorratea con validación fiscal atómica antes del timbrado.",
+      "Flota y operaciones: entrega, devolución, venta, contratos, daños y mantenimiento aplican transiciones terminales y disponibilidad física consistentes, incluyendo órdenes esperando refacciones.",
+      "Conciliación bancaria: fingerprints con descripción completa, análisis cancelable con corte temprano, importación transaccional por staging y filtros, paginación y KPI calculados en servidor.",
+      "Portal y feedback: detalles por ID, listados paginados, totales globales, cargas y errores explícitos, historial reactivo y puntos agregados sin cortes de 500 filas.",
+      "Ayuda: los fallos al cargar versiones del manual ahora se muestran con una acción de reintento."
+    ]
+  },
+  {
     "version": "8.1.12",
     "date": "2026-09-08",
     "type": "patch",

@@ -24,6 +24,7 @@ import {
 } from "../_shared/facturapi/withTimeout.ts";
 import { computeStampVariance, roundMoney } from "../_shared/money.ts";
 import { checkStampFx } from "../_shared/fxGate.ts";
+import { validateCreditNoteSourceLines } from "../_shared/creditNoteSourceValidation.ts";
 
 export type { SupabaseLike };
 export interface StampCreditNoteDeps {
@@ -35,20 +36,6 @@ export interface StampCreditNoteDeps {
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const BUCKET = "cfdi-files";
-
-type LineItem = {
-  description?: string;
-  quantity?: number;
-  unit_price?: number;
-  product_key?: string;
-  clave_prod_serv?: string;
-  // A1-B3: la NC debe respetar el régimen fiscal de la línea de la factura
-  // origen (ObjetoImp y tasa por línea), igual que stamp-cfdi.
-  objeto_imp?: string;
-  tax_rate?: number;
-  discount?: number;
-  discount_type?: "%" | "$";
-};
 
 export async function handleStampCreditNote(
   req: Request,
@@ -98,7 +85,10 @@ export async function handleStampCreditNote(
     }
 
     const { data: nc, error: ncErr } = await supabase
-      .from("credit_notes").select("*").eq("id", credit_note_id).single();
+      .from("credit_notes")
+      .select("*")
+      .eq("id", credit_note_id)
+      .single();
     if (ncErr || !nc) {
       console.error("[stamp-credit-note] credit note not found", {
         credit_note_id,
@@ -107,28 +97,37 @@ export async function handleStampCreditNote(
       });
       return json({ error: "Credit note not found" }, 404, jsonHeaders);
     }
-    const ncRow = nc as Record<string, unknown>;
-    if (ncRow.cfdi_status === "stamped") {
+    const initialNcRow = nc as Record<string, unknown>;
+    if (initialNcRow.cfdi_status === "stamped") {
       console.error("[stamp-credit-note] already stamped", {
         credit_note_id,
-        uuid: ncRow.cfdi_uuid,
+        uuid: initialNcRow.cfdi_uuid,
       });
       return json({ error: "Credit note already stamped" }, 409, jsonHeaders);
     }
-    // Claim atómico para evitar doble timbrado concurrente.
-    const claimRes = await supabase
-      .from("credit_notes")
-      // FIX-R3-01F: reiniciar el presupuesto de misses del reconciliador.
-      .update({ cfdi_status: "stamping", lookup_attempts: 0 })
-      .eq("id", credit_note_id)
-      .in("cfdi_status", ["pending", "error"])
-      .is("cfdi_uuid", null)
-      .select("id")
-      .maybeSingle();
-    if (!(claimRes as { data: unknown }).data) {
+    // Claim + snapshot atómicos: la RPC bloquea la fila, cambia a stamping y
+    // devuelve exactamente el contenido fiscal que se enviará al PAC.
+    if (!supabase.rpc) {
+      return json(
+        { error: "Credit note claim RPC unavailable" },
+        500,
+        jsonHeaders,
+      );
+    }
+    const claimRes = await supabase.rpc("claim_credit_note_for_stamping", {
+      p_credit_note_id: credit_note_id,
+    });
+    if (claimRes.error) {
+      console.error("[stamp-credit-note] claim RPC failed", {
+        credit_note_id,
+        error: claimRes.error,
+      });
+      return json({ error: "Could not claim credit note" }, 500, jsonHeaders);
+    }
+    if (!claimRes.data) {
       console.error(
         "[stamp-credit-note] claim failed — concurrent stamp or unexpected status",
-        { credit_note_id, current_status: ncRow.cfdi_status },
+        { credit_note_id, current_status: initialNcRow.cfdi_status },
       );
       return json(
         { error: "Credit note already stamped or in progress" },
@@ -136,6 +135,7 @@ export async function handleStampCreditNote(
         jsonHeaders,
       );
     }
+    const ncRow = claimRes.data as Record<string, unknown>;
     claimed = true;
 
     // BL-03: helper para revertir claim atómico si algo falla antes de timbrar.
@@ -143,7 +143,8 @@ export async function handleStampCreditNote(
     // el estado ya avanzó (p. ej. el PAC emitió y otro camino ya lo persistió)
     // este UPDATE no lo pisa.
     const releaseClaim = async (errorMessage?: string) => {
-      await supabase.from("credit_notes")
+      await supabase
+        .from("credit_notes")
         .update({
           cfdi_status: errorMessage ? "error" : "pending",
           ...(errorMessage
@@ -155,7 +156,10 @@ export async function handleStampCreditNote(
     };
 
     const { data: invoice, error: invErr } = await supabase
-      .from("invoices").select("*").eq("id", ncRow.invoice_id).single();
+      .from("invoices")
+      .select("*")
+      .eq("id", ncRow.invoice_id)
+      .single();
     if (invErr || !invoice) {
       console.error("[stamp-credit-note] source invoice not found", {
         credit_note_id,
@@ -166,7 +170,8 @@ export async function handleStampCreditNote(
     }
     const inv = invoice as Record<string, unknown>;
     if (
-      inv.cfdi_status !== "stamped" || !inv.facturapi_invoice_id ||
+      inv.cfdi_status !== "stamped" ||
+      !inv.facturapi_invoice_id ||
       !inv.cfdi_uuid
     ) {
       console.error("[stamp-credit-note] source invoice not stamped", {
@@ -182,6 +187,24 @@ export async function handleStampCreditNote(
       );
     }
 
+    // A-01: el borrador no es fuente de verdad fiscal. Cada línea debe apuntar
+    // una sola vez a una línea real de la factura timbrada; identidad SAT,
+    // descuento e IVA se derivan de esa fuente. También se recalculan los tres
+    // totales antes de cualquier modo stub o llamada a Facturapi.
+    const sourceValidation = validateCreditNoteSourceLines(ncRow, inv);
+    if (!sourceValidation.ok) {
+      await releaseClaim(sourceValidation.message);
+      return json(
+        {
+          error: sourceValidation.message,
+          code: sourceValidation.code,
+          recreate_required: sourceValidation.recreateRequired,
+        },
+        422,
+        jsonHeaders,
+      );
+    }
+
     // BL-08: validación server-side anti-sobre-acreditación. Sumamos TODAS las NCs
     // de esta factura que no estén canceladas (stamped + pending + stamping + error).
     // Como el claim atómico ya movió esta NC a "stamping", queda incluida en la suma.
@@ -190,23 +213,26 @@ export async function handleStampCreditNote(
       .select("id, total, cfdi_status, cancellation_status, status")
       .eq("invoice_id", ncRow.invoice_id);
     const activeNcTotal = ((siblingNcs ?? []) as Array<Record<string, unknown>>)
-      .filter((n) =>
-        n.cancellation_status !== "accepted" &&
-        n.status !== "cancelled"
+      .filter(
+        (n) => n.cancellation_status !== "accepted" && n.status !== "cancelled",
       )
       .reduce((s, n) => s + Number(n.total ?? 0), 0);
     const invoiceTotal = Number(inv.total ?? 0);
     if (activeNcTotal - 0.01 > invoiceTotal) {
       await releaseClaim(
         `Notas de crédito acumuladas (${
-          activeNcTotal.toFixed(2)
+          activeNcTotal.toFixed(
+            2,
+          )
         }) exceden el total facturado (${invoiceTotal.toFixed(2)}).`,
       );
       return json(
         {
           error:
             `El monto total de notas de crédito excede el importe de la factura. Suma NCs: ${
-              activeNcTotal.toFixed(2)
+              activeNcTotal.toFixed(
+                2,
+              )
             } > factura ${invoiceTotal.toFixed(2)}.`,
         },
         400,
@@ -217,12 +243,12 @@ export async function handleStampCreditNote(
     // BL-16: modo Facturapi debe ser el de la compañía (test/live) para que la NC
     // se timbre en el mismo ambiente que la factura origen.
     const { data: company } = await supabase
-      .from("company_settings").select("*").limit(1).maybeSingle();
+      .from("company_settings")
+      .select("*")
+      .limit(1)
+      .maybeSingle();
     const modeOverride = (company as Record<string, unknown> | null)
-      ?.facturapi_mode as
-        | string
-        | undefined
-        | null;
+      ?.facturapi_mode as string | undefined | null;
     const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
       modeOverride: modeOverride ?? null,
     });
@@ -243,7 +269,8 @@ export async function handleStampCreditNote(
         );
       }
       const mockUuid = crypto.randomUUID();
-      await supabase.from("credit_notes")
+      await supabase
+        .from("credit_notes")
         .update({
           cfdi_uuid: mockUuid,
           cfdi_status: "stamped",
@@ -259,52 +286,28 @@ export async function handleStampCreditNote(
 
     const client = createFacturapiClient(apiKey);
 
-    // BL-01: distinguir tasa 0 legítima. En NC guardamos tax_rate como porcentaje;
-    // si viene null usamos 16% (default corporativo). Antes: > 0 ? /100 : 0 → NCs
-    // sobre facturas exentas timbraban al 0% pero la factura al 16% (inconsistente).
-    const ncTaxRatePct = ncRow.tax_rate == null ? 16 : Number(ncRow.tax_rate);
-    const items = Array.isArray(ncRow.line_items)
-      ? (ncRow.line_items as LineItem[]).map((li) => {
-        const quantity = li.quantity || 1;
-        const unitPrice = li.unit_price || 0;
-        // A1-B3 (espejo de C-1/M19 en stamp-cfdi): ObjetoImp 01 = no objeto de
-        // impuesto → línea sin traslados; y la tasa se toma de la línea con
-        // fallback a la tasa de la NC. Antes se aplicaba la tasa global a TODA
-        // línea: una NC sobre factura con líneas exentas o con tasa distinta
-        // acreditaba IVA de más frente al SAT.
-        const objetoImp = li.objeto_imp ?? "02";
-        const lineRatePct =
-          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
-            ? li.tax_rate
-            : ncTaxRatePct;
-        const item: Record<string, unknown> = {
-          product: {
-            description: li.description || "Nota de crédito",
-            product_key: li.clave_prod_serv || li.product_key || "84111506",
-            price: unitPrice,
-            tax_included: false,
-            taxes: objetoImp === "01"
-              ? []
-              : [{ type: "IVA", rate: lineRatePct / 100 }],
-          },
-          quantity,
-        };
+    const items = sourceValidation.lines.map((li) => {
+      const item: Record<string, unknown> = {
+        product: {
+          // A-01: identidad fiscal y tasa vienen siempre de invoices.line_items,
+          // nunca de los JSON editables de la nota de crédito.
+          description: li.description,
+          product_key: li.productKey,
+          unit_key: li.unitKey,
+          price: li.unitPrice,
+          tax_included: false,
+          taxes: li.objetoImp === "01"
+            ? []
+            : [{ type: "IVA", rate: li.taxRatePct / 100 }],
+        },
+        quantity: li.quantity,
+      };
 
-        // M24 (espejo de BL-02 en stamp-cfdi): propagar el descuento de la
-        // línea de la factura origen. Sin esto el CFDI de egreso acredita el
-        // importe BRUTO — más de lo facturado neto.
-        if (li.discount && li.discount > 0) {
-          const base = unitPrice * quantity;
-          const discountAmount = li.discount_type === "$"
-            ? Math.min(li.discount, base)
-            : (base * li.discount) / 100;
-          if (discountAmount > 0) {
-            item.discount = roundMoney(discountAmount);
-          }
-        }
-        return item;
-      })
-      : [];
+      if (li.discountAmount > 0) {
+        item.discount = roundMoney(li.discountAmount);
+      }
+      return item;
+    });
 
     const legalName = sanitizeLegalName(
       String(
@@ -340,7 +343,9 @@ export async function handleStampCreditNote(
       if (!zip) missingFiscal.push("código postal fiscal del receptor");
       if (missingFiscal.length > 0) {
         const msg = `Faltan datos fiscales del receptor: ${
-          missingFiscal.join(", ")
+          missingFiscal.join(
+            ", ",
+          )
         }. Captúralos en el cliente o en la factura antes de timbrar.`;
         await releaseClaim(msg);
         return json({ error: msg }, 400, jsonHeaders);
@@ -408,9 +413,9 @@ export async function handleStampCreditNote(
       folio_number?: number | string | null;
     };
     try {
-      fa = await sdkCallWithTimeout((signal) =>
+      fa = (await sdkCallWithTimeout((signal) =>
         createInvoiceWithSignal(client, payload, { signal })
-      ) as {
+      )) as {
         id: string;
         uuid: string;
         folio_number?: number | string | null;
@@ -421,11 +426,15 @@ export async function handleStampCreditNote(
         console.warn("[stamp-credit-note] facturapi timeout", {
           credit_note_id,
         });
-        return jsonResponse(req, {
-          error: "PAC no respondió a tiempo, reintenta",
-          code: "TIMEOUT",
-          transient: true,
-        }, { status: 504 });
+        return jsonResponse(
+          req,
+          {
+            error: "PAC no respondió a tiempo, reintenta",
+            code: "TIMEOUT",
+            transient: true,
+          },
+          { status: 504 },
+        );
       }
       const desc = describeFacturapiError(err);
       console.error("[stamp-credit-note] facturapi rejected", {
@@ -438,7 +447,8 @@ export async function handleStampCreditNote(
       // falló (p. ej. 4xx de validación) — Facturapi nunca confirmó emisión,
       // así que es seguro marcar 'error' y permitir reintento. `.eq` condicional
       // por si algo más avanzó el estado en paralelo.
-      await supabase.from("credit_notes")
+      await supabase
+        .from("credit_notes")
         .update({
           cfdi_status: "error",
           cfdi_error_message: desc.detail.slice(0, 1000),
@@ -471,11 +481,12 @@ export async function handleStampCreditNote(
         await client.invoices.downloadXml(facturApiId),
       );
       const path = `credit-notes/${credit_note_id}/${cfdiUuid}.xml`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(
-        path,
-        new Blob([xml], { type: "application/xml" }),
-        { contentType: "application/xml", upsert: true },
-      );
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, new Blob([xml], { type: "application/xml" }), {
+          contentType: "application/xml",
+          upsert: true,
+        });
       if (!upErr) xmlPath = path;
       else {
         console.error("[stamp-credit-note] archive xml upload failed", {
@@ -495,11 +506,9 @@ export async function handleStampCreditNote(
         await client.invoices.downloadPdf(facturApiId),
       );
       const path = `credit-notes/${credit_note_id}/${cfdiUuid}.pdf`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(
-        path,
-        bytes,
-        { contentType: "application/pdf", upsert: true },
-      );
+      const { error: upErr } = await supabase.storage
+        .from(BUCKET)
+        .upload(path, bytes, { contentType: "application/pdf", upsert: true });
       if (!upErr) pdfPath = path;
       else {
         console.error("[stamp-credit-note] archive pdf upload failed", {
@@ -525,11 +534,17 @@ export async function handleStampCreditNote(
     );
     const varianceMessage = hasVariance && varianceCheck
       ? `Error BL-A5: el total timbrado (${
-        Number(stampedTotal).toFixed(2)
+        Number(stampedTotal).toFixed(
+          2,
+        )
       }) difiere del total de la nota de crédito (${
-        Number(ncRow.total).toFixed(2)
+        Number(
+          ncRow.total,
+        ).toFixed(2)
       }); varianza ${
-        varianceCheck.variance.toFixed(2)
+        varianceCheck.variance.toFixed(
+          2,
+        )
       }. El CFDI de egreso existe ante el SAT: cancélalo y corrige tasas/descuentos.`
       : null;
     if (hasVariance && varianceCheck) {
@@ -544,21 +559,25 @@ export async function handleStampCreditNote(
     // R9-13: `.eq("cfdi_status","stamping")` — salida condicional del estado
     // en curso; no pisa un estado que ya haya avanzado por otro camino
     // (p. ej. reconcile-stamping-invoices llegó primero tras un timeout).
-    const updRes = await supabase.from("credit_notes").update({
-      facturapi_invoice_id: facturApiId,
-      cfdi_uuid: cfdiUuid,
-      cfdi_status: hasVariance ? "error" : "stamped",
-      ...(hasVariance ? {} : { status: "stamped" }),
-      cfdi_xml_url: xmlPath,
-      cfdi_pdf_url: pdfPath,
-      cfdi_error_message: varianceMessage,
-      ...(varianceCheck
-        ? {
-          stamp_variance: varianceCheck.variance,
-          stamp_variance_checked_at: new Date().toISOString(),
-        }
-        : {}),
-    }).eq("id", credit_note_id).eq("cfdi_status", "stamping");
+    const updRes = await supabase
+      .from("credit_notes")
+      .update({
+        facturapi_invoice_id: facturApiId,
+        cfdi_uuid: cfdiUuid,
+        cfdi_status: hasVariance ? "error" : "stamped",
+        ...(hasVariance ? {} : { status: "stamped" }),
+        cfdi_xml_url: xmlPath,
+        cfdi_pdf_url: pdfPath,
+        cfdi_error_message: varianceMessage,
+        ...(varianceCheck
+          ? {
+            stamp_variance: varianceCheck.variance,
+            stamp_variance_checked_at: new Date().toISOString(),
+          }
+          : {}),
+      })
+      .eq("id", credit_note_id)
+      .eq("cfdi_status", "stamping");
 
     const updErr = (updRes as { error: unknown }).error;
     if (updErr) {
@@ -602,22 +621,24 @@ export async function handleStampCreditNote(
     let finalCreditNoteNumber: string | null = null;
     const currentNcNum = (ncRow.credit_note_number as string | null) ?? null;
     const facturApiFolioRaw = fa.folio_number ?? null;
-    const facturApiFolio: string | null = facturApiFolioRaw !== null &&
-        facturApiFolioRaw !== undefined
-      ? String(facturApiFolioRaw)
-      : null;
+    const facturApiFolio: string | null =
+      facturApiFolioRaw !== null && facturApiFolioRaw !== undefined
+        ? String(facturApiFolioRaw)
+        : null;
 
     if (
       facturApiFolio &&
       currentNcNum &&
       currentNcNum.startsWith("BORRADOR-NC-")
     ) {
-      const rpcRes = await (supabase as unknown as {
-        rpc: (
-          fn: string,
-          args: Record<string, unknown>,
-        ) => Promise<{ data: unknown; error: unknown }>;
-      }).rpc("assign_stamped_credit_note_number", {
+      const rpcRes = await (
+        supabase as unknown as {
+          rpc: (
+            fn: string,
+            args: Record<string, unknown>,
+          ) => Promise<{ data: unknown; error: unknown }>;
+        }
+      ).rpc("assign_stamped_credit_note_number", {
         p_credit_note_id: credit_note_id,
         p_folio: facturApiFolio,
       });
@@ -659,7 +680,8 @@ export async function handleStampCreditNote(
     if (claimed && supabaseRef && credit_note_id) {
       try {
         if (pacEmitted) {
-          await supabaseRef.from("credit_notes")
+          await supabaseRef
+            .from("credit_notes")
             .update({
               // No tocamos cfdi_status (permanece 'stamping' = reconciliable).
               ...(emittedFacturapiId
@@ -673,7 +695,8 @@ export async function handleStampCreditNote(
             .eq("cfdi_status", "stamping");
         } else {
           // Camino seguro: el PAC nunca fue invocado o falló antes de emitir.
-          await supabaseRef.from("credit_notes")
+          await supabaseRef
+            .from("credit_notes")
             .update({
               cfdi_status: "error",
               cfdi_error_message: "Internal error during stamping",

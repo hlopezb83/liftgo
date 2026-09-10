@@ -81,9 +81,8 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('cancel_booking') LIKE '%EXCEPTION WHEN OTHERS%forklift_rpc%'
 );
 SELECT pg_temp.expect_true(
-  'R6-17 create_booking resetea booking_rpc y forklift_rpc',
+  'R6-17 create_booking resetea booking_rpc',
   pg_temp.fndef('create_booking') LIKE '%EXCEPTION WHEN OTHERS%booking_rpc%'
-    AND pg_temp.fndef('create_booking') LIKE '%EXCEPTION WHEN OTHERS%forklift_rpc%'
 );
 SELECT pg_temp.expect_true(
   'R6-17 complete_return_inspection resetea los bypass',

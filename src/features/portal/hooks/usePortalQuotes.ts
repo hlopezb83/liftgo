@@ -2,13 +2,36 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { portalQueries } from "../lib/queryKeys";
+import { portalQueries, type PortalQuoteListRow } from "../lib/queryKeys";
 
 export function usePortalQuotes() {
   const { user } = useAuth();
   return useQuery({
     ...portalQueries.quotes.list(),
     enabled: !!user,
+  });
+}
+
+export function usePortalQuotesPage(page: number, pageSize = 25) {
+  const { user } = useAuth();
+  const safePage = Math.max(1, page);
+  const safeSize = Math.min(100, Math.max(1, pageSize));
+  const from = (safePage - 1) * safeSize;
+  return useQuery({
+    queryKey: [...portalQueries.quotes.keys.lists(), user?.id, "page", safePage, safeSize] as const,
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async (): Promise<{ rows: PortalQuoteListRow[]; totalCount: number }> => {
+      const { data, error, count } = await supabase
+        .from("quotes")
+        .select("id, quote_number, status, valid_until, total, currency, created_at", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(from, from + safeSize - 1)
+        .returns<PortalQuoteListRow[]>();
+      if (error) throw error;
+      return { rows: data ?? [], totalCount: count ?? 0 };
+    },
   });
 }
 

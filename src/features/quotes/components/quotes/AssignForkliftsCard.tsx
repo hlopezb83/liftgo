@@ -3,7 +3,13 @@ import { PackageCheck, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAssignForklift, useForklifts, useQuoteAssignments, useUnassignForklift } from "@/features/fleet";
+import {
+  useAssignForklift,
+  useForklifts,
+  useQuoteAssignments,
+  useSaleAvailableForklifts,
+  useUnassignForklift,
+} from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 
@@ -27,7 +33,8 @@ function parseDescription(desc: string): { manufacturer: string; model: string }
 }
 
 export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
-  const { data: allForklifts } = useForklifts();
+  const { data: allForklifts, isLoading: isLoadingForklifts } = useForklifts();
+  const { data: saleAvailableForklifts, isLoading: isLoadingSaleCandidates } = useSaleAvailableForklifts();
   const { data: assignments, isLoading } = useQuoteAssignments(quoteId);
   const assignMutation = useAssignForklift();
   const unassignMutation = useUnassignForklift();
@@ -36,7 +43,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
 
   const assignedForkliftIds = new Set((assignments || []).map((a) => a.forklift_id));
 
-  if (isLoading) return <Skeleton className="h-48" />;
+  if (isLoading || isLoadingForklifts || isLoadingSaleCandidates) return <Skeleton className="h-48" />;
 
   const selectedElsewhereForLine = (currentIndex: number) =>
     new Set(
@@ -48,7 +55,10 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
   const linesData = lineItems.map((item, index) => {
     const parsed = parseDescription(item.description);
     const quantity = item.quantity || 1;
-    const available = (allForklifts || []).filter((f) => {
+    // A-04: la RPC canónica ya excluye cualquier unidad comprometida por una
+    // reserva confirmada pendiente (también futura). El filtro local sólo
+    // aplica modelo/línea y asignaciones de esta cotización.
+    const available = (saleAvailableForklifts || []).filter((f) => {
       if (f.status !== "available") return false;
       if (assignedForkliftIds.has(f.id)) return false;
       if (!parsed) return false;

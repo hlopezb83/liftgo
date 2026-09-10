@@ -1,4 +1,4 @@
-import { usePortalInvoices, usePortalPayments } from "@/features/customers";
+import { usePortalInvoice, usePortalInvoicePayments } from "@/features/customers";
 import { sumMoney } from "@/lib/money";
 
 // R6-FE-05 (N6-POR-01): el shape real de invoices.line_items (verificado en
@@ -65,15 +65,15 @@ export function deriveInvoiceTotals(invoice: InvoiceLike | undefined, payments: 
  * dejando la página como un contenedor de UI puro.
  */
 export function usePortalInvoiceDetailData(id: string | undefined) {
-  const invoicesQuery = usePortalInvoices();
-  const paymentsQuery = usePortalPayments();
+  const invoiceQuery = usePortalInvoice(id);
+  const paymentsQuery = usePortalInvoicePayments(id);
 
-  const invoice = invoicesQuery.data?.find((i) => i.id === id);
-  const invoicePayments = (paymentsQuery.data?.filter((p) => p.invoice_id === id) ?? []) as PortalPaymentRow[];
+  const invoice = invoiceQuery.data ?? undefined;
+  const invoicePayments = (paymentsQuery.data ?? []) as PortalPaymentRow[];
   const lineItems = (Array.isArray(invoice?.line_items) ? invoice.line_items : []) as PortalLineItem[];
 
   const refetchAll = () => {
-    void invoicesQuery.refetch();
+    void invoiceQuery.refetch();
     void paymentsQuery.refetch();
   };
 
@@ -83,8 +83,8 @@ export function usePortalInvoiceDetailData(id: string | undefined) {
     lineItems,
     currency: invoice?.moneda ?? "MXN",
     ...deriveInvoiceTotals(invoice, invoicePayments),
-    isLoading: invoicesQuery.isLoading || paymentsQuery.isLoading,
-    isError: invoicesQuery.isError || paymentsQuery.isError,
+    isLoading: invoiceQuery.isLoading || paymentsQuery.isLoading,
+    isError: invoiceQuery.isError || paymentsQuery.isError,
     refetchAll,
   };
 }
