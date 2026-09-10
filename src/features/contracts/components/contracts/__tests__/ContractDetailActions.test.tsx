@@ -1,5 +1,4 @@
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ContractDetailActions } from "../ContractDetailActions";
 import type { ContractData } from "../ContractPDFButton";
@@ -20,14 +19,14 @@ describe("ContractDetailActions · firma (bloque 2 · C)", () => {
   it("firma cuando ya hay firmante registrado", async () => {
     const onSetStatus = vi.fn();
     render(<ContractDetailActions id="ct-1" status="sent" contract={contract("Juan Pérez")} onSetStatus={onSetStatus} />);
-    await userEvent.click(screen.getByRole("button", { name: /Marcar Firmado/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Marcar Firmado/i }));
     expect(onSetStatus).toHaveBeenCalledWith("signed", expect.objectContaining({ signed_at: expect.any(String) }));
   });
 
   it("no firma sin firmante y explica el motivo", async () => {
     const onSetStatus = vi.fn();
     render(<ContractDetailActions id="ct-1" status="sent" contract={contract("  ")} onSetStatus={onSetStatus} />);
-    await userEvent.click(screen.getByRole("button", { name: /Marcar Firmado/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Marcar Firmado/i }));
     expect(onSetStatus).not.toHaveBeenCalled();
     expect(await screen.findByText(/Falta registrar quién firmó/i)).toBeInTheDocument();
   });
