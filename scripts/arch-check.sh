@@ -61,6 +61,7 @@ customerTypes.ts
 errorCatalog.ts
 firstBillingPeriod.ts
 invoiceHelpers.ts
+invoiceStatus.ts
 invoiceTotals.ts
 lineItems.ts
 nonRentalLines.ts

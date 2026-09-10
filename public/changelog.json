@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.6.2",
+    "date": "2026-09-10",
+    "type": "patch",
+    "category": "improvement",
+    "title": "Guardrails de arquitectura de vuelta en verde",
+    "description": "La revisión automática de arquitectura fallaba por dos motivos: el catálogo de estados de factura no estaba registrado como módulo compartido permitido, y el cálculo del horómetro se importaba por una ruta interna en lugar de la puerta oficial de Reservas. Se corrigieron ambos sin cambiar ninguna regla de negocio.",
+    "changes": [
+      "Estados de factura: el módulo compartido `invoiceStatus` (usado por Facturas, Cotizaciones y Contratos) quedó registrado en la lista permitida de dominio compartido.",
+      "Horómetro: el cálculo de horas ahora se exporta por la puerta oficial del módulo de Reservas y Entregas lo consume desde ahí, cumpliendo la regla de imports entre módulos."
+    ]
+  },
+  {
     "version": "8.6.1",
     "date": "2026-09-10",
     "type": "patch",
