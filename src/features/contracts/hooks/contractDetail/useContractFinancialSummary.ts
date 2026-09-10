@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
+import { ISSUED_INVOICE_STATUSES, isIssuedInvoiceStatus } from "@/lib/domain/invoiceStatus";
 import { toMxn } from "@/lib/money";
 
 type InvoiceSummaryRow = { id: string; subtotal: number; status: string };
@@ -69,11 +70,13 @@ export function combineInvoiceSummaries(
 ): InvoiceSummaryRow[] {
   const byId = new Map<string, InvoiceSummaryRow>();
   for (const row of direct ?? []) {
+    // Bloque 3C: solo estados emitidos válidos (draft/void/cancelled no cuentan).
+    if (!isIssuedInvoiceStatus(row.status)) continue;
     byId.set(row.id, { ...row, subtotal: subtotalMxn(row as InvoiceCurrencyRow) });
   }
   for (const row of pivot ?? []) {
     const invoice = row.invoices;
-    if (!invoice || invoice.status === "cancelled") continue;
+    if (!invoice || !isIssuedInvoiceStatus(invoice.status)) continue;
     const count = bookingsPerInvoice?.[invoice.id] ?? 1;
     const rawSubtotal =
       count > 1 ? attributedSubtotal(invoice, row.line_index, count) : invoice.subtotal;
@@ -97,7 +100,7 @@ export function useContractFinancialSummary(bookingId: string) {
         // Comparar contra `total` (con IVA) inflaba lo facturado.
         .select("id, subtotal, status, moneda, tipo_cambio")
         .eq("booking_id", bookingId)
-        .neq("status", "cancelled");
+        .in("status", [...ISSUED_INVOICE_STATUSES]);
       if (directErr) throw directErr;
 
       // F3: facturas multi-reserva solo ligadas vía la tabla pivote

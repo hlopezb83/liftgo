@@ -99,4 +99,19 @@ describe("atribución de facturas multi-reserva", () => {
     );
     expect(result[0].subtotal).toBe(30000);
   });
+
+  it("Bloque 3C: excluye draft, void y cancelled en ambas rutas", () => {
+    const direct = [
+      { id: "inv-d", subtotal: 500, status: "draft" },
+      { id: "inv-v", subtotal: 700, status: "void" },
+      { id: "inv-ok", subtotal: 900, status: "paid" },
+    ];
+    const pivot = [
+      { invoice_id: "inv-p1", invoices: { id: "inv-p1", subtotal: 100, status: "draft" } },
+      { invoice_id: "inv-p2", invoices: { id: "inv-p2", subtotal: 100, status: "cancelled" } },
+      { invoice_id: "inv-p3", invoices: { id: "inv-p3", subtotal: 300, status: "overdue" } },
+    ];
+    const result = combineInvoiceSummaries(direct, pivot);
+    expect(result.map((r) => r.id).sort()).toEqual(["inv-ok", "inv-p3"]);
+  });
 });

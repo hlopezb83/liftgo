@@ -21,7 +21,7 @@ export default function QuoteDetail() {
 
   const {
     quote, isLoading, lineItems, customerMatch, quoteType, isSale,
-    alreadyConverted, linkedBookingId, alreadyInvoiced, isConverting,
+    alreadyConverted, linkedBookingId, alreadyInvoiced, draftInvoiceId, isConverting,
     setStatus, handleDelete, handleConvertClick,
     isError, refetchQuote,
   } = logic;
@@ -67,6 +67,7 @@ export default function QuoteDetail() {
             alreadyConverted={alreadyConverted}
             linkedBookingId={linkedBookingId}
             alreadyInvoiced={alreadyInvoiced}
+            draftInvoiceId={draftInvoiceId}
             isConverting={isConverting}
             canInvoice={canInvoice}
             invoiceBlockedReason={invoiceBlockedReason}

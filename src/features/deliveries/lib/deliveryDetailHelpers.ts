@@ -1,16 +1,18 @@
+import { computeHourometer } from "@/features/bookings/hooks/bookingDetail/useBookingHourometer";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Delivery = Tables<"deliveries">;
 
+/**
+ * Bloque 3A: se usa la última lectura válida y completada (orden determinista),
+ * no la primera que devuelva la consulta.
+ */
 export const computeHoursUsed = (
   bookingId: string | null,
   siblings: Delivery[] | undefined,
 ): number | null => {
   if (!bookingId || !siblings) return null;
-  const deliveryRecord = siblings.find((d) => d.type === "delivery" && d.hours_reading != null);
-  const pickupRecord = siblings.find((d) => d.type === "pickup" && d.hours_reading != null);
-  if (deliveryRecord?.hours_reading == null || pickupRecord?.hours_reading == null) return null;
-  return Math.round((pickupRecord.hours_reading - deliveryRecord.hours_reading) * 10) / 10;
+  return computeHourometer(siblings).hoursUsed;
 };
 
 export const buildCompletionPayload = (
