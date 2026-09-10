@@ -110,6 +110,9 @@ export function useDashboardSections() {
 
   const { data: forklifts } = useForklifts();
   const { data: bookings } = useBookings();
+  // Entregas programadas con fecha vencida: mientras no se cierren, la unidad
+  // sigue marcada como disponible en el catálogo.
+  const { data: deliveries } = useDeliveries();
   // R10.9: fecha "hoy" resuelta en servidor — evita que un reloj/TZ mal
   // configurado en el navegador corra las unidades rentadas/disponibles.
   const todayYmd = useServerTodayMty();
