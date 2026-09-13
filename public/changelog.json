@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.8.1",
+    "date": "2026-09-13",
+    "type": "patch",
+    "category": "fix",
+    "title": "Ajuste interno tras sumar la organización a las tablas",
+    "description": "Se corrigieron errores de compilación que aparecieron al agregar la organización a los datos. No hay cambios visibles en el uso diario.",
+    "changes": [
+      "Los formularios de prospectos y de montacargas vuelven a compilar sin errores.",
+      "La organización la asigna la base de datos; las pantallas ya no necesitan enviarla."
+    ]
+  },
+  {
     "version": "8.8.0",
     "date": "2026-09-13",
     "type": "minor",
