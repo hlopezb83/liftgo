@@ -142,8 +142,8 @@ DECLARE
     'webhook_events'
   ];
 BEGIN
-  SELECT count(*), min(id)
-  INTO v_organization_count, v_organization_id
+  SELECT count(*)
+  INTO v_organization_count
   FROM public.organizations;
 
   IF v_organization_count = 0 THEN
@@ -159,6 +159,10 @@ BEGIN
       END IF;
     END LOOP;
   ELSIF v_organization_count = 1 THEN
+    SELECT id
+    INTO v_organization_id
+    FROM public.organizations;
+
     FOREACH v_table IN ARRAY v_tables LOOP
       EXECUTE format(
         'UPDATE public.%I SET organization_id = $1 WHERE organization_id IS NULL',
