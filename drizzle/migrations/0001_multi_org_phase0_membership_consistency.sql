@@ -24,8 +24,19 @@ BEGIN
       'No se puede normalizar customer_portal_accounts con usuarios que no tienen rol customer'
       USING ERRCODE = '23514';
   END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM public.customer_portal_accounts a
+    JOIN auth.users u ON u.id = a.auth_user_id
+    WHERE lower(btrim(a.email)) IS DISTINCT FROM lower(btrim(u.email))
+  ) THEN
+    RAISE EXCEPTION
+      'No se puede normalizar customer_portal_accounts con email distinto al de auth.users'
+      USING ERRCODE = '23514';
+  END IF;
 END;
-$$;
+$;
 
 UPDATE public.organization_memberships m
 SET member_type = 'portal',
@@ -50,7 +61,20 @@ AS $$
 DECLARE
   v_membership public.organization_memberships%ROWTYPE;
   v_is_staff boolean;
+  v_auth_email text;
 BEGIN
+  SELECT lower(btrim(email))
+  INTO v_auth_email
+  FROM auth.users
+  WHERE id = NEW.auth_user_id;
+
+  IF v_auth_email IS NULL
+     OR lower(btrim(NEW.email)) IS DISTINCT FROM v_auth_email THEN
+    RAISE EXCEPTION
+      'El email de una cuenta de portal debe coincidir con el email de su usuario de autenticación'
+      USING ERRCODE = '23514';
+  END IF;
+
   SELECT *
   INTO v_membership
   FROM public.organization_memberships
