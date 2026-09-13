@@ -1242,6 +1242,50 @@ export type Database = {
           },
         ]
       }
+      customer_portal_accounts: {
+        Row: {
+          auth_user_id: string
+          created_at: string
+          customer_id: string
+          email: string
+          id: string
+          invited_at: string | null
+          organization_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          created_at?: string
+          customer_id: string
+          email: string
+          id?: string
+          invited_at?: string | null
+          organization_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          created_at?: string
+          customer_id?: string
+          email?: string
+          id?: string
+          invited_at?: string | null
+          organization_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_portal_accounts_org_customer_fk"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -2573,6 +2617,152 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      organization_customers: {
+        Row: {
+          alias: string | null
+          billing_address: string | null
+          contact_person: string | null
+          created_at: string
+          credit_limit: number | null
+          customer_id: string
+          domicilio_fiscal_cp: string | null
+          email: string | null
+          notes: string | null
+          organization_customer_id: string
+          organization_id: string
+          phone: string | null
+          razon_social: string | null
+          regimen_fiscal: string | null
+          representante_legal: string | null
+          rfc: string | null
+          status: string
+          tax_rate: number
+          updated_at: string
+          uso_cfdi: string | null
+        }
+        Insert: {
+          alias?: string | null
+          billing_address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          customer_id: string
+          domicilio_fiscal_cp?: string | null
+          email?: string | null
+          notes?: string | null
+          organization_customer_id?: string
+          organization_id: string
+          phone?: string | null
+          razon_social?: string | null
+          regimen_fiscal?: string | null
+          representante_legal?: string | null
+          rfc?: string | null
+          status?: string
+          tax_rate?: number
+          updated_at?: string
+          uso_cfdi?: string | null
+        }
+        Update: {
+          alias?: string | null
+          billing_address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          credit_limit?: number | null
+          customer_id?: string
+          domicilio_fiscal_cp?: string | null
+          email?: string | null
+          notes?: string | null
+          organization_customer_id?: string
+          organization_id?: string
+          phone?: string | null
+          razon_social?: string | null
+          regimen_fiscal?: string | null
+          representante_legal?: string | null
+          rfc?: string | null
+          status?: string
+          tax_rate?: number
+          updated_at?: string
+          uso_cfdi?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_customers_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_customers_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_memberships: {
+        Row: {
+          auth_user_id: string
+          created_at: string
+          id: string
+          member_type: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id: string
+          created_at?: string
+          id?: string
+          member_type?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string
+          created_at?: string
+          id?: string
+          member_type?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       parts_inventory: {
         Row: {
@@ -4332,6 +4522,8 @@ export type Database = {
             Returns: string
           }
         | { Args: { p_items: Json; p_notes?: string }; Returns: string }
+      current_organization_id: { Args: never; Returns: string }
+      current_portal_customer_id: { Args: never; Returns: string }
       customer_can_read_document_object: {
         Args: { p_name: string }
         Returns: boolean
