@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.7.1",
+    "date": "2026-09-13",
+    "type": "patch",
+    "category": "fix",
+    "title": "La ficha del montacargas ya muestra el mismo estado que el panel y la lista",
+    "description": "Una unidad con renta vigente aparecía como 'Rentado' en el panel y en la lista de flota, pero su ficha seguía diciendo 'Disponible'. Ahora la ficha usa el mismo criterio, para que nadie vuelva a ofrecer equipo que ya está en campo.",
+    "changes": [
+      "Detalle de montacargas: se muestra 'Rentado' cuando hay una renta confirmada vigente hoy, aunque la entrega siga abierta.",
+      "Mantenimiento, retiro y venta siguen mandando sobre la renta vigente.",
+      "Se revisó el aviso 'Ver entregas por cerrar': el enlace sí llega a la lista filtrada en 'Programadas'; no requirió cambios."
+    ]
+  },
+  {
     "version": "8.7.0",
     "date": "2026-09-10",
     "type": "minor",

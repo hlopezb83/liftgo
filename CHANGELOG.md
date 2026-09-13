@@ -1,3 +1,10 @@
+## [8.7.1] - 2026-09-13
+### Hallazgos QA: estado del montacargas en su ficha
+- `deriveForkliftDisplayStatus` vuelve a usar `availability.rentedForkliftIds`: la ficha muestra `rented` cuando hay reserva `confirmed` vigente hoy, igual que FleetPage y el tablero. Mantenimiento/retiro/venta siguen mandando.
+- Comentario obsoleto en `FleetPage.tsx` corregido (ya no afirma que el helper ignora las reservas).
+- Hallazgo del filtro `?status=scheduled` en Entregas: no reproducible. `useTableFilters` usa storage `url` y lee `location.search`; verificado en preview con sesión administrativa (sólo entregas programadas en la lista).
+- Validación local: 14 pruebas focalizadas de disponibilidad verdes. Suite completa y cobertura en GitHub Actions.
+
 ## [8.2.1] - 2026-09-10
 ### Correcciones de la auditoría QA
 - RPC desligado: todas las llamadas que guardan `supabase.rpc` en una variable usan `supabase.rpc.bind(supabase)` (conciliación bancaria: consulta/KPIs/importación, portal de clientes, asignación de montacargas, puntos de feedback, facturas con saldo y el wrapper compartido `callRpc`).
