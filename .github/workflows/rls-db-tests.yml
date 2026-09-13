@@ -18,6 +18,7 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
+      - "drizzle/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
