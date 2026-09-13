@@ -16,12 +16,20 @@ function availabilityFor(status: string, hasBooking: boolean) {
   const bookings = hasBooking
     ? [{ forklift_id: "mc-1", status: "confirmed", start_date: yesterday, end_date: tomorrow }]
     : [];
-  return { forklift, availability: computeFleetAvailability([forklift], bookings) };
+  return {
+    forklift,
+    availability: computeFleetAvailability([forklift], bookings, toYMD(ref)),
+  };
 }
 
 describe("deriveForkliftDisplayStatus", () => {
-  it("muestra 'disponible' aunque exista una reserva vigente sin entrega", () => {
+  it("muestra 'rentado' cuando hay una reserva vigente aunque la entrega siga abierta", () => {
     const { forklift, availability } = availabilityFor(FORKLIFT_STATUS.available, true);
+    expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.rented);
+  });
+
+  it("muestra 'disponible' cuando no hay reserva vigente", () => {
+    const { forklift, availability } = availabilityFor(FORKLIFT_STATUS.available, false);
     expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.available);
   });
 
@@ -34,6 +42,7 @@ describe("deriveForkliftDisplayStatus", () => {
     const { forklift, availability } = availabilityFor(FORKLIFT_STATUS.maintenance, true);
     expect(deriveForkliftDisplayStatus(forklift, availability)).toBe(FORKLIFT_STATUS.maintenance);
   });
+
 
   it("respeta retirado y vendido", () => {
     for (const status of [FORKLIFT_STATUS.retired, FORKLIFT_STATUS.sold]) {
