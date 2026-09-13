@@ -180,27 +180,50 @@ BEGIN
   INTO v_organization_id
   FROM public.organizations;
 
+  -- Las tablas ya están bloqueadas por ALTER TABLE dentro de esta transacción.
+  -- El backfill no es un evento de negocio: se suspenden únicamente triggers
+  -- de usuario para evitar auditorías, bitácoras, locks o cambios de versión
+  -- artificiales. Las constraint triggers (incluidas las FK) permanecen activas.
   FOREACH v_table IN ARRAY v_tables LOOP
-    EXECUTE format(
-      'UPDATE public.%I SET organization_id = $1 WHERE organization_id IS NULL',
-      v_table
-    )
-    USING v_organization_id;
+    EXECUTE format('ALTER TABLE public.%I DISABLE TRIGGER USER', v_table);
   END LOOP;
 
-  FOREACH v_table IN ARRAY v_tables LOOP
-    EXECUTE format(
-      'SELECT EXISTS (SELECT 1 FROM public.%I WHERE organization_id IS NULL)',
-      v_table
-    )
-    INTO v_has_null_organization;
-
-    IF v_has_null_organization THEN
-      RAISE EXCEPTION
-        'Quedaron filas sin organization_id en la tabla %',
+  BEGIN
+    FOREACH v_table IN ARRAY v_tables LOOP
+      EXECUTE format(
+        'UPDATE public.%I SET organization_id = $1 WHERE organization_id IS NULL',
         v_table
-        USING ERRCODE = '23514';
-    END IF;
+      )
+      USING v_organization_id;
+    END LOOP;
+
+    FOREACH v_table IN ARRAY v_tables LOOP
+      EXECUTE format(
+        'SELECT EXISTS (SELECT 1 FROM public.%I WHERE organization_id IS NULL)',
+        v_table
+      )
+      INTO v_has_null_organization;
+
+      IF v_has_null_organization THEN
+        RAISE EXCEPTION
+          'Quedaron filas sin organization_id en la tabla %',
+          v_table
+          USING ERRCODE = '23514';
+      END IF;
+    END LOOP;
+  EXCEPTION WHEN OTHERS THEN
+    -- La excepción interna revierte los UPDATE; se restauran los triggers
+    -- antes de propagar el error. Un fallo en esta restauración también
+    -- provoca rollback de la transacción exterior.
+    FOREACH v_table IN ARRAY v_tables LOOP
+      EXECUTE format('ALTER TABLE public.%I ENABLE TRIGGER USER', v_table);
+    END LOOP;
+    RAISE;
+  END;
+
+  -- Ruta de éxito: ningún trigger de usuario queda desactivado al commit.
+  FOREACH v_table IN ARRAY v_tables LOOP
+    EXECUTE format('ALTER TABLE public.%I ENABLE TRIGGER USER', v_table);
   END LOOP;
 END;
 $$;
