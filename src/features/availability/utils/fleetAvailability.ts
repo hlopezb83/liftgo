@@ -59,14 +59,18 @@ export function computeFleetAvailability(
 }
 
 /**
- * R9-05: estado a MOSTRAR en el detalle de una unidad.
+ * Estado a MOSTRAR en el detalle de una unidad.
  *
- * El detalle presenta el estado canónico persistido. Las reservas futuras no
- * cambian la unidad a `rented`; sólo completar una entrega puede hacerlo.
+ * Usa el mismo criterio que el tablero y la lista de flota: una unidad
+ * `available` con reserva confirmada vigente hoy se muestra como `rented`.
+ * Mantenimiento, retiro y venta siempre mandan sobre la reserva.
  */
 export function deriveForkliftDisplayStatus(
   forklift: ForkliftLike | undefined | null,
-  _availability: FleetAvailability | null,
+  availability: FleetAvailability | null,
 ): string | undefined {
-  return forklift?.status;
+  if (!forklift) return undefined;
+  if (availability?.rentedForkliftIds.has(forklift.id)) return FORKLIFT_STATUS.rented;
+  return forklift.status;
 }
+
