@@ -43,8 +43,9 @@ export default function FleetPage() {
         : undefined,
     [forklifts, fleetBookings, todayYmd],
   );
-  // `computeFleetAvailability` ya no reinterpreta el estado con reservas:
-  // sólo una entrega completada persiste `rented`.
+  // `computeFleetAvailability` cuenta como rentada la unidad `available` con
+  // reserva confirmada vigente hoy (mismo criterio que tablero y detalle).
+
   // v7.281.1 · memoizado: sin esto el arreglo era nuevo en cada render y la
   // tabla reiniciaba la paginación a la página 1.
   const forkliftsForFilter = useMemo(
