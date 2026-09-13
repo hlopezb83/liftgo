@@ -58,7 +58,8 @@ BEGIN
     FROM public.organization_customers oc
     WHERE oc.organization_id = v_organization_id
       AND oc.customer_id = c.id
-  );
+  )
+  ON CONFLICT (organization_id, customer_id) DO NOTHING;
 
   FOREACH v_table IN ARRAY v_tables LOOP
     EXECUTE format(
