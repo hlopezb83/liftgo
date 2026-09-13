@@ -22,6 +22,7 @@ const baseRow: ProspectRow = {
   closed_at: null,
   lost_reason: null,
   final_amount: null,
+  organization_id: null,
 };
 
 beforeEach(() => {
