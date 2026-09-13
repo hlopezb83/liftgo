@@ -22,6 +22,13 @@
       "when": 1789336500000,
       "tag": "0002_multi_org_phase1_add_organization_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789340400000,
+      "tag": "0003_multi_org_phase2_customer_integrity",
+      "breakpoints": true
     }
   ]
 }
