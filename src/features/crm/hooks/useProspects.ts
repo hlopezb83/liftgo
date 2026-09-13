@@ -9,11 +9,20 @@ export type { Prospect, ProspectRow } from "../lib/prospectTypes";
 
 export type ProspectInsert = Omit<
   ProspectRow,
-  "id" | "created_at" | "updated_at" | "created_by" | "closed_at" | "lost_reason" | "final_amount"
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "created_by"
+  | "closed_at"
+  | "lost_reason"
+  | "final_amount"
+  | "organization_id"
 > & {
   closed_at?: string | null;
   lost_reason?: string | null;
   final_amount?: number | null;
+  // Multi-organización: lo resuelve la base, el cliente no lo envía.
+  organization_id?: string | null;
 };
 export type ProspectUpdate = Partial<ProspectInsert> & { id: string };
 
