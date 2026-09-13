@@ -10,6 +10,7 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
+      - "drizzle/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
@@ -17,6 +18,7 @@ on:
     branches: [main]
     paths:
       - "supabase/**"
+      - "drizzle/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
@@ -127,6 +129,17 @@ jobs:
             echo "::error::Se aplicaron $APPLIED migraciones de $FILES archivos"
             exit 1
           fi
+
+      # Las migraciones Drizzle son el carril de Lovable para cambios de
+      # esquema nuevos. Se aplican sobre la misma DB efímera después del
+      # historial Supabase para detectar SQL inválido o dependencias ausentes.
+      - name: Aplicar migraciones Drizzle (compatibilidad de esquema)
+        run: |
+          set -euo pipefail
+          while IFS= read -r -d '' migration; do
+            echo "Aplicando $migration"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 --single-transaction -f "$migration"
+          done < <(find drizzle/migrations -maxdepth 1 -type f -name '*.sql' -print0 | sort -z)
 
       - name: Prepare reports directory
         run: mkdir -p reports
