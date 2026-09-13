@@ -88,7 +88,7 @@ BEGIN
     NULL;
   END;
 END;
-$;
+$$;
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"9a000000-0000-4000-8000-000000000001","role":"authenticated"}';
