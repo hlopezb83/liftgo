@@ -4,12 +4,14 @@ BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('9a000000-0000-4000-8000-000000000001', 'portal.multi@test.local', now(), now()),
-  ('9a000000-0000-4000-8000-000000000002', 'staff.multi@test.local', now(), now())
+  ('9a000000-0000-4000-8000-000000000002', 'staff.multi@test.local', now(), now()),
+  ('9a000000-0000-4000-8000-000000000003', 'portal.email.real@test.local', now(), now())
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('9a000000-0000-4000-8000-000000000001', 'customer'),
-  ('9a000000-0000-4000-8000-000000000002', 'ventas')
+  ('9a000000-0000-4000-8000-000000000002', 'ventas'),
+  ('9a000000-0000-4000-8000-000000000003', 'customer')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.organizations (id, name, slug) VALUES
@@ -71,8 +73,22 @@ BEGIN
   EXCEPTION WHEN check_violation THEN
     NULL;
   END;
+
+  BEGIN
+    INSERT INTO public.customer_portal_accounts (
+      organization_id, customer_id, auth_user_id, email
+    ) VALUES (
+      '9a000000-0000-4000-8000-0000000000b1',
+      '9a000000-0000-4000-8000-0000000000c1',
+      '9a000000-0000-4000-8000-000000000003',
+      'portal.email.distinto@test.local'
+    );
+    RAISE EXCEPTION 'INTEGRITY: una cuenta de portal aceptó un email distinto a auth.users';
+  EXCEPTION WHEN check_violation THEN
+    NULL;
+  END;
 END;
-$$;
+$;
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"9a000000-0000-4000-8000-000000000001","role":"authenticated"}';
