@@ -1,0 +1,14 @@
+{
+  "version": "8.8.0",
+  "date": "2026-09-13",
+  "type": "minor",
+  "category": "feature",
+  "title": "Base para operar varias organizaciones en LiftGo",
+  "description": "Se preparó el cimiento para que LiftGo pueda atender a más de una organización sin mezclar información. Nada cambia todavía en el uso diario: los datos actuales quedaron asignados a la organización existente.",
+  "changes": [
+    "Se creó el registro de organizaciones y la pertenencia de cada usuario, con la regla de que nadie puede pertenecer a dos organizaciones.",
+    "El mismo cliente comercial ahora puede relacionarse con varias organizaciones, con sus datos fiscales propios en cada una.",
+    "El acceso al portal pasa a una tabla de cuentas: cada organización exige un correo distinto para el mismo cliente.",
+    "Los 5 usuarios internos, los 25 clientes y el único acceso de portal quedaron asignados a la organización actual."
+  ]
+}
