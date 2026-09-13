@@ -36,7 +36,7 @@ BEGIN
       USING ERRCODE = '23514';
   END IF;
 END;
-$;
+$$;
 
 UPDATE public.organization_memberships m
 SET member_type = 'portal',
