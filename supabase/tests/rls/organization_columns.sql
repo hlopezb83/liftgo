@@ -145,6 +145,20 @@ BEGIN
         v_table;
     END IF;
   END LOOP;
+
+  IF EXISTS (
+    SELECT 1
+    FROM pg_trigger t
+    JOIN pg_class relation ON relation.oid = t.tgrelid
+    JOIN pg_namespace relation_ns ON relation_ns.oid = relation.relnamespace
+    WHERE relation_ns.nspname = 'public'
+      AND relation.relname = ANY(v_tables)
+      AND NOT t.tgisinternal
+      AND t.tgenabled <> 'O'
+  ) THEN
+    RAISE EXCEPTION
+      'SEGURIDAD: la migración no puede dejar triggers de usuario desactivados';
+  END IF;
 END;
 $$;
 
