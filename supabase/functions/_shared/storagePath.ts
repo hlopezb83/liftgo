@@ -15,7 +15,9 @@ export function organizationStoragePath(
   const path = relativePath.trim().replace(/^\/+/, "");
 
   if (!isUUID(organization)) {
-    throw new Error("No se pudo resolver una organización válida para Storage.");
+    throw new Error(
+      "No se pudo resolver una organización válida para Storage.",
+    );
   }
   if (
     !path ||
