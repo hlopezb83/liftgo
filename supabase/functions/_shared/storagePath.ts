@@ -5,6 +5,24 @@ import { isUUID } from "./validate.ts";
  * Los procesos privilegiados deben derivar el ID del registro de negocio,
  * nunca de una entrada proporcionada por el cliente.
  */
+/** True when a Storage object is already under this organization's prefix. */
+export function hasOrganizationStoragePrefix(
+  organizationId: unknown,
+  value: unknown,
+): boolean {
+  const organization = typeof organizationId === "string"
+    ? organizationId.trim().toLowerCase()
+    : "";
+  const path = typeof value === "string"
+    ? value.trim().replace(/^\\/+/, "")
+    : "";
+  const separator = path.indexOf("/");
+
+  return isUUID(organization) &&
+    separator > 0 &&
+    path.slice(0, separator).toLowerCase() === organization;
+}
+
 export function organizationStoragePath(
   organizationId: unknown,
   relativePath: string,
