@@ -465,7 +465,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - **Edge Function** si necesitas: secretos, llamadas a terceros, lógica con privilegios de servicio, jobs programados.
 
 **Anti-patrones a evitar**:
-- Editar `src/integrations/supabase/{client,types}.ts` o `.env` (autogenerados).
+- Editar `src/integrations/supabase/{client,types}.ts`, `src/routeTree.gen.ts` o `.env` (autogenerados).
 - Lógica de Supabase dentro de componentes.
 - Roles guardados en `profiles` o en `localStorage`.
 - Colores literales fuera de los tokens del design system.
