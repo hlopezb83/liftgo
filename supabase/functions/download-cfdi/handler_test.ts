@@ -2,10 +2,7 @@
 // Foco: aislamiento multiempresa (Fase 1) — la organización del documento
 // se verifica ANTES de leer secretos, llamar al PAC o servir/descargar
 // archivos de Storage.
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   type DownloadCfdiDeps,
   type DownloadSupabaseLike,
