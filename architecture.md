@@ -474,7 +474,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - `alert()` o `confirm()` nativos — usar diálogos shadcn (`AlertDialog`, `Dialog`).
 - `console.log` en código de producción — usar `sonner` para feedback al usuario.
 - FK directa a `auth.users` — referenciar `user_id` y modelar perfiles en `profiles`.
-- Nested wildcards en rutas o re-montar `MainLayout` por ruta — usar `Suspense` por ruta.
+- Re-montar `MainLayout` por ruta o duplicar layouts — el layout vive en la ruta `_main`; `Suspense` va por página.
 - Mostrar al usuario términos como “Supabase dashboard” — referirse a **Lovable Cloud**.
 - Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (ver §20.4).
 
