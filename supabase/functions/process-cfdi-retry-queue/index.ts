@@ -17,7 +17,7 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import {
@@ -320,12 +320,19 @@ Deno.serve(async (req) => {
       // server-side; el claim admite 'error'+uuid NULL y re-timbraría un
       // duplicado ante el SAT.
       if (row.operation === "stamp") {
-        const { data: invRow } = await admin
+        const { data: invRowFull } = await admin
           .from("invoices")
-          .select("cfdi_status, cfdi_uuid")
+          .select("cfdi_status, cfdi_uuid, organization_id")
           .eq("id", row.invoice_id)
           .maybeSingle();
-        const st = invRow as StampInvoiceState | null;
+        const st = invRowFull as StampInvoiceState | null;
+        // Multiempresa · Fase 1: la organización SIEMPRE se deriva de la
+        // factura leída en BD, NUNCA del payload de la cola (un elemento de
+        // cfdi_retry_queue no puede pedir la empresa de otro). Sin
+        // organización resoluble, la fila falla explícito sin llamar al PAC.
+        const organizationId =
+          (invRowFull as { organization_id?: string | null } | null)
+            ?.organization_id ?? null;
         // Ya timbrada / en reconcile / cancelada → nada que reintentar.
         // R2 (bajo 6): decisión REAL importada desde decisions.ts (el test
         // consume la misma función — ya no hay lógica duplicada).
@@ -338,13 +345,43 @@ Deno.serve(async (req) => {
           results.push({ id: row.id, status: "succeeded_noop_state" });
           continue;
         }
+        if (!organizationId) {
+          console.error(
+            "[process-cfdi-retry-queue] invoice sin organization_id; no se puede resolver Facturapi",
+            { invoice_id: row.invoice_id },
+          );
+          await markQueueRow(admin, row.id, {
+            status: "exhausted",
+            attempts: nextAttempts,
+            last_error:
+              "Factura sin organization_id; no se puede resolver la empresa de forma segura.",
+          });
+          results.push({ id: row.id, status: "exhausted" });
+          continue;
+        }
+
         // Lookup al PAC por external_id: si el 5xx timbró server-side,
         // recuperamos los ids y dejamos que reconcile-stamping-invoices
         // descargue el XML — en vez de emitir un CFDI duplicado.
-        const { apiKey } = await getFacturapiConfig(
-          admin as unknown as { from: (t: string) => unknown } as never,
-          (k) => Deno.env.get(k),
-        );
+        // La organización viene SIEMPRE de la fila de `invoices` leída
+        // arriba, nunca del payload de la cola.
+        let apiKey: string | null = null;
+        try {
+          const cfg = await getFacturapiConfigForOrganization({
+            admin,
+            env: (k) => Deno.env.get(k),
+            organizationId,
+          });
+          apiKey = cfg.apiKey;
+        } catch (err) {
+          console.error(
+            "[process-cfdi-retry-queue] config lookup failed",
+            {
+              organization_id: organizationId,
+              err: err instanceof Error ? err.message : String(err),
+            },
+          );
+        }
         try {
           if (apiKey) {
             const pacClient = createFacturapiClient(apiKey);
