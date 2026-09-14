@@ -223,37 +223,63 @@ Página (orquestador)
 ### 6.2 Permisos por módulo
 
 - Tabla `role_permissions` (`role` × `module` × `access_level`: `none|read|full`).
-- Constante `MODULES` y mapa `ROUTE_TO_MODULE` definidos en `src/hooks/useRolePermissions.ts` — única fuente de verdad para nombrar módulos en UI y BD.
+- Constante `MODULES` y mapa `ROUTE_TO_MODULE` definidos en `src/features/users/hooks/useRolePermissions.ts` — única fuente de verdad para nombrar módulos en UI y BD.
 - Hook `useRolePermissions` carga el mapa con `staleTime: 5 min`.
 - Componente `<RoleGuard module="..." minAccess="read">` envuelve cada ruta protegida.
-- Cada `appRoute` declara `module` opcional; `App.tsx` lo enlaza a `RoleGuard`.
+- Cada entrada de `appRoutes` declara `module` opcional (y `minAccess` / `adminOnly` cuando aplica); el archivo de ruta correspondiente en `src/routes/_main/` lo enlaza a `RoleGuard`.
 
-### 6.3 Edge Functions
+### 6.3 Server functions vs Edge Functions
 
-- Validan identidad con `getClaims()` (compatible con tokens nuevos y legacy).
-- CORS restringido y centralizado en `supabase/functions/_shared/cors.ts`.
-- Validación de inputs en `supabase/functions/_shared/validate.ts`.
-- Casos de uso: timbrado/cancelación CFDI (`stamp-cfdi`, `cancel-cfdi`), invitaciones (`invite-user`, `invite-customer`, `delete-user`, `reset-user-password`, `toggle-user-status`), generación recurrente (`generate-recurring-invoices`, `generate-recurring-maintenance`), parseo de CSF (`parse-csf`), generación del manual (`generate-manual`).
+La lógica de servidor está repartida en dos transportes, con criterio explícito:
+
+**Server functions (`createServerFn`, corren en el Worker SSR)** — lógica
+interna de la app llamada desde el cliente. Viven en `src/lib/*.functions.ts`:
+
+- `userAdmin.functions.ts` — invitar, eliminar, restablecer contraseña y activar/desactivar usuarios internos (antes Edge Functions homónimas).
+- `customerPortal.functions.ts` — invitación al portal de clientes.
+- `supplierRep.functions.ts` — validación/parseo de REP de proveedores.
+- `feedbackAi.functions.ts` — clasificación asistida de reportes de feedback.
+
+Reglas: autenticación vía middleware `requireSupabaseAuth`
+(`src/integrations/supabase/auth-middleware.ts`); el Bearer se adjunta desde el
+cliente con el `functionMiddleware` registrado en `src/start.ts`; el código
+privilegiado vive en archivos `*.server.ts` / `src/lib/server/` importados
+dentro del handler, nunca desde un componente.
+
+**Edge Functions (Deno, en Supabase)** — integraciones externas, jobs
+programados y trabajo con privilegios de servicio:
+
+- Validan identidad con `getClaims()` o con el secreto de cron según el caso; CORS centralizado en `supabase/functions/_shared/cors.ts` y validación de inputs en `_shared/validate.ts`.
+- CFDI: `stamp-cfdi`, `cancel-cfdi`, `download-cfdi`, `stamp-credit-note`, `cancel-credit-note`, `stamp-payment-complement`, `cancel-payment-complement`, `refresh-cancellation-status`, `process-cfdi-retry-queue`, `reconcile-stamping-invoices`.
+- Validación fiscal: `validate-customers-tax-info`, `validate-receptor-tax-info`, `validate-supplier-rep`, `parse-csf`.
+- Jobs: `generate-recurring-invoices`, `generate-recurring-maintenance`, `migrate-storage-org-prefix`.
+- Otros: `generate-manual`, `classify-feedback-report`, y las funciones de usuarios que siguen desplegadas mientras se retira su versión Deno.
 - `verify_jwt` se configura por función en `supabase/config.toml` cuando aplica.
 
 ---
 
 ## 7. Enrutamiento y autorización
 
-- `src/lib/routes-config.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
-- `src/App.tsx` compone:
+- Enrutamiento **file-based** de TanStack Router: cada archivo bajo `src/routes/` genera una ruta; `src/routeTree.gen.ts` es **generado** y no se edita.
+- Árbol actual:
 
   ```text
-  AppProviders
-    └─ BrowserRouter
-         ├─ /portal/*                (portal cliente, layout propio)
-         └─ AuthGuard → MainLayout
-              └─ appRoutes.map → Suspense → RoleGuard? → Page
+  __root.tsx            Shell HTML + head/meta + AppProviders + ErrorBoundary
+    ├─ auth.tsx                     Login interno
+    ├─ portal.login.tsx             Login del portal
+    ├─ _main.tsx                    AuthGuard → MainLayout
+    │    └─ _main/<ruta>.tsx        Suspense → RoleGuard? → Page (lazy)
+    └─ _portal.tsx                  AuthGuard → CustomerPortalLayout
+         └─ _portal/portal.*.tsx    Páginas del portal
   ```
 
-- **Sin nested wildcards**: `MainLayout` se monta una sola vez, `Suspense` envuelve cada ruta individual (ver `mem://arch/routing-architecture`).
-- Constantes de URL en `src/lib/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
-- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
+- Los segmentos `_main` y `_portal` son layouts sin URL propia: `/invoices` vive en `src/routes/_main/invoices.index.tsx`.
+- `src/app-routes/routes-config.tsx` sigue siendo el registro de `path` → `loader` (lazy) + `module` + `minAccess`/`adminOnly`; los archivos de ruta lo consumen para montar `Suspense` + `RoleGuard`.
+- `MainLayout` se monta una sola vez (layout route); `Suspense` envuelve cada página individual.
+- Constantes de URL en `src/app-routes/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
+- La navegación usa `Link`/`navigate` de TanStack Router; `src/lib/router-compat-ui.tsx` y `src/lib/router-compat-url.ts` ofrecen equivalentes (`Navigate`, lectura de query string) para el código migrado.
+- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/users/permissions`, `/settings/operations`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
+
 
 ---
 
