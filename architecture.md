@@ -288,7 +288,7 @@ programados y trabajo con privilegios de servicio:
 - Aislado bajo `/portal/*` con `CustomerPortalLayout` y autenticación independiente (`/portal/login`).
 - Páginas: `PortalDashboard`, `PortalRentals`, `PortalInvoices`, `PortalInvoiceDetail`, `PortalContracts`.
 - Hooks dedicados (`useCustomerPortal`, `usePortalInvoices`, `usePortalBookings`) que **nunca** comparten queries con el backoffice.
-- Modelo de seguridad: usuarios invitados desde la edge function `invite-customer` quedan vinculados a un `customer_id`. Las policies RLS filtran por `customer_id = (auth claims)`. Acceso **solo lectura**.
+- Modelo de seguridad: los clientes invitados desde la server function `inviteCustomer` (`src/lib/customerPortal.functions.ts`) quedan vinculados a un `customer_id`. Las policies RLS filtran por ese `customer_id`. Acceso **solo lectura**.
 - Sin acceso a módulos internos (gastos, P&L, mantenimiento, etc.).
 
 ---
