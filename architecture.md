@@ -399,7 +399,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Convención: `supabase/functions/<name>/index_test.ts` con `Deno.test`.
 - Patrón mínimo por función (smoke RC): CORS preflight 200, rechazo sin `Authorization` (401), rechazo con JWT inválido (401 donde aplique).
-- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`.
+- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan desplegadas; la lógica vigente que consume la app está en las server functions de §6.3.
 - Importes: `https://deno.land/std@0.224.0/dotenv/load.ts` y `assert/mod.ts`. SUPABASE_URL desde `.env`.
 - Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
 - CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
