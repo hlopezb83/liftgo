@@ -31,7 +31,10 @@ Deno.test("storagePath: rechaza identificador o ruta insegura", () => {
 
 Deno.test("storagePath: reconoce únicamente el prefijo exacto de la organización", () => {
   assertEquals(
-    hasOrganizationStoragePrefix(ORGANIZATION_ID, `${ORGANIZATION_ID}/cfdi/invoice.xml`),
+    hasOrganizationStoragePrefix(
+      ORGANIZATION_ID,
+      `${ORGANIZATION_ID}/cfdi/invoice.xml`,
+    ),
     true,
   );
   assertEquals(
@@ -39,7 +42,10 @@ Deno.test("storagePath: reconoce únicamente el prefijo exacto de la organizaci�
     false,
   );
   assertEquals(
-    hasOrganizationStoragePrefix(ORGANIZATION_ID, `${ORGANIZATION_ID}-otro/invoice.xml`),
+    hasOrganizationStoragePrefix(
+      ORGANIZATION_ID,
+      `${ORGANIZATION_ID}-otro/invoice.xml`,
+    ),
     false,
   );
 });

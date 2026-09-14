@@ -42,6 +42,39 @@ export interface StampPaymentComplementDeps {
   env: (k: string) => string | undefined;
 }
 
+/** Campos del pago usados por el handler (select "*", tipado mínimo). */
+interface PaymentRow {
+  organization_id?: string | null;
+  invoice_id?: string | null;
+  amount?: number | string | null;
+  rep_cfdi_status?: string | null;
+  payment_form_sat?: string | null;
+  payment_date?: string | null;
+  currency?: string | null;
+  exchange_rate?: number | string | null;
+}
+
+/** Campos de la factura relacionada usados por el handler. */
+interface RelatedInvoiceRow {
+  id?: string | null;
+  organization_id?: string | null;
+  customer_id?: string | null;
+  total?: number | string | null;
+  tax_rate?: number | string | null;
+  line_items?: unknown;
+  metodo_pago?: string | null;
+  moneda?: string | null;
+  tipo_cambio?: number | string | null;
+  cfdi_uuid?: string | null;
+  cfdi_status?: string | null;
+  receptor_razon_social?: string | null;
+  receptor_rfc?: string | null;
+  receptor_regimen_fiscal?: string | null;
+  receptor_domicilio_fiscal_cp?: string | null;
+  uso_cfdi?: string | null;
+  customer_name?: string | null;
+}
+
 const BUCKET = "cfdi-files";
 const DEFAULT_IVA_RATE = 0.16;
 
@@ -137,7 +170,7 @@ export async function handleStampPaymentComplement(
       .eq("id", payment_id)
       .single();
     if (payErr || !payment) return jsonError(req, 404, "Payment not found");
-    const paymentRow = payment as Record<string, any>;
+    const paymentRow = payment as PaymentRow;
 
     // Multiempresa · Fase 1: la organización se valida contra el pago leído
     // de BD ANTES de cualquier claim, update o llamada al PAC. requireRoleDI
@@ -268,7 +301,7 @@ export async function handleStampPaymentComplement(
       await releaseClaim("Factura no encontrada");
       return jsonError(req, 404, "Invoice not found");
     }
-    const invoiceRow = invoice as Record<string, any>;
+    const invoiceRow = invoice as RelatedInvoiceRow;
     if (invoiceRow.metodo_pago !== "PPD") {
       await releaseClaim("Solo facturas PPD requieren REP");
       return jsonError(
@@ -451,7 +484,9 @@ export async function handleStampPaymentComplement(
     }
 
     const repLegalName = repIsGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
-      String(invoiceRow.receptor_razon_social ?? invoiceRow.customer_name ?? ""),
+      String(
+        invoiceRow.receptor_razon_social ?? invoiceRow.customer_name ?? "",
+      ),
     );
     if (!repIsGlobal && !repLegalName) {
       const msg =

@@ -118,11 +118,17 @@ Deno.test("handler: EC-A1 service_role JWT salta la verificación de rol", async
         // devolvería null y la función respondería 403.
         selects: {
           payments: {
-            data: { organization_id: ORG_ID,
-            rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
+            data: {
+              organization_id: ORG_ID,
+              rep_cfdi_status: "stamped",
+              rep_facturapi_id: "fapi_xx",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         updates: { payments: { data: null, error: null } },
@@ -179,8 +185,11 @@ Deno.test("handler: 400 si REP no está timbrado", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         payments: {
-          data: { organization_id: ORG_ID,
-            rep_cfdi_status: "draft", rep_facturapi_id: null },
+          data: {
+            organization_id: ORG_ID,
+            rep_cfdi_status: "draft",
+            rep_facturapi_id: null,
+          },
           error: null,
         },
       },
@@ -200,11 +209,17 @@ Deno.test("handler: 400 si no hay API key configurada", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         payments: {
-          data: { organization_id: ORG_ID,
-            rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
+          data: {
+            organization_id: ORG_ID,
+            rep_cfdi_status: "stamped",
+            rep_facturapi_id: "fapi_xx",
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
     },
@@ -233,11 +248,17 @@ Deno.test("handler: happy path llama Facturapi DELETE y marca cancelled", async 
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           payments: {
-            data: { organization_id: ORG_ID,
-            rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
+            data: {
+              organization_id: ORG_ID,
+              rep_cfdi_status: "stamped",
+              rep_facturapi_id: "fapi_xx",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         updates: { payments: { data: null, error: null } },
@@ -277,11 +298,17 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           payments: {
-            data: { organization_id: ORG_ID,
-            rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
+            data: {
+              organization_id: ORG_ID,
+              rep_cfdi_status: "stamped",
+              rep_facturapi_id: "fapi_xx",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         updates: { payments: { data: null, error: null } },

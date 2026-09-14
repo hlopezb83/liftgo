@@ -152,9 +152,8 @@ type PlanItem = {
   isFirstInvoice: boolean;
 };
 
-// deno-lint-ignore no-explicit-any
 async function buildPlan(
-  supabase: any,
+  supabase: SupabaseClient,
   organizationId?: string | null,
 ): Promise<{
   lines: PreviewLine[];
@@ -199,10 +198,17 @@ async function buildPlan(
       .in("customer_id", customerIds);
     for (
       const c of (custRows ?? []) as Array<
-        { organization_id: string; customer_id: string; tax_rate: number | null }
+        {
+          organization_id: string;
+          customer_id: string;
+          tax_rate: number | null;
+        }
       >
     ) {
-      taxRateByCustomer.set(`${c.organization_id}|${c.customer_id}`, c.tax_rate);
+      taxRateByCustomer.set(
+        `${c.organization_id}|${c.customer_id}`,
+        c.tax_rate,
+      );
     }
   }
 
@@ -251,7 +257,7 @@ async function buildPlan(
         .neq("invoices.status", "cancelled")
         .neq("invoices.cfdi_status", "cancelled");
 
-      const rows = (linked ?? []) as Array<
+      const rows = (linked ?? []) as unknown as Array<
         {
           invoices: { billing_period_end: string | null; line_items: unknown };
         }
@@ -382,7 +388,9 @@ async function buildPlan(
         currency: bookingCurrency,
         rateWarning,
         taxRate: booking.customer_id
-          ? taxRateByCustomer.get(`${booking.organization_id}|${booking.customer_id}`) ?? null
+          ? taxRateByCustomer.get(
+            `${booking.organization_id}|${booking.customer_id}`,
+          ) ?? null
           : null,
         isProrated: proratedPeriod,
         proratedDays: proratedPeriod ? proratedDays : undefined,
@@ -433,7 +441,7 @@ async function buildPlan(
               .limit(1)
               .maybeSingle();
             if (prevInvoice) {
-              const inv = prevInvoice.invoices as {
+              const inv = prevInvoice.invoices as unknown as {
                 id: string;
                 invoice_number: string;
               };
@@ -503,7 +511,10 @@ async function buildPlan(
         .maybeSingle();
 
       if (existing) {
-        const inv = existing.invoices as { id: string; invoice_number: string };
+        const inv = existing.invoices as unknown as {
+          id: string;
+          invoice_number: string;
+        };
         lines.push({
           ...baseLine,
           eligible: false,
@@ -724,7 +735,8 @@ async function executePlan(
           p_billing_period_start: first.startStr,
           p_billing_period_end: first.endStr,
           p_receptor_rfc: customer?.rfc ?? null,
-          p_receptor_razon_social: customer?.razon_social || first.customerName ||
+          p_receptor_razon_social: customer?.razon_social ||
+            first.customerName ||
             null,
           p_receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           p_receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
@@ -794,7 +806,10 @@ Deno.serve(async (req) => {
       if (!auth.ok) return auth.response;
       supabase = auth.adminClient;
       if (auth.role !== "service_role") {
-        const callerOrg = await resolveCallerOrganization(supabase, auth.userId);
+        const callerOrg = await resolveCallerOrganization(
+          supabase,
+          auth.userId,
+        );
         if (!callerOrg.ok) {
           return jsonError(req, callerOrg.status, callerOrg.message);
         }

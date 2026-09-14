@@ -153,7 +153,10 @@ export async function handleValidateCustomers(
       .neq("rfc", "")
       .neq("rfc", RFC_PUBLICO_GENERAL);
     if (linksErr) {
-      console.error("[validate-customers-tax-info] organization_customers query", linksErr);
+      console.error(
+        "[validate-customers-tax-info] organization_customers query",
+        linksErr,
+      );
       return json({ error: "No se pudo leer la cartera de clientes" }, 500);
     }
 

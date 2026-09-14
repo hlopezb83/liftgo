@@ -138,7 +138,11 @@ Deno.test("cancel-cfdi: 400 si la factura no está timbrada", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "draft", facturapi_invoice_id: null },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "draft",
+            facturapi_invoice_id: null,
+          },
           error: null,
         },
       },
@@ -157,7 +161,11 @@ Deno.test("cancel-cfdi: 403 si la factura es e2e", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", is_e2e: true },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            is_e2e: true,
+          },
           error: null,
         },
       },
@@ -177,10 +185,17 @@ Deno.test("cancel-cfdi: stub (sin apiKey) marca aceptada y actualiza", async () 
       selects: {
         user_roles: { data: [{ role: "administrativo" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: null },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            facturapi_invoice_id: null,
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
       updates: { invoices: { data: null, error: null } },
@@ -216,10 +231,17 @@ Deno.test("cancel-cfdi: happy path llama a Facturapi DELETE y acepta", async () 
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           invoices: {
-            data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: "fapi_xyz" },
+            data: {
+              organization_id: ORG_ID,
+              cfdi_status: "stamped",
+              facturapi_invoice_id: "fapi_xyz",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         updates: { invoices: { data: null, error: null } },
@@ -259,10 +281,17 @@ Deno.test("cancel-cfdi: SAT 'pending' devuelve warning y no marca cancelled", as
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           invoices: {
-            data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: "fapi_p" },
+            data: {
+              organization_id: ORG_ID,
+              cfdi_status: "stamped",
+              facturapi_invoice_id: "fapi_p",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         updates: { invoices: { data: null, error: null } },
@@ -297,10 +326,17 @@ Deno.test("cancel-cfdi: Facturapi 500 devuelve 502", async () => {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           invoices: {
-            data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: "fapi_e" },
+            data: {
+              organization_id: ORG_ID,
+              cfdi_status: "stamped",
+              facturapi_invoice_id: "fapi_e",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
       },
@@ -325,10 +361,17 @@ Deno.test("cancel-cfdi: C-2 live sin apiKey rechaza cancelación stub", async ()
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: "fapi_z" },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            facturapi_invoice_id: "fapi_z",
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "live", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "live", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
       updates: { invoices: { data: null, error: null } },
@@ -356,10 +399,17 @@ Deno.test("cancel-cfdi: C-2 live sin facturapi_invoice_id rechaza stub", async (
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: null },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            facturapi_invoice_id: null,
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "live", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "live", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
       updates: { invoices: { data: null, error: null } },
@@ -387,10 +437,17 @@ Deno.test("cancel-cfdi: BL-A4 rechaza 409 si hay pagos aplicados", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: null },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            facturapi_invoice_id: null,
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
       updates: { invoices: { data: null, error: null } },
@@ -428,10 +485,17 @@ Deno.test("cancel-cfdi: EC-A1 service_role JWT salta la verificación de rol", a
       // devolvería null y la función respondería 403.
       selects: {
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: null },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            facturapi_invoice_id: null,
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
       updates: { invoices: { data: null, error: null } },
@@ -462,10 +526,17 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 500 encola reintento con payload plano",
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           invoices: {
-            data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: "fapi_500" },
+            data: {
+              organization_id: ORG_ID,
+              cfdi_status: "stamped",
+              facturapi_invoice_id: "fapi_500",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
           cfdi_retry_queue: { data: { id: "q-1" }, error: null },
         },
@@ -518,10 +589,17 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 400 (negocio) NO encola reintento", asyn
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           invoices: {
-            data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: "fapi_400" },
+            data: {
+              organization_id: ORG_ID,
+              cfdi_status: "stamped",
+              facturapi_invoice_id: "fapi_400",
+            },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
       },
@@ -550,10 +628,17 @@ Deno.test("cancel-cfdi: BL-A4 sin pagos, RPC null, procede la cancelación stub 
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         invoices: {
-          data: { organization_id: ORG_ID, cfdi_status: "stamped", facturapi_invoice_id: null },
+          data: {
+            organization_id: ORG_ID,
+            cfdi_status: "stamped",
+            facturapi_invoice_id: null,
+          },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null },
       },
       updates: { invoices: { data: null, error: null } },

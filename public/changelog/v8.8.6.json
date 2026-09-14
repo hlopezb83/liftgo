@@ -1,0 +1,14 @@
+{
+  "version": "8.8.6",
+  "date": "2026-09-14",
+  "type": "patch",
+  "category": "chore",
+  "title": "Verificaciones automáticas de las funciones en verde",
+  "description": "Se corrigió el formato y la revisión de calidad del código de las funciones de facturación, que detenían las verificaciones automáticas. No cambia el funcionamiento de la aplicación.",
+  "changes": [
+    "Se aplicó el formateador oficial a los 17 archivos que quedaron sin formatear tras la entrega anterior.",
+    "Se sustituyeron los tipos genéricos señalados por la revisión de calidad por descripciones concretas de los datos de pagos, facturas y notas de crédito, sin desactivar ninguna regla.",
+    "Se retiró una importación sin usar en las pruebas de descarga de comprobantes.",
+    "Las pruebas sin conexión de las funciones siguen en verde: 351 en 131 archivos."
+  ]
+}
