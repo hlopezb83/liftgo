@@ -1,0 +1,15 @@
+{
+  "version": "8.8.4",
+  "date": "2026-09-14",
+  "type": "patch",
+  "category": "docs",
+  "title": "Precisión en la documentación técnica",
+  "description": "Se corrigieron imprecisiones en la descripción de las pruebas automáticas, los permisos de las pantallas y el diagrama de arquitectura. No hay cambios en el funcionamiento de la aplicación.",
+  "changes": [
+    "Se describe con precisión lo que revisan las pruebas automáticas al subir cambios, sin confundir una verificación rápida de arranque con la suite completa de pruebas de extremo a extremo.",
+    "Se aclara que los permisos de cada pantalla se definen en la propia pantalla; el registro heredado solo alimenta el menú lateral y el buscador.",
+    "El diagrama ya no sugiere que los proveedores externos (facturación electrónica e inteligencia artificial) tocan directamente la base de datos.",
+    "Se indica que las funciones externas están presentes en el repositorio, sin afirmar que sigan publicadas.",
+    "Se matiza que la migración a multiempresa sigue en curso y que esta revisión no certifica su cierre."
+  ]
+}

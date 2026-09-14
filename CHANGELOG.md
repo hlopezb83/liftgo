@@ -1,8 +1,16 @@
+## [8.8.4] - 2026-09-14
+### Precisión en la documentación técnica
+- §15.6: `ci.yml` ejecuta ESLint, `tsc`, `arch-check`, build, un smoke de arranque con `playwright.smoke.config.ts` (no la suite E2E completa), Vitest en 2 shards + merge de cobertura, y jobs condicionales Deno/lint SQL/dependency-review/actionlint. No ejecuta knip.
+- §7: los archivos de ruta declaran sus propios guards (`module`/`minAccess` locales + `RoleGuard`); `src/app-routes/routes-config.tsx` es un registro heredado consumido por sidebar y búsqueda global, no la fuente efectiva de permisos en runtime. Se ajustan el mapa de carpetas, el paso para agregar rutas y las referencias.
+- Diagrama: se retira el enlace directo Facturapi/AI → Postgres; los proveedores externos solo son invocados desde Edge Functions o código servidor.
+- Se reemplaza "siguen desplegadas" por "presentes en el repositorio" (incluida la entrada 8.8.3 de este archivo): la presencia en Git no acredita un despliegue activo.
+- Las notas multi-organización dejan de enumerar pendientes como hechos: esta revisión documental no certifica el cierre de la migración.
+
 ## [8.8.3] - 2026-09-14
 ### Documentación técnica alineada con el sistema actual
 - `README.md` y `architecture.md` describen el stack real: React 19, Vite 8, TypeScript 6, Tailwind v4 y TanStack Start/Router con SSR.
 - Diagrama, mapa de carpetas y sección de enrutamiento reescritos sobre rutas file-based (`src/routes/`, layouts `_main`/`_portal`, `routeTree.gen.ts` generado); se eliminan referencias a `src/App.tsx`, `src/main.tsx`, `react-router-dom`, `src/lib/routes-config.tsx` y `tailwind.config.ts`.
-- Nueva §6.3: server functions (`createServerFn` en `src/lib/*.functions.ts`) vs Edge Functions Deno, con el inventario real de funciones desplegadas.
+- Nueva §6.3: server functions (`createServerFn` en `src/lib/*.functions.ts`) vs Edge Functions Deno presentes en el repositorio (sin certificar su estado de despliegue).
 - Despliegue documentado según `vite.config.ts` y `wrangler.jsonc`: build SSR con Nitro, preset `cloudflare-module`, salidas `dist/client` y `dist/server`; `bun run preview` = `wrangler dev --port 4173`.
 - Testing actualizado: Vitest 4 con happy-dom (jsdom opt-in) y suite offline; Playwright sobre el build servido en 4173.
 - Migraciones: se documenta `drizzle/migrations/` junto al historial de `supabase/migrations/`. Se marca la migración multi-organización como **en curso**, no terminada.

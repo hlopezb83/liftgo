@@ -64,12 +64,15 @@ Requisitos de entorno: Node `>=24` (ver `engines` en `package.json`, `.nvmrc` y 
       │  has_role() SECURITY DEFINER · RPCs        │
       │  triggers de auditoría · constraints GiST  │
       └────────────────────────────────────────────┘
-               ▲                           ▲
-               │                           │
-   ┌───────────┴──────────────┐   ┌────────┴─────────────┐
-   │  Edge Functions (Deno)   │   │  Servicios externos  │
-   │  CFDI, cron, storage     │──▶│  Facturapi · AI      │
-   └──────────────────────────┘   └──────────────────────┘
+                ▲
+                │
+    ┌───────────┴──────────────┐   ┌──────────────────────┐
+    │  Edge Functions (Deno)   │   │  Servicios externos  │
+    │  CFDI, cron, storage     │──▶│  Facturapi · AI      │
+    └──────────────────────────┘   └──────────────────────┘
+
+Los servicios externos (Facturapi, AI) **no** acceden a Postgres: solo los
+invocan las Edge Functions o el código servidor, que sí consultan la base.
 ```
 
 El SSR corre en un Worker: `src/server.ts` envuelve el handler de
@@ -102,7 +105,7 @@ src/
 ├── layouts/                        MainLayout, CustomerPortalLayout, AuthGuard, RoleGuard
 ├── app-routes/
 │   ├── routes.ts                   Constantes de URL (`ROUTES.invoices.detail(id)`)
-│   ├── routes-config.tsx           Registro de rutas: loader lazy + módulo + permisos
+│   ├── routes-config.tsx           Registro heredado: loaders lazy + metadatos para sidebar/búsqueda
 │   └── RouteSkeletons.tsx          Fallbacks de Suspense
 ├── routes/                         Rutas file-based de TanStack Router
 │   ├── __root.tsx                  Shell HTML, head/meta, providers, error/not-found
@@ -232,9 +235,9 @@ Página (orquestador)
 > `organizations`, `organization_memberships`, `organization_customers`,
 > `customer_portal_accounts` y la columna `organization_id` en las tablas
 > operativas (migraciones `drizzle/migrations/00NN_multi_org_*`). Hoy opera una
-> sola organización. Quedan pendientes, entre otros, el alcance por organización
-> en varias Edge Functions/cron y la migración de rutas de Storage. No asumir que
-> el aislamiento multiempresa está completo.
+> sola organización. Esta revisión documental no certifica el cierre de la
+> migración: cualquier pendiente concreto debe confirmarse contra el código
+> vigente antes de dar el aislamiento multiempresa por completo.
 
 
 
@@ -263,7 +266,7 @@ programados y trabajo con privilegios de servicio:
 - CFDI: `stamp-cfdi`, `cancel-cfdi`, `download-cfdi`, `stamp-credit-note`, `cancel-credit-note`, `stamp-payment-complement`, `cancel-payment-complement`, `refresh-cancellation-status`, `process-cfdi-retry-queue`, `reconcile-stamping-invoices`.
 - Validación fiscal: `validate-customers-tax-info`, `validate-receptor-tax-info`, `validate-supplier-rep`, `parse-csf`.
 - Jobs: `generate-recurring-invoices`, `generate-recurring-maintenance`, `migrate-storage-org-prefix`.
-- Otros: `generate-manual`, `classify-feedback-report`, y las funciones de usuarios que siguen desplegadas mientras se retira su versión Deno.
+- Otros: `generate-manual`, `classify-feedback-report`, y las funciones de usuarios cuya versión Deno sigue **presente en el repositorio** mientras se retira (esta revisión documental no verifica su estado de despliegue).
 - `verify_jwt` se configura por función en `supabase/config.toml` cuando aplica.
 
 ---
@@ -284,7 +287,8 @@ programados y trabajo con privilegios de servicio:
   ```
 
 - Los segmentos `_main` y `_portal` son layouts sin URL propia: `/invoices` vive en `src/routes/_main/invoices.index.tsx`.
-- `src/app-routes/routes-config.tsx` sigue siendo el registro de `path` → `loader` (lazy) + `module` + `minAccess`/`adminOnly`; los archivos de ruta lo consumen para montar `Suspense` + `RoleGuard`.
+- Cada archivo de ruta declara sus propios guards: importa la página con `lazy`, define `module`/`minAccess` localmente y monta `Suspense` + `RoleGuard` (ej. `src/routes/_main/invoices.index.tsx`). **No** importan `routes-config.tsx`.
+- `src/app-routes/routes-config.tsx` es un registro heredado del router previo: hoy lo consumen el sidebar (`SidebarNavSection`, `SidebarQuickCreate`), la búsqueda global (`GlobalSearch`) y pruebas — no es la fuente efectiva de permisos en runtime.
 - `MainLayout` se monta una sola vez (layout route); `Suspense` envuelve cada página individual.
 - Constantes de URL en `src/app-routes/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
 - La navegación usa `Link`/`navigate` de TanStack Router; `src/lib/router-compat-ui.tsx` y `src/lib/router-compat-url.ts` ofrecen equivalentes (`Navigate`, lectura de query string) para el código migrado.
@@ -409,7 +413,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Convención: `supabase/functions/<name>/index_test.ts` con `Deno.test`.
 - Patrón mínimo por función (smoke RC): CORS preflight 200, rechazo sin `Authorization` (401), rechazo con JWT inválido (401 donde aplique).
-- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan desplegadas; la lógica vigente que consume la app está en las server functions de §6.3.
+- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan presentes en el repositorio; la lógica vigente que consume la app está en las server functions de §6.3.
 - Importes: `https://deno.land/std@0.224.0/dotenv/load.ts` y `assert/mod.ts`. SUPABASE_URL desde `.env`.
 - Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
 - CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
@@ -438,7 +442,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ### 15.6 Workflows de CI
 
-Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arch-check, unit tests en 2 shards + merge de cobertura, build y E2E), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. No hay workflow de Lighthouse.
+Workflows vigentes en `.github/workflows/`: `ci.yml` (ESLint, `tsc`, `arch-check`, build, un **smoke de arranque** con `playwright.smoke.config.ts` —no la suite E2E completa—, Vitest en 2 shards + merge de resultados/cobertura, y jobs condicionales por archivos tocados: Deno fmt/lint/tests, lint de migraciones SQL, dependency-review y actionlint), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. `ci.yml` no ejecuta knip. La suite E2E completa (`playwright.config.ts`) corre fuera de `ci.yml`. No hay workflow de Lighthouse.
 
 
 
@@ -461,8 +465,8 @@ Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arc
 2. Página orquestadora en `src/features/<feature>/pages/<Feature>Page.tsx`.
 3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
 4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
-5. Registrar la ruta en `src/app-routes/routes-config.tsx` con `module: "Mi Módulo"` y su `loader` dinámico.
-6. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL) y agregar la URL a `src/app-routes/routes.ts`.
+5. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL): `lazy` de la página, `module`/`minAccess` locales y `RoleGuard`, siguiendo el patrón de `invoices.index.tsx`. Agregar la URL a `src/app-routes/routes.ts`.
+6. Si el módulo debe aparecer en el sidebar o en la búsqueda global, registrarlo también en `src/app-routes/routes-config.tsx`.
 7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `src/features/users/hooks/useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
 
 8. Agregar test mínimo en `src/test/`.
@@ -779,7 +783,7 @@ El primitive vive en `src/components/ui/sidebar/` (`Sidebar.tsx`, `SidebarGroup.
 - `src/features/changelog/lib/changelog.ts` — fetcher + tipos del changelog.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
 - `src/lib/config.ts` — configuración global (IVA, monedas).
-- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro de rutas y permisos.
+- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro heredado (sidebar/búsqueda) y constantes de URL; los permisos efectivos viven en cada archivo de ruta (`RoleGuard`).
 - `src/routes/` — rutas file-based de TanStack Router; `src/routeTree.gen.ts` es generado.
 - `src/router.tsx`, `src/start.ts`, `src/server.ts` — router, middlewares y entrada SSR.
 - `src/features/users/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
