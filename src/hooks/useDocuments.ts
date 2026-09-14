@@ -12,6 +12,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 import { documentsQueries, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
 
 
@@ -39,7 +40,11 @@ export function useUploadDocument() {
       // provocaba "Invalid key". Se conserva el file.name original en la fila
       // documents; sólo se sanea el path físico.
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 128);
-      const filePath = `${entityType}/${entityId}/${Date.now()}_${safeName}`;
+      const relativePath = `${entityType}/${entityId}/${Date.now()}_${safeName}`;
+      const filePath = await organizationStoragePathForSession(
+        supabase,
+        relativePath,
+      );
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(filePath, file);
