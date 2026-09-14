@@ -12,9 +12,11 @@ describe("organizationStoragePath", () => {
       .toBe(`${organizationId}/documents/a.pdf`);
   });
 
-  it("rechaza rutas que intentan salir del prefijo", () => {
+  it("rechaza rutas que intentan salir del prefijo o contienen segmentos vacíos", () => {
     expect(() => organizationStoragePath(organizationId, "../secret.pdf"))
       .toThrow("no puede contener");
+    expect(() => organizationStoragePath(organizationId, "documents//secret.pdf"))
+      .toThrow("segmentos vacíos");
   });
 
   it("falla si la sesión no tiene organización", async () => {
