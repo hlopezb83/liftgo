@@ -781,12 +781,25 @@ Deno.serve(async (req) => {
     // Lote C · DIFF 8 rest: auth timing-safe compartida para cron/service.
     const cronAuth = await authenticateCronRequest(req);
     let supabase;
+    // Multiempresa Fase 1: ejecuciones manuales (usuario autenticado) se
+    // acotan SIEMPRE a la organización del caller (nunca al payload). El
+    // cron (y el bypass service_role interno) procesan todas las
+    // organizaciones; cada reserva conserva su propia organization_id y la
+    // agrupación posterior (buildPlan/executePlan) nunca mezcla empresas.
+    let scopeOrganizationId: string | null = null;
     if (cronAuth.ok) {
       supabase = getAdminClient();
     } else {
       const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
       if (!auth.ok) return auth.response;
       supabase = auth.adminClient;
+      if (auth.role !== "service_role") {
+        const callerOrg = await resolveCallerOrganization(supabase, auth.userId);
+        if (!callerOrg.ok) {
+          return jsonError(req, callerOrg.status, callerOrg.message);
+        }
+        scopeOrganizationId = callerOrg.organizationId;
+      }
     }
 
     // Parse body (may be empty for legacy callers)
@@ -824,6 +837,7 @@ Deno.serve(async (req) => {
 
     const { lines, items: allItems, truncated, pendingCount } = await buildPlan(
       supabase,
+      scopeOrganizationId,
     );
 
     const eligibleLines = lines.filter((l) => l.eligible);
