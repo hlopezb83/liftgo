@@ -340,7 +340,7 @@ src/lib/pdf/
 - Tablas estandarizadas: compactas, filas zebra, headers sticky, sort/paginación cliente (límite 25, vía `usePagination`).
 - Mobile: `MobileCardList` reemplaza tablas complejas.
 - Diseño visual “Premium / Industrial Minimalista” para documentos operativos.
-- **Tokens semánticos**: nunca colores literales (`text-white`, `bg-black`). Todo color en HSL en `index.css` y `tailwind.config.ts`. Componentes usan tokens (`bg-primary`, `text-muted-foreground`, etc.).
+- **Tokens semánticos**: nunca colores literales (`text-white`, `bg-black`). Todo color en HSL dentro de `src/styles.css` (Tailwind v4 con `@theme`/`@layer base`, sin `tailwind.config.ts`). Componentes usan tokens (`bg-primary`, `text-muted-foreground`, etc.).
 
 ---
 
