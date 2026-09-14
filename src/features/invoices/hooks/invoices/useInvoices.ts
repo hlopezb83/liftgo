@@ -168,7 +168,8 @@ export function useInvoice(id: string | undefined) {
 
 export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
   return useEntityMutation({
-    mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number" | "organization_id">) => {
       const { data: numData, error: numError } = await supabase.rpc("next_draft_invoice_number");
       if (numError) throw numError;
       const { data, error } = await supabase
@@ -189,7 +190,7 @@ export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBloc
 }
 
 export interface SaveInvoiceWithBookingsArgs {
-  payload: Omit<TablesInsert<"invoices">, "invoice_number">;
+  payload: Omit<TablesInsert<"invoices">, "invoice_number" | "organization_id">;
   bookingIds: string[];
   /** null/undefined → crear; uuid → editar. */
   invoiceId?: string | null;

@@ -14,7 +14,8 @@ const CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all] as const
 
 export function useCreateCreditNote() {
   return useEntityMutation({
-    mutationFn: async (input: Omit<TablesInsert<"credit_notes">, "credit_note_number"> & { stamp?: boolean }) => {
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (input: Omit<TablesInsert<"credit_notes">, "credit_note_number" | "organization_id"> & { stamp?: boolean }) => {
       const { stamp, ...payload } = input;
       const { data: numberData, error: numErr } = await supabase.rpc("next_draft_credit_note_number");
       if (numErr) throw numErr;

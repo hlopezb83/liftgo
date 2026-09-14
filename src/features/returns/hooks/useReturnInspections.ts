@@ -59,7 +59,8 @@ export function useReturnInspections(forkliftId?: string) {
 
 export function useCreateReturnInspection() {
   return useEntityMutation({
-    mutationFn: async (inspection: Omit<TablesInsert<"return_inspections">, "inspection_number">) => {
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (inspection: Omit<TablesInsert<"return_inspections">, "inspection_number" | "organization_id">) => {
       const { data, error } = await supabase.rpc("complete_return_inspection", {
         p_booking_id: inspection.booking_id,
         p_forklift_id: inspection.forklift_id,
