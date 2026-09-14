@@ -17,7 +17,10 @@ import {
   type StorageListItem,
   summarizeStorageInventory,
 } from "../_shared/storageInventory.ts";
-import { organizationStoragePath } from "../_shared/storagePath.ts";
+import {
+  hasOrganizationStoragePrefix,
+  organizationStoragePath,
+} from "../_shared/storagePath.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
 const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_DELETE";
@@ -473,6 +476,9 @@ function collectOrphanCandidates(
     const referenced = referencedPathsByBucket.get(bucketId) ?? new Set();
     for (const sourcePath of objectPaths) {
       if (referenced.has(sourcePath)) continue;
+      // Los objetos nuevos sin referencia ya pueden estar aislados. No se
+      // deben volver a prefijar ni eliminar como si fueran rutas heredadas.
+      if (hasOrganizationStoragePrefix(organizationId, sourcePath)) continue;
       candidates.push({
         bucketId,
         organizationId,
