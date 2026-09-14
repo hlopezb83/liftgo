@@ -86,10 +86,23 @@ Deno.test("storageMigrationPlan: no confunde UUIDs de entidades con organizacion
   );
 });
 
-Deno.test("storageMigrationPlan: rechaza URL firmada y rutas inseguras", () => {
+Deno.test("storageMigrationPlan: convierte URL firmada legada a ruta interna", () => {
+  const plan = makeStorageMigrationPlan(
+    ORG,
+    "supplier-bill-cfdi-xml",
+    "https://project.supabase.co/storage/v1/object/sign/supplier-bill-cfdi-xml/folder/a.xml?token=secret",
+  );
+
+  assertEquals(plan.disposition, "candidate");
+  assertEquals(plan.sourcePath, "folder/a.xml");
+  assertEquals(plan.format, "storage_path");
+  assertEquals(plan.publicUrlOrigin, null);
+});
+
+Deno.test("storageMigrationPlan: rechaza URL firmada sin token y rutas inseguras", () => {
   assertEquals(
     parseStorageReference(
-      "https://project.supabase.co/storage/v1/object/sign/cfdi-files/a.xml?token=secret",
+      "https://project.supabase.co/storage/v1/object/sign/cfdi-files/a.xml",
       "cfdi-files",
     ),
     null,
