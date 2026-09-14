@@ -18,6 +18,7 @@ import {
 
 const PAYMENT_ID = "11111111-1111-4111-8111-111111111111";
 const ORG_ID = "44444444-4444-4444-8444-444444444444";
+const OTHER_ORG_ID = "55555555-5555-4555-8555-555555555555";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
 
 function makeRequest(
@@ -61,6 +62,7 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
+      organizations: { data: [{ id: ORG_ID }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -120,7 +122,7 @@ Deno.test("handler: EC-A1 service_role JWT salta la verificación de rol", async
             rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         updates: { payments: { data: null, error: null } },
@@ -202,7 +204,7 @@ Deno.test("handler: 400 si no hay API key configurada", async () => {
             rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test" }, error: null },
+        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
         billing_secrets: { data: null, error: null },
       },
     },
@@ -235,7 +237,7 @@ Deno.test("handler: happy path llama Facturapi DELETE y marca cancelled", async 
             rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         updates: { payments: { data: null, error: null } },
@@ -279,7 +281,7 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
             rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         updates: { payments: { data: null, error: null } },

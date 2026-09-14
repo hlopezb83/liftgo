@@ -31,6 +31,7 @@ function policy(
 interface Recorded {
   claims: string[];
   inserts: string[];
+  insertedOrgIds: (string | undefined)[];
   checks: string[];
   rollbacks: { patch: Record<string, unknown>; filters: [string, unknown][] }[];
 }
@@ -48,7 +49,13 @@ function makeClient(opts: {
     error: PostgrestErrorLike | null;
   };
 }): { client: MaintenanceClientLike; rec: Recorded } {
-  const rec: Recorded = { claims: [], inserts: [], checks: [], rollbacks: [] };
+  const rec: Recorded = {
+    claims: [],
+    inserts: [],
+    insertedOrgIds: [],
+    checks: [],
+    rollbacks: [],
+  };
   const client: MaintenanceClientLike = {
     rpc(_fn, args) {
       const month = String(args.p_month);
@@ -62,6 +69,7 @@ function makeClient(opts: {
         insert(row) {
           const month = String(row.policy_month);
           rec.inserts.push(month);
+          rec.insertedOrgIds.push(row.organization_id as string | undefined);
           return Promise.resolve({ error: opts.insert?.(month) ?? null });
         },
         select(_columns: string) {
@@ -314,4 +322,34 @@ Deno.test("R9-17: sin pendientes extra no se reporta remanente", async () => {
   );
   assertStrictEquals(res.pendingRemaining, 0);
   assertStrictEquals(res.details.some((d) => d.includes("pendiente")), false);
+});
+
+// Fase 1 multiempresa: cada log de mantenimiento generado hereda EXPLÍCITAMENTE
+// el organization_id de la póliza de origen (nunca del caller/cron), y dos
+// pólizas de distintas empresas se procesan de forma independiente.
+Deno.test("multiempresa: organization_id de la póliza se propaga a cada log insertado", async () => {
+  const { client, rec } = makeClient({});
+  const res = await generateForPolicies(
+    client,
+    [
+      policy({ id: "pA", organization_id: "org-A", last_generated_month: "2026-01" }),
+    ],
+    "2026-02",
+  );
+  assertStrictEquals(res.generated, 1);
+  assertEquals(rec.insertedOrgIds, ["org-A"]);
+});
+
+Deno.test("multiempresa: dos pólizas de distinta organización se procesan de forma independiente", async () => {
+  const { client, rec } = makeClient({});
+  const res = await generateForPolicies(
+    client,
+    [
+      policy({ id: "pA", organization_id: "org-A", last_generated_month: "2026-01" }),
+      policy({ id: "pB", organization_id: "org-B", last_generated_month: "2026-01" }),
+    ],
+    "2026-02",
+  );
+  assertStrictEquals(res.generated, 2);
+  assertEquals(rec.insertedOrgIds.sort(), ["org-A", "org-B"]);
 });

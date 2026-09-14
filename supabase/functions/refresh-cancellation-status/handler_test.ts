@@ -50,6 +50,9 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
+      // Compat legado: única organización en BD (permite fallback a env keys
+      // FACTURAPI_*_KEY salvo que el test override para simular multiempresa).
+      organizations: { data: [{ id: ORG_ID }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -103,7 +106,7 @@ Deno.test("refresh-cancellation: 404 si la factura no tiene facturapi_invoice_id
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
-        invoices: { data: { facturapi_invoice_id: null }, error: null },
+        invoices: { data: { facturapi_invoice_id: null, organization_id: ORG_ID }, error: null },
       },
     },
   });
@@ -120,8 +123,8 @@ Deno.test("refresh-cancellation: 400 sin Facturapi key", async () => {
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
-        invoices: { data: { facturapi_invoice_id: "fapi_1" }, error: null },
-        company_settings: { data: { facturapi_mode: "test" }, error: null },
+        invoices: { data: { facturapi_invoice_id: "fapi_1", organization_id: ORG_ID }, error: null },
+        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
         billing_secrets: { data: null, error: null },
       },
     },
@@ -148,8 +151,8 @@ Deno.test("refresh-cancellation: SAT accepted marca cancelled", async () => {
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
-          invoices: { data: { facturapi_invoice_id: "fapi_1" }, error: null },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          invoices: { data: { facturapi_invoice_id: "fapi_1", organization_id: ORG_ID }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         updates: { invoices: { data: null, error: null } },
@@ -183,8 +186,8 @@ Deno.test("refresh-cancellation: SAT pending NO marca cancelled", async () => {
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
-          invoices: { data: { facturapi_invoice_id: "fapi_p" }, error: null },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          invoices: { data: { facturapi_invoice_id: "fapi_p", organization_id: ORG_ID }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         updates: { invoices: { data: null, error: null } },
@@ -215,8 +218,8 @@ Deno.test("refresh-cancellation: Facturapi PUT falla -> 502", async () => {
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
-          invoices: { data: { facturapi_invoice_id: "fapi_e" }, error: null },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          invoices: { data: { facturapi_invoice_id: "fapi_e", organization_id: ORG_ID }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
       },
@@ -271,10 +274,10 @@ Deno.test("refresh-cancellation: credit_note_id resuelve contra tabla credit_not
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: {
-            data: { facturapi_invoice_id: "fapi_nc" },
+            data: { facturapi_invoice_id: "fapi_nc", organization_id: ORG_ID },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         updates: { credit_notes: { data: null, error: null } },
@@ -293,4 +296,81 @@ Deno.test("refresh-cancellation: credit_note_id resuelve contra tabla credit_not
   } finally {
     mock.restore();
   }
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multiempresa · Fase 1 — regresión de aislamiento fiscal
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("refresh-cancellation: MULTIEMPRESA rechaza factura de otra organización (403) sin claim ni PAC", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices/fapi_other": () => {
+      facturapiCalled++;
+      return facturapiOk({ cancellation_status: "accepted" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              facturapi_invoice_id: "fapi_other",
+              organization_id: OTHER_ORG_ID,
+            },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleRefreshCancellation(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 403);
+    assertEquals(body.error, "El documento pertenece a otra empresa.");
+    assertEquals(serviceState.updates.length, 0, "no debe tocarse la factura");
+    assertEquals(facturapiCalled, 0, "el PAC nunca debe invocarse");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("refresh-cancellation: MULTIEMPRESA sin credenciales propias en modo live rechaza (no reutiliza llaves ajenas)", async () => {
+  const { deps, serviceState } = makeDeps({
+    env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: {
+            facturapi_invoice_id: "fapi_z2",
+            organization_id: ORG_ID,
+          },
+          error: null,
+        },
+        company_settings: {
+          data: { facturapi_mode: "live", organization_id: ORG_ID },
+          error: null,
+        },
+        billing_secrets: { data: null, error: null },
+        organizations: {
+          data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+          error: null,
+        },
+      },
+    },
+  });
+  const res = await handleRefreshCancellation(
+    makeRequest({ invoice_id: INVOICE_ID }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 400);
+  assert(String(body.error).length > 0);
+  assertEquals(serviceState.updates.length, 0, "no debe actualizarse sin key propia");
 });

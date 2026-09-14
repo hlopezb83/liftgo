@@ -23,8 +23,10 @@ import {
 import {
   decideStampRetry,
   decideTerminalStatus,
+  resolveStampRetryOrganization,
   type StampInvoiceState,
 } from "./decisions.ts";
+import type { OrgQueryClient } from "../_shared/orgContext.ts";
 
 interface QueueRow {
   id: string;
@@ -200,23 +202,37 @@ export const RUN_BUDGET_MS = 50_000;
 export const RUN_PENDING_LIMIT = 10;
 export const RUN_STALE_LIMIT = 5;
 
-async function handleRequest(req: Request): Promise<Response> {
+// Deps inyectables SOLO para tests (nunca cambian el comportamiento por
+// defecto en producción): permiten simular `admin`/`env` sin abrir un
+// cliente Supabase real ni requerir --allow-net.
+export interface HandleRequestDeps {
+  admin?: OrgQueryClient;
+  env?: (key: string) => string | undefined;
+}
+
+export async function handleRequest(
+  req: Request,
+  deps: HandleRequestDeps = {},
+): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
+  const envGet = deps.env ?? ((k: string) => Deno.env.get(k));
 
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const serviceKey = envGet("SUPABASE_SERVICE_ROLE_KEY");
   const projectRef =
-    (Deno.env.get("SUPABASE_URL") ?? "").match(/https:\/\/([^.]+)\./)?.[1] ??
-      Deno.env.get("SUPABASE_PROJECT_ID") ?? "";
+    (envGet("SUPABASE_URL") ?? "").match(/https:\/\/([^.]+)\./)?.[1] ??
+      envGet("SUPABASE_PROJECT_ID") ?? "";
   if (!serviceKey || !projectRef) {
     console.error("[process-cfdi-retry-queue] missing env");
     return json({ error: "Server misconfigured" }, 500);
   }
 
   // Lote C · DIFF 8 rest: auth timing-safe centralizada en _shared/cronAuth.ts.
-  const admin = getAdminClient();
+  const admin = (deps.admin ?? getAdminClient()) as unknown as ReturnType<
+    typeof getAdminClient
+  >;
   const auth = await authenticateCronRequest(req);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
@@ -330,9 +346,15 @@ async function handleRequest(req: Request): Promise<Response> {
         // factura leída en BD, NUNCA del payload de la cola (un elemento de
         // cfdi_retry_queue no puede pedir la empresa de otro). Sin
         // organización resoluble, la fila falla explícito sin llamar al PAC.
-        const organizationId =
-          (invRowFull as { organization_id?: string | null } | null)
-            ?.organization_id ?? null;
+        // Multiempresa · Fase 1: `resolveStampRetryOrganization` IGNORA
+        // cualquier organización que pudiera venir en `row.payload` (nunca
+        // se lee de ahí) y usa SIEMPRE la de la factura leída en BD.
+        const orgOutcome = resolveStampRetryOrganization(
+          invRowFull as { organization_id?: string | null } | null,
+        );
+        const organizationId = orgOutcome.kind === "ok"
+          ? orgOutcome.organizationId
+          : null;
         // Ya timbrada / en reconcile / cancelada → nada que reintentar.
         // R2 (bajo 6): decisión REAL importada desde decisions.ts (el test
         // consume la misma función — ya no hay lógica duplicada).
@@ -345,7 +367,7 @@ async function handleRequest(req: Request): Promise<Response> {
           results.push({ id: row.id, status: "succeeded_noop_state" });
           continue;
         }
-        if (!organizationId) {
+        if (orgOutcome.kind === "no_organization") {
           console.error(
             "[process-cfdi-retry-queue] invoice sin organization_id; no se puede resolver Facturapi",
             { invoice_id: row.invoice_id },
@@ -369,7 +391,7 @@ async function handleRequest(req: Request): Promise<Response> {
         try {
           const cfg = await getFacturapiConfigForOrganization({
             admin,
-            env: (k) => Deno.env.get(k),
+            env: envGet,
             organizationId,
           });
           apiKey = cfg.apiKey;
@@ -654,6 +676,6 @@ async function handleRequest(req: Request): Promise<Response> {
 }
 
 if (import.meta.main) {
-  Deno.serve(handleRequest);
+  Deno.serve((req) => handleRequest(req));
 }
 
