@@ -4,6 +4,7 @@
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { organizationStoragePath } from "@/lib/storage/organizationPath";
 import {
   base64ToBytes,
   extractAllAttr,
@@ -51,12 +52,14 @@ async function loadPaymentAndBill(
   g: Guards,
   supabase: AdminClient,
   paymentId: string,
+  organizationId: string,
   force: boolean | undefined,
 ) {
   const { data: payment, error: payErr } = await supabase
     .from("supplier_payments")
-    .select("id, bill_id, amount, rep_status, rep_required, rep_cfdi_uuid")
+    .select("id, bill_id, organization_id, amount, rep_status, rep_required, rep_cfdi_uuid")
     .eq("id", paymentId)
+    .eq("organization_id", organizationId)
     .single();
   if (payErr || !payment) throw new g.HttpError(404, "Pago no encontrado");
   if (!payment.rep_required) {
@@ -71,8 +74,9 @@ async function loadPaymentAndBill(
 
   const { data: bill } = await supabase
     .from("supplier_bills")
-    .select("id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)")
+    .select("id, organization_id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)")
     .eq("id", payment.bill_id)
+    .eq("organization_id", organizationId)
     .single();
   if (!bill) throw new g.HttpError(404, "Factura no encontrada");
   if (!bill.cfdi_uuid) {
@@ -154,12 +158,16 @@ function assertPagoMatchesInvoice(
 async function uploadRepFiles(
   g: Guards,
   supabase: AdminClient,
+  organizationId: string,
   billId: string,
   paymentId: string,
   xmlText: string,
   pdfBase64: string | null | undefined,
 ): Promise<{ xmlPath: string; pdfPath: string | null }> {
-  const xmlPath = `supplier-rep/${billId}/${paymentId}.xml`;
+  const xmlPath = organizationStoragePath(
+    organizationId,
+    `supplier-rep/${billId}/${paymentId}.xml`,
+  );
   const { error: xmlErr } = await supabase.storage.from(BUCKET).upload(
     xmlPath,
     new Blob([xmlText], { type: "application/xml" }),
@@ -171,7 +179,10 @@ async function uploadRepFiles(
 
   if (typeof pdfBase64 !== "string" || !pdfBase64) return { xmlPath, pdfPath: null };
   try {
-    const p = `supplier-rep/${billId}/${paymentId}.pdf`;
+    const p = organizationStoragePath(
+      organizationId,
+      `supplier-rep/${billId}/${paymentId}.pdf`,
+    );
     const { error: pdfErr } = await supabase.storage.from(BUCKET).upload(
       p,
       base64ToBytes(pdfBase64),
@@ -195,6 +206,14 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
       ["admin", "administrativo"],
     );
     const userId = context.userId;
+    const { data: organizationId, error: organizationError } =
+      await context.supabase.rpc("current_organization_id");
+    if (organizationError || !organizationId) {
+      throw new g.HttpError(
+        403,
+        "No se pudo resolver la organización activa para validar el REP.",
+      );
+    }
     // Mismo rate limit que parse-csf (5 req / 60s por usuario).
     await g.enforceRateLimit(supabase, "validate-supplier-rep", userId, 5, 60);
 
@@ -205,6 +224,7 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
       g,
       supabase,
       payment_id,
+      organizationId,
       force,
     );
 
@@ -225,7 +245,8 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
     const { data: dup } = await supabase
       .from("supplier_payments")
       .select("id")
-      .eq("rep_cfdi_uuid", repUuid)
+.eq("rep_cfdi_uuid", repUuid)
+      .eq("organization_id", organizationId)
       .neq("id", payment_id)
       .maybeSingle();
     if (dup) {
@@ -235,6 +256,7 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
     const { xmlPath, pdfPath } = await uploadRepFiles(
       g,
       supabase,
+      organizationId,
       bill.id,
       payment_id,
       xmlText,
@@ -252,7 +274,8 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
         rep_notes: null,
         rep_uploaded_by: userId,
       })
-      .eq("id", payment_id);
+.eq("id", payment_id)
+      .eq("organization_id", organizationId);
 
     if (updErr) {
       // N-32: carrera contra el índice único parcial de rep_cfdi_uuid.
@@ -276,6 +299,7 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
         description:
           `Complemento de pago ${repUuid} cargado para la factura ${bill.cfdi_uuid}`,
         actor_id: userId,
+        organization_id: organizationId,
       });
     } catch (e) {
       console.error("activity_feed insert failed:", e);
