@@ -436,10 +436,10 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - Checklist mínimo: sidebar colapsado, `MobileCardList` en listas, sin overflow horizontal, formularios sin clipping, modales caben.
 - No se gatea CI con esto — es proceso humano y el resultado se resume en la entrada de changelog correspondiente.
 
-### 15.6 Lighthouse
+### 15.6 Workflows de CI
 
-- Script: `scripts/lighthouse-baseline.sh` corre Lighthouse desktop contra rutas públicas (`/`, `/portal/login`) y guarda JSON en `docs/lighthouse/` (no versionado).
-- Workflow `lighthouse.yml` con `lighthouserc.json`. No gatea el merge — sirve para comparar regresiones entre versiones.
+Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arch-check, unit tests en 2 shards + merge de cobertura, build y E2E), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. No hay workflow de Lighthouse.
+
 
 
 ---
