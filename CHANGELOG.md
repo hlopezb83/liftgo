@@ -1,3 +1,10 @@
+## [8.8.6] - 2026-09-14
+### CI Deno en verde (formato y lint de las funciones)
+- `deno fmt` aplicado a los 17 archivos que `deno fmt --check` reportaba sin formatear en el job "Funciones Supabase (Deno, sin red)".
+- `deno lint` sin errores y sin desactivar reglas ni excluir archivos: `Record<string, any>` sustituido por interfaces locales `PaymentRow`/`RelatedInvoiceRow` (`stamp-payment-complement/handler.ts`) y `CreditNoteRow` (`cancel-credit-note/handler.ts`); `buildPlan` de `generate-recurring-invoices/index.ts` tipa `supabase: SupabaseClient` (se retira el `deno-lint-ignore` que había quedado sin uso) y las relaciones embebidas se convierten vía `as unknown as` para satisfacer el chequeo de tipos; `assert` sin usar retirado de `download-cfdi/handler_test.ts`.
+- Sin cambios de comportamiento ni en las pruebas del aislamiento multiempresa de 8.8.5.
+- Validación local: `deno fmt --check` (132 archivos), `deno lint` (131 archivos), `deno check` de los archivos modificados y la selección offline de pruebas Deno → 351 verdes, 0 fallos. La suite completa y la cobertura corresponden a GitHub Actions.
+
 ## [8.8.5] - 2026-09-14
 ### Aislamiento fiscal por empresa (fase 1 multiempresa)
 - Nuevo `_shared/orgContext.ts` en las Edge Functions: `resolveCallerOrganization` (membresía interna; fail-closed 403/503/409), `assertDocumentOrganization`, `resolveDocumentOrganization` y `groupByOrganization`. La organización se deriva siempre del servidor (membresía o fila de BD), nunca del payload; un JWT `service_role` no hereda la del usuario.
