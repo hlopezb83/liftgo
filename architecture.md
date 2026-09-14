@@ -239,6 +239,41 @@ Página (orquestador)
 > migración: cualquier pendiente concreto debe confirmarse contra el código
 > vigente antes de dar el aislamiento multiempresa por completo.
 
+**Fase 1 implementada — aislamiento fiscal en Edge Functions (8.8.5).**
+`supabase/functions/_shared/orgContext.ts` centraliza la resolución de
+organización en servidor: `resolveCallerOrganization(admin, userId)` (lee
+`organization_memberships` con `member_type='internal'`; fail-closed: 403 sin
+membresía, 503 si el lookup falla, 409 si hay más de una),
+`assertDocumentOrganization` / `resolveDocumentOrganization` (compara la
+organización del caller contra la del documento leído en BD; un JWT
+`service_role` no hereda organización del usuario) y `groupByOrganization`
+para los crons. Reglas: la organización jamás se toma del payload ni del
+navegador, y la verificación ocurre **antes** de cualquier claim, UPDATE,
+lectura de secretos o llamada al PAC.
+
+`supabase/functions/_shared/facturapi/client.ts` sustituyó `getFacturapiConfig`
+(que leía `limit(1)`) por `getFacturapiConfigForOrganization({ admin, env,
+organizationId, modeOverride? })`, que filtra `company_settings` y
+`billing_secrets` por `organization_id`. El fallback a las llaves de entorno
+`FACTURAPI_TEST_KEY`/`FACTURAPI_LIVE_KEY` sólo aplica mientras exista
+exactamente **una** organización (`isSoleLegacyOrganization`); se retira
+cargando las llaves de la empresa en `billing_secrets` y borrando esos
+secretos del entorno.
+
+Consumidores adaptados: `stamp-cfdi`, `cancel-cfdi`,
+`refresh-cancellation-status`, `download-cfdi`, `stamp-credit-note`,
+`cancel-credit-note`, `stamp-payment-complement`,
+`cancel-payment-complement`, `validate-receptor-tax-info`,
+`validate-customers-tax-info`, `reconcile-stamping-invoices`,
+`process-cfdi-retry-queue`, `generate-recurring-invoices` y
+`generate-recurring-maintenance`. Los crons agrupan por organización y usan un
+cliente Facturapi por empresa; un fallo o una empresa sin credenciales no
+contamina a las demás. `cancel-credit-note`, `stamp-payment-complement` y
+`download-cfdi` se reestructuraron al patrón `handler.ts` (inyección de
+dependencias) + `index.ts` wrapper para poder probarse sin red.
+
+
+
 
 
 ### 6.3 Server functions vs Edge Functions

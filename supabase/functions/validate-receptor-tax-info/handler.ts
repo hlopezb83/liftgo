@@ -6,13 +6,14 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
+import { getFacturapiConfigForOrganization } from "../_shared/facturapi/client.ts";
 import { validateTaxIdWithPac } from "../_shared/facturapi/validateTaxId.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   authenticateWithDeps,
   type CallerLike,
 } from "../_shared/authWithDeps.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 
 export type { SupabaseLike };
 
@@ -70,10 +71,31 @@ export async function handleValidateReceptor(
     }
     const inv = invoice as Record<string, unknown>;
 
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
+    // Multiempresa · Fase 1: la organización SIEMPRE se deriva del servidor
+    // (membresía del caller + organization_id de la factura leída en BD),
+    // nunca del body de la petición. Rechazamos ANTES de leer secretos o
+    // llamar al PAC.
+    const orgRes = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: inv.organization_id as string | null | undefined,
+    });
+    if (!orgRes.ok) {
+      return json({ error: orgRes.message }, orgRes.status, jsonHeaders);
+    }
+
+    const { apiKey } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId: orgRes.organizationId,
+    });
     if (!apiKey) {
       return json(
-        { error: "Facturapi API key not configured" },
+        {
+          error:
+            `No hay una llave de Facturapi configurada para tu empresa (organization_id: ${orgRes.organizationId}).`,
+        },
         400,
         jsonHeaders,
       );

@@ -7,10 +7,11 @@ import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
   retrieveInvoiceWithSignal,
   updateInvoiceStatusWithSignal,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -93,8 +94,8 @@ export async function handleRefreshCancellation(
       .from(table)
       .select(
         isPayment
-          ? "rep_facturapi_id, rep_cancellation_status, rep_cfdi_status, rep_cancellation_requested_at, updated_at"
-          : "facturapi_invoice_id, cancellation_status, cancellation_requested_at, updated_at",
+          ? "rep_facturapi_id, rep_cancellation_status, rep_cfdi_status, rep_cancellation_requested_at, updated_at, organization_id"
+          : "facturapi_invoice_id, cancellation_status, cancellation_requested_at, updated_at, organization_id",
       )
       .eq("id", docId)
       .single();
@@ -107,7 +108,23 @@ export async function handleRefreshCancellation(
       return json({ error: "Document has no Facturapi reference" }, 404);
     }
 
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
+    // Multiempresa · Fase 1: organización derivada del servidor, validada
+    // ANTES de leer secretos o llamar al PAC.
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: inv.organization_id as string | null | undefined,
+    });
+    if (!orgCheck.ok) {
+      return json({ error: orgCheck.message }, orgCheck.status);
+    }
+
+    const { apiKey } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId: orgCheck.organizationId,
+    });
     if (!apiKey) {
       return json({ error: "Facturapi key not configured" }, 400);
     }

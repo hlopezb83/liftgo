@@ -13,6 +13,10 @@
 
 export interface MaintenancePolicyRow {
   id: string;
+  // Fase 1 multiempresa: organización dueña de la póliza. Se propaga
+  // explícitamente a cada `maintenance_logs` insertado; nunca se infiere del
+  // caller ni del payload.
+  organization_id: string;
   forklift_id: string;
   service_type: string;
   description: string | null;
@@ -188,6 +192,9 @@ export async function generateForPolicies(
       const { error: insertErr } = await supabase
         .from("maintenance_logs")
         .insert({
+          // Fase 1 multiempresa: organization_id explícito, heredado de la
+          // póliza de origen (nunca del caller/cron).
+          organization_id: policy.organization_id,
           forklift_id: policy.forklift_id,
           service_type: policy.service_type,
           description: policy.description ||

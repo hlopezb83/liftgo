@@ -23,6 +23,8 @@ import {
 const RECEPTOR_RFC = "AAA010101AA1";
 const INVOICE_ID = "11111111-1111-4111-8111-111111111111";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
+const ORG_ID = "33333333-3333-4333-8333-333333333333";
+const OTHER_ORG_ID = "44444444-4444-4444-8444-444444444444";
 const ORIGIN = "http://localhost:8080";
 
 function makeRequest(
@@ -59,6 +61,13 @@ function makeDeps(opts: {
       // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
       // cuenta activa para no repetir el mock en cada test.
       profiles: { data: { is_active: true }, error: null },
+      organization_memberships: {
+        data: [{ organization_id: ORG_ID, member_type: "internal" }],
+        error: null,
+      },
+      // Compat legado: única organización en BD (permite fallback a env keys
+      // FACTURAPI_*_KEY salvo que el test override para simular multiempresa).
+      organizations: { data: [{ id: ORG_ID }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -132,7 +141,8 @@ Deno.test("handler: refuses to stamp E2E invoices (403)", async () => {
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
-        invoices: { data: { id: INVOICE_ID, is_e2e: true }, error: null },
+        invoices: { data: { id: INVOICE_ID,
+              organization_id: ORG_ID, is_e2e: true }, error: null },
       },
     },
   });
@@ -159,6 +169,7 @@ Deno.test("handler: returns 409 when invoice already stamped (idempotencia)", as
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               cfdi_status: "stamped",
               cfdi_uuid: "EXISTING-UUID-1234",
               total: 1160,
@@ -207,6 +218,7 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -221,8 +233,8 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
       },
@@ -275,6 +287,7 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -285,8 +298,8 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
       },
@@ -362,6 +375,7 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -376,8 +390,8 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
       },
@@ -440,6 +454,7 @@ Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", 
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -454,8 +469,8 @@ Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", 
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
       },
@@ -489,6 +504,7 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
         invoices: {
           data: {
             id: INVOICE_ID,
+              organization_id: ORG_ID,
             total: 1000,
             subtotal: 862,
             serie: "A",
@@ -496,8 +512,8 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
           },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test" }, error: null },
-        billing_secrets: { data: null, error: null },
+        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        billing_secrets: { data: null, error: null }, // sin credenciales propias
       },
       updates: { invoices: { data: null, error: null } },
     },
@@ -544,6 +560,7 @@ Deno.test("handler: claim atómico — 2ª petición concurrente NO invoca al PA
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -606,6 +623,7 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -616,8 +634,8 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         // 1º update: claim atómico → devuelve id (claim exitoso).
         // 2º+ updates fallback: no importa; el handler debe salir por la rama
@@ -671,6 +689,7 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -684,8 +703,8 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
       },
@@ -710,6 +729,110 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
       !serviceState.updates.some((u) => u.patch?.cfdi_status === "stamped"),
       "no debe marcarse como timbrada",
     );
+  } finally {
+    mock.restore();
+  }
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multiempresa · Fase 1 — regresión de aislamiento fiscal
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("handler: MULTIEMPRESA rechaza factura de otra organización (403) sin updates ni PAC", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: OTHER_ORG_ID,
+              total: 1160,
+              receptor_rfc: RECEPTOR_RFC,
+            },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 403);
+    assertEquals(body.error, "El documento pertenece a otra empresa.");
+    assertEquals(
+      serviceState.updates.length,
+      0,
+      "no debe tocarse la factura de otra organización",
+    );
+    assertEquals(facturapiCalled, 0, "el PAC nunca debe invocarse");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo live falla explícito (no reutiliza llaves ajenas)", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      // Llave de entorno "ajena" (legado) presente, pero NO debe reutilizarse
+      // porque ya existe más de una organización en la BD.
+      env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: ORG_ID,
+              total: 1160,
+              receptor_rfc: RECEPTOR_RFC,
+            },
+            error: null,
+          },
+          company_settings: {
+            data: { facturapi_mode: "live", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+          // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
+          organizations: {
+            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            error: null,
+          },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 400);
+    assert(String(body.error).includes("API key no configurada"));
+    assertEquals(facturapiCalled, 0, "no debe llamarse al PAC sin key propia");
+    const errUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "error"
+    );
+    assert(errUpdate, "debe liberar el claim marcando error explícito");
   } finally {
     mock.restore();
   }

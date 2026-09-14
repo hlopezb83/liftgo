@@ -8,6 +8,7 @@ import {
   type NonRentalLineDto,
 } from "../_shared/nonRentalLines.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
+import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
 import { selectTargetItems } from "./selection.ts";
@@ -83,6 +84,8 @@ type Forklift = {
 
 type PreviewLine = {
   bookingId: string;
+  // Fase 1 multiempresa: organización dueña de la reserva (nunca del payload).
+  organizationId: string | null;
   bookingCode: string | null;
   customerId: string | null;
   customerName: string | null;
@@ -123,6 +126,9 @@ const MAX_CATCHUP_ITERATIONS = 24;
 
 type PlanItem = {
   bookingId: string;
+  // Fase 1 multiempresa: organización de la reserva de origen; se hereda
+  // explícitamente en la agrupación y en la factura resultante.
+  organizationId: string;
   customerId: string;
   customerName: string | null;
   forkliftName: string | null;
@@ -147,19 +153,30 @@ type PlanItem = {
 };
 
 // deno-lint-ignore no-explicit-any
-async function buildPlan(supabase: any): Promise<{
+async function buildPlan(
+  supabase: any,
+  organizationId?: string | null,
+): Promise<{
   lines: PreviewLine[];
   items: PlanItem[];
   truncated: boolean;
   pendingCount: number;
 }> {
-  const { data: bookings, error: bErr } = await supabase
+  // Ejecución manual (usuario autenticado): acotar SIEMPRE a su propia
+  // organización (nunca al payload). El cron (organizationId=null/undefined)
+  // procesa todas las organizaciones; cada reserva conserva su propia
+  // organization_id y la agrupación posterior nunca mezcla empresas.
+  let bookingsQuery = supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
+      "id, organization_id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
+  if (organizationId) {
+    bookingsQuery = bookingsQuery.eq("organization_id", organizationId);
+  }
+  const { data: bookings, error: bErr } = await bookingsQuery;
   if (bErr) throw bErr;
 
   // M-13: precargar la tasa de IVA de cada cliente para exponerla en el preview.
@@ -170,18 +187,22 @@ async function buildPlan(supabase: any): Promise<{
         .filter((id): id is string => !!id),
     ),
   );
+  // Multiempresa: la tarifa fiscal es propiedad de la relación
+  // organization_customers (organización + cliente), no del cliente global.
+  // La clave del mapa incluye la organización para no mezclar tasas de dos
+  // empresas que comparten el mismo cliente.
   const taxRateByCustomer = new Map<string, number | null>();
   if (customerIds.length > 0) {
     const { data: custRows } = await supabase
-      .from("customers")
-      .select("id, tax_rate")
-      .in("id", customerIds);
+      .from("organization_customers")
+      .select("organization_id, customer_id, tax_rate")
+      .in("customer_id", customerIds);
     for (
       const c of (custRows ?? []) as Array<
-        { id: string; tax_rate: number | null }
+        { organization_id: string; customer_id: string; tax_rate: number | null }
       >
     ) {
-      taxRateByCustomer.set(c.id, c.tax_rate);
+      taxRateByCustomer.set(`${c.organization_id}|${c.customer_id}`, c.tax_rate);
     }
   }
 
@@ -348,6 +369,7 @@ async function buildPlan(supabase: any): Promise<{
 
       const baseLine: PreviewLine = {
         bookingId: booking.id,
+        organizationId: (booking.organization_id as string | null) ?? null,
         bookingCode: booking.booking_number ?? null,
         customerId: booking.customer_id ?? null,
         customerName: booking.customer_name ?? null,
@@ -360,7 +382,7 @@ async function buildPlan(supabase: any): Promise<{
         currency: bookingCurrency,
         rateWarning,
         taxRate: booking.customer_id
-          ? taxRateByCustomer.get(booking.customer_id) ?? null
+          ? taxRateByCustomer.get(`${booking.organization_id}|${booking.customer_id}`) ?? null
           : null,
         isProrated: proratedPeriod,
         proratedDays: proratedPeriod ? proratedDays : undefined,
@@ -497,6 +519,7 @@ async function buildPlan(supabase: any): Promise<{
       lines.push(baseLine);
       items.push({
         bookingId: booking.id,
+        organizationId: booking.organization_id as string,
         customerId: booking.customer_id as string,
         customerName: booking.customer_name ?? null,
         forkliftName: forklift?.name ?? null,
@@ -596,7 +619,7 @@ async function executePlan(
     // reservas MXN y USD del mismo cliente/periodo emitía una sola factura con
     // la moneda de la primera reserva y montos de otra divisa sumados 1:1.
     const key =
-      `${item.customerId}|${item.startStr}|${item.endStr}|${item.currency}|${item.tipoCambio}`;
+      `${item.organizationId}|${item.customerId}|${item.startStr}|${item.endStr}|${item.currency}|${item.tipoCambio}`;
     const arr = groups.get(key) ?? [];
     arr.push(item);
     groups.set(key, arr);
@@ -607,12 +630,16 @@ async function executePlan(
     const bookingIds = group.map((i) => i.bookingId);
 
     try {
+      // Multiempresa: los datos comerciales/fiscales de facturación viven en
+      // organization_customers (organización + cliente); `customers` es sólo
+      // la identidad global y ya no se usa aquí para el receptor del CFDI.
       const { data: customer } = await supabase
-        .from("customers")
+        .from("organization_customers")
         .select(
-          "rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi, tax_rate",
+          "rfc, razon_social, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi, tax_rate",
         )
-        .eq("id", first.customerId)
+        .eq("customer_id", first.customerId)
+        .eq("organization_id", first.organizationId)
         .maybeSingle();
 
       // FIX-6 (ronda 2): extras pactados en la cotización (seguro, logística)
@@ -697,7 +724,7 @@ async function executePlan(
           p_billing_period_start: first.startStr,
           p_billing_period_end: first.endStr,
           p_receptor_rfc: customer?.rfc ?? null,
-          p_receptor_razon_social: customer?.razon_social || customer?.name ||
+          p_receptor_razon_social: customer?.razon_social || first.customerName ||
             null,
           p_receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           p_receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
@@ -754,12 +781,25 @@ Deno.serve(async (req) => {
     // Lote C · DIFF 8 rest: auth timing-safe compartida para cron/service.
     const cronAuth = await authenticateCronRequest(req);
     let supabase;
+    // Multiempresa Fase 1: ejecuciones manuales (usuario autenticado) se
+    // acotan SIEMPRE a la organización del caller (nunca al payload). El
+    // cron (y el bypass service_role interno) procesan todas las
+    // organizaciones; cada reserva conserva su propia organization_id y la
+    // agrupación posterior (buildPlan/executePlan) nunca mezcla empresas.
+    let scopeOrganizationId: string | null = null;
     if (cronAuth.ok) {
       supabase = getAdminClient();
     } else {
       const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
       if (!auth.ok) return auth.response;
       supabase = auth.adminClient;
+      if (auth.role !== "service_role") {
+        const callerOrg = await resolveCallerOrganization(supabase, auth.userId);
+        if (!callerOrg.ok) {
+          return jsonError(req, callerOrg.status, callerOrg.message);
+        }
+        scopeOrganizationId = callerOrg.organizationId;
+      }
     }
 
     // Parse body (may be empty for legacy callers)
@@ -797,6 +837,7 @@ Deno.serve(async (req) => {
 
     const { lines, items: allItems, truncated, pendingCount } = await buildPlan(
       supabase,
+      scopeOrganizationId,
     );
 
     const eligibleLines = lines.filter((l) => l.eligible);

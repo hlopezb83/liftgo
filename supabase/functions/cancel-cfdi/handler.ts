@@ -8,8 +8,9 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -106,11 +107,27 @@ export async function handleCancelCfdi(
 
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
-      .select("cfdi_status, total, facturapi_invoice_id, is_e2e, customer_id")
+      .select(
+        "cfdi_status, total, facturapi_invoice_id, is_e2e, customer_id, organization_id",
+      )
       .eq("id", invoice_id as string)
       .single();
     if (invErr || !invoice) return json({ error: "Invoice not found" }, 404);
     const inv = invoice as Record<string, unknown>;
+
+    // Multiempresa · Fase 1: organización derivada del servidor, validada
+    // ANTES de cualquier claim, update o llamada al PAC.
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: inv.organization_id as string | null | undefined,
+    });
+    if (!orgCheck.ok) {
+      return json({ error: orgCheck.message }, orgCheck.status);
+    }
+    const organizationId = orgCheck.organizationId;
+
     if (inv.is_e2e === true) {
       return json({ error: "E2E invoices cannot be cancelled at SAT" }, 403);
     }
@@ -211,7 +228,11 @@ export async function handleCancelCfdi(
 
     claimedRef = true;
 
-    const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env);
+    const { apiKey, mode } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
+    });
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
 
     let satStatus = "accepted";

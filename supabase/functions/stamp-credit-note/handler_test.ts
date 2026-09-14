@@ -17,6 +17,8 @@ import {
 } from "../_shared/test/facturapiMock.ts";
 
 const NC_ID = "11111111-1111-4111-8111-111111111111";
+const ORG_ID = "44444444-4444-4444-8444-444444444444";
+const OTHER_ORG_ID = "55555555-5555-4555-8555-555555555555";
 const INVOICE_ID = "33333333-3333-4333-8333-333333333333";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
 
@@ -63,6 +65,11 @@ function makeDeps(opts: {
       // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
       // cuenta activa para no repetir el mock en cada test.
       profiles: { data: { is_active: true }, error: null },
+      organization_memberships: {
+        data: [{ organization_id: ORG_ID, member_type: "internal" }],
+        error: null,
+      },
+      organizations: { data: [{ id: ORG_ID }], error: null },
       ...(serviceConfig.selects ?? {}),
     },
     rpcs: {
@@ -84,6 +91,7 @@ function makeDeps(opts: {
 
 const STAMPED_INVOICE = {
   id: INVOICE_ID,
+  organization_id: ORG_ID,
   cfdi_status: "stamped",
   facturapi_invoice_id: "fapi_source",
   cfdi_uuid: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
@@ -107,6 +115,7 @@ const STAMPED_INVOICE = {
 
 const VALID_CREDIT_NOTE = {
   id: NC_ID,
+  organization_id: ORG_ID,
   invoice_id: INVOICE_ID,
   tax_rate: 16,
   currency: "MXN",
@@ -138,7 +147,7 @@ async function runSourceValidationCase(
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: { data: creditNote, error: null },
           invoices: { data: sourceInvoice, error: null },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         selectsSeq: {
@@ -233,7 +242,7 @@ Deno.test("handler: returns 409 when credit note already stamped", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         credit_notes: {
-          data: { id: NC_ID, cfdi_status: "stamped" },
+          data: { id: NC_ID, organization_id: ORG_ID, cfdi_status: "stamped" },
           error: null,
         },
       },
@@ -254,11 +263,11 @@ Deno.test(
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: {
-            data: { id: NC_ID, invoice_id: INVOICE_ID },
+            data: { id: NC_ID, organization_id: ORG_ID, invoice_id: INVOICE_ID },
             error: null,
           },
           invoices: {
-            data: { id: INVOICE_ID, cfdi_status: "draft" },
+            data: { id: INVOICE_ID, organization_id: ORG_ID, cfdi_status: "draft" },
             error: null,
           },
         },
@@ -410,7 +419,7 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: { data: ncData, error: null },
           invoices: { data: STAMPED_INVOICE, error: null },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         selectsSeq: {
@@ -461,7 +470,7 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: STAMPED_INVOICE, error: null },
-            company_settings: { data: { facturapi_mode: "test" }, error: null },
+            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -503,7 +512,7 @@ Deno.test(
           user_roles: { data: [{ role: "administrativo" }], error: null },
           credit_notes: { data: ncData, error: null },
           invoices: { data: STAMPED_INVOICE, error: null },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
           billing_secrets: { data: null, error: null },
         },
         selectsSeq: {
@@ -552,6 +561,7 @@ Deno.test(
     try {
       const ncData = {
         id: NC_ID,
+        organization_id: ORG_ID,
         invoice_id: INVOICE_ID,
         tax_rate: 16,
         currency: "MXN",
@@ -594,7 +604,7 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: sourceInvoice, error: null },
-            company_settings: { data: { facturapi_mode: "test" }, error: null },
+            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -647,6 +657,7 @@ Deno.test(
     try {
       const ncData = {
         id: NC_ID,
+        organization_id: ORG_ID,
         invoice_id: INVOICE_ID,
         tax_rate: 16,
         currency: "MXN",
@@ -684,7 +695,7 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: sourceInvoice, error: null },
-            company_settings: { data: { facturapi_mode: "test" }, error: null },
+            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -741,6 +752,7 @@ Deno.test(
     try {
       const ncData = {
         id: NC_ID,
+        organization_id: ORG_ID,
         invoice_id: INVOICE_ID,
         tax_rate: 16,
         currency: "MXN",
@@ -813,7 +825,7 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: sourceInvoice, error: null },
-            company_settings: { data: { facturapi_mode: "test" }, error: null },
+            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -859,3 +871,105 @@ Deno.test(
     }
   },
 );
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multiempresa · Fase 1 — regresión de aislamiento fiscal
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("handler: MULTIEMPRESA rechaza nota de crédito de otra organización (403) sin updates ni PAC", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: {
+            data: { id: NC_ID, organization_id: OTHER_ORG_ID, invoice_id: INVOICE_ID },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 403);
+    assertEquals(body.error, "El documento pertenece a otra empresa.");
+    assertEquals(
+      serviceState.updates.length,
+      0,
+      "no debe tocarse la NC de otra organización",
+    );
+    assertEquals(facturapiCalled, 0, "el PAC nunca debe invocarse");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo live falla explícito (no reutiliza llaves ajenas)", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const ncData = { ...VALID_CREDIT_NOTE };
+    const { deps, serviceState } = makeDeps({
+      // Llave de entorno "ajena" (legado) presente, pero NO debe reutilizarse
+      // porque ya existe más de una organización en la BD.
+      env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: { data: ncData, error: null },
+          invoices: { data: STAMPED_INVOICE, error: null },
+          company_settings: {
+            data: { facturapi_mode: "live", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+          // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
+          organizations: {
+            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            error: null,
+          },
+        },
+        selectsSeq: {
+          credit_notes: [
+            { data: ncData, error: null },
+            { data: [], error: null },
+          ],
+        },
+        updatesSeq: {
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 400);
+    assert(String(body.error).includes("API key no configurada"));
+    assertEquals(facturapiCalled, 0, "no debe llamarse al PAC sin key propia");
+    const errUpdate = serviceState.updates.find((u) =>
+      u.table === "credit_notes" && u.patch.cfdi_status === "error"
+    );
+    assert(errUpdate, "debe liberar el claim marcando error explícito");
+  } finally {
+    mock.restore();
+  }
+});

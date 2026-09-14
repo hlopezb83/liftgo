@@ -8,8 +8,9 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -105,6 +106,32 @@ export async function handleCancelPaymentComplement(
       return jsonError(req, 400, "cancellation_reason too long");
     }
 
+    // Multiempresa · Fase 1: la organización se valida contra el pago leído
+    // de BD ANTES de cualquier claim, update o llamada al PAC.
+    const { data: paymentOrgRow, error: paymentOrgErr } = await supabase
+      .from("payments")
+      .select("organization_id, rep_cfdi_status")
+      .eq("id", payment_id)
+      .maybeSingle();
+    if (paymentOrgErr || !paymentOrgRow) {
+      return jsonError(req, 404, "Payment not found");
+    }
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: (paymentOrgRow as Record<string, unknown>)
+        .organization_id as string | null | undefined,
+    });
+    if (!orgCheck.ok) {
+      console.error("[cancel-payment-complement] organization check failed", {
+        payment_id,
+        status: orgCheck.status,
+      });
+      return jsonError(req, orgCheck.status, orgCheck.message);
+    }
+    const organizationId = orgCheck.organizationId;
+
     // N-49: claim atómico pre-PAC — persiste motivo/sustitución/razón y marca
     // rep_cancellation_status='pending' en un solo UPDATE condicionado. Sólo
     // la primera petición concurrente pasa; las demás reciben 409 en vez de
@@ -155,10 +182,18 @@ export async function handleCancelPaymentComplement(
     // posterior chocaría con su propio 'pending'.
     const releaseClaim = releaseClaimRef;
 
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
+    const { apiKey } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
+    });
     if (!apiKey) {
       await releaseClaim();
-      return jsonError(req, 400, "Facturapi key not configured");
+      return jsonError(
+        req,
+        400,
+        "Facturapi key no configurada para esta empresa",
+      );
     }
 
     const client = createFacturapiClient(apiKey);

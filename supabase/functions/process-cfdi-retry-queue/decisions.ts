@@ -32,3 +32,24 @@ export function decideStampRetry(
   }
   return "proceed";
 }
+
+// Multiempresa · Fase 1: la organización del camino de reintento SIEMPRE se
+// deriva de la fila/documento leído en BD, NUNCA del payload de la cola
+// (`cfdi_retry_queue.payload` lo llena el request original; un elemento de
+// la cola no puede "pedir" la empresa de otro). Sin organización resoluble
+// no se puede llamar al PAC de forma segura.
+export interface StampRetryInvoiceRow {
+  organization_id?: string | null;
+}
+
+export type ResolveStampOrgOutcome =
+  | { kind: "ok"; organizationId: string }
+  | { kind: "no_organization" };
+
+export function resolveStampRetryOrganization(
+  invoiceRow: StampRetryInvoiceRow | null,
+): ResolveStampOrgOutcome {
+  const organizationId = invoiceRow?.organization_id ?? null;
+  if (!organizationId) return { kind: "no_organization" };
+  return { kind: "ok", organizationId };
+}
