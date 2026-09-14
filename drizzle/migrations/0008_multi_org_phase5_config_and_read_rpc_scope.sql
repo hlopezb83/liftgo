@@ -1,10 +1,10 @@
 -- =====================================================================
 -- Multi-organización · Fase 5.1 (configuración y RPC de lectura)
 --
--- Las funciones que sólo consultan datos pasan a SECURITY INVOKER para que
--- las policies RLS restrictivas de la fase 4 apliquen también dentro de la
--- RPC. Los helpers de configuración que sí deben elevar privilegios reciben
--- la organización explícita o la validan antes de leer.
+-- Las funciones de lectura sin requisitos de privilegio elevado pasan a
+-- SECURITY INVOKER para que las policies RLS restrictivas de la fase 4 también
+-- apliquen dentro de la RPC. Los helpers de configuración que sí elevan
+-- privilegios validan la organización antes de leer.
 -- =====================================================================
 
 -- Reportes, tablero y disponibilidad son sólo de lectura. Conservan sus
@@ -14,8 +14,6 @@ ALTER FUNCTION public.get_activity_metrics(timestamptz, timestamptz)
 ALTER FUNCTION public.get_available_forklifts(date, date)
   SECURITY INVOKER;
 ALTER FUNCTION public.get_dashboard_stats()
-  SECURITY INVOKER;
-ALTER FUNCTION public.get_income_statement(date, date, text)
   SECURITY INVOKER;
 ALTER FUNCTION public.get_insurance_alerts()
   SECURITY INVOKER;
@@ -114,83 +112,7 @@ AS $$
   );
 $$;
 
--- El cierre fiscal se aplica al periodo de la organización de la fila que el
--- trigger está validando, nunca al mismo mes de otra organización.
-CREATE OR REPLACE FUNCTION public.guard_fiscal_period_open(
-  p_date date,
-  p_table_name text,
-  p_organization_id uuid
-)
-RETURNS void
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF p_date IS NULL THEN
-    RETURN;
-  END IF;
-
-  IF p_organization_id IS NULL THEN
-    RAISE EXCEPTION 'La organización es obligatoria para validar el periodo fiscal'
-      USING ERRCODE = '23502';
-  END IF;
-
-  IF EXISTS (
-    SELECT 1
-    FROM public.fiscal_periods fp
-    WHERE fp.organization_id = p_organization_id
-      AND fp.period = to_char(p_date, 'YYYY-MM')
-      AND fp.closed_at IS NOT NULL
-  ) THEN
-    RAISE EXCEPTION
-      'El periodo fiscal % está cerrado; no se pueden registrar fechas en % dentro de ese periodo.',
-      to_char(p_date, 'YYYY-MM'), p_table_name
-      USING ERRCODE = 'raise_exception';
-  END IF;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.trg_guard_invoice_fiscal_period()
-RETURNS trigger
-LANGUAGE plpgsql
-SET search_path = public
-AS $$
-BEGIN
-  PERFORM public.guard_fiscal_period_open(
-    NEW.issued_at,
-    'invoices.issued_at',
-    NEW.organization_id
-  );
-  RETURN NEW;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION public.trg_guard_payment_fiscal_period()
-RETURNS trigger
-LANGUAGE plpgsql
-SET search_path = public
-AS $$
-BEGIN
-  PERFORM public.guard_fiscal_period_open(
-    NEW.payment_date,
-    'payments.payment_date',
-    NEW.organization_id
-  );
-  RETURN NEW;
-END;
-$$;
-
--- No quedan callers de dos argumentos: eliminar la variante global evita que
--- una ruta nueva pueda volver a validar el cierre de otra organización.
-DROP FUNCTION public.guard_fiscal_period_open(date, text);
-
-REVOKE ALL ON FUNCTION public.guard_fiscal_period_open(date, text, uuid)
-  FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.guard_fiscal_period_open(date, text, uuid)
-  TO authenticated, service_role;
-
--- Las restricciones de "una fila global" pasan a ser "una por organización".
+-- Las restricciones singleton de configuración pasan a ser por organización.
 DROP INDEX IF EXISTS public.company_settings_singleton;
 CREATE UNIQUE INDEX company_settings_organization_id_key
   ON public.company_settings (organization_id)
@@ -212,6 +134,3 @@ CREATE UNIQUE INDEX invoice_number_settings_organization_id_key
   ON public.invoice_number_settings (organization_id)
   WHERE organization_id IS NOT NULL;
 
-ALTER TABLE public.fiscal_periods
-  DROP CONSTRAINT fiscal_periods_pkey,
-  ADD CONSTRAINT fiscal_periods_pkey PRIMARY KEY (organization_id, period);
