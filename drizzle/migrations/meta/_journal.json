@@ -120,6 +120,13 @@
       "when": 1789350600000,
       "tag": "0016_multi_org_phase6_numbering_fiscal_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1789351200000,
+      "tag": "0017_multi_org_phase6_billing_config_scope",
+      "breakpoints": true
     }
   ]
 }
