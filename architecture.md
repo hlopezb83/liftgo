@@ -228,6 +228,16 @@ Página (orquestador)
 - Componente `<RoleGuard module="..." minAccess="read">` envuelve cada ruta protegida.
 - Cada entrada de `appRoutes` declara `module` opcional (y `minAccess` / `adminOnly` cuando aplica); el archivo de ruta correspondiente en `src/routes/_main/` lo enlaza a `RoleGuard`.
 
+> **Multi-organización (en curso, no terminada)**: el esquema ya incorpora
+> `organizations`, `organization_memberships`, `organization_customers`,
+> `customer_portal_accounts` y la columna `organization_id` en las tablas
+> operativas (migraciones `drizzle/migrations/00NN_multi_org_*`). Hoy opera una
+> sola organización. Quedan pendientes, entre otros, el alcance por organización
+> en varias Edge Functions/cron y la migración de rutas de Storage. No asumir que
+> el aislamiento multiempresa está completo.
+
+
+
 ### 6.3 Server functions vs Edge Functions
 
 La lógica de servidor está repartida en dos transportes, con criterio explícito:
