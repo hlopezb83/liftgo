@@ -21,8 +21,13 @@ export function organizationStoragePath(
   if (!UUID_V4_OR_COMPAT.test(organization)) {
     throw new Error("La organización activa no tiene un identificador válido.");
   }
-  if (!path || path.split("/").some((part) => part === "." || part === "..")) {
-    throw new Error("La ruta de Storage debe ser relativa y no puede contener . ni ..");
+  if (
+    !path ||
+    path.split("/").some((part) => !part || part === "." || part === "..")
+  ) {
+    throw new Error(
+      "La ruta de Storage debe ser relativa y no puede contener . ni .. ni segmentos vacíos.",
+    );
   }
 
   return `${organization}/${path}`;
