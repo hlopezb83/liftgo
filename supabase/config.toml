@@ -34,4 +34,6 @@ verify_jwt = false
 [functions.generate-recurring-invoices]
 verify_jwt = false
 
-
+# administrada por cron/service role; apply además requiere secreto explícito
+[functions.migrate-storage-org-prefix]
+verify_jwt = false
