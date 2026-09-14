@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
@@ -93,7 +93,8 @@ export function useCreateContract() {
       if (numErr) throw numErr;
       const { data, error } = await supabase
         .from("contracts")
-        .insert({ ...contract, contract_number: num as string })
+        // organization_id lo asigna la base (default/trigger), no el formulario.
+        .insert({ ...contract, contract_number: num as string } as TablesInsert<"contracts">)
         .select()
         .single();
       if (error) {
