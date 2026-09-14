@@ -192,6 +192,10 @@ export async function handleValidateCustomers(
     }
 
     const customers = ((data ?? []) as Array<{ id: string; name: string }>)
+      // Cinturón y tirantes: aunque la consulta ya acota por `customerIds`,
+      // descartamos cualquier fila sin vínculo con esta empresa para que un
+      // cliente de otra organización jamás entre a la corrida.
+      .filter((c) => linkByCustomerId.has(c.id))
       .map((c) => {
         const link = linkByCustomerId.get(c.id);
         return {
