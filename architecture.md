@@ -400,7 +400,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 ### 15.1 Frontend (Vitest)
 
 - Vitest 4 + @testing-library/react sobre **happy-dom** (`vitest.config.ts`); los archivos que requieran jsdom lo declaran con `// @vitest-environment jsdom`. La suite es offline: la config fuerza `TZ=UTC` y credenciales de Supabase de loopback para no tocar el backend real.
-- Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
+- Helpers de test reutilizables en `src/test/helpers/` (`supabaseChain.ts` para encadenar mocks de Supabase, `queryClient.tsx`, `time.ts`) y wrapper de router en `src/test/routerWrapper.tsx`.
 - Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`, `coerce`, `rpc`, `templateUtils`, `activityTranslations`, `contractPlaceholders`, `lineItems`.
 - Suites de hooks/libs en `src/**/__tests__/`: `useDebouncedValue`, `useDialogState`, `useListFilters`, `formatCurrency`, `partFormSchema`, `markdown`.
 - Comandos: `bun run test` (CI), `bun run test:watch` (desarrollo).
