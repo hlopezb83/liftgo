@@ -11,9 +11,10 @@ import {
   createFacturapiClient,
   createInvoiceWithSignal,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
@@ -104,6 +105,24 @@ export async function handleStampCfdi(
 
     const inv = invoice as Record<string, unknown>;
 
+    // Multiempresa · Fase 1: la organización se deriva del servidor (membresía
+    // del caller + organization_id del documento leído), NUNCA del body.
+    // Se valida ANTES de cualquier claim, update o llamada al PAC.
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: inv.organization_id as string | null | undefined,
+    });
+    if (!orgCheck.ok) {
+      console.error("[stamp-cfdi] organization check failed", {
+        invoice_id,
+        status: orgCheck.status,
+      });
+      return json({ error: orgCheck.message }, orgCheck.status, jsonHeaders);
+    }
+    const organizationId = orgCheck.organizationId;
+
     if (inv.is_e2e === true) {
       console.error("[stamp-cfdi] e2e invoice rejected", { invoice_id });
       return json(
@@ -169,9 +188,14 @@ export async function handleStampCfdi(
     };
 
     const { data: company } = await supabase
-      .from("company_settings").select("*").limit(1).maybeSingle();
+      .from("company_settings").select("*")
+      .eq("organization_id", organizationId)
+      .maybeSingle();
     if (!company) {
-      console.error("[stamp-cfdi] company_settings missing", { invoice_id });
+      console.error("[stamp-cfdi] company_settings missing", {
+        invoice_id,
+        organizationId,
+      });
       await releaseClaim("Company settings not configured");
       return json(
         { error: "Company settings not configured" },
@@ -180,7 +204,10 @@ export async function handleStampCfdi(
       );
     }
     const co = company as Record<string, unknown>;
-    const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
+    const { apiKey, mode } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
       modeOverride: (co.facturapi_mode as string | undefined) ?? null,
     });
 
