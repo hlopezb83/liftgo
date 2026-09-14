@@ -237,7 +237,11 @@ BEGIN
     'public.report_utilization_by_unit(date,date)'::regprocedure,
     'public.get_bank_match_candidates(uuid,text,integer,numeric)'::regprocedure,
     'public.get_bank_reconciliation_kpis(uuid)'::regprocedure,
-    'public.get_bank_statement_lines_page(uuid,text,text,integer,integer)'::regprocedure
+    'public.get_bank_statement_lines_page(uuid,text,text,integer,integer)'::regprocedure,
+    'public.confirm_bank_match(uuid,uuid,uuid)'::regprocedure,
+    'public.confirm_bank_matches(uuid[])'::regprocedure,
+    'public.ignore_bank_lines(uuid[],text)'::regprocedure,
+    'public.unmatch_bank_line(uuid)'::regprocedure
   )
     AND p.prosecdef;
 
@@ -276,6 +280,7 @@ DECLARE
   v_bank_b_total integer;
   v_bank_a_page_total integer;
   v_bank_b_page_total integer;
+  v_ignored_from_b integer;
 BEGIN
   SELECT count(*) INTO v_visible
   FROM public.activity_feed
@@ -343,6 +348,19 @@ BEGIN
     RAISE EXCEPTION
       'BANK ORG: página devolvió A=% y B=% para el staff de A (esperado 1 y 0)',
       v_bank_a_page_total, v_bank_b_page_total;
+  END IF;
+
+  -- Las mutaciones invoker no pueden cambiar una línea que pertenece a B.
+  SELECT public.ignore_bank_lines(
+    ARRAY['e5000000-0000-4000-8000-0000000000f6'::uuid],
+    'intento cruzado'
+  )
+  INTO v_ignored_from_b;
+
+  IF v_ignored_from_b <> 0 THEN
+    RAISE EXCEPTION
+      'BANK ORG: el staff de A modificó % líneas de B (esperado 0)',
+      v_ignored_from_b;
   END IF;
 
   BEGIN
