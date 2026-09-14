@@ -241,7 +241,11 @@ BEGIN
     'public.confirm_bank_match(uuid,uuid,uuid)'::regprocedure,
     'public.confirm_bank_matches(uuid[])'::regprocedure,
     'public.ignore_bank_lines(uuid[],text)'::regprocedure,
-    'public.unmatch_bank_line(uuid)'::regprocedure
+    'public.unmatch_bank_line(uuid)'::regprocedure,
+    'public.assign_forklift_to_sale_quote(uuid,uuid[],integer[])'::regprocedure,
+    'public.unassign_forklift_from_sale_quote(uuid,uuid)'::regprocedure,
+    'public.delete_quote_with_unassign(uuid)'::regprocedure,
+    'public.reassign_quote_customer(uuid,uuid,text)'::regprocedure
   )
     AND p.prosecdef;
 
@@ -375,6 +379,22 @@ BEGIN
       'BANK ORG: página devolvió A=% y B=% para el staff de A (esperado 1 y 0)',
       v_bank_a_page_total, v_bank_b_page_total;
   END IF;
+
+  -- La reasignación invoker no puede tocar una cotización de B.
+  BEGIN
+    PERFORM public.reassign_quote_customer(
+      'e5000000-0000-4000-8000-0000000000e2',
+      'e5000000-0000-4000-8000-0000000000c1',
+      'Cliente comercial compartido'
+    );
+    RAISE EXCEPTION
+      'SALE ORG: el staff de A pudo reasignar una cotización de B';
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLERRM <> 'Cotizacion no encontrada' THEN
+        RAISE;
+      END IF;
+  END;
 
   -- La carga privilegiada debe rechazar una cuenta bancaria de B.
   BEGIN

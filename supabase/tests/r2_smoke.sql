@@ -40,8 +40,8 @@ SELECT pg_temp.expect_true(
 
 -- 02-FIX-R2-04: venta de equipo atómica con guards.
 SELECT pg_temp.expect_true(
-  'R2-04 assign_forklift_to_sale_quote existe y es SECURITY DEFINER',
-  EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'assign_forklift_to_sale_quote' AND prosecdef)
+  'R2-04 assign_forklift_to_sale_quote existe y respeta RLS como SECURITY INVOKER',
+  EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'assign_forklift_to_sale_quote' AND NOT prosecdef)
 );
 
 -- 03-FIX-R2-01: guard de permiso/rol en TODAS las RPCs de reportes.
