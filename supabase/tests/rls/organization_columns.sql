@@ -11,7 +11,8 @@ DECLARE
   v_has_fk boolean;
   v_has_index boolean;
   v_required_not_null_tables text[] := ARRAY[
-    'billing_secrets', 'bookings', 'contracts', 'credit_notes', 'deliveries',
+    'billing_secrets', 'bookings', 'company_settings', 'contracts',
+    'credit_notes', 'deliveries',
     'feedback_reports',
     'fiscal_periods', 'invoice_number_settings', 'invoices', 'quotes',
     'return_inspections', 'supplier_bills'
