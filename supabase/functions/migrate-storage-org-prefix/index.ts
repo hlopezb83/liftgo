@@ -17,9 +17,11 @@ import {
   type StorageListItem,
   summarizeStorageInventory,
 } from "../_shared/storageInventory.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
 const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_DELETE";
+const ORPHAN_APPLY_CONFIRMATION = "COPY_VERIFY_DELETE_ORPHANS";
 const APPLY_ENV_FLAG = "STORAGE_MIGRATION_APPLY_ENABLED";
 const DEFAULT_MAX_ROWS_PER_REFERENCE = 250;
 const MAX_ROWS_PER_REFERENCE = 1_000;
@@ -94,12 +96,20 @@ interface CandidateReference {
   publicUrlOrigin: string | null;
 }
 
+interface OrphanCandidate {
+  bucketId: string;
+  organizationId: string;
+  sourcePath: string;
+  destinationPath: string;
+}
+
 interface LedgerObject {
   id: string;
   bucket_id: string;
   organization_id: string;
   source_path: string;
   destination_path: string;
+  discovery_kind: "referenced" | "orphaned";
   status: string;
   attempt_count: number;
 }
@@ -117,7 +127,7 @@ interface LedgerReference {
 }
 
 interface RequestInput {
-  mode: "plan" | "apply";
+  mode: "plan" | "apply" | "apply_orphans";
   maxRowsPerReference: number;
   maxObjectsPerBucket: number;
   batchSize: number;
@@ -142,7 +152,11 @@ async function parseInput(req: Request): Promise<RequestInput | null> {
   }
 
   const mode = body.mode === undefined ? "plan" : body.mode;
-  if (mode !== "plan" && mode !== "apply") return null;
+  if (
+    mode !== "plan" &&
+    mode !== "apply" &&
+    mode !== "apply_orphans"
+  ) return null;
   return {
     mode,
     maxRowsPerReference: boundedInteger(
@@ -222,6 +236,7 @@ async function inventoryBucketObjects(
   maxObjects: number,
 ): Promise<{
   summary: ReturnType<typeof summarizeStorageInventory>;
+  objectPaths: Set<string>;
   truncated: boolean;
 }> {
   const objectPaths = new Set<string>();
@@ -274,6 +289,7 @@ async function inventoryBucketObjects(
 
   return {
     summary: summarizeStorageInventory(bucketId, objectPaths, referencedPaths),
+    objectPaths,
     truncated,
   };
 }
@@ -284,10 +300,12 @@ async function collectStorageInventory(
   maxObjectsPerBucket: number,
 ): Promise<{
   byBucket: Array<ReturnType<typeof summarizeStorageInventory>>;
+  objectPathsByBucket: Map<string, Set<string>>;
   unreferencedObjects: number;
   truncated: boolean;
 }> {
   const byBucket: Array<ReturnType<typeof summarizeStorageInventory>> = [];
+  const objectPathsByBucket = new Map<string, Set<string>>();
   let truncated = false;
 
   for (const bucketId of storageBucketIds()) {
@@ -298,11 +316,13 @@ async function collectStorageInventory(
       maxObjectsPerBucket,
     );
     byBucket.push(inventory.summary);
+    objectPathsByBucket.set(bucketId, inventory.objectPaths);
     truncated ||= inventory.truncated;
   }
 
   return {
     byBucket,
+    objectPathsByBucket,
     unreferencedObjects: byBucket.reduce(
       (total, bucket) => total + bucket.unreferenced_objects,
       0,
@@ -317,6 +337,7 @@ async function collectCandidates(
 ): Promise<{
   candidates: CandidateReference[];
   counts: ReturnType<typeof emptyCounts>;
+  organizationIds: string[];
   truncated: boolean;
 }> {
   const candidates: CandidateReference[] = [];
@@ -425,11 +446,81 @@ async function collectCandidates(
       candidates: safeCandidates,
       counts,
       referencedPathsByBucket,
+      organizationIds: [...knownOrganizationIds],
       truncated,
     };
   }
 
-  return { candidates, counts, referencedPathsByBucket, truncated };
+  return {
+    candidates,
+    counts,
+    referencedPathsByBucket,
+    organizationIds: [...knownOrganizationIds],
+    truncated,
+  };
+}
+
+function collectOrphanCandidates(
+  organizationIds: string[],
+  inventory: Awaited<ReturnType<typeof collectStorageInventory>>,
+  referencedPathsByBucket: Map<string, Set<string>>,
+): OrphanCandidate[] {
+  if (organizationIds.length !== 1 || inventory.truncated) return [];
+  const organizationId = organizationIds[0];
+  const candidates: OrphanCandidate[] = [];
+
+  for (const [bucketId, objectPaths] of inventory.objectPathsByBucket) {
+    const referenced = referencedPathsByBucket.get(bucketId) ?? new Set();
+    for (const sourcePath of objectPaths) {
+      if (referenced.has(sourcePath)) continue;
+      candidates.push({
+        bucketId,
+        organizationId,
+        sourcePath,
+        destinationPath: organizationStoragePath(organizationId, sourcePath),
+      });
+    }
+  }
+  return candidates;
+}
+
+async function ensureOrphanLedger(
+  admin: AdminClient,
+  candidates: OrphanCandidate[],
+): Promise<void> {
+  for (const candidate of candidates) {
+    const { data: existing, error: findError } = await admin
+      .from("storage_object_migrations")
+      .select("id, discovery_kind")
+      .eq("bucket_id", candidate.bucketId)
+      .eq("source_path", candidate.sourcePath)
+      .maybeSingle();
+    if (findError) {
+      throw new Error("No se pudo consultar el ledger de huérfanos.");
+    }
+
+    if (existing?.id) {
+      if (existing.discovery_kind !== "orphaned") {
+        throw new Error(
+          "El objeto huérfano ya tiene una migración incompatible.",
+        );
+      }
+      continue;
+    }
+
+    const { error: insertError } = await admin
+      .from("storage_object_migrations")
+      .insert({
+        bucket_id: candidate.bucketId,
+        organization_id: candidate.organizationId,
+        source_path: candidate.sourcePath,
+        destination_path: candidate.destinationPath,
+        discovery_kind: "orphaned",
+      });
+    if (insertError) {
+      throw new Error("No se pudo crear el ledger de huérfanos.");
+    }
+  }
 }
 
 async function updateObject(
@@ -755,8 +846,9 @@ async function applyBatch(
   const { data: rows, error } = await admin
     .from("storage_object_migrations")
     .select(
-      "id, bucket_id, organization_id, source_path, destination_path, status, attempt_count",
+      "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
     )
+    .eq("discovery_kind", "referenced")
     .in("status", ["planned", "copied", "references_updated", "failed"])
     .order("created_at", { ascending: true })
     .limit(batchSize);
@@ -794,6 +886,61 @@ async function applyBatch(
   return outcomes;
 }
 
+async function processOrphanObject(
+  admin: AdminClient,
+  object: LedgerObject,
+): Promise<"source_deleted" | "pending" | "failed"> {
+  if (object.status === "source_deleted") return "source_deleted";
+  if ((await ensureCopied(admin, object)) === "failed") return "failed";
+
+  const sourceStillExists = await storagePathExists(
+    admin,
+    object.bucket_id,
+    object.source_path,
+  );
+  if (sourceStillExists) {
+    const { error } = await admin.storage.from(object.bucket_id).remove([
+      object.source_path,
+    ]);
+    if (error) {
+      await updateObject(admin, object.id, {
+        last_error_code: "storage_delete_failed",
+      });
+      return "pending";
+    }
+  }
+
+  await updateObject(admin, object.id, {
+    status: "source_deleted",
+    source_deleted_at: new Date().toISOString(),
+    last_error_code: null,
+  });
+  return "source_deleted";
+}
+
+async function applyOrphanBatch(
+  admin: AdminClient,
+  batchSize: number,
+): Promise<Record<string, number>> {
+  const { data: rows, error } = await admin
+    .from("storage_object_migrations")
+    .select(
+      "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
+    )
+    .eq("discovery_kind", "orphaned")
+    .in("status", ["planned", "copied", "failed"])
+    .order("created_at", { ascending: true })
+    .limit(batchSize);
+  if (error) throw new Error("No se pudo leer el lote de huérfanos.");
+
+  const outcomes = { source_deleted: 0, pending: 0, failed: 0 };
+  for (const object of (rows ?? []) as LedgerObject[]) {
+    const outcome = await processOrphanObject(admin, object);
+    outcomes[outcome]++;
+  }
+  return outcomes;
+}
+
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
@@ -819,6 +966,16 @@ Deno.serve(async (req) => {
       input.maxObjectsPerBucket,
     );
     const inventoryComplete = !plan.truncated && !inventory.truncated;
+    const orphanCandidates = collectOrphanCandidates(
+      plan.organizationIds,
+      inventory,
+      plan.referencedPathsByBucket,
+    );
+    const orphanState = !inventoryComplete
+      ? "inventory_incomplete"
+      : plan.organizationIds.length !== 1
+      ? "requires_single_organization"
+      : "ready";
     const summary = {
       mode: input.mode,
       truncated: !inventoryComplete,
@@ -833,9 +990,50 @@ Deno.serve(async (req) => {
             : null,
         })),
       },
+      orphan_migration: {
+        state: orphanState,
+        candidates: inventoryComplete ? orphanCandidates.length : null,
+      },
     };
 
     if (input.mode === "plan") return respond(summary);
+
+    if (input.mode === "apply_orphans") {
+      if (Deno.env.get(APPLY_ENV_FLAG) !== "true") {
+        return respond(
+          {
+            ...summary,
+            error: "Apply is disabled until the environment gate is enabled.",
+          },
+          403,
+        );
+      }
+      if (input.confirmation !== ORPHAN_APPLY_CONFIRMATION) {
+        return respond(
+          { ...summary, error: "Explicit orphan confirmation is required." },
+          409,
+        );
+      }
+      if (!inventoryComplete) {
+        return respond(
+          { ...summary, error: "Complete the inventory before applying." },
+          409,
+        );
+      }
+      if (plan.organizationIds.length !== 1) {
+        return respond(
+          {
+            ...summary,
+            error: "Orphan migration requires exactly one organization.",
+          },
+          409,
+        );
+      }
+
+      await ensureOrphanLedger(admin, orphanCandidates);
+      const outcomes = await applyOrphanBatch(admin, input.batchSize);
+      return respond({ ...summary, outcomes });
+    }
 
     if (Deno.env.get(APPLY_ENV_FLAG) !== "true") {
       return respond(
