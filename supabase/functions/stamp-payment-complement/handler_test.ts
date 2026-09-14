@@ -352,10 +352,16 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
     assertEquals(res.status, 400);
     assert(String(body.error).includes("not configured"));
     assertEquals(facturapiCalled, 0, "no debe llamarse al PAC sin key propia");
-    const errUpdate = serviceState.updates.find((u) =>
-      u.table === "payments" && u.patch.rep_cfdi_status === "error"
+    // El claim se libera a `pending` (reintentable) con el motivo explícito;
+    // nunca se timbra con llaves de otra empresa.
+    const released = serviceState.updates.find((u) =>
+      u.table === "payments" && u.patch.rep_cfdi_status === "pending"
     );
-    assert(errUpdate, "debe liberar el claim marcando error explícito");
+    assert(released, "debe liberar el claim del pago");
+    assert(
+      String(released?.patch.rep_error_message ?? "").includes("empresa"),
+      "el motivo debe señalar que falta configuración de esta empresa",
+    );
   } finally {
     mock.restore();
   }
