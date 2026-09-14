@@ -66,7 +66,6 @@ export function parseStorageReference(
     }
     if (
       (url.protocol !== "https:" && url.protocol !== "http:") ||
-      url.search ||
       url.hash
     ) {
       return null;
