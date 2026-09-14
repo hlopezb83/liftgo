@@ -587,7 +587,7 @@ Solo cuando se cumple **al menos uno**:
 | Drag & drop archivos | `react-dropzone` | Listeners HTML5 manuales |
 | Markdown | `marked` + `dompurify` (vía `features/help/lib/markdown.ts`) | Regex / parsers propios |
 | Class merging | `clsx` + `tailwind-merge` (vía `cn`) | Concatenación de strings |
-| Animaciones | `tailwindcss-animate` | `setTimeout` + clases |
+| Animaciones | `tw-animate-css` (importado en `src/styles.css`) | `setTimeout` + clases |
 | Testing | `vitest` + `@testing-library/react` | Asserts manuales |
 | Descargas blob | `src/lib/pdf/renderAndSave.tsx` | `URL.createObjectURL` + `link.click` ad-hoc duplicado |
 | Captura screenshot DOM | `html-to-image` (lazy, solo feedback) | Re-render manual a canvas |
