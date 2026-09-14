@@ -1,4 +1,16 @@
+## [8.8.3] - 2026-09-14
+### Documentación técnica alineada con el sistema actual
+- `README.md` y `architecture.md` describen el stack real: React 19, Vite 8, TypeScript 6, Tailwind v4 y TanStack Start/Router con SSR.
+- Diagrama, mapa de carpetas y sección de enrutamiento reescritos sobre rutas file-based (`src/routes/`, layouts `_main`/`_portal`, `routeTree.gen.ts` generado); se eliminan referencias a `src/App.tsx`, `src/main.tsx`, `react-router-dom`, `src/lib/routes-config.tsx` y `tailwind.config.ts`.
+- Nueva §6.3: server functions (`createServerFn` en `src/lib/*.functions.ts`) vs Edge Functions Deno, con el inventario real de funciones desplegadas.
+- Despliegue documentado según `vite.config.ts` y `wrangler.jsonc`: build SSR con Nitro, preset `cloudflare-module`, salidas `dist/client` y `dist/server`; `bun run preview` = `wrangler dev --port 4173`.
+- Testing actualizado: Vitest 4 con happy-dom (jsdom opt-in) y suite offline; Playwright sobre el build servido en 4173.
+- Migraciones: se documenta `drizzle/migrations/` junto al historial de `supabase/migrations/`. Se marca la migración multi-organización como **en curso**, no terminada.
+- Requisitos de entorno: Node `>=24` y Bun como runner.
+- Validación local: `bun scripts/validate-changelog.ts` y verificación de que cada archivo/comando citado existe. Suite completa y cobertura en GitHub Actions.
+
 ## [8.7.1] - 2026-09-13
+
 ### Hallazgos QA: estado del montacargas en su ficha
 - `deriveForkliftDisplayStatus` vuelve a usar `availability.rentedForkliftIds`: la ficha muestra `rented` cuando hay reserva `confirmed` vigente hoy, igual que FleetPage y el tablero. Mantenimiento/retiro/venta siguen mandando.
 - Comentario obsoleto en `FleetPage.tsx` corregido (ya no afirma que el helper ignora las reservas).

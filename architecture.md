@@ -23,16 +23,22 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 
 | Capa | Tecnología |
 |---|---|
-| UI | React 18, Vite 5, TypeScript 5, Tailwind CSS v3 |
+| UI | React 19, Vite 8, TypeScript 6, Tailwind CSS v4 (configurado en `src/styles.css`, sin `tailwind.config.ts`) |
+| Framework de app | TanStack Start 1.x + TanStack Router 1.x (rutas por archivo en `src/routes/`, SSR) |
 | Componentes | shadcn/ui sobre Radix UI, lucide-react |
-| Estado servidor | TanStack Query v5 |
+| Estado servidor | TanStack Query v5 (con persistencia en `localStorage`) |
 | Formularios | react-hook-form + Zod |
-| Routing | react-router-dom v6 con `lazy()` + `Suspense` |
+| Routing | TanStack Router (file-based) con `lazy()` + `Suspense` por ruta |
 | Backend | Lovable Cloud (Supabase): Postgres + Auth + Storage + Edge Functions (Deno) |
-| Documentos | `@react-pdf/renderer` ^4.5.x (declarativo, JSX → PDF, carga diferida) |
+| Server functions | `createServerFn` de `@tanstack/react-start` (`src/lib/*.functions.ts`) |
+| Despliegue | Build SSR con Nitro, preset `cloudflare-module` → `dist/client` + `dist/server` (ver `wrangler.jsonc`) |
+| Documentos | `@react-pdf/renderer` ^4.x (declarativo, JSX → PDF, carga diferida) |
 | Notificaciones | sonner |
-| Tests | Vitest + @testing-library/react + jsdom |
+| Tests | Vitest 4 + @testing-library/react + happy-dom (jsdom opt-in por archivo); Playwright para E2E |
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
+| Observabilidad | Sentry (`@sentry/react` + `@sentry/vite-plugin`) |
+
+Requisitos de entorno: Node `>=24` (ver `engines` en `package.json`, `.nvmrc` y `.node-version`); el gestor de paquetes y runner de scripts es **Bun**.
 
 ---
 
@@ -40,29 +46,38 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                      Navegador (SPA)                        │
-│  React + TanStack Query + react-router + shadcn/Radix       │
+│        Navegador (React 19 + TanStack Query/Router)         │
 └──────────────┬──────────────────────────────┬───────────────┘
                │ HTTPS                        │ HTTPS
                ▼                              ▼
-      ┌─────────────────┐          ┌──────────────────────┐
-      │  Supabase Auth  │          │   Edge Functions     │
-      │  (JWT + RLS)    │          │   (Deno, getClaims)  │
-      └────────┬────────┘          └──────┬───────────────┘
-               │                          │
-               ▼                          ▼
+   ┌──────────────────────────┐     ┌──────────────────────┐
+   │  Worker SSR (Nitro /     │     │  Supabase Auth       │
+   │  Cloudflare)             │     │  (JWT + RLS)         │
+   │  src/server.ts →         │     └──────┬───────────────┘
+   │  TanStack Start          │            │
+   │  + server functions      │            │
+   └───────────┬──────────────┘            │
+               │                           │
+               ▼                           ▼
       ┌────────────────────────────────────────────┐
       │          Postgres (RLS por rol)            │
       │  has_role() SECURITY DEFINER · RPCs        │
       │  triggers de auditoría · constraints GiST  │
       └────────────────────────────────────────────┘
-                              │
-                              ▼
-              ┌──────────────────────────────┐
-              │  Servicios externos          │
-              │  Facturapi · Lovable AI      │
-              └──────────────────────────────┘
+               ▲                           ▲
+               │                           │
+   ┌───────────┴──────────────┐   ┌────────┴─────────────┐
+   │  Edge Functions (Deno)   │   │  Servicios externos  │
+   │  CFDI, cron, storage     │──▶│  Facturapi · AI      │
+   └──────────────────────────┘   └──────────────────────┘
 ```
+
+El SSR corre en un Worker: `src/server.ts` envuelve el handler de
+`@tanstack/react-start/server-entry` para convertir errores catastróficos en una
+página HTML de error (`src/lib/error-page.ts`). `src/start.ts` registra los
+middlewares de request (errores + CSRF) y el middleware de cliente que adjunta
+el Bearer de la sesión a las server functions.
+
 
 ---
 
@@ -82,31 +97,52 @@ src/
 ├── components/                     UI verdaderamente compartida entre features
 │   ├── ui/                         Primitivas shadcn (no editar)
 │   └── *.tsx                       DetailPageHeader, EmptyState, TotalsSummary, ...
-├── hooks/                          Hooks transversales (useListPage, usePagination, ...)
+├── hooks/                          Hooks transversales (useListPage, useDialogState, ...)
 ├── contexts/                       AuthContext (sesión global)
 ├── layouts/                        MainLayout, CustomerPortalLayout, AuthGuard, RoleGuard
+├── app-routes/
+│   ├── routes.ts                   Constantes de URL (`ROUTES.invoices.detail(id)`)
+│   ├── routes-config.tsx           Registro de rutas: loader lazy + módulo + permisos
+│   └── RouteSkeletons.tsx          Fallbacks de Suspense
+├── routes/                         Rutas file-based de TanStack Router
+│   ├── __root.tsx                  Shell HTML, head/meta, providers, error/not-found
+│   ├── _main.tsx · _main/          ERP autenticado (AuthGuard + MainLayout)
+│   ├── _portal.tsx · _portal/      Portal de cliente
+│   ├── auth.tsx · portal.login.tsx Rutas de acceso
+│   └── ../routeTree.gen.ts         GENERADO — no editar
 ├── lib/
 │   ├── pdf/                        Generación modular de documentos
 │   ├── forms/                      Mapeo formulario → payload (coerce, payloads compartidos)
-│   ├── domain/                     Helpers de dominio cross-feature (invoiceHelpers, satCatalogs)
+│   ├── domain/                     Helpers de dominio cross-feature (invoiceTotals, satCatalogs)
+│   ├── *.functions.ts              Server functions (`createServerFn`)
+│   ├── server/ · *.server.ts       Código server-only (guards, clientes privilegiados)
 │   ├── constants.ts                Etiquetas, colores, estados de dominio
 │   ├── config.ts                   Configuración global (tasas IVA, monedas)
-│   ├── routes.ts                   Constantes de rutas (`ROUTES.invoices.detail(id)`)
-│   ├── routes-config.tsx           Registro central de rutas + módulo (lazy)
-│   └── formatCurrency.ts · utils.ts · rpc.ts · telemetry.ts · ...
-├── integrations/supabase/          Cliente y types AUTOGENERADOS — no editar
+│   └── formatCurrency.ts · utils.ts · rpc.ts · router-compat*.ts · ...
+├── integrations/supabase/          Cliente, middleware de auth y types AUTOGENERADOS — no editar
 ├── types/                          Tipos de dominio compartidos (rental.ts, ...)
 ├── test/                           Tests + helpers/mocks de Supabase
-├── App.tsx                         Composición de providers, guards y router
-└── main.tsx
+├── styles.css                      Tailwind v4 + tokens de diseño (sin tailwind.config.ts)
+├── router.tsx                      `createRouter` (QueryClient por request, scroll, search parsing)
+├── start.ts                        Middlewares de request (errores, CSRF) y de server functions
+└── server.ts                       Entrada SSR del Worker (envoltura de errores)
 supabase/
-├── functions/                      Edge Functions (CFDI, invitaciones, jobs)
-├── migrations/                     Migraciones SQL (timestamp + slug)
+├── functions/                      Edge Functions Deno (CFDI, cron, storage)
+├── migrations/                     Migraciones SQL históricas (timestamp + slug)
+├── tests/                          Smokes SQL y suites de RLS
 └── config.toml                     Configuración de funciones (verify_jwt, etc.)
+drizzle/
+├── schema.ts                       Esquema usado por drizzle-kit
+└── migrations/                     Migraciones numeradas (`00NN_<slug>.sql`), multi-organización
 public/
 ├── changelog.json                  Índice del historial funcional (ver §16)
-└── changelog/v<X.Y.Z>.json         Detalle por versión
+├── changelog/v<X.Y.Z>.json         Detalle por versión
+└── version.json                    Versión vigente (generada por `scripts/gen-version.mjs`)
 ```
+
+> `src/App.tsx` y `src/main.tsx` ya no existen: su contenido (providers, shims,
+> arranque de Sentry, meta tags) vive en `src/routes/__root.tsx` y `src/layouts/AppProviders.tsx`.
+
 
 **Reglas de ubicación**:
 - Toda lógica/UI/hook específica de un dominio → `src/features/<feature>/`.
@@ -187,37 +223,73 @@ Página (orquestador)
 ### 6.2 Permisos por módulo
 
 - Tabla `role_permissions` (`role` × `module` × `access_level`: `none|read|full`).
-- Constante `MODULES` y mapa `ROUTE_TO_MODULE` definidos en `src/hooks/useRolePermissions.ts` — única fuente de verdad para nombrar módulos en UI y BD.
+- Constante `MODULES` y mapa `ROUTE_TO_MODULE` definidos en `src/features/users/hooks/useRolePermissions.ts` — única fuente de verdad para nombrar módulos en UI y BD.
 - Hook `useRolePermissions` carga el mapa con `staleTime: 5 min`.
 - Componente `<RoleGuard module="..." minAccess="read">` envuelve cada ruta protegida.
-- Cada `appRoute` declara `module` opcional; `App.tsx` lo enlaza a `RoleGuard`.
+- Cada entrada de `appRoutes` declara `module` opcional (y `minAccess` / `adminOnly` cuando aplica); el archivo de ruta correspondiente en `src/routes/_main/` lo enlaza a `RoleGuard`.
 
-### 6.3 Edge Functions
+> **Multi-organización (en curso, no terminada)**: el esquema ya incorpora
+> `organizations`, `organization_memberships`, `organization_customers`,
+> `customer_portal_accounts` y la columna `organization_id` en las tablas
+> operativas (migraciones `drizzle/migrations/00NN_multi_org_*`). Hoy opera una
+> sola organización. Quedan pendientes, entre otros, el alcance por organización
+> en varias Edge Functions/cron y la migración de rutas de Storage. No asumir que
+> el aislamiento multiempresa está completo.
 
-- Validan identidad con `getClaims()` (compatible con tokens nuevos y legacy).
-- CORS restringido y centralizado en `supabase/functions/_shared/cors.ts`.
-- Validación de inputs en `supabase/functions/_shared/validate.ts`.
-- Casos de uso: timbrado/cancelación CFDI (`stamp-cfdi`, `cancel-cfdi`), invitaciones (`invite-user`, `invite-customer`, `delete-user`, `reset-user-password`, `toggle-user-status`), generación recurrente (`generate-recurring-invoices`, `generate-recurring-maintenance`), parseo de CSF (`parse-csf`), generación del manual (`generate-manual`).
+
+
+### 6.3 Server functions vs Edge Functions
+
+La lógica de servidor está repartida en dos transportes, con criterio explícito:
+
+**Server functions (`createServerFn`, corren en el Worker SSR)** — lógica
+interna de la app llamada desde el cliente. Viven en `src/lib/*.functions.ts`:
+
+- `userAdmin.functions.ts` — invitar, eliminar, restablecer contraseña y activar/desactivar usuarios internos (antes Edge Functions homónimas).
+- `customerPortal.functions.ts` — invitación al portal de clientes.
+- `supplierRep.functions.ts` — validación/parseo de REP de proveedores.
+- `feedbackAi.functions.ts` — clasificación asistida de reportes de feedback.
+
+Reglas: autenticación vía middleware `requireSupabaseAuth`
+(`src/integrations/supabase/auth-middleware.ts`); el Bearer se adjunta desde el
+cliente con el `functionMiddleware` registrado en `src/start.ts`; el código
+privilegiado vive en archivos `*.server.ts` / `src/lib/server/` importados
+dentro del handler, nunca desde un componente.
+
+**Edge Functions (Deno, en Supabase)** — integraciones externas, jobs
+programados y trabajo con privilegios de servicio:
+
+- Validan identidad con `getClaims()` o con el secreto de cron según el caso; CORS centralizado en `supabase/functions/_shared/cors.ts` y validación de inputs en `_shared/validate.ts`.
+- CFDI: `stamp-cfdi`, `cancel-cfdi`, `download-cfdi`, `stamp-credit-note`, `cancel-credit-note`, `stamp-payment-complement`, `cancel-payment-complement`, `refresh-cancellation-status`, `process-cfdi-retry-queue`, `reconcile-stamping-invoices`.
+- Validación fiscal: `validate-customers-tax-info`, `validate-receptor-tax-info`, `validate-supplier-rep`, `parse-csf`.
+- Jobs: `generate-recurring-invoices`, `generate-recurring-maintenance`, `migrate-storage-org-prefix`.
+- Otros: `generate-manual`, `classify-feedback-report`, y las funciones de usuarios que siguen desplegadas mientras se retira su versión Deno.
 - `verify_jwt` se configura por función en `supabase/config.toml` cuando aplica.
 
 ---
 
 ## 7. Enrutamiento y autorización
 
-- `src/lib/routes-config.tsx` exporta `appRoutes: RouteConfig[]` con `path`, `component` (lazy) y `module` opcional.
-- `src/App.tsx` compone:
+- Enrutamiento **file-based** de TanStack Router: cada archivo bajo `src/routes/` genera una ruta; `src/routeTree.gen.ts` es **generado** y no se edita.
+- Árbol actual:
 
   ```text
-  AppProviders
-    └─ BrowserRouter
-         ├─ /portal/*                (portal cliente, layout propio)
-         └─ AuthGuard → MainLayout
-              └─ appRoutes.map → Suspense → RoleGuard? → Page
+  __root.tsx            Shell HTML + head/meta + AppProviders + ErrorBoundary
+    ├─ auth.tsx                     Login interno
+    ├─ portal.login.tsx             Login del portal
+    ├─ _main.tsx                    AuthGuard → MainLayout
+    │    └─ _main/<ruta>.tsx        Suspense → RoleGuard? → Page (lazy)
+    └─ _portal.tsx                  AuthGuard → CustomerPortalLayout
+         └─ _portal/portal.*.tsx    Páginas del portal
   ```
 
-- **Sin nested wildcards**: `MainLayout` se monta una sola vez, `Suspense` envuelve cada ruta individual (ver `mem://arch/routing-architecture`).
-- Constantes de URL en `src/lib/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
-- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/role-permissions`, `/operations-setup`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
+- Los segmentos `_main` y `_portal` son layouts sin URL propia: `/invoices` vive en `src/routes/_main/invoices.index.tsx`.
+- `src/app-routes/routes-config.tsx` sigue siendo el registro de `path` → `loader` (lazy) + `module` + `minAccess`/`adminOnly`; los archivos de ruta lo consumen para montar `Suspense` + `RoleGuard`.
+- `MainLayout` se monta una sola vez (layout route); `Suspense` envuelve cada página individual.
+- Constantes de URL en `src/app-routes/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
+- La navegación usa `Link`/`navigate` de TanStack Router; `src/lib/router-compat-ui.tsx` y `src/lib/router-compat-url.ts` ofrecen equivalentes (`Navigate`, lectura de query string) para el código migrado.
+- Rutas notables fuera de los CRUD: `/income-statement`, `/mrr`, `/expenses` (operativos), `/audit`, `/activity`, `/users/permissions`, `/settings/operations`, `/changelog`, `/help`, `/feedback` (admin Kanban), `/mis-reportes`, `/leaderboard`.
+
 
 ---
 
@@ -226,7 +298,7 @@ Página (orquestador)
 - Aislado bajo `/portal/*` con `CustomerPortalLayout` y autenticación independiente (`/portal/login`).
 - Páginas: `PortalDashboard`, `PortalRentals`, `PortalInvoices`, `PortalInvoiceDetail`, `PortalContracts`.
 - Hooks dedicados (`useCustomerPortal`, `usePortalInvoices`, `usePortalBookings`) que **nunca** comparten queries con el backoffice.
-- Modelo de seguridad: usuarios invitados desde la edge function `invite-customer` quedan vinculados a un `customer_id`. Las policies RLS filtran por `customer_id = (auth claims)`. Acceso **solo lectura**.
+- Modelo de seguridad: los clientes invitados desde la server function `inviteCustomer` (`src/lib/customerPortal.functions.ts`) quedan vinculados a un `customer_id`. Las policies RLS filtran por ese `customer_id`. Acceso **solo lectura**.
 - Sin acceso a módulos internos (gastos, P&L, mantenimiento, etc.).
 
 ---
@@ -278,7 +350,7 @@ src/lib/pdf/
 - Tablas estandarizadas: compactas, filas zebra, headers sticky, sort/paginación cliente (límite 25, vía `usePagination`).
 - Mobile: `MobileCardList` reemplaza tablas complejas.
 - Diseño visual “Premium / Industrial Minimalista” para documentos operativos.
-- **Tokens semánticos**: nunca colores literales (`text-white`, `bg-black`). Todo color en HSL en `index.css` y `tailwind.config.ts`. Componentes usan tokens (`bg-primary`, `text-muted-foreground`, etc.).
+- **Tokens semánticos**: nunca colores literales (`text-white`, `bg-black`). Todo color en HSL dentro de `src/styles.css` (Tailwind v4 con `@theme`/`@layer base`, sin `tailwind.config.ts`). Componentes usan tokens (`bg-primary`, `text-muted-foreground`, etc.).
 
 ---
 
@@ -311,7 +383,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ## 14. Migraciones de base de datos
 
-- Ubicación: `supabase/migrations/` con formato `<timestamp>_<slug>.sql`.
+- Ubicaciones: `supabase/migrations/` con formato `<timestamp>_<slug>.sql` (historial previo) y `drizzle/migrations/` con formato `00NN_<slug>.sql` (gestionadas con `drizzle-kit`, esquema en `drizzle/schema.ts`, config en `drizzle.config.ts`). Las migraciones multi-organización viven en `drizzle/migrations/`.
 - Política:
   - **Una migración por cambio funcional**, atómica.
   - **Nunca editar** migraciones ya aplicadas; corregir con una nueva.
@@ -327,8 +399,8 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ### 15.1 Frontend (Vitest)
 
-- Vitest + jsdom + @testing-library/react.
-- Mocks de Supabase reutilizables en `src/test/helpers/mockSupabase.ts`.
+- Vitest 4 + @testing-library/react sobre **happy-dom** (`vitest.config.ts`); los archivos que requieran jsdom lo declaran con `// @vitest-environment jsdom`. La suite es offline: la config fuerza `TZ=UTC` y credenciales de Supabase de loopback para no tocar el backend real.
+- Helpers de test reutilizables en `src/test/helpers/` (`supabaseChain.ts` para encadenar mocks de Supabase, `queryClient.tsx`, `time.ts`) y wrapper de router en `src/test/routerWrapper.tsx`.
 - Cobertura de flujos críticos: `bookingFlow`, `invoiceFlow`, `paymentFlow`, `formatCurrency`, `exportCsv`, `invoiceHelpers`, `constants`, `rolePermissions`, `coerce`, `rpc`, `templateUtils`, `activityTranslations`, `contractPlaceholders`, `lineItems`.
 - Suites de hooks/libs en `src/**/__tests__/`: `useDebouncedValue`, `useDialogState`, `useListFilters`, `formatCurrency`, `partFormSchema`, `markdown`.
 - Comandos: `bun run test` (CI), `bun run test:watch` (desarrollo).
@@ -337,7 +409,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Convención: `supabase/functions/<name>/index_test.ts` con `Deno.test`.
 - Patrón mínimo por función (smoke RC): CORS preflight 200, rechazo sin `Authorization` (401), rechazo con JWT inválido (401 donde aplique).
-- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`.
+- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan desplegadas; la lógica vigente que consume la app está en las server functions de §6.3.
 - Importes: `https://deno.land/std@0.224.0/dotenv/load.ts` y `assert/mod.ts`. SUPABASE_URL desde `.env`.
 - Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
 - CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
@@ -345,7 +417,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 ### 15.3 E2E (Playwright)
 
 - Suite en `tests/e2e/` con `playwright.config.ts` en raíz. Documentación operativa: `tests/e2e/README.md`.
-- Levanta `bun run preview` en puerto 4173 vía `webServer` y corre en chromium.
+- `webServer` levanta `bun run preview` (que es `wrangler dev --port 4173`, sirviendo el build SSR de `dist/`) en el puerto 4173 y corre en chromium. Con `E2E_REUSE_BUILD=1` reutiliza el `dist/` ya construido; si no, corre `bun run build && bun run preview`.
 - Auth: project `setup` (`global.setup.ts`) pide la sesión a Supabase por API (`signInWithPassword`), valida que la cuenta sea staff y escribe `tests/e2e/.auth/admin.json`. Si hay credenciales por rol (`E2E_<ROL>_EMAIL/PASSWORD`) también cachea `.auth/<rol>.json`.
 - Project `portal` corre sin `storageState` para validar rutas públicas (`/portal/login`).
 - Cobertura actual: `full-flow`, `smoke-nav`, `roles-matrix`, `fiscal-actions`, filtros (`filters-invoices`, `filters-quotes`, `daterange-picker`), kanbans (`crm-kanban`, `maintenance-kanban`), portal (`portal`, `portal-statement`), y flujos puntuales (`invoice-payment`, `quote-pdf`, `quote-edit-prefill`, `return-inspection`, `customer-create`, `bank-reconciliation`).
@@ -364,10 +436,10 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - Checklist mínimo: sidebar colapsado, `MobileCardList` en listas, sin overflow horizontal, formularios sin clipping, modales caben.
 - No se gatea CI con esto — es proceso humano y el resultado se resume en la entrada de changelog correspondiente.
 
-### 15.6 Lighthouse
+### 15.6 Workflows de CI
 
-- Script: `scripts/lighthouse-baseline.sh` corre Lighthouse desktop contra rutas públicas (`/`, `/portal/login`) y guarda JSON en `docs/lighthouse/` (no versionado).
-- Workflow `lighthouse.yml` con `lighthouserc.json`. No gatea el merge — sirve para comparar regresiones entre versiones.
+Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arch-check, unit tests en 2 shards + merge de cobertura, build y E2E), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. No hay workflow de Lighthouse.
+
 
 
 ---
@@ -376,7 +448,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 ## 16. Versionado y changelog
 
 - Versionado semántico (MAJOR.MINOR.PATCH).
-- **Fuente consumida en runtime**: `public/changelog.json` — lo lee `ChangelogPage` vía `fetchChangelog()` en `src/lib/changelog.ts`.
+- **Fuente consumida en runtime**: `public/changelog.json` — lo lee `ChangelogPage` vía `fetchChangelog()` en `src/features/changelog/lib/changelog.ts`.
 - **Política mandatoria**: cada cambio funcional agrega una entrada al **inicio** del array (versión, fecha, tipo, título, descripción, lista de cambios). Selecciona major/minor/patch según magnitud.
 - La página `/changelog` permite filtrar por tipo.
 
@@ -389,9 +461,10 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 2. Página orquestadora en `src/features/<feature>/pages/<Feature>Page.tsx`.
 3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
 4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
-5. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"` y `lazy()`.
-6. Agregar la URL a `src/lib/routes.ts`.
-7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
+5. Registrar la ruta en `src/app-routes/routes-config.tsx` con `module: "Mi Módulo"` y su `loader` dinámico.
+6. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL) y agregar la URL a `src/app-routes/routes.ts`.
+7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `src/features/users/hooks/useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
+
 8. Agregar test mínimo en `src/test/`.
 9. Agregar entrada al inicio de `public/changelog.json` **y** crear el detalle en `public/changelog/v<X.Y.Z>.json`.
 
@@ -402,7 +475,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - **Edge Function** si necesitas: secretos, llamadas a terceros, lógica con privilegios de servicio, jobs programados.
 
 **Anti-patrones a evitar**:
-- Editar `src/integrations/supabase/{client,types}.ts` o `.env` (autogenerados).
+- Editar `src/integrations/supabase/{client,types}.ts`, `src/routeTree.gen.ts` o `.env` (autogenerados).
 - Lógica de Supabase dentro de componentes.
 - Roles guardados en `profiles` o en `localStorage`.
 - Colores literales fuera de los tokens del design system.
@@ -411,7 +484,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - `alert()` o `confirm()` nativos — usar diálogos shadcn (`AlertDialog`, `Dialog`).
 - `console.log` en código de producción — usar `sonner` para feedback al usuario.
 - FK directa a `auth.users` — referenciar `user_id` y modelar perfiles en `profiles`.
-- Nested wildcards en rutas o re-montar `MainLayout` por ruta — usar `Suspense` por ruta.
+- Re-montar `MainLayout` por ruta o duplicar layouts — el layout vive en la ruta `_main`; `Suspense` va por página.
 - Mostrar al usuario términos como “Supabase dashboard” — referirse a **Lovable Cloud**.
 - Reimplementar funcionalidad ya cubierta por una dependencia del stack canónico (ver §20.4).
 
@@ -524,7 +597,7 @@ Solo cuando se cumple **al menos uno**:
 | Drag & drop archivos | `react-dropzone` | Listeners HTML5 manuales |
 | Markdown | `marked` + `dompurify` (vía `features/help/lib/markdown.ts`) | Regex / parsers propios |
 | Class merging | `clsx` + `tailwind-merge` (vía `cn`) | Concatenación de strings |
-| Animaciones | `tailwindcss-animate` | `setTimeout` + clases |
+| Animaciones | `tw-animate-css` (importado en `src/styles.css`) | `setTimeout` + clases |
 | Testing | `vitest` + `@testing-library/react` | Asserts manuales |
 | Descargas blob | `src/lib/pdf/renderAndSave.tsx` | `URL.createObjectURL` + `link.click` ad-hoc duplicado |
 | Captura screenshot DOM | `html-to-image` (lazy, solo feedback) | Re-render manual a canvas |
@@ -571,12 +644,10 @@ Regla: si el único consumidor desaparece, **la dependencia se elimina en el mis
 
 ## 21. Contratos cross-feature
 
-Para evitar el acoplamiento "feature A importa hooks internos de feature B sólo para reutilizar un tipo", todos los tipos de dominio compartidos viven en **`src/lib/domain/sharedTypes.ts`**:
+Para evitar el acoplamiento "feature A importa hooks internos de feature B sólo para reutilizar un tipo", los tipos de dominio compartidos viven en **`src/types/rental.ts`** (`Booking`, `Forklift`, `Quote`, `BookingWithForklift`, `ContractViewModel`, `ReturnInspectionWithJoins`, `DamageRecordWithJoins`, ...), sobre las filas crudas de `@/integrations/supabase/types`. Los helpers de dominio realmente cross-feature viven en `src/lib/domain/` (ver `src/lib/domain/README.md`).
 
-- `Customer`, `Forklift`, `Booking`, `BookingWithForklift`, `EquipmentModel`, `Supplier`, `ForkliftSnippet`.
-- Re-exporta desde `@/types/rental` (view models) y `@/integrations/supabase/types` (filas crudas). Punto único de mantenimiento.
+**Regla**: si una feature necesita *solo el tipo* de otra (sin invocar su hook), importarlo desde `@/types/rental` o del barrel público de la feature dueña (`@/features/x`). Si necesita los datos, sigue invocando el hook público de la feature dueña (p. ej. `useCustomers`, `useForklifts`). Nunca importar archivos internos (`@/features/X/hooks/*/...`) desde otra feature.
 
-**Regla**: si una feature necesita *solo el tipo* de otra (sin invocar su hook), importarlo desde `@/lib/domain/sharedTypes`. Si necesita los datos, sigue invocando el hook público de la feature dueña (p. ej. `useCustomers`, `useForklifts`). Nunca importar archivos de `@/features/X/hooks/*/...` (internos) desde otra feature.
 
 Beneficio: las features siguen siendo dueñas de su I/O, pero los contratos públicos son estables y descubribles.
 
@@ -659,8 +730,8 @@ Generados por RPCs `generate_*_number`; prefijos **en español** en mayúsculas,
 
 El audit v6.70.x detectó estas inconsistencias. **No se renombran en bloque** (cada rename rompe imports e historial de diffs); se alinean cuando el archivo se toca por otra razón, registrando el rename en el changelog del cambio que lo motivó:
 
-- `src/features/fleet/pages/Fleet.tsx` → `FleetPage.tsx`.
 - `src/components/dataTable/` → `src/components/data-table/`.
+
 - `src/hooks/use-mobile.tsx` → `useIsMobile.tsx` (alinear con su export).
 - Tests de flujo en `src/test/<feature>Flow.test.ts` → mover a `src/features/<feature>/__tests__/`.
 
@@ -688,11 +759,10 @@ Items identificados por la auditoría arquitectónica que **no se ejecutaron** e
 
 **Trigger natural:** al añadir una entidad nueva, implementarla con la capa `data-access` y migrar entidades existentes una por release. Diseño esperado: `src/features/<entity>/data/{queries.ts, mutations.ts}` consumido por hooks delgados.
 
-### 23.3 Split `src/components/ui/sidebar.tsx` (637 LOC) — Prioridad BAJA (probablemente NO hacer)
+### 23.3 Sidebar de shadcn ya dividido — CERRADO
 
-**Alcance:** componente shadcn con 15+ sub-exports en un archivo.
+El primitive vive en `src/components/ui/sidebar/` (`Sidebar.tsx`, `SidebarGroup.tsx`, `SidebarMenu.tsx`, `SidebarMenuSub.tsx`, `SidebarSections.tsx`, `context.tsx`, `variants.ts`, `constants.ts`, `index.ts`). Al estar fuera del archivo único de shadcn, una futura actualización upstream (`shadcn add sidebar`) debe reconciliarse a mano.
 
-**Por qué NO hacerlo:** es código **upstream de shadcn**, no nuestro. Dividirlo rompe la convención shadcn (un archivo por primitive), complica futuras actualizaciones (`npx shadcn add sidebar` sobrescribiría) y no aporta beneficio funcional ni de performance. **Excepción documentada en §22.2.** Solo reabrir si dejamos de seguir shadcn upstream.
 
 ### 23.4 Política general para esta deuda
 
@@ -706,15 +776,19 @@ Items identificados por la auditoría arquitectónica que **no se ejecutaron** e
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
-- `src/lib/changelog.ts` — fetcher + tipos del changelog.
+- `src/features/changelog/lib/changelog.ts` — fetcher + tipos del changelog.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
 - `src/lib/config.ts` — configuración global (IVA, monedas).
-- `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
-- `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
+- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro de rutas y permisos.
+- `src/routes/` — rutas file-based de TanStack Router; `src/routeTree.gen.ts` es generado.
+- `src/router.tsx`, `src/start.ts`, `src/server.ts` — router, middlewares y entrada SSR.
+- `src/features/users/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
 - `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
 - `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
 - `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
 - `docs/paginacion-cursor.md` — patrón de listados y disparador de migración a cursor.
-- `supabase/functions/` — backend serverless.
-- `supabase/migrations/` — historial SQL.
+- `supabase/functions/` — Edge Functions Deno.
+- `supabase/migrations/` y `drizzle/migrations/` — historial SQL.
+- `vite.config.ts` y `wrangler.jsonc` — build SSR (Nitro/Cloudflare) y despliegue.
+
 - `CHANGELOG.md` y `public/changelog/` — historial de cambios (incluye el detalle de cada auditoría cerrada).
