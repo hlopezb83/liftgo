@@ -12,6 +12,11 @@ import {
   makeStorageMigrationPlan,
   type StorageReferenceFormat,
 } from "../_shared/storageMigrationPlan.ts";
+import {
+  partitionStorageList,
+  summarizeStorageInventory,
+  type StorageListItem,
+} from "../_shared/storageInventory.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
 const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_DELETE";
@@ -20,6 +25,9 @@ const DEFAULT_MAX_ROWS_PER_REFERENCE = 250;
 const MAX_ROWS_PER_REFERENCE = 1_000;
 const DEFAULT_BATCH_SIZE = 25;
 const MAX_BATCH_SIZE = 100;
+const DEFAULT_MAX_OBJECTS_PER_BUCKET = 1_000;
+const MAX_OBJECTS_PER_BUCKET = 10_000;
+const MAX_PREFIXES_PER_BUCKET = 2_000;
 
 const REFERENCE_SPECS = [
   { table: "company_settings", column: "logo_url", bucketId: "documents" },
@@ -111,6 +119,7 @@ interface LedgerReference {
 interface RequestInput {
   mode: "plan" | "apply";
   maxRowsPerReference: number;
+  maxObjectsPerBucket: number;
   batchSize: number;
   confirmation: string | null;
 }
@@ -140,6 +149,11 @@ async function parseInput(req: Request): Promise<RequestInput | null> {
       body.max_rows_per_reference,
       DEFAULT_MAX_ROWS_PER_REFERENCE,
       MAX_ROWS_PER_REFERENCE,
+    ),
+    maxObjectsPerBucket: boundedInteger(
+      body.max_objects_per_bucket,
+      DEFAULT_MAX_OBJECTS_PER_BUCKET,
+      MAX_OBJECTS_PER_BUCKET,
     ),
     batchSize: boundedInteger(
       body.batch_size,
@@ -196,6 +210,107 @@ function countByBucket(
     .sort((left, right) => left.bucket.localeCompare(right.bucket));
 }
 
+function storageBucketIds(): string[] {
+  return [...new Set(REFERENCE_SPECS.map((spec) => spec.bucketId))]
+    .sort((left, right) => left.localeCompare(right));
+}
+
+async function inventoryBucketObjects(
+  admin: AdminClient,
+  bucketId: string,
+  referencedPaths: Iterable<string>,
+  maxObjects: number,
+): Promise<{
+  summary: ReturnType<typeof summarizeStorageInventory>;
+  truncated: boolean;
+}> {
+  const objectPaths = new Set<string>();
+  const pendingPrefixes = [""];
+  const scheduledPrefixes = new Set(pendingPrefixes);
+  const visitedPrefixes = new Set<string>();
+  let truncated = false;
+
+  while (pendingPrefixes.length > 0 && !truncated) {
+    const prefix = pendingPrefixes.shift()!;
+    if (visitedPrefixes.has(prefix)) continue;
+    visitedPrefixes.add(prefix);
+    if (visitedPrefixes.size > MAX_PREFIXES_PER_BUCKET) {
+      truncated = true;
+      break;
+    }
+
+    let offset = 0;
+    for (;;) {
+      const { data, error } = await admin.storage.from(bucketId).list(prefix, {
+        limit: 1_000,
+        offset,
+      });
+      if (error) {
+        throw new Error("No se pudo inventariar el bucket de Storage.");
+      }
+
+      const rows = (data ?? []) as StorageListItem[];
+      const partition = partitionStorageList(prefix, rows);
+      for (const folder of partition.folders) {
+        if (!scheduledPrefixes.has(folder)) {
+          scheduledPrefixes.add(folder);
+          pendingPrefixes.push(folder);
+        }
+      }
+
+      for (const path of partition.objectPaths) {
+        const sizeBefore = objectPaths.size;
+        objectPaths.add(path);
+        if (objectPaths.size > maxObjects) {
+          if (objectPaths.size > sizeBefore) objectPaths.delete(path);
+          truncated = true;
+          break;
+        }
+      }
+      if (truncated || rows.length < 1_000) break;
+      offset += rows.length;
+    }
+  }
+
+  return {
+    summary: summarizeStorageInventory(bucketId, objectPaths, referencedPaths),
+    truncated,
+  };
+}
+
+async function collectStorageInventory(
+  admin: AdminClient,
+  referencedPathsByBucket: Map<string, Set<string>>,
+  maxObjectsPerBucket: number,
+): Promise<{
+  byBucket: Array<ReturnType<typeof summarizeStorageInventory>>;
+  unreferencedObjects: number;
+  truncated: boolean;
+}> {
+  const byBucket: Array<ReturnType<typeof summarizeStorageInventory>> = [];
+  let truncated = false;
+
+  for (const bucketId of storageBucketIds()) {
+    const inventory = await inventoryBucketObjects(
+      admin,
+      bucketId,
+      referencedPathsByBucket.get(bucketId) ?? [],
+      maxObjectsPerBucket,
+    );
+    byBucket.push(inventory.summary);
+    truncated ||= inventory.truncated;
+  }
+
+  return {
+    byBucket,
+    unreferencedObjects: byBucket.reduce(
+      (total, bucket) => total + bucket.unreferenced_objects,
+      0,
+    ),
+    truncated,
+  };
+}
+
 async function collectCandidates(
   admin: AdminClient,
   maxRowsPerReference: number,
@@ -205,6 +320,7 @@ async function collectCandidates(
   truncated: boolean;
 }> {
   const candidates: CandidateReference[] = [];
+  const referencedPathsByBucket = new Map<string, Set<string>>();
   const counts = emptyCounts();
   let truncated = false;
 
@@ -254,6 +370,14 @@ async function collectCandidates(
       );
       counts[plan.disposition]++;
 
+      // Conserva únicamente rutas internas y normalizadas. No se devuelve ni
+      // persiste este inventario: se usa para detectar objetos sin referencia.
+      if (plan.sourcePath) {
+        const paths = referencedPathsByBucket.get(spec.bucketId) ?? new Set();
+        paths.add(plan.sourcePath);
+        referencedPathsByBucket.set(spec.bucketId, paths);
+      }
+
       if (
         plan.disposition !== "candidate" ||
         typeof sourceValue !== "string" ||
@@ -297,10 +421,15 @@ async function collectCandidates(
     counts.belongs_to_other_organization += candidates.length -
       safeCandidates.length;
     counts.candidates -= candidates.length - safeCandidates.length;
-    return { candidates: safeCandidates, counts, truncated };
+    return {
+      candidates: safeCandidates,
+      counts,
+      referencedPathsByBucket,
+      truncated,
+    };
   }
 
-  return { candidates, counts, truncated };
+  return { candidates, counts, referencedPathsByBucket, truncated };
 }
 
 async function updateObject(
@@ -684,11 +813,26 @@ Deno.serve(async (req) => {
   const admin = getAdminClient();
   try {
     const plan = await collectCandidates(admin, input.maxRowsPerReference);
+    const inventory = await collectStorageInventory(
+      admin,
+      plan.referencedPathsByBucket,
+      input.maxObjectsPerBucket,
+    );
+    const inventoryComplete = !plan.truncated && !inventory.truncated;
     const summary = {
       mode: input.mode,
-      truncated: plan.truncated,
+      truncated: !inventoryComplete,
       counts: plan.counts,
       by_bucket: countByBucket(plan.candidates),
+      storage_inventory: {
+        complete: inventoryComplete,
+        by_bucket: inventory.byBucket.map((bucket) => ({
+          ...bucket,
+          unreferenced_objects: inventoryComplete
+            ? bucket.unreferenced_objects
+            : null,
+        })),
+      },
     };
 
     if (input.mode === "plan") return respond(summary);
@@ -711,6 +855,24 @@ Deno.serve(async (req) => {
     if (plan.truncated) {
       return respond(
         { ...summary, error: "Increase max_rows_per_reference before apply." },
+        409,
+      );
+    }
+    if (inventory.truncated) {
+      return respond(
+        {
+          ...summary,
+          error: "Increase max_objects_per_bucket before apply.",
+        },
+        409,
+      );
+    }
+    if (inventory.unreferencedObjects > 0) {
+      return respond(
+        {
+          ...summary,
+          error: "Resolve unreferenced Storage objects before apply.",
+        },
         409,
       );
     }
