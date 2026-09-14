@@ -68,15 +68,41 @@ Deno.test("storageMigrationPlan: no toca rutas ya aisladas y bloquea otro prefij
       ORG,
       "cfdi-files",
       `${OTHER_ORG}/invoice/a.xml`,
+      [OTHER_ORG],
     ).disposition,
     "belongs_to_other_organization",
   );
 });
 
-Deno.test("storageMigrationPlan: rechaza URL firmada y rutas inseguras", () => {
+Deno.test("storageMigrationPlan: no confunde UUIDs de entidades con organizaciones", () => {
+  assertEquals(
+    makeStorageMigrationPlan(
+      ORG,
+      "cfdi-files",
+      "4f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123/invoice.xml",
+      [ORG],
+    ).disposition,
+    "candidate",
+  );
+});
+
+Deno.test("storageMigrationPlan: convierte URL firmada legada a ruta interna", () => {
+  const plan = makeStorageMigrationPlan(
+    ORG,
+    "supplier-bill-cfdi-xml",
+    "https://project.supabase.co/storage/v1/object/sign/supplier-bill-cfdi-xml/folder/a.xml?token=secret",
+  );
+
+  assertEquals(plan.disposition, "candidate");
+  assertEquals(plan.sourcePath, "folder/a.xml");
+  assertEquals(plan.format, "storage_path");
+  assertEquals(plan.publicUrlOrigin, null);
+});
+
+Deno.test("storageMigrationPlan: rechaza URL firmada sin token y rutas inseguras", () => {
   assertEquals(
     parseStorageReference(
-      "https://project.supabase.co/storage/v1/object/sign/cfdi-files/a.xml?token=secret",
+      "https://project.supabase.co/storage/v1/object/sign/cfdi-files/a.xml",
       "cfdi-files",
     ),
     null,

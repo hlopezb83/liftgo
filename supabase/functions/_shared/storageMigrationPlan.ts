@@ -25,9 +25,6 @@ export interface StorageMigrationPlan {
   publicUrlOrigin: string | null;
 }
 
-const UUID_PREFIX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\//i;
-
 function normalizePath(value: string): string | null {
   const path = value.trim().replace(/^\/+/, "");
   if (
@@ -50,8 +47,8 @@ function decodePath(path: string): string | null {
 }
 
 /**
- * Extrae únicamente rutas publicas canonicas de Supabase. URLs firmadas, hosts
- * ajenos y query strings se rechazan: no deben duplicarse ni persistirse.
+ * Extrae rutas canónicas de Supabase. Una URL firmada legada se convierte a
+ * ruta interna; el token nunca se devuelve ni se persiste en el ledger.
  */
 export function parseStorageReference(
   value: unknown,
@@ -69,22 +66,42 @@ export function parseStorageReference(
     }
     if (
       (url.protocol !== "https:" && url.protocol !== "http:") ||
-      url.search ||
       url.hash
     ) {
       return null;
     }
 
-    const marker = `/storage/v1/object/public/${bucketId}/`;
-    if (!url.pathname.startsWith(marker)) return null;
-    const sourcePath = decodePath(url.pathname.slice(marker.length));
-    if (!sourcePath) return null;
+    const publicMarker = `/storage/v1/object/public/${bucketId}/`;
+    if (url.pathname.startsWith(publicMarker) && !url.search && !url.hash) {
+      const sourcePath = decodePath(url.pathname.slice(publicMarker.length));
+      return sourcePath
+        ? {
+          sourcePath,
+          format: "public_url",
+          publicUrlOrigin: url.origin,
+        }
+        : null;
+    }
 
-    return {
-      sourcePath,
-      format: "public_url",
-      publicUrlOrigin: url.origin,
-    };
+    // El sistema histórico guardó URLs firmadas en CxP. Sólo reconocemos la
+    // forma oficial con token; el destino se vuelve una ruta interna nueva.
+    const signedMarker = `/storage/v1/object/sign/${bucketId}/`;
+    if (
+      url.pathname.startsWith(signedMarker) &&
+      !url.hash &&
+      url.searchParams.has("token")
+    ) {
+      const sourcePath = decodePath(url.pathname.slice(signedMarker.length));
+      return sourcePath
+        ? {
+          sourcePath,
+          format: "storage_path",
+          publicUrlOrigin: null,
+        }
+        : null;
+    }
+
+    return null;
   }
 
   const bucketPrefix = `${bucketId}/`;
@@ -105,6 +122,7 @@ export function makeStorageMigrationPlan(
   organizationId: string,
   bucketId: string,
   value: unknown,
+  knownOrganizationIds: Iterable<string> = [],
 ): StorageMigrationPlan {
   const parsed = parseStorageReference(value, bucketId);
   if (!parsed) {
@@ -128,14 +146,23 @@ export function makeStorageMigrationPlan(
     };
   }
 
-  if (UUID_PREFIX.test(parsed.sourcePath)) {
-    return {
-      disposition: "belongs_to_other_organization",
-      sourcePath: parsed.sourcePath,
-      destinationPath: null,
-      format: parsed.format,
-      publicUrlOrigin: parsed.publicUrlOrigin,
-    };
+  // Rutas históricas como <invoice_uuid>/archivo.xml y
+  // <user_uuid>/captura.png son válidas. Sólo bloqueamos un primer segmento
+  // que coincida con una organización REAL distinta.
+  const firstSegment = parsed.sourcePath.split("/", 1)[0].toLowerCase();
+  for (const knownOrganizationId of knownOrganizationIds) {
+    if (
+      knownOrganizationId.trim().toLowerCase() === firstSegment &&
+      firstSegment !== organization
+    ) {
+      return {
+        disposition: "belongs_to_other_organization",
+        sourcePath: parsed.sourcePath,
+        destinationPath: null,
+        format: parsed.format,
+        publicUrlOrigin: parsed.publicUrlOrigin,
+      };
+    }
   }
 
   try {

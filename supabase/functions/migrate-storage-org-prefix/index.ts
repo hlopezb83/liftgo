@@ -208,6 +208,18 @@ async function collectCandidates(
   const counts = emptyCounts();
   let truncated = false;
 
+  const { data: organizations, error: organizationsError } = await admin
+    .from("organizations")
+    .select("id");
+  if (organizationsError) {
+    throw new Error("No se pudieron resolver las organizaciones.");
+  }
+  const knownOrganizationIds = new Set(
+    (organizations ?? [])
+      .map((organization) => organization.id)
+      .filter((id): id is string => typeof id === "string"),
+  );
+
   for (const spec of REFERENCE_SPECS) {
     const { data, error } = await admin
       .from(spec.table)
@@ -238,6 +250,7 @@ async function collectCandidates(
         organizationId,
         spec.bucketId,
         sourceValue,
+        knownOrganizationIds,
       );
       counts[plan.disposition]++;
 
