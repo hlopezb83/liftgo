@@ -325,7 +325,7 @@ BEGIN
       'RETURN ORG: correct_return_inspection debe conservar definer con guarda de organización';
   END IF;
 END;
-$;
+$$;
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO
