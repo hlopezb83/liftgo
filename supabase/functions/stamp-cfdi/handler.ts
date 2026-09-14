@@ -3,6 +3,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
 import {
   binaryToBytes,
@@ -599,7 +600,10 @@ export async function handleStampCfdi(
           client.invoices.downloadXml(facturApiId)
         ),
       );
-      const path = `${invoice_id}/${cfdiUuid}.xml`;
+      const path = organizationStoragePath(
+        inv.organization_id,
+        `${invoice_id}/${cfdiUuid}.xml`,
+      );
       const { error: upErr } = await supabase.storage.from("cfdi-files")
         .upload(
           path,
@@ -624,7 +628,10 @@ export async function handleStampCfdi(
           client.invoices.downloadPdf(facturApiId)
         ),
       );
-      const path = `${invoice_id}/${cfdiUuid}.pdf`;
+      const path = organizationStoragePath(
+        inv.organization_id,
+        `${invoice_id}/${cfdiUuid}.pdf`,
+      );
       const { error: upErr } = await supabase.storage.from("cfdi-files")
         .upload(
           path,
