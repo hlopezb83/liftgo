@@ -16,6 +16,7 @@ function policy(
 ): MaintenancePolicyRow {
   return {
     id: "p1",
+    organization_id: "org-1",
     forklift_id: "f1",
     service_type: "preventivo",
     description: null,
