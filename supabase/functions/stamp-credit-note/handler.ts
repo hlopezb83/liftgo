@@ -17,8 +17,9 @@ import {
   createFacturapiClient,
   createInvoiceWithSignal,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -99,6 +100,29 @@ export async function handleStampCreditNote(
       return json({ error: "Credit note not found" }, 404, jsonHeaders);
     }
     const initialNcRow = nc as Record<string, unknown>;
+
+    // Multiempresa · Fase 1: la organización SIEMPRE se deriva del servidor
+    // (membresía del caller y organization_id de la NC leída), nunca del
+    // body. Se valida ANTES de cualquier claim, update o llamada al PAC.
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: userId ?? "",
+      isServiceRole: auth.isServiceRole,
+      documentOrganizationId: initialNcRow.organization_id as
+        | string
+        | null
+        | undefined,
+    });
+    if (!orgCheck.ok) {
+      console.error("[stamp-credit-note] organization check failed", {
+        credit_note_id,
+        userId,
+        status: orgCheck.status,
+      });
+      return json({ error: orgCheck.message }, orgCheck.status, jsonHeaders);
+    }
+    const organizationId = orgCheck.organizationId;
+
     if (initialNcRow.cfdi_status === "stamped") {
       console.error("[stamp-credit-note] already stamped", {
         credit_note_id,
@@ -246,11 +270,14 @@ export async function handleStampCreditNote(
     const { data: company } = await supabase
       .from("company_settings")
       .select("*")
-      .limit(1)
+      .eq("organization_id", organizationId)
       .maybeSingle();
     const modeOverride = (company as Record<string, unknown> | null)
       ?.facturapi_mode as string | undefined | null;
-    const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
+    const { apiKey, mode } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
       modeOverride: modeOverride ?? null,
     });
 
