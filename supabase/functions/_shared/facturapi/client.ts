@@ -63,31 +63,94 @@ export interface FacturapiConfig {
  * handler ya obtuvo el modo (p. ej. porque necesita otros campos).
  */
 
-export async function getFacturapiConfig(
-  admin: { from: (table: string) => any },
-  env: (key: string) => string | undefined,
-  opts?: { modeOverride?: string | null | undefined },
-): Promise<FacturapiConfig> {
-  let modeRaw: string | null | undefined = opts?.modeOverride;
+export interface OrgFacturapiConfig extends FacturapiConfig {
+  organizationId: string;
+  /** true cuando la key vino de variables de entorno (compat legado). */
+  fromEnvFallback: boolean;
+}
+
+/**
+ * Multiempresa · Fase 1. Resuelve modo + API key SIEMPRE acotados a la
+ * organización del documento. Nunca usa `limit(1)` "a ciegas".
+ *
+ * Compatibilidad transitoria: las llaves globales de entorno
+ * (FACTURAPI_TEST_KEY / FACTURAPI_LIVE_KEY) sólo se aceptan mientras exista
+ * UNA sola organización en la base y sea exactamente la solicitada. En cuanto
+ * se dé de alta una segunda empresa el fallback deja de aplicar por sí solo.
+ * Para retirarlo: cargar las llaves de la empresa actual en `billing_secrets`
+ * y borrar los secretos FACTURAPI_*_KEY del entorno de las funciones.
+ */
+export async function getFacturapiConfigForOrganization(input: {
+  admin: { from: (table: string) => any };
+  env: (key: string) => string | undefined;
+  organizationId: string | null | undefined;
+  modeOverride?: string | null | undefined;
+}): Promise<OrgFacturapiConfig> {
+  const { admin, env, organizationId } = input;
+  if (!organizationId) {
+    throw new Error(
+      "No se puede resolver la configuración fiscal sin empresa (organization_id).",
+    );
+  }
+
+  let modeRaw: string | null | undefined = input.modeOverride;
   if (modeRaw === undefined) {
     const { data: co } = await admin
-      .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
+      .from("company_settings")
+      .select("facturapi_mode")
+      .eq("organization_id", organizationId)
+      .maybeSingle();
     modeRaw = (co?.facturapi_mode as string | undefined) ?? null;
   }
   const mode: FacturapiMode = modeRaw === "live" ? "live" : "test";
+
   const { data: secrets } = await admin
     .from("billing_secrets")
-    .select("facturapi_test_key, facturapi_live_key").limit(1).maybeSingle();
+    .select("facturapi_test_key, facturapi_live_key")
+    .eq("organization_id", organizationId)
+    .maybeSingle();
   const sec = (secrets ?? {}) as Record<string, unknown>;
-  const apiKey = resolveFacturapiKey({
+  const dbTestKey = sec.facturapi_test_key as string | null | undefined;
+  const dbLiveKey = sec.facturapi_live_key as string | null | undefined;
+
+  const dbKey = resolveFacturapiKey({ mode, dbTestKey, dbLiveKey });
+  if (dbKey) {
+    return { mode, apiKey: dbKey, organizationId, fromEnvFallback: false };
+  }
+
+  const legacyAllowed = await isSoleLegacyOrganization(admin, organizationId);
+  if (!legacyAllowed) {
+    return { mode, apiKey: null, organizationId, fromEnvFallback: false };
+  }
+  const envKey = resolveFacturapiKey({
     mode,
-    dbTestKey: sec.facturapi_test_key as string | null | undefined,
-    dbLiveKey: sec.facturapi_live_key as string | null | undefined,
     envTestKey: env("FACTURAPI_TEST_KEY"),
     envLiveKey: env("FACTURAPI_LIVE_KEY"),
   });
-  return { mode, apiKey };
+  return {
+    mode,
+    apiKey: envKey,
+    organizationId,
+    fromEnvFallback: envKey !== null,
+  };
 }
+
+/**
+ * true sólo si existe exactamente una organización y es la solicitada.
+ * Fail-closed ante errores de consulta.
+ */
+export async function isSoleLegacyOrganization(
+  admin: { from: (table: string) => any },
+  organizationId: string,
+): Promise<boolean> {
+  const res = await admin.from("organizations").select("id").limit(2);
+  if ((res as { error?: unknown })?.error) return false;
+  const rows = ((res as { data?: unknown })?.data ?? []) as Array<
+    { id?: string }
+  >;
+  return rows.length === 1 && rows[0]?.id === organizationId;
+}
+
 
 /** Crea una instancia del SDK con la API key resuelta. */
 /** Crea una instancia del SDK con la API key resuelta. */
