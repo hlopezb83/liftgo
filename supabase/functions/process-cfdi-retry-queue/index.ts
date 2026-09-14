@@ -200,7 +200,7 @@ export const RUN_BUDGET_MS = 50_000;
 export const RUN_PENDING_LIMIT = 10;
 export const RUN_STALE_LIMIT = 5;
 
-Deno.serve(async (req) => {
+async function handleRequest(req: Request): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -651,4 +651,9 @@ Deno.serve(async (req) => {
   }
 
   return json({ processed: results.length, truncated, results }, 200);
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handleRequest);
+}
+

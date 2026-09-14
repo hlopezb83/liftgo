@@ -17,6 +17,7 @@ import {
 } from "../_shared/test/facturapiMock.ts";
 
 const NC_ID = "11111111-1111-4111-8111-111111111111";
+const ORG_ID = "44444444-4444-4444-8444-444444444444";
 const INVOICE_ID = "33333333-3333-4333-8333-333333333333";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
 
@@ -63,6 +64,10 @@ function makeDeps(opts: {
       // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
       // cuenta activa para no repetir el mock en cada test.
       profiles: { data: { is_active: true }, error: null },
+      organization_memberships: {
+        data: [{ organization_id: ORG_ID, member_type: "internal" }],
+        error: null,
+      },
       ...(serviceConfig.selects ?? {}),
     },
     rpcs: {
@@ -84,6 +89,7 @@ function makeDeps(opts: {
 
 const STAMPED_INVOICE = {
   id: INVOICE_ID,
+  organization_id: ORG_ID,
   cfdi_status: "stamped",
   facturapi_invoice_id: "fapi_source",
   cfdi_uuid: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
@@ -107,6 +113,7 @@ const STAMPED_INVOICE = {
 
 const VALID_CREDIT_NOTE = {
   id: NC_ID,
+  organization_id: ORG_ID,
   invoice_id: INVOICE_ID,
   tax_rate: 16,
   currency: "MXN",
@@ -233,7 +240,7 @@ Deno.test("handler: returns 409 when credit note already stamped", async () => {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
         credit_notes: {
-          data: { id: NC_ID, cfdi_status: "stamped" },
+          data: { id: NC_ID, organization_id: ORG_ID, cfdi_status: "stamped" },
           error: null,
         },
       },
@@ -254,11 +261,11 @@ Deno.test(
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: {
-            data: { id: NC_ID, invoice_id: INVOICE_ID },
+            data: { id: NC_ID, organization_id: ORG_ID, invoice_id: INVOICE_ID },
             error: null,
           },
           invoices: {
-            data: { id: INVOICE_ID, cfdi_status: "draft" },
+            data: { id: INVOICE_ID, organization_id: ORG_ID, cfdi_status: "draft" },
             error: null,
           },
         },

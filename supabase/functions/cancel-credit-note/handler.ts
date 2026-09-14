@@ -93,6 +93,7 @@ export async function handleCancelCreditNote(
       .eq("id", credit_note_id)
       .single();
     if (ncErr || !nc) return jsonError(req, 404, "Credit note not found");
+    const ncRow = nc as Record<string, any>;
 
     // Multiempresa · Fase 1: se valida la organización ANTES del claim, del
     // update y de cualquier llamada al PAC. Nunca se confía en el body.
@@ -112,7 +113,7 @@ export async function handleCancelCreditNote(
     }
     const organizationId = orgCheck.organizationId;
 
-    if (nc.cfdi_status !== "stamped") {
+    if (ncRow.cfdi_status !== "stamped") {
       return jsonError(req, 400, "Only stamped credit notes can be cancelled");
     }
 
@@ -150,7 +151,7 @@ export async function handleCancelCreditNote(
     });
 
     let satStatus = "accepted";
-    const isStub = !apiKey || !nc.facturapi_invoice_id;
+    const isStub = !apiKey || !ncRow.facturapi_invoice_id;
 
     if (isStub && mode === "live") {
       // N-28: liberar el claim — la cancelación NUNCA llegó al PAC.
@@ -169,7 +170,7 @@ export async function handleCancelCreditNote(
       );
     }
 
-    if (apiKey && nc.facturapi_invoice_id) {
+    if (apiKey && ncRow.facturapi_invoice_id) {
       // R5-14: marcar pacAttempted DESPUÉS de construir el cliente (patrón
       // cancel-payment-complement): si createFacturapiClient lanza, el catch
       // externo aún puede liberar el claim.
@@ -183,7 +184,7 @@ export async function handleCancelCreditNote(
         const cancelJson = await sdkCallWithTimeout((signal) =>
           cancelInvoiceWithSignal(
             client,
-            nc.facturapi_invoice_id as string,
+            ncRow.facturapi_invoice_id as string,
             params,
             { signal },
           )

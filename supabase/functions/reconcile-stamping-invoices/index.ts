@@ -54,7 +54,7 @@ interface StuckRow extends PureStuckRow {
 export const RUN_BUDGET_MS = 50_000;
 export const RUN_ROW_LIMIT = 10;
 
-Deno.serve(async (req) => {
+async function handleRequest(req: Request): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
   const outOfBudget = () => Date.now() - RUN_STARTED_AT > RUN_BUDGET_MS;
   let truncated = false;
@@ -925,4 +925,9 @@ Deno.serve(async (req) => {
   } // fin del bloque por organización
 
   return json({ processed: results.length, truncated, results, organizations }, 200);
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handleRequest);
+}
+

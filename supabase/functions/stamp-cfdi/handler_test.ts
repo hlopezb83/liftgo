@@ -65,6 +65,9 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
+      // Compat legado: única organización en BD (permite fallback a env keys
+      // FACTURAPI_*_KEY salvo que el test override para simular multiempresa).
+      organizations: { data: [{ id: ORG_ID }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -726,6 +729,110 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
       !serviceState.updates.some((u) => u.patch?.cfdi_status === "stamped"),
       "no debe marcarse como timbrada",
     );
+  } finally {
+    mock.restore();
+  }
+});
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multiempresa · Fase 1 — regresión de aislamiento fiscal
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("handler: MULTIEMPRESA rechaza factura de otra organización (403) sin updates ni PAC", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: OTHER_ORG_ID,
+              total: 1160,
+              receptor_rfc: RECEPTOR_RFC,
+            },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 403);
+    assertEquals(body.error, "El documento pertenece a otra empresa.");
+    assertEquals(
+      serviceState.updates.length,
+      0,
+      "no debe tocarse la factura de otra organización",
+    );
+    assertEquals(facturapiCalled, 0, "el PAC nunca debe invocarse");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo live falla explícito (no reutiliza llaves ajenas)", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      // Llave de entorno "ajena" (legado) presente, pero NO debe reutilizarse
+      // porque ya existe más de una organización en la BD.
+      env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: ORG_ID,
+              total: 1160,
+              receptor_rfc: RECEPTOR_RFC,
+            },
+            error: null,
+          },
+          company_settings: {
+            data: { facturapi_mode: "live", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+          // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
+          organizations: {
+            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            error: null,
+          },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 400);
+    assert(String(body.error).includes("API key no configurada"));
+    assertEquals(facturapiCalled, 0, "no debe llamarse al PAC sin key propia");
+    const errUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "error"
+    );
+    assert(errUpdate, "debe liberar el claim marcando error explícito");
   } finally {
     mock.restore();
   }
