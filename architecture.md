@@ -759,11 +759,10 @@ Items identificados por la auditoría arquitectónica que **no se ejecutaron** e
 
 **Trigger natural:** al añadir una entidad nueva, implementarla con la capa `data-access` y migrar entidades existentes una por release. Diseño esperado: `src/features/<entity>/data/{queries.ts, mutations.ts}` consumido por hooks delgados.
 
-### 23.3 Split `src/components/ui/sidebar.tsx` (637 LOC) — Prioridad BAJA (probablemente NO hacer)
+### 23.3 Sidebar de shadcn ya dividido — CERRADO
 
-**Alcance:** componente shadcn con 15+ sub-exports en un archivo.
+El primitive vive en `src/components/ui/sidebar/` (`Sidebar.tsx`, `SidebarGroup.tsx`, `SidebarMenu.tsx`, `SidebarMenuSub.tsx`, `SidebarSections.tsx`, `context.tsx`, `variants.ts`, `constants.ts`, `index.ts`). Al estar fuera del archivo único de shadcn, una futura actualización upstream (`shadcn add sidebar`) debe reconciliarse a mano.
 
-**Por qué NO hacerlo:** es código **upstream de shadcn**, no nuestro. Dividirlo rompe la convención shadcn (un archivo por primitive), complica futuras actualizaciones (`npx shadcn add sidebar` sobrescribiría) y no aporta beneficio funcional ni de performance. **Excepción documentada en §22.2.** Solo reabrir si dejamos de seguir shadcn upstream.
 
 ### 23.4 Política general para esta deuda
 
