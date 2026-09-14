@@ -64,6 +64,13 @@
       "when": 1789345800000,
       "tag": "0008_multi_org_phase5_config_and_read_rpc_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1789346400000,
+      "tag": "0009_multi_org_phase5_bank_read_rpc_scope",
+      "breakpoints": true
     }
   ]
 }

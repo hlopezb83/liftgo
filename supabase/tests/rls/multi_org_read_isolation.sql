@@ -146,6 +146,50 @@ BEGIN
     'Cobranza B', 'Banco B', '0002', 'Organización B', true, v_org_b
   );
 
+  -- Fase 5.2a: los movimientos de banco pertenecen a una sola org.
+  -- Estas filas permiten comprobar que las RPC invoker no cruzan el RLS.
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
+  INSERT INTO public.bank_statement_imports (
+    id, bank_account_id, file_name, lines_count, organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000f3',
+    'e5000000-0000-4000-8000-0000000000f1',
+    'estado-a.csv', 1, v_org_a
+  );
+
+  INSERT INTO public.bank_statement_lines (
+    id, import_id, bank_account_id, posted_date, description, signed_amount,
+    hash, line_seq, organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000f5',
+    'e5000000-0000-4000-8000-0000000000f3',
+    'e5000000-0000-4000-8000-0000000000f1',
+    current_date, 'Movimiento A', 100, 'rls-bank-a', 1, v_org_a
+  );
+
+  PERFORM set_config('app.organization_id', v_org_b::text, true);
+  INSERT INTO public.bank_statement_imports (
+    id, bank_account_id, file_name, lines_count, organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000f4',
+    'e5000000-0000-4000-8000-0000000000f2',
+    'estado-b.csv', 1, v_org_b
+  );
+
+  INSERT INTO public.bank_statement_lines (
+    id, import_id, bank_account_id, posted_date, description, signed_amount,
+    hash, line_seq, organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000f6',
+    'e5000000-0000-4000-8000-0000000000f4',
+    'e5000000-0000-4000-8000-0000000000f2',
+    current_date, 'Movimiento B', 200, 'rls-bank-b', 1, v_org_b
+  );
+
   -- Cada operación de servicio fija su contexto explícitamente. Esto
   -- reproduce el requisito real cuando ya hay más de una organización.
   PERFORM set_config('app.organization_id', v_org_a::text, true);
@@ -190,7 +234,10 @@ BEGIN
     'public.report_revenue_by_month(date,date)'::regprocedure,
     'public.report_revenue_month_invoices(text)'::regprocedure,
     'public.report_utilization_by_model(date,date)'::regprocedure,
-    'public.report_utilization_by_unit(date,date)'::regprocedure
+    'public.report_utilization_by_unit(date,date)'::regprocedure,
+    'public.get_bank_match_candidates(uuid,text,integer,numeric)'::regprocedure,
+    'public.get_bank_reconciliation_kpis(uuid)'::regprocedure,
+    'public.get_bank_statement_lines_page(uuid,text,text,integer,integer)'::regprocedure
   )
     AND p.prosecdef;
 
@@ -225,6 +272,10 @@ DECLARE
   v_visible integer;
   v_activity_metric_total integer;
   v_expected_metric_total integer;
+  v_bank_a_total integer;
+  v_bank_b_total integer;
+  v_bank_a_page_total integer;
+  v_bank_b_page_total integer;
 BEGIN
   SELECT count(*) INTO v_visible
   FROM public.activity_feed
@@ -257,6 +308,55 @@ BEGIN
       v_activity_metric_total,
       v_expected_metric_total;
   END IF;
+
+  -- Las lecturas de conciliación se ejecutan como invoker: A no puede
+  -- consultar ni inferir movimientos que pertenecen a la cuenta de B.
+  SELECT k.total_count::integer
+  INTO v_bank_a_total
+  FROM public.get_bank_reconciliation_kpis(
+    'e5000000-0000-4000-8000-0000000000f1'
+  ) AS k;
+
+  SELECT k.total_count::integer
+  INTO v_bank_b_total
+  FROM public.get_bank_reconciliation_kpis(
+    'e5000000-0000-4000-8000-0000000000f2'
+  ) AS k;
+
+  IF v_bank_a_total <> 1 OR v_bank_b_total <> 0 THEN
+    RAISE EXCEPTION
+      'BANK ORG: KPIs devolvieron A=% y B=% para el staff de A (esperado 1 y 0)',
+      v_bank_a_total, v_bank_b_total;
+  END IF;
+
+  SELECT (public.get_bank_statement_lines_page(
+    'e5000000-0000-4000-8000-0000000000f1'
+  ) ->> 'total_count')::integer
+  INTO v_bank_a_page_total;
+
+  SELECT (public.get_bank_statement_lines_page(
+    'e5000000-0000-4000-8000-0000000000f2'
+  ) ->> 'total_count')::integer
+  INTO v_bank_b_page_total;
+
+  IF v_bank_a_page_total <> 1 OR v_bank_b_page_total <> 0 THEN
+    RAISE EXCEPTION
+      'BANK ORG: página devolvió A=% y B=% para el staff de A (esperado 1 y 0)',
+      v_bank_a_page_total, v_bank_b_page_total;
+  END IF;
+
+  BEGIN
+    PERFORM public.get_bank_match_candidates(
+      'e5000000-0000-4000-8000-0000000000f6'
+    );
+    RAISE EXCEPTION
+      'BANK ORG: el staff de A pudo consultar candidatos de una línea de B';
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLERRM <> 'linea inexistente' THEN
+        RAISE;
+      END IF;
+  END;
 END;
 $$;
 
