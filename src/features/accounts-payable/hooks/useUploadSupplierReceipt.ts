@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 
 const BUCKET = "supplier-payment-receipts";
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -15,7 +16,8 @@ export function useUploadSupplierReceipt() {
       if (file.size > MAX_BYTES) throw new Error("El archivo excede 5 MB");
       if (!ACCEPTED.includes(file.type)) throw new Error("Formato no permitido (PDF, JPG, PNG, WEBP)");
       const ext = file.name.split(".").pop() ?? "bin";
-      const path = `${billId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const relativePath = `${billId}/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+      const path = await organizationStoragePathForSession(supabase, relativePath);
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
         contentType: file.type,
         upsert: false,

@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import type { FeedbackContext } from "./useFeedbackContext";
 import type { SelectedElementInfo } from "../lib/cssPath";
@@ -21,7 +22,8 @@ interface CreateFeedbackInput {
 
 async function uploadScreenshot(userId: string, file: File): Promise<string | null> {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "png";
-  const path = `${userId}/${Date.now()}.${ext}`;
+  const relativePath = `${userId}/${Date.now()}.${ext}`;
+  const path = await organizationStoragePathForSession(supabase, relativePath);
   const { error } = await supabase.storage
     .from("feedback-screenshots")
     .upload(path, file, { upsert: false, contentType: file.type });

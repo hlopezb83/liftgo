@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 
 const BUCKET = "supplier-bill-cfdi-xml";
 const MAX_BYTES = 2 * 1024 * 1024; // 2 MB (un XML CFDI rara vez supera 100 KB)
@@ -17,7 +18,8 @@ export function useUploadSupplierBillXml() {
       if (file.size > MAX_BYTES) throw new Error("El XML excede 2 MB");
       const folder = uuid ?? "sin-uuid";
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
-      const path = `${folder}/${Date.now()}-${safeName}`;
+      const relativePath = `${folder}/${Date.now()}-${safeName}`;
+      const path = await organizationStoragePathForSession(supabase, relativePath);
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, {
         contentType: "application/xml",
         upsert: false,

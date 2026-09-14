@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 
@@ -24,7 +25,11 @@ export function useUploadCompanyLogo() {
     setUploading(true);
     try {
       const ext = ALLOWED[file.type];
-      const filePath = `company/logo_${Date.now()}.${ext}`;
+      const relativePath = `company/logo_${Date.now()}.${ext}`;
+      const filePath = await organizationStoragePathForSession(
+        supabase,
+        relativePath,
+      );
       const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);

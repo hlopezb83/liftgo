@@ -15,10 +15,12 @@ const uploadMock = vi.fn();
 const removeMock = vi.fn();
 const insertMock = vi.fn();
 const getUserMock = vi.fn();
+const currentOrganizationMock = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
     auth: { getUser: (...args: unknown[]) => getUserMock(...args) },
+    rpc: (...args: unknown[]) => currentOrganizationMock(...args),
     storage: {
       from: () => ({
         upload: (...args: unknown[]) => uploadMock(...args),
@@ -47,13 +49,19 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 const USER_ID = "11111111-1111-1111-1111-111111111111";
+const ORGANIZATION_ID = "2f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123";
 
 beforeEach(() => {
   uploadMock.mockReset();
   removeMock.mockReset();
   insertMock.mockReset();
   getUserMock.mockReset();
+  currentOrganizationMock.mockReset();
   getUserMock.mockResolvedValue({ data: { user: { id: USER_ID } } });
+  currentOrganizationMock.mockResolvedValue({
+    data: ORGANIZATION_ID,
+    error: null,
+  });
 });
 
 describe("useUploadDocument · BL-35/BL-36", () => {
@@ -95,7 +103,9 @@ describe("useUploadDocument · BL-35/BL-36", () => {
     expect(uploadMock).toHaveBeenCalledTimes(1);
     expect(removeMock).toHaveBeenCalledTimes(1);
     const removedPaths = removeMock.mock.calls[0][0] as string[];
-    expect(removedPaths[0]).toMatch(/^supplier\/s-1\/\d+_cfdi\.xml$/);
+    expect(removedPaths[0]).toMatch(
+      new RegExp(`^${ORGANIZATION_ID}/supplier/s-1/\\d+_cfdi\\.xml$`),
+    );
   });
 
   it("no llama a remove si el upload al bucket falla", async () => {
