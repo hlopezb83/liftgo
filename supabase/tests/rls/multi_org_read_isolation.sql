@@ -112,19 +112,27 @@ BEGIN
       'Actividad de B', v_org_b
     );
 
+  -- Cada operación de servicio fija su contexto explícitamente. Esto
+  -- reproduce el requisito real cuando ya hay más de una organización.
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
   INSERT INTO public.quotes (
     id, customer_id, quote_number, status, subtotal, tax_amount, total,
     organization_id
   )
-  VALUES
-    (
-      'e5000000-0000-4000-8000-0000000000e1',
-      v_customer, 'RLS-ORG-A', 'draft', 100, 0, 100, v_org_a
-    ),
-    (
-      'e5000000-0000-4000-8000-0000000000e2',
-      v_customer, 'RLS-ORG-B', 'draft', 100, 0, 100, v_org_b
-    );
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000e1',
+    v_customer, 'RLS-ORG-A', 'draft', 100, 0, 100, v_org_a
+  );
+
+  PERFORM set_config('app.organization_id', v_org_b::text, true);
+  INSERT INTO public.quotes (
+    id, customer_id, quote_number, status, subtotal, tax_amount, total,
+    organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000e2',
+    v_customer, 'RLS-ORG-B', 'draft', 100, 0, 100, v_org_b
+  );
 END;
 $$;
 
