@@ -279,6 +279,17 @@ BEGIN
     RAISE EXCEPTION
       'BANK ORG: las cargas privilegiadas no validan organización';
   END IF;
+
+  IF position(
+    'organization_scope_matches'
+    IN pg_get_functiondef('public.finalize_bank_statement_upload(uuid)'::regprocedure)
+  ) = 0 OR position(
+    'organization_scope_matches'
+    IN pg_get_functiondef('public.match_bank_statement_lines(uuid)'::regprocedure)
+  ) = 0 THEN
+    RAISE EXCEPTION
+      'BANK ORG: la finalización privilegiada no valida organización';
+  END IF;
 END;
 $$;
 
@@ -380,6 +391,20 @@ BEGIN
   EXCEPTION
     WHEN OTHERS THEN
       IF SQLERRM <> 'Cuenta bancaria inexistente o no autorizada.' THEN
+        RAISE;
+      END IF;
+  END;
+
+  -- La conciliación automática no puede procesar una importación de B.
+  BEGIN
+    PERFORM public.match_bank_statement_lines(
+      'e5000000-0000-4000-8000-0000000000f4'
+    );
+    RAISE EXCEPTION
+      'BANK ORG: el staff de A procesó una importación de B';
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLERRM <> 'Importación inexistente o no autorizada.' THEN
         RAISE;
       END IF;
   END;
