@@ -303,7 +303,7 @@ export async function handleStampPaymentComplement(
       await releaseClaim("Factura no encontrada");
       return jsonError(req, 404, "Invoice not found");
     }
-    const invoiceRow = invoice as Record<string, any>;
+    const invoiceRow = invoice as RelatedInvoiceRow;
     if (invoiceRow.metodo_pago !== "PPD") {
       await releaseClaim("Solo facturas PPD requieren REP");
       return jsonError(
