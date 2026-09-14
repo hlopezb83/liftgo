@@ -32,6 +32,4 @@ verify_jwt = false
 
 # cron-only: auth via authenticateCronRequest
 [functions.generate-recurring-invoices]
-verify_jwt = false
-
-
+verify_jwt = false\n\n# administrada por cron/service role; apply además requiere secreto explícito\n[functions.migrate-storage-org-prefix]\nverify_jwt = false\n
