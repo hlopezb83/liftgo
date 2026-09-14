@@ -8,6 +8,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const notifyValidationMock = vi.fn();
 const uploadMock = vi.fn();
 const getPublicUrlMock = vi.fn(() => ({ data: { publicUrl: "https://cdn/logo.png" } }));
+const currentOrganizationMock = vi.fn();
 
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: vi.fn(),
@@ -19,6 +20,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
+    rpc: (...args: unknown[]) => currentOrganizationMock(...args),
     storage: {
       from: () => ({
         upload: (...args: unknown[]) => uploadMock(...args),
@@ -39,6 +41,7 @@ function fakeFile(type: string, size: number, name = "logo") {
 describe("useUploadCompanyLogo · Fix 9.2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    currentOrganizationMock.mockResolvedValue({ data: "2f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123", error: null });
     uploadMock.mockResolvedValue({ error: null });
   });
 
