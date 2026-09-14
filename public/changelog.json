@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.8.5",
+    "date": "2026-09-14",
+    "type": "patch",
+    "category": "security",
+    "title": "Aislamiento fiscal por empresa (primera fase multiempresa)",
+    "description": "El timbrado, la cancelación, la descarga de comprobantes y las tareas automáticas ahora trabajan siempre con la empresa dueña del documento y sus propias credenciales fiscales. La operación actual no cambia.",
+    "changes": [
+      "Cada operación fiscal verifica en el servidor que el documento pertenezca a la empresa del usuario antes de modificarlo o enviarlo al proveedor de facturación.",
+      "Las credenciales y la configuración de facturación se buscan por empresa: si a una empresa le falta configuración, se avisa con un error claro y nunca se usan las llaves de otra.",
+      "Las validaciones del SAT, individuales y masivas, se limitan a los clientes de la empresa de quien las ejecuta.",
+      "La reconciliación de timbrado y la cola de reintentos procesan cada empresa por separado; un fallo en una no afecta a las demás.",
+      "La facturación y el mantenimiento recurrentes agrupan y registran su trabajo por empresa, incluso cuando dos empresas comparten el mismo cliente y período.",
+      "Se agregaron pruebas automáticas con dos empresas ficticias que comprueban el rechazo de documentos ajenos y la separación de credenciales."
+    ]
+  },
+  {
     "version": "8.8.4",
     "date": "2026-09-14",
     "type": "patch",
