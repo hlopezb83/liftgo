@@ -14,8 +14,8 @@ import {
 } from "../_shared/storageMigrationPlan.ts";
 import {
   partitionStorageList,
-  summarizeStorageInventory,
   type StorageListItem,
+  summarizeStorageInventory,
 } from "../_shared/storageInventory.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
