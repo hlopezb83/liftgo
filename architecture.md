@@ -373,7 +373,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ## 14. Migraciones de base de datos
 
-- Ubicación: `supabase/migrations/` con formato `<timestamp>_<slug>.sql`.
+- Ubicaciones: `supabase/migrations/` con formato `<timestamp>_<slug>.sql` (historial previo) y `drizzle/migrations/` con formato `00NN_<slug>.sql` (gestionadas con `drizzle-kit`, esquema en `drizzle/schema.ts`, config en `drizzle.config.ts`). Las migraciones multi-organización viven en `drizzle/migrations/`.
 - Política:
   - **Una migración por cambio funcional**, atómica.
   - **Nunca editar** migraciones ya aplicadas; corregir con una nueva.
