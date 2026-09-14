@@ -501,7 +501,9 @@ async function ensureOrphanLedger(
 
     if (existing?.id) {
       if (existing.discovery_kind !== "orphaned") {
-        throw new Error("El objeto huérfano ya tiene una migración incompatible.");
+        throw new Error(
+          "El objeto huérfano ya tiene una migración incompatible.",
+        );
       }
       continue;
     }
