@@ -166,6 +166,7 @@ Deno.test("handler: returns 409 when invoice already stamped (idempotencia)", as
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               cfdi_status: "stamped",
               cfdi_uuid: "EXISTING-UUID-1234",
               total: 1160,
