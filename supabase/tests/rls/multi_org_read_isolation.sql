@@ -245,13 +245,19 @@ BEGIN
     'public.assign_forklift_to_sale_quote(uuid,uuid[],integer[])'::regprocedure,
     'public.unassign_forklift_from_sale_quote(uuid,uuid)'::regprocedure,
     'public.delete_quote_with_unassign(uuid)'::regprocedure,
-    'public.reassign_quote_customer(uuid,uuid,text)'::regprocedure
+    'public.reassign_quote_customer(uuid,uuid,text)'::regprocedure,
+    'public.create_booking(uuid,uuid,text,text,date,date,boolean,uuid)'::regprocedure,
+    'public.convert_quote_to_bookings(uuid,jsonb,boolean)'::regprocedure,
+    'public.delete_booking(uuid)'::regprocedure,
+    'public.cancel_booking(uuid,text)'::regprocedure,
+    'public.extend_booking(uuid,date,text)'::regprocedure,
+    'public.complete_delivery(uuid,text,numeric,text)'::regprocedure
   )
     AND p.prosecdef;
 
   IF v_remaining_definers IS NOT NULL THEN
     RAISE EXCEPTION
-      'RPC ORG: las lecturas deben ser SECURITY INVOKER; siguen definer: %',
+      'RPC ORG: las RPC analizadas deben ser SECURITY INVOKER; siguen definer: %',
       v_remaining_definers;
   END IF;
 
@@ -392,6 +398,22 @@ BEGIN
   EXCEPTION
     WHEN OTHERS THEN
       IF SQLERRM <> 'Cotizacion no encontrada' THEN
+        RAISE;
+      END IF;
+  END;
+
+  -- La conversión invoker no puede operar sobre una cotización de B.
+  BEGIN
+    PERFORM public.convert_quote_to_bookings(
+      'e5000000-0000-4000-8000-0000000000e2',
+      '[]'::jsonb,
+      false
+    );
+    RAISE EXCEPTION
+      'BOOKING ORG: el staff de A pudo convertir una cotización de B';
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLERRM <> 'Cotización no encontrada' THEN
         RAISE;
       END IF;
   END;
