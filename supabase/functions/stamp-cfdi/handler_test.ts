@@ -138,7 +138,8 @@ Deno.test("handler: refuses to stamp E2E invoices (403)", async () => {
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
-        invoices: { data: { id: INVOICE_ID, is_e2e: true }, error: null },
+        invoices: { data: { id: INVOICE_ID,
+              organization_id: ORG_ID, is_e2e: true }, error: null },
       },
     },
   });
@@ -213,6 +214,7 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -281,6 +283,7 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -368,6 +371,7 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -446,6 +450,7 @@ Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", 
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -495,6 +500,7 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
         invoices: {
           data: {
             id: INVOICE_ID,
+              organization_id: ORG_ID,
             total: 1000,
             subtotal: 862,
             serie: "A",
@@ -550,6 +556,7 @@ Deno.test("handler: claim atómico — 2ª petición concurrente NO invoca al PA
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -612,6 +619,7 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
@@ -677,6 +685,7 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
           invoices: {
             data: {
               id: INVOICE_ID,
+              organization_id: ORG_ID,
               total: 1160,
               subtotal: 1000,
               tax_rate: 16,
