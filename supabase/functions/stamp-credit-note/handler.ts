@@ -2,6 +2,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 import {
   isValidRegimenFiscalCode,
   resolveReceptorRegimenFiscal,
@@ -480,7 +481,10 @@ export async function handleStampCreditNote(
       const xml = await binaryToText(
         await client.invoices.downloadXml(facturApiId),
       );
-      const path = `credit-notes/${credit_note_id}/${cfdiUuid}.xml`;
+      const path = organizationStoragePath(
+        initialNcRow.organization_id,
+        `credit-notes/${credit_note_id}/${cfdiUuid}.xml`,
+      );
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
         .upload(path, new Blob([xml], { type: "application/xml" }), {
@@ -505,7 +509,10 @@ export async function handleStampCreditNote(
       const bytes = await binaryToBytes(
         await client.invoices.downloadPdf(facturApiId),
       );
-      const path = `credit-notes/${credit_note_id}/${cfdiUuid}.pdf`;
+      const path = organizationStoragePath(
+        initialNcRow.organization_id,
+        `credit-notes/${credit_note_id}/${cfdiUuid}.pdf`,
+      );
       const { error: upErr } = await supabase.storage
         .from(BUCKET)
         .upload(path, bytes, { contentType: "application/pdf", upsert: true });

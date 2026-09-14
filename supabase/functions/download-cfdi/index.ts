@@ -3,6 +3,7 @@ import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { jsonError } from "../_shared/http.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 import {
   getFacturapiConfig,
   retryOnFacturapi5xx,
@@ -255,7 +256,7 @@ Deno.serve(async (req) => {
       const { data: cn } = await supabase
         .from("credit_notes")
         .select(
-          "id, customer_id, credit_note_number, cfdi_uuid, cfdi_status, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id",
+          "id, organization_id, customer_id, credit_note_number, cfdi_uuid, cfdi_status, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id",
         )
         .eq("id", credit_note_id)
         .single();
@@ -288,7 +289,10 @@ Deno.serve(async (req) => {
       );
       if (!res.ok) return facturapiErrorResponse(req, res);
 
-      const newPath = `credit-notes/${cn.id}/${cn.cfdi_uuid}.${baseFormat}`;
+      const newPath = organizationStoragePath(
+        cn.organization_id,
+        `credit-notes/${cn.id}/${cn.cfdi_uuid}.${baseFormat}`,
+      );
       const cnPersisted = await persistDownload(
         supabase,
         newPath,
@@ -317,7 +321,7 @@ Deno.serve(async (req) => {
       const { data: payment } = await supabase
         .from("payments")
         .select(
-          "invoice_id, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_xml_url, rep_pdf_url",
+          "organization_id, invoice_id, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_xml_url, rep_pdf_url",
         )
         .eq("id", payment_id)
         .single();
@@ -360,8 +364,10 @@ Deno.serve(async (req) => {
       );
       if (!res.ok) return facturapiErrorResponse(req, res);
 
-      const newPath =
-        `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${baseFormat}`;
+      const newPath = organizationStoragePath(
+        payment.organization_id,
+        `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${baseFormat}`,
+      );
       const repPersisted = await persistDownload(
         supabase,
         newPath,
@@ -389,7 +395,7 @@ Deno.serve(async (req) => {
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
       .select(
-        "id, customer_id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
+        "id, organization_id, customer_id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
       )
       .eq("id", invoice_id)
       .single();
@@ -442,7 +448,10 @@ Deno.serve(async (req) => {
         );
       }
 
-      const newPath = `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`;
+      const newPath = organizationStoragePath(
+        invoice.organization_id,
+        `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`,
+      );
       const acusePersisted = await persistDownload(
         supabase,
         newPath,
@@ -500,7 +509,10 @@ Deno.serve(async (req) => {
     );
     if (!res.ok) return facturapiErrorResponse(req, res);
 
-    const newPath = `${invoice_id}/${invoice.cfdi_uuid}.${baseFormat}`;
+    const newPath = organizationStoragePath(
+      invoice.organization_id,
+      `${invoice_id}/${invoice.cfdi_uuid}.${baseFormat}`,
+    );
     const persisted = await persistDownload(
       supabase,
       newPath,

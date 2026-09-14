@@ -2,6 +2,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 import {
   binaryToBytes,
   binaryToText,
@@ -192,7 +193,7 @@ Deno.serve(async (req) => {
     const { data: invoice } = await supabase
       .from("invoices")
       .select(
-        "id, customer_id, total, tax_rate, line_items, metodo_pago, moneda, tipo_cambio, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
+        "id, organization_id, customer_id, total, tax_rate, line_items, metodo_pago, moneda, tipo_cambio, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
       )
       .eq("id", payment.invoice_id)
       .single();
@@ -489,7 +490,10 @@ Deno.serve(async (req) => {
       const xmlTxt = await binaryToText(
         await client.invoices.downloadXml(repId),
       );
-      const p = `${invoice.id}/rep-${repUuid}.xml`;
+      const p = organizationStoragePath(
+        invoice.organization_id,
+        `${invoice.id}/rep-${repUuid}.xml`,
+      );
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(
         p,
         new Blob([xmlTxt], { type: "application/xml" }),
@@ -504,7 +508,10 @@ Deno.serve(async (req) => {
       const pdfBytes = await binaryToBytes(
         await client.invoices.downloadPdf(repId),
       );
-      const p = `${invoice.id}/rep-${repUuid}.pdf`;
+      const p = organizationStoragePath(
+        invoice.organization_id,
+        `${invoice.id}/rep-${repUuid}.pdf`,
+      );
       const { error: upErr } = await supabase.storage.from(BUCKET).upload(
         p,
         pdfBytes,

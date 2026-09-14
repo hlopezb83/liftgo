@@ -2,6 +2,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 
 const BUCKET = "cfdi-files";
 const TOLERANCE = 0.01;
@@ -155,7 +156,7 @@ Deno.serve(async (req) => {
     const { data: bill } = await supabase
       .from("supplier_bills")
       .select(
-        "id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)",
+        "id, organization_id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)",
       )
       .eq("id", payment.bill_id).single();
     if (!bill) {
@@ -262,7 +263,10 @@ Deno.serve(async (req) => {
     }
 
     // Upload XML
-    const xmlPath = `supplier-rep/${bill.id}/${payment_id}.xml`;
+    const xmlPath = organizationStoragePath(
+      bill.organization_id,
+      `supplier-rep/${bill.id}/${payment_id}.xml`,
+    );
     const { error: xmlErr } = await supabase.storage.from(BUCKET).upload(
       xmlPath,
       new Blob([xmlText], { type: "application/xml" }),
@@ -279,7 +283,10 @@ Deno.serve(async (req) => {
         const bin = atob(pdf_base64);
         const bytes = new Uint8Array(bin.length);
         for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-        const p = `supplier-rep/${bill.id}/${payment_id}.pdf`;
+        const p = organizationStoragePath(
+          bill.organization_id,
+          `supplier-rep/${bill.id}/${payment_id}.pdf`,
+        );
         const { error: pdfErr } = await supabase.storage.from(BUCKET).upload(
           p,
           bytes,
