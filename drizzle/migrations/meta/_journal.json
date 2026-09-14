@@ -99,6 +99,13 @@
       "when": 1789348800000,
       "tag": "0013_multi_org_phase5_sale_quote_rpc_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1789349400000,
+      "tag": "0014_multi_org_phase5_booking_lifecycle_rpc_scope",
+      "breakpoints": true
     }
   ]
 }
