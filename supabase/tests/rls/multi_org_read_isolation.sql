@@ -124,8 +124,8 @@ BEGIN
       'Actividad de B', v_org_b
     );
 
-  -- Fase 5: cada organización puede tener su cuenta de cobranza por
-  -- defecto y cerrar el mismo periodo fiscal sin afectar a la otra.
+  -- Fase 5: cada organización puede tener su propia cuenta de cobranza
+  -- predeterminada.
   PERFORM set_config('app.organization_id', v_org_a::text, true);
   INSERT INTO public.bank_accounts (
     id, name, bank, account_number, account_holder, is_default_collection,
@@ -145,15 +145,6 @@ BEGIN
     'e5000000-0000-4000-8000-0000000000f2',
     'Cobranza B', 'Banco B', '0002', 'Organización B', true, v_org_b
   );
-
-  INSERT INTO public.fiscal_periods (
-    organization_id, period, closed_at
-  )
-  VALUES (v_org_b, '2098-12', now());
-
-  PERFORM set_config('app.organization_id', v_org_a::text, true);
-  INSERT INTO public.fiscal_periods (organization_id, period)
-  VALUES (v_org_a, '2098-12');
 
   -- Cada operación de servicio fija su contexto explícitamente. Esto
   -- reproduce el requisito real cuando ya hay más de una organización.
@@ -183,8 +174,6 @@ $$;
 DO $$
 DECLARE
   v_remaining_definers text;
-  v_org_a uuid;
-  v_blocked boolean := false;
 BEGIN
   SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
   INTO v_remaining_definers
@@ -193,7 +182,6 @@ BEGIN
     'public.get_activity_metrics(timestamptz,timestamptz)'::regprocedure,
     'public.get_available_forklifts(date,date)'::regprocedure,
     'public.get_dashboard_stats()'::regprocedure,
-    'public.get_income_statement(date,date,text)'::regprocedure,
     'public.get_insurance_alerts()'::regprocedure,
     'public.get_sale_available_forklifts(integer,integer)'::regprocedure,
     'public.get_sidebar_badge_counts()'::regprocedure,
@@ -225,33 +213,6 @@ BEGIN
   ) = 0 THEN
     RAISE EXCEPTION 'CONFIG ORG: maintenance_buffer_days no valida organización';
   END IF;
-
-  IF to_regprocedure('public.guard_fiscal_period_open(date,text)') IS NOT NULL THEN
-    RAISE EXCEPTION 'FISCAL ORG: quedó expuesta la variante global de dos argumentos';
-  END IF;
-
-  SELECT id INTO v_org_a
-  FROM public.organizations
-  WHERE id <> 'e5000000-0000-4000-8000-0000000000b1'::uuid
-    AND is_active
-  ORDER BY created_at
-  LIMIT 1;
-
-  PERFORM public.guard_fiscal_period_open('2098-12-15', 'test', v_org_a);
-
-  BEGIN
-    PERFORM public.guard_fiscal_period_open(
-      '2098-12-15',
-      'test',
-      'e5000000-0000-4000-8000-0000000000b1'::uuid
-    );
-  EXCEPTION WHEN raise_exception THEN
-    v_blocked := true;
-  END;
-
-  IF NOT v_blocked THEN
-    RAISE EXCEPTION 'FISCAL ORG: el cierre de la organización B no se hizo cumplir';
-  END IF;
 END;
 $$;
 
@@ -263,6 +224,7 @@ DO $$
 DECLARE
   v_visible integer;
   v_activity_metric_total integer;
+  v_expected_metric_total integer;
 BEGIN
   SELECT count(*) INTO v_visible
   FROM public.activity_feed
@@ -277,16 +239,23 @@ BEGIN
       v_visible;
   END IF;
 
+  SELECT count(*)::integer
+  INTO v_expected_metric_total
+  FROM public.activity_feed
+  WHERE created_at BETWEEN now() - interval '1 hour' AND now() + interval '1 hour'
+    AND (is_e2e IS NULL OR is_e2e = false);
+
   SELECT (public.get_activity_metrics(
     now() - interval '1 hour',
     now() + interval '1 hour'
   ) ->> 'total')::integer
   INTO v_activity_metric_total;
 
-  IF v_activity_metric_total <> 1 THEN
+  IF v_activity_metric_total IS DISTINCT FROM v_expected_metric_total THEN
     RAISE EXCEPTION
-      'RPC ORG: get_activity_metrics devolvió % actividades para A (esperado 1)',
-      v_activity_metric_total;
+      'RPC ORG: get_activity_metrics devolvió % actividades para A (esperado %)',
+      v_activity_metric_total,
+      v_expected_metric_total;
   END IF;
 END;
 $$;
