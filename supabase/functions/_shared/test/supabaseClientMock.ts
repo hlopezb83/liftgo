@@ -24,6 +24,14 @@ export interface MockConfig {
   claimsError?: unknown;
   // keyed by table name: response for select-chains (single/maybeSingle/await)
   selects?: Record<string, TableResponse>;
+  // 8.8.7: respuestas SENSIBLES A FILTROS. Recibe los `.eq/.in/...` aplicados
+  // para que un fixture no pueda "colar" una fila que la consulta real filtra
+  // (p. ej. devolver una membresía interna cuando se pidió member_type
+  // 'portal', o una cuenta de portal suspendida cuando se pidió 'active').
+  selectsByFilter?: Record<
+    string,
+    (filters: Array<{ col: string; val: unknown }>) => TableResponse
+  >;
   // Respuestas secuenciadas por tabla para selects — 1ª llamada consume seq[0],
   // 2ª seq[1], etc. Al agotarse cae en `selects[table]`. Útil cuando el handler
   // hace dos selects distintos a la misma tabla (ej. NC + sibling NCs).
@@ -75,6 +83,8 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
     const filters: Array<{ col: string; val: unknown }> = [];
 
     const resolveSelect = (): Promise<TableResponse> => {
+      const byFilter = (cfg.selectsByFilter ?? {})[table];
+      if (byFilter) return Promise.resolve(byFilter([...filters]));
       const seq = selectsSeq[table];
       if (seq && seq.length > 0) {
         return Promise.resolve(seq.shift() as TableResponse);

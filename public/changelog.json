@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.8.7",
+    "date": "2026-09-14",
+    "type": "patch",
+    "category": "security",
+    "title": "Descargas del portal y configuración fiscal a prueba de fallos",
+    "description": "Los clientes del portal vuelven a descargar sus propios comprobantes, la configuración de facturación avisa con claridad cuando falta o no se puede leer, y los reintentos aguantan una caída momentánea de la base de datos sin gastar intentos.",
+    "changes": [
+      "Los clientes del portal descargan factura, acuse, complemento de pago y nota de crédito propios: se comprueba su cuenta activa y su empresa, sin darles acceso a operaciones internas.",
+      "En los complementos de pago se verifica también que la factura relacionada sea de la misma empresa.",
+      "Una cuenta suspendida o revocada, otro cliente u otra empresa no obtienen archivos ni provocan llamadas al proveedor de facturación.",
+      "Si la configuración o las credenciales de facturación de una empresa faltan, son inválidas o no se pueden leer, la operación se detiene con un error explícito: nunca se usan llaves de otra empresa ni llaves generales.",
+      "Ante un error de configuración se libera la reserva del documento y no se inventa un timbrado exitoso.",
+      "Una falla momentánea de base de datos en la cola de reintentos ahora aplaza el trabajo en lugar de darlo por agotado, y no consume un intento de emisión.",
+      "Nuevas pruebas automáticas cubren el portal, los errores de configuración y el aplazamiento por fallas momentáneas: 368 pruebas sin conexión en verde."
+    ]
+  },
+  {
     "version": "8.8.6",
     "date": "2026-09-14",
     "type": "patch",

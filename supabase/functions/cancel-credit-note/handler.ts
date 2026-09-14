@@ -9,7 +9,7 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfigForOrganization,
+  loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import {
   isFacturapiTimeout,
@@ -152,11 +152,17 @@ export async function handleCancelCreditNote(
     claimed = true;
     const releaseClaim = releaseClaimRef;
 
-    const { apiKey, mode } = await getFacturapiConfigForOrganization({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId,
     });
+    if (!cfgOutcome.ok) {
+      // 8.8.7: sin configuración resoluble no hay cancelación (ni stub).
+      await releaseClaim();
+      return jsonError(req, cfgOutcome.status, cfgOutcome.message);
+    }
+    const { apiKey, mode } = cfgOutcome;
 
     let satStatus = "accepted";
     const isStub = !apiKey || !ncRow.facturapi_invoice_id;

@@ -6,7 +6,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-import { getFacturapiConfigForOrganization } from "../_shared/facturapi/client.ts";
+import { loadFacturapiConfigOutcome } from "../_shared/facturapi/client.ts";
 import { validateTaxIdWithPac } from "../_shared/facturapi/validateTaxId.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
@@ -85,11 +85,15 @@ export async function handleValidateReceptor(
       return json({ error: orgRes.message }, orgRes.status, jsonHeaders);
     }
 
-    const { apiKey } = await getFacturapiConfigForOrganization({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId: orgRes.organizationId,
     });
+    if (!cfgOutcome.ok) {
+      return json({ error: cfgOutcome.message }, cfgOutcome.status, jsonHeaders);
+    }
+    const { apiKey } = cfgOutcome;
     if (!apiKey) {
       return json(
         {

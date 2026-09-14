@@ -18,6 +18,7 @@ import {
   createInvoiceWithSignal,
   describeFacturapiError,
   getFacturapiConfigForOrganization,
+  isFacturapiConfigError,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
@@ -267,19 +268,57 @@ export async function handleStampCreditNote(
 
     // BL-16: modo Facturapi debe ser el de la compañía (test/live) para que la NC
     // se timbre en el mismo ambiente que la factura origen.
-    const { data: company } = await supabase
+    // 8.8.7: un error de lectura de company_settings NO puede degradarse a
+    // "sin configuración" (y de ahí a modo test/stub). Se libera el claim y
+    // se responde error explícito de ESTA empresa, sin timbrar.
+    const { data: company, error: companyErr } = await supabase
       .from("company_settings")
       .select("*")
       .eq("organization_id", organizationId)
       .maybeSingle();
+    if (companyErr) {
+      await releaseClaim(
+        "No se pudo leer la configuración fiscal de la empresa. No se emitió CFDI de la NC.",
+      );
+      return json(
+        {
+          error:
+            "No se pudo leer la configuración fiscal de la empresa. Reintenta en unos segundos.",
+        },
+        503,
+        jsonHeaders,
+      );
+    }
     const modeOverride = (company as Record<string, unknown> | null)
       ?.facturapi_mode as string | undefined | null;
-    const { apiKey, mode } = await getFacturapiConfigForOrganization({
-      admin: supabase,
-      env: deps.env,
-      organizationId,
-      modeOverride: modeOverride ?? null,
-    });
+    let apiKey: string | null;
+    let mode: string;
+    try {
+      const cfg = await getFacturapiConfigForOrganization({
+        admin: supabase,
+        env: deps.env,
+        organizationId,
+        modeOverride: modeOverride ?? null,
+      });
+      apiKey = cfg.apiKey;
+      mode = cfg.mode;
+    } catch (err) {
+      if (isFacturapiConfigError(err)) {
+        console.error("[stamp-credit-note] configuración fiscal no resoluble", {
+          organization_id: organizationId,
+          code: err.code,
+        });
+        await releaseClaim(
+          "Configuración fiscal de la empresa no resoluble. No se emitió CFDI de la NC.",
+        );
+        return json(
+          { error: err.message },
+          err.code === "config_read_error" ? 503 : 400,
+          jsonHeaders,
+        );
+      }
+      throw err;
+    }
 
     if (!apiKey) {
       // BL-20: no marcar como timbrada una NC en modo live sin API key.

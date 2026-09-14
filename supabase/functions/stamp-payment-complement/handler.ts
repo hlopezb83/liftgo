@@ -11,7 +11,7 @@ import {
   createFacturapiClient,
   createInvoiceWithSignal,
   describeFacturapiError,
-  getFacturapiConfigForOrganization,
+  loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
@@ -381,11 +381,17 @@ export async function handleStampPaymentComplement(
       taxes.push({ base: baseCents / 100, type: "IVA", rate, factor: "Tasa" });
     });
 
-    const { apiKey } = await getFacturapiConfigForOrganization({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId,
     });
+    if (!cfgOutcome.ok) {
+      // 8.8.7: configuración fiscal no resoluble ⇒ liberar claim, sin PAC.
+      await releaseClaim(cfgOutcome.message);
+      return jsonError(req, cfgOutcome.status, cfgOutcome.message);
+    }
+    const { apiKey } = cfgOutcome;
     if (!apiKey) {
       await releaseClaim("Facturapi key no configurada para esta empresa");
       return jsonError(

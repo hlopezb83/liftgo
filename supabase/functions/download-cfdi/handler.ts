@@ -9,10 +9,15 @@ import type { SupabaseLike } from "../_shared/types.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
 import {
+  FacturapiConfigError,
   getFacturapiConfigForOrganization,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
-import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
+import {
+  assertDocumentOrganization,
+  resolveDocumentOrganization,
+  resolvePortalAccess,
+} from "../_shared/orgContext.ts";
 import {
   FacturapiTimeoutError,
   fetchWithTimeout,
@@ -223,19 +228,22 @@ interface InvoiceRow {
 
 interface InvoiceCustomerRow {
   customer_id: string | null;
+  organization_id: string | null;
 }
 
 async function fetchFacturapiBinary(
   apiKey: string,
   path: string,
+  fetchImpl: typeof fetch,
 ): Promise<FacturapiFetch> {
   try {
     const bytes = await retryOnFacturapi5xx(async () => {
       // R-arq DIFF 3: fetchWithTimeout (30s) reemplaza `fetch(` crudo para
-      // evitar isolates colgados si el PAC no responde.
+      // evitar isolates colgados si el PAC no responde. 8.8.7: usa SIEMPRE
+      // `deps.fetchImpl`, para que los tests intercepten el transporte real.
       const r = await fetchWithTimeout(`${FACTURAPI_BASE}${path}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
-      });
+      }, undefined, fetchImpl);
       if (!r.ok) {
         const text = await r.text().catch(() => "");
         const err = new Error(`Facturapi ${r.status}`) as Error & {
@@ -274,53 +282,100 @@ const fetchFromFacturapi = (
   apiKey: string,
   facturapiId: string,
   format: BaseFormat,
-) => fetchFacturapiBinary(apiKey, `/invoices/${facturapiId}/${format}`);
+  fetchImpl: typeof fetch,
+) =>
+  fetchFacturapiBinary(
+    apiKey,
+    `/invoices/${facturapiId}/${format}`,
+    fetchImpl,
+  );
 
 const fetchAcuseFromFacturapi = (
   apiKey: string,
   facturapiId: string,
   format: BaseFormat,
+  fetchImpl: typeof fetch,
 ) =>
   fetchFacturapiBinary(
     apiKey,
     `/invoices/${facturapiId}/cancellation_receipt/${format}`,
+    fetchImpl,
   );
 
-async function loadFacturapiKey(
-  supabase: DownloadSupabaseLike,
-  organizationId: string,
-): Promise<string | null> {
-  const { apiKey } = await getFacturapiConfigForOrganization({
-    admin: supabase,
-    env: (k) => Deno.env.get(k),
-    organizationId,
-  });
+type KeyResult =
+  | { ok: true; apiKey: string }
+  | { ok: false; response: Response };
 
-  return apiKey;
+/**
+ * 8.8.7: la configuración fiscal se lee SIEMPRE con `deps.env` (no con
+ * `Deno.env` global, para que los tests sean realmente sin red ni entorno) y
+ * un error/ausencia de configuración devuelve un error explícito de ESTA
+ * empresa: nunca se cae al entorno ni a llaves de otra organización.
+ */
+async function loadFacturapiKey(
+  req: Request,
+  supabase: DownloadSupabaseLike,
+  deps: DownloadCfdiDeps,
+  organizationId: string,
+): Promise<KeyResult> {
+  try {
+    const { apiKey } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
+    });
+    if (!apiKey) {
+      return {
+        ok: false,
+        response: jsonError(req, 500, "Facturapi key not configured"),
+      };
+    }
+    return { ok: true, apiKey };
+  } catch (err) {
+    if (err instanceof FacturapiConfigError) {
+      console.error("[download-cfdi] configuración fiscal no resoluble", {
+        organization_id: organizationId,
+        code: err.code,
+      });
+      const status = err.code === "config_read_error" ? 503 : 500;
+      return { ok: false, response: jsonError(req, status, err.message) };
+    }
+    throw err;
+  }
+}
+
+export interface PortalAccess {
+  organizationId: string;
+  customerId: string;
 }
 
 // Multiempresa · Fase 1: valida que el documento pertenezca a la organización
 // del caller ANTES de servir/persistir archivos o llamar al PAC. Nunca se
-// deriva del payload — siempre de la membresía del usuario + el documento leído.
-// Devuelve el Response de rechazo listo para retornar, o la organizationId
-// verificada.
+// deriva del payload — siempre de la membresía del usuario (o de la cuenta de
+// portal verificada) + el documento leído.
 async function checkDocumentOrganization(
   req: Request,
   supabase: DownloadSupabaseLike,
   userId: string,
   documentOrganizationId: unknown,
+  portal: PortalAccess | null,
 ): Promise<
   { ok: true; organizationId: string } | { ok: false; response: Response }
 > {
-  const orgCheck = await resolveDocumentOrganization({
-    admin: supabase,
-    userId,
-    isServiceRole: false,
-    documentOrganizationId: documentOrganizationId as
-      | string
-      | null
-      | undefined,
-  });
+  const docOrg = documentOrganizationId as string | null | undefined;
+  // Cliente del portal: la organización viene de su cuenta de portal activa,
+  // NUNCA de `organization_memberships` internas (que exigen 'internal').
+  const orgCheck = portal
+    ? assertDocumentOrganization({
+      callerOrganizationId: portal.organizationId,
+      documentOrganizationId: docOrg,
+    })
+    : await resolveDocumentOrganization({
+      admin: supabase,
+      userId,
+      isServiceRole: false,
+      documentOrganizationId: docOrg,
+    });
   if (!orgCheck.ok) {
     return {
       ok: false,
@@ -443,18 +498,26 @@ export async function handleDownloadCfdi(
     );
     if (limited) return limited;
 
+    // 8.8.7 (regresión del portal): un cliente del portal NO tiene membresía
+    // interna, así que su organización y su cliente se resuelven por su cuenta
+    // de portal ACTIVA (identidad tomada del JWT ya verificado). Una cuenta
+    // suspendida/revocada, inexistente o ambigua se rechaza aquí, antes de
+    // leer documentos, secretos o llamar al PAC.
+    let portal: PortalAccess | null = null;
+    if (auth.role === "customer") {
+      const access = await resolvePortalAccess(supabase, auth.userId);
+      if (!access.ok) return jsonError(req, access.status, access.message);
+      portal = {
+        organizationId: access.organizationId,
+        customerId: access.customerId,
+      };
+    }
+
     // N-8: un customer sólo puede descargar CFDIs de su propio customer_id.
     // Staff (admin/administrativo/ventas) no pasa por este chequeo.
-    const requireOwnership = async (
-      customerId: unknown,
-    ): Promise<Response | null> => {
-      if (auth.role !== "customer") return null;
-      const rpcRes = await supabase.rpc?.(
-        "get_customer_id_for_user",
-        { p_user_id: auth.userId },
-      );
-      const ownerId = rpcRes?.data as string | null | undefined;
-      if (!ownerId || ownerId !== customerId) {
+    const requireOwnership = (customerId: unknown): Response | null => {
+      if (!portal) return null;
+      if (!customerId || portal.customerId !== customerId) {
         return jsonError(req, 403, "Forbidden: not the owner of this document");
       }
       return null;
@@ -503,9 +566,10 @@ export async function handleDownloadCfdi(
         supabase,
         auth.userId,
         cn.organization_id,
+        portal,
       );
       if (!cnOrgCheck.ok) return cnOrgCheck.response;
-      const cnForbidden = await requireOwnership(cn.customer_id);
+      const cnForbidden = requireOwnership(cn.customer_id);
       if (cnForbidden) return cnForbidden;
       const filename = `${cn.credit_note_number || cn.cfdi_uuid}.${baseFormat}`;
       const existing = await tryStorageDownload(
@@ -521,16 +585,19 @@ export async function handleDownloadCfdi(
       if (!cn.facturapi_invoice_id) {
         return jsonError(req, 404, "Missing facturapi reference");
       }
-      const apiKey = await loadFacturapiKey(
+      const keyRes = await loadFacturapiKey(
+        req,
         supabase,
+        deps,
         cnOrgCheck.organizationId,
       );
-      if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
+      if (!keyRes.ok) return keyRes.response;
 
       const res = await fetchFromFacturapi(
-        apiKey,
+        keyRes.apiKey,
         cn.facturapi_invoice_id as string,
         baseFormat,
+        deps.fetchImpl,
       );
       if (!res.ok) return facturapiErrorResponse(req, res);
 
@@ -581,17 +648,40 @@ export async function handleDownloadCfdi(
         supabase,
         auth.userId,
         payment.organization_id,
+        portal,
       );
       if (!repOrgCheck.ok) return repOrgCheck.response;
-      if (auth.role === "customer") {
-        const { data: repInv } = await supabase
-          .from("invoices")
-          .select("customer_id")
-          .eq("id", payment.invoice_id as string)
-          .maybeSingle() as { data: InvoiceCustomerRow | null; error: unknown };
-        const repForbidden = await requireOwnership(repInv?.customer_id);
-        if (repForbidden) return repForbidden;
+      // 8.8.7: el REP cuelga de una factura; esa factura debe ser de la MISMA
+      // empresa (y, para el portal, del mismo cliente). Se verifica siempre,
+      // no sólo para clientes.
+      const { data: repInv, error: repInvErr } = await supabase
+        .from("invoices")
+        .select("customer_id, organization_id")
+        .eq("id", payment.invoice_id as string)
+        .maybeSingle() as {
+          data: InvoiceCustomerRow | null;
+          error: unknown;
+        };
+      if (repInvErr) {
+        return jsonError(
+          req,
+          503,
+          "No se pudo verificar la factura relacionada. Reintenta en unos segundos.",
+        );
       }
+      const repInvOrgCheck = await checkDocumentOrganization(
+        req,
+        supabase,
+        auth.userId,
+        repInv?.organization_id,
+        portal,
+      );
+      if (!repInvOrgCheck.ok) return repInvOrgCheck.response;
+      if (repInvOrgCheck.organizationId !== repOrgCheck.organizationId) {
+        return jsonError(req, 403, "El documento pertenece a otra empresa.");
+      }
+      const repForbidden = requireOwnership(repInv?.customer_id);
+      if (repForbidden) return repForbidden;
       const filename = `REP-${payment.rep_cfdi_uuid}.${baseFormat}`;
       const existing = await tryStorageDownload(
         supabase,
@@ -606,16 +696,19 @@ export async function handleDownloadCfdi(
       if (!payment.rep_facturapi_id) {
         return jsonError(req, 404, "Missing facturapi REP reference");
       }
-      const apiKey = await loadFacturapiKey(
+      const keyRes = await loadFacturapiKey(
+        req,
         supabase,
+        deps,
         repOrgCheck.organizationId,
       );
-      if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
+      if (!keyRes.ok) return keyRes.response;
 
       const res = await fetchFromFacturapi(
-        apiKey,
+        keyRes.apiKey,
         payment.rep_facturapi_id as string,
         baseFormat,
+        deps.fetchImpl,
       );
       if (!res.ok) return facturapiErrorResponse(req, res);
 
@@ -660,9 +753,10 @@ export async function handleDownloadCfdi(
       supabase,
       auth.userId,
       invoice.organization_id,
+      portal,
     );
     if (!invOrgCheck.ok) return invOrgCheck.response;
-    const invForbidden = await requireOwnership(invoice.customer_id);
+    const invForbidden = requireOwnership(invoice.customer_id);
     if (invForbidden) return invForbidden;
     const cfdiOk = invoice.cfdi_status === "stamped" ||
       invoice.cfdi_status === "cancelled";
@@ -694,16 +788,19 @@ export async function handleDownloadCfdi(
       if (!invoice.facturapi_invoice_id) {
         return jsonError(req, 404, "Missing facturapi reference");
       }
-      const apiKey = await loadFacturapiKey(
+      const keyRes = await loadFacturapiKey(
+        req,
         supabase,
+        deps,
         invOrgCheck.organizationId,
       );
-      if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
+      if (!keyRes.ok) return keyRes.response;
 
       const res = await fetchAcuseFromFacturapi(
-        apiKey,
+        keyRes.apiKey,
         invoice.facturapi_invoice_id as string,
         baseFormat,
+        deps.fetchImpl,
       );
       if (!res.ok) {
         return facturapiErrorResponse(
@@ -764,13 +861,19 @@ export async function handleDownloadCfdi(
     if (!invoice.facturapi_invoice_id) {
       return jsonError(req, 404, "Missing facturapi reference");
     }
-    const apiKey = await loadFacturapiKey(supabase, invOrgCheck.organizationId);
-    if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
+    const keyRes = await loadFacturapiKey(
+      req,
+      supabase,
+      deps,
+      invOrgCheck.organizationId,
+    );
+    if (!keyRes.ok) return keyRes.response;
 
     const res = await fetchFromFacturapi(
-      apiKey,
+      keyRes.apiKey,
       invoice.facturapi_invoice_id as string,
       baseFormat,
+      deps.fetchImpl,
     );
     if (!res.ok) return facturapiErrorResponse(req, res);
 

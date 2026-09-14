@@ -69,9 +69,58 @@ export interface OrgFacturapiConfig extends FacturapiConfig {
   fromEnvFallback: boolean;
 }
 
+export type FacturapiConfigErrorCode =
+  | "config_read_error"
+  | "config_missing"
+  | "config_invalid_mode"
+  | "organization_required";
+
+/**
+ * Error explícito de configuración fiscal. NUNCA debe traducirse a un
+ * timbrado stub ni a "modo test": significa que no sabemos con qué empresa
+ * ni con qué modo operar.
+ */
+export class FacturapiConfigError extends Error {
+  readonly code: FacturapiConfigErrorCode;
+  readonly organizationId: string | null;
+  constructor(
+    code: FacturapiConfigErrorCode,
+    message: string,
+    organizationId: string | null,
+  ) {
+    super(message);
+    this.name = "FacturapiConfigError";
+    this.code = code;
+    this.organizationId = organizationId;
+  }
+}
+
+export function isFacturapiConfigError(
+  err: unknown,
+): err is FacturapiConfigError {
+  return err instanceof FacturapiConfigError;
+}
+
 /**
  * Multiempresa · Fase 1. Resuelve modo + API key SIEMPRE acotados a la
  * organización del documento. Nunca usa `limit(1)` "a ciegas".
+ *
+ * POLÍTICA DE CONFIGURACIÓN (v8.8.7):
+ *  - Error de lectura en `company_settings`, `billing_secrets` u
+ *    `organizations` ⇒ `FacturapiConfigError("config_read_error")`. No se
+ *    devuelve llave ni se recurre al entorno: un fallo transitorio de BD no
+ *    puede degradarse a "modo test".
+ *  - Configuración ausente (sin fila de `company_settings` para la empresa o
+ *    `facturapi_mode` nulo) ⇒ `FacturapiConfigError("config_missing")`.
+ *    Ausencia NO equivale a modo test explícito.
+ *  - `facturapi_mode` distinto de 'test'/'live' (o `modeOverride` inválido)
+ *    ⇒ `FacturapiConfigError("config_invalid_mode")`.
+ *  - `modeOverride: null` se interpreta como configuración ausente; los
+ *    handlers que ya leyeron `company_settings` deben propagar su error de
+ *    lectura en vez de pasar `null`.
+ *  - Sin credenciales en `billing_secrets` (y sin fallback legado aplicable)
+ *    se devuelve `apiKey: null` con el modo real, para que cada handler
+ *    libere su claim y responda un error propio sin emitir CFDI.
  *
  * Compatibilidad transitoria: las llaves globales de entorno
  * (FACTURAPI_TEST_KEY / FACTURAPI_LIVE_KEY) sólo se aceptan mientras exista
@@ -88,27 +137,57 @@ export async function getFacturapiConfigForOrganization(input: {
 }): Promise<OrgFacturapiConfig> {
   const { admin, env, organizationId } = input;
   if (!organizationId) {
-    throw new Error(
+    throw new FacturapiConfigError(
+      "organization_required",
       "No se puede resolver la configuración fiscal sin empresa (organization_id).",
+      null,
     );
   }
 
   let modeRaw: string | null | undefined = input.modeOverride;
   if (modeRaw === undefined) {
-    const { data: co } = await admin
+    const { data: co, error: coErr } = await admin
       .from("company_settings")
       .select("facturapi_mode")
       .eq("organization_id", organizationId)
       .maybeSingle();
+    if (coErr) {
+      throw new FacturapiConfigError(
+        "config_read_error",
+        "No se pudo leer la configuración fiscal de la empresa. Reintenta en unos segundos.",
+        organizationId,
+      );
+    }
     modeRaw = (co?.facturapi_mode as string | undefined) ?? null;
   }
-  const mode: FacturapiMode = modeRaw === "live" ? "live" : "test";
+  if (modeRaw === null) {
+    throw new FacturapiConfigError(
+      "config_missing",
+      "La empresa no tiene configuración fiscal (facturapi_mode). Configúrala antes de operar.",
+      organizationId,
+    );
+  }
+  if (modeRaw !== "test" && modeRaw !== "live") {
+    throw new FacturapiConfigError(
+      "config_invalid_mode",
+      `Modo de facturación inválido para la empresa: ${String(modeRaw)}.`,
+      organizationId,
+    );
+  }
+  const mode: FacturapiMode = modeRaw;
 
-  const { data: secrets } = await admin
+  const { data: secrets, error: secErr } = await admin
     .from("billing_secrets")
     .select("facturapi_test_key, facturapi_live_key")
     .eq("organization_id", organizationId)
     .maybeSingle();
+  if (secErr) {
+    throw new FacturapiConfigError(
+      "config_read_error",
+      "No se pudieron leer las credenciales fiscales de la empresa. Reintenta en unos segundos.",
+      organizationId,
+    );
+  }
   const sec = (secrets ?? {}) as Record<string, unknown>;
   const dbTestKey = sec.facturapi_test_key as string | null | undefined;
   const dbLiveKey = sec.facturapi_live_key as string | null | undefined;
@@ -139,6 +218,43 @@ export async function getFacturapiConfigForOrganization(input: {
  * true sólo si existe exactamente una organización y es la solicitada.
  * Fail-closed ante errores de consulta.
  */
+export type FacturapiConfigOutcome =
+  | { ok: true; apiKey: string | null; mode: FacturapiMode }
+  | {
+    ok: false;
+    code: FacturapiConfigErrorCode;
+    message: string;
+    status: number;
+  };
+
+/**
+ * 8.8.7: variante sin excepciones de `getFacturapiConfigForOrganization`,
+ * para handlers que deben LIBERAR su claim antes de responder. Un error de
+ * lectura devuelve 503 (transitorio); ausencia/modo inválido devuelve 400.
+ * Nunca devuelve una llave de otra empresa ni degrada a modo test.
+ */
+export async function loadFacturapiConfigOutcome(input: {
+  admin: { from: (table: string) => any };
+  env: (key: string) => string | undefined;
+  organizationId: string | null | undefined;
+  modeOverride?: string | null | undefined;
+}): Promise<FacturapiConfigOutcome> {
+  try {
+    const cfg = await getFacturapiConfigForOrganization(input);
+    return { ok: true, apiKey: cfg.apiKey, mode: cfg.mode };
+  } catch (err) {
+    if (isFacturapiConfigError(err)) {
+      return {
+        ok: false,
+        code: err.code,
+        message: err.message,
+        status: err.code === "config_read_error" ? 503 : 400,
+      };
+    }
+    throw err;
+  }
+}
+
 export async function isSoleLegacyOrganization(
   admin: { from: (table: string) => any },
   organizationId: string,

@@ -7,7 +7,7 @@ import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfigForOrganization,
+  loadFacturapiConfigOutcome,
   retrieveInvoiceWithSignal,
   updateInvoiceStatusWithSignal,
 } from "../_shared/facturapi/client.ts";
@@ -120,11 +120,15 @@ export async function handleRefreshCancellation(
       return json({ error: orgCheck.message }, orgCheck.status);
     }
 
-    const { apiKey } = await getFacturapiConfigForOrganization({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId: orgCheck.organizationId,
     });
+    if (!cfgOutcome.ok) {
+      return json({ error: cfgOutcome.message }, cfgOutcome.status);
+    }
+    const { apiKey } = cfgOutcome;
     if (!apiKey) {
       return json({ error: "Facturapi key not configured" }, 400);
     }
