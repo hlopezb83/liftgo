@@ -43,7 +43,8 @@ export function useCreateFeedback() {
         screenshotUrl = await uploadScreenshot(user.id, input.screenshot);
       }
 
-      const payload: TablesInsert<"feedback_reports"> = {
+      // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+      const payload: Omit<TablesInsert<"feedback_reports">, "organization_id"> = {
         reporter_id: user.id,
         reporter_type: input.reporterType,
         reporter_name: input.reporterName,
@@ -57,7 +58,7 @@ export function useCreateFeedback() {
 
       const { data, error } = await supabase
         .from("feedback_reports")
-        .insert(payload)
+        .insert(payload as TablesInsert<"feedback_reports">)
         .select()
         .single();
       if (error) {

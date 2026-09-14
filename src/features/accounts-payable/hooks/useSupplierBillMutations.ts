@@ -8,7 +8,8 @@ import { supplierBillKeys } from "./useSupplierBills";
 type Insert = Database["public"]["Tables"]["supplier_bills"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_bills"]["Update"];
 
-export type SupplierBillInput = Omit<Insert, "bill_number" | "balance" | "status"> & {
+// Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+export type SupplierBillInput = Omit<Insert, "bill_number" | "balance" | "status" | "organization_id"> & {
   status?: Insert["status"];
 };
 
@@ -26,7 +27,7 @@ export function useCreateSupplierBill() {
       const { status: _status, ...rest } = input;
       const { data, error } = await supabase
         .from("supplier_bills")
-        .insert({ ...rest, bill_number })
+        .insert({ ...rest, bill_number } as Insert)
         .select("id, bill_number")
         .single();
       if (error) throw error;

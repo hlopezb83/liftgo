@@ -1,0 +1,14 @@
+{
+  "version": "8.8.2",
+  "date": "2026-09-14",
+  "type": "patch",
+  "category": "security",
+  "title": "Seguridad: contadores de folios y vista de marca blindados",
+  "description": "Se cerraron dos pendientes del escaneo de seguridad. No hay cambios visibles en el uso diario.",
+  "changes": [
+    "Los contadores de numeración de documentos ahora solo son accesibles por las funciones internas del sistema; ningún usuario puede leerlos ni modificarlos directamente.",
+    "La vista pública de marca (logo y razón social) ahora se consulta con los permisos de quien la visita, en lugar de los del creador de la vista.",
+    "Se desplegó la función de migración de rutas de archivos por organización, sin habilitar movimientos de archivos.",
+    "Los formularios de reservas, entregas, contratos, cotizaciones, facturas, notas de crédito, devoluciones, cuentas por pagar, ajustes fiscales y reportes vuelven a compilar: la organización siempre la asigna la base de datos."
+  ]
+}

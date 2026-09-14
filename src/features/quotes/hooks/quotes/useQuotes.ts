@@ -92,7 +92,8 @@ export function useQuotesByIds(ids: string[] | undefined) {
 export function useCreateQuote() {
   const queryClient = useQueryClient();
   return useEntityMutation({
-    mutationFn: async (quote: TablesInsert<"quotes">) => {
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (quote: Omit<TablesInsert<"quotes">, "organization_id">) => {
       // R6-FE-08 (A.1/A.3/N6-ADM-03): para cotizaciones NUEVAS no se envía
       // quote_number — el trigger `trg_assign_quote_number` (20260730135422)
       // lo asigna server-side, sin quemar folio por display ni depender del
@@ -105,7 +106,7 @@ export function useCreateQuote() {
           attempt === 0 || quote.quote_number
             ? quote
             : { ...quote, quote_number: "" };
-        const { data, error } = await supabase.from("quotes").insert(payload).select().single();
+        const { data, error } = await supabase.from("quotes").insert(payload as TablesInsert<"quotes">).select().single();
         if (!error) return data;
         lastError = error;
         const isFolioConflict =
