@@ -28,6 +28,14 @@ export type CancelCreditNoteDeps = StampCfdiDeps;
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 
+/** Campos de la nota de crédito usados por el handler. */
+interface CreditNoteRow {
+  organization_id?: string | null;
+  cfdi_status?: string | null;
+  cancellation_status?: string | null;
+  facturapi_invoice_id?: string | null;
+}
+
 export async function handleCancelCreditNote(
   req: Request,
   deps: CancelCreditNoteDeps,
