@@ -420,7 +420,6 @@ function facturapiErrorResponse(
   return jsonError(req, 502, msg);
 }
 
-
 export async function handleDownloadCfdi(
   req: Request,
   deps: DownloadCfdiDeps,
@@ -522,7 +521,10 @@ export async function handleDownloadCfdi(
       if (!cn.facturapi_invoice_id) {
         return jsonError(req, 404, "Missing facturapi reference");
       }
-      const apiKey = await loadFacturapiKey(supabase, cnOrgCheck.organizationId);
+      const apiKey = await loadFacturapiKey(
+        supabase,
+        cnOrgCheck.organizationId,
+      );
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
       const res = await fetchFromFacturapi(
@@ -604,7 +606,10 @@ export async function handleDownloadCfdi(
       if (!payment.rep_facturapi_id) {
         return jsonError(req, 404, "Missing facturapi REP reference");
       }
-      const apiKey = await loadFacturapiKey(supabase, repOrgCheck.organizationId);
+      const apiKey = await loadFacturapiKey(
+        supabase,
+        repOrgCheck.organizationId,
+      );
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
       const res = await fetchFromFacturapi(
@@ -689,7 +694,10 @@ export async function handleDownloadCfdi(
       if (!invoice.facturapi_invoice_id) {
         return jsonError(req, 404, "Missing facturapi reference");
       }
-      const apiKey = await loadFacturapiKey(supabase, invOrgCheck.organizationId);
+      const apiKey = await loadFacturapiKey(
+        supabase,
+        invOrgCheck.organizationId,
+      );
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
       const res = await fetchAcuseFromFacturapi(

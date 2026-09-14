@@ -678,4 +678,3 @@ export async function handleRequest(
 if (import.meta.main) {
   Deno.serve((req) => handleRequest(req));
 }
-

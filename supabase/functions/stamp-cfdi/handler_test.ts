@@ -141,8 +141,10 @@ Deno.test("handler: refuses to stamp E2E invoices (403)", async () => {
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
-        invoices: { data: { id: INVOICE_ID,
-              organization_id: ORG_ID, is_e2e: true }, error: null },
+        invoices: {
+          data: { id: INVOICE_ID, organization_id: ORG_ID, is_e2e: true },
+          error: null,
+        },
       },
     },
   });
@@ -233,7 +235,10 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
@@ -298,7 +303,10 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
@@ -390,7 +398,10 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
@@ -469,7 +480,10 @@ Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", 
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },
@@ -504,7 +518,7 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
         invoices: {
           data: {
             id: INVOICE_ID,
-              organization_id: ORG_ID,
+            organization_id: ORG_ID,
             total: 1000,
             subtotal: 862,
             serie: "A",
@@ -512,7 +526,10 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
           },
           error: null,
         },
-        company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
         billing_secrets: { data: null, error: null }, // sin credenciales propias
       },
       updates: { invoices: { data: null, error: null } },
@@ -634,7 +651,10 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         // 1º update: claim atómico → devuelve id (claim exitoso).
@@ -703,7 +723,10 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
             },
             error: null,
           },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null }, // sin credenciales propias
         },
         updates: { invoices: { data: null, error: null } },

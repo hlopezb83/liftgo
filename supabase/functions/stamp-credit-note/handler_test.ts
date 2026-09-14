@@ -147,7 +147,10 @@ async function runSourceValidationCase(
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: { data: creditNote, error: null },
           invoices: { data: sourceInvoice, error: null },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         selectsSeq: {
@@ -263,11 +266,19 @@ Deno.test(
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: {
-            data: { id: NC_ID, organization_id: ORG_ID, invoice_id: INVOICE_ID },
+            data: {
+              id: NC_ID,
+              organization_id: ORG_ID,
+              invoice_id: INVOICE_ID,
+            },
             error: null,
           },
           invoices: {
-            data: { id: INVOICE_ID, organization_id: ORG_ID, cfdi_status: "draft" },
+            data: {
+              id: INVOICE_ID,
+              organization_id: ORG_ID,
+              cfdi_status: "draft",
+            },
             error: null,
           },
         },
@@ -419,7 +430,10 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: { data: ncData, error: null },
           invoices: { data: STAMPED_INVOICE, error: null },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         selectsSeq: {
@@ -470,7 +484,10 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: STAMPED_INVOICE, error: null },
-            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -512,7 +529,10 @@ Deno.test(
           user_roles: { data: [{ role: "administrativo" }], error: null },
           credit_notes: { data: ncData, error: null },
           invoices: { data: STAMPED_INVOICE, error: null },
-          company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
           billing_secrets: { data: null, error: null },
         },
         selectsSeq: {
@@ -604,7 +624,10 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: sourceInvoice, error: null },
-            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -695,7 +718,10 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: sourceInvoice, error: null },
-            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -825,7 +851,10 @@ Deno.test(
             user_roles: { data: [{ role: "admin" }], error: null },
             credit_notes: { data: ncData, error: null },
             invoices: { data: sourceInvoice, error: null },
-            company_settings: { data: { facturapi_mode: "test", organization_id: ORG_ID }, error: null },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
             billing_secrets: { data: null, error: null },
           },
           selectsSeq: {
@@ -891,7 +920,11 @@ Deno.test("handler: MULTIEMPRESA rechaza nota de crédito de otra organización 
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
           credit_notes: {
-            data: { id: NC_ID, organization_id: OTHER_ORG_ID, invoice_id: INVOICE_ID },
+            data: {
+              id: NC_ID,
+              organization_id: OTHER_ORG_ID,
+              invoice_id: INVOICE_ID,
+            },
             error: null,
           },
         },

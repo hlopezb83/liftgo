@@ -36,8 +36,7 @@ export type OrgContextResult = OrgContextOk | OrgContextFail;
 
 export const ORG_MISSING_MEMBERSHIP =
   "Tu cuenta no está asociada a ninguna empresa. Contacta al administrador.";
-export const ORG_DOCUMENT_MISMATCH =
-  "El documento pertenece a otra empresa.";
+export const ORG_DOCUMENT_MISMATCH = "El documento pertenece a otra empresa.";
 export const ORG_DOCUMENT_WITHOUT_ORG =
   "El documento no tiene empresa asignada; no se puede operar sobre él.";
 export const ORG_LOOKUP_UNAVAILABLE =

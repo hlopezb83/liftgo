@@ -151,7 +151,6 @@ export async function isSoleLegacyOrganization(
   return rows.length === 1 && rows[0]?.id === organizationId;
 }
 
-
 /** Crea una instancia del SDK con la API key resuelta. */
 /** Crea una instancia del SDK con la API key resuelta. */
 export function createFacturapiClient(apiKey: string): FacturapiClient {

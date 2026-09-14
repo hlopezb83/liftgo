@@ -451,7 +451,9 @@ export async function handleStampPaymentComplement(
     }
 
     const repLegalName = repIsGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
-      String(invoiceRow.receptor_razon_social ?? invoiceRow.customer_name ?? ""),
+      String(
+        invoiceRow.receptor_razon_social ?? invoiceRow.customer_name ?? "",
+      ),
     );
     if (!repIsGlobal && !repLegalName) {
       const msg =

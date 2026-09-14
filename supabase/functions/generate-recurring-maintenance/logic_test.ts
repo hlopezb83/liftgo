@@ -332,7 +332,11 @@ Deno.test("multiempresa: organization_id de la póliza se propaga a cada log ins
   const res = await generateForPolicies(
     client,
     [
-      policy({ id: "pA", organization_id: "org-A", last_generated_month: "2026-01" }),
+      policy({
+        id: "pA",
+        organization_id: "org-A",
+        last_generated_month: "2026-01",
+      }),
     ],
     "2026-02",
   );
@@ -345,8 +349,16 @@ Deno.test("multiempresa: dos pólizas de distinta organización se procesan de f
   const res = await generateForPolicies(
     client,
     [
-      policy({ id: "pA", organization_id: "org-A", last_generated_month: "2026-01" }),
-      policy({ id: "pB", organization_id: "org-B", last_generated_month: "2026-01" }),
+      policy({
+        id: "pA",
+        organization_id: "org-A",
+        last_generated_month: "2026-01",
+      }),
+      policy({
+        id: "pB",
+        organization_id: "org-B",
+        last_generated_month: "2026-01",
+      }),
     ],
     "2026-02",
   );
