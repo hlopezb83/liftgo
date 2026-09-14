@@ -141,6 +141,13 @@
       "when": 1789352400000,
       "tag": "0019_multi_org_phase6_public_branding",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1789353000000,
+      "tag": "0020_multi_org_phase7_storage_migration_ledger",
+      "breakpoints": true
     }
   ]
 }
