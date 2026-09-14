@@ -43,7 +43,9 @@ Deno.serve(async (req) => {
     // reportan, en vez de desaparecer silenciosamente.
     const { data: policies, error: pErr } = await supabase
       .from("maintenance_policies")
-      .select("*, forklifts!inner(id, status, name)")
+      // Fase 1 multiempresa: organization_id explícito de la póliza (nunca
+      // del caller/cron); se propaga a cada maintenance_logs generado.
+      .select("*, organization_id, forklifts!inner(id, status, name)")
       .eq("is_active", true);
 
     if (pErr) throw pErr;
