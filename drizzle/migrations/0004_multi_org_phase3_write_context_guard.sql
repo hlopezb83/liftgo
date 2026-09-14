@@ -41,14 +41,9 @@ BEGIN
         USING ERRCODE = '42501';
     END IF;
   ELSIF NEW.organization_id IS NOT NULL THEN
+    -- service_role puede procesar organizaciones distintas en sentencias
+    -- consecutivas; un valor explícito siempre sustituye el contexto heredado.
     v_effective_organization_id := NEW.organization_id;
-
-    -- Las escrituras internas anidadas heredan el contexto del registro raíz.
-    IF v_context_organization_id IS NOT NULL
-       AND v_context_organization_id IS DISTINCT FROM v_effective_organization_id THEN
-      RAISE EXCEPTION 'La organización indicada no coincide con el contexto de la operación'
-        USING ERRCODE = '23514';
-    END IF;
   ELSIF v_context_organization_id IS NOT NULL THEN
     v_effective_organization_id := v_context_organization_id;
   ELSE
