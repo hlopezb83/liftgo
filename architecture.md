@@ -266,7 +266,7 @@ programados y trabajo con privilegios de servicio:
 - CFDI: `stamp-cfdi`, `cancel-cfdi`, `download-cfdi`, `stamp-credit-note`, `cancel-credit-note`, `stamp-payment-complement`, `cancel-payment-complement`, `refresh-cancellation-status`, `process-cfdi-retry-queue`, `reconcile-stamping-invoices`.
 - Validación fiscal: `validate-customers-tax-info`, `validate-receptor-tax-info`, `validate-supplier-rep`, `parse-csf`.
 - Jobs: `generate-recurring-invoices`, `generate-recurring-maintenance`, `migrate-storage-org-prefix`.
-- Otros: `generate-manual`, `classify-feedback-report`, y las funciones de usuarios que siguen desplegadas mientras se retira su versión Deno.
+- Otros: `generate-manual`, `classify-feedback-report`, y las funciones de usuarios cuya versión Deno sigue **presente en el repositorio** mientras se retira (esta revisión documental no verifica su estado de despliegue).
 - `verify_jwt` se configura por función en `supabase/config.toml` cuando aplica.
 
 ---
@@ -413,7 +413,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 - Convención: `supabase/functions/<name>/index_test.ts` con `Deno.test`.
 - Patrón mínimo por función (smoke RC): CORS preflight 200, rechazo sin `Authorization` (401), rechazo con JWT inválido (401 donde aplique).
-- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan desplegadas; la lógica vigente que consume la app está en las server functions de §6.3.
+- Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan presentes en el repositorio; la lógica vigente que consume la app está en las server functions de §6.3.
 - Importes: `https://deno.land/std@0.224.0/dotenv/load.ts` y `assert/mod.ts`. SUPABASE_URL desde `.env`.
 - Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
 - CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
@@ -442,7 +442,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ### 15.6 Workflows de CI
 
-Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arch-check, unit tests en 2 shards + merge de cobertura, build y E2E), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. No hay workflow de Lighthouse.
+Workflows vigentes en `.github/workflows/`: `ci.yml` (ESLint, `tsc`, `arch-check`, build, un **smoke de arranque** con `playwright.smoke.config.ts` —no la suite E2E completa—, Vitest en 2 shards + merge de resultados/cobertura, y jobs condicionales por archivos tocados: Deno fmt/lint/tests, lint de migraciones SQL, dependency-review y actionlint), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. `ci.yml` no ejecuta knip. La suite E2E completa (`playwright.config.ts`) corre fuera de `ci.yml`. No hay workflow de Lighthouse.
 
 
 
