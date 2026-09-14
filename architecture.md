@@ -272,6 +272,28 @@ contamina a las demás. `cancel-credit-note`, `stamp-payment-complement` y
 `download-cfdi` se reestructuraron al patrón `handler.ts` (inyección de
 dependencias) + `index.ts` wrapper para poder probarse sin red.
 
+**Corrección 8.8.7 (portal, configuración explícita y cola).**
+`resolvePortalAccess(admin, userId)` en `_shared/orgContext.ts` es la ruta de
+acceso de los CLIENTES del portal: exige exactamente una fila activa en
+`customer_portal_accounts` y una membresía `member_type='portal'` de la misma
+organización (0 o >1 → 403; error de lectura → 503; discrepancia → 403). El
+resolver interno sigue cerrado a cuentas de portal. `download-cfdi` combina
+organización + cliente propietario para factura, acuse, REP y nota de crédito,
+y en REP verifica además la organización de la factura relacionada; todas sus
+rutas usan `deps.fetchImpl`/`deps.env` (sin `fetch`/`Deno.env` globales) para
+que las pruebas sean realmente sin red.
+`getFacturapiConfigForOrganization` lanza `FacturapiConfigError`
+(`config_read_error` | `config_missing` | `config_invalid_mode` |
+`organization_required`) ante error de lectura, configuración ausente
+(incluido `modeOverride: null`) o modo inválido: nunca devuelve una llave ni
+cae al entorno, y los handlers con reserva liberan el claim antes de
+responder. `loadFacturapiConfigOutcome` ofrece la misma política sin
+excepciones (503 lectura / 400 configuración).
+En `process-cfdi-retry-queue`, `classifyInvoiceReadOutcome` (en
+`decisions.ts`) separa el fallo transitorio de lectura —se difiere con backoff
+sin consumir intento ni llamar al PAC— de la factura realmente sin
+organización, que sí se agota.
+
 
 
 

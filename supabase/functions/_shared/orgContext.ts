@@ -133,6 +133,82 @@ export async function resolveDocumentOrganization(input: {
   });
 }
 
+export const PORTAL_ACCOUNT_INVALID =
+  "Tu acceso al portal no está activo para ninguna empresa. Contacta a tu proveedor.";
+export const PORTAL_LOOKUP_UNAVAILABLE =
+  "No se pudo verificar tu acceso al portal. Reintenta en unos segundos.";
+
+export interface PortalAccessOk {
+  ok: true;
+  organizationId: string;
+  customerId: string;
+}
+
+export type PortalAccessResult = PortalAccessOk | OrgContextFail;
+
+/**
+ * Multiempresa · Fase 1 (corrección 8.8.7). Acceso de un CLIENTE del portal.
+ *
+ * El resolver interno (`resolveCallerOrganization`) exige
+ * `member_type = 'internal'` y por diseño NO acepta cuentas de portal: las
+ * operaciones fiscales internas siguen cerradas a clientes. Esta función es la
+ * ruta propia del portal y exige, con la identidad del JWT ya verificada:
+ *  - una fila ACTIVA en `customer_portal_accounts` (organización + cliente), y
+ *  - la membresía `organization_memberships` con `member_type = 'portal'` de la
+ *    MISMA organización.
+ * Cada correo del portal pertenece a una sola organización y a un solo
+ * cliente, así que cualquier ambigüedad (0 o >1 filas) se rechaza.
+ */
+export async function resolvePortalAccess(
+  admin: OrgQueryClient,
+  userId: string,
+): Promise<PortalAccessResult> {
+  if (!userId) return { ok: false, status: 401, message: "Unauthorized" };
+
+  const accRes = await admin
+    .from("customer_portal_accounts")
+    .select("organization_id, customer_id, status")
+    .eq("auth_user_id", userId)
+    .eq("status", "active")
+    .limit(2);
+  if ((accRes as { error?: unknown })?.error) {
+    return { ok: false, status: 503, message: PORTAL_LOOKUP_UNAVAILABLE };
+  }
+  const accounts = ((accRes as { data?: unknown })?.data ?? []) as Array<
+    { organization_id?: string | null; customer_id?: string | null }
+  >;
+  if (accounts.length !== 1) {
+    // 0 = cuenta inexistente/suspendida/revocada; >1 = modelo corrupto.
+    return { ok: false, status: 403, message: PORTAL_ACCOUNT_INVALID };
+  }
+  const organizationId = accounts[0]?.organization_id ?? null;
+  const customerId = accounts[0]?.customer_id ?? null;
+  if (!organizationId || !customerId) {
+    return { ok: false, status: 403, message: PORTAL_ACCOUNT_INVALID };
+  }
+
+  const memRes = await admin
+    .from("organization_memberships")
+    .select("organization_id, member_type")
+    .eq("auth_user_id", userId)
+    .eq("member_type", "portal")
+    .limit(2);
+  if ((memRes as { error?: unknown })?.error) {
+    return { ok: false, status: 503, message: PORTAL_LOOKUP_UNAVAILABLE };
+  }
+  const memberships = ((memRes as { data?: unknown })?.data ?? []) as Array<
+    { organization_id?: string | null }
+  >;
+  if (memberships.length !== 1) {
+    return { ok: false, status: 403, message: PORTAL_ACCOUNT_INVALID };
+  }
+  if (memberships[0]?.organization_id !== organizationId) {
+    return { ok: false, status: 403, message: ORG_DOCUMENT_MISMATCH };
+  }
+
+  return { ok: true, organizationId, customerId };
+}
+
 /**
  * Agrupa filas heterogéneas por `organization_id`, descartando (y reportando)
  * las que no la tengan. Base para que los crons procesen empresa por empresa.

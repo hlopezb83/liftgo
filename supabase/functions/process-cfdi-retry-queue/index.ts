@@ -21,6 +21,7 @@ import {
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import {
+  classifyInvoiceReadOutcome,
   decideStampRetry,
   decideTerminalStatus,
   resolveStampRetryOrganization,
@@ -336,11 +337,39 @@ export async function handleRequest(
       // server-side; el claim admite 'error'+uuid NULL y re-timbraría un
       // duplicado ante el SAT.
       if (row.operation === "stamp") {
-        const { data: invRowFull } = await admin
+        const { data: invRowFull, error: invReadErr } = await admin
           .from("invoices")
           .select("cfdi_status, cfdi_uuid, organization_id")
           .eq("id", row.invoice_id)
           .maybeSingle();
+        // 8.8.7: un fallo TRANSITORIO al leer la factura (BD no disponible)
+        // NO es "factura sin organización". Se difiere con backoff, sin
+        // consumir intento, sin PAC y sin agotar la fila; otras filas y
+        // empresas siguen procesándose. La clasificación vive en
+        // decisions.ts para que las pruebas usen la función REAL.
+        const readOutcome = classifyInvoiceReadOutcome(
+          invReadErr,
+          invRowFull as { organization_id?: string | null } | null,
+        );
+        if (readOutcome.kind === "deferred") {
+          console.warn(
+            "[process-cfdi-retry-queue] lectura de invoices falló; se difiere",
+            {
+              invoice_id: row.invoice_id,
+              err: (invReadErr as { message?: string })?.message ??
+                String(invReadErr),
+            },
+          );
+          await markQueueRow(admin, row.id, {
+            status: "pending",
+            attempts: row.attempts,
+            last_error:
+              "Lectura de la factura no disponible; reintento diferido.",
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
+          });
+          results.push({ id: row.id, status: "deferred_invoice_read_error" });
+          continue;
+        }
         const st = invRowFull as StampInvoiceState | null;
         // Multiempresa · Fase 1: la organización SIEMPRE se deriva de la
         // factura leída en BD, NUNCA del payload de la cola (un elemento de

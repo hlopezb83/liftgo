@@ -8,7 +8,7 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfigForOrganization,
+  loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
@@ -228,11 +228,18 @@ export async function handleCancelCfdi(
 
     claimedRef = true;
 
-    const { apiKey, mode } = await getFacturapiConfigForOrganization({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId,
     });
+    if (!cfgOutcome.ok) {
+      // 8.8.7: configuración no resoluble ⇒ liberar el claim y responder
+      // error explícito; jamás una cancelación stub "aceptada".
+      await releaseCancelClaim();
+      return json({ error: cfgOutcome.message }, cfgOutcome.status);
+    }
+    const { apiKey, mode } = cfgOutcome;
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
 
     let satStatus = "accepted";

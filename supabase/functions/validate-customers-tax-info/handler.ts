@@ -9,7 +9,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-import { getFacturapiConfigForOrganization } from "../_shared/facturapi/client.ts";
+import { loadFacturapiConfigOutcome } from "../_shared/facturapi/client.ts";
 import {
   RFC_PUBLICO_GENERAL,
   type TaxIdValidationError,
@@ -128,11 +128,15 @@ export async function handleValidateCustomers(
       : DEFAULT_LIMIT;
     const onlyPending = body?.only_pending === true;
 
-    const { apiKey } = await getFacturapiConfigForOrganization({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId,
     });
+    if (!cfgOutcome.ok) {
+      return json({ error: cfgOutcome.message }, cfgOutcome.status);
+    }
+    const { apiKey } = cfgOutcome;
     if (!apiKey) {
       return json({
         error:

@@ -53,3 +53,21 @@ export function resolveStampRetryOrganization(
   if (!organizationId) return { kind: "no_organization" };
   return { kind: "ok", organizationId };
 }
+
+/**
+ * 8.8.7: distingue un FALLO TRANSITORIO de lectura (BD no disponible) de una
+ * factura realmente sin organización. El primero se difiere con backoff, sin
+ * consumir intento, sin PAC y sin agotar la fila; el segundo sí se agota.
+ */
+export type InvoiceReadOutcome =
+  | { kind: "deferred" }
+  | { kind: "no_organization" }
+  | { kind: "ok"; organizationId: string };
+
+export function classifyInvoiceReadOutcome(
+  readError: unknown,
+  invoiceRow: StampRetryInvoiceRow | null,
+): InvoiceReadOutcome {
+  if (readError) return { kind: "deferred" };
+  return resolveStampRetryOrganization(invoiceRow);
+}

@@ -260,3 +260,271 @@ Deno.test("download-cfdi: 404 si la factura no existe", async () => {
   );
   assertEquals(res.status, 404);
 });
+
+// ---------------------------------------------------------------------------
+// 8.8.7 · Portal de clientes. Un cliente del portal NO tiene membresía
+// interna: su empresa y su cliente salen de `customer_portal_accounts`
+// activa + membresía 'portal'. Los fixtures respetan los filtros reales
+// (status y member_type) para que no se cuele una membresía interna.
+// ---------------------------------------------------------------------------
+
+const PORTAL_USER = "55555555-5555-4555-8555-555555555555";
+const CUSTOMER_ID = "66666666-6666-4666-8666-666666666666";
+const OTHER_CUSTOMER_ID = "77777777-7777-4777-8777-777777777777";
+const PAYMENT_ID = "88888888-8888-4888-8888-888888888888";
+
+type Filters = Array<{ col: string; val: unknown }>;
+const filterVal = (filters: Filters, col: string) =>
+  filters.find((f) => f.col === col)?.val;
+
+function portalFixtures(opts: {
+  accountStatus?: string;
+  accountOrg?: string;
+  accountCustomer?: string;
+  membershipOrg?: string;
+  membershipType?: string;
+  accountError?: unknown;
+  membershipError?: unknown;
+}) {
+  const {
+    accountStatus = "active",
+    accountOrg = ORG_ID,
+    accountCustomer = CUSTOMER_ID,
+    membershipOrg = ORG_ID,
+    membershipType = "portal",
+  } = opts;
+  return {
+    customer_portal_accounts: (filters: Filters) => {
+      if (opts.accountError) {
+        return { data: null, error: opts.accountError };
+      }
+      // La consulta real filtra por status='active': una cuenta suspendida
+      // o revocada NO debe devolverse.
+      const wanted = filterVal(filters, "status");
+      if (wanted !== undefined && wanted !== accountStatus) {
+        return { data: [], error: null };
+      }
+      return {
+        data: [{
+          organization_id: accountOrg,
+          customer_id: accountCustomer,
+          status: accountStatus,
+        }],
+        error: null,
+      };
+    },
+    organization_memberships: (filters: Filters) => {
+      if (opts.membershipError) {
+        return { data: null, error: opts.membershipError };
+      }
+      const wanted = filterVal(filters, "member_type");
+      if (wanted !== undefined && wanted !== membershipType) {
+        return { data: [], error: null };
+      }
+      return {
+        data: [{
+          organization_id: membershipOrg,
+          member_type: membershipType,
+        }],
+        error: null,
+      };
+    },
+  };
+}
+
+function makePortalDeps(opts: {
+  portal: Parameters<typeof portalFixtures>[0];
+  selects?: MockConfig["selects"];
+  download?: { data: Blob | null; error: unknown };
+  onDownload?: () => void;
+  onFacturapiFetch?: () => void;
+}) {
+  const caller = buildSupabaseMock({ claims: { sub: PORTAL_USER } });
+  const service = buildSupabaseMock({
+    selects: {
+      profiles: { data: { is_active: true }, error: null },
+      user_roles: { data: { role: "customer" }, error: null },
+      organizations: {
+        data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+        error: null,
+      },
+      ...(opts.selects ?? {}),
+    },
+    selectsByFilter: portalFixtures(opts.portal),
+  });
+  const downloadClient = wrapWithDownload(
+    service.client,
+    opts.download ?? { data: null, error: null },
+    opts.onDownload,
+  );
+  const fetchImpl = ((..._args: Parameters<typeof fetch>) => {
+    opts.onFacturapiFetch?.();
+    // Sin red: cualquier llamada al PAC en estas pruebas es un error.
+    return Promise.reject(new Error("PAC no debe invocarse en estas pruebas"));
+  }) as unknown as typeof fetch;
+  const deps: DownloadCfdiDeps = {
+    createCallerClient: () => caller.client,
+    createServiceClient: () => downloadClient,
+    fetchImpl,
+    env: () => undefined,
+  };
+  return { deps, serviceState: service };
+}
+
+const invoiceRow = (over: Record<string, unknown> = {}) => ({
+  id: INVOICE_ID,
+  organization_id: ORG_ID,
+  customer_id: CUSTOMER_ID,
+  invoice_number: "F-P1",
+  cfdi_uuid: "uuid-p1",
+  cfdi_status: "stamped",
+  cancellation_status: null,
+  cfdi_xml: null,
+  cfdi_xml_url: "org/p1.xml",
+  cfdi_xml_pending: false,
+  cfdi_pdf_url: null,
+  acuse_pdf_url: null,
+  acuse_xml_url: null,
+  facturapi_invoice_id: "fapi_p1",
+  ...over,
+});
+
+Deno.test("portal: cliente con cuenta activa descarga su propio CFDI", async () => {
+  let pac = 0;
+  const { deps } = makePortalDeps({
+    portal: {},
+    download: {
+      data: new Blob(["<xml/>"], { type: "application/xml" }),
+      error: null,
+    },
+    onFacturapiFetch: () => pac++,
+    selects: { invoices: { data: invoiceRow(), error: null } },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), "<xml/>");
+  assertEquals(pac, 0);
+});
+
+Deno.test("portal: documento de OTRA empresa se rechaza sin PAC ni Storage", async () => {
+  let pac = 0, dl = 0;
+  const { deps, serviceState } = makePortalDeps({
+    portal: {},
+    onFacturapiFetch: () => pac++,
+    onDownload: () => dl++,
+    selects: {
+      invoices: {
+        data: invoiceRow({ organization_id: OTHER_ORG_ID }),
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(pac, 0);
+  assertEquals(dl, 0);
+  assertEquals(serviceState.updates.length, 0);
+});
+
+Deno.test("portal: documento de OTRO cliente de la misma empresa se rechaza", async () => {
+  let dl = 0;
+  const { deps } = makePortalDeps({
+    portal: {},
+    onDownload: () => dl++,
+    selects: {
+      invoices: {
+        data: invoiceRow({ customer_id: OTHER_CUSTOMER_ID }),
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(dl, 0);
+});
+
+Deno.test("portal: cuenta suspendida/revocada no obtiene archivos", async () => {
+  let dl = 0;
+  const { deps } = makePortalDeps({
+    portal: { accountStatus: "suspended" },
+    onDownload: () => dl++,
+    selects: { invoices: { data: invoiceRow(), error: null } },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(dl, 0);
+});
+
+Deno.test("portal: membresía interna NO habilita la ruta de portal", async () => {
+  const { deps } = makePortalDeps({
+    portal: { membershipType: "internal" },
+    selects: { invoices: { data: invoiceRow(), error: null } },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+});
+
+Deno.test("portal: error al verificar la membresía responde 503 sin servir archivos", async () => {
+  let dl = 0;
+  const { deps } = makePortalDeps({
+    portal: { membershipError: { message: "db down" } },
+    onDownload: () => dl++,
+    selects: { invoices: { data: invoiceRow(), error: null } },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 503);
+  assertEquals(dl, 0);
+});
+
+Deno.test("portal: REP cuya factura relacionada es de otra empresa se bloquea", async () => {
+  let dl = 0;
+  const { deps } = makePortalDeps({
+    portal: {},
+    onDownload: () => dl++,
+    selects: {
+      payments: {
+        data: {
+          organization_id: ORG_ID,
+          invoice_id: INVOICE_ID,
+          rep_facturapi_id: "fapi_rep",
+          rep_cfdi_uuid: "uuid-rep",
+          rep_cfdi_status: "stamped",
+          rep_xml_url: "org/rep.xml",
+          rep_pdf_url: null,
+        },
+        error: null,
+      },
+      invoices: {
+        data: {
+          customer_id: CUSTOMER_ID,
+          organization_id: OTHER_ORG_ID,
+        },
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ payment_id: PAYMENT_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(dl, 0);
+});
