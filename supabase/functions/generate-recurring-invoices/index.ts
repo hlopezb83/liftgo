@@ -84,6 +84,8 @@ type Forklift = {
 
 type PreviewLine = {
   bookingId: string;
+  // Fase 1 multiempresa: organización dueña de la reserva (nunca del payload).
+  organizationId: string | null;
   bookingCode: string | null;
   customerId: string | null;
   customerName: string | null;
@@ -124,6 +126,9 @@ const MAX_CATCHUP_ITERATIONS = 24;
 
 type PlanItem = {
   bookingId: string;
+  // Fase 1 multiempresa: organización de la reserva de origen; se hereda
+  // explícitamente en la agrupación y en la factura resultante.
+  organizationId: string;
   customerId: string;
   customerName: string | null;
   forkliftName: string | null;
@@ -364,6 +369,7 @@ async function buildPlan(
 
       const baseLine: PreviewLine = {
         bookingId: booking.id,
+        organizationId: (booking.organization_id as string | null) ?? null,
         bookingCode: booking.booking_number ?? null,
         customerId: booking.customer_id ?? null,
         customerName: booking.customer_name ?? null,
@@ -376,7 +382,7 @@ async function buildPlan(
         currency: bookingCurrency,
         rateWarning,
         taxRate: booking.customer_id
-          ? taxRateByCustomer.get(booking.customer_id) ?? null
+          ? taxRateByCustomer.get(`${booking.organization_id}|${booking.customer_id}`) ?? null
           : null,
         isProrated: proratedPeriod,
         proratedDays: proratedPeriod ? proratedDays : undefined,
@@ -513,6 +519,7 @@ async function buildPlan(
       lines.push(baseLine);
       items.push({
         bookingId: booking.id,
+        organizationId: booking.organization_id as string,
         customerId: booking.customer_id as string,
         customerName: booking.customer_name ?? null,
         forkliftName: forklift?.name ?? null,
