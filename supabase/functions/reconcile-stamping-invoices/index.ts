@@ -28,6 +28,7 @@ import {
   getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
 
 import {
   decideLookupOutcome,
@@ -40,6 +41,7 @@ import {
 } from "./decisions.ts";
 
 interface StuckRow extends PureStuckRow {
+  organization_id: string;
   serie: string | null;
   folio: string | null;
   updated_at: string;
@@ -71,7 +73,7 @@ Deno.serve(async (req) => {
   const { data: rows, error } = await admin
     .from("invoices")
     .select(
-      "id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at, stamping_attempts",
+      "id, organization_id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at, stamping_attempts",
     )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
@@ -88,7 +90,7 @@ Deno.serve(async (req) => {
   const { data: stuckPayments, error: payErr } = await admin
     .from("payments")
     .select(
-      "id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts",
+      "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts",
     )
     .eq("rep_cfdi_status", "stamping")
     .lt("rep_stamping_started_at", cutoff)
@@ -101,7 +103,7 @@ Deno.serve(async (req) => {
   const { data: stuckNcs, error: ncErr } = await admin
     .from("credit_notes")
     .select(
-      "id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts, stamping_attempts",
+      "id, organization_id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts, stamping_attempts",
     )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
@@ -264,7 +266,10 @@ Deno.serve(async (req) => {
             client.invoices.downloadXml(row.facturapi_invoice_id!)
           ),
         );
-        const path = `${row.id}/${row.cfdi_uuid}.xml`;
+        const path = organizationStoragePath(
+          row.organization_id,
+          `${row.id}/${row.cfdi_uuid}.xml`,
+        );
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
           path,
           new Blob([cfdiXml], { type: "application/xml" }),
@@ -289,7 +294,10 @@ Deno.serve(async (req) => {
             client.invoices.downloadPdf(row.facturapi_invoice_id!)
           ),
         );
-        const path = `${row.id}/${row.cfdi_uuid}.pdf`;
+        const path = organizationStoragePath(
+          row.organization_id,
+          `${row.id}/${row.cfdi_uuid}.pdf`,
+        );
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
           path,
           pdfBytes,
@@ -506,7 +514,10 @@ Deno.serve(async (req) => {
             client.invoices.downloadXml(facturapiId!)
           ),
         );
-        const path = `${p.invoice_id}/rep-${repUuid}.xml`;
+        const path = organizationStoragePath(
+          p.organization_id,
+          `${p.invoice_id}/rep-${repUuid}.xml`,
+        );
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
           path,
           new Blob([xmlTxt], { type: "application/xml" }),
@@ -525,7 +536,10 @@ Deno.serve(async (req) => {
             client.invoices.downloadPdf(facturapiId!)
           ),
         );
-        const path = `${p.invoice_id}/rep-${repUuid}.pdf`;
+        const path = organizationStoragePath(
+          p.organization_id,
+          `${p.invoice_id}/rep-${repUuid}.pdf`,
+        );
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
           path,
           pdfBytes,
@@ -700,7 +714,10 @@ Deno.serve(async (req) => {
             client.invoices.downloadXml(facturapiId!)
           ),
         );
-        const path = `credit-notes/${ncId}/${ncUuid}.xml`;
+        const path = organizationStoragePath(
+          nc.organization_id,
+          `credit-notes/${ncId}/${ncUuid}.xml`,
+        );
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
           path,
           new Blob([xml], { type: "application/xml" }),
@@ -719,7 +736,10 @@ Deno.serve(async (req) => {
             client.invoices.downloadPdf(facturapiId!)
           ),
         );
-        const path = `credit-notes/${ncId}/${ncUuid}.pdf`;
+        const path = organizationStoragePath(
+          nc.organization_id,
+          `credit-notes/${ncId}/${ncUuid}.pdf`,
+        );
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
           path,
           bytes,
