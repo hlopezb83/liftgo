@@ -85,6 +85,13 @@
       "when": 1789347600000,
       "tag": "0011_multi_org_phase5_bank_upload_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1789348200000,
+      "tag": "0012_multi_org_phase5_bank_finalize_scope",
+      "breakpoints": true
     }
   ]
 }
