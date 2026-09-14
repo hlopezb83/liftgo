@@ -561,6 +561,7 @@ Deno.test(
     try {
       const ncData = {
         id: NC_ID,
+        organization_id: ORG_ID,
         invoice_id: INVOICE_ID,
         tax_rate: 16,
         currency: "MXN",
@@ -656,6 +657,7 @@ Deno.test(
     try {
       const ncData = {
         id: NC_ID,
+        organization_id: ORG_ID,
         invoice_id: INVOICE_ID,
         tax_rate: 16,
         currency: "MXN",
@@ -750,6 +752,7 @@ Deno.test(
     try {
       const ncData = {
         id: NC_ID,
+        organization_id: ORG_ID,
         invoice_id: INVOICE_ID,
         tax_rate: 16,
         currency: "MXN",
