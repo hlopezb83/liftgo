@@ -75,8 +75,6 @@ interface RelatedInvoiceRow {
   customer_name?: string | null;
 }
 
-
-
 const BUCKET = "cfdi-files";
 const DEFAULT_IVA_RATE = 0.16;
 
