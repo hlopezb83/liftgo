@@ -170,7 +170,9 @@ export function destinationReferenceValue(
 
   try {
     const url = new URL(publicUrlOrigin);
-    const encodedPath = destinationPath.split("/").map(encodeURIComponent).join("/");
+    const encodedPath = destinationPath.split("/").map(encodeURIComponent).join(
+      "/",
+    );
     url.pathname = `/storage/v1/object/public/${bucketId}/${encodedPath}`;
     return url.toString();
   } catch {
