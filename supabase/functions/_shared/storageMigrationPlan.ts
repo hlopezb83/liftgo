@@ -50,8 +50,8 @@ function decodePath(path: string): string | null {
 }
 
 /**
- * Extrae únicamente rutas publicas canonicas de Supabase. URLs firmadas, hosts
- * ajenos y query strings se rechazan: no deben duplicarse ni persistirse.
+ * Extrae rutas canónicas de Supabase. Una URL firmada legada se convierte a
+ * ruta interna; el token nunca se devuelve ni se persiste en el ledger.
  */
 export function parseStorageReference(
   value: unknown,
@@ -75,16 +75,37 @@ export function parseStorageReference(
       return null;
     }
 
-    const marker = `/storage/v1/object/public/${bucketId}/`;
-    if (!url.pathname.startsWith(marker)) return null;
-    const sourcePath = decodePath(url.pathname.slice(marker.length));
-    if (!sourcePath) return null;
+    const publicMarker = `/storage/v1/object/public/${bucketId}/`;
+    if (url.pathname.startsWith(publicMarker) && !url.search && !url.hash) {
+      const sourcePath = decodePath(url.pathname.slice(publicMarker.length));
+      return sourcePath
+        ? {
+          sourcePath,
+          format: "public_url",
+          publicUrlOrigin: url.origin,
+        }
+        : null;
+    }
 
-    return {
-      sourcePath,
-      format: "public_url",
-      publicUrlOrigin: url.origin,
-    };
+    // El sistema histórico guardó URLs firmadas en CxP. Sólo reconocemos la
+    // forma oficial con token; el destino se vuelve una ruta interna nueva.
+    const signedMarker = `/storage/v1/object/sign/${bucketId}/`;
+    if (
+      url.pathname.startsWith(signedMarker) &&
+      !url.hash &&
+      url.searchParams.has("token")
+    ) {
+      const sourcePath = decodePath(url.pathname.slice(signedMarker.length));
+      return sourcePath
+        ? {
+          sourcePath,
+          format: "storage_path",
+          publicUrlOrigin: null,
+        }
+        : null;
+    }
+
+    return null;
   }
 
   const bucketPrefix = `${bucketId}/`;
