@@ -1,3 +1,11 @@
+## [8.8.4] - 2026-09-14
+### Precisión en la documentación técnica
+- §15.6: `ci.yml` ejecuta ESLint, `tsc`, `arch-check`, build, un smoke de arranque con `playwright.smoke.config.ts` (no la suite E2E completa), Vitest en 2 shards + merge de cobertura, y jobs condicionales Deno/lint SQL/dependency-review/actionlint. No ejecuta knip.
+- §7: los archivos de ruta declaran sus propios guards (`module`/`minAccess` locales + `RoleGuard`); `src/app-routes/routes-config.tsx` es un registro heredado consumido por sidebar y búsqueda global, no la fuente efectiva de permisos en runtime. Se ajustan el mapa de carpetas, el paso para agregar rutas y las referencias.
+- Diagrama: se retira el enlace directo Facturapi/AI → Postgres; los proveedores externos solo son invocados desde Edge Functions o código servidor.
+- Se reemplaza "siguen desplegadas" por "presentes en el repositorio" (incluida la entrada 8.8.3 de este archivo): la presencia en Git no acredita un despliegue activo.
+- Las notas multi-organización dejan de enumerar pendientes como hechos: esta revisión documental no certifica el cierre de la migración.
+
 ## [8.8.3] - 2026-09-14
 ### Documentación técnica alineada con el sistema actual
 - `README.md` y `architecture.md` describen el stack real: React 19, Vite 8, TypeScript 6, Tailwind v4 y TanStack Start/Router con SSR.
