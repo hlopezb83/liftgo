@@ -19,10 +19,11 @@ export function useCreateCreditNote() {
       const { stamp, ...payload } = input;
       const { data: numberData, error: numErr } = await supabase.rpc("next_draft_credit_note_number");
       if (numErr) throw numErr;
-      const insertPayload: TablesInsert<"credit_notes"> = {
+      // organization_id lo asigna la base (default/trigger), no el formulario.
+      const insertPayload = {
         ...payload,
         credit_note_number: numberData as string,
-      };
+      } as TablesInsert<"credit_notes">;
       const { data: created, error } = await supabase
         .from("credit_notes")
         .insert(insertPayload)

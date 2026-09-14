@@ -174,7 +174,8 @@ export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBloc
       if (numError) throw numError;
       const { data, error } = await supabase
         .from("invoices")
-        .insert({ ...invoice, invoice_number: numData as string })
+        // organization_id lo asigna la base (default/trigger), no el formulario.
+        .insert({ ...invoice, invoice_number: numData as string } as TablesInsert<"invoices">)
         .select()
         .single();
       if (error) throw error;
