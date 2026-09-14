@@ -448,7 +448,7 @@ Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arc
 ## 16. Versionado y changelog
 
 - Versionado semántico (MAJOR.MINOR.PATCH).
-- **Fuente consumida en runtime**: `public/changelog.json` — lo lee `ChangelogPage` vía `fetchChangelog()` en `src/lib/changelog.ts`.
+- **Fuente consumida en runtime**: `public/changelog.json` — lo lee `ChangelogPage` vía `fetchChangelog()` en `src/features/changelog/lib/changelog.ts`.
 - **Política mandatoria**: cada cambio funcional agrega una entrada al **inicio** del array (versión, fecha, tipo, título, descripción, lista de cambios). Selecciona major/minor/patch según magnitud.
 - La página `/changelog` permite filtrar por tipo.
 
