@@ -511,7 +511,10 @@ async function buildPlan(
         .maybeSingle();
 
       if (existing) {
-        const inv = existing.invoices as { id: string; invoice_number: string };
+        const inv = existing.invoices as unknown as {
+          id: string;
+          invoice_number: string;
+        };
         lines.push({
           ...baseLine,
           eligible: false,
