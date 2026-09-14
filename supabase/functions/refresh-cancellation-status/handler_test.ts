@@ -18,6 +18,8 @@ import {
 
 const INVOICE_ID = "11111111-1111-4111-8111-111111111111";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
+const ORG_ID = "33333333-3333-4333-8333-333333333333";
+const OTHER_ORG_ID = "44444444-4444-4444-8444-444444444444";
 
 function makeRequest(body: unknown, opts: { auth?: string | null } = {}) {
   const headers: Record<string, string> = {
@@ -44,6 +46,10 @@ function makeDeps(opts: {
       // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
       // cuenta activa para no repetir el mock en cada test.
       profiles: { data: { is_active: true }, error: null },
+      organization_memberships: {
+        data: [{ organization_id: ORG_ID, member_type: "internal" }],
+        error: null,
+      },
       ...(opts.service?.selects ?? {}),
     },
   });

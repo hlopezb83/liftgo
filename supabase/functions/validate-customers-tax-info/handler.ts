@@ -9,7 +9,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
+import { getFacturapiConfigForOrganization } from "../_shared/facturapi/client.ts";
 import {
   RFC_PUBLICO_GENERAL,
   type TaxIdValidationError,
@@ -20,6 +20,7 @@ import {
   authenticateWithDeps,
   type CallerLike,
 } from "../_shared/authWithDeps.ts";
+import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 
 export type { SupabaseLike };
 
@@ -40,6 +41,15 @@ interface CustomerRow {
   name: string;
   rfc: string | null;
   razon_social: string | null;
+  regimen_fiscal: string | null;
+  domicilio_fiscal_cp: string | null;
+}
+
+/** Fila cruda de `organization_customers`: datos fiscales por empresa. */
+interface OrganizationCustomerLink {
+  customer_id: string;
+  razon_social: string | null;
+  rfc: string | null;
   regimen_fiscal: string | null;
   domicilio_fiscal_cp: string | null;
 }
@@ -95,6 +105,22 @@ export async function handleValidateCustomers(
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     const supabase = auth.supabase;
 
+    // Multiempresa · Fase 1: una operación masiva SIEMPRE opera acotada a la
+    // organización del caller. Un JWT service_role no hereda organización de
+    // ningún usuario, así que no puede correr esta validación sin una forma
+    // confiable de derivarla (no existe cron que use este endpoint hoy).
+    if (auth.isServiceRole) {
+      return json({
+        error:
+          "Esta operación requiere una sesión de usuario con empresa asignada; no está disponible para procesos automáticos.",
+      }, 403);
+    }
+    const orgRes = await resolveCallerOrganization(supabase, auth.userId);
+    if (!orgRes.ok) {
+      return json({ error: orgRes.message }, orgRes.status);
+    }
+    const organizationId = orgRes.organizationId;
+
     const body = await req.json().catch(() => null);
     const rawLimit = Number(body?.limit ?? DEFAULT_LIMIT);
     const limit = Number.isFinite(rawLimit)
@@ -102,18 +128,59 @@ export async function handleValidateCustomers(
       : DEFAULT_LIMIT;
     const onlyPending = body?.only_pending === true;
 
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
+    const { apiKey } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: deps.env,
+      organizationId,
+    });
     if (!apiKey) {
-      return json({ error: "Facturapi API key not configured" }, 400);
+      return json({
+        error:
+          `No hay una llave de Facturapi configurada para tu empresa (organization_id: ${organizationId}).`,
+      }, 400);
+    }
+
+    // `customers` es la identidad global del cliente; los datos fiscales
+    // (RFC, razón social, régimen, CP) que se validan contra el SAT viven en
+    // `organization_customers`, la relación propia de cada empresa. Acotamos
+    // primero por organización ahí antes de tocar nada de `customers`.
+    const { data: links, error: linksErr } = await supabase
+      .from("organization_customers")
+      .select("customer_id,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp")
+      .eq("organization_id", organizationId)
+      .neq("status", "archived")
+      .not("rfc", "is", null)
+      .neq("rfc", "")
+      .neq("rfc", RFC_PUBLICO_GENERAL);
+    if (linksErr) {
+      console.error("[validate-customers-tax-info] organization_customers query", linksErr);
+      return json({ error: "No se pudo leer la cartera de clientes" }, 500);
+    }
+
+    const orgLinks = (links ?? []) as OrganizationCustomerLink[];
+    const linkByCustomerId = new Map(
+      orgLinks.map((l) => [l.customer_id, l] as const),
+    );
+    const customerIds = orgLinks.map((l) => l.customer_id);
+
+    const summary: ValidateCustomersSummary = {
+      processed: 0,
+      valid: 0,
+      mismatch: 0,
+      error: 0,
+      remaining: 0,
+      results: [],
+    };
+
+    if (customerIds.length === 0) {
+      return json(summary, 200);
     }
 
     let query = supabase
       .from("customers")
-      .select("id,name,rfc,razon_social,regimen_fiscal,domicilio_fiscal_cp")
-      .is("deleted_at", null)
-      .not("rfc", "is", null)
-      .neq("rfc", "")
-      .neq("rfc", RFC_PUBLICO_GENERAL);
+      .select("id,name")
+      .in("id", customerIds)
+      .is("deleted_at", null);
     if (onlyPending) query = query.eq("sat_validation_status", "not_validated");
 
     const { data, error } = await query
@@ -124,16 +191,18 @@ export async function handleValidateCustomers(
       return json({ error: "No se pudo leer la cartera de clientes" }, 500);
     }
 
-    const customers = (data ?? []) as CustomerRow[];
-    const summary: ValidateCustomersSummary = {
-      processed: 0,
-      valid: 0,
-      mismatch: 0,
-      error: 0,
-      remaining: 0,
-      results: [],
-    };
-
+    const customers = ((data ?? []) as Array<{ id: string; name: string }>)
+      .map((c) => {
+        const link = linkByCustomerId.get(c.id);
+        return {
+          id: c.id,
+          name: c.name,
+          rfc: link?.rfc ?? null,
+          razon_social: link?.razon_social ?? null,
+          regimen_fiscal: link?.regimen_fiscal ?? null,
+          domicilio_fiscal_cp: link?.domicilio_fiscal_cp ?? null,
+        } satisfies CustomerRow;
+      });
     for (const c of customers) {
       let status: "valid" | "mismatch" | "error" = "error";
       let errors: TaxIdValidationError[] = missingFieldErrors(c);
@@ -194,10 +263,8 @@ export async function handleValidateCustomers(
     const { count } = await supabase
       .from("customers")
       .select("id", { count: "exact", head: true })
+      .in("id", customerIds)
       .is("deleted_at", null)
-      .not("rfc", "is", null)
-      .neq("rfc", "")
-      .neq("rfc", RFC_PUBLICO_GENERAL)
       .eq("sat_validation_status", "not_validated");
     summary.remaining = count ?? 0;
 

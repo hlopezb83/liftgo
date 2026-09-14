@@ -9,8 +9,9 @@ import {
   createFacturapiClient,
   createInvoiceWithSignal,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -53,6 +54,26 @@ Deno.serve(async (req) => {
       .eq("id", payment_id)
       .single();
     if (payErr || !payment) return jsonError(req, 404, "Payment not found");
+
+    // Multiempresa · Fase 1: la organización se valida contra el pago leído
+    // de BD ANTES de cualquier claim, update o llamada al PAC. requireRole no
+    // soporta bypass service_role, así que isServiceRole es siempre false.
+    const orgCheck = await resolveDocumentOrganization({
+      admin: supabase,
+      userId: auth.userId,
+      isServiceRole: false,
+      documentOrganizationId: (payment as Record<string, unknown>)
+        .organization_id as string | null | undefined,
+    });
+    if (!orgCheck.ok) {
+      console.error("[stamp-payment-complement] organization check failed", {
+        payment_id,
+        status: orgCheck.status,
+      });
+      return jsonError(req, orgCheck.status, orgCheck.message);
+    }
+    const organizationId = orgCheck.organizationId;
+
     if (payment.rep_cfdi_status === "stamped") {
       return jsonError(req, 409, "Este pago ya tiene un REP timbrado");
     }
@@ -288,14 +309,19 @@ Deno.serve(async (req) => {
       taxes.push({ base: baseCents / 100, type: "IVA", rate, factor: "Tasa" });
     });
 
-    const { apiKey } = await getFacturapiConfig(
-      supabase,
-      (k) => Deno.env.get(k),
-    );
+    const { apiKey } = await getFacturapiConfigForOrganization({
+      admin: supabase,
+      env: (k) => Deno.env.get(k),
+      organizationId,
+    });
     if (!apiKey) {
       // Bloque 6.3: sin apiKey el claim quedaba huérfano en 'in_progress'.
-      await releaseClaim("Facturapi key no configurada");
-      return jsonError(req, 400, "Facturapi key not configured");
+      await releaseClaim("Facturapi key no configurada para esta empresa");
+      return jsonError(
+        req,
+        400,
+        "Facturapi key not configured for this organization",
+      );
     }
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;

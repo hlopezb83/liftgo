@@ -49,6 +49,10 @@ function makeDeps(opts: {
       // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
       // cuenta activa para no repetir el mock en cada test.
       profiles: { data: { is_active: true }, error: null },
+      organization_memberships: {
+        data: [{ organization_id: ORG_ID, member_type: "internal" }],
+        error: null,
+      },
       ...(opts.service?.selects ?? {}),
     },
   });

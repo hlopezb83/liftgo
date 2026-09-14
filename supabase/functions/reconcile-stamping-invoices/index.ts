@@ -25,10 +25,11 @@ import {
   binaryToText,
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
+import { groupByOrganization, resolveCallerOrganization } from "../_shared/orgContext.ts";
 
 import {
   decideLookupOutcome,
@@ -66,11 +67,24 @@ Deno.serve(async (req) => {
   const auth = await authenticateCronRequest(req);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
+  // Multiempresa · Fase 1: ejecución MANUAL (un humano, no pg_cron) se acota
+  // a su propia organización. La detectamos por un header explícito que solo
+  // agrega un caller confiable (nunca el body, que es del navegador). Sin
+  // este header (camino real del cron) se procesan todas las organizaciones
+  // con trabajo pendiente, cada una con SUS PROPIAS credenciales.
+  const manualCallerUserId = req.headers.get("x-caller-user-id");
+  let manualOrganizationId: string | null = null;
+  if (manualCallerUserId) {
+    const callerOrg = await resolveCallerOrganization(admin, manualCallerUserId);
+    if (!callerOrg.ok) return json({ error: callerOrg.message }, callerOrg.status);
+    manualOrganizationId = callerOrg.organizationId;
+  }
+
   const STALE_THRESHOLD_MIN = 10;
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
     .toISOString();
 
-  const { data: rows, error } = await admin
+  let invoicesQuery = admin
     .from("invoices")
     .select(
       "id, organization_id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at, stamping_attempts",
@@ -78,6 +92,10 @@ Deno.serve(async (req) => {
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
     .limit(RUN_ROW_LIMIT);
+  if (manualOrganizationId) {
+    invoicesQuery = invoicesQuery.eq("organization_id", manualOrganizationId);
+  }
+  const { data: rows, error } = await invoicesQuery;
 
   if (error) {
     console.error("[reconcile-stamping] fetch failed", error);
@@ -87,7 +105,7 @@ Deno.serve(async (req) => {
   // N4: consultar TAMBIÉN REP y NC atascados ANTES de decidir si salir —
   // si solo hay pagos o NCs en 'stamping', el cron no debe irse sin
   // procesarlos (deadlock permanente tras un timeout del PAC).
-  const { data: stuckPayments, error: payErr } = await admin
+  let paymentsQuery = admin
     .from("payments")
     .select(
       "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts",
@@ -95,12 +113,16 @@ Deno.serve(async (req) => {
     .eq("rep_cfdi_status", "stamping")
     .lt("rep_stamping_started_at", cutoff)
     .limit(RUN_ROW_LIMIT);
+  if (manualOrganizationId) {
+    paymentsQuery = paymentsQuery.eq("organization_id", manualOrganizationId);
+  }
+  const { data: stuckPayments, error: payErr } = await paymentsQuery;
 
   if (payErr) {
     console.error("[reconcile-stamping] payments fetch failed", payErr);
   }
 
-  const { data: stuckNcs, error: ncErr } = await admin
+  let creditNotesQuery = admin
     .from("credit_notes")
     .select(
       "id, organization_id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts, stamping_attempts",
@@ -108,32 +130,37 @@ Deno.serve(async (req) => {
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
     .limit(RUN_ROW_LIMIT);
+  if (manualOrganizationId) {
+    creditNotesQuery = creditNotesQuery.eq("organization_id", manualOrganizationId);
+  }
+  const { data: stuckNcs, error: ncErr } = await creditNotesQuery;
 
   if (ncErr) {
     console.error("[reconcile-stamping] credit_notes fetch failed", ncErr);
   }
 
-  const stuck = (rows ?? []) as StuckRow[];
-  const payments = (stuckPayments ?? []) as Array<Record<string, unknown>>;
-  const ncs = (stuckNcs ?? []) as Array<Record<string, unknown>>;
+  const stuckAll = (rows ?? []) as StuckRow[];
+  const paymentsAll = (stuckPayments ?? []) as Array<Record<string, unknown>>;
+  const ncsAll = (stuckNcs ?? []) as Array<Record<string, unknown>>;
 
   // N4: salir SOLO si las tres listas están vacías. Con trabajo pendiente,
-  // se continúa y se pide la config del PAC (no se gasta en ciclos vacíos).
-  if (stuck.length === 0 && payments.length === 0 && ncs.length === 0) {
+  // se continúa y se resuelve la config del PAC POR ORGANIZACIÓN (nunca un
+  // solo cliente Facturapi compartido entre empresas).
+  if (stuckAll.length === 0 && paymentsAll.length === 0 && ncsAll.length === 0) {
     return json({ processed: 0, results: [] }, 200);
   }
 
-  const { apiKey, mode } = await getFacturapiConfig(
-    admin as unknown as { from: (t: string) => unknown } as never,
-    (k) => Deno.env.get(k),
-  );
-  if (!apiKey) {
-    return json(
-      { error: "Facturapi no configurado; no se puede reconciliar" },
-      500,
-    );
-  }
-  const client = createFacturapiClient(apiKey);
+  // Multiempresa · Fase 1: agrupar cada colección por organization_id. Las
+  // filas sin organización NO se procesan; se reportan aparte.
+  const stuckGrouped = groupByOrganization(stuckAll);
+  const paymentsGrouped = groupByOrganization(paymentsAll);
+  const ncsGrouped = groupByOrganization(ncsAll);
+
+  const organizationIds = new Set<string>([
+    ...stuckGrouped.groups.keys(),
+    ...paymentsGrouped.groups.keys(),
+    ...ncsGrouped.groups.keys(),
+  ]);
 
   // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
   // (o un reintento manual encimado) podían procesar el mismo documento y
@@ -156,8 +183,94 @@ Deno.serve(async (req) => {
   };
 
   const results: Array<
-    { invoice_id: string; status: string; error?: string }
+    { invoice_id: string; status: string; error?: string; organization_id?: string }
   > = [];
+
+  // Documentos sin organization_id: no se procesan (no hay forma segura de
+  // resolver credenciales), pero se reportan para diagnóstico.
+  for (const orphan of [
+    ...stuckGrouped.withoutOrganization,
+    ...paymentsGrouped.withoutOrganization,
+    ...ncsGrouped.withoutOrganization,
+  ]) {
+    const id = (orphan as { id?: unknown }).id;
+    results.push({
+      invoice_id: typeof id === "string" ? id : "unknown",
+      status: "skipped_without_organization",
+      error: "Documento sin organization_id; no se puede resolver Facturapi",
+    });
+  }
+
+  // Reporte por organización, para diagnosticar fallas aisladas sin romper
+  // el formato de respuesta existente (`processed`/`truncated`/`results`).
+  const organizations: Array<
+    { organization_id: string; status: "ok" | "misconfigured"; error?: string }
+  > = [];
+
+  for (const organizationId of organizationIds) {
+    if (outOfBudget()) {
+      truncated = true;
+      break;
+    }
+
+    // Multiempresa · Fase 1: config y cliente Facturapi EXCLUSIVOS de esta
+    // organización. Un fallo aquí NUNCA usa llaves de otra empresa; solo
+    // afecta el trabajo pendiente de esta organización.
+    let apiKey: string | null = null;
+    let mode: "test" | "live" = "test";
+    try {
+      const cfg = await getFacturapiConfigForOrganization({
+        admin,
+        env: (k) => Deno.env.get(k),
+        organizationId,
+      });
+      apiKey = cfg.apiKey;
+      mode = cfg.mode;
+    } catch (err) {
+      console.error("[reconcile-stamping] config lookup failed", {
+        organization_id: organizationId,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
+
+    if (!apiKey) {
+      organizations.push({
+        organization_id: organizationId,
+        status: "misconfigured",
+        error: "Facturapi no configurado para esta empresa",
+      });
+      for (const row of stuckGrouped.groups.get(organizationId) ?? []) {
+        results.push({
+          invoice_id: row.id,
+          status: "org_misconfigured",
+          error: "Facturapi no configurado; no se puede reconciliar",
+          organization_id: organizationId,
+        });
+      }
+      for (const p of paymentsGrouped.groups.get(organizationId) ?? []) {
+        results.push({
+          invoice_id: (p as { id: string }).id,
+          status: "org_misconfigured",
+          error: "Facturapi no configurado; no se puede reconciliar",
+          organization_id: organizationId,
+        });
+      }
+      for (const nc of ncsGrouped.groups.get(organizationId) ?? []) {
+        results.push({
+          invoice_id: (nc as { id: string }).id,
+          status: "org_misconfigured",
+          error: "Facturapi no configurado; no se puede reconciliar",
+          organization_id: organizationId,
+        });
+      }
+      continue;
+    }
+
+    organizations.push({ organization_id: organizationId, status: "ok" });
+    const client = createFacturapiClient(apiKey);
+    const stuck = stuckGrouped.groups.get(organizationId) ?? [];
+    const payments = paymentsGrouped.groups.get(organizationId) ?? [];
+    const ncs = ncsGrouped.groups.get(organizationId) ?? [];
 
   for (const row of stuck) {
     if (outOfBudget()) {
@@ -809,6 +922,7 @@ Deno.serve(async (req) => {
       results.push({ invoice_id: ncId, status: "nc_exception", error: msg });
     }
   }
+  } // fin del bloque por organización
 
-  return json({ processed: results.length, truncated, results }, 200);
+  return json({ processed: results.length, truncated, results, organizations }, 200);
 });
