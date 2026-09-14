@@ -22,7 +22,11 @@ Deno.test("storageMigrationPlan: migra una ruta relativa legada", () => {
 });
 
 Deno.test("storageMigrationPlan: conserva el formato bucket/path de documentos", () => {
-  const plan = makeStorageMigrationPlan(ORG, "documents", "documents/a/file.pdf");
+  const plan = makeStorageMigrationPlan(
+    ORG,
+    "documents",
+    "documents/a/file.pdf",
+  );
   assertEquals(plan.format, "bucket_path");
   assertEquals(
     destinationReferenceValue(
@@ -55,7 +59,8 @@ Deno.test("storageMigrationPlan: reescribe una URL pública sin query ni secreto
 
 Deno.test("storageMigrationPlan: no toca rutas ya aisladas y bloquea otro prefijo", () => {
   assertEquals(
-    makeStorageMigrationPlan(ORG, "cfdi-files", `${ORG}/invoice/a.xml`).disposition,
+    makeStorageMigrationPlan(ORG, "cfdi-files", `${ORG}/invoice/a.xml`)
+      .disposition,
     "already_scoped",
   );
   assertEquals(
@@ -76,5 +81,8 @@ Deno.test("storageMigrationPlan: rechaza URL firmada y rutas inseguras", () => {
     ),
     null,
   );
-  assertEquals(makeStorageMigrationPlan(ORG, "cfdi-files", "../a.xml").disposition, "unsupported");
+  assertEquals(
+    makeStorageMigrationPlan(ORG, "cfdi-files", "../a.xml").disposition,
+    "unsupported",
+  );
 });
