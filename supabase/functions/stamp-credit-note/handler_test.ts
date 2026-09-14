@@ -871,3 +871,105 @@ Deno.test(
     }
   },
 );
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multiempresa · Fase 1 — regresión de aislamiento fiscal
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("handler: MULTIEMPRESA rechaza nota de crédito de otra organización (403) sin updates ni PAC", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: {
+            data: { id: NC_ID, organization_id: OTHER_ORG_ID, invoice_id: INVOICE_ID },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 403);
+    assertEquals(body.error, "El documento pertenece a otra empresa.");
+    assertEquals(
+      serviceState.updates.length,
+      0,
+      "no debe tocarse la NC de otra organización",
+    );
+    assertEquals(facturapiCalled, 0, "el PAC nunca debe invocarse");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo live falla explícito (no reutiliza llaves ajenas)", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const ncData = { ...VALID_CREDIT_NOTE };
+    const { deps, serviceState } = makeDeps({
+      // Llave de entorno "ajena" (legado) presente, pero NO debe reutilizarse
+      // porque ya existe más de una organización en la BD.
+      env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: { data: ncData, error: null },
+          invoices: { data: STAMPED_INVOICE, error: null },
+          company_settings: {
+            data: { facturapi_mode: "live", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+          // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
+          organizations: {
+            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            error: null,
+          },
+        },
+        selectsSeq: {
+          credit_notes: [
+            { data: ncData, error: null },
+            { data: [], error: null },
+          ],
+        },
+        updatesSeq: {
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 400);
+    assert(String(body.error).includes("API key no configurada"));
+    assertEquals(facturapiCalled, 0, "no debe llamarse al PAC sin key propia");
+    const errUpdate = serviceState.updates.find((u) =>
+      u.table === "credit_notes" && u.patch.cfdi_status === "error"
+    );
+    assert(errUpdate, "debe liberar el claim marcando error explícito");
+  } finally {
+    mock.restore();
+  }
+});

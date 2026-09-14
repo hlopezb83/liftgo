@@ -322,3 +322,89 @@ Deno.test("handler: motivo inválido responde 400 (SAT: motive obligatorio)", as
   assertEquals(res.status, 400);
   assertEquals(body.error, "motive must be one of 01,02,03,04");
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// Multiempresa · Fase 1 — regresión de aislamiento fiscal
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("handler: MULTIEMPRESA rechaza pago de otra organización (403) sin claim ni PAC", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices/fapi_other": () => {
+      facturapiCalled++;
+      return new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          payments: {
+            data: {
+              organization_id: OTHER_ORG_ID,
+              rep_cfdi_status: "stamped",
+              rep_facturapi_id: "fapi_other",
+            },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleCancelPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 403);
+    assertEquals(body.error, "El documento pertenece a otra empresa.");
+    assertEquals(serviceState.updates.length, 0, "no debe tocarse el pago");
+    assertEquals(facturapiCalled, 0, "el PAC nunca debe invocarse");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: MULTIEMPRESA sin credenciales propias en modo live rechaza (no reutiliza llaves ajenas)", async () => {
+  const { deps, serviceState } = makeDeps({
+    env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        payments: {
+          data: {
+            organization_id: ORG_ID,
+            rep_cfdi_status: "stamped",
+            rep_facturapi_id: "fapi_z2",
+          },
+          error: null,
+        },
+        company_settings: {
+          data: { facturapi_mode: "live", organization_id: ORG_ID },
+          error: null,
+        },
+        billing_secrets: { data: null, error: null },
+        organizations: {
+          data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+          error: null,
+        },
+      },
+      updates: { payments: { data: null, error: null } },
+    },
+  });
+  const res = await handleCancelPaymentComplement(
+    makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 400);
+  assert(String(body.error).includes("Facturapi key no configurada"));
+  const upd = serviceState.updates.find((u) =>
+    u.table === "payments" && u.patch.rep_cfdi_status !== undefined
+  );
+  assertEquals(upd, undefined, "no debe marcarse cancelado sin key propia");
+});
