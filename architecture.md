@@ -451,9 +451,10 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 2. Página orquestadora en `src/features/<feature>/pages/<Feature>Page.tsx`.
 3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
 4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
-5. Registrar ruta en `src/lib/routes-config.tsx` con `module: "Mi Módulo"` y `lazy()`.
-6. Agregar la URL a `src/lib/routes.ts`.
-7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
+5. Registrar la ruta en `src/app-routes/routes-config.tsx` con `module: "Mi Módulo"` y su `loader` dinámico.
+6. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL) y agregar la URL a `src/app-routes/routes.ts`.
+7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `src/features/users/hooks/useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
+
 8. Agregar test mínimo en `src/test/`.
 9. Agregar entrada al inicio de `public/changelog.json` **y** crear el detalle en `public/changelog/v<X.Y.Z>.json`.
 
