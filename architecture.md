@@ -768,15 +768,19 @@ Items identificados por la auditoría arquitectónica que **no se ejecutaron** e
 
 - `README.md` — instrucciones de desarrollo.
 - `public/changelog.json` — historial funcional consumido por la app.
-- `src/lib/changelog.ts` — fetcher + tipos del changelog.
+- `src/features/changelog/lib/changelog.ts` — fetcher + tipos del changelog.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
 - `src/lib/config.ts` — configuración global (IVA, monedas).
-- `src/lib/routes-config.tsx` y `src/lib/routes.ts` — rutas y permisos.
-- `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
+- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro de rutas y permisos.
+- `src/routes/` — rutas file-based de TanStack Router; `src/routeTree.gen.ts` es generado.
+- `src/router.tsx`, `src/start.ts`, `src/server.ts` — router, middlewares y entrada SSR.
+- `src/features/users/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
 - `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
 - `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
 - `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
 - `docs/paginacion-cursor.md` — patrón de listados y disparador de migración a cursor.
-- `supabase/functions/` — backend serverless.
-- `supabase/migrations/` — historial SQL.
+- `supabase/functions/` — Edge Functions Deno.
+- `supabase/migrations/` y `drizzle/migrations/` — historial SQL.
+- `vite.config.ts` y `wrangler.jsonc` — build SSR (Nitro/Cloudflare) y despliegue.
+
 - `CHANGELOG.md` y `public/changelog/` — historial de cambios (incluye el detalle de cada auditoría cerrada).
