@@ -475,7 +475,7 @@ export type Database = {
           facturapi_live_key: string | null
           facturapi_test_key: string | null
           id: string
-          organization_id: string | null
+          organization_id: string
           updated_at: string
         }
         Insert: {
@@ -483,7 +483,7 @@ export type Database = {
           facturapi_live_key?: string | null
           facturapi_test_key?: string | null
           id?: string
-          organization_id?: string | null
+          organization_id: string
           updated_at?: string
         }
         Update: {
@@ -491,7 +491,7 @@ export type Database = {
           facturapi_live_key?: string | null
           facturapi_test_key?: string | null
           id?: string
-          organization_id?: string | null
+          organization_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -623,7 +623,7 @@ export type Database = {
           is_e2e: boolean
           last_billed_date: string | null
           monthly_rate: number | null
-          organization_id: string | null
+          organization_id: string
           quote_id: string | null
           recurring_billing: boolean
           return_status: string | null
@@ -651,7 +651,7 @@ export type Database = {
           is_e2e?: boolean
           last_billed_date?: string | null
           monthly_rate?: number | null
-          organization_id?: string | null
+          organization_id: string
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
@@ -679,7 +679,7 @@ export type Database = {
           is_e2e?: boolean
           last_billed_date?: string | null
           monthly_rate?: number | null
-          organization_id?: string | null
+          organization_id?: string
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
@@ -727,6 +727,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "quotes"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bookings_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
           },
         ]
       }
@@ -919,7 +926,7 @@ export type Database = {
           logo_url: string | null
           lugar_expedicion: string
           maintenance_buffer_days: number
-          organization_id: string | null
+          organization_id: string
           razon_social: string
           regimen_fiscal: string
           rfc: string
@@ -936,7 +943,7 @@ export type Database = {
           logo_url?: string | null
           lugar_expedicion: string
           maintenance_buffer_days?: number
-          organization_id?: string | null
+          organization_id: string
           razon_social: string
           regimen_fiscal: string
           rfc: string
@@ -953,7 +960,7 @@ export type Database = {
           logo_url?: string | null
           lugar_expedicion?: string
           maintenance_buffer_days?: number
-          organization_id?: string | null
+          organization_id?: string
           razon_social?: string
           regimen_fiscal?: string
           rfc?: string
@@ -1046,7 +1053,7 @@ export type Database = {
           max_hours_per_month: number | null
           monthly_rate: number | null
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           payment_frequency: string | null
           signed_at: string | null
           signed_by: string | null
@@ -1080,7 +1087,7 @@ export type Database = {
           max_hours_per_month?: number | null
           monthly_rate?: number | null
           notes?: string | null
-          organization_id?: string | null
+          organization_id: string
           payment_frequency?: string | null
           signed_at?: string | null
           signed_by?: string | null
@@ -1114,7 +1121,7 @@ export type Database = {
           max_hours_per_month?: number | null
           monthly_rate?: number | null
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           payment_frequency?: string | null
           signed_at?: string | null
           signed_by?: string | null
@@ -1171,6 +1178,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_contracts_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
+          },
         ]
       }
       credit_notes: {
@@ -1198,7 +1212,7 @@ export type Database = {
           line_items: Json
           lookup_attempts: number
           motive: string
-          organization_id: string | null
+          organization_id: string
           reason_text: string
           stamp_variance: number | null
           stamp_variance_checked_at: string | null
@@ -1235,7 +1249,7 @@ export type Database = {
           line_items?: Json
           lookup_attempts?: number
           motive: string
-          organization_id?: string | null
+          organization_id: string
           reason_text: string
           stamp_variance?: number | null
           stamp_variance_checked_at?: string | null
@@ -1272,7 +1286,7 @@ export type Database = {
           line_items?: Json
           lookup_attempts?: number
           motive?: string
-          organization_id?: string | null
+          organization_id?: string
           reason_text?: string
           stamp_variance?: number | null
           stamp_variance_checked_at?: string | null
@@ -1320,6 +1334,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_credit_notes_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
           },
         ]
       }
@@ -1426,6 +1447,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "payments"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_customer_payment_intents_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
           },
         ]
       }
@@ -1708,6 +1736,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_damage_records_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
+          },
         ]
       }
       deliveries: {
@@ -1725,7 +1760,7 @@ export type Database = {
           hours_reading: number | null
           id: string
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           scheduled_date: string
           scheduled_time: string | null
           signature_base64: string | null
@@ -1748,7 +1783,7 @@ export type Database = {
           hours_reading?: number | null
           id?: string
           notes?: string | null
-          organization_id?: string | null
+          organization_id: string
           scheduled_date: string
           scheduled_time?: string | null
           signature_base64?: string | null
@@ -1771,7 +1806,7 @@ export type Database = {
           hours_reading?: number | null
           id?: string
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           scheduled_date?: string
           scheduled_time?: string | null
           signature_base64?: string | null
@@ -1980,7 +2015,7 @@ export type Database = {
           folio: string
           id: string
           module: string
-          organization_id: string | null
+          organization_id: string
           points_awarded: number
           reporter_id: string
           reporter_name: string | null
@@ -2001,7 +2036,7 @@ export type Database = {
           folio?: string
           id?: string
           module?: string
-          organization_id?: string | null
+          organization_id: string
           points_awarded?: number
           reporter_id: string
           reporter_name?: string | null
@@ -2022,7 +2057,7 @@ export type Database = {
           folio?: string
           id?: string
           module?: string
-          organization_id?: string | null
+          organization_id?: string
           points_awarded?: number
           reporter_id?: string
           reporter_name?: string | null
@@ -2098,7 +2133,7 @@ export type Database = {
           closed_at: string | null
           closed_by: string | null
           created_at: string
-          organization_id: string | null
+          organization_id: string
           period: string
           updated_at: string
         }
@@ -2106,7 +2141,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           created_at?: string
-          organization_id?: string | null
+          organization_id: string
           period: string
           updated_at?: string
         }
@@ -2114,7 +2149,7 @@ export type Database = {
           closed_at?: string | null
           closed_by?: string | null
           created_at?: string
-          organization_id?: string | null
+          organization_id?: string
           period?: string
           updated_at?: string
         }
@@ -2313,19 +2348,19 @@ export type Database = {
         Row: {
           id: string
           min_next_number: number
-          organization_id: string | null
+          organization_id: string
           updated_at: string
         }
         Insert: {
           id?: string
           min_next_number?: number
-          organization_id?: string | null
+          organization_id: string
           updated_at?: string
         }
         Update: {
           id?: string
           min_next_number?: number
-          organization_id?: string | null
+          organization_id?: string
           updated_at?: string
         }
         Relationships: [
@@ -2378,7 +2413,7 @@ export type Database = {
           metodo_pago: string | null
           moneda: string | null
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           paid_at: string | null
           quote_id: string | null
           receptor_domicilio_fiscal_cp: string | null
@@ -2439,7 +2474,7 @@ export type Database = {
           metodo_pago?: string | null
           moneda?: string | null
           notes?: string | null
-          organization_id?: string | null
+          organization_id: string
           paid_at?: string | null
           quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
@@ -2500,7 +2535,7 @@ export type Database = {
           metodo_pago?: string | null
           moneda?: string | null
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           paid_at?: string | null
           quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
@@ -2523,6 +2558,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_invoices_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
+          },
           {
             foreignKeyName: "invoices_booking_id_fkey"
             columns: ["booking_id"]
@@ -3087,6 +3129,35 @@ export type Database = {
           },
         ]
       }
+      organization_document_counters: {
+        Row: {
+          document_type: string
+          next_value: number
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          document_type: string
+          next_value: number
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          document_type?: string
+          next_value?: number
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_document_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_memberships: {
         Row: {
           auth_user_id: string
@@ -3441,6 +3512,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_prospects_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
+          },
+          {
             foreignKeyName: "prospects_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
@@ -3536,7 +3614,7 @@ export type Database = {
           is_e2e: boolean
           line_items: Json
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           quote_number: string
           quote_type: string
           rejected_at: string | null
@@ -3569,7 +3647,7 @@ export type Database = {
           is_e2e?: boolean
           line_items?: Json
           notes?: string | null
-          organization_id?: string | null
+          organization_id: string
           quote_number: string
           quote_type?: string
           rejected_at?: string | null
@@ -3602,7 +3680,7 @@ export type Database = {
           is_e2e?: boolean
           line_items?: Json
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           quote_number?: string
           quote_type?: string
           rejected_at?: string | null
@@ -3620,6 +3698,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_quotes_organization_customer"
+            columns: ["organization_id", "customer_id"]
+            isOneToOne: false
+            referencedRelation: "organization_customers"
+            referencedColumns: ["organization_id", "customer_id"]
+          },
           {
             foreignKeyName: "quotes_customer_id_fkey"
             columns: ["customer_id"]
@@ -3705,7 +3790,7 @@ export type Database = {
           inspected_by: string | null
           inspection_number: string
           late_days: number | null
-          organization_id: string | null
+          organization_id: string
           suggested_extra_hour_charge: number | null
           suggested_late_charge: number | null
         }
@@ -3724,7 +3809,7 @@ export type Database = {
           inspected_by?: string | null
           inspection_number: string
           late_days?: number | null
-          organization_id?: string | null
+          organization_id: string
           suggested_extra_hour_charge?: number | null
           suggested_late_charge?: number | null
         }
@@ -3743,7 +3828,7 @@ export type Database = {
           inspected_by?: string | null
           inspection_number?: string
           late_days?: number | null
-          organization_id?: string | null
+          organization_id?: string
           suggested_extra_hour_charge?: number | null
           suggested_late_charge?: number | null
         }
@@ -3863,6 +3948,115 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage_object_migrations: {
+        Row: {
+          attempt_count: number
+          bucket_id: string
+          copied_at: string | null
+          created_at: string
+          destination_path: string
+          discovery_kind: string
+          id: string
+          last_error_code: string | null
+          organization_id: string
+          references_updated_at: string | null
+          source_deleted_at: string | null
+          source_path: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          bucket_id: string
+          copied_at?: string | null
+          created_at?: string
+          destination_path: string
+          discovery_kind?: string
+          id?: string
+          last_error_code?: string | null
+          organization_id: string
+          references_updated_at?: string | null
+          source_deleted_at?: string | null
+          source_path: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          bucket_id?: string
+          copied_at?: string | null
+          created_at?: string
+          destination_path?: string
+          discovery_kind?: string
+          id?: string
+          last_error_code?: string | null
+          organization_id?: string
+          references_updated_at?: string | null
+          source_deleted_at?: string | null
+          source_path?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storage_object_migrations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage_reference_migrations: {
+        Row: {
+          id: string
+          last_error_code: string | null
+          migration_id: string
+          public_url_origin: string | null
+          reference_column: string
+          reference_id: string
+          reference_table: string
+          source_value_sha256: string
+          status: string
+          updated_at: string
+          value_format: string
+        }
+        Insert: {
+          id?: string
+          last_error_code?: string | null
+          migration_id: string
+          public_url_origin?: string | null
+          reference_column: string
+          reference_id: string
+          reference_table: string
+          source_value_sha256: string
+          status?: string
+          updated_at?: string
+          value_format: string
+        }
+        Update: {
+          id?: string
+          last_error_code?: string | null
+          migration_id?: string
+          public_url_origin?: string | null
+          reference_column?: string
+          reference_id?: string
+          reference_table?: string
+          source_value_sha256?: string
+          status?: string
+          updated_at?: string
+          value_format?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storage_reference_migrations_migration_id_fkey"
+            columns: ["migration_id"]
+            isOneToOne: false
+            referencedRelation: "storage_object_migrations"
             referencedColumns: ["id"]
           },
         ]
@@ -3998,7 +4192,7 @@ export type Database = {
           issue_date: string
           legacy_expense_id: string | null
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           payment_form_sat: string | null
           payment_in_progress_at: string | null
           payment_method_sat: string | null
@@ -4043,7 +4237,7 @@ export type Database = {
           issue_date?: string
           legacy_expense_id?: string | null
           notes?: string | null
-          organization_id?: string | null
+          organization_id: string
           payment_form_sat?: string | null
           payment_in_progress_at?: string | null
           payment_method_sat?: string | null
@@ -4088,7 +4282,7 @@ export type Database = {
           issue_date?: string
           legacy_expense_id?: string | null
           notes?: string | null
-          organization_id?: string | null
+          organization_id?: string
           payment_form_sat?: string | null
           payment_in_progress_at?: string | null
           payment_method_sat?: string | null
@@ -4590,6 +4784,13 @@ export type Database = {
         }
         Relationships: []
       }
+      public_branding: {
+        Row: {
+          logo_url: string | null
+          razon_social: string | null
+        }
+        Relationships: []
+      }
       v_booking_occupancy: {
         Row: {
           booking_id: string | null
@@ -4780,7 +4981,7 @@ export type Database = {
           is_e2e: boolean
           line_items: Json
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           quote_number: string
           quote_type: string
           rejected_at: string | null
@@ -4898,7 +5099,7 @@ export type Database = {
           folio: string
           id: string
           module: string
-          organization_id: string | null
+          organization_id: string
           points_awarded: number
           reporter_id: string
           reporter_name: string | null
@@ -4965,7 +5166,7 @@ export type Database = {
           hours_reading: number | null
           id: string
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           scheduled_date: string
           scheduled_time: string | null
           signature_base64: string | null
@@ -5463,7 +5664,7 @@ export type Database = {
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
       guard_fiscal_period_open: {
-        Args: { _date: string; _table_name: string }
+        Args: { _date: string; _table_name: string; p_organization_id: string }
         Returns: undefined
       }
       has_active_rental: { Args: { p_forklift_id: string }; Returns: boolean }
@@ -5599,6 +5800,10 @@ export type Database = {
       next_inspection_number: { Args: never; Returns: string }
       next_invoice_number: { Args: never; Returns: string }
       next_invoice_number_e2e: { Args: never; Returns: string }
+      next_organization_document_counter: {
+        Args: { p_document_type: string; p_minimum?: number }
+        Returns: number
+      }
       next_quote_number: { Args: never; Returns: string }
       next_quote_number_e2e: { Args: never; Returns: string }
       next_stage_order: { Args: { p_stage: string }; Returns: number }
@@ -5615,9 +5820,17 @@ export type Database = {
         }
         Returns: number
       }
+      organization_scope_matches: {
+        Args: { p_organization_id: string }
+        Returns: boolean
+      }
       peek_next_draft_credit_note_number: { Args: never; Returns: string }
       peek_next_draft_invoice_number: { Args: never; Returns: string }
       peek_next_invoice_number: { Args: never; Returns: string }
+      peek_organization_document_counter: {
+        Args: { p_document_type: string; p_minimum?: number }
+        Returns: number
+      }
       prepare_payment_complement: {
         Args: { p_payment_id: string }
         Returns: Json
@@ -5713,7 +5926,7 @@ export type Database = {
           is_e2e: boolean
           line_items: Json
           notes: string | null
-          organization_id: string | null
+          organization_id: string
           quote_number: string
           quote_type: string
           rejected_at: string | null
@@ -5836,6 +6049,7 @@ export type Database = {
         Args: { p_payment_id: string }
         Returns: undefined
       }
+      resolve_organization_context: { Args: never; Returns: string }
       restore_customer: { Args: { p_customer_id: string }; Returns: undefined }
       restore_damage_record: {
         Args: { p_damage_id: string }
@@ -5896,7 +6110,7 @@ export type Database = {
               metodo_pago: string | null
               moneda: string | null
               notes: string | null
-              organization_id: string | null
+              organization_id: string
               paid_at: string | null
               quote_id: string | null
               receptor_domicilio_fiscal_cp: string | null
@@ -5972,7 +6186,7 @@ export type Database = {
               metodo_pago: string | null
               moneda: string | null
               notes: string | null
-              organization_id: string | null
+              organization_id: string
               paid_at: string | null
               quote_id: string | null
               receptor_domicilio_fiscal_cp: string | null
