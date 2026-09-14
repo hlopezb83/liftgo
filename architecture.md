@@ -407,7 +407,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 ### 15.3 E2E (Playwright)
 
 - Suite en `tests/e2e/` con `playwright.config.ts` en raíz. Documentación operativa: `tests/e2e/README.md`.
-- Levanta `bun run preview` en puerto 4173 vía `webServer` y corre en chromium.
+- `webServer` levanta `bun run preview` (que es `wrangler dev --port 4173`, sirviendo el build SSR de `dist/`) en el puerto 4173 y corre en chromium. Con `E2E_REUSE_BUILD=1` reutiliza el `dist/` ya construido; si no, corre `bun run build && bun run preview`.
 - Auth: project `setup` (`global.setup.ts`) pide la sesión a Supabase por API (`signInWithPassword`), valida que la cuenta sea staff y escribe `tests/e2e/.auth/admin.json`. Si hay credenciales por rol (`E2E_<ROL>_EMAIL/PASSWORD`) también cachea `.auth/<rol>.json`.
 - Project `portal` corre sin `storageState` para validar rutas públicas (`/portal/login`).
 - Cobertura actual: `full-flow`, `smoke-nav`, `roles-matrix`, `fiscal-actions`, filtros (`filters-invoices`, `filters-quotes`, `daterange-picker`), kanbans (`crm-kanban`, `maintenance-kanban`), portal (`portal`, `portal-statement`), y flujos puntuales (`invoice-payment`, `quote-pdf`, `quote-edit-prefill`, `return-inspection`, `customer-create`, `bank-reconciliation`).
