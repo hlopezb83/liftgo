@@ -68,8 +68,21 @@ Deno.test("storageMigrationPlan: no toca rutas ya aisladas y bloquea otro prefij
       ORG,
       "cfdi-files",
       `${OTHER_ORG}/invoice/a.xml`,
+      [OTHER_ORG],
     ).disposition,
     "belongs_to_other_organization",
+  );
+});
+
+Deno.test("storageMigrationPlan: no confunde UUIDs de entidades con organizaciones", () => {
+  assertEquals(
+    makeStorageMigrationPlan(
+      ORG,
+      "cfdi-files",
+      "4f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123/invoice.xml",
+      [ORG],
+    ).disposition,
+    "candidate",
   );
 });
 
