@@ -9,7 +9,7 @@ export function hasOrganizationStoragePrefix(
     ? organizationId.trim().toLowerCase()
     : "";
   const path = typeof value === "string"
-    ? value.trim().replace(/^\\/+/, "")
+    ? value.trim().replace(/^\/+/, "")
     : "";
   const separator = path.indexOf("/");
 
