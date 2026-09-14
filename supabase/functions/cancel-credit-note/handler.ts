@@ -101,7 +101,7 @@ export async function handleCancelCreditNote(
       .eq("id", credit_note_id)
       .single();
     if (ncErr || !nc) return jsonError(req, 404, "Credit note not found");
-    const ncRow = nc as Record<string, any>;
+    const ncRow = nc as CreditNoteRow;
 
     // Multiempresa · Fase 1: se valida la organización ANTES del claim, del
     // update y de cualquier llamada al PAC. Nunca se confía en el body.
