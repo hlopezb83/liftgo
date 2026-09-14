@@ -257,7 +257,7 @@ async function buildPlan(
         .neq("invoices.status", "cancelled")
         .neq("invoices.cfdi_status", "cancelled");
 
-      const rows = (linked ?? []) as Array<
+      const rows = (linked ?? []) as unknown as Array<
         {
           invoices: { billing_period_end: string | null; line_items: unknown };
         }
