@@ -1,0 +1,16 @@
+{
+  "version": "8.8.3",
+  "date": "2026-09-14",
+  "type": "patch",
+  "category": "docs",
+  "title": "Documentación técnica alineada con el sistema actual",
+  "description": "Se corrigieron el README y el documento de arquitectura, que describían una versión anterior del sistema. No hay cambios en el funcionamiento de la aplicación.",
+  "changes": [
+    "El stack documentado ahora coincide con el real: React 19, Vite 8, TypeScript 6, Tailwind 4 y TanStack Start/Router.",
+    "Se describe la arquitectura vigente con renderizado en servidor y su despliegue, en lugar de la aplicación de una sola página anterior.",
+    "Se actualizaron el diagrama, el mapa de carpetas, el esquema de rutas y permisos, y se retiraron las referencias a archivos que ya no existen.",
+    "Se separa lo que corre como funciones de servidor de la aplicación y lo que sigue en funciones externas (timbrado, tareas programadas y archivos).",
+    "Se documentan los requisitos de Node/Bun y los comandos vigentes de desarrollo, compilación, vista previa y pruebas.",
+    "Se aclara que la migración a multiempresa sigue en curso y no está terminada."
+  ]
+}
