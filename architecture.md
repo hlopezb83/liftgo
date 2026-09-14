@@ -235,9 +235,9 @@ Página (orquestador)
 > `organizations`, `organization_memberships`, `organization_customers`,
 > `customer_portal_accounts` y la columna `organization_id` en las tablas
 > operativas (migraciones `drizzle/migrations/00NN_multi_org_*`). Hoy opera una
-> sola organización. Quedan pendientes, entre otros, el alcance por organización
-> en varias Edge Functions/cron y la migración de rutas de Storage. No asumir que
-> el aislamiento multiempresa está completo.
+> sola organización. Esta revisión documental no certifica el cierre de la
+> migración: cualquier pendiente concreto debe confirmarse contra el código
+> vigente antes de dar el aislamiento multiempresa por completo.
 
 
 
@@ -783,7 +783,7 @@ El primitive vive en `src/components/ui/sidebar/` (`Sidebar.tsx`, `SidebarGroup.
 - `src/features/changelog/lib/changelog.ts` — fetcher + tipos del changelog.
 - `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
 - `src/lib/config.ts` — configuración global (IVA, monedas).
-- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro de rutas y permisos.
+- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro heredado (sidebar/búsqueda) y constantes de URL; los permisos efectivos viven en cada archivo de ruta (`RoleGuard`).
 - `src/routes/` — rutas file-based de TanStack Router; `src/routeTree.gen.ts` es generado.
 - `src/router.tsx`, `src/start.ts`, `src/server.ts` — router, middlewares y entrada SSR.
 - `src/features/users/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.

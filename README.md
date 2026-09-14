@@ -85,6 +85,7 @@ reportes puntuales) vive en el historial de cambios:
   hay helpers canónicos (mutations, form dialogs, edge function shared).
 
 > Nota: la migración a multi-organización está **en curso**. El esquema ya
-> incluye organizaciones y `organization_id` en las tablas operativas, pero
-> quedan pendientes de alcance por organización (Edge Functions, cron y rutas de
-> Storage). Ver §6.2 de `architecture.md`.
+> incluye organizaciones y `organization_id` en las tablas operativas; esta
+> revisión documental no certifica el cierre de la migración — cualquier
+> pendiente debe confirmarse contra el código vigente. Ver §6.2 de
+> `architecture.md`.
