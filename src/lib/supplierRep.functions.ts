@@ -245,7 +245,7 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
     const { data: dup } = await supabase
       .from("supplier_payments")
       .select("id")
-.eq("rep_cfdi_uuid", repUuid)
+      .eq("rep_cfdi_uuid", repUuid)
       .eq("organization_id", organizationId)
       .neq("id", payment_id)
       .maybeSingle();
@@ -274,7 +274,7 @@ export const validateSupplierRepFn = createServerFn({ method: "POST" })
         rep_notes: null,
         rep_uploaded_by: userId,
       })
-.eq("id", payment_id)
+      .eq("id", payment_id)
       .eq("organization_id", organizationId);
 
     if (updErr) {
