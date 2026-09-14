@@ -83,7 +83,8 @@ export async function findActiveContractForBooking(bookingId: string) {
 
 // R17-C: `status` y `signed_at` los define la DB (default 'draft') o la RPC de
 // cambio de estatus. `buildContractPayload` ya no los envía desde el form.
-type NewContract = Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name" | "status" | "signed_at">;
+// Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+type NewContract = Omit<Contract, "id" | "contract_number" | "created_at" | "updated_at" | "customer_name" | "forklift_name" | "status" | "signed_at" | "organization_id">;
 
 export function useCreateContract() {
   return useEntityMutation({

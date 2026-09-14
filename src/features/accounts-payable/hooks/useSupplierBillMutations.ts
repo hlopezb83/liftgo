@@ -27,7 +27,7 @@ export function useCreateSupplierBill() {
       const { status: _status, ...rest } = input;
       const { data, error } = await supabase
         .from("supplier_bills")
-        .insert({ ...rest, bill_number })
+        .insert({ ...rest, bill_number } as Insert)
         .select("id, bill_number")
         .single();
       if (error) throw error;
