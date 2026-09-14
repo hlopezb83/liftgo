@@ -1,6 +1,7 @@
 -- Multi-organización Fase 1: cobertura completa de organization_id.
--- La migración debe mantener estas columnas nullable hasta que el código
--- escriba organización explícitamente, sin contaminar las identidades globales.
+-- Las tablas operativas empiezan nullable durante la transición. Las que ya
+-- emiten documentos o cierran períodos quedan NOT NULL tras la fase 6.1; las
+-- identidades globales permanecen fuera de este alcance.
 BEGIN;
 
 DO $$
@@ -9,6 +10,11 @@ DECLARE
   v_column_count integer;
   v_has_fk boolean;
   v_has_index boolean;
+  v_required_not_null_tables text[] := ARRAY[
+    'bookings', 'contracts', 'credit_notes', 'deliveries', 'feedback_reports',
+    'fiscal_periods', 'invoice_number_settings', 'invoices', 'quotes',
+    'return_inspections', 'supplier_bills'
+  ];
   v_tables text[] := ARRAY[
     'activity_feed',
     'audit_logs',
@@ -75,12 +81,16 @@ BEGIN
       AND c.table_name = v_table
       AND c.column_name = 'organization_id'
       AND c.data_type = 'uuid'
-      AND c.is_nullable = 'YES';
+      AND c.is_nullable = CASE
+        WHEN v_table = ANY(v_required_not_null_tables) THEN 'NO'
+        ELSE 'YES'
+      END;
 
     IF v_column_count <> 1 THEN
       RAISE EXCEPTION
-        'SCHEMA: %.organization_id debe existir como uuid nullable',
-        v_table;
+        'SCHEMA: %.organization_id debe existir como uuid %',
+        v_table,
+        CASE WHEN v_table = ANY(v_required_not_null_tables) THEN 'NOT NULL' ELSE 'nullable' END;
     END IF;
 
     SELECT EXISTS (

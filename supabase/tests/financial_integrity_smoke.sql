@@ -89,6 +89,7 @@ SELECT pg_temp.expect_true(
 
 DO $$
 DECLARE
+  v_organization uuid;
   v_customer uuid := gen_random_uuid();
   v_invoice uuid := gen_random_uuid();
   v_legacy_invoice uuid := gen_random_uuid();
@@ -96,14 +97,24 @@ DECLARE
   v_status text;
   v_balance numeric;
 BEGIN
+  SELECT id INTO v_organization
+    FROM public.organizations
+   WHERE is_active
+   ORDER BY id
+   LIMIT 1;
+
+  IF v_organization IS NULL THEN
+    RAISE EXCEPTION 'C-01 requiere una organización activa para las facturas de prueba';
+  END IF;
+
   INSERT INTO public.customers (id, name)
   VALUES (v_customer, 'C-01 Smoke');
 
   INSERT INTO public.invoices (
-    id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
+    id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
     total, status, issued_at, due_date, moneda, tipo_cambio, line_items
   ) VALUES (
-    v_invoice, 'C01-' || left(v_invoice::text, 8), v_customer, 'C-01 Smoke',
+    v_invoice, v_organization, 'C01-' || left(v_invoice::text, 8), v_customer, 'C-01 Smoke',
     1000, 0, 1000, 'sent', public.today_mty(), public.today_mty() + 30,
     'MXN', 1,
     '[{"description":"Renta","quantity":1,"unit_price":1000,"total":1000}]'::jsonb
@@ -152,10 +163,10 @@ BEGIN
   v_blocked := false;
   BEGIN
     INSERT INTO public.invoices (
-      id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
+      id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
       total, status, issued_at, due_date, moneda, tipo_cambio, line_items
     ) VALUES (
-      gen_random_uuid(), 'C01-PAID-' || left(v_invoice::text, 8), v_customer, 'C-01 Smoke',
+      gen_random_uuid(), v_organization, 'C01-PAID-' || left(v_invoice::text, 8), v_customer, 'C-01 Smoke',
       100, 0, 100, 'paid', public.today_mty(), public.today_mty() + 30,
       'MXN', 1,
       '[{"description":"Renta","quantity":1,"unit_price":100,"total":100}]'::jsonb
@@ -175,10 +186,10 @@ BEGIN
   -- the financial guard under test; re-enable them before reconciliation.
   ALTER TABLE public.invoices DISABLE TRIGGER USER;
   INSERT INTO public.invoices (
-    id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
+    id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount,
     total, status, paid_at, issued_at, due_date, moneda, tipo_cambio, line_items
   ) VALUES (
-    v_legacy_invoice, 'C01-LEGACY-' || left(v_legacy_invoice::text, 8),
+    v_legacy_invoice, v_organization, 'C01-LEGACY-' || left(v_legacy_invoice::text, 8),
     v_customer, 'C-01 Smoke', 250, 0, 250, 'paid', public.today_mty(),
     public.today_mty(), public.today_mty() + 30, 'MXN', 1,
     '[{"description":"Renta histórica","quantity":1,"unit_price":250,"total":250}]'::jsonb
