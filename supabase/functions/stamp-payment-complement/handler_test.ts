@@ -125,7 +125,9 @@ Deno.test("handler: rejects without Authorization header (401)", async () => {
 Deno.test("handler: returns 403 when user is not admin/administrativo", async () => {
   const { deps } = makeDeps({
     service: {
-      selects: { user_roles: { data: [{ role: "ventas" }], error: null } },
+      // `.in("role", ["admin","administrativo"]).maybeSingle()` no encuentra
+      // fila para un usuario de ventas: el mock debe devolver null, no la fila.
+      selects: { user_roles: { data: null, error: null } },
     },
   });
   const res = await handleStampPaymentComplement(
