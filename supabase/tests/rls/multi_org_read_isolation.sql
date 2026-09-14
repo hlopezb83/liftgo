@@ -251,7 +251,10 @@ BEGIN
     'public.delete_booking(uuid)'::regprocedure,
     'public.cancel_booking(uuid,text)'::regprocedure,
     'public.extend_booking(uuid,date,text)'::regprocedure,
-    'public.complete_delivery(uuid,text,numeric,text)'::regprocedure
+    'public.complete_delivery(uuid,text,numeric,text)'::regprocedure,
+    'public.booking_is_returned(uuid)'::regprocedure,
+    'public.reconcile_expired_bookings()'::regprocedure,
+    'public.set_contract_deposit_status(uuid,text,numeric,text)'::regprocedure
   )
     AND p.prosecdef;
 
@@ -299,6 +302,27 @@ BEGIN
   ) = 0 THEN
     RAISE EXCEPTION
       'BANK ORG: la finalización privilegiada no valida organización';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_proc p
+    WHERE p.oid = 'public.complete_return_inspection(uuid,uuid,text,text,numeric,numeric,text,text,timestamptz)'::regprocedure
+      AND p.prosecdef
+      AND position('organization_scope_matches' IN pg_get_functiondef(p.oid)) > 0
+  ) THEN
+    RAISE EXCEPTION
+      'RETURN ORG: complete_return_inspection debe conservar definer con guarda de organización';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_proc p
+    WHERE p.oid = 'public.correct_return_inspection(uuid,text,text,text,numeric,numeric,text)'::regprocedure
+      AND p.prosecdef
+      AND position('organization_scope_matches' IN pg_get_functiondef(p.oid)) > 0
+  ) THEN
+    RAISE EXCEPTION
+      'RETURN ORG: correct_return_inspection debe conservar definer con guarda de organización';
   END IF;
 END;
 $$;
