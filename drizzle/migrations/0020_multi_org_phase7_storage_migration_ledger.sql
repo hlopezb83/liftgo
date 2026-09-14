@@ -90,6 +90,21 @@ ALTER TABLE public.storage_reference_migrations ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.storage_object_migrations FROM anon, authenticated;
 REVOKE ALL ON TABLE public.storage_reference_migrations FROM anon, authenticated;
 
+-- El rol de servicio de la Edge Function omite RLS; toda sesión de producto
+-- queda denegada de forma explícita y la invariante de seguridad conserva
+-- visibilidad sobre el cierre de estas tablas administrativas.
+CREATE POLICY "Deny direct access to storage object migrations"
+  ON public.storage_object_migrations
+  FOR ALL TO PUBLIC
+  USING (false)
+  WITH CHECK (false);
+
+CREATE POLICY "Deny direct access to storage reference migrations"
+  ON public.storage_reference_migrations
+  FOR ALL TO PUBLIC
+  USING (false)
+  WITH CHECK (false);
+
 DO $phase7_storage_ledger_assertions$
 BEGIN
   IF to_regclass('public.storage_object_migrations') IS NULL
