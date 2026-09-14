@@ -25,9 +25,6 @@ export interface StorageMigrationPlan {
   publicUrlOrigin: string | null;
 }
 
-const UUID_PREFIX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\//i;
-
 function normalizePath(value: string): string | null {
   const path = value.trim().replace(/^\/+/, "");
   if (
