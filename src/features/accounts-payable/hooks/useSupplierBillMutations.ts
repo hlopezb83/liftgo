@@ -8,7 +8,8 @@ import { supplierBillKeys } from "./useSupplierBills";
 type Insert = Database["public"]["Tables"]["supplier_bills"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_bills"]["Update"];
 
-export type SupplierBillInput = Omit<Insert, "bill_number" | "balance" | "status"> & {
+// Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+export type SupplierBillInput = Omit<Insert, "bill_number" | "balance" | "status" | "organization_id"> & {
   status?: Insert["status"];
 };
 

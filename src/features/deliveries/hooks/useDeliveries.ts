@@ -60,7 +60,8 @@ export function useDeliveries(bookingId?: string) {
 
 export function useCreateDelivery() {
   return useEntityMutation({
-    mutationFn: async (delivery: Omit<TablesInsert<"deliveries">, "delivery_number">) => {
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (delivery: Omit<TablesInsert<"deliveries">, "delivery_number" | "organization_id">) => {
       const { data, error } = await supabase.from("deliveries").insert(delivery as TablesInsert<"deliveries">).select().single();
       if (error) throw error;
       return data;

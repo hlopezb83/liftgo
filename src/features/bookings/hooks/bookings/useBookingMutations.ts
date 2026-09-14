@@ -8,7 +8,8 @@ import { bookingKeys } from "../../lib/queryKeys";
 
 export function useCreateBooking() {
   return useEntityMutation({
-    mutationFn: async (booking: Omit<TablesInsert<"bookings">, "booking_number">) => {
+    // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
+    mutationFn: async (booking: Omit<TablesInsert<"bookings">, "booking_number" | "organization_id">) => {
       const { data, error } = await supabase.rpc("create_booking", {
         p_forklift_id: booking.forklift_id,
         p_customer_id: booking.customer_id ?? undefined,
