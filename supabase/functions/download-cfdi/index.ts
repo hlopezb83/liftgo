@@ -5,9 +5,10 @@ import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
 import {
-  getFacturapiConfig,
+  getFacturapiConfigForOrganization,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   FacturapiTimeoutError,
   fetchWithTimeout,
@@ -85,13 +86,38 @@ const fetchAcuseFromFacturapi = (
 
 async function loadFacturapiKey(
   supabase: SupabaseClient,
+  organizationId: string,
 ): Promise<string | null> {
-  const { apiKey } = await getFacturapiConfig(
-    supabase,
-    (k) => Deno.env.get(k),
-  );
+  const { apiKey } = await getFacturapiConfigForOrganization({
+    admin: supabase,
+    env: (k) => Deno.env.get(k),
+    organizationId,
+  });
 
   return apiKey;
+}
+
+// Multiempresa · Fase 1: valida que el documento pertenezca a la organización
+// del caller ANTES de servir/persistir archivos o llamar al PAC. Nunca se
+// deriva del payload — siempre de la membresía del usuario + el documento leído.
+async function assertOwnDocumentOrganization(
+  supabase: SupabaseClient,
+  userId: string,
+  documentOrganizationId: unknown,
+): Promise<{ ok: true; organizationId: string } | { ok: false; response: Response }> {
+  const orgCheck = await resolveDocumentOrganization({
+    admin: supabase,
+    userId,
+    isServiceRole: false,
+    documentOrganizationId: documentOrganizationId as string | null | undefined,
+  });
+  if (!orgCheck.ok) {
+    return {
+      ok: false,
+      response: jsonError(REQ_PLACEHOLDER, orgCheck.status, orgCheck.message),
+    };
+  }
+  return { ok: true, organizationId: orgCheck.organizationId };
 }
 
 function attachmentResponse(
