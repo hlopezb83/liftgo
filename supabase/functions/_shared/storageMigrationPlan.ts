@@ -29,7 +29,7 @@ const UUID_PREFIX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\//i;
 
 function normalizePath(value: string): string | null {
-  const path = value.trim().replace(/^\\/+/, "");
+  const path = value.trim().replace(/^\/+/, "");
   if (
     !path ||
     path.split("/").some((part) => !part || part === "." || part === "..")
@@ -60,7 +60,7 @@ export function parseStorageReference(
   if (typeof value !== "string" || !value.trim()) return null;
   const raw = value.trim();
 
-  if (/^https?:\\/\\//i.test(raw)) {
+  if (/^https?:\/\//i.test(raw)) {
     let url: URL;
     try {
       url = new URL(raw);
