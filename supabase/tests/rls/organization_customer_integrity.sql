@@ -72,14 +72,19 @@ BEGIN
       WHERE child_ns.nspname = 'public'
         AND child.relname = v_table
         AND idx.relname = format('idx_%s_organization_customer', v_table)
-        AND i.indkey::smallint[] = ARRAY[
-          (SELECT attnum FROM pg_attribute
-           WHERE attrelid = child.oid AND attname = 'organization_id'
-             AND NOT attisdropped),
-          (SELECT attnum FROM pg_attribute
-           WHERE attrelid = child.oid AND attname = 'customer_id'
-             AND NOT attisdropped)
-        ]::smallint[]
+        AND i.indnkeyatts = 2
+        -- int2vector usa índices base 0; comparar arreglos completos conserva
+        -- ese límite inferior y da un falso negativo.
+        AND i.indkey[0] = (
+          SELECT attnum FROM pg_attribute
+          WHERE attrelid = child.oid AND attname = 'organization_id'
+            AND NOT attisdropped
+        )
+        AND i.indkey[1] = (
+          SELECT attnum FROM pg_attribute
+          WHERE attrelid = child.oid AND attname = 'customer_id'
+            AND NOT attisdropped
+        )
     )
     INTO v_has_index;
 
