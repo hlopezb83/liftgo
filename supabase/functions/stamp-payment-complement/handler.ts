@@ -172,7 +172,7 @@ export async function handleStampPaymentComplement(
       .eq("id", payment_id)
       .single();
     if (payErr || !payment) return jsonError(req, 404, "Payment not found");
-    const paymentRow = payment as Record<string, any>;
+    const paymentRow = payment as PaymentRow;
 
     // Multiempresa · Fase 1: la organización se valida contra el pago leído
     // de BD ANTES de cualquier claim, update o llamada al PAC. requireRoleDI
