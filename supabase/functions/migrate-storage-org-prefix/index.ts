@@ -141,8 +141,14 @@ async function parseInput(req: Request): Promise<RequestInput | null> {
       DEFAULT_MAX_ROWS_PER_REFERENCE,
       MAX_ROWS_PER_REFERENCE,
     ),
-    batchSize: boundedInteger(body.batch_size, DEFAULT_BATCH_SIZE, MAX_BATCH_SIZE),
-    confirmation: typeof body.confirmation === "string" ? body.confirmation : null,
+    batchSize: boundedInteger(
+      body.batch_size,
+      DEFAULT_BATCH_SIZE,
+      MAX_BATCH_SIZE,
+    ),
+    confirmation: typeof body.confirmation === "string"
+      ? body.confirmation
+      : null,
   };
 }
 
@@ -168,7 +174,10 @@ function emptyCounts() {
 function countByBucket(
   candidates: CandidateReference[],
 ): Array<{ bucket: string; references: number; objects: number }> {
-  const grouped = new Map<string, { references: number; objects: Set<string> }>();
+  const grouped = new Map<
+    string,
+    { references: number; objects: Set<string> }
+  >();
   for (const candidate of candidates) {
     const entry = grouped.get(candidate.spec.bucketId) ?? {
       references: 0,
@@ -262,7 +271,9 @@ async function collectCandidates(
   for (const candidate of candidates) {
     const key = `${candidate.spec.bucketId}/${candidate.sourcePath}`;
     const previous = ownerBySource.get(key);
-    if (previous && previous !== candidate.organizationId) conflictedSources.add(key);
+    if (previous && previous !== candidate.organizationId) {
+      conflictedSources.add(key);
+    }
     ownerBySource.set(key, candidate.organizationId);
   }
   if (conflictedSources.size > 0) {
@@ -270,7 +281,8 @@ async function collectCandidates(
       const key = `${candidate.spec.bucketId}/${candidate.sourcePath}`;
       return !conflictedSources.has(key);
     });
-    counts.belongs_to_other_organization += candidates.length - safeCandidates.length;
+    counts.belongs_to_other_organization += candidates.length -
+      safeCandidates.length;
     counts.candidates -= candidates.length - safeCandidates.length;
     return { candidates: safeCandidates, counts, truncated };
   }
@@ -319,7 +331,9 @@ async function ensureLedger(
         .eq("source_path", candidate.sourcePath)
         .maybeSingle();
 
-      if (findError) throw new Error("No se pudo consultar el ledger de objetos.");
+      if (findError) {
+        throw new Error("No se pudo consultar el ledger de objetos.");
+      }
 
       if (existing?.id) {
         migrationId = existing.id as string;
@@ -360,7 +374,9 @@ async function ensureLedger(
           ignoreDuplicates: true,
         },
       );
-    if (referenceError) throw new Error("No se pudo crear el ledger de referencias.");
+    if (referenceError) {
+      throw new Error("No se pudo crear el ledger de referencias.");
+    }
   }
 }
 
@@ -552,7 +568,9 @@ async function processObject(
 
   let allUpdated = references.length > 0;
   for (const reference of references) {
-    if (!(await updateOneReference(admin, object, reference))) allUpdated = false;
+    if (!(await updateOneReference(admin, object, reference))) {
+      allUpdated = false;
+    }
   }
   if (!allUpdated) return "pending";
 
@@ -611,7 +629,9 @@ async function applyBatch(
       "id, migration_id, reference_table, reference_id, reference_column, source_value_sha256, value_format, public_url_origin, status",
     )
     .in("migration_id", objects.map((object) => object.id));
-  if (refsError) throw new Error("No se pudieron leer las referencias pendientes.");
+  if (refsError) {
+    throw new Error("No se pudieron leer las referencias pendientes.");
+  }
 
   const refsByObject = new Map<string, LedgerReference[]>();
   for (const reference of (refs ?? []) as LedgerReference[]) {
