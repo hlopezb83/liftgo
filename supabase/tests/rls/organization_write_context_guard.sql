@@ -102,6 +102,24 @@ BEGIN
   -- La prueba usa un destino temporal para verificar la semántica real de la
   -- función sin depender de columnas de negocio ni dejar datos persistentes.
   PERFORM set_config('request.jwt.claim.sub', '', true);
+  PERFORM set_config('app.organization_id', '', true);
+
+  INSERT INTO public.customers (id, name)
+  VALUES (
+    '9c000000-0000-4000-8000-0000000000e1',
+    'Cliente de prueba de transición'
+  );
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.organization_customers oc
+    WHERE oc.organization_id = v_only_organization_id
+      AND oc.customer_id = '9c000000-0000-4000-8000-0000000000e1'::uuid
+  ) THEN
+    RAISE EXCEPTION
+      'ESCRITURA: un cliente nuevo debe crear su relación durante la transición de una organización';
+  END IF;
+
   EXECUTE 'CREATE TEMP TABLE organization_write_guard_probe (
     id uuid PRIMARY KEY,
     organization_id uuid
@@ -130,6 +148,7 @@ BEGIN
 
   INSERT INTO public.organizations (id, name, slug)
   VALUES (v_second_organization_id, 'Organización de prueba', 'test-write-guard-org-2');
+  PERFORM set_config('app.organization_id', '', true);
 
   BEGIN
     EXECUTE $sql$
