@@ -97,31 +97,52 @@ src/
 ├── components/                     UI verdaderamente compartida entre features
 │   ├── ui/                         Primitivas shadcn (no editar)
 │   └── *.tsx                       DetailPageHeader, EmptyState, TotalsSummary, ...
-├── hooks/                          Hooks transversales (useListPage, usePagination, ...)
+├── hooks/                          Hooks transversales (useListPage, useDialogState, ...)
 ├── contexts/                       AuthContext (sesión global)
 ├── layouts/                        MainLayout, CustomerPortalLayout, AuthGuard, RoleGuard
+├── app-routes/
+│   ├── routes.ts                   Constantes de URL (`ROUTES.invoices.detail(id)`)
+│   ├── routes-config.tsx           Registro de rutas: loader lazy + módulo + permisos
+│   └── RouteSkeletons.tsx          Fallbacks de Suspense
+├── routes/                         Rutas file-based de TanStack Router
+│   ├── __root.tsx                  Shell HTML, head/meta, providers, error/not-found
+│   ├── _main.tsx · _main/          ERP autenticado (AuthGuard + MainLayout)
+│   ├── _portal.tsx · _portal/      Portal de cliente
+│   ├── auth.tsx · portal.login.tsx Rutas de acceso
+│   └── ../routeTree.gen.ts         GENERADO — no editar
 ├── lib/
 │   ├── pdf/                        Generación modular de documentos
 │   ├── forms/                      Mapeo formulario → payload (coerce, payloads compartidos)
-│   ├── domain/                     Helpers de dominio cross-feature (invoiceHelpers, satCatalogs)
+│   ├── domain/                     Helpers de dominio cross-feature (invoiceTotals, satCatalogs)
+│   ├── *.functions.ts              Server functions (`createServerFn`)
+│   ├── server/ · *.server.ts       Código server-only (guards, clientes privilegiados)
 │   ├── constants.ts                Etiquetas, colores, estados de dominio
 │   ├── config.ts                   Configuración global (tasas IVA, monedas)
-│   ├── routes.ts                   Constantes de rutas (`ROUTES.invoices.detail(id)`)
-│   ├── routes-config.tsx           Registro central de rutas + módulo (lazy)
-│   └── formatCurrency.ts · utils.ts · rpc.ts · telemetry.ts · ...
-├── integrations/supabase/          Cliente y types AUTOGENERADOS — no editar
+│   └── formatCurrency.ts · utils.ts · rpc.ts · router-compat*.ts · ...
+├── integrations/supabase/          Cliente, middleware de auth y types AUTOGENERADOS — no editar
 ├── types/                          Tipos de dominio compartidos (rental.ts, ...)
 ├── test/                           Tests + helpers/mocks de Supabase
-├── App.tsx                         Composición de providers, guards y router
-└── main.tsx
+├── styles.css                      Tailwind v4 + tokens de diseño (sin tailwind.config.ts)
+├── router.tsx                      `createRouter` (QueryClient por request, scroll, search parsing)
+├── start.ts                        Middlewares de request (errores, CSRF) y de server functions
+└── server.ts                       Entrada SSR del Worker (envoltura de errores)
 supabase/
-├── functions/                      Edge Functions (CFDI, invitaciones, jobs)
-├── migrations/                     Migraciones SQL (timestamp + slug)
+├── functions/                      Edge Functions Deno (CFDI, cron, storage)
+├── migrations/                     Migraciones SQL históricas (timestamp + slug)
+├── tests/                          Smokes SQL y suites de RLS
 └── config.toml                     Configuración de funciones (verify_jwt, etc.)
+drizzle/
+├── schema.ts                       Esquema usado por drizzle-kit
+└── migrations/                     Migraciones numeradas (`00NN_<slug>.sql`), multi-organización
 public/
 ├── changelog.json                  Índice del historial funcional (ver §16)
-└── changelog/v<X.Y.Z>.json         Detalle por versión
+├── changelog/v<X.Y.Z>.json         Detalle por versión
+└── version.json                    Versión vigente (generada por `scripts/gen-version.mjs`)
 ```
+
+> `src/App.tsx` y `src/main.tsx` ya no existen: su contenido (providers, shims,
+> arranque de Sentry, meta tags) vive en `src/routes/__root.tsx` y `src/layouts/AppProviders.tsx`.
+
 
 **Reglas de ubicación**:
 - Toda lógica/UI/hook específica de un dominio → `src/features/<feature>/`.
