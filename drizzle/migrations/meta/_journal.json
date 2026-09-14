@@ -134,6 +134,13 @@
       "when": 1789351800000,
       "tag": "0018_multi_org_phase6_supplier_approval_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1789352400000,
+      "tag": "0019_multi_org_phase6_public_branding",
+      "breakpoints": true
     }
   ]
 }
