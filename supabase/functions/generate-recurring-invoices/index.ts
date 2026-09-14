@@ -441,7 +441,7 @@ async function buildPlan(
               .limit(1)
               .maybeSingle();
             if (prevInvoice) {
-              const inv = prevInvoice.invoices as {
+              const inv = prevInvoice.invoices as unknown as {
                 id: string;
                 invoice_number: string;
               };
