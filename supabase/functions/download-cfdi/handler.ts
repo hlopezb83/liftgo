@@ -182,6 +182,49 @@ type FacturapiFetch =
   | { ok: true; bytes: Uint8Array }
   | { ok: false; status: number; detail: string };
 
+interface CreditNoteRow {
+  id: string;
+  organization_id: string | null;
+  customer_id: string | null;
+  credit_note_number: string | null;
+  cfdi_uuid: string | null;
+  cfdi_status: string | null;
+  cfdi_xml_url: string | null;
+  cfdi_pdf_url: string | null;
+  facturapi_invoice_id: string | null;
+}
+
+interface PaymentRow {
+  organization_id: string | null;
+  invoice_id: string | null;
+  rep_facturapi_id: string | null;
+  rep_cfdi_uuid: string | null;
+  rep_cfdi_status: string | null;
+  rep_xml_url: string | null;
+  rep_pdf_url: string | null;
+}
+
+interface InvoiceRow {
+  id: string;
+  organization_id: string | null;
+  customer_id: string | null;
+  invoice_number: string | null;
+  cfdi_uuid: string | null;
+  cfdi_status: string | null;
+  cancellation_status: string | null;
+  cfdi_xml: string | null;
+  cfdi_xml_url: string | null;
+  cfdi_xml_pending: boolean | null;
+  cfdi_pdf_url: string | null;
+  acuse_pdf_url: string | null;
+  acuse_xml_url: string | null;
+  facturapi_invoice_id: string | null;
+}
+
+interface InvoiceCustomerRow {
+  customer_id: string | null;
+}
+
 async function fetchFacturapiBinary(
   apiKey: string,
   path: string,
@@ -289,7 +332,7 @@ async function checkDocumentOrganization(
 
 function attachmentResponse(
   req: Request,
-  body: BodyInit,
+  body: BodyInit | Uint8Array,
   contentType: string,
   filename: string,
 ): Response {
@@ -298,7 +341,7 @@ function attachmentResponse(
   // N-44: sanear el filename (header injection / caracteres de ruta).
   const safeFilename = filename.replace(/[^A-Za-z0-9._-]/g, "_");
   headers.set("Content-Disposition", `attachment; filename="${safeFilename}"`);
-  return new Response(body, { headers });
+  return new Response(body as BodyInit, { headers });
 }
 
 async function tryStorageDownload(
@@ -407,10 +450,11 @@ export async function handleDownloadCfdi(
       customerId: unknown,
     ): Promise<Response | null> => {
       if (auth.role !== "customer") return null;
-      const { data: ownerId } = await supabase.rpc(
+      const rpcRes = await supabase.rpc?.(
         "get_customer_id_for_user",
         { p_user_id: auth.userId },
       );
+      const ownerId = rpcRes?.data as string | null | undefined;
       if (!ownerId || ownerId !== customerId) {
         return jsonError(req, 403, "Forbidden: not the owner of this document");
       }
@@ -451,7 +495,7 @@ export async function handleDownloadCfdi(
           "id, organization_id, customer_id, credit_note_number, cfdi_uuid, cfdi_status, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id",
         )
         .eq("id", credit_note_id)
-        .single();
+        .single() as { data: CreditNoteRow | null; error: unknown };
       if (!cn || cn.cfdi_status !== "stamped" || !cn.cfdi_uuid) {
         return jsonError(req, 409, "Credit note not stamped");
       }
@@ -523,7 +567,7 @@ export async function handleDownloadCfdi(
           "organization_id, invoice_id, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_xml_url, rep_pdf_url",
         )
         .eq("id", payment_id)
-        .single();
+        .single() as { data: PaymentRow | null; error: unknown };
       if (
         !payment || payment.rep_cfdi_status !== "stamped" ||
         !payment.rep_cfdi_uuid
@@ -542,7 +586,7 @@ export async function handleDownloadCfdi(
           .from("invoices")
           .select("customer_id")
           .eq("id", payment.invoice_id as string)
-          .maybeSingle();
+          .maybeSingle() as { data: InvoiceCustomerRow | null; error: unknown };
         const repForbidden = await requireOwnership(repInv?.customer_id);
         if (repForbidden) return repForbidden;
       }
@@ -604,7 +648,7 @@ export async function handleDownloadCfdi(
         "id, organization_id, customer_id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
       )
       .eq("id", invoice_id)
-      .single();
+      .single() as { data: InvoiceRow | null; error: unknown };
     if (invErr || !invoice) return jsonError(req, 404, "Invoice not found");
     const invOrgCheck = await checkDocumentOrganization(
       req,
