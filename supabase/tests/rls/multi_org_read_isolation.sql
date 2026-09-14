@@ -264,6 +264,21 @@ BEGIN
   ) = 0 THEN
     RAISE EXCEPTION 'CONFIG ORG: maintenance_buffer_days no valida organización';
   END IF;
+
+  IF position(
+    'organization_scope_matches'
+    IN pg_get_functiondef(
+      'public.begin_bank_statement_upload(uuid,uuid,text,date,date,integer)'::regprocedure
+    )
+  ) = 0 OR position(
+    'organization_scope_matches'
+    IN pg_get_functiondef(
+      'public.stage_bank_statement_chunk(uuid,integer,jsonb)'::regprocedure
+    )
+  ) = 0 THEN
+    RAISE EXCEPTION
+      'BANK ORG: las cargas privilegiadas no validan organización';
+  END IF;
 END;
 $$;
 
@@ -349,6 +364,25 @@ BEGIN
       'BANK ORG: página devolvió A=% y B=% para el staff de A (esperado 1 y 0)',
       v_bank_a_page_total, v_bank_b_page_total;
   END IF;
+
+  -- La carga privilegiada debe rechazar una cuenta bancaria de B.
+  BEGIN
+    PERFORM public.begin_bank_statement_upload(
+      'e5000000-0000-4000-8000-0000000000f7',
+      'e5000000-0000-4000-8000-0000000000f2',
+      'estado-cruzado.csv',
+      NULL,
+      NULL,
+      1
+    );
+    RAISE EXCEPTION
+      'BANK ORG: el staff de A pudo iniciar una carga en la cuenta de B';
+  EXCEPTION
+    WHEN OTHERS THEN
+      IF SQLERRM <> 'Cuenta bancaria inexistente o no autorizada.' THEN
+        RAISE;
+      END IF;
+  END;
 
   -- Las mutaciones invoker no pueden cambiar una línea que pertenece a B.
   SELECT public.ignore_bank_lines(
