@@ -152,9 +152,8 @@ type PlanItem = {
   isFirstInvoice: boolean;
 };
 
-// deno-lint-ignore no-explicit-any
 async function buildPlan(
-  supabase: any,
+  supabase: SupabaseClient,
   organizationId?: string | null,
 ): Promise<{
   lines: PreviewLine[];
