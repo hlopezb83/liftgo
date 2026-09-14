@@ -1,6 +1,7 @@
 import { paymentIntentsQueries } from "@/features/invoices/lib/paymentIntentsQueryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 
 export interface PaymentIntentInput {
   invoice_id: string;
@@ -26,7 +27,8 @@ async function uploadProof(input: PaymentIntentInput): Promise<string | null> {
   if (!input.proof_file) return null;
   const ext = MIME_TO_EXT[input.proof_file.type];
   if (!ext) throw new Error("Formato de comprobante no permitido");
-  const path = `${input.customer_id}/${input.invoice_id}/${Date.now()}.${ext}`;
+  const relativePath = `${input.customer_id}/${input.invoice_id}/${Date.now()}.${ext}`;
+  const path = await organizationStoragePathForSession(supabase, relativePath);
   const { error } = await supabase.storage
     .from("payment-proofs")
     .upload(path, input.proof_file, { upsert: false });
