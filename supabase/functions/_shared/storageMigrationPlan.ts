@@ -105,6 +105,7 @@ export function makeStorageMigrationPlan(
   organizationId: string,
   bucketId: string,
   value: unknown,
+  knownOrganizationIds: Iterable<string> = [],
 ): StorageMigrationPlan {
   const parsed = parseStorageReference(value, bucketId);
   if (!parsed) {
@@ -128,14 +129,23 @@ export function makeStorageMigrationPlan(
     };
   }
 
-  if (UUID_PREFIX.test(parsed.sourcePath)) {
-    return {
-      disposition: "belongs_to_other_organization",
-      sourcePath: parsed.sourcePath,
-      destinationPath: null,
-      format: parsed.format,
-      publicUrlOrigin: parsed.publicUrlOrigin,
-    };
+  // Rutas históricas como <invoice_uuid>/archivo.xml y
+  // <user_uuid>/captura.png son válidas. Sólo bloqueamos un primer segmento
+  // que coincida con una organización REAL distinta.
+  const firstSegment = parsed.sourcePath.split("/", 1)[0].toLowerCase();
+  for (const knownOrganizationId of knownOrganizationIds) {
+    if (
+      knownOrganizationId.trim().toLowerCase() === firstSegment &&
+      firstSegment !== organization
+    ) {
+      return {
+        disposition: "belongs_to_other_organization",
+        sourcePath: parsed.sourcePath,
+        destinationPath: null,
+        format: parsed.format,
+        publicUrlOrigin: parsed.publicUrlOrigin,
+      };
+    }
   }
 
   try {
