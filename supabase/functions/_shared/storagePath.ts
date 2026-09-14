@@ -1,5 +1,23 @@
 import { isUUID } from "./validate.ts";
 
+/** Indica si el objeto ya está bajo el prefijo exacto de una organización. */
+export function hasOrganizationStoragePrefix(
+  organizationId: unknown,
+  value: unknown,
+): boolean {
+  const organization = typeof organizationId === "string"
+    ? organizationId.trim().toLowerCase()
+    : "";
+  const path = typeof value === "string"
+    ? value.trim().replace(/^\/+/, "")
+    : "";
+  const separator = path.indexOf("/");
+
+  return isUUID(organization) &&
+    separator > 0 &&
+    path.slice(0, separator).toLowerCase() === organization;
+}
+
 /**
  * Construye una ruta de Storage bajo una organización verificable.
  * Los procesos privilegiados deben derivar el ID del registro de negocio,
