@@ -207,7 +207,7 @@ SET search_path = public
 AS $$
   SELECT DISTINCT f.id, f.name, f.model, f.manufacturer
   FROM public.forklifts f
-  WHERE public.has_role(auth.uid(), 'customer'::public.app_role)
+  WHERE public.has_role(auth.uid(), 'customer'::app_role)
     AND public.organization_scope_matches(f.organization_id)
     AND (
       EXISTS (
@@ -249,7 +249,7 @@ AS $$
          c.start_date, c.end_date, c.status, c.signed_at,
          c.usage_location, c.created_at
   FROM public.contracts c
-  WHERE public.has_role(auth.uid(), 'customer'::public.app_role)
+  WHERE public.has_role(auth.uid(), 'customer'::app_role)
     AND c.customer_id = public.get_customer_id_for_user(auth.uid())
     AND public.organization_scope_matches(c.organization_id)
   ORDER BY c.created_at DESC
@@ -294,7 +294,7 @@ AS $$
          COALESCE(v.balance, 0)::numeric
   FROM public.v_invoices_with_balance v
   JOIN public.invoices i ON i.id = v.id
-  WHERE public.has_role(auth.uid(), 'customer'::public.app_role)
+  WHERE public.has_role(auth.uid(), 'customer'::app_role)
     AND v.customer_id = public.get_customer_id_for_user(auth.uid())
     AND public.organization_scope_matches(i.organization_id)
     AND v.status NOT IN ('draft', 'cancelled')
