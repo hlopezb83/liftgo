@@ -64,12 +64,15 @@ Requisitos de entorno: Node `>=24` (ver `engines` en `package.json`, `.nvmrc` y 
       │  has_role() SECURITY DEFINER · RPCs        │
       │  triggers de auditoría · constraints GiST  │
       └────────────────────────────────────────────┘
-               ▲                           ▲
-               │                           │
-   ┌───────────┴──────────────┐   ┌────────┴─────────────┐
-   │  Edge Functions (Deno)   │   │  Servicios externos  │
-   │  CFDI, cron, storage     │──▶│  Facturapi · AI      │
-   └──────────────────────────┘   └──────────────────────┘
+                ▲
+                │
+    ┌───────────┴──────────────┐   ┌──────────────────────┐
+    │  Edge Functions (Deno)   │   │  Servicios externos  │
+    │  CFDI, cron, storage     │──▶│  Facturapi · AI      │
+    └──────────────────────────┘   └──────────────────────┘
+
+Los servicios externos (Facturapi, AI) **no** acceden a Postgres: solo los
+invocan las Edge Functions o el código servidor, que sí consultan la base.
 ```
 
 El SSR corre en un Worker: `src/server.ts` envuelve el handler de
@@ -102,7 +105,7 @@ src/
 ├── layouts/                        MainLayout, CustomerPortalLayout, AuthGuard, RoleGuard
 ├── app-routes/
 │   ├── routes.ts                   Constantes de URL (`ROUTES.invoices.detail(id)`)
-│   ├── routes-config.tsx           Registro de rutas: loader lazy + módulo + permisos
+│   ├── routes-config.tsx           Registro heredado: loaders lazy + metadatos para sidebar/búsqueda
 │   └── RouteSkeletons.tsx          Fallbacks de Suspense
 ├── routes/                         Rutas file-based de TanStack Router
 │   ├── __root.tsx                  Shell HTML, head/meta, providers, error/not-found
@@ -284,7 +287,8 @@ programados y trabajo con privilegios de servicio:
   ```
 
 - Los segmentos `_main` y `_portal` son layouts sin URL propia: `/invoices` vive en `src/routes/_main/invoices.index.tsx`.
-- `src/app-routes/routes-config.tsx` sigue siendo el registro de `path` → `loader` (lazy) + `module` + `minAccess`/`adminOnly`; los archivos de ruta lo consumen para montar `Suspense` + `RoleGuard`.
+- Cada archivo de ruta declara sus propios guards: importa la página con `lazy`, define `module`/`minAccess` localmente y monta `Suspense` + `RoleGuard` (ej. `src/routes/_main/invoices.index.tsx`). **No** importan `routes-config.tsx`.
+- `src/app-routes/routes-config.tsx` es un registro heredado del router previo: hoy lo consumen el sidebar (`SidebarNavSection`, `SidebarQuickCreate`), la búsqueda global (`GlobalSearch`) y pruebas — no es la fuente efectiva de permisos en runtime.
 - `MainLayout` se monta una sola vez (layout route); `Suspense` envuelve cada página individual.
 - Constantes de URL en `src/app-routes/routes.ts` (`ROUTES.invoices.detail(id)`) para evitar strings mágicos.
 - La navegación usa `Link`/`navigate` de TanStack Router; `src/lib/router-compat-ui.tsx` y `src/lib/router-compat-url.ts` ofrecen equivalentes (`Navigate`, lectura de query string) para el código migrado.
@@ -461,8 +465,8 @@ Workflows vigentes en `.github/workflows/`: `ci.yml` (lint, typecheck, knip, arc
 2. Página orquestadora en `src/features/<feature>/pages/<Feature>Page.tsx`.
 3. Hook(s) de dominio en `src/features/<feature>/hooks/use<Feature>.ts` con TanStack Query. Si supera 80 LOC, divide en `*Query.ts` + `*Mutations.ts`.
 4. Componentes UI en `src/features/<feature>/components/`. Helpers puros en `src/features/<feature>/lib/` con sufijo `*Helpers.ts`.
-5. Registrar la ruta en `src/app-routes/routes-config.tsx` con `module: "Mi Módulo"` y su `loader` dinámico.
-6. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL) y agregar la URL a `src/app-routes/routes.ts`.
+5. Crear el archivo de ruta en `src/routes/_main/<ruta>.tsx` (el nombre del archivo define la URL): `lazy` de la página, `module`/`minAccess` locales y `RoleGuard`, siguiendo el patrón de `invoices.index.tsx`. Agregar la URL a `src/app-routes/routes.ts`.
+6. Si el módulo debe aparecer en el sidebar o en la búsqueda global, registrarlo también en `src/app-routes/routes-config.tsx`.
 7. Insertar el módulo en `role_permissions` (migración) y en la constante `MODULES` de `src/features/users/hooks/useRolePermissions.ts`. Mapear ruta → módulo en `ROUTE_TO_MODULE`.
 
 8. Agregar test mínimo en `src/test/`.
