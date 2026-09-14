@@ -619,7 +619,7 @@ async function executePlan(
     // reservas MXN y USD del mismo cliente/periodo emitía una sola factura con
     // la moneda de la primera reserva y montos de otra divisa sumados 1:1.
     const key =
-      `${item.customerId}|${item.startStr}|${item.endStr}|${item.currency}|${item.tipoCambio}`;
+      `${item.organizationId}|${item.customerId}|${item.startStr}|${item.endStr}|${item.currency}|${item.tipoCambio}`;
     const arr = groups.get(key) ?? [];
     arr.push(item);
     groups.set(key, arr);
@@ -630,12 +630,16 @@ async function executePlan(
     const bookingIds = group.map((i) => i.bookingId);
 
     try {
+      // Multiempresa: los datos comerciales/fiscales de facturación viven en
+      // organization_customers (organización + cliente); `customers` es sólo
+      // la identidad global y ya no se usa aquí para el receptor del CFDI.
       const { data: customer } = await supabase
-        .from("customers")
+        .from("organization_customers")
         .select(
-          "rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi, tax_rate",
+          "rfc, razon_social, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi, tax_rate",
         )
-        .eq("id", first.customerId)
+        .eq("customer_id", first.customerId)
+        .eq("organization_id", first.organizationId)
         .maybeSingle();
 
       // FIX-6 (ronda 2): extras pactados en la cotización (seguro, logística)
@@ -720,7 +724,7 @@ async function executePlan(
           p_billing_period_start: first.startStr,
           p_billing_period_end: first.endStr,
           p_receptor_rfc: customer?.rfc ?? null,
-          p_receptor_razon_social: customer?.razon_social || customer?.name ||
+          p_receptor_razon_social: customer?.razon_social || first.customerName ||
             null,
           p_receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           p_receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
