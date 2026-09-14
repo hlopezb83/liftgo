@@ -100,21 +100,29 @@ async function loadFacturapiKey(
 // Multiempresa · Fase 1: valida que el documento pertenezca a la organización
 // del caller ANTES de servir/persistir archivos o llamar al PAC. Nunca se
 // deriva del payload — siempre de la membresía del usuario + el documento leído.
-async function assertOwnDocumentOrganization(
+// Devuelve el Response de rechazo listo para retornar, o la organizationId
+// verificada.
+async function checkDocumentOrganization(
+  req: Request,
   supabase: SupabaseClient,
   userId: string,
   documentOrganizationId: unknown,
-): Promise<{ ok: true; organizationId: string } | { ok: false; response: Response }> {
+): Promise<
+  { ok: true; organizationId: string } | { ok: false; response: Response }
+> {
   const orgCheck = await resolveDocumentOrganization({
     admin: supabase,
     userId,
     isServiceRole: false,
-    documentOrganizationId: documentOrganizationId as string | null | undefined,
+    documentOrganizationId: documentOrganizationId as
+      | string
+      | null
+      | undefined,
   });
   if (!orgCheck.ok) {
     return {
       ok: false,
-      response: jsonError(REQ_PLACEHOLDER, orgCheck.status, orgCheck.message),
+      response: jsonError(req, orgCheck.status, orgCheck.message),
     };
   }
   return { ok: true, organizationId: orgCheck.organizationId };
@@ -289,6 +297,13 @@ Deno.serve(async (req) => {
       if (!cn || cn.cfdi_status !== "stamped" || !cn.cfdi_uuid) {
         return jsonError(req, 409, "Credit note not stamped");
       }
+      const cnOrgCheck = await checkDocumentOrganization(
+        req,
+        supabase,
+        auth.userId,
+        cn.organization_id,
+      );
+      if (!cnOrgCheck.ok) return cnOrgCheck.response;
       const cnForbidden = await requireOwnership(cn.customer_id);
       if (cnForbidden) return cnForbidden;
       const filename = `${cn.credit_note_number || cn.cfdi_uuid}.${baseFormat}`;
@@ -305,7 +320,7 @@ Deno.serve(async (req) => {
       if (!cn.facturapi_invoice_id) {
         return jsonError(req, 404, "Missing facturapi reference");
       }
-      const apiKey = await loadFacturapiKey(supabase);
+      const apiKey = await loadFacturapiKey(supabase, cnOrgCheck.organizationId);
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
       const res = await fetchFromFacturapi(
@@ -357,6 +372,13 @@ Deno.serve(async (req) => {
       ) {
         return jsonError(req, 409, "REP not stamped");
       }
+      const repOrgCheck = await checkDocumentOrganization(
+        req,
+        supabase,
+        auth.userId,
+        payment.organization_id,
+      );
+      if (!repOrgCheck.ok) return repOrgCheck.response;
       if (auth.role === "customer") {
         const { data: repInv } = await supabase
           .from("invoices")
@@ -380,7 +402,7 @@ Deno.serve(async (req) => {
       if (!payment.rep_facturapi_id) {
         return jsonError(req, 404, "Missing facturapi REP reference");
       }
-      const apiKey = await loadFacturapiKey(supabase);
+      const apiKey = await loadFacturapiKey(supabase, repOrgCheck.organizationId);
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
       const res = await fetchFromFacturapi(
@@ -426,6 +448,13 @@ Deno.serve(async (req) => {
       .eq("id", invoice_id)
       .single();
     if (invErr || !invoice) return jsonError(req, 404, "Invoice not found");
+    const invOrgCheck = await checkDocumentOrganization(
+      req,
+      supabase,
+      auth.userId,
+      invoice.organization_id,
+    );
+    if (!invOrgCheck.ok) return invOrgCheck.response;
     const invForbidden = await requireOwnership(invoice.customer_id);
     if (invForbidden) return invForbidden;
     const cfdiOk = invoice.cfdi_status === "stamped" ||
@@ -458,7 +487,7 @@ Deno.serve(async (req) => {
       if (!invoice.facturapi_invoice_id) {
         return jsonError(req, 404, "Missing facturapi reference");
       }
-      const apiKey = await loadFacturapiKey(supabase);
+      const apiKey = await loadFacturapiKey(supabase, invOrgCheck.organizationId);
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
       const res = await fetchAcuseFromFacturapi(
@@ -525,7 +554,7 @@ Deno.serve(async (req) => {
     if (!invoice.facturapi_invoice_id) {
       return jsonError(req, 404, "Missing facturapi reference");
     }
-    const apiKey = await loadFacturapiKey(supabase);
+    const apiKey = await loadFacturapiKey(supabase, invOrgCheck.organizationId);
     if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
     const res = await fetchFromFacturapi(
