@@ -23,16 +23,22 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 
 | Capa | Tecnología |
 |---|---|
-| UI | React 18, Vite 5, TypeScript 5, Tailwind CSS v3 |
+| UI | React 19, Vite 8, TypeScript 6, Tailwind CSS v4 (configurado en `src/styles.css`, sin `tailwind.config.ts`) |
+| Framework de app | TanStack Start 1.x + TanStack Router 1.x (rutas por archivo en `src/routes/`, SSR) |
 | Componentes | shadcn/ui sobre Radix UI, lucide-react |
-| Estado servidor | TanStack Query v5 |
+| Estado servidor | TanStack Query v5 (con persistencia en `localStorage`) |
 | Formularios | react-hook-form + Zod |
-| Routing | react-router-dom v6 con `lazy()` + `Suspense` |
+| Routing | TanStack Router (file-based) con `lazy()` + `Suspense` por ruta |
 | Backend | Lovable Cloud (Supabase): Postgres + Auth + Storage + Edge Functions (Deno) |
-| Documentos | `@react-pdf/renderer` ^4.5.x (declarativo, JSX → PDF, carga diferida) |
+| Server functions | `createServerFn` de `@tanstack/react-start` (`src/lib/*.functions.ts`) |
+| Despliegue | Build SSR con Nitro, preset `cloudflare-module` → `dist/client` + `dist/server` (ver `wrangler.jsonc`) |
+| Documentos | `@react-pdf/renderer` ^4.x (declarativo, JSX → PDF, carga diferida) |
 | Notificaciones | sonner |
-| Tests | Vitest + @testing-library/react + jsdom |
+| Tests | Vitest 4 + @testing-library/react + happy-dom (jsdom opt-in por archivo); Playwright para E2E |
 | Integraciones externas | Facturapi (CFDI 4.0), Lovable AI Gateway |
+| Observabilidad | Sentry (`@sentry/react` + `@sentry/vite-plugin`) |
+
+Requisitos de entorno: Node `>=24` (ver `engines` en `package.json`, `.nvmrc` y `.node-version`); el gestor de paquetes y runner de scripts es **Bun**.
 
 ---
 
@@ -40,29 +46,38 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 
 ```text
 ┌─────────────────────────────────────────────────────────────┐
-│                      Navegador (SPA)                        │
-│  React + TanStack Query + react-router + shadcn/Radix       │
+│        Navegador (React 19 + TanStack Query/Router)         │
 └──────────────┬──────────────────────────────┬───────────────┘
                │ HTTPS                        │ HTTPS
                ▼                              ▼
-      ┌─────────────────┐          ┌──────────────────────┐
-      │  Supabase Auth  │          │   Edge Functions     │
-      │  (JWT + RLS)    │          │   (Deno, getClaims)  │
-      └────────┬────────┘          └──────┬───────────────┘
-               │                          │
-               ▼                          ▼
+   ┌──────────────────────────┐     ┌──────────────────────┐
+   │  Worker SSR (Nitro /     │     │  Supabase Auth       │
+   │  Cloudflare)             │     │  (JWT + RLS)         │
+   │  src/server.ts →         │     └──────┬───────────────┘
+   │  TanStack Start          │            │
+   │  + server functions      │            │
+   └───────────┬──────────────┘            │
+               │                           │
+               ▼                           ▼
       ┌────────────────────────────────────────────┐
       │          Postgres (RLS por rol)            │
       │  has_role() SECURITY DEFINER · RPCs        │
       │  triggers de auditoría · constraints GiST  │
       └────────────────────────────────────────────┘
-                              │
-                              ▼
-              ┌──────────────────────────────┐
-              │  Servicios externos          │
-              │  Facturapi · Lovable AI      │
-              └──────────────────────────────┘
+               ▲                           ▲
+               │                           │
+   ┌───────────┴──────────────┐   ┌────────┴─────────────┐
+   │  Edge Functions (Deno)   │   │  Servicios externos  │
+   │  CFDI, cron, storage     │──▶│  Facturapi · AI      │
+   └──────────────────────────┘   └──────────────────────┘
 ```
+
+El SSR corre en un Worker: `src/server.ts` envuelve el handler de
+`@tanstack/react-start/server-entry` para convertir errores catastróficos en una
+página HTML de error (`src/lib/error-page.ts`). `src/start.ts` registra los
+middlewares de request (errores + CSRF) y el middleware de cliente que adjunta
+el Bearer de la sesión a las server functions.
+
 
 ---
 
