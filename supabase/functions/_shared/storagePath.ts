@@ -1,11 +1,6 @@
 import { isUUID } from "./validate.ts";
 
-/**
- * Construye una ruta de Storage bajo una organización verificable.
- * Los procesos privilegiados deben derivar el ID del registro de negocio,
- * nunca de una entrada proporcionada por el cliente.
- */
-/** True when a Storage object is already under this organization's prefix. */
+/** Indica si el objeto ya está bajo el prefijo exacto de una organización. */
 export function hasOrganizationStoragePrefix(
   organizationId: unknown,
   value: unknown,
@@ -23,6 +18,11 @@ export function hasOrganizationStoragePrefix(
     path.slice(0, separator).toLowerCase() === organization;
 }
 
+/**
+ * Construye una ruta de Storage bajo una organización verificable.
+ * Los procesos privilegiados deben derivar el ID del registro de negocio,
+ * nunca de una entrada proporcionada por el cliente.
+ */
 export function organizationStoragePath(
   organizationId: unknown,
   relativePath: string,
