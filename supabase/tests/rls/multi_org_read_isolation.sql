@@ -63,10 +63,15 @@ BEGIN
   INSERT INTO public.organizations (id, name, slug)
   VALUES (v_org_b, 'Organización B de prueba', 'rls-org-b');
 
+  -- auth.users dispara la creación de profile y su auditoría. En un flujo
+  -- multi-org la operación de servicio debe declarar el contexto ANTES.
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
   INSERT INTO auth.users (id, email, created_at, updated_at)
-  VALUES
-    (v_staff_a, 'staff-org-a@rls.test', now(), now()),
-    (v_portal_b, 'portal-org-b@rls.test', now(), now());
+  VALUES (v_staff_a, 'staff-org-a@rls.test', now(), now());
+
+  PERFORM set_config('app.organization_id', v_org_b::text, true);
+  INSERT INTO auth.users (id, email, created_at, updated_at)
+  VALUES (v_portal_b, 'portal-org-b@rls.test', now(), now());
 
   INSERT INTO public.organization_memberships (
     organization_id, auth_user_id, member_type
