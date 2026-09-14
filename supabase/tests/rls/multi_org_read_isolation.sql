@@ -80,10 +80,17 @@ BEGIN
     (v_org_a, v_staff_a, 'internal'),
     (v_org_b, v_portal_b, 'portal');
 
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
   INSERT INTO public.user_roles (user_id, role)
-  VALUES
-    (v_staff_a, 'admin'::public.app_role),
-    (v_portal_b, 'customer'::public.app_role);
+  VALUES (v_staff_a, 'admin'::public.app_role)
+  ON CONFLICT (user_id) DO UPDATE
+    SET role = EXCLUDED.role;
+
+  PERFORM set_config('app.organization_id', v_org_b::text, true);
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (v_portal_b, 'customer'::public.app_role)
+  ON CONFLICT (user_id) DO UPDATE
+    SET role = EXCLUDED.role;
 
   INSERT INTO public.customers (id, name)
   VALUES (v_customer, 'Cliente comercial compartido');
