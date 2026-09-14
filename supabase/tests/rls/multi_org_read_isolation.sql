@@ -1,4 +1,4 @@
--- Multi-organización Fase 4: RLS y portal se aíslan por organización.
+-- Multi-organización Fases 4-5: RLS, configuración y portal se aíslan por organización.
 -- Usa un cliente comercial compartido con dos cuentas de portal distintas.
 BEGIN;
 
@@ -124,6 +124,37 @@ BEGIN
       'Actividad de B', v_org_b
     );
 
+  -- Fase 5: cada organización puede tener su cuenta de cobranza por
+  -- defecto y cerrar el mismo periodo fiscal sin afectar a la otra.
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
+  INSERT INTO public.bank_accounts (
+    id, name, bank, account_number, account_holder, is_default_collection,
+    organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000f1',
+    'Cobranza A', 'Banco A', '0001', 'Organización A', true, v_org_a
+  );
+
+  PERFORM set_config('app.organization_id', v_org_b::text, true);
+  INSERT INTO public.bank_accounts (
+    id, name, bank, account_number, account_holder, is_default_collection,
+    organization_id
+  )
+  VALUES (
+    'e5000000-0000-4000-8000-0000000000f2',
+    'Cobranza B', 'Banco B', '0002', 'Organización B', true, v_org_b
+  );
+
+  INSERT INTO public.fiscal_periods (
+    organization_id, period, closed_at
+  )
+  VALUES (v_org_b, '2098-12', now());
+
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
+  INSERT INTO public.fiscal_periods (organization_id, period)
+  VALUES (v_org_a, '2098-12');
+
   -- Cada operación de servicio fija su contexto explícitamente. Esto
   -- reproduce el requisito real cuando ya hay más de una organización.
   PERFORM set_config('app.organization_id', v_org_a::text, true);
@@ -148,6 +179,82 @@ BEGIN
 END;
 $$;
 
+-- Las RPC analíticas se ejecutan como invoker para respetar las policies RLS.
+DO $$
+DECLARE
+  v_remaining_definers text;
+  v_org_a uuid;
+  v_blocked boolean := false;
+BEGIN
+  SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
+  INTO v_remaining_definers
+  FROM pg_proc p
+  WHERE p.oid IN (
+    'public.get_activity_metrics(timestamptz,timestamptz)'::regprocedure,
+    'public.get_available_forklifts(date,date)'::regprocedure,
+    'public.get_dashboard_stats()'::regprocedure,
+    'public.get_income_statement(date,date,text)'::regprocedure,
+    'public.get_insurance_alerts()'::regprocedure,
+    'public.get_sale_available_forklifts(integer,integer)'::regprocedure,
+    'public.get_sidebar_badge_counts()'::regprocedure,
+    'public.report_maintenance_cost_by_unit(date,date)'::regprocedure,
+    'public.report_profit_by_model(date,date)'::regprocedure,
+    'public.report_revenue_by_month(date,date)'::regprocedure,
+    'public.report_revenue_month_invoices(text)'::regprocedure,
+    'public.report_utilization_by_model(date,date)'::regprocedure,
+    'public.report_utilization_by_unit(date,date)'::regprocedure
+  )
+    AND p.prosecdef;
+
+  IF v_remaining_definers IS NOT NULL THEN
+    RAISE EXCEPTION
+      'RPC ORG: las lecturas deben ser SECURITY INVOKER; siguen definer: %',
+      v_remaining_definers;
+  END IF;
+
+  IF position(
+    'organization_scope_matches'
+    IN pg_get_functiondef('public.get_portal_collection_account()'::regprocedure)
+  ) = 0 THEN
+    RAISE EXCEPTION 'CONFIG ORG: get_portal_collection_account no valida organización';
+  END IF;
+
+  IF position(
+    'organization_scope_matches'
+    IN pg_get_functiondef('public.maintenance_buffer_days()'::regprocedure)
+  ) = 0 THEN
+    RAISE EXCEPTION 'CONFIG ORG: maintenance_buffer_days no valida organización';
+  END IF;
+
+  IF to_regprocedure('public.guard_fiscal_period_open(date,text)') IS NOT NULL THEN
+    RAISE EXCEPTION 'FISCAL ORG: quedó expuesta la variante global de dos argumentos';
+  END IF;
+
+  SELECT id INTO v_org_a
+  FROM public.organizations
+  WHERE id <> 'e5000000-0000-4000-8000-0000000000b1'::uuid
+    AND is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  PERFORM public.guard_fiscal_period_open('2098-12-15', 'test', v_org_a);
+
+  BEGIN
+    PERFORM public.guard_fiscal_period_open(
+      '2098-12-15',
+      'test',
+      'e5000000-0000-4000-8000-0000000000b1'::uuid
+    );
+  EXCEPTION WHEN raise_exception THEN
+    v_blocked := true;
+  END;
+
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'FISCAL ORG: el cierre de la organización B no se hizo cumplir';
+  END IF;
+END;
+$$;
+
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO
   '{"sub":"e5000000-0000-4000-8000-0000000000a1","role":"authenticated"}';
@@ -155,6 +262,7 @@ SET LOCAL request.jwt.claims TO
 DO $$
 DECLARE
   v_visible integer;
+  v_activity_metric_total integer;
 BEGIN
   SELECT count(*) INTO v_visible
   FROM public.activity_feed
@@ -168,6 +276,18 @@ BEGIN
       'RLS ORG: el staff de A ve % actividades entre A y B (esperado 1)',
       v_visible;
   END IF;
+
+  SELECT (public.get_activity_metrics(
+    now() - interval '1 hour',
+    now() + interval '1 hour'
+  ) ->> 'total')::integer
+  INTO v_activity_metric_total;
+
+  IF v_activity_metric_total <> 1 THEN
+    RAISE EXCEPTION
+      'RPC ORG: get_activity_metrics devolvió % actividades para A (esperado 1)',
+      v_activity_metric_total;
+  END IF;
 END;
 $$;
 
@@ -180,6 +300,7 @@ DO $$
 DECLARE
   v_visible integer;
   v_customer uuid;
+  v_collection_bank text;
 BEGIN
   SELECT public.get_customer_id_for_user(auth.uid()) INTO v_customer;
   IF v_customer IS DISTINCT FROM 'e5000000-0000-4000-8000-0000000000c1'::uuid THEN
@@ -198,6 +319,15 @@ BEGIN
     RAISE EXCEPTION
       'PORTAL ORG: la cuenta de B ve % cotizaciones del mismo cliente entre A y B (esperado 1)',
       v_visible;
+  END IF;
+
+  SELECT p.bank INTO v_collection_bank
+  FROM public.get_portal_collection_account() AS p;
+
+  IF v_collection_bank IS DISTINCT FROM 'Banco B' THEN
+    RAISE EXCEPTION
+      'PORTAL ORG: la cuenta de B recibió la cuenta de cobranza % (esperado Banco B)',
+      v_collection_bank;
   END IF;
 END;
 $$;
