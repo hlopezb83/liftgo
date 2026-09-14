@@ -731,7 +731,7 @@ Generados por RPCs `generate_*_number`; prefijos **en español** en mayúsculas,
 El audit v6.70.x detectó estas inconsistencias. **No se renombran en bloque** (cada rename rompe imports e historial de diffs); se alinean cuando el archivo se toca por otra razón, registrando el rename en el changelog del cambio que lo motivó:
 
 - `src/components/dataTable/` → `src/components/data-table/`.
-- `src/components/dataTable/` → `src/components/data-table/`.
+
 - `src/hooks/use-mobile.tsx` → `useIsMobile.tsx` (alinear con su export).
 - Tests de flujo en `src/test/<feature>Flow.test.ts` → mover a `src/features/<feature>/__tests__/`.
 
