@@ -62,11 +62,11 @@ SELECT pg_temp.expect_true(
 );
 
 SELECT pg_temp.expect_true(
-  'R3-04 unassign_forklift_from_sale_quote es SECURITY DEFINER con search_path fijo',
+  'R3-04 unassign_forklift_from_sale_quote es SECURITY INVOKER con search_path fijo',
   EXISTS (
     SELECT 1 FROM pg_proc
     WHERE proname = 'unassign_forklift_from_sale_quote'
-      AND prosecdef
+      AND NOT prosecdef
       AND array_to_string(proconfig, ',') ILIKE '%search_path%'
   )
 );
