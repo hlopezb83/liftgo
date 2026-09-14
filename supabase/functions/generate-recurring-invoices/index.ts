@@ -8,6 +8,7 @@ import {
   type NonRentalLineDto,
 } from "../_shared/nonRentalLines.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
+import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
 import { selectTargetItems } from "./selection.ts";
@@ -147,19 +148,30 @@ type PlanItem = {
 };
 
 // deno-lint-ignore no-explicit-any
-async function buildPlan(supabase: any): Promise<{
+async function buildPlan(
+  supabase: any,
+  organizationId?: string | null,
+): Promise<{
   lines: PreviewLine[];
   items: PlanItem[];
   truncated: boolean;
   pendingCount: number;
 }> {
-  const { data: bookings, error: bErr } = await supabase
+  // Ejecución manual (usuario autenticado): acotar SIEMPRE a su propia
+  // organización (nunca al payload). El cron (organizationId=null/undefined)
+  // procesa todas las organizaciones; cada reserva conserva su propia
+  // organization_id y la agrupación posterior nunca mezcla empresas.
+  let bookingsQuery = supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
+      "id, organization_id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
+  if (organizationId) {
+    bookingsQuery = bookingsQuery.eq("organization_id", organizationId);
+  }
+  const { data: bookings, error: bErr } = await bookingsQuery;
   if (bErr) throw bErr;
 
   // M-13: precargar la tasa de IVA de cada cliente para exponerla en el preview.
@@ -170,18 +182,22 @@ async function buildPlan(supabase: any): Promise<{
         .filter((id): id is string => !!id),
     ),
   );
+  // Multiempresa: la tarifa fiscal es propiedad de la relación
+  // organization_customers (organización + cliente), no del cliente global.
+  // La clave del mapa incluye la organización para no mezclar tasas de dos
+  // empresas que comparten el mismo cliente.
   const taxRateByCustomer = new Map<string, number | null>();
   if (customerIds.length > 0) {
     const { data: custRows } = await supabase
-      .from("customers")
-      .select("id, tax_rate")
-      .in("id", customerIds);
+      .from("organization_customers")
+      .select("organization_id, customer_id, tax_rate")
+      .in("customer_id", customerIds);
     for (
       const c of (custRows ?? []) as Array<
-        { id: string; tax_rate: number | null }
+        { organization_id: string; customer_id: string; tax_rate: number | null }
       >
     ) {
-      taxRateByCustomer.set(c.id, c.tax_rate);
+      taxRateByCustomer.set(`${c.organization_id}|${c.customer_id}`, c.tax_rate);
     }
   }
 
