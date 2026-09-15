@@ -39,8 +39,13 @@ export function useDamageRecords(archived = false) {
 
 export function useCreateDamageRecord() {
   return useEntityMutation({
-    mutationFn: async (record: TablesInsert<"damage_records">) => {
-      const { data, error } = await supabase.from("damage_records").insert(record).select().single();
+    // Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+    mutationFn: async (record: WithoutOrganization<TablesInsert<"damage_records">>) => {
+      const { data, error } = await supabase
+        .from("damage_records")
+        .insert(stripOrganizationId(record) as TablesInsert<"damage_records">)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
@@ -51,8 +56,15 @@ export function useCreateDamageRecord() {
 
 export function useUpdateDamageRecord() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"damage_records"> & { id: string }) => {
-      const { data, error } = await supabase.from("damage_records").update(updates).eq("id", id).select().single();
+    mutationFn: async (
+      { id, ...updates }: WithoutOrganization<TablesUpdate<"damage_records">> & { id: string },
+    ) => {
+      const { data, error } = await supabase
+        .from("damage_records")
+        .update(stripOrganizationId(updates))
+        .eq("id", id)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
