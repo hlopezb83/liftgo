@@ -349,7 +349,10 @@ function makePortalDeps(opts: {
   selects?: MockConfig["selects"];
   download?: { data: Blob | null; error: unknown };
   onDownload?: () => void;
-  onFacturapiFetch?: () => void;
+  onFacturapiFetch?: (req: Request) => void;
+  /** Respuesta del PAC simulado; sin ella cualquier llamada es un error. */
+  pacResponse?: (req: Request) => Response;
+  env?: Record<string, string>;
 }) {
   const caller = buildSupabaseMock({ claims: { sub: PORTAL_USER } });
   const service = buildSupabaseMock({
@@ -369,8 +372,12 @@ function makePortalDeps(opts: {
     opts.download ?? { data: null, error: null },
     opts.onDownload,
   );
-  const fetchImpl = ((..._args: Parameters<typeof fetch>) => {
-    opts.onFacturapiFetch?.();
+  const fetchImpl = ((input: Request | string | URL, init?: RequestInit) => {
+    const request = input instanceof Request
+      ? input
+      : new Request(String(input), init);
+    opts.onFacturapiFetch?.(request);
+    if (opts.pacResponse) return Promise.resolve(opts.pacResponse(request));
     // Sin red: cualquier llamada al PAC en estas pruebas es un error.
     return Promise.reject(new Error("PAC no debe invocarse en estas pruebas"));
   }) as unknown as typeof fetch;
@@ -378,7 +385,7 @@ function makePortalDeps(opts: {
     createCallerClient: () => caller.client,
     createServiceClient: () => downloadClient,
     fetchImpl,
-    env: () => undefined,
+    env: (k) => opts.env?.[k],
   };
   return { deps, serviceState: service };
 }
