@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVerifiedPortalCustomerId } from "@/contexts/OrganizationContext";
-import { useVerifiedIdentityScope } from "@/lib/query/IdentityScopedPersistence";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { portalKeys } from "../../lib/queryKeys";
