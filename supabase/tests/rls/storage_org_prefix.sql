@@ -8,10 +8,17 @@
 -- no llevan organización, por lo que no pueden crear una ruta cruzada.
 BEGIN;
 
--- ── Setup (rol de la sesión de pruebas: sin RLS) ─────────────────────
+-- ── Setup (conexión privilegiada, sólo para preparar fixtures) ────────
+-- El runner usa su conexión de pruebas para insertar datos de soporte, pero
+-- eso no evita el guardia de escritura multiempresa. El contexto explícito de
+-- ORG A permite que los triggers derivados de auth.users (por ejemplo profiles)
+-- atribuyan sus filas sin adivinar una organización cuando hay varias activas.
+
 INSERT INTO public.organizations (id, name, slug) VALUES
   ('0a000000-0000-4000-8000-00000000000a', 'Org A Storage', 'org-a-storage'),
   ('0b000000-0000-4000-8000-00000000000b', 'Org B Storage', 'org-b-storage');
+
+SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('a0000000-0000-4000-8000-000000000001', 'portal-a@storage.test', now(), now()),
@@ -91,8 +98,11 @@ INSERT INTO storage.objects (bucket_id, name, metadata) VALUES
    '{"mimetype":"application/pdf"}'::jsonb);
 
 -- ── 1. Cuenta de portal de la ORG A ──────────────────────────────────
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
 
 DO $$
 DECLARE
@@ -170,8 +180,8 @@ BEGIN
   v_blocked := false;
   BEGIN
     INSERT INTO public.customer_payment_intents
-      (invoice_id, customer_id, amount, transfer_date, status)
-    VALUES (v_inv_b::uuid, v_cust::uuid, 100, current_date, 'pending_review');
+      (organization_id, invoice_id, customer_id, amount, transfer_date, status)
+    VALUES (v_org_a::uuid, v_inv_b::uuid, v_cust::uuid, 100, current_date, 'pending_review');
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
   END;
@@ -183,8 +193,8 @@ BEGIN
   v_blocked := false;
   BEGIN
     INSERT INTO public.customer_payment_intents
-      (invoice_id, customer_id, amount, transfer_date, status, proof_url)
-    VALUES (v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
+      (organization_id, invoice_id, customer_id, amount, transfer_date, status, proof_url)
+    VALUES (v_org_a::uuid, v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
             v_org_b || '/' || v_cust || '/' || v_inv_a || '/ajeno.pdf');
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
@@ -195,8 +205,8 @@ BEGIN
 
   -- 1.8 Payment intent legítimo (guard positivo).
   INSERT INTO public.customer_payment_intents
-    (invoice_id, customer_id, amount, transfer_date, status, proof_url)
-  VALUES (v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
+    (organization_id, invoice_id, customer_id, amount, transfer_date, status, proof_url)
+  VALUES (v_org_a::uuid, v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
           v_org_a || '/' || v_cust || '/' || v_inv_a || '/nuevo.pdf');
 
   RAISE NOTICE 'OK: comprobantes de pago aislados por organización';
@@ -204,6 +214,8 @@ END $$;
 
 -- Efecto real del borrado cruzado (1.5): el objeto de la ORG B sigue ahí.
 RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
 DO $$
 BEGIN
   IF (SELECT count(*) FROM storage.objects
@@ -216,6 +228,7 @@ END $$;
 -- ── 2. Usuario interno de la ORG A: feedback y documentos ────────────
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
 
 
 DO $$
@@ -286,6 +299,8 @@ END $$;
 
 -- Efecto real del borrado cruzado de capturas.
 RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
 DO $$
 BEGIN
   IF (SELECT count(*) FROM storage.objects
@@ -294,7 +309,4 @@ BEGIN
     RAISE EXCEPTION 'RLS BREACH: se borró una captura de otra organización';
   END IF;
 END $$;
-
-
-
 ROLLBACK;
