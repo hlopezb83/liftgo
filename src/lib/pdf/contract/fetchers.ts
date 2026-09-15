@@ -1,3 +1,7 @@
+import {
+  ContractTemplateUnavailableError,
+  resolveSingleDefaultTemplate,
+} from "@/features/contracts/lib/contractTemplateResolution";
 import { supabase } from "@/integrations/supabase/client";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
@@ -88,16 +92,37 @@ export async function fetchRelatedData(contract: ContractData) {
 
 
 
-export async function fetchTemplate(contract?: ContractData): Promise<TemplateData> {
-  // A6R2-3: si el contrato firmado guardó su plantilla, se usa esa copia.
-  const snapshotTpl = contract ? readSignedSnapshot(contract)?.template : null;
-  const data = snapshotTpl ?? (await supabase
+/**
+ * Subtramo 6.1: la plantilla del PDF se resuelve desde la organización dueña
+ * de ESTE contrato (leída de la base bajo RLS, nunca del navegador). Con 0
+ * filas se usan los textos por defecto del sistema; con más de una
+ * predeterminada se detiene con un mensaje explícito en vez de elegir una.
+ */
+async function fetchOrganizationTemplateRow(contract: ContractData) {
+  const { data: owner, error: ownerError } = await supabase
+    .from("contracts")
+    .select("organization_id")
+    .eq("id", contract.id)
+    .maybeSingle();
+  if (ownerError) throw new ContractTemplateUnavailableError("read_error");
+  const organizationId = owner?.organization_id ?? null;
+  if (!organizationId) throw new ContractTemplateUnavailableError("organization_unresolved");
+
+  const { data, error } = await supabase
     .from("contract_templates")
     .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text, updated_at")
+    .eq("organization_id", organizationId)
     .eq("is_default", true)
     .order("updated_at", { ascending: false })
-    .limit(1)
-    .maybeSingle()).data;
+    .limit(2);
+  if (error) throw new ContractTemplateUnavailableError("read_error");
+  return resolveSingleDefaultTemplate(data);
+}
+
+export async function fetchTemplate(contract: ContractData): Promise<TemplateData> {
+  // A6R2-3: si el contrato firmado guardó su plantilla, se usa esa copia.
+  const snapshotTpl = readSignedSnapshot(contract)?.template;
+  const data = snapshotTpl ?? (await fetchOrganizationTemplateRow(contract));
 
 
 

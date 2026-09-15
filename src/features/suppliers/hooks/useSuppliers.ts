@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { getErrorMessage } from "@/lib/errors";
+import { CONSTRAINT_MESSAGES } from "@/lib/errors/pgErrorCatalog";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
@@ -58,12 +60,17 @@ export function useSuppliers() {
 // Nota: `useDeleteSupplier` se retiró por estar sin uso. La eliminación se
 // invoca directamente desde la página de proveedores vía el RPC soft delete.
 
-function translateSupplierError(err: Error): string {
+/**
+ * Subtramo 6.1: el RFC de proveedor sigue siendo único en todo el sistema, así
+ * que el choque puede venir de un proveedor de otra empresa que el usuario no
+ * puede ver. El catálogo central de errores da el mensaje seguro y accionable.
+ */
+export function translateSupplierError(err: Error): string {
   const msg = err.message || "";
   if (msg.includes("suppliers_rfc_unique_idx") || (msg.includes("duplicate key") && msg.toLowerCase().includes("rfc"))) {
-    return "Ya existe un proveedor con ese RFC.";
+    return CONSTRAINT_MESSAGES.suppliers_rfc_unique_idx.message;
   }
-  return msg;
+  return getErrorMessage(err);
 }
 
 export function useCreateSupplier() {

@@ -57,17 +57,44 @@ export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
 
   // --- Datos fiscales y catálogos ---
   customers_rfc_unique: { message: "Ya existe un cliente con ese RFC." },
-  suppliers_rfc_unique_idx: { message: "Ya existe un proveedor con ese RFC." },
+  // Subtramo 6.1: el RFC de proveedor todavía es único en todo el sistema, así
+  // que el registro que choca puede pertenecer a otra empresa y no ser visible.
+  suppliers_rfc_unique_idx: {
+    message:
+      "Ese RFC de proveedor ya está registrado en el sistema. Si no lo encuentras en tu lista de proveedores, solicita apoyo al administrador: el catálogo de proveedores aún se comparte entre empresas.",
+  },
   supplier_bills_cfdi_uuid_uniq: { message: "Ese CFDI ya fue registrado en otra factura de proveedor. Verifica el UUID fiscal." },
   operating_expenses_cfdi_uuid_key: { message: "Ese CFDI ya fue registrado en otro gasto operativo." },
 
   // --- Flota y catálogos operativos ---
-  forklifts_serial_number_unique: { message: "Ya existe un montacargas con ese número de serie." },
-  forklifts_name_unique: { message: "Ya existe un montacargas con ese nombre." },
-  equipment_models_mfr_model_unique: { message: "Ya existe un modelo con ese fabricante y modelo." },
-  drivers_name_unique: { message: "Ya existe un operador con ese nombre." },
-  mechanics_name_unique: { message: "Ya existe un mecánico con ese nombre." },
-  parts_inventory_sku_unique: { message: "Ya existe una refacción con ese SKU." },
+  // Subtramo 6.1: estos catálogos siguen con unicidad global mientras se
+  // decide la matriz de índices por empresa. El registro que choca puede
+  // pertenecer a otra empresa y no aparecer en la lista del usuario: el
+  // mensaje lo explica sin revelar ningún dato del otro registro.
+  forklifts_serial_number_unique: {
+    message:
+      "Ese número de serie ya está registrado en el sistema. Si no aparece en tu flota, solicita apoyo al administrador: el número de serie aún es único entre empresas.",
+  },
+  forklifts_name_unique: {
+    message:
+      "Ese nombre de montacargas ya está registrado en el sistema. Si no aparece en tu flota, usa otro nombre o solicita apoyo al administrador: el nombre aún es único entre empresas.",
+  },
+  equipment_models_mfr_model_unique: {
+    message:
+      "Ese fabricante y modelo ya existen en el catálogo compartido de modelos. Selecciónalo de la lista en lugar de crearlo otra vez.",
+  },
+  drivers_name_unique: {
+    message:
+      "Ese nombre de operador ya está registrado en el sistema. Si no aparece en tu lista, agrega un distintivo al nombre o solicita apoyo al administrador: el nombre aún es único entre empresas.",
+  },
+  mechanics_name_unique: {
+    message:
+      "Ese nombre de mecánico ya está registrado en el sistema. Si no aparece en tu lista, agrega un distintivo al nombre o solicita apoyo al administrador: el nombre aún es único entre empresas.",
+  },
+  parts_inventory_sku_unique: {
+    message:
+      "Ese SKU de refacción ya está registrado en el sistema. Si no aparece en tu inventario, solicita apoyo al administrador: el SKU aún es único entre empresas.",
+  },
   maintenance_parts_log_part_unique: { message: "Esa refacción ya fue registrada en este mantenimiento. Edita la cantidad en lugar de agregarla otra vez." },
   maintenance_policies_forklift_id_key: { message: "Ese montacargas ya tiene una póliza de mantenimiento configurada." },
 

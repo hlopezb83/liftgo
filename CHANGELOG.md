@@ -1,3 +1,13 @@
+## [8.8.25] - 2026-09-15 · patch · corrección
+
+Las plantillas de contrato y la búsqueda de clientes ya se resuelven dentro de la empresa verificada, y los choques de catálogos compartidos explican qué hacer.
+
+- La plantilla de contrato predeterminada se lee por empresa verificada, con estados explícitos de ausencia, ambigüedad y error de lectura.
+- El PDF de contrato toma la plantilla de la empresa dueña del contrato en lugar del primer registro disponible.
+- La búsqueda global parte de la relación comercial de la empresa y une el cliente global, sin depender de datos del navegador.
+- Los choques de unicidad en flota, mecánicos, operadores, refacciones, proveedores y modelos se traducen a mensajes seguros y accionables.
+- Nuevas pruebas de ausencia, ambigüedad y aislamiento entre empresas; sin migraciones, índices ni escrituras en producción.
+
 ## [8.8.24] - 2026-09-15 · patch · documentación
 
 Se documentó, sin cambiar la base, qué catálogos comparten unicidad global y cuáles deberían ser propios de cada empresa.

@@ -9,16 +9,22 @@ vi.mock("@/integrations/supabase/client", () => {
   const build = (data: unknown, error: { message: string } | null) => {
     const chain: Record<string, unknown> = {};
     const ret = { data, error };
-    ["select", "or", "order", "limit", "neq", "is"].forEach((k) => {
+    ["select", "or", "order", "limit", "neq", "is", "eq"].forEach((k) => {
       chain[k] = vi.fn(() => (k === "limit" ? Promise.resolve(ret) : chain));
     });
     return chain;
   };
   return {
     supabase: {
+      auth: {
+        onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+        getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
+      },
       from: (table: string) => {
         if (table === "invoices") return build(null, { message: "permission denied" });
-        if (table === "customers") return build([{ id: "c1", name: "Cliente Uno", rfc: "AAA010101AAA" }], null);
+        if (table === "organization_customers") {
+          return build([{ customer_id: "c1", customers: { id: "c1", name: "Cliente Uno", rfc: "AAA010101AAA", deleted_at: null } }], null);
+        }
         if (table === "bookings") return build([{ id: "b1", booking_number: "RSV-1", customer_name: "ACME" }], null);
         return build([], null);
       },
@@ -30,7 +36,7 @@ const { searchEntities } = await import("@/features/system/hooks/useEntitySearch
 
 describe("searchEntities — fallo parcial", () => {
   it("reporta la sección fallida y conserva las demás", async () => {
-    const res = await searchEntities("ACME");
+    const res = await searchEntities("ACME", "org-a");
     expect(res.errors?.invoices).toMatch(/permission denied/);
     expect(res.errors?.customers).toBeUndefined();
     expect(res.customers).toHaveLength(1);
