@@ -67,7 +67,7 @@ BEGIN
     (v_admin_a, 'admin'::public.app_role),
     (v_staff_a, 'dispatcher'::public.app_role),
     (v_portal_a, 'customer'::public.app_role)
-  ON CONFLICT (user_id, role) DO NOTHING;
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
   PERFORM set_config('app.organization_id', v_org_b::text, true);
   INSERT INTO public.profiles (user_id, full_name, is_active)
@@ -76,7 +76,7 @@ BEGIN
 
   INSERT INTO public.user_roles (user_id, role)
   VALUES (v_admin_b, 'admin'::public.app_role)
-  ON CONFLICT (user_id, role) DO NOTHING;
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
   -- Cliente comercial compartido con una cuenta de portal en A.
   PERFORM set_config('app.organization_id', v_org_a::text, true);
