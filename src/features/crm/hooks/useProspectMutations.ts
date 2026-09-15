@@ -46,7 +46,7 @@ export function useUpdateProspect() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: ProspectUpdate) => {
       const { data, error } = await supabase
-        .from("prospects").update(updates).eq("id", id).select().single();
+        .from("prospects").update(stripOrganizationId(updates)).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
