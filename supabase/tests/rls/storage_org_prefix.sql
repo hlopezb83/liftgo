@@ -284,4 +284,17 @@ BEGIN
   RAISE NOTICE 'OK: feedback y documentos aislados por organización';
 END $$;
 
+-- Efecto real del borrado cruzado de capturas.
+RESET ROLE;
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM storage.objects
+       WHERE bucket_id = 'feedback-screenshots'
+         AND name LIKE '0b000000-0000-4000-8000-00000000000b/%') <> 1 THEN
+    RAISE EXCEPTION 'RLS BREACH: se borró una captura de otra organización';
+  END IF;
+END $$;
+
+
+
 ROLLBACK;
