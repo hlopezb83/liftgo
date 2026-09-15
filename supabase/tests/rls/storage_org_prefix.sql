@@ -160,16 +160,11 @@ BEGIN
   VALUES ('payment-proofs', v_org_a || '/' || v_cust || '/' || v_inv_a || '/nuevo.pdf',
           '{"mimetype":"application/pdf"}'::jsonb);
 
-  -- 1.5 Borrado del objeto de la ORG B: sin efecto.
+  -- 1.5 Borrado del objeto de la ORG B: sin efecto (se verifica fuera del bloque,
+  -- con el rol de la sesión de pruebas, porque `authenticated` no puede cambiar de rol).
   DELETE FROM storage.objects
    WHERE bucket_id = 'payment-proofs' AND name LIKE v_org_b || '/%';
-  SET LOCAL role = 'postgres';
-  SELECT count(*) INTO v_count FROM storage.objects
-   WHERE bucket_id = 'payment-proofs' AND name LIKE v_org_b || '/%';
-  SET LOCAL role = 'authenticated';
-  IF v_count <> 1 THEN
-    RAISE EXCEPTION 'RLS BREACH: la sesión de la ORG A borró comprobantes de la ORG B';
-  END IF;
+
 
   -- 1.6 Payment intent con factura de la ORG B.
   v_blocked := false;
