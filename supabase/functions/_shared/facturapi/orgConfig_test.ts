@@ -308,3 +308,58 @@ Deno.test("modeOverride evita releer company_settings", async () => {
   assertEquals(cfg.mode, "live");
   assertEquals(cfg.apiKey, "a_live");
 });
+
+// 8.8.8: `organizations` ilegible NO puede confundirse con "hay más de una
+// empresa": sin poder verificarlo no se devuelve llave ni se cae al entorno.
+Deno.test("organizations ilegible en modo test y sin llave propia propaga config_read_error", async () => {
+  const admin = adminFor(
+    {
+      company_settings: [{ organization_id: ORG_A, facturapi_mode: "test" }],
+      billing_secrets: [],
+      organizations: [{ id: ORG_A }],
+    },
+    { organizations: { message: "db down" } },
+  );
+  const err = await assertRejects(() =>
+    getFacturapiConfigForOrganization({
+      admin,
+      env: envKeys,
+      organizationId: ORG_A,
+    })
+  );
+  if (!isFacturapiConfigError(err)) throw new Error("tipo de error inesperado");
+  assertEquals((err as FacturapiConfigError).code, "config_read_error");
+});
+
+Deno.test("organizations ilegible se reporta como 503 sin llave de entorno", async () => {
+  const admin = adminFor(
+    {
+      company_settings: [{ organization_id: ORG_A, facturapi_mode: "test" }],
+      billing_secrets: [],
+      organizations: [{ id: ORG_A }],
+    },
+    { organizations: { message: "db down" } },
+  );
+  const outcome = await loadFacturapiConfigOutcome({
+    admin,
+    env: envKeys,
+    organizationId: ORG_A,
+  });
+  assertEquals(outcome.ok, false);
+  if (outcome.ok) return;
+  assertEquals(outcome.status, 503);
+  assertEquals(outcome.code, "config_read_error");
+});
+
+// Semántica booleana conservada para otros consumidores: fail-closed.
+Deno.test("isSoleLegacyOrganization conserva false ante error de lectura", async () => {
+  const admin = adminFor(
+    {
+      company_settings: [],
+      billing_secrets: [],
+      organizations: [{ id: ORG_A }],
+    },
+    { organizations: { message: "db down" } },
+  );
+  assertEquals(await isSoleLegacyOrganization(admin, ORG_A), false);
+});
