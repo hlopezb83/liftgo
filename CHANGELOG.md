@@ -1,3 +1,13 @@
+## [8.8.19] - 2026-09-15 · minor · seguridad
+
+Prospectos y operaciones escriben siempre en la organización verificada (tramo 4 multiempresa).
+
+- Nuevo `src/lib/organization/writeContext.ts` (`stripOrganizationId`, `WithoutOrganization`): ningún payload del navegador viaja con `organization_id`.
+- `useProspects`/`useProspectMutations`, `useCreateForklift`/`useUpdateForklift`, `useDamageRecords`, `useMaintenanceLogs` y `useMaintenanceLabor` dejan de aceptar la organización como campo editable.
+- Se conservan sin cambios el trigger `enforce_organization_write_context`, las policies `org_scope_isolation` y las validaciones de propietario/cliente.
+- Nueva suite `supabase/tests/rls/operations_cross_org.sql`: A no lee ni modifica registros de B, los IDs directos de B no filtran datos, un payload con la organización de B se rechaza (42501), un alta sin organización queda en A y el portal no alcanza operaciones internas.
+- Pruebas Vitest del saneado y de los payloads de prospectos.
+
 ## [8.8.18] - 2026-09-15 · minor · seguridad
 
 Emisor de documentos resuelto por organización verificada (tramo 3 multiempresa).

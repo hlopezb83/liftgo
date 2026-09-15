@@ -1,0 +1,15 @@
+{
+  "version": "8.8.19",
+  "date": "2026-09-15",
+  "type": "minor",
+  "category": "seguridad",
+  "title": "Prospectos y operaciones siempre quedan en la empresa del usuario",
+  "description": "Las altas y ediciones de prospectos, unidades, daños y mantenimientos ya no pueden proponer otra empresa desde el navegador: la asigna el servidor con la membresía verificada.",
+  "changes": [
+    "Nuevo saneado compartido que elimina la empresa de cualquier formulario antes de guardar.",
+    "Prospectos, montacargas, daños, mantenimientos y mano de obra dejan de aceptar la empresa como campo editable.",
+    "Nueva prueba de aislamiento con dos empresas: un usuario de A no ve ni modifica prospectos, reservas, cotizaciones, contratos, unidades, daños ni mantenimientos de B.",
+    "Un intento de guardar con la empresa de B se rechaza y un alta sin empresa queda en la del usuario.",
+    "Una cuenta del portal no alcanza las operaciones internas y los flujos actuales de la empresa siguen funcionando."
+  ]
+}

@@ -3,6 +3,10 @@ import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import {
+  stripOrganizationId,
+  type WithoutOrganization,
+} from "@/lib/organization/writeContext";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
@@ -11,8 +15,13 @@ import { forkliftKeys, insuranceAlertsKeys, statusLogKeys } from "../../lib/quer
 
 export function useCreateForklift() {
   return useEntityMutation({
-    mutationFn: async (forklift: TablesInsert<"forklifts">) => {
-      const { data, error } = await supabase.from("forklifts").insert(forklift).select().single();
+    // Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+    mutationFn: async (forklift: WithoutOrganization<TablesInsert<"forklifts">>) => {
+      const { data, error } = await supabase
+        .from("forklifts")
+        .insert(stripOrganizationId(forklift) as TablesInsert<"forklifts">)
+        .select()
+        .single();
       if (error) throw error;
       const { error: logError } = await supabase.from("status_logs").insert({
         forklift_id: data.id,
@@ -42,11 +51,15 @@ export function useUpdateForklift() {
     // M-11b: bloqueo optimista contra el `updated_at` que tenía el registro
     // cuando se cargó el formulario, más filtro `deleted_at IS NULL` para no
     // "revivir" una unidad archivada por otro usuario en paralelo.
-    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: TablesUpdate<"forklifts"> & {
+    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: WithoutOrganization<TablesUpdate<"forklifts">> & {
       id: string;
       expectedUpdatedAt?: string | null;
     }) => {
-      let q = supabase.from("forklifts").update(updates).eq("id", id).is("deleted_at", null);
+      let q = supabase
+        .from("forklifts")
+        .update(stripOrganizationId(updates))
+        .eq("id", id)
+        .is("deleted_at", null);
       if (expectedUpdatedAt) q = q.eq("updated_at", expectedUpdatedAt);
       const { data, error } = await q.select().maybeSingle();
       if (error) throw error;

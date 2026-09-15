@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { stripOrganizationId } from "@/lib/organization/writeContext";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 
@@ -28,14 +29,18 @@ export function useMaintenanceLabor(maintenanceLogId: string | null | undefined)
   });
 }
 
-type LaborInsert = Omit<TablesInsert<"maintenance_labor">, "id" | "created_at" | "updated_at" | "total_cost">;
+// Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+type LaborInsert = Omit<
+  TablesInsert<"maintenance_labor">,
+  "id" | "created_at" | "updated_at" | "total_cost" | "organization_id"
+>;
 
 export function useAddMaintenanceLabor() {
   return useEntityMutation({
     mutationFn: async (row: LaborInsert) => {
       const { data, error } = await supabase
         .from("maintenance_labor")
-        .insert(row)
+        .insert(stripOrganizationId(row) as TablesInsert<"maintenance_labor">)
         .select("*, mechanics(id, name)")
         .single();
       if (error) throw error;

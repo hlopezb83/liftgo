@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { stripOrganizationId } from "@/lib/organization/writeContext";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { prospectKeys } from "../lib/queryKeys";
 import { applyStageMove, type StageMove } from "../lib/stageMove";
@@ -23,7 +24,9 @@ export function useCreateProspect() {
         if (orderError) throw orderError;
         return supabase
           .from("prospects")
-          .insert({ ...p, stage_order: nextOrder as number })
+          // Tramo 4: la empresa la resuelve el trigger de contexto con la
+          // membresía verificada; el navegador nunca la propone.
+          .insert({ ...stripOrganizationId(p), stage_order: nextOrder as number })
           .select()
           .single();
       };
@@ -43,7 +46,7 @@ export function useUpdateProspect() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: ProspectUpdate) => {
       const { data, error } = await supabase
-        .from("prospects").update(updates).eq("id", id).select().single();
+        .from("prospects").update(stripOrganizationId(updates)).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },

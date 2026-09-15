@@ -3,6 +3,10 @@ import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import {
+  stripOrganizationId,
+  type WithoutOrganization,
+} from "@/lib/organization/writeContext";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
@@ -45,8 +49,13 @@ export function useMaintenanceLogs(forkliftId?: string, archived = false) {
 
 export function useCreateMaintenanceLog() {
   return useEntityMutation({
-    mutationFn: async (log: TablesInsert<"maintenance_logs">) => {
-      const { data, error } = await supabase.from("maintenance_logs").insert(log).select().single();
+    // Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+    mutationFn: async (log: WithoutOrganization<TablesInsert<"maintenance_logs">>) => {
+      const { data, error } = await supabase
+        .from("maintenance_logs")
+        .insert(stripOrganizationId(log) as TablesInsert<"maintenance_logs">)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
@@ -57,8 +66,15 @@ export function useCreateMaintenanceLog() {
 
 export function useUpdateMaintenanceLog() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<MaintenanceLog>) => {
-      const { data, error } = await supabase.from("maintenance_logs").update(updates).eq("id", id).select().single();
+    mutationFn: async (
+      { id, ...updates }: { id: string } & Partial<WithoutOrganization<MaintenanceLog>>,
+    ) => {
+      const { data, error } = await supabase
+        .from("maintenance_logs")
+        .update(stripOrganizationId(updates))
+        .eq("id", id)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
