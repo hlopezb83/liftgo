@@ -141,3 +141,17 @@ compartidas: los `onConflict` existentes son por `user_id` y `(user_id, role)`.
 3. ¿Se retira el índice global de `feedback_reports.folio`?
 4. ¿Se añade unicidad a `bank_accounts`?
 5. Orden y ventana de los lotes antes de la segunda empresa.
+
+## 9. Subtramo 6.1 · aplicación (versión 8.8.25)
+
+Sin cambios de esquema, índices ni escrituras en producción:
+
+- `useDefaultContractTemplate` y el PDF de contrato resuelven la plantilla por la
+  organización verificada / la organización dueña del contrato, con estados explícitos
+  de ausencia, ambigüedad y error de lectura (`contractTemplateResolution.ts`).
+- `searchEntities` parte de `organization_customers` de la organización verificada y une
+  `customers`, que sigue siendo identidad global; sin organización resuelta no consulta nada.
+- Los choques de unicidad global de flota, mecánicos, operadores, refacciones, proveedores y
+  modelos se traducen a mensajes seguros y accionables en `pgErrorCatalog.ts`.
+- **Bloqueo documentado:** la unicidad real de esos catálogos sigue siendo global; retirarla
+  exige la decisión de catálogo de §8 y una migración de índices, fuera del alcance de 6.1.

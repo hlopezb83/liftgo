@@ -6,7 +6,14 @@
  * `GlobalSearch` ahora consume este hook y sólo se ocupa de la UI (cmdk).
  */
 import { useQuery } from "@tanstack/react-query";
+import { useOrganizationContext } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
+
+interface CustomerRow {
+  id: string;
+  name: string | null;
+  rfc: string | null;
+}
 
 interface EntityHit {
   id: string;
@@ -41,9 +48,17 @@ function sanitizeSearchTerm(term: string): string {
     .replace(/[\\%_]/g, (ch) => `\\${ch}`);
 }
 
-export async function searchEntities(query: string): Promise<EntityResults> {
+/**
+ * Subtramo 6.1: los clientes se buscan partiendo de `organization_customers`
+ * de la organización verificada en servidor y uniendo `customers` (que sigue
+ * siendo identidad global). Sin organización resuelta no se consulta nada.
+ */
+export async function searchEntities(
+  query: string,
+  organizationId?: string,
+): Promise<EntityResults> {
   const q = sanitizeSearchTerm(query.trim());
-  if (q.length < 2) return EMPTY;
+  if (q.length < 2 || !organizationId) return EMPTY;
   const like = `%${q}%`;
   const [invRes, custRes, bookRes] = await Promise.all([
     // M-3: no mostrar documentos cancelados ni clientes eliminados.
@@ -55,11 +70,11 @@ export async function searchEntities(query: string): Promise<EntityResults> {
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
-      .from("customers")
-      .select("id, name, rfc")
-      .is("deleted_at", null)
-      .or(`name.ilike.${like},rfc.ilike.${like}`)
-      .order("name")
+      .from("organization_customers")
+      .select("customer_id, customers!inner(id, name, rfc, deleted_at)")
+      .eq("organization_id", organizationId)
+      .is("customers.deleted_at", null)
+      .or(`name.ilike.${like},rfc.ilike.${like}`, { referencedTable: "customers" })
       .limit(5),
     supabase
       .from("bookings")
@@ -87,12 +102,17 @@ export async function searchEntities(query: string): Promise<EntityResults> {
       sub: i.customer_name ?? undefined,
       url: `/invoices/${i.id}`,
     })),
-    customers: (custRes.data ?? []).map((c) => ({
-      id: c.id,
-      label: c.name ?? "—",
-      sub: c.rfc ?? undefined,
-      url: `/customers/${c.id}`,
-    })),
+    customers: (custRes.data ?? []).flatMap((row) => {
+      const rel = (row as { customers?: CustomerRow | CustomerRow[] | null }).customers;
+      const c = Array.isArray(rel) ? rel[0] : rel;
+      if (!c) return [];
+      return [{
+        id: c.id,
+        label: c.name ?? "—",
+        sub: c.rfc ?? undefined,
+        url: `/customers/${c.id}`,
+      }];
+    }),
     bookings: (bookRes.data ?? []).map((b) => ({
       id: b.id,
       label: b.booking_number ?? "—",
@@ -103,10 +123,12 @@ export async function searchEntities(query: string): Promise<EntityResults> {
 }
 
 export function useEntitySearch(query: string, enabled: boolean) {
+  const org = useOrganizationContext();
+  const organizationId = org.status === "ready" ? org.organizationId : undefined;
   return useQuery({
-    queryKey: ["global-search", query],
-    queryFn: () => searchEntities(query),
-    enabled: enabled && query.trim().length >= 2,
+    queryKey: ["global-search", organizationId ?? "unresolved", query],
+    queryFn: () => searchEntities(query, organizationId),
+    enabled: enabled && !!organizationId && query.trim().length >= 2,
     staleTime: 30_000,
   });
 }
