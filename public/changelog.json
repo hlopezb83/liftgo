@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.8.23",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "corrección",
+    "title": "La prueba de administración verifica el rol de la otra empresa con su propia sesión",
+    "description": "Se corrigió el fixture que confundía una lectura vacía por aislamiento con un cambio de rol.",
+    "changes": [
+      "El intento cruzado y la RPC siguen ejecutándose como administrador de A.",
+      "El rol del administrador de B se comprueba en un bloque autenticado como B y luego se restablece el contexto de A.",
+      "Se conservan la comprobación del último administrador por empresa y el flujo válido de A, sin tocar políticas ni la migración 0025."
+    ]
+  },
+  {
     "version": "8.8.22",
     "date": "2026-09-15",
     "type": "patch",
