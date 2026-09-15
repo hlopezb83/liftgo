@@ -1,6 +1,7 @@
 import { useIsRestoring } from "@tanstack/react-query";
 import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { OrganizationGate } from "@/contexts/OrganizationContext";
 import { useRecoveryStatus } from "@/features/auth/hooks/useRecoveryStatus";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
@@ -119,12 +120,21 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   // Los clientes viven en /portal/* y los usuarios internos fuera de él.
   // Antes CustomerPortalRoutes renderizaba el portal en cualquier URL para
   // clientes; ahora cada árbol tiene su layout y el guard redirige al correcto.
+  // Multi-organización: nada protegido se renderiza hasta que la empresa del
+  // usuario queda verificada contra organization_memberships (y la cuenta del
+  // portal cuando aplica).
+  const gated = (
+    <OrganizationGate fallback={<AppLoader hint="Verificando empresa…" />}>
+      {children}
+    </OrganizationGate>
+  );
+
   if (role === "customer") {
     if (!inPortal) return <Navigate to="/portal" replace />;
-    return <>{children}</>;
+    return gated;
   }
 
   if (inPortal) return <Navigate to="/" replace />;
 
-  return <>{children}</>;
+  return gated;
 }
