@@ -24,24 +24,30 @@ export function AuthBrandPanel({ logoUrl, razonSocial, tagline }: AuthBrandPanel
             className="h-12 w-auto max-w-[200px] object-contain"
           />
         ) : (
-          <span className="grid place-items-center h-12 w-12 rounded-2xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-lg">
-            LG
+          /* Distintivo tipográfico al estilo del sitio público. */
+          <span className="flex flex-col leading-none">
+            <span className="auth-display text-2xl font-extrabold text-sidebar-primary-foreground">
+              Lift Go
+            </span>
+            <span className="auth-display text-2xs text-sidebar-primary">Montacargas</span>
           </span>
         )}
-        <span className="text-lg font-semibold text-sidebar-primary-foreground">
-          {razonSocial ?? "LiftGo"}
-        </span>
+        {logoUrl && (
+          <span className="auth-display text-base font-bold text-sidebar-primary-foreground">
+            {razonSocial ?? "LiftGo"}
+          </span>
+        )}
       </div>
       <div className="relative space-y-4">
         <span className="block h-1 w-16 rounded-full bg-sidebar-primary" />
-        <h2 className="text-3xl font-semibold leading-tight text-sidebar-primary-foreground">
+        <h2 className="auth-display text-3xl font-extrabold leading-tight text-sidebar-primary-foreground">
           {tagline}
         </h2>
-        <p className="text-sm text-sidebar-foreground/70 max-w-sm">
+        <p className="text-sm text-sidebar-foreground/75 max-w-sm">
           Flota, rentas, mantenimiento y facturación en un solo lugar.
         </p>
       </div>
-      <p className="relative text-3xs uppercase tracking-widest text-sidebar-foreground/50">
+      <p className="relative auth-display text-3xs text-sidebar-foreground/60">
         LiftGo · Monterrey, México
       </p>
     </aside>
