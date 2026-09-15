@@ -319,6 +319,29 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Pantallas de acceso: paleta homologada con liftgo.com.mx.           */
+/* Tokens redefinidos SÓLO dentro de `.auth-brandscape`; el interior de */
+/* la app conserva la paleta global.                                    */
+/* ------------------------------------------------------------------ */
+.auth-brandscape {
+  --background: 23 56% 97%;      /* #FCF7F4 */
+  --card: 0 0% 100%;
+  --primary: 39 62% 45%;         /* #B8862B — botón "COTIZAR" del sitio */
+  --primary-foreground: 0 0% 100%;
+  --ring: 39 62% 45%;
+  --sidebar-background: 217 70% 14%;   /* #0B1F3E */
+  --sidebar-foreground: 210 20% 85%;
+  --sidebar-primary: 29 39% 61%;       /* #C39B76 */
+  --sidebar-primary-foreground: 0 0% 100%;
+}
+
+.auth-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ------------------------------------------------------------------ */
 /* Scrollbars: thin, transparent track, muted thumb.                   */
 /* ------------------------------------------------------------------ */
 @layer base {
