@@ -197,10 +197,19 @@ export async function getFacturapiConfigForOrganization(input: {
     return { mode, apiKey: dbKey, organizationId, fromEnvFallback: false };
   }
 
-  const legacyAllowed = await isSoleLegacyOrganization(admin, organizationId);
+  // 8.8.8: lector ESTRICTO. `isSoleLegacyOrganization` devuelve false ante
+  // error (fail-closed booleano, útil para otros consumidores), pero en el
+  // camino fiscal eso confundiría "hay más de una empresa" con "no pudimos
+  // leer `organizations`". Aquí el error de lectura se propaga como
+  // FacturapiConfigError(config_read_error): sin llave, sin entorno, sin stub.
+  const legacyAllowed = await readSoleLegacyOrganizationStrict(
+    admin,
+    organizationId,
+  );
   if (!legacyAllowed) {
     return { mode, apiKey: null, organizationId, fromEnvFallback: false };
   }
+
   const envKey = resolveFacturapiKey({
     mode,
     envTestKey: env("FACTURAPI_TEST_KEY"),
@@ -261,6 +270,30 @@ export async function isSoleLegacyOrganization(
 ): Promise<boolean> {
   const res = await admin.from("organizations").select("id").limit(2);
   if ((res as { error?: unknown })?.error) return false;
+  const rows = ((res as { data?: unknown })?.data ?? []) as Array<
+    { id?: string }
+  >;
+  return rows.length === 1 && rows[0]?.id === organizationId;
+}
+
+/**
+ * 8.8.8: variante ESTRICTA usada por el resolver de configuración fiscal.
+ * Un error al leer `organizations` NO se degrada a "no aplica el fallback":
+ * se propaga como FacturapiConfigError(config_read_error) para que el handler
+ * libere su claim y responda 503, sin llave, sin entorno y sin timbrado stub.
+ */
+export async function readSoleLegacyOrganizationStrict(
+  admin: { from: (table: string) => any },
+  organizationId: string,
+): Promise<boolean> {
+  const res = await admin.from("organizations").select("id").limit(2);
+  if ((res as { error?: unknown })?.error) {
+    throw new FacturapiConfigError(
+      "config_read_error",
+      "No se pudo verificar la empresa para resolver la configuración fiscal. Reintenta en unos segundos.",
+      organizationId,
+    );
+  }
   const rows = ((res as { data?: unknown })?.data ?? []) as Array<
     { id?: string }
   >;

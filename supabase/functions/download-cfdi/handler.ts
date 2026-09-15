@@ -241,9 +241,14 @@ async function fetchFacturapiBinary(
       // R-arq DIFF 3: fetchWithTimeout (30s) reemplaza `fetch(` crudo para
       // evitar isolates colgados si el PAC no responde. 8.8.7: usa SIEMPRE
       // `deps.fetchImpl`, para que los tests intercepten el transporte real.
-      const r = await fetchWithTimeout(`${FACTURAPI_BASE}${path}`, {
-        headers: { Authorization: `Bearer ${apiKey}` },
-      }, undefined, fetchImpl);
+      const r = await fetchWithTimeout(
+        `${FACTURAPI_BASE}${path}`,
+        {
+          headers: { Authorization: `Bearer ${apiKey}` },
+        },
+        undefined,
+        fetchImpl,
+      );
       if (!r.ok) {
         const text = await r.text().catch(() => "");
         const err = new Error(`Facturapi ${r.status}`) as Error & {

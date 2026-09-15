@@ -1,0 +1,16 @@
+{
+  "version": "8.8.8",
+  "date": "2026-09-15",
+  "type": "patch",
+  "category": "security",
+  "title": "Cierre del parche fiscal: formato, empresa ilegible y más pruebas del portal",
+  "description": "Se corrigió el formato que detenía las verificaciones automáticas, se cerró el hueco de no poder verificar la empresa al resolver las llaves de facturación y se ampliaron las pruebas del portal y de liberación de reservas.",
+  "changes": [
+    "Formato corregido en los dos archivos que detenían las verificaciones automáticas antes de correr las pruebas.",
+    "Si no se puede verificar a qué empresa pertenece el documento, la facturación se detiene con un aviso claro: ya no se recurre a llaves generales ni se asume modo de prueba.",
+    "Nuevas pruebas del portal: descarga correcta de acuse, complemento de pago y nota de crédito propios, además de la factura.",
+    "Se cubre realmente el caso de una cuenta revocada y el de una cuenta que pertenece a otro usuario.",
+    "Una prueba nueva demuestra que la descarga desde el proveedor usa únicamente la llave de la empresa dueña del documento.",
+    "Nueva prueba de que, ante un error de configuración después de reservar la factura, la reserva se libera y no se emite ningún comprobante."
+  ]
+}

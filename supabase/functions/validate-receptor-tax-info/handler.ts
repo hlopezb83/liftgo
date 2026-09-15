@@ -91,7 +91,11 @@ export async function handleValidateReceptor(
       organizationId: orgRes.organizationId,
     });
     if (!cfgOutcome.ok) {
-      return json({ error: cfgOutcome.message }, cfgOutcome.status, jsonHeaders);
+      return json(
+        { error: cfgOutcome.message },
+        cfgOutcome.status,
+        jsonHeaders,
+      );
     }
     const { apiKey } = cfgOutcome;
     if (!apiKey) {
