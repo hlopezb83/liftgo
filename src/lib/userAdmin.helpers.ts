@@ -48,13 +48,28 @@ export async function finalizeInvitedUser(
   admin: AdminClient,
   userId: string,
   data: ValidatedInvite,
+  organizationId: string,
 ): Promise<void> {
   const cleanupInvitedUser = async () => {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) console.error("invite-user cleanup deleteUser failed:", delErr);
     await admin.from("user_roles").delete().eq("user_id", userId);
     await admin.from("profiles").delete().eq("user_id", userId);
+    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
   };
+
+  // Tramo 5: el invitado queda ligado a UNA sola empresa, la del administrador
+  // que lo invitó. Sin esta membresía no habría contexto verificado.
+  const { error: membershipErr } = await g.createInternalMembership(
+    admin,
+    userId,
+    organizationId,
+  );
+  if (membershipErr) {
+    console.error("[invite-user] membership:", membershipErr.message);
+    await cleanupInvitedUser();
+    throw new g.HttpError(500, "No se pudo completar la invitación");
+  }
 
   // DB2-01: upsert sobre (user_id), el índice único vigente.
   const { error: roleErr } = await admin
@@ -85,6 +100,7 @@ export async function assertResettableTarget(
   admin: AdminClient,
   userId: string,
   callerId: string,
+  organizationId: string,
 ): Promise<void> {
   if (!g.isUUID(userId)) {
     throw new g.HttpError(400, "user_id must be a valid UUID");
@@ -95,6 +111,8 @@ export async function assertResettableTarget(
       "Para tu propia cuenta usa 'Olvidé mi contraseña' en el login",
     );
   }
+  // Tramo 5: autorizar pertenencia antes de leer roles del objetivo.
+  await g.assertTargetInOrganization(admin, userId, organizationId);
   // Guarda anti-takeover: prohibido restablecer la contraseña de un admin.
   const { data: targetAdmin } = await admin
     .from("user_roles")
@@ -110,3 +128,54 @@ export async function assertResettableTarget(
   }
 }
 
+
+/**
+ * El invariante "queda al menos un administrador activo" se evalúa POR empresa:
+ * los admins de otras organizaciones no cubren a la empresa del objetivo.
+ */
+export async function assertNotLastActiveAdmin(
+  g: Guards,
+  admin: AdminClient,
+  userId: string,
+  organizationId: string,
+): Promise<void> {
+  const { data: targetAdmin } = await admin
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  if (!targetAdmin) return;
+
+  const { data: orgMembers } = await admin
+    .from("organization_memberships")
+    .select("auth_user_id")
+    .eq("organization_id", organizationId);
+  const memberIds = (orgMembers ?? []).map((m) => m.auth_user_id);
+
+  const { data: otherAdmins } = await admin
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin")
+    .neq("user_id", userId)
+    .in("user_id", memberIds.length > 0 ? memberIds : [userId]);
+
+  const otherIds = (otherAdmins ?? []).map((a) => a.user_id);
+  let activeOthers = 0;
+  if (otherIds.length > 0) {
+    const { count } = await admin
+      .from("profiles")
+      .select("user_id", { count: "exact", head: true })
+      .in("user_id", otherIds)
+      .eq("is_active", true);
+    activeOthers = count ?? 0;
+  }
+
+  if (activeOthers === 0) {
+    throw new g.HttpError(
+      400,
+      "LAST_ADMIN_CANNOT_BE_DEACTIVATED: no puedes desactivar al último administrador activo.",
+    );
+  }
+}

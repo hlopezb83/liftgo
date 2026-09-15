@@ -6,6 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  assertNotLastActiveAdmin,
   assertResettableTarget,
   finalizeInvitedUser,
   validateInviteInput,
@@ -31,6 +32,11 @@ export const inviteUserFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<InviteUserResult> => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
+    // Tramo 5: la empresa sale del contexto verificado, nunca del navegador.
+    const organizationId = await g.requireInternalOrganization(
+      context.supabase,
+      context.userId,
+    );
     await g.enforceRateLimit(admin, "invite-user", context.userId);
 
     const { email, full_name, password } = data;
@@ -69,7 +75,7 @@ export const inviteUserFn = createServerFn({ method: "POST" })
 
     const userId = newUser.user.id;
 
-    await finalizeInvitedUser(g, admin, userId, data);
+    await finalizeInvitedUser(g, admin, userId, data, organizationId);
 
     // SEC-B5: recovery link para que el invitado defina su contraseña.
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
@@ -92,6 +98,10 @@ export const deleteUserFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
+    const organizationId = await g.requireInternalOrganization(
+      context.supabase,
+      context.userId,
+    );
     await g.enforceRateLimit(admin, "delete-user", context.userId);
 
     const userId = data.user_id;
@@ -101,6 +111,8 @@ export const deleteUserFn = createServerFn({ method: "POST" })
     if (userId === context.userId) {
       throw new g.HttpError(400, "Cannot delete your own account");
     }
+    // Tramo 5: autorizar el objetivo ANTES de cualquier lectura privilegiada.
+    await g.assertTargetInOrganization(admin, userId, organizationId);
 
     // BL-37 / EC-M5: guarda anti-último-admin vía RPC con lock.
     const { error: assertErr } = await admin.rpc("assert_not_last_admin", {
@@ -126,6 +138,7 @@ export const deleteUserFn = createServerFn({ method: "POST" })
 
     await admin.from("user_roles").delete().eq("user_id", userId);
     await admin.from("profiles").delete().eq("user_id", userId);
+    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
 
     return { success: true };
   });
@@ -142,10 +155,14 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<ResetPasswordResult> => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
+    const organizationId = await g.requireInternalOrganization(
+      context.supabase,
+      context.userId,
+    );
     await g.enforceRateLimit(admin, "reset-user-password", context.userId);
 
     const userId = data.user_id;
-    await assertResettableTarget(g, admin, userId, context.userId);
+    await assertResettableTarget(g, admin, userId, context.userId, organizationId);
 
     const { data: userData, error: getUserErr } = await admin.auth.admin
       .getUserById(userId);
@@ -187,6 +204,10 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
+    const organizationId = await g.requireInternalOrganization(
+      context.supabase,
+      context.userId,
+    );
     await g.enforceRateLimit(admin, "toggle-user-status", context.userId);
 
     const { user_id: userId, is_active: isActive } = data;
@@ -199,42 +220,14 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
     if (typeof isActive !== "boolean") {
       throw new g.HttpError(400, "is_active must be a boolean");
     }
+    await g.assertTargetInOrganization(admin, userId, organizationId);
 
-    // BL-46: al desactivar un admin, garantizar que quede ≥1 admin activo.
+    // BL-46: al desactivar un admin, garantizar que quede ≥1 admin activo
+    // dentro de SU empresa.
     if (isActive === false) {
-      const { data: targetAdmin } = await admin
-        .from("user_roles")
-        .select("user_id")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (targetAdmin) {
-        const { data: otherAdmins } = await admin
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "admin")
-          .neq("user_id", userId);
-
-        const otherIds = (otherAdmins ?? []).map((a) => a.user_id);
-        let activeOthers = 0;
-        if (otherIds.length > 0) {
-          const { count } = await admin
-            .from("profiles")
-            .select("user_id", { count: "exact", head: true })
-            .in("user_id", otherIds)
-            .eq("is_active", true);
-          activeOthers = count ?? 0;
-        }
-
-        if (activeOthers === 0) {
-          throw new g.HttpError(
-            400,
-            "LAST_ADMIN_CANNOT_BE_DEACTIVATED: no puedes desactivar al último administrador activo.",
-          );
-        }
-      }
+      await assertNotLastActiveAdmin(g, admin, userId, organizationId);
     }
+
 
     // DB4-07 (N6): primero profiles; si el trigger rechaza, no se baneó nada.
     const { error: profileErr } = await admin

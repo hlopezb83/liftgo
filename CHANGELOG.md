@@ -1,3 +1,15 @@
+## [8.8.20] - 2026-09-15 · minor · seguridad
+
+Administración, invitaciones y roles acotados a la organización verificada (tramo 5 multiempresa).
+
+- Nuevo `src/lib/organization/adminScope.ts` (`resolveInternalScope`, `resolveTargetScope`): la empresa sale de `organization_memberships` y un objetivo de otra empresa es indistinguible de uno inexistente.
+- Nuevos guards `requireInternalOrganization`, `assertTargetInOrganization` y `createInternalMembership` en `adminGuards.server.ts`; autorizan antes de cualquier lectura privilegiada y distinguen `read_error` (503) de `not_found` (404).
+- `inviteUserFn`, `deleteUserFn`, `resetUserPasswordFn` y `toggleUserStatusFn` verifican la organización del objetivo; el alta crea la membresía `internal` y el borrado la elimina.
+- `inviteCustomerFn` exige relación activa en `organization_customers` y crea `customer_portal_accounts` + membresía `portal` con compensación ante fallo.
+- `assertNotLastActiveAdmin` evalúa el invariante del último administrador por organización.
+- Migración revisable `0025_multi_org_phase8_admin_membership_scope.sql` (no aplicada): `current_organization_id` sin `LIMIT 1` arbitrario, `is_internal_member`, `user_in_current_organization`, RLS de `profiles`/`user_roles` por organización y `update_user_role_safe`/`assert_not_last_admin` acotadas.
+- Nueva suite `supabase/tests/rls/admin_cross_org.sql` y pruebas Vitest del alcance de administración.
+
 ## [8.8.19] - 2026-09-15 · minor · seguridad
 
 Prospectos y operaciones escriben siempre en la organización verificada (tramo 4 multiempresa).
