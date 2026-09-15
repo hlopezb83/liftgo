@@ -8,13 +8,11 @@
 -- no llevan organización, por lo que no pueden crear una ruta cruzada.
 BEGIN;
 
--- ── Setup (service_role, exclusivamente para preparar fixtures) ──────
--- Los INSERT de soporte se ejecutan con bypass de RLS, pero no evitan el
--- guardia de escritura multiempresa. El contexto explícito de ORG A permite
--- que los triggers derivados de auth.users (por ejemplo profiles) atribuyan
--- sus filas sin adivinar una organización cuando ya existen varias activas.
-SET LOCAL role = 'service_role';
-SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
+-- ── Setup (conexión privilegiada, sólo para preparar fixtures) ────────
+-- El runner usa su conexión de pruebas para insertar datos de soporte, pero
+-- eso no evita el guardia de escritura multiempresa. El contexto explícito de
+-- ORG A permite que los triggers derivados de auth.users (por ejemplo profiles)
+-- atribuyan sus filas sin adivinar una organización cuando hay varias activas.
 
 INSERT INTO public.organizations (id, name, slug) VALUES
   ('0a000000-0000-4000-8000-00000000000a', 'Org A Storage', 'org-a-storage'),
@@ -100,7 +98,6 @@ INSERT INTO storage.objects (bucket_id, name, metadata) VALUES
    '{"mimetype":"application/pdf"}'::jsonb);
 
 -- ── 1. Cuenta de portal de la ORG A ──────────────────────────────────
-RESET ROLE;
 RESET request.jwt.claims;
 SELECT set_config('app.organization_id', '', true);
 SET LOCAL role = 'authenticated';
