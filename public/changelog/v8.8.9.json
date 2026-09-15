@@ -1,0 +1,14 @@
+{
+  "version": "8.8.9",
+  "date": "2026-09-15",
+  "type": "patch",
+  "category": "fix",
+  "title": "Archivos adjuntos: comprobantes de pago, capturas de feedback y documentos de mecánicos",
+  "description": "Los permisos de archivos ahora reconocen la carpeta por empresa, así que vuelven a funcionar el comprobante de pago del portal, la captura en los reportes de feedback y la apertura de documentos por parte de los mecánicos.",
+  "changes": [
+    "Los clientes del portal vuelven a poder adjuntar su comprobante al reportar un pago.",
+    "Los reportes de feedback con captura de pantalla se envían correctamente de nuevo.",
+    "Los mecánicos vuelven a abrir los documentos de montacargas y mantenimiento.",
+    "Los permisos de archivos ignoran el prefijo de empresa y siguen funcionando con los archivos guardados antes del cambio."
+  ]
+}
