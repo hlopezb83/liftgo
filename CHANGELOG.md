@@ -1,3 +1,10 @@
+## [8.8.9] - 2026-09-15
+### Permisos de Storage compatibles con el prefijo de organización
+- Migración `0021_storage_policies_org_prefix_aware`: nueva función `public.storage_relative_segments(text)` (SECURITY DEFINER) que descarta el primer segmento cuando corresponde a una organización existente, y lo conserva para objetos legados sin prefijo.
+- Políticas actualizadas en `storage.objects`: `Customers upload/read/delete own proofs` (payment-proofs), `Users upload/read/delete own feedback screenshots` (feedback-screenshots) y la rama de `mechanic` en `Staff read documents` (documents).
+- Política `Customers create own payment intents` en `public.customer_payment_intents`: la validación de `proof_url` (cliente/factura) se hace sobre la ruta relativa, sin el prefijo de organización.
+- Corrige 3 hallazgos de monitoreo: comprobante de pago del portal rechazado siempre, captura de feedback rechazada y URLs firmadas de documentos fallando para mecánicos.
+
 ## [8.8.8] - 2026-09-15
 ### Cierre del parche fiscal: `deno fmt` de CI, `organizations` ilegible y regresiones ampliadas
 - `deno fmt` aplicado a `validate-receptor-tax-info/handler.ts` y `download-cfdi/handler.ts`, los 2 archivos que `deno fmt --check` reportaba en el job "Funciones Supabase (Deno, sin red)" antes de ejecutar las pruebas. Verificación final ejecutada como en CI: `cd supabase/functions && deno fmt --check && deno lint` sobre los 132 archivos, no sobre una selección.
