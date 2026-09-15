@@ -1,3 +1,13 @@
+## [8.8.16] - 2026-09-15 · minor · seguridad
+
+Contexto de organización verificado en la aplicación y portal por cuenta verificada.
+
+- `getOrganizationContext` (server fn con `requireSupabaseAuth`) resuelve la empresa desde `organization_memberships` y, en portal, desde `customer_portal_accounts` activa y coherente.
+- `OrganizationProvider`/`OrganizationGate` exponen `loading`, `error`, `no-membership` y `ready`; `AuthGuard` no renderiza contenido protegido hasta `ready`.
+- `usePortalCustomer` deja de usar `customers.limit(1)` y consulta el cliente verificado por ID.
+- Migración revisable `0024_portal_fallback_respects_account_status.sql` (no aplicada): el respaldo `customers.user_id` sólo opera sin cuenta de portal.
+- Nueva suite `supabase/tests/rls/portal_account_status_fallback.sql` y pruebas Vitest del resolver, del gate y del portal.
+
 ## [8.8.15] - 2026-09-15 · patch · pruebas
 
 Smoke SQL alineado con la migración 0023.
