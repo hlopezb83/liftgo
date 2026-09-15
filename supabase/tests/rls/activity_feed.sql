@@ -2,22 +2,54 @@
 -- pero SOLO admin escribe/edita/borra. Cliente del portal y anon sin acceso.
 BEGIN;
 
-INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
-  ('af000005-0000-4000-8000-000000000001', 'admin.af@test.local', now(), now()),
-  ('af000005-0000-4000-8000-000000000002', 'dispatcher.af@test.local', now(), now()),
-  ('af000005-0000-4000-8000-000000000003', 'ventas.af@test.local', now(), now()),
-  ('af000005-0000-4000-8000-000000000004', 'cliente.af@test.local', now(), now())
-ON CONFLICT DO NOTHING;
+DO $fixture$
+DECLARE
+  v_org uuid;
+  v_admin uuid := 'af000005-0000-4000-8000-000000000001';
+  v_dispatcher uuid := 'af000005-0000-4000-8000-000000000002';
+  v_ventas uuid := 'af000005-0000-4000-8000-000000000003';
+  v_cliente uuid := 'af000005-0000-4000-8000-000000000004';
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  ORDER BY created_at
+  LIMIT 1;
 
-INSERT INTO public.user_roles (user_id, role) VALUES
-  ('af000005-0000-4000-8000-000000000001', 'admin'),
-  ('af000005-0000-4000-8000-000000000002', 'dispatcher'),
-  ('af000005-0000-4000-8000-000000000003', 'ventas'),
-  ('af000005-0000-4000-8000-000000000004', 'customer')
-ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+  IF v_org IS NULL THEN
+    RAISE EXCEPTION 'SETUP: se requiere la organización inicial';
+  END IF;
 
-INSERT INTO public.activity_feed (id, event_type, entity_type, entity_id, title) VALUES
-  ('af000005-0000-4000-8000-0000000000a1', 'created', 'booking', gen_random_uuid(), 'Evento RLS');
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
+    (v_admin, 'admin.af@test.local', now(), now()),
+    (v_dispatcher, 'dispatcher.af@test.local', now(), now()),
+    (v_ventas, 'ventas.af@test.local', now(), now()),
+    (v_cliente, 'cliente.af@test.local', now(), now())
+  ON CONFLICT DO NOTHING;
+
+  -- El personal interno necesita membresía: current_organization_id() es
+  -- fail-closed y sin ella org_scope_isolation oculta la bitácora.
+  INSERT INTO public.organization_memberships (
+    organization_id, auth_user_id, member_type
+  )
+  VALUES
+    (v_org, v_admin, 'internal'),
+    (v_org, v_dispatcher, 'internal'),
+    (v_org, v_ventas, 'internal')
+  ON CONFLICT (auth_user_id) DO NOTHING;
+
+  INSERT INTO public.user_roles (user_id, role) VALUES
+    (v_admin, 'admin'),
+    (v_dispatcher, 'dispatcher'),
+    (v_ventas, 'ventas'),
+    (v_cliente, 'customer')
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+  INSERT INTO public.activity_feed (id, event_type, entity_type, entity_id, title) VALUES
+    ('af000005-0000-4000-8000-0000000000a1', 'created', 'booking', gen_random_uuid(), 'Evento RLS');
+END;
+$fixture$;
 
 -- 1) anon: sin acceso.
 SET LOCAL role = 'anon';
