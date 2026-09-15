@@ -1,3 +1,11 @@
+## [8.8.23] - 2026-09-15 · patch · corrección
+
+Se corrigió el fixture que confundía una lectura vacía por aislamiento con un cambio de rol.
+
+- El intento cruzado y la RPC siguen ejecutándose como administrador de A.
+- El rol del administrador de B se comprueba en un bloque autenticado como B y luego se restablece el contexto de A.
+- Se conservan la comprobación del último administrador por empresa y el flujo válido de A, sin tocar políticas ni la migración 0025.
+
 ## [8.8.22] - 2026-09-15 · patch · corrección
 
 Se corrigieron dos fixtures de pruebas de seguridad que fallaban desde una base limpia, sin relajar el aislamiento entre empresas.
