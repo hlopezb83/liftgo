@@ -8,10 +8,19 @@
 -- no llevan organización, por lo que no pueden crear una ruta cruzada.
 BEGIN;
 
--- ── Setup (rol de la sesión de pruebas: sin RLS) ─────────────────────
+-- ── Setup (service_role, exclusivamente para preparar fixtures) ──────
+-- Los INSERT de soporte se ejecutan con bypass de RLS, pero no evitan el
+-- guardia de escritura multiempresa. El contexto explícito de ORG A permite
+-- que los triggers derivados de auth.users (por ejemplo profiles) atribuyan
+-- sus filas sin adivinar una organización cuando ya existen varias activas.
+SET LOCAL role = 'service_role';
+SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
+
 INSERT INTO public.organizations (id, name, slug) VALUES
   ('0a000000-0000-4000-8000-00000000000a', 'Org A Storage', 'org-a-storage'),
   ('0b000000-0000-4000-8000-00000000000b', 'Org B Storage', 'org-b-storage');
+
+SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('a0000000-0000-4000-8000-000000000001', 'portal-a@storage.test', now(), now()),
@@ -91,8 +100,12 @@ INSERT INTO storage.objects (bucket_id, name, metadata) VALUES
    '{"mimetype":"application/pdf"}'::jsonb);
 
 -- ── 1. Cuenta de portal de la ORG A ──────────────────────────────────
+RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"a0000000-0000-4000-8000-000000000001","role":"authenticated"}';
+SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
 
 DO $$
 DECLARE
@@ -204,6 +217,8 @@ END $$;
 
 -- Efecto real del borrado cruzado (1.5): el objeto de la ORG B sigue ahí.
 RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
 DO $$
 BEGIN
   IF (SELECT count(*) FROM storage.objects
@@ -216,6 +231,7 @@ END $$;
 -- ── 2. Usuario interno de la ORG A: feedback y documentos ────────────
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
 
 
 DO $$
@@ -286,6 +302,8 @@ END $$;
 
 -- Efecto real del borrado cruzado de capturas.
 RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
 DO $$
 BEGIN
   IF (SELECT count(*) FROM storage.objects
@@ -294,7 +312,4 @@ BEGIN
     RAISE EXCEPTION 'RLS BREACH: se borró una captura de otra organización';
   END IF;
 END $$;
-
-
-
 ROLLBACK;
