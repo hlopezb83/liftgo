@@ -28,14 +28,18 @@ export function useMaintenanceLabor(maintenanceLogId: string | null | undefined)
   });
 }
 
-type LaborInsert = Omit<TablesInsert<"maintenance_labor">, "id" | "created_at" | "updated_at" | "total_cost">;
+// Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+type LaborInsert = Omit<
+  TablesInsert<"maintenance_labor">,
+  "id" | "created_at" | "updated_at" | "total_cost" | "organization_id"
+>;
 
 export function useAddMaintenanceLabor() {
   return useEntityMutation({
     mutationFn: async (row: LaborInsert) => {
       const { data, error } = await supabase
         .from("maintenance_labor")
-        .insert(row)
+        .insert(stripOrganizationId(row) as TablesInsert<"maintenance_labor">)
         .select("*, mechanics(id, name)")
         .single();
       if (error) throw error;
