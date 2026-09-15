@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.8.13",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "ui",
+    "title": "Pantalla de acceso homologada con el sitio público",
+    "description": "La pantalla de inicio de sesión ahora usa los colores, la tipografía y el distintivo de marca del sitio liftgo.com.mx, sin cambiar el resto de la aplicación.",
+    "changes": [
+      "Panel de marca en azul marino del sitio con acento dorado y título en Montserrat.",
+      "Fondo claro cálido y botón principal en el dorado del sitio, en mayúsculas.",
+      "Distintivo tipográfico Lift Go / Montacargas cuando no hay logotipo cargado.",
+      "Los colores nuevos aplican sólo a la pantalla de acceso; el interior de la app conserva su apariencia."
+    ]
+  },
+  {
     "version": "8.8.12",
     "date": "2026-09-15",
     "type": "patch",

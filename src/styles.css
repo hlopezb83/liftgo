@@ -265,6 +265,9 @@
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* Tipografía de títulos del sitio público liftgo.com.mx — se usa sólo en
+   * las pantallas de acceso (ver `.auth-brandscape`). */
+  --font-display: "Montserrat", "Inter", system-ui, sans-serif;
   /* Convención de tipografía numérica (Sprint V3, F6):
    * - KPIs, tarjetas y resúmenes (TotalsSummary, summary cards, cifras
    *   destacadas): Inter con `tabular-nums` — alinea columnas de dígitos
@@ -313,6 +316,37 @@
   .section-label {
     @apply text-xs uppercase tracking-wide text-muted-foreground font-medium;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* Pantallas de acceso: paleta homologada con liftgo.com.mx.           */
+/* Tokens redefinidos SÓLO dentro de `.auth-brandscape`; el interior de */
+/* la app conserva la paleta global.                                    */
+/* ------------------------------------------------------------------ */
+.auth-brandscape {
+  --background: 23 56% 97%;      /* #FCF7F4 */
+  --card: 0 0% 100%;
+  --primary: 39 62% 45%;         /* #B8862B — botón "COTIZAR" del sitio */
+  --primary-foreground: 0 0% 100%;
+  --ring: 39 62% 45%;
+  --sidebar-background: 217 70% 14%;   /* #0B1F3E */
+  --sidebar-foreground: 210 20% 85%;
+  --sidebar-primary: 29 39% 61%;       /* #C39B76 */
+  --sidebar-primary-foreground: 0 0% 100%;
+}
+
+.auth-display {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Botón principal al estilo "COTIZAR" del sitio. */
+.auth-brandscape button[type="submit"] {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 /* ------------------------------------------------------------------ */

@@ -70,10 +70,13 @@ function AuthCardHeader({
             className="h-14 w-auto max-w-[200px] object-contain"
           />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
+          <span className="flex flex-col items-center leading-none">
+            <span className="auth-display text-2xl font-extrabold text-sidebar">Lift Go</span>
+            <span className="auth-display text-2xs text-primary">Montacargas</span>
+          </span>
         )}
       </div>
-      <CardTitle>{TITLES[mode].title}</CardTitle>
+      <CardTitle className="auth-display text-xl font-extrabold">{TITLES[mode].title}</CardTitle>
       <CardDescription>{TITLES[mode].desc}</CardDescription>
       {unknownPath && (
         <p className="text-xs text-muted-foreground mt-2">
@@ -212,13 +215,13 @@ export default function AuthPage() {
 
 
   return (
-    <main className="min-h-[100dvh] flex">
+    <main className="auth-brandscape min-h-[100dvh] flex bg-background">
       <AuthBrandPanel
         logoUrl={company?.logo_url}
         razonSocial={company?.razon_social}
-        tagline="Opera tu flota de montacargas sin fricción."
+        tagline="Levanta el futuro de tu operación."
       />
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+      <div className="flex-1 flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <AuthCardHeader company={company} mode={mode} unknownPath={unknownPath} pathname={pathname} />
         <CardContent>

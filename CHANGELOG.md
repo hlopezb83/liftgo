@@ -1,3 +1,12 @@
+## [8.8.13] - 2026-09-15 · patch · ui
+
+Pantalla de acceso homologada con el sitio público liftgo.com.mx.
+
+- Panel de marca en azul marino `#0B1F3E` con acento dorado `#C39B76` y títulos en Montserrat.
+- Fondo claro `#FCF7F4` y botón principal en el dorado `#B8862B`, en mayúsculas, al estilo del sitio.
+- Distintivo tipográfico "Lift Go / Montacargas" cuando no hay logotipo cargado.
+- Los tokens nuevos viven en `.auth-brandscape`: el interior de la app conserva su paleta y tipografía.
+
 ## [8.8.12] - 2026-09-15 · patch · test
 
 Setup RLS de Storage ordenado desde el primer registro ficticio.

@@ -48,7 +48,7 @@ const NotFoundLazy = lazy(() => import("@/features/system/pages/NotFound"));
 const TITLE = "LiftGo — Gestión de Montacargas";
 const DESCRIPTION = "Sistema integral de gestión de renta y mantenimiento de montacargas";
 const FONTS_HREF =
-  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap";
+  "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@500;600;700;800&display=swap";
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
