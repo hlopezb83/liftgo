@@ -51,11 +51,15 @@ export function useUpdateForklift() {
     // M-11b: bloqueo optimista contra el `updated_at` que tenía el registro
     // cuando se cargó el formulario, más filtro `deleted_at IS NULL` para no
     // "revivir" una unidad archivada por otro usuario en paralelo.
-    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: TablesUpdate<"forklifts"> & {
+    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: WithoutOrganization<TablesUpdate<"forklifts">> & {
       id: string;
       expectedUpdatedAt?: string | null;
     }) => {
-      let q = supabase.from("forklifts").update(updates).eq("id", id).is("deleted_at", null);
+      let q = supabase
+        .from("forklifts")
+        .update(stripOrganizationId(updates))
+        .eq("id", id)
+        .is("deleted_at", null);
       if (expectedUpdatedAt) q = q.eq("updated_at", expectedUpdatedAt);
       const { data, error } = await q.select().maybeSingle();
       if (error) throw error;
