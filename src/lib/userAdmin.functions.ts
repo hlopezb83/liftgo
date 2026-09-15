@@ -6,6 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
+  assertNotLastActiveAdmin,
   assertResettableTarget,
   finalizeInvitedUser,
   validateInviteInput,
@@ -221,49 +222,12 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
     }
     await g.assertTargetInOrganization(admin, userId, organizationId);
 
-    // BL-46: al desactivar un admin, garantizar que quede ≥1 admin activo.
+    // BL-46: al desactivar un admin, garantizar que quede ≥1 admin activo
+    // dentro de SU empresa.
     if (isActive === false) {
-      const { data: targetAdmin } = await admin
-        .from("user_roles")
-        .select("user_id")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (targetAdmin) {
-        // El invariante "queda un admin activo" se evalúa POR empresa.
-        const { data: orgMembers } = await admin
-          .from("organization_memberships")
-          .select("auth_user_id")
-          .eq("organization_id", organizationId);
-        const memberIds = (orgMembers ?? []).map((m) => m.auth_user_id);
-
-        const { data: otherAdmins } = await admin
-          .from("user_roles")
-          .select("user_id")
-          .eq("role", "admin")
-          .neq("user_id", userId)
-          .in("user_id", memberIds.length > 0 ? memberIds : [userId]);
-
-        const otherIds = (otherAdmins ?? []).map((a) => a.user_id);
-        let activeOthers = 0;
-        if (otherIds.length > 0) {
-          const { count } = await admin
-            .from("profiles")
-            .select("user_id", { count: "exact", head: true })
-            .in("user_id", otherIds)
-            .eq("is_active", true);
-          activeOthers = count ?? 0;
-        }
-
-        if (activeOthers === 0) {
-          throw new g.HttpError(
-            400,
-            "LAST_ADMIN_CANNOT_BE_DEACTIVATED: no puedes desactivar al último administrador activo.",
-          );
-        }
-      }
+      await assertNotLastActiveAdmin(g, admin, userId, organizationId);
     }
+
 
     // DB4-07 (N6): primero profiles; si el trigger rechaza, no se baneó nada.
     const { error: profileErr } = await admin

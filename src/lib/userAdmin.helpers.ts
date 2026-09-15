@@ -128,3 +128,54 @@ export async function assertResettableTarget(
   }
 }
 
+
+/**
+ * El invariante "queda al menos un administrador activo" se evalúa POR empresa:
+ * los admins de otras organizaciones no cubren a la empresa del objetivo.
+ */
+export async function assertNotLastActiveAdmin(
+  g: Guards,
+  admin: AdminClient,
+  userId: string,
+  organizationId: string,
+): Promise<void> {
+  const { data: targetAdmin } = await admin
+    .from("user_roles")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("role", "admin")
+    .maybeSingle();
+
+  if (!targetAdmin) return;
+
+  const { data: orgMembers } = await admin
+    .from("organization_memberships")
+    .select("auth_user_id")
+    .eq("organization_id", organizationId);
+  const memberIds = (orgMembers ?? []).map((m) => m.auth_user_id);
+
+  const { data: otherAdmins } = await admin
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin")
+    .neq("user_id", userId)
+    .in("user_id", memberIds.length > 0 ? memberIds : [userId]);
+
+  const otherIds = (otherAdmins ?? []).map((a) => a.user_id);
+  let activeOthers = 0;
+  if (otherIds.length > 0) {
+    const { count } = await admin
+      .from("profiles")
+      .select("user_id", { count: "exact", head: true })
+      .in("user_id", otherIds)
+      .eq("is_active", true);
+    activeOthers = count ?? 0;
+  }
+
+  if (activeOthers === 0) {
+    throw new g.HttpError(
+      400,
+      "LAST_ADMIN_CANNOT_BE_DEACTIVATED: no puedes desactivar al último administrador activo.",
+    );
+  }
+}
