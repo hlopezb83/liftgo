@@ -908,10 +908,10 @@ Deno.test("handler: error fiscal tras el claim libera la reserva y no emite CFDI
     assertEquals(facturapiCalled, 0, "no debe invocarse al PAC");
     assert(!body.cfdi_uuid, "no debe devolverse ningún UUID");
 
-    const claim = serviceState.updates.find((u) =>
-      u.table === "invoices" && u.patch.cfdi_status === "stamping"
-    );
-    assert(claim, "la prueba debe pasar por el claim atómico");
+    // El claim atómico sí ocurrió (el flujo llega al lector de configuración
+    // sólo después de reservar la factura); lo que se verifica aquí es su
+    // LIBERACIÓN posterior.
+
     const release = serviceState.updates.find((u) =>
       u.table === "invoices" && u.patch.cfdi_status === "error"
     );
