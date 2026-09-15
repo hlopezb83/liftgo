@@ -7,7 +7,7 @@
     "title": "Prueba RLS multiempresa con contexto explícito",
     "description": "La prueba de aislamiento de archivos ahora prepara sus datos con una empresa explícita y separa ese montaje de las sesiones autenticadas, sin cambiar los permisos de producción.",
     "changes": [
-      "La preparación de usuarios y documentos ficticios usa service_role únicamente para crear datos de soporte.",
+      "La preparación usa la conexión privilegiada del runner únicamente para crear datos de soporte.",
       "Los disparadores reciben una empresa explícita durante la preparación, por lo que siguen fallando de forma segura cuando falta contexto real.",
       "Cada escenario autenticado limpia el contexto anterior y simula de nuevo la sesión de la empresa A antes de intentar acceder a la empresa B.",
       "Se conservan las pruebas de rechazo de lectura, subida, borrado y reportes de pago entre empresas."

@@ -2,7 +2,7 @@
 
 Arnés RLS multiempresa con contexto explícito, sin cambios en producción.
 
-- La preparación de fixtures usa `service_role` sólo para insertar datos de soporte y establece `app.organization_id` para los disparadores que requieren atribución explícita.
+- La preparación usa la conexión privilegiada del runner sólo para insertar datos de soporte y establece `app.organization_id` para los disparadores que requieren atribución explícita.
 - Antes de cada escenario autenticado se limpian rol, JWT y contexto; después se simula de nuevo una sesión real de la organización A.
 - Se conservan los rechazos cross-tenant de lectura, subida y borrado en Storage, además de factura y `proof_url` ajenos en `customer_payment_intents`.
 - No se modificaron el trigger `enforce_organization_write_context`, las políticas RLS ni la migración 0022.
