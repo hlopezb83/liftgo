@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.8.14",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "seguridad",
+    "title": "Reporte de pago del portal desbloqueado sin perder aislamiento",
+    "description": "Los clientes del portal vuelven a poder registrar su reporte de pago con comprobante, conservando el bloqueo de facturas y comprobantes de otra empresa.",
+    "changes": [
+      "Nueva validación interna de factura elegible que evita una consulta que el portal no podía ver.",
+      "La regla sigue exigiendo cliente propietario, empresa de la sesión y factura vigente.",
+      "La ruta del comprobante sigue verificando prefijo de empresa y factura correspondiente.",
+      "Pruebas ampliadas con diagnósticos y rechazos de factura, comprobante y prefijo de otra empresa."
+    ]
+  },
+  {
     "version": "8.8.13",
     "date": "2026-09-15",
     "type": "patch",
