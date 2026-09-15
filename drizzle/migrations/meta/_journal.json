@@ -162,6 +162,13 @@
       "when": 1789491753221,
       "tag": "0022_storage_tenant_scoped_policies",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1789494754486,
+      "tag": "0023_payment_intent_invoice_definer_check",
+      "breakpoints": true
     }
   ]
 }
