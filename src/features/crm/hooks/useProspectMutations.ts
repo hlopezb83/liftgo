@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient, type QueryKey } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { stripOrganizationId } from "@/lib/organization/writeContext";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { prospectKeys } from "../lib/queryKeys";
 import { applyStageMove, type StageMove } from "../lib/stageMove";
