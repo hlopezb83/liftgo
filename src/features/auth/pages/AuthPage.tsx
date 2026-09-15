@@ -212,13 +212,13 @@ export default function AuthPage() {
 
 
   return (
-    <main className="min-h-[100dvh] flex">
+    <main className="auth-brandscape min-h-[100dvh] flex bg-background">
       <AuthBrandPanel
         logoUrl={company?.logo_url}
         razonSocial={company?.razon_social}
-        tagline="Opera tu flota de montacargas sin fricción."
+        tagline="Levanta el futuro de tu operación."
       />
-      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+      <div className="flex-1 flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <AuthCardHeader company={company} mode={mode} unknownPath={unknownPath} pathname={pathname} />
         <CardContent>
