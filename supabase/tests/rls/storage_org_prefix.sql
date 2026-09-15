@@ -14,11 +14,18 @@ BEGIN;
 -- ORG A permite que los triggers derivados de auth.users (por ejemplo profiles)
 -- atribuyan sus filas sin adivinar una organización cuando hay varias activas.
 
-INSERT INTO public.organizations (id, name, slug) VALUES
-  ('0a000000-0000-4000-8000-00000000000a', 'Org A Storage', 'org-a-storage'),
-  ('0b000000-0000-4000-8000-00000000000b', 'Org B Storage', 'org-b-storage');
-
+-- El valor es LOCAL a esta transacción. Debe existir antes del primer INSERT:
+-- los triggers derivados de organizations también son fail-closed y el entorno
+-- de CI ya contiene otra organización activa antes de crear estas dos fixtures.
 SELECT set_config('app.organization_id', '0a000000-0000-4000-8000-00000000000a', true);
+
+INSERT INTO public.organizations (id, name, slug)
+VALUES ('0a000000-0000-4000-8000-00000000000a', 'Org A Storage', 'org-a-storage');
+
+-- Se conserva el contexto explícito de ORG A antes de introducir la segunda
+-- organización; ningún trigger del setup puede depender del fallback de org única.
+INSERT INTO public.organizations (id, name, slug)
+VALUES ('0b000000-0000-4000-8000-00000000000b', 'Org B Storage', 'org-b-storage');
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('a0000000-0000-4000-8000-000000000001', 'portal-a@storage.test', now(), now()),
