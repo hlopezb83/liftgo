@@ -1,3 +1,11 @@
+## [8.8.14] - 2026-09-15 · patch · seguridad
+
+Reporte de pago del portal desbloqueado sin perder aislamiento multiempresa.
+
+- Nueva función interna `invoice_eligible_for_payment_intent` (SECURITY DEFINER) que evita la subconsulta a `invoices` bajo RLS dentro de la policy.
+- Se conservan cliente propietario, organización de la sesión, estado de factura, `payment_proof_path_allowed` y la igualdad del segmento de factura en la ruta.
+- Guards de diagnóstico y rechazos cross-tenant ampliados en `supabase/tests/rls/storage_org_prefix.sql`.
+
 ## [8.8.13] - 2026-09-15 · patch · ui
 
 Pantalla de acceso homologada con el sitio público liftgo.com.mx.
