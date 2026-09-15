@@ -160,10 +160,41 @@ BEGIN
       END IF;
   END;
 
+END;
+$$;
+
+-- 2b) El rol de B se verifica bajo la sesión de B: la policy de A devuelve cero
+--     filas por diseño y NULL no equivale a un cambio de rol.
+SET LOCAL request.jwt.claims TO
+  '{"sub":"a5000000-0000-4000-8000-0000000000b2","role":"authenticated"}';
+
+DO $$
+DECLARE
+  v_admin_b uuid := 'a5000000-0000-4000-8000-0000000000b2';
+  v_role public.app_role;
+BEGIN
   SELECT role INTO v_role FROM public.user_roles WHERE user_id = v_admin_b;
   IF v_role IS DISTINCT FROM 'admin'::public.app_role THEN
-    RAISE EXCEPTION 'ADMIN ORG: el rol del admin de B cambió (obtuvo %)', v_role;
+    RAISE EXCEPTION 'ADMIN ORG: el rol del admin de B cambió (obtuvo %)',
+      coalesce(v_role::text, '<NULL>');
   END IF;
+END;
+$$;
+
+-- Se restablece el contexto de A antes de los asertos que dependen de A.
+SET LOCAL request.jwt.claims TO
+  '{"sub":"a5000000-0000-4000-8000-0000000000a1","role":"authenticated"}';
+
+DO $$
+DECLARE
+  v_staff_a uuid := 'a5000000-0000-4000-8000-0000000000a2';
+  v_role public.app_role;
+BEGIN
+  IF public.current_organization_id() IS NULL THEN
+    RAISE EXCEPTION 'CONTEXTO: el admin interno debe resolver la organización A';
+  END IF;
+
+
 
   -- 4) El último admin se cuenta por empresa: B tiene el suyo, pero A no puede
   --    degradar al único admin de A aunque existan admins en otras empresas.
