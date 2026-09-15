@@ -202,8 +202,21 @@ BEGIN
   RAISE NOTICE 'OK: comprobantes de pago aislados por organización';
 END $$;
 
+-- Efecto real del borrado cruzado (1.5): el objeto de la ORG B sigue ahí.
+RESET ROLE;
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM storage.objects
+       WHERE bucket_id = 'payment-proofs'
+         AND name LIKE '0b000000-0000-4000-8000-00000000000b/%') <> 1 THEN
+    RAISE EXCEPTION 'RLS BREACH: la sesión de la ORG A borró comprobantes de la ORG B';
+  END IF;
+END $$;
+
 -- ── 2. Usuario interno de la ORG A: feedback y documentos ────────────
+SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}';
+
 
 DO $$
 DECLARE
