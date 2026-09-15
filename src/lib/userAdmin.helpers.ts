@@ -48,13 +48,28 @@ export async function finalizeInvitedUser(
   admin: AdminClient,
   userId: string,
   data: ValidatedInvite,
+  organizationId: string,
 ): Promise<void> {
   const cleanupInvitedUser = async () => {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) console.error("invite-user cleanup deleteUser failed:", delErr);
     await admin.from("user_roles").delete().eq("user_id", userId);
     await admin.from("profiles").delete().eq("user_id", userId);
+    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
   };
+
+  // Tramo 5: el invitado queda ligado a UNA sola empresa, la del administrador
+  // que lo invitó. Sin esta membresía no habría contexto verificado.
+  const { error: membershipErr } = await g.createInternalMembership(
+    admin,
+    userId,
+    organizationId,
+  );
+  if (membershipErr) {
+    console.error("[invite-user] membership:", membershipErr.message);
+    await cleanupInvitedUser();
+    throw new g.HttpError(500, "No se pudo completar la invitación");
+  }
 
   // DB2-01: upsert sobre (user_id), el índice único vigente.
   const { error: roleErr } = await admin
@@ -85,6 +100,7 @@ export async function assertResettableTarget(
   admin: AdminClient,
   userId: string,
   callerId: string,
+  organizationId: string,
 ): Promise<void> {
   if (!g.isUUID(userId)) {
     throw new g.HttpError(400, "user_id must be a valid UUID");
@@ -95,6 +111,8 @@ export async function assertResettableTarget(
       "Para tu propia cuenta usa 'Olvidé mi contraseña' en el login",
     );
   }
+  // Tramo 5: autorizar pertenencia antes de leer roles del objetivo.
+  await g.assertTargetInOrganization(admin, userId, organizationId);
   // Guarda anti-takeover: prohibido restablecer la contraseña de un admin.
   const { data: targetAdmin } = await admin
     .from("user_roles")
