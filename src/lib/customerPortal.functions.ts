@@ -19,8 +19,30 @@ function assertValidInput(g: Guards, customerId: string, email: string) {
   if (!g.isEmail(email)) throw new g.HttpError(400, "A valid email is required");
 }
 
-/** Cliente activo y todavía sin acceso al portal. */
-async function loadInvitableCustomer(g: Guards, admin: Admin, customerId: string) {
+/** Cliente activo, relacionado con la empresa del staff y sin acceso al portal. */
+async function loadInvitableCustomer(
+  g: Guards,
+  admin: Admin,
+  customerId: string,
+  organizationId: string,
+) {
+  // Tramo 5: la relación comercial con ESTA empresa es el permiso de invitar.
+  const { data: relation, error: relationErr } = await admin
+    .from("organization_customers")
+    .select("customer_id, status")
+    .eq("organization_id", organizationId)
+    .eq("customer_id", customerId)
+    .maybeSingle();
+
+  if (relationErr) {
+    console.error("[invite-customer] organization_customers:", relationErr.message);
+    throw new g.HttpError(503, "No se pudo verificar el cliente. Reintenta en unos segundos.");
+  }
+  if (!relation || relation.status !== "active") {
+    // Cliente de otra empresa e inexistente responden igual: no se filtra cuál.
+    throw new g.HttpError(409, "Customer is archived or not found");
+  }
+
   const { data: customer, error } = await admin
     .from("customers")
     .select("id, user_id, name, deleted_at")
@@ -68,14 +90,22 @@ async function createPortalUser(g: Guards, admin: Admin, email: string, fullName
 async function linkPortalAccess(
   g: Guards,
   admin: Admin,
-  opts: { userId: string; customerId: string; fullName: string },
+  opts: {
+    userId: string;
+    customerId: string;
+    fullName: string;
+    organizationId: string;
+    email: string;
+  },
 ) {
-  const { userId, customerId, fullName } = opts;
+  const { userId, customerId, fullName, organizationId, email } = opts;
   const cleanup = async () => {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) console.error("invite-customer cleanup deleteUser failed:", delErr);
     await admin.from("user_roles").delete().eq("user_id", userId);
     await admin.from("profiles").delete().eq("user_id", userId);
+    await admin.from("customer_portal_accounts").delete().eq("auth_user_id", userId);
+    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
   };
 
   // El trigger handle_new_user ya creó profile + rol customer: upsert/update.
@@ -86,6 +116,27 @@ async function linkPortalAccess(
     ],
     ["update profiles", () => admin.from("profiles").update({ full_name: fullName }).eq("user_id", userId)],
     ["link customer", () => admin.from("customers").update({ user_id: userId }).eq("id", customerId)],
+    // Tramo 5: la cuenta de portal y su membresía quedan atadas a UNA empresa.
+    [
+      "portal membership",
+      () =>
+        admin.from("organization_memberships").insert({
+          auth_user_id: userId,
+          organization_id: organizationId,
+          member_type: "portal",
+        }),
+    ],
+    [
+      "portal account",
+      () =>
+        admin.from("customer_portal_accounts").insert({
+          auth_user_id: userId,
+          organization_id: organizationId,
+          customer_id: customerId,
+          email: email.toLowerCase(),
+          status: "active",
+        }),
+    ],
   ];
 
   for (const [label, step] of steps) {
@@ -130,14 +181,24 @@ export const inviteCustomerFn = createServerFn({ method: "POST" })
       "admin",
       "administrativo",
     ]);
+    const organizationId = await g.requireInternalOrganization(
+      context.supabase,
+      context.userId,
+    );
     await g.enforceRateLimit(admin, "invite-customer", context.userId);
 
     const { customer_id, email } = data;
     assertValidInput(g, customer_id, email);
 
-    const customer = await loadInvitableCustomer(g, admin, customer_id);
+    const customer = await loadInvitableCustomer(g, admin, customer_id, organizationId);
     const userId = await createPortalUser(g, admin, email, customer.name);
-    await linkPortalAccess(g, admin, { userId, customerId: customer_id, fullName: customer.name });
+    await linkPortalAccess(g, admin, {
+      userId,
+      customerId: customer_id,
+      fullName: customer.name,
+      organizationId,
+      email,
+    });
 
     const portalLink = await buildPortalLink(admin, email);
     return portalLink
