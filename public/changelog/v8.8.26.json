@@ -1,0 +1,14 @@
+{
+  "version": "8.8.26",
+  "date": "2026-09-15",
+  "type": "patch",
+  "category": "documentación",
+  "title": "Conteo de colisiones de unicidad antes de separar catálogos por empresa",
+  "description": "Se midió, solo con consultas de lectura, cuántos datos chocarían si cada catálogo pasara a ser propio de cada empresa.",
+  "changes": [
+    "Nuevo documento docs/multiempresa/tramo-7-colisiones-unicidad.md con las consultas usadas y los conteos agregados.",
+    "Cero duplicados y cero filas sin empresa en flota, mecánicos, operadores, refacciones, prospectos, pagos, reportes y proveedores.",
+    "Se documentó el efecto del borrado lógico, los índices parciales y el RFC normalizado sobre el resultado.",
+    "Recomendación reversible por lotes y decisión pendiente sobre proveedores; no se aplicaron migraciones, índices ni escrituras."
+  ]
+}

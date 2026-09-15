@@ -1,3 +1,12 @@
+## [8.8.26] - 2026-09-15 · patch · documentación
+
+Se midió, solo con consultas de lectura, cuántos datos chocarían si cada catálogo pasara a ser propio de cada empresa.
+
+- Nuevo documento docs/multiempresa/tramo-7-colisiones-unicidad.md con las consultas usadas y los conteos agregados.
+- Cero duplicados y cero filas sin empresa en flota, mecánicos, operadores, refacciones, prospectos, pagos, reportes y proveedores.
+- Se documentó el efecto del borrado lógico, los índices parciales y el RFC normalizado sobre el resultado.
+- Recomendación reversible por lotes y decisión pendiente sobre proveedores; no se aplicaron migraciones, índices ni escrituras.
+
 ## [8.8.25] - 2026-09-15 · patch · corrección
 
 Las plantillas de contrato y la búsqueda de clientes ya se resuelven dentro de la empresa verificada, y los choques de catálogos compartidos explican qué hacer.
