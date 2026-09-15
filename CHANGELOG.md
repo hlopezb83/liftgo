@@ -1,3 +1,12 @@
+## [8.8.12] - 2026-09-15 · patch · test
+
+Setup RLS de Storage ordenado desde el primer registro ficticio.
+
+- El contexto local de la organización A se establece antes de insertar cualquier organización de prueba.
+- Las organizaciones A y B se crean por separado, manteniendo contexto explícito para todos los disparadores del montaje.
+- Las sesiones autenticadas siguen limpiando el contexto del setup y se conservan intactas las pruebas positivas y de rechazo entre empresas.
+- No se modificaron el guardia de escritura, las políticas RLS ni la migración 0022.
+
 ## [8.8.11] - 2026-09-15 · patch · test
 
 Arnés RLS multiempresa con contexto explícito, sin cambios en producción.

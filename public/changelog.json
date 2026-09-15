@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.8.12",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "test",
+    "title": "Setup RLS con empresa explícita desde el inicio",
+    "description": "La prueba de aislamiento de archivos establece su empresa ficticia antes del primer registro del montaje, evitando contexto ambiguo sin cambiar los controles de producción.",
+    "changes": [
+      "El contexto local de la empresa A se establece antes de insertar las organizaciones ficticias.",
+      "Las empresas A y B se crean en pasos separados para comprobar el orden real desde cero.",
+      "Las sesiones autenticadas limpian el contexto del montaje antes de ejecutar los escenarios de permisos.",
+      "Se conservan sin cambios los casos permitidos y los rechazos de acceso entre empresas."
+    ]
+  },
+  {
     "version": "8.8.11",
     "date": "2026-09-15",
     "type": "patch",
