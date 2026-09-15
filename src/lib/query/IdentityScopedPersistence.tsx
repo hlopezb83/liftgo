@@ -24,6 +24,7 @@ import {
   shouldPersistQuery,
 } from "@/lib/query/persister";
 
+// eslint-disable-next-line react-refresh/only-export-components -- hook de identidad usado por las claves de caché del portal
 export function useVerifiedIdentityScope(): string | null {
   const { user } = useAuth();
   const org = useOrganizationContext();
