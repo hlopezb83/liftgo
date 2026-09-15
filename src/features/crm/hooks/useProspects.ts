@@ -21,9 +21,10 @@ export type ProspectInsert = Omit<
   closed_at?: string | null;
   lost_reason?: string | null;
   final_amount?: number | null;
-  // Multi-organización: lo resuelve la base, el cliente no lo envía.
-  organization_id?: string | null;
 };
+// Multi-organización (tramo 4): `organization_id` no es un campo del payload.
+// Lo asigna el trigger `enforce_organization_write_context` con la membresía
+// verificada del usuario; el navegador no puede proponer otra empresa.
 export type ProspectUpdate = Partial<ProspectInsert> & { id: string };
 
 // Lote F · columnas explícitas: solo lo que consume mapProspectRow.
