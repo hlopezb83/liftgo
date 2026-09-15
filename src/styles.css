@@ -341,6 +341,14 @@
   text-transform: uppercase;
 }
 
+/* Botón principal al estilo "COTIZAR" del sitio. */
+.auth-brandscape button[type="submit"] {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
 /* ------------------------------------------------------------------ */
 /* Scrollbars: thin, transparent track, muted thumb.                   */
 /* ------------------------------------------------------------------ */
