@@ -70,7 +70,10 @@ function AuthCardHeader({
             className="h-14 w-auto max-w-[200px] object-contain"
           />
         ) : (
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
+          <span className="flex flex-col items-center leading-none">
+            <span className="auth-display text-2xl font-extrabold text-sidebar">Lift Go</span>
+            <span className="auth-display text-2xs text-primary">Montacargas</span>
+          </span>
         )}
       </div>
       <CardTitle className="auth-display text-xl font-extrabold">{TITLES[mode].title}</CardTitle>
