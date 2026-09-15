@@ -23,7 +23,9 @@ export function useCreateProspect() {
         if (orderError) throw orderError;
         return supabase
           .from("prospects")
-          .insert({ ...p, stage_order: nextOrder as number })
+          // Tramo 4: la empresa la resuelve el trigger de contexto con la
+          // membresía verificada; el navegador nunca la propone.
+          .insert({ ...stripOrganizationId(p), stage_order: nextOrder as number })
           .select()
           .single();
       };
