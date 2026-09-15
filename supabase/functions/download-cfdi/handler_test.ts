@@ -285,6 +285,8 @@ function portalFixtures(opts: {
   membershipType?: string;
   accountError?: unknown;
   membershipError?: unknown;
+  /** Usuario dueño de la cuenta/membresía; por defecto el del JWT. */
+  ownerUserId?: string;
 }) {
   const {
     accountStatus = "active",
@@ -292,12 +294,21 @@ function portalFixtures(opts: {
     accountCustomer = CUSTOMER_ID,
     membershipOrg = ORG_ID,
     membershipType = "portal",
+    ownerUserId = PORTAL_USER,
   } = opts;
+  // Los fixtures respetan los filtros REALES de la consulta (auth_user_id,
+  // status y member_type): así ninguna fila "se cuela" cuando el handler
+  // pregunta por otra identidad, otro estado u otro tipo de membresía.
+  const matchesUser = (filters: Filters) => {
+    const wanted = filterVal(filters, "auth_user_id");
+    return wanted === undefined || wanted === ownerUserId;
+  };
   return {
     customer_portal_accounts: (filters: Filters) => {
       if (opts.accountError) {
         return { data: null, error: opts.accountError };
       }
+      if (!matchesUser(filters)) return { data: [], error: null };
       // La consulta real filtra por status='active': una cuenta suspendida
       // o revocada NO debe devolverse.
       const wanted = filterVal(filters, "status");
@@ -317,6 +328,7 @@ function portalFixtures(opts: {
       if (opts.membershipError) {
         return { data: null, error: opts.membershipError };
       }
+      if (!matchesUser(filters)) return { data: [], error: null };
       const wanted = filterVal(filters, "member_type");
       if (wanted !== undefined && wanted !== membershipType) {
         return { data: [], error: null };
