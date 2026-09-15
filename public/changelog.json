@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.8.24",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "documentación",
+    "title": "Análisis de unicidad de catálogos para operar con varias empresas",
+    "description": "Se documentó, sin cambiar la base, qué catálogos comparten unicidad global y cuáles deberían ser propios de cada empresa.",
+    "changes": [
+      "Nuevo documento docs/multiempresa/tramo-6-unicidad-catalogos.md con el inventario de índices únicos leído de producción.",
+      "Matriz propuesta global / por organización / por relación, riesgos históricos y plan de migración reversible por lotes.",
+      "Consultas que dependen de una unicidad frágil identificadas; no se aplicaron migraciones, índices ni escrituras."
+    ]
+  },
+  {
     "version": "8.8.23",
     "date": "2026-09-15",
     "type": "patch",
