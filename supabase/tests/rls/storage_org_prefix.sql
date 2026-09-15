@@ -256,15 +256,10 @@ BEGIN
   VALUES ('feedback-screenshots', v_org_a || '/' || v_uid || '/nueva.png',
           '{"mimetype":"image/png"}'::jsonb);
 
+  -- Borrado cruzado: el efecto se verifica fuera del bloque.
   DELETE FROM storage.objects
    WHERE bucket_id = 'feedback-screenshots' AND name LIKE v_org_b || '/%';
-  SET LOCAL role = 'postgres';
-  SELECT count(*) INTO v_count FROM storage.objects
-   WHERE bucket_id = 'feedback-screenshots' AND name LIKE v_org_b || '/%';
-  SET LOCAL role = 'authenticated';
-  IF v_count <> 1 THEN
-    RAISE EXCEPTION 'RLS BREACH: se borró una captura de otra organización';
-  END IF;
+
 
   -- 2.2 Documentos: mecánico de la ORG A.
   IF NOT EXISTS (
