@@ -60,6 +60,43 @@ export interface OrganizationContextClient {
 
 const str = (value: unknown): string | null => (typeof value === "string" && value ? value : null);
 
+async function resolvePortalAccount(
+  client: OrganizationContextClient,
+  userId: string,
+  organizationId: string,
+): Promise<OrganizationContextResult> {
+  const portal = await client
+    .from("customer_portal_accounts")
+    .select("organization_id, customer_id, status")
+    .eq("auth_user_id", userId)
+    .limit(2);
+
+  if (portal.error) {
+    throw new OrganizationContextError(
+      "portal_account_read_error",
+      "No se pudo verificar la cuenta del portal.",
+    );
+  }
+
+  const accounts = (portal.data ?? []) as Record<string, unknown>[];
+  if (accounts.length === 0) return { status: "no_membership", reason: "portal_account_missing" };
+  if (accounts.length > 1) return { status: "no_membership", reason: "ambiguous_membership" };
+
+  const account = accounts[0] as Record<string, unknown>;
+  if (str(account["status"]) !== "active") {
+    // Suspendida o revocada: no hay respaldo por `customers.user_id`.
+    return { status: "no_membership", reason: "portal_account_inactive" };
+  }
+
+  const accountOrg = str(account["organization_id"]);
+  const customerId = str(account["customer_id"]);
+  if (!accountOrg || !customerId || accountOrg !== organizationId) {
+    return { status: "no_membership", reason: "portal_organization_mismatch" };
+  }
+
+  return { status: "ready", organizationId, memberType: "portal", customerId };
+}
+
 export async function resolveOrganizationContext(
   client: OrganizationContextClient,
   userId: string,
@@ -93,34 +130,5 @@ export async function resolveOrganizationContext(
     return { status: "ready", organizationId, memberType, customerId: null };
   }
 
-  const portal = await client
-    .from("customer_portal_accounts")
-    .select("organization_id, customer_id, status")
-    .eq("auth_user_id", userId)
-    .limit(2);
-
-  if (portal.error) {
-    throw new OrganizationContextError(
-      "portal_account_read_error",
-      "No se pudo verificar la cuenta del portal.",
-    );
-  }
-
-  const accounts = (portal.data ?? []) as Record<string, unknown>[];
-  if (accounts.length === 0) return { status: "no_membership", reason: "portal_account_missing" };
-  if (accounts.length > 1) return { status: "no_membership", reason: "ambiguous_membership" };
-
-  const account = accounts[0]!;
-  if (str(account["status"]) !== "active") {
-    // Suspendida o revocada: no hay respaldo por `customers.user_id`.
-    return { status: "no_membership", reason: "portal_account_inactive" };
-  }
-
-  const accountOrg = str(account["organization_id"]);
-  const customerId = str(account["customer_id"]);
-  if (!accountOrg || !customerId || accountOrg !== organizationId) {
-    return { status: "no_membership", reason: "portal_organization_mismatch" };
-  }
-
-  return { status: "ready", organizationId, memberType, customerId };
+  return resolvePortalAccount(client, userId, organizationId);
 }

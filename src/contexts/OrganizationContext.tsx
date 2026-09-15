@@ -10,8 +10,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getOrganizationContext } from "@/lib/organizationContext.functions";
 import type { OrganizationContextResult } from "@/lib/organization/resolveOrganizationContext";
+import { getOrganizationContext } from "@/lib/organizationContext.functions";
+
 
 export type OrganizationContextState =
   | { status: "signed-out" }

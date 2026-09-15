@@ -87,10 +87,11 @@ export function usePortalCustomer() {
     enabled: !!user && !!customerId,
     staleTime: 60_000,
     queryFn: async () => {
+      if (!customerId) return null;
       const { data, error } = await supabase
         .from("customers")
         .select(PORTAL_CUSTOMER_COLUMNS)
-        .eq("id", customerId!)
+        .eq("id", customerId)
         .maybeSingle()
         .returns<PortalCustomerRow>();
       if (error) throw error;
