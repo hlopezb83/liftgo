@@ -309,6 +309,29 @@ admiten subidas nuevas sin prefijo. Cobertura: suite RLS
 `supabase/tests/rls/storage_org_prefix.sql` (dos organizaciones con un cliente
 compartido) y asertos R6-15/R6-25 en `supabase/tests/r_fix32_portal_pagos_smoke.sql`.
 
+**Contexto de organización en la aplicación (fase 5, tramo 1).**
+`getOrganizationContext` (`src/lib/organizationContext.functions.ts`, server
+function con `requireSupabaseAuth`) resuelve la empresa a partir de la
+identidad del token: `organization_memberships` es la fuente de verdad (una
+membresía por usuario; cero o más de una son estados explícitos) y, para
+`member_type = 'portal'`, exige una fila activa de `customer_portal_accounts`
+cuya organización coincida con la de la membresía. El resolver puro vive en
+`src/lib/organization/resolveOrganizationContext.ts` y se prueba sin red.
+`OrganizationProvider` / `OrganizationGate`
+(`src/contexts/OrganizationContext.tsx`) exponen estados separados —
+`loading`, `error`, `no-membership`, `ready` — y `AuthGuard` no renderiza
+contenido protegido hasta que la empresa está verificada. El navegador nunca
+propone un `organization_id`.
+El portal identifica a su cliente con ese contexto verificado
+(`useVerifiedPortalCustomerId`) en lugar del primer registro visible de
+`customers`; el detalle por ID sigue pasando por los RPC filtrados por
+organización.
+La migración `0024_portal_fallback_respects_account_status.sql` corrige
+`get_customer_id_for_user`: el respaldo legado `customers.user_id` sólo aplica
+cuando el usuario no tiene ninguna cuenta de portal, de modo que una cuenta
+suspendida o revocada no recupera acceso. Cobertura:
+`supabase/tests/rls/portal_account_status_fallback.sql`.
+
 
 
 

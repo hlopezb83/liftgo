@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
+import { useVerifiedPortalCustomerId } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { portalKeys } from "../../lib/queryKeys";
@@ -77,15 +78,20 @@ async function fetchForkliftsBriefMap(): Promise<Map<string, ForkliftBrief>> {
 
 export function usePortalCustomer() {
   const { user } = useAuth();
+  // Multi-organización: la identidad del cliente viene de la cuenta del portal
+  // verificada en servidor (usuario + empresa + cuenta activa), no del primer
+  // registro visible de `customers`.
+  const customerId = useVerifiedPortalCustomerId();
   return useQuery({
     queryKey: portalKeys.customer(user?.id),
-    enabled: !!user,
+    enabled: !!user && !!customerId,
     staleTime: 60_000,
     queryFn: async () => {
+      if (!customerId) return null;
       const { data, error } = await supabase
         .from("customers")
         .select(PORTAL_CUSTOMER_COLUMNS)
-        .limit(1)
+        .eq("id", customerId)
         .maybeSingle()
         .returns<PortalCustomerRow>();
       if (error) throw error;

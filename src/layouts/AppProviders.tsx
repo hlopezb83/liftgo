@@ -6,6 +6,7 @@ import { ErrorDetailsDialog } from "@/components/ui/ErrorDetailsDialog";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OrganizationProvider } from "@/contexts/OrganizationContext";
 import { AuthSnapshotSync } from "@/features/users";
 import {
   createBrowserPersister,
@@ -32,6 +33,7 @@ export function AppProviders({ queryClient, children }: { queryClient: QueryClie
         }}
       >
         <AuthProvider>
+          <OrganizationProvider>
           <AuthQueryCacheSync />
           <AuthSnapshotSync />
           {/* Delay global acordado (300ms): único TooltipProvider de la app.
@@ -42,6 +44,7 @@ export function AppProviders({ queryClient, children }: { queryClient: QueryClie
             <ErrorDetailsDialog />
             <ConfirmProvider>{children}</ConfirmProvider>
           </TooltipProvider>
+          </OrganizationProvider>
         </AuthProvider>
         {import.meta.env.DEV ? (
           <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />

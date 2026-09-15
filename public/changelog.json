@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.8.16",
+    "date": "2026-09-15",
+    "type": "minor",
+    "category": "seguridad",
+    "title": "La aplicación verifica la empresa del usuario antes de mostrar datos",
+    "description": "El sistema confirma en el servidor a qué empresa pertenece cada cuenta y, hasta entonces, no muestra ni consulta información protegida.",
+    "changes": [
+      "El personal interno se valida contra su asignación de empresa; el portal, contra su cuenta de cliente activa.",
+      "Estados claros mientras se verifica, cuando falta asignación y cuando la verificación falla.",
+      "El portal identifica al cliente por su cuenta verificada, ya no por el primer registro visible.",
+      "Preparada una regla para que una cuenta de portal suspendida o cancelada no recupere acceso por la vía anterior."
+    ]
+  },
+  {
     "version": "8.8.15",
     "date": "2026-09-15",
     "type": "patch",
