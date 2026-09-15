@@ -1,3 +1,11 @@
+## [8.8.22] - 2026-09-15 · patch · corrección
+
+Se corrigieron dos fixtures de pruebas de seguridad que fallaban desde una base limpia, sin relajar el aislamiento entre empresas.
+
+- La prueba de bitácora de actividad crea membresías internas para administrador, despachador y ventas antes de validar lecturas.
+- La prueba de administración cruzada respeta el índice único de un rol por usuario al asignar roles.
+- No se modificaron current_organization_id, las políticas de aislamiento ni el modelo de datos.
+
 ## [8.8.21] - 2026-09-15 · patch · corrección
 
 Migración de aislamiento administrativo compatible con UUID desde una base limpia.
