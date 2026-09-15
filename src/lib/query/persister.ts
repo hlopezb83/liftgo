@@ -5,27 +5,46 @@
  * catálogos, dashboards, KPIs) que aceleran el cold start sin exponer
  * información sensible.
  *
- * NO persistir: roles, permisos, secretos, sesiones, tokens.
+ * NO persistir: roles, permisos, secretos, sesiones, tokens ni datos
+ * financieros.
+ *
+ * Multi-organización (tramo 2): la caché persistida se guarda bajo una clave
+ * por identidad verificada (`liftgo:rq-cache:v4:{usuario}:{organización}:{tipo}`).
+ * Las claves globales anteriores se purgan: podían restaurar catálogos de otro
+ * usuario u otra empresa.
  */
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { isForeignPersistedCacheKey, persistedCacheKey, PERSIST_KEY_PREFIX } from "./identityScope";
 import type { Query } from "@tanstack/react-query";
 
-const STORAGE_KEY = "liftgo:rq-cache:v3"; // SEC-B7/F5: invalida cachés previas con datos financieros (dashboard-stats con PII)
-// SEC-B7 residual (R2 Bajo 2): la caché v1 (con datos financieros, pre-allowlist)
-// nunca se purgó al subir a v2 — quedaba en localStorage indefinidamente.
-const LEGACY_STORAGE_KEYS = ["liftgo:rq-cache:v1", "liftgo:rq-cache:v2"] as const;
+// Claves globales (sin identidad) de versiones anteriores: se eliminan siempre.
+const LEGACY_STORAGE_KEYS = [
+  "liftgo:rq-cache:v1",
+  "liftgo:rq-cache:v2",
+  "liftgo:rq-cache:v3",
+] as const;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 
-/** Borra cachés persistidas de versiones anteriores. Idempotente; se llama al boot. */
-function purgeLegacyPersistedCaches(storage: Storage) {
-  for (const key of LEGACY_STORAGE_KEYS) {
-    try {
-      storage.removeItem(key);
-    } catch {
-      // storage bloqueado (modo privado, políticas): no romper el arranque.
+/**
+ * Borra cachés persistidas globales y las de cualquier otra identidad.
+ * Idempotente; se llama al montar la persistencia y en cada cambio de sesión.
+ */
+export function purgeForeignPersistedCaches(storage: Storage, scope: string | null) {
+  try {
+    for (const key of LEGACY_STORAGE_KEYS) storage.removeItem(key);
+
+    const foreign: string[] = [];
+    for (let i = 0; i < storage.length; i += 1) {
+      const key = storage.key(i);
+      if (key && isForeignPersistedCacheKey(key, scope)) foreign.push(key);
     }
+    for (const key of foreign) storage.removeItem(key);
+  } catch {
+    // storage bloqueado (modo privado, políticas): no romper el arranque.
   }
 }
+
+export { PERSIST_KEY_PREFIX, persistedCacheKey };
 
 /**
  * Prefijos de queryKey que se persisten en disco.
@@ -99,23 +118,30 @@ export function shouldPersistQuery(query: Query): boolean {
   return PERSIST_ALLOWLIST.includes(root);
 }
 
-export function createBrowserPersister() {
-  if (typeof window === "undefined") {
-    // Fallback en memoria (no-op) para SSR/tests.
+/**
+ * Persister ligado a una identidad verificada. Sin identidad (`scope` nulo)
+ * devuelve un persister en memoria: nada se restaura ni se escribe en disco
+ * antes de que la sesión y la organización estén resueltas.
+ */
+export function createBrowserPersister(scope: string | null) {
+  const inMemory = {
+    getItem: () => null,
+    setItem: () => undefined,
+    removeItem: () => undefined,
+  };
+
+  if (typeof window === "undefined" || !scope) {
     return createSyncStoragePersister({
-      storage: {
-        getItem: () => null,
-        setItem: () => undefined,
-        removeItem: () => undefined,
-      },
-      key: STORAGE_KEY,
+      storage: inMemory,
+      key: scope ? persistedCacheKey(scope) : `${PERSIST_KEY_PREFIX}:anonymous`,
       throttleTime: 1000,
     });
   }
-  purgeLegacyPersistedCaches(window.localStorage);
+
+  purgeForeignPersistedCaches(window.localStorage, scope);
   return createSyncStoragePersister({
     storage: window.localStorage,
-    key: STORAGE_KEY,
+    key: persistedCacheKey(scope),
     throttleTime: 1000,
   });
 }

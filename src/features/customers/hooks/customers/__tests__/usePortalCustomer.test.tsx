@@ -14,6 +14,9 @@ vi.mock("@/contexts/AuthContext", () => ({ useAuth: useAuthMock }));
 vi.mock("@/contexts/OrganizationContext", () => ({
   useVerifiedPortalCustomerId: usePortalCustomerIdMock,
 }));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({
+  useVerifiedIdentityScope: () => "user-1:org-a:portal",
+}));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { from: fromMock } }));
 
 import { usePortalCustomer } from "../useCustomerPortal";

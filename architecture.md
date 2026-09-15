@@ -332,6 +332,24 @@ cuando el usuario no tiene ninguna cuenta de portal, de modo que una cuenta
 suspendida o revocada no recupera acceso. Cobertura:
 `supabase/tests/rls/portal_account_status_fallback.sql`.
 
+**Caché por identidad verificada (fase 5, tramo 2).**
+La caché de TanStack Query se aísla por identidad
+(`usuario:organización:tipo`, `src/lib/query/identityScope.ts`).
+`IdentityScopedPersistence` (`src/lib/query/IdentityScopedPersistence.tsx`)
+sustituye al `PersistQueryClientProvider` global: cancela las consultas en
+vuelo y elimina la caché de la sesión anterior en el mismo commit en que deja
+de renderizar contenido, purga del `localStorage` la clave global antigua
+(`liftgo:rq-cache:v1..v3`) y cualquier clave de otra identidad, y sólo entonces
+restaura `liftgo:rq-cache:v4:{identidad}`. Sin identidad verificada el persister
+es en memoria: no se restaura nada antes de que `AuthProvider` y
+`OrganizationProvider` estén resueltos. `AuthQueryCacheSync` se conserva y
+purga todo salvo la consulta de identidad (`organization-context`), cuya
+limpieza reiniciaría la verificación en bucle. Las claves del portal
+(`portalKeys`) pasan a llevar la identidad verificada en lugar del `user_id`
+suelto. La allowlist/blocklist de persistencia no cambia: secretos, sesiones,
+roles, portal y datos financieros siguen fuera del disco. Cobertura:
+`src/lib/query/__tests__/identityScopedCache.test.tsx`.
+
 
 
 

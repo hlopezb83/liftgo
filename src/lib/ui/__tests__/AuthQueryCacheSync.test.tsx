@@ -47,39 +47,35 @@ describe("AuthQueryCacheSync", () => {
 
   it("does NOT clear cache on initial mount", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const clearSpy = vi.spyOn(qc, "clear");
-
     renderWith(currentUser, qc);
+    qc.setQueryData(["forklifts", "list"], [{ id: "f1" }]);
 
-    expect(clearSpy).not.toHaveBeenCalled();
-    clearSpy.mockRestore();
+    expect(qc.getQueryData(["forklifts", "list"])).toBeDefined();
   });
 
-  it("clears cache when user changes", () => {
+  it("purga los datos de la sesión anterior cuando cambia el usuario", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const clearSpy = vi.spyOn(qc, "clear");
-
     const { rerender } = renderWith({ id: "user-1" }, qc);
 
-    expect(clearSpy).not.toHaveBeenCalled();
+    qc.setQueryData(["forklifts", "list"], [{ id: "f1" }]);
+    qc.setQueryData(["organization-context", "user-1"], { organizationId: "org-a" });
 
     rerenderWith(rerender, { id: "user-2" }, qc);
 
-    expect(clearSpy).toHaveBeenCalledTimes(1);
-    clearSpy.mockRestore();
+    expect(qc.getQueryData(["forklifts", "list"])).toBeUndefined();
+    // La consulta de identidad se conserva: volver a limpiarla dejaría la
+    // verificación de empresa en bucle.
+    expect(qc.getQueryData(["organization-context", "user-1"])).toBeDefined();
   });
 
-  it("clears cache on sign-out (user becomes null)", () => {
+  it("purga los datos al cerrar sesión (user pasa a null)", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    const clearSpy = vi.spyOn(qc, "clear");
-
     const { rerender } = renderWith({ id: "user-1" }, qc);
 
-    expect(clearSpy).not.toHaveBeenCalled();
+    qc.setQueryData(["forklifts", "list"], [{ id: "f1" }]);
 
     rerenderWith(rerender, null, qc);
 
-    expect(clearSpy).toHaveBeenCalledTimes(1);
-    clearSpy.mockRestore();
+    expect(qc.getQueryData(["forklifts", "list"])).toBeUndefined();
   });
 });

@@ -1,3 +1,13 @@
+## [8.8.17] - 2026-09-15 · minor · seguridad
+
+Caché de TanStack Query aislada por identidad verificada (usuario + organización).
+
+- `IdentityScopedPersistence` reemplaza el `PersistQueryClientProvider` global: purga, restaura y persiste bajo `liftgo:rq-cache:v4:{identidad}`.
+- Se eliminan las claves globales `liftgo:rq-cache:v1..v3` y las de cualquier otra identidad presentes en `localStorage`.
+- Nada se restaura antes de que `AuthProvider` y `OrganizationProvider` estén en `ready`; al cambiar identidad se cancelan consultas en vuelo y se purga la caché antes de renderizar.
+- `AuthQueryCacheSync` se conserva y purga todo salvo la consulta de identidad (`organization-context`).
+- `portalKeys` usa la identidad verificada en lugar de `user_id`; allowlist/blocklist de persistencia sin cambios.
+
 ## [8.8.16] - 2026-09-15 · minor · seguridad
 
 Contexto de organización verificado en la aplicación y portal por cuenta verificada.
