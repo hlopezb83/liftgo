@@ -169,6 +169,13 @@
       "when": 1789494754486,
       "tag": "0023_payment_intent_invoice_definer_check",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1789497000000,
+      "tag": "0024_portal_fallback_respects_account_status",
+      "breakpoints": true
     }
   ]
 }
