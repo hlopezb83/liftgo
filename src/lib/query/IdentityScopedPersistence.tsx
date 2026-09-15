@@ -15,13 +15,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useEffect, useState, type ReactNode } from "react";
 import { isIdentityQueryKey } from "@/lib/query/identityScope";
-import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import {
   createBrowserPersister,
   purgeForeignPersistedCaches,
   PERSIST_MAX_AGE_MS,
   shouldPersistQuery,
 } from "@/lib/query/persister";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 
 export function IdentityScopedPersistence({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
