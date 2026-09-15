@@ -1,3 +1,13 @@
+## [8.8.18] - 2026-09-15 · minor · seguridad
+
+Emisor de documentos resuelto por organización verificada (tramo 3 multiempresa).
+
+- Nuevo `resolveIssuerBranding` + server fn `getIssuerBranding` (`requireSupabaseAuth`): razón social, RFC, régimen, lugar de expedición y logo salen de la organización verificada y, cuando aplica, de la organización propietaria del documento.
+- `fetchCompanyDataAndLogo` deja de leer `company_settings` con `limit(1)`; ahora recibe el documento (factura, cotización, contrato, cliente) y verifica pertenencia y acceso del usuario o cuenta de portal.
+- Estados explícitos `no_organization`, `document_not_found`, `document_forbidden`, `settings_missing`, `settings_ambiguous` y error de lectura; sin empresa de respaldo ni herencia entre organizaciones.
+- `companySettingsQueries` y `cxpApprovalThresholdQueries` piden 2 filas y tratan la duplicidad como error explícito en lugar de elegir una arbitraria.
+- `get_public_branding` (LiftGo fija) y los secretos fiscales quedan intactos; sólo se expone configuración pública y el indicador `facturapi_mode`.
+
 ## [8.8.17] - 2026-09-15 · minor · seguridad
 
 Caché de TanStack Query aislada por identidad verificada (usuario + organización).
