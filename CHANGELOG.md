@@ -1,3 +1,11 @@
+## [8.8.24] - 2026-09-15 · patch · documentación
+
+Se documentó, sin cambiar la base, qué catálogos comparten unicidad global y cuáles deberían ser propios de cada empresa.
+
+- Nuevo documento `docs/multiempresa/tramo-6-unicidad-catalogos.md` con el inventario de índices únicos leído de producción.
+- Matriz propuesta global / por organización / por relación, riesgos históricos y plan de migración reversible por lotes.
+- Consultas que dependen de una unicidad frágil identificadas; no se aplicaron migraciones, índices ni escrituras.
+
 ## [8.8.23] - 2026-09-15 · patch · corrección
 
 Se corrigió el fixture que confundía una lectura vacía por aislamiento con un cambio de rol.
