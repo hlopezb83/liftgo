@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.8.22",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "corrección",
+    "title": "Pruebas de aislamiento con membresías y roles correctos",
+    "description": "Se corrigieron dos fixtures de pruebas de seguridad que fallaban desde una base limpia, sin relajar el aislamiento entre empresas.",
+    "changes": [
+      "La prueba de bitácora de actividad crea membresías internas para administrador, despachador y ventas antes de validar lecturas.",
+      "La prueba de administración cruzada respeta el índice único de un rol por usuario al asignar roles.",
+      "No se modificaron current_organization_id, las políticas de aislamiento ni el modelo de datos."
+    ]
+  },
+  {
     "version": "8.8.21",
     "date": "2026-09-15",
     "type": "patch",
