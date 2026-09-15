@@ -1,0 +1,13 @@
+{
+  "version": "8.8.21",
+  "date": "2026-09-15",
+  "type": "patch",
+  "category": "corrección",
+  "title": "La migración de administración acepta organizaciones UUID",
+  "description": "La migración 0025 ahora resuelve la única membresía con una operación válida para UUID y conserva el rechazo seguro cuando falta o sobra una membresía.",
+  "changes": [
+    "La organización se obtiene mediante una colección UUID sólo cuando existe exactamente una membresía.",
+    "Con cero o varias membresías, la función devuelve NULL y no elige una empresa arbitraria.",
+    "No cambian el modelo, las políticas, los permisos ni el aislamiento del tramo 5."
+  ]
+}

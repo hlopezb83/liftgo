@@ -28,7 +28,10 @@ STABLE
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT CASE WHEN count(*) = 1 THEN min(m.organization_id) END
+  SELECT CASE
+    WHEN count(*) = 1 THEN (array_agg(m.organization_id))[1]
+    ELSE NULL
+  END
   FROM public.organization_memberships m
   WHERE m.auth_user_id = (SELECT auth.uid())
 $$;

@@ -1,3 +1,11 @@
+## [8.8.21] - 2026-09-15 · patch · corrección
+
+Migración de aislamiento administrativo compatible con UUID desde una base limpia.
+
+- `current_organization_id()` deja de aplicar una agregación no disponible para UUID y obtiene el único valor mediante `array_agg`.
+- Se conserva el contrato cerrado: devuelve la organización sólo con exactamente una membresía; con cero o varias devuelve `NULL`.
+- No cambian el modelo, las políticas, los permisos ni el alcance de la migración 0025.
+
 ## [8.8.20] - 2026-09-15 · minor · seguridad
 
 Administración, invitaciones y roles acotados a la organización verificada (tramo 5 multiempresa).
