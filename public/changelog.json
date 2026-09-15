@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.8.10",
+    "date": "2026-09-15",
+    "type": "patch",
+    "category": "security",
+    "title": "Archivos por empresa: aislamiento completo entre organizaciones",
+    "description": "Los permisos de archivos y de reportes de pago ahora comprueban que la carpeta de empresa, la factura y la sesión pertenezcan a la misma organización; los archivos guardados antes del cambio siguen accesibles.",
+    "changes": [
+      "Subir un comprobante exige la carpeta de la empresa de la sesión y una factura de esa misma empresa.",
+      "Leer o borrar comprobantes, capturas de feedback y documentos de otra empresa queda bloqueado.",
+      "El reporte de pago del portal sólo se acepta si la factura y el comprobante son de la empresa de la sesión.",
+      "Nuevas pruebas de permisos con dos empresas ficticias que intentan cruzar información y son rechazadas.",
+      "Prueba de humo actualizada para verificar el comportamiento real de las nuevas reglas."
+    ]
+  },
+  {
     "version": "8.8.9",
     "date": "2026-09-15",
     "type": "patch",
