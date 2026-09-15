@@ -5685,6 +5685,10 @@ export type Database = {
         Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
+      invoice_eligible_for_payment_intent: {
+        Args: { p_invoice_id: string }
+        Returns: boolean
+      }
       invoice_in_current_organization: {
         Args: { p_invoice_id: string }
         Returns: boolean

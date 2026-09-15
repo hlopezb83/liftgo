@@ -210,11 +210,44 @@ BEGIN
     RAISE EXCEPTION 'RLS BREACH: payment intent aceptado con comprobante de otra organización';
   END IF;
 
-  -- 1.8 Payment intent legítimo (guard positivo).
+  -- 1.8 Guards de diagnóstico: cada condición de la policy debe ser cierta
+  -- para la factura propia (si alguna falla, el error dice cuál).
+  IF public.get_customer_id_for_user(auth.uid())::text IS DISTINCT FROM v_cust THEN
+    RAISE EXCEPTION 'SETUP INVÁLIDO: la cuenta de portal no resuelve su cliente';
+  END IF;
+  IF NOT public.has_role(auth.uid(), 'customer'::app_role) THEN
+    RAISE EXCEPTION 'SETUP INVÁLIDO: la cuenta de portal no tiene el rol customer';
+  END IF;
+  IF NOT public.invoice_in_current_organization(v_inv_a::uuid) THEN
+    RAISE EXCEPTION 'POLICY ROTA: la factura propia no se ve en la organización actual';
+  END IF;
+  IF NOT public.invoice_eligible_for_payment_intent(v_inv_a::uuid) THEN
+    RAISE EXCEPTION 'POLICY ROTA: la factura propia no es elegible para payment intent';
+  END IF;
+  IF public.invoice_eligible_for_payment_intent(v_inv_b::uuid) THEN
+    RAISE EXCEPTION 'RLS BREACH: la factura de la ORG B es elegible para payment intent';
+  END IF;
+  IF NOT public.payment_proof_path_allowed(
+        v_org_a || '/' || v_cust || '/' || v_inv_a || '/nuevo.pdf', true) THEN
+    RAISE EXCEPTION 'POLICY ROTA: la ruta propia del comprobante no se acepta';
+  END IF;
+  IF public.payment_proof_path_allowed(
+        v_org_b || '/' || v_cust || '/' || v_inv_a || '/ajeno.pdf', true) THEN
+    RAISE EXCEPTION 'RLS BREACH: se acepta una ruta con el prefijo de otra organización';
+  END IF;
+
+  -- 1.9 Payment intent legítimo con comprobante propio (guard positivo).
   INSERT INTO public.customer_payment_intents
     (organization_id, invoice_id, customer_id, amount, transfer_date, status, proof_url)
   VALUES (v_org_a::uuid, v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
           v_org_a || '/' || v_cust || '/' || v_inv_a || '/nuevo.pdf');
+
+  IF (SELECT count(*) FROM public.customer_payment_intents
+       WHERE invoice_id = v_inv_a::uuid
+         AND proof_url = v_org_a || '/' || v_cust || '/' || v_inv_a || '/nuevo.pdf') <> 1 THEN
+    RAISE EXCEPTION 'POLICY ROTA: el payment intent legítimo no quedó registrado';
+  END IF;
+
 
   RAISE NOTICE 'OK: comprobantes de pago aislados por organización';
 END $$;
