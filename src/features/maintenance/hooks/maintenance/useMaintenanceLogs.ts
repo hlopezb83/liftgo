@@ -65,7 +65,12 @@ export function useUpdateMaintenanceLog() {
     mutationFn: async (
       { id, ...updates }: { id: string } & Partial<WithoutOrganization<MaintenanceLog>>,
     ) => {
-      const { data, error } = await supabase.from("maintenance_logs").update(updates).eq("id", id).select().single();
+      const { data, error } = await supabase
+        .from("maintenance_logs")
+        .update(stripOrganizationId(updates))
+        .eq("id", id)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
