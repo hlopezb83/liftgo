@@ -1,3 +1,13 @@
+## [8.8.10] - 2026-09-15 · patch · security
+
+Aislamiento completo de archivos entre organizaciones (migración 0022).
+
+- Subir un comprobante exige la carpeta de la empresa de la sesión y una factura de esa misma empresa.
+- Leer o borrar comprobantes, capturas de feedback y documentos de otra empresa queda bloqueado.
+- El reporte de pago del portal sólo se acepta si la factura y el comprobante son de la empresa de la sesión.
+- Nueva suite RLS `supabase/tests/rls/storage_org_prefix.sql` con dos organizaciones y un cliente compartido.
+- Smoke `r_fix32_portal_pagos_smoke.sql` actualizado al contrato real (R6-15/R6-25).
+
 ## [8.8.9] - 2026-09-15
 ### Permisos de Storage compatibles con el prefijo de organización
 - Migración `0021_storage_policies_org_prefix_aware`: nueva función `public.storage_relative_segments(text)` (SECURITY DEFINER) que descarta el primer segmento cuando corresponde a una organización existente, y lo conserva para objetos legados sin prefijo.

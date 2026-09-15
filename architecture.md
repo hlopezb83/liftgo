@@ -294,6 +294,23 @@ En `process-cfdi-retry-queue`, `classifyInvoiceReadOutcome` (en
 sin consumir intento ni llamar al PAC— de la factura realmente sin
 organización, que sí se agota.
 
+**Storage por organización (migración `0022_storage_tenant_scoped_policies.sql`).**
+Las rutas nuevas son `{organization_id}/...`. Las policies ya no se limitan a
+recortar el prefijo: `storage_prefix_organization(p)` resuelve la organización
+del prefijo, `storage_path_in_current_organization(p, p_require_prefix)` exige
+que coincida con `current_organization_id()` (membresía real; `true` en las
+subidas, que por tanto obligan a llevar prefijo) y
+`payment_proof_path_allowed(name, p_require_prefix)` valida además que el
+segmento de cliente sea el del usuario y que la factura de la ruta sea de ese
+cliente y de esa organización. `customer_payment_intents` suma
+`invoice_in_current_organization(invoice_id)`. Los objetos legados sin prefijo
+conservan lectura y borrado porque no pueden apuntar a otra organización; no se
+admiten subidas nuevas sin prefijo. Cobertura: suite RLS
+`supabase/tests/rls/storage_org_prefix.sql` (dos organizaciones con un cliente
+compartido) y asertos R6-15/R6-25 en `supabase/tests/r_fix32_portal_pagos_smoke.sql`.
+
+
+
 
 
 

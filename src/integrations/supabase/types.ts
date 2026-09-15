@@ -5685,6 +5685,10 @@ export type Database = {
         Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
+      invoice_in_current_organization: {
+        Args: { p_invoice_id: string }
+        Returns: boolean
+      }
       is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_admin_administrativo_auditor: { Args: never; Returns: boolean }
       is_admin_or_administrativo: { Args: never; Returns: boolean }
@@ -5822,6 +5826,10 @@ export type Database = {
       }
       organization_scope_matches: {
         Args: { p_organization_id: string }
+        Returns: boolean
+      }
+      payment_proof_path_allowed: {
+        Args: { p_name: string; p_require_prefix?: boolean }
         Returns: boolean
       }
       peek_next_draft_credit_note_number: { Args: never; Returns: string }
@@ -6253,6 +6261,11 @@ export type Database = {
         }
         Returns: string
       }
+      storage_path_in_current_organization: {
+        Args: { p: string; p_require_prefix?: boolean }
+        Returns: boolean
+      }
+      storage_prefix_organization: { Args: { p: string }; Returns: string }
       storage_relative_segments: { Args: { p: string }; Returns: string[] }
       sync_forklift_rental_status: {
         Args: never

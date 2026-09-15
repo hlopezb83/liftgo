@@ -87,11 +87,56 @@ SELECT pg_temp.expect_true(
   pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
     ILIKE '%cancelled%draft%'
 );
+-- Migración 0022: la carpeta de la factura se valida sobre la ruta relativa
+-- (el path ahora inicia con {organization_id}/), no sobre foldername directo.
 SELECT pg_temp.expect_true(
   'R6-15 la policy INSERT exige la carpeta de la factura',
   pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
-    ILIKE '%foldername(proof_url))[2]%'
+    ILIKE '%storage_relative_segments(proof_url))[2]%'
 );
+SELECT pg_temp.expect_true(
+  'R6-15 la policy INSERT valida la ruta completa del comprobante (cliente + factura + organización)',
+  pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
+    ILIKE '%payment_proof_path_allowed(proof_url%'
+);
+SELECT pg_temp.expect_true(
+  'R6-15 la policy INSERT exige que la factura sea de la organización de la sesión',
+  pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
+    ILIKE '%invoice_in_current_organization(invoice_id)%'
+);
+
+-- R6-25 (0022) · la ruta de Storage es tenant-aware de extremo a extremo.
+SELECT pg_temp.expect_true(
+  'R6-25 la subida de comprobantes exige prefijo de organización verificado',
+  pg_temp.poldef('storage', 'objects', 'Customers upload own proofs')
+    ILIKE '%payment_proof_path_allowed(name, true)%'
+);
+SELECT pg_temp.expect_true(
+  'R6-25 payment_proof_path_allowed compara prefijo, organización de sesión y factura',
+  pg_temp.fndef('payment_proof_path_allowed') ILIKE '%current_organization_id()%'
+    AND pg_temp.fndef('payment_proof_path_allowed') ILIKE '%storage_prefix_organization(p_name)%'
+    AND pg_temp.fndef('payment_proof_path_allowed') ILIKE '%i.organization_id = v_org%'
+);
+SELECT pg_temp.expect_true(
+  'R6-25 las capturas de feedback exigen la organización de la sesión',
+  pg_temp.poldef('storage', 'objects', 'Users upload own feedback screenshots')
+    ILIKE '%storage_path_in_current_organization(name, true)%'
+  AND pg_temp.poldef('storage', 'objects', 'Users read own feedback screenshots')
+    ILIKE '%storage_path_in_current_organization(name, false)%'
+);
+SELECT pg_temp.expect_true(
+  'R6-25 los documentos internos exigen la organización de la sesión',
+  pg_temp.poldef('storage', 'objects', 'Staff read documents')
+    ILIKE '%storage_path_in_current_organization(name, false)%'
+);
+-- Compatibilidad legada explícita: sin prefijo de organización la ruta no puede
+-- apuntar a otra empresa, así que la lectura/borrado legados siguen permitidos.
+SELECT pg_temp.expect_true(
+  'R6-25 storage_path_in_current_organization conserva rutas legadas solo si no son cruzadas',
+  public.storage_path_in_current_organization('documents/manual.pdf', false) IS TRUE
+    AND public.storage_path_in_current_organization('documents/manual.pdf', true) IS FALSE
+);
+
 
 -- R6-14
 SELECT pg_temp.expect_true(
