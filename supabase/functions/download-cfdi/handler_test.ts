@@ -547,3 +547,179 @@ Deno.test("portal: REP cuya factura relacionada es de otra empresa se bloquea", 
   assertEquals(res.status, 403);
   assertEquals(dl, 0);
 });
+
+const CREDIT_NOTE_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+Deno.test("portal: cuenta REVOCADA no obtiene archivos", async () => {
+  let dl = 0, pac = 0;
+  const { deps } = makePortalDeps({
+    portal: { accountStatus: "revoked" },
+    onDownload: () => dl++,
+    onFacturapiFetch: () => pac++,
+    selects: { invoices: { data: invoiceRow(), error: null } },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(dl, 0);
+  assertEquals(pac, 0);
+});
+
+Deno.test("portal: cuenta de OTRO usuario no sirve (fixtures respetan auth_user_id)", async () => {
+  let dl = 0;
+  const { deps } = makePortalDeps({
+    portal: { ownerUserId: "99999999-9999-4999-8999-999999999999" },
+    onDownload: () => dl++,
+    selects: { invoices: { data: invoiceRow(), error: null } },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(dl, 0);
+});
+
+Deno.test("portal: descarga su propio ACUSE ya persistido", async () => {
+  let pac = 0;
+  const { deps } = makePortalDeps({
+    portal: {},
+    download: {
+      data: new Blob(["<acuse/>"], { type: "application/xml" }),
+      error: null,
+    },
+    onFacturapiFetch: () => pac++,
+    selects: {
+      invoices: {
+        data: invoiceRow({
+          cfdi_status: "cancelled",
+          cancellation_status: "accepted",
+          acuse_xml_url: "org/acuse-p1.xml",
+        }),
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "acuse_xml" }),
+    deps,
+  );
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), "<acuse/>");
+  assertEquals(pac, 0);
+});
+
+Deno.test("portal: descarga su propio REP (factura relacionada de su empresa y suya)", async () => {
+  let pac = 0;
+  const { deps } = makePortalDeps({
+    portal: {},
+    download: {
+      data: new Blob(["<rep/>"], { type: "application/xml" }),
+      error: null,
+    },
+    onFacturapiFetch: () => pac++,
+    selects: {
+      payments: {
+        data: {
+          organization_id: ORG_ID,
+          invoice_id: INVOICE_ID,
+          rep_facturapi_id: "fapi_rep",
+          rep_cfdi_uuid: "uuid-rep",
+          rep_cfdi_status: "stamped",
+          rep_xml_url: "org/rep.xml",
+          rep_pdf_url: null,
+        },
+        error: null,
+      },
+      invoices: {
+        data: { customer_id: CUSTOMER_ID, organization_id: ORG_ID },
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ payment_id: PAYMENT_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), "<rep/>");
+  assertEquals(pac, 0);
+});
+
+Deno.test("portal: descarga su propia NOTA DE CRÉDITO", async () => {
+  let pac = 0;
+  const { deps } = makePortalDeps({
+    portal: {},
+    download: {
+      data: new Blob(["<nc/>"], { type: "application/xml" }),
+      error: null,
+    },
+    onFacturapiFetch: () => pac++,
+    selects: {
+      credit_notes: {
+        data: {
+          id: CREDIT_NOTE_ID,
+          organization_id: ORG_ID,
+          customer_id: CUSTOMER_ID,
+          credit_note_number: "NC-1",
+          cfdi_uuid: "uuid-nc",
+          cfdi_status: "stamped",
+          cfdi_xml_url: "org/nc.xml",
+          cfdi_pdf_url: null,
+          facturapi_invoice_id: "fapi_nc",
+        },
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ credit_note_id: CREDIT_NOTE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), "<nc/>");
+  assertEquals(pac, 0);
+});
+
+Deno.test("portal: recuperación desde el PAC usa deps.fetchImpl y SOLO la llave de la empresa del documento", async () => {
+  const seen: Array<{ url: string; auth: string | null }> = [];
+  const { deps } = makePortalDeps({
+    portal: {},
+    // Sin archivo en Storage: el handler debe recuperarlo del PAC.
+    download: { data: null, error: null },
+    onFacturapiFetch: (r) =>
+      seen.push({ url: r.url, auth: r.headers.get("Authorization") }),
+    pacResponse: () =>
+      new Response(new TextEncoder().encode("<xml-del-pac/>"), {
+        status: 200,
+        headers: { "Content-Type": "application/xml" },
+      }),
+    // Llave global de entorno "ajena": nunca debe usarse (hay 2 empresas).
+    env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+    selects: {
+      invoices: { data: invoiceRow({ cfdi_xml_url: null }), error: null },
+      company_settings: {
+        data: { facturapi_mode: "live", organization_id: ORG_ID },
+        error: null,
+      },
+      billing_secrets: {
+        data: {
+          facturapi_test_key: null,
+          facturapi_live_key: "sk_live_de_mi_empresa",
+        },
+        error: null,
+      },
+    },
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 200);
+  assertEquals(await res.text(), "<xml-del-pac/>");
+  assertEquals(seen.length, 1, "deps.fetchImpl debe invocarse una sola vez");
+  assertEquals(seen[0].auth, "Bearer sk_live_de_mi_empresa");
+  assertEquals(seen[0].url.includes("fapi_p1"), true);
+});
