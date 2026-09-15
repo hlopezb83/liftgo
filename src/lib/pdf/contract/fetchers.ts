@@ -2,11 +2,11 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
-import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
 } from "@/lib/pdf/contract/data-templates";
+import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type { ContractViewModel } from "@/types/rental";
 
 export type ContractData = Pick<ContractViewModel,
