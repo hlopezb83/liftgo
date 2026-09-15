@@ -860,3 +860,67 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
     mock.restore();
   }
 });
+
+// 8.8.8: error de LECTURA de la configuración fiscal DESPUÉS del claim.
+// Debe liberar la reserva (cfdi_status != 'stamping'), responder 503 y no
+// emitir: ni PAC, ni UUID, ni timbrado stub.
+Deno.test("handler: error fiscal tras el claim libera la reserva y no emite CFDI", async () => {
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_LIVE_KEY: "sk_live_ajena" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: ORG_ID,
+              total: 1160,
+              receptor_rfc: RECEPTOR_RFC,
+            },
+            error: null,
+          },
+          company_settings: {
+            data: { facturapi_mode: "live", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+          // Falla transitoria al verificar la empresa: no se puede resolver
+          // la configuración fiscal con certeza.
+          organizations: { data: null, error: { message: "db down" } },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 503);
+    assertEquals(facturapiCalled, 0, "no debe invocarse al PAC");
+    assert(!body.cfdi_uuid, "no debe devolverse ningún UUID");
+
+    const claim = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "stamping"
+    );
+    assert(claim, "la prueba debe pasar por el claim atómico");
+    const release = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "error"
+    );
+    assert(release, "el claim debe liberarse marcando error explícito");
+    const stamped = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "stamped"
+    );
+    assertEquals(stamped, undefined, "no debe marcarse como timbrada");
+  } finally {
+    mock.restore();
+  }
+});
