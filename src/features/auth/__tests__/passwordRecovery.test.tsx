@@ -53,6 +53,21 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
+// Multi-organización: esta suite valida el flujo de recuperación, no la
+// verificación de empresa; se simula un contexto ya verificado para que el
+// guard renderice el ERP igual que en producción con membresía válida.
+vi.mock("@/contexts/OrganizationContext", () => ({
+  OrganizationGate: ({ children }: { children: React.ReactNode }) => children,
+  useOrganizationContext: () => ({
+    status: "ready",
+    organizationId: "0a000000-0000-4000-8000-00000000000a",
+    memberType: "internal",
+    customerId: null,
+  }),
+  useVerifiedOrganizationId: () => "0a000000-0000-4000-8000-00000000000a",
+  useVerifiedPortalCustomerId: () => undefined,
+}));
+
 vi.mock("@/features/users", () => ({
   useUserRole: () => ({ data: "admin", isLoading: false }),
 }));
