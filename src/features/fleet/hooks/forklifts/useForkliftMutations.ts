@@ -3,6 +3,10 @@ import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import {
+  stripOrganizationId,
+  type WithoutOrganization,
+} from "@/lib/organization/writeContext";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
