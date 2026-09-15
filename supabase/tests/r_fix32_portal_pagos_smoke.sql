@@ -82,11 +82,36 @@ SELECT pg_temp.expect_true(
 );
 
 -- R6-15
+-- Migración 0023: la elegibilidad de la factura (propiedad + organización +
+-- estado) se evalúa en el helper SECURITY DEFINER, porque una subconsulta a
+-- public.invoices dentro de la policy queda vacía bajo RLS para el portal.
 SELECT pg_temp.expect_true(
-  'R6-15 la policy INSERT excluye facturas canceladas/borrador',
+  'R6-15 la policy INSERT delega la elegibilidad de la factura al helper SECURITY DEFINER',
   pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
-    ILIKE '%cancelled%draft%'
+    ILIKE '%invoice_eligible_for_payment_intent(invoice_id)%'
 );
+SELECT pg_temp.expect_true(
+  'R6-15 la policy INSERT no consulta invoices directamente',
+  pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
+    NOT ILIKE '%FROM invoices%'
+  AND pg_temp.poldef('public', 'customer_payment_intents', 'Customers create own payment intents')
+    NOT ILIKE '%FROM public.invoices%'
+);
+SELECT pg_temp.expect_true(
+  'R6-15 el helper de elegibilidad excluye facturas canceladas/borrador',
+  pg_temp.fndef('invoice_eligible_for_payment_intent') ILIKE '%cancelled%'
+    AND pg_temp.fndef('invoice_eligible_for_payment_intent') ILIKE '%draft%'
+    AND pg_temp.fndef('invoice_eligible_for_payment_intent')
+      ILIKE '%cancellation_status IS DISTINCT FROM ''accepted''%'
+);
+SELECT pg_temp.expect_true(
+  'R6-15 el helper de elegibilidad exige cliente propietario y organización de la sesión',
+  pg_temp.fndef('invoice_eligible_for_payment_intent')
+      ILIKE '%get_customer_id_for_user%'
+    AND pg_temp.fndef('invoice_eligible_for_payment_intent')
+      ILIKE '%current_organization_id()%'
+);
+
 -- Migración 0022: la carpeta de la factura se valida sobre la ruta relativa
 -- (el path ahora inicia con {organization_id}/), no sobre foldername directo.
 SELECT pg_temp.expect_true(

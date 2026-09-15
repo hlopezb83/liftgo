@@ -1,0 +1,14 @@
+{
+  "version": "8.8.15",
+  "date": "2026-09-15",
+  "type": "patch",
+  "category": "pruebas",
+  "title": "Prueba estática alineada con la nueva validación de facturas",
+  "description": "La verificación automática ahora comprueba las reglas de factura vigente donde realmente viven, sin debilitar ningún control.",
+  "changes": [
+    "La prueba confirma que la regla de reporte de pago delega en la validación interna de factura elegible.",
+    "Nueva comprobación de que esa validación excluye facturas canceladas, borrador y canceladas ante el SAT.",
+    "Nueva comprobación de cliente propietario y empresa de la sesión dentro de la misma validación.",
+    "Se añade un candado para que la regla no vuelva a consultar las facturas directamente."
+  ]
+}

@@ -1,3 +1,11 @@
+## [8.8.15] - 2026-09-15 · patch · pruebas
+
+Smoke SQL alineado con la migración 0023.
+
+- R6-15 verifica que la policy llame `invoice_eligible_for_payment_intent(invoice_id)` y que no consulte `invoices` directamente.
+- Nuevas aserciones sobre `pg_temp.fndef('invoice_eligible_for_payment_intent')`: `cancelled`, `draft`, `cancellation_status IS DISTINCT FROM accepted`, cliente propietario y organización de la sesión.
+- Se conservan las aserciones de `payment_proof_path_allowed`, `storage_relative_segments` e `invoice_in_current_organization`.
+
 ## [8.8.14] - 2026-09-15 · patch · seguridad
 
 Reporte de pago del portal desbloqueado sin perder aislamiento multiempresa.
