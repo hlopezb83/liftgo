@@ -265,6 +265,9 @@
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* Tipografía de títulos del sitio público liftgo.com.mx — se usa sólo en
+   * las pantallas de acceso (ver `.auth-brandscape`). */
+  --font-display: "Montserrat", "Inter", system-ui, sans-serif;
   /* Convención de tipografía numérica (Sprint V3, F6):
    * - KPIs, tarjetas y resúmenes (TotalsSummary, summary cards, cifras
    *   destacadas): Inter con `tabular-nums` — alinea columnas de dígitos
