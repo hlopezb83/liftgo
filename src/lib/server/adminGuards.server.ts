@@ -6,11 +6,11 @@
  * cambia el transporte (antes Edge Function HTTP, ahora server function RPC).
  */
 import type { Database } from "@/integrations/supabase/types";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   resolveInternalScope,
   resolveTargetScope,
 } from "@/lib/organization/adminScope";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type AdminClient = SupabaseClient<Database>;
