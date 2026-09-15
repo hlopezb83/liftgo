@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { stripOrganizationId } from "@/lib/organization/writeContext";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 
