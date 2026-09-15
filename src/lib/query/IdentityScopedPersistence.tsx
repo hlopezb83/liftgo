@@ -40,12 +40,19 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
   const scope = useVerifiedIdentityScope();
   // `null` hasta que la caché de la identidad actual está lista para usarse.
   const [readyScope, setReadyScope] = useState<string | null>(null);
+  // Estado derivado durante el render (patrón soportado por React): al cambiar
+  // la identidad el contenido deja de renderizarse en ese mismo commit.
+  const [trackedScope, setTrackedScope] = useState<string | null>(scope);
+  if (trackedScope !== scope) {
+    setTrackedScope(scope);
+    setReadyScope(null);
+  }
 
   useEffect(() => {
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
 
-    setReadyScope(null);
+
 
     // Cambió la identidad (o no hay ninguna): nada de la sesión previa debe
     // sobrevivir, ni siquiera una respuesta que llegue tarde. La purga se hace
