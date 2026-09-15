@@ -73,7 +73,7 @@ function AuthCardHeader({
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground font-bold text-xl shadow-lg shadow-primary/25">LG</div>
         )}
       </div>
-      <CardTitle>{TITLES[mode].title}</CardTitle>
+      <CardTitle className="auth-display text-xl font-extrabold">{TITLES[mode].title}</CardTitle>
       <CardDescription>{TITLES[mode].desc}</CardDescription>
       {unknownPath && (
         <p className="text-xs text-muted-foreground mt-2">
