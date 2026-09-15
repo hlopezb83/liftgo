@@ -6253,6 +6253,7 @@ export type Database = {
         }
         Returns: string
       }
+      storage_relative_segments: { Args: { p: string }; Returns: string[] }
       sync_forklift_rental_status: {
         Args: never
         Returns: {
