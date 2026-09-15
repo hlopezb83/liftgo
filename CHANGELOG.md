@@ -7,7 +7,7 @@
 - Prueba nueva de handler (`stamp-cfdi/handler_test.ts`): error de lectura de configuración fiscal **después** del claim → 503, liberación de la reserva (`cfdi_status = 'error'`), sin llamada al PAC, sin UUID y sin marcar la factura como timbrada.
 - Validación local (no es CI): `deno fmt --check` y `deno lint` completos, y la selección offline de pruebas Deno. Sin migraciones, escrituras en producción, operaciones fiscales reales ni despliegues.
 
-
+## [8.8.7] - 2026-09-14
 
 ### Corrección de la fase fiscal: portal, configuración explícita y cola de reintentos
 - `download-cfdi`: nueva ruta de acceso para clientes del portal. `_shared/orgContext.ts` incorpora `resolvePortalAccess`, que exige exactamente una fila ACTIVA en `customer_portal_accounts` y una membresía `member_type = 'portal'` de la MISMA organización (0 o >1 filas → 403; error de lectura → 503; discrepancia → 403). El resolver interno sigue exigiendo `member_type = 'internal'` y no acepta cuentas de portal. Se conserva la doble restricción organización + cliente propietario para factura, acuse, REP y nota de crédito; en REP se verifica además que la factura relacionada pertenezca a la misma organización.
