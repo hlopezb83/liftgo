@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.8.20",
+    "date": "2026-09-15",
+    "type": "minor",
+    "category": "seguridad",
+    "title": "La administración de usuarios queda dentro de tu empresa",
+    "description": "Invitar, cambiar de rol, suspender o borrar usuarios sólo alcanza a los miembros de la empresa verificada del administrador; un usuario de otra empresa responde como inexistente.",
+    "changes": [
+      "La empresa del administrador se resuelve en el servidor con su membresía: nunca llega desde el navegador.",
+      "Cada invitación interna o de portal queda ligada a una sola empresa, con limpieza automática si algo falla.",
+      "Una invitación de portal exige que el cliente tenga relación activa con la empresa de quien invita.",
+      "Una cuenta del portal no alcanza la administración ni las operaciones internas, aunque tuviera un rol residual.",
+      "El aviso de \"último administrador\" se calcula por empresa, no de forma global.",
+      "Nueva prueba con dos empresas: A no ve ni modifica miembros de B y un error de lectura no se confunde con datos ausentes."
+    ]
+  },
+  {
     "version": "8.8.19",
     "date": "2026-09-15",
     "type": "minor",
