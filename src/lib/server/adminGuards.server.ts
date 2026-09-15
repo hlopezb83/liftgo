@@ -7,6 +7,10 @@
  */
 import type { Database } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  resolveInternalScope,
+  resolveTargetScope,
+} from "@/lib/organization/adminScope";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 export type AdminClient = SupabaseClient<Database>;
@@ -184,10 +188,6 @@ export async function enforceRateLimit(
 
 // ---------- Alcance de organización (tramo 5 multiempresa) ----------
 
-import {
-  resolveInternalScope,
-  resolveTargetScope,
-} from "@/lib/organization/adminScope";
 
 /**
  * Empresa verificada del administrador interno.
