@@ -1,0 +1,15 @@
+{
+  "version": "8.8.17",
+  "date": "2026-09-15",
+  "type": "minor",
+  "category": "seguridad",
+  "title": "Los datos en memoria del navegador quedan separados por cuenta y empresa",
+  "description": "Al cambiar de sesión o de empresa, la información anterior se descarta antes de mostrar nada y ya no puede reaparecer.",
+  "changes": [
+    "La información guardada en el navegador se archiva por cuenta y empresa verificadas.",
+    "Se borra el almacenamiento común anterior, que podía devolver catálogos de otra cuenta o empresa.",
+    "Nada se restaura hasta que la sesión y la empresa están confirmadas.",
+    "Las respuestas que llegan tarde de la sesión anterior ya no se guardan ni se muestran.",
+    "Secretos, sesiones y datos financieros siguen sin guardarse en el navegador."
+  ]
+}
