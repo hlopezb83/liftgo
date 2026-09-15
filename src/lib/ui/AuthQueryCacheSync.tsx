@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { isIdentityQueryKey } from "@/lib/query/identityScope";
 
 /**
  * Limpia el caché global de TanStack Query cuando el usuario cambia
@@ -19,7 +20,13 @@ export function AuthQueryCacheSync(): null {
     // Después, cualquier cambio de usuario (incluyendo null por sign-out)
     // invalida todo el caché.
     if (prevUserId.current !== undefined && prevUserId.current !== currentUserId) {
-      queryClient.clear();
+      // Se conserva únicamente la consulta de identidad: limpiarla aquí
+      // reiniciaría la verificación de empresa en bucle. El resto de la caché
+      // de la sesión anterior se elimina por completo.
+      void queryClient.cancelQueries();
+      queryClient.removeQueries({
+        predicate: (query) => !isIdentityQueryKey(query.queryKey),
+      });
     }
     prevUserId.current = currentUserId;
   }, [user?.id, queryClient]);

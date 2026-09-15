@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVerifiedPortalCustomerId } from "@/contexts/OrganizationContext";
+import { useVerifiedIdentityScope } from "@/lib/query/IdentityScopedPersistence";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { portalKeys } from "../../lib/queryKeys";
@@ -77,14 +78,17 @@ async function fetchForkliftsBriefMap(): Promise<Map<string, ForkliftBrief>> {
 }
 
 export function usePortalCustomer() {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   // Multi-organización: la identidad del cliente viene de la cuenta del portal
   // verificada en servidor (usuario + empresa + cuenta activa), no del primer
   // registro visible de `customers`.
   const customerId = useVerifiedPortalCustomerId();
   return useQuery({
-    queryKey: portalKeys.customer(user?.id),
-    enabled: !!user && !!customerId,
+    queryKey: portalKeys.customer(scope ?? undefined),
+    enabled: !!user && !!scope && !!customerId,
     staleTime: 60_000,
     queryFn: async () => {
       if (!customerId) return null;
@@ -110,10 +114,13 @@ export interface PortalBookingRow {
 }
 
 export function usePortalBookings() {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: portalKeys.bookings(user?.id),
-    enabled: !!user,
+    queryKey: portalKeys.bookings(scope ?? undefined),
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async () => {
       const [{ data, error }, forkliftMap] = await Promise.all([
@@ -134,11 +141,14 @@ export function usePortalBookings() {
 }
 
 export function usePortalBookingsPage(page: number, pageSize = 25) {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   const { safePage, safeSize, from, to } = pageBounds(page, pageSize);
   return useQuery({
-    queryKey: [...portalKeys.bookings(user?.id), "page", safePage, safeSize] as const,
-    enabled: !!user,
+    queryKey: [...portalKeys.bookings(scope ?? undefined), "page", safePage, safeSize] as const,
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalPage<PortalBookingRow>> => {
       const [{ data, error, count }, forkliftMap] = await Promise.all([
@@ -164,10 +174,13 @@ export function usePortalBookingsPage(page: number, pageSize = 25) {
 }
 
 export function usePortalInvoices() {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: portalKeys.invoices(user?.id),
-    enabled: !!user,
+    queryKey: portalKeys.invoices(scope ?? undefined),
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("get_portal_invoices");
@@ -178,10 +191,13 @@ export function usePortalInvoices() {
 }
 
 export function usePortalInvoice(invoiceId: string | undefined) {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: portalKeys.invoice(invoiceId, user?.id),
-    enabled: !!user && !!invoiceId,
+    queryKey: portalKeys.invoice(invoiceId, scope ?? undefined),
+    enabled: !!user && !!scope && !!invoiceId,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalInvoiceRow | null> => {
       const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
@@ -193,11 +209,14 @@ export function usePortalInvoice(invoiceId: string | undefined) {
 }
 
 export function usePortalInvoicesPage(page: number, pageSize = 25, onlyBalance = false) {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   const { safePage, safeSize, from } = pageBounds(page, pageSize);
   return useQuery({
-    queryKey: [...portalKeys.invoices(user?.id), "page", safePage, safeSize, onlyBalance] as const,
-    enabled: !!user,
+    queryKey: [...portalKeys.invoices(scope ?? undefined), "page", safePage, safeSize, onlyBalance] as const,
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalPage<PortalInvoiceRow>> => {
       const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
@@ -213,10 +232,13 @@ export function usePortalInvoicesPage(page: number, pageSize = 25, onlyBalance =
 }
 
 export function usePortalContracts() {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: portalKeys.contracts(user?.id),
-    enabled: !!user,
+    queryKey: portalKeys.contracts(scope ?? undefined),
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async () => {
       const [{ data, error }, forkliftMap] = await Promise.all([
@@ -233,11 +255,14 @@ export function usePortalContracts() {
 }
 
 export function usePortalContractsPage(page: number, pageSize = 25) {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   const { safePage, safeSize, from } = pageBounds(page, pageSize);
   return useQuery({
-    queryKey: [...portalKeys.contracts(user?.id), "page", safePage, safeSize] as const,
-    enabled: !!user,
+    queryKey: [...portalKeys.contracts(scope ?? undefined), "page", safePage, safeSize] as const,
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async (): Promise<PortalPage<PortalContractRow>> => {
       const rpc = supabase.rpc.bind(supabase) as unknown as UntypedRpc;
@@ -259,10 +284,13 @@ export function usePortalContractsPage(page: number, pageSize = 25) {
 }
 
 export function usePortalPayments() {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: portalKeys.payments(user?.id),
-    enabled: !!user,
+    queryKey: portalKeys.payments(scope ?? undefined),
+    enabled: !!user && !!scope,
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -277,9 +305,12 @@ export function usePortalPayments() {
 }
 
 export function usePortalInvoicePayments(invoiceId: string | undefined, enabled = true) {
-  const { user } = useAuth();
+  // Las claves del portal incluyen la organización verificada: el mismo
+  // cliente global puede existir en otra empresa y no debe compartir caché.
+  const user = useAuth().user;
+  const scope = useVerifiedIdentityScope();
   return useQuery({
-    queryKey: portalKeys.invoicePayments(invoiceId, user?.id),
+    queryKey: portalKeys.invoicePayments(invoiceId, scope ?? undefined),
     enabled: !!user && !!invoiceId && enabled,
     staleTime: 60_000,
     queryFn: async () => {
