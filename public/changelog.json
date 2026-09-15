@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.8.18",
+    "date": "2026-09-15",
+    "type": "minor",
+    "category": "seguridad",
+    "title": "Cada documento usa los datos fiscales de la empresa dueña del documento",
+    "description": "Facturas, cotizaciones, contratos y estados de cuenta toman razón social, RFC, domicilio y logo de la empresa propietaria, verificada en el servidor.",
+    "changes": [
+      "El emisor de cada documento se resuelve desde la empresa confirmada de la sesión y del propio documento.",
+      "Ya no se toma la primera configuración fiscal disponible en ninguna pantalla ni en ningún PDF.",
+      "Si faltan datos fiscales, están duplicados o no se pueden leer, se muestra un aviso claro y no se usa otra empresa.",
+      "Un usuario no puede generar ni abrir el documento de otra empresa, y el portal sólo obtiene el emisor de sus propios documentos.",
+      "La marca pública en la pantalla de acceso sigue siendo LiftGo, sin datos de ninguna razón social."
+    ]
+  },
+  {
     "version": "8.8.17",
     "date": "2026-09-15",
     "type": "minor",

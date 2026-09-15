@@ -18,7 +18,11 @@ interface ExportStatementParams {
 }
 
 export async function exportCustomerStatementPdf({ customer, summary }: ExportStatementParams): Promise<void> {
-  const { company, logoBase64 } = await fetchCompanyDataAndLogo();
+  // Tramo 3: el portal sólo obtiene el emisor de su propio cliente autorizado.
+  const { company, logoBase64 } = await fetchCompanyDataAndLogo({
+    type: "customer",
+    id: customer.id,
+  });
   const folio = `EC-${format(nowMty(), "yyyyMMdd")}`;
 
   await renderAndSave(

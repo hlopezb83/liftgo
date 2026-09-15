@@ -16,7 +16,8 @@ export async function fetchQuotePdfData(quoteId: string): Promise<QuoteDocumentP
     .from("quotes").select(QUOTE_PDF_COLUMNS).eq("id", quoteId).single().returns<Tables<"quotes">>();
   if (error || !quote) throw new Error("Cotización no encontrada");
 
-  const { company, logoBase64 } = await fetchCompanyDataAndLogo();
+  // Tramo 3: emisor de la organización propietaria de la cotización.
+  const { company, logoBase64 } = await fetchCompanyDataAndLogo({ type: "quote", id: quote.id });
 
   let customerRfc: string | null = null;
   let customerCp: string | null = null;

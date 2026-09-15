@@ -1,5 +1,9 @@
-import { supabase } from "@/integrations/supabase/client";
+import {
+  ISSUER_BRANDING_MESSAGES,
+  type IssuerDocumentRef,
+} from "@/lib/branding/resolveIssuerBranding";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { getIssuerBranding } from "@/lib/issuerBranding.functions";
 import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
 
 // ─── Types ────────────────────────────────────────────
@@ -21,21 +25,55 @@ export interface CompanyData {
   logo_url: string | null;
 }
 
-// ─── Fetch company data + logo ────────────────────────
+/** Error explícito: nunca se cae a la configuración de otra organización. */
+export class IssuerUnavailableError extends Error {
+  readonly reason: string;
+  constructor(reason: string, message: string) {
+    super(message);
+    this.name = "IssuerUnavailableError";
+    this.reason = reason;
+  }
+}
 
-export async function fetchCompanyDataAndLogo(): Promise<{
-  company: CompanyData | null;
-  logoBase64: string | null;
-}> {
-  // R-arq 13: columnas explícitas — evita cachear `company_settings` completa
-  // (incluye umbrales financieros irrelevantes al PDF y expande la row en cache).
-  const { data: company } = await supabase
-    .from("company_settings")
-    .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
-    .limit(1)
-    .maybeSingle();
+// ─── Emisor verificado por organización ───────────────
 
-  const logoBase64 = await loadCompanyLogo(company?.logo_url);
+/**
+ * Multi-organización (tramo 3): el emisor se resuelve en el servidor desde la
+ * organización verificada y, cuando se indica, desde la organización
+ * propietaria del documento autorizado. No hay `limit(1)` sobre
+ * `company_settings` ni empresa de respaldo.
+ */
+export async function fetchCompanyDataAndLogo(
+  document?: IssuerDocumentRef | null,
+): Promise<{ company: CompanyData; logoBase64: string | null }> {
+  const payload = await getIssuerBranding({
+    data: document ? { documentType: document.type, documentId: document.id } : {},
+  });
+
+  if (payload.errorCode || !payload.result) {
+    throw new IssuerUnavailableError(
+      payload.errorCode ?? "unexpected_error",
+      ISSUER_BRANDING_MESSAGES.read_error,
+    );
+  }
+
+  if (payload.result.status !== "ready") {
+    throw new IssuerUnavailableError(
+      payload.result.reason,
+      ISSUER_BRANDING_MESSAGES[payload.result.reason],
+    );
+  }
+
+  const b = payload.result.branding;
+  const company: CompanyData = {
+    razon_social: b.razon_social,
+    rfc: b.rfc,
+    regimen_fiscal: b.regimen_fiscal,
+    lugar_expedicion: b.lugar_expedicion,
+    logo_url: b.logo_url,
+  };
+
+  const logoBase64 = await loadCompanyLogo(company.logo_url);
 
   return { company, logoBase64 };
 }

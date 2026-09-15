@@ -36,11 +36,24 @@ describe("useCompanySettings — RLS contract (post v5.81.4)", () => {
 
   it("staff recibe configuración fiscal completa", async () => {
     fromResp = {
-      data: { id: "cs-1", rfc: "ABC010101AAA", razon_social: "LiftGo SA", regimen_fiscal: "601" },
+      data: [{ id: "cs-1", rfc: "ABC010101AAA", razon_social: "LiftGo SA", regimen_fiscal: "601" }],
       error: null,
     };
     const { result } = renderHook(() => useCompanySettings(), { wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toMatchObject({ rfc: "ABC010101AAA" });
+  });
+
+  // Tramo 3 multiempresa: nunca se elige "la primera" configuración fiscal.
+  it("configuración duplicada produce error explícito, no una fila arbitraria", async () => {
+    fromResp = {
+      data: [
+        { id: "cs-1", rfc: "ABC010101AAA" },
+        { id: "cs-2", rfc: "XYZ020202XXX" },
+      ],
+      error: null,
+    };
+    const { result } = renderHook(() => useCompanySettings(), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });

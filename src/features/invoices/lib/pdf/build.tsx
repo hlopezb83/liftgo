@@ -14,7 +14,11 @@ import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void> {
   const { invoice, customerRfc, customerCp, customerName } = payload;
 
-  const { company, logoBase64 } = await fetchCompanyDataAndLogo();
+  // Tramo 3: el emisor sale de la organización propietaria de ESTA factura.
+  const { company, logoBase64 } = await fetchCompanyDataAndLogo({
+    type: "invoice",
+    id: invoice.id,
+  });
 
   const invoiceLabel = invoice.serie && invoice.folio
     ? `${invoice.serie}-${invoice.folio}`
