@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
+import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
@@ -9,6 +10,7 @@ import {
 import type { ContractViewModel } from "@/types/rental";
 
 export type ContractData = Pick<ContractViewModel,
+  | "id"
   | "contract_number" | "customer_id" | "forklift_id" | "start_date" | "end_date"
   | "daily_rate" | "weekly_rate" | "monthly_rate" | "deposit_amount" | "terms_text"
   | "status" | "signed_at" | "signed_by" | "usage_location" | "max_hours_per_month"
@@ -59,12 +61,9 @@ export async function fetchRelatedData(contract: ContractData) {
   const snapshot = readSignedSnapshot(contract);
   // R-arq 13: columnas explícitas por PDF renderer (evita traer campos ocultos
   // como notes internos, PII bancaria o umbrales financieros al bundle).
-  const [companyRes, customerRes, forkliftRes] = await Promise.all([
-    supabase
-      .from("company_settings")
-      .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
-      .limit(1)
-      .maybeSingle(),
+  const [issuer, customerRes, forkliftRes] = await Promise.all([
+    // Tramo 3: emisor de la organización propietaria de ESTE contrato.
+    fetchCompanyDataAndLogo({ type: "contract", id: contract.id }),
     snapshot?.customer
       ? Promise.resolve({ data: snapshot.customer })
       : contract.customer_id
@@ -84,7 +83,7 @@ export async function fetchRelatedData(contract: ContractData) {
           .single()
       : Promise.resolve({ data: null }),
   ]);
-  return { company: companyRes.data, customer: customerRes.data, forklift: forkliftRes.data };
+  return { company: issuer.company, customer: customerRes.data, forklift: forkliftRes.data };
 }
 
 

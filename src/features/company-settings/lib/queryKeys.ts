@@ -9,20 +9,38 @@ const COMPANY_SETTINGS_COLUMNS = sel(
   "id, rfc, razon_social, regimen_fiscal, lugar_expedicion, logo_url, created_at, updated_at, facturapi_mode, cxp_approval_threshold_mxn, cash_initial_balance, cash_safety_buffer, allow_e2e_seed, maintenance_buffer_days"
 );
 
+/**
+ * Multi-organización (tramo 3): `company_settings` está aislada por RLS a la
+ * organización de la sesión verificada. Aun así NO tomamos "la primera" fila:
+ * pedimos 2 y tratamos la duplicidad como error explícito, para que nunca se
+ * muestren datos fiscales elegidos arbitrariamente.
+ */
+export class AmbiguousCompanySettingsError extends Error {
+  constructor() {
+    super("Tu empresa tiene datos fiscales duplicados; corrígelos antes de continuar.");
+    this.name = "AmbiguousCompanySettingsError";
+  }
+}
+
+async function fetchSingleCompanySettings<T>(columns: string): Promise<T | null> {
+  const { data, error } = await supabase
+    .from("company_settings")
+    .select(columns)
+    .limit(2)
+    .returns<T[]>();
+  if (error) throw error;
+  const rows = data ?? [];
+  if (rows.length > 1) throw new AmbiguousCompanySettingsError();
+  return rows[0] ?? null;
+}
+
 /** Fila cruda de company_settings (datos fiscales completos). */
 export const companySettingsQueries = defineEntityQueries(
   "company_settings",
   {
-    list: () => async () => {
-      const { data, error } = await supabase
-        .from("company_settings")
-        .select(COMPANY_SETTINGS_COLUMNS)
-        .limit(1)
-        .maybeSingle()
-        .returns<Tables<"company_settings">>();
-      if (error) throw error;
-      return data;
-    },
+    list: () => async () => fetchSingleCompanySettings<Tables<"company_settings">>(
+      COMPANY_SETTINGS_COLUMNS,
+    ),
     staleTime: 5 * 60_000,
   },
 );
@@ -34,16 +52,13 @@ export interface CxpApprovalThreshold {
 
 export const cxpApprovalThresholdQueries = defineEntityQueries("cxp_approval_threshold", {
   list: () => async (): Promise<CxpApprovalThreshold> => {
-    const { data, error } = await supabase
-      .from("company_settings")
-      .select("id, cxp_approval_threshold_mxn")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    if (error) throw error;
+    const row = await fetchSingleCompanySettings<{
+      id: string | null;
+      cxp_approval_threshold_mxn: number | null;
+    }>("id, cxp_approval_threshold_mxn");
     return {
-      id: data?.id ?? null,
-      threshold: Number(data?.cxp_approval_threshold_mxn ?? 10000),
+      id: row?.id ?? null,
+      threshold: Number(row?.cxp_approval_threshold_mxn ?? 10000),
     };
   },
   staleTime: 5 * 60_000,
