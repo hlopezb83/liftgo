@@ -14,27 +14,14 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
 import { useEffect, useState, type ReactNode } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { useOrganizationContext } from "@/contexts/OrganizationContext";
-import { buildIdentityScope, isIdentityQueryKey } from "@/lib/query/identityScope";
+import { isIdentityQueryKey } from "@/lib/query/identityScope";
+import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import {
   createBrowserPersister,
   purgeForeignPersistedCaches,
   PERSIST_MAX_AGE_MS,
   shouldPersistQuery,
 } from "@/lib/query/persister";
-
-// eslint-disable-next-line react-refresh/only-export-components -- hook de identidad usado por las claves de caché del portal
-export function useVerifiedIdentityScope(): string | null {
-  const { user } = useAuth();
-  const org = useOrganizationContext();
-  if (!user || org.status !== "ready") return null;
-  return buildIdentityScope({
-    userId: user.id,
-    organizationId: org.organizationId,
-    memberType: org.memberType,
-  });
-}
 
 export function IdentityScopedPersistence({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
