@@ -180,8 +180,8 @@ BEGIN
   v_blocked := false;
   BEGIN
     INSERT INTO public.customer_payment_intents
-      (invoice_id, customer_id, amount, transfer_date, status)
-    VALUES (v_inv_b::uuid, v_cust::uuid, 100, current_date, 'pending_review');
+      (organization_id, invoice_id, customer_id, amount, transfer_date, status)
+    VALUES (v_org_a::uuid, v_inv_b::uuid, v_cust::uuid, 100, current_date, 'pending_review');
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
   END;
@@ -193,8 +193,8 @@ BEGIN
   v_blocked := false;
   BEGIN
     INSERT INTO public.customer_payment_intents
-      (invoice_id, customer_id, amount, transfer_date, status, proof_url)
-    VALUES (v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
+      (organization_id, invoice_id, customer_id, amount, transfer_date, status, proof_url)
+    VALUES (v_org_a::uuid, v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
             v_org_b || '/' || v_cust || '/' || v_inv_a || '/ajeno.pdf');
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
@@ -205,8 +205,8 @@ BEGIN
 
   -- 1.8 Payment intent legítimo (guard positivo).
   INSERT INTO public.customer_payment_intents
-    (invoice_id, customer_id, amount, transfer_date, status, proof_url)
-  VALUES (v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
+    (organization_id, invoice_id, customer_id, amount, transfer_date, status, proof_url)
+  VALUES (v_org_a::uuid, v_inv_a::uuid, v_cust::uuid, 100, current_date, 'pending_review',
           v_org_a || '/' || v_cust || '/' || v_inv_a || '/nuevo.pdf');
 
   RAISE NOTICE 'OK: comprobantes de pago aislados por organización';
