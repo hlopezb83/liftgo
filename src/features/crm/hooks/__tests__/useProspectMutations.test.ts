@@ -113,6 +113,24 @@ describe("useCreateProspect", () => {
     expect(toastSuccess).toHaveBeenCalledWith("Prospecto creado");
   });
 
+  // Tramo 4 · multi-organización: la empresa la resuelve el trigger de
+  // contexto; un payload del navegador no puede proponer otra.
+  it("descarta organization_id del payload de alta", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateProspect(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        name: "Lead con empresa ajena",
+        stage: "lead",
+        organization_id: "org-b",
+      } as never);
+    });
+
+    expect(insertedPayloads[0]).not.toHaveProperty("organization_id");
+    expect(insertedPayloads[0]).toMatchObject({ name: "Lead con empresa ajena" });
+  });
+
   it("cuando la columna está vacía la RPC devuelve 0", async () => {
     nextOrderResp = { data: 0, error: null };
     const { Wrapper } = createQueryWrapper();
@@ -151,6 +169,21 @@ describe("useUpdateProspect", () => {
 
     await act(async () => {
       await result.current.mutateAsync({ id: "p-1", stage: "won" } as never);
+    });
+
+    expect(updatedPayloads[0]).toEqual({ stage: "won" });
+  });
+
+  it("descarta organization_id del payload de edición", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useUpdateProspect(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        id: "p-1",
+        stage: "won",
+        organization_id: "org-b",
+      } as never);
     });
 
     expect(updatedPayloads[0]).toEqual({ stage: "won" });
