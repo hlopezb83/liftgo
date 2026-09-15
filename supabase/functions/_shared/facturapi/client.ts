@@ -197,10 +197,19 @@ export async function getFacturapiConfigForOrganization(input: {
     return { mode, apiKey: dbKey, organizationId, fromEnvFallback: false };
   }
 
-  const legacyAllowed = await isSoleLegacyOrganization(admin, organizationId);
+  // 8.8.8: lector ESTRICTO. `isSoleLegacyOrganization` devuelve false ante
+  // error (fail-closed booleano, útil para otros consumidores), pero en el
+  // camino fiscal eso confundiría "hay más de una empresa" con "no pudimos
+  // leer `organizations`". Aquí el error de lectura se propaga como
+  // FacturapiConfigError(config_read_error): sin llave, sin entorno, sin stub.
+  const legacyAllowed = await readSoleLegacyOrganizationStrict(
+    admin,
+    organizationId,
+  );
   if (!legacyAllowed) {
     return { mode, apiKey: null, organizationId, fromEnvFallback: false };
   }
+
   const envKey = resolveFacturapiKey({
     mode,
     envTestKey: env("FACTURAPI_TEST_KEY"),
