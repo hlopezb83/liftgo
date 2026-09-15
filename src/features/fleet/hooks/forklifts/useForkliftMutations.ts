@@ -11,8 +11,13 @@ import { forkliftKeys, insuranceAlertsKeys, statusLogKeys } from "../../lib/quer
 
 export function useCreateForklift() {
   return useEntityMutation({
-    mutationFn: async (forklift: TablesInsert<"forklifts">) => {
-      const { data, error } = await supabase.from("forklifts").insert(forklift).select().single();
+    // Tramo 4: la empresa la asigna el trigger de contexto, nunca el formulario.
+    mutationFn: async (forklift: WithoutOrganization<TablesInsert<"forklifts">>) => {
+      const { data, error } = await supabase
+        .from("forklifts")
+        .insert(stripOrganizationId(forklift) as TablesInsert<"forklifts">)
+        .select()
+        .single();
       if (error) throw error;
       const { error: logError } = await supabase.from("status_logs").insert({
         forklift_id: data.id,
