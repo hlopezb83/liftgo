@@ -21,13 +21,18 @@ VALUES ('1b000000-0000-4000-8000-00000000001b', 'Org B Portal', 'org-b-portal');
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('a1000000-0000-4000-8000-000000000001', 'portal-a@fallback.test', now(), now()),
-  ('a1000000-0000-4000-8000-000000000002', 'legado@fallback.test', now(), now())
+  ('a1000000-0000-4000-8000-000000000002', 'legado@fallback.test', now(), now()),
+  ('a1000000-0000-4000-8000-000000000003', 'interno-a@fallback.test', now(), now())
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('a1000000-0000-4000-8000-000000000001', 'customer'),
-  ('a1000000-0000-4000-8000-000000000002', 'customer')
+  ('a1000000-0000-4000-8000-000000000002', 'customer'),
+  ('a1000000-0000-4000-8000-000000000003', 'admin')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type) VALUES
+  ('1a000000-0000-4000-8000-00000000001a', 'a1000000-0000-4000-8000-000000000003', 'internal');
 
 -- Cliente compartido (identidad global) + cliente legado.
 INSERT INTO public.customers (id, name, user_id) VALUES
@@ -160,6 +165,29 @@ BEGIN
                      ELSE NULL::uuid END
        ) THEN
     RAISE EXCEPTION 'REGRESIÓN: el respaldo legado sin cuenta de portal cambió de comportamiento';
+  END IF;
+END $$;
+
+-- ── 5. Usuario interno de la ORG A: no abre un ID de la ORG B ────────
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
+SET LOCAL role = 'authenticated';
+SET LOCAL request.jwt.claims TO '{"sub":"a1000000-0000-4000-8000-000000000003","role":"authenticated"}';
+
+DO $$
+BEGIN
+  IF public.current_organization_id()
+       IS DISTINCT FROM '1a000000-0000-4000-8000-00000000001a'::uuid THEN
+    RAISE EXCEPTION 'REGRESIÓN: el usuario interno no resuelve su organización';
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM public.invoices WHERE id = 'f1000000-0000-4000-8000-0000000000fa') THEN
+    RAISE EXCEPTION 'REGRESIÓN: el usuario interno no ve la factura de su organización';
+  END IF;
+
+  -- Acceso directo por ID a un documento de la ORG B.
+  IF EXISTS (SELECT 1 FROM public.invoices WHERE id = 'f1000000-0000-4000-8000-0000000000fb') THEN
+    RAISE EXCEPTION 'RLS BREACH: usuario interno de la ORG A abre una factura de la ORG B';
   END IF;
 END $$;
 
