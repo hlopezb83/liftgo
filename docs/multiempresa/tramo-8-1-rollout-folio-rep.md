@@ -1,8 +1,22 @@
 # Tramo 8.1 · Rollout del folio REP por empresa
 
-Estado: **pendiente de CI**. La migración ya vive en el repositorio
-(`drizzle/migrations/0026_rep_number_org_scoped_assignment.sql`), no está
-aplicada en producción y no debe aplicarse desde este entorno.
+Estado: **aprobado en repositorio, pendiente de producción**.
+
+- Versión: **8.8.30**.
+- Commit: `3c039b1b11a0c1134f187a182d1a18bce4f6d4cd`.
+- CI principal (build/lint/Vitest/cobertura/calidad/secretos): run
+  **35041914054** en verde.
+- CI de RLS/smoke SQL: run **35041914094** en verde; **RLS 52/52** y
+  **smoke SQL 45/45**, ninguno *skipped*.
+- Producción (Supabase `zxefrzfaynnfwazqhwxp`): **sin aplicar**. La consulta de
+  privilegios confirmó que sólo existe la firma
+  `assign_stamped_rep_number(uuid, text)`, `SECURITY DEFINER`,
+  `search_path = public`, con `EXECUTE` concedido a `authenticated` y
+  `service_role`. La firma estricta de tres parámetros aún no existe en
+  producción. La migración
+  `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql` vive en el
+  repositorio y debe aplicarse por el canal de migraciones de producción; no
+  debe aplicarse desde este entorno.
 
 ## Problema de rollout detectado
 
@@ -55,6 +69,68 @@ aplicar migración → verificar CI con base limpia → desplegar Edge Functions
 
 `payments_rep_number_uidx` (único global) **se conserva**. El Lote 2 de
 unicidad por organización no se aplica en este tramo.
+
+`feedback_reports_folio_key` es una **constraint `UNIQUE` global** (no un
+índice suelto) que convive con `feedback_reports_organization_folio_key`
+(único por organización, ya existente). Retirarla requerirá una transacción
+breve de `ALTER TABLE ... DROP CONSTRAINT`, **no** `DROP INDEX CONCURRENTLY`.
+El Lote 2 no se aplica hasta que exista una decisión explícita y un ensayo con
+dos organizaciones en un entorno aislado.
+
+## Reconciliación de pagos timbrados sin `rep_number`
+
+- `reconcile-stamping-invoices/index.ts` recorre todas las organizaciones; el
+  filtro por empresa sólo aplica en ejecución manual (`:200`). En ejecución
+  automática (cron) no filtra, lo que es correcto porque cada pago lleva su
+  propio `organization_id` y la RPC estricta lo contrasta.
+- La organización se toma siempre del propio pago (`payments.organization_id`),
+  nunca de un parámetro del llamante.
+- `recoverRepFolio` (`:67-113`) es **idempotente**: reintentar no duplica ni
+  sobreescribe folios. Ante fallo deja `rep_error_message` visible y no marca
+  el pago como foleado.
+- **Riesgo residual:** la reconciliación puede dejar `rep_number` pendiente por
+  fallo transitorio del proveedor de timbrado o por choque contra el índice
+  único global `payments_rep_number_uidx` si dos organizaciones intentan el
+  mismo folio en la misma ventana. Mientras exista una sola organización esto
+  no ocurre; con dos organizaciones requiere el Lote 2 cerrado.
+
+## Preflight actual (solo lectura, sin PII)
+
+```sql
+-- payments.rep_number
+SELECT count(*) AS total_payments,
+       count(*) FILTER (WHERE rep_number IS NOT NULL) AS with_rep_number,
+       count(*) FILTER (WHERE organization_id IS NULL) AS without_org,
+       count(*) FILTER (WHERE rep_number IS NOT NULL AND organization_id IS NULL) AS orphan_folios
+FROM public.payments;
+
+-- duplicados por (organization_id, rep_number)
+SELECT organization_id, rep_number, count(*) AS dup
+FROM public.payments
+WHERE rep_number IS NOT NULL
+GROUP BY organization_id, rep_number
+HAVING count(*) > 1;
+
+-- feedback_reports.folio
+SELECT count(*) AS total_reports,
+       count(*) FILTER (WHERE folio IS NOT NULL) AS with_folio,
+       count(*) FILTER (WHERE organization_id IS NULL) AS without_org
+FROM public.feedback_reports;
+
+-- duplicados por organización de folio
+SELECT organization_id, folio, count(*) AS dup
+FROM public.feedback_reports
+WHERE folio IS NOT NULL
+GROUP BY organization_id, folio
+HAVING count(*) > 1;
+```
+
+Resultados agregados (sin PII):
+
+| Tabla             | Filas | Con folio | Sin organización | Duplicados por organización | Folios huérfanos |
+|-------------------|-------|-----------|------------------|----------------------------|-----------------|
+| `payments`        | 82    | 25        | 0                | 0                          | 0               |
+| `feedback_reports`| 1     | 1         | 0                | 0                          | —               |
 
 ## Ubicación de la migración y detección en CI
 
@@ -130,9 +206,71 @@ B no debe cambiar, mientras el flujo válido de A devuelve `CP-0007` de forma
 idempotente. Se comprobó localmente que esta prueba **falla** contra la versión
 sin el chequeo de contexto y **pasa** con la versión corregida.
 
-## Bloqueo restante
+## Runbook de aplicación en producción
 
-Este entorno no puede crear commits ni lanzar GitHub Actions, así que faltan en
-base limpia y con el historial completo: lint de migraciones en CI, RLS DB,
-smoke SQL, Deno, Vitest, cobertura, calidad y secretos. **El tramo 8.1 no queda
-aprobado** hasta que esos checks aparezcan en verde (ninguno *skipped*).
+> No ejecutar nada de esto desde este entorno. El runbook es el procedimiento
+> autorizado para cuando se decida aplicar la migración en producción.
+
+Orden seguro (no alterar):
+
+1. **Preflight de solo lectura** (repetir las consultas de arriba) y registrar
+   los conteos. Condiciones de parada: cualquier fila sin organización, cualquier
+   duplicado por `(organization_id, rep_number)` o cualquier folio huérfano
+   detiene el rollout.
+2. **Aplicar la migración `0026`** por el canal de migraciones de producción
+   (el mismo que usa CI: `psql -v ON_ERROR_STOP=1` contra la base productiva).
+   No aplicar `DROP` de la firma histórica; la migración usa `CREATE OR
+   REPLACE` y conserva el wrapper.
+3. **Verificar ambas firmas** en producción:
+   ```sql
+   SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS args,
+          p.prosecdef AS security_definer, p.proconfig AS proconfig
+   FROM pg_proc p
+   JOIN pg_namespace n ON n.oid = p.pronamespace
+   WHERE p.proname = 'assign_stamped_rep_number';
+   ```
+   Confirmar: firma `(uuid, text, uuid)` y `(uuid, text)` presentes;
+   `security_definer = true`; `proconfig` incluye `search_path=public`;
+   `EXECUTE` de la firma estricta a `authenticated` y `service_role`;
+   `EXECUTE` del wrapper **solo** a `service_role` (revocado a
+   `authenticated`).
+4. **Desplegar las Edge Functions** (`stamp-payment-complement` y
+   `reconcile-stamping-invoices`) **después** de la migración, no antes.
+5. **Smoke de asignación/reconciliación en entorno aislado** (no producción):
+   timbrar un complemento de pago y verificar que el folio quede asignado;
+   forzar un fallo transitorio y verificar que `recoverRepFolio` lo recupera sin
+   duplicar ni sobreescribir.
+6. **Repetir el preflight** en producción: conteos sin cambios, cero
+   duplicados, cero huérfanos.
+7. **No dar de alta la segunda empresa** ni ejecutar el Lote 2 hasta que el
+   bypass esté cerrado (wrapper sin `EXECUTE` a `authenticated`) y se haya
+   ensayado el flujo completo con dos organizaciones en un entorno aislado.
+
+### Rollback conceptual (sin aplicar)
+
+- Si la migración falla al aplicarse: el canal de migraciones debe revertir el
+  `CREATE OR REPLACE` restaurando la firma histórica de dos parámetros tal
+  como está hoy en producción. Las Edge Functions aún no se desplegaron, así
+  que no hay callers de la firma estricta.
+- Si la migración aplicó pero las Edge Functions aún no se desplegaron: el
+  wrapper de dos parámetros sigue funcionando con `service_role`; los callers
+  internos no se rompen. Revertir la migración restaura el estado anterior sin
+  pérdida de datos (no hubo `DROP` ni cambio de columnas).
+- Si las Edge Functions ya se desplegaron y fallan: el helper reintenta con la
+  firma histórica (`repFolio.ts:124`), así que los REP no quedan sin folio. Para
+  revertir, desplegar la versión anterior de las Edge Functions y luego
+  revertir la migración.
+- El índice `payments_rep_number_uidx` se conserva en todos los casos; no hay
+  acción de rollback sobre índices en este tramo.
+
+## Decisiones de catálogo pendientes
+
+Aún no resueltas (no bloquean el tramo 8.1, pero sí el alta de la segunda
+empresa):
+
+- **`suppliers`**: unicidad de RFC por organización vs. global.
+- **`equipment_models`**: unicidad de modelo/SKU por organización.
+- **`bank_accounts`**: unicidad de cuenta/clabe por organización.
+- **Ventana de alta de la segunda empresa**: no se inicia hasta cerrar el
+  bypass del folio REP, ensayar con dos organizaciones en entorno aislado y
+  decidir el Lote 2 de unicidad por organización.
