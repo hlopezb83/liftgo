@@ -1,0 +1,102 @@
+// Multiempresa · Tramo 8.1: asignación del folio REP en un único lugar.
+//
+// Reglas que este módulo hace cumplir del lado del código:
+//  - La organización SIEMPRE viene del contexto verificado en servidor (la
+//    organización del pago / del documento), nunca del navegador. Se envía a la
+//    RPC solo para que la base la contraste y rechace cruces.
+//  - Un REP ya timbrado en el PAC NUNCA puede terminar en éxito con folio
+//    nulo: quien llama debe propagar un error recuperable y dejar el pago con
+//    un mensaje explícito para recuperación idempotente.
+import type { SupabaseLike } from "./types.ts";
+
+export type RepFolioFailure =
+  | "missing_folio"
+  | "cross_organization"
+  | "collision"
+  | "failed";
+
+export type RepFolioResult =
+  | { ok: true; repNumber: string; alreadyAssigned: boolean }
+  | { ok: false; code: RepFolioFailure; message: string };
+
+/** Mensaje persistido en `payments.rep_error_message` cuando falta el folio. */
+export function repFolioPendingMessage(detail: string): string {
+  return (
+    "REP timbrado ante el SAT, pero no se pudo asignar el folio interno: " +
+    `${detail} El pago conserva su CFDI; el folio se asigna automáticamente ` +
+    "en la siguiente reconciliación o al reintentar la asignación (no se " +
+    "vuelve a timbrar)."
+  ).slice(0, 1000);
+}
+
+function classify(message: string): RepFolioFailure {
+  const m = message.toLowerCase();
+  if (m.includes("another organization") || m.includes("no organization")) {
+    return "cross_organization";
+  }
+  if (m.includes("already assigned") || m.includes("duplicate key")) {
+    return "collision";
+  }
+  return "failed";
+}
+
+/**
+ * Asigna el folio REP de forma idempotente.
+ * `organizationId` debe ser la organización verificada del pago.
+ */
+export async function assignRepFolio(
+  admin: SupabaseLike,
+  args: {
+    paymentId: string;
+    organizationId: string | null | undefined;
+    folio: string | number | null | undefined;
+  },
+): Promise<RepFolioResult> {
+  const folio = args.folio === null || args.folio === undefined
+    ? null
+    : String(args.folio).trim();
+  if (!folio) {
+    return {
+      ok: false,
+      code: "missing_folio",
+      message: "Facturapi no devolvió folio para el complemento de pago.",
+    };
+  }
+  if (!args.organizationId) {
+    return {
+      ok: false,
+      code: "cross_organization",
+      message: "El pago no tiene empresa asignada; no se puede folear.",
+    };
+  }
+
+  const res = await (admin as unknown as {
+    rpc: (
+      fn: string,
+      params: Record<string, unknown>,
+    ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+  }).rpc("assign_stamped_rep_number", {
+    p_payment_id: args.paymentId,
+    p_folio: folio,
+    p_organization_id: args.organizationId,
+  });
+
+  if (res.error) {
+    const message = res.error.message ?? "error de base de datos";
+    return { ok: false, code: classify(message), message };
+  }
+
+  const repNumber = typeof res.data === "string" ? res.data : null;
+  if (!repNumber) {
+    return {
+      ok: false,
+      code: "failed",
+      message: "La asignación de folio no devolvió número de REP.",
+    };
+  }
+  return {
+    ok: true,
+    repNumber,
+    alreadyAssigned: repNumber !== `CP-${folio.padStart(4, "0")}`,
+  };
+}

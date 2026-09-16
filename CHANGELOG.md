@@ -1,3 +1,12 @@
+## [8.8.27] - 2026-09-16 · patch · fix
+
+El folio interno del complemento de pago ya se asigna dentro de la empresa dueña del pago, y si algo falla después de timbrar ante el SAT el sistema lo dice y lo recupera solo, sin volver a timbrar.
+
+- El folio del complemento se pide siempre con la empresa verificada del pago; nunca con datos enviados por el navegador.
+- Si el complemento ya se timbró pero el folio no se pudo asignar, el sistema ya no responde éxito con folio vacío: avisa y deja el motivo visible.
+- La revisión automática de timbrados recupera el folio de los complementos que quedaron sin él, dentro de su propia empresa y sin repetir el timbrado.
+- Nuevas pruebas de pago de otra empresa, doble ejecución, choque de folio y recuperación; se conserva el índice actual y no se aplicó ninguna migración.
+
 ## [8.8.26] - 2026-09-15 · patch · documentación
 
 Se midió, solo con consultas de lectura, cuántos datos chocarían si cada catálogo pasara a ser propio de cada empresa.

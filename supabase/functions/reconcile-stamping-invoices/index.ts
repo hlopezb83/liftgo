@@ -33,6 +33,7 @@ import {
   groupByOrganization,
   resolveCallerOrganization,
 } from "../_shared/orgContext.ts";
+import { assignRepFolio, repFolioPendingMessage } from "../_shared/repFolio.ts";
 
 import {
   decideLookupOutcome,
@@ -56,6 +57,60 @@ interface StuckRow extends PureStuckRow {
 // ejecución (502). El cron corre cada 5 min y retoma lo que falte.
 export const RUN_BUDGET_MS = 50_000;
 export const RUN_ROW_LIMIT = 10;
+
+/**
+ * Tramo 8.1: recuperación idempotente del folio REP de un pago ya timbrado.
+ * Devuelve el `status` a reportar, o `null` si no había nada que recuperar.
+ * La organización proviene SIEMPRE de la fila del pago, nunca de un parámetro
+ * de la petición.
+ */
+async function recoverRepFolio(
+  // El cliente real de supabase-js es estructuralmente más amplio que
+  // `SupabaseLike`; se estrecha al pasarlo al helper compartido.
+  // deno-lint-ignore no-explicit-any
+  admin: any,
+  client: { invoices: { retrieve?: (id: string) => Promise<unknown> } },
+  payment: Record<string, unknown>,
+  facturapiId: string,
+): Promise<string | null> {
+  const paymentId = payment.id as string;
+  if (payment.rep_number) return null; // ya tiene folio: nada que hacer
+
+  let folio: unknown = payment.rep_folio ?? null;
+  if (!folio) {
+    const retrieve = client.invoices.retrieve;
+    if (typeof retrieve !== "function") return "rep_folio_pending";
+    try {
+      const inv = await retryOnFacturapi5xx(() =>
+        retrieve.call(client.invoices, facturapiId) as Promise<unknown>
+      );
+      folio = (inv as { folio_number?: unknown }).folio_number ?? null;
+    } catch (err) {
+      console.error("[reconcile-stamping] REP folio lookup failed", {
+        payment_id: paymentId,
+        err: describeFacturapiError(err).message,
+      });
+      return "rep_folio_pending";
+    }
+  }
+
+  const res = await assignRepFolio(admin, {
+    paymentId,
+    organizationId: payment.organization_id as string | null,
+    folio: folio as string | number | null,
+  });
+  if (res.ok) return "rep_folio_recovered";
+
+  console.error("[reconcile-stamping] REP folio assignment failed", {
+    payment_id: paymentId,
+    code: res.code,
+    err: res.message,
+  });
+  await admin.from("payments")
+    .update({ rep_error_message: repFolioPendingMessage(res.message) })
+    .eq("id", paymentId);
+  return "rep_folio_pending";
+}
 
 async function handleRequest(req: Request): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
@@ -116,7 +171,7 @@ async function handleRequest(req: Request): Promise<Response> {
   let paymentsQuery = admin
     .from("payments")
     .select(
-      "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts",
+      "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts, rep_number, rep_folio",
     )
     .eq("rep_cfdi_status", "stamping")
     .lt("rep_stamping_started_at", cutoff)
@@ -128,6 +183,31 @@ async function handleRequest(req: Request): Promise<Response> {
 
   if (payErr) {
     console.error("[reconcile-stamping] payments fetch failed", payErr);
+  }
+
+  // Tramo 8.1: pagos YA timbrados que quedaron sin folio interno (p. ej. porque
+  // la asignación falló después de que el PAC timbró). No se re-timbran: sólo
+  // se recupera el folio, siempre dentro de la organización del propio pago.
+  let folioPendingQuery = admin
+    .from("payments")
+    .select(
+      "id, organization_id, invoice_id, rep_facturapi_id, rep_number, rep_folio",
+    )
+    .eq("rep_cfdi_status", "stamped")
+    .is("rep_number", null)
+    .not("rep_facturapi_id", "is", null)
+    .limit(RUN_ROW_LIMIT);
+  if (manualOrganizationId) {
+    folioPendingQuery = folioPendingQuery.eq(
+      "organization_id",
+      manualOrganizationId,
+    );
+  }
+  const { data: folioPendingPayments, error: folioErr } =
+    await folioPendingQuery;
+
+  if (folioErr) {
+    console.error("[reconcile-stamping] rep folio fetch failed", folioErr);
   }
 
   let creditNotesQuery = admin
@@ -153,12 +233,16 @@ async function handleRequest(req: Request): Promise<Response> {
   const stuckAll = (rows ?? []) as StuckRow[];
   const paymentsAll = (stuckPayments ?? []) as Array<Record<string, unknown>>;
   const ncsAll = (stuckNcs ?? []) as Array<Record<string, unknown>>;
+  const folioPendingAll = (folioPendingPayments ?? []) as Array<
+    Record<string, unknown>
+  >;
 
-  // N4: salir SOLO si las tres listas están vacías. Con trabajo pendiente,
+  // N4: salir SOLO si las listas están vacías. Con trabajo pendiente,
   // se continúa y se resuelve la config del PAC POR ORGANIZACIÓN (nunca un
   // solo cliente Facturapi compartido entre empresas).
   if (
-    stuckAll.length === 0 && paymentsAll.length === 0 && ncsAll.length === 0
+    stuckAll.length === 0 && paymentsAll.length === 0 && ncsAll.length === 0 &&
+    folioPendingAll.length === 0
   ) {
     return json({ processed: 0, results: [] }, 200);
   }
@@ -168,11 +252,13 @@ async function handleRequest(req: Request): Promise<Response> {
   const stuckGrouped = groupByOrganization(stuckAll);
   const paymentsGrouped = groupByOrganization(paymentsAll);
   const ncsGrouped = groupByOrganization(ncsAll);
+  const folioPendingGrouped = groupByOrganization(folioPendingAll);
 
   const organizationIds = new Set<string>([
     ...stuckGrouped.groups.keys(),
     ...paymentsGrouped.groups.keys(),
     ...ncsGrouped.groups.keys(),
+    ...folioPendingGrouped.groups.keys(),
   ]);
 
   // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
@@ -211,6 +297,7 @@ async function handleRequest(req: Request): Promise<Response> {
       ...stuckGrouped.withoutOrganization,
       ...paymentsGrouped.withoutOrganization,
       ...ncsGrouped.withoutOrganization,
+      ...folioPendingGrouped.withoutOrganization,
     ]
   ) {
     const id = (orphan as { id?: unknown }).id;
@@ -283,6 +370,14 @@ async function handleRequest(req: Request): Promise<Response> {
           organization_id: organizationId,
         });
       }
+      for (const p of folioPendingGrouped.groups.get(organizationId) ?? []) {
+        results.push({
+          invoice_id: (p as { id: string }).id,
+          status: "org_misconfigured",
+          error: "Facturapi no configurado; no se puede recuperar el folio REP",
+          organization_id: organizationId,
+        });
+      }
       continue;
     }
 
@@ -291,6 +386,7 @@ async function handleRequest(req: Request): Promise<Response> {
     const stuck = stuckGrouped.groups.get(organizationId) ?? [];
     const payments = paymentsGrouped.groups.get(organizationId) ?? [];
     const ncs = ncsGrouped.groups.get(organizationId) ?? [];
+    const folioPending = folioPendingGrouped.groups.get(organizationId) ?? [];
 
     for (const row of stuck) {
       if (outOfBudget()) {
@@ -744,7 +840,19 @@ async function handleRequest(req: Request): Promise<Response> {
             rep_xml_pending: false,
           })
           .eq("id", paymentId);
-        results.push({ invoice_id: paymentId, status: "rep_reconciled" });
+        // Tramo 8.1: recuperar pagos ya timbrados que quedaron SIN folio
+        // interno. Siempre dentro de la organización del propio pago y de forma
+        // idempotente (la RPC devuelve el folio existente si ya coincide).
+        const folioStatus = await recoverRepFolio(
+          admin,
+          client,
+          p,
+          facturapiId!,
+        );
+        results.push({
+          invoice_id: paymentId,
+          status: folioStatus ?? "rep_reconciled",
+        });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error("[reconcile-stamping] REP unexpected", {
@@ -755,6 +863,47 @@ async function handleRequest(req: Request): Promise<Response> {
           invoice_id: paymentId,
           status: "rep_exception",
           error: msg,
+        });
+      }
+    }
+
+    // ── Tramo 8.1: pagos ya timbrados SIN folio interno ─────────────────────
+    // Recuperación idempotente: nunca se vuelve a timbrar (el CFDI ya existe),
+    // sólo se asigna el folio dentro de la organización del propio pago.
+    for (const p of folioPending) {
+      if (outOfBudget()) {
+        truncated = true;
+        break;
+      }
+      const paymentId = (p as { id: string }).id;
+      const facturapiId = (p as { rep_facturapi_id?: unknown })
+        .rep_facturapi_id;
+      if (typeof facturapiId !== "string" || !facturapiId) {
+        results.push({
+          invoice_id: paymentId,
+          status: "rep_folio_pending",
+          organization_id: organizationId,
+        });
+        continue;
+      }
+      try {
+        const status = await recoverRepFolio(admin, client, p, facturapiId);
+        results.push({
+          invoice_id: paymentId,
+          status: status ?? "rep_folio_already_assigned",
+          organization_id: organizationId,
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[reconcile-stamping] REP folio unexpected", {
+          payment_id: paymentId,
+          err: msg,
+        });
+        results.push({
+          invoice_id: paymentId,
+          status: "rep_folio_exception",
+          error: msg,
+          organization_id: organizationId,
         });
       }
     }
