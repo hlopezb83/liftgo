@@ -74,7 +74,6 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
     rpcCalls: [],
   };
 
-
   const selects = cfg.selects ?? {};
   const selectsSeq: Record<string, TableResponse[]> = {};
   for (const [k, v] of Object.entries(cfg.selectsSeq ?? {})) {
