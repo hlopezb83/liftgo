@@ -744,7 +744,20 @@ async function handleRequest(req: Request): Promise<Response> {
             rep_xml_pending: false,
           })
           .eq("id", paymentId);
-        results.push({ invoice_id: paymentId, status: "rep_reconciled" });
+        // Tramo 8.1: recuperar pagos ya timbrados que quedaron SIN folio
+        // interno. Siempre dentro de la organización del propio pago y de forma
+        // idempotente (la RPC devuelve el folio existente si ya coincide).
+        const folioStatus = await recoverRepFolio(
+          admin,
+          client,
+          p,
+          facturapiId!,
+        );
+        results.push({
+          invoice_id: paymentId,
+          status: folioStatus ?? "rep_reconciled",
+        });
+
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error("[reconcile-stamping] REP unexpected", {
