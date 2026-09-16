@@ -1,26 +1,24 @@
 -- =====================================================================
--- Multiempresa · Tramo 8.1: endurecimiento del asignador de folio REP.
+-- Multiempresa - Tramo 8.1: endurecimiento del asignador de folio REP.
 --
--- COPIA REVISABLE, IDÉNTICA al SQL que debe aplicarse por el canal de
--- migraciones del proyecto. No se aplicó a producción.
+-- Migracion real (carril Drizzle, el que CI aplica sobre la base efimera
+-- despues del historial Supabase).
 --
 -- ORDEN DE ROLLOUT OBLIGATORIO
---   1. Aplicar esta migración (crea la firma estricta de 3 parámetros y
---      conserva la de 2 parámetros como wrapper seguro).
---   2. Verificar en CI con base limpia: Deno, RLS (incluida
---      supabase/tests/rls/rep_folio_org_scope.sql), smoke SQL, Vitest,
---      cobertura, calidad y secretos.
---   3. Recién entonces desplegar los Edge Functions
+--   1. Aplicar esta migracion (crea la firma estricta de 3 parametros y
+--      conserva la de 2 parametros como wrapper seguro, sin DROP).
+--   2. Verificar en CI con base limpia: lint de migraciones, RLS DB
+--      (incluida supabase/tests/rls/rep_folio_org_scope.sql), smoke SQL,
+--      Deno, Vitest, cobertura, calidad y secretos.
+--   3. Recien entonces desplegar los Edge Functions
 --      (stamp-payment-complement, reconcile-stamping-invoices).
 --
---   El wrapper de 2 parámetros evita la ventana de fallo en cualquier orden:
---   el código nuevo también reintenta con la firma histórica si la migración
---   todavía no está aplicada (ver supabase/functions/_shared/repFolio.ts).
---   Ninguna de las dos rutas acepta organization_id del navegador.
+--   El wrapper de 2 parametros evita la ventana de fallo en cualquier orden.
+--   El fallback del helper de Edge Functions es solo defensa de emergencia:
+--   la prueba RLS falla si esta migracion no esta aplicada.
 --
--- NO se tocan índices: `payments_rep_number_uidx` (único global) se conserva;
--- el Lote 2 de unicidad por organización es un cambio posterior e
--- independiente.
+-- NO se tocan indices: payments_rep_number_uidx (unico global) se conserva;
+-- el Lote 2 de unicidad por organizacion es un cambio posterior.
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
