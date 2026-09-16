@@ -1,0 +1,15 @@
+{
+  "version": "8.8.30",
+  "date": "2026-09-16",
+  "type": "patch",
+  "category": "seguridad",
+  "title": "El folio de complementos ya no puede asignarse a pagos de otra empresa",
+  "description": "Se cerró un hueco: tener permiso de administrador no basta; ahora hay que pertenecer a la empresa dueña del pago para asignarle folio.",
+  "changes": [
+    "Un administrador de una empresa ya no puede asignar folio a un pago de otra empresa, ni siquiera omitiendo el dato de empresa.",
+    "La empresa se toma siempre de la sesión verificada y del propio pago, nunca de lo que envía quien llama.",
+    "La forma antigua de la función quedó reservada al canal interno del sistema: se revisó que ningún uso desde el navegador la necesite.",
+    "Nueva prueba con dos empresas: tres intentos de cruce fallan y el pago ajeno no cambia, mientras el flujo correcto sigue funcionando.",
+    "Se conservan la repetición segura del mismo folio, el rechazo de sobreescritura y el índice actual."
+  ]
+}
