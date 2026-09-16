@@ -1,110 +1,78 @@
-# Auditoría de solo lectura — cierre del tramo 8.1 y preflight del Lote 2
+# Auditoría de solo lectura · Storage histórico (multiempresa)
 
-Sin cambios de código, sin migraciones, sin escrituras. Solo lectura de archivos y consultas `SELECT` contra la base productiva.
+Estado: propuesta. No se cambió código, esquema, datos ni producción. Todas las consultas fueron SELECT.
 
-## Resumen para decidir
+## 1. Buckets, policies y funciones
 
-- El asignador de folio REP tiene un solo punto de entrada en código y la organización siempre sale del propio pago. No encontré ningún uso desde el navegador.
-- **Hallazgo importante de despliegue:** la base productiva todavía tiene solo la versión vieja de la función (dos datos) y sigue ejecutable por cualquier usuario autenticado. La versión endurecida existe en el repositorio pero no está aplicada. Mientras no se aplique, el hueco de aislamiento sigue abierto en producción.
-- **Segundo hallazgo:** el folio de los reportes de retroalimentación ya se genera por empresa (`FB-0001` reinicia en cada empresa), pero la tabla conserva una restricción única global sobre `folio`. Con una segunda empresa, su primer reporte fallaría. Esto ya no es un índice suelto: es una *constraint*, lo que cambia el procedimiento de retiro.
-- Datos actuales: cero duplicados, cero nulos problemáticos, una sola empresa activa. El momento de menor riesgo sigue siendo antes de dar de alta la segunda empresa.
+Seis buckets, todos privados:
 
-## 1. Quién llama al asignador
+| Bucket | Objetos | Límite de tamaño |
+|---|---|---|
+| cfdi-files | 173 | sin límite propio |
+| supplier-bill-cfdi-xml | 78 | sin límite propio |
+| supplier-payment-receipts | 53 | sin límite propio |
+| documents | 5 | sin límite propio |
+| feedback-screenshots | 1 | sin límite propio |
+| payment-proofs | 0 | 10 MB |
 
-Un único punto de entrada: `supabase/functions/_shared/repFolio.ts:104` (firma de tres datos) con reintento a la histórica en `:124`, solo como defensa de emergencia si falta la migración, y registrando el incidente en `:120`.
+26 policies activas en `storage.objects` (payment-proofs, documents, cfdi-files, feedback-screenshots, supplier-bill-cfdi-xml, supplier-payment-receipts).
 
-Consumidores:
+Helpers de aislamiento ya presentes en producción: `storage_prefix_organization`, `storage_path_in_current_organization`, `invoice_in_current_organization`, `current_organization_id` (definidos en `drizzle/migrations/0022_storage_tenant_scoped_policies.sql:20-80`).
 
-- `supabase/functions/stamp-payment-complement/handler.ts:622` — cliente admin del servidor; la organización viene del contexto verificado del pago.
-- `supabase/functions/reconcile-stamping-invoices/index.ts:97` — cliente admin del cron; organización tomada de la fila (`index.ts:99`).
-- Pruebas: `supabase/functions/_shared/repFolio_test.ts`, `stamp-payment-complement/handler_test.ts`, `supabase/tests/rls/rep_folio_org_scope.sql`.
+Riesgo detectado: `is_internal_member` NO aparece en producción con ese nombre; conviene confirmar el nombre real antes de cualquier policy futura que lo invoque.
 
-Búsqueda en `src/**`: cero llamadas (solo etiquetas y mensajes en `auditTrailLabels.ts:85`, `usePayments.ts:23`, `pgErrorCatalog.ts:56`). Ningún script llama la RPC.
+## 2. Convenciones de rutas
 
-Estado real en la base (consulta ejecutada):
-
-```sql
-select p.oid::regprocedure::text sig, p.prosecdef, p.proconfig,
-       has_function_privilege('authenticated', p.oid, 'EXECUTE') auth_exec,
-       has_function_privilege('service_role', p.oid, 'EXECUTE') svc_exec
-from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-where n.nspname = 'public' and p.proname = 'assign_stamped_rep_number';
-```
-
-Resultado: **una sola fila**, `assign_stamped_rep_number(uuid,text)`, `SECURITY DEFINER`, `search_path=public`, ejecutable por `authenticated` y por `service_role`. La firma de tres datos no existe aún en producción.
-
-Riesgo vigente: hasta que se aplique la migración, un administrador autenticado de una empresa puede invocar la función vieja sobre un pago de otra. Hoy no es explotable porque hay una sola empresa, pero debe cerrarse antes del alta de la segunda.
-
-## 2. Ruta de recuperación de REP timbrados sin folio
-
-`reconcile-stamping-invoices/index.ts:191-207` selecciona pagos con timbre y sin folio, filtrando por empresa solo en ejecución manual (`:200`), y el cron recorre todas. `recoverRepFolio` (`:67-113`) es idempotente: sale temprano si ya hay folio (`:77`), reutiliza `rep_folio` antes de volver a consultar al proveedor (`:79`), nunca re-timbra y ante fallo deja `rep_error_message` (`:109`) devolviendo `rep_folio_pending`.
-
-Casos que aún pueden dejar un REP timbrado sin folio (todos recuperables, ninguno silencioso):
-
-- El proveedor no responde en la consulta del folio (`:88-94`): queda pendiente hasta el siguiente ciclo, sin límite de reintentos que lo abandone.
-- Choque de folio real: hoy el índice es global, así que dos empresas con proveedores distintos pueden generar el mismo `CP-0001`; el segundo quedaría permanentemente pendiente. Este es el motivo del Lote 2.
-- El pago sin empresa se rechaza antes de escribir (`repFolio.ts:94`) y queda pendiente por diseño.
-- Si la migración no está aplicada, cada asignación pasa por la ruta de emergencia y deja un error en observabilidad, aunque el folio sí se asigne.
-
-Durante esta auditoría no se ejecutó ninguna escritura: solo `SELECT` y lectura de archivos.
-
-## 3. Preflight del Lote 2 (resultados reales, sin datos personales)
-
-Pagos:
+- Ruta nueva obligatoria: `<organization_id>/<...>` (`supabase/functions/_shared/storagePath.ts:21-48`, espejo en `src/lib/storage/organizationPath`).
+- Rutas legadas: sin prefijo de organización; 0021/0022 solo permiten leerlas/borrarlas, nunca crear rutas cruzadas.
+- Medición real (conteo agregado, sin nombres):
 
 ```sql
-select count(*) total,
-       count(rep_number) con_folio,
-       count(*) filter (where organization_id is null) sin_empresa,
-       count(distinct organization_id) empresas
-from public.payments;
--- total 82 · con_folio 25 · sin_empresa 0 · empresas 1
-
-select count(*) from (
-  select organization_id, rep_number from public.payments
-  where rep_number is not null group by 1,2 having count(*) > 1) d;  -- 0
-
-select count(*) from (
-  select rep_number from public.payments where rep_number is not null
-  group by 1 having count(distinct organization_id) > 1) d;          -- 0
-
-select count(*) from public.payments
-where rep_number is null and rep_folio is not null;                  -- 0
+with orgs as (select id::text t from public.organizations),
+o as (select bucket_id, name,
+  exists(select 1 from orgs where split_part(o.name,'/',1)=orgs.t) as tiene_org,
+  array_length(string_to_array(o.name,'/'),1) as segs
+  from storage.objects o)
+select bucket_id, tiene_org, segs, count(*) from o group by 1,2,3 order by 1,2,3;
 ```
 
-Índices y restricciones vigentes:
+Resultado: **310 de 310 objetos sin prefijo de organización**. Los prefijos con forma UUID que existen hoy son `customer_id` o `invoice_id`, no organización. Con una sola empresa no hay colisión posible; al dar de alta la segunda, dos empresas podrían compartir `customer_id` y producir rutas ambiguas en `payment-proofs` y `cfdi-files`.
 
-- `payments`: solo `payments_rep_number_uidx` — índice único parcial sobre `rep_number` cuando no es nulo. No hay constraint; se puede retirar con `DROP INDEX CONCURRENTLY`.
-- `feedback_reports`: conviven `feedback_reports_folio_key` (**constraint** `UNIQUE (folio)`, global) y `feedback_reports_organization_folio_key` (**constraint** `UNIQUE (organization_id, folio)`, ya creada en la migración 0016). Datos: 1 reporte, 0 nulos, 0 duplicados por empresa y 0 globales.
-- El folio de reportes se genera por empresa: `generate_feedback_number()` usa `next_organization_document_counter('feedback', 1)`, así que la restricción global es incompatible con una segunda empresa.
-- Dependencias en código del folio de reportes: `src/lib/errors/pgErrorCatalog.ts:55` traduce el nombre de la restricción global a un mensaje seguro; `src/features/feedback/hooks/useCreateFeedback.ts:47-61` inserta sin enviar empresa (la fija el servidor). Nada más depende del nombre.
+## 3. Handlers de upload / download / delete / list
 
-## 4. Orden seguro, paradas y reversa (conceptual, sin aplicar)
+- Escritura privilegiada (siempre con organización derivada del registro, no del navegador): `stamp-cfdi/handler.ts:674`, `stamp-credit-note/handler.ts:550,578`, `stamp-payment-complement/handler.ts:565,583`, `validate-supplier-rep/index.ts:266,286`, `reconcile-stamping-invoices/index.ts:498,527,754,777,1013,1036`.
+- Server function de proveedor: `src/lib/supplierRep.functions.ts:167,182`.
+- Cliente: `src/hooks/useDocuments.ts:50,76,104` (documents), `src/lib/storage/openStorageFile.ts` firma URLs de 60 s y abre URLs legadas tal cual (`openStoredFile:34-44`).
+- Migrador administrativo ya escrito y sin ejecutar: `supabase/functions/migrate-storage-org-prefix/index.ts` (orden copy → refs → verify → delete; triple barrera: auth cron/service, `STORAGE_MIGRATION_APPLY_ENABLED`, confirmación textual).
 
-Secuencia propuesta, cada paso con verificación antes del siguiente:
+Pendiente de verificar en el siguiente tramo: que ninguna ruta de portal acepte `path` arbitrario del cliente al firmar URLs (hoy `openStorageFile` recibe el path desde el registro, pero conviene una prueba conductual cross-tenant con dos organizaciones).
 
-1. Aplicar primero la migración del tramo 8.1 ya aprobada (cierra el aislamiento del asignador) y luego desplegar las funciones de servidor. Sin esto, el Lote 2 se monta sobre una función insegura.
-2. Preflight repetido en el momento de la ventana: los cuatro conteos de pagos en cero y los dos de reportes en cero.
-3. Pagos: crear el índice único por empresa sobre `(organization_id, rep_number)` en modo concurrente y fuera de transacción; verificar que quede válido; solo después retirar el global, también concurrente.
-4. Reportes: el global es una *constraint*, no un índice suelto, así que no se retira de forma concurrente — se elimina la restricción en una transacción breve, apoyándose en que la restricción por empresa ya existe y cubre el caso. Es una operación de metadatos, pero toma bloqueo exclusivo momentáneo.
-5. Después: ajustar el catálogo de mensajes de error para la restricción por empresa, sin dejar de traducir la antigua mientras conviva.
+## 4. Conteos agregados
 
-Condiciones de parada, cualquiera aborta la ventana:
+- Total de objetos: 310; con prefijo de organización: 0; en raíz: 0.
+- Referencias: 56 facturas con XML CFDI, 52 recibos de proveedor, 5 documentos; **0 referencias guardadas como URL http** (todas son paths), lo que simplifica la migración.
+- Bitácora de migración (`storage_object_migrations`, `storage_reference_migrations`): 0 filas; nada iniciado.
+- Organizaciones activas: 1.
 
-- Aparece un duplicado por empresa en el preflight, o un mismo folio en dos empresas.
-- El índice concurrente queda inválido.
-- La migración del tramo 8.1 no está aplicada o las funciones aún no se desplegaron.
-- Ya existe una segunda empresa con documentos timbrados (la reversa deja de ser segura).
-- Hay pagos en proceso de timbrado o reportes pendientes de folio.
+## 5. Plan reversible de migración de históricos (propuesta, no ejecutar)
 
-Reversa conceptual: mientras solo se hayan creado índices, basta retirarlos. Una vez retirado el global, la reversa exige que no existan valores repetidos entre empresas; si ya los hay, no hay vuelta atrás sin renumerar. Por eso la ventana debe ocurrir **antes** del alta de la segunda empresa.
+1. **Inventario**: correr el migrador en modo plan; poblar el ledger con `source_path`/`destination_path` y SHA-256 del valor original. Parar si aparece un objeto sin organización derivable.
+2. **Staging**: copiar a `<organization_id>/<ruta_actual>` sin borrar el origen. El origen queda intacto: rollback = borrar la copia.
+3. **Doble lectura temporal**: la app intenta primero la ruta con prefijo y cae a la legada. Ventana mínima sugerida: hasta que el 100 % del ledger esté en `references_updated`.
+4. **Verificación A/B**: comparar tamaño y hash de origen vs destino objeto por objeto; contrastar conteos por bucket antes/después.
+5. **Actualización de referencias**: por tabla/columna del `REFERENCE_SPECS`, en lotes, con rollback por SHA-256 guardado.
+6. **Borrado del origen**: solo tras 100 % verificado y una ventana de observación. Irreversible; requiere autorización explícita.
 
-No se propone ejecutar nada hasta que haya decisión explícita y una segunda empresa en un entorno aislado para ensayar.
+Condiciones de parada: cualquier diferencia de hash/tamaño, un objeto huérfano sin referencia, un error de permisos, o si ya existe la segunda empresa sin ensayo previo en entorno aislado.
 
-## 5. Decisiones humanas que siguen pendientes
+## 6. Cobertura del tramo Storage aprobado vs. pendiente
 
-- Proveedores: registro por empresa o tabla puente compartida.
-- Modelos de equipo: seguir como catálogo compartido o volverlo por empresa.
-- Cuentas bancarias: si se define alguna unicidad y con qué alcance.
-- Fecha y ventana del alta de la segunda empresa, que condiciona todo el Lote 2.
-- Aplicar en producción la migración del tramo 8.1 y desplegar las funciones: requiere autorización explícita.
+Cubierto para archivos **nuevos**: prefijo de organización obligatorio, policies tenant-aware, helpers `SECURITY DEFINER`, prueba RLS `supabase/tests/rls/storage_org_prefix.sql`.
+
+Pendiente para **históricos**: los 310 objetos siguen sin prefijo; la doble lectura y el traslado no se han ejecutado; falta ensayo con dos organizaciones en entorno aislado; falta confirmar el nombre real del helper de membresía interna.
+
+## Decisiones aún pendientes
+
+- Catálogos: `suppliers`, `equipment_models`, `bank_accounts`.
+- Ventana de alta de la segunda empresa.
+- Autorización para aplicar la migración 0026 (tramo 8.1) y desplegar Edge Functions.
