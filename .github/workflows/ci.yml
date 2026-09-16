@@ -59,6 +59,9 @@ jobs:
               - '.github/workflows/ci.yml'
             migrations:
               - 'supabase/migrations/**'
+              # Carril Drizzle: los cambios de esquema nuevos (multiempresa)
+              # viven aquí, así que también deben disparar el lint.
+              - 'drizzle/migrations/**'
               - 'scripts/lint-migrations.ts'
               - '.github/workflows/ci.yml'
             workflows:
