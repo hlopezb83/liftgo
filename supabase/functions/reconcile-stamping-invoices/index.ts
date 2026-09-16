@@ -59,6 +59,57 @@ interface StuckRow extends PureStuckRow {
 export const RUN_BUDGET_MS = 50_000;
 export const RUN_ROW_LIMIT = 10;
 
+/**
+ * Tramo 8.1: recuperación idempotente del folio REP de un pago ya timbrado.
+ * Devuelve el `status` a reportar, o `null` si no había nada que recuperar.
+ * La organización proviene SIEMPRE de la fila del pago, nunca de un parámetro
+ * de la petición.
+ */
+async function recoverRepFolio(
+  admin: SupabaseLike,
+  client: { invoices: { retrieve?: (id: string) => Promise<unknown> } },
+  payment: Record<string, unknown>,
+  facturapiId: string,
+): Promise<string | null> {
+  const paymentId = payment.id as string;
+  if (payment.rep_number) return null; // ya tiene folio: nada que hacer
+
+  let folio: unknown = payment.rep_folio ?? null;
+  if (!folio) {
+    const retrieve = client.invoices.retrieve;
+    if (typeof retrieve !== "function") return "rep_folio_pending";
+    try {
+      const inv = await retryOnFacturapi5xx(() =>
+        retrieve.call(client.invoices, facturapiId) as Promise<unknown>
+      );
+      folio = (inv as { folio_number?: unknown }).folio_number ?? null;
+    } catch (err) {
+      console.error("[reconcile-stamping] REP folio lookup failed", {
+        payment_id: paymentId,
+        err: describeFacturapiError(err).message,
+      });
+      return "rep_folio_pending";
+    }
+  }
+
+  const res = await assignRepFolio(admin, {
+    paymentId,
+    organizationId: payment.organization_id as string | null,
+    folio: folio as string | number | null,
+  });
+  if (res.ok) return "rep_folio_recovered";
+
+  console.error("[reconcile-stamping] REP folio assignment failed", {
+    payment_id: paymentId,
+    code: res.code,
+    err: res.message,
+  });
+  await admin.from("payments")
+    .update({ rep_error_message: repFolioPendingMessage(res.message) })
+    .eq("id", paymentId);
+  return "rep_folio_pending";
+}
+
 async function handleRequest(req: Request): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
   const outOfBudget = () => Date.now() - RUN_STARTED_AT > RUN_BUDGET_MS;
