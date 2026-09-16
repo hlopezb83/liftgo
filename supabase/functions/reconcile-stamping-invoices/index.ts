@@ -210,7 +210,6 @@ async function handleRequest(req: Request): Promise<Response> {
     console.error("[reconcile-stamping] rep folio fetch failed", folioErr);
   }
 
-
   let creditNotesQuery = admin
     .from("credit_notes")
     .select(
