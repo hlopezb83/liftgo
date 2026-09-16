@@ -1,64 +1,94 @@
 -- Multiempresa · Tramo 8.1: el asignador de folio REP debe estar acotado a la
 -- organización del propio pago.
 --
--- IMPORTANTE: la migración que endurece `public.assign_stamped_rep_number`
--- (docs/multiempresa/sql/0026_rep_number_org_scoped_assignment.sql) todavía NO
--- está aprobada ni aplicada. Mientras la firma de tres parámetros no exista,
--- esta prueba emite un NOTICE explícito y no valida nada (no puede pasar por
--- error): en cuanto la migración se aplique, las aserciones entran en vigor
--- automáticamente y fallan si el scope por organización desaparece.
+-- Esta prueba FALLA si la migración del tramo 8.1 no está aplicada en el
+-- entorno donde corre. La migración forma parte del cambio, así que un NOTICE
+-- que la convirtiera en no-op ocultaría exactamente el riesgo que se audita.
 BEGIN;
 
 DO $$
 DECLARE
-  v_oid oid;
+  v_strict oid;
+  v_legacy oid;
   v_def text;
+  v_legacy_def text;
 BEGIN
-  SELECT p.oid INTO v_oid
+  -- 1. Firma estricta de tres parámetros (obligatoria).
+  SELECT p.oid INTO v_strict
   FROM pg_proc p
   JOIN pg_namespace n ON n.oid = p.pronamespace
   WHERE n.nspname = 'public'
     AND p.proname = 'assign_stamped_rep_number'
     AND p.pronargs = 3;
 
-  IF v_oid IS NULL THEN
-    RAISE NOTICE
-      'REP FOLIO ORG: pendiente — la migración 0026 (firma de 3 parámetros) no está aplicada; aserciones omitidas';
-    RETURN;
+  IF v_strict IS NULL THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: falta assign_stamped_rep_number(uuid, text, uuid); aplicar la migración del tramo 8.1 antes de desplegar Edge Functions';
   END IF;
 
-  v_def := pg_get_functiondef(v_oid);
+  v_def := pg_get_functiondef(v_strict);
 
-  -- SECURITY DEFINER con search_path fijo.
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_proc p WHERE p.oid = v_oid AND p.prosecdef
-  ) THEN
-    RAISE EXCEPTION 'REP FOLIO ORG: la función debe ser SECURITY DEFINER';
+  IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = v_strict AND p.prosecdef) THEN
+    RAISE EXCEPTION 'REP FOLIO ORG: la función estricta debe ser SECURITY DEFINER';
   END IF;
 
   IF v_def !~ 'search_path' THEN
-    RAISE EXCEPTION 'REP FOLIO ORG: la función debe fijar search_path';
+    RAISE EXCEPTION 'REP FOLIO ORG: la función estricta debe fijar search_path';
   END IF;
 
-  -- El UPDATE debe acotarse a la organización leída del propio pago.
+  -- La organización se lee de payments ANTES del UPDATE y condiciona el UPDATE.
+  IF v_def !~ 'FROM public\.payments' AND v_def !~ 'FROM payments' THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: la organización debe leerse de payments antes del UPDATE';
+  END IF;
+
   IF v_def !~ 'organization_id\s*=\s*v_payment_org' THEN
     RAISE EXCEPTION
-      'REP FOLIO ORG: el UPDATE debe filtrar por la organización del pago';
+      'REP FOLIO ORG: el UPDATE debe filtrar por la organización leída del pago';
   END IF;
 
-  -- El parámetro de organización sólo valida; nunca decide la fila.
   IF v_def !~ 'p_organization_id' THEN
     RAISE EXCEPTION
       'REP FOLIO ORG: la función debe contrastar p_organization_id contra el pago';
   END IF;
 
-  -- Un pago sin organización no puede folearse (fail-closed).
   IF v_def !~ 'v_payment_org IS NULL' THEN
     RAISE EXCEPTION
       'REP FOLIO ORG: un pago sin organización debe rechazarse explícitamente';
   END IF;
 
-  -- El índice global se conserva en este tramo (el Lote 2 no está aplicado).
+  -- 2. Wrapper de compatibilidad de dos parámetros: si existe, no puede
+  --    aceptar organización del llamante ni actualizar payments por su cuenta.
+  SELECT p.oid INTO v_legacy
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public'
+    AND p.proname = 'assign_stamped_rep_number'
+    AND p.pronargs = 2;
+
+  IF v_legacy IS NOT NULL THEN
+    v_legacy_def := pg_get_functiondef(v_legacy);
+
+    IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = v_legacy AND p.prosecdef) THEN
+      RAISE EXCEPTION 'REP FOLIO ORG: el wrapper debe ser SECURITY DEFINER';
+    END IF;
+
+    IF v_legacy_def !~ 'search_path' THEN
+      RAISE EXCEPTION 'REP FOLIO ORG: el wrapper debe fijar search_path';
+    END IF;
+
+    IF v_legacy_def !~ 'assign_stamped_rep_number\s*\(' THEN
+      RAISE EXCEPTION
+        'REP FOLIO ORG: el wrapper de dos parámetros debe delegar en la función estricta';
+    END IF;
+
+    IF v_legacy_def ~* 'UPDATE\s+(public\.)?payments' THEN
+      RAISE EXCEPTION
+        'REP FOLIO ORG: el wrapper no debe actualizar payments por su cuenta';
+    END IF;
+  END IF;
+
+  -- 3. El índice global se conserva en este tramo (el Lote 2 no se aplica).
   IF NOT EXISTS (
     SELECT 1 FROM pg_indexes
     WHERE schemaname = 'public'
