@@ -370,6 +370,14 @@ async function handleRequest(req: Request): Promise<Response> {
           organization_id: organizationId,
         });
       }
+      for (const p of folioPendingGrouped.groups.get(organizationId) ?? []) {
+        results.push({
+          invoice_id: (p as { id: string }).id,
+          status: "org_misconfigured",
+          error: "Facturapi no configurado; no se puede recuperar el folio REP",
+          organization_id: organizationId,
+        });
+      }
       continue;
     }
 
@@ -378,6 +386,8 @@ async function handleRequest(req: Request): Promise<Response> {
     const stuck = stuckGrouped.groups.get(organizationId) ?? [];
     const payments = paymentsGrouped.groups.get(organizationId) ?? [];
     const ncs = ncsGrouped.groups.get(organizationId) ?? [];
+    const folioPending = folioPendingGrouped.groups.get(organizationId) ?? [];
+
 
     for (const row of stuck) {
       if (outOfBudget()) {
