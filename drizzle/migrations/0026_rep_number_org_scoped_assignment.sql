@@ -1,17 +1,21 @@
 -- =====================================================================
 -- Multiempresa - Tramo 8.1: endurecimiento del asignador de folio REP.
 --
--- COPIA DE DOCUMENTACION. La migracion real y aplicable vive en
---   drizzle/migrations/0026_rep_number_org_scoped_assignment.sql
--- y este archivo es identico a ella a partir de la seccion 1.
+-- Migracion real (carril Drizzle, el que CI aplica sobre la base efimera
+-- despues del historial Supabase).
 --
 -- ORDEN DE ROLLOUT OBLIGATORIO
---   1. Aplicar la migracion.
+--   1. Aplicar esta migracion (crea la firma estricta de 3 parametros y
+--      conserva la de 2 parametros como wrapper seguro, sin DROP).
 --   2. Verificar en CI con base limpia: lint de migraciones, RLS DB
 --      (incluida supabase/tests/rls/rep_folio_org_scope.sql), smoke SQL,
 --      Deno, Vitest, cobertura, calidad y secretos.
 --   3. Recien entonces desplegar los Edge Functions
 --      (stamp-payment-complement, reconcile-stamping-invoices).
+--
+--   El wrapper de 2 parametros evita la ventana de fallo en cualquier orden.
+--   El fallback del helper de Edge Functions es solo defensa de emergencia:
+--   la prueba RLS falla si esta migracion no esta aplicada.
 --
 -- NO se tocan indices: payments_rep_number_uidx (unico global) se conserva;
 -- el Lote 2 de unicidad por organizacion es un cambio posterior.

@@ -1,3 +1,13 @@
+## [8.8.29] - 2026-09-16 · patch · fix
+
+El ajuste de base para el folio del complemento de pago dejó de estar solo en documentación: ahora es un cambio real del repositorio que se prueba automáticamente.
+
+- Se agregó el cambio de base al carril que la revisión automática aplica sobre una base recién creada.
+- Se detectó y corrigió un choque de versiones que habría hecho fallar las llamadas antiguas; el tercer dato ahora es obligatorio.
+- Se probó en una base temporal: flujo válido, repetición del mismo folio, folio distinto, empresa ajena, pago sin empresa, folio faltante, pago inexistente y usuario sin permiso.
+- La revisión automática ahora sí ejecuta la revisión de cambios de base cuando viven en este carril, en lugar de omitirla.
+- El respaldo del programa queda solo como emergencia y deja aviso en bitácora; el índice actual se conserva.
+
 ## [8.8.28] - 2026-09-16 · patch · fix
 
 Se corrigió el riesgo de que el folio del complemento de pago fallara si el cambio de la base y el del programa se activaban en distinto orden.
