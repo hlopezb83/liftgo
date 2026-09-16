@@ -97,7 +97,7 @@ function makeDeps(opts: {
         data: { installment_number: 1, prior_balance: 116 },
         error: null,
       },
-      assign_stamped_rep_number: { data: "1", error: null },
+      assign_stamped_rep_number: { data: "CP-0001", error: null },
       ...(serviceConfig.rpcs ?? {}),
     },
   });
