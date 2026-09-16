@@ -297,11 +297,13 @@ jobs:
           set -euo pipefail
           if [[ "$EVENT" == "pull_request" ]]; then
             git fetch origin "$BASE_REF" --depth=1
-            FILES=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
+            FILES=$(git diff --name-only --diff-filter=AM "origin/$BASE_REF"...HEAD -- 'supabase/migrations/*.sql' 'drizzle/migrations/*.sql' | tr '\n' ' ')
           elif [[ "$EVENT" == "push" ]]; then
-            FILES=$(git diff --name-only --diff-filter=AM "$BEFORE" "$SHA" -- 'supabase/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
+            FILES=$(git diff --name-only --diff-filter=AM "$BEFORE" "$SHA" -- 'supabase/migrations/*.sql' 'drizzle/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
           else
-            FILES=""
+            # workflow_dispatch: no hay diff confiable, se linta el carril
+            # Drizzle completo (los archivos nuevos de esquema viven ahí).
+            FILES=$(find drizzle/migrations -maxdepth 1 -name '*.sql' | sort | tr '\n' ' ')
           fi
           echo "list=${FILES}" >> "$GITHUB_OUTPUT"
           echo "Archivos: ${FILES:-<ninguno>}"
