@@ -1,7 +1,8 @@
 # Tramo 8.1 · Rollout del folio REP por empresa
 
-Estado: **no aprobado**. La migración no está aplicada en producción y no puede
-aplicarse desde este entorno (ver "Bloqueo").
+Estado: **pendiente de CI**. La migración ya vive en el repositorio
+(`drizzle/migrations/0026_rep_number_org_scoped_assignment.sql`), no está
+aplicada en producción y no debe aplicarse desde este entorno.
 
 ## Problema de rollout detectado
 
@@ -55,13 +56,48 @@ aplicar migración → verificar CI con base limpia → desplegar Edge Functions
 `payments_rep_number_uidx` (único global) **se conserva**. El Lote 2 de
 unicidad por organización no se aplica en este tramo.
 
-## Bloqueo
+## Ubicación de la migración y detección en CI
 
-Este entorno no puede escribir en `supabase/migrations/` ni en
-`drizzle/migrations/` (los gobierna el sistema de migraciones) y la única vía
-disponible aplicaría el SQL directamente a producción, lo cual está prohibido
-en este tramo. Por eso la migración se entrega como SQL revisable y **el tramo
-8.1 no queda aprobado**: falta aplicarla por el canal de migraciones y ver la
-suite RLS en verde con base limpia, con `rep_folio_org_scope.sql` incluida.
-Mientras la migración no esté en el repositorio, esa prueba fallará en CI, que
-es exactamente la señal pedida.
+- Migración real y aplicable: `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql`.
+  Es el carril que `rls-db-tests.yml` aplica con `psql -v ON_ERROR_STOP=1`
+  sobre la base efímera, después del historial de `supabase/migrations/`.
+  No se agregó copia en `supabase/migrations/` porque ese directorio se aplica
+  con `supabase db reset` y duplicar el SQL solo repetiría el mismo
+  `CREATE OR REPLACE`.
+- `rls-db-tests.yml` ya se dispara con `drizzle/**`, así que RLS y smoke SQL
+  corren con esta migración incluida.
+- Ajuste mínimo en `ci.yml` para que el lint de migraciones deje de aparecer
+  *skipped* cuando el cambio vive solo en el carril Drizzle:
+  el filtro `migrations` incluye `drizzle/migrations/**`, la resolución de
+  archivos del diff también mira `drizzle/migrations/*.sql`, el job corre
+  también en `workflow_dispatch` y en ese caso linta el carril completo.
+
+## Ambigüedad de firmas (hallazgo de la validación local)
+
+La versión inicial declaraba `p_organization_id uuid DEFAULT NULL`. Con el
+wrapper de dos parámetros presente, PostgreSQL rechaza toda llamada de dos
+argumentos con `42725 function ... is not unique`. La migración final declara el
+tercer parámetro **sin** valor por omisión; el wrapper pasa `NULL::uuid`
+explícito.
+
+## Validación local ejecutada (base PostgreSQL 17 limpia, efímera)
+
+Se levantó un PostgreSQL local desechable con un fixture mínimo (`auth.uid`,
+`app_role`, `has_role`, `payments`, `payments_rep_number_uidx` y la función
+histórica de dos parámetros tal como está en producción), se aplicó la
+migración y se comprobaron diez casos: flujo válido con la organización del
+pago, idempotencia con el mismo folio, rechazo de sobreescritura con folio
+distinto, rechazo de cruce de organización sin escribir la fila, rechazo de
+pago sin organización, choque contra el índice global, folio ausente, wrapper
+de dos parámetros funcionando sin alterar la organización, pago inexistente y
+usuario sin rol. Todos pasaron.
+
+Además, `supabase/tests/rls/rep_folio_org_scope.sql` se ejecutó dos veces:
+pasa con la migración aplicada y **falla** (`exit 3`) contra una base sin ella.
+
+## Bloqueo restante
+
+Este entorno no puede crear commits ni lanzar GitHub Actions, así que faltan en
+base limpia y con el historial completo: lint de migraciones en CI, RLS DB,
+smoke SQL, Deno, Vitest, cobertura, calidad y secretos. **El tramo 8.1 no queda
+aprobado** hasta que esos checks aparezcan en verde (ninguno *skipped*).
