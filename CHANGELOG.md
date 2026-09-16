@@ -1,3 +1,13 @@
+## [8.8.31] - 2026-09-16 · patch · docs
+
+Se actualizó la guía del tramo 8.1 con el estado aprobado en repositorio, los runs de CI verdes, el preflight actual y un runbook explícito para aplicar la migración en producción.
+
+- Se dejó el estado final: 8.8.30 aprobado en repositorio (commit 3c039b1b), con CI principal y RLS/smoke en verde; producción sigue pendiente con sólo la firma de dos parámetros.
+- Se agregó el preflight actual: 82 pagos, 25 con folio, cero sin organización, cero duplicados; un reporte, cero duplicados.
+- Se documentó que feedback_reports_folio_key es una constraint UNIQUE global que convive con la por organización; retirarla requiere ALTER TABLE, no DROP INDEX.
+- Se añadió el runbook: aplicar 0026, verificar ambas firmas y privilegios, desplegar Edge Functions después, smoke en entorno aislado, repetir preflight y no dar de alta la segunda empresa hasta cerrar el bypass.
+- Se conservó el orden seguro y el rollback conceptual sin aplicar DDL.
+
 ## [8.8.30] - 2026-09-16 · patch · seguridad
 
 Se cerró un hueco: tener permiso de administrador no basta; ahora hay que pertenecer a la empresa dueña del pago para asignarle folio.
