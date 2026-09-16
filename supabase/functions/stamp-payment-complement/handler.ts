@@ -650,7 +650,6 @@ export async function handleStampPaymentComplement(
       rep_number: folioRes.repNumber,
       installment_number: installmentNumber,
     });
-
   } catch (err) {
     console.error("stamp-payment-complement error:", err);
     return jsonError(req, 500, "Internal server error");
