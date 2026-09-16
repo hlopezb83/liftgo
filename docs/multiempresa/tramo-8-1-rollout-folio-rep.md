@@ -95,6 +95,41 @@ usuario sin rol. Todos pasaron.
 Además, `supabase/tests/rls/rep_folio_org_scope.sql` se ejecutó dos veces:
 pasa con la migración aplicada y **falla** (`exit 3`) contra una base sin ella.
 
+## Aislamiento del llamante (hallazgo posterior, corregido)
+
+El rol no basta. La versión anterior de la migración solo exigía
+`has_role(admin/administrativo)`, así que un admin autenticado de la
+organización A podía invocar la RPC directamente sobre un pago de B (incluso
+pasando `NULL` como `p_organization_id`) porque es `SECURITY DEFINER`. La
+validación del helper de Edge Functions no protege una RPC concedida a
+`authenticated`.
+
+Corrección aplicada en la migración:
+
+- Tras leer `organization_id` del pago y antes del `UPDATE`, todo llamador con
+  `auth.uid()` no nulo debe cumplir
+  `current_organization_id() = organization_id del pago` **y**
+  `is_internal_member(auth.uid())`. Si no, se rechaza con `42501` sin escribir.
+- `p_organization_id` sigue siendo solo un contraste adicional: nunca decide.
+- El canal interno (`service_role` / cron) no tiene `auth.uid()` y sigue
+  operando; su límite es el `GRANT`.
+- **Decisión sobre el wrapper de dos parámetros:** se conserva para los
+  callers de servicio ya desplegados, pero se le **revoca `EXECUTE` a
+  `authenticated`** (queda solo `service_role`). Se revisaron todos los
+  callers del repositorio: únicamente lo invoca el canal interno con service
+  client; no existe ningún caller de navegador. Así el wrapper no puede usarse
+  como puerta trasera para delegar con `NULL`.
+- Se conservan idempotencia, rechazo de sobreescritura con folio distinto,
+  `SECURITY DEFINER` con `search_path` fijo y el índice global
+  `payments_rep_number_uidx`.
+
+La prueba `supabase/tests/rls/rep_folio_org_scope.sql` agrega una verificación
+conductual A/B: un admin de A intenta folear un pago de B con la organización
+de B, con `NULL` y por el wrapper histórico; los tres deben fallar y el pago de
+B no debe cambiar, mientras el flujo válido de A devuelve `CP-0007` de forma
+idempotente. Se comprobó localmente que esta prueba **falla** contra la versión
+sin el chequeo de contexto y **pasa** con la versión corregida.
+
 ## Bloqueo restante
 
 Este entorno no puede crear commits ni lanzar GitHub Actions, así que faltan en
