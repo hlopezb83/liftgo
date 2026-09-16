@@ -47,6 +47,29 @@ function classify(message: string): RepFolioFailure {
 }
 
 /**
+ * Detecta que la base todavía no tiene la firma de tres parámetros
+ * (migración 0026 no aplicada). PostgREST responde PGRST202 y Postgres 42883.
+ */
+function signatureMissing(err: { code?: string; message?: string }): boolean {
+  const code = err.code ?? "";
+  if (code === "PGRST202" || code === "42883") return true;
+  const m = (err.message ?? "").toLowerCase();
+  return (
+    m.includes("could not find the function") ||
+    (m.includes("assign_stamped_rep_number") && m.includes("does not exist"))
+  );
+}
+
+type RpcClient = {
+  rpc: (
+    fn: string,
+    params: Record<string, unknown>,
+  ) => Promise<
+    { data: unknown; error: { message?: string; code?: string } | null }
+  >;
+};
+
+/**
  * Asigna el folio REP de forma idempotente.
  * `organizationId` debe ser la organización verificada del pago.
  */
