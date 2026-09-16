@@ -180,8 +180,12 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         }),
     },
     from: (table: string) => makeBuilder(table, "select"),
-    rpc: (fn: string) =>
-      Promise.resolve(rpcs[fn] ?? { data: null, error: null }),
+    rpc: (fn: string, args?: Record<string, unknown>) => {
+      state.rpcCalls.push({ fn, args });
+      const seq = rpcsSeq[fn];
+      if (seq && seq.length > 0) return Promise.resolve(seq.shift()!);
+      return Promise.resolve(rpcs[fn] ?? { data: null, error: null });
+    },
     storage: {
       from: (bucket: string) => ({
         upload: (path: string) => {
