@@ -275,7 +275,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: changes
-    if: needs.changes.outputs.migrations == 'true'
+    if: needs.changes.outputs.migrations == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
         with:
