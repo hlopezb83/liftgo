@@ -66,7 +66,10 @@ export const RUN_ROW_LIMIT = 10;
  * de la petición.
  */
 async function recoverRepFolio(
-  admin: SupabaseLike,
+  // El cliente real de supabase-js es estructuralmente más amplio que
+  // `SupabaseLike`; se estrecha al pasarlo al helper compartido.
+  // deno-lint-ignore no-explicit-any
+  admin: any,
   client: { invoices: { retrieve?: (id: string) => Promise<unknown> } },
   payment: Record<string, unknown>,
   facturapiId: string,
