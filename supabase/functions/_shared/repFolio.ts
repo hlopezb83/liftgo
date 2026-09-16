@@ -115,6 +115,12 @@ export async function assignRepFolio(
   // del navegador en ninguna de las dos rutas.
   if (res.error && signatureMissing(res.error)) {
     usedLegacySignature = true;
+    // Defensa de emergencia, NO estado aceptable: se registra como error para
+    // que la falta de la migración sea visible en observabilidad.
+    console.error(
+      "[repFolio] migración 0026 no aplicada: se usó la firma histórica de dos parámetros",
+      { paymentId: args.paymentId },
+    );
     res = await client.rpc("assign_stamped_rep_number", {
       p_payment_id: args.paymentId,
       p_folio: folio,
