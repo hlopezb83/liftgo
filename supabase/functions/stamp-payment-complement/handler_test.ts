@@ -377,7 +377,11 @@ function repMock() {
   return installFacturapiMock({
     "/invoices": (req) =>
       req.method === "POST"
-        ? facturapiOk({ id: "fapi_rep_1", uuid: "REP-UUID-OK", folio_number: 1 })
+        ? facturapiOk({
+          id: "fapi_rep_1",
+          uuid: "REP-UUID-OK",
+          folio_number: 1,
+        })
         : new Response("not found", { status: 404 }),
     "/invoices/fapi_rep_1/xml": () => xmlResponse("<xml/>"),
     "/invoices/fapi_rep_1/pdf": () =>
