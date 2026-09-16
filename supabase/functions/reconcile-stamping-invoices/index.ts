@@ -169,7 +169,7 @@ async function handleRequest(req: Request): Promise<Response> {
   let paymentsQuery = admin
     .from("payments")
     .select(
-      "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts",
+      "id, organization_id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts, rep_number, rep_folio",
     )
     .eq("rep_cfdi_status", "stamping")
     .lt("rep_stamping_started_at", cutoff)
@@ -182,6 +182,32 @@ async function handleRequest(req: Request): Promise<Response> {
   if (payErr) {
     console.error("[reconcile-stamping] payments fetch failed", payErr);
   }
+
+  // Tramo 8.1: pagos YA timbrados que quedaron sin folio interno (p. ej. porque
+  // la asignación falló después de que el PAC timbró). No se re-timbran: sólo
+  // se recupera el folio, siempre dentro de la organización del propio pago.
+  let folioPendingQuery = admin
+    .from("payments")
+    .select(
+      "id, organization_id, invoice_id, rep_facturapi_id, rep_number, rep_folio",
+    )
+    .eq("rep_cfdi_status", "stamped")
+    .is("rep_number", null)
+    .not("rep_facturapi_id", "is", null)
+    .limit(RUN_ROW_LIMIT);
+  if (manualOrganizationId) {
+    folioPendingQuery = folioPendingQuery.eq(
+      "organization_id",
+      manualOrganizationId,
+    );
+  }
+  const { data: folioPendingPayments, error: folioErr } =
+    await folioPendingQuery;
+
+  if (folioErr) {
+    console.error("[reconcile-stamping] rep folio fetch failed", folioErr);
+  }
+
 
   let creditNotesQuery = admin
     .from("credit_notes")
