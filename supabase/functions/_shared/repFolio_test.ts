@@ -167,3 +167,76 @@ Deno.test("mensaje pendiente: explica que el CFDI se conserva y no se re-timbra"
   assert(msg.includes("timbra"));
   assert(msg.length <= 1000);
 });
+
+// --- Rollout: la migración de 3 parámetros puede no estar aplicada todavía ---
+
+Deno.test("firma faltante (PGRST202): reintenta con la firma histórica y no deja el REP sin folio", async () => {
+  const mock = buildSupabaseMock({
+    rpcsSeq: {
+      assign_stamped_rep_number: [
+        {
+          data: null,
+          error: {
+            code: "PGRST202",
+            message:
+              "Could not find the function public.assign_stamped_rep_number(p_folio, p_organization_id, p_payment_id)",
+          },
+        },
+        { data: "CP-0007", error: null },
+      ],
+    },
+  });
+  const res = await assignRepFolio(mock.client as SupabaseLike, {
+    paymentId: PAY,
+    organizationId: ORG_A,
+    folio: 7,
+  });
+  assert(res.ok);
+  assertEquals(res.repNumber, "CP-0007");
+  assertEquals(res.usedLegacySignature, true);
+  assertEquals(mock.rpcCalls.length, 2);
+  // El reintento NO envía organización: la base la lee del propio pago.
+  assertEquals(mock.rpcCalls[1].args?.p_organization_id, undefined);
+  assertEquals(mock.rpcCalls[1].args?.p_payment_id, PAY);
+});
+
+Deno.test("firma faltante y reintento fallido: no devuelve éxito con folio nulo", async () => {
+  const mock = buildSupabaseMock({
+    rpcsSeq: {
+      assign_stamped_rep_number: [
+        { data: null, error: { code: "42883", message: "does not exist" } },
+        {
+          data: null,
+          error: { message: "duplicate key value violates unique constraint" },
+        },
+      ],
+    },
+  });
+  const res = await assignRepFolio(mock.client as SupabaseLike, {
+    paymentId: PAY,
+    organizationId: ORG_A,
+    folio: 7,
+  });
+  assert(!res.ok);
+  assertEquals(res.code, "collision");
+  assertEquals(mock.rpcCalls.length, 2);
+});
+
+Deno.test("otros errores de la RPC NO se reintentan con la firma histórica", async () => {
+  const mock = buildSupabaseMock({
+    rpcs: {
+      assign_stamped_rep_number: {
+        data: null,
+        error: { message: "payment belongs to another organization" },
+      },
+    },
+  });
+  const res = await assignRepFolio(mock.client as SupabaseLike, {
+    paymentId: PAY,
+    organizationId: ORG_B,
+    folio: 7,
+  });
+  assert(!res.ok);
+  assertEquals(res.code, "cross_organization");
+  assertEquals(mock.rpcCalls.length, 1);
+});

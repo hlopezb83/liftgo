@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.8.28",
+    "date": "2026-09-16",
+    "type": "patch",
+    "category": "fix",
+    "title": "Folio de complementos de pago: cambio de base y de código a prueba de orden",
+    "description": "Se corrigió el riesgo de que el folio del complemento de pago fallara si el cambio de la base y el del programa se activaban en distinto orden.",
+    "changes": [
+      "La versión nueva de la base convive con la anterior: la forma antigua se conserva y reenvía a la nueva, así que ningún proceso queda sin folio.",
+      "Si el cambio de la base todavía no está aplicado, el sistema reintenta por el camino anterior en lugar de dejar el complemento timbrado sin folio.",
+      "La prueba de seguridad del folio ahora falla si el cambio de la base no está aplicado, en lugar de pasar sin revisar nada.",
+      "Se documentó el orden obligatorio: aplicar el cambio de base, verificar en integración continua y sólo después publicar; el índice actual se conserva."
+    ]
+  },
+  {
     "version": "8.8.27",
     "date": "2026-09-16",
     "type": "patch",

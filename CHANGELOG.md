@@ -1,3 +1,12 @@
+## [8.8.28] - 2026-09-16 · patch · fix
+
+Se corrigió el riesgo de que el folio del complemento de pago fallara si el cambio de la base y el del programa se activaban en distinto orden.
+
+- La versión nueva de la base convive con la anterior: la forma antigua se conserva y reenvía a la nueva, así que ningún proceso queda sin folio.
+- Si el cambio de la base todavía no está aplicado, el sistema reintenta por el camino anterior en lugar de dejar el complemento timbrado sin folio.
+- La prueba de seguridad del folio ahora falla si el cambio de la base no está aplicado, en lugar de pasar sin revisar nada.
+- Se documentó el orden obligatorio: aplicar el cambio de base, verificar en integración continua y sólo después publicar; el índice actual se conserva.
+
 ## [8.8.27] - 2026-09-16 · patch · fix
 
 El folio interno del complemento de pago ya se asigna dentro de la empresa dueña del pago, y si algo falla después de timbrar ante el SAT el sistema lo dice y lo recupera solo, sin volver a timbrar.
