@@ -14,6 +14,7 @@ import {
   loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
+import { assignRepFolio, repFolioPendingMessage } from "../_shared/repFolio.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -613,40 +614,43 @@ export async function handleStampPaymentComplement(
       return jsonError(req, 500, "REP timbrado pero no se pudo guardar en DB");
     }
 
-    let repNumber: string | null = null;
-    const facturApiFolioRaw = repInvoice.folio_number ?? null;
-    const facturApiFolio: string | null = facturApiFolioRaw !== null &&
-        facturApiFolioRaw !== undefined
-      ? String(facturApiFolioRaw)
-      : null;
+    // Tramo 8.1: el REP ya existe ante el SAT. Si no se puede asignar el folio
+    // interno, NO se devuelve éxito con folio nulo: se deja un estado explícito
+    // (`rep_error_message`) y se responde con un error recuperable. El pago
+    // queda en `rep_cfdi_status = 'stamped'`, así que un reintento no vuelve a
+    // timbrar: el claim lo rechaza y la reconciliación asigna el folio.
+    const folioRes = await assignRepFolio(supabase, {
+      paymentId: payment_id,
+      organizationId,
+      folio: repInvoice.folio_number ?? null,
+    });
 
-    if (facturApiFolio) {
-      const rpcRes = await (supabase as unknown as {
-        rpc: (
-          fn: string,
-          args: Record<string, unknown>,
-        ) => Promise<{ data: unknown; error: { message?: string } | null }>;
-      }).rpc("assign_stamped_rep_number", {
-        p_payment_id: payment_id,
-        p_folio: facturApiFolio,
-      });
-      if (rpcRes.error) {
-        console.error(
-          "[stamp-payment-complement] assign_stamped_rep_number failed",
-          { payment_id, err: rpcRes.error.message },
-        );
-      } else {
-        repNumber = rpcRes.data as string;
-      }
+    if (!folioRes.ok) {
+      console.error(
+        "[stamp-payment-complement] assign_stamped_rep_number failed",
+        { payment_id, code: folioRes.code, err: folioRes.message },
+      );
+      await supabase
+        .from("payments")
+        .update({
+          rep_error_message: repFolioPendingMessage(folioRes.message),
+        })
+        .eq("id", payment_id);
+      return jsonError(
+        req,
+        503,
+        `El complemento de pago se timbró correctamente (UUID ${repUuid}), pero no se pudo asignar su folio interno: ${folioRes.message} No se volverá a timbrar; el folio se asignará en la siguiente reconciliación.`,
+      );
     }
 
     return jsonResponse(req, {
       success: true,
       rep_cfdi_uuid: repUuid,
       rep_facturapi_id: repId,
-      rep_number: repNumber,
+      rep_number: folioRes.repNumber,
       installment_number: installmentNumber,
     });
+
   } catch (err) {
     console.error("stamp-payment-complement error:", err);
     return jsonError(req, 500, "Internal server error");
