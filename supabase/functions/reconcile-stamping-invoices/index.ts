@@ -261,7 +261,6 @@ async function handleRequest(req: Request): Promise<Response> {
     ...folioPendingGrouped.groups.keys(),
   ]);
 
-
   // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
   // (o un reintento manual encimado) podían procesar el mismo documento y
   // duplicar llamadas al PAC. El UPDATE condicionado al valor leído del
