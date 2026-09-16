@@ -370,3 +370,126 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
     mock.restore();
   }
 });
+
+// ── Tramo 8.1: folio REP por empresa, sin éxito con folio nulo ──────────────
+
+function repMock() {
+  return installFacturapiMock({
+    "/invoices": (req) =>
+      req.method === "POST"
+        ? facturapiOk({ id: "fapi_rep_1", uuid: "REP-UUID-OK", folio_number: 1 })
+        : new Response("not found", { status: 404 }),
+    "/invoices/fapi_rep_1/xml": () => xmlResponse("<xml/>"),
+    "/invoices/fapi_rep_1/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  });
+}
+
+function repDeps(rpcs?: MockConfig["rpcs"]) {
+  return makeDeps({
+    env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        payments: { data: VALID_PAYMENT, error: null },
+        invoices: { data: VALID_INVOICE, error: null },
+        company_settings: {
+          data: { facturapi_mode: "test", organization_id: ORG_ID },
+          error: null,
+        },
+        billing_secrets: { data: null, error: null },
+      },
+      updates: { payments: { data: null, error: null } },
+      ...(rpcs ? { rpcs } : {}),
+    },
+  });
+}
+
+Deno.test("handler: el folio REP se pide con la organización verificada del pago", async () => {
+  const mock = repMock();
+  try {
+    const { deps, serviceState } = repDeps();
+    const res = await handleStampPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.rep_number, "CP-0001");
+    const call = serviceState.rpcCalls.find((c) =>
+      c.fn === "assign_stamped_rep_number"
+    );
+    assert(call, "debe llamarse al asignador de folio");
+    assertEquals(call!.args?.p_organization_id, ORG_ID);
+    assert(call!.args?.p_organization_id !== OTHER_ORG_ID);
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: colisión de folio NO devuelve éxito con rep_number nulo", async () => {
+  const mock = repMock();
+  try {
+    const { deps, serviceState } = repDeps({
+      claim_payment_rep_stamping: { data: "claimed", error: null },
+      prepare_payment_complement: {
+        data: { installment_number: 1, prior_balance: 116 },
+        error: null,
+      },
+      assign_stamped_rep_number: {
+        data: null,
+        error: {
+          message:
+            'duplicate key value violates unique constraint "payments_rep_number_uidx"',
+        },
+      },
+    });
+    const res = await handleStampPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 503);
+    assertEquals(body.success, undefined);
+    // El CFDI se conserva timbrado: no debe revertirse ni re-timbrarse.
+    assert(
+      serviceState.updates.some((u) => u.patch.rep_cfdi_status === "stamped"),
+    );
+    assert(
+      !serviceState.updates.some((u) => u.patch.rep_cfdi_status === "error"),
+    );
+    const pending = serviceState.updates.find((u) =>
+      typeof u.patch.rep_error_message === "string" &&
+      u.patch.rep_cfdi_status === undefined
+    );
+    assert(pending, "debe quedar un motivo explícito para la recuperación");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: rechaza asignar folio a un pago de otra organización", async () => {
+  const mock = repMock();
+  try {
+    const { deps } = repDeps({
+      claim_payment_rep_stamping: { data: "claimed", error: null },
+      prepare_payment_complement: {
+        data: { installment_number: 1, prior_balance: 116 },
+        error: null,
+      },
+      assign_stamped_rep_number: {
+        data: null,
+        error: { message: "payment belongs to another organization" },
+      },
+    });
+    const res = await handleStampPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID }),
+      deps,
+    );
+    await res.json();
+    assertEquals(res.status, 503);
+  } finally {
+    mock.restore();
+  }
+});
+
