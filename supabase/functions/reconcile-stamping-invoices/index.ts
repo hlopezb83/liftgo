@@ -297,6 +297,7 @@ async function handleRequest(req: Request): Promise<Response> {
       ...stuckGrouped.withoutOrganization,
       ...paymentsGrouped.withoutOrganization,
       ...ncsGrouped.withoutOrganization,
+      ...folioPendingGrouped.withoutOrganization,
     ]
   ) {
     const id = (orphan as { id?: unknown }).id;
