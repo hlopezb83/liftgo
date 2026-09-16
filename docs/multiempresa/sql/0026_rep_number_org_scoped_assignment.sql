@@ -1,35 +1,31 @@
 -- =====================================================================
 -- Multiempresa · Tramo 8.1: endurecimiento del asignador de folio REP.
 --
--- REVISABLE, NO APLICADA. Vive en `docs/multiempresa/sql/` porque el
--- directorio de migraciones aplicadas lo gobierna el sistema de migraciones y
--- este tramo NO autoriza escrituras ni DDL en produccion. Para aplicarla:
--- revisar aqui, aprobar y ejecutarla por el canal de migraciones habitual.
+-- COPIA REVISABLE, IDÉNTICA al SQL que debe aplicarse por el canal de
+-- migraciones del proyecto. No se aplicó a producción.
 --
--- Contexto (auditoria del tramo 8): `assign_stamped_rep_number` recibia solo
--- el id del pago y actualizaba por PK, sin ninguna condicion de organizacion.
--- Con una segunda empresa activa eso permite que un proceso privilegiado
--- escriba el folio de un pago de otra empresa, y un reintento con folio
--- distinto sobreescribe en silencio el folio ya timbrado.
+-- ORDEN DE ROLLOUT OBLIGATORIO
+--   1. Aplicar esta migración (crea la firma estricta de 3 parámetros y
+--      conserva la de 2 parámetros como wrapper seguro).
+--   2. Verificar en CI con base limpia: Deno, RLS (incluida
+--      supabase/tests/rls/rep_folio_org_scope.sql), smoke SQL, Vitest,
+--      cobertura, calidad y secretos.
+--   3. Recién entonces desplegar los Edge Functions
+--      (stamp-payment-complement, reconcile-stamping-invoices).
 --
--- Cambios (sin tocar indices, esquema ni reglas de negocio):
---  1. Nuevo parametro OPCIONAL `p_organization_id`: NO se confia en el; se
---     valida CONTRA la organizacion del pago leida en la base. Si difiere se
---     rechaza con 42501. Nunca decide cual fila se actualiza.
---  2. El UPDATE lleva condicion explicita de organizacion.
---  3. Idempotencia: si el pago ya tiene el MISMO folio se devuelve tal cual
---     (recuperacion/reintento sin volver a timbrar). Si ya tiene otro folio se
---     rechaza con 23505 en vez de sobreescribirlo.
---  4. Pago sin organizacion => rechazo fail-closed.
---  5. Se CONSERVA el indice global `payments_rep_number_uidx`; el Lote 2 es un
---     cambio posterior e independiente. La autorizacion por rol se evalua
---     ANTES de cualquier lectura privilegiada.
+--   El wrapper de 2 parámetros evita la ventana de fallo en cualquier orden:
+--   el código nuevo también reintenta con la firma histórica si la migración
+--   todavía no está aplicada (ver supabase/functions/_shared/repFolio.ts).
+--   Ninguna de las dos rutas acepta organization_id del navegador.
 --
--- Rollback: recrear la version de dos parametros documentada al final.
+-- NO se tocan índices: `payments_rep_number_uidx` (único global) se conserva;
+-- el Lote 2 de unicidad por organización es un cambio posterior e
+-- independiente.
 -- =====================================================================
 
-DROP FUNCTION IF EXISTS public.assign_stamped_rep_number(uuid, text);
-
+-- ---------------------------------------------------------------------
+-- 1. Firma estricta (tres parametros)
+-- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.assign_stamped_rep_number(
   p_payment_id uuid,
   p_folio text,
@@ -121,6 +117,33 @@ GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) TO 
 
 COMMENT ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) IS
   'Asigna el folio REP (CP-####) al pago. La organizacion se valida contra la fila en base; el parametro solo sirve para rechazar cruces. Idempotente ante el mismo folio.';
+
+-- ---------------------------------------------------------------------
+-- 2. Wrapper de compatibilidad (dos parametros). NO se dropea la firma vieja:
+--    los callers ya desplegados seguirian funcionando. Delega en la estricta
+--    SIN argumento de organizacion, asi que la organizacion siempre se lee de
+--    public.payments dentro de la funcion estricta.
+-- ---------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.assign_stamped_rep_number(
+  p_payment_id uuid,
+  p_folio text
+)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $function$
+BEGIN
+  RETURN public.assign_stamped_rep_number(p_payment_id, p_folio, NULL::uuid);
+END;
+$function$;
+
+REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO service_role;
+
+COMMENT ON FUNCTION public.assign_stamped_rep_number(uuid, text) IS
+  'Wrapper de compatibilidad del tramo 8.1: delega en assign_stamped_rep_number(uuid, text, uuid) sin argumento de organizacion. Retirable una vez desplegados los Edge Functions nuevos.';
 
 -- ---------------------------------------------------------------------
 -- Rollback (solo si fuera necesario revertir el tramo 8.1):
