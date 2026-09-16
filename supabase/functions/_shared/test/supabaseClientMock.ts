@@ -46,6 +46,14 @@ export interface MockConfig {
   storage?: Record<string, { error: unknown }>;
   // keyed by rpc function name: response for supabase.rpc(...)
   rpcs?: Record<string, TableResponse>;
+  // Tramo 8.1: respuestas secuenciadas por RPC (1ª llamada consume seq[0]...).
+  // Al agotarse cae en `rpcs[fn]`. Útil para colisión + reintento idempotente.
+  rpcsSeq?: Record<string, TableResponse[]>;
+}
+
+export interface MockRpcCall {
+  fn: string;
+  args: Record<string, unknown> | undefined;
 }
 
 export interface MockState {
@@ -53,6 +61,8 @@ export interface MockState {
   updates: MockUpdate[];
   inserts: MockInsert[];
   uploads: Array<{ bucket: string; path: string }>;
+  /** Tramo 8.1: llamadas a rpc() con sus argumentos, para verificar el scope. */
+  rpcCalls: MockRpcCall[];
 }
 
 export function buildSupabaseMock(cfg: MockConfig): MockState {
@@ -61,7 +71,9 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
     updates: [],
     inserts: [],
     uploads: [],
+    rpcCalls: [],
   };
+
 
   const selects = cfg.selects ?? {};
   const selectsSeq: Record<string, TableResponse[]> = {};
