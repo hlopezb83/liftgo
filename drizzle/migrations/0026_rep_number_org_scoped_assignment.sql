@@ -27,7 +27,9 @@
 CREATE OR REPLACE FUNCTION public.assign_stamped_rep_number(
   p_payment_id uuid,
   p_folio text,
-  p_organization_id uuid DEFAULT NULL
+  -- Sin DEFAULT: un valor por omision volveria ambigua la llamada de dos
+  -- argumentos (42725) mientras el wrapper de compatibilidad exista.
+  p_organization_id uuid
 )
 RETURNS text
 LANGUAGE plpgsql
