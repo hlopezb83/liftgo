@@ -232,12 +232,16 @@ async function handleRequest(req: Request): Promise<Response> {
   const stuckAll = (rows ?? []) as StuckRow[];
   const paymentsAll = (stuckPayments ?? []) as Array<Record<string, unknown>>;
   const ncsAll = (stuckNcs ?? []) as Array<Record<string, unknown>>;
+  const folioPendingAll = (folioPendingPayments ?? []) as Array<
+    Record<string, unknown>
+  >;
 
-  // N4: salir SOLO si las tres listas están vacías. Con trabajo pendiente,
+  // N4: salir SOLO si las listas están vacías. Con trabajo pendiente,
   // se continúa y se resuelve la config del PAC POR ORGANIZACIÓN (nunca un
   // solo cliente Facturapi compartido entre empresas).
   if (
-    stuckAll.length === 0 && paymentsAll.length === 0 && ncsAll.length === 0
+    stuckAll.length === 0 && paymentsAll.length === 0 && ncsAll.length === 0 &&
+    folioPendingAll.length === 0
   ) {
     return json({ processed: 0, results: [] }, 200);
   }
@@ -247,12 +251,15 @@ async function handleRequest(req: Request): Promise<Response> {
   const stuckGrouped = groupByOrganization(stuckAll);
   const paymentsGrouped = groupByOrganization(paymentsAll);
   const ncsGrouped = groupByOrganization(ncsAll);
+  const folioPendingGrouped = groupByOrganization(folioPendingAll);
 
   const organizationIds = new Set<string>([
     ...stuckGrouped.groups.keys(),
     ...paymentsGrouped.groups.keys(),
     ...ncsGrouped.groups.keys(),
+    ...folioPendingGrouped.groups.keys(),
   ]);
+
 
   // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
   // (o un reintento manual encimado) podían procesar el mismo documento y
