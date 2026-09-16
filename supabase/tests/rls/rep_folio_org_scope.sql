@@ -93,6 +93,15 @@ BEGIN
       RAISE EXCEPTION
         'REP FOLIO ORG: el wrapper no debe actualizar payments por su cuenta';
     END IF;
+
+    -- El wrapper no puede ser una vía de delegación con NULL para sesiones
+    -- autenticadas: o no tiene EXECUTE para authenticated, o aplica el mismo
+    -- chequeo de contexto.
+    IF has_function_privilege('authenticated', v_legacy, 'EXECUTE')
+       AND v_legacy_def !~ 'current_organization_id' THEN
+      RAISE EXCEPTION
+        'REP FOLIO ORG: el wrapper de dos parámetros no debe quedar ejecutable por authenticated sin chequeo de contexto';
+    END IF;
   END IF;
 
   -- 3. El índice global se conserva en este tramo (el Lote 2 no se aplica).
