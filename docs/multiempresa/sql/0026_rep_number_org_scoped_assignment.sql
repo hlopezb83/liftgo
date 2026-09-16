@@ -70,6 +70,19 @@ BEGIN
       p_payment_id USING ERRCODE = '42501';
   END IF;
 
+  -- Aislamiento multiempresa para cualquier caller autenticado: el rol no
+  -- basta. Un admin de la organizacion A no puede folear un pago de B, ni
+  -- pasando NULL en p_organization_id. Fail-closed ANTES del UPDATE.
+  -- v_uid NULL = canal interno (service_role / cron), sin contexto de sesion,
+  -- ya restringido por GRANT.
+  IF v_uid IS NOT NULL THEN
+    IF public.current_organization_id() IS DISTINCT FROM v_payment_org
+       OR NOT public.is_internal_member(v_uid) THEN
+      RAISE EXCEPTION 'payment % belongs to another organization', p_payment_id
+        USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
   -- El parametro no manda: se contrasta contra la organizacion del pago.
   IF p_organization_id IS NOT NULL AND p_organization_id <> v_payment_org THEN
     RAISE EXCEPTION 'payment % belongs to another organization', p_payment_id
@@ -112,7 +125,7 @@ GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) TO 
 GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) TO service_role;
 
 COMMENT ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) IS
-  'Asigna el folio REP (CP-####) al pago. La organizacion se valida contra la fila en base; el parametro solo sirve para rechazar cruces. Idempotente ante el mismo folio.';
+  'Asigna el folio REP (CP-####) al pago. La organizacion se lee de la fila en base; el parametro solo sirve para rechazar cruces. Un caller autenticado ademas debe ser miembro interno de esa misma organizacion (current_organization_id). Idempotente ante el mismo folio.';
 
 -- ---------------------------------------------------------------------
 -- 2. Wrapper de compatibilidad (dos parametros). NO se dropea la firma vieja:
@@ -134,12 +147,18 @@ BEGIN
 END;
 $function$;
 
+-- Decision de aislamiento: el wrapper NO se concede a authenticated. Se
+-- revisaron todos los callers del repositorio y el unico que lo invoca es el
+-- canal interno con service client (stamp-payment-complement y la
+-- reconciliacion, esta ultima solo como defensa de emergencia). Ningun caller
+-- de navegador lo usa, asi que dejarlo abierto a authenticated solo ofreceria
+-- una via de delegacion con NULL.
 REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM authenticated;
 GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO service_role;
 
 COMMENT ON FUNCTION public.assign_stamped_rep_number(uuid, text) IS
-  'Wrapper de compatibilidad del tramo 8.1: delega en assign_stamped_rep_number(uuid, text, uuid) sin argumento de organizacion. Retirable una vez desplegados los Edge Functions nuevos.';
+  'Wrapper de compatibilidad del tramo 8.1: delega en assign_stamped_rep_number(uuid, text, uuid) sin argumento de organizacion. Solo service_role (canal interno); authenticated no lo ejecuta. Retirable una vez desplegado el codigo nuevo.';
 
 -- ---------------------------------------------------------------------
 -- Rollback (solo si fuera necesario revertir el tramo 8.1):
