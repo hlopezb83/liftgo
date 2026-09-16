@@ -908,8 +908,6 @@ async function handleRequest(req: Request): Promise<Response> {
       }
     }
 
-
-
     // ── H5: reconciliación de NOTAS DE CRÉDITO ───────────────────────────────
     // El claim de stamp-credit-note solo admite pending|error y nada reconciliaba
     // credit_notes: una NC en 'stamping' tras timeout quedaba ingestionable.
