@@ -496,4 +496,3 @@ Deno.test("handler: rechaza asignar folio a un pago de otra organización", asyn
     mock.restore();
   }
 });
-
