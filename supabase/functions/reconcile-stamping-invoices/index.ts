@@ -853,7 +853,6 @@ async function handleRequest(req: Request): Promise<Response> {
           invoice_id: paymentId,
           status: folioStatus ?? "rep_reconciled",
         });
-
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.error("[reconcile-stamping] REP unexpected", {
