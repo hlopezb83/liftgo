@@ -34,7 +34,6 @@ import {
   resolveCallerOrganization,
 } from "../_shared/orgContext.ts";
 import { assignRepFolio, repFolioPendingMessage } from "../_shared/repFolio.ts";
-import type { SupabaseLike } from "../_shared/types.ts";
 
 import {
   decideLookupOutcome,
