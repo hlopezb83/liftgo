@@ -388,7 +388,6 @@ async function handleRequest(req: Request): Promise<Response> {
     const ncs = ncsGrouped.groups.get(organizationId) ?? [];
     const folioPending = folioPendingGrouped.groups.get(organizationId) ?? [];
 
-
     for (const row of stuck) {
       if (outOfBudget()) {
         truncated = true;
