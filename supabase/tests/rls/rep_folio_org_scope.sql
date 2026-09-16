@@ -57,6 +57,13 @@ BEGIN
       'REP FOLIO ORG: un pago sin organización debe rechazarse explícitamente';
   END IF;
 
+  -- El rol no basta: un caller autenticado debe pertenecer a la organización
+  -- del pago (contexto verificado en base, no parámetro del llamante).
+  IF v_def !~ 'current_organization_id' OR v_def !~ 'is_internal_member' THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: la función debe validar el contexto del llamante autenticado (current_organization_id + is_internal_member)';
+  END IF;
+
   -- 2. Wrapper de compatibilidad de dos parámetros: si existe, no puede
   --    aceptar organización del llamante ni actualizar payments por su cuenta.
   SELECT p.oid INTO v_legacy
