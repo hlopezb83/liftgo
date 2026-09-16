@@ -869,6 +869,49 @@ async function handleRequest(req: Request): Promise<Response> {
       }
     }
 
+    // ── Tramo 8.1: pagos ya timbrados SIN folio interno ─────────────────────
+    // Recuperación idempotente: nunca se vuelve a timbrar (el CFDI ya existe),
+    // sólo se asigna el folio dentro de la organización del propio pago.
+    for (const p of folioPending) {
+      if (outOfBudget()) {
+        truncated = true;
+        break;
+      }
+      const paymentId = (p as { id: string }).id;
+      const facturapiId = (p as { rep_facturapi_id?: unknown })
+        .rep_facturapi_id;
+      if (typeof facturapiId !== "string" || !facturapiId) {
+        results.push({
+          invoice_id: paymentId,
+          status: "rep_folio_pending",
+          organization_id: organizationId,
+        });
+        continue;
+      }
+      try {
+        const status = await recoverRepFolio(admin, client, p, facturapiId);
+        results.push({
+          invoice_id: paymentId,
+          status: status ?? "rep_folio_already_assigned",
+          organization_id: organizationId,
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.error("[reconcile-stamping] REP folio unexpected", {
+          payment_id: paymentId,
+          err: msg,
+        });
+        results.push({
+          invoice_id: paymentId,
+          status: "rep_folio_exception",
+          error: msg,
+          organization_id: organizationId,
+        });
+      }
+    }
+
+
+
     // ── H5: reconciliación de NOTAS DE CRÉDITO ───────────────────────────────
     // El claim de stamp-credit-note solo admite pending|error y nada reconciliaba
     // credit_notes: una NC en 'stamping' tras timeout quedaba ingestionable.
