@@ -99,16 +99,27 @@ export async function assignRepFolio(
     };
   }
 
-  const res = await (admin as unknown as {
-    rpc: (
-      fn: string,
-      params: Record<string, unknown>,
-    ) => Promise<{ data: unknown; error: { message?: string } | null }>;
-  }).rpc("assign_stamped_rep_number", {
+  const client = admin as unknown as RpcClient;
+  let usedLegacySignature = false;
+  let res = await client.rpc("assign_stamped_rep_number", {
     p_payment_id: args.paymentId,
     p_folio: folio,
     p_organization_id: args.organizationId,
   });
+
+  // Compatibilidad de rollout: si la migración 0026 aún no está aplicada, la
+  // firma de tres parámetros no existe. En ese caso se reintenta con la firma
+  // histórica de dos parámetros (que actualiza el propio pago por su id, ya
+  // validado contra la organización verificada antes de llegar aquí) en lugar
+  // de dejar un REP timbrado sin folio. La organización nunca viaja como dato
+  // del navegador en ninguna de las dos rutas.
+  if (res.error && signatureMissing(res.error)) {
+    usedLegacySignature = true;
+    res = await client.rpc("assign_stamped_rep_number", {
+      p_payment_id: args.paymentId,
+      p_folio: folio,
+    });
+  }
 
   if (res.error) {
     const message = res.error.message ?? "error de base de datos";
@@ -127,5 +138,6 @@ export async function assignRepFolio(
     ok: true,
     repNumber,
     alreadyAssigned: repNumber !== `CP-${folio.padStart(4, "0")}`,
+    usedLegacySignature,
   };
 }
