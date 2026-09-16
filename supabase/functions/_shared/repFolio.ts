@@ -16,7 +16,13 @@ export type RepFolioFailure =
   | "failed";
 
 export type RepFolioResult =
-  | { ok: true; repNumber: string; alreadyAssigned: boolean }
+  | {
+    ok: true;
+    repNumber: string;
+    alreadyAssigned: boolean;
+    /** true si se usó la firma histórica de dos parámetros (migración 0026 aún no aplicada). */
+    usedLegacySignature?: boolean;
+  }
   | { ok: false; code: RepFolioFailure; message: string };
 
 /** Mensaje persistido en `payments.rep_error_message` cuando falta el folio. */
