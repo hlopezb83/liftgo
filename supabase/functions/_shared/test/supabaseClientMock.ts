@@ -164,6 +164,11 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   }
 
   const rpcs = cfg.rpcs ?? {};
+  const rpcsSeq: Record<string, TableResponse[]> = {};
+  for (const [k, v] of Object.entries(cfg.rpcsSeq ?? {})) {
+    rpcsSeq[k] = [...v];
+  }
+
   state.client = {
     auth: {
       getClaims: () =>
