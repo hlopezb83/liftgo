@@ -1103,10 +1103,29 @@ Deno.serve(async (req) => {
       orphan_migration: {
         state: orphanState,
         candidates: inventoryComplete ? orphanCandidates.length : null,
+        deletion: "never_allowed",
+      },
+      source_deletion: {
+        phase: "separate",
+        enabled: Deno.env.get(DELETE_ENV_FLAG) === "true",
       },
     };
 
     if (input.mode === "plan") return respond(summary);
+
+    if (input.mode === "delete_sources") {
+      const gate = deleteGateDecision({
+        flagValue: Deno.env.get(DELETE_ENV_FLAG),
+        confirmation: input.confirmation,
+        inventoryComplete,
+      });
+      if (!gate.allowed) {
+        return respond({ ...summary, error: gate.errorCode }, gate.status);
+      }
+      const outcomes = await deleteSourcesBatch(admin, input.batchSize);
+      return respond({ ...summary, outcomes });
+    }
+
 
     if (input.mode === "apply_orphans") {
       if (Deno.env.get(APPLY_ENV_FLAG) !== "true") {
