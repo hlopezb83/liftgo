@@ -88,19 +88,10 @@ DECLARE
   v_wrapper oid;
   r record;
 BEGIN
-  SELECT p.oid INTO v_strict
-  FROM pg_proc p
-  JOIN pg_namespace n ON n.oid = p.pronamespace
-  WHERE n.nspname = 'public'
-    AND p.proname = 'assign_stamped_rep_number'
-    AND pg_get_function_identity_arguments(p.oid) = 'uuid, text, uuid';
-
-  SELECT p.oid INTO v_wrapper
-  FROM pg_proc p
-  JOIN pg_namespace n ON n.oid = p.pronamespace
-  WHERE n.nspname = 'public'
-    AND p.proname = 'assign_stamped_rep_number'
-    AND pg_get_function_identity_arguments(p.oid) = 'uuid, text';
+  -- to_regprocedure resuelve por tipos exactos y devuelve NULL si la firma no
+  -- existe (a diferencia de ::regprocedure, que aborta).
+  v_strict := to_regprocedure('public.assign_stamped_rep_number(uuid, text, uuid)');
+  v_wrapper := to_regprocedure('public.assign_stamped_rep_number(uuid, text)');
 
   IF v_strict IS NULL OR v_wrapper IS NULL THEN
     RAISE EXCEPTION
