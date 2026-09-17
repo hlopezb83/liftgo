@@ -1137,6 +1137,7 @@ Deno.serve(async (req) => {
       admin,
       plan.referencedPathsByBucket,
       input.maxObjectsPerBucket,
+      plan.organizationIds,
     );
     const inventoryComplete = !plan.truncated && !inventory.truncated;
     const orphanCandidates = collectOrphanCandidates(
@@ -1156,10 +1157,25 @@ Deno.serve(async (req) => {
       by_bucket: countByBucket(plan.candidates),
       storage_inventory: {
         complete: inventoryComplete,
+        // Los objetos sin referencia se reportan separados: los que ya están
+        // bajo un prefijo de organización no bloquean apply y se dejan
+        // intactos; sólo los legados sin prefijo detienen la fase.
+        unreferenced_scoped_objects: inventoryComplete
+          ? inventory.unreferencedScopedObjects
+          : null,
+        unreferenced_unscoped_objects: inventoryComplete
+          ? inventory.unreferencedUnscopedObjects
+          : null,
         by_bucket: inventory.byBucket.map((bucket) => ({
           ...bucket,
           unreferenced_objects: inventoryComplete
             ? bucket.unreferenced_objects
+            : null,
+          unreferenced_scoped_objects: inventoryComplete
+            ? bucket.unreferenced_scoped_objects
+            : null,
+          unreferenced_unscoped_objects: inventoryComplete
+            ? bucket.unreferenced_unscoped_objects
             : null,
         })),
       },
