@@ -50,6 +50,14 @@ Fallan cerrado por `auth.uid() IS NULL` / `has_role` / `current_organization_id(
 
 `assign_stamped_rep_number(uuid,text,uuid)` y `(uuid,text)` con `REVOKE ... FROM anon` explícito en `drizzle/migrations/0026_…:133,167`; el lote `supabase/migrations/20260811211403_…:334-342` (`FROM PUBLIC, anon` + grants a `authenticated, service_role`) cubre `assert_invoice_cancellable`, `peek_next_invoice_number`, `assign_stamped_invoice_number`, `assign_stamped_credit_note_number`, `claim_maintenance_policy_month`, `has_active_rental`, `get_available_forklifts`. También hay revokes nominales en `soft_delete_*`, `restore_*`, `update_user_role_safe`, `assert_not_last_admin`, `revoke_user_sessions`, `check_and_record_rate_limit`.
 
+### C-bis. Falsos positivos descartados
+
+`has_role(uuid, app_role)` (`supabase/migrations/20260214003229_…:62`) y los numeradores `next_invoice_number`, `next_credit_note_number`, `next_booking_number`, `next_delivery_number`, `next_inspection_number`, `next_quote_number` nunca reciben un `REVOKE` nominal, pero **fueron creados antes del barrido del 2026-05-27**, que sí les quitó `anon`; sus redefiniciones posteriores son `CREATE OR REPLACE`, que conserva ese ACL. No son riesgo de ACL.
+
+### C-ter. Hallazgo distinto, no de permisos: numeración sin filtro de organización
+
+Confirmado en `supabase/migrations/20260731191816_a7022d15-….sql:15,29,42,54`: `next_booking_number`, `next_delivery_number`, `next_credit_note_number`, `next_invoice_number` (y `next_inspection_number` en `…20260720011825_…:69`) calculan el folio con `nextval(secuencia global)` y un `MAX(...)` sobre **toda la tabla, sin predicado `organization_id`**. Contrasta con `next_organization_document_counter(text,bigint)` (`drizzle/migrations/0016_…:80`), que sí resuelve contexto de organización. Es un bloqueador de multiempresa independiente del hallazgo de `anon`: los folios se colisionarían entre empresas. No se propone corrección en este tramo; se registra para decidir orden con respecto a `0028`.
+
 ### D. Casos que requieren decisión (grant a anon intencional)
 
 | Función | Grant | Archivo:línea |
