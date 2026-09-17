@@ -157,8 +157,8 @@ BEGIN
     ('29000000-0000-4000-8000-0000000000f2', v_org_b, 'MC-UNICO-01', 'M1', 'SER-UNICO-01', 'available');
 
   INSERT INTO public.mechanics (id, organization_id, name) VALUES
-    ('29000000-0000-4000-8000-0000000000m1', v_org_a, 'Mecánico Unicidad'),
-    ('29000000-0000-4000-8000-0000000000m2', v_org_b, 'Mecánico Unicidad');
+    ('29000000-0000-4000-8000-0000000010a1', v_org_a, 'Mecánico Unicidad'),
+    ('29000000-0000-4000-8000-0000000010a2', v_org_b, 'Mecánico Unicidad');
 
   INSERT INTO public.drivers (id, organization_id, name) VALUES
     ('29000000-0000-4000-8000-0000000000d1', v_org_a, 'Operador Unicidad'),
@@ -169,12 +169,12 @@ BEGIN
     ('29000000-0000-4000-8000-0000000000e2', v_org_b, 'Filtro unicidad', 'SKU-UNICO-01');
 
   INSERT INTO public.prospects (id, organization_id, company_name, stage, stage_order) VALUES
-    ('29000000-0000-4000-8000-0000000000p1', v_org_a, 'Prospecto unicidad A', 'unicidad-ab', 900),
-    ('29000000-0000-4000-8000-0000000000p2', v_org_b, 'Prospecto unicidad B', 'unicidad-ab', 900);
+    ('29000000-0000-4000-8000-0000000020a1', v_org_a, 'Prospecto unicidad A', 'unicidad-ab', 900),
+    ('29000000-0000-4000-8000-0000000020a2', v_org_b, 'Prospecto unicidad B', 'unicidad-ab', 900);
 
   INSERT INTO public.suppliers (id, organization_id, name, rfc) VALUES
-    ('29000000-0000-4000-8000-0000000000s1', v_org_a, 'Proveedor unicidad A', ' aaa010101aaa '),
-    ('29000000-0000-4000-8000-0000000000s2', v_org_b, 'Proveedor unicidad B', 'AAA010101AAA');
+    ('29000000-0000-4000-8000-0000000030a1', v_org_a, 'Proveedor unicidad A', ' aaa010101aaa '),
+    ('29000000-0000-4000-8000-0000000030a2', v_org_b, 'Proveedor unicidad B', 'AAA010101AAA');
 
   RAISE NOTICE 'OK: catálogos operativos y proveedores admiten la misma clave en A y B';
 END;
@@ -247,7 +247,7 @@ BEGIN
   VALUES (v_org_a, 'MC-UNICO-01', 'M1', 'SER-UNICO-01', 'available');
 
   UPDATE public.suppliers SET deleted_at = now()
-  WHERE id = '29000000-0000-4000-8000-0000000000s1';
+  WHERE id = '29000000-0000-4000-8000-0000000030a1';
   INSERT INTO public.suppliers (organization_id, name, rfc)
   VALUES (v_org_a, 'Proveedor unicidad A bis', 'AAA010101AAA');
 
@@ -267,22 +267,22 @@ BEGIN
   INSERT INTO public.invoices
     (id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total, status, line_items)
   VALUES
-    ('29000000-0000-4000-8000-0000000000i1', v_org_a, 'FAC-UNIQ-A',
+    ('29000000-0000-4000-8000-0000000040a1', v_org_a, 'FAC-UNIQ-A',
      '29000000-0000-4000-8000-0000000000c1', 'Cliente unicidad A', 1000, 0, 1000, 'sent',
      '[{"description":"Renta unicidad A","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb),
-    ('29000000-0000-4000-8000-0000000000i2', v_org_b, 'FAC-UNIQ-B',
+    ('29000000-0000-4000-8000-0000000040a2', v_org_b, 'FAC-UNIQ-B',
      '29000000-0000-4000-8000-0000000000c2', 'Cliente unicidad B', 1000, 0, 1000, 'sent',
      '[{"description":"Renta unicidad B","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb);
 
   -- Positivo A/B: el mismo folio REP en dos empresas.
   INSERT INTO public.payments (id, organization_id, invoice_id, amount, rep_number) VALUES
-    ('29000000-0000-4000-8000-00000000000a', v_org_a, '29000000-0000-4000-8000-0000000000i1', 100, 'CP-0001'),
-    ('29000000-0000-4000-8000-00000000000b', v_org_b, '29000000-0000-4000-8000-0000000000i2', 100, 'CP-0001');
+    ('29000000-0000-4000-8000-00000000000a', v_org_a, '29000000-0000-4000-8000-0000000040a1', 100, 'CP-0001'),
+    ('29000000-0000-4000-8000-00000000000b', v_org_b, '29000000-0000-4000-8000-0000000040a2', 100, 'CP-0001');
 
   -- Negativo dentro de A.
   BEGIN
     INSERT INTO public.payments (organization_id, invoice_id, amount, rep_number)
-    VALUES (v_org_a, '29000000-0000-4000-8000-0000000000i1', 50, 'CP-0001');
+    VALUES (v_org_a, '29000000-0000-4000-8000-0000000040a1', 50, 'CP-0001');
     v_fallas := v_fallas || 'payments(rep_number): se aceptó un folio REP duplicado dentro de A';
   EXCEPTION WHEN unique_violation THEN NULL; END;
 
@@ -290,9 +290,9 @@ BEGIN
   INSERT INTO public.feedback_reports
     (id, organization_id, reporter_id, reporter_type, type, title, description, folio)
   VALUES
-    ('29000000-0000-4000-8000-0000000000r1', v_org_a, v_admin_a, 'internal', 'bug',
+    ('29000000-0000-4000-8000-0000000050a1', v_org_a, v_admin_a, 'internal', 'bug',
      'Reporte unicidad A', 'Descripción A', 'RPT-0001'),
-    ('29000000-0000-4000-8000-0000000000r2', v_org_b, v_admin_b, 'internal', 'bug',
+    ('29000000-0000-4000-8000-0000000050a2', v_org_b, v_admin_b, 'internal', 'bug',
      'Reporte unicidad B', 'Descripción B', 'RPT-0001');
 
   BEGIN
@@ -326,13 +326,13 @@ BEGIN
 
   SELECT
       (SELECT count(*) FROM public.forklifts WHERE id = '29000000-0000-4000-8000-0000000000f2')
-    + (SELECT count(*) FROM public.mechanics WHERE id = '29000000-0000-4000-8000-0000000000m2')
+    + (SELECT count(*) FROM public.mechanics WHERE id = '29000000-0000-4000-8000-0000000010a2')
     + (SELECT count(*) FROM public.drivers   WHERE id = '29000000-0000-4000-8000-0000000000d2')
     + (SELECT count(*) FROM public.parts_inventory WHERE id = '29000000-0000-4000-8000-0000000000e2')
-    + (SELECT count(*) FROM public.prospects WHERE id = '29000000-0000-4000-8000-0000000000p2')
-    + (SELECT count(*) FROM public.suppliers WHERE id = '29000000-0000-4000-8000-0000000000s2')
+    + (SELECT count(*) FROM public.prospects WHERE id = '29000000-0000-4000-8000-0000000020a2')
+    + (SELECT count(*) FROM public.suppliers WHERE id = '29000000-0000-4000-8000-0000000030a2')
     + (SELECT count(*) FROM public.payments  WHERE id = '29000000-0000-4000-8000-00000000000b')
-    + (SELECT count(*) FROM public.feedback_reports WHERE id = '29000000-0000-4000-8000-0000000000r2')
+    + (SELECT count(*) FROM public.feedback_reports WHERE id = '29000000-0000-4000-8000-0000000050a2')
   INTO v_visibles;
 
   IF v_visibles <> 0 THEN
@@ -355,7 +355,7 @@ BEGIN
   END IF;
 
   -- Y sigue viendo lo suyo.
-  IF NOT EXISTS (SELECT 1 FROM public.mechanics WHERE id = '29000000-0000-4000-8000-0000000000m1') THEN
+  IF NOT EXISTS (SELECT 1 FROM public.mechanics WHERE id = '29000000-0000-4000-8000-0000000010a1') THEN
     RAISE EXCEPTION 'AISLAMIENTO: el admin de A dejó de ver su propio catálogo';
   END IF;
 
