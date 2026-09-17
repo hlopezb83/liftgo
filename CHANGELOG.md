@@ -1,3 +1,13 @@
+## [8.10.6] - 2026-09-17 · patch · docs
+
+La corrida de GitHub Actions sobre el commit correctivo `0a941a4a` (8.10.5) confirmó que todas las suites pasan: RLS 54/54, smoke 45/45, CI principal y Gitleaks en verde. Las dos suites del folio REP que fallaban por el permiso directo de anon ahora pasan. La migración 0026 sigue pendiente de rollout productivo; no se ejecutó SQL contra producción ni se activó una segunda empresa. Solo documentación.
+
+- RLS DB tests run 35234484524: 54/54, 0 fallidas; SQL smoke en el mismo run: 45/45, 0 fallidos. https://github.com/hlopezb83/liftgo/actions/runs/35234484524
+- CI principal run 35234484453: éxito (Vitest, calidad lint/tipos/build/arranque, lint de migraciones); Dependency review, Deno y Actionlint omitidos según filtros; advertencia no bloqueante preexistente de orden de imports en src/hooks/useDocuments.ts fuera del diff. https://github.com/hlopezb83/liftgo/actions/runs/35234484453
+- Gitleaks run 35234484442: éxito. https://github.com/hlopezb83/liftgo/actions/runs/35234484442
+- Se actualizó docs/multiempresa/tramo-8-1-rollout-folio-rep.md con la evidencia final y se marcó cerrada la validación de código en el roadmap.
+- La migración 0024→0025→0026 sigue pendiente de rollout productivo (journal en 0023); no se ejecutó SQL contra producción ni se activó una segunda empresa.
+
 ## [8.10.5] - 2026-09-17 · patch · security
 
 GitHub Actions detectó que la versión estricta del asignador de folio quedaba ejecutable por el rol anónimo. La causa es real y no un falso positivo: la plataforma concede EXECUTE directamente a anon a toda función nueva del esquema público mediante privilegios por defecto, así que retirar el permiso a PUBLIC no lo quita. La migración pendiente 0026 ahora retira el permiso a anon de forma explícita en ambas firmas, y las pruebas exigen además la lista de permisos directa, no solo la efectiva.
