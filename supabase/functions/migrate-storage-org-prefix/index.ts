@@ -2,7 +2,12 @@
 //
 // El endpoint no expone rutas ni URLs: sólo agrega contadores. El modo apply
 // requiere tres barreras independientes: auth cron/service, secreto de entorno
-// y confirmación textual. El orden es copy → refs → verify → delete source.
+// y confirmación textual. El orden del modo apply es:
+//   inventariar → copiar → verificar destino → actualizar referencias.
+// Apply NUNCA borra la fuente. El borrado es la fase posterior `delete_sources`,
+// con bandera de entorno propia (apagada por defecto), confirmación textual
+// distinta y verificación de destino y referencias objeto por objeto.
+// Los objetos huérfanos nunca se borran por ninguna vía.
 
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
@@ -21,10 +26,15 @@ import {
   hasOrganizationStoragePrefix,
   organizationStoragePath,
 } from "../_shared/storagePath.ts";
+import {
+  DELETE_ENV_FLAG,
+  deleteEligibility,
+  deleteGateDecision,
+} from "../_shared/storageDeletePhase.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
-const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_DELETE";
-const ORPHAN_APPLY_CONFIRMATION = "COPY_VERIFY_DELETE_ORPHANS";
+const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_NO_DELETE";
+const ORPHAN_APPLY_CONFIRMATION = "COPY_VERIFY_ORPHANS_NO_DELETE";
 const APPLY_ENV_FLAG = "STORAGE_MIGRATION_APPLY_ENABLED";
 const DEFAULT_MAX_ROWS_PER_REFERENCE = 250;
 const MAX_ROWS_PER_REFERENCE = 1_000;
