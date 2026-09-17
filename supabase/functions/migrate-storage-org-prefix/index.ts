@@ -824,12 +824,18 @@ async function updateOneReference(
   return true;
 }
 
+// Apply: copiar, verificar destino y actualizar referencias. Sin borrado.
 async function processObject(
   admin: AdminClient,
   object: LedgerObject,
   references: LedgerReference[],
-): Promise<"source_deleted" | "pending" | "failed"> {
-  if (object.status === "source_deleted") return "source_deleted";
+): Promise<"references_updated" | "pending" | "failed"> {
+  if (
+    object.status === "references_updated" ||
+    object.status === "source_deleted"
+  ) {
+    return "references_updated";
+  }
   if ((await ensureCopied(admin, object)) === "failed") return "failed";
 
   let allUpdated = references.length > 0;
@@ -845,31 +851,8 @@ async function processObject(
     references_updated_at: new Date().toISOString(),
     last_error_code: null,
   });
-
-  const sourceStillExists = await storagePathExists(
-    admin,
-    object.bucket_id,
-    object.source_path,
-  );
-  if (sourceStillExists) {
-    const { error } = await admin.storage.from(object.bucket_id).remove([
-      object.source_path,
-    ]);
-    if (error) {
-      await updateObject(admin, object.id, {
-        status: "references_updated",
-        last_error_code: "storage_delete_failed",
-      });
-      return "pending";
-    }
-  }
-
-  await updateObject(admin, object.id, {
-    status: "source_deleted",
-    source_deleted_at: new Date().toISOString(),
-    last_error_code: null,
-  });
-  return "source_deleted";
+  // La fuente original queda intacta a propósito: el borrado es otra fase.
+  return "references_updated";
 }
 
 async function applyBatch(
@@ -888,7 +871,9 @@ async function applyBatch(
   if (error) throw new Error("No se pudo leer el lote pendiente.");
 
   const objects = (rows ?? []) as LedgerObject[];
-  if (objects.length === 0) return { source_deleted: 0, pending: 0, failed: 0 };
+  if (objects.length === 0) {
+    return { references_updated: 0, pending: 0, failed: 0 };
+  }
 
   const { data: refs, error: refsError } = await admin
     .from("storage_reference_migrations")
@@ -907,7 +892,7 @@ async function applyBatch(
     refsByObject.set(reference.migration_id, list);
   }
 
-  const outcomes = { source_deleted: 0, pending: 0, failed: 0 };
+  const outcomes = { references_updated: 0, pending: 0, failed: 0 };
   for (const object of objects) {
     const outcome = await processObject(
       admin,
@@ -919,36 +904,12 @@ async function applyBatch(
   return outcomes;
 }
 
+// Huérfanos: sólo copia verificada. Nunca se borra la fuente ni el huérfano.
 async function processOrphanObject(
   admin: AdminClient,
   object: LedgerObject,
-): Promise<"source_deleted" | "pending" | "failed"> {
-  if (object.status === "source_deleted") return "source_deleted";
-  if ((await ensureCopied(admin, object)) === "failed") return "failed";
-
-  const sourceStillExists = await storagePathExists(
-    admin,
-    object.bucket_id,
-    object.source_path,
-  );
-  if (sourceStillExists) {
-    const { error } = await admin.storage.from(object.bucket_id).remove([
-      object.source_path,
-    ]);
-    if (error) {
-      await updateObject(admin, object.id, {
-        last_error_code: "storage_delete_failed",
-      });
-      return "pending";
-    }
-  }
-
-  await updateObject(admin, object.id, {
-    status: "source_deleted",
-    source_deleted_at: new Date().toISOString(),
-    last_error_code: null,
-  });
-  return "source_deleted";
+): Promise<"copied" | "failed"> {
+  return await ensureCopied(admin, object);
 }
 
 async function applyOrphanBatch(
@@ -966,10 +927,126 @@ async function applyOrphanBatch(
     .limit(batchSize);
   if (error) throw new Error("No se pudo leer el lote de huérfanos.");
 
-  const outcomes = { source_deleted: 0, pending: 0, failed: 0 };
+  const outcomes = { copied: 0, failed: 0 };
   for (const object of (rows ?? []) as LedgerObject[]) {
-    const outcome = await processOrphanObject(admin, object);
-    outcomes[outcome]++;
+    outcomes[await processOrphanObject(admin, object)]++;
+  }
+  return outcomes;
+}
+
+/** Fase posterior e independiente: borrar fuentes ya migradas y verificadas. */
+async function deleteSourceObject(
+  admin: AdminClient,
+  object: LedgerObject,
+  references: LedgerReference[],
+): Promise<"source_deleted" | "blocked" | "failed"> {
+  const destinationExists = await storagePathExists(
+    admin,
+    object.bucket_id,
+    object.destination_path,
+  );
+
+  const checks = [];
+  for (const reference of references) {
+    const expectedValue = destinationReferenceValue(
+      object.bucket_id,
+      object.destination_path,
+      reference.value_format,
+      reference.public_url_origin,
+    );
+    const { data, error } = await admin
+      .from(reference.reference_table)
+      .select(`organization_id, ${reference.reference_column}`)
+      .eq("id", reference.reference_id)
+      .maybeSingle();
+    const row = (error ? null : data) as Record<string, unknown> | null;
+    const currentValue = row?.[reference.reference_column];
+    checks.push({
+      status: reference.status,
+      organizationId: typeof row?.organization_id === "string"
+        ? row.organization_id
+        : null,
+      currentValue: typeof currentValue === "string" ? currentValue : null,
+      expectedValue,
+    });
+  }
+
+  const eligibility = deleteEligibility(object, checks, destinationExists);
+  if (eligibility === "already_deleted") return "source_deleted";
+  if (eligibility !== "eligible") {
+    await updateObject(admin, object.id, { last_error_code: eligibility });
+    return "blocked";
+  }
+
+  const sourceStillExists = await storagePathExists(
+    admin,
+    object.bucket_id,
+    object.source_path,
+  );
+  if (sourceStillExists) {
+    const { error } = await admin.storage.from(object.bucket_id).remove([
+      object.source_path,
+    ]);
+    if (error) {
+      await updateObject(admin, object.id, {
+        last_error_code: "storage_delete_failed",
+      });
+      return "failed";
+    }
+  }
+
+  await updateObject(admin, object.id, {
+    status: "source_deleted",
+    source_deleted_at: new Date().toISOString(),
+    last_error_code: null,
+  });
+  return "source_deleted";
+}
+
+async function deleteSourcesBatch(
+  admin: AdminClient,
+  batchSize: number,
+): Promise<Record<string, number>> {
+  const { data: rows, error } = await admin
+    .from("storage_object_migrations")
+    .select(
+      "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
+    )
+    .eq("discovery_kind", "referenced")
+    .eq("status", "references_updated")
+    .order("created_at", { ascending: true })
+    .limit(batchSize);
+  if (error) throw new Error("No se pudo leer el lote de borrado.");
+
+  const objects = (rows ?? []) as LedgerObject[];
+  const outcomes = { source_deleted: 0, blocked: 0, failed: 0 };
+  if (objects.length === 0) return outcomes;
+
+  const { data: refs, error: refsError } = await admin
+    .from("storage_reference_migrations")
+    .select(
+      "id, migration_id, reference_table, reference_id, reference_column, source_value_sha256, value_format, public_url_origin, status",
+    )
+    .in("migration_id", objects.map((object) => object.id));
+  if (refsError) {
+    throw new Error("No se pudieron leer las referencias del lote de borrado.");
+  }
+
+  const refsByObject = new Map<string, LedgerReference[]>();
+  for (const reference of (refs ?? []) as LedgerReference[]) {
+    const list = refsByObject.get(reference.migration_id) ?? [];
+    list.push(reference);
+    refsByObject.set(reference.migration_id, list);
+  }
+
+  for (const object of objects) {
+    outcomes[
+      await deleteSourceObject(
+        admin,
+        object,
+        refsByObject.get(object.id) ?? [],
+      )
+    ]++;
   }
   return outcomes;
 }
