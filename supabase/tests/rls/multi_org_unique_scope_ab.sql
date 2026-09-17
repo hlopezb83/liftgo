@@ -169,8 +169,8 @@ BEGIN
     ('29000000-0000-4000-8000-0000000000e2', v_org_b, 'Filtro unicidad', 'SKU-UNICO-01');
 
   INSERT INTO public.prospects (id, organization_id, company_name, stage, stage_order) VALUES
-    ('29000000-0000-4000-8000-0000000020a1', v_org_a, 'Prospecto unicidad A', 'unicidad-ab', 900),
-    ('29000000-0000-4000-8000-0000000020a2', v_org_b, 'Prospecto unicidad B', 'unicidad-ab', 900);
+    ('29000000-0000-4000-8000-0000000020a1', v_org_a, 'Prospecto unicidad A', 'nuevo_prospecto', 900),
+    ('29000000-0000-4000-8000-0000000020a2', v_org_b, 'Prospecto unicidad B', 'nuevo_prospecto', 900);
 
   INSERT INTO public.suppliers (id, organization_id, name, rfc) VALUES
     ('29000000-0000-4000-8000-0000000030a1', v_org_a, 'Proveedor unicidad A', ' aaa010101aaa '),
@@ -217,7 +217,7 @@ BEGIN
 
   BEGIN
     INSERT INTO public.prospects (organization_id, company_name, stage, stage_order)
-    VALUES (v_org_a, 'Prospecto duplicado', 'unicidad-ab', 900);
+    VALUES (v_org_a, 'Prospecto duplicado', 'nuevo_prospecto', 900);
     v_fallas := v_fallas || 'prospects(stage,stage_order): se aceptó un duplicado dentro de A';
   EXCEPTION WHEN unique_violation THEN NULL; END;
 
