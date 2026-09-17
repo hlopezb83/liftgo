@@ -17,7 +17,20 @@ Registro de migraciones aplicadas (`select id, hash, to_timestamp(created_at/100
 | 0025 admin/membership scope | **Pendiente** | no existen `is_internal_member(uuid)` ni `user_in_current_organization(uuid)`; `current_organization_id()` conserva el cuerpo viejo con `LIMIT 1`; policies viejas intactas |
 | 0026 folio REP org-scoped | **Pendiente** | solo existe `assign_stamped_rep_number(uuid, text)`; no existe la firma de 3 parámetros |
 
-Policies vigentes en `profiles` / `user_roles` (todas con nombre pre-0025): "Staff can view all profiles", "Auditor read profiles", "Ventas read profiles", "Admins update any profile", "Administrativo update any profile"; "Admins can manage all roles" (ALL), "Only admins can modify/update/delete roles", "Auditor read user_roles", "Users can view own roles". Ninguna de las policies de 0025 ("… org …") existe.
+Hallazgo verificado por introspección directa de `pg_policies`: el ámbito administrativo de 0025 **tampoco está aplicado** en producción.
+
+Policies vigentes en `profiles` (todas globales, pre-0025): "Staff can view all profiles", "Admins update any profile", "Administrativo update any profile", "Auditor read profiles", "Ventas read profiles". Faltan las policies org-scoped que crea 0025.
+
+Policies vigentes en `user_roles` (todas globales, pre-0025): "Admins can manage all roles" (ALL), "Only admins can modify roles", "Only admins can update roles", "Only admins can delete roles", "Auditor read user_roles", "Users can view own roles". Faltan "Admins insert org roles", "Admins update org roles" y el resto de policies por organización. No aparece policy `org_scope_isolation` para estas tablas en la consulta.
+
+Matiz de interpretación: los helpers preexistentes `current_organization_id()`, `is_ops_staff()`, `assert_not_last_admin()` y `update_user_role_safe()` sí existen, pero `is_internal_member()` y `user_in_current_organization()` no. La presencia de algunos helpers **no prueba** que 0025 esté aplicada; los nombres de policies verifican lo contrario. La consulta que lo confirma:
+
+```sql
+select tablename, policyname, cmd from pg_policies
+where schemaname='public' and tablename in ('profiles','user_roles') order by 1,2;
+-- esperado tras 0025: nombres org-scoped ("Admins insert org roles", "Admins update org roles", …);
+-- observado hoy: solo nombres globales pre-0025.
+```
 
 Observación de integridad del carril Drizzle: cuatro entradas antiguas del registro (ids 5, 6, 7, 10) tienen hash distinto al archivo actual (`0004`, `0005`, `0006`, `0010` fueron editados después de aplicarse). El migrador de Drizzle avanza por marca de tiempo, no por hash, así que no las reaplica; pero conviene saberlo antes de cualquier `drizzle-kit check` estricto.
 
