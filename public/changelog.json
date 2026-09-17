@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.8.33",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "docs",
+    "title": "Runbook del folio REP actualizado con la auditoría directa de producción (sin cambio funcional)",
+    "description": "Se registró en el runbook del tramo 8.1 la auditoría de solo lectura de producción: el historial de cambios de base termina en 0023, quedan tres cambios pendientes y el del folio REP no puede aplicarse solo. No representa cambio funcional.",
+    "changes": [
+      "Se documentó que el historial de cambios de base de producción termina en 0023: los cambios 0024, 0025 y 0026 siguen pendientes; la sola existencia de una función antigua no prueba que 0024 esté aplicada.",
+      "Se registró que faltan en producción las dos funciones de membresía que introduce 0025 y que siguen vigentes las reglas de acceso globales antiguas de perfiles y roles, sin sus reemplazos por empresa.",
+      "Se aclaró que 0025 no solo instala una función: reemplaza funciones y reglas de acceso; hay 5 miembros (4 internos y 1 de portal) y una cuenta de portal con permiso operativo residual que dejaría de contar como personal interno. Queda marcado como validación previa obligatoria, no como impacto inocuo.",
+      "Se explicó por qué el cambio 0026 no debe aplicarse solo: se crea sin error, pero una llamada con sesión falla al ejecutarse, mientras el canal interno no lo nota; por eso la revisión automática en verde no acredita que producción esté lista.",
+      "Se dejó la secuencia propuesta y no ejecutada: resolver 0024, luego 0025 revisando el efecto del permiso de portal, luego 0026, verificar privilegios y probar ambos canales en una base aislada con dos empresas antes de publicar las funciones.",
+      "Se anotaron las diferencias de huella entre el historial y los archivos actuales de cuatro cambios antiguos (0004, 0005, 0006 y 0010) y la necesidad de reconciliarlas antes de confiar en una verificación estricta del historial.",
+      "Sin cambio funcional: solo documentación. No hubo cambios en producción, no se creó una segunda empresa, no se movió almacenamiento y el Lote 2 sigue pendiente."
+    ]
+  },
+  {
     "version": "8.8.32",
     "date": "2026-09-17",
     "type": "patch",
