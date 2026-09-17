@@ -5041,10 +5041,16 @@ export type Database = {
         Args: { p_folio: string; p_invoice_id: string; p_serie: string }
         Returns: string
       }
-      assign_stamped_rep_number: {
-        Args: { p_folio: string; p_payment_id: string }
-        Returns: string
-      }
+      assign_stamped_rep_number:
+        | { Args: { p_folio: string; p_payment_id: string }; Returns: string }
+        | {
+            Args: {
+              p_folio: string
+              p_organization_id: string
+              p_payment_id: string
+            }
+            Returns: string
+          }
       audit_fleet_status_consistency: {
         Args: never
         Returns: {
@@ -5698,6 +5704,7 @@ export type Database = {
       is_admin_or_administrativo: { Args: never; Returns: boolean }
       is_backoffice: { Args: never; Returns: boolean }
       is_e2e_actor_email: { Args: { p_email: string }; Returns: boolean }
+      is_internal_member: { Args: { _user_id?: string }; Returns: boolean }
       is_inventory_reader: { Args: never; Returns: boolean }
       is_maintenance_reader: { Args: never; Returns: boolean }
       is_ops_staff: { Args: never; Returns: boolean }
@@ -6265,6 +6272,10 @@ export type Database = {
         }
         Returns: string
       }
+      storage_document_owned_by_other_organization: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
       storage_path_in_current_organization: {
         Args: { p: string; p_require_prefix?: boolean }
         Returns: boolean
@@ -6303,6 +6314,10 @@ export type Database = {
       upsert_billing_secret: {
         Args: { p_id?: string; p_live_key?: string; p_test_key?: string }
         Returns: string
+      }
+      user_in_current_organization: {
+        Args: { _user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
