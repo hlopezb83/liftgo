@@ -52,9 +52,11 @@ DECLARE
   v_direct boolean;
   v_effective boolean;
 BEGIN
+  -- proacl IS NULL = ACL predeterminado de PostgreSQL (owner + PUBLIC), no
+  -- "sin permisos": se expande con acldefault antes de inspeccionarlo.
   SELECT EXISTS (
     SELECT 1
-    FROM pg_proc p, aclexplode(p.proacl) a
+    FROM pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
     WHERE p.oid = v_oid
       AND a.privilege_type = 'EXECUTE'
       AND a.grantee = 'anon'::regrole::oid
@@ -103,14 +105,28 @@ BEGIN
   FOR r IN
     SELECT unnest(ARRAY[v_strict, v_wrapper]) AS oid
   LOOP
+    -- proacl IS NULL = ACL predeterminado; se expande con acldefault.
     IF EXISTS (
-      SELECT 1 FROM pg_proc p, aclexplode(p.proacl) a
+      SELECT 1
+      FROM pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
       WHERE p.oid = r.oid
         AND a.privilege_type = 'EXECUTE'
-        AND a.grantee IN ('anon'::regrole::oid, 0)  -- 0 = PUBLIC
+        AND a.grantee = 'anon'::regrole::oid
     ) THEN
       RAISE EXCEPTION
-        'ACL CONTRACT (control negativo): % conserva EXECUTE para anon o PUBLIC en su ACL directo',
+        'ACL CONTRACT (control negativo): % conserva ACL directo de EXECUTE para anon',
+        r.oid::regprocedure;
+    END IF;
+
+    IF EXISTS (
+      SELECT 1
+      FROM pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+      WHERE p.oid = r.oid
+        AND a.privilege_type = 'EXECUTE'
+        AND a.grantee = 0  -- 0 = PUBLIC
+    ) THEN
+      RAISE EXCEPTION
+        'ACL CONTRACT (control negativo): % conserva EXECUTE concedido a PUBLIC',
         r.oid::regprocedure;
     END IF;
 
@@ -160,12 +176,14 @@ BEGIN
         SELECT string_agg(format_type(t, NULL), ', ' ORDER BY ord)
         FROM unnest(p.proargtypes) WITH ORDINALITY AS u(t, ord)
       ), '') || ')' AS signature,
+      -- proacl IS NULL = ACL predeterminado de PostgreSQL (no "sin permisos"):
+      -- se expande con acldefault('f', proowner) antes de inspeccionarlo.
       EXISTS (
-        SELECT 1 FROM aclexplode(p.proacl) a
+        SELECT 1 FROM aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
         WHERE a.privilege_type = 'EXECUTE' AND a.grantee = 'anon'::regrole::oid
       ) AS anon_direct,
       EXISTS (
-        SELECT 1 FROM aclexplode(p.proacl) a
+        SELECT 1 FROM aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
         WHERE a.privilege_type = 'EXECUTE' AND a.grantee = 0
       ) AS public_grant,
       has_function_privilege('anon', p.oid, 'EXECUTE') AS anon_effective
@@ -179,12 +197,19 @@ BEGIN
     v_sig := r.signature;
     CONTINUE WHEN v_sig = ANY (v_allow);
 
+    -- Categorías INDEPENDIENTES: una misma firma puede aparecer en varias
+    -- (p. ej. ACL directo a anon y además grant a PUBLIC).
     IF r.anon_direct THEN
       v_direct := v_direct || v_sig;
-    ELSIF r.public_grant THEN
+    END IF;
+
+    IF r.public_grant THEN
       v_public := v_public || v_sig;
-    ELSIF r.anon_effective THEN
-      -- Ni directo ni PUBLIC: llega por membresía de roles.
+    END IF;
+
+    IF r.anon_effective AND NOT r.anon_direct AND NOT r.public_grant THEN
+      -- Efecto sin ACL explícito para anon ni para PUBLIC. La causa puede ser
+      -- membresía de roles u otra ruta; el detector no la afirma, solo reporta.
       v_effective := v_effective || v_sig;
     END IF;
   END LOOP;
@@ -194,8 +219,8 @@ BEGIN
      OR array_length(v_effective, 1) IS NOT NULL THEN
     RAISE EXCEPTION E'ACL CONTRACT: funciones SECURITY DEFINER de public alcanzables por anon.\n'
       'ACL directo a anon (% firmas): %\n'
-      'Grant a PUBLIC (% firmas): %\n'
-      'Solo privilegio efectivo, por membresía de roles (% firmas): %',
+      'Grant explícito a PUBLIC (% firmas): %\n'
+      'Privilegio efectivo sin ACL directo a anon ni a PUBLIC — causa por determinar (% firmas): %',
       coalesce(array_length(v_direct, 1), 0), array_to_string(v_direct, E'\n  - '),
       coalesce(array_length(v_public, 1), 0), array_to_string(v_public, E'\n  - '),
       coalesce(array_length(v_effective, 1), 0), array_to_string(v_effective, E'\n  - ');
