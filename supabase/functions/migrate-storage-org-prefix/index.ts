@@ -404,7 +404,8 @@ async function collectCandidates(
         sourceValue,
         knownOrganizationIds,
       );
-      counts[plan.disposition]++;
+      if (plan.disposition === "candidate") counts.candidates++;
+      else counts[plan.disposition]++;
 
       // Conserva únicamente rutas internas y normalizadas. No se devuelve ni
       // persiste este inventario: se usa para detectar objetos sin referencia.
