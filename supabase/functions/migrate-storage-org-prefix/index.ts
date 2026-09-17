@@ -695,6 +695,22 @@ async function ensureCopied(
       });
       return "failed";
     }
+
+    // Verificación explícita del destino antes de marcar la copia como buena.
+    if (
+      !(await storagePathExists(
+        admin,
+        object.bucket_id,
+        object.destination_path,
+      ))
+    ) {
+      await updateObject(admin, object.id, {
+        status: "failed",
+        last_error_code: "destination_verification_failed",
+        attempt_count: object.attempt_count + 1,
+      });
+      return "failed";
+    }
   }
 
   await updateObject(admin, object.id, {
