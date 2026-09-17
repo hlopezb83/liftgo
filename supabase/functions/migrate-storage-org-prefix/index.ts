@@ -1020,6 +1020,16 @@ async function deleteSourceObject(
     object.source_path,
   );
   if (sourceStillExists) {
+    // Revalidación obligatoria: ningún estado previo del ledger (`copied` o
+    // `references_updated`) sustituye la comparación de bytes justo antes de
+    // borrar. Si difieren o falta un lado, no se borra nada.
+    const verdict = await verifyCopyIntegrity(admin, object);
+    if (verdict !== "verified") {
+      await updateObject(admin, object.id, { last_error_code: verdict });
+      return "blocked";
+    }
+
+
     const { error } = await admin.storage.from(object.bucket_id).remove([
       object.source_path,
     ]);
