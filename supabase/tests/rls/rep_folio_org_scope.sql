@@ -1,9 +1,10 @@
 -- Multiempresa · Tramo 8.1: el asignador de folio REP debe estar acotado a la
 -- organización del propio pago.
 --
--- Esta prueba FALLA si la migración del tramo 8.1 no está aplicada en el
--- entorno donde corre. La migración forma parte del cambio, así que un NOTICE
--- que la convirtiera en no-op ocultaría exactamente el riesgo que se audita.
+-- Esta prueba FALLA si la cadena de migraciones (tramo 8.1 y la 0029 de
+-- unicidad por empresa) no está aplicada en el entorno donde corre. Las
+-- migraciones forman parte del cambio, así que un NOTICE que la convirtiera en
+-- no-op ocultaría exactamente el riesgo que se audita.
 BEGIN;
 
 DO $$
@@ -188,15 +189,27 @@ BEGIN
     RAISE EXCEPTION 'REP FOLIO ORG: la firma estricta NO debe tener EXECUTE para PUBLIC';
   END IF;
 
-  -- 3. El índice global se conserva en este tramo (el Lote 2 no se aplica).
+  -- 3. Tras la migración 0029 el folio REP es único POR EMPRESA: el índice
+  --    global payments_rep_number_uidx se retira y lo sustituye
+  --    payments_org_rep_number_uidx (parcial, rep_number NOT NULL).
   IF NOT EXISTS (
+    SELECT 1 FROM pg_indexes
+    WHERE schemaname = 'public'
+      AND tablename = 'payments'
+      AND indexname = 'payments_org_rep_number_uidx'
+  ) THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: falta payments_org_rep_number_uidx; aplicar la migración 0029';
+  END IF;
+
+  IF EXISTS (
     SELECT 1 FROM pg_indexes
     WHERE schemaname = 'public'
       AND tablename = 'payments'
       AND indexname = 'payments_rep_number_uidx'
   ) THEN
     RAISE EXCEPTION
-      'REP FOLIO ORG: payments_rep_number_uidx debe conservarse en el tramo 8.1';
+      'REP FOLIO ORG: payments_rep_number_uidx (global) debe retirarse en 0029';
   END IF;
 
   RAISE NOTICE 'REP FOLIO ORG: contrato estático OK';
