@@ -1272,11 +1272,14 @@ Deno.serve(async (req) => {
         409,
       );
     }
-    if (inventory.unreferencedObjects > 0) {
+    // Sólo bloquea el legado sin prefijo: de esos objetos no se puede derivar
+    // el dueño. Los objetos sin referencia que YA están bajo el prefijo de una
+    // organización se dejan intactos (sin ledger, sin copia, sin borrado).
+    if (inventory.unreferencedUnscopedObjects > 0) {
       return respond(
         {
           ...summary,
-          error: "Resolve unreferenced Storage objects before apply.",
+          error: "Resolve unscoped unreferenced Storage objects before apply.",
         },
         409,
       );
