@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.13.1",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "backend",
+    "title": "Migrador de archivos: la copia se compara byte a byte, no sólo se busca",
+    "description": "Antes bastaba con que el archivo copiado apareciera en su nueva ubicación. Ahora se descargan el original y la copia y se comparan tamaño y huella digital; si no son idénticos, no se actualizan las referencias y no se borra nada.",
+    "changes": [
+      "La comparación se hace también cuando la copia venía de un intento anterior, no sólo recién copiada.",
+      "Si falta un lado o difieren, el archivo queda marcado como fallido con un código de causa agregado, sin exponer rutas ni enlaces.",
+      "La fase de borrado vuelve a comparar tamaño y huella del original contra la copia justo antes de eliminar; ningún estado anterior del registro salta esa comprobación.",
+      "Pruebas nuevas del comparador de integridad y del candado previo al borrado."
+    ]
+  },
+  {
     "version": "8.13.0",
     "date": "2026-09-17",
     "type": "minor",

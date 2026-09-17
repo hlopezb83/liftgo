@@ -58,6 +58,7 @@ Modo dedicado `delete_sources` en el mismo endpoint, independiente de `apply`:
 - **Confirmación textual distinta:** `DELETE_MIGRATED_SOURCES_AFTER_VERIFY`.
 - **Inventario completo obligatorio**; si está truncado responde 409.
 - **Verificación previa objeto por objeto** (`supabase/functions/_shared/storageDeletePhase.ts`): sólo objetos `discovery_kind = 'referenced'` en estado `references_updated`, con al menos una referencia, todas en estado `updated`, con `organization_id` coincidente y con el **valor actual igual al valor de destino**, y con el **destino verificado como existente** en Storage. Cualquier desvío deja el objeto en `blocked` con código de causa y **no** borra nada.
+- **Revalidación de bytes justo antes de remover:** se vuelven a descargar fuente y copia y se exige **igual tamaño e igual SHA-256**. Un estado previo del ledger (`copied` o `references_updated`) **no** exime de esta prueba; si falla, el objeto queda `blocked` con el código de la discrepancia y la fuente permanece.
 - **Huérfanos: nunca.** El modo de huérfanos (`apply_orphans`) sólo copia y verifica; `deleteEligibility` devuelve `orphans_never_deleted` para cualquier objeto sin referencia, en cualquier modo.
 
 **Condiciones de parada (antes del borrado):** cualquier diferencia de hash/tamaño, un objeto huérfano sin referencia, un error de permisos, o la existencia de la segunda empresa sin ensayo previo en entorno aislado.
