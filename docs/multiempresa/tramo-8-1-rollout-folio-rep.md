@@ -206,6 +206,155 @@ B no debe cambiar, mientras el flujo válido de A devuelve `CP-0007` de forma
 idempotente. Se comprobó localmente que esta prueba **falla** contra la versión
 sin el chequeo de contexto y **pasa** con la versión corregida.
 
+## Precondición de rollout: `0024 → 0025 → 0026` (auditoría directa de producción, solo lectura)
+
+Auditoría de introspección ejecutada contra producción (`zxefrzfaynnfwazqhwxp`)
+**sin ningún cambio**: solo `SELECT` sobre catálogos del sistema. No se aplicó
+DDL, no se escribió en Supabase, no se creó una segunda organización y no se
+movió Storage.
+
+### Estado real del journal
+
+`drizzle.__drizzle_migrations` **termina en `0023`**. Por lo tanto **`0024`,
+`0025` y `0026` están pendientes en producción**.
+
+```sql
+SELECT id, hash, to_timestamp(created_at / 1000) AS applied_at
+FROM drizzle.__drizzle_migrations
+ORDER BY id;
+```
+
+Última entrada: hash `9ee7719a…` (= `0023_payment_intent_invoice_definer_check.sql`),
+aplicada el 2026-09-15 17:52:34Z.
+
+`public.get_customer_id_for_user(uuid)` **existe, pero con su definición
+anterior**: su presencia **no prueba** que `0024` esté aplicada. La verificación
+válida es el journal, no la existencia del nombre de la función.
+
+### `0025` no está en producción
+
+Faltan `public.is_internal_member(uuid)` y
+`public.user_in_current_organization(uuid)`. `public.current_organization_id()`
+conserva el cuerpo anterior (`LIMIT 1`). Siguen vigentes las policies globales
+antiguas, sin sus reemplazos por organización:
+
+- `profiles`: «Staff can view all profiles», «Auditor read profiles»,
+  «Ventas read profiles», «Admins update any profile»,
+  «Administrativo update any profile».
+- `user_roles`: «Admins can manage all roles» (`ALL`),
+  «Only admins can modify roles», «Only admins can update roles»,
+  «Only admins can delete roles», «Auditor read user_roles».
+
+```sql
+SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS args, p.prosecdef
+FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public'
+  AND p.proname IN ('current_organization_id','is_internal_member',
+                    'user_in_current_organization','is_ops_staff',
+                    'assign_stamped_rep_number');
+
+SELECT pg_get_functiondef(p.oid)
+FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+WHERE n.nspname = 'public' AND p.proname = 'current_organization_id';
+
+SELECT tablename, policyname, cmd
+FROM pg_policies
+WHERE schemaname = 'public' AND tablename IN ('profiles','user_roles')
+ORDER BY 1, 2;
+```
+
+### `0025` no es «solo instalar un helper»
+
+Las dependencias estructurales observadas existen
+(`organization_memberships.member_type`, `user_roles`, enum `app_role`,
+`has_role`), pero `0025` **reemplaza funciones y policies y acota RLS**:
+redefine `current_organization_id()`, `is_ops_staff()`,
+`update_user_role_safe()` y `assert_not_last_admin()`, y sustituye las policies
+globales de `profiles` y `user_roles` por versiones acotadas por organización.
+
+Estado de membresías observado: **5 miembros (4 internos y 1 de portal)** y
+**una cuenta de portal conserva un rol operativo residual**. Con
+`is_ops_staff()` acotado por `0025`, esa cuenta **dejaría de contar como
+personal interno**. Esto es una **validación funcional previa obligatoria** con
+el área de negocio; **no** debe asumirse como impacto inocuo.
+
+```sql
+SELECT (SELECT count(*) FROM public.organization_memberships)                     AS membresias,
+       (SELECT count(*) FROM public.organization_memberships
+         WHERE member_type = 'internal')                                          AS internos,
+       (SELECT count(*) FROM public.user_roles ur
+          JOIN public.organization_memberships m ON m.auth_user_id = ur.user_id
+         WHERE m.member_type <> 'internal')                                       AS roles_en_cuentas_portal;
+```
+
+### Por qué `0026` sola no basta (y por qué CI no lo acredita)
+
+Ambas funciones de `0026` son `plpgsql`: PostgreSQL resuelve
+`public.is_internal_member(...)` **al ejecutar**, no al crear. Consecuencias:
+
+- `0026` se aplica sin error aunque falte el helper.
+- Una llamada **autenticada** falla en runtime con
+  `42883 function public.is_internal_member(uuid) does not exist`
+  (`drizzle/migrations/0026_rep_number_org_scoped_assignment.sql:82-88`) y el
+  pago **no** recibe folio.
+- La rama **`service_role`** (`auth.uid()` nulo) **no toca** ese helper y
+  seguiría operando con normalidad.
+
+Por eso la **CI verde no acredita por sí sola** que el estado de producción sea
+seguro: CI corre sobre base limpia con todo el carril aplicado, mientras que
+producción está en `0023`.
+
+### Secuencia propuesta (no ejecutada)
+
+1. Resolver/verificar `0024`.
+2. Aplicar `0025`, revisando previamente las policies que reemplaza y el efecto
+   sobre la cuenta de portal con rol operativo residual.
+3. Aplicar `0026`.
+4. Verificar `search_path` y grants: wrapper REP de dos argumentos **solo**
+   `service_role`; firma de tres argumentos para `authenticated` y
+   `service_role`.
+5. Probar **ambos canales** (autenticado interno y `service_role`) en una base
+   **aislada con dos organizaciones**.
+6. Desplegar las Edge Functions **solo después** de ese ensayo.
+7. **No** habilitar una segunda empresa operativa hasta cerrar también las
+   pruebas A/B completas.
+
+Grants observados hoy en producción (línea base):
+`assign_stamped_rep_number(uuid, text)` con `EXECUTE` para `authenticated` y
+`service_role`; `current_organization_id()` para `anon`, `authenticated` y
+`service_role`; `update_user_role_safe` para `authenticated` y `service_role`;
+`assert_not_last_admin` solo `service_role`.
+
+```sql
+SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS args,
+       g.grantee::regrole::text AS grantee, g.privilege_type
+FROM pg_proc p
+JOIN pg_namespace n ON n.oid = p.pronamespace,
+     LATERAL aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) g
+WHERE n.nspname = 'public' AND p.proname = 'assign_stamped_rep_number'
+ORDER BY 2, 3;
+```
+
+### Discrepancias de hash en el journal
+
+Cuatro migraciones antiguas tienen hash distinto entre el journal y el archivo
+actual del repositorio: **`0004`, `0005`, `0006` y `0010`** (ids 5, 6, 7 y 10).
+El migrador de Drizzle avanza por marca de tiempo según la revisión, así que no
+las reaplica; **pero estas discrepancias deben reconciliarse y entenderse antes
+de depender de una verificación estricta del journal** (por ejemplo, un
+`drizzle-kit check` bloqueante o cualquier control que compare hashes).
+
+Reproducible: comparar `sha256sum drizzle/migrations/*.sql` contra la columna
+`hash` del journal.
+
+### Conclusión y límites
+
+**No hubo ningún cambio en producción**: la auditoría fue exclusivamente de
+lectura. La lectura directa **no sustituye** un ensayo con dos organizaciones en
+un entorno aislado. Mientras ese ensayo no exista, **producción no está lista
+para el rollout** y **`0026` no debe aplicarse sola**. El Lote 2, el traslado de
+Storage histórico y el alta de la segunda empresa siguen **pendientes**.
+
 ## Runbook de aplicación en producción
 
 > No ejecutar nada de esto desde este entorno. El runbook es el procedimiento
