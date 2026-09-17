@@ -17,7 +17,20 @@ Registro de migraciones aplicadas (`select id, hash, to_timestamp(created_at/100
 | 0025 admin/membership scope | **Pendiente** | no existen `is_internal_member(uuid)` ni `user_in_current_organization(uuid)`; `current_organization_id()` conserva el cuerpo viejo con `LIMIT 1`; policies viejas intactas |
 | 0026 folio REP org-scoped | **Pendiente** | solo existe `assign_stamped_rep_number(uuid, text)`; no existe la firma de 3 parámetros |
 
-Policies vigentes en `profiles` / `user_roles` (todas con nombre pre-0025): "Staff can view all profiles", "Auditor read profiles", "Ventas read profiles", "Admins update any profile", "Administrativo update any profile"; "Admins can manage all roles" (ALL), "Only admins can modify/update/delete roles", "Auditor read user_roles", "Users can view own roles". Ninguna de las policies de 0025 ("… org …") existe.
+Hallazgo verificado por introspección directa de `pg_policies`: el ámbito administrativo de 0025 **tampoco está aplicado** en producción.
+
+Policies vigentes en `profiles` (todas globales, pre-0025): "Staff can view all profiles", "Admins update any profile", "Administrativo update any profile", "Auditor read profiles", "Ventas read profiles". Faltan las policies org-scoped que crea 0025.
+
+Policies vigentes en `user_roles` (todas globales, pre-0025): "Admins can manage all roles" (ALL), "Only admins can modify roles", "Only admins can update roles", "Only admins can delete roles", "Auditor read user_roles", "Users can view own roles". Faltan "Admins insert org roles", "Admins update org roles" y el resto de policies por organización. No aparece policy `org_scope_isolation` para estas tablas en la consulta.
+
+Matiz de interpretación: los helpers preexistentes `current_organization_id()`, `is_ops_staff()`, `assert_not_last_admin()` y `update_user_role_safe()` sí existen, pero `is_internal_member()` y `user_in_current_organization()` no. La presencia de algunos helpers **no prueba** que 0025 esté aplicada; los nombres de policies verifican lo contrario. La consulta que lo confirma:
+
+```sql
+select tablename, policyname, cmd from pg_policies
+where schemaname='public' and tablename in ('profiles','user_roles') order by 1,2;
+-- esperado tras 0025: nombres org-scoped ("Admins insert org roles", "Admins update org roles", …);
+-- observado hoy: solo nombres globales pre-0025.
+```
 
 Observación de integridad del carril Drizzle: cuatro entradas antiguas del registro (ids 5, 6, 7, 10) tienen hash distinto al archivo actual (`0004`, `0005`, `0006`, `0010` fueron editados después de aplicarse). El migrador de Drizzle avanza por marca de tiempo, no por hash, así que no las reaplica; pero conviene saberlo antes de cualquier `drizzle-kit check` estricto.
 
@@ -71,7 +84,7 @@ Sí crea, y no falla al aplicarse. Ambas funciones de 0026 son `plpgsql`: el val
 - El fallo aparece **solo en ejecución y solo por la ruta autenticada**: `drizzle/migrations/0026_…sql:82-88` evalúa `public.is_internal_member(v_uid)` cuando `auth.uid()` no es NULL → error `42883 function public.is_internal_member(uuid) does not exist`, y el pago **no** recibe folio.
 - La ruta `service_role` (`v_uid IS NULL`: `stamp-payment-complement`, cron de reconciliación) **no toca** esa rama y funcionaría igual. Es decir, el daño es silencioso: CI verde, timbrado automático correcto, y falla solo cuando un admin ejecuta la asignación desde una sesión.
 
-Conclusión: 0026 no debe considerarse lista para producción por sí sola. Dos salidas válidas: (a) aplicar 0025 antes que 0026 en la misma ventana, o (b) volver 0026 autocontenida incorporando la definición de `is_internal_member(uuid)` con sus `REVOKE`/`GRANT`. La opción (a) es la preferible porque 0025 ya está validada en CI y evita duplicar la definición del helper.
+Conclusión: 0026 no debe considerarse lista para producción por sí sola. La única salida recomendable es aplicar **0025 completa** antes que 0026 en la misma ventana. No basta con definir solo `is_internal_member(uuid)` para satisfacer 0026: esa salida mínima dejaría la ruta autenticada del folio funcionando, pero producción seguiría con las policies globales pre-0025 de `profiles` y `user_roles` (ámbito administrativo sin acotar por organización), que es un bloqueo multiempresa en sí mismo. La opción de volver 0026 autocontenida queda descartada como sustituto de 0025; si alguna vez se usa, debe ser además de 0025, nunca en su lugar.
 
 ## 4. Secuencia mínima y segura de rollout (propuesta, no ejecutada)
 
@@ -108,6 +121,7 @@ Rollback conceptual (sin ejecutar): redefinir `assign_stamped_rep_number(uuid,te
 
 ## 5. Límites y decisiones que siguen pendientes
 
+- **Bloqueo multiempresa crítico:** el ámbito administrativo de 0025 no está aplicado (verificado por nombres de policies en `pg_policies`, sección 1). Antes de abrir una segunda organización hay que reconciliar/aplicar 0025 **completa** — helpers, redefinición de `current_organization_id()`/`is_ops_staff()` y policies org-scoped de `profiles`/`user_roles` — y evaluar sus cambios de RLS con pruebas funcionales y de RLS ejecutadas desde una **base aislada después del rollout** (por ejemplo, verificar que un admin de la organización A no lee perfiles ni roles de la organización B, y que el usuario de portal residual ya no pasa los filtros internos). No asumir que basta definir solo `is_internal_member` para satisfacer 0026.
 - No se recomienda dar de alta la segunda empresa, ejecutar el Lote 2 (unicidad por organización en `feedback_reports.folio` / `payments.rep_number`) ni mover objetos de Storage hasta haber ensayado el rollout completo con **dos organizaciones en entorno aislado**.
 - Catálogos sin decisión: `suppliers`, `equipment_models`, `bank_accounts`.
 - Esta auditoría no ejecuta el smoke autenticado: requiere entorno aislado con dos organizaciones, que hoy no existe.
