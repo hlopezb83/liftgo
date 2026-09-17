@@ -109,3 +109,28 @@ Riesgo residual **no cerrado por 0027**: los 310 objetos legados sin prefijo no
 llevan organización, así que el staff de cualquier organización los seguirá
 leyendo. Sólo el traslado descrito arriba lo cierra; por eso sigue siendo
 precondición del alta de la segunda empresa.
+
+## Actualización 8.10.0 — correcciones tras la revisión de CI (repositorio, nada aplicado)
+
+La corrida `35177145738` del workflow *RLS DB tests* terminó **52/54**. Errores originales:
+
+1. `supabase/tests/rls/storage_cross_org_ab.sql:222` — `RLS BREACH: la sesión de la ORG A borró objetos de la ORG B`. **Falso positivo de la prueba**: el fixture crea **cinco** objetos con prefijo de la ORG B (uno por bucket) y la aserción exigía `count <> 4`.
+2. `supabase/tests/rls/storage_objects_documents.sql:93` — el positivo del portal veía 0 objetos. La prueba heredada no asignaba `organization_id` a `documents`/`invoices` ni creaba `organization_memberships`, y `current_organization_id()` (0025) se deriva de esa tabla; el helper acotado por 0027 quedaba, correctamente, cerrado.
+
+Correcciones (sin relajar helper ni RLS):
+
+- `storage_cross_org_ab.sql`: conteo corregido a **5** y verificación **por bucket** (el total ya no puede compensarse); membresía `member_type='portal'` para la cuenta de portal de la ORG A.
+- `storage_objects_documents.sql`: fixture reescrito como A/B sintético — organizaciones A y B, membresías internas y de portal, `documents`/`invoices` ligados a su organización, rutas nuevas con prefijo, un documento de la ORG B con ruta nueva y otro legado. Se conservan los positivos propios (cliente ve su archivo exacto, mecánico ve `forklift/`, ventas sube y no borra) y se añaden negativos cruzados.
+
+### Límite del legado: lo que 0027 sí cierra y lo que no
+
+`storage_path_in_current_organization(..., false)` admite las rutas sin prefijo, así que **por sí sola** dejaría el legado accesible a cualquier staff. Para el bucket `documents` existe una forma segura de resolver el propietario sin inventar datos ni mover objetos: la fila `public.documents` que referencia la ruta ya tiene `organization_id`. 0027 añade
+`public.storage_document_owned_by_other_organization(text)` y la exige en las policies de lectura, reemplazo y borrado de staff en `documents`. Los huérfanos históricos (ruta sin fila que la reclame) conservan el comportamiento actual.
+
+**No queda cerrado** en `cfdi-files`, `supplier-payment-receipts`, `supplier-bill-cfdi-xml` y `feedback-screenshots`: no hay columna que ligue la ruta legada con su organización, así que el staff de una futura segunda empresa **también podría leer o borrar esos objetos históricos**. La prueba A/B incluye una **aserción-gate explícita** (`GATE DESACTUALIZADO: …`) que falla si ese supuesto cambia, para que nadie documente el riesgo como cerrado por error.
+
+**Conclusión de alcance:** 0027 aísla las **rutas nuevas con prefijo** y el legado del bucket `documents`; el **legado del resto de buckets sigue compartido**. El alta de la segunda empresa continúa **bloqueada** hasta que la migración de objetos históricos esté probada y ejecutada por su canal autorizado.
+
+### Apertura de archivos: auditoría de call-sites
+
+Call-sites actuales: `openStoredFile` sólo en `SupplierPaymentRow` (`receipt_url` de `supplier-payment-receipts`); `openStorageFile` (path directo) en `PaymentIntentsSection` (`payment-proofs`) y `SupplierPaymentRepReceived` (`rep_xml_url`/`rep_pdf_url`). Los hooks de subida (`useUploadSupplierReceipt`, `useUploadSupplierBillXml`) y `useDocuments` persisten **paths**, no URLs. La auditoría previa confirmó **0 referencias http en base**, así que rechazar hosts externos no rompe ninguna ruta soportada. Se añadió además el caso de URL mal formada o con separador codificado (`%2E%2E%2F`, porcentaje inválido), que falla cerrado sin excepción no controlada.
