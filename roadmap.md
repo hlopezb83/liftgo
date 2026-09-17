@@ -14,3 +14,5 @@ Restricciones: YAGNI, no publicar, no tocar datos productivos/secretos/proteccio
 
 - [x] Reparación desfase migraciones (Lote A y Lote B): objetos faltantes, guards financieros, daños, ciclo de vida y validate_transition aplicados en producción sin escrituras de datos.
 - [ ] PENDIENTE (requiere autorización del usuario): reconciliaciones históricas (16 facturas 'paid' con saldo, estados de montacargas), recálculo de hashes bancarios, cambios de permisos de inserción en tablas bancarias y (des)programación de cron.
+
+- [ ] Verificación de la cadena 0024→0025→0026 en base efímera (CI): suite RLS que prueba orden secuencial, policies org-scoped que reemplazan las globales, fail-closed de organización, portal con rol operativo residual, 42501 en cruces de folio REP, wrapper de 2 args sin authenticated, reconciliación service_role idempotente, y guard que demuestra la brecha 42883 si falta 0025.

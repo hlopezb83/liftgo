@@ -1,3 +1,14 @@
+## [8.8.34] - 2026-09-17 · patch · security
+
+Se agregó una prueba automática que ensaya, sobre una base temporal y con dos empresas inventadas, el mismo orden de cambios que tendría producción.
+
+- Nueva prueba supabase/tests/rls/migration_chain_0024_0026.sql con datos ficticios: dos empresas, cuatro usuarios internos y una cuenta de portal con permiso operativo residual. No usa datos ni usuarios reales.
+- Verifica que las reglas de acceso globales antiguas de perfiles y roles ya no existen y que están en su lugar las nuevas reglas por empresa.
+- Verifica los permisos exactos del folio de complementos: la versión nueva para sesiones y canal interno; la versión antigua de compatibilidad solo para el canal interno.
+- Verifica el comportamiento: un usuario sin empresa no resuelve ninguna; la cuenta de portal con permiso residual no pasa como personal interno; un administrador de la empresa A no puede folear un pago de la empresa B y ese pago no se modifica; repetir el flujo válido no duplica folios; el canal interno reconcilia sin duplicar.
+- Incluye una comprobación que reproduce la brecha actual de producción: al faltar la función de membresía del cambio 0025, la llamada con sesión falla; la prueba lo demuestra y revierte el estado enseguida.
+- No se modificaron los cambios 0024, 0025 ni 0026 ni se ejecutó nada en producción; no se creó una segunda empresa, no se movió almacenamiento y no se retiró ningún índice.
+
 ## [8.8.33] - 2026-09-17 · patch · docs
 
 Se actualizó la guía del folio de complementos con una revisión directa de producción: hoy la base productiva no está lista para aplicar ese cambio, y queda escrito por qué y en qué orden hacerlo.
