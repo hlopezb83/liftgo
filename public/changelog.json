@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.8.32",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "docs",
+    "title": "Auditoría de Storage histórico multiempresa documentada (sin cambio funcional)",
+    "description": "Se registró en docs/multiempresa/storage-historico.md la auditoría de solo lectura del almacenamiento histórico: buckets, conteos, policies, riesgos y plan reversible de traslado. No representa cambio funcional.",
+    "changes": [
+      "Nuevo documento docs/multiempresa/storage-historico.md con la auditoría de solo lectura: 6 buckets privados, 310 objetos, 25 policies (8 de lectura y 17 de escritura), una organización activa y bitácoras de migración vacías.",
+      "Confirmado: los 310 objetos históricos no tienen prefijo de empresa y no hay objetos en la raíz; el riesgo aparecería al dar de alta una segunda empresa.",
+      "Documentado el riesgo de las rutas legadas que se abren tal cual, aunque la inspección no encontró referencias guardadas como URL.",
+      "Documentado el plan reversible de traslado (copia, verificación de huellas, actualización de referencias, doble lectura y borrado final solo con autorización), con condiciones de parada y rollback.",
+      "Documentada la precondición crítica: producción aún no tiene la función de membresía interna que el cambio del folio REP necesita; debe aplicarse en orden y probarse con usuario autenticado y con el canal interno.",
+      "Sin cambio funcional: no se tocó código, base de datos, policies, buckets ni objetos; el traslado no está autorizado ni ejecutado."
+    ]
+  },
+  {
     "version": "8.8.31",
     "date": "2026-09-16",
     "type": "patch",
