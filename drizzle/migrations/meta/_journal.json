@@ -232,6 +232,13 @@
       "when": 1789684024818,
       "tag": "0032_rep_number_org_scoped_assignment",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1789684102689,
+      "tag": "0033_storage_tenant_scope_remaining_buckets",
+      "breakpoints": true
     }
   ]
 }
