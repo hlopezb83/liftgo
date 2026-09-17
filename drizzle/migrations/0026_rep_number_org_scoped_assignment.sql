@@ -124,7 +124,13 @@ BEGIN
 END;
 $function$;
 
+-- Nota de ACL: en Supabase existe
+--   ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, ...
+-- por lo que una funcion NUEVA nace con EXECUTE concedido DIRECTAMENTE a anon
+-- (no via PUBLIC). El REVOKE ... FROM PUBLIC no lo quita: hace falta el REVOKE
+-- explicito a anon.
 REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text, uuid) TO service_role;
 
@@ -158,6 +164,7 @@ $function$;
 -- de navegador lo usa, asi que dejarlo abierto a authenticated solo ofreceria
 -- una via de delegacion con NULL.
 REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM authenticated;
 GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO service_role;
 

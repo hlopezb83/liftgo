@@ -186,6 +186,26 @@ BEGIN
     RAISE EXCEPTION 'CADENA 0026: la firma estricta NO debe ser ejecutable por anon';
   END IF;
 
+  -- ACL DIRECTA: en Supabase las funciones nuevas nacen con EXECUTE concedido
+  -- directamente a anon por ALTER DEFAULT PRIVILEGES. Exigimos que el grant
+  -- directo tampoco exista (no basta el privilegio efectivo).
+  SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_strict;
+  IF EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 'anon'::regrole AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: la firma estricta conserva un grant DIRECTO de EXECUTE a anon';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 'authenticated'::regrole AND a.privilege_type = 'EXECUTE'
+  ) OR NOT EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 'service_role'::regrole AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: la firma estricta debe tener grants DIRECTOS a authenticated y service_role';
+  END IF;
+
   SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_strict;
   IF v_acl IS NULL THEN
     RAISE EXCEPTION
@@ -212,6 +232,29 @@ BEGIN
   IF has_function_privilege('anon', v_legacy, 'EXECUTE') THEN
     RAISE EXCEPTION
       'CADENA 0026: el wrapper de dos parámetros NO debe ser ejecutable por anon';
+  END IF;
+
+  -- ACL DIRECTA: en Supabase las funciones nuevas nacen con EXECUTE concedido
+  -- directamente a anon por ALTER DEFAULT PRIVILEGES. Exigimos que el grant
+  -- directo tampoco exista (no basta el privilegio efectivo).
+  SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_legacy;
+  IF EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 'anon'::regrole AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: el wrapper de dos parámetros conserva un grant DIRECTO de EXECUTE a anon';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 'authenticated'::regrole AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: el wrapper conserva un grant DIRECTO de EXECUTE a authenticated';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 'service_role'::regrole AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: el wrapper debe tener grant DIRECTO a service_role';
   END IF;
 
   SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_legacy;

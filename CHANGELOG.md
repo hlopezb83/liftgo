@@ -1,3 +1,13 @@
+## [8.10.5] - 2026-09-17 · patch · security
+
+GitHub Actions detectó que la versión estricta del asignador de folio quedaba ejecutable por el rol anónimo. La causa es real y no un falso positivo: la plataforma concede EXECUTE directamente a anon a toda función nueva del esquema público mediante privilegios por defecto, así que retirar el permiso a PUBLIC no lo quita. La migración pendiente 0026 ahora retira el permiso a anon de forma explícita en ambas firmas, y las pruebas exigen además la lista de permisos directa, no solo la efectiva.
+
+- Causa confirmada en base temporal aislada: ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon concede EXECUTE DIRECTO a anon al crear la función; no es herencia de roles ni de PUBLIC.
+- drizzle/migrations/0026_rep_number_org_scoped_assignment.sql: se añade REVOKE ALL ... FROM anon a la firma estricta (uuid, text, uuid) y al wrapper (uuid, text), conservando EXECUTE para authenticated y service_role en la estricta y solo service_role en el wrapper.
+- supabase/tests/rls/migration_chain_0024_0026.sql y rep_folio_org_scope.sql: nuevas aserciones de ACL DIRECTA con aclexplode — sin grant directo a anon en ninguna firma; grants directos exigidos a authenticated y service_role en la estricta y a service_role en el wrapper; el wrapper no debe tener grant directo a authenticated.
+- Se conservan sin debilitar el escenario A/B, el usuario sin membresía, el portal con rol residual, la ausencia de is_internal_member al aplicar 0026 sola y el SQLSTATE 42501 exacto.
+- Migración aún NO aplicada (forward-only, 0024→0025→0026); no se ejecutó SQL contra producción ni se activó una segunda empresa.
+
 ## [8.10.4] - 2026-09-17 · patch · security
 
 Las dos pruebas automáticas que vigilan el folio de complementos aceptaban configuraciones débiles: permitían que faltara la versión de compatibilidad del asignador y daban por buena cualquier ruta de búsqueda con solo mencionarla. Ahora exigen ambas versiones, la ruta de búsqueda exactamente 'public', el modo de ejecución con privilegios del dueño y los permisos exactos por tipo de usuario. Solo pruebas: sin tocar migraciones, lógica de negocio, roles reales ni datos.
