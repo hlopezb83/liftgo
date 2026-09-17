@@ -1,9 +1,10 @@
 -- Multiempresa · Tramo 8.1: el asignador de folio REP debe estar acotado a la
 -- organización del propio pago.
 --
--- Esta prueba FALLA si la migración del tramo 8.1 no está aplicada en el
--- entorno donde corre. La migración forma parte del cambio, así que un NOTICE
--- que la convirtiera en no-op ocultaría exactamente el riesgo que se audita.
+-- Esta prueba FALLA si la cadena de migraciones (tramo 8.1 y la 0029 de
+-- unicidad por empresa) no está aplicada en el entorno donde corre. Las
+-- migraciones forman parte del cambio, así que un NOTICE que la convirtiera en
+-- no-op ocultaría exactamente el riesgo que se audita.
 BEGIN;
 
 DO $$
