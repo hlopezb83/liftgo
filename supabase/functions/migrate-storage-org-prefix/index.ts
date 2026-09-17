@@ -140,7 +140,7 @@ interface LedgerReference {
 }
 
 interface RequestInput {
-  mode: "plan" | "apply" | "apply_orphans";
+  mode: "plan" | "apply" | "apply_orphans" | "delete_sources";
   maxRowsPerReference: number;
   maxObjectsPerBucket: number;
   batchSize: number;
@@ -168,7 +168,8 @@ async function parseInput(req: Request): Promise<RequestInput | null> {
   if (
     mode !== "plan" &&
     mode !== "apply" &&
-    mode !== "apply_orphans"
+    mode !== "apply_orphans" &&
+    mode !== "delete_sources"
   ) return null;
   return {
     mode,
