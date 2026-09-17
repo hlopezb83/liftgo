@@ -239,3 +239,65 @@ No se toca `customers.rfc`, `equipment_models`, `organizations`, `user_roles`,
    puede volverse imposible: el momento de aplicar es **antes** de esa alta.
 6. Autorizar el cambio posterior de código que mapee los nombres de restricción nuevos en
    los mensajes de error.
+
+---
+
+## Decisión adoptada e implementación (migración 0029)
+
+Fecha: 2026-09-17. Archivo: `drizzle/migrations/0029_multi_org_unique_scope_by_organization.sql`.
+Prueba: `supabase/tests/rls/multi_org_unique_scope_ab.sql` (la corre el runner por
+directorio, no hace falta tocar el workflow).
+
+### Proveedores: alternativa A
+
+Se adopta la **alternativa A**: el proveedor es propio de cada empresa. El índice
+`suppliers_rfc_unique_idx` pasa a incluir `organization_id`, conservando exactamente el
+mismo filtro parcial (`rfc IS NOT NULL AND btrim(rfc) <> '' AND deleted_at IS NULL`) y la
+misma normalización (`upper(btrim(rfc))`).
+
+Consecuencias aceptadas:
+
+- Un mismo proveedor real puede existir como dos filas independientes, una por empresa,
+  con datos de contacto y cuentas bancarias distintos. No hay deduplicación entre empresas.
+- No hay vista consolidada de gasto por proveedor entre empresas; cualquier reporte de ese
+  tipo tendría que agrupar por RFC normalizado, no por `supplier_id`.
+- `customers` y `equipment_models` **siguen siendo catálogos globales**: el cliente se
+  comparte y la relación comercial vive en `organization_customers`; el modelo de equipo es
+  un catálogo de fabricante sin datos de negocio.
+
+### Ventana de bloqueo: por qué no hay `CONCURRENTLY`
+
+El migrador de Drizzle (`drizzle-orm/pg-core/dialect.js`) envuelve **toda** la corrida en
+`session.transaction(...)`. `CREATE INDEX CONCURRENTLY` y `DROP INDEX CONCURRENTLY` no
+pueden ejecutarse dentro de una transacción (SQLSTATE 25001), así que la migración usa
+índices bloqueantes:
+
+- `CREATE UNIQUE INDEX`: toma `ShareLock` sobre la tabla — bloquea escrituras, no lecturas.
+- `DROP INDEX`: toma `AccessExclusiveLock` — bloquea todo sobre esa tabla.
+
+Con el tamaño actual de las tablas (decenas a pocos miles de filas) la ventana estimada es
+menor a 1 s por tabla y toda la migración corre en una sola transacción: o entra completa o
+no entra nada. Aun así conviene aplicarla fuera de horario de operación.
+
+### Preflight fail-closed
+
+La migración aborta antes de crear cualquier índice si encuentra:
+
+1. filas con `organization_id` nulo que quedarían fuera del alcance del índice nuevo;
+2. duplicados **dentro de una misma empresa** para cualquiera de las claves;
+3. ausencia de `feedback_reports_organization_folio_key` (el par por empresa que sustituye
+   al folio global);
+4. pagos cuya empresa no coincide con la de su factura.
+
+Un postflight verifica que los ocho índices nuevos existen, son `indisunique`,
+`indisvalid`/`indisready`, y que los globales equivalentes ya no están.
+
+### Folio REP: auditoría de callers (solo lectura, sin cambios)
+
+`assign_stamped_rep_number(uuid, text, uuid)` toma la empresa de la fila de `payments`,
+exige membresía interna verificada y usa el parámetro únicamente para **rechazar** cruces;
+el wrapper de dos argumentos delega con `NULL`. `repFolio.ts`,
+`stamp-payment-complement` y `reconcile-stamping-invoices` obtienen la empresa del pago ya
+leído en servidor, nunca del navegador. La idempotencia de reintentos no cambia (si el pago
+ya tiene folio, se devuelve sin escribir) y el formato `CP-####` se conserva: lo único nuevo
+es que dos empresas pueden usar el mismo número.
