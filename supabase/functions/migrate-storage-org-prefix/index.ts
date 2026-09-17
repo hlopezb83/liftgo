@@ -21,6 +21,7 @@ import {
 } from "../_shared/storageMigrationPlan.ts";
 import {
   partitionStorageList,
+  type StorageInventoryBucket,
   type StorageListItem,
   summarizeStorageInventory,
 } from "../_shared/storageInventory.ts";
