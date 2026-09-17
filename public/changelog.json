@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.13.2",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "backend",
+    "title": "Migrador de archivos: los archivos viejos ya ordenados dejan de frenar la migración",
+    "description": "La migración se detenía si existía cualquier archivo sin usar en el almacén. Ahora sólo se detiene por archivos sin usar que además están fuera del orden por empresa, porque de esos no se puede saber a quién pertenecen.",
+    "changes": [
+      "El reporte separa los archivos sin usar que ya están ordenados por empresa de los que siguen sueltos, en total y por almacén.",
+      "Los archivos sin usar ya ordenados se quedan tal cual: no se registran, no se vuelven a copiar y nunca se borran.",
+      "Un identificador cualquiera no cuenta como orden por empresa: debe coincidir exactamente con una empresa conocida.",
+      "Pruebas nuevas del clasificador y del freno de la fase de copia."
+    ]
+  },
+  {
     "version": "8.13.1",
     "date": "2026-09-17",
     "type": "patch",

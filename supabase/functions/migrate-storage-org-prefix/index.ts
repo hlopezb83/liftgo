@@ -21,6 +21,7 @@ import {
 } from "../_shared/storageMigrationPlan.ts";
 import {
   partitionStorageList,
+  type StorageInventoryBucket,
   type StorageListItem,
   summarizeStorageInventory,
 } from "../_shared/storageInventory.ts";
@@ -256,6 +257,7 @@ async function inventoryBucketObjects(
   bucketId: string,
   referencedPaths: Iterable<string>,
   maxObjects: number,
+  organizationIds: Iterable<string> = [],
 ): Promise<{
   summary: ReturnType<typeof summarizeStorageInventory>;
   objectPaths: Set<string>;
@@ -310,7 +312,12 @@ async function inventoryBucketObjects(
   }
 
   return {
-    summary: summarizeStorageInventory(bucketId, objectPaths, referencedPaths),
+    summary: summarizeStorageInventory(
+      bucketId,
+      objectPaths,
+      referencedPaths,
+      organizationIds,
+    ),
     objectPaths,
     truncated,
   };
@@ -320,10 +327,13 @@ async function collectStorageInventory(
   admin: AdminClient,
   referencedPathsByBucket: Map<string, Set<string>>,
   maxObjectsPerBucket: number,
+  organizationIds: string[] = [],
 ): Promise<{
   byBucket: Array<ReturnType<typeof summarizeStorageInventory>>;
   objectPathsByBucket: Map<string, Set<string>>;
   unreferencedObjects: number;
+  unreferencedScopedObjects: number;
+  unreferencedUnscopedObjects: number;
   truncated: boolean;
 }> {
   const byBucket: Array<ReturnType<typeof summarizeStorageInventory>> = [];
@@ -336,18 +346,25 @@ async function collectStorageInventory(
       bucketId,
       referencedPathsByBucket.get(bucketId) ?? [],
       maxObjectsPerBucket,
+      organizationIds,
     );
     byBucket.push(inventory.summary);
     objectPathsByBucket.set(bucketId, inventory.objectPaths);
     truncated ||= inventory.truncated;
   }
 
+  const total = (pick: (bucket: StorageInventoryBucket) => number) =>
+    byBucket.reduce((sum, bucket) => sum + pick(bucket), 0);
+
   return {
     byBucket,
     objectPathsByBucket,
-    unreferencedObjects: byBucket.reduce(
-      (total, bucket) => total + bucket.unreferenced_objects,
-      0,
+    unreferencedObjects: total((bucket) => bucket.unreferenced_objects),
+    unreferencedScopedObjects: total((bucket) =>
+      bucket.unreferenced_scoped_objects
+    ),
+    unreferencedUnscopedObjects: total((bucket) =>
+      bucket.unreferenced_unscoped_objects
     ),
     truncated,
   };
@@ -1120,6 +1137,7 @@ Deno.serve(async (req) => {
       admin,
       plan.referencedPathsByBucket,
       input.maxObjectsPerBucket,
+      plan.organizationIds,
     );
     const inventoryComplete = !plan.truncated && !inventory.truncated;
     const orphanCandidates = collectOrphanCandidates(
@@ -1139,10 +1157,25 @@ Deno.serve(async (req) => {
       by_bucket: countByBucket(plan.candidates),
       storage_inventory: {
         complete: inventoryComplete,
+        // Los objetos sin referencia se reportan separados: los que ya están
+        // bajo un prefijo de organización no bloquean apply y se dejan
+        // intactos; sólo los legados sin prefijo detienen la fase.
+        unreferenced_scoped_objects: inventoryComplete
+          ? inventory.unreferencedScopedObjects
+          : null,
+        unreferenced_unscoped_objects: inventoryComplete
+          ? inventory.unreferencedUnscopedObjects
+          : null,
         by_bucket: inventory.byBucket.map((bucket) => ({
           ...bucket,
           unreferenced_objects: inventoryComplete
             ? bucket.unreferenced_objects
+            : null,
+          unreferenced_scoped_objects: inventoryComplete
+            ? bucket.unreferenced_scoped_objects
+            : null,
+          unreferenced_unscoped_objects: inventoryComplete
+            ? bucket.unreferenced_unscoped_objects
             : null,
         })),
       },
@@ -1239,11 +1272,14 @@ Deno.serve(async (req) => {
         409,
       );
     }
-    if (inventory.unreferencedObjects > 0) {
+    // Sólo bloquea el legado sin prefijo: de esos objetos no se puede derivar
+    // el dueño. Los objetos sin referencia que YA están bajo el prefijo de una
+    // organización se dejan intactos (sin ledger, sin copia, sin borrado).
+    if (inventory.unreferencedUnscopedObjects > 0) {
       return respond(
         {
           ...summary,
-          error: "Resolve unreferenced Storage objects before apply.",
+          error: "Resolve unscoped unreferenced Storage objects before apply.",
         },
         409,
       );
