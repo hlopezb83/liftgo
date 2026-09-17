@@ -351,6 +351,7 @@ async function collectCandidates(
 ): Promise<{
   candidates: CandidateReference[];
   counts: ReturnType<typeof emptyCounts>;
+  referencedPathsByBucket: Map<string, Set<string>>;
   organizationIds: string[];
   truncated: boolean;
 }> {
