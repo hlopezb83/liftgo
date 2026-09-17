@@ -768,7 +768,7 @@ async function updateOneReference(
     return false;
   }
 
-  const row = current as Record<string, unknown>;
+  const row = current as unknown as Record<string, unknown>;
   if (row.organization_id !== object.organization_id) {
     await updateReference(admin, reference.id, {
       status: "failed",
