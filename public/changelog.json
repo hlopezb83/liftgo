@@ -1,5 +1,23 @@
 [
   {
+    "version": "8.12.0",
+    "date": "2026-09-17",
+    "type": "minor",
+    "category": "backend",
+    "title": "Rollout multiempresa en producción: migraciones 0024 a 0029 aplicadas",
+    "description": "Se aplicaron en orden, por el canal oficial de migraciones, las seis migraciones pendientes del programa multiempresa. La base productiva pasó de 0023 a 0029. No se movieron objetos de almacenamiento ni se modificaron datos.",
+    "changes": [
+      "0024: el respaldo legado del portal solo aplica a usuarios sin cuenta de portal registrada.",
+      "0025: perfiles, roles y funciones privilegiadas de administración acotados a la empresa verificada.",
+      "0026: asignador de folio de recibo de pago con validación de empresa y wrapper de compatibilidad solo para el canal interno.",
+      "0027: políticas de almacenamiento por empresa en los buckets restantes y resolución del legado de documentos por su ficha dueña.",
+      "0028: retiro del permiso de ejecución anónimo en 22 funciones y del permiso público en 7.",
+      "0029: unicidad de catálogos, folios y proveedores por empresa, con preflight y postflight superados en producción.",
+      "Verificación posterior por lecturas: 31 registros de migración (últimos seis con la huella exacta de los archivos 0024–0029), los ocho índices únicos por empresa válidos, los globales retirados, políticas de perfiles y roles por empresa activas, 19 políticas de almacenamiento con prefijo de empresa y 0 funciones objetivo con permiso de ejecución para el rol anónimo.",
+      "Limpieza del registro local: se retiraron los archivos duplicados que el canal generó y que no llegaron a aplicarse."
+    ]
+  },
+  {
     "version": "8.11.0",
     "date": "2026-09-17",
     "type": "minor",
