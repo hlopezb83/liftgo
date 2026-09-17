@@ -33,7 +33,6 @@ import {
   type ObjectDigest,
 } from "../_shared/storageCopyVerification.ts";
 import {
-  DELETE_CONFIRMATION,
   DELETE_ENV_FLAG,
   deleteEligibility,
   deleteGateDecision,
