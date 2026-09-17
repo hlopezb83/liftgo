@@ -53,16 +53,12 @@ BEGIN
     v_default := v_acl IS NULL;
 
     SELECT
-      coalesce(bool_or(a.grantee = 'anon'::regrole AND a.privilege_type = 'EXECUTE'), false),
+      coalesce(bool_or(a.grantee = 'anon'::regrole::oid AND a.privilege_type = 'EXECUTE'), false),
       coalesce(bool_or(a.grantee = 0::oid AND a.privilege_type = 'EXECUTE'), false)
       INTO v_direct_anon, v_public
     FROM aclexplode(coalesce(v_acl, '{}'::aclitem[])) a;
 
     v_effective := has_function_privilege('anon', v_oid, 'EXECUTE');
-
-    IF v_direct_anon THEN
-      v_faltas_direct: NULL;
-    END IF;
 
     IF v_direct_anon THEN
       v_fallas := v_fallas || (v_sig || ' → ACL almacenado con entrada directa a anon');
@@ -79,8 +75,8 @@ BEGIN
   END LOOP;
 
   IF array_length(v_fallas, 1) IS NOT NULL THEN
-    RAISE EXCEPTION 'ACL 0028: la superficie anónima sigue abierta:%s%',
-      E'\n', array_to_string(v_fallas, E'\n');
+    RAISE EXCEPTION E'ACL 0028: la superficie anónima sigue abierta:\n%',
+      array_to_string(v_fallas, E'\n');
   END IF;
 END;
 $$;
@@ -119,8 +115,8 @@ BEGIN
   END LOOP;
 
   IF array_length(v_fallas, 1) IS NOT NULL THEN
-    RAISE EXCEPTION 'ACL 0028: se perdieron permisos legítimos:%s%',
-      E'\n', array_to_string(v_fallas, E'\n');
+    RAISE EXCEPTION E'ACL 0028: se perdieron permisos legítimos:\n%',
+      array_to_string(v_fallas, E'\n');
   END IF;
 END;
 $$;
@@ -170,10 +166,10 @@ $$;
 INSERT INTO public.quotes
   (id, organization_id, customer_id, quote_number, status, total, subtotal, tax_amount)
 VALUES
-  ('28000000-0000-4000-8000-0000000000q1'::text::uuid,
+  ('28000000-0000-4000-8000-0000000000a1'::uuid,
    '28000000-0000-4000-8000-000000000028', '28000000-0000-4000-8000-00000000c001',
    'COT-ACL-0028-A', 'sent', 100, 100, 0),
-  ('28000000-0000-4000-8000-0000000000q2'::text::uuid,
+  ('28000000-0000-4000-8000-0000000000a2'::uuid,
    '28000000-0000-4000-8000-000000000028', '28000000-0000-4000-8000-00000000c001',
    'COT-ACL-0028-B', 'sent', 100, 100, 0);
 
@@ -186,18 +182,18 @@ DO $$
 DECLARE
   v_quote public.quotes;
 BEGIN
-  v_quote := public.accept_quote_from_portal('28000000-0000-4000-8000-0000000000q1'::text::uuid, '127.0.0.1');
+  v_quote := public.accept_quote_from_portal('28000000-0000-4000-8000-0000000000a1'::uuid, '127.0.0.1');
   IF v_quote.status <> 'accepted' THEN
     RAISE EXCEPTION 'ACL 0028: el portal autenticado no pudo aceptar su cotización (estado %)', v_quote.status;
   END IF;
 
-  v_quote := public.reject_quote_from_portal('28000000-0000-4000-8000-0000000000q2'::text::uuid, 'prueba');
+  v_quote := public.reject_quote_from_portal('28000000-0000-4000-8000-0000000000a2'::uuid, 'prueba');
   IF v_quote.status <> 'rejected' THEN
     RAISE EXCEPTION 'ACL 0028: el portal autenticado no pudo rechazar su cotización (estado %)', v_quote.status;
   END IF;
 
   -- Las policies siguen evaluándose con los helpers revocados a anon.
-  IF NOT EXISTS (SELECT 1 FROM public.quotes WHERE id = '28000000-0000-4000-8000-0000000000q1'::text::uuid) THEN
+  IF NOT EXISTS (SELECT 1 FROM public.quotes WHERE id = '28000000-0000-4000-8000-0000000000a1'::uuid) THEN
     RAISE EXCEPTION 'ACL 0028: el portal dejó de ver su propia cotización (helpers de policy sin permiso)';
   END IF;
 END;
