@@ -35,7 +35,10 @@ ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type) VALUES
   ('0c000000-0000-4000-8000-00000000000c', 'b0000000-0000-4000-8000-000000000001', 'internal'),
-  ('0d000000-0000-4000-8000-00000000000d', 'b0000000-0000-4000-8000-000000000002', 'internal');
+  ('0d000000-0000-4000-8000-00000000000d', 'b0000000-0000-4000-8000-000000000002', 'internal'),
+  -- 0025: current_organization_id() se deriva de organization_memberships, así
+  -- que la cuenta de portal necesita su membresía 'portal' de la ORG A.
+  ('0c000000-0000-4000-8000-00000000000c', 'b0000000-0000-4000-8000-000000000003', 'portal');
 
 -- Cliente comercial compartido por las dos organizaciones.
 INSERT INTO public.customers (id, name) VALUES
@@ -107,7 +110,11 @@ INSERT INTO storage.objects (bucket_id, name, metadata) VALUES
    '{"mimetype":"application/pdf"}'::jsonb),
   ('supplier-bill-cfdi-xml',
    '0d000000-0000-4000-8000-00000000000d/facturas/ajeno.xml',
-   '{"mimetype":"application/xml"}'::jsonb);
+   '{"mimetype":"application/xml"}'::jsonb),
+  -- Legado sin prefijo en buckets que NO tienen columna que resuelva dueño.
+  ('cfdi-files', 'cfdi/legado-sin-prefijo.xml', '{"mimetype":"application/xml"}'::jsonb),
+  ('supplier-payment-receipts', 'pagos/legado-sin-prefijo.pdf', '{"mimetype":"application/pdf"}'::jsonb),
+  ('supplier-bill-cfdi-xml', 'facturas/legado-sin-prefijo.xml', '{"mimetype":"application/xml"}'::jsonb);
 
 -- ── 1. Admin interno de la ORG A ─────────────────────────────────────
 RESET request.jwt.claims;
@@ -120,6 +127,7 @@ DO $$
 DECLARE
   v_a text := '0c000000-0000-4000-8000-00000000000c';
   v_b text := '0d000000-0000-4000-8000-00000000000d';
+  v_legacy_b text := 'invoice/f1000000-0000-4000-8000-0000000000fb/legado-b.pdf';
   v_bucket text;
   v_path text;
   v_blocked boolean;
@@ -199,18 +207,70 @@ BEGIN
   -- 1.7 Borrado cruzado: sin efecto (se comprueba fuera del bloque).
   DELETE FROM storage.objects WHERE name LIKE v_b || '/%';
 
+  -- 1.8 Legado SIN prefijo reclamado por un documento de la ORG B: 0027
+  --     resuelve el dueño por public.documents, así que el staff de A no debe
+  --     leerlo, reemplazarlo ni borrarlo.
+  IF public.storage_document_owned_by_other_organization(v_legacy_b) IS NOT TRUE THEN
+    RAISE EXCEPTION 'SETUP INVÁLIDO: el documento legado de la ORG B no resuelve dueño';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM storage.objects WHERE bucket_id = 'documents' AND name = v_legacy_b
+  ) THEN
+    RAISE EXCEPTION 'RLS BREACH: el staff de la ORG A lee un documento legado de la ORG B';
+  END IF;
+  DELETE FROM storage.objects WHERE bucket_id = 'documents' AND name = v_legacy_b;
+  UPDATE storage.objects
+     SET metadata = '{"mimetype":"text/plain","hackeado":true}'::jsonb
+   WHERE bucket_id = 'documents' AND name = v_legacy_b;
+
+  -- 1.9 GATE de riesgo residual conocido: en los buckets sin columna que ligue
+  --     la ruta legada con su organización, los objetos históricos SIGUEN
+  --     siendo accesibles para el staff de cualquier organización. Se afirma
+  --     de forma explícita para que nadie documente el riesgo como cerrado:
+  --     si esto deja de cumplirse (p. ej. tras el traslado de objetos), hay
+  --     que actualizar docs/multiempresa/storage-historico.md y esta prueba.
+  FOREACH v_bucket IN ARRAY ARRAY['cfdi-files','supplier-payment-receipts',
+                                  'supplier-bill-cfdi-xml'] LOOP
+    IF NOT EXISTS (
+      SELECT 1 FROM storage.objects
+      WHERE bucket_id = v_bucket AND name LIKE '%legado-sin-prefijo%'
+    ) THEN
+      RAISE EXCEPTION 'GATE DESACTUALIZADO: el legado sin prefijo de % ya no es accesible para staff de otra organización; actualizar documentación y esta prueba', v_bucket;
+    END IF;
+  END LOOP;
+
   RAISE NOTICE 'OK: admin de la ORG A aislado de los objetos de la ORG B';
 END $$;
 
--- Efecto real de 1.5 / 1.7: los 4 objetos de la ORG B siguen intactos.
+-- Efecto real de 1.5 / 1.7 / 1.8: los 5 objetos con prefijo de la ORG B (uno
+-- por bucket) y su documento legado siguen intactos.
 RESET ROLE;
 RESET request.jwt.claims;
 SELECT set_config('app.organization_id', '', true);
 DO $$
+DECLARE
+  v_b text := '0d000000-0000-4000-8000-00000000000d';
+  v_legacy_b text := 'invoice/f1000000-0000-4000-8000-0000000000fb/legado-b.pdf';
+  v_bucket text;
+  v_count int;
 BEGIN
-  IF (SELECT count(*) FROM storage.objects
-       WHERE name LIKE '0d000000-0000-4000-8000-00000000000d/%') <> 4 THEN
-    RAISE EXCEPTION 'RLS BREACH: la sesión de la ORG A borró objetos de la ORG B';
+  v_count := (SELECT count(*) FROM storage.objects WHERE name LIKE v_b || '/%');
+  IF v_count <> 5 THEN
+    RAISE EXCEPTION 'RLS BREACH: la sesión de la ORG A borró objetos de la ORG B (quedan % de 5)', v_count;
+  END IF;
+  -- Verificación por bucket: el conteo global no debe poder compensarse.
+  FOREACH v_bucket IN ARRAY ARRAY['documents','feedback-screenshots','cfdi-files',
+                                  'supplier-payment-receipts','supplier-bill-cfdi-xml'] LOOP
+    IF (SELECT count(*) FROM storage.objects
+         WHERE bucket_id = v_bucket AND name LIKE v_b || '/%') <> 1 THEN
+      RAISE EXCEPTION 'RLS BREACH: la sesión de la ORG A alteró los objetos de la ORG B en %', v_bucket;
+    END IF;
+  END LOOP;
+  IF NOT EXISTS (
+    SELECT 1 FROM storage.objects
+    WHERE bucket_id = 'documents' AND name = v_legacy_b AND NOT (metadata ? 'hackeado')
+  ) THEN
+    RAISE EXCEPTION 'RLS BREACH: la sesión de la ORG A borró o reemplazó el documento legado de la ORG B';
   END IF;
   IF EXISTS (
     SELECT 1 FROM storage.objects
