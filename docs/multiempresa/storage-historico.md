@@ -72,3 +72,40 @@ Decisiones aún pendientes:
 - Autorización y secuencia 0025→0026 en producción + despliegue de Edge Functions.
 - **Ensayo con dos organizaciones en entorno aislado — requisito previo e indispensable antes del alta real de otra empresa.**
 - Ventana de alta de la segunda empresa (solo después del ensayo y de cerrar el bypass del folio REP).
+
+## Actualización 8.9.0 — cierre del riesgo entre empresas (repositorio, no aplicado en producción)
+
+La auditoría previa se limitó a los objetos históricos. Al escribir la prueba A/B
+con dos organizaciones aparecieron huecos **en las policies vigentes**, no sólo en
+las rutas antiguas:
+
+| Bucket | Policies sin alcance por organización (antes de 0027) |
+| --- | --- |
+| `documents` | `Staff upload documents`, `Staff update documents`, `Staff delete documents` |
+| `documents` (portal) | `Customers read own scoped documents` → resolvía por `customer_id` global |
+| `feedback-screenshots` | `Admins read all feedback screenshots`, `Admins delete any feedback screenshot` |
+| `cfdi-files` | lectura, alta, reemplazo y borrado por admin |
+| `supplier-payment-receipts` | las 4 policies |
+| `supplier-bill-cfdi-xml` | lectura de staff + alta/reemplazo/borrado |
+
+`drizzle/migrations/0027_storage_tenant_scope_remaining_buckets.sql` las reescribe
+con el mismo criterio de 0022 (`storage_path_in_current_organization`):
+INSERT exige prefijo propio; UPDATE tolera legado en `USING` pero exige prefijo
+propio en `WITH CHECK` (un objeto no puede moverse al prefijo ajeno);
+SELECT/DELETE toleran legado y rechazan prefijo ajeno. Además
+`customer_can_read_document_object` queda acotada a
+`documents.organization_id = current_organization_id()`.
+
+Cliente: `src/lib/storage/openStorageFile.ts` ya no abre URLs `http(s)` persistidas
+tal cual (una URL firmada a 5 años es un permiso congelado que ignora las policies
+actuales). Si la URL apunta al Storage del proyecto se re-firma con la sesión
+actual y TTL de 60 s; cualquier otra URL se rechaza (fail-closed).
+
+Cobertura: `supabase/tests/rls/storage_cross_org_ab.sql` (A/B con dos
+organizaciones, admin de A, admin de B como guard positivo y cuenta de portal del
+mismo cliente global) y `src/lib/storage/__tests__/openStorageFile.test.ts`.
+
+Riesgo residual **no cerrado por 0027**: los 310 objetos legados sin prefijo no
+llevan organización, así que el staff de cualquier organización los seguirá
+leyendo. Sólo el traslado descrito arriba lo cierra; por eso sigue siendo
+precondición del alta de la segunda empresa.
