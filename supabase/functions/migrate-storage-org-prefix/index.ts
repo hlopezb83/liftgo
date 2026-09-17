@@ -256,6 +256,7 @@ async function inventoryBucketObjects(
   bucketId: string,
   referencedPaths: Iterable<string>,
   maxObjects: number,
+  organizationIds: Iterable<string> = [],
 ): Promise<{
   summary: ReturnType<typeof summarizeStorageInventory>;
   objectPaths: Set<string>;
