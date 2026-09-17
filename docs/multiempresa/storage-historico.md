@@ -134,3 +134,26 @@ Correcciones (sin relajar helper ni RLS):
 ### Apertura de archivos: auditoría de call-sites
 
 Call-sites actuales: `openStoredFile` sólo en `SupplierPaymentRow` (`receipt_url` de `supplier-payment-receipts`); `openStorageFile` (path directo) en `PaymentIntentsSection` (`payment-proofs`) y `SupplierPaymentRepReceived` (`rep_xml_url`/`rep_pdf_url`). Los hooks de subida (`useUploadSupplierReceipt`, `useUploadSupplierBillXml`) y `useDocuments` persisten **paths**, no URLs. La auditoría previa confirmó **0 referencias http en base**, así que rechazar hosts externos no rompe ninguna ruta soportada. Se añadió además el caso de URL mal formada o con separador codificado (`%2E%2E%2F`, porcentaje inválido), que falla cerrado sin excepción no controlada.
+
+## Actualización 8.10.3 — evidencia final de CI (confirmado en GitHub Actions)
+
+El commit `45c9293fe9ef844092772ca588728c4d8a7ce13d` cerró la verificación
+automática del tramo de Storage:
+
+| Workflow | Run | Resultado |
+| --- | --- | --- |
+| RLS DB tests | 35180736054 | **54/54 en verde** |
+| CI principal | 35180736071 | en verde |
+| Gitleaks | 35180736167 | en verde |
+| Smoke SQL | (incluido en CI) | **45/45 en verde** |
+
+### Alcance confirmado (sin cambios respecto a 8.10.0)
+
+- **Rutas nuevas con prefijo `<organization_id>/`**: aisladas entre organizaciones en los cinco buckets. La empresa A no puede ver, listar, reemplazar ni borrar objetos de la empresa B.
+- **Legado de `documents` sin prefijo**: aislado por empresa cuando la fila dueña (`public.documents.organization_id`) identifica la organización; los huérfanos sin ficha conservan el comportamiento actual.
+- **Legado de `cfdi-files`, `supplier-payment-receipts`, `supplier-bill-cfdi-xml` y `feedback-screenshots`**: sigue **compartido** entre organizaciones porque no existe columna que ligue la ruta histórica con su empresa. El riesgo **no se cerró**.
+- **Huérfanos** (ruta sin fila que la reclame): conservan el comportamiento actual.
+
+### Bloqueo del alta de la segunda empresa
+
+El alta de una segunda empresa permanece **bloqueada** hasta que los **310 objetos históricos sin prefijo** se migren a rutas con prefijo de organización, probadas y ejecutadas por su canal autorizado (migrador administrativo `migrate-storage-org-prefix`). Las migraciones 0026 y 0027 siguen **sin aplicar** en producción.

@@ -1,3 +1,13 @@
+## [8.10.3] - 2026-09-17 · patch · docs
+
+El commit `45c9293fe9ef844092772ca588728c4d8a7ce13d` confirmó en GitHub Actions que las pruebas de aislamiento de almacenamiento pasan completas: RLS 54/54, smoke 45/45, CI principal y Gitleaks en verde. El alcance sigue preciso y el alta de una segunda empresa permanece bloqueada. Solo documentación; sin SQL, sin producción.
+
+- Run 35180736054 (RLS DB tests): 54/54 en verde; run 35180736071 (CI principal) y run 35180736167 (Gitleaks) en verde.
+- Se actualizó el runbook `docs/multiempresa/storage-historico.md` con la evidencia final y el alcance preciso del residuo legacy.
+- Alcance confirmado: rutas nuevas con prefijo de empresa aisladas entre organizaciones; legado de documentos aislado cuando su ficha registra `organization_id`; legado de `cfdi-files`, `supplier-payment-receipts`, `supplier-bill-cfdi-xml` y `feedback-screenshots` sigue compartido.
+- El alta de una segunda empresa permanece bloqueada hasta migrar los 310 objetos históricos sin prefijo.
+- Sin aplicar SQL, sin tocar producción, sin mover objetos, sin editar migraciones históricas.
+
 ## [8.10.2] - 2026-09-17 · patch · test
 
 Se completó el escenario automático de documentos con las cuentas activas de portal de ambas empresas, para que la identidad de cada cliente se resuelva por su empresa sin recurrir al respaldo heredado. No se cambiaron llaves, permisos, reglas de acceso, migraciones ni datos reales.
