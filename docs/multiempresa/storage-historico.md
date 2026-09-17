@@ -8,22 +8,23 @@ Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddad
 
 Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.buckets`:
 
-| Bucket | Objetos | Límite de tamaño |
+| Bucket | Prefijados | Legados |
 |---|---|---|
-| cfdi-files | 173 | sin límite propio |
-| supplier-bill-cfdi-xml | 78 | sin límite propio |
-| supplier-payment-receipts | 53 | sin límite propio |
-| documents | 5 | sin límite propio |
-| feedback-screenshots | 1 | sin límite propio |
-| payment-proofs | 0 | 10 000 000 bytes (10 MB) |
+| cfdi-files | 163 | 10 |
+| supplier-bill-cfdi-xml | 84 | 0 |
+| supplier-payment-receipts | 58 | 0 |
+| documents | 1 | 5 |
+| feedback-screenshots | 1 | 0 |
+| payment-proofs | 0 | 0 |
 
-**Total: 310 objetos.**
+**Total: 322 objetos** (307 con primer segmento UUID, **15 sin prefijo**). Cifras del re-inventario 2026-09-17 (lectura, nada movido); el inventario previo (310 legados) está **desactualizado**.
 
-- Los **310 objetos carecen de prefijo de organización**; los prefijos con forma UUID actuales son `customer_id` o `invoice_id`.
+- Los **15 objetos legados** carecen de prefijo de organización; los 307 prefijados llevan como primer segmento un UUID. **No atribuir el paso de 310 a 15 a un traslado**: no hay evidencia suficiente del linaje. Los metadatos agregados indican que los 15 legados fueron creados entre 2026-06-24 y 2026-09-10 y los prefijados llegan hasta 2026-09-17, pero eso no reconstruye su historia previa.
 - **0 objetos en la raíz** de los buckets.
-- **1 organización activa**; con una sola empresa no hay colisión posible. Al dar de alta la segunda, dos empresas podrían compartir `customer_id` y producir rutas ambiguas en `payment-proofs` y `cfdi-files`.
+- **1 organización activa**; con una sola empresa no hay colisión posible. Al dar de alta la segunda, los 15 legados seguirían accesibles a staff de ambas organizaciones.
 - Bitácoras de migración (`storage_object_migrations`, `storage_reference_migrations`): **0 filas; nada iniciado**.
-- Referencias: 56 facturas con XML CFDI, 52 recibos de proveedor, 5 documentos; **0 referencias guardadas como URL http** (todas son paths), lo que simplifica un traslado futuro.
+- **Reconciliación de rutas (no se muestran):** los 15 legados **no son huérfanos**; coinciden con referencias vivas — 10 de `cfdi-files` (8 de notas de crédito y 2 REP de `supplier_payments`) y 5 de `documents.file_url`. Aún necesitan prefijo y actualización de referencias antes de abrir la segunda organización.
+- **Formatos:** 56 referencias a `supplier_bills.cfdi_xml_url` y 43 a `supplier_payments.receipt_url` son **signed URLs con token**, compatibles con el parser actual del migrador; todos los objetos de esas referencias coinciden. 1 referencia `company_settings.logo_url` es URL HTTP que **no coincide** con una ruta reconocida del bucket `documents` (no soportada / sin coincidencia) y requiere revisión manual; **no afirmar que es externa** sin evidencia. Para las demás referencias especificadas, la lectura agregada encontró **0 sin coincidencia**. La consulta previa que reportó «0 URLs» estaba desactualizada.
 
 ## 2. Policies y helpers
 
@@ -37,7 +38,7 @@ Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.bucket
 - Escritura privilegiada con organización derivada del registro (no del navegador): `stamp-cfdi/handler.ts:674`, `stamp-credit-note/handler.ts:550,578`, `stamp-payment-complement/handler.ts:565,583`, `validate-supplier-rep/index.ts:266,286`, `reconcile-stamping-invoices/index.ts:498,527,754,777,1013,1036`.
 - Server function de proveedor: `src/lib/supplierRep.functions.ts:167,182`.
 - Cliente: `src/hooks/useDocuments.ts:50,76,104`; `src/lib/storage/openStorageFile.ts` firma URLs de 60 s.
-- **Riesgo identificado:** `openStoredFile` (`openStorageFile.ts:34-44`) abre URLs legadas tal cual. La inspección actual no encontró referencias URL http en la base, pero si alguna apareciera, se abriría sin re-derivación de organización; conviene prueba conductual cross-tenant con dos organizaciones.
+- **Riesgo identificado:** `openStoredFile` (`openStorageFile.ts:34-44`) abre URLs legadas tal cual. La inspección actual encontró **1 referencia URL HTTP** (`company_settings.logo_url`) sin coincidencia con una ruta reconocida del bucket `documents`; si una URL persistida apunta al Storage del proyecto, se abriría sin re-derivación de organización; conviene prueba conductual cross-tenant con dos organizaciones.
 - Migrador administrativo ya escrito y **sin ejecutar**: `supabase/functions/migrate-storage-org-prefix/index.ts` — orden copy → refs → verify → delete; triple barrera: auth cron/service, `STORAGE_MIGRATION_APPLY_ENABLED`, confirmación textual; cuenta con modo plan (solo inventario) y modo apply.
 
 ## 4. Plan propuesto de migración de históricos (no autorizado, no ejecutado)
@@ -64,7 +65,7 @@ Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.bucket
 
 Cubierto para archivos **nuevos**: prefijo de organización obligatorio, policies tenant-aware, helpers `SECURITY DEFINER`, prueba RLS `supabase/tests/rls/storage_org_prefix.sql`.
 
-Pendiente para **históricos**: los 310 objetos siguen sin prefijo; la doble lectura y el traslado no se han ejecutado; el traslado **no está autorizado ni ejecutado**.
+Pendiente para **históricos**: los **15 objetos legados** siguen sin prefijo (10 en `cfdi-files`, 5 en `documents`); la doble lectura y el traslado no se han ejecutado; el traslado **no está autorizado ni ejecutado**.
 
 Decisiones aún pendientes:
 
@@ -156,4 +157,12 @@ automática del tramo de Storage:
 
 ### Bloqueo del alta de la segunda empresa
 
-El alta de una segunda empresa permanece **bloqueada** hasta que los **310 objetos históricos sin prefijo** se migren a rutas con prefijo de organización, probadas y ejecutadas por su canal autorizado (migrador administrativo `migrate-storage-org-prefix`). Las migraciones 0026 y 0027 siguen **sin aplicar** en producción.
+El alta de una segunda empresa permanece **bloqueada** hasta que los **15 objetos históricos sin prefijo** (10 en `cfdi-files`, 5 en `documents`) se migren a rutas con prefijo de organización, probadas y ejecutadas por su canal autorizado (migrador administrativo `migrate-storage-org-prefix`). Las migraciones 0026 y 0027 siguen **sin aplicar** en producción.
+
+## Re-inventario 2026-09-17 (solo lectura · nada movido)
+
+La sección 1 refleja la lectura `SELECT` del 2026-09-17 y **supera** el inventario previo (310 legados / 0 URLs), desactualizado. **Nada de esto movió objetos ni actualizó referencias**; las dos bitácoras siguen con **0 filas**. El procedimiento copy → verify → update references → observe → delete source se conserva íntegro, con borrado **separado y no ejecutado**; la herramienta de plan/apply mantiene sus gates (auth cron/service, `STORAGE_MIGRATION_APPLY_ENABLED`, confirmación textual).
+
+### Implicación para el riesgo residual
+
+Con 0 legados en `supplier-bill-cfdi-xml`, `supplier-payment-receipts` y `feedback-screenshots`, el riesgo de legado compartido se concentra hoy en **`cfdi-files` (10)** y **`documents` (5)**. El bloqueo del alta de la segunda empresa se mantiene: esos 15 legados siguen accesibles a staff de cualquier organización y requieren prefijo + actualización de referencias probados por el canal autorizado.
