@@ -3,10 +3,12 @@
 // El endpoint no expone rutas ni URLs: sólo agrega contadores. El modo apply
 // requiere tres barreras independientes: auth cron/service, secreto de entorno
 // y confirmación textual. El orden del modo apply es:
-//   inventariar → copiar → verificar destino → actualizar referencias.
+//   inventariar → copiar → comparar tamaño y SHA-256 fuente/copia →
+//   actualizar referencias.
 // Apply NUNCA borra la fuente. El borrado es la fase posterior `delete_sources`,
 // con bandera de entorno propia (apagada por defecto), confirmación textual
-// distinta y verificación de destino y referencias objeto por objeto.
+// distinta y, objeto por objeto, revalidación de referencias y de la igualdad
+// de bytes fuente/copia inmediatamente antes de remover.
 // Los objetos huérfanos nunca se borran por ninguna vía.
 
 import { handleCors } from "../_shared/cors.ts";
