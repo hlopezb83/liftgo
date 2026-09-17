@@ -1,3 +1,12 @@
+## [8.10.1] - 2026-09-17 · patch · docs
+
+Se ajustaron las descripciones de 8.9.0 para limitar el aislamiento a rutas nuevas con prefijo de empresa y al archivo histórico de documentos cuando su ficha registra la empresa dueña. El archivo histórico de los demás almacenes (fiscales, comprobantes de proveedores, XML de facturas y capturas) se declara expresamente como compartido entre empresas: el riesgo histórico NO se cerró y el alta de una segunda empresa sigue bloqueada hasta trasladarlo. Solo documentación; sin cambios de código, migración ni datos.
+
+- Corrección del texto de 8.9.0: el título y la descripción afirmaban de forma general que todos los archivos quedaron encerrados en su empresa. Ahora limitan el aislamiento a rutas nuevas con carpeta de empresa y al legado de documentos con ficha dueña.
+- Se declara expresamente que el legado de archivos fiscales, comprobantes de proveedores, XML de facturas de proveedor y capturas SIGUE compartido entre empresas porque no hay dato que identifique al dueño de cada archivo antiguo.
+- Se deja registrado que el riesgo histórico NO se cerró y que el alta de una segunda empresa queda bloqueada hasta que el traslado del archivo histórico esté probado y ejecutado por su canal autorizado.
+- Sin cambios de código, migración, datos ni despliegue; solo documentación y versionado.
+
 ## [8.10.0] - 2026-09-17 · minor · security
 
 Se arreglaron los dos exámenes automáticos que salieron en rojo, se cerró por empresa el archivo histórico de documentos usando el dueño que ya está registrado en la ficha, y se corrigió la redacción previa: el archivo histórico de los demás almacenes SIGUE compartido y el alta de una segunda empresa queda bloqueada hasta trasladarlo.
