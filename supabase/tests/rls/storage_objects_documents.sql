@@ -32,7 +32,7 @@ INSERT INTO public.organization_memberships (organization_id, auth_user_id, memb
   ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-000000000001', 'internal'),
   ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-000000000002', 'internal'),
   ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-000000000003', 'portal'),
-  ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-000000000004', 'portal');
+  ('50000012-0000-4000-8000-00000000000b', '50000012-0000-4000-8000-000000000004', 'portal');
 
 INSERT INTO public.customers (id, name, user_id) VALUES
   ('50000012-0000-4000-8000-0000000000c1', 'Cliente A SO', '50000012-0000-4000-8000-000000000003'),
@@ -43,7 +43,19 @@ INSERT INTO public.organization_customers (organization_id, customer_id) VALUES
   ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-0000000000c2'),
   -- Vínculo comercial válido: el cliente global A también es cliente de Org B
   -- (requerido por fk_invoices_organization_customer para la factura e3).
-  ('50000012-0000-4000-8000-00000000000b', '50000012-0000-4000-8000-0000000000c1');
+  ('50000012-0000-4000-8000-00000000000b', '50000012-0000-4000-8000-0000000000c1'),
+  ('50000012-0000-4000-8000-00000000000b', '50000012-0000-4000-8000-0000000000c2');
+
+-- Con dos organizaciones activas, get_customer_id_for_user() no usa el
+-- fallback legado de customers.user_id. Cada portal debe tener una cuenta
+-- activa, ligada a la misma organización de su membresía y relación comercial.
+INSERT INTO public.customer_portal_accounts
+  (organization_id, customer_id, auth_user_id, email, status)
+VALUES
+  ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-0000000000c1',
+   '50000012-0000-4000-8000-000000000003', 'clientea.so@test.local', 'active'),
+  ('50000012-0000-4000-8000-00000000000b', '50000012-0000-4000-8000-0000000000c2',
+   '50000012-0000-4000-8000-000000000004', 'clienteb.so@test.local', 'active');
 
 INSERT INTO public.invoices
   (id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total) VALUES
