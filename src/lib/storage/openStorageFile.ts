@@ -62,8 +62,17 @@ export function parseStorageUrl(
   );
   if (!match) return null;
 
-  const bucket = decodeURIComponent(match[1]);
-  const path = match[2].split("/").map(decodeURIComponent).join("/");
+  // Un porcentaje mal formado (p. ej. `%E0%A4%A`) hace que decodeURIComponent
+  // lance URIError: se trata como enlace no verificable (fail-closed), nunca
+  // como excepción sin controlar.
+  let bucket: string;
+  let path: string;
+  try {
+    bucket = decodeURIComponent(match[1]);
+    path = match[2].split("/").map(decodeURIComponent).join("/");
+  } catch {
+    return null;
+  }
   if (!bucket || !path || path.split("/").some((s) => s === "" || s === "..")) {
     return null;
   }
