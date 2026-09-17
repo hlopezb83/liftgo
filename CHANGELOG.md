@@ -1,3 +1,16 @@
+## [8.10.0] - 2026-09-17 · minor · security
+
+Se arreglaron los dos exámenes automáticos que salieron en rojo, se cerró por empresa el archivo histórico de documentos usando el dueño que ya está registrado en la ficha, y se corrigió la redacción previa: el archivo histórico de los demás almacenes SIGUE compartido y el alta de una segunda empresa queda bloqueada hasta trasladarlo.
+
+- Corregido un examen que contaba mal: el escenario crea cinco archivos de la empresa B (uno por almacén) y la prueba exigía cuatro; ahora se verifica almacén por almacén para que un total no pueda compensar una pérdida.
+- Corregido el examen heredado de documentos: no asignaba empresa a documentos ni facturas ni daba de alta las membresías, así que el cliente del portal no veía su propio archivo. Ahora usa dos empresas inventadas, con documentos, facturas y membresías correctas, conservando las comprobaciones propias y añadiendo las cruzadas. No se debilitó ninguna regla para que pasara.
+- La cuenta de portal del escenario cruzado ya tiene su membresía de tipo portal: sin ella el sistema no resuelve a qué empresa pertenece.
+- Nuevo límite en el cambio de base 0027 (no aplicado en producción): para el almacén de documentos, un archivo histórico sin carpeta de empresa deja de ser accesible al personal de otra empresa, porque su ficha ya dice a qué empresa pertenece. Los archivos huérfanos sin ficha conservan el comportamiento actual.
+- Corrección de la redacción anterior: el riesgo del archivo histórico NO quedó cerrado. En archivos fiscales, comprobantes de proveedores, XML de facturas de proveedor y capturas no hay dato que diga de quién es cada archivo antiguo, así que el personal de una futura segunda empresa podría leerlos o borrarlos. Se añadió una comprobación explícita que falla si alguien da ese límite por cerrado sin trasladar los archivos.
+- Queda expresamente bloqueada el alta de la segunda empresa hasta que el traslado de los archivos históricos esté probado y ejecutado por su canal autorizado.
+- Revisión de todos los puntos donde se abre un archivo guardado: hoy solo se guardan rutas propias del sistema y no hay enlaces de otros sitios en la base, por lo que rechazarlos no rompe nada. Se agregaron casos de enlace mal formado o con separador disfrazado: no se abren y no provocan un error sin control.
+- Nada se aplicó en producción: sin cambios de base, sin mover archivos, sin desplegar y sin editar historial.
+
 ## [8.9.0] - 2026-09-17 · minor · security
 
 Se cerraron los huecos que permitían que el personal de una empresa leyera, reemplazara o borrara archivos de otra (documentos, capturas, archivos fiscales y comprobantes de proveedores), y los enlaces antiguos guardados ahora se vuelven a autorizar con la sesión actual en vez de abrirse tal cual. Incluye pruebas nuevas con dos empresas inventadas.
