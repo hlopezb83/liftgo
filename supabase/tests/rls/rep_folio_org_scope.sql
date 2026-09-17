@@ -32,8 +32,12 @@ BEGIN
     RAISE EXCEPTION 'REP FOLIO ORG: la función estricta debe ser SECURITY DEFINER';
   END IF;
 
-  IF v_def !~ 'search_path' THEN
-    RAISE EXCEPTION 'REP FOLIO ORG: la función estricta debe fijar search_path';
+  -- search_path EXACTAMENTE "public": no basta con que la palabra aparezca.
+  SELECT p.proconfig INTO v_config FROM pg_proc p WHERE p.oid = v_strict;
+  IF v_config IS NULL OR NOT ('search_path=public' = ANY (v_config)) THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: la función estricta debe fijar search_path exactamente a "public" (proconfig actual: %)',
+      coalesce(array_to_string(v_config, ','), '<sin proconfig>');
   END IF;
 
   -- La organización se lee de payments ANTES del UPDATE y condiciona el UPDATE.
