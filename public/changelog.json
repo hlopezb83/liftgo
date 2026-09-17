@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.8.34",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "security",
+    "title": "Nueva prueba automática que verifica la cadena de cambios 0024 → 0025 → 0026 con dos empresas simuladas",
+    "description": "Se agregó una prueba que se ejecuta sobre una base temporal y comprueba, en el mismo orden que tendría producción, que las reglas de acceso por empresa quedan aplicadas y que el folio de complementos rechaza los cruces entre empresas. Sin cambios en producción.",
+    "changes": [
+      "Nueva prueba supabase/tests/rls/migration_chain_0024_0026.sql, con datos inventados: dos empresas, cuatro usuarios internos y una cuenta de portal con permiso operativo residual. No usa datos ni usuarios reales.",
+      "Comprueba que las reglas de acceso antiguas y globales de perfiles y roles ya no existen y que están en su lugar las nuevas reglas por empresa.",
+      "Comprueba los permisos exactos del folio de complementos: la versión nueva la pueden usar las sesiones y el canal interno; la versión antigua de compatibilidad solo el canal interno.",
+      "Comprueba el comportamiento: un usuario sin empresa no resuelve ninguna; la cuenta de portal con permiso residual no pasa como personal interno; un administrador de la empresa A no puede folear un pago de la empresa B (error de permiso exacto) y el pago de B no se modifica; el flujo válido no se duplica al repetirse; el canal interno puede reconciliar sin duplicar.",
+      "Incluye una comprobación que reproduce la brecha actual de producción: si falta la función de membresía del cambio 0025, la llamada con sesión falla; la prueba lo demuestra y revierte el estado enseguida.",
+      "No se modificaron los cambios 0024, 0025 ni 0026, ni se ejecutó nada en producción; no se creó una segunda empresa, no se movió almacenamiento y no se retiró ningún índice."
+    ]
+  },
+  {
     "version": "8.8.33",
     "date": "2026-09-17",
     "type": "patch",
