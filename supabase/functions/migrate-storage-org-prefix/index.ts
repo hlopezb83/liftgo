@@ -311,7 +311,12 @@ async function inventoryBucketObjects(
   }
 
   return {
-    summary: summarizeStorageInventory(bucketId, objectPaths, referencedPaths),
+    summary: summarizeStorageInventory(
+      bucketId,
+      objectPaths,
+      referencedPaths,
+      organizationIds,
+    ),
     objectPaths,
     truncated,
   };
