@@ -40,7 +40,10 @@ INSERT INTO public.customers (id, name, user_id) VALUES
 
 INSERT INTO public.organization_customers (organization_id, customer_id) VALUES
   ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-0000000000c1'),
-  ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-0000000000c2');
+  ('50000012-0000-4000-8000-00000000000a', '50000012-0000-4000-8000-0000000000c2'),
+  -- Vínculo comercial válido: el cliente global A también es cliente de Org B
+  -- (requerido por fk_invoices_organization_customer para la factura e3).
+  ('50000012-0000-4000-8000-00000000000b', '50000012-0000-4000-8000-0000000000c1');
 
 INSERT INTO public.invoices
   (id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total) VALUES
