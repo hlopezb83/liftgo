@@ -48,11 +48,23 @@ Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.bucket
 3. **Verificación A/B**: comparar tamaño y hash origen/destino objeto por objeto; contrastar conteos por bucket antes/después.
 4. **Actualización de referencias por lote**: por tabla/columna del `REFERENCE_SPECS`, con rollback por SHA-256 guardado.
 5. **Doble lectura y observación**: la app intenta primero la ruta con prefijo y cae a la legada, hasta que el 100 % del ledger esté en `references_updated`.
-6. **Borrado del origen**: solo al final, tras 100 % verificado y ventana de observación, y **solo con autorización explícita**. Irreversible.
+6. **Borrado del origen**: fase **separada** (`mode: "delete_sources"`), posterior a la ventana de observación y **solo con autorización explícita**. Irreversible.
+
+### Fase 6 — borrado de fuentes (implementada, desactivada por defecto)
+
+Modo dedicado `delete_sources` en el mismo endpoint, independiente de `apply`:
+
+- **Bandera de entorno propia:** `STORAGE_MIGRATION_DELETE_SOURCES_ENABLED` (distinta de la de apply; **no** está configurada, así que responde 403 `source_deletion_disabled`).
+- **Confirmación textual distinta:** `DELETE_MIGRATED_SOURCES_AFTER_VERIFY`.
+- **Inventario completo obligatorio**; si está truncado responde 409.
+- **Verificación previa objeto por objeto** (`supabase/functions/_shared/storageDeletePhase.ts`): sólo objetos `discovery_kind = 'referenced'` en estado `references_updated`, con al menos una referencia, todas en estado `updated`, con `organization_id` coincidente y con el **valor actual igual al valor de destino**, y con el **destino verificado como existente** en Storage. Cualquier desvío deja el objeto en `blocked` con código de causa y **no** borra nada.
+- **Huérfanos: nunca.** El modo de huérfanos (`apply_orphans`) sólo copia y verifica; `deleteEligibility` devuelve `orphans_never_deleted` para cualquier objeto sin referencia, en cualquier modo.
 
 **Condiciones de parada (antes del borrado):** cualquier diferencia de hash/tamaño, un objeto huérfano sin referencia, un error de permisos, o la existencia de la segunda empresa sin ensayo previo en entorno aislado.
 
-**Rollback:** mientras no se borre el origen, basta borrar las copias y revertir las referencias usando el SHA-256 del ledger.
+**Rollback:** mientras no se borre el origen, basta borrar las copias y revertir las referencias usando el SHA-256 del ledger. Como apply ya no borra, el rollback sigue disponible durante toda la fase de copia y actualización.
+
+**Estado real de los ledgers (2026-09-17):** `storage_object_migrations` y `storage_reference_migrations` siguen en **0 filas**; ningún objeto ha sido copiado, ninguna referencia actualizada y ninguna fuente borrada. Quedan 15 objetos sin prefijo (10 en `cfdi-files`, 5 en `documents`), todos referenciados.
 
 ## 5. Dependencia operativa REP (precondición crítica de despliegue)
 
