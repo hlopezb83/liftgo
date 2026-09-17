@@ -239,6 +239,13 @@
       "when": 1789684102689,
       "tag": "0033_storage_tenant_scope_remaining_buckets",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1789684134630,
+      "tag": "0034_multi_org_function_acl_revoke_anon",
+      "breakpoints": true
     }
   ]
 }
