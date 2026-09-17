@@ -27,6 +27,13 @@ import {
   organizationStoragePath,
 } from "../_shared/storagePath.ts";
 import {
+  compareCopy,
+  type CopyVerdict,
+  digestBytes,
+  type ObjectDigest,
+} from "../_shared/storageCopyVerification.ts";
+import {
+  DELETE_CONFIRMATION,
   DELETE_ENV_FLAG,
   deleteEligibility,
   deleteGateDecision,
