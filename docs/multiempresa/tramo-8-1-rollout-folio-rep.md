@@ -581,3 +581,32 @@ y los bloques de contrato de ambas suites pasan
 conceder `EXECUTE` a `anon`, la suite falla con
 `CADENA 0026: la firma estricta NO debe ser ejecutable por anon`. La corrida
 completa RLS + smoke se ejecuta en GitHub Actions.
+
+## Actualización 8.10.6 — validación de código cerrada en CI (commit `0a941a4a`)
+
+La corrida de GitHub Actions sobre el commit correctivo
+`0a941a4adbf1ca4e3ce44eb5fae7cb35513bd86f` (versión 8.10.5) confirmó que
+todas las suites pasan:
+
+| Suite | Run | Resultado | Enlace |
+| --- | --- | --- | --- |
+| RLS DB tests | 35234484524 | 54/54, 0 fallidas | https://github.com/hlopezb83/liftgo/actions/runs/35234484524 |
+| SQL smoke (mismo run) | 35234484524 | 45/45, 0 fallidos | https://github.com/hlopezb83/liftgo/actions/runs/35234484524 |
+| CI principal | 35234484453 | éxito (Vitest shards/merge-cobertura, Calidad lint/tipos/build/arranque, lint de migraciones) | https://github.com/hlopezb83/liftgo/actions/runs/35234484453 |
+| Gitleaks | 35234484442 | éxito | https://github.com/hlopezb83/liftgo/actions/runs/35234484442 |
+
+**Estado de la validación de código: cerrada.** Las dos suites que habían
+fallado en 8.10.5 (`migration_chain_0024_0026.sql` y `rep_folio_org_scope.sql`,
+ambas en `has_function_privilege('anon', v_strict, 'EXECUTE')`) ahora pasan
+con la corrección de ACL aplicada en el commit `0a941a4a`.
+
+Quedó una advertencia no bloqueante de orden de imports, preexistente en
+`src/hooks/useDocuments.ts` y fuera del diff de este tramo; no afecta la
+validación.
+
+**La migración sigue pendiente de rollout productivo.** El journal de
+producción sigue en `0023`; `0024`, `0025` y `0026` no se aplicaron. No se
+ejecutó SQL contra la base productiva, no se activó una segunda empresa y no
+se movieron objetos de Storage. El runbook de aplicación (sección «Runbook
+de aplicación en producción») sigue siendo el procedimiento autorizado para
+cuando se decida el rollout.
