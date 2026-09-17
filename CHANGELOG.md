@@ -1,3 +1,14 @@
+## [8.10.4] - 2026-09-17 · patch · security
+
+Las dos pruebas automáticas que vigilan el folio de complementos aceptaban configuraciones débiles: permitían que faltara la versión de compatibilidad del asignador y daban por buena cualquier ruta de búsqueda con solo mencionarla. Ahora exigen ambas versiones, la ruta de búsqueda exactamente 'public', el modo de ejecución con privilegios del dueño y los permisos exactos por tipo de usuario. Solo pruebas: sin tocar migraciones, lógica de negocio, roles reales ni datos.
+
+- supabase/tests/rls/migration_chain_0024_0026.sql: ambas firmas del asignador son obligatorias; se verifica SECURITY DEFINER y search_path exactamente 'public' por proconfig en las dos firmas.
+- Misma verificación para los ayudantes de aislamiento que necesita la cadena: current_organization_id, is_internal_member, user_in_current_organization e is_ops_staff.
+- Permisos exactos: la firma estricta es ejecutable por authenticated y service_role, y NO por anon ni PUBLIC; la versión de compatibilidad solo por service_role, y NO por authenticated, anon ni PUBLIC (se revisa el ACL real, no solo has_function_privilege).
+- supabase/tests/rls/rep_folio_org_scope.sql: la versión de compatibilidad deja de ser opcional y se añaden las mismas comprobaciones de search_path exacto y permisos por rol.
+- Se conservan sin debilitar todos los casos previos: escenario A/B, usuario sin membresía, portal con rol operativo residual, ausencia de is_internal_member al aplicar 0026 sola, SQLSTATE 42501 exacto y no mutación entre empresas.
+- Sin cambios en migraciones de producción, lógica de negocio, roles reales ni datos; nada se ejecutó contra la base productiva.
+
 ## [8.10.3] - 2026-09-17 · patch · docs
 
 El commit `45c9293fe9ef844092772ca588728c4d8a7ce13d` confirmó en GitHub Actions que las pruebas de aislamiento de almacenamiento pasan completas: RLS 54/54, smoke 45/45, CI principal y Gitleaks en verde. El alcance sigue preciso y el alta de una segunda empresa permanece bloqueada. Solo documentación; sin SQL, sin producción.

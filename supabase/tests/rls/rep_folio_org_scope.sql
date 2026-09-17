@@ -12,6 +12,8 @@ DECLARE
   v_legacy oid;
   v_def text;
   v_legacy_def text;
+  v_config text[];
+  v_acl aclitem[];
 BEGIN
   -- 1. Firma estricta de tres parámetros (obligatoria).
   SELECT p.oid INTO v_strict
@@ -32,8 +34,12 @@ BEGIN
     RAISE EXCEPTION 'REP FOLIO ORG: la función estricta debe ser SECURITY DEFINER';
   END IF;
 
-  IF v_def !~ 'search_path' THEN
-    RAISE EXCEPTION 'REP FOLIO ORG: la función estricta debe fijar search_path';
+  -- search_path EXACTAMENTE "public": no basta con que la palabra aparezca.
+  SELECT p.proconfig INTO v_config FROM pg_proc p WHERE p.oid = v_strict;
+  IF v_config IS NULL OR NOT ('search_path=public' = ANY (v_config)) THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: la función estricta debe fijar search_path exactamente a "public" (proconfig actual: %)',
+      coalesce(array_to_string(v_config, ','), '<sin proconfig>');
   END IF;
 
   -- La organización se lee de payments ANTES del UPDATE y condiciona el UPDATE.
@@ -64,8 +70,8 @@ BEGIN
       'REP FOLIO ORG: la función debe validar el contexto del llamante autenticado (current_organization_id + is_internal_member)';
   END IF;
 
-  -- 2. Wrapper de compatibilidad de dos parámetros: si existe, no puede
-  --    aceptar organización del llamante ni actualizar payments por su cuenta.
+  -- 2. Wrapper de compatibilidad de dos parámetros: OBLIGATORIO (lo usa el
+  --    canal interno de reconciliación) y restringido a service_role.
   SELECT p.oid INTO v_legacy
   FROM pg_proc p
   JOIN pg_namespace n ON n.oid = p.pronamespace
@@ -73,35 +79,76 @@ BEGIN
     AND p.proname = 'assign_stamped_rep_number'
     AND p.pronargs = 2;
 
-  IF v_legacy IS NOT NULL THEN
-    v_legacy_def := pg_get_functiondef(v_legacy);
+  IF v_legacy IS NULL THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: falta el wrapper assign_stamped_rep_number(uuid, text); el canal interno de reconciliación quedaría sin ruta';
+  END IF;
 
-    IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = v_legacy AND p.prosecdef) THEN
-      RAISE EXCEPTION 'REP FOLIO ORG: el wrapper debe ser SECURITY DEFINER';
-    END IF;
+  v_legacy_def := pg_get_functiondef(v_legacy);
 
-    IF v_legacy_def !~ 'search_path' THEN
-      RAISE EXCEPTION 'REP FOLIO ORG: el wrapper debe fijar search_path';
-    END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_proc p WHERE p.oid = v_legacy AND p.prosecdef) THEN
+    RAISE EXCEPTION 'REP FOLIO ORG: el wrapper debe ser SECURITY DEFINER';
+  END IF;
 
-    IF v_legacy_def !~ 'assign_stamped_rep_number\s*\(' THEN
-      RAISE EXCEPTION
-        'REP FOLIO ORG: el wrapper de dos parámetros debe delegar en la función estricta';
-    END IF;
+  SELECT p.proconfig INTO v_config FROM pg_proc p WHERE p.oid = v_legacy;
+  IF v_config IS NULL OR NOT ('search_path=public' = ANY (v_config)) THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: el wrapper debe fijar search_path exactamente a "public" (proconfig actual: %)',
+      coalesce(array_to_string(v_config, ','), '<sin proconfig>');
+  END IF;
 
-    IF v_legacy_def ~* 'UPDATE\s+(public\.)?payments' THEN
-      RAISE EXCEPTION
-        'REP FOLIO ORG: el wrapper no debe actualizar payments por su cuenta';
-    END IF;
+  IF v_legacy_def !~ 'assign_stamped_rep_number\s*\(' THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: el wrapper de dos parámetros debe delegar en la función estricta';
+  END IF;
 
-    -- El wrapper no puede ser una vía de delegación con NULL para sesiones
-    -- autenticadas: o no tiene EXECUTE para authenticated, o aplica el mismo
-    -- chequeo de contexto.
-    IF has_function_privilege('authenticated', v_legacy, 'EXECUTE')
-       AND v_legacy_def !~ 'current_organization_id' THEN
-      RAISE EXCEPTION
-        'REP FOLIO ORG: el wrapper de dos parámetros no debe quedar ejecutable por authenticated sin chequeo de contexto';
-    END IF;
+  IF v_legacy_def ~* 'UPDATE\s+(public\.)?payments' THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: el wrapper no debe actualizar payments por su cuenta';
+  END IF;
+
+  -- Grants exactos del wrapper: solo service_role.
+  IF NOT has_function_privilege('service_role', v_legacy, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: el wrapper debe seguir disponible para service_role';
+  END IF;
+
+  IF has_function_privilege('authenticated', v_legacy, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: el wrapper de dos parámetros NO debe ser ejecutable por authenticated';
+  END IF;
+
+  IF has_function_privilege('anon', v_legacy, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: el wrapper de dos parámetros NO debe ser ejecutable por anon';
+  END IF;
+
+  SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_legacy;
+  IF v_acl IS NULL OR EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'REP FOLIO ORG: el wrapper NO debe tener EXECUTE para PUBLIC';
+  END IF;
+
+  -- Grants exactos de la firma estricta: authenticated y service_role; nunca
+  -- anon ni PUBLIC.
+  IF NOT has_function_privilege('authenticated', v_strict, 'EXECUTE')
+     OR NOT has_function_privilege('service_role', v_strict, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'REP FOLIO ORG: la firma estricta debe ser ejecutable por authenticated y service_role';
+  END IF;
+
+  IF has_function_privilege('anon', v_strict, 'EXECUTE') THEN
+    RAISE EXCEPTION 'REP FOLIO ORG: la firma estricta NO debe ser ejecutable por anon';
+  END IF;
+
+  SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_strict;
+  IF v_acl IS NULL OR EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'REP FOLIO ORG: la firma estricta NO debe tener EXECUTE para PUBLIC';
   END IF;
 
   -- 3. El índice global se conserva en este tramo (el Lote 2 no se aplica).

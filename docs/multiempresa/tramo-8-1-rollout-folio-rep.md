@@ -492,3 +492,40 @@ empresa):
 - **Ventana de alta de la segunda empresa**: no se inicia hasta cerrar el
   bypass del folio REP, ensayar con dos organizaciones en entorno aislado y
   decidir el Lote 2 de unicidad por organización.
+
+## Actualización 8.10.4 — endurecimiento de las pruebas del asignador (solo CI)
+
+Auditoría del repo en el commit `61df74ee2052a92c67d7e7bd08d9544871ba5b7a`:
+las dos suites que vigilan el folio REP aceptaban configuraciones más débiles
+que el contrato real de la migración 0026.
+
+| Brecha detectada | Dónde estaba | Cómo quedó |
+| --- | --- | --- |
+| El wrapper de dos parámetros era opcional (`IF v_legacy IS NOT NULL`) | `migration_chain_0024_0026.sql` §2 y `rep_folio_org_scope.sql` §2 | Ambas suites exigen las **dos** firmas; su ausencia es fallo |
+| `search_path` validado con `v_def !~ 'search_path'` (solo texto) | `rep_folio_org_scope.sql:35,83` | Se valida `proconfig` y se exige `search_path=public` exacto |
+| Sin verificación de `SECURITY DEFINER`/`search_path` en los helpers de 0025 | ninguna suite | Nueva sección 1.b en `migration_chain_0024_0026.sql` |
+| Sin verificación de `anon`/`PUBLIC` en los grants | ambas suites | `has_function_privilege('anon', ...)` + `aclexplode(proacl)` con `grantee = 0` |
+
+Contrato exigido ahora por CI (coincide con `0026_rep_number_org_scoped_assignment.sql:127-162`
+y `0025_multi_org_phase8_admin_membership_scope.sql:24-98`):
+
+- `assign_stamped_rep_number(uuid, text, uuid)` — `SECURITY DEFINER`,
+  `search_path=public`, `EXECUTE` para `authenticated` y `service_role`,
+  sin `EXECUTE` para `anon` ni `PUBLIC`.
+- `assign_stamped_rep_number(uuid, text)` — obligatoria, `SECURITY DEFINER`,
+  `search_path=public`, `EXECUTE` **solo** para `service_role`.
+- `current_organization_id()`, `is_internal_member(uuid)`,
+  `user_in_current_organization(uuid)`, `is_ops_staff()` — `SECURITY DEFINER`
+  con `search_path=public`.
+
+Se conservan intactas todas las aserciones previas: escenario A/B con dos
+organizaciones sintéticas, usuario sin membresía (fail-closed), cuenta de
+portal con rol operativo residual (sin decidir su tratamiento: la prueba solo
+documenta que no pasa como personal interno), ausencia de `is_internal_member`
+al aplicar 0026 sin 0025 (SQLSTATE 42883 dentro de un `SAVEPOINT`), SQLSTATE
+42501 exacto en los cruces y no mutación del pago de la otra empresa.
+
+Validación local: los 12 bloques `DO` de `migration_chain_0024_0026.sql` y los
+4 de `rep_folio_org_scope.sql` compilan en PostgreSQL 17.9 temporal y aislado.
+La corrida completa (RLS + smoke) se ejecuta en GitHub Actions. No se conectó
+ni se escribió nada en la base de producción.
