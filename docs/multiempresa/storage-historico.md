@@ -67,6 +67,17 @@ Modo dedicado `delete_sources` en el mismo endpoint, independiente de `apply`:
 
 **Estado real de los ledgers (2026-09-17):** `storage_object_migrations` y `storage_reference_migrations` siguen en **0 filas**; ningún objeto ha sido copiado, ninguna referencia actualizada y ninguna fuente borrada. Quedan 15 objetos sin prefijo (10 en `cfdi-files`, 5 en `documents`), todos referenciados.
 
+### Condición de parada de `apply` frente a objetos sin referencia
+
+La reconciliación canónica del 2026-09-17 (parser real `parseStorageReference` + `REFERENCE_SPECS`, comparando cubeta + ruta normalizada sin query de firma) dio 322 objetos: 304 referenciados, 18 sin referencia y **todos los 18 ya bajo prefijo de organización**; 0 sin referencia y sin prefijo. Los 15 legados sin prefijo están referenciados.
+
+Por eso `apply` ya **no** se detiene por el total de objetos sin referencia, sino sólo por los **sin referencia y sin prefijo** (`unreferenced_unscoped_objects`), que son legado cuyo dueño no se puede derivar. El resumen reporta ambos conteos, globales y por cubeta:
+
+- `unreferenced_scoped_objects`: sin referencia pero ya aislados. **No bloquean**, no entran al ledger, no se vuelven a copiar y nunca se borran.
+- `unreferenced_unscoped_objects`: sin referencia y sin prefijo. **Bloquean `apply`** con 409 `Resolve unscoped unreferenced Storage objects before apply.`
+
+Un objeto se considera aislado sólo si su primer segmento coincide exactamente con el identificador de una organización **conocida** del plan; un UUID cualquiera (por ejemplo el de una factura) no cuenta como prefijo. `apply_orphans` y `delete_sources` siguen sin ejecutarse, y el borrado de huérfanos sigue prohibido por diseño.
+
 ## 5. Dependencia operativa REP (precondición crítica de despliegue)
 
 - Producción **no tiene** `public.is_internal_member(uuid)` ni `public.user_in_current_organization(uuid)`.
