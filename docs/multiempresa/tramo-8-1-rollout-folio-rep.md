@@ -529,3 +529,55 @@ Validación local: los 12 bloques `DO` de `migration_chain_0024_0026.sql` y los
 4 de `rep_folio_org_scope.sql` compilan en PostgreSQL 17.9 temporal y aislado.
 La corrida completa (RLS + smoke) se ejecuta en GitHub Actions. No se conectó
 ni se escribió nada en la base de producción.
+
+## Actualización 8.10.5 — `anon` con EXECUTE en la firma estricta (CI run 35232675033)
+
+La corrida de GitHub Actions
+[35232675033](https://github.com/hlopezb83/liftgo/actions/runs/35232675033)
+dejó RLS en 52/54: `migration_chain_0024_0026.sql` y `rep_folio_org_scope.sql`
+fallaron exactamente en `has_function_privilege('anon', v_strict, 'EXECUTE')`.
+Smoke 45/45, CI principal y Gitleaks en verde.
+
+**Causa (confirmada, no falso positivo).** Supabase ejecuta
+`ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon,
+authenticated, service_role`. Toda función **nueva** del esquema `public` nace
+con `EXECUTE` concedido **directamente** a `anon` en su `proacl`. El permiso no
+es heredado por membresía de roles ni proviene de `PUBLIC`, por lo que
+`REVOKE ALL ... FROM PUBLIC` no lo elimina y la función sí era invocable por
+`anon`. El wrapper de dos parámetros no fallaba porque se crea con
+`CREATE OR REPLACE` sobre una función preexistente, y `REPLACE` conserva el ACL
+anterior (los privilegios por defecto no se reaplican).
+
+Reproducción en PostgreSQL 17.9 temporal y aislado:
+
+```sql
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+create function public.f(a int) returns int language sql as 'select 1';
+revoke all on function public.f(int) from public;
+grant execute on function public.f(int) to authenticated, service_role;
+select has_function_privilege('anon','public.f(int)','EXECUTE');  -- t
+select grantee::regrole, privilege_type from aclexplode((select proacl from pg_proc where proname='f'));
+-- anon:EXECUTE (grant DIRECTO)
+revoke all on function public.f(int) from anon;
+select has_function_privilege('anon','public.f(int)','EXECUTE');  -- f
+```
+
+**Corrección mínima** (migración pendiente, aún no aplicada):
+`0026_rep_number_org_scoped_assignment.sql` añade
+`REVOKE ALL ON FUNCTION ... FROM anon` a la firma estricta `(uuid, text, uuid)`
+y al wrapper `(uuid, text)`. Se conservan `EXECUTE` para `authenticated` y
+`service_role` en la estricta y solo `service_role` en el wrapper.
+
+**Endurecimiento de pruebas.** Ambas suites verifican ahora la **ACL directa**
+con `aclexplode(proacl)`, no solo el privilegio efectivo: sin fila `anon` en
+ninguna firma; filas obligatorias `authenticated` y `service_role` en la
+estricta; `service_role` obligatoria y `authenticated` prohibida en el wrapper.
+
+**Validación local** (PostgreSQL 17.9 temporal, sin red, sin producción): con
+los privilegios por defecto de Supabase reproducidos, se aplicó 0026 corregida
+y los bloques de contrato de ambas suites pasan
+(`CADENA 0026: firmas, SECURITY DEFINER, search_path y grants OK`,
+`REP FOLIO ORG: contrato estático OK`). Mutación de control: al volver a
+conceder `EXECUTE` a `anon`, la suite falla con
+`CADENA 0026: la firma estricta NO debe ser ejecutable por anon`. La corrida
+completa RLS + smoke se ejecuta en GitHub Actions.
