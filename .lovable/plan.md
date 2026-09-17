@@ -1,128 +1,92 @@
-# Auditoría de solo lectura — precondición de rollout 0025 → 0026
+# Auditoría de solo lectura: alcance del hallazgo "anon con EXECUTE" (post 8.10.6)
 
-Estado: propuesta. No se editó código, no se ejecutó DDL ni escritura alguna en producción (proyecto zxefrzfaynnfwazqhwxp). Todas las evidencias provienen de consultas SELECT de introspección y de lectura de archivos del repositorio.
+Análisis estático del repositorio. No se ejecutó SQL, no se tocó producción, no se modificó código, changelog ni roadmap.
 
-En términos simples: la migración 0026 (el "candado" del folio REP) usa una herramienta que todavía no está instalada en producción. Esa herramienta la instala la migración 0025. Aplicar 0026 sola no falla al instalarse, pero el candado se rompe justo cuando lo usa una persona con sesión.
+## Resumen del hallazgo sistémico
 
-## 1. Resultado observado: qué hay y qué falta (0021–0026)
+Supabase aplica `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO anon, authenticated, service_role`. Por eso:
 
-Registro de migraciones aplicadas (`select id, hash, to_timestamp(created_at/1000) from drizzle.__drizzle_migrations order by id`): 24 entradas, la última el 2026-09-15 17:52:34Z con hash `9ee7719a…`, que corresponde byte a byte a `0023_payment_intent_invoice_definer_check.sql`.
+- Toda función **nueva** de `public` nace con `EXECUTE` **directo** para `anon` en su `proacl`.
+- `REVOKE ALL ... FROM PUBLIC` **no** quita ese permiso directo: hace falta `REVOKE ... FROM anon`.
+- `CREATE OR REPLACE` sobre una función preexistente **conserva** el ACL anterior y no reaplica default privileges.
 
-| Migración | Estado en producción | Evidencia |
+En el repo existieron tres barridos que sí revocaron a `anon` en masa:
+
+- `supabase/migrations/20260512012320_a18cc207-….sql:18`
+- `supabase/migrations/20260512012348_16d94ecc-….sql:14`
+- `supabase/migrations/20260527060401_fd1493bf-….sql:19` (último barrido, `SECURITY DEFINER` en `public`, `FROM anon, PUBLIC`)
+
+**Consecuencia:** toda firma `SECURITY DEFINER` **creada por primera vez después del 2026-05-27** conserva `EXECUTE` directo para `anon` salvo que una migración posterior la revoque nominalmente. El escaneo estático encuentra **250 firmas** en ese rango (127 invocables como RPC, 123 funciones de trigger).
+
+## Inventario priorizado
+
+### A. Riesgo alto — RPC sin REVOKE de anon y sin autorización interna
+
+Ninguna comprueba `auth.uid()`, rol ni organización dentro del cuerpo; si `anon` conserva EXECUTE son invocables vía `/rest/v1/rpc/...` con la publishable key.
+
+| Función | Archivo:línea (creación) | REVOKE anon | Nota |
+|---|---|---|---|
+| `report_revenue_month_invoices(text)` | `supabase/migrations/20260810184205_…:25` | no (solo `FROM PUBLIC`, :38) | lectura agregada de facturas |
+| `report_utilization_by_unit(date,date)` | `…20260810184205_…:41` | no (:61 solo PUBLIC) | |
+| `report_utilization_by_model(date,date)` | `…20260810184205_…:64` | no | |
+| `report_maintenance_cost_by_unit(...)` | `…20260810184205_…:101` | no | |
+| `report_profit_by_model(...)` | `supabase/migrations/20260720172245_…:1` | no | |
+| `lock_invoice_for_rep(uuid)` | `supabase/migrations/20260721090600_…:13` | no (:33 solo PUBLIC; grant solo service_role) | escritura/bloqueo |
+| `reconcile_stamping_invoice(...)` | `supabase/migrations/20260720154604_…:5` | no | escritura fiscal |
+| `next_draft_invoice_number()` / `peek_next_draft_invoice_number()` | `supabase/migrations/20260702174414_…:5,14` | no | consume folio |
+| `next_draft_credit_note_number()` / `peek_…()` | `supabase/migrations/20260707201153_…:4,13` | no | consume folio |
+| `mark_overdue_supplier_bills()` | `supabase/migrations/20260719171935_…:3` | no | escritura masiva |
+| `purge_old_notifications()` | `supabase/migrations/20260719170150_…:15` | no | borrado |
+| `delete_quote_with_unassign(...)` | `supabase/migrations/20260529005136_…:2` | no | borrado |
+| `get_activity_metrics(...)` | `supabase/migrations/20260614010108_…:2` | no | lectura agregada |
+| `get_portal_collection_account(...)` | `supabase/migrations/20260609200459_…:153` | no | datos bancarios |
+| `e2e_purge_all`, `next_*_number_e2e` | `supabase/migrations/20260610171252_…:46,54,62,213` | no | utilería E2E en producción |
+
+### B. Riesgo medio — RPC sin REVOKE de anon pero con autorización interna
+
+Fallan cerrado por `auth.uid() IS NULL` / `has_role` / `current_organization_id()`, pero el ACL contradice el contrato y son superficie innecesaria: `accept_quote_from_portal`, `reject_quote_from_portal` (`…20260609200459_…:88,122`), `approve_payment_intent` / `reject_payment_intent` (`…20260719162221_…:39,85`), `convert_quote_to_bookings` (`…20260719164315_…:2`), `register_supplier_payment` (`…20260608221347_…:218`), `create_supplier_payment_batch` (`…20260609185156_…:81`), `list_invoices_with_balance` (`…20260718061631_…:8`), `upsert_billing_secret` (`…20260723204610_…:24`), `unmatch_bank_line`, `mark_supplier_rep_rejected`, `reset_supplier_rep_pending`, `start_repair_work_order`, `has_permission`, `customer_owns_invoice`, más los helpers de la cadena multiempresa aún **no aplicados**: `organization_scope_matches` (0005:10), `storage_*` (0021:4, 0022:20/36/85), `invoice_in_current_organization` (0022:62), `invoice_eligible_for_payment_intent` (0023:1), `is_internal_member` / `user_in_current_organization` (0025:42,60), `storage_document_owned_by_other_organization` (0027:359). Todas llevan solo `REVOKE ... FROM PUBLIC`.
+
+### C. Protegidas (control positivo)
+
+`assign_stamped_rep_number(uuid,text,uuid)` y `(uuid,text)` con `REVOKE ... FROM anon` explícito en `drizzle/migrations/0026_…:133,167`; el lote `supabase/migrations/20260811211403_…:334-342` (`FROM PUBLIC, anon` + grants a `authenticated, service_role`) cubre `assert_invoice_cancellable`, `peek_next_invoice_number`, `assign_stamped_invoice_number`, `assign_stamped_credit_note_number`, `claim_maintenance_policy_month`, `has_active_rental`, `get_available_forklifts`. También hay revokes nominales en `soft_delete_*`, `restore_*`, `update_user_role_safe`, `assert_not_last_admin`, `revoke_user_sessions`, `check_and_record_rate_limit`.
+
+### C-bis. Falsos positivos descartados
+
+`has_role(uuid, app_role)` (`supabase/migrations/20260214003229_…:62`) y los numeradores `next_invoice_number`, `next_credit_note_number`, `next_booking_number`, `next_delivery_number`, `next_inspection_number`, `next_quote_number` nunca reciben un `REVOKE` nominal, pero **fueron creados antes del barrido del 2026-05-27**, que sí les quitó `anon`; sus redefiniciones posteriores son `CREATE OR REPLACE`, que conserva ese ACL. No son riesgo de ACL.
+
+### C-ter. Hallazgo distinto, no de permisos: numeración sin filtro de organización
+
+Confirmado en `supabase/migrations/20260731191816_a7022d15-….sql:15,29,42,54`: `next_booking_number`, `next_delivery_number`, `next_credit_note_number`, `next_invoice_number` (y `next_inspection_number` en `…20260720011825_…:69`) calculan el folio con `nextval(secuencia global)` y un `MAX(...)` sobre **toda la tabla, sin predicado `organization_id`**. Contrasta con `next_organization_document_counter(text,bigint)` (`drizzle/migrations/0016_…:80`), que sí resuelve contexto de organización. Es un bloqueador de multiempresa independiente del hallazgo de `anon`: los folios se colisionarían entre empresas. No se propone corrección en este tramo; se registra para decidir orden con respecto a `0028`.
+
+### D. Casos que requieren decisión (grant a anon intencional)
+
+| Función | Grant | Archivo:línea |
 |---|---|---|
-| 0021 storage prefix-aware | Aplicada | hash `e7ffb693…` en el registro; existe `public.storage_relative_segments(p text)` |
-| 0022 storage tenant-scoped | Aplicada | hash `7cbe5fe7…`; existen `storage_prefix_organization(text)`, `storage_path_in_current_organization(text,boolean)`, `invoice_in_current_organization(uuid)`, `payment_proof_path_allowed(text,boolean)`; 25 policies en `storage.objects` (8 SELECT) |
-| 0023 payment intent definer check | Aplicada | hash `9ee7719a…`; existe `invoice_eligible_for_payment_intent(uuid)` |
-| 0024 portal fallback account status | **Pendiente** | su hash `1a6bd55e…` no está en el registro; `get_customer_id_for_user(uuid)` existe pero con la definición previa |
-| 0025 admin/membership scope | **Pendiente** | no existen `is_internal_member(uuid)` ni `user_in_current_organization(uuid)`; `current_organization_id()` conserva el cuerpo viejo con `LIMIT 1`; policies viejas intactas |
-| 0026 folio REP org-scoped | **Pendiente** | solo existe `assign_stamped_rep_number(uuid, text)`; no existe la firma de 3 parámetros |
+| `get_public_branding()` | `TO anon, authenticated` (excluida de los barridos a propósito) | `drizzle/migrations/0019_…:26` |
+| `today_mty()` | `TO authenticated, anon, service_role` | `supabase/migrations/20260731235443_…:9` |
+| `fx_is_missing(text,numeric)` | `TO authenticated, anon, service_role` | `supabase/migrations/20260901080020_…:13` |
 
-Hallazgo verificado por introspección directa de `pg_policies`: el ámbito administrativo de 0025 **tampoco está aplicado** en producción.
+### E. Higiene de `search_path`
 
-Policies vigentes en `profiles` (todas globales, pre-0025): "Staff can view all profiles", "Admins update any profile", "Administrativo update any profile", "Auditor read profiles", "Ventas read profiles". Faltan las policies org-scoped que crea 0025.
+~40 definiciones usan `SET search_path = public AS $$` sin punto y coma intermedio (queda `public`, correcto) pero otras quedan con `public, storage` (`0021:4`, `0022:20/36/85`) o `public, auth` (`revoke_user_sessions`). Son intencionales por acceso a esos esquemas; conviene documentarlo en vez de cambiarlo.
 
-Policies vigentes en `user_roles` (todas globales, pre-0025): "Admins can manage all roles" (ALL), "Only admins can modify roles", "Only admins can update roles", "Only admins can delete roles", "Auditor read user_roles", "Users can view own roles". Faltan "Admins insert org roles", "Admins update org roles" y el resto de policies por organización. No aparece policy `org_scope_isolation` para estas tablas en la consulta.
+## Alcance real de exposición (callers)
 
-Matiz de interpretación: los helpers preexistentes `current_organization_id()`, `is_ops_staff()`, `assert_not_last_admin()` y `update_user_role_safe()` sí existen, pero `is_internal_member()` y `user_in_current_organization()` no. La presencia de algunos helpers **no prueba** que 0025 esté aplicada; los nombres de policies verifican lo contrario. La consulta que lo confirma:
+- No existe `src/routes/api/public/*`; todas las páginas cuelgan de `AuthGuard` (`src/layouts/AuthGuard.tsx:112-117`), y las server functions exigen `requireSupabaseAuth` antes de cualquier RPC.
+- Las Edge Functions usan `service_role` salvo `stamp-*` y `_shared/repFolio.ts:104,124`, que reenvían el cliente del caller ya autenticado.
+- Conclusión: la app no expone estas RPC sin sesión, pero **PostgREST sí**: con la publishable key y sin login, cualquiera puede llamar `/rest/v1/rpc/<nombre>` si el ACL lo permite. El riesgo es de superficie de API, no de la UI.
 
-```sql
-select tablename, policyname, cmd from pg_policies
-where schemaname='public' and tablename in ('profiles','user_roles') order by 1,2;
--- esperado tras 0025: nombres org-scoped ("Admins insert org roles", "Admins update org roles", …);
--- observado hoy: solo nombres globales pre-0025.
-```
+## Límites de cobertura (no inventar estado productivo)
 
-Observación de integridad del carril Drizzle: cuatro entradas antiguas del registro (ids 5, 6, 7, 10) tienen hash distinto al archivo actual (`0004`, `0005`, `0006`, `0010` fueron editados después de aplicarse). El migrador de Drizzle avanza por marca de tiempo, no por hash, así que no las reaplica; pero conviene saberlo antes de cualquier `drizzle-kit check` estricto.
+- **No se leyó el ACL real de producción.** Todo lo anterior es inferencia del orden de migraciones; el estado efectivo de `proacl` en `zxefrzfaynnfwazqhwxp` no está verificado.
+- El escaneo es regex sobre SQL: puede haber falsos positivos (funciones recreadas antes del barrido con otro nombre de archivo) y falsos negativos (revokes generados dinámicamente).
+- `0024`–`0027` no están aplicados (journal en `0023`), así que sus firmas aún no existen en producción.
+- No se ejecutó la revalidación en PostgreSQL efímero en este tramo (solo lectura); se propone como primer paso del siguiente.
 
-Consultas reproducibles usadas:
+## Próximos parches propuestos (forward-only, uno por vez)
 
-```sql
--- helpers presentes/ausentes
-select p.proname, pg_get_function_identity_arguments(p.oid) args, p.prosecdef
-from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-where n.nspname = 'public'
-  and p.proname in ('current_organization_id','is_internal_member','user_in_current_organization',
-                    'is_ops_staff','assign_stamped_rep_number','update_user_role_safe','assert_not_last_admin');
-
--- cuerpo vigente del helper de contexto
-select pg_get_functiondef(p.oid) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-where n.nspname='public' and p.proname='current_organization_id';
-
--- policies vigentes
-select tablename, policyname, cmd from pg_policies
-where schemaname='public' and tablename in ('profiles','user_roles') order by 1,2;
-
--- grants efectivos
-select p.proname, pg_get_function_identity_arguments(p.oid) args,
-       g.grantee::regrole::text grantee, g.privilege_type
-from pg_proc p join pg_namespace n on n.oid=p.pronamespace,
-     lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) g
-where n.nspname='public' and p.proname like 'assign_stamped_rep_number%';
-```
-
-Grants observados hoy: `assign_stamped_rep_number(uuid,text)` → EXECUTE a `authenticated` y `service_role` (este es el bypass que 0026 cierra). `current_organization_id()` → `anon`, `authenticated`, `service_role`. `update_user_role_safe` → `authenticated`, `service_role`. `assert_not_last_admin` → solo `service_role`.
-
-## 2. ¿0025 es aplicable tal cual?
-
-Sí: todas sus dependencias existen (`organization_memberships` con columna `member_type text`, `user_roles`, enum `app_role`, `has_role`). No crea columnas, índices ni triggers; solo reemplaza funciones y renombra/recrea policies con `DROP POLICY IF EXISTS`, por lo que es idempotente frente al estado actual.
-
-Efectos funcionales al aplicarla, medidos contra los datos reales (1 organización, 5 membresías / 5 usuarios distintos, 4 internas + 1 de portal, 5 perfiles, 5 filas de roles, 1 admin):
-
-- `current_organization_id()` pasa de "la primera membresía" a "exactamente una o NULL". Hoy los 5 usuarios tienen exactamente una membresía, así que **no cambia el resultado para nadie**; 0 usuarios quedarían con NULL.
-- `is_ops_staff()` exigirá membresía interna. Hay **1 cuenta de portal con rol operativo residual** (`roles_en_cuentas_portal = 1`) que dejará de pasar los filtros internos. Es el cierre buscado, pero hay que confirmar con negocio que esa cuenta no se usa hoy para operar.
-- Policies de `profiles` / `user_roles` se acotan a la organización. Con una sola organización el conjunto visible no cambia; 0 perfiles y 0 roles quedan fuera de alcance.
-- `update_user_role_safe` empieza a exigir admin **interno** con organización verificada; `assert_not_last_admin` cuenta admins por organización. Con **1 solo admin**, el invariante de "último administrador" sigue bloqueando su degradación o borrado (igual que hoy).
-- `assert_not_last_admin` pasa a estar concedida únicamente a `service_role` (hoy ya es así).
-
-Riesgo bajo, reversible por redefinición (las versiones previas están en el historial de `supabase/migrations`).
-
-## 3. ¿0026 sola crea funciones rotas?
-
-Sí crea, y no falla al aplicarse. Ambas funciones de 0026 son `plpgsql`: el validador solo revisa sintaxis, no resuelve `public.is_internal_member(...)` en tiempo de creación. Por eso:
-
-- `CREATE OR REPLACE FUNCTION` de las dos firmas, `REVOKE`/`GRANT` y `COMMENT` se aplican sin error.
-- El fallo aparece **solo en ejecución y solo por la ruta autenticada**: `drizzle/migrations/0026_…sql:82-88` evalúa `public.is_internal_member(v_uid)` cuando `auth.uid()` no es NULL → error `42883 function public.is_internal_member(uuid) does not exist`, y el pago **no** recibe folio.
-- La ruta `service_role` (`v_uid IS NULL`: `stamp-payment-complement`, cron de reconciliación) **no toca** esa rama y funcionaría igual. Es decir, el daño es silencioso: CI verde, timbrado automático correcto, y falla solo cuando un admin ejecuta la asignación desde una sesión.
-
-Conclusión: 0026 no debe considerarse lista para producción por sí sola. La única salida recomendable es aplicar **0025 completa** antes que 0026 en la misma ventana. No basta con definir solo `is_internal_member(uuid)` para satisfacer 0026: esa salida mínima dejaría la ruta autenticada del folio funcionando, pero producción seguiría con las policies globales pre-0025 de `profiles` y `user_roles` (ámbito administrativo sin acotar por organización), que es un bloqueo multiempresa en sí mismo. La opción de volver 0026 autocontenida queda descartada como sustituto de 0025; si alguna vez se usa, debe ser además de 0025, nunca en su lugar.
-
-## 4. Secuencia mínima y segura de rollout (propuesta, no ejecutada)
-
-1. Respaldo lógico previo y ventana fuera de horario de timbrado.
-2. Aplicar **0024** (queda pendiente y precede en el carril), luego **0025**, luego **0026**, en una sola transacción de despliegue por el canal de migraciones de producción. No saltar 0024: dejar huecos en el carril Drizzle complica cualquier reaplicación posterior.
-3. Verificación estructural inmediata:
-   ```sql
-   select p.proname, pg_get_function_identity_arguments(p.oid), p.prosecdef, p.proconfig
-   from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-   where n.nspname='public'
-     and p.proname in ('is_internal_member','user_in_current_organization',
-                       'current_organization_id','assign_stamped_rep_number');
-   ```
-   Se espera: helpers presentes, ambas firmas del asignador, `prosecdef = true`, `search_path=public` en las cuatro.
-4. Verificación de grants (la parte que realmente cierra el bypass):
-   ```sql
-   select p.proname, pg_get_function_identity_arguments(p.oid) args,
-          g.grantee::regrole::text, g.privilege_type
-   from pg_proc p join pg_namespace n on n.oid=p.pronamespace,
-        lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) g
-   where n.nspname='public' and p.proname='assign_stamped_rep_number' order by 2,3;
-   ```
-   Se espera: 3 parámetros → `authenticated` + `service_role`; 2 parámetros → **solo** `service_role` (sin `authenticated`).
-5. Smoke en **entorno aislado** (nunca contra producción), con dos organizaciones sembradas:
-   - `service_role`: asignar folio a un pago sin `rep_number` → devuelve `CP-####`; repetir con el mismo folio → mismo valor (idempotencia); mismo pago con folio distinto → `unique_violation`.
-   - `authenticated` interno de la organización dueña del pago → éxito; mismo usuario contra pago de la otra organización → `42501`; usuario de portal con rol residual → `42501`; usuario sin membresía (`current_organization_id()` NULL) → `42501`.
-   - Reconciliación: pago timbrado sin folio → recupera folio; segunda corrida → sin cambios.
-6. Desplegar después las Edge Functions (`stamp-payment-complement`, `reconcile-stamping-invoices`).
-7. Repetir el preflight de lectura en producción (pagos con `rep_number`, nulos, duplicados por organización, folios huérfanos) y compararlo con la línea base: 82 pagos, 25 con folio, 0 sin organización, 0 duplicados.
-
-Condiciones de parada: cualquier grant inesperado en el wrapper de 2 parámetros; cualquier caso de smoke autenticado que no devuelva `42501` donde se espera; aparición de pagos con `rep_error_message` tras el despliegue; discrepancia en el preflight posterior.
-
-Rollback conceptual (sin ejecutar): redefinir `assign_stamped_rep_number(uuid,text)` con la versión histórica y `DROP FUNCTION` de la firma de 3 parámetros; restaurar las policies y funciones previas de `profiles`/`user_roles` desde el historial de migraciones. Como todo el cambio es por redefinición de funciones y policies (sin DDL de datos, sin índices, sin columnas), no hay pérdida de información en ningún paso.
-
-## 5. Límites y decisiones que siguen pendientes
-
-- **Bloqueo multiempresa crítico:** el ámbito administrativo de 0025 no está aplicado (verificado por nombres de policies en `pg_policies`, sección 1). Antes de abrir una segunda organización hay que reconciliar/aplicar 0025 **completa** — helpers, redefinición de `current_organization_id()`/`is_ops_staff()` y policies org-scoped de `profiles`/`user_roles` — y evaluar sus cambios de RLS con pruebas funcionales y de RLS ejecutadas desde una **base aislada después del rollout** (por ejemplo, verificar que un admin de la organización A no lee perfiles ni roles de la organización B, y que el usuario de portal residual ya no pasa los filtros internos). No asumir que basta definir solo `is_internal_member` para satisfacer 0026.
-- No se recomienda dar de alta la segunda empresa, ejecutar el Lote 2 (unicidad por organización en `feedback_reports.folio` / `payments.rep_number`) ni mover objetos de Storage hasta haber ensayado el rollout completo con **dos organizaciones en entorno aislado**.
-- Catálogos sin decisión: `suppliers`, `equipment_models`, `bank_accounts`.
-- Esta auditoría no ejecuta el smoke autenticado: requiere entorno aislado con dos organizaciones, que hoy no existe.
-- La cuenta de portal con rol operativo residual necesita confirmación de negocio antes de aplicar 0025.
+1. **Detector antes que parche.** Nueva prueba `supabase/tests/rls/function_acl_contract.sql`: recorre `pg_proc` de `public` con `prosecdef`, y falla si existe fila `anon` en `aclexplode(proacl)` salvo una lista blanca explícita (`get_public_branding`, `today_mty`, `fx_is_missing`). Control positivo: la firma REP debe seguir sin `anon`. Esto convierte el hallazgo en regresión permanente.
+2. **Migración `0028_function_acl_revoke_anon.sql`**: barrido nominal `REVOKE EXECUTE ... FROM anon, PUBLIC` sobre las firmas del grupo A y B, con `GRANT EXECUTE TO authenticated, service_role` solo donde el contrato actual ya lo concede (respetando `lock_invoice_for_rep` = solo `service_role`). Sin cambiar cuerpos, roles ni lógica.
+3. **Utilería E2E** (`e2e_*`, `purge_e2e_data`, `next_*_e2e`): decisión pendiente del usuario — revocar a `authenticated` además de `anon`, o retirarlas de producción. No se decide aquí.
+4. **Revalidación en PostgreSQL efímero**: reproducir default privileges + `CREATE FUNCTION` nueva vs `CREATE OR REPLACE` de una preexistente, como control del detector, antes de escribir `0028`.
+5. Cada paso con su entrada de changelog y actualización de `docs/multiempresa/`; sin aplicar SQL a producción ni habilitar la segunda empresa.
