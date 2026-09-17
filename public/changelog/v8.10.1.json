@@ -1,0 +1,14 @@
+{
+  "version": "8.10.1",
+  "date": "2026-09-17",
+  "type": "patch",
+  "category": "docs",
+  "title": "Changelog: se corrige el alcance de 8.9.0 sobre aislamiento de almacenamiento (solo documentación)",
+  "description": "Se ajustaron las descripciones de 8.9.0 para limitar el aislamiento a rutas nuevas con prefijo de empresa y al archivo histórico de documentos cuando su ficha registra la empresa dueña. El archivo histórico de los demás almacenes (fiscales, comprobantes de proveedores, XML de facturas y capturas) se declara expresamente como compartido entre empresas: el riesgo histórico NO se cerró y el alta de una segunda empresa sigue bloqueada hasta trasladarlo. Solo documentación; sin cambios de código, migración ni datos.",
+  "changes": [
+    "Corrección del texto de 8.9.0: el título y la descripción afirmaban de forma general que todos los archivos quedaron encerrados en su empresa. Ahora limitan el aislamiento a rutas nuevas con carpeta de empresa y al legado de documentos con ficha dueña.",
+    "Se declara expresamente que el legado de archivos fiscales, comprobantes de proveedores, XML de facturas de proveedor y capturas SIGUE compartido entre empresas porque no hay dato que identifique al dueño de cada archivo antiguo.",
+    "Se deja registrado que el riesgo histórico NO se cerró y que el alta de una segunda empresa queda bloqueada hasta que el traslado del archivo histórico esté probado y ejecutado por su canal autorizado.",
+    "Sin cambios de código, migración, datos ni despliegue; solo documentación y versionado."
+  ]
+}

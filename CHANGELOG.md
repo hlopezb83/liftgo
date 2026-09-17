@@ -1,3 +1,12 @@
+## [8.10.1] - 2026-09-17 · patch · docs
+
+Se ajustaron las descripciones de 8.9.0 para limitar el aislamiento a rutas nuevas con prefijo de empresa y al archivo histórico de documentos cuando su ficha registra la empresa dueña. El archivo histórico de los demás almacenes (fiscales, comprobantes de proveedores, XML de facturas y capturas) se declara expresamente como compartido entre empresas: el riesgo histórico NO se cerró y el alta de una segunda empresa sigue bloqueada hasta trasladarlo. Solo documentación; sin cambios de código, migración ni datos.
+
+- Corrección del texto de 8.9.0: el título y la descripción afirmaban de forma general que todos los archivos quedaron encerrados en su empresa. Ahora limitan el aislamiento a rutas nuevas con carpeta de empresa y al legado de documentos con ficha dueña.
+- Se declara expresamente que el legado de archivos fiscales, comprobantes de proveedores, XML de facturas de proveedor y capturas SIGUE compartido entre empresas porque no hay dato que identifique al dueño de cada archivo antiguo.
+- Se deja registrado que el riesgo histórico NO se cerró y que el alta de una segunda empresa queda bloqueada hasta que el traslado del archivo histórico esté probado y ejecutado por su canal autorizado.
+- Sin cambios de código, migración, datos ni despliegue; solo documentación y versionado.
+
 ## [8.10.0] - 2026-09-17 · minor · security
 
 Se arreglaron los dos exámenes automáticos que salieron en rojo, se cerró por empresa el archivo histórico de documentos usando el dueño que ya está registrado en la ficha, y se corrigió la redacción previa: el archivo histórico de los demás almacenes SIGUE compartido y el alta de una segunda empresa queda bloqueada hasta trasladarlo.
@@ -13,15 +22,15 @@ Se arreglaron los dos exámenes automáticos que salieron en rojo, se cerró por
 
 ## [8.9.0] - 2026-09-17 · minor · security
 
-Se cerraron los huecos que permitían que el personal de una empresa leyera, reemplazara o borrara archivos de otra (documentos, capturas, archivos fiscales y comprobantes de proveedores), y los enlaces antiguos guardados ahora se vuelven a autorizar con la sesión actual en vez de abrirse tal cual. Incluye pruebas nuevas con dos empresas inventadas.
+Se cerraron los huecos que permitían que el personal de una empresa leyera, reemplazara o borrara archivos de otra en rutas nuevas con carpeta de empresa, y el archivo histórico de documentos quedó acotado por la ficha que ya registra la empresa dueña. El archivo histórico de los demás almacenes (archivos fiscales, comprobantes de proveedores, XML de facturas de proveedor y capturas) SIGUE compartido entre empresas porque no hay dato que identifique al dueño de cada archivo antiguo; el riesgo histórico NO se cerró y el alta de una segunda empresa queda bloqueada hasta trasladarlo. Los enlaces antiguos guardados ahora se vuelven a autorizar con la sesión actual en vez de abrirse tal cual. Incluye pruebas nuevas con dos empresas inventadas.
 
 - Hallazgo real: las reglas de documentos (alta, reemplazo y borrado), las de capturas de administración y las de archivos fiscales, comprobantes de proveedores y XML de facturas de proveedor solo revisaban el rol, no la empresa dueña del archivo.
 - Hallazgo real: la lectura de documentos del portal se resolvía por el cliente global, así que un mismo cliente dado de alta en dos empresas podía alcanzar documentos de la otra.
-- Nuevo cambio de base 0027 (no aplicado en producción): toda alta exige la carpeta de la empresa de la sesión; lectura, reemplazo y borrado rechazan cualquier carpeta de otra empresa; un archivo propio ya no puede moverse a la carpeta de otra empresa. Los archivos históricos sin carpeta siguen legibles y no se movió ninguno.
+- Nuevo cambio de base 0027 (no aplicado en producción): toda alta exige la carpeta de la empresa de la sesión; lectura, reemplazo y borrado rechazan cualquier carpeta de otra empresa en rutas nuevas con prefijo; un archivo propio ya no puede moverse a la carpeta de otra empresa. Para el almacén de documentos, un archivo histórico sin carpeta deja de ser accesible al personal de otra empresa cuando su ficha registra la empresa dueña. Los archivos históricos sin carpeta de los demás almacenes (fiscales, comprobantes de proveedores, XML de facturas y capturas) SIGUEN compartidos entre empresas: no hay dato que identifique al dueño, así que el riesgo histórico NO se cerró y no se movió ninguno.
 - Los enlaces antiguos guardados con caducidad de años ya no se abren tal cual: si apuntan al almacenamiento del propio sistema se vuelven a autorizar con la sesión actual y caducan en un minuto; cualquier otro enlace no se abre y avisa al usuario.
-- Nueva prueba supabase/tests/rls/storage_cross_org_ab.sql con dos empresas, dos administradores y una cuenta de portal inventados: comprueba que la empresa A no puede ver, listar, reemplazar ni borrar archivos de la empresa B en los cinco almacenes, ni en rutas nuevas ni en las históricas, e incluye comprobaciones positivas para que la prueba no pase por falta de datos.
+- Nueva prueba supabase/tests/rls/storage_cross_org_ab.sql con dos empresas, dos administradores y una cuenta de portal inventados: comprueba que la empresa A no puede ver, listar, reemplazar ni borrar archivos de la empresa B en rutas nuevas con prefijo en los cinco almacenes, e incluye comprobaciones positivas para que la prueba no pase por falta de datos. Las rutas históricas sin prefijo de los almacenes sin ficha dueña quedan declaradas como riesgo compartido, no como aislamiento probado.
 - Nuevas pruebas de interfaz para la apertura de archivos: enlace propio se vuelve a firmar, enlace de otro sitio o de otro almacén no se abre.
-- No se ejecutó nada en producción: no se aplicó el cambio 0027, no se movieron archivos, no se creó una segunda empresa y no se editó ninguna migración histórica.
+- No se ejecutó nada en producción: no se aplicó el cambio 0027, no se movieron archivos, no se creó una segunda empresa y no se editó ninguna migración histórica. El alta de la segunda empresa queda bloqueada hasta que el traslado del archivo histórico esté probado y ejecutado por su canal autorizado.
 
 ## [8.8.35] - 2026-09-17 · patch · docs
 
