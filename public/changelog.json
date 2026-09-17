@@ -13,8 +13,9 @@
       "0027: políticas de almacenamiento por empresa en los buckets restantes y resolución del legado de documentos por su ficha dueña.",
       "0028: retiro del permiso de ejecución anónimo en 22 funciones y del permiso público en 7.",
       "0029: unicidad de catálogos, folios y proveedores por empresa, con preflight y postflight superados en producción.",
-      "Verificación posterior por lecturas: 31 registros de migración (últimos seis con la huella exacta de los archivos 0024–0029), los ocho índices únicos por empresa válidos, los globales retirados, políticas de perfiles y roles por empresa activas, 19 políticas de almacenamiento con prefijo de empresa y 0 funciones objetivo con permiso de ejecución para el rol anónimo.",
-      "Limpieza del registro local: se retiraron los archivos duplicados que el canal generó y que no llegaron a aplicarse."
+      "Verificación posterior por lecturas: las migraciones 0024–0029 quedaron aplicadas como ids 25–30 con la huella exacta de los archivos; los ocho índices únicos por empresa válidos, los globales retirados, políticas de perfiles y roles por empresa activas, 19 políticas de almacenamiento con prefijo de empresa y 0 funciones objetivo con permiso de ejecución para el rol anónimo.",
+      "Registro histórico en la base: queda una fila extra (id 31) correspondiente a un duplicado del SQL de 0024; no se edita ni se borra. Drizzle elige la última migración por mayor fecha aplicada, que corresponde a 0029, por lo que ese registro sobrante queda detrás y no afecta el estado.",
+      "Limpieza del repositorio: se retiraron los artefactos redundantes 0030 (archivo SQL, snapshot y entrada del journal) que el canal generó con fecha menor a la de 0029 y que hacían fallar el validador del journal en CI; la cadena versionada queda 0024–0029 con fechas estrictamente crecientes. Las pruebas RLS y smoke de ese run se detuvieron antes de ejecutarse por ese fallo, no por un error de base de datos."
     ]
   },
   {
