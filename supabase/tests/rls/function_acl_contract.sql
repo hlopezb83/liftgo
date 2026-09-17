@@ -103,14 +103,28 @@ BEGIN
   FOR r IN
     SELECT unnest(ARRAY[v_strict, v_wrapper]) AS oid
   LOOP
+    -- proacl IS NULL = ACL predeterminado; se expande con acldefault.
     IF EXISTS (
-      SELECT 1 FROM pg_proc p, aclexplode(p.proacl) a
+      SELECT 1
+      FROM pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
       WHERE p.oid = r.oid
         AND a.privilege_type = 'EXECUTE'
-        AND a.grantee IN ('anon'::regrole::oid, 0)  -- 0 = PUBLIC
+        AND a.grantee = 'anon'::regrole::oid
     ) THEN
       RAISE EXCEPTION
-        'ACL CONTRACT (control negativo): % conserva EXECUTE para anon o PUBLIC en su ACL directo',
+        'ACL CONTRACT (control negativo): % conserva ACL directo de EXECUTE para anon',
+        r.oid::regprocedure;
+    END IF;
+
+    IF EXISTS (
+      SELECT 1
+      FROM pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
+      WHERE p.oid = r.oid
+        AND a.privilege_type = 'EXECUTE'
+        AND a.grantee = 0  -- 0 = PUBLIC
+    ) THEN
+      RAISE EXCEPTION
+        'ACL CONTRACT (control negativo): % conserva EXECUTE concedido a PUBLIC',
         r.oid::regprocedure;
     END IF;
 
