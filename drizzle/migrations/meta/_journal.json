@@ -204,6 +204,13 @@
       "when": 1789664564000,
       "tag": "0028_multi_org_function_acl_revoke_anon",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1789750964000,
+      "tag": "0029_multi_org_unique_scope_by_organization",
+      "breakpoints": true
     }
   ]
 }

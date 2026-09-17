@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.11.0",
+    "date": "2026-09-17",
+    "type": "minor",
+    "category": "backend",
+    "title": "Catálogos, folios y proveedores con unicidad propia de cada empresa",
+    "description": "Nueva migración 0029 (aún sin aplicar en producción) que acota la unicidad de flota, mecánicos, operadores, refacciones, etapas de prospectos, folio de recibo de pago y RFC de proveedor al ámbito de cada empresa, con preflight que se detiene si hay datos inconsistentes. Incluye prueba A/B aislada, mensajes de error propios y documentación de la decisión. No se ejecutó SQL contra la base productiva.",
+    "changes": [
+      "drizzle/migrations/0029_multi_org_unique_scope_by_organization.sql: ocho claves únicas pasan a incluir la empresa, conservando los mismos filtros de borrado lógico y de valores nulos; se retiran los índices globales equivalentes y el folio global redundante de reportes.",
+      "Preflight fail-closed dentro de la migración: aborta si hay filas sin empresa, duplicados dentro de una misma empresa, falta el par folio-empresa de reportes o hay pagos con empresa distinta a la de su factura; postflight verifica los índices nuevos.",
+      "Proveedores: se adopta el modelo de proveedor propio por empresa (alternativa A); clientes y modelos de equipo siguen siendo catálogos globales.",
+      "supabase/tests/rls/multi_org_unique_scope_ab.sql: prueba A/B con la misma clave válida en dos empresas, duplicado rechazado dentro de una, aislamiento de lectura y escritura, borrado lógico que libera la clave y folios de pago y de reportes por empresa.",
+      "Catálogo de errores de interfaz: mensajes propios para las ocho restricciones nuevas, conservando los anteriores para ambientes sin la migración; nueva prueba unitaria.",
+      "Auditoría de solo lectura del asignador de folio de recibo y de todos sus llamadores: la empresa siempre se deriva del pago o de la membresía verificada, nunca del navegador; idempotencia y formato de folio sin cambios.",
+      "docs/multiempresa/tramo-8-plan-migraciones-unicidad.md: decisión adoptada, consecuencias y ventana de bloqueo (el migrador corre en una sola transacción, por lo que no se puede usar creación concurrente de índices)."
+    ]
+  },
+  {
     "version": "8.10.6",
     "date": "2026-09-17",
     "type": "patch",

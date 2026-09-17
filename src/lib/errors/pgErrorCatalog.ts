@@ -53,12 +53,20 @@ export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
   contracts_contract_number_unique_idx: { message: "Ya existe un contrato con ese número." },
   invoices_invoice_number_unique_idx: { message: "Ya existe una factura con ese número. Recarga la página para obtener el siguiente folio." },
   feedback_reports_folio_key: { message: "Ya existe un reporte con ese folio." },
+  // Tramo 8 (migración 0029): el folio de recibo es propio de cada empresa.
+  payments_org_rep_number_uidx: { message: "Ya existe un pago de tu empresa con ese número de recibo." },
+  // Se conserva el nombre anterior mientras haya ambientes sin la migración 0029.
   payments_rep_number_uidx: { message: "Ya existe un pago con ese número de recibo." },
 
   // --- Datos fiscales y catálogos ---
   customers_rfc_unique: { message: "Ya existe un cliente con ese RFC." },
-  // Subtramo 6.1: el RFC de proveedor todavía es único en todo el sistema, así
-  // que el registro que choca puede pertenecer a otra empresa y no ser visible.
+  // Tramo 8 (migración 0029): cada empresa tiene su propio catálogo de
+  // proveedores, así que el choque siempre es con un registro propio y visible.
+  suppliers_org_rfc_unique_idx: {
+    message:
+      "Ya tienes un proveedor con ese RFC. Búscalo en tu lista de proveedores en lugar de darlo de alta otra vez.",
+  },
+  // Nombre anterior (unicidad global), conservado para ambientes sin 0029.
   suppliers_rfc_unique_idx: {
     message:
       "Ese RFC de proveedor ya está registrado en el sistema. Si no lo encuentras en tu lista de proveedores, solicita apoyo al administrador: el catálogo de proveedores aún se comparte entre empresas.",
@@ -67,10 +75,25 @@ export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
   operating_expenses_cfdi_uuid_key: { message: "Ese CFDI ya fue registrado en otro gasto operativo." },
 
   // --- Flota y catálogos operativos ---
-  // Subtramo 6.1: estos catálogos siguen con unicidad global mientras se
-  // decide la matriz de índices por empresa. El registro que choca puede
-  // pertenecer a otra empresa y no aparecer en la lista del usuario: el
-  // mensaje lo explica sin revelar ningún dato del otro registro.
+  // Tramo 8 (migración 0029): flota, mecánicos, operadores y refacciones son
+  // propios de cada empresa; el registro que choca siempre es visible.
+  forklifts_org_serial_number_unique: {
+    message: "Ya tienes un montacargas con ese número de serie. Búscalo en tu flota.",
+  },
+  forklifts_org_name_unique: {
+    message: "Ya tienes un montacargas con ese nombre. Usa otro nombre para distinguirlos.",
+  },
+  mechanics_org_name_unique: {
+    message: "Ya tienes un mecánico con ese nombre. Agrega un distintivo al nombre para diferenciarlos.",
+  },
+  drivers_org_name_unique: {
+    message: "Ya tienes un operador con ese nombre. Agrega un distintivo al nombre para diferenciarlos.",
+  },
+  parts_inventory_org_sku_unique: {
+    message: "Ya tienes una refacción con ese SKU. Búscala en tu inventario.",
+  },
+  // Nombres anteriores (unicidad global), conservados para ambientes sin 0029:
+  // ahí el registro que choca puede pertenecer a otra empresa y no ser visible.
   forklifts_serial_number_unique: {
     message:
       "Ese número de serie ya está registrado en el sistema. Si no aparece en tu flota, solicita apoyo al administrador: el número de serie aún es único entre empresas.",
@@ -116,6 +139,8 @@ export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
   supplier_contacts_one_primary: { message: "Ese proveedor ya tiene un contacto principal. Desmarca el anterior primero." },
 
   // --- CRM, usuarios y configuración ---
+  // Tramo 8 (migración 0029): el orden de la etapa es propio de cada empresa.
+  prospects_org_stage_order_uniq: { message: "Ese lugar en la etapa ya está ocupado. Recarga el tablero e intenta mover la tarjeta de nuevo." },
   prospects_stage_order_uniq: { message: "Ese lugar en la etapa ya está ocupado. Recarga el tablero e intenta mover la tarjeta de nuevo." },
   profiles_user_id_key: { message: "Ese usuario ya tiene un perfil creado." },
   user_roles_user_id_role_key: { message: "Ese usuario ya tiene asignado ese rol." },
