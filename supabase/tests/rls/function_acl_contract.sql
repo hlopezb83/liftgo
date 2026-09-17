@@ -154,7 +154,12 @@ BEGIN
   FOR r IN
     SELECT
       p.oid,
-      p.proname || '(' || pg_get_function_identity_arguments(p.oid) || ')' AS signature,
+      -- Firma por TIPOS exactos (pg_get_function_identity_arguments incluye
+      -- los nombres de los argumentos y no sirve para comparar).
+      p.proname || '(' || coalesce((
+        SELECT string_agg(format_type(t, NULL), ', ' ORDER BY ord)
+        FROM unnest(p.proargtypes) WITH ORDINALITY AS u(t, ord)
+      ), '') || ')' AS signature,
       EXISTS (
         SELECT 1 FROM aclexplode(p.proacl) a
         WHERE a.privilege_type = 'EXECUTE' AND a.grantee = 'anon'::regrole::oid
