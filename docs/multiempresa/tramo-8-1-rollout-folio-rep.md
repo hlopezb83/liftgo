@@ -13,10 +13,16 @@ Estado: **aprobado en repositorio, pendiente de producción**.
   `assign_stamped_rep_number(uuid, text)`, `SECURITY DEFINER`,
   `search_path = public`, con `EXECUTE` concedido a `authenticated` y
   `service_role`. La firma estricta de tres parámetros aún no existe en
-  producción. La migración
-  `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql` vive en el
-  repositorio y debe aplicarse por el canal de migraciones de producción; no
-  debe aplicarse desde este entorno.
+   producción. La migración
+   `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql` vive en el
+   repositorio y debe aplicarse por el canal de migraciones de producción; no
+   debe aplicarse desde este entorno.
+- **Precondición bloqueante (auditoría del 2026-09-17):** el journal
+  `drizzle.__drizzle_migrations` termina en `0023`; `0024`, `0025` y `0026`
+  están **pendientes**. `0026` **no debe aplicarse sola**: depende de
+  `is_internal_member(uuid)`, que instala `0025` y hoy no existe en producción.
+  Producción **no está lista para el rollout**. Ver la sección «Precondición de
+  rollout: `0024 → 0025 → 0026`».
 
 ## Problema de rollout detectado
 
