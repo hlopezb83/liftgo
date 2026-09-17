@@ -39,7 +39,7 @@ Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.bucket
 - Server function de proveedor: `src/lib/supplierRep.functions.ts:167,182`.
 - Cliente: `src/hooks/useDocuments.ts:50,76,104`; `src/lib/storage/openStorageFile.ts` firma URLs de 60 s.
 - **Conducta real de `openStoredFile` (`openStorageFile.ts:94-115`):** las URLs persistidas **no se abren tal cual**. Si la URL apunta al Storage del propio proyecto, se extraen bucket y ruta y se **re-firma con la sesión actual y TTL corto** (60 s), de modo que las policies vigentes (incluido el alcance por organización) aplican hoy, no cuando se generó el enlace; cualquier otra URL se **rechaza (fail-closed)** en lugar de abrirse (`parseStorageUrl`, `openStorageFile.ts:40-86`). No hay bypass de re-derivación de organización para esa vía: el enlace congelado se sustituye por uno de corta duración sujeto a RLS. **Pero `company_settings.logo_url` no pasa solo por `openStoredFile`:** también se renderiza directamente con `<img src={logoUrl}>` en `src/layouts/sidebar/SidebarBranding.tsx`, `src/features/operations/components/operations/CompanyLogoTab.tsx` y `src/components/BrandMark.tsx`, y el helper de PDF `src/lib/pdf/assets/logo.ts` hace `fetch(url)` directo; esos caminos **no** aplican el re-firmado ni el fail-closed del parser. La lectura segura de producción halló **una sola referencia HTTPS**, sin forma de ruta `/storage/v1/object/...`; eso **no basta para clasificar el host** ni para afirmar que el navegador la rechaza. La **clasificación manual y la prueba conductual por organización siguen pendientes**. **No confundir** con la marca pública preautenticada, que usa `get_public_branding()` neutral de LiftGo, no el logo organizacional. En producción, `pg_policies` muestra `org_scope_isolation` como **RESTRICTIVE** y las policies de rol como **PERMISSIVE**, todas para `authenticated`. No se muestra valor/host/ruta/token.
-- Migrador administrativo ya escrito y **sin ejecutar**: `supabase/functions/migrate-storage-org-prefix/index.ts` — orden copy → refs → verify → delete; triple barrera: auth cron/service, `STORAGE_MIGRATION_APPLY_ENABLED`, confirmación textual; cuenta con modo plan (solo inventario) y modo apply.
+- Migrador administrativo ya escrito y **sin ejecutar**: `supabase/functions/migrate-storage-org-prefix/index.ts`. Desde 8.12.1 el modo `apply` **no borra**: inventaría → copia → **verifica el destino** → actualiza referencias con guarda de hash y de organización, y deja **todas las fuentes intactas** (estado final del ledger: `references_updated`; `source_deleted` nunca se marca en apply). Barreras de apply: auth cron/service, `STORAGE_MIGRATION_APPLY_ENABLED`, confirmación `COPY_UPDATE_VERIFY_NO_DELETE`.
 
 ## 4. Plan propuesto de migración de históricos (no autorizado, no ejecutado)
 
@@ -48,11 +48,23 @@ Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.bucket
 3. **Verificación A/B**: comparar tamaño y hash origen/destino objeto por objeto; contrastar conteos por bucket antes/después.
 4. **Actualización de referencias por lote**: por tabla/columna del `REFERENCE_SPECS`, con rollback por SHA-256 guardado.
 5. **Doble lectura y observación**: la app intenta primero la ruta con prefijo y cae a la legada, hasta que el 100 % del ledger esté en `references_updated`.
-6. **Borrado del origen**: solo al final, tras 100 % verificado y ventana de observación, y **solo con autorización explícita**. Irreversible.
+6. **Borrado del origen**: fase **separada** (`mode: "delete_sources"`), posterior a la ventana de observación y **solo con autorización explícita**. Irreversible.
+
+### Fase 6 — borrado de fuentes (implementada, desactivada por defecto)
+
+Modo dedicado `delete_sources` en el mismo endpoint, independiente de `apply`:
+
+- **Bandera de entorno propia:** `STORAGE_MIGRATION_DELETE_SOURCES_ENABLED` (distinta de la de apply; **no** está configurada, así que responde 403 `source_deletion_disabled`).
+- **Confirmación textual distinta:** `DELETE_MIGRATED_SOURCES_AFTER_VERIFY`.
+- **Inventario completo obligatorio**; si está truncado responde 409.
+- **Verificación previa objeto por objeto** (`supabase/functions/_shared/storageDeletePhase.ts`): sólo objetos `discovery_kind = 'referenced'` en estado `references_updated`, con al menos una referencia, todas en estado `updated`, con `organization_id` coincidente y con el **valor actual igual al valor de destino**, y con el **destino verificado como existente** en Storage. Cualquier desvío deja el objeto en `blocked` con código de causa y **no** borra nada.
+- **Huérfanos: nunca.** El modo de huérfanos (`apply_orphans`) sólo copia y verifica; `deleteEligibility` devuelve `orphans_never_deleted` para cualquier objeto sin referencia, en cualquier modo.
 
 **Condiciones de parada (antes del borrado):** cualquier diferencia de hash/tamaño, un objeto huérfano sin referencia, un error de permisos, o la existencia de la segunda empresa sin ensayo previo en entorno aislado.
 
-**Rollback:** mientras no se borre el origen, basta borrar las copias y revertir las referencias usando el SHA-256 del ledger.
+**Rollback:** mientras no se borre el origen, basta borrar las copias y revertir las referencias usando el SHA-256 del ledger. Como apply ya no borra, el rollback sigue disponible durante toda la fase de copia y actualización.
+
+**Estado real de los ledgers (2026-09-17):** `storage_object_migrations` y `storage_reference_migrations` siguen en **0 filas**; ningún objeto ha sido copiado, ninguna referencia actualizada y ninguna fuente borrada. Quedan 15 objetos sin prefijo (10 en `cfdi-files`, 5 en `documents`), todos referenciados.
 
 ## 5. Dependencia operativa REP (precondición crítica de despliegue)
 
