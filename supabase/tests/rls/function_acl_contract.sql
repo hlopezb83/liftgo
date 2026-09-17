@@ -52,9 +52,11 @@ DECLARE
   v_direct boolean;
   v_effective boolean;
 BEGIN
+  -- proacl IS NULL = ACL predeterminado de PostgreSQL (owner + PUBLIC), no
+  -- "sin permisos": se expande con acldefault antes de inspeccionarlo.
   SELECT EXISTS (
     SELECT 1
-    FROM pg_proc p, aclexplode(p.proacl) a
+    FROM pg_proc p, aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) a
     WHERE p.oid = v_oid
       AND a.privilege_type = 'EXECUTE'
       AND a.grantee = 'anon'::regrole::oid
