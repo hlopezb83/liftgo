@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.10.3",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "docs",
+    "title": "Evidencia final de CI: almacenamiento multiempresa pasa 54/54 RLS y 45/45 smoke",
+    "description": "El commit 45c9293 confirmó en GitHub Actions que las pruebas de aislamiento de almacenamiento pasan completas: RLS 54/54, smoke 45/45, CI principal y Gitleaks en verde. El alcance sigue preciso: rutas nuevas con prefijo aisladas; legado de documentos solo cuando la ficha dueña identifica la empresa; legado de los demás buckets y huérfanos sigue compartido. El alta de una segunda empresa sigue bloqueada hasta migrar los 310 objetos históricos. Solo documentación; sin SQL, sin producción.",
+    "changes": [
+      "Run 35180736054 (RLS DB tests): 54/54 en verde; run 35180736071 (CI principal) y run 35180736167 (Gitleaks) en verde.",
+      "Se actualizó el runbook docs/multiempresa/storage-historico.md con la evidencia final y el alcance preciso del residuo legacy.",
+      "Alcance confirmado: rutas nuevas con prefijo de empresa aisladas entre organizaciones; legado de documentos aislado cuando su ficha registra organization_id; legado de cfdi-files, supplier-payment-receipts, supplier-bill-cfdi-xml y feedback-screenshots sigue compartido.",
+      "El alta de una segunda empresa permanece bloqueada hasta migrar los 310 objetos históricos sin prefijo.",
+      "Sin aplicar SQL, sin tocar producción, sin mover objetos, sin editar migraciones históricas."
+    ]
+  },
+  {
     "version": "8.10.2",
     "date": "2026-09-17",
     "type": "patch",
