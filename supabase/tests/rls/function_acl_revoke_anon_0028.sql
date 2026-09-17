@@ -164,14 +164,16 @@ END;
 $$;
 
 INSERT INTO public.quotes
-  (id, organization_id, customer_id, quote_number, status, total, subtotal, tax_amount)
+  (id, organization_id, customer_id, quote_number, status, total, subtotal, tax_amount, line_items)
 VALUES
   ('28000000-0000-4000-8000-0000000000a1'::uuid,
    '28000000-0000-4000-8000-000000000028', '28000000-0000-4000-8000-00000000c001',
-   'COT-ACL-0028-A', 'sent', 100, 100, 0),
+   'COT-ACL-0028-A', 'sent', 100, 100, 0,
+   jsonb_build_array(jsonb_build_object('description', 'Servicio ACL 0028', 'quantity', 1, 'unit_price', 100, 'amount', 100))),
   ('28000000-0000-4000-8000-0000000000a2'::uuid,
-   '28000000-0000-4000-8000-000000000028', '28000000-0000-4000-8000-00000000c001',
-   'COT-ACL-0028-B', 'sent', 100, 100, 0);
+   '28000000-0000-4000-8000-00000000c001', '28000000-0000-4000-8000-000000000028',
+   'COT-ACL-0028-B', 'sent', 100, 100, 0,
+   jsonb_build_array(jsonb_build_object('description', 'Servicio ACL 0028', 'quantity', 1, 'unit_price', 100, 'amount', 100)));
 
 RESET request.jwt.claims;
 SELECT set_config('app.organization_id', '', true);
