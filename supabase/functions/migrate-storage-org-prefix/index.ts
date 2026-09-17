@@ -326,10 +326,13 @@ async function collectStorageInventory(
   admin: AdminClient,
   referencedPathsByBucket: Map<string, Set<string>>,
   maxObjectsPerBucket: number,
+  organizationIds: string[] = [],
 ): Promise<{
   byBucket: Array<ReturnType<typeof summarizeStorageInventory>>;
   objectPathsByBucket: Map<string, Set<string>>;
   unreferencedObjects: number;
+  unreferencedScopedObjects: number;
+  unreferencedUnscopedObjects: number;
   truncated: boolean;
 }> {
   const byBucket: Array<ReturnType<typeof summarizeStorageInventory>> = [];
@@ -342,18 +345,25 @@ async function collectStorageInventory(
       bucketId,
       referencedPathsByBucket.get(bucketId) ?? [],
       maxObjectsPerBucket,
+      organizationIds,
     );
     byBucket.push(inventory.summary);
     objectPathsByBucket.set(bucketId, inventory.objectPaths);
     truncated ||= inventory.truncated;
   }
 
+  const total = (pick: (bucket: StorageInventoryBucket) => number) =>
+    byBucket.reduce((sum, bucket) => sum + pick(bucket), 0);
+
   return {
     byBucket,
     objectPathsByBucket,
-    unreferencedObjects: byBucket.reduce(
-      (total, bucket) => total + bucket.unreferenced_objects,
-      0,
+    unreferencedObjects: total((bucket) => bucket.unreferenced_objects),
+    unreferencedScopedObjects: total((bucket) =>
+      bucket.unreferenced_scoped_objects
+    ),
+    unreferencedUnscopedObjects: total((bucket) =>
+      bucket.unreferenced_unscoped_objects
     ),
     truncated,
   };
