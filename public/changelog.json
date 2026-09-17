@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.8.35",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "docs",
+    "title": "Runbook del folio REP: resultado final de la auditoría de huellas del historial (sin cambio funcional)",
+    "description": "Se corrigió el registro previo: son cinco diferencias históricas de huella (0004, 0005, 0006, 0007 y 0010), la alarma sobre 0009 fue falsa y no se detectó divergencia funcional. Se documenta cómo decide el historial de cambios y la recomendación de no reescribir nada histórico. No representa cambio funcional.",
+    "changes": [
+      "Se corrigió el conteo previo: son cinco diferencias históricas de huella, en los cambios 0004, 0005, 0006, 0007 y 0010; el reporte anterior sobre 0009 fue una falsa alarma (su huella sí coincide) y el resto del historial hasta 0023 coincide.",
+      "Las huellas abreviadas se verificaron por recálculo directo antes de escribirlas; no se inventó ningún valor.",
+      "Se documentó, con el código real del componente, que el sistema calcula la huella de cada cambio pero avanza por fecha sin compararla; por eso una huella distinta no provoca error ni reaplicación.",
+      "Se documentó la evidencia de que no hay divergencia funcional: las 13 funciones verificadas coinciden con producción, las funciones bancarias tienen el modo de seguridad correcto y existen las 55 reglas por empresa y los 57 guardias de escritura; la conclusión queda limitada a los objetos comprobados.",
+      "Recomendación registrada: no reescribir huellas ni archivos históricos; cualquier verificación estricta futura debe ser aditiva y propia, nunca una corrección retroactiva.",
+      "Se aclaró que el ensayo aislado de 0024 a 0026 ya pasó en la revisión automática (53 de 53 y 45 de 45); sigue pendiente el despliegue productivo, la decisión sobre el permiso residual de la cuenta de portal, el ensayo de almacenamiento con dos empresas y el alta de la segunda empresa."
+    ]
+  },
+  {
     "version": "8.8.34",
     "date": "2026-09-17",
     "type": "patch",

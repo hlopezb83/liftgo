@@ -341,25 +341,83 @@ WHERE n.nspname = 'public' AND p.proname = 'assign_stamped_rep_number'
 ORDER BY 2, 3;
 ```
 
-### Discrepancias de hash en el journal
+### Discrepancias de hash en el journal (resultado final de la auditoría, 2026-09-17)
 
-Cuatro migraciones antiguas tienen hash distinto entre el journal y el archivo
-actual del repositorio: **`0004`, `0005`, `0006` y `0010`** (ids 5, 6, 7 y 10).
-El migrador de Drizzle avanza por marca de tiempo según la revisión, así que no
-las reaplica; **pero estas discrepancias deben reconciliarse y entenderse antes
-de depender de una verificación estricta del journal** (por ejemplo, un
-`drizzle-kit check` bloqueante o cualquier control que compare hashes).
+Auditoría de solo lectura completada; **corrige el registro previo** (versión
+8.8.33), que reportaba cuatro diferencias con un error. El resultado final es:
 
-Reproducible: comparar `sha256sum drizzle/migrations/*.sql` contra la columna
-`hash` del journal.
+- **Cinco diferencias históricas**, en los ids Drizzle **5, 6, 7, 8 y 11**, que
+  corresponden a las migraciones **`0004`, `0005`, `0006`, `0007` y `0010`**:
+
+  | id | Migración | Hash guardado (journal) | Hash actual (archivo) | Aplicada (UTC) |
+  |----|-----------|-------------------------|-----------------------|----------------|
+  | 5  | `0004_multi_org_phase3_write_context_guard` | `5fcdaa37…a1fe` | `ffc22130…dd62` | 2026-09-13 23:30 |
+  | 6  | `0005_multi_org_phase4_read_isolation` | `50d1d882…7222` | `877a67d7…e128` | 2026-09-14 00:00 |
+  | 7  | `0006_multi_org_phase4_portal_scope` | `f5fff091…9649` | `a65e787c…5ae5` | 2026-09-14 00:10 |
+  | 8  | `0007_multi_org_phase4_customer_rpc_scope` | `5eb32b05…2780` | `c296a4f7…63e8` | 2026-09-14 00:20 |
+  | 11 | `0010_multi_org_phase5_bank_write_rpc_scope` | `946fd138…bac1` | `b0804f85…686e` | 2026-09-14 00:50 |
+
+  La correspondencia es **id N = archivo 000(N-1)**.
+- **El id 10 (`0009_multi_org_phase5_bank_read_rpc_scope`) sí coincide**
+  (`1ab4511a…381b` en journal y archivo): fue una **falsa alarma** del reporte
+  previo, causada por el desfase id↔nombre.
+- **El resto de las filas, hasta el id 24 (`0023`), coincide exactamente.**
+
+Reproducible: `sha256sum drizzle/migrations/*.sql` contra la columna `hash`
+de `drizzle.__drizzle_migrations`. Los valores completos de 32 bytes se
+verificaron por recálculo directo el 2026-09-17 antes de escribir este
+documento; no se inventó ningún checksum.
+
+#### Alcance de la evidencia
+
+- **Cómo decide el migrador (hecho, con código):** Drizzle ORM **0.45.2**
+  calcula `sha256` del archivo completo (`drizzle-orm/migrator.js`) pero el
+  dialecto PostgreSQL (`drizzle-orm/pg-core/dialect.js`, líneas 56-69) lee una
+  sola fila con `order by created_at desc limit 1` y aplica cada migración sólo
+  si `created_at < when` del journal: **avanza por marca de tiempo y nunca
+  compara la huella**. Una huella distinta no provoca error ni reaplicación.
+  Además, el repositorio **no invoca el migrador por su cuenta** y la CI aplica
+  los `.sql` por orden de nombre con `psql` sobre base limpia.
+- **Historial Git (hecho):** cada uno de los cinco archivos aparece en un solo
+  commit, **posterior** a su hora de aplicación (`0004` → `410061a8f`,
+  2026-09-14 00:34 UTC; `0005`, `0006`, `0007` → `cce90c81d`, 01:18 UTC;
+  `0010` → `f68b5237e`, 02:56 UTC), sin ediciones posteriores. Inferencia: se
+  aplicaron desde la copia de trabajo y se pulieron antes de subir; la huella
+  guardada corresponde a un borrador que nunca quedó en Git.
+- **Comparación funcional con producción (hecho):** las **13 funciones** que
+  crean `0004`–`0007` tienen en producción el **mismo md5 de cuerpo** que el
+  texto de los archivos actuales; `0010` tiene sus cuatro RPC de conciliación
+  en **`SECURITY INVOKER`**, como pide el archivo; existen las **55 policies
+  `org_scope_isolation`**, los **57 triggers** de guardia de escritura y el
+  trigger de clientes.
+- **Conclusión limitada a los objetos comprobados:** **no se detectó
+  divergencia funcional**; las diferencias parecen de texto (comentarios o
+  bloques de verificación de los borradores aplicados). **No se puede comparar
+  cada línea** del borrador perdido, que ya no existe.
+
+#### Recomendación (forward-only)
+
+**No reescribir hashes ni archivos históricos, no tocar el journal:** dejar el
+registro tal como está. Reescribirlo no aporta nada y arriesga romper el avance
+por marca de tiempo. Si en el futuro se quiere verificación estricta de
+huellas, debe ser **aditiva y propia**: una migración nueva que registre las
+huellas esperadas en una tabla de auditoría, más un chequeo en CI; nunca una
+corrección retroactiva. Esta sección queda como la explicación oficial para que
+una futura verificación estricta no interprete las cinco diferencias como
+manipulación.
 
 ### Conclusión y límites
 
 **No hubo ningún cambio en producción**: la auditoría fue exclusivamente de
-lectura. La lectura directa **no sustituye** un ensayo con dos organizaciones en
-un entorno aislado. Mientras ese ensayo no exista, **producción no está lista
-para el rollout** y **`0026` no debe aplicarse sola**. El Lote 2, el traslado de
-Storage histórico y el alta de la segunda empresa siguen **pendientes**.
+lectura. El **ensayo aislado de `0024 → 0025 → 0026` ya pasó en CI desde base
+limpia** (RLS **53/53**, smoke SQL **45/45**, con la prueba de cadena
+`migration_chain_0024_0026.sql`), así que ese ensayo **ya no está pendiente**.
+Sí sigue pendiente el **rollout productivo**: el journal llega a `0023`, faltan
+esas tres migraciones y, antes de proponerlo, debe resolverse el efecto de
+negocio del **rol operativo residual de la cuenta portal** y revisarse
+**grants/`search_path`**. El ensayo de **Storage histórico con dos
+organizaciones** y el **alta de la segunda empresa** siguen **pendientes**, así
+como el Lote 2 de unicidad.
 
 ## Runbook de aplicación en producción
 

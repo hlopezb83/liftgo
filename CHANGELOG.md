@@ -1,3 +1,15 @@
+## [8.8.35] - 2026-09-17 · patch · docs
+
+Se corrigió la guía del folio de complementos con el resultado final de la revisión de huellas del historial de cambios de base: solo documentación, sin cambio funcional.
+
+- Corrección del registro previo: son cinco diferencias históricas de huella (cambios 0004, 0005, 0006, 0007 y 0010); el aviso sobre 0009 fue una falsa alarma y el resto del historial hasta 0023 coincide.
+- Las huellas abreviadas se verificaron por recálculo directo antes de escribirlas; no se inventó ningún valor.
+- Documentado con el código real del componente: la huella se guarda pero el sistema avanza por fecha sin compararla, así que una huella distinta no provoca error ni reaplicación.
+- Evidencia documentada: las 13 funciones verificadas coinciden con producción, las funciones bancarias tienen el modo de seguridad correcto y existen las 55 reglas por empresa y los 57 guardias de escritura; la conclusión queda limitada a los objetos comprobados.
+- Recomendación: no reescribir huellas ni archivos históricos; cualquier verificación estricta futura debe ser aditiva y propia, nunca retroactiva.
+- Se aclaró que el ensayo aislado de 0024 a 0026 ya pasó en la revisión automática; siguen pendientes el despliegue productivo, la decisión del permiso residual de la cuenta de portal, el ensayo de almacenamiento con dos empresas y el alta de la segunda empresa.
+- Sin cambio funcional: no se tocó código, migraciones, historial, base de datos ni producción.
+
 ## [8.8.34] - 2026-09-17 · patch · security
 
 Se agregó una prueba automática que ensaya, sobre una base temporal y con dos empresas inventadas, el mismo orden de cambios que tendría producción.
