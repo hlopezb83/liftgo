@@ -218,41 +218,6 @@
       "when": 1789683904941,
       "tag": "0030_portal_fallback_respects_account_status",
       "breakpoints": true
-    },
-    {
-      "idx": 31,
-      "version": "7",
-      "when": 1789683978675,
-      "tag": "0031_multi_org_phase8_admin_membership_scope",
-      "breakpoints": true
-    },
-    {
-      "idx": 32,
-      "version": "7",
-      "when": 1789684024818,
-      "tag": "0032_rep_number_org_scoped_assignment",
-      "breakpoints": true
-    },
-    {
-      "idx": 33,
-      "version": "7",
-      "when": 1789684102689,
-      "tag": "0033_storage_tenant_scope_remaining_buckets",
-      "breakpoints": true
-    },
-    {
-      "idx": 34,
-      "version": "7",
-      "when": 1789684134630,
-      "tag": "0034_multi_org_function_acl_revoke_anon",
-      "breakpoints": true
-    },
-    {
-      "idx": 35,
-      "version": "7",
-      "when": 1789684188001,
-      "tag": "0035_multi_org_unique_scope_by_organization",
-      "breakpoints": true
     }
   ]
 }
