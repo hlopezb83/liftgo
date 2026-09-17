@@ -12,6 +12,8 @@ DECLARE
   v_legacy oid;
   v_def text;
   v_legacy_def text;
+  v_config text[];
+  v_acl aclitem[];
 BEGIN
   -- 1. Firma estricta de tres parámetros (obligatoria).
   SELECT p.oid INTO v_strict
