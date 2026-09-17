@@ -657,14 +657,40 @@ async function storagePathExists(
   return (data ?? []).some((item) => item.name === name);
 }
 
+/** Descarga un objeto y devuelve sólo su tamaño y SHA-256; nunca su ruta. */
+async function objectDigest(
+  admin: AdminClient,
+  bucketId: string,
+  path: string,
+): Promise<ObjectDigest | null> {
+  const { data, error } = await admin.storage.from(bucketId).download(path);
+  if (error || !data) return null;
+  try {
+    return await digestBytes(new Uint8Array(await data.arrayBuffer()));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Compara byte a byte fuente y destino. Se ejecuta tanto tras copiar como
+ * antes de borrar: un estado previo del ledger nunca sustituye esta prueba.
+ */
+async function verifyCopyIntegrity(
+  admin: AdminClient,
+  object: LedgerObject,
+): Promise<CopyVerdict> {
+  const [source, destination] = await Promise.all([
+    objectDigest(admin, object.bucket_id, object.source_path),
+    objectDigest(admin, object.bucket_id, object.destination_path),
+  ]);
+  return compareCopy(source, destination);
+}
+
 async function ensureCopied(
   admin: AdminClient,
   object: LedgerObject,
 ): Promise<"copied" | "failed"> {
-  if (object.status === "copied" || object.status === "references_updated") {
-    return "copied";
-  }
-
   const destinationExists = await storagePathExists(
     admin,
     object.bucket_id,
@@ -697,22 +723,23 @@ async function ensureCopied(
       });
       return "failed";
     }
+  }
 
-    // Verificación explícita del destino antes de marcar la copia como buena.
-    if (
-      !(await storagePathExists(
-        admin,
-        object.bucket_id,
-        object.destination_path,
-      ))
-    ) {
-      await updateObject(admin, object.id, {
-        status: "failed",
-        last_error_code: "destination_verification_failed",
-        attempt_count: object.attempt_count + 1,
-      });
-      return "failed";
-    }
+  // Verificación de integridad: tamaño y SHA-256 de ambos lados. Se aplica
+  // igual si el destino venía de un intento anterior. Si no coincide, no se
+  // marca "copied" y por tanto no se tocan las referencias.
+  const verdict = await verifyCopyIntegrity(admin, object);
+  if (verdict !== "verified") {
+    await updateObject(admin, object.id, {
+      status: "failed",
+      last_error_code: verdict,
+      attempt_count: object.attempt_count + 1,
+    });
+    return "failed";
+  }
+
+  if (object.status === "copied" || object.status === "references_updated") {
+    return "copied";
   }
 
   await updateObject(admin, object.id, {
