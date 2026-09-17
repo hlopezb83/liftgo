@@ -1128,7 +1128,6 @@ Deno.serve(async (req) => {
       return respond({ ...summary, outcomes });
     }
 
-
     if (input.mode === "apply_orphans") {
       if (Deno.env.get(APPLY_ENV_FLAG) !== "true") {
         return respond(
