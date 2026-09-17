@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.9.0",
+    "date": "2026-09-17",
+    "type": "minor",
+    "category": "security",
+    "title": "Almacenamiento: los archivos quedan encerrados en su empresa y los enlaces guardados ya no saltan permisos",
+    "description": "Se cerraron los huecos que permitían que el personal de una empresa leyera, reemplazara o borrara archivos de otra (documentos, capturas, archivos fiscales y comprobantes de proveedores), y los enlaces antiguos guardados ahora se vuelven a autorizar con la sesión actual en vez de abrirse tal cual. Incluye pruebas nuevas con dos empresas inventadas.",
+    "changes": [
+      "Hallazgo real: las reglas de documentos (alta, reemplazo y borrado), las de capturas de administración y las de archivos fiscales, comprobantes de proveedores y XML de facturas de proveedor solo revisaban el rol, no la empresa dueña del archivo.",
+      "Hallazgo real: la lectura de documentos del portal se resolvía por el cliente global, así que un mismo cliente dado de alta en dos empresas podía alcanzar documentos de la otra.",
+      "Nuevo cambio de base 0027 (no aplicado en producción): toda alta exige la carpeta de la empresa de la sesión; lectura, reemplazo y borrado rechazan cualquier carpeta de otra empresa; un archivo propio ya no puede moverse a la carpeta de otra empresa. Los archivos históricos sin carpeta siguen legibles y no se movió ninguno.",
+      "Los enlaces antiguos guardados con caducidad de años ya no se abren tal cual: si apuntan al almacenamiento del propio sistema se vuelven a autorizar con la sesión actual y caducan en un minuto; cualquier otro enlace no se abre y avisa al usuario.",
+      "Nueva prueba supabase/tests/rls/storage_cross_org_ab.sql con dos empresas, dos administradores y una cuenta de portal inventados: comprueba que la empresa A no puede ver, listar, reemplazar ni borrar archivos de la empresa B en los cinco almacenes, ni en rutas nuevas ni en las históricas, e incluye comprobaciones positivas para que la prueba no pase por falta de datos.",
+      "Nuevas pruebas de interfaz para la apertura de archivos: enlace propio se vuelve a firmar, enlace de otro sitio o de otro almacén no se abre.",
+      "No se ejecutó nada en producción: no se aplicó el cambio 0027, no se movieron archivos, no se creó una segunda empresa y no se editó ninguna migración histórica."
+    ]
+  },
+  {
     "version": "8.8.35",
     "date": "2026-09-17",
     "type": "patch",
