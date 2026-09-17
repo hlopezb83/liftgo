@@ -91,36 +91,142 @@ BEGIN
   RAISE NOTICE 'CADENA 0025: policies y helpers OK';
 END $$;
 
+-- ── 1.b Endurecimiento: los helpers de aislamiento deben ser SECURITY
+--        DEFINER y fijar search_path EXACTAMENTE a "public". Un search_path
+--        heredado o mutable permitiría secuestrar la resolución de nombres
+--        dentro de una función que corre con los privilegios de su dueño.
+DO $$
+DECLARE
+  v_sig text;
+  v_oid oid;
+  v_secdef boolean;
+  v_config text[];
+BEGIN
+  FOREACH v_sig IN ARRAY ARRAY[
+    'public.current_organization_id()',
+    'public.is_internal_member(uuid)',
+    'public.user_in_current_organization(uuid)',
+    'public.is_ops_staff()'
+  ] LOOP
+    v_oid := to_regprocedure(v_sig);
+    IF v_oid IS NULL THEN
+      RAISE EXCEPTION 'CADENA 0025: falta el helper de aislamiento %', v_sig;
+    END IF;
+
+    SELECT p.prosecdef, p.proconfig INTO v_secdef, v_config
+    FROM pg_proc p WHERE p.oid = v_oid;
+
+    IF NOT v_secdef THEN
+      RAISE EXCEPTION 'CADENA 0025: el helper % debe ser SECURITY DEFINER', v_sig;
+    END IF;
+
+    IF v_config IS NULL OR NOT ('search_path=public' = ANY (v_config)) THEN
+      RAISE EXCEPTION
+        'CADENA 0025: el helper % debe fijar search_path exactamente a "public" (proconfig actual: %)',
+        v_sig, coalesce(array_to_string(v_config, ','), '<sin proconfig>');
+    END IF;
+  END LOOP;
+
+  RAISE NOTICE 'CADENA 0025: helpers SECURITY DEFINER con search_path=public OK';
+END $$;
+
 -- =====================================================================
--- 2. 0026 aplicada: grants exactos de ambas firmas
+-- 2. 0026 aplicada: AMBAS firmas presentes, SECURITY DEFINER con
+--    search_path=public, y grants exactos (sin anon ni PUBLIC).
 -- =====================================================================
 DO $$
 DECLARE
   v_strict oid := to_regprocedure('public.assign_stamped_rep_number(uuid, text, uuid)');
   v_legacy oid := to_regprocedure('public.assign_stamped_rep_number(uuid, text)');
+  v_sig text;
+  v_oid oid;
+  v_secdef boolean;
+  v_config text[];
+  v_acl aclitem[];
 BEGIN
   IF v_strict IS NULL THEN
     RAISE EXCEPTION 'CADENA 0026: falta la firma estricta de tres parámetros';
   END IF;
 
+  -- El wrapper de compatibilidad es OBLIGATORIO: la reconciliación por
+  -- service_role depende de él. Su ausencia rompe el canal interno.
+  IF v_legacy IS NULL THEN
+    RAISE EXCEPTION
+      'CADENA 0026: falta el wrapper de dos parámetros; el canal interno de reconciliación quedaría sin ruta';
+  END IF;
+
+  -- 2.a Ambas firmas: SECURITY DEFINER + search_path exactamente "public".
+  FOREACH v_sig IN ARRAY ARRAY[
+    'public.assign_stamped_rep_number(uuid, text, uuid)',
+    'public.assign_stamped_rep_number(uuid, text)'
+  ] LOOP
+    v_oid := to_regprocedure(v_sig);
+    SELECT p.prosecdef, p.proconfig INTO v_secdef, v_config
+    FROM pg_proc p WHERE p.oid = v_oid;
+
+    IF NOT v_secdef THEN
+      RAISE EXCEPTION 'CADENA 0026: % debe ser SECURITY DEFINER', v_sig;
+    END IF;
+
+    IF v_config IS NULL OR NOT ('search_path=public' = ANY (v_config)) THEN
+      RAISE EXCEPTION
+        'CADENA 0026: % debe fijar search_path exactamente a "public" (proconfig actual: %)',
+        v_sig, coalesce(array_to_string(v_config, ','), '<sin proconfig>');
+    END IF;
+  END LOOP;
+
+  -- 2.b Firma estricta: authenticated y service_role SÍ; anon y PUBLIC NO.
   IF NOT has_function_privilege('authenticated', v_strict, 'EXECUTE')
      OR NOT has_function_privilege('service_role', v_strict, 'EXECUTE') THEN
     RAISE EXCEPTION
       'CADENA 0026: la firma estricta debe ser ejecutable por authenticated y service_role';
   END IF;
 
-  IF v_legacy IS NOT NULL THEN
-    IF has_function_privilege('authenticated', v_legacy, 'EXECUTE') THEN
-      RAISE EXCEPTION
-        'CADENA 0026: el wrapper de dos parámetros NO debe ser ejecutable por authenticated';
-    END IF;
-    IF NOT has_function_privilege('service_role', v_legacy, 'EXECUTE') THEN
-      RAISE EXCEPTION
-        'CADENA 0026: el wrapper de dos parámetros debe seguir disponible para service_role';
-    END IF;
+  IF has_function_privilege('anon', v_strict, 'EXECUTE') THEN
+    RAISE EXCEPTION 'CADENA 0026: la firma estricta NO debe ser ejecutable por anon';
   END IF;
 
-  RAISE NOTICE 'CADENA 0026: grants OK';
+  SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_strict;
+  IF v_acl IS NULL THEN
+    RAISE EXCEPTION
+      'CADENA 0026: la firma estricta conserva el ACL por defecto (EXECUTE para PUBLIC); falta el REVOKE ALL ... FROM PUBLIC';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: la firma estricta NO debe tener EXECUTE para PUBLIC';
+  END IF;
+
+  -- 2.c Wrapper: SOLO service_role. Ni authenticated, ni anon, ni PUBLIC.
+  IF NOT has_function_privilege('service_role', v_legacy, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'CADENA 0026: el wrapper de dos parámetros debe seguir disponible para service_role';
+  END IF;
+
+  IF has_function_privilege('authenticated', v_legacy, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'CADENA 0026: el wrapper de dos parámetros NO debe ser ejecutable por authenticated';
+  END IF;
+
+  IF has_function_privilege('anon', v_legacy, 'EXECUTE') THEN
+    RAISE EXCEPTION
+      'CADENA 0026: el wrapper de dos parámetros NO debe ser ejecutable por anon';
+  END IF;
+
+  SELECT p.proacl INTO v_acl FROM pg_proc p WHERE p.oid = v_legacy;
+  IF v_acl IS NULL THEN
+    RAISE EXCEPTION
+      'CADENA 0026: el wrapper conserva el ACL por defecto (EXECUTE para PUBLIC); falta el REVOKE ALL ... FROM PUBLIC';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM aclexplode(v_acl) a
+    WHERE a.grantee = 0 AND a.privilege_type = 'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'CADENA 0026: el wrapper NO debe tener EXECUTE para PUBLIC';
+  END IF;
+
+  RAISE NOTICE 'CADENA 0026: firmas, SECURITY DEFINER, search_path y grants OK';
 END $$;
 
 -- =====================================================================
