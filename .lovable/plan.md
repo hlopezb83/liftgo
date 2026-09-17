@@ -1,90 +1,114 @@
-# Auditoría de solo lectura · Storage histórico (multiempresa)
+# Auditoría de solo lectura — precondición de rollout 0025 → 0026
 
-Estado: propuesta. No se cambió código, esquema, datos ni producción. Todas las consultas fueron SELECT. Esta versión incorpora las comprobaciones directas recientes contra producción.
+Estado: propuesta. No se editó código, no se ejecutó DDL ni escritura alguna en producción (proyecto zxefrzfaynnfwazqhwxp). Todas las evidencias provienen de consultas SELECT de introspección y de lectura de archivos del repositorio.
 
-## 1. Buckets, policies y funciones
+En términos simples: la migración 0026 (el "candado" del folio REP) usa una herramienta que todavía no está instalada en producción. Esa herramienta la instala la migración 0025. Aplicar 0026 sola no falla al instalarse, pero el candado se rompe justo cuando lo usa una persona con sesión.
 
-Seis buckets, **todos privados** (confirmado por `SELECT` sobre `storage.buckets`):
+## 1. Resultado observado: qué hay y qué falta (0021–0026)
 
-| Bucket | Objetos | Límite de tamaño |
+Registro de migraciones aplicadas (`select id, hash, to_timestamp(created_at/1000) from drizzle.__drizzle_migrations order by id`): 24 entradas, la última el 2026-09-15 17:52:34Z con hash `9ee7719a…`, que corresponde byte a byte a `0023_payment_intent_invoice_definer_check.sql`.
+
+| Migración | Estado en producción | Evidencia |
 |---|---|---|
-| cfdi-files | 173 | sin límite propio |
-| supplier-bill-cfdi-xml | 78 | sin límite propio |
-| supplier-payment-receipts | 53 | sin límite propio |
-| documents | 5 | sin límite propio |
-| feedback-screenshots | 1 | sin límite propio |
-| payment-proofs | 0 | 10 000 000 bytes (10 MB) |
+| 0021 storage prefix-aware | Aplicada | hash `e7ffb693…` en el registro; existe `public.storage_relative_segments(p text)` |
+| 0022 storage tenant-scoped | Aplicada | hash `7cbe5fe7…`; existen `storage_prefix_organization(text)`, `storage_path_in_current_organization(text,boolean)`, `invoice_in_current_organization(uuid)`, `payment_proof_path_allowed(text,boolean)`; 25 policies en `storage.objects` (8 SELECT) |
+| 0023 payment intent definer check | Aplicada | hash `9ee7719a…`; existe `invoice_eligible_for_payment_intent(uuid)` |
+| 0024 portal fallback account status | **Pendiente** | su hash `1a6bd55e…` no está en el registro; `get_customer_id_for_user(uuid)` existe pero con la definición previa |
+| 0025 admin/membership scope | **Pendiente** | no existen `is_internal_member(uuid)` ni `user_in_current_organization(uuid)`; `current_organization_id()` conserva el cuerpo viejo con `LIMIT 1`; policies viejas intactas |
+| 0026 folio REP org-scoped | **Pendiente** | solo existe `assign_stamped_rep_number(uuid, text)`; no existe la firma de 3 parámetros |
 
-**Policies de `storage.objects`: 25 en total** — 8 de SELECT y 17 de INSERT/UPDATE/DELETE, según `SELECT * FROM pg_policies WHERE schemaname='storage' AND tablename='objects'` conectado a producción. El informe anterior reportó 26; ese conteo fue incorrecto (probablemente contó una fila duplicada por nombre de policy compartida entre comandos). Cifra correcta y reproducible: 25.
+Policies vigentes en `profiles` / `user_roles` (todas con nombre pre-0025): "Staff can view all profiles", "Auditor read profiles", "Ventas read profiles", "Admins update any profile", "Administrativo update any profile"; "Admins can manage all roles" (ALL), "Only admins can modify/update/delete roles", "Auditor read user_roles", "Users can view own roles". Ninguna de las policies de 0025 ("… org …") existe.
 
-Helpers de aislamiento confirmados en producción: `current_organization_id()`, `storage_prefix_organization`, `storage_path_in_current_organization`, `invoice_in_current_organization` (definidos en `drizzle/migrations/0022_storage_tenant_scoped_policies.sql:20-80`).
+Observación de integridad del carril Drizzle: cuatro entradas antiguas del registro (ids 5, 6, 7, 10) tienen hash distinto al archivo actual (`0004`, `0005`, `0006`, `0010` fueron editados después de aplicarse). El migrador de Drizzle avanza por marca de tiempo, no por hash, así que no las reaplica; pero conviene saberlo antes de cualquier `drizzle-kit check` estricto.
 
-## 1a. Precondición crítica de despliegue: helpers de membresía ausentes
-
-La introspección de producción **NO devuelve** `public.is_internal_member(uuid)` ni `public.user_in_current_organization(uuid)`. Sin embargo:
-
-- `drizzle/migrations/0025_*.sql` (repo) define `is_internal_member`.
-- `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql` (tramo 8.1, aprobado en repo) **invoca `is_internal_member`**.
-
-**Consecuencia:** aplicar 0026 sola en producción fallará o dejará la RPC estricta inutilizable, porque su dependencia (0025) no existe ahí.
-
-**Precondición obligatoria antes de aplicar 0026:**
-1. Comprobar qué migraciones de la cadena 0021–0025 están aplicadas en producción (introspección de funciones/policies), y aplicar **en orden** las que falten (incluida 0025), **o** ajustar 0026 para que sea autocontenida (incluir la definición de `is_internal_member` en ella).
-2. Exigir smoke autenticado en entorno aislado que confirme la ejecución de la **firma estricta** `assign_stamped_rep_number(uuid,text,uuid)` como usuario interno autenticado, **además** del caso service_role (wrapper de dos parámetros).
-3. **0026 no debe darse por lista para producción** mientras esta dependencia no esté resuelta y el smoke autenticado no pase.
-
-## 2. Convenciones de rutas
-
-- Ruta nueva obligatoria: `<organization_id>/<...>` (`supabase/functions/_shared/storagePath.ts:21-48`, espejo en `src/lib/storage/organizationPath`).
-- Rutas legadas: sin prefijo de organización; 0021/0022 solo permiten leerlas/borrarlas, nunca crear rutas cruzadas.
-- Medición real (conteo agregado, sin nombres):
+Consultas reproducibles usadas:
 
 ```sql
-with orgs as (select id::text t from public.organizations),
-o as (select bucket_id, name,
-  exists(select 1 from orgs where split_part(o.name,'/',1)=orgs.t) as tiene_org,
-  array_length(string_to_array(o.name,'/'),1) as segs
-  from storage.objects o)
-select bucket_id, tiene_org, segs, count(*) from o group by 1,2,3 order by 1,2,3;
+-- helpers presentes/ausentes
+select p.proname, pg_get_function_identity_arguments(p.oid) args, p.prosecdef
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname in ('current_organization_id','is_internal_member','user_in_current_organization',
+                    'is_ops_staff','assign_stamped_rep_number','update_user_role_safe','assert_not_last_admin');
+
+-- cuerpo vigente del helper de contexto
+select pg_get_functiondef(p.oid) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+where n.nspname='public' and p.proname='current_organization_id';
+
+-- policies vigentes
+select tablename, policyname, cmd from pg_policies
+where schemaname='public' and tablename in ('profiles','user_roles') order by 1,2;
+
+-- grants efectivos
+select p.proname, pg_get_function_identity_arguments(p.oid) args,
+       g.grantee::regrole::text grantee, g.privilege_type
+from pg_proc p join pg_namespace n on n.oid=p.pronamespace,
+     lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) g
+where n.nspname='public' and p.proname like 'assign_stamped_rep_number%';
 ```
 
-Resultado confirmado: **310 de 310 objetos sin prefijo de organización y 0 objetos en la raíz** (cfdi-files 173, supplier-bill-cfdi-xml 78, supplier-payment-receipts 53, documents 5, feedback-screenshots 1, payment-proofs 0). Los prefijos con forma UUID que existen hoy son `customer_id` o `invoice_id`, no organización. Con una sola empresa no hay colisión posible; al dar de alta la segunda, dos empresas podrían compartir `customer_id` y producir rutas ambiguas en `payment-proofs` y `cfdi-files`.
+Grants observados hoy: `assign_stamped_rep_number(uuid,text)` → EXECUTE a `authenticated` y `service_role` (este es el bypass que 0026 cierra). `current_organization_id()` → `anon`, `authenticated`, `service_role`. `update_user_role_safe` → `authenticated`, `service_role`. `assert_not_last_admin` → solo `service_role`.
 
-## 3. Handlers de upload / download / delete / list
+## 2. ¿0025 es aplicable tal cual?
 
-- Escritura privilegiada (siempre con organización derivada del registro, no del navegador): `stamp-cfdi/handler.ts:674`, `stamp-credit-note/handler.ts:550,578`, `stamp-payment-complement/handler.ts:565,583`, `validate-supplier-rep/index.ts:266,286`, `reconcile-stamping-invoices/index.ts:498,527,754,777,1013,1036`.
-- Server function de proveedor: `src/lib/supplierRep.functions.ts:167,182`.
-- Cliente: `src/hooks/useDocuments.ts:50,76,104` (documents), `src/lib/storage/openStorageFile.ts` firma URLs de 60 s y abre URLs legadas tal cual (`openStoredFile:34-44`).
-- Migrador administrativo ya escrito y sin ejecutar: `supabase/functions/migrate-storage-org-prefix/index.ts` (orden copy → refs → verify → delete; triple barrera: auth cron/service, `STORAGE_MIGRATION_APPLY_ENABLED`, confirmación textual).
+Sí: todas sus dependencias existen (`organization_memberships` con columna `member_type text`, `user_roles`, enum `app_role`, `has_role`). No crea columnas, índices ni triggers; solo reemplaza funciones y renombra/recrea policies con `DROP POLICY IF EXISTS`, por lo que es idempotente frente al estado actual.
 
-Pendiente de verificar en el siguiente tramo: que ninguna ruta de portal acepte `path` arbitrario del cliente al firmar URLs (hoy `openStorageFile` recibe el path desde el registro, pero conviene una prueba conductual cross-tenant con dos organizaciones).
+Efectos funcionales al aplicarla, medidos contra los datos reales (1 organización, 5 membresías / 5 usuarios distintos, 4 internas + 1 de portal, 5 perfiles, 5 filas de roles, 1 admin):
 
-## 4. Conteos agregados
+- `current_organization_id()` pasa de "la primera membresía" a "exactamente una o NULL". Hoy los 5 usuarios tienen exactamente una membresía, así que **no cambia el resultado para nadie**; 0 usuarios quedarían con NULL.
+- `is_ops_staff()` exigirá membresía interna. Hay **1 cuenta de portal con rol operativo residual** (`roles_en_cuentas_portal = 1`) que dejará de pasar los filtros internos. Es el cierre buscado, pero hay que confirmar con negocio que esa cuenta no se usa hoy para operar.
+- Policies de `profiles` / `user_roles` se acotan a la organización. Con una sola organización el conjunto visible no cambia; 0 perfiles y 0 roles quedan fuera de alcance.
+- `update_user_role_safe` empieza a exigir admin **interno** con organización verificada; `assert_not_last_admin` cuenta admins por organización. Con **1 solo admin**, el invariante de "último administrador" sigue bloqueando su degradación o borrado (igual que hoy).
+- `assert_not_last_admin` pasa a estar concedida únicamente a `service_role` (hoy ya es así).
 
-- Total de objetos: 310; con prefijo de organización: 0; en raíz: 0.
-- Referencias: 56 facturas con XML CFDI, 52 recibos de proveedor, 5 documentos; **0 referencias guardadas como URL http** (todas son paths), lo que simplifica la migración.
-- Bitácora de migración (`storage_object_migrations`, `storage_reference_migrations`): 0 filas; nada iniciado.
-- Organizaciones activas: 1.
+Riesgo bajo, reversible por redefinición (las versiones previas están en el historial de `supabase/migrations`).
 
-## 5. Plan reversible de migración de históricos (propuesta, no ejecutar)
+## 3. ¿0026 sola crea funciones rotas?
 
-1. **Inventario**: correr el migrador en modo plan; poblar el ledger con `source_path`/`destination_path` y SHA-256 del valor original. Parar si aparece un objeto sin organización derivable.
-2. **Staging**: copiar a `<organization_id>/<ruta_actual>` sin borrar el origen. El origen queda intacto: rollback = borrar la copia.
-3. **Doble lectura temporal**: la app intenta primero la ruta con prefijo y cae a la legada. Ventana mínima sugerida: hasta que el 100 % del ledger esté en `references_updated`.
-4. **Verificación A/B**: comparar tamaño y hash de origen vs destino objeto por objeto; contrastar conteos por bucket antes/después.
-5. **Actualización de referencias**: por tabla/columna del `REFERENCE_SPECS`, en lotes, con rollback por SHA-256 guardado.
-6. **Borrado del origen**: solo tras 100 % verificado y una ventana de observación. Irreversible; requiere autorización explícita.
+Sí crea, y no falla al aplicarse. Ambas funciones de 0026 son `plpgsql`: el validador solo revisa sintaxis, no resuelve `public.is_internal_member(...)` en tiempo de creación. Por eso:
 
-Condiciones de parada: cualquier diferencia de hash/tamaño, un objeto huérfano sin referencia, un error de permisos, o si ya existe la segunda empresa sin ensayo previo en entorno aislado.
+- `CREATE OR REPLACE FUNCTION` de las dos firmas, `REVOKE`/`GRANT` y `COMMENT` se aplican sin error.
+- El fallo aparece **solo en ejecución y solo por la ruta autenticada**: `drizzle/migrations/0026_…sql:82-88` evalúa `public.is_internal_member(v_uid)` cuando `auth.uid()` no es NULL → error `42883 function public.is_internal_member(uuid) does not exist`, y el pago **no** recibe folio.
+- La ruta `service_role` (`v_uid IS NULL`: `stamp-payment-complement`, cron de reconciliación) **no toca** esa rama y funcionaría igual. Es decir, el daño es silencioso: CI verde, timbrado automático correcto, y falla solo cuando un admin ejecuta la asignación desde una sesión.
 
-## 6. Cobertura del tramo Storage aprobado vs. pendiente
+Conclusión: 0026 no debe considerarse lista para producción por sí sola. Dos salidas válidas: (a) aplicar 0025 antes que 0026 en la misma ventana, o (b) volver 0026 autocontenida incorporando la definición de `is_internal_member(uuid)` con sus `REVOKE`/`GRANT`. La opción (a) es la preferible porque 0025 ya está validada en CI y evita duplicar la definición del helper.
 
-Cubierto para archivos **nuevos**: prefijo de organización obligatorio, policies tenant-aware, helpers `SECURITY DEFINER`, prueba RLS `supabase/tests/rls/storage_org_prefix.sql`.
+## 4. Secuencia mínima y segura de rollout (propuesta, no ejecutada)
 
-Pendiente para **históricos**: los 310 objetos siguen sin prefijo; la doble lectura y el traslado no se han ejecutado; falta ensayo con dos organizaciones en entorno aislado; **confirmado** que `is_internal_member` y `user_in_current_organization` no existen en producción (ver §1a, precondición crítica para 0026).
+1. Respaldo lógico previo y ventana fuera de horario de timbrado.
+2. Aplicar **0024** (queda pendiente y precede en el carril), luego **0025**, luego **0026**, en una sola transacción de despliegue por el canal de migraciones de producción. No saltar 0024: dejar huecos en el carril Drizzle complica cualquier reaplicación posterior.
+3. Verificación estructural inmediata:
+   ```sql
+   select p.proname, pg_get_function_identity_arguments(p.oid), p.prosecdef, p.proconfig
+   from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+   where n.nspname='public'
+     and p.proname in ('is_internal_member','user_in_current_organization',
+                       'current_organization_id','assign_stamped_rep_number');
+   ```
+   Se espera: helpers presentes, ambas firmas del asignador, `prosecdef = true`, `search_path=public` en las cuatro.
+4. Verificación de grants (la parte que realmente cierra el bypass):
+   ```sql
+   select p.proname, pg_get_function_identity_arguments(p.oid) args,
+          g.grantee::regrole::text, g.privilege_type
+   from pg_proc p join pg_namespace n on n.oid=p.pronamespace,
+        lateral aclexplode(coalesce(p.proacl, acldefault('f', p.proowner))) g
+   where n.nspname='public' and p.proname='assign_stamped_rep_number' order by 2,3;
+   ```
+   Se espera: 3 parámetros → `authenticated` + `service_role`; 2 parámetros → **solo** `service_role` (sin `authenticated`).
+5. Smoke en **entorno aislado** (nunca contra producción), con dos organizaciones sembradas:
+   - `service_role`: asignar folio a un pago sin `rep_number` → devuelve `CP-####`; repetir con el mismo folio → mismo valor (idempotencia); mismo pago con folio distinto → `unique_violation`.
+   - `authenticated` interno de la organización dueña del pago → éxito; mismo usuario contra pago de la otra organización → `42501`; usuario de portal con rol residual → `42501`; usuario sin membresía (`current_organization_id()` NULL) → `42501`.
+   - Reconciliación: pago timbrado sin folio → recupera folio; segunda corrida → sin cambios.
+6. Desplegar después las Edge Functions (`stamp-payment-complement`, `reconcile-stamping-invoices`).
+7. Repetir el preflight de lectura en producción (pagos con `rep_number`, nulos, duplicados por organización, folios huérfanos) y compararlo con la línea base: 82 pagos, 25 con folio, 0 sin organización, 0 duplicados.
 
-## Decisiones aún pendientes
+Condiciones de parada: cualquier grant inesperado en el wrapper de 2 parámetros; cualquier caso de smoke autenticado que no devuelva `42501` donde se espera; aparición de pagos con `rep_error_message` tras el despliegue; discrepancia en el preflight posterior.
 
-- Catálogos: `suppliers`, `equipment_models`, `bank_accounts`.
-- Ventana de alta de la segunda empresa.
-- Autorización para aplicar migraciones en producción: primero resolver la cadena 0025→0026 (§1a), desplegar después las Edge Functions, y ejecutar smoke autenticado (firma estricta) + service_role antes de cerrar el tramo 8.1.
+Rollback conceptual (sin ejecutar): redefinir `assign_stamped_rep_number(uuid,text)` con la versión histórica y `DROP FUNCTION` de la firma de 3 parámetros; restaurar las policies y funciones previas de `profiles`/`user_roles` desde el historial de migraciones. Como todo el cambio es por redefinición de funciones y policies (sin DDL de datos, sin índices, sin columnas), no hay pérdida de información en ningún paso.
+
+## 5. Límites y decisiones que siguen pendientes
+
+- No se recomienda dar de alta la segunda empresa, ejecutar el Lote 2 (unicidad por organización en `feedback_reports.folio` / `payments.rep_number`) ni mover objetos de Storage hasta haber ensayado el rollout completo con **dos organizaciones en entorno aislado**.
+- Catálogos sin decisión: `suppliers`, `equipment_models`, `bank_accounts`.
+- Esta auditoría no ejecuta el smoke autenticado: requiere entorno aislado con dos organizaciones, que hoy no existe.
+- La cuenta de portal con rol operativo residual necesita confirmación de negocio antes de aplicar 0025.
