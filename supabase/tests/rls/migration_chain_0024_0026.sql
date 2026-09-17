@@ -266,18 +266,19 @@ DECLARE
   v_state text;
 BEGIN
   -- El portal residual tiene rol 'administrativo', pero no es interno: 42501.
+  v_state := NULL;
   BEGIN
     PERFORM public.assign_stamped_rep_number(
       'ac000000-0000-4000-8000-0000000000e1'::uuid, '11',
       public.current_organization_id()
     );
-    RAISE EXCEPTION 'CADENA 0026: el portal residual pudo asignar folio REP';
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE;
-    IF v_state <> '42501' THEN
-      RAISE EXCEPTION 'CADENA 0026: el portal residual falló con % (esperado 42501)', v_state;
-    END IF;
   END;
+  IF v_state IS DISTINCT FROM '42501' THEN
+    RAISE EXCEPTION
+      'CADENA 0026: el portal residual obtuvo % (esperado 42501)', coalesce(v_state, '<sin error>');
+  END IF;
 END $$;
 
 SET LOCAL request.jwt.claims TO
@@ -297,25 +298,29 @@ BEGIN
   END IF;
 
   -- Cruce A → pago de B, con la organización de B y con NULL: 42501 exacto.
+  v_state := NULL;
   BEGIN
     PERFORM public.assign_stamped_rep_number(v_pay_b, '21', v_org_b);
-    RAISE EXCEPTION 'CADENA 0026: el admin de A foleó un pago de B';
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE;
-    IF v_state <> '42501' THEN
-      RAISE EXCEPTION 'CADENA 0026: cruce con organización de B falló con % (esperado 42501)', v_state;
-    END IF;
   END;
+  IF v_state IS DISTINCT FROM '42501' THEN
+    RAISE EXCEPTION
+      'CADENA 0026: cruce con organización de B obtuvo % (esperado 42501)',
+      coalesce(v_state, '<sin error>');
+  END IF;
 
+  v_state := NULL;
   BEGIN
     PERFORM public.assign_stamped_rep_number(v_pay_b, '22', NULL::uuid);
-    RAISE EXCEPTION 'CADENA 0026: el admin de A foleó un pago de B pasando NULL';
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE;
-    IF v_state <> '42501' THEN
-      RAISE EXCEPTION 'CADENA 0026: cruce con NULL falló con % (esperado 42501)', v_state;
-    END IF;
   END;
+  IF v_state IS DISTINCT FROM '42501' THEN
+    RAISE EXCEPTION
+      'CADENA 0026: cruce con NULL obtuvo % (esperado 42501)',
+      coalesce(v_state, '<sin error>');
+  END IF;
 
   -- Flujo válido dentro de A + idempotencia.
   v_result := public.assign_stamped_rep_number(v_pay_a, '31', v_org_a);
@@ -387,20 +392,20 @@ DO $$
 DECLARE
   v_state text;
 BEGIN
+  v_state := NULL;
   BEGIN
     PERFORM public.assign_stamped_rep_number(
       'ac000000-0000-4000-8000-0000000000e3'::uuid, '41',
       'ac000000-0000-4000-8000-0000000000a0'::uuid
     );
-    RAISE EXCEPTION
-      'CADENA 0025→0026: sin is_internal_member la ruta autenticada NO debería completarse';
   EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS v_state = RETURNED_SQLSTATE;
-    IF v_state <> '42883' THEN
-      RAISE EXCEPTION
-        'CADENA 0025→0026: se esperaba 42883 (helper ausente) y se obtuvo %', v_state;
-    END IF;
   END;
+  IF v_state IS DISTINCT FROM '42883' THEN
+    RAISE EXCEPTION
+      'CADENA 0025→0026: se esperaba 42883 (helper ausente) y se obtuvo %',
+      coalesce(v_state, '<sin error>');
+  END IF;
 
   RAISE NOTICE
     'CADENA 0025→0026: confirmada la brecha; aplicar 0026 sin 0025 rompe el caller autenticado';
