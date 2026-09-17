@@ -91,12 +91,12 @@ describe("openStoredFile con enlaces mal formados", () => {
     expect(notifyError).toHaveBeenCalled();
   });
 
-  it("rechaza un escape codificado (%2e%2e) que el navegador no normaliza", async () => {
+  it("rechaza un separador codificado (%2E%2E%2F) dentro de un segmento", async () => {
     const { openStoredFile } = await import("../openStorageFile");
 
     await openStoredFile(
       "documents",
-      `${SUPABASE_URL}/storage/v1/object/sign/documents/org/%2e%2e/otra/a.pdf`,
+      `${SUPABASE_URL}/storage/v1/object/sign/documents/org%2E%2E%2Fotra/a.pdf`,
     );
 
     expect(window.open).not.toHaveBeenCalled();
