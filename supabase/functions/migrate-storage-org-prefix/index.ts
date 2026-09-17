@@ -1029,7 +1029,6 @@ async function deleteSourceObject(
       return "blocked";
     }
 
-
     const { error } = await admin.storage.from(object.bucket_id).remove([
       object.source_path,
     ]);

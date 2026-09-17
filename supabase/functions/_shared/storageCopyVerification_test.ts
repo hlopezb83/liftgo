@@ -1,8 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import {
-  compareCopy,
-  digestBytes,
-} from "./storageCopyVerification.ts";
+import { compareCopy, digestBytes } from "./storageCopyVerification.ts";
 
 const bytesOf = (text: string) => new TextEncoder().encode(text);
 
