@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.10.2",
+    "date": "2026-09-17",
+    "type": "patch",
+    "category": "test",
+    "title": "Prueba de documentos: cuentas de portal completas para dos empresas",
+    "description": "Se completó el escenario automático de documentos con las cuentas activas de portal de ambas empresas, para que la identidad de cada cliente se resuelva por su empresa sin recurrir al respaldo heredado. No se cambiaron llaves, permisos, reglas de acceso, migraciones ni datos reales.",
+    "changes": [
+      "Las cuentas sintéticas de portal A y B quedaron vinculadas coherentemente con su usuario, cliente, correo, membresía y relación comercial dentro de cada empresa.",
+      "El cliente global A conserva una relación comercial válida con ambas empresas, pero su cuenta de portal A solo representa a la empresa A; el portal B usa otro usuario y correo en la empresa B.",
+      "Se conserva el comportamiento seguro con varias empresas: get_customer_id_for_user no recurre a customers.user_id cuando hay más de una organización activa.",
+      "El texto histórico de 8.9.0 sigue corregido: solo las rutas nuevas con carpeta de empresa y el legado de documentos con ficha dueña están aislados; los demás archivos históricos sin prefijo siguen compartidos y bloquean el alta de una segunda empresa.",
+      "Sin cambios en producción, migraciones, llaves foráneas ni reglas de acceso."
+    ]
+  },
+  {
     "version": "8.10.1",
     "date": "2026-09-17",
     "type": "patch",

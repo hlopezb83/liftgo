@@ -1,3 +1,13 @@
+## [8.10.2] - 2026-09-17 · patch · test
+
+Se completó el escenario automático de documentos con las cuentas activas de portal de ambas empresas, para que la identidad de cada cliente se resuelva por su empresa sin recurrir al respaldo heredado. No se cambiaron llaves, permisos, reglas de acceso, migraciones ni datos reales.
+
+- Las cuentas sintéticas de portal A y B quedaron vinculadas coherentemente con su usuario, cliente, correo, membresía y relación comercial dentro de cada empresa.
+- El cliente global A conserva una relación comercial válida con ambas empresas, pero su cuenta de portal A solo representa a la empresa A; el portal B usa otro usuario y correo en la empresa B.
+- Se conserva el comportamiento seguro con varias empresas: `get_customer_id_for_user` no recurre a `customers.user_id` cuando hay más de una organización activa.
+- El texto histórico de 8.9.0 sigue corregido: solo las rutas nuevas con carpeta de empresa y el legado de documentos con ficha dueña están aislados; los demás archivos históricos sin prefijo siguen compartidos y bloquean el alta de una segunda empresa.
+- Sin cambios en producción, migraciones, llaves foráneas ni reglas de acceso.
+
 ## [8.10.1] - 2026-09-17 · patch · docs
 
 Se ajustaron las descripciones de 8.9.0 para limitar el aislamiento a rutas nuevas con prefijo de empresa y al archivo histórico de documentos cuando su ficha registra la empresa dueña. El archivo histórico de los demás almacenes (fiscales, comprobantes de proveedores, XML de facturas y capturas) se declara expresamente como compartido entre empresas: el riesgo histórico NO se cerró y el alta de una segunda empresa sigue bloqueada hasta trasladarlo. Solo documentación; sin cambios de código, migración ni datos.
