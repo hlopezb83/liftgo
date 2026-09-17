@@ -1,3 +1,15 @@
+## [8.8.33] - 2026-09-17 · patch · docs
+
+Se actualizó la guía del folio de complementos con una revisión directa de producción: hoy la base productiva no está lista para aplicar ese cambio, y queda escrito por qué y en qué orden hacerlo.
+
+- El historial de cambios de base de producción termina en el número 0023: los cambios 0024, 0025 y 0026 siguen pendientes. Que exista una función con nombre conocido no prueba que el cambio 0024 ya esté aplicado.
+- Faltan en producción las dos funciones de membresía del cambio 0025 y siguen activas las reglas de acceso antiguas de perfiles y roles, sin sus versiones por empresa.
+- El cambio 0025 no solo agrega una función: reemplaza funciones y reglas de acceso. Hay 5 miembros (4 internos y 1 de portal) y una cuenta de portal con permiso operativo residual que dejaría de contar como personal interno; se marcó como validación previa obligatoria con el área de negocio.
+- Se explicó por qué el cambio 0026 no debe aplicarse solo: se instala sin error, pero falla al usarse desde una sesión, mientras el canal interno no lo nota. Por eso la revisión automática en verde no acredita que producción esté lista.
+- Secuencia propuesta y no ejecutada: 0024, luego 0025 revisando el efecto del permiso de portal, luego 0026; después verificar privilegios y probar ambos caminos en una base aislada con dos empresas, y solo entonces publicar las funciones.
+- Se anotaron diferencias de huella entre el historial y los archivos actuales de cuatro cambios antiguos (0004, 0005, 0006 y 0010), a reconciliar antes de confiar en una verificación estricta del historial.
+- Cambio solo de documentación: no representa cambio funcional. No hubo cambios en producción, no se creó una segunda empresa, no se movió almacenamiento y el Lote 2 sigue pendiente.
+
 ## [8.8.32] - 2026-09-17 · patch · docs
 
 Se registró la auditoría de solo lectura del almacenamiento de archivos históricos: todo queda documentado como propuesta, sin tocar código, base de datos, archivos ni permisos.
