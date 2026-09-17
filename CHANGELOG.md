@@ -1,3 +1,14 @@
+## [8.8.32] - 2026-09-17 · patch · docs
+
+Se registró la auditoría de solo lectura del almacenamiento de archivos históricos: todo queda documentado como propuesta, sin tocar código, base de datos, archivos ni permisos.
+
+- Nuevo documento docs/multiempresa/storage-historico.md: 6 espacios de almacenamiento privados, 310 archivos, 25 reglas de acceso y una sola empresa activa.
+- Confirmado: los 310 archivos históricos se guardan sin carpeta de empresa; hoy no hay riesgo, pero lo habría al dar de alta una segunda empresa.
+- Se documentó el riesgo de las rutas antiguas que se abren tal cual, aunque no se encontraron referencias guardadas como enlace web.
+- Se documentó un plan reversible de traslado: copiar, verificar huellas digitales, actualizar referencias, convivencia temporal y borrado final solo con autorización expresa.
+- Precondición crítica anotada: producción aún no tiene la función de membresía que necesita el cambio del folio de pago; debe aplicarse en orden y probarse como usuario autenticado y como canal interno.
+- Cambio solo de documentación: no representa cambio funcional; el traslado no está autorizado ni ejecutado.
+
 ## [8.8.31] - 2026-09-16 · patch · docs
 
 Se actualizó la guía del tramo 8.1 con el estado aprobado en repositorio, los runs de CI verdes, el preflight actual y un runbook explícito para aplicar la migración en producción.
