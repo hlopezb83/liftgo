@@ -85,4 +85,3 @@ Deno.test("storageInventory: un prefijo parecido pero de otra organización no c
   assertEquals(summary.unreferenced_scoped_objects, 0);
   assertEquals(summary.unreferenced_unscoped_objects, 1);
 });
-

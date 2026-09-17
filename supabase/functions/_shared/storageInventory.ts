@@ -94,4 +94,3 @@ export function summarizeStorageInventory(
     unreferenced_unscoped_objects: unreferencedUnscoped,
   };
 }
-
