@@ -217,10 +217,15 @@ Orden seguro (no alterar):
    los conteos. Condiciones de parada: cualquier fila sin organización, cualquier
    duplicado por `(organization_id, rep_number)` o cualquier folio huérfano
    detiene el rollout.
-2. **Aplicar la migración `0026`** por el canal de migraciones de producción
-   (el mismo que usa CI: `psql -v ON_ERROR_STOP=1` contra la base productiva).
-   No aplicar `DROP` de la firma histórica; la migración usa `CREATE OR
-   REPLACE` y conserva el wrapper.
+2. **Resolver primero la cadena `0024 → 0025 → 0026`** (ver la sección
+   «Precondición de rollout»). `0026` **no debe aplicarse sola**: se crearía sin
+   error y fallaría en runtime con `42883` en la ruta autenticada. Aplicar por
+   el canal de migraciones de producción (el mismo que usa CI:
+   `psql -v ON_ERROR_STOP=1` contra la base productiva), en ese orden y en la
+   misma ventana. En `0025`, revisar antes las policies que reemplaza y el
+   efecto sobre la cuenta de portal con rol operativo residual. No aplicar
+   `DROP` de la firma histórica; la migración usa `CREATE OR REPLACE` y
+   conserva el wrapper.
 3. **Verificar ambas firmas** en producción:
    ```sql
    SELECT p.proname, pg_get_function_identity_arguments(p.oid) AS args,
