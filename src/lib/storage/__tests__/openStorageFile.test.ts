@@ -68,3 +68,49 @@ describe("openStoredFile con referencias antiguas", () => {
     expect(createSignedUrl).toHaveBeenCalledWith("org/invoice/fac/archivo.pdf", 60);
   });
 });
+
+describe("openStoredFile con enlaces mal formados", () => {
+  beforeEach(() => {
+    vi.resetModules();
+    createSignedUrl.mockReset();
+    notifyError.mockReset();
+    vi.stubEnv("VITE_SUPABASE_URL", SUPABASE_URL);
+    vi.stubGlobal("window", { open: vi.fn() });
+    createSignedUrl.mockResolvedValue({ data: { signedUrl: "https://firmada" }, error: null });
+  });
+
+  it("falla cerrado ante un porcentaje mal formado, sin excepción no controlada", async () => {
+    const { openStoredFile } = await import("../openStorageFile");
+
+    await expect(
+      openStoredFile("documents", `${SUPABASE_URL}/storage/v1/object/sign/documents/%E0%A4%A.pdf`),
+    ).resolves.toBeUndefined();
+
+    expect(window.open).not.toHaveBeenCalled();
+    expect(createSignedUrl).not.toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalled();
+  });
+
+  it("rechaza una URL de Storage con segmento de escape (..)", async () => {
+    const { openStoredFile } = await import("../openStorageFile");
+
+    await openStoredFile(
+      "documents",
+      `${SUPABASE_URL}/storage/v1/object/sign/documents/org/../otra/a.pdf`,
+    );
+
+    expect(window.open).not.toHaveBeenCalled();
+    expect(createSignedUrl).not.toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalled();
+  });
+
+  it("rechaza una URL de Storage sin ruta de objeto", async () => {
+    const { openStoredFile } = await import("../openStorageFile");
+
+    await openStoredFile("documents", `${SUPABASE_URL}/storage/v1/object/sign/documents`);
+
+    expect(window.open).not.toHaveBeenCalled();
+    expect(createSignedUrl).not.toHaveBeenCalled();
+    expect(notifyError).toHaveBeenCalled();
+  });
+});
