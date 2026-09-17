@@ -98,20 +98,42 @@ BEGIN
   INSERT INTO public.organizations (id, name, slug)
   VALUES (v_org_b, 'Organización B de unicidad', 'uniq-org-b');
 
-  INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
-    (v_admin_a, 'admin-a@uniq.test', now(), now()),
-    (v_admin_b, 'admin-b@uniq.test', now(), now())
+  -- Con DOS organizaciones activas ya no hay empresa "única" que adivinar:
+  -- toda escritura sin membresía (incluidos profiles y audit_logs que crea
+  -- handle_new_user) necesita app.organization_id explícito. Por eso cada
+  -- alta de usuario se hace dentro del contexto de su propia empresa.
+  PERFORM set_config('app.organization_id', v_org_a::text, true);
+
+  INSERT INTO auth.users (id, email, created_at, updated_at)
+  VALUES (v_admin_a, 'admin-a@uniq.test', now(), now())
   ON CONFLICT DO NOTHING;
 
   INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
-  VALUES (v_org_a, v_admin_a, 'internal'), (v_org_b, v_admin_b, 'internal');
+  VALUES (v_org_a, v_admin_a, 'internal');
 
   INSERT INTO public.profiles (user_id, full_name, is_active)
-  VALUES (v_admin_a, 'Admin A unicidad', true), (v_admin_b, 'Admin B unicidad', true)
+  VALUES (v_admin_a, 'Admin A unicidad', true)
   ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name;
 
   INSERT INTO public.user_roles (user_id, role)
-  VALUES (v_admin_a, 'admin'::public.app_role), (v_admin_b, 'admin'::public.app_role)
+  VALUES (v_admin_a, 'admin'::public.app_role)
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+  PERFORM set_config('app.organization_id', v_org_b::text, true);
+
+  INSERT INTO auth.users (id, email, created_at, updated_at)
+  VALUES (v_admin_b, 'admin-b@uniq.test', now(), now())
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  VALUES (v_org_b, v_admin_b, 'internal');
+
+  INSERT INTO public.profiles (user_id, full_name, is_active)
+  VALUES (v_admin_b, 'Admin B unicidad', true)
+  ON CONFLICT (user_id) DO UPDATE SET full_name = EXCLUDED.full_name;
+
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (v_admin_b, 'admin'::public.app_role)
   ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
   -- Clientes: identidad global (no cambia en este tramo), con relación
