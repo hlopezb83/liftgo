@@ -283,10 +283,12 @@ function simulateOrphanBatch(
 ): { copied: string[]; skipped: number } {
   const approvedKeys = makeApprovedOrphanKeySet(approvedCandidates);
   if (approvedKeys.size === 0) return { copied: [], skipped: 0 };
+  // Igual que la consulta real: `copied` es terminal y no entra al pendiente.
+  const pending = ledger.filter((row) => row.status !== "copied");
   const collected: FakeLedgerRow[] = [];
   let skipped = 0;
-  for (let offset = 0; offset < ledger.length; offset += pageSize) {
-    const page = ledger.slice(offset, offset + pageSize);
+  for (let offset = 0; offset < pending.length; offset += pageSize) {
+    const page = pending.slice(offset, offset + pageSize);
     const { allowed, skipped: pageSkipped } = filterOrphanLedgerToApproved(
       page,
       approvedKeys,
