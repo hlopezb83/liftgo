@@ -60,9 +60,25 @@ INSERT INTO storage.objects (bucket_id, name, metadata) VALUES
   ('cfdi-files', 'cfdi/legado-0031.xml', '{"mimetype":"application/xml"}'::jsonb);
 
 -- Empresa suspendida DESPUÉS de crear sus objetos y su membresía.
-UPDATE public.organizations
-   SET is_active = false
- WHERE id = '31000000-0000-4000-8000-00000000000c';
+-- El estado activo sólo lo cambia un operador de plataforma verificado.
+DO $suspend$
+DECLARE
+  v_actor uuid := '31000000-0000-4000-8000-0000000000e1';
+BEGIN
+  INSERT INTO auth.users (id, email, created_at, updated_at)
+  VALUES (v_actor, 'operador.0031@rls.test', now(), now())
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.platform_operators (auth_user_id, notes)
+  VALUES (v_actor, 'bootstrap de prueba 0031')
+  ON CONFLICT DO NOTHING;
+
+  PERFORM public.platform_set_organization_active(
+    v_actor, '31000000-0000-4000-8000-00000000000c', false);
+END $suspend$;
+
+SELECT set_config('app.organization_id', '31000000-0000-4000-8000-00000000000a', true);
+
 
 -- ── 1. Admin de la ORG A: sólo su propio prefijo ─────────────────────
 RESET request.jwt.claims;
