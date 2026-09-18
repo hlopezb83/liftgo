@@ -336,7 +336,8 @@ Deno.test("orphanBatch: con resolución vigente sí se procesa el objeto aprobad
     },
   ]);
   assertEquals(result.copied, ["planned"]);
-  assertEquals(result.skipped, 2);
+  // La fila `copied` es terminal: ni se explora ni se cuenta como omitida.
+  assertEquals(result.skipped, 1);
 });
 
 Deno.test("orphanBatch: resolución revocada/caduca deja el ledger viejo sin copiar", () => {
