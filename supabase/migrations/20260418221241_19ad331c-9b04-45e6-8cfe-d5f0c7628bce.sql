@@ -197,6 +197,9 @@ BEGIN
     'rented_without_cost', COALESCE(v_rented_without_cost, '[]'::jsonb)
   );
 END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_income_statement(date, date, text) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_income_statement(date, date, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_income_statement(date, date, text) TO authenticated';
+  END IF;
+END $lgp_guard$;

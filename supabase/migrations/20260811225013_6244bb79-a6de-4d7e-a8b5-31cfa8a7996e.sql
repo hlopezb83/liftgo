@@ -93,12 +93,39 @@ BEGIN
          AND q.quote_number NOT LIKE 'E2E-%'
     ), 0) + 1
   )::text, 4, '0');
-END $function$;
-
-REVOKE ALL ON FUNCTION public.next_supplier_bill_number() FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.next_contract_number() FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.next_quote_number() FROM PUBLIC, anon;
-
-GRANT EXECUTE ON FUNCTION public.next_supplier_bill_number() TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.next_contract_number() TO authenticated, service_role;
-GRANT EXECUTE ON FUNCTION public.next_quote_number() TO authenticated, service_role;
+END $function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_supplier_bill_number()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.next_supplier_bill_number() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_contract_number()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.next_contract_number() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_quote_number()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.next_quote_number() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_supplier_bill_number()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.next_supplier_bill_number() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_contract_number()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.next_contract_number() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_quote_number()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.next_quote_number() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;

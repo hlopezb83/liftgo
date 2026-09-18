@@ -26,10 +26,19 @@ BEGIN
 
   RETURN v_count;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.mark_overdue_supplier_bills()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.mark_overdue_supplier_bills() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.mark_overdue_supplier_bills()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.mark_overdue_supplier_bills() TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.mark_overdue_supplier_bills() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.mark_overdue_supplier_bills() TO service_role;
 
 -- Idempotent daily schedule (same pattern as expire-stale-quotes-daily).
 DO $$

@@ -39,9 +39,13 @@ $$;
 DROP TRIGGER IF EXISTS trg_booking_extension_billing_lock ON public.booking_extensions;
 CREATE TRIGGER trg_booking_extension_billing_lock
   BEFORE INSERT OR UPDATE ON public.booking_extensions
-  FOR EACH ROW EXECUTE FUNCTION public.enforce_booking_extension_billing_lock();
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_booking_extension_billing_lock();DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.enforce_booking_extension_billing_lock()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.enforce_booking_extension_billing_lock() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.enforce_booking_extension_billing_lock() FROM PUBLIC, anon;
 
 -- Policy de UPDATE: solo back-office puede sellar la extension como facturada.
 DROP POLICY IF EXISTS "booking_extensions_update_backoffice" ON public.booking_extensions;

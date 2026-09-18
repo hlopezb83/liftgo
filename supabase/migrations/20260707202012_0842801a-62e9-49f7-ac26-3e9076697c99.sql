@@ -39,6 +39,9 @@ BEGIN
 
   RETURN v_new_number;
 END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assign_stamped_rep_number(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO service_role';
+  END IF;
+END $lgp_guard$;

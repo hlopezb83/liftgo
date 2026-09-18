@@ -54,7 +54,15 @@ BEGIN
 
   RETURN result;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.purge_e2e_data() FROM public, anon;
-GRANT EXECUTE ON FUNCTION public.purge_e2e_data() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.purge_e2e_data()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.purge_e2e_data() FROM public, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.purge_e2e_data()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.purge_e2e_data() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;

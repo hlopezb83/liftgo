@@ -119,12 +119,31 @@ BEGIN
     RAISE EXCEPTION 'Pago no encontrado o no requiere REP';
   END IF;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.mark_supplier_rep_rejected(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.mark_supplier_rep_rejected(uuid, text) FROM public';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reset_supplier_rep_pending(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.reset_supplier_rep_pending(uuid) FROM public';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.mark_supplier_rep_rejected(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.mark_supplier_rep_rejected(uuid, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reset_supplier_rep_pending(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reset_supplier_rep_pending(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.mark_supplier_rep_rejected(uuid, text) FROM public;
-REVOKE ALL ON FUNCTION public.reset_supplier_rep_pending(uuid) FROM public;
-GRANT EXECUTE ON FUNCTION public.mark_supplier_rep_rejected(uuid, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.reset_supplier_rep_pending(uuid) TO authenticated;
 
 -- 4) Backfill: pagos existentes en facturas PPD pasan a 'pending'
 UPDATE public.supplier_payments sp

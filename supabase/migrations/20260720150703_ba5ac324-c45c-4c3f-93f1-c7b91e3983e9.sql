@@ -80,8 +80,21 @@ BEGIN
 
   RETURN v_ext_id;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.extend_booking(uuid, date, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.extend_booking(uuid, date, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.extend_booking(uuid, date, text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.extend_booking(uuid, date, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.extend_booking(uuid, date, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO service_role';
+  END IF;
+END $lgp_guard$;

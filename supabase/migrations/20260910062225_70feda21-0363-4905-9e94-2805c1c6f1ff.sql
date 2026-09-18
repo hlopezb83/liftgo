@@ -19,6 +19,9 @@ BEGIN
   END IF;
   RETURN OLD;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.guard_credit_note_delete() FROM PUBLIC;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_credit_note_delete()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_credit_note_delete() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;

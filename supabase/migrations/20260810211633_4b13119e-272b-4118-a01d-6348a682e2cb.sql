@@ -12,9 +12,19 @@ AS $$
       AND status = 'confirmed'
       AND public.today_mty() BETWEEN start_date AND end_date
   );
-$$;
-REVOKE ALL ON FUNCTION public.has_active_rental(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.has_active_rental(uuid) TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.has_active_rental(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.has_active_rental(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.has_active_rental(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.has_active_rental(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 -- FIX-R2-04 (N7): asignación de venta atómica con guards completos.
 CREATE OR REPLACE FUNCTION public.assign_forklift_to_sale_quote(
@@ -82,10 +92,19 @@ BEGIN
             'Asignado a cotización de venta ' || p_quote_id::text);
   END LOOP;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assign_forklift_to_sale_quote(uuid, uuid[], int[])') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assign_forklift_to_sale_quote(uuid, uuid[], int[])') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) TO authenticated;
 
 -- M15: horómetro no negativo (verificado: 0 filas violadoras).
 ALTER TABLE public.deliveries

@@ -58,9 +58,13 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.sync_forklift_on_booking_exit()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_on_booking_exit() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.sync_forklift_on_booking_exit() FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.cancel_booking(
   p_booking_id uuid,
@@ -188,9 +192,13 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_forklift_rented_requires_delivery()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_forklift_rented_requires_delivery() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_forklift_rented_requires_delivery() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_forklift_rented_requires_delivery ON public.forklifts;
 CREATE TRIGGER trg_forklift_rented_requires_delivery
@@ -218,9 +226,13 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_forklift_sale_commitments()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_forklift_sale_commitments() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_forklift_sale_commitments() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_forklift_sale_commitments ON public.forklifts;
 CREATE TRIGGER trg_forklift_sale_commitments
@@ -274,10 +286,19 @@ BEGIN
    LIMIT p_limit
   OFFSET p_offset;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_sale_available_forklifts(integer, integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_sale_available_forklifts(integer, integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_sale_available_forklifts(integer, integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_sale_available_forklifts(integer, integer) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_sale_available_forklifts(integer, integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_sale_available_forklifts(integer, integer) TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.sync_forklift_rental_status()
 RETURNS TABLE(forklift_id uuid, previous_status text, new_status text)
@@ -353,10 +374,19 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.sync_forklift_rental_status()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_rental_status() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.sync_forklift_rental_status()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.sync_forklift_rental_status() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.sync_forklift_rental_status() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.sync_forklift_rental_status() TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.guard_delivery_completed_terminal()
 RETURNS trigger
@@ -384,9 +414,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_delivery_completed_terminal()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_delivery_completed_terminal() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_delivery_completed_terminal() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_delivery_completed_terminal ON public.deliveries;
 CREATE TRIGGER trg_guard_delivery_completed_terminal

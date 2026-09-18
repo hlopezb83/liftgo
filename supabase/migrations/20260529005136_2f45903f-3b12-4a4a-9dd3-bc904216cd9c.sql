@@ -29,6 +29,9 @@ BEGIN
   DELETE FROM public.quote_assigned_forklifts WHERE quote_id = p_quote_id;
   DELETE FROM public.quotes WHERE id = p_quote_id;
 END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.delete_quote_with_unassign(uuid) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.delete_quote_with_unassign(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.delete_quote_with_unassign(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;

@@ -80,10 +80,19 @@ BEGIN
   DELETE FROM public.supplier_payment_batch_items WHERE batch_id = p_batch_id;
   DELETE FROM public.supplier_payment_batches WHERE id = p_batch_id;
 END;
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.cancel_supplier_payment_batch(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.cancel_supplier_payment_batch(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.cancel_supplier_payment_batch(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.cancel_supplier_payment_batch(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.cancel_supplier_payment_batch(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.cancel_supplier_payment_batch(uuid) TO authenticated;
 
 -- A6-2: una linea bancaria sin pago asociado no puede seguir conciliada
 CREATE OR REPLACE FUNCTION public.reset_orphan_matched_bank_line()
@@ -102,9 +111,13 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reset_orphan_matched_bank_line()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.reset_orphan_matched_bank_line() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.reset_orphan_matched_bank_line() FROM PUBLIC, anon;
 
 DROP TRIGGER IF EXISTS trg_reset_orphan_matched_bank_line ON public.bank_statement_lines;
 CREATE TRIGGER trg_reset_orphan_matched_bank_line

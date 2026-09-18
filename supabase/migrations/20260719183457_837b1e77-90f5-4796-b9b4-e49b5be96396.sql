@@ -104,9 +104,13 @@ BEGIN
 
   RETURN v_revert_id;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.revert_audit_log(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.revert_audit_log(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-GRANT EXECUTE ON FUNCTION public.revert_audit_log(uuid) TO authenticated;
 
 COMMENT ON FUNCTION public.revert_audit_log(uuid) IS
   'BL-39: revierte una operación auditada dejando el log original intacto y agregando una entrada compensatoria con action=REVERT y changed_fields.source_audit_log_id.';

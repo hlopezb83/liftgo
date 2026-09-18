@@ -145,13 +145,51 @@ BEGIN
     RAISE EXCEPTION 'Registro no encontrado o ya archivado';
   END IF;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.soft_delete_customer(uuid) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.soft_delete_supplier(uuid) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.soft_delete_maintenance_log(uuid) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.soft_delete_customer(uuid)        TO authenticated;
-GRANT EXECUTE ON FUNCTION public.soft_delete_supplier(uuid)        TO authenticated;
-GRANT EXECUTE ON FUNCTION public.soft_delete_maintenance_log(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid)   TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_customer(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_customer(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_supplier(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_supplier(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_maintenance_log(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_maintenance_log(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_customer(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_customer(uuid)        TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_supplier(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_supplier(uuid)        TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_maintenance_log(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_maintenance_log(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid)   TO authenticated';
+  END IF;
+END $lgp_guard$;

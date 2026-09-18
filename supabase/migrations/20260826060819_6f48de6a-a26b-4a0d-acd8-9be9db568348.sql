@@ -240,10 +240,19 @@ BEGIN
 
   RETURN result;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_dashboard_stats()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_dashboard_stats() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_dashboard_stats()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_dashboard_stats() TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_dashboard_stats() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_dashboard_stats() TO authenticated;
 
 -- FIX N-15: overdue_total excluye facturas en divisa sin tipo de cambio y
 -- expone overdue_fx_missing_count.
@@ -328,10 +337,19 @@ BEGIN
     'expiring_contracts', v_expiring
   );
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_financial_kpis()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_financial_kpis() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_financial_kpis()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_financial_kpis() TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_financial_kpis() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_financial_kpis() TO authenticated;
 
 -- FIX N-19: unificar precedencia FX — manda el tipo de cambio del pago.
 CREATE OR REPLACE FUNCTION public.trg_payment_amount_mxn()
@@ -424,7 +442,15 @@ BEGIN
   LEFT JOIN paid_by_invoice pb ON pb.invoice_id = s.id
   GROUP BY s.month_key ORDER BY s.month_key;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated';
+  END IF;
+END $lgp_guard$;

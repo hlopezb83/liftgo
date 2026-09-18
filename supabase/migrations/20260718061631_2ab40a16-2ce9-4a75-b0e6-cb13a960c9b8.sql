@@ -49,10 +49,19 @@ BEGIN
 
   RETURN;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.list_invoices_with_balance()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.list_invoices_with_balance() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.list_invoices_with_balance()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance() TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE EXECUTE ON FUNCTION public.list_invoices_with_balance() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance() TO authenticated;
 
 -- =========================================================================
 -- SEC-002: Allow dispatcher, ventas, administrativo to INSERT status_logs
@@ -81,10 +90,31 @@ CREATE POLICY "Administrativo insert status_logs"
 -- =========================================================================
 -- SEC-004: Revoke e2e_seed_scenario from authenticated
 -- =========================================================================
-REVOKE EXECUTE ON FUNCTION public.e2e_seed_scenario(text) FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.e2e_seed_scenario(text) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.e2e_seed_scenario(text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario(text) TO service_role;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_scenario(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.e2e_seed_scenario(text) FROM authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_scenario(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.e2e_seed_scenario(text) FROM anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_scenario(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.e2e_seed_scenario(text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_scenario(text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario(text) TO service_role';
+  END IF;
+END $lgp_guard$;
+
 
 -- =========================================================================
 -- DI-003: Race-safe assign_stamped_invoice_number / _rep_number

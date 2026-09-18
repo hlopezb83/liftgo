@@ -88,10 +88,19 @@ BEGIN
   INSERT INTO public.status_logs (forklift_id, from_status, to_status, note)
   VALUES (p_forklift_id, v_current, p_new_status, p_reason);
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.change_forklift_status(uuid, text, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.change_forklift_status(uuid, text, text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.change_forklift_status(uuid, text, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.change_forklift_status(uuid, text, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.change_forklift_status(uuid, text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.change_forklift_status(uuid, text, text) TO authenticated;
 
 
 -- B5 · Unique fabricante+modelo en equipment_models ----------------------------------

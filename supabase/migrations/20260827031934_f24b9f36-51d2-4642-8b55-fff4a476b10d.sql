@@ -274,6 +274,9 @@ BEGIN
 
   RETURN result;
 END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.get_dashboard_stats() FROM PUBLIC, anon;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_dashboard_stats()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_dashboard_stats() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;

@@ -27,10 +27,19 @@ AS $$
   SELECT coalesce(sum(greatest(l.required - coalesce(a.assigned, 0), 0)), 0)::int
     FROM lines l
     LEFT JOIN asg a ON a.line_index = l.line_index;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.quote_sale_units_unassigned(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.quote_sale_units_unassigned(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.quote_sale_units_unassigned(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.quote_sale_units_unassigned(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.quote_sale_units_unassigned(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.quote_sale_units_unassigned(uuid) TO authenticated, service_role;
 
 -- Guard: sólo el alta de facturas ligadas a una cotización con partidas de venta.
 CREATE OR REPLACE FUNCTION public.guard_invoice_sale_assignment()
@@ -61,9 +70,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_invoice_sale_assignment()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_invoice_sale_assignment() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_invoice_sale_assignment() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_invoice_sale_assignment ON public.invoices;
 CREATE TRIGGER trg_guard_invoice_sale_assignment

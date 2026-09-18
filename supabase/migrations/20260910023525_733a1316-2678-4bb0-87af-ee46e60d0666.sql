@@ -149,10 +149,19 @@ AS $function$
   ) history ON true
   WHERE b.recurring_billing = true
     AND b.status = 'confirmed';
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_cash_flow_recurring_bookings()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_cash_flow_recurring_bookings() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_cash_flow_recurring_bookings()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_cash_flow_recurring_bookings() TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_cash_flow_recurring_bookings() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_cash_flow_recurring_bookings() TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.claim_credit_note_for_stamping(
   p_credit_note_id uuid
@@ -185,12 +194,21 @@ BEGIN
 
   RETURN to_jsonb(v_note);
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_credit_note_for_stamping(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.claim_credit_note_for_stamping(uuid)
+  FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_credit_note_for_stamping(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.claim_credit_note_for_stamping(uuid)
+  TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.claim_credit_note_for_stamping(uuid)
-  FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.claim_credit_note_for_stamping(uuid)
-  TO service_role;
 
 CREATE OR REPLACE FUNCTION public.guard_credit_note_stamping_snapshot()
 RETURNS trigger
@@ -223,9 +241,13 @@ $function$;
 DROP TRIGGER IF EXISTS trg_credit_note_stamping_snapshot ON public.credit_notes;
 CREATE TRIGGER trg_credit_note_stamping_snapshot
   BEFORE UPDATE ON public.credit_notes
-  FOR EACH ROW EXECUTE FUNCTION public.guard_credit_note_stamping_snapshot();
+  FOR EACH ROW EXECUTE FUNCTION public.guard_credit_note_stamping_snapshot();DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_credit_note_stamping_snapshot()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_credit_note_stamping_snapshot()
+  FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_credit_note_stamping_snapshot()
-  FROM PUBLIC, anon, authenticated;
 
 NOTIFY pgrst, 'reload schema';
