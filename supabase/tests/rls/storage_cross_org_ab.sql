@@ -223,21 +223,22 @@ BEGIN
      SET metadata = '{"mimetype":"text/plain","hackeado":true}'::jsonb
    WHERE bucket_id = 'documents' AND name = v_legacy_b;
 
-  -- 1.9 GATE de riesgo residual conocido: en los buckets sin columna que ligue
-  --     la ruta legada con su organización, los objetos históricos SIGUEN
-  --     siendo accesibles para el staff de cualquier organización. Se afirma
-  --     de forma explícita para que nadie documente el riesgo como cerrado:
-  --     si esto deja de cumplirse (p. ej. tras el traslado de objetos), hay
-  --     que actualizar docs/multiempresa/storage-historico.md y esta prueba.
+  -- 1.9 Tramo 10 (0031): el legado SIN prefijo ya NO es accesible por la
+  --     Storage API para ninguna sesión autenticada, en ningún bucket. Antes
+  --     era un riesgo residual asumido; ahora la policy RESTRICTIVE
+  --     storage_objects_org_prefix_guard lo deniega en SELECT/UPDATE/DELETE.
   FOREACH v_bucket IN ARRAY ARRAY['cfdi-files','supplier-payment-receipts',
                                   'supplier-bill-cfdi-xml'] LOOP
-    IF NOT EXISTS (
+    IF EXISTS (
       SELECT 1 FROM storage.objects
       WHERE bucket_id = v_bucket AND name LIKE '%legado-sin-prefijo%'
     ) THEN
-      RAISE EXCEPTION 'GATE DESACTUALIZADO: el legado sin prefijo de % ya no es accesible para staff de otra organización; actualizar documentación y esta prueba', v_bucket;
+      RAISE EXCEPTION 'RLS BREACH: el legado sin prefijo de % sigue siendo legible por staff autenticado', v_bucket;
     END IF;
+    DELETE FROM storage.objects
+     WHERE bucket_id = v_bucket AND name LIKE '%legado-sin-prefijo%';
   END LOOP;
+
 
   RAISE NOTICE 'OK: admin de la ORG A aislado de los objetos de la ORG B';
 END $$;
