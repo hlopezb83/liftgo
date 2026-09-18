@@ -13,52 +13,40 @@
 - **Originales conservados** (632 objetos = 322 originales + copias). El borrado
   de fuentes sigue **deshabilitado** y sin autorización.
 - **1 sola organización activa**.
-- **1 referencia de `company_settings.logo_url` fuera del Storage del proyecto
-  (2026-09-18)**: es una URL HTTPS de un host que no pertenece al Storage de
-  este proyecto (no tiene forma `/storage/v1/object/...` ni prefijo de
-  organización). No se publica su valor, host, ruta, token ni identificadores.
-  - **Clasificación semántica completada.** Por sus usos reales,
-    `company_settings.logo_url` es el **logo empresarial configurable**: lo
-    consumen los documentos de la empresa (cotización, factura, contrato,
-    estado de cuenta, vía `resolveIssuerBranding`) y la pantalla de
-    Configuración. La navegación/sidebar ya no lo consume; la marca global de
-    LiftGo es un asset del repositorio, no este puntero.
-  - Por eso conserva **aislamiento por tenant**: se guarda como ruta bajo el
-    prefijo de su organización y se resuelve firmando con la sesión actual
-    (TTL 300 s); una empresa no puede mostrar el logo de otra. Las pruebas A/B
-    aplican a este tipo de logo.
-  - **Pendiente: validación/sustitución del valor HTTPS externo.** Los
-    documentos se generan **sin logo (fail-closed)** mientras la URL no apunte
-    a una ruta del Storage de este proyecto; no se descarga un host ajeno y el
-    valor no se modifica en producción. Restaurar el logo empresarial exige
-    volver a subirlo o guardar una ruta Storage desde Configuración; **esa
-    decisión queda pendiente del propietario**.
+- **Branding global: ninguna organización tiene logo propio (2026-09-18)**. El
+  único logo del sistema es el lockup oficial «LIFT GO MONTACARGAS», asset local
+  versionado del repositorio (`public/brand/liftgo-montacargas.png`). Se usa
+  igual en el shell del ERP, el portal y **todos los documentos generados**
+  (cotización, reserva, contrato, factura, estado de cuenta y demás PDF).
+  - `company_settings.logo_url` quedó **sin uso**: no se lee para renderizar, no
+    se firma por organización y no se descarga ningún host externo. Se retiró de
+    la UI la carga/preview de logos por empresa, y del flujo de branding/PDF la
+    dependencia del campo.
+  - El **valor histórico permanece intacto** en la base: no se borra, no se
+    reescribe y no se mueve nada en Storage. **No requiere migración ni acción
+    de reemplazo**, y no hace falta pedir al propietario que vuelva a subir
+    logos por empresa.
+  - Razón social, RFC y demás **datos fiscales siguen siendo por organización**,
+    con sus pruebas A/B de aislamiento. Las pruebas de logo ahora verifican lo
+    contrario: A y B obtienen **el mismo asset global** en cada tipo de
+    documento, y el valor histórico del campo no altera la marca.
 
 ### Marca global de LiftGo (no es dato de tenant)
 
-La marca visible del producto —navegación, sidebar y encabezados de acceso— es
-el **asset global de LiftGo del repositorio**, servido desde **fuente local
-fija** e **idéntico para cualquier empresa**. No se lee de `company_settings`,
-no se firma por organización, **no se traslada a Storage** y **no lleva gate ni
-prueba A/B de aislamiento**: por diseño todos los tenants ven la misma marca.
-La marca pública neutral sigue expuesta por `get_public_branding()`, pero el
-distintivo **no** se construye con ninguna URL de datos: la marca expandida
-(sidebar abierto, encabezados del ERP, acceso y portal) sirve el **lockup
-oficial del repositorio** `public/brand/liftgo-montacargas.png` vía
-`BrandLockup`, con `object-contain` y ancho automático; el sidebar colapsado
-conserva el emblema compacto `public/favicon.png` (`BrandMark`). Ambos salen
-del propio origen y son idénticos para todo tenant. `classifyLogoSource` sólo acepta rutas o
-URLs del Storage de este proyecto; **cualquier HTTPS ajeno devuelve
-`unsupported`** y no se renderiza ni se descarga (regresión cubierta por
-prueba). Las pruebas A/B de aislamiento siguen aplicando **sólo** al logo
-empresarial.
+Toda la marca visible —navegación, sidebar, encabezados de acceso, portal y
+documentos— sale del **asset local del repositorio**, idéntico para cualquier
+empresa: el lockup `public/brand/liftgo-montacargas.png` (vía `BrandLockup`,
+con `object-contain`, ancho automático y colores originales) y, para el sidebar
+colapsado, el emblema compacto `public/favicon.png` (`BrandMark`). Los
+generadores de PDF cargan el mismo asset con `loadGlobalBrandLogo()`; no hay
+fetch a URLs remotas ni firmas por organización. Por diseño el logo **no lleva
+gate ni prueba A/B de aislamiento**: las pruebas exigen igualdad entre tenants.
 
 ### Gates obligatorios antes de dar de alta una segunda empresa
 
-1. **Logo empresarial resuelto y probado**: el logo de `company_settings` se
-   sirve desde la organización del contexto y se firma con TTL corto, con
-   prueba A/B de aislamiento. La **marca global de LiftGo** (asset del
-   repositorio) queda **fuera de este gate**.
+1. **Branding: sin gate.** El logo es global (asset local del repositorio) y no
+   depende de la organización, así que no hay nada que aislar ni migrar. Sí se
+   mantiene el gate de aislamiento de los **datos propios** de cada empresa.
 2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
 3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
 4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
