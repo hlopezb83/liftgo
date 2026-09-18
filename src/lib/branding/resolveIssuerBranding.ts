@@ -79,7 +79,10 @@ type Row = Record<string, unknown>;
 export interface IssuerBrandingClient {
   from(table: string): {
     select(columns: string): {
-      eq(column: string, value: string): {
+      eq(
+        column: string,
+        value: string,
+      ): {
         limit(count: number): PromiseLike<QueryResult<Row>>;
       };
     };
@@ -101,15 +104,27 @@ async function resolveDocumentOrganization(
   client: IssuerBrandingClient,
   document: IssuerDocumentRef,
   context: Extract<OrganizationContextResult, { status: "ready" }>,
-): Promise<{ ok: true; organizationId: string } | { ok: false; reason: IssuerBrandingUnavailableReason }> {
+): Promise<
+  | { ok: true; organizationId: string }
+  | { ok: false; reason: IssuerBrandingUnavailableReason }
+> {
   const table = ISSUER_DOCUMENT_TABLES[document.type];
   if (!table) return { ok: false, reason: "document_forbidden" };
 
-  const columns = document.type === "customer"
-    ? "id, organization_id"
+  // `customers` es identidad global y NO tiene `organization_id`: el vínculo por
+  // empresa vive en la tabla puente `organization_customers`.
+  const isCustomer = document.type === "customer";
+  const lookupTable = isCustomer ? "organization_customers" : table;
+  const filterColumn = isCustomer ? "customer_id" : "id";
+  const columns = isCustomer
+    ? "customer_id, organization_id"
     : "id, organization_id, customer_id";
 
-  const res = await client.from(table).select(columns).eq("id", document.id).limit(2);
+  const res = await client
+    .from(lookupTable)
+    .select(columns)
+    .eq(filterColumn, document.id)
+    .limit(2);
   if (res.error) {
     throw new IssuerBrandingError(
       "document_read_error",
@@ -129,9 +144,7 @@ async function resolveDocumentOrganization(
   }
 
   if (context.memberType === "portal") {
-    const owner = document.type === "customer"
-      ? str(row["id"])
-      : str(row["customer_id"]);
+    const owner = str(row["customer_id"]);
     if (!context.customerId || owner !== context.customerId) {
       return { ok: false, reason: "document_forbidden" };
     }
@@ -156,7 +169,11 @@ export async function resolveIssuerBranding(
   let organizationId = context.organizationId;
 
   if (document) {
-    const verified = await resolveDocumentOrganization(client, document, context);
+    const verified = await resolveDocumentOrganization(
+      client,
+      document,
+      context,
+    );
     if (!verified.ok) return { status: "unavailable", reason: verified.reason };
     organizationId = verified.organizationId;
   } else if (context.memberType === "portal") {
@@ -179,8 +196,10 @@ export async function resolveIssuerBranding(
   }
 
   const rows = settings.data ?? [];
-  if (rows.length === 0) return { status: "unavailable", reason: "settings_missing" };
-  if (rows.length > 1) return { status: "unavailable", reason: "settings_ambiguous" };
+  if (rows.length === 0)
+    return { status: "unavailable", reason: "settings_missing" };
+  if (rows.length > 1)
+    return { status: "unavailable", reason: "settings_ambiguous" };
 
   const row = rows[0];
   const rowOrg = str(row["organization_id"]);
@@ -204,11 +223,17 @@ export async function resolveIssuerBranding(
 }
 
 /** Mensajes en español mexicano para los estados explícitos. */
-export const ISSUER_BRANDING_MESSAGES: Record<IssuerBrandingUnavailableReason | "read_error", string> = {
-  no_organization: "Tu cuenta no tiene una empresa verificada para emitir documentos.",
+export const ISSUER_BRANDING_MESSAGES: Record<
+  IssuerBrandingUnavailableReason | "read_error",
+  string
+> = {
+  no_organization:
+    "Tu cuenta no tiene una empresa verificada para emitir documentos.",
   document_not_found: "No encontramos el documento solicitado en tu empresa.",
   document_forbidden: "El documento solicitado no pertenece a tu empresa.",
   settings_missing: "Tu empresa todavía no tiene datos fiscales capturados.",
-  settings_ambiguous: "Tu empresa tiene datos fiscales duplicados; corrígelos antes de emitir.",
-  read_error: "No pudimos leer los datos fiscales de tu empresa. Inténtalo de nuevo.",
+  settings_ambiguous:
+    "Tu empresa tiene datos fiscales duplicados; corrígelos antes de emitir.",
+  read_error:
+    "No pudimos leer los datos fiscales de tu empresa. Inténtalo de nuevo.",
 };

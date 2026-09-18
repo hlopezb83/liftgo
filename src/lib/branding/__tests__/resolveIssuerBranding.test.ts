@@ -20,17 +20,17 @@ function makeClient(tables: Record<string, TableData>): IssuerBrandingClient {
       const entry = tables[table] ?? { rows: [] };
       return {
         select: () => ({
-          eq: (_column: string, value: string) => ({
+          eq: (column: string, value: string) => ({
             limit: () =>
               Promise.resolve(
                 entry.error
                   ? { data: null, error: entry.error }
                   : {
-                    data: (entry.rows ?? []).filter(
-                      (r) => r["id"] === value || r["organization_id"] === value,
-                    ),
-                    error: null,
-                  },
+                      data: (entry.rows ?? []).filter(
+                        (r) => r[column] === value,
+                      ),
+                      error: null,
+                    },
               ),
           }),
         }),
@@ -63,15 +63,73 @@ const settingsA = {
   facturapi_mode: "live",
 };
 
-const settingsB = { ...settingsA, organization_id: ORG_B, razon_social: "Empresa B", rfc: "BBB010101BBB" };
+const settingsB = {
+  ...settingsA,
+  organization_id: ORG_B,
+  razon_social: "Empresa B",
+  rfc: "BBB010101BBB",
+};
+
+describe("resolveIssuerBranding · cliente", () => {
+  // `customers` no tiene `organization_id`: el vínculo vive en la tabla puente.
+  it("resuelve el emisor de un cliente vía organization_customers", async () => {
+    const client = makeClient({
+      organization_customers: {
+        rows: [{ customer_id: CUSTOMER, organization_id: ORG_A }],
+      },
+      customers: {
+        error: { message: "column customers.organization_id does not exist" },
+      },
+      company_settings: { rows: [settingsA, settingsB] },
+    });
+    const result = await resolveIssuerBranding(client, portalA, {
+      type: "customer",
+      id: CUSTOMER,
+    });
+    expect(result).toEqual({
+      status: "ready",
+      branding: {
+        organizationId: ORG_A,
+        razon_social: "Empresa A",
+        rfc: "AAA010101AAA",
+        regimen_fiscal: "601",
+        lugar_expedicion: "64000",
+        logo_url: "logo-a.png",
+        facturapi_mode: "live",
+      },
+    });
+  });
+
+  it("rechaza un cliente que no pertenece a la empresa verificada", async () => {
+    const client = makeClient({
+      organization_customers: {
+        rows: [{ customer_id: CUSTOMER, organization_id: ORG_B }],
+      },
+      company_settings: { rows: [settingsA] },
+    });
+    const result = await resolveIssuerBranding(client, internalA, {
+      type: "customer",
+      id: CUSTOMER,
+    });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "document_forbidden",
+    });
+  });
+});
 
 describe("resolveIssuerBranding", () => {
   it("usa los datos de la organización propietaria del documento", async () => {
     const client = makeClient({
-      invoices: { rows: [{ id: INVOICE, organization_id: ORG_A, customer_id: CUSTOMER }] },
+      invoices: {
+        rows: [{ id: INVOICE, organization_id: ORG_A, customer_id: CUSTOMER }],
+      },
       company_settings: { rows: [settingsA, settingsB] },
     });
-    const result = await resolveIssuerBranding(client, internalA, { type: "invoice", id: INVOICE });
+    const result = await resolveIssuerBranding(client, internalA, {
+      type: "invoice",
+      id: INVOICE,
+    });
     expect(result).toEqual({
       status: "ready",
       branding: {
@@ -88,46 +146,77 @@ describe("resolveIssuerBranding", () => {
 
   it("no hereda datos de otra organización cuando el documento es de B", async () => {
     const client = makeClient({
-      invoices: { rows: [{ id: INVOICE, organization_id: ORG_B, customer_id: CUSTOMER }] },
+      invoices: {
+        rows: [{ id: INVOICE, organization_id: ORG_B, customer_id: CUSTOMER }],
+      },
       company_settings: { rows: [settingsA, settingsB] },
     });
-    const result = await resolveIssuerBranding(client, internalA, { type: "invoice", id: INVOICE });
-    expect(result).toEqual({ status: "unavailable", reason: "document_forbidden" });
+    const result = await resolveIssuerBranding(client, internalA, {
+      type: "invoice",
+      id: INVOICE,
+    });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "document_forbidden",
+    });
   });
 
   it("el portal sólo obtiene emisor de sus propios documentos", async () => {
     const otherCustomer = "55555555-5555-5555-5555-555555555555";
     const client = makeClient({
-      invoices: { rows: [{ id: INVOICE, organization_id: ORG_A, customer_id: otherCustomer }] },
+      invoices: {
+        rows: [
+          { id: INVOICE, organization_id: ORG_A, customer_id: otherCustomer },
+        ],
+      },
       company_settings: { rows: [settingsA] },
     });
-    const result = await resolveIssuerBranding(client, portalA, { type: "invoice", id: INVOICE });
-    expect(result).toEqual({ status: "unavailable", reason: "document_forbidden" });
+    const result = await resolveIssuerBranding(client, portalA, {
+      type: "invoice",
+      id: INVOICE,
+    });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "document_forbidden",
+    });
   });
 
   it("el portal no puede pedir emisor sin documento", async () => {
     const client = makeClient({ company_settings: { rows: [settingsA] } });
     const result = await resolveIssuerBranding(client, portalA, null);
-    expect(result).toEqual({ status: "unavailable", reason: "document_forbidden" });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "document_forbidden",
+    });
   });
 
   it("configuración ausente devuelve estado explícito sin respaldo", async () => {
     const client = makeClient({ company_settings: { rows: [settingsB] } });
     const result = await resolveIssuerBranding(client, internalA, null);
-    expect(result).toEqual({ status: "unavailable", reason: "settings_missing" });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "settings_missing",
+    });
   });
 
   it("configuración duplicada es ambigua", async () => {
-    const client = makeClient({ company_settings: { rows: [settingsA, { ...settingsA }] } });
+    const client = makeClient({
+      company_settings: { rows: [settingsA, { ...settingsA }] },
+    });
     const result = await resolveIssuerBranding(client, internalA, null);
-    expect(result).toEqual({ status: "unavailable", reason: "settings_ambiguous" });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "settings_ambiguous",
+    });
   });
 
   it("error de lectura se propaga como error explícito", async () => {
-    const client = makeClient({ company_settings: { error: { message: "boom" } } });
-    await expect(resolveIssuerBranding(client, internalA, null)).rejects.toBeInstanceOf(
-      IssuerBrandingError,
-    );
+    const client = makeClient({
+      company_settings: { error: { message: "boom" } },
+    });
+    await expect(
+      resolveIssuerBranding(client, internalA, null),
+    ).rejects.toBeInstanceOf(IssuerBrandingError);
   });
 
   it("sin organización verificada no hay emisor", async () => {
@@ -137,7 +226,10 @@ describe("resolveIssuerBranding", () => {
       { status: "no_membership", reason: "no_membership" },
       null,
     );
-    expect(result).toEqual({ status: "unavailable", reason: "no_organization" });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "no_organization",
+    });
   });
 
   it("documento inexistente no revela otra empresa", async () => {
@@ -145,7 +237,13 @@ describe("resolveIssuerBranding", () => {
       invoices: { rows: [] },
       company_settings: { rows: [settingsA] },
     });
-    const result = await resolveIssuerBranding(client, internalA, { type: "invoice", id: INVOICE });
-    expect(result).toEqual({ status: "unavailable", reason: "document_not_found" });
+    const result = await resolveIssuerBranding(client, internalA, {
+      type: "invoice",
+      id: INVOICE,
+    });
+    expect(result).toEqual({
+      status: "unavailable",
+      reason: "document_not_found",
+    });
   });
 });
