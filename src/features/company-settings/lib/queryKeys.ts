@@ -6,7 +6,7 @@ import { callRpc } from "@/lib/rpc";
 const sel = (s: string): string => s;
 
 const COMPANY_SETTINGS_COLUMNS = sel(
-  "id, rfc, razon_social, regimen_fiscal, lugar_expedicion, logo_url, created_at, updated_at, facturapi_mode, cxp_approval_threshold_mxn, cash_initial_balance, cash_safety_buffer, allow_e2e_seed, maintenance_buffer_days"
+  "id, rfc, razon_social, regimen_fiscal, lugar_expedicion, logo_url, created_at, updated_at, facturapi_mode, cxp_approval_threshold_mxn, cash_initial_balance, cash_safety_buffer, allow_e2e_seed, maintenance_buffer_days",
 );
 
 /**
@@ -17,12 +17,16 @@ const COMPANY_SETTINGS_COLUMNS = sel(
  */
 export class AmbiguousCompanySettingsError extends Error {
   constructor() {
-    super("Tu empresa tiene datos fiscales duplicados; corrígelos antes de continuar.");
+    super(
+      "Tu empresa tiene datos fiscales duplicados; corrígelos antes de continuar.",
+    );
     this.name = "AmbiguousCompanySettingsError";
   }
 }
 
-async function fetchSingleCompanySettings<T>(columns: string): Promise<T | null> {
+async function fetchSingleCompanySettings<T>(
+  columns: string,
+): Promise<T | null> {
   const { data, error } = await supabase
     .from("company_settings")
     .select(columns)
@@ -35,40 +39,46 @@ async function fetchSingleCompanySettings<T>(columns: string): Promise<T | null>
 }
 
 /** Fila cruda de company_settings (datos fiscales completos). */
-export const companySettingsQueries = defineEntityQueries(
-  "company_settings",
-  {
-    list: () => async () => fetchSingleCompanySettings<Tables<"company_settings">>(
+export const companySettingsQueries = defineEntityQueries("company_settings", {
+  list: () => async () =>
+    fetchSingleCompanySettings<Tables<"company_settings">>(
       COMPANY_SETTINGS_COLUMNS,
     ),
-    staleTime: 5 * 60_000,
-  },
-);
+  staleTime: 5 * 60_000,
+});
 
 export interface CxpApprovalThreshold {
   id: string | null;
   threshold: number;
 }
 
-export const cxpApprovalThresholdQueries = defineEntityQueries("cxp_approval_threshold", {
-  list: () => async (): Promise<CxpApprovalThreshold> => {
-    const row = await fetchSingleCompanySettings<{
-      id: string | null;
-      cxp_approval_threshold_mxn: number | null;
-    }>("id, cxp_approval_threshold_mxn");
-    return {
-      id: row?.id ?? null,
-      threshold: Number(row?.cxp_approval_threshold_mxn ?? 10000),
-    };
+export const cxpApprovalThresholdQueries = defineEntityQueries(
+  "cxp_approval_threshold",
+  {
+    list: () => async (): Promise<CxpApprovalThreshold> => {
+      const row = await fetchSingleCompanySettings<{
+        id: string | null;
+        cxp_approval_threshold_mxn: number | null;
+      }>("id, cxp_approval_threshold_mxn");
+      return {
+        id: row?.id ?? null,
+        threshold: Number(row?.cxp_approval_threshold_mxn ?? 10000),
+      };
+    },
+    staleTime: 5 * 60_000,
   },
-  staleTime: 5 * 60_000,
-});
+);
 
-type PublicBrandingRow = { logo_url: string | null; razon_social: string | null };
+type PublicBrandingRow = {
+  logo_url: string | null;
+  razon_social: string | null;
+};
 
 export const publicBrandingQueries = defineEntityQueries("public_branding", {
   list: () => async () => {
-    const data = await callRpc<PublicBrandingRow[] | null>("get_public_branding");
+    const data = await callRpc<PublicBrandingRow[] | null>(
+      "get_public_branding",
+    );
     return Array.isArray(data) && data.length > 0 ? data[0] : null;
   },
   staleTime: 10 * 60_000,
@@ -99,18 +109,27 @@ export interface BillingSecretsStatus {
   has_live_key: boolean;
 }
 
-type BillingSecretsRow = { id: string | null; has_test_key: boolean | null; has_live_key: boolean | null };
+type BillingSecretsRow = {
+  id: string | null;
+  has_test_key: boolean | null;
+  has_live_key: boolean | null;
+};
 
-export const billingSecretsQueries = defineEntityQueries("billing_secrets_status", {
-  list: () => async (): Promise<BillingSecretsStatus> => {
-    const data = await callRpc<BillingSecretsRow[] | null>("get_billing_secrets_status");
-    const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-    if (!row) return { id: null, has_test_key: false, has_live_key: false };
-    return {
-      id: row.id ?? null,
-      has_test_key: !!row.has_test_key,
-      has_live_key: !!row.has_live_key,
-    };
+export const billingSecretsQueries = defineEntityQueries(
+  "billing_secrets_status",
+  {
+    list: () => async (): Promise<BillingSecretsStatus> => {
+      const data = await callRpc<BillingSecretsRow[] | null>(
+        "get_billing_secrets_status",
+      );
+      const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
+      if (!row) return { id: null, has_test_key: false, has_live_key: false };
+      return {
+        id: row.id ?? null,
+        has_test_key: !!row.has_test_key,
+        has_live_key: !!row.has_live_key,
+      };
+    },
+    staleTime: 5 * 60_000,
   },
-  staleTime: 5 * 60_000,
-});
+);

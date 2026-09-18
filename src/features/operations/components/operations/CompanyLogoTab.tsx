@@ -1,13 +1,24 @@
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
+import {
+  Image as ImageIcon,
+  SaveIcon,
+  SuccessIcon,
+  InfoAlertIcon,
+  ImageOff,
+} from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogoUploader, useCompanyLogoSrc, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
+import {
+  LogoUploader,
+  useCompanyLogoSrc,
+  useCompanySettings,
+  useUpsertCompanySettings,
+} from "@/features/company-settings";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
@@ -26,7 +37,8 @@ export function CompanyLogoTab() {
   }, [settings, form]);
 
   const savedUrl = settings?.logo_url || "";
-  const pendingUrl = useWatch({ control: form.control, name: "logo_url" }) || "";
+  const pendingUrl =
+    useWatch({ control: form.control, name: "logo_url" }) || "";
   const savedSrc = useCompanyLogoSrc(savedUrl);
   const pendingSrc = useCompanyLogoSrc(pendingUrl);
   const hasSaved = !!savedUrl;
@@ -46,7 +58,7 @@ export function CompanyLogoTab() {
         lugar_expedicion: settings.lugar_expedicion || "",
         logo_url: values.logo_url || null,
       },
-      { onSuccess: () => notifySuccess("Logo guardado") }
+      { onSuccess: () => notifySuccess("Logo guardado") },
     );
   };
 
@@ -54,7 +66,13 @@ export function CompanyLogoTab() {
 
   if (isError) {
     return (
-      <QueryErrorState bare entity="el logo de la empresa" onRetry={() => { void refetch(); }} />
+      <QueryErrorState
+        bare
+        entity="el logo de la empresa"
+        onRetry={() => {
+          void refetch();
+        }}
+      />
     );
   }
 
@@ -67,7 +85,10 @@ export function CompanyLogoTab() {
               <ImageIcon className="h-4 w-4" /> Logo de la Empresa
             </CardTitle>
             {hasSaved ? (
-              <Badge variant="outline" className="gap-1 text-success border-success/30">
+              <Badge
+                variant="outline"
+                className="gap-1 text-success border-success/30"
+              >
                 <SuccessIcon className="h-3.5 w-3.5" /> Logo guardado
               </Badge>
             ) : (
@@ -83,7 +104,10 @@ export function CompanyLogoTab() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <LogoUploader logoUrl={field.value} onChange={field.onChange} />
+                    <LogoUploader
+                      logoUrl={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -100,9 +124,16 @@ export function CompanyLogoTab() {
                     <p className="text-xs text-muted-foreground">Actual</p>
                     <div className="h-24 rounded-md border border-border bg-muted flex items-center justify-center overflow-hidden">
                       {savedSrc ? (
-                        <img referrerPolicy="no-referrer" src={savedSrc} alt="Logo actual" className="h-full w-full object-contain p-2" />
+                        <img
+                          referrerPolicy="no-referrer"
+                          src={savedSrc}
+                          alt="Logo actual"
+                          className="h-full w-full object-contain p-2"
+                        />
                       ) : (
-                        <span className="text-xs text-muted-foreground">Sin logo</span>
+                        <span className="text-xs text-muted-foreground">
+                          Sin logo
+                        </span>
                       )}
                     </div>
                   </div>
@@ -110,9 +141,16 @@ export function CompanyLogoTab() {
                     <p className="text-xs text-muted-foreground">Nuevo</p>
                     <div className="h-24 rounded-md border border-warning/30 bg-background flex items-center justify-center overflow-hidden">
                       {pendingSrc ? (
-                        <img referrerPolicy="no-referrer" src={pendingSrc} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
+                        <img
+                          referrerPolicy="no-referrer"
+                          src={pendingSrc}
+                          alt="Nuevo logo"
+                          className="h-full w-full object-contain p-2"
+                        />
                       ) : (
-                        <span className="text-xs text-muted-foreground">Sin logo</span>
+                        <span className="text-xs text-muted-foreground">
+                          Sin logo
+                        </span>
                       )}
                     </div>
                   </div>
@@ -121,10 +159,14 @@ export function CompanyLogoTab() {
             )}
 
             <p className="text-xs text-muted-foreground">
-              El logo aparece en facturas, cotizaciones, contratos y otros documentos PDF. Tamaño recomendado: máximo 24×40 mm.
+              El logo aparece en facturas, cotizaciones, contratos y otros
+              documentos PDF. Tamaño recomendado: máximo 24×40 mm.
             </p>
             <div className="pt-2">
-              <Button type="submit" disabled={upsert.isPending || !hasPendingChange}>
+              <Button
+                type="submit"
+                disabled={upsert.isPending || !hasPendingChange}
+              >
                 <SaveIcon className="h-4 w-4 mr-1" />
                 {upsert.isPending ? "Guardando…" : "Guardar logo"}
               </Button>

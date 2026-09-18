@@ -7,7 +7,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  */
 const notifyValidationMock = vi.fn();
 const uploadMock = vi.fn();
-const getPublicUrlMock = vi.fn(() => ({ data: { publicUrl: "https://cdn/logo.png" } }));
+const getPublicUrlMock = vi.fn(() => ({
+  data: { publicUrl: "https://cdn/logo.png" },
+}));
 const currentOrganizationMock = vi.fn();
 
 vi.mock("@/lib/ui/appFeedback", () => ({
@@ -41,21 +43,30 @@ function fakeFile(type: string, size: number, name = "logo") {
 describe("useUploadCompanyLogo · Fix 9.2", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    currentOrganizationMock.mockResolvedValue({ data: "2f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123", error: null });
+    currentOrganizationMock.mockResolvedValue({
+      data: "2f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123",
+      error: null,
+    });
     uploadMock.mockResolvedValue({ error: null });
   });
 
   it("rechaza archivos mayores a 2 MB sin llamar al almacenamiento", async () => {
     const { result } = renderHook(() => useUploadCompanyLogo());
-    const url = await result.current.upload(fakeFile("image/png", 3 * 1024 * 1024));
+    const url = await result.current.upload(
+      fakeFile("image/png", 3 * 1024 * 1024),
+    );
     expect(url).toBeNull();
     expect(uploadMock).not.toHaveBeenCalled();
-    expect(notifyValidationMock).toHaveBeenCalledWith({ message: "El archivo no debe superar 2MB" });
+    expect(notifyValidationMock).toHaveBeenCalledWith({
+      message: "El archivo no debe superar 2MB",
+    });
   });
 
   it("rechaza SVG y otros tipos no permitidos", async () => {
     const { result } = renderHook(() => useUploadCompanyLogo());
-    const url = await result.current.upload(fakeFile("image/svg+xml", 1000, "logo.svg"));
+    const url = await result.current.upload(
+      fakeFile("image/svg+xml", 1000, "logo.svg"),
+    );
     expect(url).toBeNull();
     expect(uploadMock).not.toHaveBeenCalled();
     expect(notifyValidationMock).toHaveBeenCalledWith({
@@ -65,7 +76,9 @@ describe("useUploadCompanyLogo · Fix 9.2", () => {
 
   it("acepta PNG y devuelve la RUTA bajo el prefijo de la organización (no una URL)", async () => {
     const { result } = renderHook(() => useUploadCompanyLogo());
-    const url = await result.current.upload(fakeFile("image/png", 500 * 1024, "logo.png"));
+    const url = await result.current.upload(
+      fakeFile("image/png", 500 * 1024, "logo.png"),
+    );
     expect(uploadMock).toHaveBeenCalledTimes(1);
     const path = uploadMock.mock.calls[0][0] as string;
     expect(url).toBe(path);

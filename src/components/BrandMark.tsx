@@ -35,7 +35,11 @@ export function BrandMark({ size = "md", className }: BrandMarkProps) {
         referrerPolicy="no-referrer"
         src={logoUrl}
         alt={name}
-        className={cn("rounded-md object-contain bg-background", SIZE[size], className)}
+        className={cn(
+          "rounded-md object-contain bg-background",
+          SIZE[size],
+          className,
+        )}
       />
     );
   }

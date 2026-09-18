@@ -14,10 +14,13 @@ import {
  *   modo que el aislamiento por organización lo imponen las policies.
  * - Cualquier otro valor: `null` y la interfaz usa el distintivo de respaldo.
  */
-export function useCompanyLogoSrc(logoUrl: string | null | undefined): string | null {
+export function useCompanyLogoSrc(
+  logoUrl: string | null | undefined,
+): string | null {
   const source = classifyLogoSource(logoUrl);
   if (source.kind === "global-brand") return source.url;
-  const key = source.kind === "storage" ? `${source.bucket}/${source.path}` : null;
+  const key =
+    source.kind === "storage" ? `${source.bucket}/${source.path}` : null;
 
   const { data } = useQuery({
     queryKey: ["company_logo_src", key],

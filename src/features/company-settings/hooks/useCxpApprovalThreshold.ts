@@ -1,7 +1,10 @@
 import { useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { COMPANY_SETTINGS_INVALIDATION_KEYS, type CxpApprovalThreshold } from "../lib/queryKeys";
+import {
+  COMPANY_SETTINGS_INVALIDATION_KEYS,
+  type CxpApprovalThreshold,
+} from "../lib/queryKeys";
 import { useCompanySettings } from "./useCompanySettings";
 
 /**
@@ -12,24 +15,34 @@ import { useCompanySettings } from "./useCompanySettings";
  * mismo loading/error, mismo objeto memoizado.
  */
 
-
 const DEFAULT_THRESHOLD = 10_000;
 
 export function useCxpApprovalThreshold() {
   const q = useCompanySettings();
   const data: CxpApprovalThreshold | undefined = useMemo(() => {
-    if (!q.data) return q.isSuccess ? { id: null, threshold: DEFAULT_THRESHOLD } : undefined;
+    if (!q.data)
+      return q.isSuccess
+        ? { id: null, threshold: DEFAULT_THRESHOLD }
+        : undefined;
     return {
       id: q.data.id ?? null,
       threshold: Number(q.data.cxp_approval_threshold_mxn ?? DEFAULT_THRESHOLD),
     };
   }, [q.data, q.isSuccess]);
-  return { ...q, data } as typeof q & { data: CxpApprovalThreshold | undefined };
+  return { ...q, data } as typeof q & {
+    data: CxpApprovalThreshold | undefined;
+  };
 }
 
 export function useUpdateCxpApprovalThreshold() {
   return useEntityMutation({
-    mutationFn: async ({ id, threshold }: { id: string | null; threshold: number }) => {
+    mutationFn: async ({
+      id,
+      threshold,
+    }: {
+      id: string | null;
+      threshold: number;
+    }) => {
       if (!id) {
         throw new Error(
           "Primero captura los Datos Fiscales para crear la configuración base de la empresa.",

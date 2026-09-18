@@ -28,7 +28,10 @@ describe("useCompanySettings — RLS contract (post v5.81.4)", () => {
   it("mecánico recibe permission denied (sin acceso a config fiscal)", async () => {
     fromResp = {
       data: null,
-      error: { code: "42501", message: "permission denied for table company_settings" },
+      error: {
+        code: "42501",
+        message: "permission denied for table company_settings",
+      },
     };
     const { result } = renderHook(() => useCompanySettings(), { wrapper });
     await waitFor(() => expect(result.current.isError).toBe(true));
@@ -36,7 +39,14 @@ describe("useCompanySettings — RLS contract (post v5.81.4)", () => {
 
   it("staff recibe configuración fiscal completa", async () => {
     fromResp = {
-      data: [{ id: "cs-1", rfc: "ABC010101AAA", razon_social: "LiftGo SA", regimen_fiscal: "601" }],
+      data: [
+        {
+          id: "cs-1",
+          rfc: "ABC010101AAA",
+          razon_social: "LiftGo SA",
+          regimen_fiscal: "601",
+        },
+      ],
       error: null,
     };
     const { result } = renderHook(() => useCompanySettings(), { wrapper });
