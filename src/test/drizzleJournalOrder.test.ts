@@ -10,9 +10,17 @@ import { describe, expect, it } from "vitest";
  * menor o igual al máximo ya aplicado se omite en silencio: no falla, simplemente nunca corre.
  *
  * Baseline confirmado por SELECT de sólo lectura sobre drizzle.__drizzle_migrations:
- * el máximo `created_at` aplicado es 1789750964000 (corresponde a 0029).
+ * el máximo `created_at` aplicado es 1790269364000 y corresponde al archivo
+ * `0035_storage_manual_resolutions_force_rls` (hash del ledger == sha256 del archivo).
+ * Por eso el último idx aplicado es 35: cada entrada hasta ahí tiene su fila en el ledger.
+ *
+ * Histórico: el canal oficial llegó a dejar copias redundantes 0036–0041 de los archivos
+ * 0030–0035 con `when` anterior al baseline; nunca se aplicaron (los hashes del ledger son
+ * los de 0030–0035) y drizzle jamás las habría corrido. Se retiraron como artefactos
+ * redundantes; ninguna migración aplicada se editó ni se renombró.
  */
-const APPLIED_MAX_CREATED_AT = 1789750964000;
+const APPLIED_MAX_CREATED_AT = 1790269364000;
+const APPLIED_THROUGH_IDX = 35;
 
 interface JournalEntry {
   idx: number;
@@ -38,9 +46,21 @@ describe("drizzle journal", () => {
     expect(invalid).toEqual([]);
   });
 
-  it("las migraciones pendientes son posteriores al baseline aplicado", () => {
-    const pending = journal.entries.filter((e) => e.idx >= 30);
-    expect(pending.length).toBeGreaterThan(0);
+  it("el baseline aplicado coincide con el último idx aplicado", () => {
+    const applied = journal.entries.filter(
+      (e) => e.idx <= APPLIED_THROUGH_IDX,
+    );
+    expect(applied.length).toBe(APPLIED_THROUGH_IDX + 1);
+    const last = applied.reduce((a, b) => (a.idx > b.idx ? a : b));
+    expect(last.when).toBe(APPLIED_MAX_CREATED_AT);
+    const afterBaseline = applied
+      .filter((e) => e.when > APPLIED_MAX_CREATED_AT)
+      .map((e) => `${e.tag} (when=${e.when} > ${APPLIED_MAX_CREATED_AT})`);
+    expect(afterBaseline).toEqual([]);
+  });
+
+  it("ninguna migración pendiente queda por debajo del baseline aplicado", () => {
+    const pending = journal.entries.filter((e) => e.idx > APPLIED_THROUGH_IDX);
     const skipped = pending
       .filter((e) => e.when <= APPLIED_MAX_CREATED_AT)
       .map((e) => `${e.tag} (when=${e.when} <= ${APPLIED_MAX_CREATED_AT})`);

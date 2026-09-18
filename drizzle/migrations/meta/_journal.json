@@ -253,48 +253,6 @@
       "when": 1790269364000,
       "tag": "0035_storage_manual_resolutions_force_rls",
       "breakpoints": true
-    },
-    {
-      "idx": 36,
-      "version": "7",
-      "when": 1789714543369,
-      "tag": "0036_0030_multi_org_onboarding_and_customer_scope",
-      "breakpoints": true
-    },
-    {
-      "idx": 37,
-      "version": "7",
-      "when": 1789714697065,
-      "tag": "0037_0031_multi_org_audit_hardening",
-      "breakpoints": true
-    },
-    {
-      "idx": 38,
-      "version": "7",
-      "when": 1789714771585,
-      "tag": "0038_0032_multi_org_storage_staff_scope",
-      "breakpoints": true
-    },
-    {
-      "idx": 39,
-      "version": "7",
-      "when": 1789714868812,
-      "tag": "0039_0033_handle_new_user_trusted_org_context",
-      "breakpoints": true
-    },
-    {
-      "idx": 40,
-      "version": "7",
-      "when": 1789714894012,
-      "tag": "0040_0034_storage_manual_resolutions",
-      "breakpoints": true
-    },
-    {
-      "idx": 41,
-      "version": "7",
-      "when": 1789714919662,
-      "tag": "0041_0035_storage_manual_resolutions_force_rls",
-      "breakpoints": true
     }
   ]
 }
