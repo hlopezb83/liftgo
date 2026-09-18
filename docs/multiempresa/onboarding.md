@@ -78,14 +78,18 @@ autoridad a sí mismo).
 1. Guard de operador + rate limit (5 altas / 5 min por operador) + validación
    (`name` 2–120, `slug` `^[a-z0-9][a-z0-9-]{1,62}$`, correo válido, nombre ≤ 200).
 2. Unicidad de correo en `profiles` (mismo criterio que la invitación interna).
-3. `platform_create_organization` → empresa nueva (la base valida nombre/slug y
-   unicidad).
+3. `platform_create_organization` → empresa **inactiva (pending)**: nace con
+   `is_active = false`, así que mientras el alta esté incompleta nadie opera en
+   ella, ni por RLS ni por Storage (0031).
 4. `auth.admin.createUser` con `user_metadata.organization_id` para que
    `handle_new_user` fije el contexto de auditoría. **Si falla**, se ejecuta
    `platform_discard_organization` (la empresa recién creada no queda a medias).
 5. `platform_attach_first_admin` → membresía interna + rol `admin` + perfil
-   activo, atómico en la base; un segundo "primer administrador" se rechaza. Si
-   falla, se compensa (usuario Auth + empresa).
+   activo y, **en la misma transacción y sólo después de comprobar que la
+   membresía interna quedó escrita**, `is_active = true`. Un segundo "primer
+   administrador" se rechaza. Si falla, se compensa (usuario Auth + empresa) y
+   la empresa permanece inactiva.
+
 6. Enlace de recuperación de un solo uso para que el administrador defina su
    contraseña; si no se puede generar, la respuesta lo indica y el administrador
    puede usar "Olvidé mi contraseña".
