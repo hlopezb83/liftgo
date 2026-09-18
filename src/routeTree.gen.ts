@@ -70,6 +70,7 @@ import { Route as MainReturnsPendingRouteImport } from './routes/_main/returns.p
 import { Route as MainSettingsIndexRouteImport } from './routes/_main/settings.index'
 import { Route as MainSettingsCompanyRouteImport } from './routes/_main/settings.company'
 import { Route as MainSettingsOperationsRouteImport } from './routes/_main/settings.operations'
+import { Route as MainSettingsOrganizationsRouteImport } from './routes/_main/settings.organizations'
 import { Route as MainSuppliersIndexRouteImport } from './routes/_main/suppliers.index'
 import { Route as MainSuppliersIdRouteImport } from './routes/_main/suppliers.$id'
 import { Route as MainUsersIndexRouteImport } from './routes/_main/users.index'
@@ -404,6 +405,12 @@ const MainSettingsOperationsRoute = MainSettingsOperationsRouteImport.update({
   path: '/settings/operations',
   getParentRoute: () => MainRoute,
 } as any)
+const MainSettingsOrganizationsRoute =
+  MainSettingsOrganizationsRouteImport.update({
+    id: '/settings/organizations',
+    path: '/settings/organizations',
+    getParentRoute: () => MainRoute,
+  } as any)
 const MainSuppliersIndexRoute = MainSuppliersIndexRouteImport.update({
   id: '/suppliers/',
   path: '/suppliers/',
@@ -577,6 +584,7 @@ export interface FileRoutesByFullPath {
   '/returns/pending': typeof MainReturnsPendingRoute
   '/settings/company': typeof MainSettingsCompanyRoute
   '/settings/operations': typeof MainSettingsOperationsRoute
+  '/settings/organizations': typeof MainSettingsOrganizationsRoute
   '/suppliers/$id': typeof MainSuppliersIdRoute
   '/users/permissions': typeof MainUsersPermissionsRoute
   '/portal/$': typeof PortalPortalSplatRoute
@@ -662,6 +670,7 @@ export interface FileRoutesByTo {
   '/returns/pending': typeof MainReturnsPendingRoute
   '/settings/company': typeof MainSettingsCompanyRoute
   '/settings/operations': typeof MainSettingsOperationsRoute
+  '/settings/organizations': typeof MainSettingsOrganizationsRoute
   '/suppliers/$id': typeof MainSuppliersIdRoute
   '/users/permissions': typeof MainUsersPermissionsRoute
   '/portal/$': typeof PortalPortalSplatRoute
@@ -750,6 +759,7 @@ export interface FileRoutesById {
   '/_main/returns/pending': typeof MainReturnsPendingRoute
   '/_main/settings/company': typeof MainSettingsCompanyRoute
   '/_main/settings/operations': typeof MainSettingsOperationsRoute
+  '/_main/settings/organizations': typeof MainSettingsOrganizationsRoute
   '/_main/suppliers/$id': typeof MainSuppliersIdRoute
   '/_main/users/permissions': typeof MainUsersPermissionsRoute
   '/_portal/portal/$': typeof PortalPortalSplatRoute
@@ -837,6 +847,7 @@ export interface FileRouteTypes {
     | '/returns/pending'
     | '/settings/company'
     | '/settings/operations'
+    | '/settings/organizations'
     | '/suppliers/$id'
     | '/users/permissions'
     | '/portal/$'
@@ -922,6 +933,7 @@ export interface FileRouteTypes {
     | '/returns/pending'
     | '/settings/company'
     | '/settings/operations'
+    | '/settings/organizations'
     | '/suppliers/$id'
     | '/users/permissions'
     | '/portal/$'
@@ -1009,6 +1021,7 @@ export interface FileRouteTypes {
     | '/_main/returns/pending'
     | '/_main/settings/company'
     | '/_main/settings/operations'
+    | '/_main/settings/organizations'
     | '/_main/suppliers/$id'
     | '/_main/users/permissions'
     | '/_portal/portal/$'
@@ -1483,6 +1496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsOperationsRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/settings/organizations': {
+      id: '/_main/settings/organizations'
+      path: '/settings/organizations'
+      fullPath: '/settings/organizations'
+      preLoaderRoute: typeof MainSettingsOrganizationsRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/suppliers/': {
       id: '/_main/suppliers/'
       path: '/suppliers'
@@ -1700,6 +1720,7 @@ interface MainRouteChildren {
   MainReturnsPendingRoute: typeof MainReturnsPendingRoute
   MainSettingsCompanyRoute: typeof MainSettingsCompanyRoute
   MainSettingsOperationsRoute: typeof MainSettingsOperationsRoute
+  MainSettingsOrganizationsRoute: typeof MainSettingsOrganizationsRoute
   MainSuppliersIdRoute: typeof MainSuppliersIdRoute
   MainUsersPermissionsRoute: typeof MainUsersPermissionsRoute
   MainBookingsIndexRoute: typeof MainBookingsIndexRoute
@@ -1773,6 +1794,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainReturnsPendingRoute: MainReturnsPendingRoute,
   MainSettingsCompanyRoute: MainSettingsCompanyRoute,
   MainSettingsOperationsRoute: MainSettingsOperationsRoute,
+  MainSettingsOrganizationsRoute: MainSettingsOrganizationsRoute,
   MainSuppliersIdRoute: MainSuppliersIdRoute,
   MainUsersPermissionsRoute: MainUsersPermissionsRoute,
   MainBookingsIndexRoute: MainBookingsIndexRoute,
