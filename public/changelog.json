@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.23.5",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "La marca del producto ya no puede venir de un enlace externo",
+    "description": "Quedaba una rendija: un enlace de internet cualquiera guardado en la configuración podía acabar pintándose como si fuera la marca del sistema, como colgar en la recepción un letrero que trajo un desconocido. Ahora la marca de LiftGo se dibuja siempre desde el propio sistema y cualquier enlace externo se rechaza. El logo que sube una empresa sigue usándose sólo en sus documentos y en Configuración, protegido por empresa.",
+    "changes": [
+      "El distintivo de LiftGo del portal y del sistema ya no acepta ninguna dirección de internet.",
+      "Sólo se acepta el logo empresarial guardado dentro del almacenamiento del proyecto; lo demás se rechaza.",
+      "Pruebas nuevas: la marca del sistema es idéntica para todas las empresas y cualquier enlace externo queda rechazado.",
+      "Se conservan las pruebas de aislamiento entre empresas para el logo empresarial."
+    ]
+  },
+  {
     "version": "8.23.4",
     "date": "2026-09-18",
     "type": "patch",

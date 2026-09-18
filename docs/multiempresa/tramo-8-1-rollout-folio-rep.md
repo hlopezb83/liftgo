@@ -1,7 +1,7 @@
 # Tramo 8.1 · Rollout del folio REP por empresa
 
 > **Nota de estado (2026-09-18, auditoría del tramo 11).** Todo lo que sigue
-> es el registro **histórico** del 2026-09-17 *antes* del rollout. Quedó
+> es el registro **histórico** del 2026-09-17 _antes_ del rollout. Quedó
 > superado: `0024 → 0029` ya se aplicaron en producción el 2026-09-17 por el
 > canal oficial de migraciones (ledger con ids 25–30 = archivos actuales
 > `0024`–`0029`, hashes idénticos). En el ledger hay además un id 31 **extra no
@@ -21,16 +21,16 @@ aprobado en repositorio, pendiente de producción).
 - CI principal (build/lint/Vitest/cobertura/calidad/secretos): run
   **35041914054** en verde.
 - CI de RLS/smoke SQL: run **35041914094** en verde; **RLS 52/52** y
-  **smoke SQL 45/45**, ninguno *skipped*.
+  **smoke SQL 45/45**, ninguno _skipped_.
 - Producción (Supabase `zxefrzfaynnfwazqhwxp`): **sin aplicar**. La consulta de
   privilegios confirmó que sólo existe la firma
   `assign_stamped_rep_number(uuid, text)`, `SECURITY DEFINER`,
   `search_path = public`, con `EXECUTE` concedido a `authenticated` y
   `service_role`. La firma estricta de tres parámetros aún no existe en
-   producción. La migración
-   `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql` vive en el
-   repositorio y debe aplicarse por el canal de migraciones de producción; no
-   debe aplicarse desde este entorno.
+  producción. La migración
+  `drizzle/migrations/0026_rep_number_org_scoped_assignment.sql` vive en el
+  repositorio y debe aplicarse por el canal de migraciones de producción; no
+  debe aplicarse desde este entorno.
 - **Precondición bloqueante (auditoría del 2026-09-17):** el journal
   `drizzle.__drizzle_migrations` termina en `0023`; `0024`, `0025` y `0026`
   están **pendientes**. `0026` **no debe aplicarse sola**: depende de
@@ -147,10 +147,10 @@ HAVING count(*) > 1;
 
 Resultados agregados (sin PII):
 
-| Tabla             | Filas | Con folio | Sin organización | Duplicados por organización | Folios huérfanos |
-|-------------------|-------|-----------|------------------|----------------------------|-----------------|
-| `payments`        | 82    | 25        | 0                | 0                          | 0               |
-| `feedback_reports`| 1     | 1         | 0                | 0                          | —               |
+| Tabla              | Filas | Con folio | Sin organización | Duplicados por organización | Folios huérfanos |
+| ------------------ | ----- | --------- | ---------------- | --------------------------- | ---------------- |
+| `payments`         | 82    | 25        | 0                | 0                           | 0                |
+| `feedback_reports` | 1     | 1         | 0                | 0                           | —                |
 
 ## Ubicación de la migración y detección en CI
 
@@ -163,7 +163,7 @@ Resultados agregados (sin PII):
 - `rls-db-tests.yml` ya se dispara con `drizzle/**`, así que RLS y smoke SQL
   corren con esta migración incluida.
 - Ajuste mínimo en `ci.yml` para que el lint de migraciones deje de aparecer
-  *skipped* cuando el cambio vive solo en el carril Drizzle:
+  _skipped_ cuando el cambio vive solo en el carril Drizzle:
   el filtro `migrations` incluye `drizzle/migrations/**`, la resolución de
   archivos del diff también mira `drizzle/migrations/*.sql`, el job corre
   también en `workflow_dispatch` y en ese caso linta el carril completo.
@@ -363,15 +363,16 @@ Auditoría de solo lectura completada; **corrige el registro previo** (versión
 - **Cinco diferencias históricas**, en los ids Drizzle **5, 6, 7, 8 y 11**, que
   corresponden a las migraciones **`0004`, `0005`, `0006`, `0007` y `0010`**:
 
-  | id | Migración | Hash guardado (journal) | Hash actual (archivo) | Aplicada (UTC) |
-  |----|-----------|-------------------------|-----------------------|----------------|
-  | 5  | `0004_multi_org_phase3_write_context_guard` | `5fcdaa37…a1fe` | `ffc22130…dd62` | 2026-09-13 23:30 |
-  | 6  | `0005_multi_org_phase4_read_isolation` | `50d1d882…7222` | `877a67d7…e128` | 2026-09-14 00:00 |
-  | 7  | `0006_multi_org_phase4_portal_scope` | `f5fff091…9649` | `a65e787c…5ae5` | 2026-09-14 00:10 |
-  | 8  | `0007_multi_org_phase4_customer_rpc_scope` | `5eb32b05…2780` | `c296a4f7…63e8` | 2026-09-14 00:20 |
-  | 11 | `0010_multi_org_phase5_bank_write_rpc_scope` | `946fd138…bac1` | `b0804f85…686e` | 2026-09-14 00:50 |
+  | id  | Migración                                    | Hash guardado (journal) | Hash actual (archivo) | Aplicada (UTC)   |
+  | --- | -------------------------------------------- | ----------------------- | --------------------- | ---------------- |
+  | 5   | `0004_multi_org_phase3_write_context_guard`  | `5fcdaa37…a1fe`         | `ffc22130…dd62`       | 2026-09-13 23:30 |
+  | 6   | `0005_multi_org_phase4_read_isolation`       | `50d1d882…7222`         | `877a67d7…e128`       | 2026-09-14 00:00 |
+  | 7   | `0006_multi_org_phase4_portal_scope`         | `f5fff091…9649`         | `a65e787c…5ae5`       | 2026-09-14 00:10 |
+  | 8   | `0007_multi_org_phase4_customer_rpc_scope`   | `5eb32b05…2780`         | `c296a4f7…63e8`       | 2026-09-14 00:20 |
+  | 11  | `0010_multi_org_phase5_bank_write_rpc_scope` | `946fd138…bac1`         | `b0804f85…686e`       | 2026-09-14 00:50 |
 
   La correspondencia es **id N = archivo 000(N-1)**.
+
 - **El id 10 (`0009_multi_org_phase5_bank_read_rpc_scope`) sí coincide**
   (`1ab4511a…381b` en journal y archivo): fue una **falsa alarma** del reporte
   previo, causada por el desfase id↔nombre.
@@ -513,12 +514,12 @@ Auditoría del repo en el commit `61df74ee2052a92c67d7e7bd08d9544871ba5b7a`:
 las dos suites que vigilan el folio REP aceptaban configuraciones más débiles
 que el contrato real de la migración 0026.
 
-| Brecha detectada | Dónde estaba | Cómo quedó |
-| --- | --- | --- |
-| El wrapper de dos parámetros era opcional (`IF v_legacy IS NOT NULL`) | `migration_chain_0024_0026.sql` §2 y `rep_folio_org_scope.sql` §2 | Ambas suites exigen las **dos** firmas; su ausencia es fallo |
-| `search_path` validado con `v_def !~ 'search_path'` (solo texto) | `rep_folio_org_scope.sql:35,83` | Se valida `proconfig` y se exige `search_path=public` exacto |
-| Sin verificación de `SECURITY DEFINER`/`search_path` en los helpers de 0025 | ninguna suite | Nueva sección 1.b en `migration_chain_0024_0026.sql` |
-| Sin verificación de `anon`/`PUBLIC` en los grants | ambas suites | `has_function_privilege('anon', ...)` + `aclexplode(proacl)` con `grantee = 0` |
+| Brecha detectada                                                            | Dónde estaba                                                      | Cómo quedó                                                                     |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| El wrapper de dos parámetros era opcional (`IF v_legacy IS NOT NULL`)       | `migration_chain_0024_0026.sql` §2 y `rep_folio_org_scope.sql` §2 | Ambas suites exigen las **dos** firmas; su ausencia es fallo                   |
+| `search_path` validado con `v_def !~ 'search_path'` (solo texto)            | `rep_folio_org_scope.sql:35,83`                                   | Se valida `proconfig` y se exige `search_path=public` exacto                   |
+| Sin verificación de `SECURITY DEFINER`/`search_path` en los helpers de 0025 | ninguna suite                                                     | Nueva sección 1.b en `migration_chain_0024_0026.sql`                           |
+| Sin verificación de `anon`/`PUBLIC` en los grants                           | ambas suites                                                      | `has_function_privilege('anon', ...)` + `aclexplode(proacl)` con `grantee = 0` |
 
 Contrato exigido ahora por CI (coincide con `0026_rep_number_org_scoped_assignment.sql:127-162`
 y `0025_multi_org_phase8_admin_membership_scope.sql:24-98`):
@@ -602,12 +603,12 @@ La corrida de GitHub Actions sobre el commit correctivo
 `0a941a4adbf1ca4e3ce44eb5fae7cb35513bd86f` (versión 8.10.5) confirmó que
 todas las suites pasan:
 
-| Suite | Run | Resultado | Enlace |
-| --- | --- | --- | --- |
-| RLS DB tests | 35234484524 | 54/54, 0 fallidas | https://github.com/hlopezb83/liftgo/actions/runs/35234484524 |
-| SQL smoke (mismo run) | 35234484524 | 45/45, 0 fallidos | https://github.com/hlopezb83/liftgo/actions/runs/35234484524 |
-| CI principal | 35234484453 | éxito (Vitest shards/merge-cobertura, Calidad lint/tipos/build/arranque, lint de migraciones) | https://github.com/hlopezb83/liftgo/actions/runs/35234484453 |
-| Gitleaks | 35234484442 | éxito | https://github.com/hlopezb83/liftgo/actions/runs/35234484442 |
+| Suite                 | Run         | Resultado                                                                                     | Enlace                                                       |
+| --------------------- | ----------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| RLS DB tests          | 35234484524 | 54/54, 0 fallidas                                                                             | https://github.com/hlopezb83/liftgo/actions/runs/35234484524 |
+| SQL smoke (mismo run) | 35234484524 | 45/45, 0 fallidos                                                                             | https://github.com/hlopezb83/liftgo/actions/runs/35234484524 |
+| CI principal          | 35234484453 | éxito (Vitest shards/merge-cobertura, Calidad lint/tipos/build/arranque, lint de migraciones) | https://github.com/hlopezb83/liftgo/actions/runs/35234484453 |
+| Gitleaks              | 35234484442 | éxito                                                                                         | https://github.com/hlopezb83/liftgo/actions/runs/35234484442 |
 
 **Estado de la validación de código: cerrada.** Las dos suites que habían
 fallado en 8.10.5 (`migration_chain_0024_0026.sql` y `rep_folio_org_scope.sql`,
