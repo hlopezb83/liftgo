@@ -236,10 +236,23 @@ describe("aislamiento por organización en código de servidor", () => {
   });
 
   it("ninguna consulta con service_role toca una tabla con empresa sin acotarla", () => {
-    const findings = findUnscopedPrivilegedQueries();
+    const { findings, inspected } = scanPrivilegedQueries();
     expect(
       findings.map((f) => `${f.file} → ${f.table}: ${f.snippet}`),
     ).toEqual([]);
+    // El escáner debe estar viendo consultas reales, no cero por un regex roto.
+    expect(inspected).toBeGreaterThan(5);
+  });
+
+  it("todas las excepciones declaradas siguen correspondiendo a código real", () => {
+    const { usedAllowEntries } = scanPrivilegedQueries();
+    const stale = ALLOWLIST.filter((a) => !usedAllowEntries.has(a)).map(
+      (a) => `${a.file} → ${a.table}`,
+    );
+    expect(stale).toEqual([]);
+    for (const entry of ALLOWLIST) {
+      expect(entry.reason.length).toBeGreaterThan(20);
+    }
   });
 
   it("classifyFeedbackReportFn acota lectura y escritura por organization_id", () => {
