@@ -34,10 +34,17 @@ describe("classifyLogoSource", () => {
     });
   });
 
-  it("rechaza un host ajeno al Storage del proyecto (no es logo de empresa verificable)", () => {
-    expect(classifyLogoSource("https://cdn.ajeno.example/logo.png").kind).toBe(
-      "unsupported",
-    );
+  it("rechaza CUALQUIER HTTPS ajeno al Storage de este proyecto", () => {
+    // Regresión: un HTTPS no reconocido no puede degradarse a marca global ni
+    // renderizarse; la marca del producto sale de un asset local fijo.
+    for (const url of [
+      "https://cdn.ajeno.example/logo.png",
+      "https://ajeno.example/a/b/c/logo.png?token=x",
+      "https://ajeno.example/storage/v1/object/public/documents/logo.png",
+      "https://user:pass@ajeno.example/logo.png",
+    ]) {
+      expect(classifyLogoSource(url).kind).toBe("unsupported");
+    }
   });
 
   it("rechaza http en claro, data URI y rutas con salto de nivel", () => {

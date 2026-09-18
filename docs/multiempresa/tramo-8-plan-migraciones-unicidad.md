@@ -62,6 +62,7 @@ select i.indisvalid, i.indisready, c.relname
 from pg_index i join pg_class c on c.oid = i.indexrelid
 where c.relname = '<indice_nuevo>';
 ```
+
 Debe devolver `indisvalid = true`. Sólo entonces se retira el índice global.
 
 ---
@@ -72,14 +73,14 @@ Requiere aprobación humana: **sí**.
 
 Índices nuevos propuestos (conservan los filtros parciales actuales):
 
-| Índice nuevo | Definición |
-| --- | --- |
-| `forklifts_org_name_unique` | `(organization_id, name) WHERE deleted_at IS NULL` |
+| Índice nuevo                         | Definición                                                                                |
+| ------------------------------------ | ----------------------------------------------------------------------------------------- |
+| `forklifts_org_name_unique`          | `(organization_id, name) WHERE deleted_at IS NULL`                                        |
 | `forklifts_org_serial_number_unique` | `(organization_id, serial_number) WHERE serial_number IS NOT NULL AND deleted_at IS NULL` |
-| `mechanics_org_name_unique` | `(organization_id, name)` |
-| `drivers_org_name_unique` | `(organization_id, name)` |
-| `parts_inventory_org_sku_unique` | `(organization_id, sku) WHERE sku IS NOT NULL` |
-| `prospects_org_stage_order_uniq` | `(organization_id, stage, stage_order)` |
+| `mechanics_org_name_unique`          | `(organization_id, name)`                                                                 |
+| `drivers_org_name_unique`            | `(organization_id, name)`                                                                 |
+| `parts_inventory_org_sku_unique`     | `(organization_id, sku) WHERE sku IS NOT NULL`                                            |
+| `prospects_org_stage_order_uniq`     | `(organization_id, stage, stage_order)`                                                   |
 
 Paso 1 — crear (fuera de transacción):
 
@@ -170,6 +171,7 @@ drop index concurrently public.payments_org_rep_number_uidx;
 create unique index concurrently feedback_reports_folio_key
   on public.feedback_reports (folio);
 ```
+
 Mismo punto de no retorno: tras el alta de la segunda empresa, recrear los globales puede
 fallar por folios repetidos legítimos.
 
@@ -193,6 +195,7 @@ create unique index concurrently suppliers_org_rfc_unique_idx
 -- verificar, luego:
 drop index concurrently public.suppliers_rfc_unique_idx;
 ```
+
 Ventaja: mínima, reversible, sin cambios de esquema ni de código. Costo: el mismo proveedor
 real queda duplicado como fila independiente en cada empresa.
 

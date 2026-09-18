@@ -13,17 +13,17 @@ número de serie, SKU o folio aparece en este documento.
 
 Leídos de `pg_index` (definiciones, no datos):
 
-| Tabla | Índice único | Particularidad que cambia el resultado |
-| --- | --- | --- |
-| forklifts | `forklifts_name_unique (name)` | parcial: `WHERE deleted_at IS NULL` |
-| forklifts | `forklifts_serial_number_unique (serial_number)` | parcial: `WHERE serial_number IS NOT NULL AND deleted_at IS NULL` |
-| mechanics | `mechanics_name_unique (name)` | global, sin filtro |
-| drivers | `drivers_name_unique (name)` | global, sin filtro |
-| parts_inventory | `parts_inventory_sku_unique (sku)` | parcial: `WHERE sku IS NOT NULL` |
-| prospects | `prospects_stage_order_uniq (stage, stage_order)` | global, sin filtro |
-| payments | `payments_rep_number_uidx (rep_number)` | parcial: `WHERE rep_number IS NOT NULL` |
-| feedback_reports | `feedback_reports_folio_key (folio)` **y** `feedback_reports_organization_folio_key (organization_id, folio)` | el global es redundante respecto del par por organización |
-| suppliers | `suppliers_rfc_unique_idx (upper(btrim(rfc)))` | expresión normalizada + parcial: `WHERE rfc IS NOT NULL AND btrim(rfc) <> '' AND deleted_at IS NULL` |
+| Tabla            | Índice único                                                                                                  | Particularidad que cambia el resultado                                                               |
+| ---------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| forklifts        | `forklifts_name_unique (name)`                                                                                | parcial: `WHERE deleted_at IS NULL`                                                                  |
+| forklifts        | `forklifts_serial_number_unique (serial_number)`                                                              | parcial: `WHERE serial_number IS NOT NULL AND deleted_at IS NULL`                                    |
+| mechanics        | `mechanics_name_unique (name)`                                                                                | global, sin filtro                                                                                   |
+| drivers          | `drivers_name_unique (name)`                                                                                  | global, sin filtro                                                                                   |
+| parts_inventory  | `parts_inventory_sku_unique (sku)`                                                                            | parcial: `WHERE sku IS NOT NULL`                                                                     |
+| prospects        | `prospects_stage_order_uniq (stage, stage_order)`                                                             | global, sin filtro                                                                                   |
+| payments         | `payments_rep_number_uidx (rep_number)`                                                                       | parcial: `WHERE rep_number IS NOT NULL`                                                              |
+| feedback_reports | `feedback_reports_folio_key (folio)` **y** `feedback_reports_organization_folio_key (organization_id, folio)` | el global es redundante respecto del par por organización                                            |
+| suppliers        | `suppliers_rfc_unique_idx (upper(btrim(rfc)))`                                                                | expresión normalizada + parcial: `WHERE rfc IS NOT NULL AND btrim(rfc) <> '' AND deleted_at IS NULL` |
 
 Efecto del borrado lógico: en `forklifts` y `suppliers` las filas con `deleted_at`
 no ocupan la clave, así que el conteo se hizo únicamente sobre filas vivas (hoy
@@ -75,34 +75,34 @@ comparando `payments.organization_id` contra `invoices.organization_id` y contan
 
 ### 3.1 Colisiones por clave
 
-| Clave | Filas evaluadas | Sin organización | Grupos duplicados en la misma empresa | Filas excedentes | Claves en choque entre empresas | Clasificación |
-| --- | --- | --- | --- | --- | --- | --- |
-| forklifts.name | 58 | 0 | 0 | 0 | 0 | cero colisiones |
-| forklifts.serial_number | 56 | 0 | 0 | 0 | 0 | cero colisiones |
-| mechanics.name | 0 (tabla vacía) | 0 | 0 | 0 | 0 | cero colisiones |
-| drivers.name | 0 (tabla vacía) | 0 | 0 | 0 | 0 | cero colisiones |
-| parts_inventory.sku | 0 (tabla vacía) | 0 | 0 | 0 | 0 | cero colisiones |
-| prospects (stage, stage_order) | 23 | 0 | 0 | 0 | 0 | cero colisiones |
-| payments.rep_number | 25 | 0 | 0 | 0 | 0 | cero colisiones |
-| feedback_reports.folio | 1 | 0 | 0 | 0 | 0 | cero colisiones |
-| suppliers.rfc normalizado | 16 | 0 | 0 | 0 | 0 | cero colisiones |
+| Clave                          | Filas evaluadas | Sin organización | Grupos duplicados en la misma empresa | Filas excedentes | Claves en choque entre empresas | Clasificación   |
+| ------------------------------ | --------------- | ---------------- | ------------------------------------- | ---------------- | ------------------------------- | --------------- |
+| forklifts.name                 | 58              | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| forklifts.serial_number        | 56              | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| mechanics.name                 | 0 (tabla vacía) | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| drivers.name                   | 0 (tabla vacía) | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| parts_inventory.sku            | 0 (tabla vacía) | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| prospects (stage, stage_order) | 23              | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| payments.rep_number            | 25              | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| feedback_reports.folio         | 1               | 0                | 0                                     | 0                | 0                               | cero colisiones |
+| suppliers.rfc normalizado      | 16              | 0                | 0                                     | 0                | 0                               | cero colisiones |
 
 Las claves con 0 filas evaluadas no aparecen en la consulta agregada porque no hay filas;
 se confirmaron vacías con el conteo por tabla de §3.2.
 
 ### 3.2 Cobertura del backfill (`organization_id`)
 
-| Tabla | Filas | Filas sin organización |
-| --- | --- | --- |
-| organizations | 1 | — |
-| forklifts (todas / vivas) | 58 / 58 | 0 / 0 |
-| mechanics | 0 | 0 |
-| drivers | 0 | 0 |
-| parts_inventory | 0 | 0 |
-| prospects | 23 | 0 |
-| payments (todas / con REP) | 82 / 25 | 0 / 0 |
-| feedback_reports | 1 | 0 |
-| suppliers (todas / vivas) | 39 / 39 | 0 / 0 |
+| Tabla                      | Filas   | Filas sin organización |
+| -------------------------- | ------- | ---------------------- |
+| organizations              | 1       | —                      |
+| forklifts (todas / vivas)  | 58 / 58 | 0 / 0                  |
+| mechanics                  | 0       | 0                      |
+| drivers                    | 0       | 0                      |
+| parts_inventory            | 0       | 0                      |
+| prospects                  | 23      | 0                      |
+| payments (todas / con REP) | 82 / 25 | 0 / 0                  |
+| feedback_reports           | 1       | 0                      |
+| suppliers (todas / vivas)  | 39 / 39 | 0 / 0                  |
 
 **El backfill dejó asignadas todas las filas objetivo: cero `organization_id` nulos en las
 nueve tablas.** Hoy existe **una sola organización activa**, por lo que ningún choque entre
@@ -110,16 +110,16 @@ empresas es posible todavía: toda clave repetida sería un duplicado interno, y
 
 ### 3.3 Datos de apoyo
 
-| Medida | Valor |
-| --- | --- |
-| Flota con borrado lógico | 0 |
-| Flota viva sin número de serie | 2 (no ocupan la clave por el índice parcial) |
-| Proveedores con borrado lógico | 0 |
-| Proveedores sin RFC o con RFC vacío | 23 de 39 (excluidos del índice parcial) |
-| Pagos cuya organización difiere de la de su factura | 0 |
-| Pagos sin factura / pagos con REP sin factura | 0 / 0 |
-| Organizaciones distintas presentes en pagos / reportes | 1 / 1 |
-| Reportes de retroalimentación sin folio | 0 |
+| Medida                                                 | Valor                                        |
+| ------------------------------------------------------ | -------------------------------------------- |
+| Flota con borrado lógico                               | 0                                            |
+| Flota viva sin número de serie                         | 2 (no ocupan la clave por el índice parcial) |
+| Proveedores con borrado lógico                         | 0                                            |
+| Proveedores sin RFC o con RFC vacío                    | 23 de 39 (excluidos del índice parcial)      |
+| Pagos cuya organización difiere de la de su factura    | 0                                            |
+| Pagos sin factura / pagos con REP sin factura          | 0 / 0                                        |
+| Organizaciones distintas presentes en pagos / reportes | 1 / 1                                        |
+| Reportes de retroalimentación sin folio                | 0                                            |
 
 ## 4. Relación de `payments` y `feedback_reports` con su organización
 
@@ -136,19 +136,19 @@ empresas es posible todavía: toda clave repetida sería un duplicado interno, y
 
 ## 5. Contraste con la matriz del tramo 6
 
-| Entidad | Matriz del tramo 6 | Evidencia del tramo 7 | Decisión humana pendiente |
-| --- | --- | --- | --- |
-| forklifts.serial_number | por organización | 0 colisiones, 0 nulos de organización, 2 filas sin serie | aprobar el lote 1 (sin efecto fiscal) |
-| forklifts.name | por organización | 0 colisiones | aprobar el lote 1 |
-| mechanics.name | por organización | tabla vacía: cambio sin riesgo | aprobar el lote 1 |
-| drivers.name | por organización | tabla vacía: cambio sin riesgo | aprobar el lote 1 |
-| parts_inventory.sku | por organización | tabla vacía: cambio sin riesgo | aprobar el lote 1 |
-| prospects (stage, stage_order) | por organización | 0 colisiones sobre 23 filas | aprobar el lote 1 |
-| payments.rep_number | por organización | 0 colisiones, 0 desalineaciones con la factura | aprobar el lote 2 (folio fiscal) |
-| feedback_reports.folio | retirar el índice global | el par por organización ya existe y cubre el caso | aprobar el lote 2 |
-| suppliers.rfc | **decisión pendiente**: por organización o tabla puente | 16 RFC vivos, 0 colisiones; 23 proveedores sin RFC | **decidir el modelo antes de cualquier índice** |
-| customers.rfc, equipment_models, organizations.slug, user_roles, role_permissions, customer_portal_accounts | global, sin cambio | no se revisaron: quedan globales por diseño | ninguna |
-| bank_accounts (cuenta + banco) | unicidad nueva, opcional | fuera del alcance de este conteo | decidir si se quiere la unicidad interna |
+| Entidad                                                                                                     | Matriz del tramo 6                                      | Evidencia del tramo 7                                    | Decisión humana pendiente                       |
+| ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------- |
+| forklifts.serial_number                                                                                     | por organización                                        | 0 colisiones, 0 nulos de organización, 2 filas sin serie | aprobar el lote 1 (sin efecto fiscal)           |
+| forklifts.name                                                                                              | por organización                                        | 0 colisiones                                             | aprobar el lote 1                               |
+| mechanics.name                                                                                              | por organización                                        | tabla vacía: cambio sin riesgo                           | aprobar el lote 1                               |
+| drivers.name                                                                                                | por organización                                        | tabla vacía: cambio sin riesgo                           | aprobar el lote 1                               |
+| parts_inventory.sku                                                                                         | por organización                                        | tabla vacía: cambio sin riesgo                           | aprobar el lote 1                               |
+| prospects (stage, stage_order)                                                                              | por organización                                        | 0 colisiones sobre 23 filas                              | aprobar el lote 1                               |
+| payments.rep_number                                                                                         | por organización                                        | 0 colisiones, 0 desalineaciones con la factura           | aprobar el lote 2 (folio fiscal)                |
+| feedback_reports.folio                                                                                      | retirar el índice global                                | el par por organización ya existe y cubre el caso        | aprobar el lote 2                               |
+| suppliers.rfc                                                                                               | **decisión pendiente**: por organización o tabla puente | 16 RFC vivos, 0 colisiones; 23 proveedores sin RFC       | **decidir el modelo antes de cualquier índice** |
+| customers.rfc, equipment_models, organizations.slug, user_roles, role_permissions, customer_portal_accounts | global, sin cambio                                      | no se revisaron: quedan globales por diseño              | ninguna                                         |
+| bank_accounts (cuenta + banco)                                                                              | unicidad nueva, opcional                                | fuera del alcance de este conteo                         | decidir si se quiere la unicidad interna        |
 
 ## 6. Recomendación reversible por lotes (propuesta, no aprobada)
 
