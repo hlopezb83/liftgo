@@ -55,15 +55,7 @@ BEGIN
             'Asignado a cotización de venta ' || p_quote_id::text);
   END LOOP;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_forklift_to_sale_quote(uuid, uuid[], int[])') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_forklift_to_sale_quote(uuid, uuid[], int[])') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) TO authenticated;

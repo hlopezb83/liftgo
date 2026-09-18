@@ -45,19 +45,10 @@ BEGIN
     'Factura aprobada',
     'Factura ' || COALESCE(v_number,'') || ' aprobada para pago',
     (select auth.uid()));
-END $function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.approve_supplier_bill(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.approve_supplier_bill(uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.approve_supplier_bill(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.approve_supplier_bill(uuid, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+END $function$;
 
+REVOKE EXECUTE ON FUNCTION public.approve_supplier_bill(uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.approve_supplier_bill(uuid, text) TO authenticated;
 
 -- 2) Dashboard: excluir reservas E2E
 DO $do$
@@ -88,15 +79,7 @@ BEGIN
 
   EXECUTE v_def;
 END
-$do$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_dashboard_stats()') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.get_dashboard_stats() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_dashboard_stats()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_dashboard_stats() TO authenticated';
-  END IF;
-END $lgp_guard$;
+$do$;
+
+REVOKE EXECUTE ON FUNCTION public.get_dashboard_stats() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_dashboard_stats() TO authenticated;

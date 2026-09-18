@@ -76,19 +76,10 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role;
 
 -- El segundo cron de conciliación puede cerrar reservas vencidas, pero decide
 -- el estado físico sólo a partir de entregas completadas, nunca por fechas.
@@ -170,19 +161,10 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.reconcile_expired_bookings() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.reconcile_expired_bookings() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO authenticated, service_role;
 
 -- Definiciones completas y deterministas: no se reconstruye SQL desde el
 -- catálogo. La creación compromete fechas, pero no cambia el estado físico.
@@ -825,13 +807,9 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_on_booking_exit()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_on_booking_exit() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.sync_forklift_on_booking_exit() FROM PUBLIC, anon, authenticated;
 
 -- La RPC de cancelación comparte el mismo criterio de liberación. Mantiene el
 -- orden de locks reserva -> entregas -> unidad que usa complete_delivery().
@@ -963,13 +941,9 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_forklift_rented_requires_delivery()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_forklift_rented_requires_delivery() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.guard_forklift_rented_requires_delivery() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_forklift_rented_requires_delivery ON public.forklifts;
 CREATE TRIGGER trg_forklift_rented_requires_delivery
@@ -999,13 +973,9 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_forklift_sale_commitments()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_forklift_sale_commitments() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.guard_forklift_sale_commitments() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_forklift_sale_commitments ON public.forklifts;
 CREATE TRIGGER trg_forklift_sale_commitments
@@ -1062,19 +1032,10 @@ BEGIN
    LIMIT p_limit
   OFFSET p_offset;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_sale_available_forklifts(integer, integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_sale_available_forklifts(integer, integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_sale_available_forklifts(integer, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_sale_available_forklifts(integer, integer) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.get_sale_available_forklifts(integer, integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_sale_available_forklifts(integer, integer) TO authenticated, service_role;
 
 -- El sincronizador de reparación sólo reconcilia entregas reales; las fechas de
 -- una reserva nunca promueven por sí solas una unidad a rented.
@@ -1152,19 +1113,10 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_rental_status()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_rental_status() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_rental_status()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.sync_forklift_rental_status() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.sync_forklift_rental_status() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.sync_forklift_rental_status() TO authenticated, service_role;
 
 -- Máquina terminal para entregas: una fila completed o cancelled no revive.
 CREATE OR REPLACE FUNCTION public.guard_delivery_completed_terminal()
@@ -1193,13 +1145,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_delivery_completed_terminal()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_delivery_completed_terminal() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.guard_delivery_completed_terminal() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_delivery_completed_terminal ON public.deliveries;
 CREATE TRIGGER trg_guard_delivery_completed_terminal
@@ -1321,13 +1269,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.validate_delivery_booking_integrity()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.validate_delivery_booking_integrity() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.validate_delivery_booking_integrity() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_delivery_booking_integrity ON public.deliveries;
 CREATE TRIGGER trg_delivery_booking_integrity
@@ -1391,13 +1335,9 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.apply_delivery_completed_effects()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_delivery_completed_effects ON public.deliveries;
 CREATE TRIGGER trg_delivery_completed_effects
@@ -1512,19 +1452,10 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.delivery_completion_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.complete_delivery(uuid, text, numeric, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.complete_delivery(uuid, text, numeric, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.complete_delivery(uuid, text, numeric, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.complete_delivery(uuid, text, numeric, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.complete_delivery(uuid, text, numeric, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.complete_delivery(uuid, text, numeric, text) TO authenticated, service_role;
 
 COMMENT ON FUNCTION public.complete_delivery(uuid, text, numeric, text) IS
   'Completa una entrega/recolección bajo locks de reserva, fila logística y unidad; rechaza estados obsoletos.';
@@ -1588,13 +1519,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.enforce_signed_contract_lock()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.enforce_signed_contract_lock() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.enforce_signed_contract_lock() FROM PUBLIC, anon, authenticated;
 
 -- Al liberar una unidad después de reparar/archivar un daño, una reserva
 -- confirmada sólo restaura `rented` si ya tuvo una entrega completada y sigue
@@ -1637,21 +1564,12 @@ BEGIN
 
   RETURN 'available';
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.damage_restore_forklift_status(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid, text)
-  FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.damage_restore_forklift_status(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.damage_restore_forklift_status(uuid, text)
-  TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid, text)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.damage_restore_forklift_status(uuid, text)
+  TO authenticated, service_role;
 
 -- waiting_parts conserva el mismo bloqueo operativo que in_progress. Además,
 -- una restauración vuelve a evaluar una OT abierta aunque work_status no cambie.
@@ -1783,13 +1701,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_status_on_maintenance()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_status_on_maintenance() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.sync_forklift_status_on_maintenance() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_sync_forklift_on_maintenance ON public.maintenance_logs;
 CREATE TRIGGER trg_sync_forklift_on_maintenance

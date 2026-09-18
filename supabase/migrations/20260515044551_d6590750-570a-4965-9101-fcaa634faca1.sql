@@ -52,21 +52,12 @@ USING (
     WHERE b.forklift_id = forklifts.id
       AND b.customer_id = get_customer_id_for_user(auth.uid())
   )
-);DO $lgp_guard$
-BEGIN
-  IF to_regclass('public.collection_reminders_log') IS NOT NULL THEN
-    EXECUTE 'DROP POLICY IF EXISTS "Auditors view collection reminders" ON public.collection_reminders_log';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regclass('public.collection_reminders_log') IS NOT NULL THEN
-    EXECUTE 'CREATE POLICY "Auditors view collection reminders"
-ON public.collection_reminders_log FOR SELECT TO authenticated
-USING (has_role(auth.uid(), ''auditor''::app_role))';
-  END IF;
-END $lgp_guard$;
+);
 
+DROP POLICY IF EXISTS "Auditors view collection reminders" ON public.collection_reminders_log;
+CREATE POLICY "Auditors view collection reminders"
+ON public.collection_reminders_log FOR SELECT TO authenticated
+USING (has_role(auth.uid(), 'auditor'::app_role));
 
 DROP POLICY IF EXISTS "Public read company_settings" ON public.company_settings;
 DROP POLICY IF EXISTS "Authenticated read company_settings" ON public.company_settings;

@@ -149,10 +149,12 @@ SELECT pg_temp.expect_true(
   AND pg_temp.poldef('storage', 'objects', 'Users read own feedback screenshots')
     ILIKE '%storage_path_in_current_organization(name, false)%'
 );
+-- Migración 0032: las rutas de personal usan el predicado estricto de staff
+-- (membresía interna activa y sin membresía de portal), no el genérico.
 SELECT pg_temp.expect_true(
-  'R6-25 los documentos internos exigen la organización de la sesión',
+  'R6-25 los documentos internos exigen la organización de la sesión (staff, 0032)',
   pg_temp.poldef('storage', 'objects', 'Staff read documents')
-    ILIKE '%storage_path_in_current_organization(name, false)%'
+    ILIKE '%storage_staff_path_in_current_organization(name, false)%'
 );
 -- Migración 0031: desaparece la tolerancia al legado sin prefijo. Una ruta sin
 -- el prefijo de la organización ACTIVA se rechaza en lectura y en escritura.

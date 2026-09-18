@@ -27,19 +27,10 @@ BEGIN
   GET DIAGNOSTICS v_deleted = ROW_COUNT;
   RETURN v_deleted;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.purge_old_notifications()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.purge_old_notifications() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.purge_old_notifications()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.purge_old_notifications() TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.purge_old_notifications() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.purge_old_notifications() TO service_role;
 
 -- Programar diariamente 04:00 UTC (22:00 America/Monterrey)
 DO $$

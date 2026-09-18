@@ -28,19 +28,10 @@ BEGIN
   v_next := CASE WHEN v_called THEN v_last + 1 ELSE v_last END;
   RETURN 'BORRADOR-' || lpad(v_next::text, 4, '0');
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.next_draft_invoice_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.next_draft_invoice_number() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.peek_next_draft_invoice_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.peek_next_draft_invoice_number() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+GRANT EXECUTE ON FUNCTION public.next_draft_invoice_number() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.peek_next_draft_invoice_number() TO authenticated, service_role;
 
 -- 2. Assign folio at stamping time (Facturapi = source of truth)
 CREATE OR REPLACE FUNCTION public.assign_stamped_invoice_number(
@@ -79,13 +70,9 @@ BEGIN
 
   RETURN v_new_number;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_invoice_number(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_stamped_invoice_number(uuid, text, text) TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+GRANT EXECUTE ON FUNCTION public.assign_stamped_invoice_number(uuid, text, text) TO service_role;
 
 -- 3. Migrate existing drafts: FAC-XXXX -> BORRADOR-XXXX (frees the fiscal folios)
 UPDATE public.invoices

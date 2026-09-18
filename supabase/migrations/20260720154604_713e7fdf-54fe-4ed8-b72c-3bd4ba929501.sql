@@ -62,19 +62,10 @@ BEGIN
 
   RETURN jsonb_build_object('status', 'reconciled', 'invoice_id', p_invoice_id);
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) TO service_role;
 
 COMMENT ON FUNCTION public.reconcile_stamping_invoice IS
   'EC-A2: conciliación idempotente de facturas atascadas en cfdi_status=stamping cuya emisión en Facturapi sí tuvo éxito. Solo service_role (usada por edge functions).';

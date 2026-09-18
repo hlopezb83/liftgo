@@ -219,25 +219,11 @@ BEGIN
   ORDER BY total_points DESC, resolved_reports DESC
   LIMIT 50;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_feedback_leaderboard(text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_feedback_leaderboard(text) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.change_feedback_status(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.change_feedback_status(uuid, text, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.generate_feedback_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.generate_feedback_number() TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+GRANT EXECUTE ON FUNCTION public.get_feedback_leaderboard(text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.change_feedback_status(uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.generate_feedback_number() TO authenticated;
 
 -- ============================================================
 -- Storage: feedback-screenshots bucket (private)

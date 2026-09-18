@@ -146,31 +146,12 @@ BEGIN
   already_existed := false;
   RETURN NEXT;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) FROM anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) TO service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text) TO service_role;
 
 -- C-2 -----------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION public.change_forklift_status(p_forklift_id uuid, p_new_status text, p_reason text DEFAULT NULL::text)
@@ -206,27 +187,9 @@ BEGIN
   PERFORM set_config('app.forklift_rpc', 'on', true);
   UPDATE public.forklifts SET status = p_new_status WHERE id = p_forklift_id;
   INSERT INTO public.status_logs (forklift_id, from_status, to_status, note) VALUES (p_forklift_id, v_current, p_new_status, p_reason);
-END; $function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.change_forklift_status(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.change_forklift_status(uuid, text, text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.change_forklift_status(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.change_forklift_status(uuid, text, text) FROM anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.change_forklift_status(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.change_forklift_status(uuid, text, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.change_forklift_status(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.change_forklift_status(uuid, text, text) TO service_role';
-  END IF;
-END $lgp_guard$;
+END; $function$;
+
+REVOKE ALL ON FUNCTION public.change_forklift_status(uuid, text, text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.change_forklift_status(uuid, text, text) FROM anon;
+GRANT EXECUTE ON FUNCTION public.change_forklift_status(uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.change_forklift_status(uuid, text, text) TO service_role;

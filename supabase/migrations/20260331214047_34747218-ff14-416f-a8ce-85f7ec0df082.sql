@@ -178,9 +178,6 @@ BEGIN
 
   RETURN result;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_dashboard_stats()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_dashboard_stats() TO anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+GRANT EXECUTE ON FUNCTION public.get_dashboard_stats() TO anon, authenticated;

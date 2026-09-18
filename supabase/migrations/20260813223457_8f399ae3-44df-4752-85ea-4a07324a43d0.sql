@@ -29,19 +29,10 @@ AS $$
           WHERE dr.customer_id = public.get_customer_id_for_user((SELECT auth.uid()))))
       )
   );
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.customer_can_read_document_object(text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.customer_can_read_document_object(text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.customer_can_read_document_object(text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.customer_can_read_document_object(text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE EXECUTE ON FUNCTION public.customer_can_read_document_object(text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.customer_can_read_document_object(text) TO authenticated;
 
 DROP POLICY IF EXISTS "Customers read own scoped documents" ON storage.objects;
 

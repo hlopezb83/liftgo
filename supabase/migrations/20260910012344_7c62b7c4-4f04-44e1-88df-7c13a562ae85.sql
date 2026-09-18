@@ -57,15 +57,7 @@ AS $function$
     ),
     'total_count', (SELECT count(*) FROM filtered)
   );
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_statement_lines_page(uuid, text, text, integer, integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_statement_lines_page(uuid, text, text, integer, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) TO authenticated, service_role;

@@ -45,15 +45,7 @@ BEGIN
          updated_at = now()
    WHERE id = p_log_id;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_maintenance_log(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_maintenance_log(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_maintenance_log(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_maintenance_log(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.soft_delete_maintenance_log(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.soft_delete_maintenance_log(uuid) TO authenticated;

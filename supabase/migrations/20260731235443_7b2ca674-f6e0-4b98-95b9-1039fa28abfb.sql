@@ -4,13 +4,9 @@ RETURNS date
 LANGUAGE sql
 STABLE
 SET search_path = public
-AS $$ SELECT (now() AT TIME ZONE 'America/Monterrey')::date $$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.today_mty()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.today_mty() TO authenticated, anon, service_role';
-  END IF;
-END $lgp_guard$;
+AS $$ SELECT (now() AT TIME ZONE 'America/Monterrey')::date $$;
 
+GRANT EXECUTE ON FUNCTION public.today_mty() TO authenticated, anon, service_role;
 
 -- Reemplaza CURRENT_DATE (UTC) por public.today_mty() en las funciones de
 -- reporte/validación afectadas, preservando el resto de la definición.

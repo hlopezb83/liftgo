@@ -42,13 +42,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.set_delivery_completed_at()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.set_delivery_completed_at() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.set_delivery_completed_at() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_set_delivery_completed_at ON public.deliveries;
 CREATE TRIGGER trg_set_delivery_completed_at
@@ -132,19 +128,10 @@ BEGIN
 
   RETURN v_inserted;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_invoice_bookings(uuid, uuid[])') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_invoice_bookings(uuid, uuid[]) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_invoice_bookings(uuid, uuid[])') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.sync_invoice_bookings(uuid, uuid[]) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.sync_invoice_bookings(uuid, uuid[]) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.sync_invoice_bookings(uuid, uuid[]) TO authenticated, service_role;
 
 -- ============================================================
 -- R-FIX41 (3/3): sin cambios de datos. FAC-0113, ENT-0027 y las cinco

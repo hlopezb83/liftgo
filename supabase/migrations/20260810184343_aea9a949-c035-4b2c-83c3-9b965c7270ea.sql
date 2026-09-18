@@ -24,19 +24,10 @@ AS $$
     ),
     false
   );
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.has_permission(text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.has_permission(text, text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.has_permission(text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.has_permission(text, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.has_permission(text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.has_permission(text, text) TO authenticated;
 
 DROP POLICY IF EXISTS "Dispatchers insert contracts" ON public.contracts;
 DROP POLICY IF EXISTS "Dispatchers update contracts" ON public.contracts;
@@ -82,19 +73,10 @@ BEGIN
   WHERE session_id IN (SELECT id FROM auth.sessions WHERE user_id = _user_id);
   DELETE FROM auth.sessions WHERE user_id = _user_id;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.revoke_user_sessions(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.revoke_user_sessions(uuid) FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.revoke_user_sessions(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.revoke_user_sessions(uuid) TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.revoke_user_sessions(uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.revoke_user_sessions(uuid) TO service_role;
 
 -- SEC-B8: manual de usuario solo para staff.
 DROP POLICY IF EXISTS "Anyone authenticated can read manual" ON public.user_manual;

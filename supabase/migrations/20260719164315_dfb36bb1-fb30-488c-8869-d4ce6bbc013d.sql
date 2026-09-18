@@ -72,15 +72,7 @@ BEGIN
 
   UPDATE quotes SET status = 'accepted' WHERE id = p_quote_id;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.convert_quote_to_bookings(uuid, jsonb, boolean)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.convert_quote_to_bookings(uuid, jsonb, boolean) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.convert_quote_to_bookings(uuid, jsonb, boolean)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.convert_quote_to_bookings(uuid, jsonb, boolean) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.convert_quote_to_bookings(uuid, jsonb, boolean) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.convert_quote_to_bookings(uuid, jsonb, boolean) TO authenticated;

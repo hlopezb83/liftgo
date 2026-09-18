@@ -26,13 +26,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.release_damage_on_invoice_cancel()') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.release_damage_on_invoice_cancel() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE EXECUTE ON FUNCTION public.release_damage_on_invoice_cancel() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_release_damage_on_invoice_cancel ON public.invoices;
 CREATE TRIGGER trg_release_damage_on_invoice_cancel

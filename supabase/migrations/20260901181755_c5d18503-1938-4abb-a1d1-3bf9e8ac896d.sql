@@ -39,19 +39,10 @@ AS $function$
       / CASE WHEN upper(COALESCE(p_to, 'MXN')) = 'MXN' THEN 1 ELSE p_to_rate END
     , 2)
   END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.fx_to_mxn(numeric, text, numeric)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.fx_to_mxn(numeric, text, numeric) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.fx_convert_amount(numeric, text, text, numeric, numeric)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.fx_convert_amount(numeric, text, text, numeric, numeric) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+GRANT EXECUTE ON FUNCTION public.fx_to_mxn(numeric, text, numeric) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.fx_convert_amount(numeric, text, text, numeric, numeric) TO authenticated, service_role;
 
 -- ---------------------------------------------------------------------
 -- R9-06 · v_invoices_with_balance

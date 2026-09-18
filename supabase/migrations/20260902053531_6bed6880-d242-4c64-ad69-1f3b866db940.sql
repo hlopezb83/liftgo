@@ -190,9 +190,6 @@ BEGIN
   ) RETURNING id INTO v_id;
 
   RETURN v_id;
-END $function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.register_supplier_payment(uuid, numeric, date, text, text, text, text, text, uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.register_supplier_payment(uuid, numeric, date, text, text, text, text, text, uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+END $function$;
+
+GRANT EXECUTE ON FUNCTION public.register_supplier_payment(uuid, numeric, date, text, text, text, text, text, uuid) TO authenticated;

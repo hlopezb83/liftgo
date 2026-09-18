@@ -41,7 +41,10 @@ const entries = [
 ];
 
 Deno.test("storageQuarantine: separa lo listo de lo que exige decisión manual", () => {
-  const summary = summarizeQuarantine(entries, summarizeOrphanOwnership(entries));
+  const summary = summarizeQuarantine(
+    entries,
+    summarizeOrphanOwnership(entries),
+  );
   assertEquals(summary.ready, 1);
   assertEquals(summary.total, 4);
   assertEquals(summary.by_reason, {
