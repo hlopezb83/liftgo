@@ -1,3 +1,13 @@
+## [8.24.0] - 2026-09-18 · minor · feature
+
+El logotipo oficial «LIFT GO MONTACARGAS» entregado por el propietario pasa a ser el asset local versionado y fuente única de la marca global del producto, idéntica en todas las empresas. Sustituye al emblema/monograma como marca principal en el sidebar expandido, encabezados del ERP, pantallas de acceso y portal. Sin cambios de base de datos, Storage, valores productivos ni publicación.
+
+- public/brand/liftgo-montacargas.png: asset local versionado; `GLOBAL_BRAND_LOCKUP_SRC` apunta a esa ruta del propio origen.
+- src/components/BrandMark.tsx: nuevo `BrandLockup` con `object-contain`, `w-auto` y alturas adaptables (no recorta ni estira el lockup).
+- Callsites globales migrados: AuthBrandPanel, AuthPage, PortalLogin, CustomerPortalLayout y SidebarBranding (expandido); el sidebar colapsado conserva `BrandMark` por legibilidad.
+- `company_settings.logo_url` sigue reservado al logo empresarial de Configuración/documentos, con aislamiento y fail-closed ya implementados.
+- Pruebas: existencia del asset, uso del lockup local en todos los callsites globales, proporción conservada y ausencia de cualquier URL remota (10/10 en Vitest puntual).
+
 ## [8.23.7] - 2026-09-18 · patch · fix
 
 Las pantallas de acceso del ERP y del portal seguían consumiendo `usePublicBranding().logo_url` (panel de marca y un `<img>` directo en el encabezado). Ahora toda la marca visible de acceso sale del asset local fijo de LiftGo y del nombre global; `company_settings.logo_url` queda restringido a Configuración y a los documentos fiscales/PDF con resolver aislado por organización. Sin cambios de base de datos, Storage ni publicación.

@@ -1,0 +1,15 @@
+{
+  "version": "8.24.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "feature",
+  "title": "El logotipo oficial LIFT GO MONTACARGAS ya es la marca del producto",
+  "description": "Antes, el ERP y el portal mostraban el emblema pequeño (el mismo iconito de la pestaña del navegador) como marca principal. Es como usar el sello de la esquina de una carta en lugar del membrete completo. Ahora el membrete real —el logotipo LIFT GO MONTACARGAS que entregó el propietario— es la marca visible en el menú abierto, los encabezados del ERP, las pantallas de acceso y el portal. Se guarda como archivo del propio proyecto, igual para todas las empresas, y se muestra completo sin recortes ni estiramientos. El menú colapsado conserva el emblema compacto porque el logotipo largo no se lee a ese tamaño. El logo configurable de cada empresa sigue reservado a Configuración y a los documentos, sin mezclarse con la marca del producto.",
+  "changes": [
+    "Se agregó el asset local versionado public/brand/liftgo-montacargas.png como fuente única de la marca global.",
+    "Nuevo componente BrandLockup (object-contain, ancho automático) usado en sidebar expandido, encabezado del ERP, acceso, portal y su encabezado.",
+    "El sidebar colapsado conserva el emblema compacto (BrandMark) por legibilidad.",
+    "Pruebas nuevas: el asset existe, los callsites globales usan el lockup local, conservan proporción y no aceptan ninguna URL remota ni company_settings.logo_url.",
+    "Documentación y roadmap actualizados; sin cambios de base de datos, Storage ni publicación."
+  ]
+}
