@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.18.1",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "Se deshace la reescritura del historial de cambios de base y se corrige el formato que frenaba la revisión automática",
+    "description": "Un cambio anterior había reeditado 188 registros históricos de la base para que ciertos permisos se aplicaran sólo 'si existe'. Eso reescribe historia ya aplicada y, en una instalación nueva, podía saltarse permisos en silencio. Se devolvieron esos 188 archivos a su contenido original y las correcciones viven únicamente en los tres cambios nuevos. Además se corrigió el formato de dos archivos que dejaban en rojo la revisión automática.",
+    "changes": [
+      "Restaurados exactamente los 188 registros históricos de base a su contenido previo; las correcciones siguen viviendo sólo en los tres cambios nuevos (0031, 0032 y 0033), que no se han aplicado en producción.",
+      "Corregido el formato de las dos funciones que hacían fallar la revisión automática; ahora el chequeo de formato y estilo pasa en limpio.",
+      "Prueba de estructura actualizada: los documentos internos ahora exigen el permiso estricto de personal introducido en el cambio 0032.",
+      "Verificación desde cero en una base temporal con el orden real: 588 de 588 registros históricos y 34 de 34 cambios nuevos, 62 de 62 pruebas de seguridad y 45 de 45 pruebas de estructura, más tipos, compilación y 426 pruebas de funciones en verde.",
+      "Sin producción: no se aplicaron cambios a la base real, no se movieron archivos y no se publicó nada."
+    ]
+  },
+  {
     "version": "8.18.0",
     "date": "2026-09-18",
     "type": "minor",
