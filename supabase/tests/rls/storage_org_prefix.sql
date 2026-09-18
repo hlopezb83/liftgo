@@ -323,12 +323,13 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'RLS ROTA: el mecánico no lee documentos de equipo de su organización';
   END IF;
-  IF NOT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'documents' AND name LIKE 'forklift/%'
   ) THEN
-    RAISE EXCEPTION 'REGRESIÓN LEGADA: el documento sin prefijo dejó de leerse';
+    RAISE EXCEPTION 'RLS BREACH: el documento legado sin prefijo sigue siendo legible';
   END IF;
+
   IF EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'documents' AND name LIKE v_org_b || '/%'
