@@ -2,6 +2,7 @@ import { useRef, type ChangeEvent as ReactChangeEvent } from "react";
 import { UploadIcon, DeleteIcon, ImageIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { useCompanyLogoSrc } from "../../hooks/useCompanyLogoSrc";
 import { useUploadCompanyLogo } from "../../hooks/useUploadCompanyLogo";
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
 export function LogoUploader({ logoUrl, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { upload, uploading } = useUploadCompanyLogo();
+  // Fail-closed: sólo se muestra el logo si se puede firmar desde el Storage propio.
+  const previewSrc = useCompanyLogoSrc(logoUrl);
 
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -25,9 +28,9 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
     <div className="space-y-2">
       <Label>Logo de la Empresa (opcional)</Label>
       <div className="flex items-center gap-4">
-        {logoUrl ? (
+        {previewSrc ? (
           <div className="relative h-16 w-16 rounded-md border border-border overflow-hidden bg-muted flex items-center justify-center">
-            <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
+            <img src={previewSrc} alt="Logo" className="h-full w-full object-contain" />
           </div>
         ) : (
           <div className="h-16 w-16 rounded-md border border-dashed border-border bg-muted flex items-center justify-center">
