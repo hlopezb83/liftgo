@@ -74,9 +74,6 @@ BEGIN
     'previousCount', v_previous_count
   );
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_activity_metrics(timestamptz, timestamptz)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_activity_metrics(timestamptz, timestamptz) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_activity_metrics(timestamptz, timestamptz) TO authenticated;

@@ -58,19 +58,10 @@ BEGIN
       USING ERRCODE = 'raise_exception';
   END IF;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_fiscal_period_open(date, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_fiscal_period_open(date, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_fiscal_period_open(date, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.guard_fiscal_period_open(date, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.guard_fiscal_period_open(date, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.guard_fiscal_period_open(date, text) TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.trg_guard_invoice_fiscal_period()
 RETURNS trigger

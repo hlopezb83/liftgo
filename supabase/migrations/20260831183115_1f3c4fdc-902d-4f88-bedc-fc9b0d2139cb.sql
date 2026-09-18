@@ -22,19 +22,10 @@ AS $$
     (SELECT cs.maintenance_buffer_days FROM public.company_settings cs LIMIT 1),
     3
   );
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.maintenance_buffer_days()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.maintenance_buffer_days() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.maintenance_buffer_days()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.maintenance_buffer_days() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.maintenance_buffer_days() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.maintenance_buffer_days() TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.create_booking(p_forklift_id uuid, p_customer_id uuid DEFAULT NULL::uuid, p_customer_name text DEFAULT NULL::text, p_customer_contact text DEFAULT NULL::text, p_start_date date DEFAULT NULL::date, p_end_date date DEFAULT NULL::date, p_recurring_billing boolean DEFAULT false, p_quote_id uuid DEFAULT NULL::uuid)
  RETURNS uuid

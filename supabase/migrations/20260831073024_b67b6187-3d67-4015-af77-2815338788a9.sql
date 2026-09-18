@@ -25,13 +25,9 @@ BEGIN
   RAISE EXCEPTION 'La orden de trabajo ya está cerrada: usa la acción de reapertura para volver a abrirla.'
     USING ERRCODE = 'P0001';
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_maintenance_reopen()') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.guard_maintenance_reopen() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE EXECUTE ON FUNCTION public.guard_maintenance_reopen() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_maintenance_reopen ON public.maintenance_logs;
 CREATE TRIGGER trg_guard_maintenance_reopen
@@ -74,15 +70,7 @@ BEGIN
   INSERT INTO public.status_logs (entity_type, entity_id, from_status, to_status, reason, changed_by)
   VALUES ('maintenance_log', p_log_id, v_old, 'in_progress', btrim(p_reason), (select auth.uid()));
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reopen_work_order(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.reopen_work_order(uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reopen_work_order(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reopen_work_order(uuid, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.reopen_work_order(uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reopen_work_order(uuid, text) TO authenticated;

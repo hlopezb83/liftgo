@@ -138,13 +138,9 @@ BEGIN
 
   RETURN;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.list_invoices_with_balance(text[], date, date, boolean, integer, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, integer, integer) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, integer, integer) TO authenticated;
 
 -- 4) get_customer_summary: agrega outstanding_revenue basado en la vista ---
 CREATE OR REPLACE FUNCTION public.get_customer_summary(p_customer_id uuid)
@@ -266,9 +262,6 @@ AS $function$
     AND i.customer_id = get_customer_id_for_user(auth.uid())
     AND i.status NOT IN ('draft', 'cancelled')
   ORDER BY i.issued_at DESC;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_invoices()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_invoices() TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+GRANT EXECUTE ON FUNCTION public.get_portal_invoices() TO authenticated;

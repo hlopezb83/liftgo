@@ -63,9 +63,6 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.capture_contract_signed_snapshot()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.capture_contract_signed_snapshot() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.capture_contract_signed_snapshot() FROM PUBLIC, anon, authenticated;

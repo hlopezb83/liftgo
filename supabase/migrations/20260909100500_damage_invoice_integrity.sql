@@ -84,21 +84,12 @@ BEGIN
 
   RETURN NEXT v_invoice;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
-  FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
-  TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
+  TO authenticated, service_role;
 
 -- Defensa de base de datos para cualquier ruta, incluida una mutación directa.
 CREATE OR REPLACE FUNCTION public.guard_damage_billing_requires_repair()
@@ -176,13 +167,9 @@ DROP TRIGGER IF EXISTS trg_damage_billing_requires_repair ON public.damage_recor
 CREATE TRIGGER trg_damage_billing_requires_repair
   BEFORE INSERT OR UPDATE OF status, invoice_id, repaired_at, deleted_at
   ON public.damage_records
-  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_billing_requires_repair();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_damage_billing_requires_repair()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_damage_billing_requires_repair() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_billing_requires_repair();
 
+REVOKE ALL ON FUNCTION public.guard_damage_billing_requires_repair() FROM PUBLIC, anon, authenticated;
 
 -- La relación cliente/daño/factura debe seguir siendo válida aunque alguien
 -- cambie el cliente o la reserva después de ligar la factura.
@@ -240,13 +227,9 @@ DROP TRIGGER IF EXISTS trg_guard_damage_record_invoice ON public.damage_records;
 CREATE TRIGGER trg_guard_damage_record_invoice
   BEFORE INSERT OR UPDATE OF invoice_id, customer_id, booking_id
   ON public.damage_records
-  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_record_invoice();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_damage_record_invoice()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_damage_record_invoice() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_record_invoice();
 
+REVOKE ALL ON FUNCTION public.guard_damage_record_invoice() FROM PUBLIC, anon, authenticated;
 
 -- Una fila archivada es evidencia histórica: sólo la RPC de restauración puede
 -- volverla activa, y mientras siga archivada ningún campo puede cambiar.
@@ -280,13 +263,9 @@ $function$;
 DROP TRIGGER IF EXISTS trg_damage_archived_immutable ON public.damage_records;
 CREATE TRIGGER trg_damage_archived_immutable
   BEFORE UPDATE ON public.damage_records
-  FOR EACH ROW EXECUTE FUNCTION public.guard_archived_damage_immutable();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_archived_damage_immutable()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_archived_damage_immutable() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_archived_damage_immutable();
 
+REVOKE ALL ON FUNCTION public.guard_archived_damage_immutable() FROM PUBLIC, anon, authenticated;
 
 -- Si un daño histórico vuelve a quedar físicamente abierto, el equipo no puede
 -- seguir disponible ni rentado. El lock por unidad elimina carreras entre daños.
@@ -346,14 +325,10 @@ BEGIN
   INSERT INTO public.status_logs (forklift_id, from_status, to_status, note, changed_by)
   VALUES (p_forklift_id, v_from_status, 'maintenance', p_note, (select auth.uid()));
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.ensure_forklift_maintenance_for_open_damage(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.ensure_forklift_maintenance_for_open_damage(uuid, text)
-  FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.ensure_forklift_maintenance_for_open_damage(uuid, text)
+  FROM PUBLIC, anon, authenticated;
 
 -- Cancelar una factura no equivale a reparar. Las filas históricas sin
 -- repaired_at vuelven a `reported`; las ya reparadas sí vuelven a `repaired`.
@@ -428,13 +403,9 @@ BEGIN
   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.release_damage_on_invoice_cancel()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.release_damage_on_invoice_cancel() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.release_damage_on_invoice_cancel() FROM PUBLIC, anon, authenticated;
 
 -- Una fila histórica pudo haberse facturado antes de reparar. Sellar repaired_at
 -- desde la UI debe cerrar el daño físicamente sin perder su estado de cobro.
@@ -629,19 +600,10 @@ BEGIN
     END IF;
   END IF;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid) TO authenticated;
 
 -- Restaurar también concilia facturas que se cancelaron mientras la evidencia
 -- estaba archivada. Si la reparación física sigue pendiente, la unidad vuelve
@@ -738,15 +700,7 @@ BEGIN
     );
   END IF;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.restore_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.restore_damage_record(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.restore_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_damage_record(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.restore_damage_record(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.restore_damage_record(uuid) TO authenticated, service_role;

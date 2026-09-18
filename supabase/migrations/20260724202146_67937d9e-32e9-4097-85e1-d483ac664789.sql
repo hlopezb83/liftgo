@@ -51,19 +51,10 @@ BEGIN
     RAISE EXCEPTION 'user_role_not_found';
   END IF;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.update_user_role_safe(uuid, app_role)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.update_user_role_safe(uuid, app_role) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.update_user_role_safe(uuid, app_role)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.update_user_role_safe(uuid, app_role) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.update_user_role_safe(uuid, app_role) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.update_user_role_safe(uuid, app_role) TO authenticated;
 
 COMMENT ON FUNCTION public.update_user_role_safe(uuid, app_role) IS
   'Cambia el rol de un usuario bloqueando la degradación del último admin. Solo ejecutable por admins.';

@@ -329,111 +329,24 @@ BEGIN
     )
   ORDER BY f.name;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assert_invoice_cancellable(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.assert_invoice_cancellable(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.peek_next_invoice_number()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.peek_next_invoice_number() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_invoice_number(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.assign_stamped_invoice_number(uuid, text, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_rep_number(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_credit_note_number(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.assign_stamped_credit_note_number(uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.claim_maintenance_policy_month(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.claim_maintenance_policy_month(uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.damage_restore_forklift_status(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.has_active_rental(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.has_active_rental(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_available_forklifts(date, date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_available_forklifts(date, date) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assert_invoice_cancellable(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assert_invoice_cancellable(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.peek_next_invoice_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.peek_next_invoice_number() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_invoice_number(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_stamped_invoice_number(uuid, text, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_rep_number(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_credit_note_number(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_stamped_credit_note_number(uuid, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.claim_maintenance_policy_month(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.claim_maintenance_policy_month(uuid, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.damage_restore_forklift_status(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.damage_restore_forklift_status(uuid, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.has_active_rental(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.has_active_rental(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_available_forklifts(date, date)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_available_forklifts(date, date) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.assert_invoice_cancellable(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.peek_next_invoice_number() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.assign_stamped_invoice_number(uuid, text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.assign_stamped_rep_number(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.assign_stamped_credit_note_number(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.claim_maintenance_policy_month(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.has_active_rental(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_available_forklifts(date, date) FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION public.assert_invoice_cancellable(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.peek_next_invoice_number() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.assign_stamped_invoice_number(uuid, text, text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.assign_stamped_rep_number(uuid, text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.assign_stamped_credit_note_number(uuid, text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.claim_maintenance_policy_month(uuid, text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.damage_restore_forklift_status(uuid, text) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.has_active_rental(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_available_forklifts(date, date) TO authenticated, service_role;

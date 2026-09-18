@@ -135,15 +135,7 @@ BEGIN
   VALUES (p_forklift_id, v_old_status, v_new_status, 'Returned — condition: ' || p_condition);
   RETURN v_inspection_id;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM anon;
+GRANT EXECUTE ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) TO authenticated;

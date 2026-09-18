@@ -72,15 +72,7 @@ BEGIN
 
   RETURN;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.list_invoices_with_balance(text[], date, date, boolean, int, int)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.list_invoices_with_balance(text[], date, date, boolean, int, int)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) TO authenticated;

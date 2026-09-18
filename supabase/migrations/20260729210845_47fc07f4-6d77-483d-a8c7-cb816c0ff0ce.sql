@@ -69,19 +69,10 @@ BEGIN
               'Daño ' || p_damage_id::text || ' archivado: restauracion de estado');
     END IF;
   END IF;
-END; $$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+END; $$;
 
+REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.restore_forklift_on_damage_repaired()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$

@@ -19,9 +19,6 @@ END;
 $$;
 
 COMMENT ON FUNCTION public.peek_next_invoice_number() IS
-  'Devuelve el folio tentativo de la próxima factura SIN consumir la secuencia. El folio definitivo se asigna atómicamente al insertar via next_invoice_number().';DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.peek_next_invoice_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.peek_next_invoice_number() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+  'Devuelve el folio tentativo de la próxima factura SIN consumir la secuencia. El folio definitivo se asigna atómicamente al insertar via next_invoice_number().';
+
+GRANT EXECUTE ON FUNCTION public.peek_next_invoice_number() TO authenticated, service_role;

@@ -221,19 +221,10 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.correct_return_inspection(uuid, text, text, text, numeric, numeric, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.correct_return_inspection(uuid, text, text, text, numeric, numeric, text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.correct_return_inspection(uuid, text, text, text, numeric, numeric, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.correct_return_inspection(uuid, text, text, text, numeric, numeric, text) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.correct_return_inspection(uuid, text, text, text, numeric, numeric, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.correct_return_inspection(uuid, text, text, text, numeric, numeric, text) TO authenticated, service_role;
 
 -- ============================================================
 -- BLOQUE 2 · B) credit_notes: notas timbradas/canceladas inmutables
@@ -328,19 +319,10 @@ $$;
 DROP TRIGGER IF EXISTS trg_guard_credit_note_delete ON public.credit_notes;
 CREATE TRIGGER trg_guard_credit_note_delete
   BEFORE DELETE ON public.credit_notes
-  FOR EACH ROW EXECUTE FUNCTION public.guard_credit_note_delete();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_credit_note_delete()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_credit_note_delete() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_credit_note_stamping_snapshot()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_credit_note_stamping_snapshot() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_credit_note_delete();
 
+REVOKE ALL ON FUNCTION public.guard_credit_note_delete() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.guard_credit_note_stamping_snapshot() FROM PUBLIC;
 
 -- ============================================================
 -- BLOQUE 2 · C) contracts: congelar identidad y exigir firma

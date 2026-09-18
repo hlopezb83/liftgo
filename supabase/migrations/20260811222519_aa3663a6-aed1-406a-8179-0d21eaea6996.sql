@@ -52,43 +52,14 @@ AS $$
     WHERE ur.user_id = (select auth.uid())
       AND ur.role = ANY (ARRAY['admin', 'administrativo', 'mechanic']::public.app_role[])
   )
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_maintenance_reader()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.is_maintenance_reader() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_inventory_reader()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.is_inventory_reader() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_parts_writer()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.is_parts_writer() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_maintenance_reader()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_maintenance_reader() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_inventory_reader()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_inventory_reader() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_parts_writer()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_parts_writer() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.is_maintenance_reader() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.is_inventory_reader() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.is_parts_writer() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_maintenance_reader() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_inventory_reader() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_parts_writer() TO authenticated, service_role;
 
 -- ---------------------------------------------------------------------
 -- audit_logs: 3 SELECT por rol -> 1 consolidada (la de ventas es

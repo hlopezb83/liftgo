@@ -111,9 +111,6 @@ $$;
 DROP TRIGGER IF EXISTS trg_sync_forklift_on_maintenance ON public.maintenance_logs;
 CREATE TRIGGER trg_sync_forklift_on_maintenance
 AFTER INSERT OR UPDATE OF work_status, deleted_at ON public.maintenance_logs
-FOR EACH ROW EXECUTE FUNCTION public.sync_forklift_status_on_maintenance();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_status_on_maintenance()') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.sync_forklift_status_on_maintenance() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+FOR EACH ROW EXECUTE FUNCTION public.sync_forklift_status_on_maintenance();
+
+REVOKE EXECUTE ON FUNCTION public.sync_forklift_status_on_maintenance() FROM PUBLIC, anon, authenticated;

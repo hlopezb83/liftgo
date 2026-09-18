@@ -176,9 +176,6 @@ BEGIN
 
   RETURN v_batch_id;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_supplier_payment_batch(jsonb, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.create_supplier_payment_batch(jsonb, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.create_supplier_payment_batch(jsonb, text) TO authenticated;

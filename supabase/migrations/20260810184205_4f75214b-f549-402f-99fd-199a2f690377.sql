@@ -18,19 +18,9 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   )
   SELECT s.month_key, SUM(s.total_mxn), COALESCE(SUM(s.total_mxn) FILTER (WHERE s.status = 'paid'), 0), COUNT(*)::int
   FROM scoped s GROUP BY s.month_key ORDER BY s.month_key;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.report_revenue_month_invoices(_month_key text)
 RETURNS TABLE (id uuid, invoice_number text, customer_name text, issued_at timestamptz, total numeric, status text, moneda text, tipo_cambio numeric)
@@ -44,19 +34,9 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
       WHEN upper(COALESCE(i.moneda, 'MXN')) = 'MXN' THEN i.total
       WHEN i.tipo_cambio IS NOT NULL AND i.tipo_cambio > 0 THEN i.total * i.tipo_cambio
       ELSE i.total END DESC;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_revenue_month_invoices(text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.report_revenue_month_invoices(text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_revenue_month_invoices(text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_revenue_month_invoices(text) TO authenticated';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.report_revenue_month_invoices(text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.report_revenue_month_invoices(text) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.report_utilization_by_unit(_start date, _end date)
 RETURNS TABLE (forklift_id uuid, name text, booked_days integer, total_days integer, utilization integer)
@@ -77,19 +57,9 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   LEFT JOIN unit_days ud ON ud.forklift_id = f.id
   WHERE f.deleted_at IS NULL AND f.is_e2e IS NOT TRUE
   ORDER BY 5 DESC, f.name;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_utilization_by_unit(date, date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.report_utilization_by_unit(date, date) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_utilization_by_unit(date, date)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_utilization_by_unit(date, date) TO authenticated';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.report_utilization_by_unit(date, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.report_utilization_by_unit(date, date) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.report_utilization_by_model(_start date, _end date)
 RETURNS TABLE (model text, units integer, available integer, rented integer, booked_days integer, total_days integer, utilization integer)
@@ -124,19 +94,9 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   FROM per_unit p CROSS JOIN range_days r
   GROUP BY p.model_key, r.total_days
   ORDER BY 7 DESC, p.model_key;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_utilization_by_model(date, date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.report_utilization_by_model(date, date) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_utilization_by_model(date, date)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_utilization_by_model(date, date) TO authenticated';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.report_utilization_by_model(date, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.report_utilization_by_model(date, date) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.report_maintenance_cost_by_unit(_start date, _end date)
 RETURNS TABLE (name text, work_count integer, total_cost numeric)
@@ -149,15 +109,6 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
     AND ml.performed_at::date BETWEEN _start AND _end
   GROUP BY ml.forklift_id, f.name
   ORDER BY 3 DESC;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_maintenance_cost_by_unit(date, date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.report_maintenance_cost_by_unit(date, date) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_maintenance_cost_by_unit(date, date)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_maintenance_cost_by_unit(date, date) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+REVOKE ALL ON FUNCTION public.report_maintenance_cost_by_unit(date, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.report_maintenance_cost_by_unit(date, date) TO authenticated;
