@@ -17,7 +17,11 @@ const index = buildOrphanOwnerIndex([
   { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
   { id: BILL_B, cfdiUuid: CFDI_DUP, organizationId: ORG_A },
   { id: UNKNOWN, cfdiUuid: CFDI_DUP, organizationId: ORG_B },
-]);
+], {
+  cfdiUuid: [CFDI_A, CFDI_DUP, UNKNOWN],
+  id: [BILL_A, BILL_B, UNKNOWN],
+});
+
 
 const known = [ORG_A];
 
