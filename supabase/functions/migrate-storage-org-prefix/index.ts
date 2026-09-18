@@ -1261,7 +1261,11 @@ async function applyOrphanBatch(
         "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
       )
       .eq("discovery_kind", "orphaned")
-      .in("status", ["planned", "copied", "failed"])
+      // `copied` es TERMINAL en este modo: `ensureCopied()` sólo revalidaría el
+      // destino y devolvería `copied`, así que reincluirlas las dejaría al
+      // frente del orden llenando el lote en cada corrida y ahogando a las
+      // `planned` posteriores. Revalidar copias es una fase explícita aparte.
+      .in("status", ["planned", "failed"])
       .order("created_at", { ascending: true })
       .range(offset, offset + ORPHAN_LEDGER_PAGE_SIZE - 1);
     if (error) throw new Error("No se pudo leer el lote de huérfanos.");

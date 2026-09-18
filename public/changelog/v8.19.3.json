@@ -1,0 +1,15 @@
+{
+  "version": "8.19.3",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "Los archivos ya copiados dejan de ocupar el turno de los pendientes",
+  "description": "En la migración de archivos históricos, los archivos que ya se habían copiado seguían entrando al lote de trabajo en cada corrida. Como sólo se revisaba que la copia existiera, ocupaban todos los lugares del turno y los archivos aún pendientes nunca avanzaban, igual que una fila donde los que ya fueron atendidos se vuelven a formar al frente. Ahora un archivo copiado se considera terminado y sale de la fila.",
+  "changes": [
+    "El lote pendiente sólo toma archivos por copiar y archivos con error (estos últimos para reintento); los ya copiados quedan fuera y no se cuentan como omitidos.",
+    "Si alguna vez hace falta volver a revisar archivos ya copiados, será un proceso aparte que no compite por el turno de los pendientes.",
+    "Nueva prueba: con lote de un archivo y una bitácora que empieza con uno ya copiado, la siguiente corrida atiende el pendiente nuevo.",
+    "Documentada la limitación: retirar una autorización impide copias futuras pero no borra sola una copia ya hecha, junto con el procedimiento privado para contenerla dejando el archivo original intacto hasta una aprobación separada.",
+    "Sin producción: no se movió, copió ni borró ningún archivo real."
+  ]
+}

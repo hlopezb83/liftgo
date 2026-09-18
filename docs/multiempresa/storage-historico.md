@@ -488,3 +488,46 @@ Regresión nueva: con más de `batchSize` filas no autorizadas **antes** de la
 autorizada en el orden del ledger, ninguna no autorizada cambia y la
 autorizada sí avanza. Verificación local: **16/16 pruebas de cuarentena**,
 `deno fmt --check`, `deno lint` y `deno check` en verde. Sin producción.
+
+### 7. `copied` es estado terminal del lote de copia (corrección 8.19.3)
+
+**Starvation residual.** La consulta del lote seguía incluyendo
+`status = 'copied'`. Con más objetos aprobados que `batchSize`, las filas ya
+copiadas permanecían primeras en el orden (`created_at` ascendente) y volvían a
+llenar el lote en cada corrida: `ensureCopied()` sólo revalida el destino y
+devuelve `copied`, así que el trabajo real —las filas `planned` posteriores—
+nunca se alcanzaba.
+
+Corregido: el conjunto pendiente de este modo es **`planned` y `failed`**
+(`failed` se conserva para reintento). `copied` es **terminal** y queda fuera
+del lote: ni se explora ni se cuenta como `skipped`. Si en algún momento hace
+falta volver a verificar objetos ya copiados, debe hacerse en una **fase
+explícita aparte** que no compita por el lote pendiente.
+
+Regresión nueva: con `batchSize = 1` y ledger `[copied aprobado antiguo,
+planned aprobado nuevo]`, la siguiente corrida procesa el **nuevo**.
+
+#### Limitación conocida: revocar no borra destinos ya copiados
+
+Revocar o dejar caducar una resolución manual **impide copias futuras**, pero
+**no elimina automáticamente** el objeto que ya se copió al destino: el borrado
+de cualquier objeto es una fase separada, deshabilitada por bandera, y nunca se
+ejecuta como efecto de una revocación. Por diseño, esa fase jamás borra sin
+verificación de bytes ni deja huérfanos.
+
+Contención y limpieza segura (operador autorizado, `service_role`, entorno
+privado; nunca desde la respuesta del endpoint, que sólo devuelve agregados):
+
+1. Revocar la resolución manual (`revoked`) para cortar nuevas copias.
+2. Dejar la **fuente intacta**: no borrar nada del origen mientras el caso esté
+   en disputa; es la única copia con procedencia verificada.
+3. Registrar el objeto copiado como contenido: no actualizar referencias de
+   negocio hacia el destino, de modo que ningún flujo lo consuma.
+4. Inspeccionar en privado, sólo lectura, para reconfirmar dueño y empresa.
+5. La eliminación del destino indebido requiere una **aprobación separada y
+   explícita** (nueva resolución o decisión operativa registrada), ejecutada
+   bajo la fase de borrado con su bandera y confirmación propias, y sólo
+   después de verificar que la fuente sigue existiendo e íntegra.
+
+En ningún punto de este procedimiento se exponen rutas, URLs firmadas, tokens
+ni identificadores en respuestas ni logs.

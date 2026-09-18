@@ -283,10 +283,12 @@ function simulateOrphanBatch(
 ): { copied: string[]; skipped: number } {
   const approvedKeys = makeApprovedOrphanKeySet(approvedCandidates);
   if (approvedKeys.size === 0) return { copied: [], skipped: 0 };
+  // Igual que la consulta real: `copied` es terminal y no entra al pendiente.
+  const pending = ledger.filter((row) => row.status !== "copied");
   const collected: FakeLedgerRow[] = [];
   let skipped = 0;
-  for (let offset = 0; offset < ledger.length; offset += pageSize) {
-    const page = ledger.slice(offset, offset + pageSize);
+  for (let offset = 0; offset < pending.length; offset += pageSize) {
+    const page = pending.slice(offset, offset + pageSize);
     const { allowed, skipped: pageSkipped } = filterOrphanLedgerToApproved(
       page,
       approvedKeys,
@@ -334,7 +336,8 @@ Deno.test("orphanBatch: con resolución vigente sí se procesa el objeto aprobad
     },
   ]);
   assertEquals(result.copied, ["planned"]);
-  assertEquals(result.skipped, 2);
+  // La fila `copied` es terminal: ni se explora ni se cuenta como omitida.
+  assertEquals(result.skipped, 1);
 });
 
 Deno.test("orphanBatch: resolución revocada/caduca deja el ledger viejo sin copiar", () => {
@@ -398,7 +401,8 @@ Deno.test("orphanBatch: la empresa del ledger debe coincidir exactamente con la 
     },
   ]);
   assertEquals(result.copied, []);
-  assertEquals(result.skipped, LEDGER.length);
+  // `LEDGER` incluye una fila `copied` terminal que no entra al pendiente.
+  assertEquals(result.skipped, LEDGER.length - 1);
 });
 
 Deno.test("orphanBatch: delete_sources no aprueba huérfanos (allowlist vacía)", () => {
@@ -448,4 +452,43 @@ Deno.test("orphanBatch: filas no aprobadas antes que la aprobada no la ahogan (s
   const again = simulateOrphanBatch(ledger, [], batchSize);
   assertEquals(again.copied, []);
   assertEquals(again.skipped, 0);
+});
+
+Deno.test("orphanBatch: una copia aprobada previa no ahoga a la nueva planned (batchSize=1)", () => {
+  // Ambas filas están aprobadas en ESTA ejecución. La antigua ya está `copied`
+  // y va primera en el orden; si se reincluyera, llenaría el lote de 1 en cada
+  // corrida (ensureCopied sólo revalida el destino) y la nueva `planned` nunca
+  // avanzaría.
+  const ledger: FakeLedgerRow[] = [
+    {
+      id: "old-copied",
+      bucket_id: "supplier-bill-cfdi-xml",
+      source_path: "old.xml",
+      organization_id: ORG,
+      status: "copied",
+    },
+    {
+      id: "new-planned",
+      bucket_id: "supplier-bill-cfdi-xml",
+      source_path: "new.xml",
+      organization_id: ORG,
+      status: "planned",
+    },
+  ];
+  const approved = [
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "old.xml",
+      organizationId: ORG,
+    },
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "new.xml",
+      organizationId: ORG,
+    },
+  ];
+
+  const result = simulateOrphanBatch(ledger, approved, 1);
+  assertEquals(result.copied, ["new-planned"]);
+  assertEquals(result.skipped, 0);
 });
