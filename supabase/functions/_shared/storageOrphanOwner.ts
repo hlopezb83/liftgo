@@ -52,7 +52,15 @@ export interface OrphanOwnerIndex {
   supplierBillsByCfdiUuid: Map<string, string[]>;
   /** `supplier_bills.id` → organizaciones de cada fila coincidente. */
   supplierBillsById: Map<string, string[]>;
+  /**
+   * Claves cuya lectura se completó (se agotó la paginación sin truncación).
+   * Fail-closed: una clave ausente aquí nunca puede resolverse, aunque el mapa
+   * traiga filas, porque la respuesta pudo venir truncada y ocultar duplicados.
+   */
+  completeCfdiUuidKeys: Set<string>;
+  completeIdKeys: Set<string>;
 }
+
 
 const BUCKET_METHODS: Record<string, OrphanOwnerResolutionMethod> = {
   "supplier-bill-cfdi-xml": "supplier_bill_cfdi_uuid",
