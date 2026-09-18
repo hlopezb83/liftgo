@@ -1,5 +1,13 @@
 [
   {
+    "version": "8.23.1",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "El estado de cuenta en PDF vuelve a descargarse",
+    "description": "Al exportar el estado de cuenta desde el portal, la app buscaba la empresa del cliente en un campo que ya no existe y la descarga fallaba. Ahora la empresa se toma de la relación cliente-empresa correcta, así que el PDF se genera de nuevo para clientes y personal."
+  },
+  {
     "version": "8.23.0",
     "date": "2026-09-18",
     "type": "minor",
