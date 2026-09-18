@@ -232,4 +232,4 @@ atribuidas a B y no crea membresías; el alta por `raw_app_meta_data` sí fija e
 contexto correcto aunque el `user_metadata` mienta, y la empresa B pendiente
 completa su alta y queda activa. Control negativo: reinstalado el cuerpo
 anterior, la prueba lo detecta. Resultado local: **62/62 suites RLS** en verde.
-Sin producción: 0031–0034 siguen sin aplicarse a la base conectada.
+Sin producción: 0030–0034 siguen sin aplicarse a la base conectada.
