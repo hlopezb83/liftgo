@@ -43,7 +43,6 @@ import {
 import {
   buildOrphanOwnerIndex,
   collectOrphanOwnerLookupKeys,
-
   type OrphanOwnerIndex,
   type OrphanOwnerResolution,
   type OrphanOwnerResolutionMethod,
@@ -663,7 +662,6 @@ function collectOrphanCandidates(
 
   return { candidates, byBucket: summarizeOrphanOwnership(entries) };
 }
-
 
 async function ensureOrphanLedger(
   admin: AdminClient,

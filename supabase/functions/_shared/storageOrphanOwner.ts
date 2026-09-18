@@ -27,7 +27,6 @@ export type OrphanOwnerUnresolvedReason =
   | "incomplete_lookup"
   | "unknown_organization";
 
-
 export type OrphanOwnerConflictReason =
   | "multiple_owner_rows"
   | "multiple_organizations";
@@ -60,7 +59,6 @@ export interface OrphanOwnerIndex {
   completeCfdiUuidKeys: Set<string>;
   completeIdKeys: Set<string>;
 }
-
 
 const BUCKET_METHODS: Record<string, OrphanOwnerResolutionMethod> = {
   "supplier-bill-cfdi-xml": "supplier_bill_cfdi_uuid",
@@ -165,7 +163,6 @@ export function collectOrphanOwnerLookupKeys(
   return { cfdiUuid: [...cfdiUuid], id: [...id] };
 }
 
-
 /** Resuelve el dueño de un huérfano por coincidencia exacta de la clave. */
 export function resolveOrphanOwner(input: {
   bucketId: string;
@@ -195,7 +192,6 @@ export function resolveOrphanOwner(input: {
   }
   const rows = lookup.get(segment) ?? [];
   if (rows.length === 0) return { status: "unresolved", reason: "no_match" };
-
 
   const organizations = new Set(rows.map((id) => id.toLowerCase()));
   if (organizations.size > 1) {
