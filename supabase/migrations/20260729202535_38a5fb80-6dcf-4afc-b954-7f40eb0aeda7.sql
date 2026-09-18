@@ -107,9 +107,13 @@ BEGIN
     END IF;
   END IF;
   RETURN NEW;
-END; $$;
+END; $$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_quote_cancellation()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.guard_quote_cancellation() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE EXECUTE ON FUNCTION public.guard_quote_cancellation() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_quote_cancellation ON public.quotes;
 CREATE TRIGGER trg_guard_quote_cancellation
@@ -143,9 +147,13 @@ BEGIN
   END IF;
 
   RETURN OLD;
-END; $$;
+END; $$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_quote_delete()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.guard_quote_delete() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE EXECUTE ON FUNCTION public.guard_quote_delete() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_quote_delete ON public.quotes;
 CREATE TRIGGER trg_guard_quote_delete

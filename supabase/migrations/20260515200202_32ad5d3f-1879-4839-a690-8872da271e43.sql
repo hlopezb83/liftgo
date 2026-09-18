@@ -60,10 +60,19 @@ AS $$
   WHERE has_role(auth.uid(), 'customer'::app_role)
     AND i.customer_id = get_customer_id_for_user(auth.uid())
   ORDER BY i.issued_at DESC;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_portal_contracts()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_contracts() TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_portal_invoices()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_invoices() TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-GRANT EXECUTE ON FUNCTION public.get_portal_contracts() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.get_portal_invoices() TO authenticated;
 
 -- 4. quote_assigned_forklifts: re-scope public-role policies to authenticated
 DO $$

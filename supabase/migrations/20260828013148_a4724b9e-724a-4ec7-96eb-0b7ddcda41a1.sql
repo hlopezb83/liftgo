@@ -118,10 +118,19 @@ BEGIN
     'scope', p_scope
   );
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_portal_scenario(text, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.e2e_seed_portal_scenario(text, text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_portal_scenario(text, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_seed_portal_scenario(text, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.e2e_seed_portal_scenario(text, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.e2e_seed_portal_scenario(text, text) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.e2e_teardown(p_scope text)
  RETURNS jsonb
@@ -241,7 +250,15 @@ BEGIN
 
   RETURN v_counts;
 END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.e2e_teardown(text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.e2e_teardown(text) TO authenticated;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_teardown(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.e2e_teardown(text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_teardown(text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_teardown(text) TO authenticated';
+  END IF;
+END $lgp_guard$;

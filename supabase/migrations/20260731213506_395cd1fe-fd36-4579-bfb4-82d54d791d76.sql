@@ -76,9 +76,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_work_order_close_open_damage()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_work_order_close_open_damage() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_work_order_close_open_damage() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_work_order_close_open_damage ON public.maintenance_logs;
 CREATE TRIGGER trg_guard_work_order_close_open_damage

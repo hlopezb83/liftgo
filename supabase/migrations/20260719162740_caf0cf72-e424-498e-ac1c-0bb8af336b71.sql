@@ -55,9 +55,19 @@ BEGIN
   SELECT COUNT(*) INTO v_count FROM updated;
   RETURN v_count;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.expire_stale_quotes() FROM public, anon;
-GRANT EXECUTE ON FUNCTION public.expire_stale_quotes() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.expire_stale_quotes()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.expire_stale_quotes() FROM public, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.expire_stale_quotes()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.expire_stale_quotes() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 -- ============================================================
 -- BL-30: vista de facturas vencidas para reportes

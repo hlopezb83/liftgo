@@ -229,10 +229,19 @@ BEGIN
   SELECT is_active, email INTO v_is_active, v_email FROM public.profiles WHERE user_id = _user_id;
   IF NOT FOUND THEN RETURN false; END IF;
   RETURN _is_active IS NOT DISTINCT FROM v_is_active AND _email IS NOT DISTINCT FROM v_email;
-END; $$;
+END; $$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.profile_update_preserves_protected(uuid, boolean, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.profile_update_preserves_protected(uuid, boolean, text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.profile_update_preserves_protected(uuid, boolean, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.profile_update_preserves_protected(uuid, boolean, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.profile_update_preserves_protected(uuid, boolean, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.profile_update_preserves_protected(uuid, boolean, text) TO authenticated;
 
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE TO authenticated

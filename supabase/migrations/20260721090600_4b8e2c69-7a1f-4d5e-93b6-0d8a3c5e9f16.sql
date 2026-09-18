@@ -28,7 +28,15 @@ BEGIN
     RAISE EXCEPTION 'Factura no encontrada';
   END IF;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.lock_invoice_for_rep(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.lock_invoice_for_rep(uuid) TO service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.lock_invoice_for_rep(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.lock_invoice_for_rep(uuid) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.lock_invoice_for_rep(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.lock_invoice_for_rep(uuid) TO service_role';
+  END IF;
+END $lgp_guard$;

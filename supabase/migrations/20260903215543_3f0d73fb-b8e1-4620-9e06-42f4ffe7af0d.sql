@@ -23,9 +23,19 @@ BEGIN
     PERFORM pg_advisory_xact_lock(v_lock_key);
   END LOOP;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.lock_bookings_for_billing(uuid[]) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.lock_bookings_for_billing(uuid[]) TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.lock_bookings_for_billing(uuid[])') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.lock_bookings_for_billing(uuid[]) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.lock_bookings_for_billing(uuid[])') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.lock_bookings_for_billing(uuid[]) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 -- 2) sync_invoice_bookings endurecido:
 --    a) adquiere los candados ANTES del chequeo de duplicados (dos transacciones
@@ -248,6 +258,15 @@ BEGIN
 
   RETURN QUERY SELECT * FROM public.invoices i WHERE i.id = v_id;
 END;
-$function$;
-REVOKE ALL ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer) TO authenticated, service_role;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;

@@ -318,7 +318,15 @@ BEGIN
 
   RETURN v_log_id;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.start_repair_work_order(uuid, text, text, numeric) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.start_repair_work_order(uuid, text, text, numeric) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.start_repair_work_order(uuid, text, text, numeric)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.start_repair_work_order(uuid, text, text, numeric) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.start_repair_work_order(uuid, text, text, numeric)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.start_repair_work_order(uuid, text, text, numeric) TO authenticated';
+  END IF;
+END $lgp_guard$;

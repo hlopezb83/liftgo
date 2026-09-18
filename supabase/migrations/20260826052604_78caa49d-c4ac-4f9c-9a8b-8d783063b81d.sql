@@ -165,10 +165,19 @@ BEGIN
     )
   ORDER BY f.name;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_available_forklifts(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_available_forklifts(date, date) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_available_forklifts(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_available_forklifts(date, date) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_available_forklifts(date, date) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_available_forklifts(date, date) TO authenticated, service_role;
 
 -- FIX N-41: "renta fisicamente activa" incluye vencidas sin devolucion.
 CREATE OR REPLACE FUNCTION public.cancel_booking(p_booking_id uuid, p_reason text DEFAULT NULL)
@@ -635,9 +644,13 @@ BEGIN
   END IF;
   RETURN v_inspection_id;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM anon';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM anon;
 
 -- FIX N-39: promover a 'rented' solo desde 'available'; log con estado real.
 CREATE OR REPLACE FUNCTION public.apply_delivery_completed_effects()
@@ -680,9 +693,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.apply_delivery_completed_effects()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC;
 
 DROP TRIGGER IF EXISTS trg_delivery_completed_effects ON public.deliveries;
 CREATE TRIGGER trg_delivery_completed_effects

@@ -2,10 +2,31 @@
 -- por migraciones/procesos internos. No hay ningún flujo de la app que lo
 -- invoque, así que se retira el EXECUTE a PUBLIC/anon/authenticated.
 -- Idempotente: REVOKE/GRANT son seguros al re-ejecutarse.
-REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM anon;
-REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.normalize_regimen_fiscal(text) TO service_role;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.normalize_regimen_fiscal(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.normalize_regimen_fiscal(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.normalize_regimen_fiscal(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.normalize_regimen_fiscal(text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.normalize_regimen_fiscal(text) TO service_role';
+  END IF;
+END $lgp_guard$;
+
 
 DO $$
 DECLARE

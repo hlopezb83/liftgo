@@ -74,7 +74,15 @@ BEGIN
     'FROM public.payments p\n      LEFT JOIN public.invoices i ON i.id = p.invoice_id\n      WHERE p.is_e2e IS NOT TRUE');
   EXECUTE v_def;
 END
-$do$;
-
-REVOKE EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) TO authenticated, service_role;
+$do$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.fx_is_missing(text, numeric)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.fx_is_missing(text, numeric)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;

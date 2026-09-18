@@ -36,12 +36,21 @@ BEGIN
 
   RETURN 'available';
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.damage_restore_forklift_status(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid, text)
+  FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.damage_restore_forklift_status(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.damage_restore_forklift_status(uuid, text)
+  TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid, text)
-  FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.damage_restore_forklift_status(uuid, text)
-  TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.sync_forklift_status_on_maintenance()
 RETURNS trigger
@@ -169,9 +178,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.sync_forklift_status_on_maintenance()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_status_on_maintenance() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.sync_forklift_status_on_maintenance() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_sync_forklift_on_maintenance ON public.maintenance_logs;
 CREATE TRIGGER trg_sync_forklift_on_maintenance

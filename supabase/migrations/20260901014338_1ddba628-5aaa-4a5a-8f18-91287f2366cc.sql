@@ -114,9 +114,13 @@ BEGIN
          );
   RETURN OLD;
 END;
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.release_bills_on_batch_delete()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.release_bills_on_batch_delete() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.release_bills_on_batch_delete() FROM PUBLIC, anon, authenticated;
 
 -- R7-12: fuente única de verdad de "qué bloqueos son liberables".
 CREATE OR REPLACE FUNCTION public.releasable_payment_locks(p_older_than_hours integer DEFAULT 24)
@@ -142,10 +146,19 @@ AS $fn$
              JOIN public.supplier_payments sp2 ON sp2.bill_id = i2.bill_id
             WHERE i.bill_id = b.id
          );
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.releasable_payment_locks(integer) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.releasable_payment_locks(integer) TO authenticated;
 
 -- R7-09: el barrido solo liberaba locks cuyo lote ya no existía; un wizard
 -- abandonado deja el lote vivo. Ahora usa el mismo predicado de "liberable".
@@ -178,10 +191,19 @@ BEGIN
   GET DIAGNOSTICS v_count = ROW_COUNT;
   RETURN v_count;
 END;
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.release_stale_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.release_stale_payment_locks(integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.release_stale_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.release_stale_payment_locks(integer) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.release_stale_payment_locks(integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.release_stale_payment_locks(integer) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.count_releasable_payment_locks(p_older_than_hours integer DEFAULT 24)
 RETURNS integer
@@ -203,10 +225,19 @@ BEGIN
   SELECT count(*) INTO v_count FROM public.releasable_payment_locks(p_older_than_hours);
   RETURN v_count;
 END;
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.count_releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.count_releasable_payment_locks(integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.count_releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.count_releasable_payment_locks(integer) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.count_releasable_payment_locks(integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.count_releasable_payment_locks(integer) TO authenticated;
 
 -- R7-06: idempotencia del cron de mantenimiento.
 ALTER TABLE public.maintenance_logs

@@ -55,9 +55,19 @@ AS $$
     WHERE ur.user_id = (select auth.uid())
       AND ur.role = ANY (ARRAY['admin', 'administrativo']::public.app_role[])
   )
-$$;
-REVOKE ALL ON FUNCTION public.is_admin_or_administrativo() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.is_admin_or_administrativo() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_admin_or_administrativo()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.is_admin_or_administrativo() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_admin_or_administrativo()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_admin_or_administrativo() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 CREATE OR REPLACE FUNCTION public.is_admin_administrativo_auditor()
 RETURNS boolean
@@ -71,9 +81,19 @@ AS $$
     WHERE ur.user_id = (select auth.uid())
       AND ur.role = ANY (ARRAY['admin', 'administrativo', 'auditor']::public.app_role[])
   )
-$$;
-REVOKE ALL ON FUNCTION public.is_admin_administrativo_auditor() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.is_admin_administrativo_auditor() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_admin_administrativo_auditor()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.is_admin_administrativo_auditor() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_admin_administrativo_auditor()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_admin_administrativo_auditor() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 CREATE OR REPLACE FUNCTION public.is_ops_staff()
 RETURNS boolean
@@ -87,9 +107,19 @@ AS $$
     WHERE ur.user_id = (select auth.uid())
       AND ur.role = ANY (ARRAY['admin', 'administrativo', 'dispatcher', 'mechanic']::public.app_role[])
   )
-$$;
-REVOKE ALL ON FUNCTION public.is_ops_staff() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.is_ops_staff() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_ops_staff()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.is_ops_staff() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_ops_staff()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_ops_staff() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 CREATE OR REPLACE FUNCTION public.is_backoffice()
 RETURNS boolean
@@ -103,9 +133,19 @@ AS $$
     WHERE ur.user_id = (select auth.uid())
       AND ur.role = ANY (ARRAY['admin', 'administrativo', 'auditor', 'dispatcher', 'ventas']::public.app_role[])
   )
-$$;
-REVOKE ALL ON FUNCTION public.is_backoffice() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.is_backoffice() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_backoffice()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.is_backoffice() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_backoffice()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_backoffice() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 CREATE OR REPLACE FUNCTION public.is_staff()
 RETURNS boolean
@@ -119,9 +159,19 @@ AS $$
     WHERE ur.user_id = (select auth.uid())
       AND ur.role = ANY (ARRAY['admin', 'administrativo', 'auditor', 'dispatcher', 'mechanic', 'ventas']::public.app_role[])
   )
-$$;
-REVOKE ALL ON FUNCTION public.is_staff() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.is_staff() TO authenticated, service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_staff()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.is_staff() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.is_staff()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_staff() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
+
 
 -- -----------------------------------------------------------------------------
 -- 2. Reescritor de expresiones (helper temporal, se elimina al final)

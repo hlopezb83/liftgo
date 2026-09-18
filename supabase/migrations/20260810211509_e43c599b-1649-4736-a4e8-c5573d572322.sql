@@ -26,9 +26,19 @@ BEGIN
   SELECT s.month_key, SUM(s.total_mxn), COALESCE(SUM(s.total_mxn) FILTER (WHERE s.status = 'paid'), 0), COUNT(*)::int
   FROM scoped s GROUP BY s.month_key ORDER BY s.month_key;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated';
+  END IF;
+END $lgp_guard$;
+
 
 DROP FUNCTION IF EXISTS public.report_revenue_month_invoices(text);
 CREATE FUNCTION public.report_revenue_month_invoices(_month_key text)
@@ -50,9 +60,19 @@ BEGIN
       WHEN i.tipo_cambio IS NOT NULL AND i.tipo_cambio > 0 THEN i.total * i.tipo_cambio
       ELSE i.total END DESC;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.report_revenue_month_invoices(text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.report_revenue_month_invoices(text) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_revenue_month_invoices(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_revenue_month_invoices(text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_revenue_month_invoices(text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_revenue_month_invoices(text) TO authenticated';
+  END IF;
+END $lgp_guard$;
+
 
 DROP FUNCTION IF EXISTS public.report_utilization_by_unit(date, date);
 CREATE FUNCTION public.report_utilization_by_unit(_start date, _end date)
@@ -81,9 +101,19 @@ BEGIN
   WHERE f.deleted_at IS NULL AND f.is_e2e IS NOT TRUE
   ORDER BY 5 DESC, f.name;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.report_utilization_by_unit(date, date) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.report_utilization_by_unit(date, date) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_utilization_by_unit(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_utilization_by_unit(date, date) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_utilization_by_unit(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_utilization_by_unit(date, date) TO authenticated';
+  END IF;
+END $lgp_guard$;
+
 
 DROP FUNCTION IF EXISTS public.report_utilization_by_model(date, date);
 CREATE FUNCTION public.report_utilization_by_model(_start date, _end date)
@@ -126,9 +156,19 @@ BEGIN
   GROUP BY p.model_key, r.total_days
   ORDER BY 7 DESC, p.model_key;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.report_utilization_by_model(date, date) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.report_utilization_by_model(date, date) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_utilization_by_model(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_utilization_by_model(date, date) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_utilization_by_model(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_utilization_by_model(date, date) TO authenticated';
+  END IF;
+END $lgp_guard$;
+
 
 DROP FUNCTION IF EXISTS public.report_maintenance_cost_by_unit(date, date);
 CREATE FUNCTION public.report_maintenance_cost_by_unit(_start date, _end date)
@@ -149,9 +189,19 @@ BEGIN
   GROUP BY ml.forklift_id, f.name
   ORDER BY 3 DESC;
 END;
-$$;
-REVOKE ALL ON FUNCTION public.report_maintenance_cost_by_unit(date, date) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.report_maintenance_cost_by_unit(date, date) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_maintenance_cost_by_unit(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_maintenance_cost_by_unit(date, date) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_maintenance_cost_by_unit(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_maintenance_cost_by_unit(date, date) TO authenticated';
+  END IF;
+END $lgp_guard$;
+
 
 -- FIX-R2-08 (Bajo 13a): fallback FX de balance_mxn alineado con toMxn().
 CREATE OR REPLACE VIEW public.v_overdue_invoices AS

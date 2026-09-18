@@ -164,7 +164,15 @@ BEGIN
   END IF;
   RETURN v_inspection_id;
 END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM anon;
-GRANT EXECUTE ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) TO authenticated;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) TO authenticated';
+  END IF;
+END $lgp_guard$;

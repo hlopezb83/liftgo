@@ -13,10 +13,19 @@ AS $$
   WHERE b.customer_id = p_customer_id
     AND b.status IN ('sent', 'partial', 'overdue')
     AND COALESCE(b.cancellation_status, '') <> 'accepted';
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.customer_outstanding_balance(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.customer_outstanding_balance(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.customer_outstanding_balance(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.customer_outstanding_balance(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.customer_outstanding_balance(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.customer_outstanding_balance(uuid) TO authenticated, service_role;
 
 -- Tolerancia monetaria 0.01, misma convención que los guards de pagos.
 CREATE OR REPLACE FUNCTION public.customer_has_outstanding_balance(p_customer_id uuid)
@@ -27,10 +36,19 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
   SELECT public.customer_outstanding_balance(p_customer_id) > 0.01;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.customer_has_outstanding_balance(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.customer_has_outstanding_balance(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.customer_has_outstanding_balance(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.customer_has_outstanding_balance(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.customer_has_outstanding_balance(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.customer_has_outstanding_balance(uuid) TO authenticated, service_role;
 
 -- Guard de UPDATE directo: misma regla que el RPC.
 CREATE OR REPLACE FUNCTION public.guard_customer_archive()
@@ -68,9 +86,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_customer_archive()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_customer_archive() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_customer_archive() FROM PUBLIC, anon, authenticated;
 
 -- RPC canónico: misma regla, mismo helper.
 CREATE OR REPLACE FUNCTION public.soft_delete_customer(p_customer_id uuid)
