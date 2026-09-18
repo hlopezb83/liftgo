@@ -1,3 +1,15 @@
+## [8.25.1] - 2026-09-18 · patch · fix
+
+Corrección de las observaciones de CI sin cambios funcionales.
+
+- drizzle/migrations: se eliminaron los artefactos redundantes 0036–0041 (copias de 0030–0035 con `when` anterior al baseline, nunca aplicadas según `drizzle.__drizzle_migrations`) y sus entradas/snapshots del journal; ninguna migración aplicada se editó ni se renombró y no hubo escrituras en producción.
+- src/test/drizzleJournalOrder.test.ts: baseline real 1790269364000 / idx 35, con pruebas separadas de correspondencia baseline↔idx y de migraciones pendientes; sin debilitar aserciones.
+- src/lib/platformAdmin.{types,helpers}.ts y src/lib/customerPortal.{helpers,link}.ts: extracción de tipos y auxiliares (389→222 y 369→107 líneas).
+- src/features/platform/components/PlatformOrganizationDialogs.tsx: diálogos y acciones extraídos de la página (412→169 líneas).
+- src/lib/__tests__/helpers/orgIsolation{Policy,Scanner}.ts y src/lib/__tests__/retiredEndpoints.test.ts: detector separado en política/escáner/pruebas; `extractChain` baja de complejidad 17 con `lineBreakEndsChain`; allowlist actualizada a las nuevas rutas.
+- src/hooks/useDocuments.ts: orden de importaciones.
+- Validación local: 16/16 detector+retirados, 134 pruebas puntuales, `drizzle-kit check`, `tsgo --noEmit`, `eslint src` (0 errores) y build. CI completo pendiente del nuevo run.
+
 ## [8.25.0] - 2026-09-18 · minor · feature
 
 Branding global: ninguna organización tiene logo propio. El lockup oficial `public/brand/liftgo-montacargas.png` es el único logo del sistema, tanto en la marca del ERP/portal como en todos los documentos generados. Sin cambios de base de datos, Storage, valores productivos ni publicación.

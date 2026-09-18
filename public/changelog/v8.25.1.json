@@ -1,0 +1,15 @@
+{
+  "version": "8.25.1",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "Se corrigió el orden del historial de migraciones y se acomodó el código largo",
+  "description": "La revisión automática marcaba dos fallas. La primera: el registro de cambios de la base tenía copias repetidas con fechas viejas, como hojas fotocopiadas metidas fuera de lugar en una carpeta; se retiraron las copias que nunca se aplicaron y quedó el orden correcto. La segunda: varios archivos eran demasiado largos para las reglas de estilo; se separaron en piezas más chicas sin cambiar nada de lo que hace el sistema.",
+  "changes": [
+    "Se eliminaron seis archivos duplicados de migración (0036–0041) que nunca se ejecutaron y sus entradas del índice; ninguna migración ya aplicada se editó ni se renombró y no se tocó la base de datos.",
+    "La prueba del orden de migraciones ahora compara contra el punto real ya aplicado y verifica, por separado, que nada pendiente quede antes de él.",
+    "Se dividieron en módulos más chicos la operación de plataforma, la invitación al portal, la página de empresas y la prueba del detector de aislamiento, sin cambios de comportamiento.",
+    "Se corrigió el orden de importaciones en el módulo de documentos y se simplificó una función del detector para bajar su complejidad.",
+    "Validado en Lovable: 16/16 pruebas del detector y endpoints retirados, 134 pruebas puntuales, verificación de migraciones, tipos, lint sin errores y build. La suite completa se valida en GitHub Actions."
+  ]
+}
