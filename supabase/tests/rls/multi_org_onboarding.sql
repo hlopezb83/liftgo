@@ -405,16 +405,6 @@ RESET role;
 DO $$
 DECLARE
   v_org_b uuid := current_setting('app.onb.org_b')::uuid;
-  v_portal_b uuid := '30000000-0000-4000-8000-0000000000p1'::text::uuid;
-BEGIN
-  NULL;
-EXCEPTION WHEN OTHERS THEN NULL;
-END;
-$$;
-
-DO $$
-DECLARE
-  v_org_b uuid := current_setting('app.onb.org_b')::uuid;
   v_portal_b uuid := '30000000-0000-4000-8000-0000000000d1';
   v_cust_b1 uuid := '30000000-0000-4000-8000-0000000000c3';
 BEGIN
@@ -530,7 +520,6 @@ BEGIN
     RAISE EXCEPTION 'SUSPENSIÓN: un miembro de B suspendida lee % clientes', v_n;
   END IF;
 
-  SELECT count(*) INTO v_n FROM public.organization_document_counters;
   SELECT count(*) INTO v_n FROM public.invoices;
   IF v_n <> 0 THEN
     RAISE EXCEPTION 'SUSPENSIÓN: un miembro de B suspendida lee facturas';
@@ -542,7 +531,7 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 
   BEGIN
-    INSERT INTO public.forklifts (name, model, status) VALUES ('MC-SUSP-01', 'M1', 'available');
+    INSERT INTO public.forklifts (name, model) VALUES ('MC-SUSP-01', 'M1');
     RAISE EXCEPTION 'SUSPENSIÓN: B suspendida dio de alta una unidad';
   EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 
