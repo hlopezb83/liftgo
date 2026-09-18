@@ -81,6 +81,27 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('b3333333-3333-4333-8333-333333333333', 'administrativo')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
+-- Migración 0031: sin contexto ni membresía interna, RLS oculta las filas y el
+-- DELETE se vuelve un no-op silencioso; se declara la organización explícita.
+DO $ctx$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org FROM public.organizations WHERE is_active ORDER BY created_at LIMIT 1;
+  IF v_org IS NULL THEN
+    RAISE EXCEPTION 'SETUP: se requiere la organización inicial';
+  END IF;
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  VALUES
+    (v_org, 'a3333333-3333-4333-8333-333333333333', 'internal'),
+    (v_org, 'b3333333-3333-4333-8333-333333333333', 'internal')
+  ON CONFLICT DO NOTHING;
+END $ctx$;
+
+GRANT SELECT, DELETE ON public.supplier_payments TO authenticated;
+
 INSERT INTO public.suppliers (id, name)
 VALUES ('c3333333-3333-4333-8333-333333333333', 'Proveedor smoke P0');
 
