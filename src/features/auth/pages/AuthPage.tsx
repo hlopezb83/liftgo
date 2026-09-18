@@ -3,19 +3,32 @@ import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useLocation } from "@/lib/router-compat";
-import { dismissAuthError, notifyAuthError, notifySuccess } from "@/lib/ui/appFeedback";
+import {
+  dismissAuthError,
+  notifyAuthError,
+  notifySuccess,
+} from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
 import { useRecoveryStatus } from "../hooks/useRecoveryStatus";
 import { endRecovery, getRecoveryUserId } from "../recoverySession";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
-  forgot: { title: "Restablecer Contraseña", desc: "Ingresa tu correo para recibir un enlace" },
+  forgot: {
+    title: "Restablecer Contraseña",
+    desc: "Ingresa tu correo para recibir un enlace",
+  },
   reset: { title: "Nueva contraseña", desc: "Ingresa tu nueva contraseña" },
 };
 
@@ -47,7 +60,6 @@ function RecoveryNotice({
   );
 }
 
-
 /** Encabezado con la marca global de LiftGo y el título del modo actual. */
 function AuthCardHeader({
   mode,
@@ -66,11 +78,14 @@ function AuthCardHeader({
           {GLOBAL_BRAND_NAME}
         </span>
       </div>
-      <CardTitle className="auth-display text-xl font-extrabold">{TITLES[mode].title}</CardTitle>
+      <CardTitle className="auth-display text-xl font-extrabold">
+        {TITLES[mode].title}
+      </CardTitle>
       <CardDescription>{TITLES[mode].desc}</CardDescription>
       {unknownPath && (
         <p className="text-xs text-muted-foreground mt-2">
-          La página «{pathname}» no existe o requiere sesión. Inicia sesión para continuar.
+          La página «{pathname}» no existe o requiere sesión. Inicia sesión para
+          continuar.
         </p>
       )}
     </CardHeader>
@@ -92,20 +107,35 @@ function AuthModeLinks({
   return (
     <div className="mt-4 text-center space-y-1">
       {mode === "sign-in" && (
-        <Button variant="link" className="touch:min-h-11" onClick={() => onMode("forgot")}>¿Olvidaste tu contraseña?</Button>
+        <Button
+          variant="link"
+          className="touch:min-h-11"
+          onClick={() => onMode("forgot")}
+        >
+          ¿Olvidaste tu contraseña?
+        </Button>
       )}
       {mode !== "sign-in" && recovery === "idle" && (
-        <Button variant="link" className="touch:min-h-11" onClick={() => onMode("sign-in")}>Volver a Iniciar Sesión</Button>
+        <Button
+          variant="link"
+          className="touch:min-h-11"
+          onClick={() => onMode("sign-in")}
+        >
+          Volver a Iniciar Sesión
+        </Button>
       )}
       {recovery !== "idle" && (
-        <Button variant="link" className="touch:min-h-11" onClick={onCancelRecovery}>
+        <Button
+          variant="link"
+          className="touch:min-h-11"
+          onClick={onCancelRecovery}
+        >
           Cancelar y volver a Iniciar Sesión
         </Button>
       )}
     </div>
   );
 }
-
 
 export default function AuthPage() {
   const { user, signIn, signOut, resetPassword, updatePassword } = useAuth();
@@ -114,8 +144,14 @@ export default function AuthPage() {
   const recovery = useRecoveryStatus();
   // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
   // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
-  const unknownPath = recovery === "idle" && pathname !== "/" && pathname !== "/login" && pathname !== "/auth";
-  const [mode, setMode] = useState<AuthMode>(recovery === "idle" ? "sign-in" : "reset");
+  const unknownPath =
+    recovery === "idle" &&
+    pathname !== "/" &&
+    pathname !== "/login" &&
+    pathname !== "/auth";
+  const [mode, setMode] = useState<AuthMode>(
+    recovery === "idle" ? "sign-in" : "reset",
+  );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -130,7 +166,6 @@ export default function AuthPage() {
   function leaveAuthRoute() {
     if (pathname === "/auth") navigate("/");
   }
-
 
   // AUTH-REC-01: el modo sigue al estado del flujo (estado derivado en render,
   // no un efecto tardío que dejaría un frame con el formulario equivocado).
@@ -156,7 +191,8 @@ export default function AuthPage() {
   // P1b: además de `active`, la sesión ACTUAL debe seguir siendo la del
   // usuario cuya recuperación se confirmó (otra pestaña puede cambiar de
   // cuenta y el SDK sincroniza la sesión entre pestañas).
-  const recoverySessionMatches = recovery === "active" && !!user && user.id === getRecoveryUserId();
+  const recoverySessionMatches =
+    recovery === "active" && !!user && user.id === getRecoveryUserId();
   const canSubmitReset = recoverySessionMatches;
 
   const cancelRecovery = async () => {
@@ -180,7 +216,10 @@ export default function AuthPage() {
     if (mode === "reset") {
       if (!canSubmitReset) return;
       const { error } = await updatePassword(password);
-      if (error) { notifyAuthError({ error }); return; }
+      if (error) {
+        notifyAuthError({ error });
+        return;
+      }
       notifySuccess("Contraseña actualizada");
       setPassword("");
       finishRecovery("sign-in");
@@ -191,9 +230,11 @@ export default function AuthPage() {
     }
     const { error } = await signIn(email, password);
     if (error) notifyAuthError({ error });
-    else { dismissAuthError(); leaveAuthRoute(); }
+    else {
+      dismissAuthError();
+      leaveAuthRoute();
+    }
   };
-
 
   const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
@@ -202,55 +243,68 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-
   return (
     <main className="auth-brandscape min-h-[100dvh] flex bg-background">
-      <AuthBrandPanel
-        tagline="Levanta el futuro de tu operación."
-      />
+      <AuthBrandPanel tagline="Levanta el futuro de tu operación." />
       <div className="flex-1 flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md animate-fade-in shadow-lg">
-        <AuthCardHeader mode={mode} unknownPath={unknownPath} pathname={pathname} />
-        <CardContent>
-          {recovery === "error" || recovery === "pending" ? (
-            <RecoveryNotice
-              status={recovery}
-              onRequestNew={() => { finishRecovery("forgot"); }}
-            />
-
-          ) : (
-
-            <AuthForm
-              mode={mode}
-              email={email}
-              password={password}
-              showPassword={showPassword}
-              loading={loading}
-              onEmailChange={setEmail}
-              onPasswordChange={setPassword}
-              onToggleShowPassword={() => setShowPassword((v) => !v)}
-              onSubmit={handleSubmit}
-            />
-          )}
-          <AuthModeLinks
+        <Card className="w-full max-w-md animate-fade-in shadow-lg">
+          <AuthCardHeader
             mode={mode}
-            recovery={recovery}
-            onMode={setMode}
-            onCancelRecovery={() => { void cancelRecovery(); }}
+            unknownPath={unknownPath}
+            pathname={pathname}
           />
+          <CardContent>
+            {recovery === "error" || recovery === "pending" ? (
+              <RecoveryNotice
+                status={recovery}
+                onRequestNew={() => {
+                  finishRecovery("forgot");
+                }}
+              />
+            ) : (
+              <AuthForm
+                mode={mode}
+                email={email}
+                password={password}
+                showPassword={showPassword}
+                loading={loading}
+                onEmailChange={setEmail}
+                onPasswordChange={setPassword}
+                onToggleShowPassword={() => setShowPassword((v) => !v)}
+                onSubmit={handleSubmit}
+              />
+            )}
+            <AuthModeLinks
+              mode={mode}
+              recovery={recovery}
+              onMode={setMode}
+              onCancelRecovery={() => {
+                void cancelRecovery();
+              }}
+            />
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
-          </div>
-          <Button variant="outline" className="w-full touch:min-h-11" onClick={() => navigate("/portal/login")}>
-            <UsersIcon className="mr-2 h-4 w-4" /> Portal de Clientes
-          </Button>
-          {currentVersion && (
-            <p className="mt-4 text-center text-3xs text-muted-foreground/60 font-mono">v{currentVersion}</p>
-          )}
-        </CardContent>
-      </Card>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">o</span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full touch:min-h-11"
+              onClick={() => navigate("/portal/login")}
+            >
+              <UsersIcon className="mr-2 h-4 w-4" /> Portal de Clientes
+            </Button>
+            {currentVersion && (
+              <p className="mt-4 text-center text-3xs text-muted-foreground/60 font-mono">
+                v{currentVersion}
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

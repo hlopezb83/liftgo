@@ -21,7 +21,11 @@ describe("AuthBrandPanel — marca global en pantallas de acceso", () => {
 
   it("no acepta ni renderiza un logo de empresa aunque se le pase", () => {
     const externo = "https://ejemplo-externo.test/logo.png";
-    const props = { tagline: "t", logoUrl: externo, razonSocial: "Empresa B" } as unknown as {
+    const props = {
+      tagline: "t",
+      logoUrl: externo,
+      razonSocial: "Empresa B",
+    } as unknown as {
       tagline: string;
     };
     const { container } = render(<AuthBrandPanel {...props} />);

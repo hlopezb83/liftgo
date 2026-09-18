@@ -1,3 +1,13 @@
+## [8.23.7] - 2026-09-18 · patch · fix
+
+Las pantallas de acceso del ERP y del portal seguían consumiendo `usePublicBranding().logo_url` (panel de marca y un `<img>` directo en el encabezado). Ahora toda la marca visible de acceso sale del asset local fijo de LiftGo y del nombre global; `company_settings.logo_url` queda restringido a Configuración y a los documentos fiscales/PDF con resolver aislado por organización. Sin cambios de base de datos, Storage ni publicación.
+
+- src/components/branding/AuthBrandPanel.tsx: se eliminaron los props `logoUrl`/`razonSocial` y la rama de `<img>`; usa `BrandMark` (asset local) y `GLOBAL_BRAND_NAME`.
+- src/features/auth/pages/AuthPage.tsx y src/features/portal/pages/PortalLogin.tsx: se retiró `usePublicBranding` y los encabezados con `company.logo_url`; ahora renderizan `BrandMark` + "LiftGo".
+- src/components/branding/__tests__/AuthBrandPanel.test.tsx: prueba positiva del asset local, negativa con un `logoUrl` externo inyectado (no se renderiza, cero URLs http) y verificación estática de que las dos pantallas de acceso no contienen `logo_url` ni `usePublicBranding`.
+- Rastreo completo de callsites de `logo_url`: sólo permanecen en Configuración (CompanyLogoTab/FiscalDataTab), los esquemas/hooks de company-settings y los documentos PDF (`resolveIssuerBranding`, `pdf/shared`, `pdf/contract`).
+- Validación puntual en Lovable: Vitest de marca y panel (5/5), typecheck, lint y build. Suite completa en CI.
+
 ## [8.10.6] - 2026-09-17 · patch · docs
 
 La corrida de GitHub Actions sobre el commit correctivo `0a941a4a` (8.10.5) confirmó que todas las suites pasan: RLS 54/54, smoke 45/45, CI principal y Gitleaks en verde. Las dos suites del folio REP que fallaban por el permiso directo de anon ahora pasan. La migración 0026 sigue pendiente de rollout productivo; no se ejecutó SQL contra producción ni se activó una segunda empresa. Solo documentación.
