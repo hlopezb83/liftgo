@@ -1508,6 +1508,7 @@ export type Database = {
           company: string | null
           contact_person: string | null
           created_at: string
+          created_by_organization_id: string | null
           deleted_at: string | null
           deleted_by: string | null
           domicilio_fiscal_cp: string | null
@@ -1539,6 +1540,7 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          created_by_organization_id?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           domicilio_fiscal_cp?: string | null
@@ -1570,6 +1572,7 @@ export type Database = {
           company?: string | null
           contact_person?: string | null
           created_at?: string
+          created_by_organization_id?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           domicilio_fiscal_cp?: string | null
@@ -1595,7 +1598,15 @@ export type Database = {
           version?: number
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_created_by_organization_id_fkey"
+            columns: ["created_by_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       damage_records: {
         Row: {
@@ -3416,6 +3427,27 @@ export type Database = {
           },
         ]
       }
+      platform_operators: {
+        Row: {
+          auth_user_id: string
+          granted_at: string
+          granted_by: string | null
+          notes: string | null
+        }
+        Insert: {
+          auth_user_id: string
+          granted_at?: string
+          granted_by?: string | null
+          notes?: string | null
+        }
+        Update: {
+          auth_user_id?: string
+          granted_at?: string
+          granted_by?: string | null
+          notes?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -3945,6 +3977,56 @@ export type Database = {
           },
           {
             foreignKeyName: "status_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      storage_migration_manual_resolutions: {
+        Row: {
+          bucket_id: string
+          created_at: string
+          evidence: string | null
+          id: string
+          justification: string
+          organization_id: string
+          resolved_by: string
+          revalidated_at: string
+          source_path: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bucket_id: string
+          created_at?: string
+          evidence?: string | null
+          id?: string
+          justification: string
+          organization_id: string
+          resolved_by: string
+          revalidated_at?: string
+          source_path: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bucket_id?: string
+          created_at?: string
+          evidence?: string | null
+          id?: string
+          justification?: string
+          organization_id?: string
+          resolved_by?: string
+          revalidated_at?: string
+          source_path?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "storage_migration_manual_resolutions_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
@@ -5025,6 +5107,10 @@ export type Database = {
         Args: { _target_user_id: string }
         Returns: undefined
       }
+      assert_platform_operator: {
+        Args: { p_actor: string }
+        Returns: undefined
+      }
       assign_forklift_to_sale_quote: {
         Args: {
           p_forklift_ids: string[]
@@ -5303,6 +5389,8 @@ export type Database = {
             Returns: string
           }
         | { Args: { p_items: Json; p_notes?: string }; Returns: string }
+      current_active_organization_id: { Args: never; Returns: string }
+      current_internal_organization_id: { Args: never; Returns: string }
       current_organization_id: { Args: never; Returns: string }
       current_portal_customer_id: { Args: never; Returns: string }
       customer_can_read_document_object: {
@@ -5323,6 +5411,10 @@ export type Database = {
       }
       customer_owns_invoice: {
         Args: { p_invoice_id: string }
+        Returns: boolean
+      }
+      customer_scope_matches: {
+        Args: { p_created_by_organization_id: string; p_customer_id: string }
         Returns: boolean
       }
       damage_restore_forklift_status: {
@@ -5709,7 +5801,18 @@ export type Database = {
       is_maintenance_reader: { Args: never; Returns: boolean }
       is_ops_staff: { Args: never; Returns: boolean }
       is_parts_writer: { Args: never; Returns: boolean }
+      is_platform_operator: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      link_customer_to_organization_by_rfc: {
+        Args: {
+          p_alias?: string
+          p_contact_person?: string
+          p_email?: string
+          p_phone?: string
+          p_rfc: string
+        }
+        Returns: string
+      }
       list_invoices_with_balance: {
         Args: {
           p_due_from?: string
@@ -5849,6 +5952,43 @@ export type Database = {
       peek_organization_document_counter: {
         Args: { p_document_type: string; p_minimum?: number }
         Returns: number
+      }
+      platform_attach_first_admin: {
+        Args: { p_actor: string; p_organization_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      platform_create_organization: {
+        Args: { p_actor: string; p_name: string; p_slug: string }
+        Returns: string
+      }
+      platform_discard_organization: {
+        Args: { p_actor: string; p_organization_id: string }
+        Returns: boolean
+      }
+      platform_grant_operator: {
+        Args: { p_actor: string; p_notes?: string; p_user_id: string }
+        Returns: undefined
+      }
+      platform_list_organizations: {
+        Args: { p_actor: string }
+        Returns: {
+          created_at: string
+          customers: number
+          id: string
+          internal_members: number
+          is_active: boolean
+          name: string
+          portal_accounts: number
+          slug: string
+        }[]
+      }
+      platform_revoke_operator: {
+        Args: { p_actor: string; p_user_id: string }
+        Returns: undefined
+      }
+      platform_set_organization_active: {
+        Args: { p_active: boolean; p_actor: string; p_organization_id: string }
+        Returns: undefined
       }
       prepare_payment_complement: {
         Args: { p_payment_id: string }
@@ -6282,6 +6422,10 @@ export type Database = {
       }
       storage_prefix_organization: { Args: { p: string }; Returns: string }
       storage_relative_segments: { Args: { p: string }; Returns: string[] }
+      storage_staff_path_in_current_organization: {
+        Args: { p: string; p_require_prefix?: boolean }
+        Returns: boolean
+      }
       sync_forklift_rental_status: {
         Args: never
         Returns: {
