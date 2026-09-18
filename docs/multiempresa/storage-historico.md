@@ -39,8 +39,9 @@ fija** e **idéntico para cualquier empresa**. No se lee de `company_settings`,
 no se firma por organización, **no se traslada a Storage** y **no lleva gate ni
 prueba A/B de aislamiento**: por diseño todos los tenants ven la misma marca.
 La marca pública neutral sigue expuesta por `get_public_branding()`, pero el
-distintivo **no** se construye con ninguna URL: `BrandMark` y el encabezado de
-navegación dibujan el asset local. `classifyLogoSource` sólo acepta rutas o
+distintivo **no** se construye con ninguna URL de datos: `BrandMark` y el
+encabezado de navegación sirven el **asset gráfico del repositorio**
+(`public/favicon.png`), desde el propio origen e idéntico para todo tenant. `classifyLogoSource` sólo acepta rutas o
 URLs del Storage de este proyecto; **cualquier HTTPS ajeno devuelve
 `unsupported`** y no se renderiza ni se descarga (regresión cubierta por
 prueba). Las pruebas A/B de aislamiento siguen aplicando **sólo** al logo

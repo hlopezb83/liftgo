@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.23.6",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "Vuelve el logo gráfico de LiftGo en el menú y el portal",
+    "description": "En la corrección anterior la marca había quedado como un recuadro con las iniciales. Ahora el menú lateral, el portal y los encabezados usan el logo gráfico de LiftGo que ya vive en el propio sistema, igual para todas las empresas y sin depender de ninguna dirección de internet. El logo que sube cada empresa sigue reservado a sus documentos y a Configuración.",
+    "changes": [
+      "El distintivo de LiftGo vuelve a ser gráfico y se sirve desde el propio sistema.",
+      "Ninguna dirección externa puede sustituir la marca del producto.",
+      "El logo de cada empresa se mantiene separado y protegido por empresa."
+    ]
+  },
+  {
     "version": "8.23.5",
     "date": "2026-09-18",
     "type": "patch",
