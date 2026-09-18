@@ -73,7 +73,7 @@ Deno.test("retirados: no queda código privilegiado ni imports muertos", () => {
       `${name}/index.ts sólo debe importar el handler retirado (imports: ${imports.length})`,
     );
     assert(
-      imports[0].includes("_shared/retiredEndpoint.ts"),
+      (imports[0] ?? "").includes("_shared/retiredEndpoint.ts"),
       `${name}/index.ts importa un módulo que ya no necesita: ${imports[0]}`,
     );
   }
