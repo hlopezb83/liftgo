@@ -2,8 +2,11 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { LOGO_BUCKET } from "@/lib/branding/logoSource";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-
+import {
+  notifyError,
+  notifySuccess,
+  notifyValidation,
+} from "@/lib/ui/appFeedback";
 
 export function useUploadCompanyLogo() {
   const [uploading, setUploading] = useState(false);
@@ -19,7 +22,9 @@ export function useUploadCompanyLogo() {
       "image/webp": "webp",
     };
     if (!ALLOWED[file.type]) {
-      notifyValidation({ message: "Solo se permiten imágenes PNG, JPG o WebP" });
+      notifyValidation({
+        message: "Solo se permiten imágenes PNG, JPG o WebP",
+      });
       return null;
     }
 
@@ -31,7 +36,9 @@ export function useUploadCompanyLogo() {
         supabase,
         relativePath,
       );
-      const { error: uploadError } = await supabase.storage.from(LOGO_BUCKET).upload(filePath, file);
+      const { error: uploadError } = await supabase.storage
+        .from(LOGO_BUCKET)
+        .upload(filePath, file);
       if (uploadError) throw uploadError;
       notifySuccess("Logo subido correctamente");
       // Multiempresa: se persiste la RUTA, no una URL pública/firmada. La

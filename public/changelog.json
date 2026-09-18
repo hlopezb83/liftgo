@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.23.3",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "La marca de LiftGo vuelve a verse y el logo de cada empresa sigue protegido",
+    "description": "Se aclaró que el logo del sistema es la marca de LiftGo y se comparte a propósito entre todas las empresas, como el letrero del edificio: es el mismo para todos los inquilinos. Por eso vuelve a mostrarse con normalidad. En cambio, el logo que una empresa sube desde Configuración sigue siendo suyo: se guarda en su propio espacio y se muestra con un permiso temporal, así que ninguna empresa puede ver el de otra.",
+    "changes": [
+      "La marca global se muestra sólo por conexión segura, sin cookies ni datos de sesión, también al generar PDF.",
+      "El logo subido por una empresa se sigue firmando al momento y con caducidad corta.",
+      "Se rechazan enlaces inseguros o manipulados: en ese caso aparece el distintivo con las iniciales.",
+      "Documentación y roadmap explican la diferencia entre la marca global y el logo por empresa."
+    ]
+  },
+  {
     "version": "8.23.2",
     "date": "2026-09-18",
     "type": "patch",

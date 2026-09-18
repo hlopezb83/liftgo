@@ -22,14 +22,20 @@ export function useMaintenanceBuffer() {
   const q = useCompanySettings();
   const data: MaintenanceBufferSetting | undefined = useMemo(() => {
     if (!q.data) {
-      return q.isSuccess ? { id: null, days: DEFAULT_MAINTENANCE_BUFFER_DAYS } : undefined;
+      return q.isSuccess
+        ? { id: null, days: DEFAULT_MAINTENANCE_BUFFER_DAYS }
+        : undefined;
     }
     return {
       id: q.data.id ?? null,
-      days: Number(q.data.maintenance_buffer_days ?? DEFAULT_MAINTENANCE_BUFFER_DAYS),
+      days: Number(
+        q.data.maintenance_buffer_days ?? DEFAULT_MAINTENANCE_BUFFER_DAYS,
+      ),
     };
   }, [q.data, q.isSuccess]);
-  return { ...q, data } as typeof q & { data: MaintenanceBufferSetting | undefined };
+  return { ...q, data } as typeof q & {
+    data: MaintenanceBufferSetting | undefined;
+  };
 }
 
 export function useUpdateMaintenanceBuffer() {
@@ -41,7 +47,9 @@ export function useUpdateMaintenanceBuffer() {
         );
       }
       if (!Number.isInteger(days) || days < 0 || days > 30) {
-        throw new Error("El buffer debe ser un número entero entre 0 y 30 días.");
+        throw new Error(
+          "El buffer debe ser un número entero entre 0 y 30 días.",
+        );
       }
       const { error } = await supabase
         .from("company_settings")

@@ -2,7 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { COMPANY_SETTINGS_INVALIDATION_KEYS, companySettingsQueries } from "../lib/queryKeys";
+import {
+  COMPANY_SETTINGS_INVALIDATION_KEYS,
+  companySettingsQueries,
+} from "../lib/queryKeys";
 
 export function useCompanySettings() {
   return useQuery(companySettingsQueries.list());
@@ -20,9 +23,14 @@ export function useUpsertCompanySettings() {
       facturapi_mode?: string | null;
     }) => {
       const query = settings.id
-        ? supabase.from("company_settings").update(settings).eq("id", settings.id)
-        // organization_id lo asigna la base; no forma parte de los ajustes editables.
-        : supabase.from("company_settings").insert(settings as TablesInsert<"company_settings">);
+        ? supabase
+            .from("company_settings")
+            .update(settings)
+            .eq("id", settings.id)
+        : // organization_id lo asigna la base; no forma parte de los ajustes editables.
+          supabase
+            .from("company_settings")
+            .insert(settings as TablesInsert<"company_settings">);
       const { data, error } = await query.select().single();
       if (error) throw error;
       return data;

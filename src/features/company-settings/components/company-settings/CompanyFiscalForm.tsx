@@ -2,9 +2,21 @@ import { useFormContext } from "react-hook-form";
 import { CompanyIcon, SaveIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
 export interface FiscalFormValues {
@@ -30,50 +42,78 @@ export function CompanyFiscalForm({ isPending }: Props) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField control={form.control} name="rfc" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>RFC *</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                  placeholder="XAXX010101000"
-                  maxLength={13}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="razon_social" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Razón Social *</FormLabel>
-              <FormControl><Input {...field} placeholder="Mi Empresa S.A. de C.V." /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <FormField
+            control={form.control}
+            name="rfc"
+            render={({ field }) => (
+              <FormItem className="space-y-1.5">
+                <FormLabel>RFC *</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toUpperCase())
+                    }
+                    placeholder="XAXX010101000"
+                    maxLength={13}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="razon_social"
+            render={({ field }) => (
+              <FormItem className="space-y-1.5">
+                <FormLabel>Razón Social *</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Mi Empresa S.A. de C.V." />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField control={form.control} name="regimen_fiscal" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Régimen Fiscal *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar régimen" /></SelectTrigger></FormControl>
-                <SelectContent className="max-h-60 overflow-y-auto z-50">
-                  {REGIMEN_FISCAL.map((r) => (
-                    <SelectItem key={r.code} value={r.code}>{r.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )} />
-          <FormField control={form.control} name="lugar_expedicion" render={({ field }) => (
-            <FormItem className="space-y-1.5">
-              <FormLabel>Lugar de Expedición (C.P.) *</FormLabel>
-              <FormControl><Input {...field} placeholder="06600" maxLength={5} /></FormControl>
-              <FormMessage />
-            </FormItem>
-          )} />
+          <FormField
+            control={form.control}
+            name="regimen_fiscal"
+            render={({ field }) => (
+              <FormItem className="space-y-1.5">
+                <FormLabel>Régimen Fiscal *</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Seleccionar régimen" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="max-h-60 overflow-y-auto z-50">
+                    {REGIMEN_FISCAL.map((r) => (
+                      <SelectItem key={r.code} value={r.code}>
+                        {r.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="lugar_expedicion"
+            render={({ field }) => (
+              <FormItem className="space-y-1.5">
+                <FormLabel>Lugar de Expedición (C.P.) *</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="06600" maxLength={5} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </div>
 
         <div className="pt-2">
