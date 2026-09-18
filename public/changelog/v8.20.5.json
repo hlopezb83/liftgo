@@ -1,0 +1,12 @@
+{
+  "version": "8.20.5",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "Corrección de un error de revisión de código que bloqueaba la verificación automática",
+  "description": "La prueba que revisa el aislamiento entre empresas tenía una variable declarada como modificable cuando su valor nunca cambiaba. La revisión automática de código lo marca como error y detenía toda la verificación del proyecto sin llegar a revisar nada más, como un semáforo rojo que impide avanzar a todo el convoy por un solo coche mal estacionado. Se declaró la variable como fija y la verificación vuelve a pasar.",
+  "changes": [
+    "Se cambió `let end` por `const end` en la prueba de aislamiento porque su valor no cambia tras asignarse.",
+    "La revisión automática de código (ESLint) vuelve a terminar sin errores; typecheck, build y la prueba de aislamiento (16/16) pasan."
+  ]
+}
