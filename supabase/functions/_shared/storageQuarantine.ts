@@ -98,3 +98,128 @@ export function summarizeQuarantine(
     by_reason: reasons,
   };
 }
+
+/* -------------------------------------------------------------------------
+ * Resolución MANUAL explícita y revalidada.
+ *
+ * Un objeto en cuarentena sólo puede salir de ella con una decisión humana
+ * REGISTRADA en `public.storage_migration_manual_resolutions` (tabla deny-all,
+ * accesible sólo por service_role). Registrar no basta: antes de copiar se
+ * revalida contra el estado vivo. Todo lo que no encaje exactamente se queda
+ * en cuarentena; nunca se adivina el dueño.
+ * ------------------------------------------------------------------------- */
+
+/** Registro de decisión humana leído desde la tabla de resoluciones. */
+export interface ManualResolutionRecord {
+  bucket_id: string;
+  source_path: string;
+  organization_id: string;
+  resolved_by: string;
+  justification: string;
+  /** Momento de la última revalidación por el operador (ISO 8601). */
+  revalidated_at: string;
+  status: "active" | "revoked";
+}
+
+export type ManualResolutionRejection =
+  | "no_manual_resolution"
+  | "revoked"
+  | "identity_mismatch"
+  | "unknown_organization"
+  | "inactive_organization"
+  | "contradicts_derived_owner"
+  | "incomplete_lookup"
+  | "missing_justification"
+  | "revalidation_expired"
+  | "unsupported_bucket";
+
+export type ManualResolutionDecision =
+  | { allowed: true; organizationId: string; source: "manual_resolution" }
+  | { allowed: false; reason: ManualResolutionRejection };
+
+/** Ventana máxima entre la revalidación del operador y la copia. */
+export const MANUAL_RESOLUTION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+export interface ManualResolutionInput {
+  bucketId: string;
+  sourcePath: string;
+  /** Resolución derivada automáticamente para ese mismo objeto. */
+  derived: OrphanOwnerResolution;
+  /** Registro leído de la tabla, o null si no existe. */
+  record: ManualResolutionRecord | null;
+  /** Organizaciones conocidas y ACTIVAS. */
+  activeOrganizationIds: readonly string[];
+  /** Organizaciones conocidas (activas o suspendidas). */
+  knownOrganizationIds: readonly string[];
+  now?: number;
+}
+
+/**
+ * Decide, de forma pura y fail-closed, si un objeto en cuarentena puede
+ * copiarse por decisión manual. No hace E/S y no expone rutas: el llamador
+ * sólo debe propagar conteos.
+ */
+export function evaluateManualResolution(
+  input: ManualResolutionInput,
+): ManualResolutionDecision {
+  const { record, derived } = input;
+  if (record === null) {
+    return { allowed: false, reason: "no_manual_resolution" };
+  }
+  if (record.status !== "active") return { allowed: false, reason: "revoked" };
+
+  if (
+    record.bucket_id !== input.bucketId ||
+    record.source_path !== input.sourcePath
+  ) {
+    return { allowed: false, reason: "identity_mismatch" };
+  }
+
+  if (record.justification.trim().length < 10) {
+    return { allowed: false, reason: "missing_justification" };
+  }
+
+  // Una lectura incompleta del índice de dueños invalida cualquier decisión:
+  // el operador no pudo ver el universo completo de filas candidatas.
+  if (
+    derived.status === "unresolved" && derived.reason === "incomplete_lookup"
+  ) {
+    return { allowed: false, reason: "incomplete_lookup" };
+  }
+  if (
+    derived.status === "unresolved" && derived.reason === "unsupported_bucket"
+  ) {
+    return { allowed: false, reason: "unsupported_bucket" };
+  }
+
+  // La decisión humana nunca puede contradecir un dueño derivado con certeza.
+  if (
+    derived.status === "resolved" &&
+    derived.organizationId !== record.organization_id
+  ) {
+    return { allowed: false, reason: "contradicts_derived_owner" };
+  }
+
+  if (!input.knownOrganizationIds.includes(record.organization_id)) {
+    return { allowed: false, reason: "unknown_organization" };
+  }
+  if (!input.activeOrganizationIds.includes(record.organization_id)) {
+    return { allowed: false, reason: "inactive_organization" };
+  }
+
+  const revalidatedAt = Date.parse(record.revalidated_at);
+  const now = input.now ?? Date.now();
+  if (
+    Number.isNaN(revalidatedAt) ||
+    revalidatedAt > now ||
+    now - revalidatedAt > MANUAL_RESOLUTION_MAX_AGE_MS
+  ) {
+    return { allowed: false, reason: "revalidation_expired" };
+  }
+
+  return {
+    allowed: true,
+    organizationId: record.organization_id,
+    source: "manual_resolution",
+  };
+}
