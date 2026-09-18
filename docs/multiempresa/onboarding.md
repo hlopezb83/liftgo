@@ -1,9 +1,17 @@
 # Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
 
-Estado: **implementado en el repositorio (8.15.0), sin producción**. La migración
-`0030_multi_org_onboarding_and_customer_scope.sql` está en el journal (idx 30) y
-sólo se ejecuta en CI efímero. Su rollout a la base conectada requiere
-autorización explícita y sigue el mismo canal oficial que 0024–0029.
+Estado: **implementado en el repositorio (8.16.0), sin producción**. Las
+migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) y
+`0031_multi_org_audit_hardening.sql` (idx 31) están en el journal y sólo se
+ejecutan en CI efímero. Su rollout a la base conectada requiere autorización
+explícita y sigue el mismo canal oficial que 0024–0029.
+
+> **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
+> plataforma **explícita** (sin promoción automática de administradores de
+> empresa), alta en **dos tiempos** (empresa inactiva hasta tener su primer
+> administrador), clientes sólo para **membresía interna** y Storage con
+> prefijo de empresa activa **obligatorio**.
+
 
 ## Qué cierra este tramo
 
