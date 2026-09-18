@@ -35,9 +35,31 @@ navegador ── server function ── requirePlatformOperator ── RPC platf
                  └ nunca envía organization_id ni decide permisos
 ```
 
-- `platform_operators`: quién puede operar la plataforma. Respaldo inicial en
-  0030: los administradores internos activos de la organización fundadora, sólo
-  si la tabla está vacía. RLS: cada uno ve únicamente su propia fila.
+- `platform_operators`: quién puede operar la plataforma. **La autoridad de
+  plataforma NO se deriva del rol `admin` de una empresa.** 0031 retira el
+  respaldo automático de 0030 (borra únicamente las filas con el marcador
+  exacto de aquel seed y conserva cualquier asignación explícita). RLS: cada
+  operador ve únicamente su propia fila.
+
+### Bootstrap seguro del primer operador
+
+No hay forma de volverse operador desde la aplicación. El primer operador se
+asigna una sola vez con el canal privilegiado (`service_role`), nombrando al
+usuario de forma explícita:
+
+```sql
+-- Ejecutado por el propietario del proyecto con el canal privilegiado.
+INSERT INTO public.platform_operators (auth_user_id, notes)
+VALUES ('<uuid del usuario>', 'Operador raíz: alta manual autorizada')
+ON CONFLICT (auth_user_id) DO NOTHING;
+```
+
+A partir de ahí la alta y baja son explícitas y auditables:
+`platform_grant_operator(p_actor, p_user_id, p_notes)` y
+`platform_revoke_operator(p_actor, p_user_id)` (ambas sólo `service_role`,
+ambas exigen `assert_platform_operator(p_actor)`; nadie puede retirarse la
+autoridad a sí mismo).
+
 - `is_platform_operator()` (SECURITY DEFINER, `authenticated`): responde sólo
   por el usuario autenticado. La UI lo usa para **mostrar** la sección; nunca es
   la barrera.
