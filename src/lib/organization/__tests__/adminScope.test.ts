@@ -92,6 +92,19 @@ describe("resolveInternalScope", () => {
     );
     expect(scope).toEqual({ status: "read_error" });
   });
+
+  it("tramo 9: una empresa suspendida deja fuera a su personal interno", async () => {
+    const scope = await resolveInternalScope(
+      client({
+        organization_memberships: {
+          data: [{ organization_id: ORG_A, member_type: "internal" }],
+        },
+        organizations: { data: [{ id: ORG_A, is_active: false }] },
+      }),
+      USER,
+    );
+    expect(scope).toEqual({ status: "not_internal", reason: "no_membership" });
+  });
 });
 
 describe("resolveTargetScope", () => {
