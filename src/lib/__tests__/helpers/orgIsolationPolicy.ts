@@ -6,7 +6,13 @@ import { join } from "node:path";
  * longitud; el contenido es el mismo y no relaja ninguna afirmación.
  */
 export const ROOT = process.cwd();
-export const TYPES_FILE = join(ROOT, "src", "integrations", "supabase", "types.ts");
+export const TYPES_FILE = join(
+  ROOT,
+  "src",
+  "integrations",
+  "supabase",
+  "types.ts",
+);
 
 export const SERVER_DIRS = [
   join(ROOT, "src", "lib"),

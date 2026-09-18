@@ -72,7 +72,10 @@ export function extractChain(source: string, fromIndex: number): string {
 }
 
 /** ¿El receptor inmediatamente anterior al `.from(` es el cliente privilegiado? */
-export function receiverBefore(source: string, dotIndex: number): string | null {
+export function receiverBefore(
+  source: string,
+  dotIndex: number,
+): string | null {
   let i = dotIndex - 1;
   while (i >= 0 && /\s/.test(source[i] ?? "")) i--;
   const end = i + 1;
@@ -110,7 +113,9 @@ export function isTrustedOrgValue(expr: string): boolean {
 }
 
 /** Filtros de empresa en la propia cadena (select/update/delete). */
-export function filterScopeOrigin(chain: string): "trusted" | "untrusted" | "none" {
+export function filterScopeOrigin(
+  chain: string,
+): "trusted" | "untrusted" | "none" {
   let sawAny = false;
   const filters = [
     /\.eq\(\s*["'`]organization_id["'`]\s*,\s*([^),]+)\)/g,
@@ -146,7 +151,9 @@ export function filterScopeOrigin(chain: string): "trusted" | "untrusted" | "non
 }
 
 /** Valor de `organization_id` asignado en el payload de insert/upsert. */
-export function payloadScopeOrigin(chain: string): "trusted" | "untrusted" | "none" {
+export function payloadScopeOrigin(
+  chain: string,
+): "trusted" | "untrusted" | "none" {
   const re = /\borganization_id\s*:\s*([^,\n}]+)/g;
   let m: RegExpExecArray | null;
   let sawAny = false;

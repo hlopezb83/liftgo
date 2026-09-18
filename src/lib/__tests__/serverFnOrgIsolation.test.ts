@@ -86,14 +86,13 @@ describe("aislamiento por organización en código de servidor", () => {
       "utf8",
     );
     expect(source).toContain("requireInternalOrganization");
-    const scoped = source.match(/\.eq\("organization_id", organizationId\)/g) ??
-      [];
+    const scoped =
+      source.match(/\.eq\("organization_id", organizationId\)/g) ?? [];
     expect(scoped.length).toBeGreaterThanOrEqual(2);
   });
 
   it("detecta una lectura privilegiada sin alcance (prueba del detector)", () => {
-    const fake =
-      `const { data } = await admin\n  .from("feedback_reports")\n  .select("*")\n  .eq("id", id);\n`;
+    const fake = `const { data } = await admin\n  .from("feedback_reports")\n  .select("*")\n  .eq("id", id);\n`;
     const chain = extractChain(fake, fake.indexOf('.from("feedback_reports")'));
     expect(chainVerdict(chain)).toEqual({ ok: false, why: "sin alcance" });
     const ok = fake.replace('.eq("id", id)', '.eq("organization_id", orgId)');
@@ -102,8 +101,7 @@ describe("aislamiento por organización en código de servidor", () => {
   });
 
   it("rechaza un filtro cuya empresa viene del input", () => {
-    const fake =
-      `await admin\n  .from("invoices")\n  .select("*")\n  .eq("organization_id", data.organization_id);\n`;
+    const fake = `await admin\n  .from("invoices")\n  .select("*")\n  .eq("organization_id", data.organization_id);\n`;
     const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
     expect(chainVerdict(chain)).toEqual({
       ok: false,
@@ -112,8 +110,7 @@ describe("aislamiento por organización en código de servidor", () => {
   });
 
   it("rechaza un insert con organization_id: input.data.organization_id", () => {
-    const fake =
-      `await admin.from("invoices").insert({\n  folio: 1,\n  organization_id: input.data.organization_id,\n});\n`;
+    const fake = `await admin.from("invoices").insert({\n  folio: 1,\n  organization_id: input.data.organization_id,\n});\n`;
     const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
     expect(chainVerdict(chain)).toEqual({
       ok: false,
@@ -122,8 +119,7 @@ describe("aislamiento por organización en código de servidor", () => {
   });
 
   it("acepta un insert que asigna la empresa derivada en servidor", () => {
-    const fake =
-      `await admin.from("invoices").insert({\n  folio: 1,\n  organization_id: organizationId,\n});\n`;
+    const fake = `await admin.from("invoices").insert({\n  folio: 1,\n  organization_id: organizationId,\n});\n`;
     const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
     expect(chainVerdict(chain).ok).toBe(true);
   });
@@ -136,8 +132,7 @@ describe("aislamiento por organización en código de servidor", () => {
 
   it("una excepción no puede tapar una empresa de origen no confiable", () => {
     // El allowlist sólo aplica al caso 'sin alcance'; ver scanPrivilegedQueries.
-    const fake =
-      `await admin.from("invoices").insert({ organization_id: body.organization_id });\n`;
+    const fake = `await admin.from("invoices").insert({ organization_id: body.organization_id });\n`;
     const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
     expect(chainVerdict(chain).why).toBe("empresa de origen no confiable");
   });
