@@ -386,7 +386,10 @@ BEGIN
   END IF;
 END $portal_effect$;
 
--- ── 7. Ninguna policy de personal se apoya sólo en el helper genérico ─
+-- ── 7. Ninguna policy de PERSONAL se apoya sólo en el helper genérico ─
+-- Se evalúan las policies que conceden por un rol interno (admin,
+-- administrativo, auditor, dispatcher, ventas, mechanic). Las policies de
+-- portal (rol 'customer' con predicado de objeto propio) quedan fuera.
 DO $$
 DECLARE
   v_faltan int;
@@ -395,7 +398,8 @@ BEGIN
   FROM pg_policies
   WHERE schemaname = 'storage' AND tablename = 'objects'
     AND permissive = 'PERMISSIVE'
-    AND (coalesce(qual, '') || ' ' || coalesce(with_check, '')) ILIKE '%has_role%'
+    AND (coalesce(qual, '') || ' ' || coalesce(with_check, '')) ~*
+        '''(admin|administrativo|auditor|dispatcher|ventas|mechanic)''::app_role'
     AND (coalesce(qual, '') || ' ' || coalesce(with_check, ''))
         NOT ILIKE '%storage_staff_path_in_current_organization%';
 
@@ -403,6 +407,7 @@ BEGIN
     RAISE EXCEPTION 'REGRESIÓN 0032: % policy(s) de personal sin membresía interna', v_faltan;
   END IF;
 END $$;
+
 
 ROLLBACK;
 
