@@ -1211,16 +1211,16 @@ Deno.serve(async (req) => {
       plan.organizationIds,
     );
     const inventoryComplete = !plan.truncated && !inventory.truncated;
-    const orphanCandidates = collectOrphanCandidates(
+    const ownerIndex = await loadOrphanOwnerIndex(admin);
+    const orphans = collectOrphanCandidates(
       plan.organizationIds,
       inventory,
       plan.referencedPathsByBucket,
+      ownerIndex,
     );
-    const orphanState = !inventoryComplete
-      ? "inventory_incomplete"
-      : plan.organizationIds.length !== 1
-      ? "requires_single_organization"
-      : "ready";
+    const orphanCandidates = orphans.candidates;
+    const orphanState = !inventoryComplete ? "inventory_incomplete" : "ready";
+
     const summary = {
       mode: input.mode,
       truncated: !inventoryComplete,
