@@ -194,3 +194,11 @@ La sección 1 refleja la lectura `SELECT` del 2026-09-17 y **supera** el inventa
 ### Implicación para el riesgo residual
 
 Con 0 legados en `supplier-bill-cfdi-xml`, `supplier-payment-receipts` y `feedback-screenshots`, el riesgo de legado compartido se concentra hoy en **`cfdi-files` (10)** y **`documents` (5)**. El bloqueo del alta de la segunda empresa se mantiene: esos 15 legados siguen accesibles a staff de cualquier organización y requieren prefijo + actualización de referencias probados por el canal autorizado.
+
+## Corrección 2026-09-18 — sólo 12 objetos están realmente aislados (solo lectura)
+
+Las cifras «307 prefijados / 15 legados» quedan **retiradas**: contaban como prefijo cualquier primer segmento con forma de UUID. Comparando contra `public.organizations.id`, **sólo 12 de 322 objetos** están bajo prefijo exacto de organización (1 en `documents`, 6 en `supplier-bill-cfdi-xml`, 5 en `supplier-payment-receipts`); 295 llevan un UUID ajeno y 15 no tienen forma UUID.
+
+Reproducción con el código real: 305 filas de referencia = **293 candidatas** + **11 ya prefijadas** + **1 URL de logo no soportada**; 304 rutas distintas, todas existentes. Objetos sin referencia: **18 = 17 sin prefijo + 1 con prefijo**. Las sumas cierran contra los 322 objetos y contra el `SELECT` de prefijos exactos.
+
+Consecuencia operativa: los **17 huérfanos sin dueño derivable bloquean `apply`**; los **15 legados reales** sí pueden asignarse desde sus referencias, pero únicamente por el flujo protegido copy → verify → update references → observe → delete. El borrado de fuentes sigue en **fase separada y deshabilitado** (`STORAGE_MIGRATION_DELETE_SOURCES_ENABLED` sin configurar). **Cero operaciones de Storage ejecutadas en producción**: ambos ledgers en 0 filas, ninguna copia, ninguna referencia actualizada, ningún borrado.
