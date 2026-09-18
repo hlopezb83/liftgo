@@ -1,6 +1,6 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
-import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
+import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
