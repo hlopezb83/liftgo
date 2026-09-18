@@ -51,6 +51,8 @@ import {
 } from "../_shared/storageOrphanOwner.ts";
 import {
   evaluateManualResolution,
+  filterOrphanLedgerToApproved,
+  makeApprovedOrphanKeySet,
   type ManualResolutionRecord,
   summarizeQuarantine,
 } from "../_shared/storageQuarantine.ts";
