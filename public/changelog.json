@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.20.1",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "security",
+    "title": "La clasificación automática de reportes ya sólo ve reportes de tu empresa",
+    "description": "La función que clasifica con inteligencia artificial los reportes de retroalimentación consultaba la base con permisos elevados, que se saltan el aislamiento entre empresas. Bastaba conocer el identificador de un reporte de otra empresa para leerlo o cambiar su clasificación. Ahora la empresa se toma de la membresía de quien pide, y tanto la lectura como la actualización quedan limitadas a esa empresa: un reporte ajeno responde como inexistente.",
+    "changes": [
+      "La clasificación de reportes deriva la empresa de la membresía interna verificada y nunca del contenido de la petición.",
+      "La lectura y la actualización del reporte filtran por empresa, de modo que un reporte de otra empresa no se encuentra ni se modifica.",
+      "Nueva prueba que revisa todas las rutas de servidor y falla si alguna consulta tablas con empresa usando permisos elevados sin verificar la membresía.",
+      "Auditoría final sin más hallazgos: aislamiento de archivos, portal, operadores de plataforma, alta de empresas y el proceso de archivos históricos siguen cerrados por diseño."
+    ]
+  },
+  {
     "version": "8.20.0",
     "date": "2026-09-18",
     "type": "minor",
