@@ -1,0 +1,8 @@
+{
+  "version": "8.21.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "fix",
+  "title": "Corrección del orden de las actualizaciones pendientes de base de datos",
+  "description": "Tres actualizaciones pendientes tenían una fecha interna anterior a la última ya aplicada, por lo que el proceso oficial las habría saltado en silencio sin avisar. Se corrigieron esas fechas para que toda la secuencia quede en orden, se agregó una verificación automática que detecta este problema y se actualizó la documentación del avance: la actualización 0030 sí está en el repositorio y sigue pendiente de aplicarse, y el registro extra encontrado en la bitácora de la base no acredita que se haya aplicado."
+}

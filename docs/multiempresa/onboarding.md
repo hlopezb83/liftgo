@@ -3,9 +3,12 @@
 Estado: **implementado en el repositorio (8.19.3), sin producción**. Las
 migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) a
 `0034_storage_manual_resolutions.sql` (idx 34) están en el journal y sólo se
-ejecutan en CI efímero: **0031–0034 siguen pendientes (no aplicadas)**. Su
-rollout a la base conectada requiere autorización explícita y sigue el mismo
-canal oficial que 0024–0029.
+ejecutan en CI efímero: **0030–0034 siguen pendientes (no aplicadas)**. El
+ledger de producción sólo acredita ids 25–30 = archivos `0024`–`0029`; el id 31
+extra del ledger es una anomalía histórica sin identificar y **no** acredita a
+`0030`. Su rollout a la base conectada requiere autorización explícita y sigue
+el mismo canal oficial que 0024–0029, en orden 0030 → 0034 (el `when` de
+0032–0034 se corrigió el 2026-09-18 para que el runner no las omita).
 
 > **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
 > plataforma **explícita** (sin promoción automática de administradores de
@@ -229,4 +232,4 @@ atribuidas a B y no crea membresías; el alta por `raw_app_meta_data` sí fija e
 contexto correcto aunque el `user_metadata` mienta, y la empresa B pendiente
 completa su alta y queda activa. Control negativo: reinstalado el cuerpo
 anterior, la prueba lo detecta. Resultado local: **62/62 suites RLS** en verde.
-Sin producción: 0031–0034 siguen sin aplicarse a la base conectada.
+Sin producción: 0030–0034 siguen sin aplicarse a la base conectada.
