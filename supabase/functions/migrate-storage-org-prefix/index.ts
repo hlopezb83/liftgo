@@ -1252,9 +1252,29 @@ Deno.serve(async (req) => {
       },
       orphan_migration: {
         state: orphanState,
+        // Sólo se preparan los huérfanos con dueño único y exacto; los
+        // demás se reportan aparte y nunca entran al ledger.
         candidates: inventoryComplete ? orphanCandidates.length : null,
+        owner_resolution: inventoryComplete
+          ? {
+            resolved: orphans.byBucket.reduce(
+              (sum, bucket) => sum + bucket.owner_resolved,
+              0,
+            ),
+            missing: orphans.byBucket.reduce(
+              (sum, bucket) => sum + bucket.owner_missing,
+              0,
+            ),
+            conflicting: orphans.byBucket.reduce(
+              (sum, bucket) => sum + bucket.owner_conflicting,
+              0,
+            ),
+            by_bucket: orphans.byBucket,
+          }
+          : null,
         deletion: "never_allowed",
       },
+
       source_deletion: {
         phase: "separate",
         enabled: Deno.env.get(DELETE_ENV_FLAG) === "true",
