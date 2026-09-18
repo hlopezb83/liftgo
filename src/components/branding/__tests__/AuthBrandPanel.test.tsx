@@ -65,4 +65,13 @@ describe("AuthBrandPanel — marca global en pantallas de acceso", () => {
       expect(source).not.toMatch(/src=\{?["'`]?https?:/);
     }
   });
+
+  it("ningún callsite global recolorea el logo oficial con filtros CSS", () => {
+    for (const file of GLOBAL_BRAND_CALLSITES) {
+      const source = readFileSync(resolve(process.cwd(), file), "utf8");
+      // El lockup debe conservar sus colores originales: sin brightness/invert.
+      expect(source).not.toContain("brightness-0");
+      expect(source).not.toContain("invert");
+    }
+  });
 });
