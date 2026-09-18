@@ -156,6 +156,52 @@ async function compensateOnboarding(
   if (error) console.error("[platform-admin] compensación discard:", error.message);
 }
 
+/** Unicidad de correo antes de crear nada (mismo criterio que invite-user). */
+async function assertEmailAvailable(g: Guards, admin: Admin, emailLc: string): Promise<void> {
+  const { data: existingProfile, error: profileErr } = await admin
+    .from("profiles")
+    .select("user_id")
+    .eq("email", emailLc)
+    .maybeSingle();
+  if (profileErr) {
+    throw new g.HttpError(503, "No se pudo verificar el correo. Reintenta en unos segundos.");
+  }
+  if (existingProfile) {
+    throw new g.HttpError(409, "Ya existe un usuario con ese correo");
+  }
+}
+
+/**
+ * Usuario Auth del primer administrador (metadata = contexto de auditoría).
+ * Si falla, la empresa recién creada se descarta antes de propagar el error.
+ */
+async function createFirstAdminAuthUser(
+  g: Guards,
+  admin: Admin,
+  actorId: string,
+  organizationId: string,
+  email: string,
+  fullName: string,
+): Promise<string> {
+  const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
+    email,
+    password: g.generateSecurePassword(),
+    email_confirm: true,
+    user_metadata: { full_name: fullName, organization_id: organizationId },
+  });
+  if (createErr || !newUser?.user) {
+    await compensateOnboarding(g, admin, actorId, organizationId, null);
+    const msg = createErr?.message || "";
+    const status = /already|registered|exists/i.test(msg) ? 409 : 400;
+    console.error("[platform-admin] createUser:", createErr);
+    throw new g.HttpError(
+      status,
+      status === 409 ? "Ya existe un usuario con ese correo" : "No se pudo procesar la solicitud",
+    );
+  }
+  return newUser.user.id;
+}
+
 export const createOrganizationFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: CreateOrganizationInput) => data)
@@ -174,18 +220,7 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
     const emailLc = email.toLowerCase();
     const fullName = data.admin_full_name.trim();
 
-    // Unicidad de correo antes de crear nada (mismo criterio que invite-user).
-    const { data: existingProfile, error: profileErr } = await admin
-      .from("profiles")
-      .select("user_id")
-      .eq("email", emailLc)
-      .maybeSingle();
-    if (profileErr) {
-      throw new g.HttpError(503, "No se pudo verificar el correo. Reintenta en unos segundos.");
-    }
-    if (existingProfile) {
-      throw new g.HttpError(409, "Ya existe un usuario con ese correo");
-    }
+    await assertEmailAvailable(g, admin, emailLc);
 
     // 1) Empresa (la base valida nombre/slug y unicidad).
     const created = await g.asUntypedRpc(admin).rpc("platform_create_organization", {
@@ -199,24 +234,8 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
       throw new g.HttpError(500, "No se pudo completar la operación de plataforma");
     }
 
-    // 2) Usuario Auth del primer administrador (metadata = contexto de auditoría).
-    const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
-      email,
-      password: g.generateSecurePassword(),
-      email_confirm: true,
-      user_metadata: { full_name: fullName, organization_id: organizationId },
-    });
-    if (createErr || !newUser?.user) {
-      await compensateOnboarding(g, admin, actorId, organizationId, null);
-      const msg = createErr?.message || "";
-      const status = /already|registered|exists/i.test(msg) ? 409 : 400;
-      console.error("[platform-admin] createUser:", createErr);
-      throw new g.HttpError(
-        status,
-        status === 409 ? "Ya existe un usuario con ese correo" : "No se pudo procesar la solicitud",
-      );
-    }
-    const adminUserId = newUser.user.id;
+    // 2) Usuario Auth del primer administrador (compensa la empresa si falla).
+    const adminUserId = await createFirstAdminAuthUser(g, admin, actorId, organizationId, email, fullName);
 
     // 3) Membresía interna + rol admin + perfil activo, atómico en la base.
     const attached = await g.asUntypedRpc(admin).rpc("platform_attach_first_admin", {
