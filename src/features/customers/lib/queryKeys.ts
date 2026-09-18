@@ -14,6 +14,9 @@ export const customerKeys = {
     [...customerKeys.detail(customerId), "profitability"] as const,
   summary: (customerId: string) =>
     [...customerKeys.detail(customerId), "summary"] as const,
+  /** Tramo 9: cuenta de portal del cliente en la empresa del usuario (scoped). */
+  portalAccount: (customerId: string) =>
+    [...customerKeys.detail(customerId), "portal-account"] as const,
 } as const;
 
 /**
