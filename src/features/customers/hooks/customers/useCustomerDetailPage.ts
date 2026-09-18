@@ -5,7 +5,7 @@ import { isValidUuid } from "@/lib/isValidUuid";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
 import { useCustomerProfitability } from "./useCustomerProfitability";
-import { useCustomer } from "./useCustomers";
+import { useCustomer, useCustomerPortalAccount } from "./useCustomers";
 import { useCustomerSummary } from "./useCustomerSummary";
 
 type Customer = Tables<"customers">;
