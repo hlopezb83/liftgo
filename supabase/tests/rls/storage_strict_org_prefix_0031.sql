@@ -266,9 +266,6 @@ RESET ROLE;
 RESET request.jwt.claims;
 SELECT set_config('app.organization_id', '31000000-0000-4000-8000-00000000000a', true);
 
-INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
-  ('31000000-0000-4000-8000-0000000000p1'::text::uuid, 'portal-admin@s0031.test', now(), now())
-ON CONFLICT DO NOTHING;
 
 INSERT INTO storage.buckets (id, name, public) VALUES
   ('payment-proofs', 'payment-proofs', false)
