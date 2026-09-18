@@ -401,7 +401,8 @@ Deno.test("orphanBatch: la empresa del ledger debe coincidir exactamente con la 
     },
   ]);
   assertEquals(result.copied, []);
-  assertEquals(result.skipped, LEDGER.length);
+  // `LEDGER` incluye una fila `copied` terminal que no entra al pendiente.
+  assertEquals(result.skipped, LEDGER.length - 1);
 });
 
 Deno.test("orphanBatch: delete_sources no aprueba huérfanos (allowlist vacía)", () => {
