@@ -61,8 +61,6 @@ export default function PortalLogin() {
               {GLOBAL_BRAND_NAME}
             </span>
           </div>
-            )}
-          </div>
           <CardTitle>{mode === "forgot" ? "Restablecer contraseña" : "Portal de clientes"}</CardTitle>
           <CardDescription>
             {mode === "forgot"
