@@ -1,23 +1,21 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { BrandMark, GLOBAL_BRAND_INITIALS } from "@/components/BrandMark";
+import { describe, expect, it } from "vitest";
+import { BrandMark, GLOBAL_BRAND_LOGO_SRC } from "@/components/BrandMark";
 
 /**
- * La marca del producto debe salir SIEMPRE del asset global del repositorio.
- * Si alguien vuelve a cablear una URL (de `company_settings` o del RPC de
- * marca pública), estas pruebas fallan.
+ * La marca del producto debe salir SIEMPRE del asset gráfico local del
+ * repositorio. Si alguien vuelve a cablear una URL (de `company_settings` o de
+ * cualquier RPC de marca), estas pruebas fallan.
  */
-const fetchSpy = vi.spyOn(globalThis, "fetch");
+describe("BrandMark — marca global gráfica y fija", () => {
+  it("usa el asset gráfico local del repositorio", () => {
+    render(<BrandMark />);
+    const img = screen.getByAltText("LiftGo") as HTMLImageElement;
 
-describe("BrandMark — marca global fija", () => {
-  it("renderiza el distintivo global del repositorio, sin imágenes remotas", () => {
-    const { container } = render(<BrandMark />);
-
-    expect(screen.getByRole("img", { name: "LiftGo" })).toBeTruthy();
-    expect(container.textContent).toContain(GLOBAL_BRAND_INITIALS);
-    // Fuente fija: ni <img src>, ni descargas de red.
-    expect(container.querySelector("img")).toBeNull();
-    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(img.getAttribute("src")).toBe(GLOBAL_BRAND_LOGO_SRC);
+    // Ruta del propio origen: nunca un host externo ni un esquema remoto.
+    expect(GLOBAL_BRAND_LOGO_SRC.startsWith("/")).toBe(true);
+    expect(GLOBAL_BRAND_LOGO_SRC).not.toMatch(/^[a-z]+:|^\/\//i);
   });
 
   it("es idéntica en cualquier tenant (no recibe ni acepta una URL)", () => {
