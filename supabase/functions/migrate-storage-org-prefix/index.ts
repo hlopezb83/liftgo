@@ -1466,8 +1466,16 @@ Deno.serve(async (req) => {
             by_bucket: orphans.byBucket,
           }
           : null,
-        // Lista de resolución MANUAL: nunca se traslada nada de aquí.
+        // Lista de resolución MANUAL. Sólo salen de aquí los objetos con una
+        // resolución explícita registrada por operador y revalidada contra el
+        // estado vivo. Se devuelven conteos: nunca rutas, URLs, tokens ni ids.
         quarantine: inventoryComplete ? orphans.quarantine : null,
+        manual_resolution: inventoryComplete
+          ? {
+            accepted: orphans.manuallyResolved,
+            rejected: orphans.manualResolutionsRejected,
+          }
+          : null,
         deletion: "never_allowed",
       },
 
