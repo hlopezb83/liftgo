@@ -232,3 +232,82 @@ Deno.test("las claves a consultar salen sólo de los huérfanos válidos", () =>
   assertEquals(keys.cfdiUuid, [CFDI_A]);
   assertEquals(keys.id, [BILL_A]);
 });
+
+// --- Normalización de mayúsculas/minúsculas (datos históricos de producción) ---
+const CFDI_UPPER_ROW = "88888888-8888-4888-8888-888888888888";
+const BILL_UPPER_ROW = "99999999-9999-4999-8999-999999999999";
+
+const caseIndex = buildOrphanOwnerIndex([
+  // Fila guardada en MAYÚSCULAS (caso real de supplier_bills.cfdi_uuid).
+  {
+    id: BILL_UPPER_ROW,
+    cfdiUuid: CFDI_UPPER_ROW.toUpperCase(),
+    organizationId: ORG_A,
+  },
+  // Fila guardada en minúsculas.
+  { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
+], {
+  cfdiUuid: [CFDI_UPPER_ROW.toUpperCase(), CFDI_A.toUpperCase()],
+  id: [BILL_UPPER_ROW, BILL_A],
+});
+
+Deno.test("path en minúsculas encuentra la fila guardada en mayúsculas", () => {
+  assertEquals(
+    resolveOrphanOwner({
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: `${CFDI_UPPER_ROW}/factura.xml`,
+      index: caseIndex,
+      knownOrganizationIds: known,
+    }),
+    {
+      status: "resolved",
+      organizationId: ORG_A,
+      method: "supplier_bill_cfdi_uuid",
+    },
+  );
+});
+
+Deno.test("path en MAYÚSCULAS encuentra la fila guardada en minúsculas", () => {
+  assertEquals(
+    resolveOrphanOwner({
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: `${CFDI_A.toUpperCase()}/factura.xml`,
+      index: caseIndex,
+      knownOrganizationIds: known,
+    }),
+    {
+      status: "resolved",
+      organizationId: ORG_A,
+      method: "supplier_bill_cfdi_uuid",
+    },
+  );
+});
+
+Deno.test("el casing no oculta duplicados de distintas organizaciones", () => {
+  const dupIndex = buildOrphanOwnerIndex([
+    { id: BILL_A, cfdiUuid: CFDI_DUP.toUpperCase(), organizationId: ORG_A },
+    { id: BILL_B, cfdiUuid: CFDI_DUP, organizationId: ORG_B },
+  ], { cfdiUuid: [CFDI_DUP], id: [BILL_A, BILL_B] });
+  assertEquals(
+    resolveOrphanOwner({
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: `${CFDI_DUP.toUpperCase()}/factura.xml`,
+      index: dupIndex,
+      knownOrganizationIds: [ORG_A, ORG_B],
+    }),
+    { status: "conflict", reason: "multiple_organizations" },
+  );
+});
+
+Deno.test("las claves a consultar se normalizan a minúsculas", () => {
+  assertEquals(
+    collectOrphanOwnerLookupKeys([
+      {
+        bucketId: "supplier-bill-cfdi-xml",
+        sourcePath: `${CFDI_A.toUpperCase()}/a.xml`,
+      },
+      { bucketId: "supplier-bill-cfdi-xml", sourcePath: `${CFDI_A}/b.xml` },
+    ]),
+    { cfdiUuid: [CFDI_A], id: [] },
+  );
+});

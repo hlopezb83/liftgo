@@ -525,13 +525,26 @@ const OWNER_LOOKUP_MAX_ROWS_PER_KEY = 50;
 
 /**
  * Lee sólo las filas dueñas que coinciden exactamente con las claves de los
- * huérfanos, con filtros estructurados `.in(...)` (nunca interpolación SQL ni
- * regex) y paginación hasta agotar resultados.
+ * huérfanos, con filtros estructurados (nunca interpolación SQL ni regex) y
+ * paginación hasta agotar resultados.
+ *
+ * `supplier_bills.cfdi_uuid` es `text` y en producción convive en mayúsculas y
+ * minúsculas, mientras que la clave del path se normaliza a minúsculas. Para no
+ * producir falsos negativos la búsqueda es exacta pero insensible a
+ * mayúsculas: `ilike` SIN comodines, aplicado sólo a claves ya validadas como
+ * UUID (no pueden contener `%`, `_`, `,` ni comillas). `supplier_bills.id` es
+ * `uuid` y conserva el filtro exacto `.in(...)`.
  *
  * Fail-closed: una clave cuya lectura no se pudo agotar (página incompleta,
  * error o cota alcanzada) NO se marca como completa, así que resolverá
  * `incomplete_lookup` y nunca producirá un candidato para el ledger.
  */
+function isLookupKey(value: unknown): value is string {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      .test(value);
+}
+
 async function loadOrphanOwnerIndex(
   admin: AdminClient,
   keys: { cfdiUuid: string[]; id: string[] },
@@ -547,15 +560,23 @@ async function loadOrphanOwnerIndex(
     values: string[],
     complete: string[],
   ): Promise<void> {
+    // Sólo claves ya validadas como UUID entran al filtro; cualquier otra cosa
+    // aborta el bloque sin marcar claves completas (fail-closed).
+    if (!values.every(isLookupKey)) return;
     for (let i = 0; i < values.length; i += OWNER_LOOKUP_CHUNK) {
       const chunk = values.slice(i, i + OWNER_LOOKUP_CHUNK);
       const chunkRows: Array<Record<string, unknown>> = [];
       let exhausted = false;
       for (let offset = 0;; offset += OWNER_LOOKUP_PAGE) {
-        const { data, error } = await admin
+        const base = admin
           .from("supplier_bills")
-          .select("id, cfdi_uuid, organization_id")
-          .in(column, chunk)
+          .select("id, cfdi_uuid, organization_id");
+        // `cfdi_uuid` es texto con casing mixto en datos históricos: se compara
+        // con `ilike` sin comodines (igualdad insensible a mayúsculas).
+        const filtered = column === "cfdi_uuid"
+          ? base.or(chunk.map((key) => `cfdi_uuid.ilike.${key}`).join(","))
+          : base.in(column, chunk);
+        const { data, error } = await filtered
           .order("id", { ascending: true })
           .range(offset, offset + OWNER_LOOKUP_PAGE - 1);
         if (error) return; // sin marcar completa ninguna clave del bloque
