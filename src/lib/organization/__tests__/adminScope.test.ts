@@ -19,16 +19,30 @@ interface TableResult {
   error?: { message: string };
 }
 
+/**
+ * Tramo 9: el resolver verifica `organizations.is_active` (fail-closed) antes
+ * de aceptar cualquier membresía. El doble expone ambas empresas activas salvo
+ * que la prueba lo sobrescriba.
+ */
+const ACTIVE_ORGS: TableResult = {
+  data: [
+    { id: ORG_A, is_active: true },
+    { id: ORG_B, is_active: true },
+  ],
+};
+
 function client(tables: Record<string, TableResult>): AdminScopeClient {
+  const all: Record<string, TableResult> = { organizations: ACTIVE_ORGS, ...tables };
   return {
     from: (table: string) => ({
       select: () => ({
-        eq: () => ({
-          limit: () =>
-            Promise.resolve({
-              data: tables[table]?.data ?? [],
-              error: tables[table]?.error ?? null,
-            }),
+        eq: (_column: string, value: unknown) => ({
+          limit: () => {
+            const rows = all[table]?.data ?? [];
+            const filtered =
+              table === "organizations" ? rows.filter((row) => row["id"] === value) : rows;
+            return Promise.resolve({ data: filtered, error: all[table]?.error ?? null });
+          },
         }),
       }),
     }),
