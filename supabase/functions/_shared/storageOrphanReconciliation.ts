@@ -154,19 +154,34 @@ export function classifyReconciledOrphanSources(
     let owner: ApprovedOrphanOwner;
     if (isOrphan) {
       const approvedOwner = approved.get(key);
-      if (!approvedOwner) {
+      if (approvedOwner) {
+        if (approvedOwner.organizationId !== record.organization_id) {
+          block("owner_mismatch");
+          continue;
+        }
+        if (approvedOwner.destinationPath !== record.destination_path) {
+          block("destination_mismatch");
+          continue;
+        }
+        owner = approvedOwner;
+      } else if (
+        // Sin dueño re-derivado en esta corrida se acepta únicamente si el
+        // propio registro terminal documenta la atribución y el destino es
+        // exactamente la ruta aislada canónica. La copia se revalida byte a
+        // byte fuera de esta función y la fuente nunca se borra.
+        record.destination_path ===
+          `${record.organization_id}/${record.source_path}`
+      ) {
+        owner = {
+          bucketId: record.bucket_id,
+          sourcePath: record.source_path,
+          organizationId: record.organization_id,
+          destinationPath: record.destination_path,
+        };
+      } else {
         block("owner_not_resolved");
         continue;
       }
-      if (approvedOwner.organizationId !== record.organization_id) {
-        block("owner_mismatch");
-        continue;
-      }
-      if (approvedOwner.destinationPath !== record.destination_path) {
-        block("destination_mismatch");
-        continue;
-      }
-      owner = approvedOwner;
     } else {
       // El destino debe ser exactamente la ruta aislada esperada.
       if (
