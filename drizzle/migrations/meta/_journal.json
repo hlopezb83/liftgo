@@ -225,6 +225,13 @@
       "when": 1789923764000,
       "tag": "0031_multi_org_audit_hardening",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1789700792739,
+      "tag": "0032_multi_org_storage_staff_scope",
+      "breakpoints": true
     }
   ]
 }
