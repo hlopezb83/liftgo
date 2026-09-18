@@ -49,7 +49,11 @@ import {
   resolveOrphanOwner,
   summarizeOrphanOwnership,
 } from "../_shared/storageOrphanOwner.ts";
-import { summarizeQuarantine } from "../_shared/storageQuarantine.ts";
+import {
+  evaluateManualResolution,
+  type ManualResolutionRecord,
+  summarizeQuarantine,
+} from "../_shared/storageQuarantine.ts";
 
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
