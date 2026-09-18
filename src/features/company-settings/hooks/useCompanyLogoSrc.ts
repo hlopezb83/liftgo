@@ -6,20 +6,15 @@ import {
 } from "@/lib/branding/logoSource";
 
 /**
- * Devuelve la URL de visualización del logo.
- *
- * - Marca global de LiftGo (imagen pública compartida): se devuelve directa,
- *   sin firmar; no es dato de una empresa.
- * - Logo subido por la empresa: se firma con la sesión actual y TTL corto, de
- *   modo que el aislamiento por organización lo imponen las policies.
- * - Cualquier otro valor: `null` y la interfaz usa el distintivo de respaldo.
+ * URL de visualización del **logo empresarial** (`company_settings.logo_url`),
+ * firmada con la sesión actual y TTL corto: el aislamiento por organización lo
+ * imponen las policies de Storage. Fail-closed (`null`) para valores no
+ * verificables. No se usa para la marca de producto del ERP.
  */
 export function useCompanyLogoSrc(
   logoUrl: string | null | undefined,
 ): string | null {
   const source = classifyLogoSource(logoUrl);
-  // La marca global no se firma; el hook se llama igual para no romper el orden.
-  const globalBrand = source.kind === "global-brand" ? source.url : null;
   const key =
     source.kind === "storage" ? `${source.bucket}/${source.path}` : null;
 
@@ -32,5 +27,5 @@ export function useCompanyLogoSrc(
     queryFn: () => resolveLogoSrc(logoUrl),
   });
 
-  return globalBrand ?? data ?? null;
+  return data ?? null;
 }

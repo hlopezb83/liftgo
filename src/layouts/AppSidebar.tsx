@@ -13,13 +13,12 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
   const { data: company } = useCompanySettings();
-  const logoSrc = useCompanyLogoSrc(company?.logo_url);
   const currentVersion = useCurrentVersion();
   const visibleNavGroups = useVisibleNavGroups();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarBranding logoUrl={logoSrc} razonSocial={company?.razon_social} />
+      <SidebarBranding razonSocial={company?.razon_social} />
       <SidebarQuickCreate />
       <SidebarContent>
         {visibleNavGroups.map((group) => (
