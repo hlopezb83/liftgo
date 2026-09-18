@@ -90,7 +90,11 @@ export function useCustomerDetailPage(id: string | undefined) {
 
   const totals = computeCustomerTotals(summary);
   const { bookings, invoices, activeBookingsCount, totalInvoiced, totalPaid, outstanding, hasDependencies } = totals;
-  const hasPortalAccess = !!customer?.user_id;
+  // Tramo 9: el acceso al portal se decide por la cuenta de portal de ESTA
+  // empresa (`customer_portal_accounts`), no por el vínculo global legado
+  // `customers.user_id`, que un cliente compartido puede tener en otra empresa.
+  const { data: portalAccount } = useCustomerPortalAccount(validId);
+  const hasPortalAccess = !!portalAccount;
 
   return {
     isLoading, isError, refetch, customer: customer ?? undefined, summary, profitability, role,
