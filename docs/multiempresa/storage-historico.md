@@ -13,23 +13,26 @@
 - **Originales conservados** (632 objetos = 322 originales + copias). El borrado
   de fuentes sigue **deshabilitado** y sin autorización.
 - **1 sola organización activa**.
-- **1 referencia de `company_settings.logo_url` fuera del Storage del proyecto,
-  aún sin clasificar (2026-09-18)**: es una URL HTTPS de un host que no
-  pertenece al Storage de este proyecto (no tiene forma
-  `/storage/v1/object/...` ni prefijo de organización). No se publica su valor,
-  host, ruta, token ni identificadores.
-  - **No se concluye que sea la marca global.** Por sus usos reales,
+- **1 referencia de `company_settings.logo_url` fuera del Storage del proyecto
+  (2026-09-18)**: es una URL HTTPS de un host que no pertenece al Storage de
+  este proyecto (no tiene forma `/storage/v1/object/...` ni prefijo de
+  organización). No se publica su valor, host, ruta, token ni identificadores.
+  - **Clasificación semántica completada.** Por sus usos reales,
     `company_settings.logo_url` es el **logo empresarial configurable**: lo
     consumen los documentos de la empresa (cotización, factura, contrato,
     estado de cuenta, vía `resolveIssuerBranding`) y la pantalla de
-    Configuración. La navegación/sidebar ya no lo consume.
+    Configuración. La navegación/sidebar ya no lo consume; la marca global de
+    LiftGo es un asset del repositorio, no este puntero.
   - Por eso conserva **aislamiento por tenant**: se guarda como ruta bajo el
     prefijo de su organización y se resuelve firmando con la sesión actual
     (TTL 300 s); una empresa no puede mostrar el logo de otra. Las pruebas A/B
     aplican a este tipo de logo.
-  - Mientras el valor no se clasifique, los documentos se generan **sin logo
-    (fail-closed)**: no se descarga un host ajeno. Sustituirlo exige mutación de
-    datos (volver a subir el logo desde Configuración) y **no está autorizado**.
+  - **Pendiente: validación/sustitución del valor HTTPS externo.** Los
+    documentos se generan **sin logo (fail-closed)** mientras la URL no apunte
+    a una ruta del Storage de este proyecto; no se descarga un host ajeno y el
+    valor no se modifica en producción. Restaurar el logo empresarial exige
+    volver a subirlo o guardar una ruta Storage desde Configuración; **esa
+    decisión queda pendiente del propietario**.
 
 ### Marca global de LiftGo (no es dato de tenant)
 
