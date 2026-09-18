@@ -268,20 +268,37 @@ interface FakeLedgerRow {
   status: "planned" | "copied" | "failed";
 }
 
-/** Réplica del filtrado real de `applyOrphanBatch`, sin E/S. */
+/**
+ * Réplica del recorrido real de `applyOrphanBatch`, sin E/S: pagina el ledger
+ * y acumula filas aprobadas hasta llenar el lote o agotar las páginas. Con
+ * allowlist vacía no se lee nada, así que `skipped` es 0 (nada se exploró).
+ */
 function simulateOrphanBatch(
   ledger: FakeLedgerRow[],
   approvedCandidates: Array<
     { bucketId: string; sourcePath: string; organizationId: string }
   >,
+  batchSize = 100,
+  pageSize = 2,
 ): { copied: string[]; skipped: number } {
   const approvedKeys = makeApprovedOrphanKeySet(approvedCandidates);
-  if (approvedKeys.size === 0) return { copied: [], skipped: ledger.length };
-  const { allowed, skipped } = filterOrphanLedgerToApproved(
-    ledger,
-    approvedKeys,
-  );
-  return { copied: allowed.map((row) => row.id), skipped };
+  if (approvedKeys.size === 0) return { copied: [], skipped: 0 };
+  const collected: FakeLedgerRow[] = [];
+  let skipped = 0;
+  for (let offset = 0; offset < ledger.length; offset += pageSize) {
+    const page = ledger.slice(offset, offset + pageSize);
+    const { allowed, skipped: pageSkipped } = filterOrphanLedgerToApproved(
+      page,
+      approvedKeys,
+    );
+    skipped += pageSkipped;
+    for (const row of allowed) {
+      if (collected.length < batchSize) collected.push(row);
+      else skipped++; // aprobada pero excede el lote
+    }
+    if (collected.length >= batchSize) break;
+  }
+  return { copied: collected.map((row) => row.id), skipped };
 }
 
 const LEDGER: FakeLedgerRow[] = [
@@ -351,7 +368,8 @@ Deno.test("orphanBatch: resolución revocada/caduca deja el ledger viejo sin cop
 
   const second = simulateOrphanBatch(LEDGER, []);
   assertEquals(second.copied, []);
-  assertEquals(second.skipped, LEDGER.length);
+  // Allowlist vacía: no se lee el ledger, así que nada se cuenta como omitido.
+  assertEquals(second.skipped, 0);
 });
 
 Deno.test("orphanBatch: una resolución que contradice al dueño derivado no rehabilita el ledger", () => {
@@ -387,5 +405,47 @@ Deno.test("orphanBatch: delete_sources no aprueba huérfanos (allowlist vacía)"
   // `delete_sources` no carga resoluciones manuales ni candidatos huérfanos.
   const result = simulateOrphanBatch(LEDGER, []);
   assertEquals(result.copied, []);
-  assertEquals(result.skipped, LEDGER.length);
+  assertEquals(result.skipped, 0);
+});
+
+Deno.test("orphanBatch: filas no aprobadas antes que la aprobada no la ahogan (sin starvation)", () => {
+  // Más filas revocadas/antiguas que el tamaño del lote, todas ANTES de la
+  // única fila aprobada en el orden del ledger. Con un `.limit(batchSize)`
+  // previo al filtrado, la aprobada jamás se procesaría.
+  const stale: FakeLedgerRow[] = Array.from({ length: 6 }, (_, index) => ({
+    id: `stale-${index}`,
+    bucket_id: "supplier-bill-cfdi-xml",
+    source_path: `stale-${index}.xml`,
+    organization_id: ORG,
+    status: "planned",
+  }));
+  const approvedRow: FakeLedgerRow = {
+    id: "approved",
+    bucket_id: "supplier-bill-cfdi-xml",
+    source_path: "approved.xml",
+    organization_id: ORG,
+    status: "planned",
+  };
+  const ledger = [...stale, approvedRow];
+  const batchSize = 3;
+
+  const result = simulateOrphanBatch(
+    ledger,
+    [{
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "approved.xml",
+      organizationId: ORG,
+    }],
+    batchSize,
+  );
+
+  // La fila aprobada avanza aunque esté después de `batchSize` no aprobadas.
+  assertEquals(result.copied, ["approved"]);
+  // Las no aprobadas se omiten y no cambian (sus ids jamás aparecen en copied).
+  assertEquals(result.skipped, stale.length);
+  // Idempotente: una segunda corrida con la misma allowlist vuelve a omitir
+  // las antiguas y sólo tomaría la aprobada (aquí ya procesada).
+  const again = simulateOrphanBatch(ledger, [], batchSize);
+  assertEquals(again.copied, []);
+  assertEquals(again.skipped, 0);
 });

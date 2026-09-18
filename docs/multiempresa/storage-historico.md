@@ -465,3 +465,26 @@ primer apply con resolución vigente sí procesa el objeto; el segundo, con la
 resolución revocada, caduca o contradictoria con el dueño derivado, no copia
 nada ni cambia estados. Verificación local: **438 pruebas Deno**, `deno fmt
 --check` y `deno lint` en verde. Sin producción.
+
+### 6. El lote no puede ahogar a la fila aprobada (corrección 8.19.2)
+
+**Starvation detectada.** El lote aplicaba `.limit(batchSize)` al ledger
+**antes** de filtrar por la allowlist. Si las primeras `batchSize` filas en el
+orden eran antiguas y ya no aprobadas (revocadas/caducas), el lote las releía
+en cada corrida y una fila aprobada ubicada después **nunca se procesaba**.
+
+Corregido: el lote **pagina** el ledger (páginas de 500) y acumula filas
+aprobadas hasta reunir `batchSize` o agotar el conjunto, con un tope total de
+exploración de 20,000 filas por corrida (si se alcanza, la corrida **falla
+cerrado** en lugar de recorrer sin cota). Semántica de conteo consistente:
+
+- Las filas no aprobadas que se exploraron cuentan como `skipped` y **no
+  cambian** de estado.
+- Con allowlist vacía no se abre el ledger: `skipped = 0` (nada se exploró).
+- Una fila aprobada que exceda el tamaño del lote queda para la corrida
+  siguiente; no se procesa dos veces.
+
+Regresión nueva: con más de `batchSize` filas no autorizadas **antes** de la
+autorizada en el orden del ledger, ninguna no autorizada cambia y la
+autorizada sí avanza. Verificación local: **16/16 pruebas de cuarentena**,
+`deno fmt --check`, `deno lint` y `deno check` en verde. Sin producción.

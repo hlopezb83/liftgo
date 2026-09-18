@@ -1222,6 +1222,15 @@ async function processOrphanObject(
  * caducó o hoy contradice al dueño derivado se ignora (no se copia y no cambia
  * de estado). Con allowlist vacía no se procesa ninguna fila.
  */
+/** Tamaño de página al recorrer el ledger de huérfanos. */
+const ORPHAN_LEDGER_PAGE_SIZE = 500;
+/**
+ * Límite total de filas del ledger que una sola corrida puede explorar.
+ * Fail-closed: si se alcanza, la corrida falla en vez de arriesgar un
+ * recorrido sin cota sobre un ledger histórico creciente.
+ */
+const ORPHAN_LEDGER_MAX_SCANNED = 20_000;
+
 async function applyOrphanBatch(
   admin: AdminClient,
   batchSize: number,
@@ -1234,26 +1243,52 @@ async function applyOrphanBatch(
       organizationId: candidate.organizationId,
     })),
   );
+  // Sin allowlist no se lee el ledger: nada se omite porque nada se exploró.
   if (approvedKeys.size === 0) return { copied: 0, failed: 0, skipped: 0 };
 
-  const { data: rows, error } = await admin
-    .from("storage_object_migrations")
-    .select(
-      "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
-    )
-    .eq("discovery_kind", "orphaned")
-    .in("status", ["planned", "copied", "failed"])
-    .order("created_at", { ascending: true })
-    .limit(batchSize);
-  if (error) throw new Error("No se pudo leer el lote de huérfanos.");
+  // El filtrado por allowlist es posterior a la lectura, así que paginamos el
+  // ledger completo hasta reunir `batchSize` filas aprobadas o agotarlo. Si
+  // el límite se aplicara ANTES de filtrar, las filas antiguas no aprobadas
+  // (revocadas/caducas) al inicio del orden ahogarían para siempre a una fila
+  // aprobada posterior (starvation).
+  const collected: LedgerObject[] = [];
+  let skipped = 0;
+  let offset = 0;
+  for (;;) {
+    const { data: rows, error } = await admin
+      .from("storage_object_migrations")
+      .select(
+        "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
+      )
+      .eq("discovery_kind", "orphaned")
+      .in("status", ["planned", "copied", "failed"])
+      .order("created_at", { ascending: true })
+      .range(offset, offset + ORPHAN_LEDGER_PAGE_SIZE - 1);
+    if (error) throw new Error("No se pudo leer el lote de huérfanos.");
+    const page = (rows ?? []) as LedgerObject[];
 
-  const { allowed, skipped } = filterOrphanLedgerToApproved(
-    (rows ?? []) as LedgerObject[],
-    approvedKeys,
-  );
+    const { allowed, skipped: pageSkipped } = filterOrphanLedgerToApproved(
+      page,
+      approvedKeys,
+    );
+    skipped += pageSkipped;
+    for (const object of allowed) {
+      if (collected.length < batchSize) collected.push(object);
+      else skipped++; // aprobada pero excede el lote: queda para la próxima corrida
+    }
+
+    offset += page.length;
+    if (page.length < ORPHAN_LEDGER_PAGE_SIZE) break; // ledger agotado
+    if (collected.length >= batchSize) break; // lote lleno
+    if (offset >= ORPHAN_LEDGER_MAX_SCANNED) {
+      throw new Error(
+        "Se alcanzó el límite de exploración del ledger de huérfanos.",
+      );
+    }
+  }
 
   const outcomes = { copied: 0, failed: 0, skipped };
-  for (const object of allowed) {
+  for (const object of collected) {
     outcomes[await processOrphanObject(admin, object)]++;
   }
   return outcomes;
