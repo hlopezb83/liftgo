@@ -42,6 +42,8 @@ import {
 } from "../_shared/storageDeletePhase.ts";
 import {
   buildOrphanOwnerIndex,
+  collectOrphanOwnerLookupKeys,
+
   type OrphanOwnerIndex,
   type OrphanOwnerResolution,
   type OrphanOwnerResolutionMethod,
