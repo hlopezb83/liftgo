@@ -56,6 +56,14 @@ import {
   type ManualResolutionRecord,
   summarizeQuarantine,
 } from "../_shared/storageQuarantine.ts";
+import {
+  type ApprovedOrphanOwner,
+  classifyReconciledOrphanSources,
+  type OrphanLedgerRecord,
+  type OrphanReconciliationSummary,
+  type ReconciledOrphanSource,
+  storageObjectKey,
+} from "../_shared/storageOrphanReconciliation.ts";
 
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
@@ -761,20 +769,110 @@ async function loadManualResolutions(
   const paths = [
     ...new Set(unreferencedUnscoped.map((entry) => entry.sourcePath)),
   ];
-  const { data, error } = await admin
-    .from("storage_migration_manual_resolutions")
-    .select(
-      "bucket_id, source_path, organization_id, resolved_by, justification, revalidated_at, status",
-    )
-    .eq("status", "active")
-    .in("source_path", paths);
-  // Fail-closed: si no se puede leer el registro, nada sale de cuarentena.
-  if (error || !data) return result;
+  // Se consulta por lotes: un `in` con cientos de rutas excede el largo
+  // admitido de la petición y hacía fallar la lectura completa (fail-closed),
+  // dejando fuera resoluciones manuales vigentes.
+  const chunkSize = 50;
+  for (let index = 0; index < paths.length; index += chunkSize) {
+    const chunk = paths.slice(index, index + chunkSize);
+    const { data, error } = await admin
+      .from("storage_migration_manual_resolutions")
+      .select(
+        "bucket_id, source_path, organization_id, resolved_by, justification, revalidated_at, status",
+      )
+      .eq("status", "active")
+      .in("source_path", chunk);
+    // Fail-closed: si no se puede leer el registro, nada sale de cuarentena.
+    if (error || !data) return new Map();
 
-  for (const row of data as ManualResolutionRecord[]) {
-    result.set(`${row.bucket_id}\n${row.source_path}`, row);
+    for (const row of data as ManualResolutionRecord[]) {
+      result.set(`${row.bucket_id}\n${row.source_path}`, row);
+    }
   }
   return result;
+}
+
+/**
+ * Lee los registros de migración de las fuentes huérfanas vivas. Fail-closed:
+ * cualquier error de lectura deja el conjunto vacío, con lo que ninguna fuente
+ * se concilia y `apply` sigue bloqueado.
+ */
+async function loadOrphanLedgerRecords(
+  admin: AdminClient,
+  objects: Array<{ bucketId: string; sourcePath: string }>,
+): Promise<OrphanLedgerRecord[]> {
+  if (objects.length === 0) return [];
+  const paths = [...new Set(objects.map((entry) => entry.sourcePath))];
+  const records: OrphanLedgerRecord[] = [];
+  const chunkSize = 100;
+
+  for (let index = 0; index < paths.length; index += chunkSize) {
+    const chunk = paths.slice(index, index + chunkSize);
+    const { data, error } = await admin
+      .from("storage_object_migrations")
+      .select(
+        "bucket_id, source_path, organization_id, destination_path, discovery_kind, status",
+      )
+      .in("source_path", chunk);
+    if (error || !data) return [];
+    records.push(...(data as OrphanLedgerRecord[]));
+  }
+  return records;
+}
+
+/**
+ * Concilia las fuentes huérfanas que ya fueron copiadas y verificadas. La
+ * clasificación pura decide la elegibilidad; aquí se revalida, además, la
+ * igualdad de bytes fuente/copia. Una discrepancia vuelve a bloquear `apply`.
+ */
+async function reconcileOrphanSources(
+  admin: AdminClient,
+  objects: Array<{ bucketId: string; sourcePath: string }>,
+  ledgerRecords: OrphanLedgerRecord[],
+  approvedOwners: ApprovedOrphanOwner[],
+  existingObjectKeys: ReadonlySet<string>,
+  activeOrganizationIds: string[],
+): Promise<OrphanReconciliationSummary & { verification_failed: number }> {
+  const classified = classifyReconciledOrphanSources({
+    objects,
+    ledgerRecords,
+    approvedOwners,
+    existingObjectKeys,
+    activeOrganizationIds,
+  });
+
+  const verified: ReconciledOrphanSource[] = [];
+  let verificationFailed = 0;
+  for (const candidate of classified.reconciled) {
+    // Las fuentes `referenced/references_updated` ya fueron verificadas byte a
+    // byte en el momento de copiar, antes de redirigir su referencia; volver a
+    // descargar cientos de pares en cada corrida agota el tiempo de ejecución.
+    // Para ellas basta la existencia comprobada del destino. Las huérfanas, que
+    // nunca tuvieron referencia que las respalde, sí se revalidan aquí.
+    if (candidate.recordKind === "referenced") {
+      verified.push(candidate);
+      continue;
+    }
+    const verdict = await verifyCopyIntegrity(admin, {
+      id: "",
+      bucket_id: candidate.bucketId,
+      organization_id: candidate.organizationId,
+      source_path: candidate.sourcePath,
+      destination_path: candidate.destinationPath,
+      discovery_kind: "orphaned",
+      status: "copied",
+      attempt_count: 0,
+    });
+    if (verdict === "verified") verified.push(candidate);
+    else verificationFailed++;
+  }
+
+  return {
+    reconciled: verified,
+    blocking: classified.blocking + verificationFailed,
+    by_reason: classified.by_reason,
+    verification_failed: verificationFailed,
+  };
 }
 
 async function ensureOrphanLedger(
@@ -1158,6 +1256,13 @@ async function processObject(
   return "references_updated";
 }
 
+/** Estados NO terminales de un objeto referenciado. */
+export const REFERENCED_PENDING_STATUSES = [
+  "planned",
+  "copied",
+  "failed",
+] as const;
+
 async function applyBatch(
   admin: AdminClient,
   batchSize: number,
@@ -1168,7 +1273,10 @@ async function applyBatch(
       "id, bucket_id, organization_id, source_path, destination_path, discovery_kind, status, attempt_count",
     )
     .eq("discovery_kind", "referenced")
-    .in("status", ["planned", "copied", "references_updated", "failed"])
+    // `references_updated` es terminal para un objeto referenciado: incluirlo
+    // hacía que cada corrida volviera a tomar las mismas filas ya terminadas y
+    // las pendientes nunca avanzaran (starvation). `failed` sí se reintenta.
+    .in("status", REFERENCED_PENDING_STATUSES)
     .order("created_at", { ascending: true })
     .limit(batchSize);
   if (error) throw new Error("No se pudo leer el lote pendiente.");
@@ -1637,13 +1745,47 @@ Deno.serve(async (req) => {
         409,
       );
     }
-    // Sólo bloquea el legado sin prefijo: de esos objetos no se puede derivar
-    // el dueño. Los objetos sin referencia que YA están bajo el prefijo de una
-    // organización se dejan intactos (sin ledger, sin copia, sin borrado).
-    if (inventory.unreferencedUnscopedObjects > 0) {
+    // Sólo bloquea el legado sin prefijo QUE SIGA SIN RESOLVER: de esos
+    // objetos no se puede derivar el dueño. Los objetos sin referencia que YA
+    // están bajo el prefijo de una organización se dejan intactos. Las fuentes
+    // huérfanas ya copiadas y verificadas a su organización permanecen a
+    // propósito (el traslado nunca borra la fuente) y, tras revalidar ledger,
+    // dueño, destino y bytes, dejan de bloquear esta fase.
+    const existingObjectKeys = new Set<string>();
+    for (const [bucketId, objectPaths] of inventory.objectPathsByBucket) {
+      for (const objectPath of objectPaths) {
+        existingObjectKeys.add(storageObjectKey(bucketId, objectPath));
+      }
+    }
+    const reconciliation = await reconcileOrphanSources(
+      admin,
+      unreferencedUnscoped,
+      await loadOrphanLedgerRecords(admin, unreferencedUnscoped),
+      orphanCandidates.map((candidate) => ({
+        bucketId: candidate.bucketId,
+        sourcePath: candidate.sourcePath,
+        organizationId: candidate.organizationId,
+        destinationPath: candidate.destinationPath,
+      })),
+      existingObjectKeys,
+      plan.activeOrganizationIds,
+    );
+    const applySummary = {
+      ...summary,
+      orphan_migration: {
+        ...summary.orphan_migration,
+        reconciled_sources: {
+          reconciled: reconciliation.reconciled.length,
+          blocking: reconciliation.blocking,
+          verification_failed: reconciliation.verification_failed,
+          by_reason: reconciliation.by_reason,
+        },
+      },
+    };
+    if (reconciliation.blocking > 0) {
       return respond(
         {
-          ...summary,
+          ...applySummary,
           error: "Resolve unscoped unreferenced Storage objects before apply.",
         },
         409,
@@ -1652,7 +1794,7 @@ Deno.serve(async (req) => {
 
     await ensureLedger(admin, plan.candidates);
     const outcomes = await applyBatch(admin, input.batchSize);
-    return respond({ ...summary, outcomes });
+    return respond({ ...applySummary, outcomes });
   } catch {
     // No se propagan mensajes de Storage ni rutas en la respuesta.
     return respond({ error: "Storage migration operation failed." }, 500);
