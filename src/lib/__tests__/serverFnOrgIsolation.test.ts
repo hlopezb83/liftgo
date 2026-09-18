@@ -169,7 +169,7 @@ function extractChain(source: string, fromIndex: number): string {
 function receiverBefore(source: string, dotIndex: number): string | null {
   let i = dotIndex - 1;
   while (i >= 0 && /\s/.test(source[i] ?? "")) i--;
-  let end = i + 1;
+  const end = i + 1;
   while (i >= 0 && /[\w$]/.test(source[i] ?? "")) i--;
   const ident = source.slice(i + 1, end);
   return ident || null;
