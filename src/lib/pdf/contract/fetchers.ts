@@ -5,7 +5,6 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
-import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
 import {
   DEFAULT_INTRO, DEFAULT_DECL_LANDLORD, DEFAULT_DECL_TENANT,
   DEFAULT_CLAUSES, DEFAULT_CHECKLIST, DEFAULT_PAGARE,
@@ -149,10 +148,3 @@ export async function fetchTemplate(contract: ContractData): Promise<TemplateDat
   };
 }
 
-/**
- * @deprecated Usar `loadCompanyLogo` desde `@/lib/pdf/assets/logo`.
- * Se mantiene como thin wrapper para compatibilidad del builder de contrato.
- */
-export async function fetchLogoBase64(logoUrl: string | null | undefined): Promise<string | null> {
-  return loadCompanyLogo(logoUrl);
-}

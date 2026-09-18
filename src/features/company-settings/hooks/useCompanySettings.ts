@@ -19,7 +19,6 @@ export function useUpsertCompanySettings() {
       razon_social: string;
       regimen_fiscal: string;
       lugar_expedicion: string;
-      logo_url?: string | null;
       facturapi_mode?: string | null;
     }) => {
       const query = settings.id

@@ -13,13 +13,9 @@ export const fiscalSchema = z.object({
     .string()
     .min(1, "Lugar de expedición requerido")
     .refine((v) => /^\d{5}$/.test(v), { message: "Lugar de expedición debe ser un código postal de 5 dígitos" }),
-  logo_url: z.string(),
   facturapi_mode: z.string(),
   facturapi_test_key: z.string(),
   facturapi_live_key: z.string(),
 });
 
 export type FiscalDataValues = z.infer<typeof fiscalSchema>;
-
-export const logoSchema = z.object({ logo_url: z.string() });
-export type LogoFormValues = z.infer<typeof logoSchema>;

@@ -1,9 +1,8 @@
-import { SettingsIcon, FleetIcon, MaintenanceIcon, DocumentIcon, SecurityIcon, CompanyIcon, Image as ImageIcon, ShieldAlert } from "@/components/icons";
+import { SettingsIcon, FleetIcon, MaintenanceIcon, DocumentIcon, SecurityIcon, CompanyIcon, ShieldAlert } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { CompanyLogoTab } from "../components/operations/CompanyLogoTab";
 import { ContractTemplateTab } from "../components/operations/ContractTemplateTab";
 import { CxpApprovalTab } from "../components/operations/CxpApprovalTab";
 import { DriversTab } from "../components/operations/DriversTab";
@@ -15,8 +14,8 @@ import { MechanicsTab } from "../components/operations/MechanicsTab";
 export default function OperationsSetupPage() {
   return (
     <PageContainer maxWidth="wide">
-      <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
-      {/* v7.181: en desktop las 8 pestañas se envolvían a dos filas. Layout
+      <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales y aprobaciones" />
+      {/* v7.181: en desktop las pestañas se envolvían a dos filas. Layout
           vertical en lg+ (sidebar de tabs) evita el wrap y mejora escaneo. */}
       <Tabs defaultValue="equipment" className="mt-6 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6">
         <div className="-mx-4 sm:mx-0 overflow-x-auto lg:overflow-visible sm:[mask-image:none] [mask-image:linear-gradient(to_right,black_92%,transparent)] lg:[mask-image:none]">
@@ -27,7 +26,6 @@ export default function OperationsSetupPage() {
             <TabsTrigger value="policies" className="gap-2 whitespace-nowrap lg:justify-start lg:w-full"><SecurityIcon className="h-4 w-4" />Pólizas de Mantenimiento</TabsTrigger>
             <TabsTrigger value="contract-template" className="gap-2 whitespace-nowrap lg:justify-start lg:w-full"><DocumentIcon className="h-4 w-4" />Plantilla de Contrato</TabsTrigger>
             <TabsTrigger value="fiscal" className="gap-2 whitespace-nowrap lg:justify-start lg:w-full"><CompanyIcon className="h-4 w-4" />Datos Fiscales</TabsTrigger>
-            <TabsTrigger value="logo" className="gap-2 whitespace-nowrap lg:justify-start lg:w-full"><ImageIcon className="h-4 w-4" />Logo</TabsTrigger>
             <TabsTrigger value="cxp-approval" className="gap-2 whitespace-nowrap lg:justify-start lg:w-full"><ShieldAlert className="h-4 w-4" />Aprobaciones CxP</TabsTrigger>
           </TabsList>
         </div>
@@ -48,11 +46,6 @@ export default function OperationsSetupPage() {
           <TabsContent value="fiscal" className="mt-4 lg:mt-0">
             <RoleGuard module="Configuración" minAccess="full" fallback={null}>
               <FiscalDataTab />
-            </RoleGuard>
-          </TabsContent>
-          <TabsContent value="logo" className="mt-4 lg:mt-0">
-            <RoleGuard module="Configuración" minAccess="full" fallback={null}>
-              <CompanyLogoTab />
             </RoleGuard>
           </TabsContent>
           <TabsContent value="cxp-approval" className="mt-4 lg:mt-0">
