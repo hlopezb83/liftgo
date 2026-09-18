@@ -118,9 +118,10 @@ BEGIN
 END;
 $$;
 
--- ── 2. Alta de B mediante el canal de plataforma (service_role) ──────
-SET LOCAL role = 'service_role';
-SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
+-- ── 2. Alta de B mediante el canal de plataforma ─────────────────────
+-- Las funciones son SECURITY DEFINER y su ACL (sólo service_role) ya se
+-- verificó en la sección 0; aquí se ejecutan con la sesión de la suite
+-- (sin JWT → auth.uid() IS NULL, como desde el servidor).
 
 DO $$
 DECLARE
@@ -226,9 +227,6 @@ BEGIN
   RAISE NOTICE 'OK: alta de B con operador verificado, primer administrador atómico y compensación';
 END;
 $$;
-
-RESET request.jwt.claims;
-RESET role;
 
 -- ── 3a. Clientes: el administrador de A da de alta a su cliente ──────
 SET LOCAL role = 'authenticated';
@@ -477,8 +475,7 @@ $$;
 
 -- 5b. El operador suspende a B (y no puede suspender su propia empresa).
 RESET request.jwt.claims;
-SET LOCAL role = 'service_role';
-SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
+RESET role;
 
 DO $$
 DECLARE
@@ -498,8 +495,6 @@ BEGIN
 END;
 $$;
 
-RESET request.jwt.claims;
-RESET role;
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO
   '{"sub":"30000000-0000-4000-8000-0000000000b1","role":"authenticated"}';
@@ -561,13 +556,9 @@ $$;
 -- 5d. Reactivación por el operador restablece a B.
 RESET request.jwt.claims;
 RESET role;
-SET LOCAL role = 'service_role';
-SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
 SELECT public.platform_set_organization_active(
   '30000000-0000-4000-8000-0000000000a1', current_setting('app.onb.org_b')::uuid, true);
 
-RESET request.jwt.claims;
-RESET role;
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO
   '{"sub":"30000000-0000-4000-8000-0000000000b1","role":"authenticated"}';
