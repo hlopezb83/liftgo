@@ -1,0 +1,13 @@
+{
+  "version": "8.14.2",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "backend",
+  "title": "Identificación de archivos sueltos: se reconocen claves en mayúsculas",
+  "description": "Algunos folios fiscales están guardados en mayúsculas y la búsqueda comparaba sólo en minúsculas, por lo que archivos con dueño claro aparecían como sin dueño.",
+  "changes": [
+    "La comparación del folio fiscal ya no distingue mayúsculas de minúsculas, manteniendo la coincidencia exacta.",
+    "Se siguen detectando duplicados y archivos con varias empresas posibles.",
+    "Sin cambios de permisos, base de datos ni operaciones sobre los archivos."
+  ]
+}
