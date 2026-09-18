@@ -162,13 +162,23 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
 | Vitest | `src/lib/organization/__tests__/resolveOrganizationContext.test.ts`, `adminScope.test.ts` | organización suspendida/no visible, errores de lectura, cuentas de portal |
 | Vitest | `src/layouts/hooks/__tests__/useVisibleNavGroups.test.tsx` | "Empresas" oculta sin confirmación del servidor |
 | Vitest | `src/features/customers/.../useCustomers.rls.test.ts` | detalle vía relación comercial; sin relación → `null` |
+| RLS (CI efímero) | `supabase/tests/rls/audit_hardening_0031.sql` | portal con rol `admin` residual y admin sin membresía: no listan clientes ni archivan (y no cambian datos ajenos); `organization_document_counters` con RLS deny-all y ACL sólo `service_role`; retiro del seed de operadores y ACL de `platform_*`; admin de empresa no puede crear ni suspender empresas; alta en dos tiempos (empresa inactiva hasta el primer admin) |
+| RLS (CI efímero) | `supabase/tests/rls/storage_strict_org_prefix_0031.sql` | Storage con dos empresas: SELECT/INSERT/UPDATE/DELETE; prefijo ajeno, prefijo desconocido y legado sin prefijo denegados; empresa suspendida sin acceso por Storage API; `service_role` conserva el acceso del migrador |
+| Deno | `supabase/functions/_shared/storageQuarantine_test.ts` | cuarentena agregada del migrador: sin dueño, conflicto, lectura incompleta o cubeta no soportada nunca quedan "listos" |
 
 ## Pendiente (fuera de este tramo)
 
-- Rollout de 0030 a la base conectada: **requiere autorización explícita**.
-  Preflight igual que 0024–0029 (journal, backup del día, sin restore ensayado).
-- Regenerar `src/integrations/supabase/types.ts` tras aplicar 0030; mientras
-  tanto las RPC de plataforma se invocan sin tipado generado
+- Rollout de 0030 **y 0031** a la base conectada: **requiere autorización
+  explícita**. Preflight igual que 0024–0029 (journal, backup del día, sin
+  restore ensayado). En este repositorio ambas son **dry-run**: nada se aplicó.
+- Asignar explícitamente el primer `platform_operator` tras aplicar 0031: 0031
+  borra el respaldo automático del seed y **nadie queda como operador** hasta
+  que el propietario haga la alta manual documentada arriba.
+- Regenerar `src/integrations/supabase/types.ts` tras aplicar 0030/0031;
+  mientras tanto las RPC de plataforma se invocan sin tipado generado
   (`asUntypedRpc`) con el contrato fijado en el servidor.
 - Alta real de la segunda empresa y prueba cross-tenant en producción (Storage,
-  branding por empresa) siguen abiertas; ver `storage-historico.md`.
+  branding por empresa) siguen abiertas; ver `storage-historico.md`. Con 0031 el
+  Storage legado deja de ser legible para el personal, así que el traslado
+  histórico es requisito previo.
+
