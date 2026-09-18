@@ -115,11 +115,23 @@ Deno.test("bloquea si la copia no existe en el inventario vivo", () => {
 });
 
 Deno.test("bloquea dueño no aprobado, dueño distinto y destino distinto", () => {
-  const missingOwner = classifyReconciledOrphanSources({
+  // Sin dueño re-derivado, pero con destino canónico documentado por el
+  // registro terminal, la fuente se concilia.
+  const canonicalWithoutOwner = classifyReconciledOrphanSources({
     objects: [{ bucketId: BUCKET, sourcePath: "x.xml" }],
     ledgerRecords: [record("x.xml")],
     approvedOwners: [],
     existingObjectKeys: destinationExists("x.xml"),
+    activeOrganizationIds: ACTIVE,
+  });
+  assertEquals(canonicalWithoutOwner.reconciled.length, 1);
+
+  // Sin dueño y con destino no canónico sigue bloqueando.
+  const missingOwner = classifyReconciledOrphanSources({
+    objects: [{ bucketId: BUCKET, sourcePath: "x.xml" }],
+    ledgerRecords: [record("x.xml", { destination_path: "otro/x.xml" })],
+    approvedOwners: [],
+    existingObjectKeys: new Set([storageObjectKey(BUCKET, "otro/x.xml")]),
     activeOrganizationIds: ACTIVE,
   });
   assertEquals(missingOwner.by_reason.owner_not_resolved, 1);
