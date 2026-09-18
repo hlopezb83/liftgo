@@ -137,6 +137,13 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
       "admin",
       "administrativo",
     ]);
+    // Multiempresa (tramo 13): `admin` es service_role y NO aplica RLS, así que
+    // el aislamiento debe ser explícito. La empresa se deriva de la membresía
+    // interna verificada, nunca del cuerpo de la petición.
+    const organizationId = await g.requireInternalOrganization(
+      context.supabase,
+      context.userId,
+    );
     // SEC: la clasificación consume créditos de AI; mismo límite que parse-csf.
     await g.enforceRateLimit(
       admin,
@@ -155,6 +162,7 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
       .from("feedback_reports")
       .select("*")
       .eq("id", parsed.data.report_id)
+      .eq("organization_id", organizationId)
       .maybeSingle();
     if (reportErr || !report) {
       throw new g.HttpError(404, "Reporte no encontrado");
@@ -209,6 +217,7 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
       .from("feedback_reports")
       .update(updatePayload)
       .eq("id", report.id)
+      .eq("organization_id", organizationId)
       .select()
       .single();
 
