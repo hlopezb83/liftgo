@@ -49,6 +49,8 @@ import {
   resolveOrphanOwner,
   summarizeOrphanOwnership,
 } from "../_shared/storageOrphanOwner.ts";
+import { summarizeQuarantine } from "../_shared/storageQuarantine.ts";
+
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
 const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_NO_DELETE";
@@ -653,7 +655,9 @@ function collectOrphanCandidates(
 ): {
   candidates: OrphanCandidate[];
   byBucket: ReturnType<typeof summarizeOrphanOwnership>;
+  quarantine: ReturnType<typeof summarizeQuarantine>;
 } {
+
   const candidates: OrphanCandidate[] = [];
   const entries: Array<
     { bucketId: string; resolution: OrphanOwnerResolution }
@@ -681,8 +685,14 @@ function collectOrphanCandidates(
     });
   }
 
-  return { candidates, byBucket: summarizeOrphanOwnership(entries) };
+  const byBucket = summarizeOrphanOwnership(entries);
+  return {
+    candidates,
+    byBucket,
+    quarantine: summarizeQuarantine(entries, byBucket),
+  };
 }
+
 
 async function ensureOrphanLedger(
   admin: AdminClient,
@@ -1369,7 +1379,10 @@ Deno.serve(async (req) => {
             by_bucket: orphans.byBucket,
           }
           : null,
+        // Lista de resolución MANUAL: nunca se traslada nada de aquí.
+        quarantine: inventoryComplete ? orphans.quarantine : null,
         deletion: "never_allowed",
+
       },
 
       source_deletion: {

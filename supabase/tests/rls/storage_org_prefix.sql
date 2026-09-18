@@ -126,19 +126,21 @@ BEGIN
     RAISE EXCEPTION 'SETUP INVÁLIDO: la sesión de portal no resuelve su organización';
   END IF;
 
-  -- 1.1 Lectura: propio y legado sí; prefijo de la ORG B no.
+  -- 1.1 Lectura: sólo el prefijo propio. Desde 0031 el legado SIN prefijo ya
+  --     no se lee por la Storage API (queda para el migrador con service_role).
   IF NOT EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'payment-proofs' AND name LIKE v_org_a || '/%'
   ) THEN
     RAISE EXCEPTION 'RLS ROTA: el cliente no lee su propio comprobante';
   END IF;
-  IF NOT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'payment-proofs' AND name = v_cust || '/' || v_inv_a || '/legado.pdf'
   ) THEN
-    RAISE EXCEPTION 'REGRESIÓN LEGADA: el comprobante sin prefijo dejó de leerse';
+    RAISE EXCEPTION 'RLS BREACH: el comprobante legado sin prefijo sigue siendo legible';
   END IF;
+
   IF EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'payment-proofs' AND name LIKE v_org_b || '/%'
@@ -321,12 +323,13 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'RLS ROTA: el mecánico no lee documentos de equipo de su organización';
   END IF;
-  IF NOT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'documents' AND name LIKE 'forklift/%'
   ) THEN
-    RAISE EXCEPTION 'REGRESIÓN LEGADA: el documento sin prefijo dejó de leerse';
+    RAISE EXCEPTION 'RLS BREACH: el documento legado sin prefijo sigue siendo legible';
   END IF;
+
   IF EXISTS (
     SELECT 1 FROM storage.objects
     WHERE bucket_id = 'documents' AND name LIKE v_org_b || '/%'

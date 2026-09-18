@@ -1,9 +1,17 @@
 # Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
 
-Estado: **implementado en el repositorio (8.15.0), sin producción**. La migración
-`0030_multi_org_onboarding_and_customer_scope.sql` está en el journal (idx 30) y
-sólo se ejecuta en CI efímero. Su rollout a la base conectada requiere
-autorización explícita y sigue el mismo canal oficial que 0024–0029.
+Estado: **implementado en el repositorio (8.16.0), sin producción**. Las
+migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) y
+`0031_multi_org_audit_hardening.sql` (idx 31) están en el journal y sólo se
+ejecutan en CI efímero. Su rollout a la base conectada requiere autorización
+explícita y sigue el mismo canal oficial que 0024–0029.
+
+> **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
+> plataforma **explícita** (sin promoción automática de administradores de
+> empresa), alta en **dos tiempos** (empresa inactiva hasta tener su primer
+> administrador), clientes sólo para **membresía interna** y Storage con
+> prefijo de empresa activa **obligatorio**.
+
 
 ## Qué cierra este tramo
 
@@ -27,9 +35,31 @@ navegador ── server function ── requirePlatformOperator ── RPC platf
                  └ nunca envía organization_id ni decide permisos
 ```
 
-- `platform_operators`: quién puede operar la plataforma. Respaldo inicial en
-  0030: los administradores internos activos de la organización fundadora, sólo
-  si la tabla está vacía. RLS: cada uno ve únicamente su propia fila.
+- `platform_operators`: quién puede operar la plataforma. **La autoridad de
+  plataforma NO se deriva del rol `admin` de una empresa.** 0031 retira el
+  respaldo automático de 0030 (borra únicamente las filas con el marcador
+  exacto de aquel seed y conserva cualquier asignación explícita). RLS: cada
+  operador ve únicamente su propia fila.
+
+### Bootstrap seguro del primer operador
+
+No hay forma de volverse operador desde la aplicación. El primer operador se
+asigna una sola vez con el canal privilegiado (`service_role`), nombrando al
+usuario de forma explícita:
+
+```sql
+-- Ejecutado por el propietario del proyecto con el canal privilegiado.
+INSERT INTO public.platform_operators (auth_user_id, notes)
+VALUES ('<uuid del usuario>', 'Operador raíz: alta manual autorizada')
+ON CONFLICT (auth_user_id) DO NOTHING;
+```
+
+A partir de ahí la alta y baja son explícitas y auditables:
+`platform_grant_operator(p_actor, p_user_id, p_notes)` y
+`platform_revoke_operator(p_actor, p_user_id)` (ambas sólo `service_role`,
+ambas exigen `assert_platform_operator(p_actor)`; nadie puede retirarse la
+autoridad a sí mismo).
+
 - `is_platform_operator()` (SECURITY DEFINER, `authenticated`): responde sólo
   por el usuario autenticado. La UI lo usa para **mostrar** la sección; nunca es
   la barrera.
@@ -48,14 +78,18 @@ navegador ── server function ── requirePlatformOperator ── RPC platf
 1. Guard de operador + rate limit (5 altas / 5 min por operador) + validación
    (`name` 2–120, `slug` `^[a-z0-9][a-z0-9-]{1,62}$`, correo válido, nombre ≤ 200).
 2. Unicidad de correo en `profiles` (mismo criterio que la invitación interna).
-3. `platform_create_organization` → empresa nueva (la base valida nombre/slug y
-   unicidad).
+3. `platform_create_organization` → empresa **inactiva (pending)**: nace con
+   `is_active = false`, así que mientras el alta esté incompleta nadie opera en
+   ella, ni por RLS ni por Storage (0031).
 4. `auth.admin.createUser` con `user_metadata.organization_id` para que
    `handle_new_user` fije el contexto de auditoría. **Si falla**, se ejecuta
    `platform_discard_organization` (la empresa recién creada no queda a medias).
 5. `platform_attach_first_admin` → membresía interna + rol `admin` + perfil
-   activo, atómico en la base; un segundo "primer administrador" se rechaza. Si
-   falla, se compensa (usuario Auth + empresa).
+   activo y, **en la misma transacción y sólo después de comprobar que la
+   membresía interna quedó escrita**, `is_active = true`. Un segundo "primer
+   administrador" se rechaza. Si falla, se compensa (usuario Auth + empresa) y
+   la empresa permanece inactiva.
+
 6. Enlace de recuperación de un solo uso para que el administrador defina su
    contraseña; si no se puede generar, la respuesta lo indica y el administrador
    puede usar "Olvidé mi contraseña".
@@ -85,13 +119,22 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
   activas no adivina: fija el dueño desde `app.organization_id` y la relación se
   declara explícitamente (fixtures A/B y migraciones).
 - Policies de personal (`admin`, `administrativo`, `ventas`, `auditor`,
-  `dispatcher`) usan `customer_scope_matches(customer_id, organization_id)`: el
-  personal sólo ve clientes con relación comercial en SU empresa.
+  `dispatcher`) usan `customer_scope_matches(customer_id, organization_id)`. Con
+  0031 el helper exige **membresía interna verificada de una empresa activa**
+  (`current_internal_organization_id()`) y niega a toda cuenta de portal, aunque
+  conserve un rol administrativo residual. No hay compatibilidad de "una sola
+  empresa activa" para usuarios autenticados: sin membresía, falla cerrado.
 - `link_customer_to_organization_by_rfc`: si el RFC ya existe (dado de alta por
   otra empresa), crea la relación en la empresa actual en lugar de fallar por
   duplicado; los datos por relación viven en `organization_customers`.
-- `soft_delete_customer`: archivado por relación cuando el cliente está
-  compartido; archivado global sólo cuando la empresa es el único dueño.
+- `soft_delete_customer` (SECURITY DEFINER): exige usuario autenticado, membresía
+  interna y empresa activa; sin contexto de organización **no archiva nada**
+  (0031 eliminó la rama global). Archivado por relación cuando el cliente está
+  compartido; archivado de la identidad global sólo cuando la empresa es el
+  único dueño con relación vigente. Las relaciones y cuentas de portal que toca
+  se limitan a la empresa actual; las validaciones de reservas y saldo se
+  evalúan sobre los datos de esa empresa.
+
 - Frontend (`useCustomers`): listado y detalle leen a través de
   `organization_customers` con `customers!inner(...)` y relación `active`; un
   cliente de otra empresa es indistinguible de uno inexistente.
@@ -119,13 +162,23 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
 | Vitest | `src/lib/organization/__tests__/resolveOrganizationContext.test.ts`, `adminScope.test.ts` | organización suspendida/no visible, errores de lectura, cuentas de portal |
 | Vitest | `src/layouts/hooks/__tests__/useVisibleNavGroups.test.tsx` | "Empresas" oculta sin confirmación del servidor |
 | Vitest | `src/features/customers/.../useCustomers.rls.test.ts` | detalle vía relación comercial; sin relación → `null` |
+| RLS (CI efímero) | `supabase/tests/rls/audit_hardening_0031.sql` | portal con rol `admin` residual y admin sin membresía: no listan clientes ni archivan (y no cambian datos ajenos); `organization_document_counters` con RLS deny-all y ACL sólo `service_role`; retiro del seed de operadores y ACL de `platform_*`; admin de empresa no puede crear ni suspender empresas; alta en dos tiempos (empresa inactiva hasta el primer admin) |
+| RLS (CI efímero) | `supabase/tests/rls/storage_strict_org_prefix_0031.sql` | Storage con dos empresas: SELECT/INSERT/UPDATE/DELETE; prefijo ajeno, prefijo desconocido y legado sin prefijo denegados; empresa suspendida sin acceso por Storage API; `service_role` conserva el acceso del migrador |
+| Deno | `supabase/functions/_shared/storageQuarantine_test.ts` | cuarentena agregada del migrador: sin dueño, conflicto, lectura incompleta o cubeta no soportada nunca quedan "listos" |
 
 ## Pendiente (fuera de este tramo)
 
-- Rollout de 0030 a la base conectada: **requiere autorización explícita**.
-  Preflight igual que 0024–0029 (journal, backup del día, sin restore ensayado).
-- Regenerar `src/integrations/supabase/types.ts` tras aplicar 0030; mientras
-  tanto las RPC de plataforma se invocan sin tipado generado
+- Rollout de 0030 **y 0031** a la base conectada: **requiere autorización
+  explícita**. Preflight igual que 0024–0029 (journal, backup del día, sin
+  restore ensayado). En este repositorio ambas son **dry-run**: nada se aplicó.
+- Asignar explícitamente el primer `platform_operator` tras aplicar 0031: 0031
+  borra el respaldo automático del seed y **nadie queda como operador** hasta
+  que el propietario haga la alta manual documentada arriba.
+- Regenerar `src/integrations/supabase/types.ts` tras aplicar 0030/0031;
+  mientras tanto las RPC de plataforma se invocan sin tipado generado
   (`asUntypedRpc`) con el contrato fijado en el servidor.
 - Alta real de la segunda empresa y prueba cross-tenant en producción (Storage,
-  branding por empresa) siguen abiertas; ver `storage-historico.md`.
+  branding por empresa) siguen abiertas; ver `storage-historico.md`. Con 0031 el
+  Storage legado deja de ser legible para el personal, así que el traslado
+  histórico es requisito previo.
+

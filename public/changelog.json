@@ -1,5 +1,24 @@
 [
   {
+    "version": "8.16.0",
+    "date": "2026-09-19",
+    "type": "minor",
+    "category": "backend",
+    "title": "Multiempresa: endurecimiento de archivos, clientes, contadores y autoridad de plataforma",
+    "description": "Cierre de los hallazgos de la auditoría multiempresa (tramo 10). Los archivos, los clientes y la administración de empresas dejan de tener rutas permisivas heredadas. Sólo repositorio: la migración 0031 no se ha aplicado a producción y no se movió ningún archivo.",
+    "changes": [
+      "Migración 0031 (forward-only): los archivos sólo se aceptan cuando su primera carpeta es exactamente la empresa activa del usuario; se retira la variante permisiva que aceptaba archivos sin carpeta de empresa o con un identificador ajeno, y se añade una regla restrictiva que ninguna regla antigua puede saltarse.",
+      "Una empresa suspendida pierde también el acceso directo a los archivos; el proceso de servicio conserva únicamente el acceso que necesita el traslado de históricos.",
+      "Clientes: una cuenta de portal con un rol administrativo residual y un usuario sin membresía ya no pueden listar, modificar ni archivar clientes; el archivado exige membresía interna con empresa activa y ya no archiva de forma global cuando no hay empresa en contexto.",
+      "organization_document_counters con seguridad por fila activada y sin reglas para cuentas de usuario (deny-all), conservando sólo el acceso del proceso de servicio.",
+      "Autoridad de plataforma explícita: se elimina la promoción automática de los administradores de la empresa fundadora (se borran únicamente las filas del respaldo automático) y se añaden alta y baja explícitas de operadores, con procedimiento de arranque documentado.",
+      "Alta de empresas en dos tiempos: la empresa nace inactiva y sólo se activa dentro de la misma transacción que adjunta a su primer administrador, tras validar usuario y membresía; se conserva la compensación ante fallos.",
+      "Traslado de archivos históricos: resumen de cuarentena en el modo de sólo lectura; todo archivo sin dueño único y verificable queda denegado y en lista de resolución manual, nunca se adivina el dueño.",
+      "Pruebas nuevas: dos suites de seguridad por fila (archivos estrictos con dos empresas y endurecimiento de la auditoría) y pruebas de la cuarentena del traslado.",
+      "Sin producción: la migración 0031 y el traslado de archivos quedan como simulación; no se aplicó nada ni se publicó la aplicación."
+    ]
+  },
+  {
     "version": "8.15.0",
     "date": "2026-09-18",
     "type": "minor",
