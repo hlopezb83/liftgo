@@ -33,11 +33,11 @@ export function SidebarBranding({ razonSocial }: SidebarBrandingProps) {
         </Button>
       )}
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
-        {/* Lockup gráfico global de LiftGo: igual en cualquier tenant. */}
-        <BrandLockup
-          size="lg"
-          className="brightness-0 invert group-data-[collapsible=icon]:hidden"
-        />
+        {/* Lockup gráfico global de LiftGo: igual en cualquier tenant, con
+            sus colores originales sobre una tarjeta clara para contraste. */}
+        <div className="rounded-lg bg-card px-3 py-2 group-data-[collapsible=icon]:hidden">
+          <BrandLockup size="lg" />
+        </div>
         {/* Colapsado: emblema compacto, el lockup no es legible a ese tamaño. */}
         <BrandMark size="sm" className="hidden group-data-[collapsible=icon]:block" />
 

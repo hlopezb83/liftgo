@@ -1,0 +1,14 @@
+{
+  "version": "8.24.1",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "El logotipo oficial vuelve a mostrarse con sus colores originales",
+  "description": "El menú y el panel de acceso pintaban el logotipo de blanco con un efecto de color. Es como ponerle un filtro de fotografía al membrete oficial: se veía distinto al original. Ahora el logotipo se muestra tal cual lo entregó el propietario; donde el fondo es oscuro, va sobre una tarjetita clara para que se lea bien, sin tocar ni un píxel de la imagen.",
+  "changes": [
+    "Se quitaron los filtros de recolor (brightness/invert) del sidebar y del panel de acceso.",
+    "En fondos oscuros el lockup va dentro de una tarjeta clara con espacio suficiente; en fondos claros se usa directo.",
+    "Nueva prueba que impide volver a aplicar filtros de color sobre la marca oficial.",
+    "El archivo fuente sigue siendo el asset local exacto; sin cambios de base de datos, Storage ni publicación."
+  ]
+}

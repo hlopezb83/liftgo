@@ -1,3 +1,11 @@
+## [8.24.1] - 2026-09-18 · patch · fix
+
+El sidebar expandido y el panel de acceso aplicaban `brightness-0 invert` al lockup oficial, recoloreándolo de blanco. Se eliminaron esos filtros para conservar los colores originales del PNG entregado por el propietario; donde el fondo es oscuro, el lockup va dentro de una tarjeta clara con espacio suficiente, sin recortar ni modificar píxeles. En fondos claros se usa directo. Sin cambios de base de datos, Storage ni publicación.
+
+- src/layouts/sidebar/SidebarBranding.tsx y src/components/branding/AuthBrandPanel.tsx: se quitaron los filtros y se agregó una tarjeta clara (`bg-card`, padding) para contraste sobre fondo oscuro.
+- src/components/branding/__tests__/AuthBrandPanel.test.tsx: nueva prueba negativa que impide `brightness-0`/`invert` en cualquier callsite global de marca.
+- El archivo fuente sigue siendo `public/brand/liftgo-montacargas.png`, el asset local exacto (11/11 pruebas puntuales).
+
 ## [8.24.0] - 2026-09-18 · minor · feature
 
 El logotipo oficial «LIFT GO MONTACARGAS» entregado por el propietario pasa a ser el asset local versionado y fuente única de la marca global del producto, idéntica en todas las empresas. Sustituye al emblema/monograma como marca principal en el sidebar expandido, encabezados del ERP, pantallas de acceso y portal. Sin cambios de base de datos, Storage, valores productivos ni publicación.
