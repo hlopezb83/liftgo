@@ -1,10 +1,14 @@
-import { usePublicBranding } from "@/features/company-settings";
 import { cn } from "@/lib/utils";
 
 /**
- * R21 C-4: marca compacta usada en sidebar, portal login y vista de impresión.
- * Muestra el logo del tenant si existe; si no, un cuadro con las iniciales
- * sobre `bg-primary text-primary-foreground` para mantener contraste.
+ * Marca global de LiftGo: distintivo del producto usado en el shell del ERP,
+ * el portal y la vista de impresión.
+ *
+ * Fuente **fija y local**: se dibuja desde el repositorio, idéntica para
+ * cualquier empresa. NO consume `company_settings.logo_url` ni ninguna URL
+ * remota: una URL libre permitiría renderizar un origen externo arbitrario.
+ * El logo empresarial configurable vive en Configuración y en los documentos,
+ * y se resuelve aparte con aislamiento por organización.
  */
 interface BrandMarkProps {
   size?: "sm" | "md" | "lg";
@@ -17,42 +21,22 @@ const SIZE: Record<NonNullable<BrandMarkProps["size"]>, string> = {
   lg: "h-12 w-12 text-base",
 };
 
-function getInitials(name: string | null | undefined): string {
-  if (!name) return "LG";
-  const parts = name.trim().split(/\s+/).slice(0, 2);
-  return parts.map((p) => p[0]?.toUpperCase() ?? "").join("") || "LG";
-}
+/** Iniciales de la marca del producto; constante del repositorio. */
+export const GLOBAL_BRAND_INITIALS = "LG";
+export const GLOBAL_BRAND_NAME = "LiftGo";
 
 export function BrandMark({ size = "md", className }: BrandMarkProps) {
-  const { data } = usePublicBranding();
-  const logoUrl = data?.logo_url ?? null;
-  const name = data?.razon_social ?? "LiftGo";
-  const initials = getInitials(name);
-
-  if (logoUrl) {
-    return (
-      <img
-        referrerPolicy="no-referrer"
-        src={logoUrl}
-        alt={name}
-        className={cn(
-          "rounded-md object-contain bg-background",
-          SIZE[size],
-          className,
-        )}
-      />
-    );
-  }
   return (
     <div
-      aria-hidden
+      aria-label={GLOBAL_BRAND_NAME}
+      role="img"
       className={cn(
         "rounded-md bg-primary text-primary-foreground font-bold flex items-center justify-center shrink-0",
         SIZE[size],
         className,
       )}
     >
-      {initials}
+      {GLOBAL_BRAND_INITIALS}
     </div>
   );
 }
