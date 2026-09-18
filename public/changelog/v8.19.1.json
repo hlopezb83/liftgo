@@ -1,0 +1,16 @@
+{
+  "version": "8.19.1",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "Una autorización vencida de archivo histórico ya no puede seguir surtiendo efecto",
+  "description": "El proceso de migración de archivos antiguos guardaba una bitácora de trabajo pendiente. Si una autorización manual se revocaba o caducaba, la corrida siguiente igual tomaba esa bitácora vieja y copiaba el archivo, como una orden firmada que nadie retiraba del mostrador. Ahora cada corrida sólo puede trabajar sobre la lista aprobada en ese momento.",
+  "changes": [
+    "Cada corrida arma su propia lista aprobada (archivo, ruta y empresa) y sólo procesa exactamente esos objetos.",
+    "Sin autorizaciones vigentes no se procesa nada, aunque la bitácora anterior tenga trabajo pendiente o fallido.",
+    "Un registro cuya empresa no coincide con la aprobada se ignora: no se copia y no cambia de estado; además se informa cuántos se omitieron.",
+    "La fase de borrado sigue sin obtener autorizaciones manuales y continúa ignorando estos archivos sin dueño.",
+    "Nuevas pruebas de regresión: con autorización vigente sí se procesa; revocada, caduca o contradictoria no ocurre ninguna copia ni cambio de estado.",
+    "Sin producción: no se movió, copió ni borró ningún archivo real."
+  ]
+}
