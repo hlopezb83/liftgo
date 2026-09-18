@@ -8,22 +8,25 @@ Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddad
 
 Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.buckets`:
 
-| Bucket | Prefijados | Legados |
-|---|---|---|
-| cfdi-files | 163 | 10 |
-| supplier-bill-cfdi-xml | 84 | 0 |
-| supplier-payment-receipts | 58 | 0 |
-| documents | 1 | 5 |
-| feedback-screenshots | 1 | 0 |
-| payment-proofs | 0 | 0 |
+| Bucket | Objetos | Bajo prefijo **exacto** de organización | Con otro UUID (no es prefijo de organización) | Sin forma UUID (legado real) |
+|---|---|---|---|---|
+| cfdi-files | 173 | 0 | 163 | 10 |
+| supplier-bill-cfdi-xml | 84 | 6 | 78 | 0 |
+| supplier-payment-receipts | 58 | 5 | 53 | 0 |
+| documents | 6 | 1 | 0 | 5 |
+| feedback-screenshots | 1 | 0 | 1 | 0 |
+| payment-proofs | 0 | 0 | 0 | 0 |
 
-**Total: 322 objetos** (307 con primer segmento UUID, **15 sin prefijo**). Cifras del re-inventario 2026-09-17 (lectura, nada movido); el inventario previo (310 legados) está **desactualizado**.
+**Total: 322 objetos**, de los cuales **sólo 12 están bajo el prefijo exacto de una organización conocida**; 295 empiezan con un UUID ajeno (factura, documento, usuario…) y 15 no tienen forma de UUID. Cifras de la reconciliación 2026-09-18 comparando cada primer segmento contra `public.organizations.id` (lectura, nada movido). Los inventarios previos (310 legados; «307 prefijados / 15 legados») están **desactualizados**: trataban cualquier UUID como prefijo de organización, y no lo es.
 
-- Los **15 objetos legados** carecen de prefijo de organización; los 307 prefijados llevan como primer segmento un UUID. **No atribuir el paso de 310 a 15 a un traslado**: no hay evidencia suficiente del linaje. Los metadatos agregados indican que los 15 legados fueron creados entre 2026-06-24 y 2026-09-10 y los prefijados llegan hasta 2026-09-17, pero eso no reconstruye su historia previa.
+- **Un UUID cualquiera no cuenta como prefijo de organización**: `storage_prefix_organization()` (0022/0027) sólo reconoce el primer segmento si coincide exactamente con `public.organizations.id`. Por eso 295 objetos con UUID ajeno **no** están aislados.
+- Los **15 objetos sin forma UUID** son el legado clásico (10 en `cfdi-files`, 5 en `documents`). **No atribuir el paso de 310 a 15 a un traslado**: no hay evidencia suficiente del linaje.
 - **0 objetos en la raíz** de los buckets.
-- **1 organización activa**; con una sola empresa no hay colisión posible. Al dar de alta la segunda, los 15 legados seguirían accesibles a staff de ambas organizaciones.
+- **1 organización activa**; con una sola empresa no hay colisión posible. Al dar de alta la segunda, todo lo que no esté bajo prefijo exacto seguiría accesible a staff de ambas organizaciones.
 - Bitácoras de migración (`storage_object_migrations`, `storage_reference_migrations`): **0 filas; nada iniciado**.
-- **Reconciliación de rutas (no se muestran):** los 15 legados **no son huérfanos**; coinciden con referencias vivas — 10 de `cfdi-files` (8 de notas de crédito y 2 REP de `supplier_payments`) y 5 de `documents.file_url`. Aún necesitan prefijo y actualización de referencias antes de abrir la segunda organización.
+- **Reconciliación de rutas (no se muestran), reproducida con el código real** (`collectCandidates` + `REFERENCE_SPECS` + `parseStorageReference` + `makeStorageMigrationPlan`, y `summarizeStorageInventory`/`hasOrganizationStoragePrefix`): **305 filas de referencia** = 293 candidatas + 11 ya prefijadas + 1 no soportada; las 304 filas interpretables dan **304 rutas distintas**, todas existentes en Storage. Por cubeta: `cfdi-files` 173 candidatas / 0 ya prefijadas; `documents` 5 / 1 (+1 URL de logo no soportada); `feedback-screenshots` 1 / 0; `supplier-bill-cfdi-xml` 62 / 5; `supplier-payment-receipts` 52 / 5.
+- **18 objetos sin referencia**: 17 **sin prefijo de organización** (16 en `supplier-bill-cfdi-xml`, 1 en `supplier-payment-receipts`) y **1 ya prefijado** (`supplier-bill-cfdi-xml`). 304 referenciados + 18 sin referencia = 322.
+
 - **Formatos:** 56 referencias a `supplier_bills.cfdi_xml_url` y 43 a `supplier_payments.receipt_url` son **signed URLs con token**, compatibles con el parser actual del migrador; todos los objetos de esas referencias coinciden. 1 referencia `company_settings.logo_url` es **HTTPS** sin forma de ruta `/storage/v1/object/...`; eso **no basta para clasificar el host** ni para afirmar que el navegador la rechaza. Requiere clasificación manual y **prueba conductual por organización**; no se muestra su valor/host/ruta/token. Para las demás referencias especificadas, la lectura agregada encontró **0 sin coincidencia**. La consulta previa que reportó «0 URLs» estaba desactualizada.
 
 ## 2. Policies y helpers
