@@ -30,6 +30,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
           // En modo icono el rail mide 3rem: el recuadro debe encogerse o se desborda.
           <div className="flex h-12 max-w-[10rem] items-center justify-center rounded-md bg-white px-3 py-1.5 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:max-w-8 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1">
             <img
+        referrerPolicy="no-referrer"
               src={logoUrl}
               alt="Logo"
               className="h-full w-auto max-w-full object-contain"
