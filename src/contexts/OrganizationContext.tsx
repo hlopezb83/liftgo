@@ -92,6 +92,8 @@ export function useVerifiedPortalCustomerId(): string | undefined {
 const REASON_TEXT: Record<string, string> = {
   no_membership: "Tu cuenta todavía no está asignada a una empresa.",
   ambiguous_membership: "Tu cuenta tiene asignaciones de empresa inconsistentes.",
+  // Tramo 9: la empresa fue suspendida por el operador de la plataforma.
+  organization_inactive: "La empresa de tu cuenta está suspendida o no está disponible.",
   portal_account_missing: "No encontramos tu acceso de cliente en esta empresa.",
   portal_account_inactive: "Tu acceso de cliente está suspendido o cancelado.",
   portal_organization_mismatch: "Tu acceso de cliente no corresponde a esta empresa.",
