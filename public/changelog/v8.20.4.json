@@ -1,0 +1,15 @@
+{
+  "version": "8.20.4",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "security",
+  "title": "La revisión automática ahora exige que la empresa venga del servidor, no de la petición",
+  "description": "La revisión anterior daba por buena cualquier alta que simplemente mencionara la empresa, aunque ese dato viniera de quien hace la petición: como aceptar un paquete porque trae etiqueta, sin comprobar quién la escribió. Ahora distingue entre guardar y consultar, y sólo acepta la empresa cuando el servidor la dedujo de la membresía; si el valor procede de la petición, falla, y ninguna excepción registrada puede taparlo.",
+  "changes": [
+    "Las altas deben asignar la empresa deducida en el servidor; las consultas, modificaciones y bajas deben filtrar por ella en la misma operación.",
+    "Se rechaza cualquier empresa tomada del contenido de la petición.",
+    "Las excepciones registradas sólo cubren el caso de falta de filtro, nunca un origen no confiable.",
+    "Se añadieron casos de prueba que deben fallar, incluido un alta con la empresa tomada de la petición, para evitar aprobaciones falsas.",
+    "Se documentó el límite: es una revisión de texto, no de recorrido del dato, y no cubre las llamadas a funciones de la base; esas rutas se verificaron a mano y quedaron registradas."
+  ]
+}
