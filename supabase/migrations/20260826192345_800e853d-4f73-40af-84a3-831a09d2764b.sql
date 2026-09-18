@@ -29,13 +29,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.set_feedback_reporter_type()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.set_feedback_reporter_type() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.set_feedback_reporter_type() FROM PUBLIC;
 
 DROP TRIGGER IF EXISTS trg_feedback_reports_set_reporter_type ON public.feedback_reports;
 CREATE TRIGGER trg_feedback_reports_set_reporter_type
@@ -96,13 +92,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.validate_payment_intent_amount()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.validate_payment_intent_amount() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.validate_payment_intent_amount() FROM PUBLIC;
 
 DROP TRIGGER IF EXISTS trg_cpi_validate_amount ON public.customer_payment_intents;
 CREATE TRIGGER trg_cpi_validate_amount

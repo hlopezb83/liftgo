@@ -115,21 +115,6 @@ END;
 $$;
 
 -- Bloquear ejecución anónima (consistente con REVOKEs originales)
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_notification(uuid, text, text, text, text, text, uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.create_notification(uuid, text, text, text, text, text, uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.notify_admins(text, text, text, text, text, uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.notify_admins(text, text, text, text, text, uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.notify_payment_received()') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.notify_payment_received() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
+REVOKE EXECUTE ON FUNCTION public.create_notification(uuid, text, text, text, text, text, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.notify_admins(text, text, text, text, text, uuid) FROM PUBLIC, anon;
+REVOKE EXECUTE ON FUNCTION public.notify_payment_received() FROM PUBLIC, anon;

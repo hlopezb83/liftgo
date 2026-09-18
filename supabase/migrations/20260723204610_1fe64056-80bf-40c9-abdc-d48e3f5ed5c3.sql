@@ -60,19 +60,10 @@ BEGIN
   RETURNING id INTO v_id;
   RETURN v_id;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.upsert_billing_secret(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.upsert_billing_secret(uuid, text, text) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.upsert_billing_secret(uuid, text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.upsert_billing_secret(uuid, text, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.upsert_billing_secret(uuid, text, text) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.upsert_billing_secret(uuid, text, text) TO authenticated;
 
 COMMENT ON FUNCTION public.upsert_billing_secret(uuid, text, text) IS
   'R-arq DIFF 4: única vía para escribir billing_secrets desde el cliente. Guard admin. No devuelve valores.';

@@ -140,19 +140,10 @@ BEGIN
   already_existed := false;
   RETURN NEXT;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text, text, numeric)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text, text, numeric) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text, text, numeric)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text, text, numeric) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text, text, numeric) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text, text, numeric) TO authenticated, service_role;
 
 -- 2A-4: ImpSaldoAnt del REP no descontaba notas de credito timbradas
 CREATE OR REPLACE FUNCTION public.prepare_payment_complement(p_payment_id uuid)

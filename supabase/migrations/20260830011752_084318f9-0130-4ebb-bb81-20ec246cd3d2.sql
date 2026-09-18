@@ -30,13 +30,9 @@ BEGIN
   RAISE EXCEPTION 'El archivado de mantenimientos solo procede por soft_delete_maintenance_log'
     USING ERRCODE = '42501';
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_maintenance_archive()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_maintenance_archive() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.guard_maintenance_archive() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_maintenance_archive ON public.maintenance_logs;
 CREATE TRIGGER trg_guard_maintenance_archive

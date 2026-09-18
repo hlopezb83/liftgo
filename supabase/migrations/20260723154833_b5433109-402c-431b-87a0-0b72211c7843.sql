@@ -202,15 +202,7 @@ BEGIN
   UNION ALL
   SELECT id, prev, newv FROM demote;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_rental_status()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_forklift_rental_status() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.sync_forklift_rental_status()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.sync_forklift_rental_status() TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.sync_forklift_rental_status() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.sync_forklift_rental_status() TO authenticated;

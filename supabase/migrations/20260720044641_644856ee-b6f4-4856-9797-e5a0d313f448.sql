@@ -27,21 +27,8 @@ AS $$
   ORDER BY v.due_date NULLS LAST, v.issued_at DESC
   LIMIT COALESCE(p_limit, 1000)
   OFFSET COALESCE(p_offset, 0);
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.list_invoices_with_balance(text[], date, date, boolean, int, int)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.list_invoices_with_balance(text[], date, date, boolean, int, int)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.list_invoices_with_balance(text[], date, date, boolean, int, int)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.list_invoices_with_balance(text[], date, date, boolean, int, int) TO service_role;

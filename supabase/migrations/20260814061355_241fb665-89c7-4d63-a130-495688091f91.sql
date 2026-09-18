@@ -36,19 +36,10 @@ BEGIN
       )
   );
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.has_open_rental(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.has_open_rental(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.has_open_rental(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.has_open_rental(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.has_open_rental(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.has_open_rental(uuid) TO authenticated, service_role;
 
 -- RPC de venta: usar la nueva semántica.
 CREATE OR REPLACE FUNCTION public.assign_forklift_to_sale_quote(p_quote_id uuid, p_forklift_ids uuid[], p_line_indices integer[])

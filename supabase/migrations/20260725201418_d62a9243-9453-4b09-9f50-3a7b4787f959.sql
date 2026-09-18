@@ -18,21 +18,8 @@ AS $$
     'intents_pending',  (SELECT COUNT(*) FROM customer_payment_intents
                          WHERE status::text = 'pending_review')
   );
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_sidebar_badge_counts()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_sidebar_badge_counts() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_sidebar_badge_counts()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_sidebar_badge_counts() FROM anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_sidebar_badge_counts()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_sidebar_badge_counts() TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.get_sidebar_badge_counts() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_sidebar_badge_counts() FROM anon;
+GRANT EXECUTE ON FUNCTION public.get_sidebar_badge_counts() TO authenticated;

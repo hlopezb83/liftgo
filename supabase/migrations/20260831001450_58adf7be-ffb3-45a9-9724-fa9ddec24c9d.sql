@@ -70,15 +70,7 @@ BEGIN
    WHERE id = p_quote_id;
   PERFORM set_config('app.quote_reassign_customer', 'off', true);
 END;
-$fn$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reassign_quote_customer(uuid, uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.reassign_quote_customer(uuid, uuid, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reassign_quote_customer(uuid, uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reassign_quote_customer(uuid, uuid, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$fn$;
+
+REVOKE ALL ON FUNCTION public.reassign_quote_customer(uuid, uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reassign_quote_customer(uuid, uuid, text) TO authenticated;

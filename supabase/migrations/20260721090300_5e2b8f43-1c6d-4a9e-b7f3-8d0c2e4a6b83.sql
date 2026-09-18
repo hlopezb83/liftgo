@@ -49,19 +49,10 @@ BEGIN
   GET DIAGNOSTICS v_count = ROW_COUNT;
   RETURN v_count;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role;
 
 -- Agenda diaria idempotente (mismo patrón que mark-overdue-supplier-bills-daily).
 DO $$

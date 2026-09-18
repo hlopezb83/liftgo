@@ -71,15 +71,7 @@ BEGIN
 
   RETURN NULL;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assert_invoice_cancellable(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.assert_invoice_cancellable(uuid) FROM public';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assert_invoice_cancellable(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assert_invoice_cancellable(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.assert_invoice_cancellable(uuid) FROM public;
+GRANT EXECUTE ON FUNCTION public.assert_invoice_cancellable(uuid) TO authenticated, service_role;

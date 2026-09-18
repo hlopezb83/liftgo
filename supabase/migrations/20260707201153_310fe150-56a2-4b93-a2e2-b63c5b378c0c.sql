@@ -27,19 +27,10 @@ BEGIN
   v_next := CASE WHEN v_called THEN v_last + 1 ELSE v_last END;
   RETURN 'BORRADOR-NC-' || lpad(v_next::text, 4, '0');
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.next_draft_credit_note_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.next_draft_credit_note_number() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.peek_next_draft_credit_note_number()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.peek_next_draft_credit_note_number() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+GRANT EXECUTE ON FUNCTION public.next_draft_credit_note_number() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.peek_next_draft_credit_note_number() TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.assign_stamped_credit_note_number(
   p_credit_note_id uuid,
@@ -73,13 +64,9 @@ BEGIN
 
   RETURN v_new_number;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.assign_stamped_credit_note_number(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_stamped_credit_note_number(uuid, text) TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+GRANT EXECUTE ON FUNCTION public.assign_stamped_credit_note_number(uuid, text) TO service_role;
 
 -- Backfill: migrar borradores existentes con folio fiscal (NC-XXXX) a BORRADOR-NC-XXXX
 UPDATE public.credit_notes

@@ -112,19 +112,10 @@ BEGIN
     'total', v_total
   );
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.e2e_seed_scenario()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.e2e_seed_scenario() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.e2e_seed_scenario()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.e2e_seed_scenario() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario() TO authenticated, service_role;
 
 -- ============================================================
 -- e2e_teardown: removes only is_e2e=true rows in FK-safe order.
@@ -173,15 +164,7 @@ BEGIN
 
   RETURN v_counts;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.e2e_teardown()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.e2e_teardown() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.e2e_teardown()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_teardown() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.e2e_teardown() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.e2e_teardown() TO authenticated, service_role;

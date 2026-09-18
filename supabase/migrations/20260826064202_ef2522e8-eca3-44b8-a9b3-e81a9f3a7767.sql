@@ -71,25 +71,10 @@ BEGIN
 
   RETURN v_revert_id;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.revert_audit_log(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.revert_audit_log(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.revert_audit_log(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.revert_audit_log(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.revert_audit_log(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.revert_audit_log(uuid) TO service_role';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.revert_audit_log(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.revert_audit_log(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.revert_audit_log(uuid) TO service_role;
 
 -- N-31: desvincular la cuenta del portal al archivar un cliente
 CREATE OR REPLACE FUNCTION public.trg_customer_archive_unlink_user()
@@ -191,25 +176,10 @@ BEGIN
 
   RETURN v_ext_id;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.extend_booking(uuid, date, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.extend_booking(uuid, date, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.extend_booking(uuid, date, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.extend_booking(uuid, date, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO service_role';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.extend_booking(uuid, date, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.extend_booking(uuid, date, text) TO service_role;
 
 -- N-40: monotonía del horómetro en entregas
 CREATE OR REPLACE FUNCTION public.trg_deliveries_hours_reading_monotonic()
@@ -251,25 +221,10 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS
     (SELECT p.is_active FROM public.profiles p WHERE p.user_id = _user_id),
     true
   );
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_active_user(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.is_active_user(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_active_user(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_active_user(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.is_active_user(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.is_active_user(uuid) TO service_role';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.is_active_user(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_active_user(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.is_active_user(uuid) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$

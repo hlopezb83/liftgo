@@ -20,15 +20,7 @@ BEGIN
   SELECT COUNT(*) INTO v_count FROM updated;
   RETURN v_count;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.expire_stale_quotes()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.expire_stale_quotes() FROM public, anon, authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.expire_stale_quotes()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.expire_stale_quotes() TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.expire_stale_quotes() FROM public, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.expire_stale_quotes() TO service_role;

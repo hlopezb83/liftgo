@@ -450,49 +450,15 @@ BEGIN
   SELECT count(*)::integer INTO v_deleted FROM deleted;
   RETURN v_deleted;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.begin_bank_statement_upload(uuid, uuid, text, date, date, integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.begin_bank_statement_upload(uuid, uuid, text, date, date, integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.stage_bank_statement_chunk(uuid, integer, jsonb)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.stage_bank_statement_chunk(uuid, integer, jsonb) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.finalize_bank_statement_upload(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.finalize_bank_statement_upload(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.cleanup_bank_statement_uploads()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.cleanup_bank_statement_uploads() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.begin_bank_statement_upload(uuid, uuid, text, date, date, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.begin_bank_statement_upload(uuid, uuid, text, date, date, integer) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.stage_bank_statement_chunk(uuid, integer, jsonb)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.stage_bank_statement_chunk(uuid, integer, jsonb) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.finalize_bank_statement_upload(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.finalize_bank_statement_upload(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.begin_bank_statement_upload(uuid, uuid, text, date, date, integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.stage_bank_statement_chunk(uuid, integer, jsonb) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.finalize_bank_statement_upload(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.cleanup_bank_statement_uploads() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.begin_bank_statement_upload(uuid, uuid, text, date, date, integer) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.stage_bank_statement_chunk(uuid, integer, jsonb) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.finalize_bank_statement_upload(uuid) TO authenticated;
 
 -- Limpieza acotada e idempotente; SKIP LOCKED evita competir con stage/finalize.
 DO $schedule$
@@ -604,31 +570,12 @@ AS $function$
       OR public.has_role((select auth.uid()), 'administrativo'::app_role)
       OR public.has_role((select auth.uid()), 'auditor'::app_role)
     );
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_statement_lines_page(uuid, text, text, integer, integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_reconciliation_kpis(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_bank_reconciliation_kpis(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_statement_lines_page(uuid, text, text, integer, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_reconciliation_kpis(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_bank_reconciliation_kpis(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_bank_reconciliation_kpis(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_bank_statement_lines_page(uuid, text, text, integer, integer) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_bank_reconciliation_kpis(uuid) TO authenticated, service_role;
 
 -- Detalle independiente del listado y paginas acotadas para el portal.
 CREATE OR REPLACE FUNCTION public.get_portal_invoice(p_invoice_id uuid)
@@ -708,43 +655,14 @@ AS $function$
     ), '[]'::jsonb),
     'total_count', (SELECT count(*) FROM scoped)
   );
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_invoice(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_portal_invoice(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_invoices_page(integer, integer, boolean)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_portal_invoices_page(integer, integer, boolean) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_contracts_page(integer, integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_portal_contracts_page(integer, integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_invoice(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_invoice(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_invoices_page(integer, integer, boolean)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_invoices_page(integer, integer, boolean) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_portal_contracts_page(integer, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_contracts_page(integer, integer) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.get_portal_invoice(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_portal_invoices_page(integer, integer, boolean) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_portal_contracts_page(integer, integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_portal_invoice(uuid) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_portal_invoices_page(integer, integer, boolean) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_portal_contracts_page(integer, integer) TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.get_my_feedback_points_total()
 RETURNS bigint
@@ -756,19 +674,10 @@ AS $function$
   SELECT coalesce(sum(f.points_awarded), 0)::bigint
   FROM public.feedback_reports f
   WHERE f.reporter_id = (select auth.uid());
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_my_feedback_points_total()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_my_feedback_points_total() FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_my_feedback_points_total()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_my_feedback_points_total() TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.get_my_feedback_points_total() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_my_feedback_points_total() TO authenticated, service_role;
 
 -- M-07: cada columna del Kanban obtiene su propio cursor y conteo. Paginar el
 -- conjunto global antes de agrupar ocultaba estados poco frecuentes detrás de
@@ -836,17 +745,9 @@ BEGIN
 
   RETURN v_result;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_feedback_reports_by_status(text, integer, timestamptz, uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_feedback_reports_by_status(text, integer, timestamptz, uuid)
-  FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_feedback_reports_by_status(text, integer, timestamptz, uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_feedback_reports_by_status(text, integer, timestamptz, uuid)
-  TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.get_feedback_reports_by_status(text, integer, timestamptz, uuid)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_feedback_reports_by_status(text, integer, timestamptz, uuid)
+  TO authenticated;

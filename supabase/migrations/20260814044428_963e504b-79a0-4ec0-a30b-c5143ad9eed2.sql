@@ -452,19 +452,10 @@ BEGIN
   GET DIAGNOSTICS v_count = ROW_COUNT;
   RETURN v_count;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role;
 
 DO $$
 DECLARE

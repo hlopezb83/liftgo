@@ -411,13 +411,9 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text, timestamptz) FROM PUBLIC, anon;
 
 CREATE OR REPLACE FUNCTION public.e2e_seed_portal_scenario(p_scope text, p_portal_email text)
  RETURNS jsonb
@@ -535,15 +531,7 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.e2e_seed', 'off', true);
   RAISE;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.e2e_seed_portal_scenario(text, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.e2e_seed_portal_scenario(text, text) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.e2e_seed_portal_scenario(text, text)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_seed_portal_scenario(text, text) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.e2e_seed_portal_scenario(text, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.e2e_seed_portal_scenario(text, text) TO authenticated;

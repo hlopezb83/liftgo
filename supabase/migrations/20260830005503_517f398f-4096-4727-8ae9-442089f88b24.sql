@@ -12,19 +12,10 @@ AS $$
      WHERE customer_id = p_customer_id
        AND status IN ('confirmed','in_progress')
   );
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.customer_has_active_bookings(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.customer_has_active_bookings(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.customer_has_active_bookings(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.customer_has_active_bookings(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.customer_has_active_bookings(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.customer_has_active_bookings(uuid) TO authenticated, service_role;
 
 -- Guard: sólo la transición no archivado -> archivado.
 CREATE OR REPLACE FUNCTION public.guard_customer_archive()
@@ -60,13 +51,9 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_customer_archive()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_customer_archive() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
 
+REVOKE ALL ON FUNCTION public.guard_customer_archive() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_guard_customer_archive ON public.customers;
 CREATE TRIGGER trg_guard_customer_archive

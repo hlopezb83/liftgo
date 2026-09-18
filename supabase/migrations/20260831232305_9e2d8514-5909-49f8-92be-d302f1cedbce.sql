@@ -22,13 +22,9 @@ BEGIN
          );
   RETURN OLD;
 END;
-$fn$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.release_bills_on_batch_delete()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.release_bills_on_batch_delete() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$fn$;
 
+REVOKE ALL ON FUNCTION public.release_bills_on_batch_delete() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_release_bills_on_batch_delete ON public.supplier_payment_batches;
 CREATE TRIGGER trg_release_bills_on_batch_delete
@@ -76,15 +72,7 @@ BEGIN
   GET DIAGNOSTICS v_count = ROW_COUNT;
   RETURN v_count;
 END;
-$fn$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.release_stale_payment_locks(integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.release_stale_payment_locks(integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.release_stale_payment_locks(integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.release_stale_payment_locks(integer) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$fn$;
+
+REVOKE ALL ON FUNCTION public.release_stale_payment_locks(integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.release_stale_payment_locks(integer) TO authenticated;

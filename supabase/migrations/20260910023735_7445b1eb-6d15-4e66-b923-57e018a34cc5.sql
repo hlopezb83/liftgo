@@ -74,21 +74,12 @@ BEGIN
 
   RETURN NEXT v_invoice;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
-  FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
-  TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
+  FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.save_invoice_with_bookings(jsonb, uuid[], uuid, integer, uuid)
+  TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.guard_damage_billing_requires_repair()
 RETURNS trigger
@@ -157,13 +148,9 @@ DROP TRIGGER IF EXISTS trg_damage_billing_requires_repair ON public.damage_recor
 CREATE TRIGGER trg_damage_billing_requires_repair
   BEFORE INSERT OR UPDATE OF status, invoice_id, repaired_at, deleted_at
   ON public.damage_records
-  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_billing_requires_repair();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_damage_billing_requires_repair()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_damage_billing_requires_repair() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_billing_requires_repair();
 
+REVOKE ALL ON FUNCTION public.guard_damage_billing_requires_repair() FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.guard_damage_record_invoice()
 RETURNS trigger
@@ -219,13 +206,9 @@ DROP TRIGGER IF EXISTS trg_guard_damage_record_invoice ON public.damage_records;
 CREATE TRIGGER trg_guard_damage_record_invoice
   BEFORE INSERT OR UPDATE OF invoice_id, customer_id, booking_id
   ON public.damage_records
-  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_record_invoice();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_damage_record_invoice()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_damage_record_invoice() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_damage_record_invoice();
 
+REVOKE ALL ON FUNCTION public.guard_damage_record_invoice() FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.guard_archived_damage_immutable()
 RETURNS trigger
@@ -257,13 +240,9 @@ $function$;
 DROP TRIGGER IF EXISTS trg_damage_archived_immutable ON public.damage_records;
 CREATE TRIGGER trg_damage_archived_immutable
   BEFORE UPDATE ON public.damage_records
-  FOR EACH ROW EXECUTE FUNCTION public.guard_archived_damage_immutable();DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.guard_archived_damage_immutable()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_archived_damage_immutable() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+  FOR EACH ROW EXECUTE FUNCTION public.guard_archived_damage_immutable();
 
+REVOKE ALL ON FUNCTION public.guard_archived_damage_immutable() FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.ensure_forklift_maintenance_for_open_damage(
   p_forklift_id uuid,
@@ -321,14 +300,10 @@ BEGIN
   INSERT INTO public.status_logs (forklift_id, from_status, to_status, note, changed_by)
   VALUES (p_forklift_id, v_from_status, 'maintenance', p_note, (select auth.uid()));
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.ensure_forklift_maintenance_for_open_damage(uuid, text)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.ensure_forklift_maintenance_for_open_damage(uuid, text)
-  FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.ensure_forklift_maintenance_for_open_damage(uuid, text)
+  FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.release_damage_on_invoice_cancel()
 RETURNS trigger
@@ -398,13 +373,9 @@ BEGIN
   IF TG_OP = 'DELETE' THEN RETURN OLD; END IF;
   RETURN NEW;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.release_damage_on_invoice_cancel()') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.release_damage_on_invoice_cancel() FROM PUBLIC, anon, authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.release_damage_on_invoice_cancel() FROM PUBLIC, anon, authenticated;
 
 CREATE OR REPLACE FUNCTION public.restore_forklift_on_damage_repaired()
 RETURNS trigger
@@ -587,19 +558,10 @@ BEGIN
     END IF;
   END IF;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.soft_delete_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.soft_delete_damage_record(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.soft_delete_damage_record(uuid) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.restore_damage_record(p_damage_id uuid)
 RETURNS void
@@ -693,18 +655,9 @@ BEGIN
     );
   END IF;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.restore_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.restore_damage_record(uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.restore_damage_record(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_damage_record(uuid) TO authenticated, service_role';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.restore_damage_record(uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.restore_damage_record(uuid) TO authenticated, service_role;
 
 NOTIFY pgrst, 'reload schema';

@@ -80,15 +80,7 @@ BEGIN
     WHERE p.id = o.id AND p.stage_order IS DISTINCT FROM o.new_order;
   END IF;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reorder_prospect_stage(uuid, text, integer)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.reorder_prospect_stage(uuid, text, integer) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.reorder_prospect_stage(uuid, text, integer)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reorder_prospect_stage(uuid, text, integer) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$$;
+
+REVOKE ALL ON FUNCTION public.reorder_prospect_stage(uuid, text, integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reorder_prospect_stage(uuid, text, integer) TO authenticated;

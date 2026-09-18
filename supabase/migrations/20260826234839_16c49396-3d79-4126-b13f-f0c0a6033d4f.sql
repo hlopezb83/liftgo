@@ -91,19 +91,10 @@ BEGIN
          matched_by = (select auth.uid())
    WHERE id = p_line_id;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.confirm_bank_match(uuid, uuid, uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.confirm_bank_match(uuid, uuid, uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
 
+REVOKE ALL ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.get_bank_match_candidates(
   p_line_id uuid,
@@ -257,15 +248,7 @@ BEGIN
     LIMIT 50;
   END IF;
 END;
-$function$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_match_candidates(uuid, text, integer, numeric)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) FROM PUBLIC, anon';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.get_bank_match_candidates(uuid, text, integer, numeric)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) TO authenticated';
-  END IF;
-END $lgp_guard$;
+$function$;
+
+REVOKE ALL ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) TO authenticated;

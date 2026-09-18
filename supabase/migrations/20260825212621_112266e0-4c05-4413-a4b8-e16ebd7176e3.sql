@@ -60,19 +60,9 @@ BEGIN
   LEFT JOIN paid_by_invoice pb ON pb.invoice_id = s.id
   GROUP BY s.month_key ORDER BY s.month_key;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
-    EXECUTE 'REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.report_revenue_by_month(date, date)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated';
-  END IF;
-END $lgp_guard$;
-
+$$;
+REVOKE ALL ON FUNCTION public.report_revenue_by_month(date, date) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.report_revenue_by_month(date, date) TO authenticated;
 
 -- FIX H-2 (vista): sin tipo_cambio válido, total_mxn/balance_mxn quedan NULL
 -- (no 1:1) y se expone fx_missing. La columna nueva va al final.

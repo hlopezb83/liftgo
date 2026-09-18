@@ -54,15 +54,7 @@ BEGIN
     END IF;
   END IF;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.delete_booking(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.delete_booking(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.delete_booking(uuid)') IS NOT NULL THEN
-    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.delete_booking(uuid) FROM anon, public';
-  END IF;
-END $lgp_guard$;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.delete_booking(uuid) TO authenticated;
+REVOKE EXECUTE ON FUNCTION public.delete_booking(uuid) FROM anon, public;

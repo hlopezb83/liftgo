@@ -124,19 +124,10 @@ BEGIN
     RAISE EXCEPTION 'Montacargas no encontrado o ya está activo';
   END IF;
 END;
-$$;DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.restore_forklift(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_forklift(uuid) TO authenticated';
-  END IF;
-END $lgp_guard$;
-DO $lgp_guard$
-BEGIN
-  IF to_regprocedure('public.restore_forklift(uuid)') IS NOT NULL THEN
-    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_forklift(uuid) TO service_role';
-  END IF;
-END $lgp_guard$;
+$$;
 
+GRANT EXECUTE ON FUNCTION public.restore_forklift(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.restore_forklift(uuid) TO service_role;
 
 -- ────────────────────────────────────────────────────────────────────────────
 -- BL-M6: complete_return_inspection ahora exige que si la condición es
