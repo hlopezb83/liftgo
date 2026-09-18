@@ -1,34 +1,45 @@
-# Preflight solo-lectura: backups/PITR y canal oficial de migraciones Drizzle
+# Plan operativo: aplicar 0030 → 0035 por el canal oficial
 
-## Alcance
+## Herramienta oficial
 
-Solo lectura. No se crean/editan archivos de código, no se ejecutan pruebas, migraciones, DDL, cambios de ACL, Storage ni deploys.
+El único canal disponible para aplicar migraciones a la base conectada es la herramienta de migración de Lovable (`lov_database--migration`). Ejecuta SQL de esquema sobre la base productiva con conexión privilegiada y registra la migración en el journal de Drizzle. No hay un comando de terminal autorizado (`drizzle-kit migrate`) contra producción, y el editor SQL queda excluido por tu instrucción.
 
-## Hallazgo 1 — Backup/PITR y restauración ensayada
+Limitación importante: la herramienta recibe el SQL como texto y crea su propia entrada de migración. Para respetar "no crear ni alterar SQL", cada llamada usará el contenido byte-por-byte del archivo correspondiente, sin reformatear ni reordenar.
 
-Evidencia: documentación oficial de Lovable (consultada vía búsqueda de docs esta sesión).
+## Lote exacto y orden
 
-- **Backups diarios:** Lovable toma backups diarios de la base, retenidos ~14 días, accesibles en **More → Cloud → Database → Backups**, donde se puede iniciar una restauración.
-- **PITR:** No existe PITR manual desde la consola; solo restauración desde un backup diario existente.
-- **Restauración ensayada:** No hay forma de verificar desde Lovable si se hizo una restauración de prueba reciente, ni de ensayar una sin ejecutar un restore real. No hay historial de restores consultable que yo pueda leer desde las herramientas del agente.
-- **Exportación:** Cloud → Overview → Advanced settings → Export project data (schema + registros; excluye Storage y Edge Functions). Es exportación, no verificación de backup.
+Seis migraciones, una llamada por archivo, estrictamente en este orden:
 
-**Conclusión:** NO puedo verificar backup/PITR ni una restauración ensayada reciente desde las capacidades del agente. Lo único comprobable manualmente por el usuario es la existencia de backups diarios en Cloud → Database → Backups. La verificación de restore readiness queda como condición de paro antes del rollout de 0024–0029.
+1. `0030_multi_org_onboarding_and_customer_scope`
+2. `0031_multi_org_audit_hardening`
+3. `0032_multi_org_storage_staff_scope`
+4. `0033_handle_new_user_trusted_org_context`
+5. `0034_storage_manual_resolutions`
+6. `0035_storage_manual_resolutions_force_rls`
 
-## Hallazgo 2 — Canal oficial de migraciones Drizzle
+Nada fuera de estos seis archivos. Sin Storage, sin segunda empresa, sin despliegues.
 
-Evidencia: esquema de la herramienta de migración integrada (lov_database--migration).
+## Preflight de solo lectura (antes de la primera llamada)
 
-- El canal oficial es la **herramienta de migración de Lovable Cloud** (`lov_database--migration`): recibe SQL DDL completo y autocontenido, crea una migración custom con drizzle-kit en `drizzle/migrations/`, verifica el set con `drizzle-kit check` y la aplica con el **migrador Drizzle normal** sobre una conexión privilegiada. Drizzle Kit es dueño del journal y snapshots.
-- **Orden 0024–0029:** sí puede ejecutarlas en orden, pero una sola llamada crea y aplica UNA migración (una nueva entrada en el journal, siguiente a 0028/0029). Aplicar "las pendientes juntas" no es una operación de la herramienta: cada entrada pendiente (0024–0028 ya existen en repo, 0029 creada en el tramo anterior) se aplicaría en orden de `created_at` cuando el migrador corra contra producción. La herramienta aplica SQL nuevo; para las ya existentes en repo, la aplicación a producción ocurre por el flujo de migraciones de la plataforma, no por `bunx drizzle-kit migrate` manual (eso solo existe en CI con Supabase efímero).
-- **Restricciones del canal:** solo DDL aditivo; no seeding, no DROP, no breaking changes; SQL destructivo pausa para aprobación del usuario.
+1. Leer `drizzle.__drizzle_migrations` y confirmar que el último aplicado sigue siendo el baseline 0024–0029 (ids 25–30) y que el registro extra id31 continúa presente sin cambios.
+2. Confirmar por hash que ninguna de las seis ya está aplicada.
+3. Confirmar que el repositorio en HEAD contiene los seis archivos y las entradas de journal idx 30–35 con `when` estrictamente creciente.
+4. Registrar la existencia de respaldo reciente (diario, retención aproximada de 14 días). No hay PITR manual ni restauración ensayada: eso se informa como riesgo aceptado, no como verificación.
+5. Verificación previa local ya cubierta: la cadena completa 0000–0035 se aplicó en base efímera con 62/62 RLS y 45/45 smoke en verde.
 
-## Condición de paro (sin cambios)
+## Verificación posterior (solo lecturas)
 
-Antes de aplicar 0024–0029 a producción: el usuario debe confirmar manualmente en Cloud → Database → Backups que existe un backup diario reciente, y aceptar que no hay restore ensayado verificable desde Lovable. Sin esa confirmación, el rollout se detiene.
+Después de cada migración: leer el journal y confirmar la nueva fila. Al final del lote:
 
-## Evidencia viva vs. inferencia
+- Confirmar RLS y FORCE en `storage_migration_manual_resolutions` y ausencia de grants a `anon`/`authenticated`.
+- Confirmar helpers y policies creados por 0031–0033 (scope staff de Storage, contexto confiable de alta de usuario).
+- Confirmar índices y funciones de 0030 (onboarding, clientes por organización).
+- No se ejecuta ningún SQL de escritura adicional.
 
-- Vivo (esta sesión): respuesta de la documentación oficial sobre backups/restore/export.
-- Vivo (pre-flight previo): producción en 0023 (journal 24 filas), 0024–0028 pendientes.
-- Inferencia documentada: el orden de aplicación por `created_at` del journal Drizzle.
+## Condiciones de parada
+
+Se detiene el lote y se informa el punto exacto si: el estado del ledger difiere del preflight, una migración falla o se aplica parcialmente, la herramienta exige una aprobación no prevista, o el contenido aplicado no coincide con el archivo del repositorio.
+
+## Después de aplicar
+
+Actualizar `roadmap.md` y el changelog para reflejar que 0030–0035 quedaron aplicadas, y regenerar tipos si la herramienta no lo hace automáticamente. No se habilita el alta de la segunda empresa: sigue bloqueada por los 17 objetos históricos sin prefijo.
