@@ -8,7 +8,7 @@ interface AuthBrandPanelProps {
  * Panel de marca para las pantallas de acceso (staff y portal).
  *
  * Usa SIEMPRE la marca global de LiftGo (`BrandMark`, asset local fijo) y el
- * nombre global. NO acepta ni renderiza `company_settings.logo_url`: ese logo
+ * nombre global. NO acepta ni renderiza `company_settings.logo_url`: ese campo
  * empresarial es configurable por empresa y sólo se usa en Configuración y en
  * los documentos fiscales/PDF, con resolver aislado por organización.
  */

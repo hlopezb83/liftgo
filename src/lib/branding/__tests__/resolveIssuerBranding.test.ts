@@ -59,7 +59,6 @@ const settingsA = {
   rfc: "AAA010101AAA",
   regimen_fiscal: "601",
   lugar_expedicion: "64000",
-  logo_url: "logo-a.png",
   facturapi_mode: "live",
 };
 
@@ -94,8 +93,7 @@ describe("resolveIssuerBranding · cliente", () => {
         rfc: "AAA010101AAA",
         regimen_fiscal: "601",
         lugar_expedicion: "64000",
-        logo_url: "logo-a.png",
-        facturapi_mode: "live",
+              facturapi_mode: "live",
       },
     });
   });
@@ -138,8 +136,7 @@ describe("resolveIssuerBranding", () => {
         rfc: "AAA010101AAA",
         regimen_fiscal: "601",
         lugar_expedicion: "64000",
-        logo_url: "logo-a.png",
-        facturapi_mode: "live",
+              facturapi_mode: "live",
       },
     });
   });
