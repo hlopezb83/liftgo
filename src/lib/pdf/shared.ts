@@ -22,7 +22,6 @@ export interface CompanyData {
   rfc: string;
   regimen_fiscal: string;
   lugar_expedicion: string;
-  logo_url: string | null;
 }
 
 /** Error explícito: nunca se cae a la configuración de otra organización. */
