@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.13.3",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "backend",
+    "title": "Inventario de archivos: conteo corregido de los que ya están ordenados por empresa",
+    "description": "El inventario daba por ordenados muchos archivos sólo porque su carpeta parecía un identificador. Al compararlos con las empresas reales, sólo 12 de 322 están realmente ordenados.",
+    "changes": [
+      "Se retiran las cifras viejas de 307 ordenados y 15 rezagados.",
+      "18 archivos sin usar: 17 sin dueño derivable, que mantienen frenada la fase de copia, y 1 ya ordenado.",
+      "Los 15 archivos rezagados reales sí pueden ubicarse desde sus referencias, pero sólo por el proceso protegido.",
+      "Sólo documentación: no se copió, movió ni borró ningún archivo y el borrado de originales sigue apagado."
+    ]
+  },
+  {
     "version": "8.13.2",
     "date": "2026-09-17",
     "type": "patch",
