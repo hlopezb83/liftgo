@@ -636,6 +636,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_member_org uuid;
+  v_ctx uuid;
 BEGIN
   IF TG_OP = 'UPDATE' THEN
     IF NEW.created_by_organization_id IS DISTINCT FROM OLD.created_by_organization_id THEN
@@ -656,12 +657,20 @@ BEGIN
       RAISE EXCEPTION 'La organización indicada no corresponde al usuario autenticado'
         USING ERRCODE = '42501';
     END IF;
-    -- resolve_organization_context valida además que la empresa esté activa.
+    -- resolve_organization_context valida además que la empresa esté activa
+    -- (una empresa suspendida no da de alta clientes).
     NEW.created_by_organization_id := public.resolve_organization_context();
   ELSIF NEW.created_by_organization_id IS NULL THEN
-    -- service_role / procesos: app.organization_id o la única empresa activa;
-    -- con varias empresas y sin contexto falla cerrado (23514).
-    NEW.created_by_organization_id := public.resolve_organization_context();
+    -- service_role / procesos de sistema: app.organization_id o, por
+    -- compatibilidad, la única empresa activa. Con varias empresas y sin
+    -- contexto NO se adivina un dueño: la identidad queda sin empresa y sin
+    -- relación automática (invisible para el personal hasta que se vincule).
+    v_ctx := NULLIF(current_setting('app.organization_id', true), '')::uuid;
+    IF v_ctx IS NULL
+       AND (SELECT count(*) FROM public.organizations WHERE is_active) = 1 THEN
+      SELECT id INTO v_ctx FROM public.organizations WHERE is_active;
+    END IF;
+    NEW.created_by_organization_id := v_ctx;
   END IF;
 
   RETURN NEW;
