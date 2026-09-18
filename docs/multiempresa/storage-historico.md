@@ -1,6 +1,6 @@
 # Auditoría de solo lectura · Storage histórico (multiempresa)
 
-Fecha: 2026-09-17 · Estado: **propuesta documentada, nada ejecutado**
+Fecha: 2026-09-17 (actualizado 2026-09-19) · Estado: **propuesta documentada, nada ejecutado**
 
 Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddadaea9`) y verificaciones `SELECT` directas contra producción. Auditoría estrictamente de lectura: sin cambios de código, esquema, datos, policies, buckets ni objetos; sin DDL ni operaciones de Storage.
 
@@ -228,3 +228,63 @@ Las cifras «307 prefijados / 15 legados» quedan **retiradas**: contaban como p
 Reproducción con el código real: 305 filas de referencia = **293 candidatas** + **11 ya prefijadas** + **1 URL de logo no soportada**; 304 rutas distintas, todas existentes. Objetos sin referencia: **18 = 17 sin prefijo + 1 con prefijo**. Las sumas cierran contra los 322 objetos y contra el `SELECT` de prefijos exactos.
 
 Consecuencia operativa: los **17 huérfanos bloquean `apply`** — el gate cuenta `unreferenced_unscoped_objects` sin usar la atribución; de esos 17, **16 tienen dueño derivable** (15 por `supplier_bills.cfdi_uuid`, 1 por `supplier_bills.id`) que requieren copia + verificación y contención de su fuente, y **1 sigue sin coincidencia** y requiere decisión de dueño. Los **15 legados reales referenciados** sí pueden asignarse desde sus referencias, pero únicamente por el flujo protegido copy → verify → update references → observe → delete. El borrado de fuentes sigue en **fase separada y deshabilitado** (`STORAGE_MIGRATION_DELETE_SOURCES_ENABLED` sin configurar). **Cero operaciones de Storage ejecutadas en producción**: ambos ledgers en 0 filas, ninguna copia, ninguna referencia actualizada, ningún borrado.
+
+## Endurecimiento 0031 (tramo 10) — Storage estricto y cuarentena (repositorio, nada aplicado)
+
+Fecha: 2026-09-19 · Estado: **dry-run; ninguna operación en producción**.
+
+### Qué cambia en las reglas de acceso
+
+- `storage_path_in_current_organization(text, boolean)` **ignora** el parámetro
+  de compatibilidad: siempre exige que el primer segmento sea exactamente el
+  `organizations.id` de la empresa del usuario **y que esa empresa esté activa**.
+  Desaparece la variante permisiva que aceptaba rutas sin prefijo o con un UUID
+  ajeno en lectura, actualización y borrado.
+- Se añade una policy **RESTRICTIVE** (`storage_objects_org_prefix_guard`) para
+  todas las operaciones de `authenticated`: ninguna policy permisiva antigua
+  puede saltarse el prefijo ni la verificación de empresa activa.
+- Una **empresa suspendida** pierde también el acceso directo por la Storage API.
+- `service_role` conserva el acceso privilegiado que necesita el migrador.
+
+**Consecuencia operativa:** los 15 objetos legados sin prefijo y los 295 con un
+UUID ajeno dejan de ser accesibles desde una sesión autenticada. El traslado
+histórico pasa a ser **requisito previo** al alta de la segunda empresa, y
+también al uso normal de esos archivos por el personal.
+
+### Proceso forward-only, reproducible y con dry-run
+
+Orden invariable: **copy → verify → update references → observe → delete**.
+
+1. `plan` (solo lectura): inventario completo y agregados; nunca muestra rutas,
+   URLs, identificadores ni tokens.
+2. `apply`: copia, verifica tamaño y SHA-256 del destino y actualiza las
+   referencias usando el `organization_id` **del registro dueño**. Nunca borra.
+3. `delete_sources`: fase separada, apagada por omisión
+   (`STORAGE_MIGRATION_DELETE_SOURCES_ENABLED` + confirmación textual), con
+   reverificación de integridad justo antes de remover.
+
+### Cuarentena: nada se adivina
+
+`supabase/functions/_shared/storageQuarantine.ts` resume, **sólo en conteos**
+por cubeta y motivo, todo objeto que **no** tiene dueño único y verificable:
+
+| Motivo | Significado |
+|---|---|
+| `owner_not_found` | ningún registro dueño coincide |
+| `owner_conflict` | más de un registro o más de una empresa |
+| `unknown_organization` | el dueño apunta a una empresa desconocida |
+| `incomplete_lookup` | la lectura no se agotó: falla cerrado |
+| `unsupported_bucket` | la cubeta no tiene relación dueña definida |
+| `invalid_path` | la ruta no es interpretable |
+
+Estos objetos **quedan denegados y en lista de resolución manual**: no se copian,
+no se referencian y jamás se borran. El resumen del modo `plan` expone el campo
+`orphans.quarantine` con esos agregados.
+
+### Estado actual del inventario (sin cambios)
+
+322 objetos; 12 con prefijo exacto; 18 sin referencia = 17 sin prefijo + 1 con
+prefijo. De los 17, **16 tienen dueño exacto derivable** (15 por
+`supplier_bills.cfdi_uuid`, 1 por `supplier_bills.id`) y **1 sigue sin
+coincidencia** (queda en cuarentena). El `apply` normal **sigue bloqueado** por
+los 17. Ambas bitácoras siguen en **0 filas**.
