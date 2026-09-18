@@ -14,9 +14,17 @@ type Row = Record<string, unknown>;
 interface Fixture {
   memberships?: Row[];
   membershipError?: boolean;
+  /** Filas visibles de `organizations`; por defecto A y B activas. */
+  organizations?: Row[];
+  organizationError?: boolean;
   accounts?: Row[];
   accountError?: boolean;
 }
+
+const ACTIVE_ORGS: Row[] = [
+  { id: ORG_A, is_active: true },
+  { id: ORG_B, is_active: true },
+];
 
 function makeClient(fixture: Fixture) {
   const calls: { table: string; column: string; value: string }[] = [];
@@ -33,6 +41,15 @@ function makeClient(fixture: Fixture) {
                     return Promise.resolve({
                       data: fixture.membershipError ? null : (fixture.memberships ?? []),
                       error: fixture.membershipError ? { message: "boom" } : null,
+                    });
+                  }
+                  if (table === "organizations") {
+                    const rows = (fixture.organizations ?? ACTIVE_ORGS).filter(
+                      (row) => row["id"] === value,
+                    );
+                    return Promise.resolve({
+                      data: fixture.organizationError ? null : rows,
+                      error: fixture.organizationError ? { message: "boom" } : null,
                     });
                   }
                   return Promise.resolve({
@@ -62,12 +79,14 @@ describe("resolveOrganizationContext", () => {
       memberType: "internal",
       customerId: null,
     });
-    expect(calls.every((c) => c.table === "organization_memberships")).toBe(true);
+    expect(calls.some((c) => c.table === "customer_portal_accounts")).toBe(false);
     expect(calls[0]).toEqual({
       table: "organization_memberships",
       column: "auth_user_id",
       value: USER,
     });
+    // La empresa se verifica por su id, con el cliente del propio usuario.
+    expect(calls).toContainEqual({ table: "organizations", column: "id", value: ORG_A });
   });
 
   it("portal: exige cuenta activa coherente con la organización de la membresía", async () => {
@@ -128,7 +147,7 @@ describe("resolveOrganizationContext", () => {
   });
 
   it("membresía ambigua: estado explícito, nunca se elige una organización", async () => {
-    const { client } = makeClient({
+    const { client, calls } = makeClient({
       memberships: [
         { organization_id: ORG_A, member_type: "internal" },
         { organization_id: ORG_B, member_type: "internal" },
@@ -138,6 +157,7 @@ describe("resolveOrganizationContext", () => {
       status: "no_membership",
       reason: "ambiguous_membership",
     });
+    expect(calls.some((c) => c.table === "organizations")).toBe(false);
   });
 
   it("error de lectura de membresías: error de verificación, no 'sin membresía'", async () => {
@@ -150,10 +170,58 @@ describe("resolveOrganizationContext", () => {
   it("error de lectura de la cuenta de portal: error de verificación", async () => {
     const { client } = makeClient({
       memberships: [{ organization_id: ORG_A, member_type: "portal" }],
+      accounts: [{ organization_id: ORG_A, customer_id: CUSTOMER, status: "active" }],
       accountError: true,
     });
     await expect(resolveOrganizationContext(client, USER)).rejects.toMatchObject({
       code: "portal_account_read_error",
+    });
+  });
+
+  describe("tramo 9: empresa suspendida", () => {
+    it("interno de una empresa suspendida: organization_inactive, nunca ready", async () => {
+      const { client } = makeClient({
+        memberships: [{ organization_id: ORG_B, member_type: "internal" }],
+        organizations: [{ id: ORG_A, is_active: true }, { id: ORG_B, is_active: false }],
+      });
+      await expect(resolveOrganizationContext(client, USER)).resolves.toEqual({
+        status: "no_membership",
+        reason: "organization_inactive",
+      });
+    });
+
+    it("portal de una empresa suspendida: se niega antes de leer la cuenta del portal", async () => {
+      const { client, calls } = makeClient({
+        memberships: [{ organization_id: ORG_B, member_type: "portal" }],
+        organizations: [{ id: ORG_B, is_active: false }],
+        accounts: [{ organization_id: ORG_B, customer_id: CUSTOMER, status: "active" }],
+      });
+      await expect(resolveOrganizationContext(client, USER)).resolves.toEqual({
+        status: "no_membership",
+        reason: "organization_inactive",
+      });
+      expect(calls.some((c) => c.table === "customer_portal_accounts")).toBe(false);
+    });
+
+    it("empresa no visible para el usuario: fail-closed como inactiva", async () => {
+      const { client } = makeClient({
+        memberships: [{ organization_id: ORG_B, member_type: "internal" }],
+        organizations: [{ id: ORG_A, is_active: true }],
+      });
+      await expect(resolveOrganizationContext(client, USER)).resolves.toEqual({
+        status: "no_membership",
+        reason: "organization_inactive",
+      });
+    });
+
+    it("error de lectura de la empresa: error de verificación, no 'sin membresía'", async () => {
+      const { client } = makeClient({
+        memberships: [{ organization_id: ORG_A, member_type: "internal" }],
+        organizationError: true,
+      });
+      await expect(resolveOrganizationContext(client, USER)).rejects.toMatchObject({
+        code: "organization_read_error",
+      });
     });
   });
 });
