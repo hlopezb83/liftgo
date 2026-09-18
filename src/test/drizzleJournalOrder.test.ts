@@ -46,9 +46,21 @@ describe("drizzle journal", () => {
     expect(invalid).toEqual([]);
   });
 
-  it("las migraciones pendientes son posteriores al baseline aplicado", () => {
-    const pending = journal.entries.filter((e) => e.idx >= 30);
-    expect(pending.length).toBeGreaterThan(0);
+  it("el baseline aplicado coincide con el último idx aplicado", () => {
+    const applied = journal.entries.filter(
+      (e) => e.idx <= APPLIED_THROUGH_IDX,
+    );
+    expect(applied.length).toBe(APPLIED_THROUGH_IDX + 1);
+    const last = applied.reduce((a, b) => (a.idx > b.idx ? a : b));
+    expect(last.when).toBe(APPLIED_MAX_CREATED_AT);
+    const afterBaseline = applied
+      .filter((e) => e.when > APPLIED_MAX_CREATED_AT)
+      .map((e) => `${e.tag} (when=${e.when} > ${APPLIED_MAX_CREATED_AT})`);
+    expect(afterBaseline).toEqual([]);
+  });
+
+  it("ninguna migración pendiente queda por debajo del baseline aplicado", () => {
+    const pending = journal.entries.filter((e) => e.idx > APPLIED_THROUGH_IDX);
     const skipped = pending
       .filter((e) => e.when <= APPLIED_MAX_CREATED_AT)
       .map((e) => `${e.tag} (when=${e.when} <= ${APPLIED_MAX_CREATED_AT})`);
