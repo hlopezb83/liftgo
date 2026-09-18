@@ -1,4 +1,4 @@
-import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
+import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 
 interface AuthBrandPanelProps {
   tagline: string;
@@ -20,10 +20,8 @@ export function AuthBrandPanel({ tagline }: AuthBrandPanelProps) {
         className="absolute -top-32 -right-24 h-96 w-96 rounded-full bg-sidebar-primary/15 blur-3xl"
       />
       <div className="relative flex items-center gap-3">
-        <BrandMark size="lg" />
-        <span className="auth-display text-base font-bold text-sidebar-primary-foreground">
-          {GLOBAL_BRAND_NAME}
-        </span>
+        <BrandLockup size="lg" className="brightness-0 invert" />
+        <span className="sr-only">{GLOBAL_BRAND_NAME}</span>
       </div>
       <div className="relative space-y-4">
         <span className="block h-1 w-16 rounded-full bg-sidebar-primary" />
