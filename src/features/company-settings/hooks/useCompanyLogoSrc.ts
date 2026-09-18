@@ -31,5 +31,5 @@ export function useCompanyLogoSrc(
     queryFn: () => resolveLogoSrc(logoUrl),
   });
 
-  return data ?? null;
+  return globalBrand ?? data ?? null;
 }
