@@ -268,20 +268,37 @@ interface FakeLedgerRow {
   status: "planned" | "copied" | "failed";
 }
 
-/** Réplica del filtrado real de `applyOrphanBatch`, sin E/S. */
+/**
+ * Réplica del recorrido real de `applyOrphanBatch`, sin E/S: pagina el ledger
+ * y acumula filas aprobadas hasta llenar el lote o agotar las páginas. Con
+ * allowlist vacía no se lee nada, así que `skipped` es 0 (nada se exploró).
+ */
 function simulateOrphanBatch(
   ledger: FakeLedgerRow[],
   approvedCandidates: Array<
     { bucketId: string; sourcePath: string; organizationId: string }
   >,
+  batchSize = 100,
+  pageSize = 2,
 ): { copied: string[]; skipped: number } {
   const approvedKeys = makeApprovedOrphanKeySet(approvedCandidates);
-  if (approvedKeys.size === 0) return { copied: [], skipped: ledger.length };
-  const { allowed, skipped } = filterOrphanLedgerToApproved(
-    ledger,
-    approvedKeys,
-  );
-  return { copied: allowed.map((row) => row.id), skipped };
+  if (approvedKeys.size === 0) return { copied: [], skipped: 0 };
+  const collected: FakeLedgerRow[] = [];
+  let skipped = 0;
+  for (let offset = 0; offset < ledger.length; offset += pageSize) {
+    const page = ledger.slice(offset, offset + pageSize);
+    const { allowed, skipped: pageSkipped } = filterOrphanLedgerToApproved(
+      page,
+      approvedKeys,
+    );
+    skipped += pageSkipped;
+    for (const row of allowed) {
+      if (collected.length < batchSize) collected.push(row);
+      else skipped++; // aprobada pero excede el lote
+    }
+    if (collected.length >= batchSize) break;
+  }
+  return { copied: collected.map((row) => row.id), skipped };
 }
 
 const LEDGER: FakeLedgerRow[] = [
