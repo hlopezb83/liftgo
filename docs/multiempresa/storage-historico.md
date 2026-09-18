@@ -1,6 +1,41 @@
-# Auditoría de solo lectura · Storage histórico (multiempresa)
+# Storage histórico (multiempresa)
 
-Fecha: 2026-09-17 (actualizado 2026-09-19) · Estado: **propuesta documentada, nada ejecutado**
+## Estado actual (2026-09-18)
+
+> Este bloque es el **estado vigente**. Las secciones siguientes son
+> **snapshots históricos fechados** de las auditorías previas y se conservan
+> tal cual para trazabilidad: no describen la situación de hoy.
+
+- Migraciones **0030–0035 aplicadas** a la base conectada por el canal oficial.
+- **Operador raíz asignado** (exactamente 1 operador de plataforma); 5 membresías.
+- **Migración de Storage completada**: 293 referencias actualizadas, 0 pendientes,
+  0 fallos; 17 huérfanos copiados y verificados; **1 resolución manual activa**.
+- **Originales conservados** (632 objetos = 322 originales + copias). El borrado
+  de fuentes sigue **deshabilitado** y sin autorización.
+- **1 sola organización activa**.
+- **1 referencia no soportada pendiente de clasificación/validación**:
+  `company_settings.logo_url` con URL HTTPS que **no** tiene forma de ruta
+  `/storage/v1/object/...` ni pertenece al Storage de este proyecto. No se
+  publica su valor, host, ruta, token ni identificadores. A partir de 8.23.2 la
+  aplicación la trata **fail-closed**: no se renderiza ni se descarga, y la
+  interfaz cae al distintivo tipográfico. **Reemplazar el valor persistido exige
+  mutación de datos y no está autorizado**; queda como requisito explícito.
+
+### Gates obligatorios antes de dar de alta una segunda empresa
+
+1. **Branding por empresa resuelto y probado**: logo servido desde la
+   `company_settings` de la organización del contexto, firmado con TTL corto;
+   la referencia no soportada clasificada o sustituida por el propietario.
+2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
+3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
+4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
+   documentada. Hoy hay respaldo diario, pero **no** hay restore ensayado.
+
+---
+
+# Snapshot histórico · Auditoría de solo lectura (2026-09-17, actualizado 2026-09-18)
+
+Fecha del snapshot: 2026-09-17 · Estado **en ese momento**: propuesta documentada, nada ejecutado. Superado por el bloque "Estado actual" de arriba.
 
 Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddadaea9`) y verificaciones `SELECT` directas contra producción. Auditoría estrictamente de lectura: sin cambios de código, esquema, datos, policies, buckets ni objetos; sin DDL ni operaciones de Storage.
 

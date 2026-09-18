@@ -1,14 +1,44 @@
 # Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
 
-Estado: **implementado en el repositorio (8.19.3), sin producción**. Las
-migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) a
-`0034_storage_manual_resolutions.sql` (idx 34) están en el journal y sólo se
-ejecutan en CI efímero: **0030–0034 siguen pendientes (no aplicadas)**. El
-ledger de producción sólo acredita ids 25–30 = archivos `0024`–`0029`; el id 31
-extra del ledger es una anomalía histórica sin identificar y **no** acredita a
-`0030`. Su rollout a la base conectada requiere autorización explícita y sigue
-el mismo canal oficial que 0024–0029, en orden 0030 → 0034 (el `when` de
-0032–0034 se corrigió el 2026-09-18 para que el runner no las omita).
+## Estado actual (2026-09-18)
+
+> Este bloque es el **estado vigente**. Las secciones siguientes son
+> **snapshots históricos fechados** de las auditorías previas y se conservan
+> tal cual para trazabilidad: no describen la situación de hoy.
+
+- Migraciones **0030–0035 aplicadas** a la base conectada por el canal oficial.
+- **Operador raíz asignado** (exactamente 1 operador de plataforma); 5 membresías.
+- **Migración de Storage completada**: 293 referencias actualizadas, 0 pendientes,
+  0 fallos; 17 huérfanos copiados y verificados; **1 resolución manual activa**.
+- **Originales conservados** (632 objetos = 322 originales + copias). El borrado
+  de fuentes sigue **deshabilitado** y sin autorización.
+- **1 sola organización activa**.
+- **1 referencia no soportada pendiente de clasificación/validación**:
+  `company_settings.logo_url` con URL HTTPS que **no** tiene forma de ruta
+  `/storage/v1/object/...` ni pertenece al Storage de este proyecto. No se
+  publica su valor, host, ruta, token ni identificadores. A partir de 8.23.2 la
+  aplicación la trata **fail-closed**: no se renderiza ni se descarga, y la
+  interfaz cae al distintivo tipográfico. **Reemplazar el valor persistido exige
+  mutación de datos y no está autorizado**; queda como requisito explícito.
+
+### Gates obligatorios antes de dar de alta una segunda empresa
+
+1. **Branding por empresa resuelto y probado**: logo servido desde la
+   `company_settings` de la organización del contexto, firmado con TTL corto;
+   la referencia no soportada clasificada o sustituida por el propietario.
+2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
+3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
+4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
+   documentada. Hoy hay respaldo diario, pero **no** hay restore ensayado.
+
+---
+
+### Snapshot histórico (previo a 2026-09-18)
+
+Estado en ese momento: implementado en el repositorio (8.19.3), sin producción; las
+migraciones `0030`–`0034` figuraban en el journal y **pendientes de aplicar**, y
+el ledger sólo acreditaba ids 25–30 = archivos `0024`–`0029` (el id 31 extra es
+una anomalía histórica sin identificar). Superado: 0030–0035 ya están aplicadas.
 
 > **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
 > plataforma **explícita** (sin promoción automática de administradores de
