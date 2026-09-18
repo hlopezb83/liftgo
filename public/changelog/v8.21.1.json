@@ -1,0 +1,14 @@
+{
+  "version": "8.21.1",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "Se corrigió la verificación automática que fallaba por la tabla interna de resoluciones manuales",
+  "description": "La verificación que revisa que cada tabla con empresa esté correctamente aislada trataba por igual a una tabla interna que no es del negocio: la bitácora de decisiones manuales del traslado de archivos. Es como exigirle uniforme de vendedor al vigilante de la bodega. Ahora esa tabla se revisa con un contrato más estricto y propio (acceso totalmente cerrado para la aplicación y uso exclusivo del proceso interno), y todas las demás tablas siguen con la regla estricta de aislamiento por empresa.",
+  "changes": [
+    "Se agregó una excepción exacta y justificada, sólo para esa tabla interna, dentro de la verificación de aislamiento por empresa.",
+    "La verificación ahora exige que esa tabla tenga la protección forzada, quede cerrada para los roles de la aplicación, no tenga permisos abiertos y sólo la use el proceso interno.",
+    "Se agregó una actualización pendiente (0035) que fuerza esa protección y retira cualquier permiso residual.",
+    "Verificación en base temporal: 588 cambios históricos, 36 actualizaciones pendientes, 62/62 pruebas de aislamiento y 45/45 pruebas de humo en verde."
+  ]
+}
