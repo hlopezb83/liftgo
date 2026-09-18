@@ -1,5 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { summarizeQuarantine } from "./storageQuarantine.ts";
+import {
+  evaluateManualResolution,
+  type ManualResolutionRecord,
+  summarizeQuarantine,
+} from "./storageQuarantine.ts";
 import { summarizeOrphanOwnership } from "./storageOrphanOwner.ts";
 
 const ORG = "2f3d0e7a-9b8c-4a56-8a22-41d9e8f0c123";
