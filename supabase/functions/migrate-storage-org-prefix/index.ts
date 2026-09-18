@@ -131,7 +131,16 @@ interface OrphanCandidate {
   organizationId: string;
   sourcePath: string;
   destinationPath: string;
+  /**
+   * Método determinista con que se atribuyó el dueño. No se persiste una
+   * columna nueva en el ledger: el método queda determinado por `bucket_id`
+   * (ver docs/multiempresa/storage-historico.md), así que una columna
+   * `owner_resolution_method` sería redundante y obligaría a guardar
+   * evidencia derivada del UUID fiscal.
+   */
+  ownerResolutionMethod: OrphanOwnerResolutionMethod;
 }
+
 
 interface LedgerObject {
   id: string;
