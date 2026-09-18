@@ -1275,14 +1275,26 @@ Deno.serve(async (req) => {
       plan.organizationIds,
     );
     const inventoryComplete = !plan.truncated && !inventory.truncated;
-    const ownerIndex = await loadOrphanOwnerIndex(admin);
-    const orphans = collectOrphanCandidates(
+    const unreferencedUnscoped = collectUnreferencedUnscopedObjects(
       plan.organizationIds,
       inventory,
       plan.referencedPathsByBucket,
+    );
+    // `delete_sources` no atribuye dueños: no necesita el índice y sus
+    // comprobaciones quedan intactas.
+    const ownerIndex = input.mode === "delete_sources"
+      ? buildOrphanOwnerIndex([])
+      : await loadOrphanOwnerIndex(
+        admin,
+        collectOrphanOwnerLookupKeys(unreferencedUnscoped),
+      );
+    const orphans = collectOrphanCandidates(
+      plan.organizationIds,
+      unreferencedUnscoped,
       ownerIndex,
     );
     const orphanCandidates = orphans.candidates;
+
     const orphanState = !inventoryComplete ? "inventory_incomplete" : "ready";
 
     const summary = {
