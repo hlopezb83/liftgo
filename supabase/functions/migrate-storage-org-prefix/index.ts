@@ -1400,10 +1400,16 @@ Deno.serve(async (req) => {
         admin,
         collectOrphanOwnerLookupKeys(unreferencedUnscoped),
       );
+    // `delete_sources` tampoco consulta resoluciones manuales.
+    const manualResolutions = input.mode === "delete_sources"
+      ? new Map<string, ManualResolutionRecord>()
+      : await loadManualResolutions(admin, unreferencedUnscoped);
     const orphans = collectOrphanCandidates(
       plan.organizationIds,
       unreferencedUnscoped,
       ownerIndex,
+      manualResolutions,
+      plan.activeOrganizationIds,
     );
     const orphanCandidates = orphans.candidates;
 
