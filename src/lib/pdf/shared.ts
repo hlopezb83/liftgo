@@ -69,10 +69,10 @@ export async function fetchCompanyDataAndLogo(
     rfc: b.rfc,
     regimen_fiscal: b.regimen_fiscal,
     lugar_expedicion: b.lugar_expedicion,
-    logo_url: b.logo_url,
   };
 
-  const logoBase64 = await loadCompanyLogo(company.logo_url);
+  // Marca global: el mismo asset local para todas las organizaciones.
+  const logoBase64 = await loadGlobalBrandLogo();
 
   return { company, logoBase64 };
 }
