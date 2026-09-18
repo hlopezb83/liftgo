@@ -1318,17 +1318,19 @@ Deno.serve(async (req) => {
           409,
         );
       }
-      if (plan.organizationIds.length !== 1) {
+      // Ya no se exige "una sola organización": la atribución es por
+      // coincidencia exacta de la clave del call-site con una única fila
+      // dueña. Los huérfanos sin dueño o en conflicto quedan fuera del ledger
+      // y se reportan en `orphan_migration.owner_resolution`.
+      if (orphanCandidates.length === 0) {
         return respond(
-          {
-            ...summary,
-            error: "Orphan migration requires exactly one organization.",
-          },
+          { ...summary, error: "No orphan has a uniquely resolved owner." },
           409,
         );
       }
 
       await ensureOrphanLedger(admin, orphanCandidates);
+
       const outcomes = await applyOrphanBatch(admin, input.batchSize);
       return respond({ ...summary, outcomes });
     }
