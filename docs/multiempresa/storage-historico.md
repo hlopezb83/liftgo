@@ -342,3 +342,96 @@ ninguna policy que conceda por rol interno puede quedar sin el predicado de
 personal. Verificación local: **61/61 suites RLS en verde** contra la instancia
 PostgreSQL efímera (588 migraciones Supabase + 33 Drizzle). La validación
 completa corresponde a CI.
+
+## Actualización 8.19.0 — cierre operativo de la cuarentena (0034)
+
+Hasta aquí el modo `plan` decía **cuántos** objetos exigen decisión humana, pero
+no **cómo** decidir el dueño de un objeto sin coincidencia. Este tramo cierra ese
+hueco sin relajar nada.
+
+### 1. La respuesta normal sigue siendo agregada
+
+El modo `plan` (y cualquier otra respuesta del endpoint) devuelve **sólo
+conteos**: `orphans.quarantine` por cubeta y motivo, y
+`orphans.manual_resolution = { accepted, rejected }`. Nunca se devuelven ni se
+registran en logs rutas, URLs firmadas, tokens ni identificadores de objeto o de
+fila. La prueba
+`supabase/functions/_shared/storageQuarantine_test.ts` fija ese contrato y
+verifica que evaluar la cuarentena es **puro**: no copia, no actualiza
+referencias y no borra.
+
+### 2. Procedimiento de inspección de sólo lectura (operador autorizado)
+
+Este procedimiento **no se ejecuta desde la aplicación ni desde el endpoint**.
+Lo corre una persona autorizada, con credencial `service_role`, en un entorno
+privado (consola SQL controlada, sesión no compartida, sin volcar resultados a
+tickets ni a chats). Es estrictamente de **lectura**.
+
+1. Obtener del modo `plan` únicamente los **conteos** de cuarentena por cubeta y
+   motivo. Esto define el alcance de la inspección.
+2. En la sesión privada, cruzar `storage.objects` contra las relaciones dueñas
+   conocidas, sin producir URLs ni tokens:
+
+   ```sql
+   -- SÓLO LECTURA. Ejecutar en sesión privada con service_role.
+   SELECT o.bucket_id,
+          split_part(o.name, '/', 1) AS primera_clave,
+          o.created_at,
+          sb.id            AS supplier_bill_id,
+          sb.organization_id
+     FROM storage.objects o
+     LEFT JOIN public.supplier_bills sb
+            ON (o.bucket_id = 'supplier-bill-cfdi-xml'
+                AND lower(sb.cfdi_uuid) = lower(split_part(o.name, '/', 1)))
+            OR (o.bucket_id = 'supplier-payment-receipts'
+                AND sb.id::text = lower(split_part(o.name, '/', 1)))
+    WHERE o.bucket_id IN ('supplier-bill-cfdi-xml', 'supplier-payment-receipts')
+      AND NOT EXISTS (SELECT 1 FROM public.organizations org
+                       WHERE split_part(o.name, '/', 1) = org.id::text)
+    ORDER BY o.bucket_id, o.created_at;
+   ```
+
+3. Para un objeto **sin coincidencia**, la atribución no se adivina: se busca
+   evidencia de negocio fuera de Storage (fecha de alta contra la bitácora de
+   captura, proveedor del CFDI, póliza contable, correo de origen). Si esa
+   evidencia no identifica **una sola** empresa, el objeto **se queda en
+   cuarentena**. No decidir es un desenlace válido.
+4. Nada de lo observado se copia a documentos compartidos: sólo se registra la
+   conclusión en el paso siguiente.
+
+### 3. Cómo se registra una resolución explícita
+
+La decisión se asienta en `public.storage_migration_manual_resolutions`
+(migración `0034`): tabla con RLS activa, **deny-all** para `anon` y
+`authenticated` y grants **sólo** a `service_role`. Una fila lleva cubeta, ruta
+exacta, empresa resuelta, operador, justificación (mínimo 10 caracteres),
+evidencia opcional, `revalidated_at` y `status` (`active` / `revoked`). La
+identidad cubeta+ruta es única, de modo que no puede haber dos decisiones
+contradictorias vivas.
+
+### 4. Revalidación antes de permitir la copia
+
+Registrar **no** autoriza nada por sí solo. En cada corrida,
+`evaluateManualResolution()` revalida contra el estado vivo y **falla cerrado**
+ante cualquiera de estos casos:
+
+| Rechazo | Motivo |
+|---|---|
+| `no_manual_resolution` | no hay decisión registrada |
+| `revoked` | la decisión fue revocada |
+| `identity_mismatch` | la fila no corresponde exactamente a ese objeto |
+| `missing_justification` | la justificación es insuficiente |
+| `incomplete_lookup` | la lectura de dueños no se agotó: el operador no vio todo |
+| `unsupported_bucket` | la cubeta no tiene relación dueña definida |
+| `contradicts_derived_owner` | contradice un dueño derivado con certeza |
+| `unknown_organization` | la empresa no existe |
+| `inactive_organization` | la empresa está suspendida |
+| `revalidation_expired` | la revalidación tiene más de 24 h o es futura |
+
+Sólo si la revalidación pasa, el objeto entra al flujo normal
+**copy → verify → update references → observe → delete**, con la fase de borrado
+igual de separada y apagada por defecto. `delete_sources` no lee esta tabla y sus
+comprobaciones quedan intactas.
+
+Este tramo **no se ejecutó** contra producción: no se inspeccionaron objetos
+reales, no se registró ninguna resolución y no se movió ni borró nada.

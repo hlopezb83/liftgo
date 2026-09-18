@@ -49,7 +49,11 @@ import {
   resolveOrphanOwner,
   summarizeOrphanOwnership,
 } from "../_shared/storageOrphanOwner.ts";
-import { summarizeQuarantine } from "../_shared/storageQuarantine.ts";
+import {
+  evaluateManualResolution,
+  type ManualResolutionRecord,
+  summarizeQuarantine,
+} from "../_shared/storageQuarantine.ts";
 
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
@@ -141,7 +145,7 @@ interface OrphanCandidate {
    * `owner_resolution_method` sería redundante y obligaría a guardar
    * evidencia derivada del UUID fiscal.
    */
-  ownerResolutionMethod: OrphanOwnerResolutionMethod;
+  ownerResolutionMethod: OrphanOwnerResolutionMethod | "manual_resolution";
 }
 
 interface LedgerObject {
@@ -397,6 +401,7 @@ async function collectCandidates(
   counts: ReturnType<typeof emptyCounts>;
   referencedPathsByBucket: Map<string, Set<string>>;
   organizationIds: string[];
+  activeOrganizationIds: string[];
   truncated: boolean;
 }> {
   const candidates: CandidateReference[] = [];
@@ -406,12 +411,20 @@ async function collectCandidates(
 
   const { data: organizations, error: organizationsError } = await admin
     .from("organizations")
-    .select("id");
+    .select("id, is_active");
   if (organizationsError) {
     throw new Error("No se pudieron resolver las organizaciones.");
   }
   const knownOrganizationIds = new Set(
     (organizations ?? [])
+      .map((organization) => organization.id)
+      .filter((id): id is string => typeof id === "string"),
+  );
+  const activeOrganizationIds = new Set(
+    (organizations ?? [])
+      .filter((organization) =>
+        (organization as { is_active?: boolean }).is_active === true
+      )
       .map((organization) => organization.id)
       .filter((id): id is string => typeof id === "string"),
   );
@@ -507,6 +520,7 @@ async function collectCandidates(
       counts,
       referencedPathsByBucket,
       organizationIds: [...knownOrganizationIds],
+      activeOrganizationIds: [...activeOrganizationIds],
       truncated,
     };
   }
@@ -516,6 +530,7 @@ async function collectCandidates(
     counts,
     referencedPathsByBucket,
     organizationIds: [...knownOrganizationIds],
+    activeOrganizationIds: [...activeOrganizationIds],
     truncated,
   };
 }
@@ -646,21 +661,28 @@ function collectUnreferencedUnscopedObjects(
  * atajo de "una sola organización": el dueño se deriva sólo por coincidencia
  * exacta de la clave del call-site con una única fila dueña conocida y con la
  * lectura de esa clave completa. Los huérfanos sin dueño, en conflicto o con
- * lectura incompleta no se devuelven y nunca entran al ledger.
+ * lectura incompleta quedan en cuarentena y sólo pueden salir con una
+ * resolución MANUAL registrada, revalidada aquí mismo contra el estado vivo.
  */
 function collectOrphanCandidates(
   organizationIds: string[],
   unreferencedUnscoped: Array<{ bucketId: string; sourcePath: string }>,
   ownerIndex: OrphanOwnerIndex,
+  manualResolutions: Map<string, ManualResolutionRecord> = new Map(),
+  activeOrganizationIds: string[] = organizationIds,
 ): {
   candidates: OrphanCandidate[];
   byBucket: ReturnType<typeof summarizeOrphanOwnership>;
   quarantine: ReturnType<typeof summarizeQuarantine>;
+  manuallyResolved: number;
+  manualResolutionsRejected: number;
 } {
   const candidates: OrphanCandidate[] = [];
   const entries: Array<
     { bucketId: string; resolution: OrphanOwnerResolution }
   > = [];
+  let manuallyResolved = 0;
+  let manualResolutionsRejected = 0;
 
   for (const { bucketId, sourcePath } of unreferencedUnscoped) {
     const resolution = resolveOrphanOwner({
@@ -670,7 +692,35 @@ function collectOrphanCandidates(
       knownOrganizationIds: organizationIds,
     });
     entries.push({ bucketId, resolution });
-    if (resolution.status !== "resolved") continue;
+    if (resolution.status !== "resolved") {
+      const record = manualResolutions.get(`${bucketId}\n${sourcePath}`) ??
+        null;
+      if (record === null) continue;
+      const decision = evaluateManualResolution({
+        bucketId,
+        sourcePath,
+        derived: resolution,
+        record,
+        activeOrganizationIds,
+        knownOrganizationIds: organizationIds,
+      });
+      if (!decision.allowed) {
+        manualResolutionsRejected++;
+        continue;
+      }
+      manuallyResolved++;
+      candidates.push({
+        bucketId,
+        organizationId: decision.organizationId,
+        sourcePath,
+        destinationPath: organizationStoragePath(
+          decision.organizationId,
+          sourcePath,
+        ),
+        ownerResolutionMethod: "manual_resolution",
+      });
+      continue;
+    }
 
     candidates.push({
       bucketId,
@@ -689,7 +739,40 @@ function collectOrphanCandidates(
     candidates,
     byBucket,
     quarantine: summarizeQuarantine(entries, byBucket),
+    manuallyResolved,
+    manualResolutionsRejected,
   };
+}
+
+/**
+ * Lee las resoluciones manuales activas para las claves exactas que están en
+ * cuarentena. Sólo service_role puede leer esta tabla; el resultado nunca sale
+ * del proceso: al cliente sólo se le devuelven conteos.
+ */
+async function loadManualResolutions(
+  admin: AdminClient,
+  unreferencedUnscoped: Array<{ bucketId: string; sourcePath: string }>,
+): Promise<Map<string, ManualResolutionRecord>> {
+  const result = new Map<string, ManualResolutionRecord>();
+  if (unreferencedUnscoped.length === 0) return result;
+
+  const paths = [
+    ...new Set(unreferencedUnscoped.map((entry) => entry.sourcePath)),
+  ];
+  const { data, error } = await admin
+    .from("storage_migration_manual_resolutions")
+    .select(
+      "bucket_id, source_path, organization_id, resolved_by, justification, revalidated_at, status",
+    )
+    .eq("status", "active")
+    .in("source_path", paths);
+  // Fail-closed: si no se puede leer el registro, nada sale de cuarentena.
+  if (error || !data) return result;
+
+  for (const row of data as ManualResolutionRecord[]) {
+    result.set(`${row.bucket_id}\n${row.source_path}`, row);
+  }
+  return result;
 }
 
 async function ensureOrphanLedger(
@@ -1317,10 +1400,16 @@ Deno.serve(async (req) => {
         admin,
         collectOrphanOwnerLookupKeys(unreferencedUnscoped),
       );
+    // `delete_sources` tampoco consulta resoluciones manuales.
+    const manualResolutions = input.mode === "delete_sources"
+      ? new Map<string, ManualResolutionRecord>()
+      : await loadManualResolutions(admin, unreferencedUnscoped);
     const orphans = collectOrphanCandidates(
       plan.organizationIds,
       unreferencedUnscoped,
       ownerIndex,
+      manualResolutions,
+      plan.activeOrganizationIds,
     );
     const orphanCandidates = orphans.candidates;
 
@@ -1377,8 +1466,16 @@ Deno.serve(async (req) => {
             by_bucket: orphans.byBucket,
           }
           : null,
-        // Lista de resolución MANUAL: nunca se traslada nada de aquí.
+        // Lista de resolución MANUAL. Sólo salen de aquí los objetos con una
+        // resolución explícita registrada por operador y revalidada contra el
+        // estado vivo. Se devuelven conteos: nunca rutas, URLs, tokens ni ids.
         quarantine: inventoryComplete ? orphans.quarantine : null,
+        manual_resolution: inventoryComplete
+          ? {
+            accepted: orphans.manuallyResolved,
+            rejected: orphans.manualResolutionsRejected,
+          }
+          : null,
         deletion: "never_allowed",
       },
 
