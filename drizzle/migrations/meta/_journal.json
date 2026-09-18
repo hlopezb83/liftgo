@@ -211,6 +211,13 @@
       "when": 1789750964000,
       "tag": "0029_multi_org_unique_scope_by_organization",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1789837364000,
+      "tag": "0030_multi_org_onboarding_and_customer_scope",
+      "breakpoints": true
     }
   ]
 }

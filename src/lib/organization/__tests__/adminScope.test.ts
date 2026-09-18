@@ -19,16 +19,38 @@ interface TableResult {
   error?: { message: string };
 }
 
+/**
+ * Tramo 9: el resolver verifica `organizations.is_active` (fail-closed) antes
+ * de aceptar cualquier membresía. El doble expone ambas empresas activas salvo
+ * que la prueba lo sobrescriba.
+ */
+const ACTIVE_ORGS: TableResult = {
+  data: [
+    { id: ORG_A, is_active: true },
+    { id: ORG_B, is_active: true },
+  ],
+};
+
 function client(tables: Record<string, TableResult>): AdminScopeClient {
+  const all: Record<string, TableResult> = {
+    organizations: ACTIVE_ORGS,
+    ...tables,
+  };
   return {
     from: (table: string) => ({
       select: () => ({
-        eq: () => ({
-          limit: () =>
-            Promise.resolve({
-              data: tables[table]?.data ?? [],
-              error: tables[table]?.error ?? null,
-            }),
+        eq: (_column: string, value: unknown) => ({
+          limit: () => {
+            const rows = all[table]?.data ?? [];
+            const filtered =
+              table === "organizations"
+                ? rows.filter((row) => row["id"] === value)
+                : rows;
+            return Promise.resolve({
+              data: filtered,
+              error: all[table]?.error ?? null,
+            });
+          },
         }),
       }),
     }),
@@ -55,7 +77,9 @@ describe("resolveInternalScope", () => {
           data: [{ organization_id: ORG_A, member_type: "portal" }],
         },
         customer_portal_accounts: {
-          data: [{ organization_id: ORG_A, customer_id: USER, status: "active" }],
+          data: [
+            { organization_id: ORG_A, customer_id: USER, status: "active" },
+          ],
         },
       }),
       USER,
@@ -78,12 +102,27 @@ describe("resolveInternalScope", () => {
     );
     expect(scope).toEqual({ status: "read_error" });
   });
+
+  it("tramo 9: una empresa suspendida deja fuera a su personal interno", async () => {
+    const scope = await resolveInternalScope(
+      client({
+        organization_memberships: {
+          data: [{ organization_id: ORG_A, member_type: "internal" }],
+        },
+        organizations: { data: [{ id: ORG_A, is_active: false }] },
+      }),
+      USER,
+    );
+    expect(scope).toEqual({ status: "not_internal", reason: "no_membership" });
+  });
 });
 
 describe("resolveTargetScope", () => {
   it("acepta al usuario de la misma empresa", async () => {
     const target = await resolveTargetScope(
-      client({ organization_memberships: { data: [{ organization_id: ORG_A }] } }),
+      client({
+        organization_memberships: { data: [{ organization_id: ORG_A }] },
+      }),
       USER,
       ORG_A,
     );
@@ -92,7 +131,9 @@ describe("resolveTargetScope", () => {
 
   it("trata al usuario de otra empresa como inexistente", async () => {
     const target = await resolveTargetScope(
-      client({ organization_memberships: { data: [{ organization_id: ORG_B }] } }),
+      client({
+        organization_memberships: { data: [{ organization_id: ORG_B }] },
+      }),
       USER,
       ORG_A,
     );

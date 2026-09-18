@@ -1,6 +1,17 @@
 import { useMemo } from "react";
-import { ROUTE_TO_MODULE, type AccessLevel, type AppRole, useRolePermissions, useUserRole } from "@/features/users";
-import { NAV_GROUPS, ALWAYS_VISIBLE_ROUTES, type NavGroup } from "@/layouts/sidebar/navConfig";
+import { usePlatformOperatorStatus } from "@/features/platform/hooks/usePlatformOperator";
+import {
+  ROUTE_TO_MODULE,
+  type AccessLevel,
+  type AppRole,
+  useRolePermissions,
+  useUserRole,
+} from "@/features/users";
+import {
+  NAV_GROUPS,
+  ALWAYS_VISIBLE_ROUTES,
+  type NavGroup,
+} from "@/layouts/sidebar/navConfig";
 
 function getItemAccess(
   perms: Record<string, Record<string, AccessLevel>> | undefined,
@@ -17,6 +28,9 @@ function getItemAccess(
 export function useVisibleNavGroups(): NavGroup[] {
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
+  // Tramo 9: los items de operación de plataforma sólo se muestran cuando el
+  // servidor confirma al operador (fail-closed: sin dato = oculto).
+  const { data: isPlatformOperator } = usePlatformOperatorStatus();
 
   return useMemo(
     () =>
@@ -24,8 +38,12 @@ export function useVisibleNavGroups(): NavGroup[] {
         label: group.label,
         collapsible: group.collapsible,
         defaultOpen: group.defaultOpen,
-        items: group.items.filter((item) => getItemAccess(perms, role ?? undefined, item.url) !== "none"),
+        items: group.items.filter(
+          (item) =>
+            (!item.platformOperatorOnly || isPlatformOperator === true) &&
+            getItemAccess(perms, role ?? undefined, item.url) !== "none",
+        ),
       })).filter((group) => group.items.length > 0),
-    [perms, role],
+    [perms, role, isPlatformOperator],
   );
 }

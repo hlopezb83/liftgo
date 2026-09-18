@@ -1,4 +1,4 @@
-import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
+import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows, CompanyIcon } from "@/components/icons";
 import type { ElementType } from "react";
 
 export type SidebarBadgeKey =
@@ -7,7 +7,18 @@ export type SidebarBadgeKey =
   | "returns_today"
   | "intents_pending"
   | "changelog_new";
-export type NavItem = { title: string; url: string; icon: ElementType; badgeKey?: SidebarBadgeKey };
+export type NavItem = {
+  title: string;
+  url: string;
+  icon: ElementType;
+  badgeKey?: SidebarBadgeKey;
+  /**
+   * Tramo 9 multiempresa: sólo visible para operadores de plataforma
+   * (`platform_operators`), además del permiso del módulo. El servidor vuelve
+   * a verificar al operador en cada acción; esto es únicamente visibilidad.
+   */
+  platformOperatorOnly?: boolean;
+};
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [
@@ -94,6 +105,8 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Usuarios", url: "/users", icon: SecurityIcon },
       { title: "Configuración", url: "/settings/operations", icon: SettingsIcon },
+      // Operación de plataforma: alta/suspensión de empresas (tramo 9).
+      { title: "Empresas", url: "/settings/organizations", icon: CompanyIcon, platformOperatorOnly: true },
     ],
   },
   {

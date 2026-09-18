@@ -43,6 +43,7 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/mrr": "MRR",
   "/settings/operations": "Configuración",
   "/settings/company": "Configuración",
+  "/settings/organizations": "Configuración",
   "/users": "Gestión de Usuarios",
   "/returns": "Entregas",
   "/income-statement": "Reportes",

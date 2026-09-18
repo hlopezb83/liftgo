@@ -50,13 +50,26 @@ describe("useCustomer — detalle por id", () => {
 
   it("devuelve el cliente aun cuando useCustomers estaría truncada", async () => {
     // Simula: 500 clientes en la lista, pero pedimos uno por id → debe llegar directo.
+    // Tramo 9: el detalle se lee a través de la relación comercial de la
+    // empresa (`organization_customers` + `customers!inner`), así que la fila
+    // del backend trae el cliente embebido.
     resp = {
-      data: { id: "cust-999", name: "Cliente 999", deleted_at: null },
+      data: { status: "active", customers: { id: "cust-999", name: "Cliente 999", deleted_at: null } },
       error: null,
     };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCustomer("cust-999"), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toMatchObject({ id: "cust-999" });
+  });
+
+  it("tramo 9: sin relación comercial activa en la empresa, el detalle es null", async () => {
+    // RLS/filtro de relación devuelven ninguna fila → el cliente no existe
+    // para esta empresa aunque exista globalmente.
+    resp = { data: null, error: null };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCustomer("cust-otra-empresa"), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toBeNull();
   });
 });

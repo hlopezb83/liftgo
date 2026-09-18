@@ -24,6 +24,25 @@ const CUSTOMER_DETAIL_COLUMNS = sel(
   "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_rate, tax_id, user_id, version, created_at, updated_at"
 );
 
+/**
+ * Tramo 9 multiempresa: la cartera de clientes se lee a través de la relación
+ * comercial (`organization_customers`) de la empresa del usuario, no del
+ * catálogo global `customers`.
+ *
+ *  · `customers` es identidad global (RFC único): un mismo cliente puede
+ *    tener relación con varias empresas.
+ *  · La relación decide qué ve cada empresa y su estado de archivado: archivar
+ *    un cliente compartido sólo archiva la relación (`status = 'archived'`)
+ *    y no debe seguir apareciendo en esta empresa aunque `deleted_at` sea NULL.
+ *  · RLS (`org_customers_select`) ya limita `organization_customers` a la
+ *    empresa resuelta en servidor; el navegador nunca envía `organization_id`.
+ */
+const ACTIVE_RELATION_FILTER = { column: "status", value: "active" } as const;
+
+type CustomerRelationRow<T> = { customers: T };
+
+const unwrapRelation = <T,>(rows: CustomerRelationRow<T>[] | null): T[] =>
+  (rows ?? []).map((row) => row.customers).filter((c): c is T => c != null);
 
 export type Customer = Tables<"customers">;
 
@@ -32,29 +51,31 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
   {
     list: () => async () => {
       const { data, error } = await supabase
-        .from("customers")
-        .select(CUSTOMER_LIST_COLUMNS)
-        .is("deleted_at", null)
-        .or("is_e2e.is.null,is_e2e.eq.false")
-        .not("name", "ilike", "E2E%")
-        .or("email.is.null,email.neq.e2e-ui@test.local")
-        .order("name")
+        .from("organization_customers")
+        .select(`status, customers!inner(${CUSTOMER_LIST_COLUMNS})`)
+        .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
+        .is("customers.deleted_at", null)
+        .or("is_e2e.is.null,is_e2e.eq.false", { referencedTable: "customers" })
+        .not("customers.name", "ilike", "E2E%")
+        .or("email.is.null,email.neq.e2e-ui@test.local", { referencedTable: "customers" })
+        .order("customers(name)")
         .limit(LIST_FETCH_LIMIT)
-        .returns<Customer[]>();
+        .returns<CustomerRelationRow<Customer>[]>();
       if (error) throw error;
-      return data ?? [];
+      return unwrapRelation(data);
     },
     detail: (id) => async () => {
       if (!id) return null;
       const { data, error } = await supabase
-        .from("customers")
-        .select(CUSTOMER_DETAIL_COLUMNS)
-        .eq("id", id)
-        .is("deleted_at", null)
+        .from("organization_customers")
+        .select(`status, customers!inner(${CUSTOMER_DETAIL_COLUMNS})`)
+        .eq("customer_id", id)
+        .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
+        .is("customers.deleted_at", null)
         .maybeSingle()
-        .returns<Customer>();
+        .returns<CustomerRelationRow<Customer>>();
       if (error) throw error;
-      return data;
+      return data?.customers ?? null;
     },
   },
 );
@@ -72,6 +93,42 @@ export function useCustomer(id: string | undefined) {
     ...customerQueries.detail(id ?? ""),
     enabled: !!id,
     staleTime: 60_000,
+  });
+}
+
+export type CustomerPortalAccountStatus = "active" | "suspended" | "revoked";
+
+export interface CustomerPortalAccountSummary {
+  status: CustomerPortalAccountStatus;
+  email: string;
+}
+
+/**
+ * Tramo 9: el acceso al portal de un cliente es POR EMPRESA
+ * (`customer_portal_accounts`), no el vínculo legado global `customers.user_id`.
+ * RLS (`portal_accounts_select`) sólo devuelve cuentas de la empresa del
+ * usuario; un cliente compartido puede tener acceso en otra empresa y aquí
+ * seguir sin cuenta.
+ */
+export function useCustomerPortalAccount(customerId: string | undefined) {
+  return useQuery({
+    queryKey: customerKeys.portalAccount(customerId ?? ""),
+    enabled: !!customerId,
+    staleTime: 60_000,
+    queryFn: async (): Promise<CustomerPortalAccountSummary | null> => {
+      if (!customerId) return null;
+      const { data, error } = await supabase
+        .from("customer_portal_accounts")
+        .select("status, email")
+        .eq("customer_id", customerId)
+        .in("status", ["active", "suspended"])
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      const row = data?.[0];
+      if (!row) return null;
+      return { status: row.status as CustomerPortalAccountStatus, email: row.email };
+    },
   });
 }
 
