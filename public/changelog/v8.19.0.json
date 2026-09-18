@@ -1,0 +1,16 @@
+{
+  "version": "8.19.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "feature",
+  "title": "Cierre operativo de la lista de revisión manual de archivos históricos",
+  "description": "Antes sólo se sabía cuántos archivos antiguos quedaban sin dueño identificado, pero no cómo decidirlo. Ahora existe un procedimiento escrito de consulta de sólo lectura, reservado a una persona autorizada en un entorno privado, y un registro formal donde se asienta esa decisión. Registrar no basta: antes de copiar cualquier archivo se vuelve a comprobar dueño y empresa, y cualquier discrepancia lo deja donde estaba.",
+  "changes": [
+    "Documentado el procedimiento de inspección de sólo lectura que cruza los archivos guardados con los registros de negocio dueños, para uso exclusivo de una persona autorizada en un entorno privado.",
+    "Nuevo registro de decisiones manuales, cerrado a la aplicación y accesible sólo por el proceso administrativo, con empresa, responsable, justificación y fecha de revalidación.",
+    "Revalidación obligatoria antes de copiar: se rechaza la decisión revocada, caduca, ajena al archivo, de empresa desconocida o suspendida, contradictoria con el dueño ya conocido o basada en una lectura incompleta.",
+    "La respuesta normal de revisión sigue entregando únicamente conteos: nunca rutas, enlaces, claves ni identificadores, tampoco en los registros de actividad.",
+    "Nuevas pruebas que confirman el resultado agregado y que evaluar la lista no copia, no actualiza referencias ni borra nada.",
+    "Sin producción: no se ejecutó el procedimiento, no se registró ninguna decisión y no se tocó ningún archivo real."
+  ]
+}
