@@ -683,8 +683,14 @@ function collectOrphanCandidates(
     });
   }
 
-  return { candidates, byBucket: summarizeOrphanOwnership(entries) };
+  const byBucket = summarizeOrphanOwnership(entries);
+  return {
+    candidates,
+    byBucket,
+    quarantine: summarizeQuarantine(entries, byBucket),
+  };
 }
+
 
 async function ensureOrphanLedger(
   admin: AdminClient,
