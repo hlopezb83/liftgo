@@ -1,0 +1,16 @@
+{
+  "version": "8.22.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "feature",
+  "title": "Se aplicaron a la base de datos los seis cambios pendientes de multiempresa",
+  "description": "Con la autorización del propietario se ejecutaron, en orden y por el canal oficial, los seis cambios preparados (0030 a 0035). Es como instalar por fin las cerraduras que ya estaban compradas: ahora cada empresa queda separada de las demás en clientes, archivos y altas de personas usuarias. No se creó ninguna segunda empresa, no se movió ni borró ningún archivo y no se publicó nada.",
+  "changes": [
+    "Se aplicaron los seis cambios en orden; la bitácora de la base coincide exactamente con los archivos del repositorio.",
+    "Alta y suspensión de empresas con operadores de plataforma, y empresa nueva inactiva hasta que se le asigna su primer administrador.",
+    "Los clientes y los archivos quedan limitados a la empresa del personal interno; una cuenta del portal ya no alcanza archivos del personal.",
+    "El alta de personas usuarias toma la empresa sólo de un canal del servidor, nunca de datos que la propia cuenta pueda escribir.",
+    "La bitácora interna de decisiones manuales del traslado de archivos queda totalmente cerrada para la aplicación.",
+    "Pendiente operativo: ya no hay ningún operador de plataforma; debe asignarse el primero manualmente antes de usar la pantalla de Empresas."
+  ]
+}
