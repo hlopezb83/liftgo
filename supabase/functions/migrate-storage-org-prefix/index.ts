@@ -1281,7 +1281,9 @@ async function applyOrphanBatch(
     if (page.length < ORPHAN_LEDGER_PAGE_SIZE) break; // ledger agotado
     if (collected.length >= batchSize) break; // lote lleno
     if (offset >= ORPHAN_LEDGER_MAX_SCANNED) {
-      throw new Error("Se alcanzó el límite de exploración del ledger de huérfanos.");
+      throw new Error(
+        "Se alcanzó el límite de exploración del ledger de huérfanos.",
+      );
     }
   }
 
