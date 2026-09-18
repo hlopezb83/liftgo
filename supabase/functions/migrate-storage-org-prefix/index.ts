@@ -1213,10 +1213,27 @@ async function processOrphanObject(
   return await ensureCopied(admin, object);
 }
 
+/**
+ * Procesa el lote de huérfanos SÓLO para los objetos aprobados por la
+ * revalidación de ESTA ejecución. El ledger histórico no autoriza nada por sí
+ * mismo: una fila `planned/copied/failed` cuya resolución manual fue revocada,
+ * caducó o hoy contradice al dueño derivado se ignora (no se copia y no cambia
+ * de estado). Con allowlist vacía no se procesa ninguna fila.
+ */
 async function applyOrphanBatch(
   admin: AdminClient,
   batchSize: number,
+  approved: readonly OrphanCandidate[],
 ): Promise<Record<string, number>> {
+  const approvedKeys = makeApprovedOrphanKeySet(
+    approved.map((candidate) => ({
+      bucketId: candidate.bucketId,
+      sourcePath: candidate.sourcePath,
+      organizationId: candidate.organizationId,
+    })),
+  );
+  if (approvedKeys.size === 0) return { copied: 0, failed: 0, skipped: 0 };
+
   const { data: rows, error } = await admin
     .from("storage_object_migrations")
     .select(
@@ -1228,8 +1245,13 @@ async function applyOrphanBatch(
     .limit(batchSize);
   if (error) throw new Error("No se pudo leer el lote de huérfanos.");
 
-  const outcomes = { copied: 0, failed: 0 };
-  for (const object of (rows ?? []) as LedgerObject[]) {
+  const { allowed, skipped } = filterOrphanLedgerToApproved(
+    (rows ?? []) as LedgerObject[],
+    approvedKeys,
+  );
+
+  const outcomes = { copied: 0, failed: 0, skipped };
+  for (const object of allowed) {
     outcomes[await processOrphanObject(admin, object)]++;
   }
   return outcomes;
