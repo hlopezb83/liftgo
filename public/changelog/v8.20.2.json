@@ -1,0 +1,13 @@
+{
+  "version": "8.20.2",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "security",
+  "title": "Prueba automática que impide revivir las rutas antiguas de usuarios",
+  "description": "Las cinco rutas antiguas de administración de usuarios (invitar personal, invitar cliente, eliminar, restablecer contraseña y activar o desactivar) ya estaban retiradas y respondían siempre con un aviso de ruta retirada. Se añadió una prueba que revisa el código de esas rutas y falla si alguna vuelve a registrar dos veces su arranque o conserva código con permisos elevados, para que un retiro incompleto no pase inadvertido.",
+  "changes": [
+    "Verificado que cada una de las cinco rutas retiradas tiene un solo arranque y ninguna lógica antigua con permisos elevados.",
+    "Verificado que ninguna pantalla de la aplicación sigue llamando a esas rutas; el trabajo se hace ya con las funciones limitadas por empresa.",
+    "Nueva prueba automática que detecta arranques duplicados, código privilegiado residual o importaciones sobrantes en las rutas retiradas."
+  ]
+}
