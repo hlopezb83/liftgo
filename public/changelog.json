@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.17.0",
+    "date": "2026-09-18",
+    "type": "minor",
+    "category": "security",
+    "title": "Archivos del personal: una cuenta de cliente con permiso viejo ya no puede abrirlos",
+    "description": "Si una cuenta del portal de clientes conservaba por error un permiso interno antiguo (por ejemplo administrador), podía ver, reemplazar o borrar archivos del personal de su misma empresa. Ahora todas las operaciones sobre archivos de trabajo exigen ser personal dado de alta y activo en esa empresa; el permiso viejo por sí solo no alcanza. El cliente conserva exactamente lo suyo: sus comprobantes de pago y sus documentos. Sin cambios en producción.",
+    "changes": [
+      "Hallazgo real: las reglas de archivos del personal comprobaban el permiso y la empresa, pero aceptaban a cualquier cuenta con acceso a esa empresa, incluidas las cuentas del portal de clientes con un permiso interno residual.",
+      "Nuevo cambio de base 0032 (no aplicado en producción): las operaciones del personal sobre documentos, archivos fiscales, comprobantes de proveedores, XML de facturas de proveedor, capturas y la parte administrativa de los comprobantes de pago exigen pertenecer al personal de una empresa activa, sin ninguna cuenta de cliente asociada, y estar dentro de la carpeta exacta de esa empresa.",
+      "Las reglas de archivos propios del cliente no se tocaron: sigue viendo sus comprobantes de pago, sus documentos y sus propias capturas.",
+      "La migración se verifica a sí misma: si alguna de las 20 reglas afectadas falta o no usa la nueva comprobación, el cambio falla en lugar de aplicarse a medias.",
+      "Nueva prueba de seguridad: una cuenta de cliente con permiso de administrador residual no puede leer, subir, reemplazar ni borrar archivos del personal de su empresa, y sí conserva su comprobante propio. 61 de 61 pruebas de seguridad en verde en el entorno local; la validación completa queda en CI.",
+      "Sin producción: no se aplicó el cambio en la base real, no se movió ningún archivo y no se publicó nada."
+    ]
+  },
+  {
     "version": "8.16.1",
     "date": "2026-09-18",
     "type": "patch",
