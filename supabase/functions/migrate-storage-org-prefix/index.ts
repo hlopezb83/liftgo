@@ -657,7 +657,6 @@ function collectOrphanCandidates(
   byBucket: ReturnType<typeof summarizeOrphanOwnership>;
   quarantine: ReturnType<typeof summarizeQuarantine>;
 } {
-
   const candidates: OrphanCandidate[] = [];
   const entries: Array<
     { bucketId: string; resolution: OrphanOwnerResolution }
@@ -692,7 +691,6 @@ function collectOrphanCandidates(
     quarantine: summarizeQuarantine(entries, byBucket),
   };
 }
-
 
 async function ensureOrphanLedger(
   admin: AdminClient,
@@ -1382,7 +1380,6 @@ Deno.serve(async (req) => {
         // Lista de resolución MANUAL: nunca se traslada nada de aquí.
         quarantine: inventoryComplete ? orphans.quarantine : null,
         deletion: "never_allowed",
-
       },
 
       source_deletion: {
