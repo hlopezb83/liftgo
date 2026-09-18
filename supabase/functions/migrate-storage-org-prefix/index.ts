@@ -539,7 +539,57 @@ const OWNER_LOOKUP_MAX_ROWS_PER_KEY = 50;
  * error o cota alcanzada) NO se marca como completa, así que resolverá
  * `incomplete_lookup` y nunca producirá un candidato para el ledger.
  */
-...
+function isLookupKey(value: unknown): value is string {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+      .test(value);
+}
+
+async function loadOrphanOwnerIndex(
+  admin: AdminClient,
+  keys: { cfdiUuid: string[]; id: string[] },
+): Promise<OrphanOwnerIndex> {
+  const rows: Array<
+    { id?: unknown; cfdiUuid?: unknown; organizationId?: unknown }
+  > = [];
+  const completeCfdiUuid: string[] = [];
+  const completeId: string[] = [];
+
+  async function readColumn(
+    column: "cfdi_uuid" | "id",
+    values: string[],
+    complete: string[],
+  ): Promise<void> {
+    // Sólo claves ya validadas como UUID entran al filtro; cualquier otra cosa
+    // aborta el bloque sin marcar claves completas (fail-closed).
+    if (!values.every(isLookupKey)) return;
+    for (let i = 0; i < values.length; i += OWNER_LOOKUP_CHUNK) {
+      const chunk = values.slice(i, i + OWNER_LOOKUP_CHUNK);
+      const chunkRows: Array<Record<string, unknown>> = [];
+      let exhausted = false;
+      for (let offset = 0;; offset += OWNER_LOOKUP_PAGE) {
+        const base = admin
+          .from("supplier_bills")
+          .select("id, cfdi_uuid, organization_id");
+        // `cfdi_uuid` es texto con casing mixto en datos históricos: se compara
+        // con `ilike` sin comodines (igualdad insensible a mayúsculas).
+        const filtered = column === "cfdi_uuid"
+          ? base.or(chunk.map((key) => `cfdi_uuid.ilike.${key}`).join(","))
+          : base.in(column, chunk);
+        const { data, error } = await filtered
+          .order("id", { ascending: true })
+          .range(offset, offset + OWNER_LOOKUP_PAGE - 1);
+        if (error) return; // sin marcar completa ninguna clave del bloque
+        const page = (data ?? []) as Array<Record<string, unknown>>;
+        chunkRows.push(...page);
+        if (page.length < OWNER_LOOKUP_PAGE) {
+          exhausted = true;
+          break;
+        }
+        if (chunkRows.length > chunk.length * OWNER_LOOKUP_MAX_ROWS_PER_KEY) {
+          return; // truncación/duplicación anómala: fail-closed
+        }
+      }
       if (!exhausted) return;
       for (const row of chunkRows) {
         rows.push({
