@@ -343,12 +343,14 @@ describe("aislamiento por organización en código de servidor", () => {
   });
 
   it("ninguna consulta con service_role toca una tabla con empresa sin acotarla", () => {
-    const { findings, inspected } = scanPrivilegedQueries();
+    const { findings, inspected, writes } = scanPrivilegedQueries();
     expect(
-      findings.map((f) => `${f.file} → ${f.table}: ${f.snippet}`),
+      findings.map((f) => `${f.file} → ${f.table} [${f.why}]: ${f.snippet}`),
     ).toEqual([]);
     // El escáner debe estar viendo consultas reales, no cero por un regex roto.
     expect(inspected).toBeGreaterThan(5);
+    // …y al menos una escritura, para que la rama insert/upsert no quede muerta.
+    expect(writes).toBeGreaterThan(0);
   });
 
   it("todas las excepciones declaradas siguen correspondiendo a código real", () => {
@@ -368,19 +370,63 @@ describe("aislamiento por organización en código de servidor", () => {
       "utf8",
     );
     expect(source).toContain("requireInternalOrganization");
-    const scoped = source.match(/\.eq\("organization_id", organizationId\)/g) ?? [];
+    const scoped = source.match(/\.eq\("organization_id", organizationId\)/g) ??
+      [];
     expect(scoped.length).toBeGreaterThanOrEqual(2);
   });
 
-  it("detecta una consulta privilegiada sin alcance (prueba del detector)", () => {
-    const fake = `const { data } = await admin\n  .from("feedback_reports")\n  .select("*")\n  .eq("id", id);\n`;
+  it("detecta una lectura privilegiada sin alcance (prueba del detector)", () => {
+    const fake =
+      `const { data } = await admin\n  .from("feedback_reports")\n  .select("*")\n  .eq("id", id);\n`;
     const chain = extractChain(fake, fake.indexOf('.from("feedback_reports")'));
-    expect(ORG_SCOPE_PATTERNS.some((p) => p.test(chain))).toBe(false);
+    expect(chainVerdict(chain)).toEqual({ ok: false, why: "sin alcance" });
     const ok = fake.replace('.eq("id", id)', '.eq("organization_id", orgId)');
     const okChain = extractChain(ok, ok.indexOf('.from("feedback_reports")'));
-    expect(ORG_SCOPE_PATTERNS.some((p) => p.test(okChain))).toBe(true);
+    expect(chainVerdict(okChain).ok).toBe(true);
+  });
+
+  it("rechaza un filtro cuya empresa viene del input", () => {
+    const fake =
+      `await admin\n  .from("invoices")\n  .select("*")\n  .eq("organization_id", data.organization_id);\n`;
+    const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
+    expect(chainVerdict(chain)).toEqual({
+      ok: false,
+      why: "empresa de origen no confiable",
+    });
+  });
+
+  it("rechaza un insert con organization_id: input.data.organization_id", () => {
+    const fake =
+      `await admin.from("invoices").insert({\n  folio: 1,\n  organization_id: input.data.organization_id,\n});\n`;
+    const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
+    expect(chainVerdict(chain)).toEqual({
+      ok: false,
+      why: "empresa de origen no confiable",
+    });
+  });
+
+  it("acepta un insert que asigna la empresa derivada en servidor", () => {
+    const fake =
+      `await admin.from("invoices").insert({\n  folio: 1,\n  organization_id: organizationId,\n});\n`;
+    const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
+    expect(chainVerdict(chain).ok).toBe(true);
+  });
+
+  it("un insert sin organization_id no se da por seguro", () => {
+    const fake = `await admin.from("invoices").insert({ folio: 1 });\n`;
+    const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
+    expect(chainVerdict(chain)).toEqual({ ok: false, why: "sin alcance" });
+  });
+
+  it("una excepción no puede tapar una empresa de origen no confiable", () => {
+    // El allowlist sólo aplica al caso 'sin alcance'; ver scanPrivilegedQueries.
+    const fake =
+      `await admin.from("invoices").insert({ organization_id: body.organization_id });\n`;
+    const chain = extractChain(fake, fake.indexOf('.from("invoices")'));
+    expect(chainVerdict(chain).why).toBe("empresa de origen no confiable");
   });
 });
+
 
 /** Endpoints retirados: un solo handler y sin código privilegiado residual. */
 const RETIRED_ENDPOINTS = [
