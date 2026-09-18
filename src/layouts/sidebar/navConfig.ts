@@ -105,6 +105,8 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Usuarios", url: "/users", icon: SecurityIcon },
       { title: "Configuración", url: "/settings/operations", icon: SettingsIcon },
+      // Operación de plataforma: alta/suspensión de empresas (tramo 9).
+      { title: "Empresas", url: "/settings/organizations", icon: BuildingIcon, platformOperatorOnly: true },
     ],
   },
   {
