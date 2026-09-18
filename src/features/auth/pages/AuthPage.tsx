@@ -1,5 +1,5 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
-import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
+import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -73,10 +73,8 @@ function AuthCardHeader({
   return (
     <CardHeader className="text-center pt-8 pb-2">
       <div className="flex justify-center mb-5 items-center gap-3">
-        <BrandMark size="lg" />
-        <span className="auth-display text-2xl font-extrabold text-sidebar">
-          {GLOBAL_BRAND_NAME}
-        </span>
+        <BrandLockup size="lg" />
+        <span className="sr-only">{GLOBAL_BRAND_NAME}</span>
       </div>
       <CardTitle className="auth-display text-xl font-extrabold">
         {TITLES[mode].title}

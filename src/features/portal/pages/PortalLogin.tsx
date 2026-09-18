@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent as ReactFormEvent } from "react";
-import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
+import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -60,10 +60,8 @@ export default function PortalLogin() {
         <Card className="w-full max-w-md shadow-lg border-border/60">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4 items-center gap-3">
-              <BrandMark size="lg" />
-              <span className="auth-display text-2xl font-extrabold text-sidebar">
-                {GLOBAL_BRAND_NAME}
-              </span>
+              <BrandLockup size="lg" />
+              <span className="sr-only">{GLOBAL_BRAND_NAME}</span>
             </div>
             <CardTitle>
               {mode === "forgot"

@@ -1,4 +1,4 @@
-import { BrandMark } from "@/components/BrandMark";
+import { BrandLockup } from "@/components/BrandMark";
 import { LogOut, Menu, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +43,7 @@ export default function CustomerPortalLayout() {
       {/* Oleada 3 (C-2): header sticky con la marca del tenant vía BrandMark. */}
       <header data-app-header className="sticky top-0 z-30 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
-          <BrandMark size="sm" />
+          <BrandLockup size="sm" />
           <span className="font-semibold text-foreground truncate">
             {company?.razon_social ? `${company.razon_social} · Portal` : "LiftGo · Portal"}
           </span>

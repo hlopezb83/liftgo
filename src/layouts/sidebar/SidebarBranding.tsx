@@ -1,4 +1,4 @@
-import { BrandMark } from "@/components/BrandMark";
+import { BrandLockup, BrandMark } from "@/components/BrandMark";
 import { CloseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
@@ -33,11 +33,13 @@ export function SidebarBranding({ razonSocial }: SidebarBrandingProps) {
         </Button>
       )}
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
-        {/* Asset gráfico global de LiftGo: igual en cualquier tenant. */}
-        <BrandMark
+        {/* Lockup gráfico global de LiftGo: igual en cualquier tenant. */}
+        <BrandLockup
           size="lg"
-          className="group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8"
+          className="brightness-0 invert group-data-[collapsible=icon]:hidden"
         />
+        {/* Colapsado: emblema compacto, el lockup no es legible a ese tamaño. */}
+        <BrandMark size="sm" className="hidden group-data-[collapsible=icon]:block" />
 
         <div className="min-w-0 group-data-[collapsible=icon]:hidden">
           <h2
