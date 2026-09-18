@@ -520,6 +520,7 @@ async function collectCandidates(
       counts,
       referencedPathsByBucket,
       organizationIds: [...knownOrganizationIds],
+      activeOrganizationIds: [...activeOrganizationIds],
       truncated,
     };
   }
@@ -529,6 +530,7 @@ async function collectCandidates(
     counts,
     referencedPathsByBucket,
     organizationIds: [...knownOrganizationIds],
+    activeOrganizationIds: [...activeOrganizationIds],
     truncated,
   };
 }
