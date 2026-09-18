@@ -1,10 +1,11 @@
 # Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
 
-Estado: **implementado en el repositorio (8.16.0), sin producción**. Las
-migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) y
-`0031_multi_org_audit_hardening.sql` (idx 31) están en el journal y sólo se
-ejecutan en CI efímero. Su rollout a la base conectada requiere autorización
-explícita y sigue el mismo canal oficial que 0024–0029.
+Estado: **implementado en el repositorio (8.19.3), sin producción**. Las
+migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) a
+`0034_storage_manual_resolutions.sql` (idx 34) están en el journal y sólo se
+ejecutan en CI efímero: **0031–0034 siguen pendientes (no aplicadas)**. Su
+rollout a la base conectada requiere autorización explícita y sigue el mismo
+canal oficial que 0024–0029.
 
 > **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
 > plataforma **explícita** (sin promoción automática de administradores de
@@ -168,19 +169,25 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
 
 ## Pendiente (fuera de este tramo)
 
-- Rollout de 0030 **y 0031** a la base conectada: **requiere autorización
-  explícita**. Preflight igual que 0024–0029 (journal, backup del día, sin
-  restore ensayado). En este repositorio ambas son **dry-run**: nada se aplicó.
-- Asignar explícitamente el primer `platform_operator` tras aplicar 0031: 0031
-  borra el respaldo automático del seed y **nadie queda como operador** hasta
-  que el propietario haga la alta manual documentada arriba.
-- Regenerar `src/integrations/supabase/types.ts` tras aplicar 0030/0031;
+- Rollout de 0030 **y 0031–0034** a la base conectada: **requiere
+  autorización explícita**. Preflight igual que 0024–0029 (journal, backup del
+  día, sin restore ensayado). En este repositorio todas son **dry-run**: nada
+  se aplicó; 0031–0034 están preparadas pero **pendientes (no ejecutadas)**.
+- Asignar explícitamente el primer `platform_operator` tras aplicar 0031
+  (bootstrap manual): 0031 borra el respaldo automático del seed y **nadie
+  queda como operador** hasta que el propietario haga la alta manual
+  documentada arriba.
+- Regenerar `src/integrations/supabase/types.ts` tras aplicar 0030–0034;
   mientras tanto las RPC de plataforma se invocan sin tipado generado
   (`asUntypedRpc`) con el contrato fijado en el servidor.
 - Alta real de la segunda empresa y prueba cross-tenant en producción (Storage,
-  branding por empresa) siguen abiertas; ver `storage-historico.md`. Con 0031 el
-  Storage legado deja de ser legible para el personal, así que el traslado
-  histórico es requisito previo.
+  branding por empresa) siguen abiertas; ver `storage-historico.md`. Con 0031
+  el Storage legado deja de ser legible para el personal, así que antes de
+  habilitar la segunda empresa hace falta: **dry-run completo** del migrador
+  (modo `plan`, sólo agregados) y **resolver o contener los históricos** —
+  traslado copy → verify → update references → observe → delete, con el
+  huérfano sin coincidencia resuelto manualmente vía la tabla de 0034 (fuente
+  intacta hasta una aprobación separada).
 
 
 ## Tramo 12 (8.18.0) · El contexto de empresa del alta deja de leerse de `user_metadata`
@@ -222,4 +229,4 @@ atribuidas a B y no crea membresías; el alta por `raw_app_meta_data` sí fija e
 contexto correcto aunque el `user_metadata` mienta, y la empresa B pendiente
 completa su alta y queda activa. Control negativo: reinstalado el cuerpo
 anterior, la prueba lo detecta. Resultado local: **62/62 suites RLS** en verde.
-Sin producción: 0031, 0032 y 0033 siguen sin aplicarse a la base conectada.
+Sin producción: 0031–0034 siguen sin aplicarse a la base conectada.
