@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.14.0",
+    "date": "2026-09-18",
+    "type": "minor",
+    "category": "backend",
+    "title": "Archivos sueltos: ahora se identifica a qué empresa pertenecen con evidencia",
+    "description": "Antes, si sólo había una empresa, el sistema le adjudicaba todos los archivos sueltos. Ahora cada archivo sólo se asigna cuando su carpeta coincide exactamente con un único registro dueño.",
+    "changes": [
+      "Se retiró el atajo de 'una sola empresa'.",
+      "De 17 archivos sueltos, 16 tienen dueño comprobable y 1 sigue sin coincidencia.",
+      "Los que no se pueden comprobar quedan fuera del proceso, sin asignarse.",
+      "El reporte muestra sólo conteos por almacén, nunca rutas ni identificadores.",
+      "La fase de copia general sigue frenada y el borrado de originales sigue apagado."
+    ]
+  },
+  {
     "version": "8.13.3",
     "date": "2026-09-18",
     "type": "patch",
