@@ -76,10 +76,23 @@ function addRow(target: Map<string, string[]>, row: OrphanOwnerRow): void {
   target.set(key, [...(target.get(key) ?? []), organizationId]);
 }
 
+function normalizeKey(value: unknown): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+/**
+ * Construye el índice sólo con las filas leídas y con el conjunto de claves
+ * cuya lectura se agotó sin truncación. Sin `completeKeys` el índice queda
+ * fail-closed: ninguna clave puede resolverse.
+ */
 export function buildOrphanOwnerIndex(
   supplierBills: Array<
     { id?: unknown; cfdiUuid?: unknown; organizationId?: unknown }
   >,
+  completeKeys?: {
+    cfdiUuid?: Iterable<string>;
+    id?: Iterable<string>;
+  },
 ): OrphanOwnerIndex {
   const supplierBillsByCfdiUuid = new Map<string, string[]>();
   const supplierBillsById = new Map<string, string[]>();
@@ -97,7 +110,19 @@ export function buildOrphanOwnerIndex(
     }
   }
 
-  return { supplierBillsByCfdiUuid, supplierBillsById };
+  const completeCfdiUuidKeys = new Set(
+    [...(completeKeys?.cfdiUuid ?? [])].map(normalizeKey).filter(Boolean),
+  );
+  const completeIdKeys = new Set(
+    [...(completeKeys?.id ?? [])].map(normalizeKey).filter(Boolean),
+  );
+
+  return {
+    supplierBillsByCfdiUuid,
+    supplierBillsById,
+    completeCfdiUuidKeys,
+    completeIdKeys,
+  };
 }
 
 function firstSegment(sourcePath: unknown): string {
@@ -108,6 +133,38 @@ function firstSegment(sourcePath: unknown): string {
   if (separator <= 0) return "";
   return path.slice(0, separator).trim().toLowerCase();
 }
+
+/**
+ * Clave de búsqueda de un huérfano: método (derivado de la cubeta) y primer
+ * segmento válido. Permite consultar sólo las filas dueñas necesarias, en vez
+ * de leer toda la tabla.
+ */
+export function orphanOwnerLookupKey(
+  bucketId: string,
+  sourcePath: string,
+): { method: OrphanOwnerResolutionMethod; key: string } | null {
+  const method = BUCKET_METHODS[bucketId];
+  if (!method) return null;
+  const segment = firstSegment(sourcePath);
+  if (!segment || !isUUID(segment)) return null;
+  return { method, key: segment };
+}
+
+/** Conjunto mínimo de claves a consultar, agrupadas por método. */
+export function collectOrphanOwnerLookupKeys(
+  objects: Iterable<{ bucketId: string; sourcePath: string }>,
+): { cfdiUuid: string[]; id: string[] } {
+  const cfdiUuid = new Set<string>();
+  const id = new Set<string>();
+  for (const object of objects) {
+    const lookup = orphanOwnerLookupKey(object.bucketId, object.sourcePath);
+    if (!lookup) continue;
+    if (lookup.method === "supplier_bill_cfdi_uuid") cfdiUuid.add(lookup.key);
+    else id.add(lookup.key);
+  }
+  return { cfdiUuid: [...cfdiUuid], id: [...id] };
+}
+
 
 /** Resuelve el dueño de un huérfano por coincidencia exacta de la clave. */
 export function resolveOrphanOwner(input: {
