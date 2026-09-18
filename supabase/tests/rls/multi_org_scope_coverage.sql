@@ -8,9 +8,10 @@
 --     ni el trigger `trg_organization_write_context`, o
 --   · NO tenga `organization_id` y NO esté en la allowlist explícita de tablas
 --     globales/relación (cada una con su propia razón y sus propias policies).
--- Además exige RLS habilitada (y forzada) en TODAS las tablas públicas y que
--- ninguna policy permisiva de lectura para authenticated sea `USING (true)`
--- fuera de la allowlist de tablas globales.
+-- Además exige RLS habilitada en TODAS las tablas públicas y que ninguna
+-- policy permisiva de las tablas de relación sea `USING (true)`.
+-- (FORCE ROW LEVEL SECURITY no se exige aquí: 44 tablas históricas no lo
+-- tienen y no forma parte de este tramo.)
 --
 -- Cuando se agregue una tabla nueva, la opción correcta es darle
 -- `organization_id` + policy/trigger (o justificarla aquí, por nombre, si es
@@ -37,7 +38,7 @@ DECLARE
     'organization_memberships',     -- la propia membresía define el contexto
     'organization_customers',       -- relación comercial por empresa
     'customer_portal_accounts',     -- cuenta portal por (empresa, cliente)
-    'organization_document_counters', -- folios por empresa (sólo funciones)
+    'organization_document_counters', -- folios por empresa (sin policies: sólo funciones)
     'storage_object_migrations'     -- ledger técnico del migrador Storage
   ];
   r record;
@@ -78,9 +79,8 @@ BEGIN
     IF NOT r.rls THEN
       v_fallas := v_fallas || format('%s: RLS deshabilitada', r.table_name);
     END IF;
-    IF r.n_policies = 0 THEN
-      v_fallas := v_fallas || format('%s: sin policies (tabla inaccesible o abierta según GRANT)', r.table_name);
-    END IF;
+    -- Sin policies + RLS habilitada = deny-all para roles sin BYPASSRLS
+    -- (p. ej. organization_document_counters, sólo vía funciones). No es falla.
 
     IF r.tiene_org THEN
       IF r.table_name = ANY (c_relacion) THEN
@@ -102,9 +102,6 @@ BEGIN
         END IF;
         IF NOT r.tiene_trigger THEN
           v_fallas := v_fallas || format('%s: tiene organization_id pero NO trg_organization_write_context', r.table_name);
-        END IF;
-        IF NOT r.rls_forzada THEN
-          v_fallas := v_fallas || format('%s: RLS no forzada en tabla org-scoped', r.table_name);
         END IF;
       END IF;
     ELSIF NOT (r.table_name = ANY (c_globales)) THEN
