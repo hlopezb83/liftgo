@@ -5,6 +5,10 @@
  * para el portal, `customer_portal_accounts` activa y coherente con esa
  * membresía. Nunca se acepta un `organization_id` enviado por el navegador.
  *
+ * Tramo 9: la empresa además debe estar activa (`organizations.is_active`).
+ * Una empresa suspendida por el operador de plataforma deja a todos sus
+ * miembros (internos y portal) en estado explícito `organization_inactive`.
+ *
  * El resolver es puro respecto al transporte: recibe un cliente ya autenticado
  * (server function con `requireSupabaseAuth`) para poder probarse sin red.
  */
@@ -25,6 +29,7 @@ export interface OrganizationContextMissing {
   reason:
     | "no_membership"
     | "ambiguous_membership"
+    | "organization_inactive"
     | "portal_account_missing"
     | "portal_account_inactive"
     | "portal_organization_mismatch";
@@ -34,7 +39,10 @@ export type OrganizationContextResult = OrganizationContextReady | OrganizationC
 
 /** Error de verificación (lectura fallida): estado distinto a "sin membresía". */
 export class OrganizationContextError extends Error {
-  readonly code: "membership_read_error" | "portal_account_read_error";
+  readonly code:
+    | "membership_read_error"
+    | "organization_read_error"
+    | "portal_account_read_error";
   constructor(code: OrganizationContextError["code"], message: string) {
     super(message);
     this.name = "OrganizationContextError";
@@ -49,7 +57,7 @@ interface QueryResult<T> {
 
 /** Contrato mínimo del cliente Supabase usado aquí (facilita pruebas sin red). */
 export interface OrganizationContextClient {
-  from(table: "organization_memberships" | "customer_portal_accounts"): {
+  from(table: "organization_memberships" | "customer_portal_accounts" | "organizations"): {
     select(columns: string): {
       eq(column: string, value: string): {
         limit(count: number): PromiseLike<QueryResult<Record<string, unknown>>>;
@@ -59,6 +67,35 @@ export interface OrganizationContextClient {
 }
 
 const str = (value: unknown): string | null => (typeof value === "string" && value ? value : null);
+
+/**
+ * La empresa de la membresía debe existir y estar activa. La fila se lee con el
+ * cliente del propio usuario (`org_select_own`): si no es visible o está
+ * suspendida, el acceso se niega con el mismo motivo estable.
+ */
+async function assertOrganizationActive(
+  client: OrganizationContextClient,
+  organizationId: string,
+): Promise<OrganizationContextMissing | null> {
+  const organization = await client
+    .from("organizations")
+    .select("id, is_active")
+    .eq("id", organizationId)
+    .limit(1);
+
+  if (organization.error) {
+    throw new OrganizationContextError(
+      "organization_read_error",
+      "No se pudo verificar el estado de la empresa.",
+    );
+  }
+
+  const row = (organization.data ?? [])[0] as Record<string, unknown> | undefined;
+  if (!row || str(row["id"]) !== organizationId || row["is_active"] !== true) {
+    return { status: "no_membership", reason: "organization_inactive" };
+  }
+  return null;
+}
 
 async function resolvePortalAccount(
   client: OrganizationContextClient,
@@ -125,6 +162,10 @@ export async function resolveOrganizationContext(
   if (!organizationId || (memberType !== "internal" && memberType !== "portal")) {
     return { status: "no_membership", reason: "no_membership" };
   }
+
+  // Tramo 9: empresa suspendida → sin acceso para internos y portal por igual.
+  const inactive = await assertOrganizationActive(client, organizationId);
+  if (inactive) return inactive;
 
   if (memberType === "internal") {
     return { status: "ready", organizationId, memberType, customerId: null };
