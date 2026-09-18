@@ -1,6 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   evaluateManualResolution,
+  filterOrphanLedgerToApproved,
+  makeApprovedOrphanKeySet,
   type ManualResolutionRecord,
   summarizeQuarantine,
 } from "./storageQuarantine.ts";
