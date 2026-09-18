@@ -12,8 +12,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 import { documentsQueries, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
+import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 
 
 export function useDocuments(entityType: string, entityId: string | undefined) {
