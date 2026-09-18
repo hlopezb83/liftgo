@@ -518,32 +518,86 @@ async function collectCandidates(
   };
 }
 
+/**
+ * Índice de filas dueñas para atribuir huérfanos. Sólo se leen las columnas
+ * necesarias; nunca se devuelven al cliente.
+ */
+async function loadOrphanOwnerIndex(
+  admin: AdminClient,
+): Promise<OrphanOwnerIndex> {
+  const { data, error } = await admin
+    .from("supplier_bills")
+    .select("id, cfdi_uuid, organization_id");
+  if (error) {
+    throw new Error("No se pudieron leer las filas dueñas de huérfanos.");
+  }
+  return buildOrphanOwnerIndex(
+    ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
+      id: row.id,
+      cfdiUuid: row.cfdi_uuid,
+      organizationId: row.organization_id,
+    })),
+  );
+}
+
+/**
+ * Clasifica los objetos sin referencia y sin prefijo exacto. No existe ningún
+ * atajo de "una sola organización": el dueño se deriva sólo por coincidencia
+ * exacta de la clave del call-site con una única fila dueña conocida. Los
+ * huérfanos sin dueño o en conflicto no se devuelven y nunca entran al ledger.
+ */
 function collectOrphanCandidates(
   organizationIds: string[],
   inventory: Awaited<ReturnType<typeof collectStorageInventory>>,
   referencedPathsByBucket: Map<string, Set<string>>,
-): OrphanCandidate[] {
-  if (organizationIds.length !== 1 || inventory.truncated) return [];
-  const organizationId = organizationIds[0];
+  ownerIndex: OrphanOwnerIndex,
+): {
+  candidates: OrphanCandidate[];
+  byBucket: ReturnType<typeof summarizeOrphanOwnership>;
+} {
+  if (inventory.truncated) return { candidates: [], byBucket: [] };
   const candidates: OrphanCandidate[] = [];
+  const entries: Array<
+    { bucketId: string; resolution: OrphanOwnerResolution }
+  > = [];
 
   for (const [bucketId, objectPaths] of inventory.objectPathsByBucket) {
     const referenced = referencedPathsByBucket.get(bucketId) ?? new Set();
     for (const sourcePath of objectPaths) {
       if (referenced.has(sourcePath)) continue;
-      // Los objetos nuevos sin referencia ya pueden estar aislados. No se
-      // deben volver a prefijar ni eliminar como si fueran rutas heredadas.
-      if (hasOrganizationStoragePrefix(organizationId, sourcePath)) continue;
+      // Los objetos sin referencia que ya están bajo el prefijo exacto de una
+      // organización conocida se dejan intactos: ni ledger, ni copia, ni
+      // borrado.
+      const alreadyScoped = organizationIds.some((organizationId) =>
+        hasOrganizationStoragePrefix(organizationId, sourcePath)
+      );
+      if (alreadyScoped) continue;
+
+      const resolution = resolveOrphanOwner({
+        bucketId,
+        sourcePath,
+        index: ownerIndex,
+        knownOrganizationIds: organizationIds,
+      });
+      entries.push({ bucketId, resolution });
+      if (resolution.status !== "resolved") continue;
+
       candidates.push({
         bucketId,
-        organizationId,
+        organizationId: resolution.organizationId,
         sourcePath,
-        destinationPath: organizationStoragePath(organizationId, sourcePath),
+        destinationPath: organizationStoragePath(
+          resolution.organizationId,
+          sourcePath,
+        ),
+        ownerResolutionMethod: resolution.method,
       });
     }
   }
-  return candidates;
+
+  return { candidates, byBucket: summarizeOrphanOwnership(entries) };
 }
+
 
 async function ensureOrphanLedger(
   admin: AdminClient,
