@@ -23,9 +23,13 @@ AS $$
           AND c.customer_id = get_customer_id_for_user(auth.uid())
       )
     );
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_customer_forklifts_brief()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_customer_forklifts_brief() TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-GRANT EXECUTE ON FUNCTION public.get_customer_forklifts_brief() TO authenticated;
 
 -- 2. company_settings: remove mechanic role from authenticated read policy
 DROP POLICY IF EXISTS "Authenticated read company_settings" ON public.company_settings;

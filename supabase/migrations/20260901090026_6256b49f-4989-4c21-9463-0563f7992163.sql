@@ -1,15 +1,55 @@
 -- R8-13: decisión de privilegios explícita e idempotente.
 -- La autoridad es el camino SECURITY DEFINER (count_releasable_payment_locks /
--- release_stale_payment_locks); la función interna no se ejecuta directo.
-REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM anon;
-REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.releasable_payment_locks(integer) TO service_role;
+-- release_stale_payment_locks). la función interna no se ejecuta directo.
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.releasable_payment_locks(integer) TO service_role';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.count_releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.count_releasable_payment_locks(integer) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.count_releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.count_releasable_payment_locks(integer) FROM anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.count_releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.count_releasable_payment_locks(integer) TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.count_releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.count_releasable_payment_locks(integer) TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.count_releasable_payment_locks(integer) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.count_releasable_payment_locks(integer) FROM anon;
-GRANT EXECUTE ON FUNCTION public.count_releasable_payment_locks(integer) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.count_releasable_payment_locks(integer) TO service_role;
 
 COMMENT ON FUNCTION public.releasable_payment_locks(integer) IS
   'R8-13: uso interno. Sin EXECUTE para anon/authenticated; acceder via count_releasable_payment_locks / release_stale_payment_locks.';
@@ -30,10 +70,19 @@ AS $$
     THEN substring(btrim(p_value) from '^([0-9]{3})(?![0-9])')
     ELSE NULL
   END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.normalize_regimen_fiscal(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.normalize_regimen_fiscal(text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.normalize_regimen_fiscal(text) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.normalize_regimen_fiscal(text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.normalize_regimen_fiscal(text) TO authenticated, service_role;
 
 -- Reparación fail-safe: SOLO borradores sin timbrar, con prefijo determinista
 -- de un código soportado. Ambiguos y documentos fiscales vivos quedan intactos.

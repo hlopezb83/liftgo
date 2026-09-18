@@ -109,10 +109,19 @@ BEGIN
     'scope', p_scope
   );
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_portal_scenario(text, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.e2e_seed_portal_scenario(text, text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.e2e_seed_portal_scenario(text, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.e2e_seed_portal_scenario(text, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.e2e_seed_portal_scenario(text, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.e2e_seed_portal_scenario(text, text) TO authenticated;
 
 -- R4-28: policy DELETE en el bucket payment-proofs.
 CREATE POLICY "Customers delete own pending proofs"

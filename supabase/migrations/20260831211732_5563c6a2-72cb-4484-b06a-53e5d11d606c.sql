@@ -29,6 +29,9 @@ BEGIN
   END IF;
 
   RETURN OLD;
-END; $$;
-
-REVOKE EXECUTE ON FUNCTION public.guard_quote_delete() FROM PUBLIC, anon, authenticated;
+END; $$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_quote_delete()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.guard_quote_delete() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;

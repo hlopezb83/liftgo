@@ -138,10 +138,19 @@ BEGIN
             'Asignado a cotización de venta ' || p_quote_id::text);
   END LOOP;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assign_forklift_to_sale_quote(uuid, uuid[], int[])') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assign_forklift_to_sale_quote(uuid, uuid[], int[])') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.assign_forklift_to_sale_quote(uuid, uuid[], int[]) TO authenticated;
 
 -- FIX-R3-04: desasignación transaccional.
 CREATE OR REPLACE FUNCTION public.unassign_forklift_from_sale_quote(
@@ -203,10 +212,19 @@ BEGIN
   VALUES (p_forklift_id, v_prev, 'available',
           'Desasignado de cotización de venta ' || v_assignment.quote_id::text);
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.unassign_forklift_from_sale_quote(uuid, uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.unassign_forklift_from_sale_quote(uuid, uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.unassign_forklift_from_sale_quote(uuid, uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.unassign_forklift_from_sale_quote(uuid, uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.unassign_forklift_from_sale_quote(uuid, uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.unassign_forklift_from_sale_quote(uuid, uuid) TO authenticated;
 
 -- FIX-R3-02F (finanzas, MEDIA): reset del contador de misses al re-timbrar REP.
 CREATE OR REPLACE FUNCTION public.claim_payment_rep_stamping(
@@ -240,7 +258,15 @@ BEGIN
   SELECT rep_cfdi_status INTO v_status FROM public.payments WHERE id = p_payment_id;
   RETURN COALESCE(v_status, 'not_found');
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) TO service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_payment_rep_stamping(uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_payment_rep_stamping(uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) TO service_role';
+  END IF;
+END $lgp_guard$;

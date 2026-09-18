@@ -97,9 +97,13 @@ BEGIN
     END IF;
   END IF;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.sync_invoice_status(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.sync_invoice_status(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.sync_invoice_status(uuid) FROM PUBLIC, anon;
 
 -- R6-01: el trigger de payments ahora solo resuelve el invoice_id afectado
 -- (NEW/OLD) y delega en el helper.

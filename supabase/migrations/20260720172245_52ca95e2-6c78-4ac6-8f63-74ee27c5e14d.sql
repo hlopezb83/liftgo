@@ -67,7 +67,15 @@ AS $$
   LEFT JOIN maintenance_by_model m ON m.model_key = mu.model_key
   LEFT JOIN damages_by_model  d ON d.model_key = mu.model_key
   ORDER BY profit DESC;
-$$;
-
-REVOKE ALL ON FUNCTION public.report_profit_by_model(date, date) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.report_profit_by_model(date, date) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_profit_by_model(date, date)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.report_profit_by_model(date, date) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.report_profit_by_model(date, date)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.report_profit_by_model(date, date) TO authenticated';
+  END IF;
+END $lgp_guard$;

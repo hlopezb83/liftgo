@@ -260,11 +260,15 @@ BEGIN
   ) RETURNING id INTO v_id;
 
   RETURN v_id;
-END $$;
-
-GRANT EXECUTE ON FUNCTION public.register_supplier_payment(
+END $$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.register_supplier_payment( UUID, NUMERIC, DATE, TEXT, TEXT, TEXT, TEXT, TEXT )') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.register_supplier_payment(
   UUID, NUMERIC, DATE, TEXT, TEXT, TEXT, TEXT, TEXT
-) TO authenticated;
+) TO authenticated';
+  END IF;
+END $lgp_guard$;
+
 
 -- ---------- Data migration: operating_expenses -> supplier_bills (+ payments) ----------
 INSERT INTO public.supplier_bills (

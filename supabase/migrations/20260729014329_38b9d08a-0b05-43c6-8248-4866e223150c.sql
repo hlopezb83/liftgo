@@ -48,10 +48,19 @@ BEGIN
 
   RETURN QUERY SELECT v_confirmed, v_failed, v_failed_ids;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.confirm_bank_matches(uuid[])') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.confirm_bank_matches(uuid[]) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.confirm_bank_matches(uuid[])') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.confirm_bank_matches(uuid[]) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.confirm_bank_matches(uuid[]) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.confirm_bank_matches(uuid[]) TO authenticated;
 
 COMMENT ON FUNCTION public.confirm_bank_matches(uuid[]) IS
   'R23-L: confirma en bloque; las lineas cuya sugerencia quedo obsoleta se omiten y regresan a unmatched.';

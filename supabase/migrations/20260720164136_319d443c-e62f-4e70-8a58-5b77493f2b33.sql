@@ -65,10 +65,19 @@ BEGIN
       USING HINT = 'no puedes eliminar al último administrador del sistema.';
   END IF;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assert_not_last_admin(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.assert_not_last_admin(uuid) FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.assert_not_last_admin(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.assert_not_last_admin(uuid) TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.assert_not_last_admin(uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.assert_not_last_admin(uuid) TO service_role;
 
 COMMENT ON FUNCTION public.assert_not_last_admin(uuid) IS
   'Bloquea el borrado si _target_user_id es el último admin. Usa FOR UPDATE para evitar carreras.';

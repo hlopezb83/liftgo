@@ -14,8 +14,10 @@ CREATE TABLE IF NOT EXISTS public.collection_reminders_log (
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint
-    WHERE conname = 'collection_reminders_log_invoice_id_reminder_type_key'
+    SELECT 1 FROM pg_constraint WHERE conname = 'collection_reminders_log_invoice_id_reminder_type_key'
+    UNION ALL
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE c.relname = 'collection_reminders_log_invoice_id_reminder_type_key' AND n.nspname = 'public'
   ) THEN
     ALTER TABLE public.collection_reminders_log
       ADD CONSTRAINT collection_reminders_log_invoice_id_reminder_type_key

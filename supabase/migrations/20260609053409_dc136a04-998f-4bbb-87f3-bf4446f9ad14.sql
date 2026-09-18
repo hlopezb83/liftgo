@@ -242,10 +242,19 @@ BEGIN
 
   RETURN QUERY SELECT v_matched, v_suggested, v_unmatched;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.match_bank_statement_lines(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.match_bank_statement_lines(uuid) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.match_bank_statement_lines(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.match_bank_statement_lines(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.match_bank_statement_lines(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.match_bank_statement_lines(uuid) TO authenticated;
 
 -- 5. RPC confirm_bank_match
 CREATE OR REPLACE FUNCTION public.confirm_bank_match(
@@ -276,10 +285,19 @@ BEGIN
          matched_by = auth.uid()
    WHERE id = p_line_id;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.confirm_bank_match(uuid, uuid, uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.confirm_bank_match(uuid, uuid, uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.confirm_bank_match(uuid, uuid, uuid) TO authenticated;
 
 -- 6. RPC unmatch_bank_line
 CREATE OR REPLACE FUNCTION public.unmatch_bank_line(p_line_id uuid)
@@ -304,7 +322,15 @@ BEGIN
          ignored_reason = NULL
    WHERE id = p_line_id;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.unmatch_bank_line(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.unmatch_bank_line(uuid) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.unmatch_bank_line(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.unmatch_bank_line(uuid) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.unmatch_bank_line(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.unmatch_bank_line(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;

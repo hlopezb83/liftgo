@@ -431,7 +431,15 @@ BEGIN
     AND e.status IS DISTINCT FROM e.esperado
   ORDER BY e.name;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.audit_fleet_status_consistency() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.audit_fleet_status_consistency() TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.audit_fleet_status_consistency()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.audit_fleet_status_consistency() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.audit_fleet_status_consistency()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.audit_fleet_status_consistency() TO authenticated';
+  END IF;
+END $lgp_guard$;

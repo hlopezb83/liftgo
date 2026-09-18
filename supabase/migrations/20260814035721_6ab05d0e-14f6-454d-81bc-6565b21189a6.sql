@@ -135,10 +135,19 @@ BEGIN
     LIMIT 50;
   END IF;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_bank_match_candidates(uuid, text, integer, numeric)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_bank_match_candidates(uuid, text, integer, numeric)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) TO authenticated;
 
 -- SPRINT 5.4 — Una extensión sólo puede estar ligada a una factura
 CREATE UNIQUE INDEX IF NOT EXISTS booking_extensions_invoice_id_uniq
@@ -163,10 +172,19 @@ BEGIN
   FROM public.prospects WHERE stage = p_stage;
   RETURN v_next;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_stage_order(text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.next_stage_order(text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.next_stage_order(text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.next_stage_order(text) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.next_stage_order(text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.next_stage_order(text) TO authenticated;
 
 -- SPRINT 9.6 — Policy explícita de lectura para la bitácora de recordatorios
 DROP POLICY IF EXISTS collection_reminders_log_select_staff ON public.collection_reminders_log;

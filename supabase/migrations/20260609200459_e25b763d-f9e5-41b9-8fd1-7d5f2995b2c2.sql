@@ -115,9 +115,13 @@ BEGIN
 
   RETURN v_quote;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.accept_quote_from_portal(UUID, TEXT)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.accept_quote_from_portal(UUID, TEXT) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-GRANT EXECUTE ON FUNCTION public.accept_quote_from_portal(UUID, TEXT) TO authenticated;
 
 CREATE OR REPLACE FUNCTION public.reject_quote_from_portal(p_quote_id UUID, p_reason TEXT)
 RETURNS public.quotes
@@ -145,9 +149,13 @@ BEGIN
 
   RETURN v_quote;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reject_quote_from_portal(UUID, TEXT)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reject_quote_from_portal(UUID, TEXT) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-GRANT EXECUTE ON FUNCTION public.reject_quote_from_portal(UUID, TEXT) TO authenticated;
 
 -- 5. RPC to expose default collection account to portal (only safe fields)
 CREATE OR REPLACE FUNCTION public.get_portal_collection_account()
@@ -167,6 +175,9 @@ AS $$
   FROM public.bank_accounts
   WHERE is_default_collection = true AND is_active = true
   LIMIT 1;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_portal_collection_account() TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_portal_collection_account()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_collection_account() TO authenticated';
+  END IF;
+END $lgp_guard$;

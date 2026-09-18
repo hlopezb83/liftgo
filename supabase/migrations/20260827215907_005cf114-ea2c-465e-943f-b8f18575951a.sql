@@ -69,11 +69,25 @@ BEGIN
 
   RETURN QUERY SELECT v_closed, v_freed;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.reconcile_expired_bookings() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.reconcile_expired_bookings() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO authenticated;
-GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO service_role;
 
 SELECT cron.schedule(
   'reconcile-expired-bookings',

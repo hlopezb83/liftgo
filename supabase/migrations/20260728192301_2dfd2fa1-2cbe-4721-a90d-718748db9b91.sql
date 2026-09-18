@@ -34,10 +34,19 @@ BEGIN
   SELECT rep_cfdi_status INTO v_status FROM public.payments WHERE id = p_payment_id;
   RETURN COALESCE(v_status, 'not_found');
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_payment_rep_stamping(uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_payment_rep_stamping(uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.claim_payment_rep_stamping(uuid, integer) TO service_role;
 
 CREATE OR REPLACE FUNCTION public.claim_maintenance_policy_month(
   p_policy_id uuid,
@@ -60,7 +69,15 @@ BEGIN
 
   RETURN v_claimed IS NOT NULL;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.claim_maintenance_policy_month(uuid, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.claim_maintenance_policy_month(uuid, text) TO service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_maintenance_policy_month(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.claim_maintenance_policy_month(uuid, text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.claim_maintenance_policy_month(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.claim_maintenance_policy_month(uuid, text) TO service_role';
+  END IF;
+END $lgp_guard$;

@@ -120,10 +120,19 @@ BEGIN
     LIMIT 50;
   END IF;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_bank_match_candidates(uuid, text, integer, numeric)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_bank_match_candidates(uuid, text, integer, numeric)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.get_bank_match_candidates(uuid, text, integer, numeric) TO authenticated;
 
 -- Confirmación masiva de líneas sugeridas (usa la sugerencia guardada en cada línea).
 CREATE OR REPLACE FUNCTION public.confirm_bank_matches(p_line_ids uuid[])
@@ -163,10 +172,19 @@ BEGIN
 
   RETURN v_count;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.confirm_bank_matches(uuid[])') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.confirm_bank_matches(uuid[]) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.confirm_bank_matches(uuid[])') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.confirm_bank_matches(uuid[]) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.confirm_bank_matches(uuid[]) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.confirm_bank_matches(uuid[]) TO authenticated;
 
 -- Ignorado masivo con una razón común.
 CREATE OR REPLACE FUNCTION public.ignore_bank_lines(p_line_ids uuid[], p_reason text)
@@ -203,7 +221,15 @@ BEGIN
 
   RETURN v_count;
 END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.ignore_bank_lines(uuid[], text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.ignore_bank_lines(uuid[], text) TO authenticated;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.ignore_bank_lines(uuid[], text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.ignore_bank_lines(uuid[], text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.ignore_bank_lines(uuid[], text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.ignore_bank_lines(uuid[], text) TO authenticated';
+  END IF;
+END $lgp_guard$;

@@ -52,10 +52,19 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.mark_started_bookings_rented()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.mark_started_bookings_rented() FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.mark_started_bookings_rented() TO service_role;
 
 CREATE OR REPLACE FUNCTION public.reconcile_expired_bookings()
 RETURNS TABLE(closed_bookings integer, freed_forklifts integer)
@@ -135,10 +144,19 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.reconcile_expired_bookings() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_expired_bookings()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.reconcile_expired_bookings() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.reconcile_expired_bookings() TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.create_booking(
   p_forklift_id uuid,

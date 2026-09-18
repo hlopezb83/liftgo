@@ -27,10 +27,19 @@ AS $function$
            SELECT 1 FROM public.return_inspections ri
             WHERE ri.booking_id = p_booking_id
          );
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.booking_is_returned(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.booking_is_returned(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.booking_is_returned(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.booking_is_returned(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE EXECUTE ON FUNCTION public.booking_is_returned(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.booking_is_returned(uuid) TO authenticated, service_role;
 
 CREATE OR REPLACE FUNCTION public.has_open_rental(p_forklift_id uuid)
  RETURNS boolean
@@ -146,10 +155,19 @@ BEGIN
           'Orden de trabajo ' || p_log_id::text || ' restaurada desde archivados',
           (select auth.uid()));
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_maintenance_log(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.restore_maintenance_log(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_maintenance_log(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_maintenance_log(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE EXECUTE ON FUNCTION public.restore_maintenance_log(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.restore_maintenance_log(uuid) TO authenticated, service_role;
 
 -- ---------------------------------------------------------------------
 -- 4) Restaurar un daño archivado (solo admin).
@@ -189,7 +207,15 @@ BEGIN
             (select auth.uid()));
   END IF;
 END;
-$function$;
-
-REVOKE EXECUTE ON FUNCTION public.restore_damage_record(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.restore_damage_record(uuid) TO authenticated, service_role;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_damage_record(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.restore_damage_record(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_damage_record(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_damage_record(uuid) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;

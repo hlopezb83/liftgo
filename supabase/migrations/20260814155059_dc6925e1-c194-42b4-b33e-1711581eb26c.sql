@@ -89,7 +89,15 @@ BEGIN
   END LOOP;
 
   RETURN QUERY SELECT v_matched, v_suggested, v_unmatched;
-END; $$;
-
-REVOKE EXECUTE ON FUNCTION public.match_bank_statement_lines(uuid) FROM anon, public;
-GRANT EXECUTE ON FUNCTION public.match_bank_statement_lines(uuid) TO authenticated;
+END; $$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.match_bank_statement_lines(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.match_bank_statement_lines(uuid) FROM anon, public';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.match_bank_statement_lines(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.match_bank_statement_lines(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;

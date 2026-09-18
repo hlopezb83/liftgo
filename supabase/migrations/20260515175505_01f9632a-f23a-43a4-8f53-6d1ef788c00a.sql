@@ -71,7 +71,15 @@ AS $$
   WHERE has_role(auth.uid(), 'admin'::app_role)
      OR has_role(auth.uid(), 'administrativo'::app_role)
   LIMIT 1;
-$$;
-
-REVOKE ALL ON FUNCTION public.get_billing_secrets_status() FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.get_billing_secrets_status() TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_billing_secrets_status()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.get_billing_secrets_status() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_billing_secrets_status()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_billing_secrets_status() TO authenticated';
+  END IF;
+END $lgp_guard$;

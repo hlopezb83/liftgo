@@ -511,6 +511,9 @@ AS $function$
     AND i.customer_id = get_customer_id_for_user(auth.uid())
     AND i.status NOT IN ('draft', 'cancelled')
   ORDER BY i.issued_at DESC;
-$function$;
-
-GRANT EXECUTE ON FUNCTION public.get_portal_invoices() TO authenticated;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_portal_invoices()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_portal_invoices() TO authenticated';
+  END IF;
+END $lgp_guard$;

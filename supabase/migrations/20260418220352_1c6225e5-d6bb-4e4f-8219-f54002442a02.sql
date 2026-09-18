@@ -50,6 +50,9 @@ BEGIN
     'totals', v_totals
   );
 END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_customer_summary(uuid) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_customer_summary(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_customer_summary(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;

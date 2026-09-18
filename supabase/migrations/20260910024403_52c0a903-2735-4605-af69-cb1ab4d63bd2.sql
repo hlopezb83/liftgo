@@ -109,9 +109,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.validate_delivery_booking_integrity()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.validate_delivery_booking_integrity() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.validate_delivery_booking_integrity() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_delivery_booking_integrity ON public.deliveries;
 CREATE TRIGGER trg_delivery_booking_integrity
@@ -173,9 +177,13 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.forklift_rpc', 'off', true);
   RAISE;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.apply_delivery_completed_effects()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_delivery_completed_effects ON public.deliveries;
 CREATE TRIGGER trg_delivery_completed_effects
@@ -288,10 +296,19 @@ EXCEPTION WHEN OTHERS THEN
   PERFORM set_config('app.delivery_completion_rpc', 'off', true);
   RAISE;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.complete_delivery(uuid, text, numeric, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.complete_delivery(uuid, text, numeric, text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.complete_delivery(uuid, text, numeric, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.complete_delivery(uuid, text, numeric, text) TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.complete_delivery(uuid, text, numeric, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.complete_delivery(uuid, text, numeric, text) TO authenticated, service_role;
 
 COMMENT ON FUNCTION public.complete_delivery(uuid, text, numeric, text) IS
   'Completa una entrega/recolección bajo locks de reserva, fila logística y unidad; rechaza estados obsoletos.';
@@ -353,8 +370,12 @@ BEGIN
 
   RETURN NEW;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.enforce_signed_contract_lock()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.enforce_signed_contract_lock() FROM PUBLIC, anon, authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.enforce_signed_contract_lock() FROM PUBLIC, anon, authenticated;
 
 NOTIFY pgrst, 'reload schema';

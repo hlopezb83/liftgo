@@ -86,6 +86,8 @@ BEGIN
   END LOOP;
 
   -- 4. RLS habilitado pero sin policies
+  --    Excepción deliberada (migración 0031): organization_document_counters
+  --    es deny-all para anon/authenticated; sólo service_role conserva grants.
   FOR r IN
     SELECT c.relname AS tablename
       FROM pg_class c
@@ -93,10 +95,12 @@ BEGIN
      WHERE n.nspname = 'public'
        AND c.relkind = 'r'
        AND c.relrowsecurity
+       AND c.relname <> 'organization_document_counters'
        AND NOT EXISTS (
          SELECT 1 FROM pg_policies p
           WHERE p.schemaname = 'public' AND p.tablename = c.relname
        )
+
   LOOP
     v_count := v_count + 1;
     v_bad := v_bad || format(E'\n  - RLS activo sin ninguna policy: %I', r.tablename);

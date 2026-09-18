@@ -107,9 +107,27 @@ BEGIN
   END IF;
   RETURN v_id;
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.approve_payment_intent(uuid, text, text) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.reject_payment_intent(uuid, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.approve_payment_intent(uuid, text, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.reject_payment_intent(uuid, text) TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.approve_payment_intent(uuid, text, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.approve_payment_intent(uuid, text, text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reject_payment_intent(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.reject_payment_intent(uuid, text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.approve_payment_intent(uuid, text, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.approve_payment_intent(uuid, text, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reject_payment_intent(uuid, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reject_payment_intent(uuid, text) TO authenticated';
+  END IF;
+END $lgp_guard$;

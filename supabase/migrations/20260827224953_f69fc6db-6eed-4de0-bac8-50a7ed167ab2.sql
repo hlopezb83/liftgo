@@ -158,7 +158,15 @@ BEGIN
 
   RETURN v_n;
 END;
-$function$;
-
-REVOKE EXECUTE ON FUNCTION public.purge_e2e_audit_logs() FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.purge_e2e_audit_logs() TO authenticated;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.purge_e2e_audit_logs()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.purge_e2e_audit_logs() FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.purge_e2e_audit_logs()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.purge_e2e_audit_logs() TO authenticated';
+  END IF;
+END $lgp_guard$;

@@ -7,10 +7,19 @@ SET search_path = public
 AS $$
   SELECT upper(COALESCE(p_currency, 'MXN')) <> 'MXN'
      AND (p_rate IS NULL OR p_rate <= 0 OR p_rate = 1);
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.fx_is_missing(text, numeric)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.fx_is_missing(text, numeric) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.fx_is_missing(text, numeric)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) TO authenticated, anon, service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.fx_is_missing(text, numeric) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.fx_is_missing(text, numeric) TO authenticated, anon, service_role;
 
 -- Vista de saldos: misma regla (incluye TC = 1 en divisa).
 CREATE OR REPLACE VIEW public.v_invoices_with_balance

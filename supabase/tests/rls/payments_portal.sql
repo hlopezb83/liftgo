@@ -2,6 +2,26 @@
 -- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
+-- Contexto multiempresa (migración 0031): las operaciones de servicio deben
+-- declarar la organización antes de sembrar datos.
+DO $ctx$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  WHERE is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  IF v_org IS NULL THEN
+    RAISE EXCEPTION 'SETUP: se requiere la organización inicial';
+  END IF;
+
+  PERFORM set_config('app.organization_id', v_org::text, true);
+END $ctx$;
+
+
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('22222222-0000-4000-8000-00000000000a', 'clienteA@test.local', now(), now()),
   ('22222222-0000-4000-8000-00000000000b', 'clienteB@test.local', now(), now())
@@ -25,6 +45,69 @@ INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, sub
 INSERT INTO public.payments (id, invoice_id, amount) VALUES
   ('22222222-0000-4000-8000-0000000000a3', '22222222-0000-4000-8000-0000000000a2', 500),
   ('22222222-0000-4000-8000-0000000000b3', '22222222-0000-4000-8000-0000000000b2', 900);
+
+
+-- Contexto multiempresa (migración 0031): el personal interno sólo tiene
+-- contexto de organización con una membresía interna explícita.
+DO $mem$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  WHERE is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  SELECT v_org, ur.user_id, 'internal'
+  FROM public.user_roles ur
+  WHERE ur.role <> 'customer'
+    AND NOT EXISTS (
+      SELECT 1 FROM public.organization_memberships m
+      WHERE m.auth_user_id = ur.user_id
+    )
+  ON CONFLICT DO NOTHING;
+END $mem$;
+
+-- Contexto multiempresa (migración 0031): un cliente del portal necesita
+-- relación por organización, cuenta de portal activa y membresía de portal.
+DO $portal$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  WHERE is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO public.organization_customers (organization_id, customer_id, status)
+  SELECT v_org, c.id, 'active'
+  FROM public.customers c
+  WHERE c.user_id IS NOT NULL
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.customer_portal_accounts
+    (organization_id, customer_id, auth_user_id, email, status)
+  SELECT v_org, c.id, c.user_id,
+         COALESCE(u.email, c.id::text || '@rls.test'), 'active'
+  FROM public.customers c
+  JOIN auth.users u ON u.id = c.user_id
+  WHERE c.user_id IS NOT NULL
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  SELECT v_org, c.user_id, 'portal'
+  FROM public.customers c
+  WHERE c.user_id IS NOT NULL
+  ON CONFLICT DO NOTHING;
+END $portal$;
+
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"22222222-0000-4000-8000-00000000000a","role":"authenticated"}';

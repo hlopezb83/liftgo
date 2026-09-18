@@ -71,6 +71,9 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'contracts_deposit_status_check'
+    UNION ALL
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+     WHERE c.relname = 'contracts_deposit_status_check' AND n.nspname = 'public'
   ) THEN
     ALTER TABLE public.contracts
       ADD CONSTRAINT contracts_deposit_status_check
@@ -130,10 +133,19 @@ BEGIN
          updated_at = now()
    WHERE id = p_contract_id;
 END;
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.set_contract_deposit_status(uuid, text, numeric, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.set_contract_deposit_status(uuid, text, numeric, text) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.set_contract_deposit_status(uuid, text, numeric, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.set_contract_deposit_status(uuid, text, numeric, text) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.set_contract_deposit_status(uuid, text, numeric, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.set_contract_deposit_status(uuid, text, numeric, text) TO authenticated;
 
 -- A4B-05: restaurar (desarchivar) clientes y proveedores
 CREATE OR REPLACE FUNCTION public.restore_customer(p_customer_id uuid)
@@ -176,9 +188,27 @@ BEGIN
     RAISE EXCEPTION 'El proveedor no existe o no está archivado' USING ERRCODE = 'check_violation';
   END IF;
 END;
-$function$;
-
-REVOKE ALL ON FUNCTION public.restore_customer(uuid) FROM PUBLIC, anon;
-REVOKE ALL ON FUNCTION public.restore_supplier(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.restore_customer(uuid) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.restore_supplier(uuid) TO authenticated;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_customer(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.restore_customer(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_supplier(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.restore_supplier(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_customer(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_customer(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.restore_supplier(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.restore_supplier(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;

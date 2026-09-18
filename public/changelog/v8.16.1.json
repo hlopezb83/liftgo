@@ -1,0 +1,17 @@
+{
+  "version": "8.16.1",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "security",
+  "title": "Pruebas de aislamiento: toda la batería vuelve a pasar con las reglas estrictas por empresa",
+  "description": "Las reglas estrictas de la corrección anterior (archivos siempre dentro de la carpeta de su empresa, empresa suspendida sin acceso, altas que nacen pendientes y contadores de folios cerrados) dejaron desactualizadas varias pruebas antiguas que suponían una sola empresa. Se actualizaron esas pruebas para declarar la empresa y la pertenencia del personal, y para esperar el comportamiento nuevo. No se relajó ninguna regla de permisos ni se tocó nada en producción.",
+  "changes": [
+    "Las pruebas antiguas que sembraban datos sin declarar empresa ahora fijan la empresa activa y dan de alta la pertenencia del personal, igual que ocurre en el sistema real.",
+    "Las pruebas del portal ahora crean la relación del cliente con la empresa, su cuenta de portal activa y su pertenencia, como exige el nuevo aislamiento.",
+    "La prueba de suspensión de empresa deja de cambiar el estado a mano y usa la ruta autorizada de operador de plataforma.",
+    "La prueba de alta de empresa espera que una empresa nueva quede pendiente hasta adjuntar a su primer administrador dentro de la misma operación.",
+    "La prueba de comprobantes de pago espera el rechazo de rutas antiguas sin carpeta de empresa, en lugar de la antigua tolerancia.",
+    "La revisión general de seguridad exceptúa explícitamente el contador de folios, que ahora está cerrado a propósito para personas y sólo abierto a procesos internos.",
+    "Resultado local: 61 de 61 pruebas de aislamiento y 45 de 45 pruebas de estructura en verde. No se ejecutó nada contra la base real, ni archivos, ni publicación."
+  ]
+}

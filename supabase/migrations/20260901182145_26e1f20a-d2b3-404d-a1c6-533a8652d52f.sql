@@ -22,10 +22,14 @@ AS $function$
     NULLIF(p_rate, 0),
     NULLIF(p_rate, 0)
   );
-$function$;
+$function$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.bank_amount_in_account_currency(numeric, text, text, numeric)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.bank_amount_in_account_currency(numeric, text, text, numeric)
+  TO authenticated, service_role';
+  END IF;
+END $lgp_guard$;
 
-GRANT EXECUTE ON FUNCTION public.bank_amount_in_account_currency(numeric, text, text, numeric)
-  TO authenticated, service_role;
 
 -- ---------------------------------------------------------------------
 -- R9-04 · match_bank_statement_lines

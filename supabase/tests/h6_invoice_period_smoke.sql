@@ -85,7 +85,13 @@ DECLARE
   v_fork    uuid := gen_random_uuid();
   v_book    uuid := gen_random_uuid();
   v_ok      boolean;
+  v_org     uuid;
 BEGIN
+  SELECT id INTO v_org FROM public.organizations WHERE is_active ORDER BY created_at LIMIT 1;
+  IF v_org IS NULL THEN
+    RAISE EXCEPTION 'SETUP: se requiere la organización inicial';
+  END IF;
+
   -- Usuario admin + rol (para que RLS permita insertar facturas).
   INSERT INTO auth.users (id, email, created_at, updated_at)
   VALUES (v_user, 'h6.admin@test.local', now(), now()) ON CONFLICT DO NOTHING;
@@ -94,6 +100,13 @@ BEGIN
   INSERT INTO public.user_roles (user_id, role) VALUES (v_user, 'admin')
   ON CONFLICT DO NOTHING;
   UPDATE public.user_roles SET role = 'admin' WHERE user_id = v_user;
+
+  -- Migración 0031: el operador interno necesita membresía y contexto de
+  -- organización explícito para que org_scope_isolation lo deje escribir.
+  PERFORM set_config('app.organization_id', v_org::text, true);
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  VALUES (v_org, v_user, 'internal')
+  ON CONFLICT DO NOTHING;
 
   -- Cadena mínima como superuser (RLS y triggers de asignación se ejecutan).
   INSERT INTO public.customers (id, name) VALUES (v_cust, 'H6 Smoke SA de CV');

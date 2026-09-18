@@ -85,12 +85,31 @@ BEGIN
     'invoice_cfdi_status', v_invoice.cfdi_status
   );
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.prepare_payment_complement(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.prepare_payment_complement(uuid) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.prepare_payment_complement(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.prepare_payment_complement(uuid) FROM anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.prepare_payment_complement(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.prepare_payment_complement(uuid) FROM authenticated';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.prepare_payment_complement(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.prepare_payment_complement(uuid) TO service_role';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.prepare_payment_complement(uuid) FROM PUBLIC;
-REVOKE ALL ON FUNCTION public.prepare_payment_complement(uuid) FROM anon;
-REVOKE ALL ON FUNCTION public.prepare_payment_complement(uuid) FROM authenticated;
-GRANT EXECUTE ON FUNCTION public.prepare_payment_complement(uuid) TO service_role;
 
 COMMENT ON FUNCTION public.prepare_payment_complement(uuid) IS
   'BLOQUE 2.2: bloquea invoice + payment con FOR UPDATE, calcula NumParcialidad/ImpSaldoAnt y RESERVA installment_number/prior_balance. Serializa REPs concurrentes de la misma factura.';
@@ -158,7 +177,15 @@ BEGIN
 
   RETURN jsonb_build_object('status', 'reconciled', 'invoice_id', p_invoice_id);
 END;
-$$;
-
-REVOKE ALL ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) TO service_role;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.reconcile_stamping_invoice(uuid, text, text, text, text, text, text, text, text) TO service_role';
+  END IF;
+END $lgp_guard$;

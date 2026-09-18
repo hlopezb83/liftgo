@@ -57,10 +57,19 @@ BEGIN
   DELETE FROM public.supplier_payment_batch_items WHERE batch_id = p_batch_id;
   DELETE FROM public.supplier_payment_batches WHERE id = p_batch_id;
 END;
-$fn$;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.cancel_supplier_payment_batch(uuid)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.cancel_supplier_payment_batch(uuid) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.cancel_supplier_payment_batch(uuid)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.cancel_supplier_payment_batch(uuid) TO authenticated';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.cancel_supplier_payment_batch(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.cancel_supplier_payment_batch(uuid) TO authenticated;
 
 -- releasable_payment_locks: sólo los pagos DE UN LOTE vigente protegen el
 -- bloqueo. Un pago ajeno (abono parcial previo) ya no lo deja permanente.
@@ -86,7 +95,15 @@ AS $fn$
              JOIN public.supplier_payments sp2 ON sp2.batch_id = i.batch_id
             WHERE i.bill_id = b.id
          );
-$fn$;
-
-REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.releasable_payment_locks(integer) TO authenticated;
+$fn$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.releasable_payment_locks(integer) FROM PUBLIC, anon';
+  END IF;
+END $lgp_guard$;
+DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.releasable_payment_locks(integer)') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.releasable_payment_locks(integer) TO authenticated';
+  END IF;
+END $lgp_guard$;

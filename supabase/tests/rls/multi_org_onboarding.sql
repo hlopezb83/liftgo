@@ -151,9 +151,15 @@ BEGIN
   END IF;
   PERFORM set_config('app.onb.org_b', v_org_b::text, true);
 
-  IF NOT EXISTS (SELECT 1 FROM public.organizations WHERE id = v_org_b AND is_active AND name = 'Empresa B Onboarding') THEN
-    RAISE EXCEPTION 'ONBOARDING: la empresa B no quedó activa con el nombre normalizado';
+  -- Migración 0031: la empresa nace INACTIVA (pending) y sólo se activa al
+  -- adjuntar a su primer administrador dentro de la misma transacción.
+  IF NOT EXISTS (
+    SELECT 1 FROM public.organizations
+    WHERE id = v_org_b AND NOT is_active AND name = 'Empresa B Onboarding'
+  ) THEN
+    RAISE EXCEPTION 'ONBOARDING: la empresa B no quedó pendiente con el nombre normalizado';
   END IF;
+
 
   -- Con DOS empresas activas, el alta en auth.users con metadatos de
   -- organización crea perfil y rol (auditoría con contexto) sin 23514.

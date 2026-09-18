@@ -20,9 +20,13 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.guard_delivery_completed_terminal()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.guard_delivery_completed_terminal() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.guard_delivery_completed_terminal() FROM PUBLIC;
 
 DROP TRIGGER IF EXISTS trg_guard_delivery_completed_terminal ON public.deliveries;
 CREATE TRIGGER trg_guard_delivery_completed_terminal
@@ -63,9 +67,13 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.apply_delivery_completed_effects()') IS NOT NULL THEN
+    EXECUTE 'REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC';
+  END IF;
+END $lgp_guard$;
 
-REVOKE ALL ON FUNCTION public.apply_delivery_completed_effects() FROM PUBLIC;
 
 DROP TRIGGER IF EXISTS trg_delivery_completed_effects ON public.deliveries;
 CREATE TRIGGER trg_delivery_completed_effects

@@ -36,6 +36,9 @@ BEGIN
   INTO result;
   RETURN result;
 END;
-$$;
-
-GRANT EXECUTE ON FUNCTION public.get_insurance_alerts() TO authenticated;
+$$;DO $lgp_guard$
+BEGIN
+  IF to_regprocedure('public.get_insurance_alerts()') IS NOT NULL THEN
+    EXECUTE 'GRANT EXECUTE ON FUNCTION public.get_insurance_alerts() TO authenticated';
+  END IF;
+END $lgp_guard$;
