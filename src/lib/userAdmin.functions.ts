@@ -58,7 +58,10 @@ export const inviteUserFn = createServerFn({ method: "POST" })
       email,
       password: finalPassword,
       email_confirm: true,
-      user_metadata: { full_name },
+      // Tramo 9: `handle_new_user` usa `organization_id` sólo como contexto de
+      // auditoría del alta (profiles/user_roles). La membresía la crea
+      // `finalizeInvitedUser`, nunca el trigger.
+      user_metadata: { full_name, organization_id: organizationId },
     });
 
     if (createErr || !newUser?.user) {
