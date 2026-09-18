@@ -7,7 +7,18 @@ export type SidebarBadgeKey =
   | "returns_today"
   | "intents_pending"
   | "changelog_new";
-export type NavItem = { title: string; url: string; icon: ElementType; badgeKey?: SidebarBadgeKey };
+export type NavItem = {
+  title: string;
+  url: string;
+  icon: ElementType;
+  badgeKey?: SidebarBadgeKey;
+  /**
+   * Tramo 9 multiempresa: sólo visible para operadores de plataforma
+   * (`platform_operators`), además del permiso del módulo. El servidor vuelve
+   * a verificar al operador en cada acción; esto es únicamente visibilidad.
+   */
+  platformOperatorOnly?: boolean;
+};
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [
