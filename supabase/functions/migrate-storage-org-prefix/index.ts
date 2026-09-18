@@ -40,6 +40,14 @@ import {
   deleteEligibility,
   deleteGateDecision,
 } from "../_shared/storageDeletePhase.ts";
+import {
+  buildOrphanOwnerIndex,
+  type OrphanOwnerIndex,
+  type OrphanOwnerResolution,
+  type OrphanOwnerResolutionMethod,
+  resolveOrphanOwner,
+  summarizeOrphanOwnership,
+} from "../_shared/storageOrphanOwner.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
 const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_NO_DELETE";
