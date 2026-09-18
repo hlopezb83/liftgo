@@ -137,8 +137,8 @@ SELECT pg_temp.expect_true(
     ILIKE '%payment_proof_path_allowed(name, true)%'
 );
 SELECT pg_temp.expect_true(
-  'R6-25 payment_proof_path_allowed compara prefijo, organización de sesión y factura',
-  pg_temp.fndef('payment_proof_path_allowed') ILIKE '%current_organization_id()%'
+  'R6-25 payment_proof_path_allowed compara prefijo, organización activa y factura',
+  pg_temp.fndef('payment_proof_path_allowed') ILIKE '%current_active_organization_id()%'
     AND pg_temp.fndef('payment_proof_path_allowed') ILIKE '%storage_prefix_organization(p_name)%'
     AND pg_temp.fndef('payment_proof_path_allowed') ILIKE '%i.organization_id = v_org%'
 );
@@ -154,11 +154,11 @@ SELECT pg_temp.expect_true(
   pg_temp.poldef('storage', 'objects', 'Staff read documents')
     ILIKE '%storage_path_in_current_organization(name, false)%'
 );
--- Compatibilidad legada explícita: sin prefijo de organización la ruta no puede
--- apuntar a otra empresa, así que la lectura/borrado legados siguen permitidos.
+-- Migración 0031: desaparece la tolerancia al legado sin prefijo. Una ruta sin
+-- el prefijo de la organización ACTIVA se rechaza en lectura y en escritura.
 SELECT pg_temp.expect_true(
-  'R6-25 storage_path_in_current_organization conserva rutas legadas solo si no son cruzadas',
-  public.storage_path_in_current_organization('documents/manual.pdf', false) IS TRUE
+  'R6-25 storage_path_in_current_organization rechaza rutas legadas sin prefijo (0031)',
+  public.storage_path_in_current_organization('documents/manual.pdf', false) IS FALSE
     AND public.storage_path_in_current_organization('documents/manual.pdf', true) IS FALSE
 );
 
