@@ -141,7 +141,6 @@ interface OrphanCandidate {
   ownerResolutionMethod: OrphanOwnerResolutionMethod;
 }
 
-
 interface LedgerObject {
   id: string;
   bucket_id: string;
@@ -597,7 +596,6 @@ function collectOrphanCandidates(
 
   return { candidates, byBucket: summarizeOrphanOwnership(entries) };
 }
-
 
 async function ensureOrphanLedger(
   admin: AdminClient,
