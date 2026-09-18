@@ -13,19 +13,33 @@
 - **Originales conservados** (632 objetos = 322 originales + copias). El borrado
   de fuentes sigue **deshabilitado** y sin autorización.
 - **1 sola organización activa**.
-- **1 referencia no soportada pendiente de clasificación/validación**:
-  `company_settings.logo_url` con URL HTTPS que **no** tiene forma de ruta
-  `/storage/v1/object/...` ni pertenece al Storage de este proyecto. No se
-  publica su valor, host, ruta, token ni identificadores. A partir de 8.23.2 la
-  aplicación la trata **fail-closed**: no se renderiza ni se descarga, y la
-  interfaz cae al distintivo tipográfico. **Reemplazar el valor persistido exige
-  mutación de datos y no está autorizado**; queda como requisito explícito.
+- **1 referencia fuera del Storage del proyecto, clasificada el 2026-09-18**: el
+  valor de `company_settings.logo_url` es una **imagen pública HTTPS alojada
+  fuera del proyecto**, no un archivo subido al Storage de la empresa (no tiene
+  forma `/storage/v1/object/...` ni prefijo de organización). Según la
+  aclaración del propietario corresponde a la **marca global de LiftGo**, un
+  asset **compartido deliberadamente por todas las empresas**. No se publica su
+  valor, host, ruta, token ni identificadores.
+  - **No requiere traslado a Storage** ni entra en el inventario de objetos a
+    migrar: no es dato de un tenant.
+  - **No requiere prueba A/B de aislamiento**: por diseño todas las empresas ven
+    la misma marca.
+  - Lo que sí se verifica: la carga usa una fuente fija y permitida —sólo HTTPS,
+    como imagen estática, **sin credenciales, sin cookies y sin referer**, tanto
+    en pantalla como al generar PDF—, y nunca un fetch arbitrario con sesión.
+    `http:` en claro, `data:`, `blob:` y rutas con salto de nivel se rechazan
+    fail-closed.
+  - **El logo subido por una empresa es otro caso distinto** y conserva
+    aislamiento por tenant: se guarda como ruta dentro del prefijo de su
+    organización y se resuelve firmando con la sesión actual (TTL 300 s), de
+    modo que las policies impiden que una empresa muestre el logo de otra.
 
 ### Gates obligatorios antes de dar de alta una segunda empresa
 
-1. **Branding por empresa resuelto y probado**: logo servido desde la
-   `company_settings` de la organización del contexto, firmado con TTL corto;
-   la referencia no soportada clasificada o sustituida por el propietario.
+1. **Branding por empresa resuelto y probado**: el logo **subido por una
+   empresa** se sirve desde la `company_settings` de la organización del
+   contexto y se firma con TTL corto (probado A/B). La **marca global de
+   LiftGo** queda fuera de este gate: es un asset compartido a propósito.
 2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
 3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
 4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
