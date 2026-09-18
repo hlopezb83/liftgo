@@ -1,11 +1,11 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
+import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
-import { usePublicBranding } from "@/features/company-settings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useLocation } from "@/lib/router-compat";
 import { dismissAuthError, notifyAuthError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -48,33 +48,23 @@ function RecoveryNotice({
 }
 
 
-/** Encabezado con logo/marca y título del modo actual. */
+/** Encabezado con la marca global de LiftGo y el título del modo actual. */
 function AuthCardHeader({
-  company,
   mode,
   unknownPath,
   pathname,
 }: {
-  company: { logo_url?: string | null; razon_social?: string | null } | null | undefined;
   mode: AuthMode;
   unknownPath: boolean;
   pathname: string;
 }) {
   return (
     <CardHeader className="text-center pt-8 pb-2">
-      <div className="flex justify-center mb-5">
-        {company?.logo_url ? (
-          <img
-            src={company.logo_url}
-            alt={`Logo ${company.razon_social ?? "LiftGo"}`}
-            className="h-14 w-auto max-w-[200px] object-contain"
-          />
-        ) : (
-          <span className="flex flex-col items-center leading-none">
-            <span className="auth-display text-2xl font-extrabold text-sidebar">Lift Go</span>
-            <span className="auth-display text-2xs text-primary">Montacargas</span>
-          </span>
-        )}
+      <div className="flex justify-center mb-5 items-center gap-3">
+        <BrandMark size="lg" />
+        <span className="auth-display text-2xl font-extrabold text-sidebar">
+          {GLOBAL_BRAND_NAME}
+        </span>
       </div>
       <CardTitle className="auth-display text-xl font-extrabold">{TITLES[mode].title}</CardTitle>
       <CardDescription>{TITLES[mode].desc}</CardDescription>
@@ -125,7 +115,6 @@ export default function AuthPage() {
   // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
   // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
   const unknownPath = recovery === "idle" && pathname !== "/" && pathname !== "/login" && pathname !== "/auth";
-  const { data: company } = usePublicBranding();
   const [mode, setMode] = useState<AuthMode>(recovery === "idle" ? "sign-in" : "reset");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -217,13 +206,11 @@ export default function AuthPage() {
   return (
     <main className="auth-brandscape min-h-[100dvh] flex bg-background">
       <AuthBrandPanel
-        logoUrl={company?.logo_url}
-        razonSocial={company?.razon_social}
         tagline="Levanta el futuro de tu operación."
       />
       <div className="flex-1 flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md animate-fade-in shadow-lg">
-        <AuthCardHeader company={company} mode={mode} unknownPath={unknownPath} pathname={pathname} />
+        <AuthCardHeader mode={mode} unknownPath={unknownPath} pathname={pathname} />
         <CardContent>
           {recovery === "error" || recovery === "pending" ? (
             <RecoveryNotice

@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent as ReactFormEvent } from "react";
+import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePublicBranding } from "@/features/company-settings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -21,7 +21,6 @@ function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
 
 export default function PortalLogin() {
   const { user, signIn, resetPassword } = useAuth();
-  const { data: company } = usePublicBranding();
   const navigate = useNavigateTransition();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
@@ -51,24 +50,17 @@ export default function PortalLogin() {
     // Oleada 3 (C-2): facelift con gradiente radial suave + footer "Powered by".
     <div className="min-h-[100dvh] flex">
       <AuthBrandPanel
-        logoUrl={company?.logo_url}
-        razonSocial={company?.razon_social}
         tagline="Tus rentas, facturas y contratos, siempre a la mano."
       />
       <div className="flex-1 flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.12),transparent_60%),radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.08),transparent_55%)]">
       <Card className="w-full max-w-md shadow-lg border-border/60">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            {company?.logo_url ? (
-              <img
-                src={company.logo_url}
-                alt={`Logo ${company.razon_social ?? "LiftGo"}`}
-                className="h-14 w-auto max-w-[200px] object-contain"
-              />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">
-                {(company?.razon_social ?? "LG").slice(0, 2).toUpperCase()}
-              </div>
+          <div className="flex justify-center mb-4 items-center gap-3">
+            <BrandMark size="lg" />
+            <span className="auth-display text-2xl font-extrabold text-sidebar">
+              {GLOBAL_BRAND_NAME}
+            </span>
+          </div>
             )}
           </div>
           <CardTitle>{mode === "forgot" ? "Restablecer contraseña" : "Portal de clientes"}</CardTitle>
