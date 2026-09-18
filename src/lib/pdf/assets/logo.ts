@@ -11,7 +11,12 @@ import { resolveLogoSrc } from "@/lib/branding/logoSource";
  */
 export async function loadImageAsBase64(url: string): Promise<string | null> {
   try {
-    const response = await fetch(url);
+    // Sin credenciales ni referer: la imagen de marca es pública y el logo de
+    // empresa ya viene firmado; nunca se envía la sesión a un host de imagen.
+    const response = await fetch(url, {
+      credentials: "omit",
+      referrerPolicy: "no-referrer",
+    });
     if (!response.ok) return null;
     const blob = await response.blob();
     return new Promise((resolve) => {
@@ -28,10 +33,11 @@ export async function loadImageAsBase64(url: string): Promise<string | null> {
 /**
  * Wrapper null-safe para cargar el logo de la empresa.
  *
- * Multiempresa: el valor persistido nunca se descarga tal cual. Se resuelve
- * antes a una URL firmada de TTL corto del Storage de este proyecto; si el
- * valor apunta a un host externo o no verificable, el PDF se genera sin logo
- * (fail-closed) en vez de hacer un fetch arbitrario.
+ * El valor persistido no se descarga tal cual: se clasifica antes. Si es un
+ * logo de empresa se resuelve a una URL firmada de TTL corto del Storage de
+ * este proyecto; si es la marca global de LiftGo se descarga su URL pública
+ * HTTPS sin credenciales ni referer. Esquemas no soportados (http:, data:,
+ * blob:, rutas con salto de nivel) generan el PDF sin logo (fail-closed).
  */
 export async function loadCompanyLogo(
   logoUrl: string | null | undefined,
