@@ -24,7 +24,9 @@ export type OrphanOwnerUnresolvedReason =
   | "unsupported_bucket"
   | "invalid_path"
   | "no_match"
+  | "incomplete_lookup"
   | "unknown_organization";
+
 
 export type OrphanOwnerConflictReason =
   | "multiple_owner_rows"
