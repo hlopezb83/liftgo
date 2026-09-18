@@ -281,6 +281,13 @@
       "when": 1789714868812,
       "tag": "0039_0033_handle_new_user_trusted_org_context",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1789714894012,
+      "tag": "0040_0034_storage_manual_resolutions",
+      "breakpoints": true
     }
   ]
 }
