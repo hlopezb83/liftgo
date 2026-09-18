@@ -76,7 +76,15 @@ describe("resolveIssuerBranding · cliente", () => {
     const result = await resolveIssuerBranding(client, portalA, { type: "customer", id: CUSTOMER });
     expect(result).toEqual({
       status: "ready",
-      branding: { ...settingsA, organizationId: ORG_A },
+      branding: {
+        organizationId: ORG_A,
+        razon_social: "Empresa A",
+        rfc: "AAA010101AAA",
+        regimen_fiscal: "601",
+        lugar_expedicion: "64000",
+        logo_url: "logo-a.png",
+        facturapi_mode: "live",
+      },
     });
   });
 
