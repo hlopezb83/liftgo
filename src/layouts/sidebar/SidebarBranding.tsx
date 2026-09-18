@@ -1,3 +1,4 @@
+import { BrandMark } from "@/components/BrandMark";
 import { CloseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
@@ -32,10 +33,11 @@ export function SidebarBranding({ razonSocial }: SidebarBrandingProps) {
         </Button>
       )}
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
-        {/* Asset global LiftGo: distintivo del producto, igual en todo tenant. */}
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-gold text-sidebar-primary-foreground font-bold text-lg group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:text-2xs group-data-[collapsible=icon]:rounded-md">
-          LG
-        </div>
+        {/* Asset gráfico global de LiftGo: igual en cualquier tenant. */}
+        <BrandMark
+          size="lg"
+          className="group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8"
+        />
 
         <div className="min-w-0 group-data-[collapsible=icon]:hidden">
           <h2

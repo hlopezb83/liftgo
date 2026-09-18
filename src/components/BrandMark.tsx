@@ -30,7 +30,11 @@ export function BrandMark({ size = "md", className }: BrandMarkProps) {
     <img
       src={GLOBAL_BRAND_LOGO_SRC}
       alt={GLOBAL_BRAND_NAME}
-      className={cn("rounded-md object-contain shrink-0", SIZE[size], className)}
+      className={cn(
+        "rounded-md object-contain shrink-0",
+        SIZE[size],
+        className,
+      )}
     />
   );
 }
