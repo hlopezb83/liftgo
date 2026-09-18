@@ -228,7 +228,9 @@ async function createFirstAdminAuthUser(
       email,
       password: g.generateSecurePassword(),
       email_confirm: true,
-      user_metadata: { full_name: fullName, organization_id: organizationId },
+      // Tramo 12 (0033): contexto de empresa por `app_metadata` (server-only).
+      user_metadata: { full_name: fullName },
+      app_metadata: { organization_id: organizationId },
     },
   );
   if (createErr || !newUser?.user) {

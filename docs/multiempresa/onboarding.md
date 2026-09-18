@@ -182,3 +182,44 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
   Storage legado deja de ser legible para el personal, así que el traslado
   histórico es requisito previo.
 
+
+## Tramo 12 (8.18.0) · El contexto de empresa del alta deja de leerse de `user_metadata`
+
+**Hallazgo (auditoría, condicional).** En 0030 `handle_new_user` tomaba
+`NEW.raw_user_meta_data->>'organization_id'` y lo fijaba como
+`app.organization_id` de la transacción. `user_metadata` es un canal escribible
+por el propio usuario (`auth.signUp(..., { data })` y `auth.updateUser`), así
+que en un escenario con registro público habilitado una cuenta podía declarar
+bajo qué empresa se auditaba su alta.
+
+**Cierre (migración forward-only `0033_handle_new_user_trusted_org_context.sql`,
+journal idx 33).** El contexto sólo se acepta desde `raw_app_meta_data`, que
+únicamente puede escribir el service role (Auth Admin API). Cualquier
+`organization_id` presente en `raw_user_meta_data` se ignora por completo;
+de ahí sólo se sigue leyendo `full_name`, dato descriptivo. La migración se
+verifica a sí misma con `pg_get_functiondef`: aborta si el cuerpo instalado
+vuelve a leer la organización de `raw_user_meta_data` o no usa
+`raw_app_meta_data`. El trigger sigue sin crear membresías.
+
+**Canal de alta actualizado.** `src/lib/userAdmin.functions.ts`,
+`src/lib/customerPortal.functions.ts` y `src/lib/platformAdmin.functions.ts`
+envían ahora `app_metadata: { organization_id }` en `auth.admin.createUser`
+(el `full_name` queda en `user_metadata`). Los guards no se relajaron: la
+empresa nace pendiente/inactiva y sólo se activa al adjuntar a su primer
+administrador por `platform_attach_first_admin`.
+
+**Evidencia de la configuración real de registro (2026-09-18, sólo lectura).**
+`POST /auth/v1/signup` con la clave publicable de producción responde
+`422 {"error_code":"signup_disabled","msg":"Signups not allowed for this
+instance"}`, y el código de la aplicación no llama a `supabase.auth.signUp` en
+ninguna ruta. Es decir, hoy el vector no es alcanzable desde fuera; aun así se
+cerró en la base para no depender de esa configuración.
+
+**Prueba.** `supabase/tests/rls/handle_new_user_trusted_org_context.sql`
+(dos empresas): un alta cuyo `raw_user_meta_data.organization_id` apunta a la
+empresa B no mueve el contexto (sigue en A), no genera filas de `audit_logs`
+atribuidas a B y no crea membresías; el alta por `raw_app_meta_data` sí fija el
+contexto correcto aunque el `user_metadata` mienta, y la empresa B pendiente
+completa su alta y queda activa. Control negativo: reinstalado el cuerpo
+anterior, la prueba lo detecta. Resultado local: **62/62 suites RLS** en verde.
+Sin producción: 0031, 0032 y 0033 siguen sin aplicarse a la base conectada.

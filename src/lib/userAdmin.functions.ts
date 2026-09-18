@@ -58,10 +58,12 @@ export const inviteUserFn = createServerFn({ method: "POST" })
       email,
       password: finalPassword,
       email_confirm: true,
-      // Tramo 9: `handle_new_user` usa `organization_id` sólo como contexto de
-      // auditoría del alta (profiles/user_roles). La membresía la crea
+      // Tramo 12 (0033): el contexto de empresa viaja en `app_metadata`, canal
+      // que sólo puede escribir el service role. `handle_new_user` ignora
+      // `user_metadata.organization_id`. La membresía la crea
       // `finalizeInvitedUser`, nunca el trigger.
-      user_metadata: { full_name, organization_id: organizationId },
+      user_metadata: { full_name },
+      app_metadata: { organization_id: organizationId },
     });
 
     if (createErr || !newUser?.user) {
