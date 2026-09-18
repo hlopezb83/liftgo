@@ -453,3 +453,42 @@ Deno.test("orphanBatch: filas no aprobadas antes que la aprobada no la ahogan (s
   assertEquals(again.copied, []);
   assertEquals(again.skipped, 0);
 });
+
+Deno.test("orphanBatch: una copia aprobada previa no ahoga a la nueva planned (batchSize=1)", () => {
+  // Ambas filas están aprobadas en ESTA ejecución. La antigua ya está `copied`
+  // y va primera en el orden; si se reincluyera, llenaría el lote de 1 en cada
+  // corrida (ensureCopied sólo revalida el destino) y la nueva `planned` nunca
+  // avanzaría.
+  const ledger: FakeLedgerRow[] = [
+    {
+      id: "old-copied",
+      bucket_id: "supplier-bill-cfdi-xml",
+      source_path: "old.xml",
+      organization_id: ORG,
+      status: "copied",
+    },
+    {
+      id: "new-planned",
+      bucket_id: "supplier-bill-cfdi-xml",
+      source_path: "new.xml",
+      organization_id: ORG,
+      status: "planned",
+    },
+  ];
+  const approved = [
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "old.xml",
+      organizationId: ORG,
+    },
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "new.xml",
+      organizationId: ORG,
+    },
+  ];
+
+  const result = simulateOrphanBatch(ledger, approved, 1);
+  assertEquals(result.copied, ["new-planned"]);
+  assertEquals(result.skipped, 0);
+});
