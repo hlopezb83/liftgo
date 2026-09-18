@@ -168,9 +168,11 @@ async function createPortalUser(
     email,
     password: tempPassword,
     email_confirm: true,
-    // `organization_id` es sólo contexto de auditoría para `handle_new_user`
-    // (profiles/user_roles). La membresía y la cuenta las crea linkPortalAccess.
-    user_metadata: { full_name: fullName, organization_id: organizationId },
+    // Tramo 12 (0033): el contexto de empresa va en `app_metadata` (sólo
+    // service role); `handle_new_user` ignora `user_metadata.organization_id`.
+    // La membresía y la cuenta las crea linkPortalAccess.
+    user_metadata: { full_name: fullName },
+    app_metadata: { organization_id: organizationId },
   });
 
   if (error || !newUser?.user) {
