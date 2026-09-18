@@ -1,4 +1,4 @@
-import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
+import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows, CompanyIcon } from "@/components/icons";
 import type { ElementType } from "react";
 
 export type SidebarBadgeKey =
@@ -106,7 +106,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Usuarios", url: "/users", icon: SecurityIcon },
       { title: "Configuración", url: "/settings/operations", icon: SettingsIcon },
       // Operación de plataforma: alta/suspensión de empresas (tramo 9).
-      { title: "Empresas", url: "/settings/organizations", icon: BuildingIcon, platformOperatorOnly: true },
+      { title: "Empresas", url: "/settings/organizations", icon: CompanyIcon, platformOperatorOnly: true },
     ],
   },
   {
