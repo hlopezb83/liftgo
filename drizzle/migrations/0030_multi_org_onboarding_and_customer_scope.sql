@@ -451,11 +451,13 @@ BEGIN
   -- no se elimina, se deja suspendida.
   BEGIN
     DELETE FROM public.organizations WHERE id = p_organization_id;
+    PERFORM set_config('app.platform_operation', '', true);
     RETURN FOUND;
   EXCEPTION WHEN foreign_key_violation THEN
     UPDATE public.organizations
     SET is_active = false, updated_at = now()
     WHERE id = p_organization_id;
+    PERFORM set_config('app.platform_operation', '', true);
     RETURN false;
   END;
 END;
@@ -498,6 +500,10 @@ BEGIN
   UPDATE public.organizations
   SET is_active = p_active, updated_at = now()
   WHERE id = p_organization_id AND is_active IS DISTINCT FROM p_active;
+
+  -- La ventana de operación de plataforma se cierra de inmediato: el resto de
+  -- la transacción vuelve a estar sujeto al guard de is_active.
+  PERFORM set_config('app.platform_operation', '', true);
 
   IF NOT FOUND THEN
     IF NOT EXISTS (SELECT 1 FROM public.organizations WHERE id = p_organization_id) THEN
