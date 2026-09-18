@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { LOGO_BUCKET } from "@/lib/branding/logoSource";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
@@ -30,11 +31,12 @@ export function useUploadCompanyLogo() {
         supabase,
         relativePath,
       );
-      const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
+      const { error: uploadError } = await supabase.storage.from(LOGO_BUCKET).upload(filePath, file);
       if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("documents").getPublicUrl(filePath);
       notifySuccess("Logo subido correctamente");
-      return urlData.publicUrl;
+      // Multiempresa: se persiste la RUTA, no una URL pública/firmada. La
+      // visualización se firma on-demand con la sesión actual (RLS de hoy).
+      return filePath;
     } catch (err: unknown) {
       notifyError({ error: err, message: "Error al subir logo" });
       return null;
