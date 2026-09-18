@@ -696,6 +696,12 @@ CREATE TRIGGER trg_customer_owner_organization
 -- Se conserva el nombre de la función (ACL revocada en 0028 y verificada por
 -- function_acl_revoke_anon_0028.sql); el cuerpo ya no depende de que exista
 -- UNA sola organización.
+--
+-- La relación se crea cuando el alta la hace un usuario autenticado (su
+-- empresa verificada) o, por compatibilidad, cuando existe UNA sola empresa
+-- activa. Un proceso de sistema (sin JWT) con varias empresas conserva el
+-- comportamiento histórico: fija el dueño desde `app.organization_id` pero la
+-- relación comercial la declara explícitamente (fixtures A/B y migraciones).
 CREATE OR REPLACE FUNCTION public.ensure_single_active_organization_customer()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -706,6 +712,11 @@ DECLARE
   v_organization_id uuid := NEW.created_by_organization_id;
 BEGIN
   IF v_organization_id IS NULL THEN
+    RETURN NEW;
+  END IF;
+
+  IF auth.uid() IS NULL
+     AND (SELECT count(*) FROM public.organizations WHERE is_active) <> 1 THEN
     RETURN NEW;
   END IF;
 
