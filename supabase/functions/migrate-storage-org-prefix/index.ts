@@ -145,7 +145,7 @@ interface OrphanCandidate {
    * `owner_resolution_method` sería redundante y obligaría a guardar
    * evidencia derivada del UUID fiscal.
    */
-  ownerResolutionMethod: OrphanOwnerResolutionMethod;
+  ownerResolutionMethod: OrphanOwnerResolutionMethod | "manual_resolution";
 }
 
 interface LedgerObject {
