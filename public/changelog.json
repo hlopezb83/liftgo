@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.20.3",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "security",
+    "title": "La revisión automática de aislamiento entre empresas ahora sí revisa cada consulta",
+    "description": "La prueba añadida en la versión anterior prometía más de lo que comprobaba: sólo miraba unos cuantos archivos, una lista de tablas escrita a mano, y daba por buena cualquier ruta que mencionara la verificación de empresa en algún lugar, sin revisar la consulta en sí. Ahora revisa consulta por consulta, con la lista de tablas tomada directamente de la estructura real de la base, y exige que cada operación con permisos elevados indique la empresa. Las pocas excepciones legítimas quedan escritas una por una, con su justificación.",
+    "changes": [
+      "La lista de tablas con empresa se toma de la estructura real de la base, ya no de una lista parcial escrita a mano.",
+      "Cada consulta con permisos elevados se revisa por separado y debe acotar la empresa en esa misma operación.",
+      "La revisión abarca todas las carpetas de servidor, no sólo un tipo de archivo.",
+      "Las excepciones justificadas (limpieza de una cuenta recién creada y la lectura que precisamente averigua la empresa) quedan declaradas una por una, y la prueba falla si alguna deja de corresponder al código.",
+      "Se añadió la comprobación de que las cinco rutas retiradas tienen un solo arranque y ningún resto de la lógica anterior.",
+      "Se ajustó el texto del historial y del plan para describir sólo la cobertura real: las funciones en Deno se revisan con sus propias pruebas."
+    ]
+  },
+  {
     "version": "8.20.2",
     "date": "2026-09-18",
     "type": "patch",
