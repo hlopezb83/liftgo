@@ -1,0 +1,14 @@
+{
+  "version": "8.20.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "security",
+  "title": "Las rutas viejas de alta y baja de usuarios quedan cerradas por empresa",
+  "description": "Existían cinco atajos antiguos para invitar, eliminar, desactivar personas usuarias y restablecer contraseñas. Esos atajos sólo miraban si quien pedía era administrador, sin fijarse de qué empresa era: como una llave maestra que abría las oficinas de cualquier empresa del edificio. La aplicación ya usa las rutas nuevas, que sí revisan la empresa de quien pide y la de la persona afectada, así que los atajos viejos quedan cerrados y responden que ya no existen.",
+  "changes": [
+    "Las cinco rutas antiguas (invitar personal, invitar cliente al portal, eliminar, desactivar y restablecer contraseña) ya no ejecutan ninguna operación: responden que fueron retiradas e indican su reemplazo.",
+    "Ninguna de ellas lee el contenido de la petición ni abre una conexión con permisos elevados, ni siquiera con una credencial válida de administración.",
+    "Se agregaron pruebas que fallan si alguna de esas rutas vuelve a realizar trabajo.",
+    "Se corrigió un documento de puesta al día que seguía diciendo que los cambios de base 0024 a 0029 estaban pendientes, cuando ya se aplicaron el 17 de septiembre."
+  ]
+}
