@@ -1559,7 +1559,12 @@ Deno.serve(async (req) => {
 
       await ensureOrphanLedger(admin, orphanCandidates);
 
-      const outcomes = await applyOrphanBatch(admin, input.batchSize);
+      // El lote se restringe a los candidatos revalidados en ESTA ejecución.
+      const outcomes = await applyOrphanBatch(
+        admin,
+        input.batchSize,
+        orphanCandidates,
+      );
       return respond({ ...summary, outcomes });
     }
 
