@@ -182,13 +182,19 @@ interface Finding {
   snippet: string;
 }
 
-function findUnscopedPrivilegedQueries(): Finding[] {
+function scanPrivilegedQueries(): {
+  findings: Finding[];
+  usedAllowEntries: Set<AllowEntry>;
+  inspected: number;
+} {
   const orgTables = orgScopedTables();
   const findings: Finding[] = [];
+  const usedAllowEntries = new Set<AllowEntry>();
+  let inspected = 0;
 
   for (const file of serverSourceFiles()) {
     const source = readFileSync(file, "utf8");
-    const rel = relative(ROOT, file);
+    const rel = relative(ROOT, file).split("\\").join("/");
     const re = /\.from\(\s*["'`](\w+)["'`]\s*\)/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(source)) !== null) {
@@ -196,14 +202,20 @@ function findUnscopedPrivilegedQueries(): Finding[] {
       if (!table || !orgTables.has(table)) continue;
       const receiver = receiverBefore(source, m.index);
       if (!receiver || !PRIVILEGED_RECEIVERS.includes(receiver)) continue;
-      if (ALLOWLIST.some((a) => a.file === rel && a.table === table)) continue;
+      inspected++;
       const chain = extractChain(source, m.index);
-      if (!ORG_SCOPE_PATTERNS.some((p) => p.test(chain))) {
-        findings.push({ file: rel, table, snippet: chain.trim().slice(0, 160) });
+      if (ORG_SCOPE_PATTERNS.some((p) => p.test(chain))) continue;
+      const allowed = ALLOWLIST.find(
+        (a) => a.file === rel && a.table === table && a.match.test(chain),
+      );
+      if (allowed) {
+        usedAllowEntries.add(allowed);
+        continue;
       }
+      findings.push({ file: rel, table, snippet: chain.trim().slice(0, 160) });
     }
   }
-  return findings;
+  return { findings, usedAllowEntries, inspected };
 }
 
 describe("aislamiento por organización en código de servidor", () => {
