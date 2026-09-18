@@ -8,13 +8,13 @@ import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
  * SIEMPRE muestra el asset global de LiftGo del repositorio (fuente local
  * fija), idéntico para cualquier empresa. NO consume `company_settings.logo_url`
  * ni firma nada por organización: la marca del producto no es dato de tenant.
- * La razón social sólo se usa como texto de apoyo.
+ * La razón social sólo acompaña como texto.
  */
 interface SidebarBrandingProps {
-export function SidebarBranding({
-  logoUrl,
-  razonSocial,
-}: SidebarBrandingProps) {
+  razonSocial?: string | null;
+}
+
+export function SidebarBranding({ razonSocial }: SidebarBrandingProps) {
   const { isMobile, setOpenMobile } = useSidebar();
   const name = razonSocial || "Lift Go";
   return (
@@ -32,22 +32,10 @@ export function SidebarBranding({
         </Button>
       )}
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
-        {logoUrl ? (
-          // intentional: bg-white required to guarantee logo contrast on dark sidebars
-          // En modo icono el rail mide 3rem: el recuadro debe encogerse o se desborda.
-          <div className="flex h-12 max-w-[10rem] items-center justify-center rounded-md bg-white px-3 py-1.5 shrink-0 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:max-w-8 group-data-[collapsible=icon]:px-1 group-data-[collapsible=icon]:py-1">
-            <img
-              referrerPolicy="no-referrer"
-              src={logoUrl}
-              alt="Logo"
-              className="h-full w-auto max-w-full object-contain"
-            />
-          </div>
-        ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-gold text-sidebar-primary-foreground font-bold text-lg group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:text-2xs group-data-[collapsible=icon]:rounded-md">
-            LG
-          </div>
-        )}
+        {/* Asset global LiftGo: distintivo del producto, igual en todo tenant. */}
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent-gold text-sidebar-primary-foreground font-bold text-lg group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:text-2xs group-data-[collapsible=icon]:rounded-md">
+          LG
+        </div>
 
         <div className="min-w-0 group-data-[collapsible=icon]:hidden">
           <h2
@@ -56,9 +44,7 @@ export function SidebarBranding({
           >
             {name}
           </h2>
-          <p className="text-2xs text-sidebar-foreground/60 truncate">
-            Montacargas
-          </p>
+          <p className="text-2xs text-sidebar-foreground/60">Montacargas</p>
         </div>
       </div>
     </SidebarHeader>
