@@ -3,7 +3,7 @@
  *
  * La marca pública (`get_public_branding`) sigue siendo LiftGo, fija y sin
  * datos territoriales. Dentro de la aplicación autenticada, en cambio, la
- * razón social, el RFC, el domicilio de expedición y el logo se resuelven
+ * razón social, el RFC y el domicilio de expedición se resuelven
  * SIEMPRE desde la organización verificada en el servidor y, cuando el
  * documento existe, desde la organización propietaria de ese documento.
  *
@@ -42,7 +42,6 @@ export interface IssuerBranding {
   rfc: string;
   regimen_fiscal: string;
   lugar_expedicion: string;
-  logo_url: string | null;
   /** Indicador existente (test/live). No es un secreto fiscal. */
   facturapi_mode: string | null;
 }
@@ -93,7 +92,7 @@ const str = (value: unknown): string | null =>
   typeof value === "string" && value ? value : null;
 
 const SETTINGS_COLUMNS =
-  "organization_id, razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url, facturapi_mode";
+  "organization_id, razon_social, rfc, regimen_fiscal, lugar_expedicion, facturapi_mode";
 
 /**
  * Verifica que el documento pertenezca a la organización verificada y, en el
@@ -216,7 +215,6 @@ export async function resolveIssuerBranding(
       rfc: str(row["rfc"]) ?? "",
       regimen_fiscal: str(row["regimen_fiscal"]) ?? "",
       lugar_expedicion: str(row["lugar_expedicion"]) ?? "",
-      logo_url: str(row["logo_url"]),
       facturapi_mode: str(row["facturapi_mode"]),
     },
   };

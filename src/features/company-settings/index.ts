@@ -2,10 +2,8 @@
 // Re-exporta la API consumida por otras features.
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./components/company-settings/CompanyFiscalForm";
-export * from "./components/company-settings/LogoUploader";
 export * from "./components/company-settings/PacConfigForm";
 export * from "./hooks/useBillingSecrets";
-export * from "./hooks/useCompanyLogoSrc";
 export * from "./hooks/useCompanySettings";
 export * from "./hooks/useCxpApprovalThreshold";
 export * from "./hooks/useMaintenanceBuffer";

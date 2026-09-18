@@ -1,16 +1,18 @@
+import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 import type { ContractData } from "@/lib/pdf/contract/data";
 import { ContractDocument, type PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 
 export async function buildContractPdf(contract: ContractData, mode: PDFMode): Promise<void> {
-  const { fetchRelatedData, fetchTemplate, fetchLogoBase64, buildPlaceholderVars, resolvePagareAmount } =
+  const { fetchRelatedData, fetchTemplate, buildPlaceholderVars, resolvePagareAmount } =
     await import("@/lib/pdf/contract/data");
 
   const { company, customer, forklift } = await fetchRelatedData(contract);
   const tpl = await fetchTemplate(contract);
   const vars = buildPlaceholderVars(contract, company, customer, forklift);
-  const logoBase64 = await fetchLogoBase64(company?.logo_url);
+  // Marca global: mismo asset local de LiftGo para cualquier organización.
+  const logoBase64 = await loadGlobalBrandLogo();
 
   if (!customer?.representante_legal) {
     notifyWarning("El cliente no tiene Representante Legal capturado", {

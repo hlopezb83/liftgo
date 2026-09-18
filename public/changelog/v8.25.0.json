@@ -1,0 +1,16 @@
+{
+  "version": "8.25.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "feature",
+  "title": "Un solo logotipo para todo el sistema y todos los documentos",
+  "description": "Ya no hay logotipo por empresa. El logotipo oficial «LIFT GO MONTACARGAS» del propietario es el único que se usa en el menú, las pantallas de acceso, el portal y todos los documentos: cotizaciones, reservas, contratos, facturas y estados de cuenta. Es como imprimir todo en un papel membretado único de la casa. Se quitó de Configuración la opción de subir logotipos propios. Los datos fiscales (razón social, RFC y demás) siguen siendo de cada empresa y aislados como antes.",
+  "changes": [
+    "El logotipo sale siempre del archivo del propio sistema (public/brand/liftgo-montacargas.png), con sus colores y proporciones originales; nunca se descarga de una dirección externa.",
+    "Los documentos generados (cotización, reserva, contrato, factura, estado de cuenta) usan ese mismo logotipo mediante un cargador común.",
+    "Se retiró de Configuración la pestaña de logotipo y la carga/vista previa por empresa, junto con el código que la sostenía.",
+    "El valor histórico guardado del logotipo de empresa queda sin uso: no se borra, no se reescribe, no se mueve nada de almacenamiento y no hace falta volver a subir nada.",
+    "Pruebas nuevas: las empresas A y B obtienen exactamente el mismo logotipo en cada tipo de documento y un valor guardado de logotipo no cambia la marca; se conservan las pruebas de aislamiento de los datos propios de cada empresa.",
+    "Sin cambios en base de datos, almacenamiento ni publicación (34 pruebas puntuales, tipos, lint y build en verde)."
+  ]
+}

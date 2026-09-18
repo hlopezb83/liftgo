@@ -16,7 +16,7 @@ import { fiscalSchema, type FiscalDataValues } from "../../lib/operationsSchemas
 
 const defaultValues: FiscalDataValues = {
   rfc: "", razon_social: "", regimen_fiscal: "", lugar_expedicion: "",
-  logo_url: "", facturapi_mode: "test", facturapi_test_key: "", facturapi_live_key: "",
+  facturapi_mode: "test", facturapi_test_key: "", facturapi_live_key: "",
 };
 
 export function FiscalDataTab() {
@@ -56,7 +56,6 @@ export function FiscalDataTab() {
       razon_social: (s.razon_social as string) || "",
       regimen_fiscal: (s.regimen_fiscal as string) || "",
       lugar_expedicion: (s.lugar_expedicion as string) || "",
-      logo_url: (s.logo_url as string) || "",
       facturapi_mode: (s.facturapi_mode as string) || "test",
       // Las llaves nunca se devuelven al cliente: arrancan vacías y solo
       // se envían al backend si el usuario captura un valor nuevo.
@@ -73,7 +72,6 @@ export function FiscalDataTab() {
         razon_social: values.razon_social,
         regimen_fiscal: values.regimen_fiscal,
         lugar_expedicion: values.lugar_expedicion,
-        logo_url: values.logo_url || null,
         facturapi_mode: values.facturapi_mode || "test",
       });
 

@@ -4,7 +4,7 @@ import {
 } from "@/lib/branding/resolveIssuerBranding";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { getIssuerBranding } from "@/lib/issuerBranding.functions";
-import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
+import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 
 // ─── Types ────────────────────────────────────────────
 
@@ -22,7 +22,6 @@ export interface CompanyData {
   rfc: string;
   regimen_fiscal: string;
   lugar_expedicion: string;
-  logo_url: string | null;
 }
 
 /** Error explícito: nunca se cae a la configuración de otra organización. */
@@ -70,10 +69,10 @@ export async function fetchCompanyDataAndLogo(
     rfc: b.rfc,
     regimen_fiscal: b.regimen_fiscal,
     lugar_expedicion: b.lugar_expedicion,
-    logo_url: b.logo_url,
   };
 
-  const logoBase64 = await loadCompanyLogo(company.logo_url);
+  // Marca global: el mismo asset local para todas las organizaciones.
+  const logoBase64 = await loadGlobalBrandLogo();
 
   return { company, logoBase64 };
 }

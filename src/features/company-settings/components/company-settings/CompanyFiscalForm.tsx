@@ -24,7 +24,6 @@ export interface FiscalFormValues {
   razon_social: string;
   regimen_fiscal: string;
   lugar_expedicion: string;
-  logo_url: string;
 }
 
 interface Props {

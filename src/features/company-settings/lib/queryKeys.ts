@@ -6,7 +6,7 @@ import { callRpc } from "@/lib/rpc";
 const sel = (s: string): string => s;
 
 const COMPANY_SETTINGS_COLUMNS = sel(
-  "id, rfc, razon_social, regimen_fiscal, lugar_expedicion, logo_url, created_at, updated_at, facturapi_mode, cxp_approval_threshold_mxn, cash_initial_balance, cash_safety_buffer, allow_e2e_seed, maintenance_buffer_days",
+  "id, rfc, razon_social, regimen_fiscal, lugar_expedicion, created_at, updated_at, facturapi_mode, cxp_approval_threshold_mxn, cash_initial_balance, cash_safety_buffer, allow_e2e_seed, maintenance_buffer_days",
 );
 
 /**
@@ -70,7 +70,6 @@ export const cxpApprovalThresholdQueries = defineEntityQueries(
 );
 
 type PublicBrandingRow = {
-  logo_url: string | null;
   razon_social: string | null;
 };
 

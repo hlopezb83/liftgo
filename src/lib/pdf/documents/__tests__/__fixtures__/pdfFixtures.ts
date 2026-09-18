@@ -16,7 +16,6 @@ export const company: CompanyData = {
   rfc: "LDE260101AAA",
   regimen_fiscal: "601",
   lugar_expedicion: "64000",
-  logo_url: null,
 };
 
 export const lineItems: PdfLineItem[] = [

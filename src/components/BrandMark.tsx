@@ -1,3 +1,8 @@
+import {
+  GLOBAL_BRAND_LOCKUP_PATH,
+  GLOBAL_BRAND_MARK_PATH,
+  GLOBAL_BRAND_NAME as BRAND_NAME,
+} from "@/lib/branding/globalBrandLogo";
 import { cn } from "@/lib/utils";
 
 /**
@@ -7,8 +12,8 @@ import { cn } from "@/lib/utils";
  * Fuente **fija y local**: el asset del repositorio (`public/favicon.png`),
  * idéntico para cualquier empresa. NO consume `company_settings.logo_url` ni
  * ninguna URL remota: una URL libre permitiría renderizar un origen externo
- * arbitrario. El logo empresarial configurable vive en Configuración y en los
- * documentos, y se resuelve aparte con aislamiento por organización.
+ * arbitrario. Ninguna organización tiene logo propio: los documentos usan el
+ * mismo asset global (ver `@/lib/pdf/assets/logo`).
  */
 interface BrandMarkProps {
   size?: "sm" | "md" | "lg";
@@ -22,14 +27,14 @@ const SIZE: Record<NonNullable<BrandMarkProps["size"]>, string> = {
 };
 
 /** Asset gráfico de marca servido desde el propio origen; nunca una URL externa. */
-export const GLOBAL_BRAND_LOGO_SRC = "/favicon.png";
+export const GLOBAL_BRAND_LOGO_SRC = GLOBAL_BRAND_MARK_PATH;
 /**
  * Lockup oficial «LIFT GO MONTACARGAS» entregado por el propietario. Asset
  * local versionado del repositorio: única fuente de la marca global del
  * producto, idéntica en todas las empresas.
  */
-export const GLOBAL_BRAND_LOCKUP_SRC = "/brand/liftgo-montacargas.png";
-export const GLOBAL_BRAND_NAME = "LiftGo";
+export const GLOBAL_BRAND_LOCKUP_SRC = GLOBAL_BRAND_LOCKUP_PATH;
+export const GLOBAL_BRAND_NAME = BRAND_NAME;
 
 export function BrandMark({ size = "md", className }: BrandMarkProps) {
   return (
