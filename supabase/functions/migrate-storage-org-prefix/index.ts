@@ -49,6 +49,8 @@ import {
   resolveOrphanOwner,
   summarizeOrphanOwnership,
 } from "../_shared/storageOrphanOwner.ts";
+import { summarizeQuarantine } from "../_shared/storageQuarantine.ts";
+
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 
 const APPLY_CONFIRMATION = "COPY_UPDATE_VERIFY_NO_DELETE";
