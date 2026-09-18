@@ -102,6 +102,8 @@ export const ROUTES = {
     root: "/settings",
     company: "/settings/company",
     operations: "/settings/operations",
+    // Operación de plataforma (tramo 9): alta y suspensión de empresas.
+    organizations: "/settings/organizations",
   },
   // Alias legacy para compatibilidad de imports existentes.
   companySettings: "/settings/company",
