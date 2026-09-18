@@ -4,6 +4,26 @@
 -- Convención: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
+-- Contexto multiempresa (migración 0031): las operaciones de servicio deben
+-- declarar la organización antes de sembrar datos.
+DO $ctx$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  WHERE is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  IF v_org IS NULL THEN
+    RAISE EXCEPTION 'SETUP: se requiere la organización inicial';
+  END IF;
+
+  PERFORM set_config('app.organization_id', v_org::text, true);
+END $ctx$;
+
+
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('b0000001-0000-4000-8000-000000000001', 'ventas.bk@test.local', now(), now()),
   ('b0000001-0000-4000-8000-000000000002', 'dispatcher.bk@test.local', now(), now()),
@@ -33,6 +53,32 @@ INSERT INTO public.bookings (id, forklift_id, customer_id, start_date, end_date)
    'b0000001-0000-4000-8000-0000000000c2', public.today_mty(), public.today_mty() + 30);
 
 -- 1) anon: sin sesión no ve nada.
+
+-- Contexto multiempresa (migración 0031): el personal interno sólo tiene
+-- contexto de organización con una membresía interna explícita.
+DO $mem$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  WHERE is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  SELECT v_org, ur.user_id, 'internal'
+  FROM public.user_roles ur
+  WHERE ur.role <> 'customer'
+    AND NOT EXISTS (
+      SELECT 1 FROM public.organization_memberships m
+      WHERE m.auth_user_id = ur.user_id
+    )
+  ON CONFLICT DO NOTHING;
+END $mem$;
+
 SET LOCAL role = 'anon';
 SET LOCAL request.jwt.claims TO '{"role":"anon"}';
 
