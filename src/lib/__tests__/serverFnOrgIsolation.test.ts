@@ -168,17 +168,113 @@ function receiverBefore(source: string, dotIndex: number): string | null {
   return ident || null;
 }
 
-const ORG_SCOPE_PATTERNS = [
-  /\.eq\(\s*["'`]organization_id["'`]/,
-  /\.in\(\s*["'`]organization_id["'`]/,
-  /\.match\(\s*\{[^}]*organization_id/s,
-  /\borganization_id\s*:/,
-  /\.or\([^)]*organization_id/s,
-];
+/**
+ * Origen del valor de empresa.
+ *
+ * No basta con que aparezca `organization_id` en la consulta: el valor debe
+ * venir de una derivación de servidor (membresía / operador de plataforma),
+ * nunca del cuerpo de la petición. `organization_id: data.organization_id`
+ * en un insert sería un falso verde: el cliente elegiría la empresa.
+ *
+ * LÍMITE DECLARADO: esto es análisis léxico, no de flujo de datos. Comprueba
+ * que el identificador usado sea uno de los nombres derivados en servidor y
+ * que NO sea una propiedad del input; no puede demostrar que ese identificador
+ * provenga realmente de la membresía. Esa parte se sostiene con la revisión
+ * manual documentada en `docs/multiempresa/` y con las pruebas RLS.
+ */
+const UNTRUSTED_ROOTS =
+  /^(?:data|input|payload|body|args|params|req|request|raw|meta|metadata)\b/;
+
+/** Identificadores admitidos como empresa derivada en servidor. */
+const TRUSTED_ORG_VALUE =
+  /^(?:[A-Za-z_$][\w$]*\.)?(?:organizationId|orgId|ownOrganizationId|targetOrganizationId|callerOrganizationId)$/;
+
+function isTrustedOrgValue(expr: string): boolean {
+  const e = expr.trim().replace(/[,\s)]+$/, "");
+  if (!e) return false;
+  if (UNTRUSTED_ROOTS.test(e)) return false;
+  return TRUSTED_ORG_VALUE.test(e);
+}
+
+/** Filtros de empresa en la propia cadena (select/update/delete). */
+function filterScopeOrigin(chain: string): "trusted" | "untrusted" | "none" {
+  let sawAny = false;
+  const filters = [
+    /\.eq\(\s*["'`]organization_id["'`]\s*,\s*([^),]+)\)/g,
+    /\.in\(\s*["'`]organization_id["'`]\s*,\s*([^)]+)\)/g,
+  ];
+  for (const re of filters) {
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(chain)) !== null) {
+      sawAny = true;
+      if (isTrustedOrgValue(m[1] ?? "")) return "trusted";
+    }
+  }
+  const match = /\.match\(\s*\{[^}]*organization_id\s*:\s*([^,}]+)/s.exec(chain);
+  if (match) {
+    sawAny = true;
+    if (isTrustedOrgValue(match[1] ?? "")) return "trusted";
+  }
+  const or = /\.or\(([^)]*organization_id[^)]*)\)/s.exec(chain);
+  if (or) {
+    sawAny = true;
+    // `.or()` interpola texto: se exige que la interpolación no venga del input.
+    const interpolated = [...(or[1] ?? "").matchAll(/\$\{([^}]+)\}/g)].map(
+      (x) => x[1] ?? "",
+    );
+    if (interpolated.length > 0 && interpolated.every(isTrustedOrgValue)) {
+      return "trusted";
+    }
+    if (interpolated.length === 0) return "untrusted";
+  }
+  return sawAny ? "untrusted" : "none";
+}
+
+/** Valor de `organization_id` asignado en el payload de insert/upsert. */
+function payloadScopeOrigin(chain: string): "trusted" | "untrusted" | "none" {
+  const re = /\borganization_id\s*:\s*([^,\n}]+)/g;
+  let m: RegExpExecArray | null;
+  let sawAny = false;
+  while ((m = re.exec(chain)) !== null) {
+    sawAny = true;
+    if (!isTrustedOrgValue(m[1] ?? "")) return "untrusted";
+  }
+  return sawAny ? "trusted" : "none";
+}
+
+function isWrite(chain: string): boolean {
+  return /\.(insert|upsert)\(/.test(chain);
+}
+
+/**
+ * Veredicto de una cadena privilegiada:
+ *  - insert/upsert: debe ASIGNAR la empresa derivada (y ninguna del input);
+ *  - resto: debe FILTRAR por la empresa derivada en esa misma cadena.
+ */
+function chainVerdict(chain: string): {
+  ok: boolean;
+  why: "ok" | "sin alcance" | "empresa de origen no confiable";
+} {
+  if (isWrite(chain)) {
+    const origin = payloadScopeOrigin(chain);
+    if (origin === "trusted") return { ok: true, why: "ok" };
+    if (origin === "untrusted") {
+      return { ok: false, why: "empresa de origen no confiable" };
+    }
+    return { ok: false, why: "sin alcance" };
+  }
+  const origin = filterScopeOrigin(chain);
+  if (origin === "trusted") return { ok: true, why: "ok" };
+  if (origin === "untrusted") {
+    return { ok: false, why: "empresa de origen no confiable" };
+  }
+  return { ok: false, why: "sin alcance" };
+}
 
 interface Finding {
   file: string;
   table: string;
+  why: string;
   snippet: string;
 }
 
@@ -186,11 +282,13 @@ function scanPrivilegedQueries(): {
   findings: Finding[];
   usedAllowEntries: Set<AllowEntry>;
   inspected: number;
+  writes: number;
 } {
   const orgTables = orgScopedTables();
   const findings: Finding[] = [];
   const usedAllowEntries = new Set<AllowEntry>();
   let inspected = 0;
+  let writes = 0;
 
   for (const file of serverSourceFiles()) {
     const source = readFileSync(file, "utf8");
@@ -204,19 +302,28 @@ function scanPrivilegedQueries(): {
       if (!receiver || !PRIVILEGED_RECEIVERS.includes(receiver)) continue;
       inspected++;
       const chain = extractChain(source, m.index);
-      if (ORG_SCOPE_PATTERNS.some((p) => p.test(chain))) continue;
+      if (isWrite(chain)) writes++;
+      const verdict = chainVerdict(chain);
+      if (verdict.ok) continue;
       const allowed = ALLOWLIST.find(
         (a) => a.file === rel && a.table === table && a.match.test(chain),
       );
-      if (allowed) {
+      // Una excepción NUNCA puede tapar una empresa de origen no confiable.
+      if (allowed && verdict.why === "sin alcance") {
         usedAllowEntries.add(allowed);
         continue;
       }
-      findings.push({ file: rel, table, snippet: chain.trim().slice(0, 160) });
+      findings.push({
+        file: rel,
+        table,
+        why: verdict.why,
+        snippet: chain.trim().slice(0, 160),
+      });
     }
   }
-  return { findings, usedAllowEntries, inspected };
+  return { findings, usedAllowEntries, inspected, writes };
 }
+
 
 describe("aislamiento por organización en código de servidor", () => {
   it("las tablas con empresa se derivan de los tipos generados", () => {
