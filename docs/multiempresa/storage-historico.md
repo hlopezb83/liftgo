@@ -93,7 +93,7 @@ Un objeto se considera aislado sólo si su primer segmento coincide exactamente 
 
 Cubierto para archivos **nuevos**: prefijo de organización obligatorio, policies tenant-aware, helpers `SECURITY DEFINER`, prueba RLS `supabase/tests/rls/storage_org_prefix.sql`.
 
-Pendiente para **históricos**: los **15 objetos legados** siguen sin prefijo (10 en `cfdi-files`, 5 en `documents`); la doble lectura y el traslado no se han ejecutado; el traslado **no está autorizado ni ejecutado**.
+Pendiente para **históricos**: sólo **12 de 322 objetos** están bajo prefijo exacto de organización. Los **15 objetos legados** siguen sin prefijo (10 en `cfdi-files`, 5 en `documents`) y pueden asignarse desde sus referencias, pero sólo mediante el flujo protegido; además **17 huérfanos sin dueño derivable mantienen `apply` bloqueado**. La doble lectura y el traslado **no están autorizados ni ejecutados**.
 
 Decisiones aún pendientes:
 
