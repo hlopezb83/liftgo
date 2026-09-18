@@ -20,15 +20,13 @@ function makeClient(tables: Record<string, TableData>): IssuerBrandingClient {
       const entry = tables[table] ?? { rows: [] };
       return {
         select: () => ({
-          eq: (_column: string, value: string) => ({
+          eq: (column: string, value: string) => ({
             limit: () =>
               Promise.resolve(
                 entry.error
                   ? { data: null, error: entry.error }
                   : {
-                    data: (entry.rows ?? []).filter(
-                      (r) => r["id"] === value || r["organization_id"] === value,
-                    ),
+                    data: (entry.rows ?? []).filter((r) => r[column] === value),
                     error: null,
                   },
               ),
