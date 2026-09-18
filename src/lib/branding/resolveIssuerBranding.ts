@@ -105,11 +105,20 @@ async function resolveDocumentOrganization(
   const table = ISSUER_DOCUMENT_TABLES[document.type];
   if (!table) return { ok: false, reason: "document_forbidden" };
 
-  const columns = document.type === "customer"
-    ? "id, organization_id"
+  // `customers` es identidad global y NO tiene `organization_id`: el vínculo por
+  // empresa vive en la tabla puente `organization_customers`.
+  const isCustomer = document.type === "customer";
+  const lookupTable = isCustomer ? "organization_customers" : table;
+  const filterColumn = isCustomer ? "customer_id" : "id";
+  const columns = isCustomer
+    ? "customer_id, organization_id"
     : "id, organization_id, customer_id";
 
-  const res = await client.from(table).select(columns).eq("id", document.id).limit(2);
+  const res = await client
+    .from(lookupTable)
+    .select(columns)
+    .eq(filterColumn, document.id)
+    .limit(2);
   if (res.error) {
     throw new IssuerBrandingError(
       "document_read_error",
@@ -129,9 +138,7 @@ async function resolveDocumentOrganization(
   }
 
   if (context.memberType === "portal") {
-    const owner = document.type === "customer"
-      ? str(row["id"])
-      : str(row["customer_id"]);
+    const owner = str(row["customer_id"]);
     if (!context.customerId || owner !== context.customerId) {
       return { ok: false, reason: "document_forbidden" };
     }
