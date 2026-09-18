@@ -653,7 +653,9 @@ function collectOrphanCandidates(
 ): {
   candidates: OrphanCandidate[];
   byBucket: ReturnType<typeof summarizeOrphanOwnership>;
+  quarantine: ReturnType<typeof summarizeQuarantine>;
 } {
+
   const candidates: OrphanCandidate[] = [];
   const entries: Array<
     { bucketId: string; resolution: OrphanOwnerResolution }
