@@ -84,6 +84,43 @@ BEGIN
   ON CONFLICT DO NOTHING;
 END $mem$;
 
+-- Contexto multiempresa (migración 0031): un cliente del portal necesita
+-- relación por organización, cuenta de portal activa y membresía de portal.
+DO $portal$
+DECLARE
+  v_org uuid;
+BEGIN
+  SELECT id INTO v_org
+  FROM public.organizations
+  WHERE is_active
+  ORDER BY created_at
+  LIMIT 1;
+
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO public.organization_customers (organization_id, customer_id, status)
+  SELECT v_org, c.id, 'active'
+  FROM public.customers c
+  WHERE c.user_id IS NOT NULL
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.customer_portal_accounts
+    (organization_id, customer_id, auth_user_id, email, status)
+  SELECT v_org, c.id, c.user_id,
+         COALESCE(u.email, c.id::text || '@rls.test'), 'active'
+  FROM public.customers c
+  JOIN auth.users u ON u.id = c.user_id
+  WHERE c.user_id IS NOT NULL
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  SELECT v_org, c.user_id, 'portal'
+  FROM public.customers c
+  WHERE c.user_id IS NOT NULL
+  ON CONFLICT DO NOTHING;
+END $portal$;
+
+
 SET LOCAL role = 'anon';
 SET LOCAL request.jwt.claims TO '{"role":"anon"}';
 
