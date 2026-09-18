@@ -42,6 +42,7 @@ import {
 } from "../_shared/storageDeletePhase.ts";
 import {
   buildOrphanOwnerIndex,
+  collectOrphanOwnerLookupKeys,
   type OrphanOwnerIndex,
   type OrphanOwnerResolution,
   type OrphanOwnerResolutionMethod,
@@ -517,49 +518,89 @@ async function collectCandidates(
   };
 }
 
+const OWNER_LOOKUP_CHUNK = 100;
+const OWNER_LOOKUP_PAGE = 500;
+/** Cota dura de filas por clave: más que esto es duplicado patológico. */
+const OWNER_LOOKUP_MAX_ROWS_PER_KEY = 50;
+
 /**
- * Índice de filas dueñas para atribuir huérfanos. Sólo se leen las columnas
- * necesarias; nunca se devuelven al cliente.
+ * Lee sólo las filas dueñas que coinciden exactamente con las claves de los
+ * huérfanos, con filtros estructurados `.in(...)` (nunca interpolación SQL ni
+ * regex) y paginación hasta agotar resultados.
+ *
+ * Fail-closed: una clave cuya lectura no se pudo agotar (página incompleta,
+ * error o cota alcanzada) NO se marca como completa, así que resolverá
+ * `incomplete_lookup` y nunca producirá un candidato para el ledger.
  */
 async function loadOrphanOwnerIndex(
   admin: AdminClient,
+  keys: { cfdiUuid: string[]; id: string[] },
 ): Promise<OrphanOwnerIndex> {
-  const { data, error } = await admin
-    .from("supplier_bills")
-    .select("id, cfdi_uuid, organization_id");
-  if (error) {
-    throw new Error("No se pudieron leer las filas dueñas de huérfanos.");
+  const rows: Array<
+    { id?: unknown; cfdiUuid?: unknown; organizationId?: unknown }
+  > = [];
+  const completeCfdiUuid: string[] = [];
+  const completeId: string[] = [];
+
+  async function readColumn(
+    column: "cfdi_uuid" | "id",
+    values: string[],
+    complete: string[],
+  ): Promise<void> {
+    for (let i = 0; i < values.length; i += OWNER_LOOKUP_CHUNK) {
+      const chunk = values.slice(i, i + OWNER_LOOKUP_CHUNK);
+      const chunkRows: Array<Record<string, unknown>> = [];
+      let exhausted = false;
+      for (let offset = 0;; offset += OWNER_LOOKUP_PAGE) {
+        const { data, error } = await admin
+          .from("supplier_bills")
+          .select("id, cfdi_uuid, organization_id")
+          .in(column, chunk)
+          .order("id", { ascending: true })
+          .range(offset, offset + OWNER_LOOKUP_PAGE - 1);
+        if (error) return; // sin marcar completa ninguna clave del bloque
+        const page = (data ?? []) as Array<Record<string, unknown>>;
+        chunkRows.push(...page);
+        if (page.length < OWNER_LOOKUP_PAGE) {
+          exhausted = true;
+          break;
+        }
+        if (chunkRows.length > chunk.length * OWNER_LOOKUP_MAX_ROWS_PER_KEY) {
+          return; // truncación/duplicación anómala: fail-closed
+        }
+      }
+      if (!exhausted) return;
+      for (const row of chunkRows) {
+        rows.push({
+          id: row.id,
+          cfdiUuid: row.cfdi_uuid,
+          organizationId: row.organization_id,
+        });
+      }
+      complete.push(...chunk);
+    }
   }
-  return buildOrphanOwnerIndex(
-    ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
-      id: row.id,
-      cfdiUuid: row.cfdi_uuid,
-      organizationId: row.organization_id,
-    })),
-  );
+
+  await readColumn("cfdi_uuid", keys.cfdiUuid, completeCfdiUuid);
+  await readColumn("id", keys.id, completeId);
+
+  return buildOrphanOwnerIndex(rows, {
+    cfdiUuid: completeCfdiUuid,
+    id: completeId,
+  });
 }
 
 /**
- * Clasifica los objetos sin referencia y sin prefijo exacto. No existe ningún
- * atajo de "una sola organización": el dueño se deriva sólo por coincidencia
- * exacta de la clave del call-site con una única fila dueña conocida. Los
- * huérfanos sin dueño o en conflicto no se devuelven y nunca entran al ledger.
+ * Objetos sin referencia y sin prefijo exacto de organización. Es el conjunto
+ * pequeño del que se derivan las claves a consultar.
  */
-function collectOrphanCandidates(
+function collectUnreferencedUnscopedObjects(
   organizationIds: string[],
   inventory: Awaited<ReturnType<typeof collectStorageInventory>>,
   referencedPathsByBucket: Map<string, Set<string>>,
-  ownerIndex: OrphanOwnerIndex,
-): {
-  candidates: OrphanCandidate[];
-  byBucket: ReturnType<typeof summarizeOrphanOwnership>;
-} {
-  if (inventory.truncated) return { candidates: [], byBucket: [] };
-  const candidates: OrphanCandidate[] = [];
-  const entries: Array<
-    { bucketId: string; resolution: OrphanOwnerResolution }
-  > = [];
-
+): Array<{ bucketId: string; sourcePath: string }> {
+  if (inventory.truncated) return [];
+  const result: Array<{ bucketId: string; sourcePath: string }> = [];
   for (const [bucketId, objectPaths] of inventory.objectPathsByBucket) {
     const referenced = referencedPathsByBucket.get(bucketId) ?? new Set();
     for (const sourcePath of objectPaths) {
@@ -571,27 +612,52 @@ function collectOrphanCandidates(
         hasOrganizationStoragePrefix(organizationId, sourcePath)
       );
       if (alreadyScoped) continue;
-
-      const resolution = resolveOrphanOwner({
-        bucketId,
-        sourcePath,
-        index: ownerIndex,
-        knownOrganizationIds: organizationIds,
-      });
-      entries.push({ bucketId, resolution });
-      if (resolution.status !== "resolved") continue;
-
-      candidates.push({
-        bucketId,
-        organizationId: resolution.organizationId,
-        sourcePath,
-        destinationPath: organizationStoragePath(
-          resolution.organizationId,
-          sourcePath,
-        ),
-        ownerResolutionMethod: resolution.method,
-      });
+      result.push({ bucketId, sourcePath });
     }
+  }
+  return result;
+}
+
+/**
+ * Clasifica los objetos sin referencia y sin prefijo exacto. No existe ningún
+ * atajo de "una sola organización": el dueño se deriva sólo por coincidencia
+ * exacta de la clave del call-site con una única fila dueña conocida y con la
+ * lectura de esa clave completa. Los huérfanos sin dueño, en conflicto o con
+ * lectura incompleta no se devuelven y nunca entran al ledger.
+ */
+function collectOrphanCandidates(
+  organizationIds: string[],
+  unreferencedUnscoped: Array<{ bucketId: string; sourcePath: string }>,
+  ownerIndex: OrphanOwnerIndex,
+): {
+  candidates: OrphanCandidate[];
+  byBucket: ReturnType<typeof summarizeOrphanOwnership>;
+} {
+  const candidates: OrphanCandidate[] = [];
+  const entries: Array<
+    { bucketId: string; resolution: OrphanOwnerResolution }
+  > = [];
+
+  for (const { bucketId, sourcePath } of unreferencedUnscoped) {
+    const resolution = resolveOrphanOwner({
+      bucketId,
+      sourcePath,
+      index: ownerIndex,
+      knownOrganizationIds: organizationIds,
+    });
+    entries.push({ bucketId, resolution });
+    if (resolution.status !== "resolved") continue;
+
+    candidates.push({
+      bucketId,
+      organizationId: resolution.organizationId,
+      sourcePath,
+      destinationPath: organizationStoragePath(
+        resolution.organizationId,
+        sourcePath,
+      ),
+      ownerResolutionMethod: resolution.method,
+    });
   }
 
   return { candidates, byBucket: summarizeOrphanOwnership(entries) };
@@ -1209,14 +1275,26 @@ Deno.serve(async (req) => {
       plan.organizationIds,
     );
     const inventoryComplete = !plan.truncated && !inventory.truncated;
-    const ownerIndex = await loadOrphanOwnerIndex(admin);
-    const orphans = collectOrphanCandidates(
+    const unreferencedUnscoped = collectUnreferencedUnscopedObjects(
       plan.organizationIds,
       inventory,
       plan.referencedPathsByBucket,
+    );
+    // `delete_sources` no atribuye dueños: no necesita el índice y sus
+    // comprobaciones quedan intactas.
+    const ownerIndex = input.mode === "delete_sources"
+      ? buildOrphanOwnerIndex([])
+      : await loadOrphanOwnerIndex(
+        admin,
+        collectOrphanOwnerLookupKeys(unreferencedUnscoped),
+      );
+    const orphans = collectOrphanCandidates(
+      plan.organizationIds,
+      unreferencedUnscoped,
       ownerIndex,
     );
     const orphanCandidates = orphans.candidates;
+
     const orphanState = !inventoryComplete ? "inventory_incomplete" : "ready";
 
     const summary = {

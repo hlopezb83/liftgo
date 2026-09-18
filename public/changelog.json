@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.14.1",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "backend",
+    "title": "Identificación de archivos sueltos: lectura completa y verificable",
+    "description": "La búsqueda del dueño leía la tabla de facturas de proveedor sin límites ni paginación, así que una respuesta parcial podía ocultar duplicados y asignar mal un archivo.",
+    "changes": [
+      "Ahora sólo se consultan las claves exactas de los archivos sueltos, con filtros estructurados.",
+      "La lectura pagina hasta agotarse y detecta cuando quedó incompleta.",
+      "Si una clave no se leyó completa, el archivo queda sin dueño y fuera del proceso.",
+      "La fase de borrado ya no hace esa consulta; sus comprobaciones no cambian.",
+      "Pruebas nuevas: una respuesta cortada nunca produce un dueño asignado."
+    ]
+  },
+  {
     "version": "8.14.0",
     "date": "2026-09-18",
     "type": "minor",

@@ -1,6 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   buildOrphanOwnerIndex,
+  collectOrphanOwnerLookupKeys,
   resolveOrphanOwner,
   summarizeOrphanOwnership,
 } from "./storageOrphanOwner.ts";
@@ -17,7 +18,10 @@ const index = buildOrphanOwnerIndex([
   { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
   { id: BILL_B, cfdiUuid: CFDI_DUP, organizationId: ORG_A },
   { id: UNKNOWN, cfdiUuid: CFDI_DUP, organizationId: ORG_B },
-]);
+], {
+  cfdiUuid: [CFDI_A, CFDI_DUP, UNKNOWN],
+  id: [BILL_A, BILL_B, UNKNOWN],
+});
 
 const known = [ORG_A];
 
@@ -77,7 +81,8 @@ Deno.test("varias filas dueñas de la misma organización es conflicto", () => {
   const duplicated = buildOrphanOwnerIndex([
     { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
     { id: BILL_B, cfdiUuid: CFDI_A, organizationId: ORG_A },
-  ]);
+  ], { cfdiUuid: [CFDI_A], id: [BILL_A, BILL_B] });
+
   assertEquals(
     resolveOrphanOwner({
       bucketId: "supplier-bill-cfdi-xml",
@@ -164,4 +169,66 @@ Deno.test("el resumen sólo expone conteos agregados por bucket", () => {
       owner_conflicting: 1,
     },
   ]);
+});
+
+Deno.test("lectura truncada nunca produce dueño ni candidato", () => {
+  // Misma fila dueña que sí resolvería, pero la clave no se leyó por completo:
+  // una página faltante pudo ocultar un duplicado, así que se falla cerrado.
+  const truncated = buildOrphanOwnerIndex([
+    { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
+  ], { cfdiUuid: [], id: [] });
+
+  const resolution = resolveOrphanOwner({
+    bucketId: "supplier-bill-cfdi-xml",
+    sourcePath: `${CFDI_A}/archivo.xml`,
+    index: truncated,
+    knownOrganizationIds: known,
+  });
+  assertEquals(resolution, {
+    status: "unresolved",
+    reason: "incomplete_lookup",
+  });
+
+  const summary = summarizeOrphanOwnership([
+    { bucketId: "supplier-bill-cfdi-xml", resolution },
+  ]);
+  assertEquals(summary[0].owner_resolved, 0);
+  assertEquals(summary[0].owner_missing, 1);
+});
+
+Deno.test("una clave completa no vuelve completas a las demás", () => {
+  const partial = buildOrphanOwnerIndex([
+    { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
+  ], { cfdiUuid: [CFDI_A], id: [] });
+
+  assertEquals(
+    resolveOrphanOwner({
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: `${CFDI_A}/archivo.xml`,
+      index: partial,
+      knownOrganizationIds: known,
+    }).status,
+    "resolved",
+  );
+  assertEquals(
+    resolveOrphanOwner({
+      bucketId: "supplier-payment-receipts",
+      sourcePath: `${BILL_A}/archivo.pdf`,
+      index: partial,
+      knownOrganizationIds: known,
+    }),
+    { status: "unresolved", reason: "incomplete_lookup" },
+  );
+});
+
+Deno.test("las claves a consultar salen sólo de los huérfanos válidos", () => {
+  const keys = collectOrphanOwnerLookupKeys([
+    { bucketId: "supplier-bill-cfdi-xml", sourcePath: `${CFDI_A}/a.xml` },
+    { bucketId: "supplier-bill-cfdi-xml", sourcePath: `${CFDI_A}/b.xml` },
+    { bucketId: "supplier-payment-receipts", sourcePath: `${BILL_A}/c.pdf` },
+    { bucketId: "supplier-bill-cfdi-xml", sourcePath: "sin-uuid/d.xml" },
+    { bucketId: "documents", sourcePath: `${CFDI_A}/e.pdf` },
+  ]);
+  assertEquals(keys.cfdiUuid, [CFDI_A]);
+  assertEquals(keys.id, [BILL_A]);
 });
