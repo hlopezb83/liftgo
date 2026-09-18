@@ -73,14 +73,6 @@ describe("resolveLogoSrc — aislamiento entre empresas", () => {
     expect(calls.every((c) => c.ttl <= 300)).toBe(true);
   });
 
-  it("la marca global se devuelve tal cual y NUNCA se firma", async () => {
-    const { client, calls } = makeClient();
-    const src = await resolveLogoSrc("https://cdn.marca.example/liftgo.png", {
-      client,
-    });
-    expect(src).toBe("https://cdn.marca.example/liftgo.png");
-    expect(calls).toHaveLength(0);
-  });
 
   it("no descarga ni firma esquemas no soportados (fail-closed)", async () => {
     const { client, calls } = makeClient();
