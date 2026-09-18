@@ -162,6 +162,7 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
       .from("feedback_reports")
       .select("*")
       .eq("id", parsed.data.report_id)
+      .eq("organization_id", organizationId)
       .maybeSingle();
     if (reportErr || !report) {
       throw new g.HttpError(404, "Reporte no encontrado");
@@ -216,6 +217,7 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
       .from("feedback_reports")
       .update(updatePayload)
       .eq("id", report.id)
+      .eq("organization_id", organizationId)
       .select()
       .single();
 
