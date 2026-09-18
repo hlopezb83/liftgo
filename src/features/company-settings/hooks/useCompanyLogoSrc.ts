@@ -18,7 +18,8 @@ export function useCompanyLogoSrc(
   logoUrl: string | null | undefined,
 ): string | null {
   const source = classifyLogoSource(logoUrl);
-  if (source.kind === "global-brand") return source.url;
+  // La marca global no se firma; el hook se llama igual para no romper el orden.
+  const globalBrand = source.kind === "global-brand" ? source.url : null;
   const key =
     source.kind === "storage" ? `${source.bucket}/${source.path}` : null;
 
