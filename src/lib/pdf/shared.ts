@@ -4,7 +4,7 @@ import {
 } from "@/lib/branding/resolveIssuerBranding";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { getIssuerBranding } from "@/lib/issuerBranding.functions";
-import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
+import { loadGlobalBrandLogo } from "@/lib/pdf/assets/logo";
 
 // ─── Types ────────────────────────────────────────────
 
