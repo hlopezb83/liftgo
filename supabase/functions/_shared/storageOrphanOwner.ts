@@ -184,8 +184,18 @@ export function resolveOrphanOwner(input: {
   const lookup = method === "supplier_bill_cfdi_uuid"
     ? input.index.supplierBillsByCfdiUuid
     : input.index.supplierBillsById;
+  const completeKeys = method === "supplier_bill_cfdi_uuid"
+    ? input.index.completeCfdiUuidKeys
+    : input.index.completeIdKeys;
+  // Fail-closed: si la lectura de esta clave no se agotó (paginación
+  // incompleta o límite alcanzado), no se puede descartar un duplicado
+  // oculto, así que no se resuelve ni entra al ledger.
+  if (!completeKeys.has(segment)) {
+    return { status: "unresolved", reason: "incomplete_lookup" };
+  }
   const rows = lookup.get(segment) ?? [];
   if (rows.length === 0) return { status: "unresolved", reason: "no_match" };
+
 
   const organizations = new Set(rows.map((id) => id.toLowerCase()));
   if (organizations.size > 1) {
