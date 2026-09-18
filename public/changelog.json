@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.23.4",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "La marca de LiftGo vuelve a ser fija y el logo de cada empresa queda en sus documentos",
+    "description": "Se separaron dos cosas que se habían mezclado: el letrero del edificio y el cuadro de cada oficina. La marca de LiftGo del menú y la navegación vuelve a venir del propio sistema, igual para todas las empresas, sin depender de lo que cada una tenga configurado. El logo que una empresa sube sigue siendo suyo y se usa en sus documentos y en Configuración, protegido para que ninguna otra empresa lo vea.",
+    "changes": [
+      "El menú lateral muestra siempre la marca de LiftGo del sistema, sin descargar imágenes externas.",
+      "El logo de la empresa se sigue mostrando con permiso temporal y sólo dentro de su propia empresa.",
+      "Si el logo configurado apunta a un sitio no verificable, los documentos se generan sin logo en vez de descargarlo.",
+      "Documentación y roadmap distinguen la marca del producto del logo de cada empresa; el requisito de prueba entre empresas aplica sólo al segundo."
+    ]
+  },
+  {
     "version": "8.23.3",
     "date": "2026-09-18",
     "type": "patch",

@@ -73,7 +73,6 @@ describe("resolveLogoSrc — aislamiento entre empresas", () => {
     expect(calls.every((c) => c.ttl <= 300)).toBe(true);
   });
 
-
   it("no descarga ni firma esquemas no soportados (fail-closed)", async () => {
     const { client, calls } = makeClient();
     expect(
