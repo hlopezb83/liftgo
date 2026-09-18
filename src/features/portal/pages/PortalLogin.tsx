@@ -1,12 +1,18 @@
 import { useState, useEffect, type FormEvent as ReactFormEvent } from "react";
+import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePublicBranding } from "@/features/company-settings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -21,7 +27,6 @@ function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
 
 export default function PortalLogin() {
   const { user, signIn, resetPassword } = useAuth();
-  const { data: company } = usePublicBranding();
   const navigate = useNavigateTransition();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
@@ -50,69 +55,105 @@ export default function PortalLogin() {
   return (
     // Oleada 3 (C-2): facelift con gradiente radial suave + footer "Powered by".
     <div className="min-h-[100dvh] flex">
-      <AuthBrandPanel
-        logoUrl={company?.logo_url}
-        razonSocial={company?.razon_social}
-        tagline="Tus rentas, facturas y contratos, siempre a la mano."
-      />
+      <AuthBrandPanel tagline="Tus rentas, facturas y contratos, siempre a la mano." />
       <div className="flex-1 flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.12),transparent_60%),radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.08),transparent_55%)]">
-      <Card className="w-full max-w-md shadow-lg border-border/60">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            {company?.logo_url ? (
-              <img
-                src={company.logo_url}
-                alt={`Logo ${company.razon_social ?? "LiftGo"}`}
-                className="h-14 w-auto max-w-[200px] object-contain"
-              />
-            ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">
-                {(company?.razon_social ?? "LG").slice(0, 2).toUpperCase()}
-              </div>
-            )}
-          </div>
-          <CardTitle>{mode === "forgot" ? "Restablecer contraseña" : "Portal de clientes"}</CardTitle>
-          <CardDescription>
-            {mode === "forgot"
-              ? "Ingresa tu correo para recibir un enlace de restablecimiento."
-              : "Inicia sesión para consultar tus rentas, facturas y contratos."}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="auth-email">Correo electrónico</Label>
-              <Input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required className="touch:h-11" />
+        <Card className="w-full max-w-md shadow-lg border-border/60">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4 items-center gap-3">
+              <BrandMark size="lg" />
+              <span className="auth-display text-2xl font-extrabold text-sidebar">
+                {GLOBAL_BRAND_NAME}
+              </span>
             </div>
-            {mode === "sign-in" && (
+            <CardTitle>
+              {mode === "forgot"
+                ? "Restablecer contraseña"
+                : "Portal de clientes"}
+            </CardTitle>
+            <CardDescription>
+              {mode === "forgot"
+                ? "Ingresa tu correo para recibir un enlace de restablecimiento."
+                : "Inicia sesión para consultar tus rentas, facturas y contratos."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="auth-password">Contraseña</Label>
-                <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={8} className="touch:h-11" />
+                <Label htmlFor="auth-email">Correo electrónico</Label>
+                <Input
+                  id="auth-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tu@empresa.com"
+                  required
+                  className="touch:h-11"
+                />
               </div>
-            )}
-            <Button type="submit" className="w-full touch:h-11" disabled={loading} data-testid="auth-submit">
-              {getPortalSubmitLabel(loading, mode)}
+              {mode === "sign-in" && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="auth-password">Contraseña</Label>
+                  <Input
+                    id="auth-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    minLength={8}
+                    className="touch:h-11"
+                  />
+                </div>
+              )}
+              <Button
+                type="submit"
+                className="w-full touch:h-11"
+                disabled={loading}
+                data-testid="auth-submit"
+              >
+                {getPortalSubmitLabel(loading, mode)}
+              </Button>
+            </form>
+            <div className="mt-4 text-center space-y-1">
+              {mode === "sign-in" ? (
+                <Button
+                  variant="link"
+                  className="touch:min-h-11"
+                  onClick={() => setMode("forgot")}
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              ) : (
+                <Button
+                  variant="link"
+                  className="touch:min-h-11"
+                  onClick={() => setMode("sign-in")}
+                >
+                  Volver a iniciar sesión
+                </Button>
+              )}
+            </div>
+            <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">o</span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full touch:min-h-11"
+              onClick={() => navigate("/")}
+            >
+              <CompanyIcon className="mr-2 h-4 w-4" /> Acceso empleados
             </Button>
-          </form>
-          <div className="mt-4 text-center space-y-1">
-            {mode === "sign-in" ? (
-              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
-            ) : (
-              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("sign-in")}>Volver a iniciar sesión</Button>
-            )}
-          </div>
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
-          </div>
-          <Button variant="outline" className="w-full touch:min-h-11" onClick={() => navigate("/")}>
-            <CompanyIcon className="mr-2 h-4 w-4" /> Acceso empleados
-          </Button>
-        </CardContent>
-      </Card>
-      <p className="mt-6 text-xs text-muted-foreground">
-        Powered by <span className="font-semibold text-foreground">LiftGo</span>
-      </p>
+          </CardContent>
+        </Card>
+        <p className="mt-6 text-xs text-muted-foreground">
+          Powered by{" "}
+          <span className="font-semibold text-foreground">LiftGo</span>
+        </p>
       </div>
     </div>
   );

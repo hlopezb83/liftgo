@@ -1,15 +1,18 @@
+import { BrandMark, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
+
 interface AuthBrandPanelProps {
-  logoUrl?: string | null;
-  razonSocial?: string | null;
   tagline: string;
 }
 
 /**
- * R12 UI/UX Fase 3: panel de marca para las pantallas de acceso (staff y
- * portal). Navy estructural + acento dorado; oculto en móvil para no robar
- * espacio al formulario.
+ * Panel de marca para las pantallas de acceso (staff y portal).
+ *
+ * Usa SIEMPRE la marca global de LiftGo (`BrandMark`, asset local fijo) y el
+ * nombre global. NO acepta ni renderiza `company_settings.logo_url`: ese logo
+ * empresarial es configurable por empresa y sólo se usa en Configuración y en
+ * los documentos fiscales/PDF, con resolver aislado por organización.
  */
-export function AuthBrandPanel({ logoUrl, razonSocial, tagline }: AuthBrandPanelProps) {
+export function AuthBrandPanel({ tagline }: AuthBrandPanelProps) {
   return (
     <aside className="hidden lg:flex flex-col justify-between w-[42%] max-w-xl bg-sidebar text-sidebar-foreground p-12 relative overflow-hidden">
       <div
@@ -17,26 +20,10 @@ export function AuthBrandPanel({ logoUrl, razonSocial, tagline }: AuthBrandPanel
         className="absolute -top-32 -right-24 h-96 w-96 rounded-full bg-sidebar-primary/15 blur-3xl"
       />
       <div className="relative flex items-center gap-3">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={`Logo ${razonSocial ?? "LiftGo"}`}
-            className="h-12 w-auto max-w-[200px] object-contain"
-          />
-        ) : (
-          /* Distintivo tipográfico al estilo del sitio público. */
-          <span className="flex flex-col leading-none">
-            <span className="auth-display text-2xl font-extrabold text-sidebar-primary-foreground">
-              Lift Go
-            </span>
-            <span className="auth-display text-2xs text-sidebar-primary">Montacargas</span>
-          </span>
-        )}
-        {logoUrl && (
-          <span className="auth-display text-base font-bold text-sidebar-primary-foreground">
-            {razonSocial ?? "LiftGo"}
-          </span>
-        )}
+        <BrandMark size="lg" />
+        <span className="auth-display text-base font-bold text-sidebar-primary-foreground">
+          {GLOBAL_BRAND_NAME}
+        </span>
       </div>
       <div className="relative space-y-4">
         <span className="block h-1 w-16 rounded-full bg-sidebar-primary" />
