@@ -81,6 +81,28 @@ Por eso `apply` no se detiene por el total de objetos sin referencia, sino sólo
 
 Un objeto se considera aislado sólo si su primer segmento coincide exactamente con el identificador de una organización **conocida**; un UUID cualquiera (por ejemplo el de una factura o un documento) **no** cuenta como prefijo. `apply_orphans` y `delete_sources` siguen sin ejecutarse, el borrado de fuentes sigue en fase separada y deshabilitado por bandera, y el borrado de huérfanos sigue prohibido por diseño.
 
+### Atribución determinista de huérfanos (2026-09-18)
+
+Auditoría de sólo lectura sobre los **17** objetos sin referencia y sin prefijo, usando los puntos de subida reales:
+
+- `supplier-bill-cfdi-xml` (`useUploadSupplierBillXml`): el primer segmento histórico es el **UUID fiscal del CFDI**. De los 16 huérfanos, **15 coinciden con exactamente una fila de `supplier_bills.cfdi_uuid`** y su organización; **1 no coincide con ninguna**.
+- `supplier-payment-receipts` (`useUploadSupplierReceipt`): el primer segmento histórico es el **id de la factura de proveedor** (`billId`). El único huérfano **coincide con exactamente una fila de `supplier_bills.id`** y su organización.
+
+Total: **16 de 17 tienen dueño derivable; 1 sigue sin coincidencia.** Ninguno tiene referencias.
+
+Reglas del resolvedor (`supabase/functions/_shared/storageOrphanOwner.ts`, puro y con pruebas):
+
+- Sólo coincidencia **exacta** de la clave del call-site con **una única** fila dueña y una organización **conocida**.
+- Cero coincidencias, varias filas dueñas o varias organizaciones ⇒ `unresolved`/`conflict`, **sin asignación** y **fuera del ledger**.
+- Nunca se deduce la organización por la forma del UUID, por ser la única empresa existente, ni por nombre de archivo o fecha.
+- Otros buckets no tienen método soportado (`unsupported_bucket`).
+- Se **eliminó** el atajo previo que, habiendo una sola organización, asignaba todos los huérfanos a ella.
+
+**Por qué no se amplió el esquema del ledger:** el método de atribución queda determinado por `bucket_id` (`supplier-bill-cfdi-xml` ⇒ `supplier_bill_cfdi_uuid`; `supplier-payment-receipts` ⇒ `supplier_bill_id`) y sólo se insertan filas con dueño único resuelto. Una columna `owner_resolution_method` sería redundante y obligaría a persistir evidencia derivada del UUID fiscal, que no debe guardarse como contenido de reporte. El método queda documentado aquí y en el tipo `OrphanOwnerResolutionMethod`.
+
+**Sin relajar nada:** `apply` sigue bloqueado mientras exista cualquier objeto sin referencia y sin prefijo exacto (hoy 17). `apply_orphans` sólo puede preparar los de dueño único, en copia + verificación, sin tocar referencias ni borrar la fuente, y reporta aparte el que no tiene dueño. Las fuentes sin prefijo siguen compartidas: **el alta de una segunda empresa sigue bloqueada** hasta contenerlas mediante el borrado separado, que continúa deshabilitado. Los 15 históricos **referenciados** son un tema distinto.
+
+
 
 ## 5. Dependencia operativa REP (precondición crítica de despliegue)
 
