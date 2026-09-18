@@ -258,4 +258,154 @@ BEGIN
   END IF;
 END $$;
 
+-- ── 6. Portal con rol interno residual (migración 0032) ──────────────
+-- Una cuenta de portal que conserva el rol 'admin' NO puede tocar los
+-- archivos del personal de su propia empresa; sólo conserva sus objetos
+-- propios (comprobantes de pago) permitidos por la policy del portal.
+RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '31000000-0000-4000-8000-00000000000a', true);
+
+INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
+  ('31000000-0000-4000-8000-0000000000p1'::text::uuid, 'portal-admin@s0031.test', now(), now())
+ON CONFLICT DO NOTHING;
+
+INSERT INTO storage.buckets (id, name, public) VALUES
+  ('payment-proofs', 'payment-proofs', false)
+ON CONFLICT (id) DO NOTHING;
+
+DO $portal_setup$
+DECLARE
+  v_org uuid := '31000000-0000-4000-8000-00000000000a';
+  v_user uuid := '31000000-0000-4000-8000-0000000000f1';
+  v_customer uuid := '31000000-0000-4000-8000-0000000000f2';
+  v_invoice uuid := '31000000-0000-4000-8000-0000000000f3';
+BEGIN
+  INSERT INTO auth.users (id, email, created_at, updated_at)
+  VALUES (v_user, 'portal-residual@s0031.test', now(), now())
+  ON CONFLICT DO NOTHING;
+
+  -- Rol interno RESIDUAL: es exactamente el escenario de la auditoría.
+  INSERT INTO public.user_roles (user_id, role) VALUES (v_user, 'admin')
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+  INSERT INTO public.customers (id, name, user_id)
+  VALUES (v_customer, 'Cliente portal 0031', v_user);
+
+  INSERT INTO public.organization_customers (organization_id, customer_id, status)
+  VALUES (v_org, v_customer, 'active') ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.customer_portal_accounts
+    (organization_id, customer_id, auth_user_id, email, status)
+  VALUES (v_org, v_customer, v_user, 'portal-residual@s0031.test', 'active')
+  ON CONFLICT DO NOTHING;
+
+  -- Única membresía: PORTAL.
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  VALUES (v_org, v_user, 'portal') ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.invoices
+    (id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total, status, line_items)
+  VALUES (v_invoice, 'FAC-0032-P', v_customer, 'Cliente portal 0031', 100, 0, 100, 'sent',
+          '[{"description":"Renta","quantity":1,"unit_price":100,"amount":100}]'::jsonb);
+
+  INSERT INTO storage.objects (bucket_id, name, owner, metadata) VALUES
+    ('payment-proofs',
+     v_org::text || '/' || v_customer::text || '/' || v_invoice::text || '/comprobante.pdf',
+     v_user, '{"mimetype":"application/pdf"}'::jsonb);
+END $portal_setup$;
+
+SET LOCAL role = 'authenticated';
+SET LOCAL request.jwt.claims TO '{"sub":"31000000-0000-4000-8000-0000000000f1","role":"authenticated"}';
+SELECT set_config('app.organization_id', '31000000-0000-4000-8000-00000000000a', true);
+
+DO $portal_check$
+DECLARE
+  v_org text := '31000000-0000-4000-8000-00000000000a';
+  v_customer text := '31000000-0000-4000-8000-0000000000f2';
+  v_invoice text := '31000000-0000-4000-8000-0000000000f3';
+  v_staff text := '31000000-0000-4000-8000-00000000000a/doc/propio.pdf';
+  v_own text;
+  v_blocked boolean;
+BEGIN
+  v_own := v_org || '/' || v_customer || '/' || v_invoice || '/comprobante.pdf';
+
+  -- 6.0 El predicado de personal niega a la cuenta de portal.
+  IF public.storage_staff_path_in_current_organization(v_staff, true) THEN
+    RAISE EXCEPTION 'RLS BREACH: el predicado de personal autoriza a una cuenta de portal';
+  END IF;
+  IF public.current_internal_organization_id() IS NOT NULL THEN
+    RAISE EXCEPTION 'RLS BREACH: una cuenta de portal obtiene organización interna';
+  END IF;
+
+  -- 6.1 SELECT: no ve archivos del personal de su misma empresa.
+  IF EXISTS (SELECT 1 FROM storage.objects
+              WHERE bucket_id = 'documents' AND name = v_staff) THEN
+    RAISE EXCEPTION 'RLS BREACH: el portal lee documentos del personal de su empresa';
+  END IF;
+  IF EXISTS (SELECT 1 FROM storage.objects WHERE bucket_id = 'cfdi-files') THEN
+    RAISE EXCEPTION 'RLS BREACH: el portal lee CFDI del personal';
+  END IF;
+
+  -- 6.2 INSERT en un bucket de personal: denegado.
+  v_blocked := false;
+  BEGIN
+    INSERT INTO storage.objects (bucket_id, name, owner, metadata)
+    VALUES ('documents', v_org || '/doc/portal-intruso.pdf', auth.uid(),
+            '{"mimetype":"application/pdf"}'::jsonb);
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked := true;
+  END;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'RLS BREACH: el portal sube archivos al bucket del personal';
+  END IF;
+
+  -- 6.3 UPDATE y DELETE sobre el archivo del personal: sin efecto.
+  UPDATE storage.objects SET metadata = '{"hackeado":true}'::jsonb
+   WHERE bucket_id = 'documents' AND name = v_staff;
+  DELETE FROM storage.objects WHERE bucket_id = 'documents' AND name = v_staff;
+
+  -- 6.4 Conserva EXACTAMENTE su propio comprobante.
+  IF NOT EXISTS (SELECT 1 FROM storage.objects
+                  WHERE bucket_id = 'payment-proofs' AND name = v_own) THEN
+    RAISE EXCEPTION 'RLS ROTA: el portal no lee su propio comprobante de pago';
+  END IF;
+
+  RAISE NOTICE 'OK: el portal con rol residual queda fuera de los archivos del personal';
+END $portal_check$;
+
+RESET ROLE;
+RESET request.jwt.claims;
+SELECT set_config('app.organization_id', '', true);
+
+DO $portal_effect$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM storage.objects
+                  WHERE bucket_id = 'documents'
+                    AND name = '31000000-0000-4000-8000-00000000000a/doc/propio.pdf') THEN
+    RAISE EXCEPTION 'RLS BREACH: el portal borró un archivo del personal';
+  END IF;
+  IF EXISTS (SELECT 1 FROM storage.objects WHERE metadata ? 'hackeado') THEN
+    RAISE EXCEPTION 'RLS BREACH: el portal alteró metadata de archivos del personal';
+  END IF;
+END $portal_effect$;
+
+-- ── 7. Ninguna policy de personal se apoya sólo en el helper genérico ─
+DO $$
+DECLARE
+  v_faltan int;
+BEGIN
+  SELECT count(*) INTO v_faltan
+  FROM pg_policies
+  WHERE schemaname = 'storage' AND tablename = 'objects'
+    AND permissive = 'PERMISSIVE'
+    AND (coalesce(qual, '') || ' ' || coalesce(with_check, '')) ILIKE '%has_role%'
+    AND (coalesce(qual, '') || ' ' || coalesce(with_check, ''))
+        NOT ILIKE '%storage_staff_path_in_current_organization%';
+
+  IF v_faltan > 0 THEN
+    RAISE EXCEPTION 'REGRESIÓN 0032: % policy(s) de personal sin membresía interna', v_faltan;
+  END IF;
+END $$;
+
 ROLLBACK;
+
