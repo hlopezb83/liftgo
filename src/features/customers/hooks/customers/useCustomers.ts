@@ -24,6 +24,25 @@ const CUSTOMER_DETAIL_COLUMNS = sel(
   "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_rate, tax_id, user_id, version, created_at, updated_at"
 );
 
+/**
+ * Tramo 9 multiempresa: la cartera de clientes se lee a través de la relación
+ * comercial (`organization_customers`) de la empresa del usuario, no del
+ * catálogo global `customers`.
+ *
+ *  · `customers` es identidad global (RFC único): un mismo cliente puede
+ *    tener relación con varias empresas.
+ *  · La relación decide qué ve cada empresa y su estado de archivado: archivar
+ *    un cliente compartido sólo archiva la relación (`status = 'archived'`)
+ *    y no debe seguir apareciendo en esta empresa aunque `deleted_at` sea NULL.
+ *  · RLS (`org_customers_select`) ya limita `organization_customers` a la
+ *    empresa resuelta en servidor; el navegador nunca envía `organization_id`.
+ */
+const ACTIVE_RELATION_FILTER = { column: "status", value: "active" } as const;
+
+type CustomerRelationRow<T> = { customers: T };
+
+const unwrapRelation = <T,>(rows: CustomerRelationRow<T>[] | null): T[] =>
+  (rows ?? []).map((row) => row.customers).filter((c): c is T => c != null);
 
 export type Customer = Tables<"customers">;
 
@@ -32,29 +51,31 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
   {
     list: () => async () => {
       const { data, error } = await supabase
-        .from("customers")
-        .select(CUSTOMER_LIST_COLUMNS)
-        .is("deleted_at", null)
-        .or("is_e2e.is.null,is_e2e.eq.false")
-        .not("name", "ilike", "E2E%")
-        .or("email.is.null,email.neq.e2e-ui@test.local")
-        .order("name")
+        .from("organization_customers")
+        .select(`status, customers!inner(${CUSTOMER_LIST_COLUMNS})`)
+        .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
+        .is("customers.deleted_at", null)
+        .or("is_e2e.is.null,is_e2e.eq.false", { referencedTable: "customers" })
+        .not("customers.name", "ilike", "E2E%")
+        .or("email.is.null,email.neq.e2e-ui@test.local", { referencedTable: "customers" })
+        .order("customers(name)")
         .limit(LIST_FETCH_LIMIT)
-        .returns<Customer[]>();
+        .returns<CustomerRelationRow<Customer>[]>();
       if (error) throw error;
-      return data ?? [];
+      return unwrapRelation(data);
     },
     detail: (id) => async () => {
       if (!id) return null;
       const { data, error } = await supabase
-        .from("customers")
-        .select(CUSTOMER_DETAIL_COLUMNS)
-        .eq("id", id)
-        .is("deleted_at", null)
+        .from("organization_customers")
+        .select(`status, customers!inner(${CUSTOMER_DETAIL_COLUMNS})`)
+        .eq("customer_id", id)
+        .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
+        .is("customers.deleted_at", null)
         .maybeSingle()
-        .returns<Customer>();
+        .returns<CustomerRelationRow<Customer>>();
       if (error) throw error;
-      return data;
+      return data?.customers ?? null;
     },
   },
 );
