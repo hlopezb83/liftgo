@@ -81,7 +81,8 @@ Deno.test("varias filas dueñas de la misma organización es conflicto", () => {
   const duplicated = buildOrphanOwnerIndex([
     { id: BILL_A, cfdiUuid: CFDI_A, organizationId: ORG_A },
     { id: BILL_B, cfdiUuid: CFDI_A, organizationId: ORG_A },
-  ]);
+  ], { cfdiUuid: [CFDI_A], id: [BILL_A, BILL_B] });
+
   assertEquals(
     resolveOrphanOwner({
       bucketId: "supplier-bill-cfdi-xml",
