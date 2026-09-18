@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.15.0",
+    "date": "2026-09-18",
+    "type": "minor",
+    "category": "backend",
+    "title": "Multiempresa: alta de empresas, suspensión, clientes y portal por empresa",
+    "description": "Cierre funcional del modelo multiempresa (tramo 9). Un operador de plataforma puede dar de alta una nueva empresa con su primer administrador y suspenderla; los clientes y el acceso al portal se evalúan por empresa. Sólo repositorio: la migración 0030 no se ha aplicado a producción.",
+    "changes": [
+      "Nueva pantalla \"Empresas\" (Configuración) visible sólo para operadores de plataforma confirmados por el servidor: alta de empresa + primer administrador con enlace de recuperación de un solo uso, suspensión y reactivación.",
+      "Migración 0030: tabla platform_operators, funciones platform_create_organization / platform_attach_first_admin / platform_discard_organization / platform_set_organization_active / platform_list_organizations (sólo service_role, con verificación del operador en la base) y is_platform_operator().",
+      "Suspensión: una empresa inactiva deja de leer y escribir de inmediato (miembros y portal); el administrador de empresa no puede cambiar el estado; el navegador muestra el motivo.",
+      "Clientes por empresa: la identidad sigue siendo global (RFC único) pero el personal sólo ve clientes con relación comercial en su empresa; alta fija la empresa dueña; vínculo por RFC de un cliente existente; archivado por relación cuando está compartido.",
+      "Portal por empresa: la invitación y el indicador de acceso activo se deciden por la cuenta de portal de esta empresa, no por el vínculo global del cliente; el vínculo legado nunca se sobrescribe.",
+      "Pruebas RLS nuevas: alta de segunda empresa, aislamiento A/B de clientes, portal y suspensión; cobertura dinámica de aislamiento por empresa sobre el catálogo (falla cerrado si aparece una tabla sin acotar).",
+      "Sin producción: la migración 0030 queda pendiente de autorización explícita; no se movieron datos ni archivos."
+    ]
+  },
+  {
     "version": "8.14.3",
     "date": "2026-09-18",
     "type": "patch",
