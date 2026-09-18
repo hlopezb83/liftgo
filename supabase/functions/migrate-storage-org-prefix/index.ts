@@ -401,6 +401,7 @@ async function collectCandidates(
   counts: ReturnType<typeof emptyCounts>;
   referencedPathsByBucket: Map<string, Set<string>>;
   organizationIds: string[];
+  activeOrganizationIds: string[];
   truncated: boolean;
 }> {
   const candidates: CandidateReference[] = [];
@@ -410,12 +411,20 @@ async function collectCandidates(
 
   const { data: organizations, error: organizationsError } = await admin
     .from("organizations")
-    .select("id");
+    .select("id, is_active");
   if (organizationsError) {
     throw new Error("No se pudieron resolver las organizaciones.");
   }
   const knownOrganizationIds = new Set(
     (organizations ?? [])
+      .map((organization) => organization.id)
+      .filter((id): id is string => typeof id === "string"),
+  );
+  const activeOrganizationIds = new Set(
+    (organizations ?? [])
+      .filter((organization) =>
+        (organization as { is_active?: boolean }).is_active === true
+      )
       .map((organization) => organization.id)
       .filter((id): id is string => typeof id === "string"),
   );
