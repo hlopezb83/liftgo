@@ -119,13 +119,22 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
   activas no adivina: fija el dueño desde `app.organization_id` y la relación se
   declara explícitamente (fixtures A/B y migraciones).
 - Policies de personal (`admin`, `administrativo`, `ventas`, `auditor`,
-  `dispatcher`) usan `customer_scope_matches(customer_id, organization_id)`: el
-  personal sólo ve clientes con relación comercial en SU empresa.
+  `dispatcher`) usan `customer_scope_matches(customer_id, organization_id)`. Con
+  0031 el helper exige **membresía interna verificada de una empresa activa**
+  (`current_internal_organization_id()`) y niega a toda cuenta de portal, aunque
+  conserve un rol administrativo residual. No hay compatibilidad de "una sola
+  empresa activa" para usuarios autenticados: sin membresía, falla cerrado.
 - `link_customer_to_organization_by_rfc`: si el RFC ya existe (dado de alta por
   otra empresa), crea la relación en la empresa actual en lugar de fallar por
   duplicado; los datos por relación viven en `organization_customers`.
-- `soft_delete_customer`: archivado por relación cuando el cliente está
-  compartido; archivado global sólo cuando la empresa es el único dueño.
+- `soft_delete_customer` (SECURITY DEFINER): exige usuario autenticado, membresía
+  interna y empresa activa; sin contexto de organización **no archiva nada**
+  (0031 eliminó la rama global). Archivado por relación cuando el cliente está
+  compartido; archivado de la identidad global sólo cuando la empresa es el
+  único dueño con relación vigente. Las relaciones y cuentas de portal que toca
+  se limitan a la empresa actual; las validaciones de reservas y saldo se
+  evalúan sobre los datos de esa empresa.
+
 - Frontend (`useCustomers`): listado y detalle leen a través de
   `organization_customers` con `customers!inner(...)` y relación `active`; un
   cliente de otra empresa es indistinguible de uno inexistente.
