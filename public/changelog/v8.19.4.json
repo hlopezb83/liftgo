@@ -1,0 +1,13 @@
+{
+  "version": "8.19.4",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "fix",
+  "title": "La lista de pendientes de publicación ya nombra los cuatro cambios correctos",
+  "description": "Las instrucciones de puesta al día seguían diciendo que faltaban por aplicar sólo dos o tres cambios de base, cuando en realidad ya son cuatro los preparados. Era como un instructivo que manda instalar tres tornillos cuando la caja trae cuatro. Ahora las instrucciones nombran los cuatro y dejan claro que ninguno se ha aplicado todavía.",
+  "changes": [
+    "La lista de pendientes y la guía de altas de empresas dicen ahora que los cambios 0031, 0032, 0033 y 0034 están preparados pero pendientes de aplicar por el canal oficial, con autorización expresa.",
+    "Se reiteran los pasos posteriores: actualizar las definiciones automáticas de la base, dar de alta manualmente a la primera persona operadora de la plataforma, hacer un ensayo completo sin mover nada y resolver o contener los archivos antiguos antes de habilitar una segunda empresa.",
+    "Todo sigue sin marcarse como hecho y nada se ejecutó en producción."
+  ]
+}
