@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.19.2",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "fix",
+    "title": "Los archivos antiguos aprobados ya no quedan atascados detrás de los rechazados",
+    "description": "En el proceso de migración de archivos históricos, el lote de trabajo se cortaba antes de quitar los registros sin autorización vigente. Si al frente de la fila había suficientes registros viejos revocados, el único archivo sí autorizado nunca llegaba a la ventanilla, como un cliente citado que espera detrás de una fila que nunca avanza. Ahora el proceso recorre la bitácora completa por páginas hasta reunir su lote de autorizados.",
+    "changes": [
+      "El lote recorre la bitácora página por página hasta juntar el número de archivos autorizados pedido o llegar al final, en vez de cortar antes de filtrar.",
+      "Existe un tope total de exploración: si la bitácora crece demasiado, la corrida falla cerrado en lugar de recorrer sin límite.",
+      "Los registros no autorizados se omiten sin cambios y se cuentan como omitidos; cuando no hay ninguna autorización vigente ni siquiera se abre la bitácora, así que no se reportan omitidos.",
+      "Un archivo autorizado que exceda el tamaño del lote queda para la corrida siguiente, sin procesarse dos veces.",
+      "Nueva prueba: con más registros rechazados que el tamaño del lote colocados antes que el autorizado, ninguno cambia y el autorizado sí avanza.",
+      "Sin producción: no se movió, copió ni borró ningún archivo real."
+    ]
+  },
+  {
     "version": "8.19.1",
     "date": "2026-09-18",
     "type": "patch",
