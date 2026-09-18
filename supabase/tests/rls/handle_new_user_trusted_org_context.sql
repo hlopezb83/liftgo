@@ -102,7 +102,7 @@ BEGIN
   SELECT count(*) INTO v_audit
   FROM public.audit_logs
   WHERE organization_id = v_org_b
-    AND (record_id = v_fake::text OR new_data::text LIKE '%' || v_fake::text || '%');
+    AND (record_id = v_fake OR new_data::text LIKE '%' || v_fake::text || '%');
   IF v_audit > 0 THEN
     RAISE EXCEPTION 'CTX: % filas de audit_logs se atribuyeron a la empresa falsificada', v_audit;
   END IF;
