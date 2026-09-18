@@ -1,7 +1,7 @@
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
-import { useCompanySettings, useCompanyLogoSrc } from "@/features/company-settings";
+import { useCompanySettings } from "@/features/company-settings";
 import { useUserRole } from "@/features/users";
 import { useVisibleNavGroups } from "@/layouts/hooks/useVisibleNavGroups";
 import { SidebarBranding } from "@/layouts/sidebar/SidebarBranding";

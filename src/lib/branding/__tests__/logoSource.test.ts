@@ -34,13 +34,10 @@ describe("classifyLogoSource", () => {
     });
   });
 
-  it("clasifica una imagen pública HTTPS como marca global de LiftGo", () => {
-    // La marca del producto se comparte a propósito entre empresas: no es dato
-    // de un tenant, no se firma y no requiere traslado a Storage.
-    expect(classifyLogoSource("https://cdn.marca.example/liftgo.png")).toEqual({
-      kind: "global-brand",
-      url: "https://cdn.marca.example/liftgo.png",
-    });
+  it("rechaza un host ajeno al Storage del proyecto (no es logo de empresa verificable)", () => {
+    expect(classifyLogoSource("https://cdn.ajeno.example/logo.png").kind).toBe(
+      "unsupported",
+    );
   });
 
   it("rechaza http en claro, data URI y rutas con salto de nivel", () => {

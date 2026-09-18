@@ -28,8 +28,7 @@ export const LOGO_SIGNED_TTL_SECONDS = 300;
 
 export type LogoSource =
   /** Logo subido por la empresa: aislado por organización vía Storage + RLS. */
-  | { kind: "storage"; bucket: string; path: string }
-  | { kind: "unsupported" };
+  { kind: "storage"; bucket: string; path: string } | { kind: "unsupported" };
 
 const UNSUPPORTED: LogoSource = { kind: "unsupported" };
 
