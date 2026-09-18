@@ -96,6 +96,42 @@ export function useCustomer(id: string | undefined) {
   });
 }
 
+export type CustomerPortalAccountStatus = "active" | "suspended" | "revoked";
+
+export interface CustomerPortalAccountSummary {
+  status: CustomerPortalAccountStatus;
+  email: string;
+}
+
+/**
+ * Tramo 9: el acceso al portal de un cliente es POR EMPRESA
+ * (`customer_portal_accounts`), no el vínculo legado global `customers.user_id`.
+ * RLS (`portal_accounts_select`) sólo devuelve cuentas de la empresa del
+ * usuario; un cliente compartido puede tener acceso en otra empresa y aquí
+ * seguir sin cuenta.
+ */
+export function useCustomerPortalAccount(customerId: string | undefined) {
+  return useQuery({
+    queryKey: customerKeys.portalAccount(customerId ?? ""),
+    enabled: !!customerId,
+    staleTime: 60_000,
+    queryFn: async (): Promise<CustomerPortalAccountSummary | null> => {
+      if (!customerId) return null;
+      const { data, error } = await supabase
+        .from("customer_portal_accounts")
+        .select("status, email")
+        .eq("customer_id", customerId)
+        .in("status", ["active", "suspended"])
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      const row = data?.[0];
+      if (!row) return null;
+      return { status: row.status as CustomerPortalAccountStatus, email: row.email };
+    },
+  });
+}
+
 export function useCreateCustomer() {
   return useEntityMutation({
     mutationFn: async (customer: TablesInsert<"customers">) => {
