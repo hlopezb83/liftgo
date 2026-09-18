@@ -525,50 +525,21 @@ const OWNER_LOOKUP_MAX_ROWS_PER_KEY = 50;
 
 /**
  * Lee sólo las filas dueñas que coinciden exactamente con las claves de los
- * huérfanos, con filtros estructurados `.in(...)` (nunca interpolación SQL ni
- * regex) y paginación hasta agotar resultados.
+ * huérfanos, con filtros estructurados (nunca interpolación SQL ni regex) y
+ * paginación hasta agotar resultados.
+ *
+ * `supplier_bills.cfdi_uuid` es `text` y en producción convive en mayúsculas y
+ * minúsculas, mientras que la clave del path se normaliza a minúsculas. Para no
+ * producir falsos negativos la búsqueda es exacta pero insensible a
+ * mayúsculas: `ilike` SIN comodines, aplicado sólo a claves ya validadas como
+ * UUID (no pueden contener `%`, `_`, `,` ni comillas). `supplier_bills.id` es
+ * `uuid` y conserva el filtro exacto `.in(...)`.
  *
  * Fail-closed: una clave cuya lectura no se pudo agotar (página incompleta,
  * error o cota alcanzada) NO se marca como completa, así que resolverá
  * `incomplete_lookup` y nunca producirá un candidato para el ledger.
  */
-async function loadOrphanOwnerIndex(
-  admin: AdminClient,
-  keys: { cfdiUuid: string[]; id: string[] },
-): Promise<OrphanOwnerIndex> {
-  const rows: Array<
-    { id?: unknown; cfdiUuid?: unknown; organizationId?: unknown }
-  > = [];
-  const completeCfdiUuid: string[] = [];
-  const completeId: string[] = [];
-
-  async function readColumn(
-    column: "cfdi_uuid" | "id",
-    values: string[],
-    complete: string[],
-  ): Promise<void> {
-    for (let i = 0; i < values.length; i += OWNER_LOOKUP_CHUNK) {
-      const chunk = values.slice(i, i + OWNER_LOOKUP_CHUNK);
-      const chunkRows: Array<Record<string, unknown>> = [];
-      let exhausted = false;
-      for (let offset = 0;; offset += OWNER_LOOKUP_PAGE) {
-        const { data, error } = await admin
-          .from("supplier_bills")
-          .select("id, cfdi_uuid, organization_id")
-          .in(column, chunk)
-          .order("id", { ascending: true })
-          .range(offset, offset + OWNER_LOOKUP_PAGE - 1);
-        if (error) return; // sin marcar completa ninguna clave del bloque
-        const page = (data ?? []) as Array<Record<string, unknown>>;
-        chunkRows.push(...page);
-        if (page.length < OWNER_LOOKUP_PAGE) {
-          exhausted = true;
-          break;
-        }
-        if (chunkRows.length > chunk.length * OWNER_LOOKUP_MAX_ROWS_PER_KEY) {
-          return; // truncación/duplicación anómala: fail-closed
-        }
-      }
+...
       if (!exhausted) return;
       for (const row of chunkRows) {
         rows.push({
