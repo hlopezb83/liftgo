@@ -1,0 +1,16 @@
+{
+  "version": "8.18.0",
+  "date": "2026-09-18",
+  "type": "minor",
+  "category": "security",
+  "title": "El alta de usuarios ya no cree lo que el propio usuario dice sobre su empresa",
+  "description": "Al crear una cuenta, el sistema tomaba la empresa de un dato que el propio usuario puede editar. Ahora la empresa viaja por un canal que sólo el servidor puede escribir, así que nadie puede declarar una empresa ajena ni hacer que su alta quede registrada en ella. El alta de una empresa nueva sigue funcionando igual y con los mismos controles. Sin cambios en producción.",
+  "changes": [
+    "Nuevo cambio de base 0033 (no aplicado en producción): al crear un usuario, la empresa se toma únicamente del canal reservado al servidor; lo que el usuario escriba en sus propios datos se ignora para decidir empresa o registro de actividad. Su nombre sigue tomándose de ahí.",
+    "Las tres altas del sistema (personal invitado, cliente de portal y primer administrador de una empresa nueva) envían la empresa por ese canal seguro.",
+    "El cambio se verifica a sí mismo: si al aplicarse la función volviera a leer el dato editable, la actualización se detiene en lugar de quedar a medias.",
+    "Nueva prueba: un alta que miente y declara otra empresa no cambia el contexto, no deja registros de actividad en esa empresa y no obtiene acceso; el alta legítima sí queda en su empresa y la empresa pendiente se completa y activa con normalidad. 62 de 62 pruebas de seguridad en verde en el entorno local.",
+    "Comprobación de la configuración real: hoy el registro público está desactivado en el sistema y la aplicación no ofrece registro, por lo que el riesgo no era alcanzable desde fuera; aun así se cerró en la base para no depender de esa configuración.",
+    "Sin producción: no se aplicó el cambio en la base real ni se publicó nada."
+  ]
+}
