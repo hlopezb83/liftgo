@@ -1,23 +1,21 @@
 /**
- * Multiempresa · resolución del logo mostrado en la aplicación.
+ * Multiempresa · resolución del **logo empresarial configurable**
+ * (`company_settings.logo_url`).
  *
- * Hay DOS tipos de logo y no deben mezclarse:
+ * Alcance: sólo documentos y pantallas de la empresa (PDF de cotización,
+ * factura, contrato, estado de cuenta y la propia Configuración). **No** es la
+ * marca de producto: la navegación/sidebar usa el asset global LiftGo del
+ * repositorio, servido desde fuente local fija y ajeno a este módulo.
  *
- *  1. **Logo de empresa (tenant)**: el que se sube desde Configuración. Se
- *     persiste como ruta de Storage (`<organizacion>/company/logo_x.png`) o,
- *     históricamente, como URL del Storage de ESTE proyecto. Se resuelve
- *     SIEMPRE re-firmando con la sesión actual: las policies por organización
- *     se evalúan hoy, así que una empresa no puede mostrar el logo de otra.
+ * Valores aceptados, siempre con aislamiento por tenant:
+ *  - ruta de Storage (`<organizacion>/company/logo_x.png`) — formato actual;
+ *  - URL del Storage de ESTE proyecto — se re-firma con la sesión actual, de
+ *    modo que las policies por organización se evalúan hoy.
  *
- *  2. **Marca global de LiftGo**: imagen de marca del producto, compartida
- *     deliberadamente por todas las empresas. Es una imagen pública alojada
- *     fuera del Storage del proyecto; no es dato de un tenant, no requiere
- *     traslado ni aislamiento A/B. Se muestra como imagen estática: se sirve
- *     por HTTPS, sin credenciales, sin cookies y sin referer, y nunca se
- *     re-firma ni se trata como archivo privado.
- *
- * Todo lo demás (data:, blob:, javascript:, `//host`, rutas con salto de
- * nivel) se rechaza fail-closed: no se renderiza ni se descarga.
+ * Cualquier otro valor (host ajeno, http en claro, `data:`, `blob:`, `//host`,
+ * rutas con salto de nivel) se rechaza fail-closed: no se renderiza ni se
+ * descarga. Un `<img src>` o un `fetch()` sobre un host arbitrario filtraría
+ * sesión/referer y podría mostrar contenido de otra empresa.
  */
 import { supabase } from "@/integrations/supabase/client";
 import { parseStorageUrl } from "@/lib/storage/openStorageFile";
@@ -30,10 +28,7 @@ export const LOGO_SIGNED_TTL_SECONDS = 300;
 
 export type LogoSource =
   /** Logo subido por la empresa: aislado por organización vía Storage + RLS. */
-  | { kind: "storage"; bucket: string; path: string }
-  /** Marca global de LiftGo: imagen pública compartida, sin datos de tenant. */
-  | { kind: "global-brand"; url: string }
-  | { kind: "unsupported" };
+  { kind: "storage"; bucket: string; path: string } | { kind: "unsupported" };
 
 const UNSUPPORTED: LogoSource = { kind: "unsupported" };
 
@@ -57,12 +52,9 @@ export function classifyLogoSource(
 
   if (/^https:\/\//i.test(raw)) {
     const parsed = parseStorageUrl(raw);
-    if (parsed) {
-      // Storage propio: logo de empresa, se re-firma con la sesión actual.
-      return { kind: "storage", bucket: parsed.bucket, path: parsed.path };
-    }
-    // Imagen pública de marca: sólo HTTPS, sin credenciales ni referer.
-    return { kind: "global-brand", url: raw };
+    if (!parsed) return UNSUPPORTED;
+    // Storage propio: logo de empresa, se re-firma con la sesión actual.
+    return { kind: "storage", bucket: parsed.bucket, path: parsed.path };
   }
 
   // HTTP en claro nunca se acepta (contenido mixto y manipulable en tránsito).
@@ -91,19 +83,15 @@ type SignerClient = {
 };
 
 /**
- * Devuelve la URL de visualización.
- *
- * - Logo de empresa: se firma con la sesión actual (RLS de `storage.objects`
- *   aplica), así que una organización no puede resolver la ruta de otra.
- * - Marca global de LiftGo: se devuelve la URL pública tal cual, para
- *   mostrarla como imagen estática sin credenciales.
+ * Firma el logo empresarial con la sesión actual (RLS de `storage.objects`
+ * aplica): una organización no puede resolver la ruta de otra. Fail-closed
+ * para cualquier valor no verificable.
  */
 export async function resolveLogoSrc(
   value: string | null | undefined,
   options?: { client?: SignerClient; ttlSeconds?: number; bucket?: string },
 ): Promise<string | null> {
   const source = classifyLogoSource(value, options?.bucket ?? LOGO_BUCKET);
-  if (source.kind === "global-brand") return source.url;
   if (source.kind !== "storage") return null;
 
   const client = options?.client ?? (supabase as unknown as SignerClient);

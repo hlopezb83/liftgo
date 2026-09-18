@@ -33,11 +33,11 @@ export async function loadImageAsBase64(url: string): Promise<string | null> {
 /**
  * Wrapper null-safe para cargar el logo de la empresa.
  *
- * El valor persistido no se descarga tal cual: se clasifica antes. Si es un
- * logo de empresa se resuelve a una URL firmada de TTL corto del Storage de
- * este proyecto; si es la marca global de LiftGo se descarga su URL pública
- * HTTPS sin credenciales ni referer. Esquemas no soportados (http:, data:,
- * blob:, rutas con salto de nivel) generan el PDF sin logo (fail-closed).
+ * Logo EMPRESARIAL en documentos: el valor persistido nunca se descarga tal
+ * cual. Se resuelve antes a una URL firmada de TTL corto del Storage de este
+ * proyecto, de forma que el documento sólo puede llevar el logo de su propia
+ * empresa. Host ajeno, http en claro, `data:` o ruta no válida generan el PDF
+ * sin logo (fail-closed) en vez de un fetch arbitrario.
  */
 export async function loadCompanyLogo(
   logoUrl: string | null | undefined,

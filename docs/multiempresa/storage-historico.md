@@ -13,33 +13,39 @@
 - **Originales conservados** (632 objetos = 322 originales + copias). El borrado
   de fuentes sigue **deshabilitado** y sin autorización.
 - **1 sola organización activa**.
-- **1 referencia fuera del Storage del proyecto, clasificada el 2026-09-18**: el
-  valor de `company_settings.logo_url` es una **imagen pública HTTPS alojada
-  fuera del proyecto**, no un archivo subido al Storage de la empresa (no tiene
-  forma `/storage/v1/object/...` ni prefijo de organización). Según la
-  aclaración del propietario corresponde a la **marca global de LiftGo**, un
-  asset **compartido deliberadamente por todas las empresas**. No se publica su
-  valor, host, ruta, token ni identificadores.
-  - **No requiere traslado a Storage** ni entra en el inventario de objetos a
-    migrar: no es dato de un tenant.
-  - **No requiere prueba A/B de aislamiento**: por diseño todas las empresas ven
-    la misma marca.
-  - Lo que sí se verifica: la carga usa una fuente fija y permitida —sólo HTTPS,
-    como imagen estática, **sin credenciales, sin cookies y sin referer**, tanto
-    en pantalla como al generar PDF—, y nunca un fetch arbitrario con sesión.
-    `http:` en claro, `data:`, `blob:` y rutas con salto de nivel se rechazan
-    fail-closed.
-  - **El logo subido por una empresa es otro caso distinto** y conserva
-    aislamiento por tenant: se guarda como ruta dentro del prefijo de su
-    organización y se resuelve firmando con la sesión actual (TTL 300 s), de
-    modo que las policies impiden que una empresa muestre el logo de otra.
+- **1 referencia de `company_settings.logo_url` fuera del Storage del proyecto,
+  aún sin clasificar (2026-09-18)**: es una URL HTTPS de un host que no
+  pertenece al Storage de este proyecto (no tiene forma
+  `/storage/v1/object/...` ni prefijo de organización). No se publica su valor,
+  host, ruta, token ni identificadores.
+  - **No se concluye que sea la marca global.** Por sus usos reales,
+    `company_settings.logo_url` es el **logo empresarial configurable**: lo
+    consumen los documentos de la empresa (cotización, factura, contrato,
+    estado de cuenta, vía `resolveIssuerBranding`) y la pantalla de
+    Configuración. La navegación/sidebar ya no lo consume.
+  - Por eso conserva **aislamiento por tenant**: se guarda como ruta bajo el
+    prefijo de su organización y se resuelve firmando con la sesión actual
+    (TTL 300 s); una empresa no puede mostrar el logo de otra. Las pruebas A/B
+    aplican a este tipo de logo.
+  - Mientras el valor no se clasifique, los documentos se generan **sin logo
+    (fail-closed)**: no se descarga un host ajeno. Sustituirlo exige mutación de
+    datos (volver a subir el logo desde Configuración) y **no está autorizado**.
+
+### Marca global de LiftGo (no es dato de tenant)
+
+La marca visible del producto —navegación, sidebar y encabezados de acceso— es
+el **asset global de LiftGo del repositorio**, servido desde **fuente local
+fija** e **idéntico para cualquier empresa**. No se lee de `company_settings`,
+no se firma por organización, **no se traslada a Storage** y **no lleva gate ni
+prueba A/B de aislamiento**: por diseño todos los tenants ven la misma marca.
+La marca pública neutral sigue expuesta por `get_public_branding()`.
 
 ### Gates obligatorios antes de dar de alta una segunda empresa
 
-1. **Branding por empresa resuelto y probado**: el logo **subido por una
-   empresa** se sirve desde la `company_settings` de la organización del
-   contexto y se firma con TTL corto (probado A/B). La **marca global de
-   LiftGo** queda fuera de este gate: es un asset compartido a propósito.
+1. **Logo empresarial resuelto y probado**: el logo de `company_settings` se
+   sirve desde la organización del contexto y se firma con TTL corto, con
+   prueba A/B de aislamiento. La **marca global de LiftGo** (asset del
+   repositorio) queda **fuera de este gate**.
 2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
 3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
 4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
