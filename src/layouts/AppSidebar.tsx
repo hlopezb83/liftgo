@@ -1,7 +1,7 @@
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
-import { useCompanySettings } from "@/features/company-settings";
+import { useCompanySettings, useCompanyLogoSrc } from "@/features/company-settings";
 import { useUserRole } from "@/features/users";
 import { useVisibleNavGroups } from "@/layouts/hooks/useVisibleNavGroups";
 import { SidebarBranding } from "@/layouts/sidebar/SidebarBranding";
@@ -13,12 +13,13 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
   const { data: company } = useCompanySettings();
+  const logoSrc = useCompanyLogoSrc(company?.logo_url);
   const currentVersion = useCurrentVersion();
   const visibleNavGroups = useVisibleNavGroups();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarBranding logoUrl={company?.logo_url} razonSocial={company?.razon_social} />
+      <SidebarBranding logoUrl={logoSrc} razonSocial={company?.razon_social} />
       <SidebarQuickCreate />
       <SidebarContent>
         {visibleNavGroups.map((group) => (

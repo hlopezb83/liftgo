@@ -1,6 +1,41 @@
-# Auditoría de solo lectura · Storage histórico (multiempresa)
+# Storage histórico (multiempresa)
 
-Fecha: 2026-09-17 (actualizado 2026-09-19) · Estado: **propuesta documentada, nada ejecutado**
+## Estado actual (2026-09-18)
+
+> Este bloque es el **estado vigente**. Las secciones siguientes son
+> **snapshots históricos fechados** de las auditorías previas y se conservan
+> tal cual para trazabilidad: no describen la situación de hoy.
+
+- Migraciones **0030–0035 aplicadas** a la base conectada por el canal oficial.
+- **Operador raíz asignado** (exactamente 1 operador de plataforma); 5 membresías.
+- **Migración de Storage completada**: 293 referencias actualizadas, 0 pendientes,
+  0 fallos; 17 huérfanos copiados y verificados; **1 resolución manual activa**.
+- **Originales conservados** (632 objetos = 322 originales + copias). El borrado
+  de fuentes sigue **deshabilitado** y sin autorización.
+- **1 sola organización activa**.
+- **1 referencia no soportada pendiente de clasificación/validación**:
+  `company_settings.logo_url` con URL HTTPS que **no** tiene forma de ruta
+  `/storage/v1/object/...` ni pertenece al Storage de este proyecto. No se
+  publica su valor, host, ruta, token ni identificadores. A partir de 8.23.2 la
+  aplicación la trata **fail-closed**: no se renderiza ni se descarga, y la
+  interfaz cae al distintivo tipográfico. **Reemplazar el valor persistido exige
+  mutación de datos y no está autorizado**; queda como requisito explícito.
+
+### Gates obligatorios antes de dar de alta una segunda empresa
+
+1. **Branding por empresa resuelto y probado**: logo servido desde la
+   `company_settings` de la organización del contexto, firmado con TTL corto;
+   la referencia no soportada clasificada o sustituida por el propietario.
+2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
+3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
+4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
+   documentada. Hoy hay respaldo diario, pero **no** hay restore ensayado.
+
+---
+
+# Snapshot histórico · Auditoría de solo lectura (2026-09-17, actualizado 2026-09-18)
+
+Fecha del snapshot: 2026-09-17 · Estado **en ese momento**: propuesta documentada, nada ejecutado. Superado por el bloque "Estado actual" de arriba.
 
 Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddadaea9`) y verificaciones `SELECT` directas contra producción. Auditoría estrictamente de lectura: sin cambios de código, esquema, datos, policies, buckets ni objetos; sin DDL ni operaciones de Storage.
 
@@ -8,14 +43,14 @@ Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddad
 
 Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.buckets`:
 
-| Bucket | Objetos | Bajo prefijo **exacto** de organización | Con otro UUID (no es prefijo de organización) | Sin forma UUID (legado real) |
-|---|---|---|---|---|
-| cfdi-files | 173 | 0 | 163 | 10 |
-| supplier-bill-cfdi-xml | 84 | 6 | 78 | 0 |
-| supplier-payment-receipts | 58 | 5 | 53 | 0 |
-| documents | 6 | 1 | 0 | 5 |
-| feedback-screenshots | 1 | 0 | 1 | 0 |
-| payment-proofs | 0 | 0 | 0 | 0 |
+| Bucket                    | Objetos | Bajo prefijo **exacto** de organización | Con otro UUID (no es prefijo de organización) | Sin forma UUID (legado real) |
+| ------------------------- | ------- | --------------------------------------- | --------------------------------------------- | ---------------------------- |
+| cfdi-files                | 173     | 0                                       | 163                                           | 10                           |
+| supplier-bill-cfdi-xml    | 84      | 6                                       | 78                                            | 0                            |
+| supplier-payment-receipts | 58      | 5                                       | 53                                            | 0                            |
+| documents                 | 6       | 1                                       | 0                                             | 5                            |
+| feedback-screenshots      | 1       | 0                                       | 1                                             | 0                            |
+| payment-proofs            | 0       | 0                                       | 0                                             | 0                            |
 
 **Total: 322 objetos**, de los cuales **sólo 12 están bajo el prefijo exacto de una organización conocida**; 295 empiezan con un UUID ajeno (factura, documento, usuario…) y 15 no tienen forma de UUID. Cifras de la reconciliación 2026-09-18 comparando cada primer segmento contra `public.organizations.id` (lectura, nada movido). Los inventarios previos (310 legados; «307 prefijados / 15 legados») están **desactualizados**: trataban cualquier UUID como prefijo de organización, y no lo es.
 
@@ -106,8 +141,6 @@ Reglas del resolvedor (`supabase/functions/_shared/storageOrphanOwner.ts`, puro 
 
 **Sin relajar nada:** `apply` sigue bloqueado mientras exista cualquier objeto sin referencia y sin prefijo exacto (hoy 17). `apply_orphans` sólo puede preparar los de dueño único, en copia + verificación, sin tocar referencias ni borrar la fuente, y reporta aparte el que no tiene dueño. Las fuentes sin prefijo siguen compartidas: **el alta de una segunda empresa sigue bloqueada** hasta contenerlas mediante el borrado separado, que continúa deshabilitado. Los 15 históricos **referenciados** son un tema distinto.
 
-
-
 ## 5. Dependencia operativa REP (precondición crítica de despliegue)
 
 - Producción **no tiene** `public.is_internal_member(uuid)` ni `public.user_in_current_organization(uuid)`.
@@ -134,14 +167,14 @@ La auditoría previa se limitó a los objetos históricos. Al escribir la prueba
 con dos organizaciones aparecieron huecos **en las policies vigentes**, no sólo en
 las rutas antiguas:
 
-| Bucket | Policies sin alcance por organización (antes de 0027) |
-| --- | --- |
-| `documents` | `Staff upload documents`, `Staff update documents`, `Staff delete documents` |
-| `documents` (portal) | `Customers read own scoped documents` → resolvía por `customer_id` global |
-| `feedback-screenshots` | `Admins read all feedback screenshots`, `Admins delete any feedback screenshot` |
-| `cfdi-files` | lectura, alta, reemplazo y borrado por admin |
-| `supplier-payment-receipts` | las 4 policies |
-| `supplier-bill-cfdi-xml` | lectura de staff + alta/reemplazo/borrado |
+| Bucket                      | Policies sin alcance por organización (antes de 0027)                           |
+| --------------------------- | ------------------------------------------------------------------------------- |
+| `documents`                 | `Staff upload documents`, `Staff update documents`, `Staff delete documents`    |
+| `documents` (portal)        | `Customers read own scoped documents` → resolvía por `customer_id` global       |
+| `feedback-screenshots`      | `Admins read all feedback screenshots`, `Admins delete any feedback screenshot` |
+| `cfdi-files`                | lectura, alta, reemplazo y borrado por admin                                    |
+| `supplier-payment-receipts` | las 4 policies                                                                  |
+| `supplier-bill-cfdi-xml`    | lectura de staff + alta/reemplazo/borrado                                       |
 
 `drizzle/migrations/0027_storage_tenant_scope_remaining_buckets.sql` las reescribe
 con el mismo criterio de 0022 (`storage_path_in_current_organization`):
@@ -167,7 +200,7 @@ precondición del alta de la segunda empresa.
 
 ## Actualización 8.10.0 — correcciones tras la revisión de CI (repositorio, nada aplicado)
 
-La corrida `35177145738` del workflow *RLS DB tests* terminó **52/54**. Errores originales:
+La corrida `35177145738` del workflow _RLS DB tests_ terminó **52/54**. Errores originales:
 
 1. `supabase/tests/rls/storage_cross_org_ab.sql:222` — `RLS BREACH: la sesión de la ORG A borró objetos de la ORG B`. **Falso positivo de la prueba**: el fixture crea **cinco** objetos con prefijo de la ORG B (uno por bucket) y la aserción exigía `count <> 4`.
 2. `supabase/tests/rls/storage_objects_documents.sql:93` — el positivo del portal veía 0 objetos. La prueba heredada no asignaba `organization_id` a `documents`/`invoices` ni creaba `organization_memberships`, y `current_organization_id()` (0025) se deriva de esa tabla; el helper acotado por 0027 quedaba, correctamente, cerrado.
@@ -195,12 +228,12 @@ Call-sites actuales: `openStoredFile` sólo en `SupplierPaymentRow` (`receipt_ur
 El commit `45c9293fe9ef844092772ca588728c4d8a7ce13d` cerró la verificación
 automática del tramo de Storage:
 
-| Workflow | Run | Resultado |
-| --- | --- | --- |
-| RLS DB tests | 35180736054 | **54/54 en verde** |
-| CI principal | 35180736071 | en verde |
-| Gitleaks | 35180736167 | en verde |
-| Smoke SQL | (incluido en CI) | **45/45 en verde** |
+| Workflow     | Run              | Resultado          |
+| ------------ | ---------------- | ------------------ |
+| RLS DB tests | 35180736054      | **54/54 en verde** |
+| CI principal | 35180736071      | en verde           |
+| Gitleaks     | 35180736167      | en verde           |
+| Smoke SQL    | (incluido en CI) | **45/45 en verde** |
 
 ### Alcance confirmado (sin cambios respecto a 8.10.0)
 
@@ -268,14 +301,14 @@ Orden invariable: **copy → verify → update references → observe → delete
 `supabase/functions/_shared/storageQuarantine.ts` resume, **sólo en conteos**
 por cubeta y motivo, todo objeto que **no** tiene dueño único y verificable:
 
-| Motivo | Significado |
-|---|---|
-| `owner_not_found` | ningún registro dueño coincide |
-| `owner_conflict` | más de un registro o más de una empresa |
-| `unknown_organization` | el dueño apunta a una empresa desconocida |
-| `incomplete_lookup` | la lectura no se agotó: falla cerrado |
-| `unsupported_bucket` | la cubeta no tiene relación dueña definida |
-| `invalid_path` | la ruta no es interpretable |
+| Motivo                 | Significado                                |
+| ---------------------- | ------------------------------------------ |
+| `owner_not_found`      | ningún registro dueño coincide             |
+| `owner_conflict`       | más de un registro o más de una empresa    |
+| `unknown_organization` | el dueño apunta a una empresa desconocida  |
+| `incomplete_lookup`    | la lectura no se agotó: falla cerrado      |
+| `unsupported_bucket`   | la cubeta no tiene relación dueña definida |
+| `invalid_path`         | la ruta no es interpretable                |
 
 Estos objetos **quedan denegados y en lista de resolución manual**: no se copian,
 no se referencian y jamás se borran. El resumen del modo `plan` expone el campo
@@ -314,14 +347,14 @@ idx 32, forward-only).** Nuevo predicado
 
 Se reescribieron con ese predicado **todas** las ramas de personal:
 
-| Bucket | Policies reescritas |
-| --- | --- |
-| `documents` | `Staff read/upload/update/delete documents` |
-| `cfdi-files` | `Admins can read/write/update/delete cfdi-files` |
-| `supplier-bill-cfdi-xml` | `Staff read` + `Admin/Administrativo insert/update/delete` |
-| `supplier-payment-receipts` | `Receipts read/insert/update/delete` |
-| `feedback-screenshots` | `Admins read all` / `Admins delete any` |
-| `payment-proofs` | rama administrativa dentro de `Customers read own proofs` y `Customers delete own pending proofs` |
+| Bucket                      | Policies reescritas                                                                               |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| `documents`                 | `Staff read/upload/update/delete documents`                                                       |
+| `cfdi-files`                | `Admins can read/write/update/delete cfdi-files`                                                  |
+| `supplier-bill-cfdi-xml`    | `Staff read` + `Admin/Administrativo insert/update/delete`                                        |
+| `supplier-payment-receipts` | `Receipts read/insert/update/delete`                                                              |
+| `feedback-screenshots`      | `Admins read all` / `Admins delete any`                                                           |
+| `payment-proofs`            | rama administrativa dentro de `Customers read own proofs` y `Customers delete own pending proofs` |
 
 **Lo que NO cambió.** Las policies de **objeto propio del portal** conservan su
 alcance exacto: `payment_proof_path_allowed` (comprobantes del propio cliente),
@@ -415,18 +448,18 @@ Registrar **no** autoriza nada por sí solo. En cada corrida,
 `evaluateManualResolution()` revalida contra el estado vivo y **falla cerrado**
 ante cualquiera de estos casos:
 
-| Rechazo | Motivo |
-|---|---|
-| `no_manual_resolution` | no hay decisión registrada |
-| `revoked` | la decisión fue revocada |
-| `identity_mismatch` | la fila no corresponde exactamente a ese objeto |
-| `missing_justification` | la justificación es insuficiente |
-| `incomplete_lookup` | la lectura de dueños no se agotó: el operador no vio todo |
-| `unsupported_bucket` | la cubeta no tiene relación dueña definida |
-| `contradicts_derived_owner` | contradice un dueño derivado con certeza |
-| `unknown_organization` | la empresa no existe |
-| `inactive_organization` | la empresa está suspendida |
-| `revalidation_expired` | la revalidación tiene más de 24 h o es futura |
+| Rechazo                     | Motivo                                                    |
+| --------------------------- | --------------------------------------------------------- |
+| `no_manual_resolution`      | no hay decisión registrada                                |
+| `revoked`                   | la decisión fue revocada                                  |
+| `identity_mismatch`         | la fila no corresponde exactamente a ese objeto           |
+| `missing_justification`     | la justificación es insuficiente                          |
+| `incomplete_lookup`         | la lectura de dueños no se agotó: el operador no vio todo |
+| `unsupported_bucket`        | la cubeta no tiene relación dueña definida                |
+| `contradicts_derived_owner` | contradice un dueño derivado con certeza                  |
+| `unknown_organization`      | la empresa no existe                                      |
+| `inactive_organization`     | la empresa está suspendida                                |
+| `revalidation_expired`      | la revalidación tiene más de 24 h o es futura             |
 
 Sólo si la revalidación pasa, el objeto entra al flujo normal
 **copy → verify → update references → observe → delete**, con la fase de borrado

@@ -3,6 +3,7 @@
  * (logos e iconografía). Cualquier builder bajo `src/lib/pdf/**` debe
  * consumir estas funciones en lugar de importar fetchers locales por feature.
  */
+import { resolveLogoSrc } from "@/lib/branding/logoSource";
 
 /**
  * Descarga una imagen desde una URL y la convierte a data URL base64.
@@ -26,11 +27,17 @@ export async function loadImageAsBase64(url: string): Promise<string | null> {
 
 /**
  * Wrapper null-safe para cargar el logo de la empresa.
- * Si no hay URL, regresa null sin hacer fetch.
+ *
+ * Multiempresa: el valor persistido nunca se descarga tal cual. Se resuelve
+ * antes a una URL firmada de TTL corto del Storage de este proyecto; si el
+ * valor apunta a un host externo o no verificable, el PDF se genera sin logo
+ * (fail-closed) en vez de hacer un fetch arbitrario.
  */
 export async function loadCompanyLogo(
   logoUrl: string | null | undefined,
 ): Promise<string | null> {
   if (!logoUrl) return null;
-  return loadImageAsBase64(logoUrl);
+  const src = await resolveLogoSrc(logoUrl);
+  if (!src) return null;
+  return loadImageAsBase64(src);
 }

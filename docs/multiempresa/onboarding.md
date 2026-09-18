@@ -1,14 +1,44 @@
 # Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
 
-Estado: **implementado en el repositorio (8.19.3), sin producción**. Las
-migraciones `0030_multi_org_onboarding_and_customer_scope.sql` (idx 30) a
-`0034_storage_manual_resolutions.sql` (idx 34) están en el journal y sólo se
-ejecutan en CI efímero: **0030–0034 siguen pendientes (no aplicadas)**. El
-ledger de producción sólo acredita ids 25–30 = archivos `0024`–`0029`; el id 31
-extra del ledger es una anomalía histórica sin identificar y **no** acredita a
-`0030`. Su rollout a la base conectada requiere autorización explícita y sigue
-el mismo canal oficial que 0024–0029, en orden 0030 → 0034 (el `when` de
-0032–0034 se corrigió el 2026-09-18 para que el runner no las omita).
+## Estado actual (2026-09-18)
+
+> Este bloque es el **estado vigente**. Las secciones siguientes son
+> **snapshots históricos fechados** de las auditorías previas y se conservan
+> tal cual para trazabilidad: no describen la situación de hoy.
+
+- Migraciones **0030–0035 aplicadas** a la base conectada por el canal oficial.
+- **Operador raíz asignado** (exactamente 1 operador de plataforma); 5 membresías.
+- **Migración de Storage completada**: 293 referencias actualizadas, 0 pendientes,
+  0 fallos; 17 huérfanos copiados y verificados; **1 resolución manual activa**.
+- **Originales conservados** (632 objetos = 322 originales + copias). El borrado
+  de fuentes sigue **deshabilitado** y sin autorización.
+- **1 sola organización activa**.
+- **1 referencia no soportada pendiente de clasificación/validación**:
+  `company_settings.logo_url` con URL HTTPS que **no** tiene forma de ruta
+  `/storage/v1/object/...` ni pertenece al Storage de este proyecto. No se
+  publica su valor, host, ruta, token ni identificadores. A partir de 8.23.2 la
+  aplicación la trata **fail-closed**: no se renderiza ni se descarga, y la
+  interfaz cae al distintivo tipográfico. **Reemplazar el valor persistido exige
+  mutación de datos y no está autorizado**; queda como requisito explícito.
+
+### Gates obligatorios antes de dar de alta una segunda empresa
+
+1. **Branding por empresa resuelto y probado**: logo servido desde la
+   `company_settings` de la organización del contexto, firmado con TTL corto;
+   la referencia no soportada clasificada o sustituida por el propietario.
+2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
+3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
+4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
+   documentada. Hoy hay respaldo diario, pero **no** hay restore ensayado.
+
+---
+
+### Snapshot histórico (previo a 2026-09-18)
+
+Estado en ese momento: implementado en el repositorio (8.19.3), sin producción; las
+migraciones `0030`–`0034` figuraban en el journal y **pendientes de aplicar**, y
+el ledger sólo acreditaba ids 25–30 = archivos `0024`–`0029` (el id 31 extra es
+una anomalía histórica sin identificar). Superado: 0030–0035 ya están aplicadas.
 
 > **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
 > plataforma **explícita** (sin promoción automática de administradores de
@@ -16,16 +46,15 @@ el mismo canal oficial que 0024–0029, en orden 0030 → 0034 (el `when` de
 > administrador), clientes sólo para **membresía interna** y Storage con
 > prefijo de empresa activa **obligatorio**.
 
-
 ## Qué cierra este tramo
 
-| Brecha (auditoría previa) | Cierre |
-| --- | --- |
-| No había forma de crear una segunda empresa ni su primer administrador | Operadores de plataforma + funciones `platform_*` + pantalla "Empresas" |
-| Una empresa no podía suspenderse | `organizations.is_active` gobierna todo el contexto; motivo `organization_inactive` en el navegador |
-| Clientes: el personal leía la tabla global | Policies de `customers` acotadas a la relación comercial de SU empresa; alta fija `created_by_organization_id`; vínculo por RFC; archivado por relación |
-| Portal: "acceso activo" salía de `customers.user_id` global | Se evalúa sobre `customer_portal_accounts (organization_id, customer_id)` |
-| Cobertura RLS por listas estáticas | Suite dinámica `multi_org_scope_coverage.sql` sobre `information_schema`/`pg_policies` |
+| Brecha (auditoría previa)                                              | Cierre                                                                                                                                                  |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| No había forma de crear una segunda empresa ni su primer administrador | Operadores de plataforma + funciones `platform_*` + pantalla "Empresas"                                                                                 |
+| Una empresa no podía suspenderse                                       | `organizations.is_active` gobierna todo el contexto; motivo `organization_inactive` en el navegador                                                     |
+| Clientes: el personal leía la tabla global                             | Policies de `customers` acotadas a la relación comercial de SU empresa; alta fija `created_by_organization_id`; vínculo por RFC; archivado por relación |
+| Portal: "acceso activo" salía de `customers.user_id` global            | Se evalúa sobre `customer_portal_accounts (organization_id, customer_id)`                                                                               |
+| Cobertura RLS por listas estáticas                                     | Suite dinámica `multi_org_scope_coverage.sql` sobre `information_schema`/`pg_policies`                                                                  |
 
 ## Modelo de autorización
 
@@ -158,17 +187,17 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
 
 ## Pruebas
 
-| Capa | Archivo | Cubre |
-| --- | --- | --- |
-| RLS (CI efímero) | `supabase/tests/rls/multi_org_onboarding.sql` | catálogo/ACL de 0030, alta de B por operador, primer admin atómico, `handle_new_user` con varias empresas, aislamiento de clientes A/B, vínculo por RFC, archivado por relación, portal por empresa, suspensión |
-| RLS (CI efímero) | `supabase/tests/rls/multi_org_scope_coverage.sql` | cobertura dinámica: toda tabla pública de negocio con `organization_id` tiene `org_scope_isolation` + trigger de contexto; las que no lo tienen están en la allowlist explícita; RLS habilitada en todas |
-| Vitest | `src/lib/server/__tests__/requirePlatformOperator.test.ts` | guard fail-closed (403/503), no-admin, cuenta desactivada, empresa suspendida, cuenta de portal |
-| Vitest | `src/lib/organization/__tests__/resolveOrganizationContext.test.ts`, `adminScope.test.ts` | organización suspendida/no visible, errores de lectura, cuentas de portal |
-| Vitest | `src/layouts/hooks/__tests__/useVisibleNavGroups.test.tsx` | "Empresas" oculta sin confirmación del servidor |
-| Vitest | `src/features/customers/.../useCustomers.rls.test.ts` | detalle vía relación comercial; sin relación → `null` |
-| RLS (CI efímero) | `supabase/tests/rls/audit_hardening_0031.sql` | portal con rol `admin` residual y admin sin membresía: no listan clientes ni archivan (y no cambian datos ajenos); `organization_document_counters` con RLS deny-all y ACL sólo `service_role`; retiro del seed de operadores y ACL de `platform_*`; admin de empresa no puede crear ni suspender empresas; alta en dos tiempos (empresa inactiva hasta el primer admin) |
-| RLS (CI efímero) | `supabase/tests/rls/storage_strict_org_prefix_0031.sql` | Storage con dos empresas: SELECT/INSERT/UPDATE/DELETE; prefijo ajeno, prefijo desconocido y legado sin prefijo denegados; empresa suspendida sin acceso por Storage API; `service_role` conserva el acceso del migrador |
-| Deno | `supabase/functions/_shared/storageQuarantine_test.ts` | cuarentena agregada del migrador: sin dueño, conflicto, lectura incompleta o cubeta no soportada nunca quedan "listos" |
+| Capa             | Archivo                                                                                   | Cubre                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RLS (CI efímero) | `supabase/tests/rls/multi_org_onboarding.sql`                                             | catálogo/ACL de 0030, alta de B por operador, primer admin atómico, `handle_new_user` con varias empresas, aislamiento de clientes A/B, vínculo por RFC, archivado por relación, portal por empresa, suspensión                                                                                                                                                          |
+| RLS (CI efímero) | `supabase/tests/rls/multi_org_scope_coverage.sql`                                         | cobertura dinámica: toda tabla pública de negocio con `organization_id` tiene `org_scope_isolation` + trigger de contexto; las que no lo tienen están en la allowlist explícita; RLS habilitada en todas                                                                                                                                                                 |
+| Vitest           | `src/lib/server/__tests__/requirePlatformOperator.test.ts`                                | guard fail-closed (403/503), no-admin, cuenta desactivada, empresa suspendida, cuenta de portal                                                                                                                                                                                                                                                                          |
+| Vitest           | `src/lib/organization/__tests__/resolveOrganizationContext.test.ts`, `adminScope.test.ts` | organización suspendida/no visible, errores de lectura, cuentas de portal                                                                                                                                                                                                                                                                                                |
+| Vitest           | `src/layouts/hooks/__tests__/useVisibleNavGroups.test.tsx`                                | "Empresas" oculta sin confirmación del servidor                                                                                                                                                                                                                                                                                                                          |
+| Vitest           | `src/features/customers/.../useCustomers.rls.test.ts`                                     | detalle vía relación comercial; sin relación → `null`                                                                                                                                                                                                                                                                                                                    |
+| RLS (CI efímero) | `supabase/tests/rls/audit_hardening_0031.sql`                                             | portal con rol `admin` residual y admin sin membresía: no listan clientes ni archivan (y no cambian datos ajenos); `organization_document_counters` con RLS deny-all y ACL sólo `service_role`; retiro del seed de operadores y ACL de `platform_*`; admin de empresa no puede crear ni suspender empresas; alta en dos tiempos (empresa inactiva hasta el primer admin) |
+| RLS (CI efímero) | `supabase/tests/rls/storage_strict_org_prefix_0031.sql`                                   | Storage con dos empresas: SELECT/INSERT/UPDATE/DELETE; prefijo ajeno, prefijo desconocido y legado sin prefijo denegados; empresa suspendida sin acceso por Storage API; `service_role` conserva el acceso del migrador                                                                                                                                                  |
+| Deno             | `supabase/functions/_shared/storageQuarantine_test.ts`                                    | cuarentena agregada del migrador: sin dueño, conflicto, lectura incompleta o cubeta no soportada nunca quedan "listos"                                                                                                                                                                                                                                                   |
 
 ## Pendiente (fuera de este tramo)
 
@@ -191,7 +220,6 @@ La compensación respeta la auditoría inmutable: no borra filas de bitácora.
   traslado copy → verify → update references → observe → delete, con el
   huérfano sin coincidencia resuelto manualmente vía la tabla de 0034 (fuente
   intacta hasta una aprobación separada).
-
 
 ## Tramo 12 (8.18.0) · El contexto de empresa del alta deja de leerse de `user_metadata`
 

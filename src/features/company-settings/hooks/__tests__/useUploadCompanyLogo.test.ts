@@ -63,12 +63,13 @@ describe("useUploadCompanyLogo · Fix 9.2", () => {
     });
   });
 
-  it("acepta PNG dentro del límite y devuelve la URL pública", async () => {
+  it("acepta PNG y devuelve la RUTA bajo el prefijo de la organización (no una URL)", async () => {
     const { result } = renderHook(() => useUploadCompanyLogo());
     const url = await result.current.upload(fakeFile("image/png", 500 * 1024, "logo.png"));
-    expect(url).toBe("https://cdn/logo.png");
     expect(uploadMock).toHaveBeenCalledTimes(1);
     const path = uploadMock.mock.calls[0][0] as string;
+    expect(url).toBe(path);
+    expect(url).not.toMatch(/^https?:/);
     expect(path.endsWith(".png")).toBe(true);
   });
 });

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { LogoUploader, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
+import { LogoUploader, useCompanyLogoSrc, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
@@ -27,6 +27,8 @@ export function CompanyLogoTab() {
 
   const savedUrl = settings?.logo_url || "";
   const pendingUrl = useWatch({ control: form.control, name: "logo_url" }) || "";
+  const savedSrc = useCompanyLogoSrc(savedUrl);
+  const pendingSrc = useCompanyLogoSrc(pendingUrl);
   const hasSaved = !!savedUrl;
   const hasPendingChange = pendingUrl !== savedUrl;
 
@@ -97,8 +99,8 @@ export function CompanyLogoTab() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Actual</p>
                     <div className="h-24 rounded-md border border-border bg-muted flex items-center justify-center overflow-hidden">
-                      {savedUrl ? (
-                        <img src={savedUrl} alt="Logo actual" className="h-full w-full object-contain p-2" />
+                      {savedSrc ? (
+                        <img src={savedSrc} alt="Logo actual" className="h-full w-full object-contain p-2" />
                       ) : (
                         <span className="text-xs text-muted-foreground">Sin logo</span>
                       )}
@@ -107,8 +109,8 @@ export function CompanyLogoTab() {
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Nuevo</p>
                     <div className="h-24 rounded-md border border-warning/30 bg-background flex items-center justify-center overflow-hidden">
-                      {pendingUrl ? (
-                        <img src={pendingUrl} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
+                      {pendingSrc ? (
+                        <img src={pendingSrc} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
                       ) : (
                         <span className="text-xs text-muted-foreground">Sin logo</span>
                       )}
