@@ -31,8 +31,17 @@ describe("classifyLogoSource", () => {
     });
   });
 
-  it("rechaza host externo, data URI y rutas con salto de nivel", () => {
-    expect(classifyLogoSource("https://cdn.externo.example/logo.png").kind)
+  it("clasifica una imagen pública HTTPS como marca global de LiftGo", () => {
+    // La marca del producto se comparte a propósito entre empresas: no es dato
+    // de un tenant, no se firma y no requiere traslado a Storage.
+    expect(classifyLogoSource("https://cdn.marca.example/liftgo.png")).toEqual({
+      kind: "global-brand",
+      url: "https://cdn.marca.example/liftgo.png",
+    });
+  });
+
+  it("rechaza http en claro, data URI y rutas con salto de nivel", () => {
+    expect(classifyLogoSource("http://cdn.marca.example/liftgo.png").kind)
       .toBe("unsupported");
     expect(classifyLogoSource("data:image/png;base64,AAA").kind).toBe("unsupported");
     expect(classifyLogoSource(`${ORG_A}/../${ORG_B}/logo.png`).kind).toBe("unsupported");
@@ -59,10 +68,18 @@ describe("resolveLogoSrc — aislamiento entre empresas", () => {
     expect(calls.every((c) => c.ttl <= 300)).toBe(true);
   });
 
-  it("no firma ni descarga una referencia externa (fail-closed)", async () => {
+  it("la marca global se devuelve tal cual y NUNCA se firma", async () => {
     const { client, calls } = makeClient();
-    const src = await resolveLogoSrc("https://cdn.externo.example/logo.png", { client });
-    expect(src).toBeNull();
+    const src = await resolveLogoSrc("https://cdn.marca.example/liftgo.png", { client });
+    expect(src).toBe("https://cdn.marca.example/liftgo.png");
+    expect(calls).toHaveLength(0);
+  });
+
+  it("no descarga ni firma esquemas no soportados (fail-closed)", async () => {
+    const { client, calls } = makeClient();
+    expect(await resolveLogoSrc("data:image/png;base64,AAA", { client })).toBeNull();
+    expect(await resolveLogoSrc("http://cdn.marca.example/liftgo.png", { client })).toBeNull();
+    expect(await resolveLogoSrc(`${ORG_A}/../${ORG_B}/logo.png`, { client })).toBeNull();
     expect(calls).toHaveLength(0);
   });
 

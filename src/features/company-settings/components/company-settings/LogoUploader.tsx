@@ -30,7 +30,7 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
       <div className="flex items-center gap-4">
         {previewSrc ? (
           <div className="relative h-16 w-16 rounded-md border border-border overflow-hidden bg-muted flex items-center justify-center">
-            <img src={previewSrc} alt="Logo" className="h-full w-full object-contain" />
+            <img referrerPolicy="no-referrer" src={previewSrc} alt="Logo" className="h-full w-full object-contain" />
           </div>
         ) : (
           <div className="h-16 w-16 rounded-md border border-dashed border-border bg-muted flex items-center justify-center">

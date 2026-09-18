@@ -100,7 +100,7 @@ export function CompanyLogoTab() {
                     <p className="text-xs text-muted-foreground">Actual</p>
                     <div className="h-24 rounded-md border border-border bg-muted flex items-center justify-center overflow-hidden">
                       {savedSrc ? (
-                        <img src={savedSrc} alt="Logo actual" className="h-full w-full object-contain p-2" />
+                        <img referrerPolicy="no-referrer" src={savedSrc} alt="Logo actual" className="h-full w-full object-contain p-2" />
                       ) : (
                         <span className="text-xs text-muted-foreground">Sin logo</span>
                       )}
@@ -110,7 +110,7 @@ export function CompanyLogoTab() {
                     <p className="text-xs text-muted-foreground">Nuevo</p>
                     <div className="h-24 rounded-md border border-warning/30 bg-background flex items-center justify-center overflow-hidden">
                       {pendingSrc ? (
-                        <img src={pendingSrc} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
+                        <img referrerPolicy="no-referrer" src={pendingSrc} alt="Nuevo logo" className="h-full w-full object-contain p-2" />
                       ) : (
                         <span className="text-xs text-muted-foreground">Sin logo</span>
                       )}
