@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -31,7 +31,6 @@ import { describe, expect, it } from "vitest";
  *    función SQL (`platform_set_organization_active`, `platform_*`);
  *  - el origen real de un identificador (análisis de flujo de datos).
  */
-
 
 const ROOT = process.cwd();
 const TYPES_FILE = join(ROOT, "src", "integrations", "supabase", "types.ts");
@@ -218,7 +217,9 @@ function filterScopeOrigin(chain: string): "trusted" | "untrusted" | "none" {
       if (isTrustedOrgValue(m[1] ?? "")) return "trusted";
     }
   }
-  const match = /\.match\(\s*\{[^}]*organization_id\s*:\s*([^,}]+)/s.exec(chain);
+  const match = /\.match\(\s*\{[^}]*organization_id\s*:\s*([^,}]+)/s.exec(
+    chain,
+  );
   if (match) {
     sawAny = true;
     if (isTrustedOrgValue(match[1] ?? "")) return "trusted";
@@ -332,7 +333,6 @@ function scanPrivilegedQueries(): {
   return { findings, usedAllowEntries, inspected, writes };
 }
 
-
 describe("aislamiento por organización en código de servidor", () => {
   it("las tablas con empresa se derivan de los tipos generados", () => {
     const tables = orgScopedTables();
@@ -434,7 +434,6 @@ describe("aislamiento por organización en código de servidor", () => {
     expect(chainVerdict(chain).why).toBe("empresa de origen no confiable");
   });
 });
-
 
 /** Endpoints retirados: un solo handler y sin código privilegiado residual. */
 const RETIRED_ENDPOINTS = [
