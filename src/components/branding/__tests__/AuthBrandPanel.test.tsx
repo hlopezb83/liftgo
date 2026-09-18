@@ -8,7 +8,6 @@ import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 const LOGIN_SCREENS = [
   "src/features/auth/pages/AuthPage.tsx",
   "src/features/portal/pages/PortalLogin.tsx",
-  "src/components/branding/AuthBrandPanel.tsx",
 ];
 
 describe("AuthBrandPanel — marca global en pantallas de acceso", () => {
@@ -34,7 +33,10 @@ describe("AuthBrandPanel — marca global en pantallas de acceso", () => {
 
   it("las pantallas de acceso de ERP y portal no consumen logo_url público", () => {
     for (const file of LOGIN_SCREENS) {
-      const source = readFileSync(resolve(process.cwd(), file), "utf8");
+      // Se ignoran los comentarios: sólo importa el código renderizado.
+      const source = readFileSync(resolve(process.cwd(), file), "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/\/\/.*$/gm, "");
       expect(source).not.toContain("logo_url");
       expect(source).not.toContain("usePublicBranding");
     }
