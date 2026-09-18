@@ -186,7 +186,9 @@ Deno.test("manualResolution: rechaza revocado, ajeno, inactivo y caduco", () => 
   assertEquals(
     evaluateManualResolution({
       ...baseInput,
-      record: record({ organization_id: "0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f" }),
+      record: record({
+        organization_id: "0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f",
+      }),
     }),
     { allowed: false, reason: "unknown_organization" },
   );
