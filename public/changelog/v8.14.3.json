@@ -1,0 +1,13 @@
+{
+  "version": "8.14.3",
+  "date": "2026-09-18",
+  "type": "patch",
+  "category": "backend",
+  "title": "Documentación: corrige el resumen operativo de los archivos sueltos",
+  "description": "El documento decía que los 17 archivos sin referencia y sin prefijo no tenían dueño derivable; en realidad 16 sí lo tienen y 1 sigue sin coincidencia.",
+  "changes": [
+    "Se corrige la redacción: los 17 bloquean la fase de copia porque el gate cuenta sin usar la atribución, no porque falten dueños.",
+    "16 de los 17 tienen dueño derivable (15 por folio fiscal y 1 por id de factura de proveedor); 1 sigue sin coincidencia.",
+    "Sólo documentación: sin cambios de código, permisos, base de datos ni operaciones sobre archivos."
+  ]
+}
