@@ -1,7 +1,17 @@
 import { useMemo } from "react";
 import { usePlatformOperatorStatus } from "@/features/platform/hooks/usePlatformOperator";
-import { ROUTE_TO_MODULE, type AccessLevel, type AppRole, useRolePermissions, useUserRole } from "@/features/users";
-import { NAV_GROUPS, ALWAYS_VISIBLE_ROUTES, type NavGroup } from "@/layouts/sidebar/navConfig";
+import {
+  ROUTE_TO_MODULE,
+  type AccessLevel,
+  type AppRole,
+  useRolePermissions,
+  useUserRole,
+} from "@/features/users";
+import {
+  NAV_GROUPS,
+  ALWAYS_VISIBLE_ROUTES,
+  type NavGroup,
+} from "@/layouts/sidebar/navConfig";
 
 function getItemAccess(
   perms: Record<string, Record<string, AccessLevel>> | undefined,

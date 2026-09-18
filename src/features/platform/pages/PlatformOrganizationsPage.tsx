@@ -12,7 +12,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,8 +29,18 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { CreateOrganizationResult, PlatformOrganizationRow } from "@/lib/platformAdmin.functions";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import type {
+  CreateOrganizationResult,
+  PlatformOrganizationRow,
+} from "@/lib/platformAdmin.functions";
 import {
   useCreateOrganization,
   usePlatformOperatorStatus,
@@ -81,13 +97,21 @@ function CreateOrganizationDialog({
           <DialogHeader>
             <DialogTitle>Nueva empresa</DialogTitle>
             <DialogDescription>
-              Se crea la empresa y su primer administrador en una sola operación. Si algo falla, no queda ninguna empresa a medias.
+              Se crea la empresa y su primer administrador en una sola
+              operación. Si algo falla, no queda ninguna empresa a medias.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2">
             <Label htmlFor="org-name">Nombre de la empresa</Label>
-            <Input id="org-name" required minLength={2} maxLength={120} value={form.name} onChange={(e) => update("name")(e.target.value)} />
+            <Input
+              id="org-name"
+              required
+              minLength={2}
+              maxLength={120}
+              value={form.name}
+              onChange={(e) => update("name")(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="org-slug">Identificador (slug)</Label>
@@ -101,19 +125,42 @@ function CreateOrganizationDialog({
                 update("slug")(e.target.value.toLowerCase());
               }}
             />
-            <p className="text-xs text-muted-foreground">Minúsculas, dígitos y guiones. No se puede cambiar después.</p>
+            <p className="text-xs text-muted-foreground">
+              Minúsculas, dígitos y guiones. No se puede cambiar después.
+            </p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="org-admin-name">Nombre del primer administrador</Label>
-            <Input id="org-admin-name" required maxLength={200} value={form.admin_full_name} onChange={(e) => update("admin_full_name")(e.target.value)} />
+            <Label htmlFor="org-admin-name">
+              Nombre del primer administrador
+            </Label>
+            <Input
+              id="org-admin-name"
+              required
+              maxLength={200}
+              value={form.admin_full_name}
+              onChange={(e) => update("admin_full_name")(e.target.value)}
+            />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="org-admin-email">Correo del primer administrador</Label>
-            <Input id="org-admin-email" type="email" required value={form.admin_email} onChange={(e) => update("admin_email")(e.target.value)} />
+            <Label htmlFor="org-admin-email">
+              Correo del primer administrador
+            </Label>
+            <Input
+              id="org-admin-email"
+              type="email"
+              required
+              value={form.admin_email}
+              onChange={(e) => update("admin_email")(e.target.value)}
+            />
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={create.isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={create.isPending}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={create.isPending}>
@@ -139,16 +186,23 @@ function CreatedResultDialog({
         <DialogHeader>
           <DialogTitle>Empresa creada</DialogTitle>
           <DialogDescription>
-            Comparte el enlace de acceso con {result?.admin_email}. Es de un solo uso y le permite definir su contraseña.
+            Comparte el enlace de acceso con {result?.admin_email}. Es de un
+            solo uso y le permite definir su contraseña.
           </DialogDescription>
         </DialogHeader>
         {result?.recovery_link ? (
-          <Input readOnly value={result.recovery_link} onFocus={(e) => e.currentTarget.select()} />
+          <Input
+            readOnly
+            value={result.recovery_link}
+            onFocus={(e) => e.currentTarget.select()}
+          />
         ) : (
           <Alert>
             <AlertTitle>Sin enlace de acceso</AlertTitle>
             <AlertDescription>
-              La empresa y el administrador se crearon, pero no se pudo generar el enlace. El administrador puede usar "Olvidé mi contraseña" con su correo.
+              La empresa y el administrador se crearon, pero no se pudo generar
+              el enlace. El administrador puede usar "Olvidé mi contraseña" con
+              su correo.
             </AlertDescription>
           </Alert>
         )}
@@ -167,7 +221,12 @@ function OrganizationRowActions({ row }: { row: PlatformOrganizationRow }) {
   if (row.is_active) {
     return (
       <>
-        <Button variant="outline" size="sm" onClick={() => setConfirming(true)} disabled={toggle.isPending}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setConfirming(true)}
+          disabled={toggle.isPending}
+        >
           Suspender
         </Button>
         <Dialog open={confirming} onOpenChange={setConfirming}>
@@ -175,11 +234,17 @@ function OrganizationRowActions({ row }: { row: PlatformOrganizationRow }) {
             <DialogHeader>
               <DialogTitle>Suspender {row.name}</DialogTitle>
               <DialogDescription>
-                Todos sus usuarios internos y cuentas de portal perderán el acceso de inmediato. Los datos se conservan y la empresa puede reactivarse después.
+                Todos sus usuarios internos y cuentas de portal perderán el
+                acceso de inmediato. Los datos se conservan y la empresa puede
+                reactivarse después.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setConfirming(false)} disabled={toggle.isPending}>
+              <Button
+                variant="outline"
+                onClick={() => setConfirming(false)}
+                disabled={toggle.isPending}
+              >
                 Cancelar
               </Button>
               <Button
@@ -214,8 +279,14 @@ function OrganizationRowActions({ row }: { row: PlatformOrganizationRow }) {
 }
 
 export default function PlatformOrganizationsPage() {
-  const { data: isOperator, isLoading: loadingOperator } = usePlatformOperatorStatus();
-  const { data: organizations, isLoading, isError, refetch } = usePlatformOrganizations(isOperator === true);
+  const { data: isOperator, isLoading: loadingOperator } =
+    usePlatformOperatorStatus();
+  const {
+    data: organizations,
+    isLoading,
+    isError,
+    refetch,
+  } = usePlatformOrganizations(isOperator === true);
   const [createOpen, setCreateOpen] = useState(false);
   const [created, setCreated] = useState<CreateOrganizationResult | null>(null);
 
@@ -228,7 +299,8 @@ export default function PlatformOrganizationsPage() {
         <Alert>
           <AlertTitle>Sección restringida</AlertTitle>
           <AlertDescription>
-            El alta y la suspensión de empresas sólo están disponibles para operadores de plataforma.
+            El alta y la suspensión de empresas sólo están disponibles para
+            operadores de plataforma.
           </AlertDescription>
         </Alert>
       </div>
@@ -251,7 +323,8 @@ export default function PlatformOrganizationsPage() {
         <CardHeader>
           <CardTitle>Empresas registradas</CardTitle>
           <CardDescription>
-            Cada usuario pertenece a una sola empresa; una empresa suspendida bloquea a todos sus miembros hasta reactivarla.
+            Cada usuario pertenece a una sola empresa; una empresa suspendida
+            bloquea a todos sus miembros hasta reactivarla.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -260,7 +333,13 @@ export default function PlatformOrganizationsPage() {
               <AlertTitle>No se pudo cargar la lista</AlertTitle>
               <AlertDescription className="flex items-center gap-3">
                 Reintenta en unos segundos.
-                <Button size="sm" variant="outline" onClick={() => void refetch()}>Reintentar</Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void refetch()}
+                >
+                  Reintentar
+                </Button>
               </AlertDescription>
             </Alert>
           ) : isLoading ? (
@@ -282,13 +361,25 @@ export default function PlatformOrganizationsPage() {
                 {(organizations ?? []).map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell className="font-mono text-xs">{row.slug}</TableCell>
-                    <TableCell>
-                      {row.is_active ? <Badge>Activa</Badge> : <Badge variant="secondary">Suspendida</Badge>}
+                    <TableCell className="font-mono text-xs">
+                      {row.slug}
                     </TableCell>
-                    <TableCell className="text-right">{row.internal_members}</TableCell>
-                    <TableCell className="text-right">{row.portal_accounts}</TableCell>
-                    <TableCell className="text-right">{row.customers}</TableCell>
+                    <TableCell>
+                      {row.is_active ? (
+                        <Badge>Activa</Badge>
+                      ) : (
+                        <Badge variant="secondary">Suspendida</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {row.internal_members}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {row.portal_accounts}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {row.customers}
+                    </TableCell>
                     <TableCell className="text-right">
                       <OrganizationRowActions row={row} />
                     </TableCell>
@@ -296,7 +387,10 @@ export default function PlatformOrganizationsPage() {
                 ))}
                 {(organizations ?? []).length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={7}
+                      className="text-center text-sm text-muted-foreground"
+                    >
                       No hay empresas registradas.
                     </TableCell>
                   </TableRow>
@@ -307,7 +401,11 @@ export default function PlatformOrganizationsPage() {
         </CardContent>
       </Card>
 
-      <CreateOrganizationDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={setCreated} />
+      <CreateOrganizationDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={setCreated}
+      />
       <CreatedResultDialog result={created} onClose={() => setCreated(null)} />
     </div>
   );

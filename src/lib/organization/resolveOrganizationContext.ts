@@ -35,7 +35,8 @@ export interface OrganizationContextMissing {
     | "portal_organization_mismatch";
 }
 
-export type OrganizationContextResult = OrganizationContextReady | OrganizationContextMissing;
+export type OrganizationContextResult =
+  OrganizationContextReady | OrganizationContextMissing;
 
 /** Error de verificación (lectura fallida): estado distinto a "sin membresía". */
 export class OrganizationContextError extends Error {
@@ -57,16 +58,23 @@ interface QueryResult<T> {
 
 /** Contrato mínimo del cliente Supabase usado aquí (facilita pruebas sin red). */
 export interface OrganizationContextClient {
-  from(table: "organization_memberships" | "customer_portal_accounts" | "organizations"): {
+  from(
+    table:
+      "organization_memberships" | "customer_portal_accounts" | "organizations",
+  ): {
     select(columns: string): {
-      eq(column: string, value: string): {
+      eq(
+        column: string,
+        value: string,
+      ): {
         limit(count: number): PromiseLike<QueryResult<Record<string, unknown>>>;
       };
     };
   };
 }
 
-const str = (value: unknown): string | null => (typeof value === "string" && value ? value : null);
+const str = (value: unknown): string | null =>
+  typeof value === "string" && value ? value : null;
 
 /**
  * La empresa de la membresía debe existir y estar activa. La fila se lee con el
@@ -90,7 +98,8 @@ async function assertOrganizationActive(
     );
   }
 
-  const row = (organization.data ?? [])[0] as Record<string, unknown> | undefined;
+  const row = (organization.data ?? [])[0] as
+    Record<string, unknown> | undefined;
   if (!row || str(row["id"]) !== organizationId || row["is_active"] !== true) {
     return { status: "no_membership", reason: "organization_inactive" };
   }
@@ -116,8 +125,10 @@ async function resolvePortalAccount(
   }
 
   const accounts = (portal.data ?? []) as Record<string, unknown>[];
-  if (accounts.length === 0) return { status: "no_membership", reason: "portal_account_missing" };
-  if (accounts.length > 1) return { status: "no_membership", reason: "ambiguous_membership" };
+  if (accounts.length === 0)
+    return { status: "no_membership", reason: "portal_account_missing" };
+  if (accounts.length > 1)
+    return { status: "no_membership", reason: "ambiguous_membership" };
 
   const account = accounts[0] as Record<string, unknown>;
   if (str(account["status"]) !== "active") {
@@ -153,13 +164,18 @@ export async function resolveOrganizationContext(
   }
 
   const rows = membership.data ?? [];
-  if (rows.length === 0) return { status: "no_membership", reason: "no_membership" };
-  if (rows.length > 1) return { status: "no_membership", reason: "ambiguous_membership" };
+  if (rows.length === 0)
+    return { status: "no_membership", reason: "no_membership" };
+  if (rows.length > 1)
+    return { status: "no_membership", reason: "ambiguous_membership" };
 
   const row = rows[0] as Record<string, unknown>;
   const organizationId = str(row["organization_id"]);
   const memberType = str(row["member_type"]);
-  if (!organizationId || (memberType !== "internal" && memberType !== "portal")) {
+  if (
+    !organizationId ||
+    (memberType !== "internal" && memberType !== "portal")
+  ) {
     return { status: "no_membership", reason: "no_membership" };
   }
 

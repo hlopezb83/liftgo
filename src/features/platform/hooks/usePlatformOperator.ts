@@ -23,7 +23,8 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
 
 export const platformKeys = {
   all: ["platform"] as const,
-  operator: (userId?: string) => [...platformKeys.all, "operator", userId] as const,
+  operator: (userId?: string) =>
+    [...platformKeys.all, "operator", userId] as const,
   organizations: () => [...platformKeys.all, "organizations"] as const,
 } as const;
 
@@ -46,16 +47,29 @@ export function usePlatformOrganizations(enabled: boolean) {
     queryKey: platformKeys.organizations(),
     enabled,
     staleTime: 30_000,
-    queryFn: async (): Promise<PlatformOrganizationRow[]> => listOrganizationsFn(),
+    queryFn: async (): Promise<PlatformOrganizationRow[]> =>
+      listOrganizationsFn(),
   });
 }
 
 const ERROR_MESSAGES: Array<[RegExp, string]> = [
-  [/operador de plataforma|forbidden/i, "No tienes permisos de operador de plataforma."],
-  [/ya existe un usuario con ese correo/i, "Ese correo ya está registrado con otra cuenta."],
+  [
+    /operador de plataforma|forbidden/i,
+    "No tienes permisos de operador de plataforma.",
+  ],
+  [
+    /ya existe un usuario con ese correo/i,
+    "Ese correo ya está registrado con otra cuenta.",
+  ],
   [/ya existe una empresa/i, "Ya existe una empresa con ese identificador."],
-  [/no puedes suspender/i, "No puedes suspender la empresa a la que perteneces."],
-  [/demasiadas peticiones|rate limit/i, "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."],
+  [
+    /no puedes suspender/i,
+    "No puedes suspender la empresa a la que perteneces.",
+  ],
+  [
+    /demasiadas peticiones|rate limit/i,
+    "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.",
+  ],
 ];
 
 function translateError(error: Error): string {

@@ -32,7 +32,10 @@ const ACTIVE_ORGS: TableResult = {
 };
 
 function client(tables: Record<string, TableResult>): AdminScopeClient {
-  const all: Record<string, TableResult> = { organizations: ACTIVE_ORGS, ...tables };
+  const all: Record<string, TableResult> = {
+    organizations: ACTIVE_ORGS,
+    ...tables,
+  };
   return {
     from: (table: string) => ({
       select: () => ({
@@ -40,8 +43,13 @@ function client(tables: Record<string, TableResult>): AdminScopeClient {
           limit: () => {
             const rows = all[table]?.data ?? [];
             const filtered =
-              table === "organizations" ? rows.filter((row) => row["id"] === value) : rows;
-            return Promise.resolve({ data: filtered, error: all[table]?.error ?? null });
+              table === "organizations"
+                ? rows.filter((row) => row["id"] === value)
+                : rows;
+            return Promise.resolve({
+              data: filtered,
+              error: all[table]?.error ?? null,
+            });
           },
         }),
       }),
@@ -69,7 +77,9 @@ describe("resolveInternalScope", () => {
           data: [{ organization_id: ORG_A, member_type: "portal" }],
         },
         customer_portal_accounts: {
-          data: [{ organization_id: ORG_A, customer_id: USER, status: "active" }],
+          data: [
+            { organization_id: ORG_A, customer_id: USER, status: "active" },
+          ],
         },
       }),
       USER,
@@ -110,7 +120,9 @@ describe("resolveInternalScope", () => {
 describe("resolveTargetScope", () => {
   it("acepta al usuario de la misma empresa", async () => {
     const target = await resolveTargetScope(
-      client({ organization_memberships: { data: [{ organization_id: ORG_A }] } }),
+      client({
+        organization_memberships: { data: [{ organization_id: ORG_A }] },
+      }),
       USER,
       ORG_A,
     );
@@ -119,7 +131,9 @@ describe("resolveTargetScope", () => {
 
   it("trata al usuario de otra empresa como inexistente", async () => {
     const target = await resolveTargetScope(
-      client({ organization_memberships: { data: [{ organization_id: ORG_B }] } }),
+      client({
+        organization_memberships: { data: [{ organization_id: ORG_B }] },
+      }),
       USER,
       ORG_A,
     );

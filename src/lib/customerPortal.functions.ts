@@ -26,8 +26,10 @@ const ALREADY_HAS_ACCESS = "Customer already has portal access";
 const ARCHIVED_OR_NOT_FOUND = "Customer is archived or not found";
 
 function assertValidInput(g: Guards, customerId: string, email: string) {
-  if (!g.isUUID(customerId)) throw new g.HttpError(400, "customer_id must be a valid UUID");
-  if (!g.isEmail(email)) throw new g.HttpError(400, "A valid email is required");
+  if (!g.isUUID(customerId))
+    throw new g.HttpError(400, "customer_id must be a valid UUID");
+  if (!g.isEmail(email))
+    throw new g.HttpError(400, "A valid email is required");
 }
 
 /**
@@ -47,8 +49,14 @@ async function legacyLinkBelongsToOrganization(
     .eq("auth_user_id", legacyUserId)
     .limit(1);
   if (accountsErr) {
-    console.error("[invite-customer] legacy portal account:", accountsErr.message);
-    throw new g.HttpError(503, "No se pudo verificar el cliente. Reintenta en unos segundos.");
+    console.error(
+      "[invite-customer] legacy portal account:",
+      accountsErr.message,
+    );
+    throw new g.HttpError(
+      503,
+      "No se pudo verificar el cliente. Reintenta en unos segundos.",
+    );
   }
   if ((accounts ?? []).length > 0) return false; // ya migrado: manda la cuenta scoped
 
@@ -58,8 +66,14 @@ async function legacyLinkBelongsToOrganization(
     .eq("auth_user_id", legacyUserId)
     .limit(2);
   if (membershipErr) {
-    console.error("[invite-customer] legacy membership:", membershipErr.message);
-    throw new g.HttpError(503, "No se pudo verificar el cliente. Reintenta en unos segundos.");
+    console.error(
+      "[invite-customer] legacy membership:",
+      membershipErr.message,
+    );
+    throw new g.HttpError(
+      503,
+      "No se pudo verificar el cliente. Reintenta en unos segundos.",
+    );
   }
   return (memberships ?? []).some((m) => m.organization_id === organizationId);
 }
@@ -80,8 +94,14 @@ async function loadInvitableCustomer(
     .maybeSingle();
 
   if (relationErr) {
-    console.error("[invite-customer] organization_customers:", relationErr.message);
-    throw new g.HttpError(503, "No se pudo verificar el cliente. Reintenta en unos segundos.");
+    console.error(
+      "[invite-customer] organization_customers:",
+      relationErr.message,
+    );
+    throw new g.HttpError(
+      503,
+      "No se pudo verificar el cliente. Reintenta en unos segundos.",
+    );
   }
   if (!relation || relation.status !== "active") {
     // Cliente de otra empresa e inexistente responden igual: no se filtra cuál.
@@ -109,8 +129,14 @@ async function loadInvitableCustomer(
     .in("status", ["active", "suspended"])
     .limit(1);
   if (scopedErr) {
-    console.error("[invite-customer] customer_portal_accounts:", scopedErr.message);
-    throw new g.HttpError(503, "No se pudo verificar el cliente. Reintenta en unos segundos.");
+    console.error(
+      "[invite-customer] customer_portal_accounts:",
+      scopedErr.message,
+    );
+    throw new g.HttpError(
+      503,
+      "No se pudo verificar el cliente. Reintenta en unos segundos.",
+    );
   }
   if ((scoped ?? []).length > 0) {
     throw new g.HttpError(409, ALREADY_HAS_ACCESS);
@@ -118,7 +144,12 @@ async function loadInvitableCustomer(
 
   if (
     customer.user_id &&
-    (await legacyLinkBelongsToOrganization(g, admin, customer.user_id, organizationId))
+    (await legacyLinkBelongsToOrganization(
+      g,
+      admin,
+      customer.user_id,
+      organizationId,
+    ))
   ) {
     throw new g.HttpError(409, ALREADY_HAS_ACCESS);
   }
@@ -175,13 +206,24 @@ async function linkPortalAccess(
   let legacyLinkWritten = false;
   const cleanup = async () => {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
-    if (delErr) console.error("invite-customer cleanup deleteUser failed:", delErr);
+    if (delErr)
+      console.error("invite-customer cleanup deleteUser failed:", delErr);
     await admin.from("user_roles").delete().eq("user_id", userId);
     await admin.from("profiles").delete().eq("user_id", userId);
-    await admin.from("customer_portal_accounts").delete().eq("auth_user_id", userId);
-    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
+    await admin
+      .from("customer_portal_accounts")
+      .delete()
+      .eq("auth_user_id", userId);
+    await admin
+      .from("organization_memberships")
+      .delete()
+      .eq("auth_user_id", userId);
     if (legacyLinkWritten) {
-      await admin.from("customers").update({ user_id: null }).eq("id", customerId).eq("user_id", userId);
+      await admin
+        .from("customers")
+        .update({ user_id: null })
+        .eq("id", customerId)
+        .eq("user_id", userId);
     }
   };
 
@@ -189,9 +231,22 @@ async function linkPortalAccess(
   const steps: [string, () => PromiseLike<{ error: unknown }>][] = [
     [
       "upsert user_roles",
-      () => admin.from("user_roles").upsert({ user_id: userId, role: "customer" }, { onConflict: "user_id" }),
+      () =>
+        admin
+          .from("user_roles")
+          .upsert(
+            { user_id: userId, role: "customer" },
+            { onConflict: "user_id" },
+          ),
     ],
-    ["update profiles", () => admin.from("profiles").update({ full_name: fullName }).eq("user_id", userId)],
+    [
+      "update profiles",
+      () =>
+        admin
+          .from("profiles")
+          .update({ full_name: fullName })
+          .eq("user_id", userId),
+    ],
     // Tramo 5: la cuenta de portal y su membresía quedan atadas a UNA empresa.
     [
       "portal membership",
@@ -241,7 +296,10 @@ async function linkPortalAccess(
 }
 
 /** Enlace de acceso de un solo uso para compartir con el cliente. */
-async function buildPortalLink(admin: Admin, email: string): Promise<string | undefined> {
+async function buildPortalLink(
+  admin: Admin,
+  email: string,
+): Promise<string | undefined> {
   const redirectTo = `${
     process.env["PORTAL_SITE_URL"] ?? "https://liftgo.lovable.app"
   }/auth`;
@@ -281,8 +339,19 @@ export const inviteCustomerFn = createServerFn({ method: "POST" })
     const { customer_id, email } = data;
     assertValidInput(g, customer_id, email);
 
-    const customer = await loadInvitableCustomer(g, admin, customer_id, organizationId);
-    const userId = await createPortalUser(g, admin, email, customer.name, organizationId);
+    const customer = await loadInvitableCustomer(
+      g,
+      admin,
+      customer_id,
+      organizationId,
+    );
+    const userId = await createPortalUser(
+      g,
+      admin,
+      email,
+      customer.name,
+      organizationId,
+    );
     await linkPortalAccess(g, admin, {
       userId,
       customerId: customer_id,

@@ -58,13 +58,23 @@ export interface SetOrganizationActiveInput {
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{1,62}$/;
 
 /** Traduce el error SQL de las funciones `platform_*` a un HttpError estable. */
-function rpcError(g: Guards, context: string, error: { message: string; code?: string }): never {
+function rpcError(
+  g: Guards,
+  context: string,
+  error: { message: string; code?: string },
+): never {
   const msg = error.message ?? "";
   console.error(`[platform-admin] ${context}:`, error.code ?? "", msg);
   if (error.code === "42501" || /Forbidden|operador de plataforma/i.test(msg)) {
-    throw new g.HttpError(403, "Forbidden: se requiere un operador de plataforma");
+    throw new g.HttpError(
+      403,
+      "Forbidden: se requiere un operador de plataforma",
+    );
   }
-  if (error.code === "23505" || /Ya existe|ya tiene administradores|ya pertenece/i.test(msg)) {
+  if (
+    error.code === "23505" ||
+    /Ya existe|ya tiene administradores|ya pertenece/i.test(msg)
+  ) {
     throw new g.HttpError(409, msg || "Conflicto con un registro existente");
   }
   if (error.code === "22023") {
@@ -81,7 +91,9 @@ export const getPlatformOperatorStatusFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformOperatorStatus> => {
     const g = await import("./server/adminGuards.server");
-    const { data, error } = await g.asUntypedRpc(context.supabase).rpc("is_platform_operator");
+    const { data, error } = await g
+      .asUntypedRpc(context.supabase)
+      .rpc("is_platform_operator");
     if (error) {
       // Sin la función (migración 0030 no aplicada) o sin permiso: no operador.
       return { isOperator: false };
@@ -93,11 +105,16 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformOrganizationRow[]> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(
+      context.supabase,
+      context.userId,
+    );
 
-    const { data, error } = await g.asUntypedRpc(admin).rpc("platform_list_organizations", {
-      p_actor: userId,
-    });
+    const { data, error } = await g
+      .asUntypedRpc(admin)
+      .rpc("platform_list_organizations", {
+        p_actor: userId,
+      });
     if (error) rpcError(g, "platform_list_organizations", error);
 
     return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
@@ -114,9 +131,15 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
 
 function validateCreateInput(g: Guards, data: CreateOrganizationInput) {
   if (!g.isNonEmptyString(data.name, 120) || data.name.trim().length < 2) {
-    throw new g.HttpError(400, "El nombre de la empresa debe tener entre 2 y 120 caracteres");
+    throw new g.HttpError(
+      400,
+      "El nombre de la empresa debe tener entre 2 y 120 caracteres",
+    );
   }
-  if (typeof data.slug !== "string" || !SLUG_RE.test(data.slug.trim().toLowerCase())) {
+  if (
+    typeof data.slug !== "string" ||
+    !SLUG_RE.test(data.slug.trim().toLowerCase())
+  ) {
     throw new g.HttpError(
       400,
       "El identificador (slug) sólo admite minúsculas, dígitos y guiones (2 a 63 caracteres)",
@@ -144,27 +167,44 @@ async function compensateOnboarding(
 ) {
   if (userId) {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
-    if (delErr) console.error("[platform-admin] compensación deleteUser:", delErr.message);
+    if (delErr)
+      console.error(
+        "[platform-admin] compensación deleteUser:",
+        delErr.message,
+      );
     await admin.from("user_roles").delete().eq("user_id", userId);
     await admin.from("profiles").delete().eq("user_id", userId);
-    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
+    await admin
+      .from("organization_memberships")
+      .delete()
+      .eq("auth_user_id", userId);
   }
-  const { error } = await g.asUntypedRpc(admin).rpc("platform_discard_organization", {
-    p_actor: actorId,
-    p_organization_id: organizationId,
-  });
-  if (error) console.error("[platform-admin] compensación discard:", error.message);
+  const { error } = await g
+    .asUntypedRpc(admin)
+    .rpc("platform_discard_organization", {
+      p_actor: actorId,
+      p_organization_id: organizationId,
+    });
+  if (error)
+    console.error("[platform-admin] compensación discard:", error.message);
 }
 
 /** Unicidad de correo antes de crear nada (mismo criterio que invite-user). */
-async function assertEmailAvailable(g: Guards, admin: Admin, emailLc: string): Promise<void> {
+async function assertEmailAvailable(
+  g: Guards,
+  admin: Admin,
+  emailLc: string,
+): Promise<void> {
   const { data: existingProfile, error: profileErr } = await admin
     .from("profiles")
     .select("user_id")
     .eq("email", emailLc)
     .maybeSingle();
   if (profileErr) {
-    throw new g.HttpError(503, "No se pudo verificar el correo. Reintenta en unos segundos.");
+    throw new g.HttpError(
+      503,
+      "No se pudo verificar el correo. Reintenta en unos segundos.",
+    );
   }
   if (existingProfile) {
     throw new g.HttpError(409, "Ya existe un usuario con ese correo");
@@ -183,12 +223,14 @@ async function createFirstAdminAuthUser(
   email: string,
   fullName: string,
 ): Promise<string> {
-  const { data: newUser, error: createErr } = await admin.auth.admin.createUser({
-    email,
-    password: g.generateSecurePassword(),
-    email_confirm: true,
-    user_metadata: { full_name: fullName, organization_id: organizationId },
-  });
+  const { data: newUser, error: createErr } = await admin.auth.admin.createUser(
+    {
+      email,
+      password: g.generateSecurePassword(),
+      email_confirm: true,
+      user_metadata: { full_name: fullName, organization_id: organizationId },
+    },
+  );
   if (createErr || !newUser?.user) {
     await compensateOnboarding(g, admin, actorId, organizationId, null);
     const msg = createErr?.message || "";
@@ -196,7 +238,9 @@ async function createFirstAdminAuthUser(
     console.error("[platform-admin] createUser:", createErr);
     throw new g.HttpError(
       status,
-      status === 409 ? "Ya existe un usuario con ese correo" : "No se pudo procesar la solicitud",
+      status === 409
+        ? "Ya existe un usuario con ese correo"
+        : "No se pudo procesar la solicitud",
     );
   }
   return newUser.user.id;
@@ -211,7 +255,13 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
       context.supabase,
       context.userId,
     );
-    await g.enforceRateLimit(admin, "platform-create-organization", actorId, 5, 300);
+    await g.enforceRateLimit(
+      admin,
+      "platform-create-organization",
+      actorId,
+      5,
+      300,
+    );
     validateCreateInput(g, data);
 
     const name = data.name.trim();
@@ -223,28 +273,49 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
     await assertEmailAvailable(g, admin, emailLc);
 
     // 1) Empresa (la base valida nombre/slug y unicidad).
-    const created = await g.asUntypedRpc(admin).rpc("platform_create_organization", {
-      p_actor: actorId,
-      p_name: name,
-      p_slug: slug,
-    });
-    if (created.error) rpcError(g, "platform_create_organization", created.error);
+    const created = await g
+      .asUntypedRpc(admin)
+      .rpc("platform_create_organization", {
+        p_actor: actorId,
+        p_name: name,
+        p_slug: slug,
+      });
+    if (created.error)
+      rpcError(g, "platform_create_organization", created.error);
     const organizationId = String(created.data);
     if (!g.isUUID(organizationId)) {
-      throw new g.HttpError(500, "No se pudo completar la operación de plataforma");
+      throw new g.HttpError(
+        500,
+        "No se pudo completar la operación de plataforma",
+      );
     }
 
     // 2) Usuario Auth del primer administrador (compensa la empresa si falla).
-    const adminUserId = await createFirstAdminAuthUser(g, admin, actorId, organizationId, email, fullName);
+    const adminUserId = await createFirstAdminAuthUser(
+      g,
+      admin,
+      actorId,
+      organizationId,
+      email,
+      fullName,
+    );
 
     // 3) Membresía interna + rol admin + perfil activo, atómico en la base.
-    const attached = await g.asUntypedRpc(admin).rpc("platform_attach_first_admin", {
-      p_actor: actorId,
-      p_organization_id: organizationId,
-      p_user_id: adminUserId,
-    });
+    const attached = await g
+      .asUntypedRpc(admin)
+      .rpc("platform_attach_first_admin", {
+        p_actor: actorId,
+        p_organization_id: organizationId,
+        p_user_id: adminUserId,
+      });
     if (attached.error) {
-      await compensateOnboarding(g, admin, actorId, organizationId, adminUserId);
+      await compensateOnboarding(
+        g,
+        admin,
+        actorId,
+        organizationId,
+        adminUserId,
+      );
       rpcError(g, "platform_attach_first_admin", attached.error);
     }
 
@@ -252,13 +323,16 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
       .from("profiles")
       .update({ full_name: fullName, email: emailLc })
       .eq("user_id", adminUserId);
-    if (profileUpdErr) console.error("[platform-admin] profiles update:", profileUpdErr.message);
+    if (profileUpdErr)
+      console.error("[platform-admin] profiles update:", profileUpdErr.message);
 
-    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-    });
-    if (linkErr) console.error("[platform-admin] generateLink:", linkErr.message);
+    const { data: linkData, error: linkErr } =
+      await admin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+      });
+    if (linkErr)
+      console.error("[platform-admin] generateLink:", linkErr.message);
 
     return {
       success: true,
@@ -274,9 +348,18 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
   .inputValidator((data: SetOrganizationActiveInput) => data)
   .handler(async ({ data, context }): Promise<{ success: true }> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId: actorId, organizationId: ownOrganizationId } =
-      await g.requirePlatformOperator(context.supabase, context.userId);
-    await g.enforceRateLimit(admin, "platform-set-organization-active", actorId, 10, 60);
+    const {
+      admin,
+      userId: actorId,
+      organizationId: ownOrganizationId,
+    } = await g.requirePlatformOperator(context.supabase, context.userId);
+    await g.enforceRateLimit(
+      admin,
+      "platform-set-organization-active",
+      actorId,
+      10,
+      60,
+    );
 
     if (!g.isUUID(data.organization_id)) {
       throw new g.HttpError(400, "organization_id must be a valid UUID");
@@ -286,14 +369,19 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
     }
     // La base también lo impide; aquí se responde antes y con mensaje claro.
     if (!data.active && data.organization_id === ownOrganizationId) {
-      throw new g.HttpError(400, "No puedes suspender la empresa a la que perteneces");
+      throw new g.HttpError(
+        400,
+        "No puedes suspender la empresa a la que perteneces",
+      );
     }
 
-    const { error } = await g.asUntypedRpc(admin).rpc("platform_set_organization_active", {
-      p_actor: actorId,
-      p_organization_id: data.organization_id,
-      p_active: data.active,
-    });
+    const { error } = await g
+      .asUntypedRpc(admin)
+      .rpc("platform_set_organization_active", {
+        p_actor: actorId,
+        p_organization_id: data.organization_id,
+        p_active: data.active,
+      });
     if (error) rpcError(g, "platform_set_organization_active", error);
     return { success: true };
   });
