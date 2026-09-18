@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.23.8",
+    "date": "2026-09-18",
+    "type": "patch",
+    "category": "docs",
+    "title": "Se aclaró el estado del logo de empresa en los documentos",
+    "description": "Los documentos decían que la referencia del logo guardado en Configuración estaba «sin clasificar», pero enseguida la clasificaban por sus usos. Es como tener una etiqueta que dice «pendiente de revisar» sobre una caja que ya abriste y catalogaste. Ahora el texto es consistente: ya sabemos que ese logo es de empresa (para documentos y Configuración), no la marca del producto; lo que sigue pendiente es validar o sustituir la dirección externa que hoy falla cerrada, decisión que queda en manos del propietario. Los hallazgos históricos se conservan como snapshots fechados. Sin cambios en datos ni en archivos.",
+    "changes": [
+      "En onboarding.md, storage-historico.md y roadmap.md el estado pasó de «sin clasificar» a «clasificación semántica completada».",
+      "Se separó con claridad: la marca global de LiftGo es un asset del repositorio; el logo de empresa sólo se usa en documentos y Configuración.",
+      "Quedó pendiente la validación/sustitución del valor HTTPS externo, que falla cerrado y no se modifica en producción; restaurarlo exige volver a subir el logo desde Configuración.",
+      "Los hallazgos históricos obsoletos se conservaron como snapshots fechados sin alterarlos."
+    ]
+  },
+  {
     "version": "8.23.7",
     "date": "2026-09-18",
     "type": "patch",
