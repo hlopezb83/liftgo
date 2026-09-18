@@ -63,6 +63,35 @@ const settingsA = {
 
 const settingsB = { ...settingsA, organization_id: ORG_B, razon_social: "Empresa B", rfc: "BBB010101BBB" };
 
+describe("resolveIssuerBranding · cliente", () => {
+  // `customers` no tiene `organization_id`: el vínculo vive en la tabla puente.
+  it("resuelve el emisor de un cliente vía organization_customers", async () => {
+    const client = makeClient({
+      organization_customers: {
+        rows: [{ customer_id: CUSTOMER, organization_id: ORG_A }],
+      },
+      customers: { error: { message: "column customers.organization_id does not exist" } },
+      company_settings: { rows: [settingsA, settingsB] },
+    });
+    const result = await resolveIssuerBranding(client, portalA, { type: "customer", id: CUSTOMER });
+    expect(result).toEqual({
+      status: "ready",
+      branding: { ...settingsA, organizationId: ORG_A },
+    });
+  });
+
+  it("rechaza un cliente que no pertenece a la empresa verificada", async () => {
+    const client = makeClient({
+      organization_customers: {
+        rows: [{ customer_id: CUSTOMER, organization_id: ORG_B }],
+      },
+      company_settings: { rows: [settingsA] },
+    });
+    const result = await resolveIssuerBranding(client, internalA, { type: "customer", id: CUSTOMER });
+    expect(result).toEqual({ status: "unavailable", reason: "document_forbidden" });
+  });
+});
+
 describe("resolveIssuerBranding", () => {
   it("usa los datos de la organización propietaria del documento", async () => {
     const client = makeClient({
