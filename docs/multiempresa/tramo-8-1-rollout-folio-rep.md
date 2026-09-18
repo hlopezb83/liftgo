@@ -1,6 +1,16 @@
 # Tramo 8.1 · Rollout del folio REP por empresa
 
-Estado: **aprobado en repositorio, pendiente de producción**.
+> **Nota de estado (2026-09-18, auditoría del tramo 11).** Todo lo que sigue
+> es el registro **histórico** del 2026-09-17 *antes* del rollout. Quedó
+> superado: `0024 → 0029` ya se aplicaron en producción el 2026-09-17 por el
+> canal oficial de migraciones (journal con ids 25–30, más el registro
+> histórico id 31 del duplicado `0030` ya retirado del repositorio). El estado
+> vigente del rollout se lleva en `roadmap.md`; las frases de abajo que dicen
+> «journal en `0023`» o «`0025`/`0026` pendientes» describen el estado previo,
+> no el actual. Sigue pendiente (no ejecutado) `0031 → 0034`.
+
+Estado: **histórico — superado por el rollout del 2026-09-17** (en su momento:
+aprobado en repositorio, pendiente de producción).
 
 - Versión: **8.8.30**.
 - Commit: `3c039b1b11a0c1134f187a182d1a18bce4f6d4cd`.

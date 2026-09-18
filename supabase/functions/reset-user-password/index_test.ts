@@ -1,4 +1,4 @@
-// Smoke tests for reset-user-password edge function.
+// Smoke: reset-user-password quedó retirado (410) por la auditoría multiempresa.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { fetchFn, fnUrl } from "../_shared/test-helpers.ts";
 
@@ -16,25 +16,12 @@ Deno.test("reset-user-password: CORS preflight returns 200", async () => {
   assertEquals(res.status, 200);
 });
 
-Deno.test("reset-user-password: rejects requests without Authorization header (401)", async () => {
+Deno.test("reset-user-password: endpoint retirado responde 410", async () => {
   const res = await fetchFn(FN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: "00000000-0000-0000-0000-000000000000" }),
   });
   await res.text();
-  assertEquals(res.status, 401);
-});
-
-Deno.test("reset-user-password: rejects invalid bearer token (401)", async () => {
-  const res = await fetchFn(FN_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer not-a-real-jwt",
-    },
-    body: JSON.stringify({ user_id: "00000000-0000-0000-0000-000000000000" }),
-  });
-  await res.text();
-  assertEquals(res.status, 401);
+  assertEquals(res.status, 410);
 });
