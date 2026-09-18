@@ -164,9 +164,11 @@ BEGIN
   -- Con DOS empresas activas, el alta en auth.users con metadatos de
   -- organización crea perfil y rol (auditoría con contexto) sin 23514.
   PERFORM set_config('app.organization_id', '', true);
-  INSERT INTO auth.users (id, email, raw_user_meta_data, created_at, updated_at)
+  -- 0033: el contexto viaja en app_metadata (service role), no en user_metadata.
+  INSERT INTO auth.users (id, email, raw_user_meta_data, raw_app_meta_data, created_at, updated_at)
   VALUES (v_admin_b, 'admin-b@onboarding.test',
-          jsonb_build_object('full_name', 'Admin B', 'organization_id', v_org_b::text),
+          jsonb_build_object('full_name', 'Admin B'),
+          jsonb_build_object('organization_id', v_org_b::text),
           now(), now());
 
   IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE user_id = v_admin_b) THEN
@@ -412,9 +414,10 @@ DECLARE
   v_portal_b uuid := '30000000-0000-4000-8000-0000000000d1';
   v_cust_b1 uuid := '30000000-0000-4000-8000-0000000000c3';
 BEGIN
-  INSERT INTO auth.users (id, email, raw_user_meta_data, created_at, updated_at)
+  INSERT INTO auth.users (id, email, raw_user_meta_data, raw_app_meta_data, created_at, updated_at)
   VALUES (v_portal_b, 'portal-b@onboarding.test',
-          jsonb_build_object('full_name', 'Portal B', 'organization_id', v_org_b::text),
+          jsonb_build_object('full_name', 'Portal B'),
+          jsonb_build_object('organization_id', v_org_b::text),
           now(), now())
   ON CONFLICT DO NOTHING;
 
