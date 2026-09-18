@@ -2,11 +2,15 @@ import { CloseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
 
+/**
+ * Marca de producto en la navegación.
+ *
+ * SIEMPRE muestra el asset global de LiftGo del repositorio (fuente local
+ * fija), idéntico para cualquier empresa. NO consume `company_settings.logo_url`
+ * ni firma nada por organización: la marca del producto no es dato de tenant.
+ * La razón social sólo se usa como texto de apoyo.
+ */
 interface SidebarBrandingProps {
-  logoUrl?: string | null;
-  razonSocial?: string | null;
-}
-
 export function SidebarBranding({
   logoUrl,
   razonSocial,
