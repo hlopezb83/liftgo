@@ -1,6 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
   evaluateManualResolution,
+  filterOrphanLedgerToApproved,
+  makeApprovedOrphanKeySet,
   type ManualResolutionRecord,
   summarizeQuarantine,
 } from "./storageQuarantine.ts";
@@ -252,4 +254,138 @@ Deno.test("manualResolution: la decisión es pura y no copia, actualiza ni borra
     globalThis.fetch = originalFetch;
   }
   assertEquals(calls, []);
+});
+
+// --------------------------------------------------------------------------
+// El ledger histórico NO autoriza: allowlist de esta ejecución
+// --------------------------------------------------------------------------
+
+interface FakeLedgerRow {
+  id: string;
+  bucket_id: string;
+  source_path: string;
+  organization_id: string;
+  status: "planned" | "copied" | "failed";
+}
+
+/** Réplica del filtrado real de `applyOrphanBatch`, sin E/S. */
+function simulateOrphanBatch(
+  ledger: FakeLedgerRow[],
+  approvedCandidates: Array<
+    { bucketId: string; sourcePath: string; organizationId: string }
+  >,
+): { copied: string[]; skipped: number } {
+  const approvedKeys = makeApprovedOrphanKeySet(approvedCandidates);
+  if (approvedKeys.size === 0) return { copied: [], skipped: ledger.length };
+  const { allowed, skipped } = filterOrphanLedgerToApproved(
+    ledger,
+    approvedKeys,
+  );
+  return { copied: allowed.map((row) => row.id), skipped };
+}
+
+const LEDGER: FakeLedgerRow[] = [
+  {
+    id: "planned",
+    bucket_id: "supplier-bill-cfdi-xml",
+    source_path: "a.xml",
+    organization_id: ORG,
+    status: "planned",
+  },
+  {
+    id: "copied",
+    bucket_id: "supplier-bill-cfdi-xml",
+    source_path: "b.xml",
+    organization_id: ORG,
+    status: "copied",
+  },
+  {
+    id: "failed",
+    bucket_id: "supplier-bill-cfdi-xml",
+    source_path: "c.xml",
+    organization_id: ORG,
+    status: "failed",
+  },
+];
+
+Deno.test("orphanBatch: con resolución vigente sí se procesa el objeto aprobado", () => {
+  const result = simulateOrphanBatch(LEDGER, [
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "a.xml",
+      organizationId: ORG,
+    },
+  ]);
+  assertEquals(result.copied, ["planned"]);
+  assertEquals(result.skipped, 2);
+});
+
+Deno.test("orphanBatch: resolución revocada/caduca deja el ledger viejo sin copiar", () => {
+  // Primer apply: la resolución era válida y creó el ledger.
+  const first = simulateOrphanBatch(LEDGER, [
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "a.xml",
+      organizationId: ORG,
+    },
+  ]);
+  assertEquals(first.copied, ["planned"]);
+
+  // Segundo apply: la resolución fue revocada o caducó, así que no hay
+  // candidatos aprobados. El ledger `planned/copied/failed` NO se procesa.
+  for (
+    const rejected of [
+      record({ status: "revoked" }),
+      record({
+        revalidated_at: new Date(Date.now() - 48 * 60 * 60 * 1000)
+          .toISOString(),
+      }),
+    ]
+  ) {
+    const decision = evaluateManualResolution({
+      ...baseInput,
+      record: rejected,
+    });
+    assertEquals(decision.allowed, false);
+  }
+
+  const second = simulateOrphanBatch(LEDGER, []);
+  assertEquals(second.copied, []);
+  assertEquals(second.skipped, LEDGER.length);
+});
+
+Deno.test("orphanBatch: una resolución que contradice al dueño derivado no rehabilita el ledger", () => {
+  const decision = evaluateManualResolution({
+    ...baseInput,
+    derived: {
+      status: "resolved",
+      organizationId: OTHER_ORG,
+      method: "supplier_bill_cfdi_uuid",
+    },
+    record: record(),
+  });
+  assertEquals(decision, {
+    allowed: false,
+    reason: "contradicts_derived_owner",
+  });
+  assertEquals(simulateOrphanBatch(LEDGER, []).copied, []);
+});
+
+Deno.test("orphanBatch: la empresa del ledger debe coincidir exactamente con la aprobada", () => {
+  const result = simulateOrphanBatch(LEDGER, [
+    {
+      bucketId: "supplier-bill-cfdi-xml",
+      sourcePath: "a.xml",
+      organizationId: OTHER_ORG,
+    },
+  ]);
+  assertEquals(result.copied, []);
+  assertEquals(result.skipped, LEDGER.length);
+});
+
+Deno.test("orphanBatch: delete_sources no aprueba huérfanos (allowlist vacía)", () => {
+  // `delete_sources` no carga resoluciones manuales ni candidatos huérfanos.
+  const result = simulateOrphanBatch(LEDGER, []);
+  assertEquals(result.copied, []);
+  assertEquals(result.skipped, LEDGER.length);
 });

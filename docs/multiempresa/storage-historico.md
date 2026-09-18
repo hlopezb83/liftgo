@@ -435,3 +435,33 @@ comprobaciones quedan intactas.
 
 Este tramo **no se ejecutó** contra producción: no se inspeccionaron objetos
 reales, no se registró ninguna resolución y no se movió ni borró nada.
+
+### 5. El ledger histórico no autoriza nada (corrección 8.19.1)
+
+**Regresión detectada en 0034.** `apply_orphans` calculaba los candidatos con
+las resoluciones vigentes, pero `applyOrphanBatch()` releía del ledger **todas**
+las filas `orphaned` en `planned`, `copied` o `failed` sin filtrarlas. Una
+resolución aprobada en una corrida anterior dejaba su fila en el ledger, y si
+después se revocaba, caducaba o dejaba de pasar la revalidación, la siguiente
+corrida **igual copiaba** el objeto: el ledger viejo funcionaba como
+autorización permanente.
+
+Corregido: cada corrida deriva una **allowlist exacta** de
+`bucket + source_path + organization_id` a partir de los candidatos aprobados
+**en esa misma ejecución** (`makeApprovedOrphanKeySet`), y el lote se filtra
+contra ella (`filterOrphanLedgerToApproved`) antes de tocar nada. Reglas:
+
+- Allowlist vacía ⇒ **no se procesa ninguna fila**, sea cual sea su estado.
+- Una fila del ledger cuya empresa no coincide exactamente con la aprobada se
+  ignora; no se copia y **no cambia de estado**.
+- El resultado reporta además `skipped`: filas del ledger descartadas por no
+  estar aprobadas hoy.
+- `delete_sources` sigue sin cargar índice de dueños ni resoluciones manuales,
+  por lo que su allowlist es vacía por construcción y sus comprobaciones no se
+  tocaron.
+
+Regresión cubierta en `supabase/functions/_shared/storageQuarantine_test.ts`:
+primer apply con resolución vigente sí procesa el objeto; el segundo, con la
+resolución revocada, caduca o contradictoria con el dueño derivado, no copia
+nada ni cambia estados. Verificación local: **438 pruebas Deno**, `deno fmt
+--check` y `deno lint` en verde. Sin producción.

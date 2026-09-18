@@ -223,3 +223,71 @@ export function evaluateManualResolution(
     source: "manual_resolution",
   };
 }
+
+/* -------------------------------------------------------------------------
+ * Allowlist de ESTA ejecución para el lote de huérfanos.
+ *
+ * El ledger es histórico: una fila `orphaned` en `planned/copied/failed` pudo
+ * crearse con una resolución manual que hoy está revocada, caduca o
+ * contradicha. Copiar por la mera existencia del ledger rompería el
+ * fail-closed. Por eso cada corrida deriva su propia allowlist exacta
+ * (bucket + source_path + organization_id) y todo lo demás se ignora.
+ * ------------------------------------------------------------------------- */
+
+export interface ApprovedOrphanIdentity {
+  bucketId: string;
+  sourcePath: string;
+  organizationId: string;
+}
+
+export interface OrphanLedgerRowIdentity {
+  bucket_id: string;
+  source_path: string;
+  organization_id: string;
+}
+
+/** Clave exacta e inequívoca de un objeto huérfano aprobado. */
+export function approvedOrphanKey(
+  bucketId: string,
+  sourcePath: string,
+  organizationId: string,
+): string {
+  return `${bucketId}\n${sourcePath}\n${organizationId}`;
+}
+
+/** Allowlist derivada de los candidatos revalidados en esta ejecución. */
+export function makeApprovedOrphanKeySet(
+  approved: readonly ApprovedOrphanIdentity[],
+): Set<string> {
+  return new Set(
+    approved.map((candidate) =>
+      approvedOrphanKey(
+        candidate.bucketId,
+        candidate.sourcePath,
+        candidate.organizationId,
+      )
+    ),
+  );
+}
+
+/**
+ * Filtra el lote leído del ledger contra la allowlist de esta ejecución.
+ * Fail-closed: si la allowlist está vacía, no pasa ninguna fila.
+ */
+export function filterOrphanLedgerToApproved<T extends OrphanLedgerRowIdentity>(
+  rows: readonly T[],
+  approvedKeys: ReadonlySet<string>,
+): { allowed: T[]; skipped: number } {
+  const allowed: T[] = [];
+  let skipped = 0;
+  for (const row of rows) {
+    const key = approvedOrphanKey(
+      row.bucket_id,
+      row.source_path,
+      row.organization_id,
+    );
+    if (approvedKeys.has(key)) allowed.push(row);
+    else skipped++;
+  }
+  return { allowed, skipped };
+}
