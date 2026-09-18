@@ -23,7 +23,15 @@ import { describe, expect, it } from "vitest";
  * Las Edge Functions de Supabase están en Deno y se cubren aparte
  * (`supabase/functions/_shared/retiredEndpointSources_test.ts`), salvo la
  * comprobación de retiro que se replica aquí abajo.
+ *
+ * NO cubierto por este detector (revisión manual documentada en el roadmap):
+ *  - llamadas `rpc(...)` con `p_organization_id`: hoy sólo
+ *    `platformAdmin.functions.ts` pasa una empresa del input, detrás de
+ *    `requirePlatformOperator` y con la autorización repetida dentro de la
+ *    función SQL (`platform_set_organization_active`, `platform_*`);
+ *  - el origen real de un identificador (análisis de flujo de datos).
  */
+
 
 const ROOT = process.cwd();
 const TYPES_FILE = join(ROOT, "src", "integrations", "supabase", "types.ts");
