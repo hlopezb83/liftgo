@@ -288,3 +288,57 @@ prefijo. De los 17, **16 tienen dueño exacto derivable** (15 por
 `supplier_bills.cfdi_uuid`, 1 por `supplier_bills.id`) y **1 sigue sin
 coincidencia** (queda en cuarentena). El `apply` normal **sigue bloqueado** por
 los 17. Ambas bitácoras siguen en **0 filas**.
+
+## Actualización 8.17.0 — las operaciones de personal exigen membresía interna (0032)
+
+**Hallazgo (revisión del commit `9472ecf`).** `storage_path_in_current_organization()`
+se apoya en `current_active_organization_id()`, que acepta **cualquier** tipo de
+membresía, incluida `portal`. Como varias policies de Storage conceden por **rol
+global** (`admin`, `administrativo`, `auditor`, `dispatcher`, `ventas`,
+`mechanic`), una cuenta de portal con un rol interno **residual** podía leer,
+reemplazar o borrar archivos del **personal de su propia empresa**, aunque el
+prefijo ya estuviera aislado **entre** empresas.
+
+**Cierre (`drizzle/migrations/0032_multi_org_storage_staff_scope.sql`, journal
+idx 32, forward-only).** Nuevo predicado
+`public.storage_staff_path_in_current_organization(text, boolean)`:
+
+- exige `current_internal_organization_id()` — membresía `internal` **única** en
+  empresa **activa**, y `NULL` si el usuario tiene **cualquier** membresía de
+  portal;
+- exige prefijo **exacto** de esa organización (`storage_prefix_organization`);
+- fail-closed: sin membresía interna no autoriza nada, pase lo que pase con el
+  rol global.
+- ACL: `REVOKE` a `PUBLIC`/`anon`, `GRANT EXECUTE` sólo a `authenticated` y
+  `service_role`.
+
+Se reescribieron con ese predicado **todas** las ramas de personal:
+
+| Bucket | Policies reescritas |
+| --- | --- |
+| `documents` | `Staff read/upload/update/delete documents` |
+| `cfdi-files` | `Admins can read/write/update/delete cfdi-files` |
+| `supplier-bill-cfdi-xml` | `Staff read` + `Admin/Administrativo insert/update/delete` |
+| `supplier-payment-receipts` | `Receipts read/insert/update/delete` |
+| `feedback-screenshots` | `Admins read all` / `Admins delete any` |
+| `payment-proofs` | rama administrativa dentro de `Customers read own proofs` y `Customers delete own pending proofs` |
+
+**Lo que NO cambió.** Las policies de **objeto propio del portal** conservan su
+alcance exacto: `payment_proof_path_allowed` (comprobantes del propio cliente),
+`customer_can_read_document_object` (documentos propios) y las capturas propias
+por usuario en `feedback-screenshots`. El guard transversal RESTRICTIVE
+`storage_objects_org_prefix_guard` (prefijo exacto + empresa activa) sigue
+vigente y no se relajó. No se movió ningún objeto ni se tocó producción.
+
+**Verificación fail-closed dentro de la propia migración:** un bloque final
+recorre las 20 policies afectadas y aborta si alguna falta o no invoca el
+predicado de personal.
+
+**Regresión** (`supabase/tests/rls/storage_strict_org_prefix_0031.sql`, bloques
+6 y 7): cuenta de portal con rol `admin` residual en la misma empresa —
+`SELECT`, `INSERT`, `UPDATE` y `DELETE` sobre archivos del personal denegados y
+sin efecto real; conserva la lectura de **su propio** comprobante de pago; y
+ninguna policy que conceda por rol interno puede quedar sin el predicado de
+personal. Verificación local: **61/61 suites RLS en verde** contra la instancia
+PostgreSQL efímera (588 migraciones Supabase + 33 Drizzle). La validación
+completa corresponde a CI.
