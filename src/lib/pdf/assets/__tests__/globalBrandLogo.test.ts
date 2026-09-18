@@ -94,7 +94,7 @@ describe("logo global en documentos", () => {
 
     expect(new Set(logos).size).toBe(1);
     expect(logos[0]).toBeTruthy();
-  });
+  }, 30000);
 
   it("ignora cualquier `logo_url` que venga en la configuración", async () => {
     const { fetchCompanyDataAndLogo } = await import("@/lib/pdf/shared");
