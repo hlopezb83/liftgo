@@ -8,22 +8,25 @@ Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddad
 
 Seis buckets, **todos privados**, confirmados por `SELECT` sobre `storage.buckets`:
 
-| Bucket | Prefijados | Legados |
-|---|---|---|
-| cfdi-files | 163 | 10 |
-| supplier-bill-cfdi-xml | 84 | 0 |
-| supplier-payment-receipts | 58 | 0 |
-| documents | 1 | 5 |
-| feedback-screenshots | 1 | 0 |
-| payment-proofs | 0 | 0 |
+| Bucket | Objetos | Bajo prefijo **exacto** de organización | Con otro UUID (no es prefijo de organización) | Sin forma UUID (legado real) |
+|---|---|---|---|---|
+| cfdi-files | 173 | 0 | 163 | 10 |
+| supplier-bill-cfdi-xml | 84 | 6 | 78 | 0 |
+| supplier-payment-receipts | 58 | 5 | 53 | 0 |
+| documents | 6 | 1 | 0 | 5 |
+| feedback-screenshots | 1 | 0 | 1 | 0 |
+| payment-proofs | 0 | 0 | 0 | 0 |
 
-**Total: 322 objetos** (307 con primer segmento UUID, **15 sin prefijo**). Cifras del re-inventario 2026-09-17 (lectura, nada movido); el inventario previo (310 legados) está **desactualizado**.
+**Total: 322 objetos**, de los cuales **sólo 12 están bajo el prefijo exacto de una organización conocida**; 295 empiezan con un UUID ajeno (factura, documento, usuario…) y 15 no tienen forma de UUID. Cifras de la reconciliación 2026-09-18 comparando cada primer segmento contra `public.organizations.id` (lectura, nada movido). Los inventarios previos (310 legados; «307 prefijados / 15 legados») están **desactualizados**: trataban cualquier UUID como prefijo de organización, y no lo es.
 
-- Los **15 objetos legados** carecen de prefijo de organización; los 307 prefijados llevan como primer segmento un UUID. **No atribuir el paso de 310 a 15 a un traslado**: no hay evidencia suficiente del linaje. Los metadatos agregados indican que los 15 legados fueron creados entre 2026-06-24 y 2026-09-10 y los prefijados llegan hasta 2026-09-17, pero eso no reconstruye su historia previa.
+- **Un UUID cualquiera no cuenta como prefijo de organización**: `storage_prefix_organization()` (0022/0027) sólo reconoce el primer segmento si coincide exactamente con `public.organizations.id`. Por eso 295 objetos con UUID ajeno **no** están aislados.
+- Los **15 objetos sin forma UUID** son el legado clásico (10 en `cfdi-files`, 5 en `documents`). **No atribuir el paso de 310 a 15 a un traslado**: no hay evidencia suficiente del linaje.
 - **0 objetos en la raíz** de los buckets.
-- **1 organización activa**; con una sola empresa no hay colisión posible. Al dar de alta la segunda, los 15 legados seguirían accesibles a staff de ambas organizaciones.
+- **1 organización activa**; con una sola empresa no hay colisión posible. Al dar de alta la segunda, todo lo que no esté bajo prefijo exacto seguiría accesible a staff de ambas organizaciones.
 - Bitácoras de migración (`storage_object_migrations`, `storage_reference_migrations`): **0 filas; nada iniciado**.
-- **Reconciliación de rutas (no se muestran):** los 15 legados **no son huérfanos**; coinciden con referencias vivas — 10 de `cfdi-files` (8 de notas de crédito y 2 REP de `supplier_payments`) y 5 de `documents.file_url`. Aún necesitan prefijo y actualización de referencias antes de abrir la segunda organización.
+- **Reconciliación de rutas (no se muestran), reproducida con el código real** (`collectCandidates` + `REFERENCE_SPECS` + `parseStorageReference` + `makeStorageMigrationPlan`, y `summarizeStorageInventory`/`hasOrganizationStoragePrefix`): **305 filas de referencia** = 293 candidatas + 11 ya prefijadas + 1 no soportada; las 304 filas interpretables dan **304 rutas distintas**, todas existentes en Storage. Por cubeta: `cfdi-files` 173 candidatas / 0 ya prefijadas; `documents` 5 / 1 (+1 URL de logo no soportada); `feedback-screenshots` 1 / 0; `supplier-bill-cfdi-xml` 62 / 5; `supplier-payment-receipts` 52 / 5.
+- **18 objetos sin referencia**: 17 **sin prefijo de organización** (16 en `supplier-bill-cfdi-xml`, 1 en `supplier-payment-receipts`) y **1 ya prefijado** (`supplier-bill-cfdi-xml`). 304 referenciados + 18 sin referencia = 322.
+
 - **Formatos:** 56 referencias a `supplier_bills.cfdi_xml_url` y 43 a `supplier_payments.receipt_url` son **signed URLs con token**, compatibles con el parser actual del migrador; todos los objetos de esas referencias coinciden. 1 referencia `company_settings.logo_url` es **HTTPS** sin forma de ruta `/storage/v1/object/...`; eso **no basta para clasificar el host** ni para afirmar que el navegador la rechaza. Requiere clasificación manual y **prueba conductual por organización**; no se muestra su valor/host/ruta/token. Para las demás referencias especificadas, la lectura agregada encontró **0 sin coincidencia**. La consulta previa que reportó «0 URLs» estaba desactualizada.
 
 ## 2. Policies y helpers
@@ -65,18 +68,19 @@ Modo dedicado `delete_sources` en el mismo endpoint, independiente de `apply`:
 
 **Rollback:** mientras no se borre el origen, basta borrar las copias y revertir las referencias usando el SHA-256 del ledger. Como apply ya no borra, el rollback sigue disponible durante toda la fase de copia y actualización.
 
-**Estado real de los ledgers (2026-09-17):** `storage_object_migrations` y `storage_reference_migrations` siguen en **0 filas**; ningún objeto ha sido copiado, ninguna referencia actualizada y ninguna fuente borrada. Quedan 15 objetos sin prefijo (10 en `cfdi-files`, 5 en `documents`), todos referenciados.
+**Estado real de los ledgers (2026-09-18):** `storage_object_migrations` y `storage_reference_migrations` siguen en **0 filas**; **ningún objeto se ha copiado, ninguna referencia se ha actualizado y ninguna fuente se ha borrado**. Los 15 objetos legados reales (10 en `cfdi-files`, 5 en `documents`) siguen sin prefijo y están referenciados: su dueño **sí** puede derivarse de la referencia, pero sólo pueden reubicarse por el flujo protegido copy → verify → update references → observe → delete, aún no autorizado ni ejecutado.
 
 ### Condición de parada de `apply` frente a objetos sin referencia
 
-La reconciliación canónica del 2026-09-17 (parser real `parseStorageReference` + `REFERENCE_SPECS`, comparando cubeta + ruta normalizada sin query de firma) dio 322 objetos: 304 referenciados, 18 sin referencia y **todos los 18 ya bajo prefijo de organización**; 0 sin referencia y sin prefijo. Los 15 legados sin prefijo están referenciados.
+La reconciliación del 2026-09-18, reproducida con el código real (`collectCandidates`, `REFERENCE_SPECS`, `parseStorageReference`/`makeStorageMigrationPlan`, `summarizeStorageInventory`/`hasOrganizationStoragePrefix`) y comparando contra **todas** las filas de `public.organizations`, dio 322 objetos: 304 referenciados y **18 sin referencia**, de los cuales **17 no tienen prefijo de organización** (16 en `supplier-bill-cfdi-xml`, 1 en `supplier-payment-receipts`) y **1 sí lo tiene**. Sólo **12 objetos** de los 322 están bajo prefijo exacto de organización.
 
-Por eso `apply` ya **no** se detiene por el total de objetos sin referencia, sino sólo por los **sin referencia y sin prefijo** (`unreferenced_unscoped_objects`), que son legado cuyo dueño no se puede derivar. El resumen reporta ambos conteos, globales y por cubeta:
+Por eso `apply` no se detiene por el total de objetos sin referencia, sino sólo por los **sin referencia y sin prefijo** (`unreferenced_unscoped_objects`). Con el estado actual, esos **17 huérfanos sin dueño derivable mantienen `apply` bloqueado**. El resumen reporta ambos conteos, globales y por cubeta:
 
-- `unreferenced_scoped_objects`: sin referencia pero ya aislados. **No bloquean**, no entran al ledger, no se vuelven a copiar y nunca se borran.
-- `unreferenced_unscoped_objects`: sin referencia y sin prefijo. **Bloquean `apply`** con 409 `Resolve unscoped unreferenced Storage objects before apply.`
+- `unreferenced_scoped_objects`: sin referencia pero ya aislados (hoy **1**). **No bloquean**, no entran al ledger, no se vuelven a copiar y nunca se borran.
+- `unreferenced_unscoped_objects`: sin referencia y sin prefijo (hoy **17**). **Bloquean `apply`** con 409 `Resolve unscoped unreferenced Storage objects before apply.`
 
-Un objeto se considera aislado sólo si su primer segmento coincide exactamente con el identificador de una organización **conocida** del plan; un UUID cualquiera (por ejemplo el de una factura) no cuenta como prefijo. `apply_orphans` y `delete_sources` siguen sin ejecutarse, y el borrado de huérfanos sigue prohibido por diseño.
+Un objeto se considera aislado sólo si su primer segmento coincide exactamente con el identificador de una organización **conocida**; un UUID cualquiera (por ejemplo el de una factura o un documento) **no** cuenta como prefijo. `apply_orphans` y `delete_sources` siguen sin ejecutarse, el borrado de fuentes sigue en fase separada y deshabilitado por bandera, y el borrado de huérfanos sigue prohibido por diseño.
+
 
 ## 5. Dependencia operativa REP (precondición crítica de despliegue)
 
@@ -89,7 +93,7 @@ Un objeto se considera aislado sólo si su primer segmento coincide exactamente 
 
 Cubierto para archivos **nuevos**: prefijo de organización obligatorio, policies tenant-aware, helpers `SECURITY DEFINER`, prueba RLS `supabase/tests/rls/storage_org_prefix.sql`.
 
-Pendiente para **históricos**: los **15 objetos legados** siguen sin prefijo (10 en `cfdi-files`, 5 en `documents`); la doble lectura y el traslado no se han ejecutado; el traslado **no está autorizado ni ejecutado**.
+Pendiente para **históricos**: sólo **12 de 322 objetos** están bajo prefijo exacto de organización. Los **15 objetos legados** siguen sin prefijo (10 en `cfdi-files`, 5 en `documents`) y pueden asignarse desde sus referencias, pero sólo mediante el flujo protegido; además **17 huérfanos sin dueño derivable mantienen `apply` bloqueado**. La doble lectura y el traslado **no están autorizados ni ejecutados**.
 
 Decisiones aún pendientes:
 
@@ -190,3 +194,11 @@ La sección 1 refleja la lectura `SELECT` del 2026-09-17 y **supera** el inventa
 ### Implicación para el riesgo residual
 
 Con 0 legados en `supplier-bill-cfdi-xml`, `supplier-payment-receipts` y `feedback-screenshots`, el riesgo de legado compartido se concentra hoy en **`cfdi-files` (10)** y **`documents` (5)**. El bloqueo del alta de la segunda empresa se mantiene: esos 15 legados siguen accesibles a staff de cualquier organización y requieren prefijo + actualización de referencias probados por el canal autorizado.
+
+## Corrección 2026-09-18 — sólo 12 objetos están realmente aislados (solo lectura)
+
+Las cifras «307 prefijados / 15 legados» quedan **retiradas**: contaban como prefijo cualquier primer segmento con forma de UUID. Comparando contra `public.organizations.id`, **sólo 12 de 322 objetos** están bajo prefijo exacto de organización (1 en `documents`, 6 en `supplier-bill-cfdi-xml`, 5 en `supplier-payment-receipts`); 295 llevan un UUID ajeno y 15 no tienen forma UUID.
+
+Reproducción con el código real: 305 filas de referencia = **293 candidatas** + **11 ya prefijadas** + **1 URL de logo no soportada**; 304 rutas distintas, todas existentes. Objetos sin referencia: **18 = 17 sin prefijo + 1 con prefijo**. Las sumas cierran contra los 322 objetos y contra el `SELECT` de prefijos exactos.
+
+Consecuencia operativa: los **17 huérfanos sin dueño derivable bloquean `apply`**; los **15 legados reales** sí pueden asignarse desde sus referencias, pero únicamente por el flujo protegido copy → verify → update references → observe → delete. El borrado de fuentes sigue en **fase separada y deshabilitado** (`STORAGE_MIGRATION_DELETE_SOURCES_ENABLED` sin configurar). **Cero operaciones de Storage ejecutadas en producción**: ambos ledgers en 0 filas, ninguna copia, ninguna referencia actualizada, ningún borrado.
