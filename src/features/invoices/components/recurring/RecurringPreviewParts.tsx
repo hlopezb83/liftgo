@@ -35,6 +35,14 @@ export function SummaryBar({
   );
 }
 
+const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {
+  already_invoiced: "Ya facturada",
+  no_customer: "Sin cliente asignado",
+  no_monthly_rate: "Sin tarifa mensual",
+  period_in_future: "Período futuro",
+  booking_ended: "Reserva terminada — completa la devolución",
+};
+
 export function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
   const isAlreadyInvoiced = line.reason === "already_invoiced" && line.existingInvoiceId;
   return (
