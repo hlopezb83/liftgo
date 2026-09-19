@@ -1,3 +1,12 @@
+## [8.25.17] - 2026-09-19 · patch · fix
+
+Corrección del fallo de CI del Paquete 14. Sin cambios en `AuthPage.tsx`, `AuthPageParts.tsx`, lógica de autenticación, recuperación, navegación, textos, clases, accesibilidad ni APIs.
+
+- Causa raíz: `src/components/branding/__tests__/AuthBrandPanel.test.tsx` exigía `BrandLockup` en el código fuente de `AuthPage.tsx`; tras extraer las piezas presentacionales (8.25.16), el lockup vive en `AuthPageParts.tsx` y la aserción fallaba en el shard 2 de CI.
+- Fix mínimo: el callsite del lockup en `GLOBAL_BRAND_CALLSITES` pasa de `AuthPage.tsx` a `AuthPageParts.tsx`; `AuthPage.tsx` permanece en `LOGIN_SCREENS` con la verificación contra `logo_url`/`usePublicBranding`. No se eliminaron ni debilitaron aserciones.
+- Validación: `passwordRecovery.test.tsx` (14/14), shard 2 completo (191 archivos, 1288/1288 pruebas), ESLint, `tsgo --noEmit`, `arch:check` y build en verde.
+- Sin cambios de SQL, RLS, migraciones, Storage, autenticación, rutas, tipos generados, UI, branding, logo ni CI.
+
 ## [8.25.16] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades en la pantalla de acceso. Sin cambios de UI, textos es-MX, clases, iconos, aria/role, orden del DOM, accesibilidad, marca global LiftGo, avisos de recuperación, enlaces secundarios, llamadas a signIn/resetPassword/updatePassword/signOut, notificaciones, dismissAuthError, sincronización de prevRecovery ni navegación.
