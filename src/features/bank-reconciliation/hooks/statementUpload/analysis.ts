@@ -1,10 +1,10 @@
-import type { ParseResult } from "../../lib/bankParseUtils";
 import { type StatementProfile, XML_PROFILES } from "../../lib/bankReconciliationConstants";
 import { parseBankCsv } from "../../lib/csvParsers";
 import { decodeStatementFile } from "../../lib/decodeStatementFile";
 import { parseBankXml, type XmlFieldMapping } from "../../lib/xmlParsers";
 import { MAX_PARSED_LINES } from "./limits";
 import { loadMapping } from "./mappingStorage";
+import type { ParseResult } from "../../lib/bankParseUtils";
 
 /** Un XML siempre abre con `<`, aun cuando el perfil o la extensión digan otra cosa. */
 export const isXmlContent = (content: string) => content.trimStart().startsWith("<");

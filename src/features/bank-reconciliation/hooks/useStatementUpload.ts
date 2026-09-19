@@ -1,7 +1,5 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { BankStatementLineLimitError } from "../lib/bankParseUtils";
-import type { StatementProfile } from "../lib/bankReconciliationConstants";
-import type { XmlFieldMapping } from "../lib/xmlParsers";
 import {
   type AnalysisOutcome,
   parseXmlWithLimit,
@@ -17,7 +15,10 @@ import {
 } from "./statementUpload/feedback";
 import { exceedsSizeLimit, MAX_PARSED_LINES, tooManyLines } from "./statementUpload/limits";
 import { saveMapping } from "./statementUpload/mappingStorage";
+import { useAnalysisRun } from "./statementUpload/useAnalysisRun";
 import { useImportBankStatement } from "./useBankReconciliationMutations";
+import type { StatementProfile } from "../lib/bankReconciliationConstants";
+import type { XmlFieldMapping } from "../lib/xmlParsers";
 
 export { MAX_FILE_SIZE_BYTES, MAX_PARSED_LINES } from "./statementUpload/limits";
 
@@ -130,9 +131,9 @@ export function useStatementUpload(bankAccountId: string) {
   }, [bankAccountId, content, file, finishRun, isCurrentRun, profile, publishOutcome, startRun]);
 
   const clearAnalysis = useCallback(() => {
-    generationRef.current += 1;
+    invalidateRuns();
     setAnalyzed(null); setXmlFields([]); setContent(""); setMapping({});
-  }, []);
+  }, [invalidateRuns]);
 
   const reset = useCallback(() => {
     clearAnalysis();

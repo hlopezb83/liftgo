@@ -1,7 +1,7 @@
 import { notifyError } from "@/lib/ui/appFeedback";
 import { BankStatementLineLimitError } from "../../lib/bankParseUtils";
-import type { StatementProfile } from "../../lib/bankReconciliationConstants";
 import { MAX_PARSED_LINES } from "./limits";
+import type { StatementProfile } from "../../lib/bankReconciliationConstants";
 
 interface AnalysisContext {
   profile: StatementProfile;

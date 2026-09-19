@@ -1,7 +1,7 @@
+import { mappingSignature } from "./analysis";
 import type { ParseResult } from "../../lib/bankParseUtils";
 import type { StatementProfile } from "../../lib/bankReconciliationConstants";
 import type { XmlFieldMapping } from "../../lib/xmlParsers";
-import { mappingSignature } from "./analysis";
 
 export interface AnalyzedUpload {
   uploadId: string;
