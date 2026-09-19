@@ -1,308 +1,40 @@
 /**
- * Guards compartidos para los server functions administrativos.
+ * Fachada de compatibilidad de los guards administrativos del servidor.
  *
- * Portados 1:1 desde `supabase/functions/_shared/auth.ts` + `validate.ts` al
- * runtime de TanStack Start. Mismas reglas, mismos mensajes en español: sólo
- * cambia el transporte (antes Edge Function HTTP, ahora server function RPC).
+ * La implementación vive en `src/lib/server/guards/*` (validación, contraseña,
+ * rol, rate limit, alcance de empresa y operador de plataforma). Este archivo
+ * mantiene exactamente la API previa para todos los consumidores existentes:
+ * mismos nombres, mismos tipos, mismo comportamiento fail-closed.
  */
-import type { Database } from "@/integrations/supabase/types";
-import {
-  resolveInternalScope,
-  resolveTargetScope,
-} from "@/lib/organization/adminScope";
-import type { SupabaseClient } from "@supabase/supabase-js";
+export {
+  type AdminClient,
+  type AppRole,
+  type AuthorizedCaller,
+  type CallerClient,
+  HttpError,
+} from "./guards/httpError";
 
-export type AppRole = Database["public"]["Enums"]["app_role"];
-export type AdminClient = SupabaseClient<Database>;
-/** Cliente que actúa como el usuario autenticado (RLS aplicada). */
-export type CallerClient = SupabaseClient<Database>;
+export {
+  isEmail,
+  isNonEmptyString,
+  isUUID,
+  isValidRole,
+} from "./guards/validation";
 
-/** Error con status HTTP lógico; el mensaje es lo que ve la interfaz. */
-export class HttpError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-    this.name = "HttpError";
-  }
-}
+export { generateSecurePassword } from "./guards/password";
 
-// ---------- Validadores (portados de _shared/validate.ts) ----------
+export { requireAdmin, requireRole } from "./guards/roleAuthorization.server";
 
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export { enforceRateLimit } from "./guards/rateLimit.server";
 
-const EMAIL_RE =
-  /^[A-Za-z0-9._%+-]+@(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$/;
+export {
+  assertTargetInOrganization,
+  createInternalMembership,
+  requireInternalOrganization,
+} from "./guards/organizationScope.server";
 
-export function isUUID(v: unknown): v is string {
-  return typeof v === "string" && UUID_RE.test(v);
-}
-
-export function isEmail(v: unknown): v is string {
-  if (typeof v !== "string") return false;
-  if (v.length < 6 || v.length > 254) return false;
-  const [local] = v.split("@");
-  if (
-    !local || local.startsWith(".") || local.endsWith(".") ||
-    local.includes("..")
-  ) return false;
-  return EMAIL_RE.test(v);
-}
-
-export function isNonEmptyString(v: unknown, maxLen = 500): v is string {
-  return typeof v === "string" && v.trim().length > 0 && v.length <= maxLen;
-}
-
-const VALID_ROLES = [
-  "admin",
-  "administrativo",
-  "dispatcher",
-  "mechanic",
-  "auditor",
-  "ventas",
-] as const;
-
-export function isValidRole(v: unknown): v is AppRole {
-  return typeof v === "string" &&
-    (VALID_ROLES as readonly string[]).includes(v);
-}
-
-// ---------- Contraseñas ----------
-
-/**
- * Rejection sampling para evitar el bias de `% charset.length`.
- * Portado de `_shared/auth.ts`.
- */
-export function generateSecurePassword(length = 20): string {
-  const charset =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*";
-  const max = Math.floor(256 / charset.length) * charset.length;
-  const out: string[] = [];
-  const buf = new Uint8Array(1);
-  while (out.length < length) {
-    crypto.getRandomValues(buf);
-    const byte = buf[0] ?? 0;
-    if (byte < max) out.push(charset.charAt(byte % charset.length));
-  }
-  return out.join("");
-}
-
-// ---------- Autorización ----------
-
-export interface AuthorizedCaller {
-  userId: string;
-  role: AppRole;
-  admin: AdminClient;
-}
-
-/**
- * Exige que el caller autenticado esté activo y tenga uno de los roles.
- *
- * El rol se decide con el cliente del propio usuario (`has_role`, SECURITY
- * DEFINER), nunca con el cliente privilegiado. Éste último sólo se carga
- * después de aprobar el guard.
- */
-export async function requireRole(
-  caller: CallerClient,
-  userId: string,
-  roles: AppRole[],
-): Promise<AuthorizedCaller> {
-  // SEC-M2: un JWT sigue siendo válido aunque la cuenta esté desactivada.
-  const { data: active, error: activeErr } = await caller.rpc(
-    "is_active_user",
-    { _user_id: userId },
-  );
-  if (activeErr) {
-    console.error("[guards] is_active_user falló, fail-closed:", activeErr.message);
-    throw new HttpError(
-      503,
-      "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos.",
-    );
-  }
-  if (active === false) throw new HttpError(403, "Cuenta desactivada");
-
-  let matched: AppRole | null = null;
-  for (const role of roles) {
-    const { data: ok, error } = await caller.rpc("has_role", {
-      _user_id: userId,
-      _role: role,
-    });
-    if (error) {
-      console.error("[guards] has_role falló, fail-closed:", error.message);
-      throw new HttpError(
-        503,
-        "Servicio de verificación de permisos no disponible. Reintenta en unos segundos.",
-      );
-    }
-    if (ok === true) {
-      matched = role;
-      break;
-    }
-  }
-  if (!matched) throw new HttpError(403, "Forbidden: insufficient role");
-
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return { userId, role: matched, admin: supabaseAdmin as AdminClient };
-}
-
-/** Atajo: exige rol admin. */
-export function requireAdmin(
-  caller: CallerClient,
-  userId: string,
-): Promise<AuthorizedCaller> {
-  return requireRole(caller, userId, ["admin"]);
-}
-
-/**
- * Token bucket en DB. Fail-closed (SEC-M4): si el RPC falla, se rechaza.
- * `check_and_record_rate_limit` sólo es ejecutable por service_role.
- */
-export async function enforceRateLimit(
-  admin: AdminClient,
-  bucket: string,
-  identifier: string,
-  maxRequests = 10,
-  windowSeconds = 60,
-): Promise<void> {
-  const { data, error } = await admin.rpc("check_and_record_rate_limit", {
-    _bucket: bucket,
-    _identifier: identifier,
-    _max_requests: maxRequests,
-    _window_seconds: windowSeconds,
-  });
-
-  if (error) {
-    console.error(`[rateLimit:${bucket}] RPC error, fail-closed:`, error.message);
-    throw new HttpError(
-      503,
-      "Servicio de control de acceso no disponible. Reintenta en unos segundos.",
-    );
-  }
-
-  if (data === false) {
-    throw new HttpError(
-      429,
-      `Demasiadas peticiones. Espera unos segundos antes de reintentar (límite ${maxRequests}/${windowSeconds}s).`,
-    );
-  }
-}
-
-// ---------- Alcance de organización (tramo 5 multiempresa) ----------
-
-
-/**
- * Empresa verificada del administrador interno.
- *
- * El `organization_id` NUNCA llega del navegador: se resuelve con el cliente
- * autenticado del propio usuario sobre `organization_memberships`.
- */
-export async function requireInternalOrganization(
-  caller: CallerClient,
-  userId: string,
-): Promise<string> {
-  const scope = await resolveInternalScope(
-    caller as unknown as Parameters<typeof resolveInternalScope>[0],
-    userId,
-  );
-
-  if (scope.status === "read_error") {
-    throw new HttpError(
-      503,
-      "No se pudo verificar tu empresa. Reintenta en unos segundos.",
-    );
-  }
-  if (scope.status === "not_internal") {
-    throw new HttpError(403, "Forbidden: sin membresía interna verificada");
-  }
-  return scope.organizationId;
-}
-
-/**
- * El usuario objetivo debe pertenecer a la misma empresa. Un objetivo de otra
- * empresa responde igual que uno inexistente: no se filtra su existencia.
- */
-export async function assertTargetInOrganization(
-  admin: AdminClient,
-  targetUserId: string,
-  organizationId: string,
-): Promise<void> {
-  const target = await resolveTargetScope(
-    admin as unknown as Parameters<typeof resolveTargetScope>[0],
-    targetUserId,
-    organizationId,
-  );
-
-  if (target.status === "read_error") {
-    throw new HttpError(
-      503,
-      "No se pudo verificar la empresa del usuario. Reintenta en unos segundos.",
-    );
-  }
-  if (target.status === "not_found") {
-    throw new HttpError(404, "Usuario no encontrado en tu empresa");
-  }
-}
-
-/** Alta de la membresía interna del invitado en la empresa del administrador. */
-export async function createInternalMembership(
-  admin: AdminClient,
-  userId: string,
-  organizationId: string,
-): Promise<{ error: { message: string } | null }> {
-  const { error } = await admin
-    .from("organization_memberships")
-    .insert({
-      auth_user_id: userId,
-      organization_id: organizationId,
-      member_type: "internal",
-    });
-  return { error: error ? { message: error.message } : null };
-}
-
-// ---------- Operador de plataforma (tramo 9 multiempresa) ----------
-
-/**
- * RPC sin tipado generado: los objetos de la migración 0030
- * (`platform_operators`, `is_platform_operator`, `platform_*`) todavía no
- * están en `src/integrations/supabase/types.ts` (se regenera al aplicar la
- * migración). El contrato se fija aquí, no en el navegador.
- */
-export interface UntypedRpcClient {
-  rpc(
-    fn: string,
-    args?: Record<string, unknown>,
-  ): PromiseLike<{ data: unknown; error: { message: string; code?: string } | null }>;
-}
-
-export const asUntypedRpc = (client: unknown): UntypedRpcClient =>
-  client as UntypedRpcClient;
-
-/**
- * Exige que el caller sea un operador de plataforma activo.
- *
- * Se decide con el cliente del propio usuario (`is_platform_operator`,
- * SECURITY DEFINER, sólo lee su propia fila) y sólo después se carga el
- * cliente privilegiado. Las funciones `platform_*` vuelven a verificar al
- * actor en la base (`assert_platform_operator`): la UI nunca es la única
- * barrera. Fail-closed ante cualquier error de lectura.
- */
-export async function requirePlatformOperator(
-  caller: CallerClient,
-  userId: string,
-): Promise<AuthorizedCaller & { organizationId: string }> {
-  // La cuenta debe estar activa y ser administradora interna de su empresa.
-  const authorized = await requireAdmin(caller, userId);
-  const organizationId = await requireInternalOrganization(caller, userId);
-
-  const { data, error } = await asUntypedRpc(caller).rpc("is_platform_operator");
-  if (error) {
-    console.error("[guards] is_platform_operator falló, fail-closed:", error.message);
-    throw new HttpError(
-      503,
-      "Servicio de verificación de operador no disponible. Reintenta en unos segundos.",
-    );
-  }
-  if (data !== true) {
-    throw new HttpError(403, "Forbidden: se requiere un operador de plataforma");
-  }
-  return { ...authorized, organizationId };
-}
+export {
+  asUntypedRpc,
+  requirePlatformOperator,
+  type UntypedRpcClient,
+} from "./guards/platformOperator.server";
