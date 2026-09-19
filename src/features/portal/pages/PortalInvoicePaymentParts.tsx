@@ -12,10 +12,11 @@ import type {
   usePortalCustomer,
 } from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { ReportTransferDialog } from "../components/ReportTransferDialog";
 import { StpTransferCard } from "../components/StpTransferCard";
+import { computeInvoiceTotals } from "./PortalInvoicePayment.helpers";
 
 export type Intent = {
   id: string;
@@ -117,36 +118,7 @@ export function PaidCard() {
   );
 }
 
-type InvoiceLike = {
-  balance?: number | string | null;
-  total: number | string;
-  credited_amount?: number | string | null;
-  moneda?: string | null;
-};
-
-export function computeInvoiceTotals(
-  invoice: InvoiceLike,
-  invoicePayments: { amount: number | string }[],
-  intents: { amount: number | string; status: string }[],
-) {
-  const totalPaid = invoicePayments.reduce((sum, payment) => sum + Number(payment.amount), 0);
-  const pendingReported = intents
-    .filter((intent) => intent.status === "pending_review")
-    .reduce((sum, intent) => sum + Number(intent.amount), 0);
-  const balance = invoice.balance != null
-    ? Number(invoice.balance)
-    : Math.max(0, Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0));
-  // FIX-FE-04: lo reportable descuenta lo que ya está en revisión; sin esto el
-  // cliente podía reportar el saldo completo dos veces (sobrepago al aprobar).
-  const reportableBalance = Math.max(0, balance - pendingReported);
-  // R14-E: SPEI (CLABE MXN) sólo aplica a facturas en pesos.
-  const moneda = invoice.moneda ?? "MXN";
-  const isMxn = moneda === "MXN";
-  const balanceLabel = formatCurrencyWithCode(balance, moneda);
-  return { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel };
-}
-
-export interface PaymentSectionArgs {
+interface PaymentSectionArgs {
   balance: number;
   concept: string;
   pendingReported: number;
@@ -158,7 +130,7 @@ export interface PaymentSectionArgs {
   onReport: () => void;
 }
 
-export function renderPaymentSection(args: PaymentSectionArgs) {
+function renderPaymentSection(args: PaymentSectionArgs) {
   if (args.balance <= 0) return <PaidCard />;
   if (args.isMxn) {
     return (

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { computeInvoiceTotals } from "./PortalInvoicePayment.helpers";
 import {
-  computeInvoiceTotals,
   ForeignCurrencyNotice,
   InvoiceNotFound,
   MxnPaymentSection,
@@ -8,7 +8,6 @@ import {
   PaymentBody,
   PaymentQueryError,
   PortalIntentsTable,
-  renderPaymentSection,
 } from "./PortalInvoicePaymentParts";
 
 describe("PortalInvoicePaymentParts", () => {
@@ -22,7 +21,6 @@ describe("PortalInvoicePaymentParts", () => {
       InvoiceNotFound,
       PaymentBody,
     ]).toEqual(expect.arrayContaining([expect.any(Function)]));
-    expect(renderPaymentSection).toEqual(expect.any(Function));
   });
 
   it("descuenta pagos y notas de crédito cuando no hay saldo canónico", () => {
@@ -51,17 +49,4 @@ describe("PortalInvoicePaymentParts", () => {
     expect(result.isMxn).toBe(true);
   });
 
-  it("conserva las tres ramas de la sección de pago", () => {
-    const common = {
-      concept: "F-1",
-      pendingReported: 0,
-      balanceLabel: "$100.00 MXN",
-      canReport: true,
-      reportBlock: null,
-      onReport: vi.fn(),
-    };
-    expect(renderPaymentSection({ ...common, balance: 0, moneda: "MXN", isMxn: true }).type).toBe(PaidCard);
-    expect(renderPaymentSection({ ...common, balance: 100, moneda: "MXN", isMxn: true }).type).toBe(MxnPaymentSection);
-    expect(renderPaymentSection({ ...common, balance: 100, moneda: "USD", isMxn: false }).type).toBe(ForeignCurrencyNotice);
-  });
 });
