@@ -1,0 +1,15 @@
+{
+  "version": "8.25.14",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Catálogo de bloqueos de negocio separado entre datos y resolución, sin cambios funcionales",
+  "description": "El catálogo que explica los bloqueos del ERP tenía en la misma hoja la lista de mensajes y las instrucciones para resolverlos, como un directorio donde los números y las instrucciones de uso estaban revueltos. Ahora los números viven en su propia hoja y el directorio original quedó como portada: los códigos, mensajes en español, patrones regex, orden y resultados son exactamente los mismos.",
+  "changes": [
+    "src/lib/rules/businessBlocks.data.ts: datos estáticos del catálogo (BusinessBlockCode, BusinessBlock, BusinessBlockTone, BlockCopy, BUSINESS_BLOCKS, ERROR_PATTERNS, CONSTRAINT_BLOCKS y FORKLIFT_TARGET_ACTIONS), sin lógica de resolución.",
+    "src/lib/rules/businessBlocks.ts queda como fachada pública (319 a ~50 líneas) con describeBusinessBlock, businessBlockSummary, resolveBusinessBlock y describeForkliftRentalBlock; reexporta BusinessBlockCode, BusinessBlock y BUSINESS_BLOCKS para no romper consumidores ni tests.",
+    "Precedencia intacta en resolveBusinessBlock: restricción nombrada vía CONSTRAINT_BLOCKS, patrones de ERROR_PATTERNS y fallback null; describeBusinessBlock y businessBlockSummary conservan overrides, formateo y type narrowing.",
+    "Sin cambios en textos es-MX, códigos, action/reason/nextStep, tonos, regex, orden, fallback, imports de consumidores ni rutas públicas.",
+    "Sin cambios de SQL, RLS, migraciones, Storage, autenticación, query keys, tipos generados, rutas, UI, branding, logo ni CI."
+  ]
+}
