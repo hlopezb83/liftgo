@@ -1,3 +1,12 @@
+## [8.25.9] - 2026-09-19 · patch · refactor
+
+Separación de lecturas y mutaciones en el módulo de clientes. Sin cambios de comportamiento, SQL, RLS, migraciones, Storage, autenticación, query keys ni publicación.
+
+- src/features/customers/hooks/customers/useCustomers.ts: fachada de compatibilidad (203→24 líneas) que conserva `Customer`, `CustomerPortalAccountStatus`, `CustomerPortalAccountSummary`, `customerQueries`, `useCustomers`, `useCustomer`, `useCustomerPortalAccount`, `useCreateCustomer`, `useUpdateCustomer` y `useDeleteCustomer`.
+- src/features/customers/hooks/customers/customerQueries.ts: lecturas idénticas sobre `organization_customers` (`status = 'active'`) con `customers!inner`, filtros de archivado/E2E, `LIST_FETCH_LIMIT`, detalle por id y cuenta de portal por empresa. El navegador nunca envía `organization_id`.
+- src/features/customers/hooks/customers/customerMutations.ts: alta, actualización con `expectedVersion`/`stale_write`, `assertRowsAffected`, RPC `soft_delete_customer`, invalidaciones, títulos de error y `onBusinessBlock` sin cambios.
+- src/features/customers/hooks/customers/__tests__/useCustomersFacade.test.ts: contrato de exportaciones, lectura por relación comercial y `expectedVersion` en el filtro de actualización. Se conserva `useCustomers.rls.test.ts`.
+
 ## [8.25.8] - 2026-09-19 · patch · refactor
 
 Separación del prellenado de cotizaciones entre lógica pura y hook. Sin cambios de comportamiento, reglas de negocio, compatibilidad legacy, SQL, RLS, migraciones, Storage, autenticación ni publicación.
