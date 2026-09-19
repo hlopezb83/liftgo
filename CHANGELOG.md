@@ -1,3 +1,11 @@
+## [8.25.16] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades en la pantalla de acceso. Sin cambios de UI, textos es-MX, clases, iconos, aria/role, orden del DOM, accesibilidad, marca global LiftGo, avisos de recuperación, enlaces secundarios, llamadas a signIn/resetPassword/updatePassword/signOut, notificaciones, dismissAuthError, sincronización de prevRecovery ni navegación.
+
+- `src/features/auth/pages/AuthPageParts.tsx`: `TITLES`, `RecoveryNotice` (pending/error, botón «Solicitar un enlace nuevo», `role alert`), `AuthCardHeader` (`BrandLockup`, `GLOBAL_BRAND_NAME`, ruta desconocida) y `AuthModeLinks` (olvidé contraseña, volver, cancelar recuperación) con sus tipos/props, marcado idéntico.
+- `src/features/auth/pages/AuthPage.tsx`: orquestador (310→191 líneas) con `useAuth`, `useLocation`, `useNavigateTransition`, `useRecoveryStatus`, estados, `getRecoveryUserId`, `endRecovery`, `recoverySessionMatches`/`canSubmitReset`, `leaveAuthRoute`, `finishRecovery`, `cancelRecovery`, `runSubmit`, `handleSubmit`, formulario y navegación al portal.
+- Sin cambios de SQL, RLS, migraciones, Storage, autenticación, `AuthContext`, hooks, `recoverySession`, rutas, tipos generados, branding, logo ni CI.
+
 ## [8.25.15] - 2026-09-19 · patch · refactor
 
 Separación de contratos y fetchers del módulo Auditoría. Sin cambios de nombres, firmas, tipos, `staleTime` (60_000), selects PostgREST, límites, ordenamientos, filtros, RPC, mensajes ni aislamiento.
