@@ -1,10 +1,10 @@
 import { useState } from "react";
-import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 import {
   buildPrefillValues,
   type EquipmentModel,
   type ExistingQuote,
 } from "./quotePrefill.logic";
+import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 
 export {
   buildPrefillValues,
