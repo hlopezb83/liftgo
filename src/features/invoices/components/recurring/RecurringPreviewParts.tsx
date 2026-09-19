@@ -14,6 +14,8 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
   booking_ended: "Reserva terminada — completa la devolución",
 };
 
+void REASON_LABEL;
+
 export function SummaryBar({
   eligibleCount,
   selectedCount,
