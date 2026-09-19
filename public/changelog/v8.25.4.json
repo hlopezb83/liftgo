@@ -1,0 +1,16 @@
+{
+  "version": "8.25.4",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Validación de REP de proveedor reorganizada en módulos, sin cambios de comportamiento",
+  "description": "El código que revisa los complementos de pago (REP) de proveedores estaba todo en un solo archivo muy largo, como una caja de herramientas donde cabía todo revuelto. Ahora cada responsabilidad vive en su propio cajón: las revisiones del XML, la consulta de la factura y el pago, la subida de archivos y el registro de actividad. El resultado para quien usa el sistema es idéntico: mismas validaciones, mismos mensajes y los mismos candados por empresa.",
+  "changes": [
+    "src/lib/supplierRep.functions.ts queda como adaptador delgado: resuelve rol, empresa activa y límite de intentos, y coordina los módulos nuevos.",
+    "src/lib/supplierRep.validation.ts: revisiones puras de la entrada y del XML (tamaño máximo, XML bien formado, tipo P, RFC del emisor, monto y factura referenciada, UUID del timbre).",
+    "src/lib/supplierRep.data.server.ts: lectura del pago y su factura, revisión de UUID duplicado, marcado del REP recibido y registro de actividad.",
+    "src/lib/supplierRep.storage.server.ts: subida del XML y del PDF bajo la carpeta de la organización.",
+    "Nuevas pruebas puntuales de las validaciones puras (15 casos) y se conservan las existentes de XML y de aislamiento por empresa.",
+    "Todas las consultas con permisos elevados siguen filtrando por organización. Sin cambios de base de datos, almacenamiento real, datos, secretos ni publicación."
+  ]
+}
