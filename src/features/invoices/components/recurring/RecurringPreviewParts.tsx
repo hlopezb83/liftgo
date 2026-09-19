@@ -6,7 +6,6 @@ import { Link } from "@/lib/router-compat-ui";
 import { recurringLineKey } from "../../lib/recurringSelection";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
-
 export function SummaryBar({
   eligibleCount,
   selectedCount,
