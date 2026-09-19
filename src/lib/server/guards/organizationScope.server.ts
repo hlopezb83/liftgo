@@ -10,9 +10,6 @@ import {
 } from "@/lib/organization/adminScope";
 import { type AdminClient, type CallerClient, HttpError } from "./httpError";
 
-
-import { type AdminClient, type CallerClient, HttpError } from "./httpError";
-
 /** Empresa verificada del administrador interno. */
 export async function requireInternalOrganization(
   caller: CallerClient,
