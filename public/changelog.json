@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.25.9",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Clientes: lecturas y mutaciones separadas, sin cambios funcionales",
+    "description": "El archivo de clientes tenía en la misma hoja las consultas de la cartera y los cambios que se guardan, como un cuaderno donde el directorio y las correcciones estaban revueltos. Ahora cada uno tiene su hoja y el cuaderno original quedó como portada: se ve y se guarda exactamente igual, con el mismo aislamiento por empresa.",
+    "changes": [
+      "src/features/customers/hooks/customers/useCustomers.ts queda como fachada de compatibilidad (203 a 24 líneas) y conserva Customer, CustomerPortalAccountStatus, CustomerPortalAccountSummary, customerQueries, useCustomers, useCustomer, useCustomerPortalAccount, useCreateCustomer, useUpdateCustomer y useDeleteCustomer.",
+      "src/features/customers/hooks/customers/customerQueries.ts: lecturas idénticas sobre organization_customers con status active y customers!inner, filtros de archivado y E2E, límite, detalle por id y cuenta de portal por empresa.",
+      "src/features/customers/hooks/customers/customerMutations.ts: creación, actualización con expectedVersion y stale_write, assertRowsAffected, soft_delete_customer, invalidaciones, títulos de error y onBusinessBlock sin cambios.",
+      "Nueva prueba de contrato de la fachada: exportaciones, lectura por relación comercial sin organization_id desde el navegador y expectedVersion aplicado en el filtro de actualización; se conserva useCustomers.rls.test.ts.",
+      "Sin cambios de SQL, RLS, migraciones, Storage, autenticación, query keys, tipos generados, pantallas ni publicación."
+    ]
+  },
+  {
     "version": "8.25.8",
     "date": "2026-09-19",
     "type": "patch",
