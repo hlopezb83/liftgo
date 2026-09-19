@@ -1,5 +1,24 @@
 [
   {
+    "version": "8.25.5",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Guards administrativos del servidor separados por responsabilidad, sin cambios de comportamiento",
+    "description": "Los candados que revisan quién puede ejecutar las acciones administrativas vivían todos en un mismo archivo: como un llavero donde estaban mezcladas las llaves de la puerta, del archivero y de la caja fuerte. Ahora cada llave tiene su propio gancho, y el archivo original quedó como el llavero de siempre para que nada de lo que ya funcionaba tenga que cambiar. Las revisiones, mensajes y candados por empresa son idénticos.",
+    "changes": [
+      "src/lib/server/adminGuards.server.ts queda como fachada de compatibilidad (309 a 42 líneas) y exporta exactamente la misma API que antes.",
+      "src/lib/server/guards/httpError.ts: error con estatus y tipos base compartidos.",
+      "src/lib/server/guards/validation.ts y password.ts: revisiones de entrada (UUID, correo, texto, rol) y generación segura de contraseña temporal.",
+      "src/lib/server/guards/roleAuthorization.server.ts: cuenta activa y rol del solicitante; el cliente con permisos elevados se carga sólo después de aprobar la revisión.",
+      "src/lib/server/guards/rateLimit.server.ts: control de intentos, que sigue rechazando si el servicio falla.",
+      "src/lib/server/guards/organizationScope.server.ts: empresa verificada del administrador, comprobación del usuario objetivo y alta de membresía interna.",
+      "src/lib/server/guards/platformOperator.server.ts: revisión del operador de plataforma.",
+      "Nuevas pruebas puntuales (7) que confirman la API exportada y que los candados siguen rechazando ante errores de lectura, cuenta desactivada o falta de membresía.",
+      "Sin cambios de migraciones, datos, almacenamiento, secretos ni publicación."
+    ]
+  },
+  {
     "version": "8.25.4",
     "date": "2026-09-19",
     "type": "patch",
