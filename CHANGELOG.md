@@ -1,3 +1,13 @@
+## [8.25.5] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades de los guards administrativos del servidor. Sin cambios de contratos, comportamiento, migraciones, datos, Storage, secretos ni publicación.
+
+- src/lib/server/adminGuards.server.ts: fachada de compatibilidad (309→42 líneas) que reexporta exactamente la API previa (`HttpError`, `AppRole`, `AdminClient`, `CallerClient`, `AuthorizedCaller`, `isUUID`, `isEmail`, `isNonEmptyString`, `isValidRole`, `generateSecurePassword`, `requireRole`, `requireAdmin`, `enforceRateLimit`, `requireInternalOrganization`, `assertTargetInOrganization`, `createInternalMembership`, `asUntypedRpc`, `UntypedRpcClient`, `requirePlatformOperator`).
+- src/lib/server/guards/: `httpError.ts` (error y tipos base), `validation.ts`, `password.ts`, `roleAuthorization.server.ts`, `rateLimit.server.ts`, `organizationScope.server.ts` y `platformOperator.server.ts`. Sin ciclos de importación y sin acceso privilegiado en el navegador.
+- Comportamiento preservado 1:1: fail-closed con 503/403/404/429, mismos mensajes, mismas llamadas RPC (`is_active_user`, `has_role`, `check_and_record_rate_limit`, `is_platform_operator`), filtros `organization_id` y distinción internal/portal.
+- src/lib/server/__tests__/adminGuardsFacade.test.ts: 7 casos nuevos (API exportada y fail-closed de rol, rate limit y empresa).
+- Validación local: 31/31 pruebas (adminGuards, requirePlatformOperator, fachada y detector de aislamiento), `eslint src/lib/server` sin avisos, `tsgo --noEmit` y `arch:check` OK. Suite completa pendiente de GitHub Actions.
+
 ## [8.25.4] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades en la validación de REP de proveedor. Sin cambios funcionales, de seguridad multiempresa, base de datos, Storage real, datos, secretos ni publicación.
