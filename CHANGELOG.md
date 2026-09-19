@@ -1,4 +1,14 @@
+## [8.25.10] - 2026-09-19 · patch · refactor
+
+Separación del catálogo de errores de Postgres entre datos estáticos y lógica de resolución. Sin cambios de comportamiento, mensajes es-MX, precedencia, SQL, RLS, migraciones, Storage, autenticación, query keys, UI ni publicación.
+
+- src/lib/errors/pgErrorCatalog.data.ts: datos estáticos del catálogo (`CONSTRAINT_MESSAGES`, `SQLSTATE_MESSAGES`, `WARNING_SQLSTATES`, `PRIORITY_TEXT_PATTERNS`, `TEXT_PATTERNS`) y tipos internos `ErrorSeverity`/`CatalogEntry`, sin algoritmo.
+- src/lib/errors/pgErrorCatalog.ts: fachada pública (336→~130 líneas) con `PgErrorTranslation`, resolución (`haystack`, `findConstraint`, `findSqlstate`, `findTextEntry`, `build`, `translatePgError`) y reexportación de `CONSTRAINT_MESSAGES`/`SQLSTATE_MESSAGES`; consumidores como `useSuppliers.ts` no cambian.
+- Precedencia intacta: constraint nombrada → patrones prioritarios → SQLSTATE/P0001 → patrones de texto → fallback; mismos mensajes, severidades, `matched`, `constraint`, `sqlstate` y manejo de `extractErrorDetails`.
+- src/lib/errors/__tests__/pgErrorCatalog.facade.test.ts: contrato de la fachada (exportaciones, identidad de mapas reexportados, casos de constraint, patrón prioritario, SQLSTATE y fallback). Se conservan sin cambios `pgErrorCatalog.test.ts`, `sharedCatalogConflicts.test.ts` y `orgScopedCatalogConflicts.test.ts`.
+
 ## [8.25.9] - 2026-09-19 · patch · refactor
+
 
 Separación de lecturas y mutaciones en el módulo de clientes. Sin cambios de comportamiento, SQL, RLS, migraciones, Storage, autenticación, query keys ni publicación.
 

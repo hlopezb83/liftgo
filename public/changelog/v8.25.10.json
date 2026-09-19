@@ -1,0 +1,15 @@
+{
+  "version": "8.25.10",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Catálogo de errores separado entre datos y resolución, sin cambios funcionales",
+  "description": "El catálogo que traduce los errores del sistema a mensajes claros tenía en la misma hoja la lista de mensajes y las instrucciones para buscarlos, como un directorio telefónico donde los números y las instrucciones de uso estaban revueltos. Ahora los números viven en su propia hoja y el directorio original quedó como portada: los mensajes, su orden de búsqueda y los resultados son exactamente los mismos.",
+  "changes": [
+    "src/lib/errors/pgErrorCatalog.data.ts: datos estáticos del catálogo (CONSTRAINT_MESSAGES, SQLSTATE_MESSAGES, WARNING_SQLSTATES, PRIORITY_TEXT_PATTERNS y TEXT_PATTERNS) junto con los tipos internos, sin algoritmo.",
+    "src/lib/errors/pgErrorCatalog.ts queda como fachada pública (336 a ~130 líneas) con PgErrorTranslation, translatePgError y la resolución completa, reexportando CONSTRAINT_MESSAGES y SQLSTATE_MESSAGES para no romper consumidores como useSuppliers.ts.",
+    "Precedencia intacta: restricción nombrada, patrones prioritarios, SQLSTATE/P0001, patrones de texto y fallback; mismos mensajes en español mexicano, severidades, matched, constraint, sqlstate y manejo de extractErrorDetails.",
+    "Nueva prueba de contrato de la fachada con exportaciones públicas y casos representativos de restricción, patrón prioritario, SQLSTATE y fallback; se conservan sin cambios las pruebas de pgErrorCatalog, sharedCatalogConflicts y orgScopedCatalogConflicts.",
+    "Sin cambios de SQL, RLS, migraciones, Storage, autenticación, query keys, tipos generados, pantallas, CI ni publicación."
+  ]
+}
