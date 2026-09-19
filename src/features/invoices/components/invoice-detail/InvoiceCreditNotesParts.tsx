@@ -6,7 +6,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import type {
   useStampCreditNote,
   useDeleteCreditNote,
