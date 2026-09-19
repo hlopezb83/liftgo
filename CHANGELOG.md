@@ -1,3 +1,14 @@
+## [8.25.7] - 2026-09-19 · patch · refactor
+
+Separación de consultas, tipos y fachada en el portal de clientes. Sin cambios de comportamiento, query keys, `staleTime`, `enabled`, columnas explícitas, RPC, paginación, mapeo de montacargas, SQL, RLS, migraciones, Storage, autenticación ni publicación.
+
+- src/features/customers/hooks/customers/useCustomerPortal.ts: fachada de compatibilidad (327→26 líneas) que conserva la API y las rutas de importación previas (`usePortalCustomer`, `usePortalBookings`, `usePortalBookingsPage`, `usePortalInvoices`, `usePortalInvoice`, `usePortalInvoicesPage`, `usePortalContracts`, `usePortalContractsPage`, `usePortalPayments`, `usePortalInvoicePayments`, `PortalPaymentRow`, `PortalCustomerRow`, `PortalPage`, `PortalInvoiceRow`, `PortalContractRow`, `PortalBookingRow`).
+- src/features/customers/hooks/customers/customerPortalQueries.ts (246 líneas): los diez hooks del portal; `usePortalScope` unifica `useAuth` + `useVerifiedIdentityScope` sin alterar claves ni activación.
+- src/features/customers/hooks/customers/customerPortal.helpers.ts: constantes de columnas, `pageBounds`, `parseRpcPage` y `fetchForkliftsBriefMap`, idénticos.
+- src/features/customers/hooks/customers/customerPortal.types.ts: tipos compartidos del portal, sin tocar los tipos generados.
+- La organización verificada sigue formando parte de `portalKeys.*` y de `enabled`; `useVerifiedPortalCustomerId` se mantiene como única fuente de identidad del cliente.
+- src/features/customers/hooks/customers/__tests__/useCustomerPortalFacade.test.tsx: contrato de exports, uso del cliente verificado y scope de organización, y no-consulta sin scope. `usePortalCustomer.test.tsx` se conserva sin cambios.
+
 ## [8.25.6] - 2026-09-19 · patch · refactor
 
 Separación de consultas y mutaciones en el módulo de facturas. Sin cambios de comportamiento, reglas de negocio, filtros, query keys, invalidaciones, mensajes, RPC, RLS, UI, base de datos, datos, Storage, secretos ni publicación.
