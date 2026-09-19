@@ -1,0 +1,15 @@
+{
+  "version": "8.25.15",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Módulo de Auditoría separado entre contratos y consultas, sin cambios funcionales",
+  "description": "La bitácora tenía en una sola hoja las definiciones, las consultas de registros y las métricas, como un archivero donde el índice y los expedientes estaban revueltos. Ahora cada cosa vive en su carpeta y la hoja original quedó como portada: las mismas consultas, filtros, etiquetas y métricas, con el mismo aislamiento por empresa.",
+  "changes": [
+    "src/features/audit/lib/auditQueryContracts.ts: auditKeys, tipos AuditLog/AuditSource/AuditOrigin/AuditLogFilters/LabelProjectionRow, readAuditLogFilters, buildLabel y normalizeJson sin cambios de comportamiento.",
+    "src/features/audit/lib/auditLogQueries.ts: auditLogsQueries y auditLogDetailQueries con los mismos selects PostgREST, límite, orden, filtros de origen, join de profiles, .eq(\"id\", id).maybeSingle() y normalización de old_data/new_data.",
+    "src/features/audit/lib/activityMetricsQueries.ts: ActivityMetricsRpcPayload, parseRangeDate, readActivityRange y activityMetricsQueries con el mismo callRpc(\"get_activity_metrics\", ...) y cálculo de uniqueActors/peakHour/topModule.",
+    "src/features/audit/lib/queryKeys.ts queda como fachada (325 a ~24 líneas) que reexporta explícitamente la API pública; los consumidores y tests conservan el mismo path.",
+    "Sin cambios de staleTime (60_000), firmas, mensajes de dominio, aislamiento de audit_logs/profiles, SQL, RLS, migraciones, Storage, autenticación, tipos generados, rutas, UI, branding, logo ni CI."
+  ]
+}

@@ -1,3 +1,13 @@
+## [8.25.15] - 2026-09-19 · patch · refactor
+
+Separación de contratos y fetchers del módulo Auditoría. Sin cambios de nombres, firmas, tipos, `staleTime` (60_000), selects PostgREST, límites, ordenamientos, filtros, RPC, mensajes ni aislamiento.
+
+- `src/features/audit/lib/auditQueryContracts.ts`: `auditKeys`, tipos (`AuditLog`, `AuditSource`, `AuditOrigin`, `AuditLogFilters`, `LabelProjectionRow`), `readAuditLogFilters` (origin por defecto `default`), `buildLabel` (`ROLE_LABELS`, truncado a 30, fallback `recordId.slice(0, 8)`) y `normalizeJson`.
+- `src/features/audit/lib/auditLogQueries.ts`: `auditLogsQueries` y `auditLogDetailQueries` con los mismos selects, `LIST_FETCH_LIMIT`, orden, filtros de origen, join de `profiles`, `.eq("id", id).maybeSingle()` y normalización de `old_data`/`new_data`.
+- `src/features/audit/lib/activityMetricsQueries.ts`: `ActivityMetricsRpcPayload`, `parseRangeDate`, `readActivityRange` y `activityMetricsQueries` con `callRpc("get_activity_metrics", ...)`, fallback a "ahora" y cálculo de `uniqueActors`/`peakHour`/`topModule`.
+- `src/features/audit/lib/queryKeys.ts`: fachada (325→~24 líneas) que reexporta la API pública; mismo path para consumidores y tests.
+- Sin cambios de SQL, RLS, migraciones, Storage, autenticación, tipos generados, rutas, UI, branding, logo ni CI.
+
 ## [8.25.14] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades en el catálogo de bloqueos de negocio. Sin cambios de códigos, mensajes es-MX, `action`/`reason`/`nextStep`, tonos, patrones regex, orden, fallback, type narrowing, imports de consumidores ni rutas públicas.
