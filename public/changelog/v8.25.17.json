@@ -1,6 +1,13 @@
 {
   "version": "8.25.17",
   "date": "2026-09-19",
-  "title": "Corrección CI: callsite de marca global tras refactor de AuthPage",
-  "description": "Se corrige la prueba AuthBrandPanel apuntando el callsite del lockup a AuthPageParts.tsx, módulo presentacional extraído en el Paquete 14; AuthPage.tsx queda como orquestador. Sin cambios funcionales."
+  "type": "patch",
+  "category": "fix",
+  "title": "Corrección CI: callsite de marca global apunta al módulo presentacional de acceso",
+  "description": "La prueba que vigila la marca global revisaba el letrero en la hoja del mostrador, pero tras la limpieza anterior el letrero vive en su propia charola. Se actualizó la lista de lugares a inspeccionar: la marca de LiftGo, los textos y el comportamiento son exactamente los mismos.",
+  "changes": [
+    "src/components/branding/__tests__/AuthBrandPanel.test.tsx: el callsite del lockup en pantalla de acceso pasa de AuthPage.tsx a AuthPageParts.tsx (módulo presentacional extraído en 8.25.16); AuthPage.tsx queda como orquestador y sigue verificado contra logo_url/usePublicBranding en LOGIN_SCREENS.",
+    "Sin cambios en AuthPage.tsx, AuthPageParts.tsx, lógica de autenticación, recuperación, navegación, textos, clases, accesibilidad ni APIs.",
+    "Sin cambios de base de datos, permisos, migraciones, almacenamiento, autenticación, rutas, tipos generados, UI, branding, logo ni publicación."
+  ]
 }
