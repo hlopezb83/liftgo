@@ -1,0 +1,6 @@
+{
+  "version": "8.25.17",
+  "date": "2026-09-19",
+  "title": "Corrección CI: callsite de marca global tras refactor de AuthPage",
+  "description": "Se corrige la prueba AuthBrandPanel apuntando el callsite del lockup a AuthPageParts.tsx, módulo presentacional extraído en el Paquete 14; AuthPage.tsx queda como orquestador. Sin cambios funcionales."
+}
