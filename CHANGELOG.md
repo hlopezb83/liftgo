@@ -1,3 +1,14 @@
+## [8.25.4] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades en la validación de REP de proveedor. Sin cambios funcionales, de seguridad multiempresa, base de datos, Storage real, datos, secretos ni publicación.
+
+- src/lib/supplierRep.functions.ts: adaptador server-only delgado (314→110 líneas); conserva `requireRole`, `current_organization_id`, el rate limit 5/60s y los exports públicos (`extractAttr`, `extractAllAttr`, `extractPagoNodes`, `isWellFormedXml`, `ValidateSupplierRepInput`, `validateSupplierRepFn`).
+- src/lib/supplierRep.validation.ts: validaciones puras de entrada y XML (`validateRepInput`, `decodeRepXml`, `assertEmisorMatchesSupplier`, `assertPagoMatchesInvoice`, `extractRepUuid`), con guardas inyectadas para poder probarse sin cliente privilegiado.
+- src/lib/supplierRep.data.server.ts: `loadPaymentAndBill`, `assertRepUuidNotDuplicated`, `markRepReceived` y `recordRepActivity`; todas las consultas privilegiadas mantienen `.eq("organization_id", organizationId)`.
+- src/lib/supplierRep.storage.server.ts: `uploadRepFiles` sobre el bucket `cfdi-files` con `organizationStoragePath`.
+- src/lib/__tests__/supplierRepValidation.test.ts: 15 casos nuevos de validaciones puras, incluidos los códigos 400/413 y sus mensajes.
+- Validación local: 36/36 pruebas (validación REP, XML, detector de aislamiento y rutas de Storage), `eslint` sin avisos en los archivos tocados, `tsgo --noEmit` y `arch:check` OK. Suite completa pendiente de GitHub Actions.
+
 ## [8.25.3] - 2026-09-19 · patch · docs
 
 Reconciliación documental multiempresa y limpieza semántica del branding. Sin cambios de base de datos, migraciones, Storage, publicación ni rediseño visual.
