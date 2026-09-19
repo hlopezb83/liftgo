@@ -6,7 +6,7 @@ import { Link } from "@/lib/router-compat-ui";
 import { recurringLineKey } from "../../lib/recurringSelection";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
-export const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {
+const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {
   already_invoiced: "Ya facturada",
   no_customer: "Sin cliente asignado",
   no_monthly_rate: "Sin tarifa mensual",

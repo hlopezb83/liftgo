@@ -1,13 +1,13 @@
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { InvoiceIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 import {
   AlreadyInvoicedNotice,
   CustomerGroup,
   StaleRateNotice,
   SummaryBar,
 } from "./RecurringPreviewParts";
+import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
 interface Props {
   isLoading: boolean;
