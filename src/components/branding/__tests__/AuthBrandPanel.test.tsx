@@ -13,7 +13,9 @@ const LOGIN_SCREENS = [
 /** Callsites globales de marca: deben usar el lockup local, nunca una URL. */
 const GLOBAL_BRAND_CALLSITES = [
   "src/components/branding/AuthBrandPanel.tsx",
-  "src/features/auth/pages/AuthPage.tsx",
+  // El lockup de la pantalla de acceso vive en el módulo presentacional
+  // extraído (Paquete 14); AuthPage.tsx sólo lo compone como orquestador.
+  "src/features/auth/pages/AuthPageParts.tsx",
   "src/features/portal/pages/PortalLogin.tsx",
   "src/layouts/CustomerPortalLayout.tsx",
   "src/layouts/sidebar/SidebarBranding.tsx",
