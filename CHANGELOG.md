@@ -1,3 +1,13 @@
+## [8.25.18] - 2026-09-19 · patch · refactor
+
+Separación estructural de la pantalla de pago de facturas del portal. Sin cambios de comportamiento, consultas, saldo, bloqueos, navegación, textos, clases, accesibilidad ni contratos.
+
+- `src/features/portal/pages/PortalInvoicePayment.tsx`: queda como orquestador de ruta, consultas, reintento conjunto, carga/error/no encontrado y `dlgOpen`.
+- `src/features/portal/pages/PortalInvoicePaymentParts.tsx`: piezas visuales y composición del pago con el mismo DOM, textos es-MX, clases, accesibilidad y props.
+- `src/features/portal/pages/PortalInvoicePayment.helpers.ts`: cálculo puro de saldo, reportes pendientes y regla MXN/SPEI sin cambios.
+- Pruebas puntuales para contrato, saldo canónico y calculado, notas de crédito, reportes pendientes y moneda predeterminada.
+- Sin cambios de SQL, RLS, migraciones, Storage, autenticación, branding, configuración de CI, dependencias ni publicación.
+
 ## [8.25.17] - 2026-09-19 · patch · fix
 
 Corrección del fallo de CI del Paquete 14. Sin cambios en `AuthPage.tsx`, `AuthPageParts.tsx`, lógica de autenticación, recuperación, navegación, textos, clases, accesibilidad ni APIs.
