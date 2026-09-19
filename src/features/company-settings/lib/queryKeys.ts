@@ -69,6 +69,11 @@ export const cxpApprovalThresholdQueries = defineEntityQueries(
   },
 );
 
+/**
+ * Identidad legal mínima expuesta públicamente: sólo razón social. No incluye
+ * logo, porque el logo de LiftGo es global y fijo para todas las
+ * organizaciones (asset local del repositorio).
+ */
 type PublicBrandingRow = {
   razon_social: string | null;
 };
