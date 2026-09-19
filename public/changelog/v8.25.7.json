@@ -1,0 +1,16 @@
+{
+  "version": "8.25.7",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Consultas del portal de clientes separadas en su propio módulo, sin cambios funcionales",
+  "description": "El portal de clientes tenía en un solo archivo las definiciones, los atajos y todas las consultas, como una carpeta donde se guardaban juntos el índice, las fichas y los formatos. Ahora cada cosa está en su carpeta y la de siempre quedó como portada, así que nada de lo que ya funcionaba cambia. Las pantallas, los datos mostrados y el aislamiento por empresa son idénticos.",
+  "changes": [
+    "src/features/customers/hooks/customers/useCustomerPortal.ts queda como fachada de compatibilidad (327 a 26 líneas) con la misma API y rutas de importación.",
+    "src/features/customers/hooks/customers/customerPortalQueries.ts: columnas explícitas, paginación, llamadas al servidor, mapeo de montacargas y los diez hooks del portal.",
+    "src/features/customers/hooks/customers/customerPortal.types.ts: tipos compartidos del portal.",
+    "La organización verificada sigue formando parte de las claves de caché y de la activación de cada consulta.",
+    "Nueva prueba de contrato de la fachada, además de la prueba existente del cliente verificado.",
+    "Sin cambios de base de datos, permisos, migraciones, almacenamiento, autenticación ni publicación."
+  ]
+}
