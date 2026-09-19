@@ -1,0 +1,15 @@
+{
+  "version": "8.25.2",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "chore",
+  "title": "Piezas internas actualizadas a sus versiones recientes de bajo riesgo",
+  "description": "Se hizo una auditoría completa de las piezas de software de las que depende el sistema y se actualizaron las que tenían mejoras pequeñas y seguras, como ponerle al carro las refacciones nuevas del mismo modelo. Nada cambia a la vista: mismas pantallas, mismos documentos, mismo comportamiento. Las actualizaciones grandes (las que cambian de \"modelo\") se dejaron anotadas para lotes aparte. La revisión no encontró ninguna vulnerabilidad conocida en las piezas usadas.",
+  "changes": [
+    "Se actualizaron 26 piezas internas a su versión menor o de corrección más reciente, incluidas las del motor de pantallas (React), las consultas de datos (TanStack Query), los formularios, los PDF, el monitoreo de errores y las herramientas de pruebas y estilo.",
+    "Se subieron las versiones fijadas del enrutador y del motor del servidor (TanStack Router 1.170.38 y TanStack Start 1.168.56), siempre juntas para que sigan emparejadas.",
+    "La auditoría comparó lo declarado, lo instalado y lo más reciente disponible; no encontró vulnerabilidades conocidas en las 75 dependencias principales.",
+    "Los saltos grandes quedaron documentados para lotes futuros con su propio plan: TypeScript 7, Vitest 5, ESLint 10, TanStack Table 9 y el plugin de React para Vite 6.",
+    "Validado en Lovable: lint sin errores (7 advertencias preexistentes), tipos limpios, build de producción correcto y 39/39 pruebas puntuales. La suite completa se valida en GitHub Actions."
+  ]
+}
