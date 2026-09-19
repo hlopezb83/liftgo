@@ -1,0 +1,219 @@
+import { InfoAlertIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
+import { recurringLineKey } from "../../lib/recurringSelection";
+import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
+
+export const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {
+  already_invoiced: "Ya facturada",
+  no_customer: "Sin cliente asignado",
+  no_monthly_rate: "Sin tarifa mensual",
+  period_in_future: "Período futuro",
+  booking_ended: "Reserva terminada — completa la devolución",
+};
+
+export function SummaryBar({
+  eligibleCount,
+  selectedCount,
+  totalSelected,
+}: {
+  eligibleCount: number;
+  selectedCount: number;
+  totalSelected: number;
+}) {
+  return (
+    <div className="flex items-center gap-4 text-sm border rounded-md p-3 bg-muted/30">
+      <div>
+        <span className="text-muted-foreground">Elegibles: </span>
+        <span className="font-semibold">{eligibleCount}</span>
+      </div>
+      <div>
+        <span className="text-muted-foreground">Seleccionadas: </span>
+        <span className="font-semibold">{selectedCount}</span>
+      </div>
+      <div className="ml-auto">
+        <span className="text-muted-foreground">Total: </span>
+        <span className="tabular-nums font-bold">{formatCurrency(totalSelected)}</span>
+        <span className="text-xs text-muted-foreground ml-1">(IVA incl.)</span>
+      </div>
+    </div>
+  );
+}
+
+export function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
+  const isAlreadyInvoiced = line.reason === "already_invoiced" && line.existingInvoiceId;
+  return (
+    <Badge variant="secondary" className="gap-1">
+      <InfoAlertIcon className="h-3 w-3" />
+      {isAlreadyInvoiced ? (
+        <Link
+          to={`/invoices/${line.existingInvoiceId}`}
+          className="underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {line.existingInvoiceNumber ?? "Ya facturada"}
+        </Link>
+      ) : (
+        REASON_LABEL[line.reason ?? "no_customer"]
+      )}
+    </Badge>
+  );
+}
+
+/**
+ * BUG-SEP1: explica por qué no hay nada elegible cuando el mes en curso ya
+ * quedó facturado y el siguiente periodo aún no empieza.
+ */
+export function AlreadyInvoicedNotice({
+  eligibleCount,
+  alreadyInvoicedCount,
+}: {
+  eligibleCount: number;
+  alreadyInvoicedCount: number;
+}) {
+  if (eligibleCount > 0 || alreadyInvoicedCount === 0) return null;
+  return (
+    <div className="mb-3 flex items-start gap-3 rounded-md border border-blue-500/40 bg-blue-500/10 p-3 text-sm">
+      <InfoAlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div>
+        <p className="font-medium">El periodo en curso ya está facturado</p>
+        <p className="text-xs text-muted-foreground">
+          {alreadyInvoicedCount} reserva{alreadyInvoicedCount === 1 ? "" : "s"} ya tiene
+          {alreadyInvoicedCount === 1 ? "" : "n"} factura de este mes (revísalas en la lista de
+          facturas). Las líneas marcadas como “Período futuro” corresponden al siguiente ciclo y
+          se podrán generar cuando inicie ese mes.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** R6-F5: aviso de tarifa modificada después del periodo. */
+export function StaleRateNotice({
+  staleCount,
+  allowStaleRate,
+  onChange,
+}: {
+  staleCount: number;
+  allowStaleRate: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  if (staleCount === 0) return null;
+  return (
+    <div className="flex items-start gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+      <Checkbox
+        checked={allowStaleRate}
+        onCheckedChange={(v) => onChange(v === true)}
+        aria-label="Confirmar facturación de periodos con tarifa modificada"
+        className="mt-0.5"
+      />
+      <div>
+        <p className="font-medium">
+          {staleCount} periodo{staleCount === 1 ? "" : "s"} con tarifa modificada después del periodo
+        </p>
+        <p className="text-xs text-muted-foreground">
+          La reserva se editó después de que terminó el periodo, así que la tarifa
+          pudo cambiar. No se facturan hasta que confirmes aquí.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function LineRow({
+  line,
+  selected,
+  onToggle,
+  selectable,
+}: {
+  line: RecurringPreviewLine;
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  selectable: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-3 px-3 py-2 text-sm">
+      {/* R9-18: selección por reserva + periodo; cada fila es independiente. */}
+      <Checkbox
+        checked={selectable && selected.has(recurringLineKey(line))}
+        disabled={!selectable}
+        onCheckedChange={() => onToggle(recurringLineKey(line))}
+        aria-label={`Incluir la reserva ${line.bookingCode ?? line.bookingId} del periodo ${line.periodLabel}`}
+      />
+
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-xs">
+            {line.bookingCode ?? line.bookingId.slice(0, 8)}
+          </span>
+          {line.forkliftName ? (
+            <span className="text-muted-foreground truncate">— {line.forkliftName}</span>
+          ) : null}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {line.periodLabel}
+          {line.isProrated ? (
+            <span className="ml-1 text-amber-600 dark:text-amber-400">
+              · prorrateado {line.proratedDays} días
+            </span>
+          ) : null}
+        </div>
+      </div>
+      {line.eligible ? (
+        <span className="font-mono text-sm">{formatCurrency(line.billedAmount)}</span>
+      ) : (
+        <IneligibleBadge line={line} />
+      )}
+    </div>
+  );
+}
+
+export function CustomerGroup({
+  customer,
+  groupLines,
+  selected,
+  onToggle,
+  onToggleGroup,
+  isSelectable,
+}: {
+  customer: string;
+  groupLines: RecurringPreviewLine[];
+  selected: Set<string>;
+  onToggle: (id: string) => void;
+  onToggleGroup: (groupLines: RecurringPreviewLine[]) => void;
+  isSelectable: (line: RecurringPreviewLine) => boolean;
+}) {
+  const groupEligible = groupLines.filter(isSelectable);
+  const allSelected = groupEligible.length > 0
+    && groupEligible.every((l) => selected.has(recurringLineKey(l)));
+  return (
+    <div className="border rounded-md overflow-hidden">
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 border-b">
+        {groupEligible.length > 0 ? (
+          <Checkbox
+            checked={allSelected}
+            onCheckedChange={() => onToggleGroup(groupLines)}
+            aria-label={`Seleccionar todas de ${customer}`}
+          />
+        ) : null}
+        <span className="font-semibold text-sm">{customer}</span>
+        <span className="text-xs text-muted-foreground ml-auto">
+          {groupEligible.length} de {groupLines.length} elegibles
+        </span>
+      </div>
+      <div className="divide-y">
+        {groupLines.map((line) => (
+          <LineRow
+            key={`${line.bookingId}:${line.periodStart}`}
+            line={line}
+            selected={selected}
+            onToggle={onToggle}
+            selectable={isSelectable(line)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
