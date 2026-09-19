@@ -1,0 +1,14 @@
+{
+  "version": "8.25.13",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Vista de previsualización de facturación recurrente ordenada en piezas, sin cambios funcionales",
+  "description": "La vista que muestra las facturas recurrentes pendientes tenía en la misma hoja el resumen, los avisos y cada fila de reserva, como un mostrador donde el letrero, las advertencias y la lista estaban revueltos. Ahora cada cosa tiene su charola y el mostrador sólo coordina: los textos, avisos, selección por reserva+periodo, prorrateo, IVA incluido y el bloqueo de tarifa modificada se ven y se comportan exactamente igual.",
+  "changes": [
+    "src/features/invoices/components/recurring/RecurringPreviewBody.tsx queda como orquestador (315 a 103 líneas) con estados loading/empty, cálculo de alreadyInvoicedCount, isSelectable y composición de las piezas extraídas; conserva el export público RecurringPreviewBody y la interfaz de props.",
+    "src/features/invoices/components/recurring/RecurringPreviewParts.tsx: REASON_LABEL, SummaryBar, IneligibleBadge, AlreadyInvoicedNotice, StaleRateNotice, LineRow y CustomerGroup con sus tipos/props, idénticos en textos es-MX, clases Tailwind, iconos, aria-labels, navegación a /invoices/{existingInvoiceId}, stopPropagation, fallback de número, recurringLineKey, keys de fila bookingId:periodStart, formato monetario, IVA incluido, prorrateo y avisos de tarifa modificada.",
+    "Sin cambios en consultas, mutaciones, RLS, SQL, migraciones, autenticación, storage, rutas, tipos generados, branding, logo ni CI.",
+    "Sin cambios en las reglas de isSelectable (line.eligible && (!line.rateWarning || allowStaleRate)), selección de grupos (solo líneas seleccionables, allSelected, onToggle/onToggleGroup), skeletons, EmptyState, altura/overflow ni comentarios de dominio."
+  ]
+}
