@@ -1,3 +1,12 @@
+## [8.25.12] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades en la tarjeta de notas de crédito del detalle de factura. Sin cambios de UI, textos es-MX, clases, iconos, aria-labels, estados disabled/pending, orden de columnas, formatos de fecha/monto, confirmación destructiva ni reglas de `canCreate`/bloqueo por tipo de cambio o complementos.
+
+- src/features/invoices/components/invoice-detail/InvoiceCreditNotesCard.tsx: orquestador (276→105 líneas) con queries (`useCreditNotesForInvoice`, `usePayments`), estados, mutaciones, `useConfirm`, `computeCreditNoteLimits`, `canCreate`, early return y diálogos.
+- src/features/invoices/components/invoice-detail/InvoiceCreditNotesParts.tsx: `CnBadge`, `CreditNoteNotices`, `CreditNoteActions` y `CreditNotesTable` con sus tipos/props, marcado idéntico.
+- src/features/invoices/components/invoice-detail/downloadCreditNote.ts: descarga CFDI con la misma llamada a `downloadCfdiBlob`, nombres de archivo y `notifyError`.
+- Sin cambios en hooks de credit notes, `computeCreditNoteLimits`, diálogos existentes, SQL, RLS, migraciones, Storage, autenticación, tipos generados, rutas, funciones CFDI, CI ni publicación.
+
 ## [8.25.11] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades en la página de calendario. Sin cambios de UI, textos, clases, accesibilidad, estados de carga/error, navegación mes/semana, refresh, query keys, `refetchQueries`, comportamiento mobile, SQL, RLS, migraciones, Storage, autenticación ni publicación.
