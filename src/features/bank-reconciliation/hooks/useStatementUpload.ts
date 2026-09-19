@@ -33,29 +33,11 @@ export function useStatementUpload(bankAccountId: string) {
   const [xmlFields, setXmlFields] = useState<string[]>([]);
   const [mapping, setMapping] = useState<XmlFieldMapping>({});
   const [content, setContent] = useState<string>("");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const generationRef = useRef(0);
-  const activeRunRef = useRef<number | null>(null);
+  const clearAnalyzed = useCallback(() => setAnalyzed(null), []);
+  const { isAnalyzing, startRun, finishRun, isCurrentRun, invalidateRuns } = useAnalysisRun(clearAnalyzed);
   const importMut = useImportBankStatement();
   const preview = analyzed?.result ?? null;
 
-  const startRun = useCallback((supersede: boolean): number | null => {
-    if (!supersede && activeRunRef.current !== null) return null;
-    const runId = generationRef.current + 1;
-    generationRef.current = runId;
-    activeRunRef.current = runId;
-    setIsAnalyzing(true);
-    setAnalyzed(null);
-    return runId;
-  }, []);
-
-  const finishRun = useCallback((runId: number) => {
-    if (activeRunRef.current !== runId) return;
-    activeRunRef.current = null;
-    setIsAnalyzing(false);
-  }, []);
-
-  const isCurrentRun = useCallback((runId: number) => generationRef.current === runId, []);
 
   const publishOutcome = useCallback(
     (outcome: AnalysisOutcome, analyzedFile: File, analyzedProfile: StatementProfile) => {
