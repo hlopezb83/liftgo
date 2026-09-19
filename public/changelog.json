@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.25.19",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Carga de estados de cuenta bancarios separada en piezas, sin cambios funcionales",
+    "description": "El hook de carga hacía todo a la vez: leer el archivo, interpretarlo, recordar el mapeo, validar límites y avisar al usuario, como una sola persona atendiendo cinco ventanillas. Ahora cada tarea tiene su módulo y el hook sólo coordina; los límites, mensajes, mapeos y avisos funcionan exactamente igual.",
+    "changes": [
+      "src/features/bank-reconciliation/hooks/useStatementUpload.ts queda como orquestador de estado y ciclo de vida, conservando su API pública (profile, setProfile, file, setFile, preview, xmlFields, mapping, analyze, remap, confirm, reset, isAnalyzing, isPending).",
+      "Nuevos módulos statementUpload/: limits.ts (MAX_FILE_SIZE_BYTES y MAX_PARSED_LINES), analysis.ts (detección de formato, firma de mapeo, decodificación y parseo), analyzedUpload.ts (identidad del análisis), mappingStorage.ts (localStorage aislado), feedback.ts (mensajes es-MX) y useAnalysisRun.ts (tokens de cancelación).",
+      "Se eliminaron las directivas eslint-disable de max-lines-per-function y complexity sin añadir otras supresiones.",
+      "Pruebas unitarias nuevas para formato, firma de mapeo, límites, identidad y almacenamiento del mapeo; las pruebas existentes se conservan intactas.",
+      "Sin cambios de comportamiento, parsers, payload de importación, query keys, UI, SQL, RLS, migraciones, Storage, autenticación, branding, CI ni dependencias."
+    ]
+  },
+  {
     "version": "8.25.18",
     "date": "2026-09-19",
     "type": "patch",

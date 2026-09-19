@@ -1,3 +1,13 @@
+## [8.25.19] - 2026-09-19 · patch · refactor
+
+Separación estructural de la carga de estados de cuenta bancarios. Sin cambios de comportamiento, límites, mensajes, parsers, payload de importación ni contratos.
+
+- `src/features/bank-reconciliation/hooks/useStatementUpload.ts`: orquestador de estado y ciclo de vida con la misma API pública.
+- `statementUpload/limits.ts`, `analysis.ts`, `analyzedUpload.ts`, `mappingStorage.ts`, `feedback.ts` y `useAnalysisRun.ts`: límites, formato/parseo, identidad del análisis, localStorage del mapeo, mensajes es-MX y tokens de cancelación.
+- Se retiraron las directivas `eslint-disable` de `max-lines-per-function` y `complexity` sin añadir otras supresiones.
+- Pruebas unitarias nuevas para los helpers; las pruebas existentes se conservan.
+- Sin cambios de SQL, RLS, migraciones, Storage, autenticación, branding, CI, dependencias ni publicación.
+
 ## [8.25.18] - 2026-09-19 · patch · refactor
 
 Separación estructural de la pantalla de pago de facturas del portal. Sin cambios de comportamiento, consultas, saldo, bloqueos, navegación, textos, clases, accesibilidad ni contratos.
