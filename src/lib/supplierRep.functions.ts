@@ -10,12 +10,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
-  extractAllAttr,
-  extractAttr,
-  extractPagoNodes,
-  isWellFormedXml,
-} from "./supplierRepXml";
-import {
   assertEmisorMatchesSupplier,
   assertPagoMatchesInvoice,
   decodeRepXml,
@@ -23,6 +17,12 @@ import {
   validateRepInput,
   type ValidateSupplierRepInput,
 } from "./supplierRep.validation";
+import {
+  extractAllAttr,
+  extractAttr,
+  extractPagoNodes,
+  isWellFormedXml,
+} from "./supplierRepXml";
 
 // Reexportados para las pruebas y consumidores existentes.
 export { extractAllAttr, extractAttr, extractPagoNodes, isWellFormedXml };
