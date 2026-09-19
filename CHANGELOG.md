@@ -1,3 +1,12 @@
+## [8.25.14] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades en el catálogo de bloqueos de negocio. Sin cambios de códigos, mensajes es-MX, `action`/`reason`/`nextStep`, tonos, patrones regex, orden, fallback, type narrowing, imports de consumidores ni rutas públicas.
+
+- `src/lib/rules/businessBlocks.data.ts`: datos estáticos del catálogo (`BusinessBlockCode`, `BusinessBlock`, `BusinessBlockTone`, `BlockCopy`, `BUSINESS_BLOCKS`, `ERROR_PATTERNS`, `CONSTRAINT_BLOCKS` y `FORKLIFT_TARGET_ACTIONS`), sin lógica.
+- `src/lib/rules/businessBlocks.ts`: fachada pública (319→~50 líneas) con `describeBusinessBlock`, `businessBlockSummary`, `resolveBusinessBlock` y `describeForkliftRentalBlock`; reexporta `BusinessBlockCode`, `BusinessBlock` y `BUSINESS_BLOCKS`.
+- Precedencia intacta en `resolveBusinessBlock`: restricción nombrada vía `CONSTRAINT_BLOCKS`, patrones de `ERROR_PATTERNS` y fallback `null`.
+- Sin cambios de SQL, RLS, migraciones, Storage, autenticación, query keys, tipos generados, rutas, UI, branding, logo ni CI.
+
 ## [8.25.13] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades en la vista de previsualización de facturación recurrente. Sin cambios de UI, textos es-MX, clases Tailwind, iconos, aria-labels, navegación a `/invoices/{existingInvoiceId}`, `stopPropagation`, fallback de número, `recurringLineKey`, keys de fila `bookingId:periodStart`, formato monetario, IVA incluido, prorrateo, avisos de tarifa modificada, reglas de `isSelectable`, selección de grupos, skeletons, `EmptyState`, altura/overflow ni comentarios de dominio.
