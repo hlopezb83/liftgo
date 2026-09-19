@@ -81,8 +81,7 @@ describe("useUpdateCustomer — bloqueo optimista", () => {
   });
 
   it("expectedVersion llega al filtro de actualización", async () => {
-    const { useUpdateCustomer } = await import("../customerMutations");
-    // Se invoca el mutationFn directamente (sin React) para verificar el filtro.
+    // Se captura el mutationFn y se invoca directamente (sin React).
     const captured: { mutationFn?: (v: unknown) => Promise<unknown> } = {};
     vi.doMock("@/lib/hooks/useEntityMutation", () => ({
       useEntityMutation: (opts: { mutationFn: (v: unknown) => Promise<unknown> }) => {
@@ -92,7 +91,6 @@ describe("useUpdateCustomer — bloqueo optimista", () => {
     }));
     vi.resetModules();
     const mod = await import("../customerMutations");
-    void useUpdateCustomer;
     mod.useUpdateCustomer();
     await captured.mutationFn?.({ id: "c1", name: "Nuevo", expectedVersion: 2 });
     const calls = customerCalls.at(-1)!;
