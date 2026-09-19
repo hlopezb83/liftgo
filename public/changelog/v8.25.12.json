@@ -1,0 +1,15 @@
+{
+  "version": "8.25.12",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Tarjeta de notas de crédito ordenada en piezas, sin cambios funcionales",
+  "description": "La tarjeta de notas de crédito de cada factura tenía revueltos los avisos, la tabla y los botones de cada nota, como un mostrador donde el letrero, la lista y las herramientas estaban en la misma charola. Ahora cada cosa tiene su charola y el mostrador sólo coordina: los textos, avisos, botones, límites y confirmaciones se ven y se comportan exactamente igual.",
+  "changes": [
+    "src/features/invoices/components/invoice-detail/InvoiceCreditNotesCard.tsx queda como orquestador (276 a 105 líneas) con useCreditNotesForInvoice, usePayments, estados createOpen/cancelTarget, mutaciones, useConfirm, computeCreditNoteLimits, canCreate, early return y composición de diálogos.",
+    "src/features/invoices/components/invoice-detail/InvoiceCreditNotesParts.tsx: CnBadge, CreditNoteNotices, CreditNoteActions y CreditNotesTable con sus tipos/props, idénticos en textos es-MX, clases, iconos, aria-labels, estados disabled/pending, columnas, formatos y confirmación destructiva.",
+    "src/features/invoices/components/invoice-detail/downloadCreditNote.ts: descarga CFDI con la misma llamada a downloadCfdiBlob, nombres de archivo y notifyError, separada para conservar fast refresh limpio.",
+    "Sin cambios en useCreditNotesForInvoice, usePayments, useStampCreditNote, useDeleteCreditNote, useRefreshCreditNoteCancellationStatus, computeCreditNoteLimits, CreateCreditNoteDialog, CancelCreditNoteDialog ni CreditNoteRepLimitNotice; reglas de canCreate y bloqueo por tipo de cambio/complementos intactas.",
+    "Sin cambios de base de datos, permisos, migraciones, almacenamiento, autenticación, tipos generados, rutas, funciones CFDI, CI ni publicación."
+  ]
+}
