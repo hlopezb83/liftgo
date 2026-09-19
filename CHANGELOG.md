@@ -1,3 +1,12 @@
+## [8.25.8] - 2026-09-19 · patch · refactor
+
+Separación del prellenado de cotizaciones entre lógica pura y hook. Sin cambios de comportamiento, reglas de negocio, compatibilidad legacy, SQL, RLS, migraciones, Storage, autenticación ni publicación.
+
+- src/features/quotes/hooks/quoteForm/useQuotePrefill.ts: fachada/hook (294→63 líneas) que reexporta exactamente la API previa (`buildPrefillValues`, `quoteRentalDays`, `rentalRateField`, tipos `EquipmentModel` y `ExistingQuote`) y conserva `useQuotePrefillValues` con la misma firma y cacheo por id basado en `useState`.
+- src/features/quotes/hooks/quoteForm/quotePrefill.logic.ts: funciones puras y tipos de prellenado, idénticas reglas (rate_type explícito, heurísticas diaria/semanal/mensual, `legacyQty`, `rental_meta`, `legacyTotal`/`legacyDescription`, deduplicación por descripción, logística/seguro, defaults de descuentos y fechas inclusivas).
+- src/features/quotes/hooks/quoteForm/__tests__/useQuotePrefill.facade.test.ts: contrato de reexportaciones y resultados legacy representativos. Se conservan las cinco pruebas existentes.
+- Sin `useEffect`, `useMemo` ni timers nuevos; sin ciclos de importación.
+
 ## [8.25.7] - 2026-09-19 · patch · refactor
 
 Separación de consultas, tipos y fachada en el portal de clientes. Sin cambios de comportamiento, query keys, `staleTime`, `enabled`, columnas explícitas, RPC, paginación, mapeo de montacargas, SQL, RLS, migraciones, Storage, autenticación ni publicación.

@@ -1,0 +1,15 @@
+{
+  "version": "8.25.8",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "refactor",
+  "title": "Prellenado de cotizaciones separado entre lógica pura y hook, sin cambios funcionales",
+  "description": "El archivo que prepara el formulario de cotizaciones tenía revueltos los cálculos con la parte que habla con la pantalla, como una libreta donde las cuentas y las notas para el cliente estaban en la misma hoja. Ahora las cuentas viven en su propia hoja y la libreta original quedó como portada, así que todo lo que ya funcionaba sigue igual: mismas tarifas, mismas reglas para cotizaciones viejas y mismos resultados.",
+  "changes": [
+    "src/features/quotes/hooks/quoteForm/useQuotePrefill.ts queda como fachada/hook (294 a 63 líneas) y reexporta buildPrefillValues, quoteRentalDays, rentalRateField y los tipos EquipmentModel y ExistingQuote.",
+    "src/features/quotes/hooks/quoteForm/quotePrefill.logic.ts: transformación pura de partidas, compatibilidad legacy (rate_type explícito, heurísticas diaria/semanal/mensual, qty legacy, rental_meta, importe y descripción históricos, deduplicación por descripción), líneas de logística/seguro, defaults de descuentos y fechas inclusivas, idénticas.",
+    "useQuotePrefillValues conserva la misma firma y el cacheo por id de cotización basado en useState, sin efectos ni timers nuevos.",
+    "Nueva prueba de contrato que confirma las reexportaciones y resultados legacy representativos; se conservan las cinco pruebas existentes del formulario.",
+    "Sin cambios de base de datos, permisos, migraciones, almacenamiento, autenticación, pantallas ni publicación."
+  ]
+}
