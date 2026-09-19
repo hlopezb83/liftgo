@@ -1,3 +1,13 @@
+## [8.25.3] - 2026-09-19 · patch · docs
+
+Reconciliación documental multiempresa y limpieza semántica del branding. Sin cambios de base de datos, migraciones, Storage, publicación ni rediseño visual.
+
+- docs/multiempresa/onboarding.md: el estado vigente se divide en «verificable en el repositorio» y «requiere verificación (evidencia externa)»; migraciones aplicadas, operador raíz, Storage, organizaciones activas, respaldo/restore y CI quedan marcados como no verificables desde el repo.
+- Gates antes de habilitar una segunda organización, explícitos: (1) ensayo A/B aislado de datos, Storage y portal, (2) restore probado y documentado, (3) CI completo en verde con enlace al run. Branding sin gate: el logo es global y fijo.
+- roadmap.md: se retira «branding por empresa» de los gates y se marca cada gate como pendiente de evidencia fechada.
+- src/layouts/CustomerPortalLayout.tsx, src/features/company-settings/hooks/usePublicBranding.ts, src/features/company-settings/lib/queryKeys.ts y src/features/company-settings/pages/CompanySettingsPage.tsx: JSDoc/comentarios actualizados — marca global LiftGo, razón social como identidad legal por organización, sin logo editable por empresa.
+- Sin renombres de API ni cambios de contrato: `get_public_branding`, `publicBrandingQueries` y `PublicBrandingRow` intactos. No quedan usos funcionales de `company_settings.logo_url` en `src/` (sólo tipos generados y pruebas de regresión).
+
 ## [8.25.1] - 2026-09-18 · patch · fix
 
 Corrección de las observaciones de CI sin cambios funcionales.
