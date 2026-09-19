@@ -1,0 +1,139 @@
+/**
+ * Fetchers de la bitácora (`audit_logs`).
+ *
+ * v7.233.0 (P1-4b): la lista NO trae `old_data`/`new_data` — proyecta sólo
+ * los campos necesarios para el label (name/booking/contract/invoice/quote/
+ * description). El detalle re-descarga la fila completa por id.
+ */
+import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import {
+  buildLabel,
+  normalizeJson,
+  readAuditLogFilters,
+  type AuditLog,
+  type AuditLogFilters,
+  type AuditSource,
+  type LabelProjectionRow,
+} from "./auditQueryContracts";
+
+const LIST_SELECT =
+  "id, table_name, record_id, action, changed_fields, user_id, created_at, source, is_e2e, " +
+  "new_name:new_data->>name, new_booking:new_data->>booking_number, " +
+  "new_contract:new_data->>contract_number, new_invoice:new_data->>invoice_number, " +
+  "new_quote:new_data->>quote_number, new_desc:new_data->>description, " +
+  "new_full:new_data->>full_name, new_email:new_data->>email, new_role:new_data->>role, " +
+  "old_name:old_data->>name, old_booking:old_data->>booking_number, " +
+  "old_contract:old_data->>contract_number, old_invoice:old_data->>invoice_number, " +
+  "old_quote:old_data->>quote_number, old_desc:old_data->>description, " +
+  "old_full:old_data->>full_name, old_email:old_data->>email, old_role:old_data->>role";
+
+const DETAIL_SELECT =
+  "id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at";
+
+export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], never, AuditLogFilters>(
+  "audit-logs",
+  {
+    list: (filter) => async () => {
+      const filters = readAuditLogFilters(filter);
+
+      let query = supabase
+        .from("audit_logs")
+        .select(LIST_SELECT)
+        .order("created_at", { ascending: false })
+        // N3-01: limit+1 como los demás hooks — ListTruncationNotice exige
+        // la fila extra para no dar falso positivo con exactamente 500 logs.
+        .limit(LIST_FETCH_LIMIT);
+
+      if (filters.table_name) query = query.eq("table_name", filters.table_name);
+      if (filters.record_id) query = query.eq("record_id", filters.record_id);
+      // v7.364.0: por defecto la bitácora oculta los rastros de las pruebas E2E.
+      if (filters.origin === "default") query = query.eq("is_e2e", false);
+      else if (filters.origin === "e2e") query = query.eq("is_e2e", true);
+      else if (filters.origin === "user" || filters.origin === "system") {
+        query = query.eq("source", filters.origin);
+      }
+
+      const { data, error } = await query.returns<Array<LabelProjectionRow & {
+        id: string;
+        table_name: string;
+        record_id: string;
+        action: string;
+        changed_fields: string[] | null;
+        user_id: string | null;
+        created_at: string;
+        source: AuditSource | null;
+        is_e2e: boolean | null;
+      }>>();
+      if (error) throw error;
+
+      const logs: AuditLog[] = (data ?? []).map((row) => ({
+        id: row.id,
+        table_name: row.table_name,
+        record_id: row.record_id,
+        action: row.action,
+        changed_fields: row.changed_fields,
+        user_id: row.user_id,
+        created_at: row.created_at,
+        source: row.source ?? "user",
+        is_e2e: row.is_e2e ?? false,
+        label: buildLabel(row, row.record_id),
+      }));
+
+      const userIds = [...new Set(logs.map((l) => l.user_id).filter((id): id is string => id !== null))];
+
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, full_name")
+          .in("user_id", userIds);
+
+        const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name]));
+        logs.forEach((l) => {
+          if (l.user_id) l.user_email = profileMap.get(l.user_id) ?? "Desconocido";
+        });
+      }
+
+      return logs;
+    },
+    staleTime: 60_000,
+  },
+);
+
+/**
+ * P1-4b: fetcher del detalle por id — trae old_data/new_data completos.
+ * Sólo se llama al abrir un diálogo (detalle o revertir).
+ */
+export const auditLogDetailQueries = defineEntityQueries<"audit-log-detail", AuditLog | null, never, { id: string }>(
+  "audit-log-detail",
+  {
+    list: (filter) => async () => {
+      const id = typeof filter?.id === "string" ? filter.id : null;
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select(DETAIL_SELECT)
+        .eq("id", id)
+        .maybeSingle<{
+          id: string;
+          table_name: string;
+          record_id: string;
+          action: string;
+          old_data: unknown;
+          new_data: unknown;
+          changed_fields: string[] | null;
+          user_id: string | null;
+          created_at: string;
+        }>();
+      if (error) throw error;
+      if (!data) return null;
+      return {
+        ...data,
+        old_data: normalizeJson(data.old_data),
+        new_data: normalizeJson(data.new_data),
+      };
+    },
+    staleTime: 60_000,
+  },
+);
