@@ -1,35 +1,49 @@
 # Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
 
-## Estado actual (2026-09-18)
+## Estado actual (revisado 2026-09-19)
 
-> Este bloque es el **estado vigente**. Las secciones siguientes son
-> **snapshots históricos fechados** de las auditorías previas y se conservan
+> Este bloque es el **estado vigente**. Se distingue explícitamente entre lo
+> **verificable en el repositorio** (código, pruebas y assets versionados) y lo
+> que depende de **evidencia externa** (base de datos, Storage, CI, respaldos):
+> esto último se marca como **requiere verificación** y no debe darse por
+> cierto sin una corrida o consulta que lo respalde. Las secciones posteriores
+> a la línea horizontal son **snapshots históricos fechados** que se conservan
 > tal cual para trazabilidad: no describen la situación de hoy.
 
-- Migraciones **0030–0035 aplicadas** a la base conectada por el canal oficial.
-- **Operador raíz asignado** (exactamente 1 operador de plataforma); 5 membresías.
-- **Migración de Storage completada**: 293 referencias actualizadas, 0 pendientes,
-  0 fallos; 17 huérfanos copiados y verificados; **1 resolución manual activa**.
-- **Originales conservados** (632 objetos = 322 originales + copias). El borrado
-  de fuentes sigue **deshabilitado** y sin autorización.
-- **1 sola organización activa**.
-- **Branding global: ninguna organización tiene logo propio (2026-09-18)**. El
-  único logo del sistema es el lockup oficial «LIFT GO MONTACARGAS», asset local
-  versionado del repositorio (`public/brand/liftgo-montacargas.png`). Se usa
-  igual en el shell del ERP, el portal y **todos los documentos generados**
-  (cotización, reserva, contrato, factura, estado de cuenta y demás PDF).
-  - `company_settings.logo_url` quedó **sin uso**: no se lee para renderizar, no
-    se firma por organización y no se descarga ningún host externo. Se retiró de
-    la UI la carga/preview de logos por empresa, y del flujo de branding/PDF la
-    dependencia del campo.
-  - El **valor histórico permanece intacto** en la base: no se borra, no se
-    reescribe y no se mueve nada en Storage. **No requiere migración ni acción
-    de reemplazo**, y no hace falta pedir al propietario que vuelva a subir
-    logos por empresa.
-  - Razón social, RFC y demás **datos fiscales siguen siendo por organización**,
-    con sus pruebas A/B de aislamiento. Las pruebas de logo ahora verifican lo
-    contrario: A y B obtienen **el mismo asset global** en cada tipo de
-    documento, y el valor histórico del campo no altera la marca.
+### Verificable en el repositorio
+
+- **Branding global: ninguna organización tiene logo propio.** El único logo
+  del sistema es el lockup oficial «LIFT GO MONTACARGAS», asset local
+  versionado (`public/brand/liftgo-montacargas.png`), usado igual en el shell
+  del ERP, el portal y **todos los documentos generados** (cotización, reserva,
+  contrato, factura, estado de cuenta y demás PDF).
+- **`company_settings.logo_url` no tiene uso funcional en el código.** No se lee
+  para renderizar, no se firma por organización y no se descarga ningún host
+  externo. La UI de carga/preview de logos por empresa fue retirada; el campo
+  sólo aparece en tipos generados, comentarios y pruebas de regresión.
+- **Razón social, RFC y demás datos fiscales siguen siendo por organización**,
+  con pruebas A/B de aislamiento. Las pruebas de logo verifican lo contrario:
+  A y B obtienen **el mismo asset global** en cada tipo de documento, y un valor
+  histórico en el campo no altera la marca.
+- El código de onboarding, suspensión, clientes y portal por empresa descrito
+  más abajo está implementado y cubierto por las suites del repositorio.
+
+### Requiere verificación (evidencia externa, no verificable desde el repo)
+
+Los puntos siguientes provienen de corridas previas reportadas y **no pueden
+confirmarse leyendo el repositorio**. Antes de apoyarse en ellos hay que
+reconfirmarlos con una consulta o corrida fechada:
+
+- Migraciones **0030–0035 aplicadas** a la base conectada — *requiere
+  verificación* contra el ledger de migraciones.
+- **Operador raíz asignado** (1 operador de plataforma) y número de membresías —
+  *requiere verificación*.
+- **Migración de Storage** (293 referencias actualizadas, 17 huérfanos copiados,
+  1 resolución manual) y **originales conservados** con el borrado de fuentes
+  deshabilitado — *requiere verificación*.
+- **1 sola organización activa** — *requiere verificación*.
+- **Estado del respaldo/restore y del CI completo** — *requiere verificación*
+  contra la corrida correspondiente (no se declara verde sin enlace al run).
 
 ### Marca global de LiftGo (no es dato de tenant)
 
@@ -41,16 +55,25 @@ colapsado, el emblema compacto `public/favicon.png` (`BrandMark`). Los
 generadores de PDF cargan el mismo asset con `loadGlobalBrandLogo()`; no hay
 fetch a URLs remotas ni firmas por organización. Por diseño el logo **no lleva
 gate ni prueba A/B de aislamiento**: las pruebas exigen igualdad entre tenants.
+La razón social que acompaña a la marca en el shell y el portal es **texto
+legal de la organización**, no branding configurable.
 
-### Gates obligatorios antes de dar de alta una segunda empresa
+### Gates obligatorios antes de habilitar una segunda organización
 
-1. **Branding: sin gate.** El logo es global (asset local del repositorio) y no
-   depende de la organización, así que no hay nada que aislar ni migrar. Sí se
-   mantiene el gate de aislamiento de los **datos propios** de cada empresa.
-2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
-3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
-4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
-   documentada. Hoy hay respaldo diario, pero **no** hay restore ensayado.
+Ninguno puede darse por cumplido sin evidencia fechada y enlazable.
+
+1. **Ensayo A/B aislado** con organizaciones de prueba, cubriendo **datos,
+   Storage y portal** — *requiere verificación*.
+2. **Restore probado**: no basta el respaldo diario; hace falta una
+   **restauración ensayada y documentada** — *requiere verificación* (a la
+   fecha no consta ninguna).
+3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build) con el
+   enlace al run correspondiente — *requiere verificación*.
+
+**Branding: sin gate.** El logo es global y no depende de la organización, así
+que no hay nada que aislar ni migrar; el aislamiento A/B aplica a los **datos
+propios** de cada empresa, incluida su identidad fiscal.
+
 
 ---
 
