@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.25.16",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Piezas presentacionales de la pantalla de acceso separadas, sin cambios funcionales",
+    "description": "La pantalla de acceso tenía en una misma hoja el letrero, los avisos de recuperación y los enlaces secundarios, como un mostrador donde el cartel, las notas y los atajos estaban revueltos. Ahora cada cosa tiene su charola y el mostrador sólo coordina el estado y los eventos: los textos, la marca global de LiftGo, los avisos y los enlaces se ven y se comportan exactamente igual.",
+    "changes": [
+      "src/features/auth/pages/AuthPageParts.tsx: TITLES, RecoveryNotice (pending/error, botón «Solicitar un enlace nuevo», role alert), AuthCardHeader (BrandLockup, GLOBAL_BRAND_NAME, ruta desconocida) y AuthModeLinks (olvidé contraseña, volver, cancelar recuperación) con sus tipos/props, idénticos en textos es-MX, clases, iconos, aria/role, orden del DOM y accesibilidad.",
+      "src/features/auth/pages/AuthPage.tsx queda como orquestador (310 a 191 líneas) con useAuth, useLocation, useNavigateTransition, useRecoveryStatus, estados email/password/showPassword/loading/mode/prevRecovery, getRecoveryUserId, endRecovery, recoverySessionMatches/canSubmitReset, leaveAuthRoute, finishRecovery, cancelRecovery, runSubmit, handleSubmit, estructura del formulario y navegación al portal.",
+      "Sin cambios en llamadas a signIn/resetPassword/updatePassword/signOut, notificaciones, dismissAuthError, sincronización de prevRecovery, navegación, AuthContext, hooks, recoverySession, rutas, RLS, SQL, migraciones, Storage, branding global, logo, tipos generados ni CI.",
+      "Sin cambios de base de datos, permisos, migraciones, almacenamiento, autenticación, rutas, tipos generados, UI, branding, logo ni publicación."
+    ]
+  },
+  {
     "version": "8.25.15",
     "date": "2026-09-19",
     "type": "patch",
