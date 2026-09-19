@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.25.18",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Pago de facturas del portal separado en piezas, sin cambios funcionales",
+    "description": "La pantalla de pago tenía en la misma hoja la carga de datos, los cálculos y cada bloque visual, como un mostrador donde se mezclaban la consulta y los formatos. Ahora la página sólo coordina y las piezas viven aparte: los saldos, bloqueos, reportes, textos y acciones se ven y funcionan exactamente igual.",
+    "changes": [
+      "src/features/portal/pages/PortalInvoicePayment.tsx queda como orquestador de ruta, cuatro consultas, reintento conjunto, estados de carga/error/no encontrado y dlgOpen.",
+      "src/features/portal/pages/PortalInvoicePaymentParts.tsx contiene PortalIntentsTable, ForeignCurrencyNotice, MxnPaymentSection, PaidCard, renderPaymentSection, PaymentQueryError, InvoiceNotFound y PaymentBody con el mismo DOM, textos es-MX, clases, accesibilidad y props.",
+      "src/features/portal/pages/PortalInvoicePayment.helpers.ts contiene computeInvoiceTotals con el mismo saldo canónico, fallback, descuento de reportes pending_review y regla MXN/SPEI.",
+      "Pruebas puntuales protegen el contrato de las piezas, el saldo, las notas de crédito, reportes pendientes y la moneda predeterminada.",
+      "Sin cambios de comportamiento, consultas, query keys, APIs, backend, SQL, RLS, migraciones, Storage, autenticación, branding, CI, dependencias ni publicación."
+    ]
+  },
+  {
     "version": "8.25.17",
     "date": "2026-09-19",
     "type": "patch",
