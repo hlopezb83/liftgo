@@ -4,8 +4,15 @@ import { useVerifiedPortalCustomerId } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
 import { portalKeys } from "../../lib/queryKeys";
+import {
+  fetchForkliftsBriefMap,
+  pageBounds,
+  parseRpcPage,
+  PORTAL_BOOKING_COLUMNS,
+  PORTAL_CUSTOMER_COLUMNS,
+  PORTAL_PAYMENT_COLUMNS,
+} from "./customerPortal.helpers";
 import type {
-  ForkliftBrief,
   PortalBookingRow,
   PortalContractBase,
   PortalContractRow,
@@ -13,43 +20,10 @@ import type {
   PortalInvoiceRow,
   PortalPage,
   PortalPaymentRow,
-  RpcPagePayload,
   UntypedRpc,
 } from "./customerPortal.types";
 
-const sel = (s: string): string => s;
-
-const PORTAL_CUSTOMER_COLUMNS = sel("id, name, rfc, domicilio_fiscal_cp");
-const PORTAL_BOOKING_COLUMNS = sel("id, forklift_id, start_date, end_date, status");
-// v7.216.0 (C6): columnas explícitas — sólo las que consume la UI del portal
-// (PortalStatement, PortalInvoiceDetail, PortalInvoicePayment).
-const PORTAL_PAYMENT_COLUMNS = sel(
-  "id, invoice_id, payment_date, payment_method, reference_number, amount, invoices(invoice_number)",
-);
-
 type PortalBookingBase = Pick<PortalBookingRow, "id" | "forklift_id" | "start_date" | "end_date" | "status">;
-
-function parseRpcPage<T>(data: unknown): PortalPage<T> {
-  const payload = (data ?? {}) as RpcPagePayload<T>;
-  return {
-    rows: Array.isArray(payload.rows) ? payload.rows : [],
-    totalCount: Number(payload.total_count ?? 0),
-  };
-}
-
-const pageBounds = (page: number, pageSize: number) => {
-  const safePage = Math.max(1, page);
-  const safeSize = Math.min(100, Math.max(1, pageSize));
-  return { safePage, safeSize, from: (safePage - 1) * safeSize, to: safePage * safeSize - 1 };
-};
-
-async function fetchForkliftsBriefMap(): Promise<Map<string, ForkliftBrief>> {
-  const { data, error } = await supabase.rpc("get_customer_forklifts_brief");
-  if (error) throw error;
-  const map = new Map<string, ForkliftBrief>();
-  (data ?? []).forEach((f: ForkliftBrief) => map.set(f.id, f));
-  return map;
-}
 
 /**
  * Las claves del portal incluyen la organización verificada: el mismo cliente
