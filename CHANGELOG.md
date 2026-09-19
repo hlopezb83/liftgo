@@ -1,3 +1,13 @@
+## [8.25.6] - 2026-09-19 · patch · refactor
+
+Separación de consultas y mutaciones en el módulo de facturas. Sin cambios de comportamiento, reglas de negocio, filtros, query keys, invalidaciones, mensajes, RPC, RLS, UI, base de datos, datos, Storage, secretos ni publicación.
+
+- src/features/invoices/hooks/invoices/useInvoices.ts: fachada de compatibilidad (317→24 líneas) que reexporta exactamente la API previa (`INVOICE_PAGE_SIZE`, `fetchInvoicesForExport`, `invoiceQueries`, `useInvoices`, `useInvoice`, `useInvoicesInfinite`, `useCreateInvoice`, `SaveInvoiceWithBookingsArgs`, `useSaveInvoiceWithBookings`, `useUpdateInvoice`, `useDeleteInvoice`).
+- src/features/invoices/hooks/invoices/invoiceQueries.ts: `INVOICE_STALE_MS`, `INVOICE_PAGE_SIZE`, `INVOICE_COLUMNS`/`INVOICE_LIST_COLUMNS`, `baseInvoiceQuery`, `fetchInvoiceList`, `fetchInvoicePage`, `fetchInvoicesForExport`, `fetchInvoiceDetail`, opciones de lista/detalle y hooks de lectura; idénticos filtros de vencidas, `e2eVisibilityFilter`, `todayKeyMty`, límites, orden y paginación.
+- src/features/invoices/hooks/invoices/invoiceMutations.ts: `useCreateInvoice`, `SaveInvoiceWithBookingsArgs`, `useSaveInvoiceWithBookings`, `useUpdateInvoice`, `useDeleteInvoice`; mismos RPC (`next_draft_invoice_number`, `save_invoice_with_bookings`), `expectedVersion`/`stale_write`, `assertRowsAffected`, invalidaciones y limpieza de caché. `organization_id` sigue resolviéndose en la base.
+- src/features/invoices/hooks/invoices/__tests__/useInvoicesFacade.test.ts: casos nuevos de compatibilidad de la fachada y de separación lectura/escritura.
+- Sin ciclos de importación ni dependencias de UI en los módulos nuevos.
+
 ## [8.25.5] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades de los guards administrativos del servidor. Sin cambios de contratos, comportamiento, migraciones, datos, Storage, secretos ni publicación.

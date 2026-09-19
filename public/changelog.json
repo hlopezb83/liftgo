@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.25.6",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Módulo de facturas dividido entre consultas y mutaciones, sin cambios funcionales",
+    "description": "El archivo de facturas era como un cajón donde estaban juntos los formularios de consulta y los de trámite. Ahora hay un cajón para consultar y otro para guardar, y el cajón original quedó como índice para que todo lo que ya usaba el módulo siga funcionando igual. No cambian pantallas, filtros, mensajes, datos, seguridad ni el manejo por empresa.",
+    "changes": [
+      "src/features/invoices/hooks/invoices/useInvoices.ts queda como fachada de compatibilidad (317 a 24 líneas) con exactamente la misma API pública.",
+      "src/features/invoices/hooks/invoices/invoiceQueries.ts: columnas, filtros, vencidas, paginación, opciones de consulta y los hooks de lectura.",
+      "src/features/invoices/hooks/invoices/invoiceMutations.ts: crear, guardar con reservas, actualizar y eliminar, con los mismos RPC, bloqueo optimista, invalidaciones y limpieza de caché.",
+      "Nueva prueba puntual que confirma que la API pública y los símbolos exportados no cambiaron.",
+      "Sin cambios de base de datos, migraciones, datos, almacenamiento, secretos, integraciones ni publicación."
+    ]
+  },
+  {
     "version": "8.25.5",
     "date": "2026-09-19",
     "type": "patch",
