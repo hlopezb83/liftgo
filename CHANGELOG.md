@@ -1,4 +1,15 @@
+## [8.25.11] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades en la página de calendario. Sin cambios de UI, textos, clases, accesibilidad, estados de carga/error, navegación mes/semana, refresh, query keys, `refetchQueries`, comportamiento mobile, SQL, RLS, migraciones, Storage, autenticación ni publicación.
+
+- src/features/calendar/pages/CalendarPage.tsx: orquestador (290→161 líneas) con estado, queries (`useBookingsRange`, `useForkliftMap`), navegación y composición; las llamadas y la fuente de organización no cambian.
+- src/features/calendar/components/calendar/CalendarPageParts.tsx: piezas visuales `EndingSoonAlert`, `CalendarToolbar` y `CalendarLoadingSkeleton` con sus tipos/props, idénticas en UI y accesibilidad.
+- src/features/calendar/hooks/useMaintenanceWindows.ts: hook extraído con la misma consulta `useMaintenanceLogs`, `useMemo`, fechas, etiquetas, ids generados y el tipo `MaintenanceWindow` de `GanttCard`.
+- src/features/calendar/hooks/__tests__/useMaintenanceWindows.test.tsx: contrato del hook (lista vacía, franjas de próximo servicio y OT abierta con ids/etiquetas intactos, OT completada sin franja). Se conserva `useGanttSegments.test.tsx`.
+- Sin cambios en Gantt/EquipmentListView/CalendarStatCards, tipos generados, `routeTree.gen.ts` ni CI.
+
 ## [8.25.10] - 2026-09-19 · patch · refactor
+
 
 Separación del catálogo de errores de Postgres entre datos estáticos y lógica de resolución. Sin cambios de comportamiento, mensajes es-MX, precedencia, SQL, RLS, migraciones, Storage, autenticación, query keys, UI ni publicación.
 

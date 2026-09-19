@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.25.11",
+    "date": "2026-09-19",
+    "type": "patch",
+    "category": "refactor",
+    "title": "Página de calendario ordenada en piezas, sin cambios funcionales",
+    "description": "La página del calendario era como un escritorio donde estaban revueltos el calendario mismo, los botones y los letreros de aviso. Ahora cada cosa tiene su cajón y el escritorio sólo coordina: la pantalla se ve y se comporta exactamente igual, con los mismos avisos, botones, vistas de mes o semana y datos por empresa.",
+    "changes": [
+      "src/features/calendar/pages/CalendarPage.tsx queda como orquestador (290 a 161 líneas) con estado, consultas, navegación mes/semana y composición; las llamadas a useBookingsRange, useForkliftMap y useMaintenanceLogs no cambian.",
+      "src/features/calendar/components/calendar/CalendarPageParts.tsx: piezas visuales EndingSoonAlert, CalendarToolbar y CalendarLoadingSkeleton con sus tipos, idénticas en textos, clases y accesibilidad.",
+      "src/features/calendar/hooks/useMaintenanceWindows.ts: hook extraído con la misma consulta, memo, fechas, etiquetas e ids generados, y el tipo MaintenanceWindow de GanttCard.",
+      "Nueva prueba de contrato del hook (lista vacía, franjas de próximo servicio y OT abierta, OT completada sin franja); se conserva la prueba de segmentos del Gantt.",
+      "Sin cambios de base de datos, permisos, migraciones, almacenamiento, autenticación, pantallas, CI ni publicación."
+    ]
+  },
+  {
     "version": "8.25.10",
     "date": "2026-09-19",
     "type": "patch",

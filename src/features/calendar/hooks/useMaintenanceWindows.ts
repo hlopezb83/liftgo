@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-
 import { useMaintenanceLogs } from "@/features/maintenance";
-
 import type { MaintenanceWindow } from "../components/calendar/GanttCard";
 
 /** Franjas de mantenimiento (próximo servicio y OT abiertas) por equipo. */
