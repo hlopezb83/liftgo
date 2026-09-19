@@ -69,6 +69,11 @@ export const cxpApprovalThresholdQueries = defineEntityQueries(
   },
 );
 
+/**
+ * Identidad legal mínima expuesta públicamente: sólo razón social. No incluye
+ * logo, porque el logo de LiftGo es global y fijo para todas las
+ * organizaciones (asset local del repositorio).
+ */
 type PublicBrandingRow = {
   razon_social: string | null;
 };
@@ -90,9 +95,9 @@ export const publicBrandingQueries = defineEntityQueries("public_branding", {
  * `["company_settings"]` sirve como catch-all para lecturas ad-hoc que aún
  * no han sido migradas al factory.
  *
- * v7.226.0 · E2E-N5: `public_branding` cachea 10 min y se persiste en
- * localStorage (24h) — al guardar logo/razón social hay que invalidarlo o el
- * portal público y las pantallas de login siguen mostrando el branding viejo.
+ * `public_branding` cachea 10 min y se persiste en localStorage (24h) — al
+ * guardar la razón social hay que invalidarlo o el portal público y las
+ * pantallas de acceso siguen mostrando la identidad legal vieja.
  */
 export const COMPANY_SETTINGS_INVALIDATION_KEYS = [
   companySettingsQueries.keys.all,

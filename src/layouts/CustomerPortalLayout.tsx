@@ -40,7 +40,9 @@ export default function CustomerPortalLayout() {
 
   return (
     <div className="h-[100dvh] max-w-full overflow-x-clip bg-background flex flex-col">
-      {/* Oleada 3 (C-2): header sticky con la marca del tenant vía BrandMark. */}
+      {/* Header sticky con la marca global de LiftGo (asset local fijo, igual
+          en toda organización) vía BrandLockup. La razón social que la
+          acompaña es texto legal de la organización, no branding propio. */}
       <header data-app-header className="sticky top-0 z-30 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
           <BrandLockup size="sm" />

@@ -1,0 +1,15 @@
+{
+  "version": "8.25.3",
+  "date": "2026-09-19",
+  "type": "patch",
+  "category": "docs",
+  "title": "Documentación multiempresa reconciliada y notas internas del logotipo al día",
+  "description": "Se puso al día la documentación del proyecto para que diga exactamente lo que se puede comprobar hoy, como separar en un expediente lo que ya está sellado de lo que sólo es una copia vieja. El estado del repositorio quedó aparte de los reportes históricos, y todo lo que depende de la base, el almacenamiento o las corridas de revisión quedó marcado como «requiere verificación». También se corrigieron notas internas que todavía hablaban de un logotipo por empresa, cuando el logotipo de LiftGo es único para todas. No cambió ninguna pantalla, dato ni permiso.",
+  "changes": [
+    "docs/multiempresa/onboarding.md: se separó lo verificable en el repositorio de lo que exige evidencia externa; cada punto no comprobable quedó marcado como «requiere verificación».",
+    "Los requisitos previos para habilitar una segunda organización quedaron explícitos: ensayo A/B aislado de datos, almacenamiento y portal; restauración de respaldo probada; y revisión automática completa en verde con su enlace.",
+    "roadmap.md: el branding dejó de listarse como requisito, porque el logotipo es global y fijo; el aislamiento aplica a los datos e identidad fiscal de cada organización.",
+    "Notas internas corregidas en el portal de clientes, la consulta pública de identidad y la página de configuración: la razón social es dato legal por organización y no existe logotipo editable por empresa.",
+    "Sin cambios de base de datos, almacenamiento, publicación ni diseño visual. Validado en Lovable con revisión de estilo y tipos de los archivos tocados y las pruebas de marca."
+  ]
+}
