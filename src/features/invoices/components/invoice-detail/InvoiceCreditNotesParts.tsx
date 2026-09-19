@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { CreditNoteRepLimitNotice } from "./CreditNoteRepLimitNotice";
+import { downloadCreditNote } from "./downloadCreditNote";
 import type {
   useStampCreditNote,
   useDeleteCreditNote,
@@ -13,8 +15,6 @@ import type {
 } from "../../hooks/creditNotes/useCreditNotes";
 import type { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import type { Payment } from "../../hooks/usePayments";
-import { CreditNoteRepLimitNotice } from "./CreditNoteRepLimitNotice";
-import { downloadCreditNote } from "./downloadCreditNote";
 
 export function CnBadge({ cn }: { cn: CreditNote }) {
   if (cn.cfdi_status === "stamped") {
