@@ -1,3 +1,11 @@
+## [8.25.13] - 2026-09-19 · patch · refactor
+
+Separación de responsabilidades en la vista de previsualización de facturación recurrente. Sin cambios de UI, textos es-MX, clases Tailwind, iconos, aria-labels, navegación a `/invoices/{existingInvoiceId}`, `stopPropagation`, fallback de número, `recurringLineKey`, keys de fila `bookingId:periodStart`, formato monetario, IVA incluido, prorrateo, avisos de tarifa modificada, reglas de `isSelectable`, selección de grupos, skeletons, `EmptyState`, altura/overflow ni comentarios de dominio.
+
+- `src/features/invoices/components/recurring/RecurringPreviewBody.tsx`: orquestador (315→103 líneas) con estados loading/empty, cálculo de `alreadyInvoicedCount`, `isSelectable` y composición de las piezas extraídas; conserva el export público `RecurringPreviewBody` y la interfaz de props.
+- `src/features/invoices/components/recurring/RecurringPreviewParts.tsx`: `REASON_LABEL`, `SummaryBar`, `IneligibleBadge`, `AlreadyInvoicedNotice`, `StaleRateNotice`, `LineRow` y `CustomerGroup` con sus tipos/props, marcado idéntico.
+- Sin cambios en consultas, mutaciones, RLS, SQL, migraciones, autenticación, storage, rutas, tipos generados, branding, logo ni CI.
+
 ## [8.25.12] - 2026-09-19 · patch · refactor
 
 Separación de responsabilidades en la tarjeta de notas de crédito del detalle de factura. Sin cambios de UI, textos es-MX, clases, iconos, aria-labels, estados disabled/pending, orden de columnas, formatos de fecha/monto, confirmación destructiva ni reglas de `canCreate`/bloqueo por tipo de cambio o complementos.
