@@ -34,7 +34,9 @@ function makeReq(paymentId = PAYMENT): Request {
   });
 }
 
-function deps(mock: ReturnType<typeof buildSupabaseMock>): ValidateSupplierRepDeps {
+function deps(
+  mock: ReturnType<typeof buildSupabaseMock>,
+): ValidateSupplierRepDeps {
   return {
     authenticate: () =>
       Promise.resolve({
@@ -87,7 +89,10 @@ Deno.test("rep: un pago de otra empresa responde 404 sin subir archivos ni actua
 
 Deno.test("rep: un UUID REP de otra empresa no bloquea el pago propio", async () => {
   const mock = buildSupabaseMock({
-    selects: { organization_memberships: membership, supplier_bills: { data: billRow, error: null } },
+    selects: {
+      organization_memberships: membership,
+      supplier_bills: { data: billRow, error: null },
+    },
     selectsByFilter: {
       supplier_payments: (filters) => {
         const byUuid = filters.some((f) => f.col === "rep_cfdi_uuid");
@@ -121,7 +126,10 @@ Deno.test("rep: un UUID REP de otra empresa no bloquea el pago propio", async ()
 Deno.test("rep: la búsqueda de duplicado incluye el filtro de empresa", async () => {
   const seen: Array<Array<{ col: string; val: unknown }>> = [];
   const mock = buildSupabaseMock({
-    selects: { organization_memberships: membership, supplier_bills: { data: billRow, error: null } },
+    selects: {
+      organization_memberships: membership,
+      supplier_bills: { data: billRow, error: null },
+    },
     selectsByFilter: {
       supplier_payments: (filters) => {
         seen.push(filters);

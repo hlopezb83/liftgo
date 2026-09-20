@@ -91,13 +91,17 @@ function buildPrompt(
   report: Record<string, unknown>,
   ctx: Record<string, unknown>,
 ): string {
-  const selectedEl = ctx.selected_element as Record<string, unknown> | undefined;
+  const selectedEl = ctx.selected_element as
+    | Record<string, unknown>
+    | undefined;
   const isPortal = report.reporter_type === "customer";
   const moduleHint = isPortal
     ? MODULES.filter((m) =>
       m.startsWith("Mis ") || m.startsWith("Panel") || m === "Otro / General"
     )
-    : MODULES.filter((m) => !m.startsWith("Mis ") && !m.startsWith("Panel del"));
+    : MODULES.filter((m) =>
+      !m.startsWith("Mis ") && !m.startsWith("Panel del")
+    );
 
   // Defensa contra prompt injection: truncamos y delimitamos el texto libre.
   const clamp = (v: unknown, max = 2000) =>
@@ -116,11 +120,9 @@ Reporte:
 - Reportero: ${report.reporter_type}
 ${
     selectedEl
-      ? `- Elemento señalado: <element><${
-        clamp(selectedEl.tagName, 50)
-      }> "${clamp(selectedEl.text, 2000)}" (selector: ${
-        clamp(selectedEl.cssPath, 300)
-      })</element>`
+      ? `- Elemento señalado: <element><${clamp(selectedEl.tagName, 50)}> "${
+        clamp(selectedEl.text, 2000)
+      }" (selector: ${clamp(selectedEl.cssPath, 300)})</element>`
       : ""
   }
 

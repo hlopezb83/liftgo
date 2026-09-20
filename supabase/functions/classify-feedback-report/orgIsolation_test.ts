@@ -6,10 +6,7 @@ import {
   assertStrictEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildSupabaseMock } from "../_shared/test/supabaseClientMock.ts";
-import {
-  type ClassifyDeps,
-  handleClassifyFeedbackReport,
-} from "./handler.ts";
+import { type ClassifyDeps, handleClassifyFeedbackReport } from "./handler.ts";
 
 const ORG_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const REPORT_OTHER_ORG = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
