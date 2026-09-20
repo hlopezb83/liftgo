@@ -150,6 +150,23 @@ suites pasan, así que un rojo aquí es una regresión real. Con eso sobraban el
 wrapper `check-selfcontained-smoke.py` y la lista `selfcontained.txt`, ambos
 retirados: una excepción que no excluye nada es solo mantenimiento.
 
+### Disparadores acotados
+
+Los cambios de `supabase/functions/**` **no** levantan Supabase completo: las
+Edge Functions ya se validan con `deno-functions` (deno fmt/lint y tests
+unitarios offline) y el CI principal (lint/typecheck/build/smoke). El workflow
+solo se dispara cuando cambia algo que afecta SQL/RLS:
+
+- `supabase/migrations/**`, `supabase/tests/**`, `supabase/config.toml`
+- `drizzle/migrations/**`
+- `scripts/run_sql_suites.py`, `scripts/patch_legacy_migrations.py`,
+  `scripts/check-drizzle-journal.ts`
+- `.github/workflows/rls-db-tests.yml`
+
+Cuando el workflow se dispara, ninguna suite se reduce: corren las 21 suites
+RLS en modo estricto, los smoke SQL bloqueantes, el reset con todas las
+migraciones y la validación del journal Drizzle.
+
 ## Seguridad y monitoreo
 
 | Workflow | Cuándo | Nota |

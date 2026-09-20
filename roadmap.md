@@ -1,6 +1,7 @@
 # Roadmap — Estabilización CI TanStack Start
 
 - [x] Paquete 15: presentación y helpers de `PortalInvoicePayment.tsx` separados; pruebas focalizadas, lint, tipos, arquitectura y build validados; versión 8.25.18.
+- [x] CI: disparadores acotados de `rls-db-tests.yml` (8.25.23). `supabase/**` se reemplaza por `supabase/migrations/**`, `supabase/tests/**`, `supabase/config.toml`, `drizzle/migrations/**` y los scripts de base; los cambios de `supabase/functions/**` ya no levantan Supabase completo (se validan con Deno y el CI principal). Ninguna suite se reduce cuando el workflow sí corre. actionlint sin errores. Sin cambios de migraciones, RLS, datos, Storage ni publicación.
 - [x] Fix build CI: nitro output explícito a dist/ (v8.0.3) — confirmado en GitHub run 34190853585
 - [ ] Limpieza knip exports/types (informativo, `bun run knip:deep`): knip ya no corre en CI; pendiente de bajo valor
 - [x] A) E2E falla: `__name is not defined` transversal (desktop+mobile, smoke-nav.spec.ts:70/99 y otras suites). Investigar causa real (transforms, page.evaluate/addInitScript serializadas, bundles). NO parche con global genérico. Shard1: portal-statement sin auth token en localStorage tras 30s + expect visible. Verificar login/storage con migración.

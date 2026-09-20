@@ -4,23 +4,35 @@ name: RLS DB tests
 # Levanta un Supabase local efímero, aplica las ~400 migraciones desde cero
 # (esto valida además que apliquen limpio y en orden) y corre las 21 suites
 # RLS SQL con roles/JWT reales, más los smoke SQL de supabase/tests/.
+#
+# Disparadores acotados (ver docs/ci.md): los cambios de supabase/functions/**
+# no levantan Supabase completo —esos los valida deno-functions (deno fmt/lint,
+# tests unitarios offline) y el CI principal (lint/typecheck/build/smoke).
+# Aquí solo disparan migraciones, SQL/RLS, config de Supabase, el carril Drizzle
+# y los scripts que estas pruebas consumen.
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - "supabase/**"
-      - "drizzle/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "supabase/config.toml"
+      - "drizzle/migrations/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
+      - "scripts/check-drizzle-journal.ts"
       - ".github/workflows/rls-db-tests.yml"
   push:
     branches: [main]
     paths:
-      - "supabase/**"
-      - "drizzle/**"
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "supabase/config.toml"
+      - "drizzle/migrations/**"
       - "scripts/run_sql_suites.py"
       - "scripts/patch_legacy_migrations.py"
+      - "scripts/check-drizzle-journal.ts"
       - ".github/workflows/rls-db-tests.yml"
   workflow_dispatch:
 
