@@ -115,7 +115,7 @@ Deno.test("rep: un UUID REP de otra empresa no bloquea el pago propio", async ()
     ORG_A,
   );
   // La ruta de Storage deriva de la empresa de la factura.
-  assertEquals(mock.uploads[0]?.path.startsWith(`org/${ORG_A}/`), true);
+  assertEquals(mock.uploads[0]?.path.startsWith(`${ORG_A}/`), true);
 });
 
 Deno.test("rep: la búsqueda de duplicado incluye el filtro de empresa", async () => {
