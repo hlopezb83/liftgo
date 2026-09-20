@@ -77,16 +77,18 @@ jobs:
         with:
           version: 2.34.0
 
-      # Solo se necesita Postgres + el schema `auth`: se excluyen los servicios
-      # pesados para bajar el arranque de ~4 min a ~1 min.
+      # Este job habla con la base SOLO por DB_URL/psql (y drizzle-kit): no usa
+      # la API REST ni el gateway. Por eso se levanta únicamente Postgres + auth
+      # (gotrue), sin gateway (kong) ni PostgREST, y sin el resto de servicios.
       #
       # IMPORTANTE: los nombres de `-x` deben existir en la CLI pineada. En
       # 2.34.0 los válidos son exactamente:
       #   edge-runtime, gotrue, imgproxy, kong, logflare, mailpit,
       #   postgres-meta, postgrest, realtime, storage-api, studio, supavisor, vector
       # `pgbouncer` ya no existe (se reemplazó por supavisor) y hacía que el
-      # arranque no fuera el esperado. `gotrue` se conserva porque las suites
-      # RLS necesitan el schema `auth` poblado.
+      # arranque no fuera el esperado. `gotrue` NO se excluye: las migraciones y
+      # las suites RLS necesitan el schema `auth` (auth.users, auth.uid()).
+
       # Algunas migraciones históricas se escribieron contra producción, donde
       # la tabla referenciada ya existía por otro camino. Desde cero fallan con
       # 42P01 y tumban el job antes de correr un test. Este script envuelve esas
