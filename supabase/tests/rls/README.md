@@ -11,11 +11,15 @@ son 100% mockeados y no ejercitan políticas.
 - **Fase 2 (v7.295.0): ACTIVA.** El workflow
   `.github/workflows/rls-db-tests.yml` (job `rls-db-tests`) levanta un Supabase
   local efímero con `supabase start`, corre `supabase db reset` (reaplica TODAS
-  las migraciones desde cero, validando que apliquen limpio y en orden) y
-  ejecuta estas suites contra esa DB. Los resultados se publican como JUnit
-  (`reports/rls-db-junit.xml`) con `.github/actions/publish-test-results`.
-  Se dispara solo cuando cambian `supabase/**` o `src/**`, y se salta en PRs
-  desde forks.
+  las migraciones desde cero, validando que apliquen limpio y en orden), aplica
+  el carril Drizzle y ejecuta estas suites contra esa DB. Los resultados se
+  generan como JUnit (`reports/rls-db-junit.xml`) y se recogen en el propio job.
+  Se dispara sólo cuando cambian migraciones, SQL/RLS, `supabase/config.toml`,
+  `drizzle/migrations/**` o los scripts que estas pruebas consumen (ver
+  `docs/ci.md`); los cambios de `supabase/functions/**` y de `src/**` NO lo
+  disparan. Se salta en PRs desde forks.
+  El arranque excluye gateway (`kong`) y PostgREST: el job habla con la base
+  sólo por `DB_URL`/psql y drizzle-kit, conservando Postgres y `gotrue`.
 
 Correr en local (requiere Docker y la CLI de Supabase):
 
@@ -31,8 +35,16 @@ python3 scripts/run_sql_suites.py \
 
 Los smoke SQL de `supabase/tests/*.sql` (c1_c2, r2, r3, r4, r9, r10) corren en
 el mismo job en modo `smoke` (usan `\set ON_ERROR_STOP off` y reportan con
-`RAISE WARNING 'FALLO ...'`). Son **informativos** (`continue-on-error`) porque
-algunos asumen datos de staging que no existen en una DB recién creada.
+`RAISE WARNING 'FALLO ...'`). **Son bloqueantes:** el paso no usa
+`continue-on-error`, así que un `FALLO` tumba el job.
+
+## Gate A/B multiempresa (complementario)
+
+Estas suites cubren el aislamiento RLS A/B a nivel SQL. Lo que NO cubren —la
+API REST/Storage reales y el portal en navegador con dos organizaciones— vive
+en `.github/workflows/multi-tenant-ab.yml` y `tests/multi-tenant-ab/`, también
+contra un Supabase local efímero. No dupliques aquí esas comprobaciones.
+
 
 
 ## Convención por archivo
