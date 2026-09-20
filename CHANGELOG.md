@@ -1,3 +1,14 @@
+## [8.25.22] - 2026-09-20 · patch · docs
+
+Se dejó por escrito, con fecha y enlaces, que la revisión automática completa del sistema quedó en verde para el cambio 44dacee. También se agregó una guía reproducible y sin riesgo para los dos requisitos que siguen abiertos: el ensayo con dos empresas de prueba y el ensayo de recuperación de respaldo. Sólo se tocó documentación: no se ejecutó nada en la base real, ni en archivos, permisos, datos o publicación.
+
+- docs/multiempresa/onboarding.md: nueva sección con la evidencia externa fechada del 2026-09-20 y los tres enlaces de corridas; el requisito de revisión automática queda verificado para ese cambio y cualquier cambio posterior necesita su propia corrida.
+- El ensayo con dos empresas de prueba (datos, archivos y portal) y el ensayo de recuperación de respaldo siguen marcados como pendientes por falta de evidencia externa.
+- No se marcan como realizados: cambios de base 0030–0035 en producción, operador raíz, conteo de empresas, traslado o borrado de archivos históricos, ni el alta de una segunda empresa.
+- Nuevo docs/multiempresa/gates-segunda-organizacion.md: precondiciones y bloqueo contra producción, procedimiento del ensayo con dos empresas ficticias en base desechable, procedimiento de recuperación de respaldo aislada con medición de pérdida máxima y tiempo de recuperación, evidencia a guardar y lista de aprobación sin credenciales ni identificadores reales.
+- roadmap.md: la línea de requisitos distingue lo verificado de lo pendiente y remite a la nueva guía; se conservan los registros históricos con su fecha.
+- Sin cambios de código de negocio, esquema, permisos, archivos reales, datos, secretos, logo global ni publicación.
+
 ## [8.25.21] - 2026-09-20 · patch · security
 
 Endurecimiento multiempresa (P1) de los dos endpoints heredados que seguían invocables con service_role. Sin cambios de esquema, RLS, Storage real, datos ni publicación.

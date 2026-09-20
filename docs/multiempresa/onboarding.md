@@ -42,8 +42,22 @@ reconfirmarlos con una consulta o corrida fechada:
   1 resolución manual) y **originales conservados** con el borrado de fuentes
   deshabilitado — *requiere verificación*.
 - **1 sola organización activa** — *requiere verificación*.
-- **Estado del respaldo/restore y del CI completo** — *requiere verificación*
-  contra la corrida correspondiente (no se declara verde sin enlace al run).
+- **Estado del respaldo/restore** — *requiere verificación*: a la fecha consta
+  respaldo diario, pero **ninguna restauración ensayada**.
+
+### Verificado con evidencia externa fechada
+
+- **CI completo en verde (2026-09-20)** para el commit `44dacee`
+  (`44daceef5d268ac457399475ca5cfda681981993`). Cubre lint, tipos,
+  build y smoke de arranque, Vitest con cobertura, pruebas Deno offline,
+  pruebas RLS y smoke SQL sobre base efímera, y escaneo de secretos:
+  - CI principal: <https://github.com/hlopezb83/liftgo/actions/runs/35543605798> (success)
+  - RLS DB tests: <https://github.com/hlopezb83/liftgo/actions/runs/35543605857> (success)
+  - Gitleaks: <https://github.com/hlopezb83/liftgo/actions/runs/35543605759> (success)
+
+  Este gate queda **cubierto para ese commit**; cualquier commit posterior
+  necesita su propio run enlazado.
+
 
 ### Marca global de LiftGo (no es dato de tenant)
 
@@ -67,12 +81,20 @@ Ninguno puede darse por cumplido sin evidencia fechada y enlazable.
 2. **Restore probado**: no basta el respaldo diario; hace falta una
    **restauración ensayada y documentada** — *requiere verificación* (a la
    fecha no consta ninguna).
-3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build) con el
-   enlace al run correspondiente — *requiere verificación*.
+3. **CI completo en verde** (lint, tipos, build/smoke, Vitest y cobertura, Deno
+   offline, RLS/smoke SQL y secretos) — **verificado el 2026-09-20** para el
+   commit `44dacee`; ver los tres enlaces en «Verificado con evidencia externa
+   fechada». Un commit distinto exige un run propio.
+
+El procedimiento reproducible para cerrar los gates 1 y 2 vive en
+[gates-segunda-organizacion.md](./gates-segunda-organizacion.md). **Mientras el
+ensayo A/B y el restore no estén aprobados con evidencia fechada, no se habilita
+una segunda organización.**
 
 **Branding: sin gate.** El logo es global y no depende de la organización, así
 que no hay nada que aislar ni migrar; el aislamiento A/B aplica a los **datos
 propios** de cada empresa, incluida su identidad fiscal.
+
 
 
 ---
