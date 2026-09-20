@@ -81,12 +81,20 @@ Ninguno puede darse por cumplido sin evidencia fechada y enlazable.
 2. **Restore probado**: no basta el respaldo diario; hace falta una
    **restauración ensayada y documentada** — *requiere verificación* (a la
    fecha no consta ninguna).
-3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build) con el
-   enlace al run correspondiente — *requiere verificación*.
+3. **CI completo en verde** (lint, tipos, build/smoke, Vitest y cobertura, Deno
+   offline, RLS/smoke SQL y secretos) — **verificado el 2026-09-20** para el
+   commit `44dacee`; ver los tres enlaces en «Verificado con evidencia externa
+   fechada». Un commit distinto exige un run propio.
+
+El procedimiento reproducible para cerrar los gates 1 y 2 vive en
+[gates-segunda-organizacion.md](./gates-segunda-organizacion.md). **Mientras el
+ensayo A/B y el restore no estén aprobados con evidencia fechada, no se habilita
+una segunda organización.**
 
 **Branding: sin gate.** El logo es global y no depende de la organización, así
 que no hay nada que aislar ni migrar; el aislamiento A/B aplica a los **datos
 propios** de cada empresa, incluida su identidad fiscal.
+
 
 
 ---
