@@ -42,8 +42,22 @@ reconfirmarlos con una consulta o corrida fechada:
   1 resolución manual) y **originales conservados** con el borrado de fuentes
   deshabilitado — *requiere verificación*.
 - **1 sola organización activa** — *requiere verificación*.
-- **Estado del respaldo/restore y del CI completo** — *requiere verificación*
-  contra la corrida correspondiente (no se declara verde sin enlace al run).
+- **Estado del respaldo/restore** — *requiere verificación*: a la fecha consta
+  respaldo diario, pero **ninguna restauración ensayada**.
+
+### Verificado con evidencia externa fechada
+
+- **CI completo en verde (2026-09-20)** para el commit `44dacee`
+  (`44daceef5d268ac457399475ca5cfda681981993`). Cubre lint, tipos,
+  build y smoke de arranque, Vitest con cobertura, pruebas Deno offline,
+  pruebas RLS y smoke SQL sobre base efímera, y escaneo de secretos:
+  - CI principal: <https://github.com/hlopezb83/liftgo/actions/runs/35543605798> (success)
+  - RLS DB tests: <https://github.com/hlopezb83/liftgo/actions/runs/35543605857> (success)
+  - Gitleaks: <https://github.com/hlopezb83/liftgo/actions/runs/35543605759> (success)
+
+  Este gate queda **cubierto para ese commit**; cualquier commit posterior
+  necesita su propio run enlazado.
+
 
 ### Marca global de LiftGo (no es dato de tenant)
 
