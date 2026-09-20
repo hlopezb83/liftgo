@@ -1,3 +1,12 @@
+## [8.25.25] - 2026-09-20 · patch · chore
+
+La suite de pruebas del CI se divide en cuatro partes que corren al mismo tiempo, y al final se juntan los resultados para medir la cobertura completa igual que antes.
+
+- .github/workflows/ci.yml: la matriz del job tests pasa de shard [1, 2] a [1, 2, 3, 4]; nombres, comentarios y el comando usan ahora --shard=N/4. Se conservan fail-fast: false, VITEST_SHARD_BLOB=1 y --coverage en cada shard.
+- .github/workflows/ci.yml: tests-merge descarga explicitamente vitest-blob-1, vitest-blob-2, vitest-blob-3 y vitest-blob-4 en .vitest-reports/ antes del merge; si falta cualquier artifact el job falla igual que antes y los umbrales de cobertura no cambian.
+- docs/ci.md: la tabla de jobs y la seccion de sharding describen cuatro shards; se aclara que el paralelismo interno de Vitest dentro de cada runner no se modifica.
+- actionlint sobre ci.yml: sin errores. No se cambiaron codigo de producto, tests, migraciones, RLS, datos, Storage, secretos ni produccion.
+
 ## [8.25.24] - 2026-09-20 · patch · chore
 
 Las pruebas de permisos ya no encienden el intermediario de red ni la interfaz de datos, porque ese trabajo solo consulta la base directamente. Se conserva la autenticación y se agrega una comprobación temprana que detiene el proceso si esa parte no quedó lista.

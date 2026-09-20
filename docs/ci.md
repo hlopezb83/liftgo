@@ -12,7 +12,7 @@ misma rama se cancelan.
 | Job | Corre | Qué protege |
 | --- | --- | --- |
 | `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build y **smoke de arranque** |
-| `tests` (matriz 1/2 y 2/2) | siempre | Suite completa de Vitest, repartida en dos shards |
+| `tests` (matriz 1/4 … 4/4) | siempre | Suite completa de Vitest, repartida en cuatro shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
@@ -79,26 +79,28 @@ Cubierto por `src/test/smokeConsoleNoise.test.ts`.
 
 
 
-### Vitest en 2 shards + merge
+### Vitest en 4 shards + merge
 
-`tests` es una matriz de dos runners (`fail-fast: false`). Cada uno corre su
-mitad con `--shard=N/2 --coverage` y `VITEST_SHARD_BLOB=1` (acotado a ese step),
-lo que activa el reporter `blob` y desactiva los umbrales parciales: un shard
-ve solo una porción del código, así que medir cobertura ahí sería falso. Nunca
-se usa `--changed` ni `--passWithNoTests`: PR, push y manual corren igual.
+`tests` es una matriz de cuatro runners (`fail-fast: false`). Cada uno corre su
+porción con `--shard=N/4 --coverage` y `VITEST_SHARD_BLOB=1` (acotado a ese
+step), lo que activa el reporter `blob` y desactiva los umbrales parciales: un
+shard ve solo una porción del código, así que medir cobertura ahí sería falso.
+Nunca se usa `--changed` ni `--passWithNoTests`: PR, push y manual corren igual.
+El paralelismo interno de Vitest dentro de cada runner no se toca.
 
 Cada shard sube `.vitest-reports/` como artifact propio
-(`vitest-blob-1` / `vitest-blob-2`, `include-hidden-files: true`,
-`if-no-files-found: error`, 1 día). `tests-merge` descarga ambos por nombre
-explícito —si falta uno, el job falla— y corre `vitest --merge-reports
+(`vitest-blob-1` … `vitest-blob-4`, `include-hidden-files: true`,
+`if-no-files-found: error`, 1 día). `tests-merge` descarga los cuatro por
+nombre explícito —si falta uno, el job falla— y corre `vitest --merge-reports
 --coverage` **sin** `VITEST_SHARD_BLOB`, de modo que los umbrales globales y
 por directorio se evalúan sobre la cobertura consolidada. No se reejecuta la
 suite ni se promedian porcentajes. El artifact final sigue siendo `reports/`
 (7 días).
 
 Tradeoff: menos espera de reloj a cambio de más tiempo acumulado de runners
-(dos instalaciones de dependencias y un job extra de merge). La magnitud real
+(cuatro instalaciones de dependencias y un job extra de merge). La magnitud real
 se mide comparando corridas de CI, no se estima aquí.
+
 
 
 ### Tests Deno: offline vs remotos
