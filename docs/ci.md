@@ -144,6 +144,24 @@ Defensa en profundidad — `tests/e2e/fixtures/productionGuard.ts`:
 Levanta un Supabase local efímero, aplica todas las migraciones desde cero y
 corre las suites RLS en modo estricto.
 
+### Servicios levantados
+
+El job habla con la base **solo** por `DB_URL`/`psql` (y `drizzle-kit`): no usa
+la API REST ni el gateway. Por eso `supabase start` levanta únicamente
+**Postgres + auth (gotrue)**, con `kong` y `postgrest` excluidos junto al resto
+de servicios. `gotrue` **no** se excluye: migraciones y suites RLS dependen del
+schema `auth` (`auth.users`, `auth.uid()`).
+
+Justo después del arranque, y **antes** del `db reset`, un paso comprueba que
+existan `auth.users` y `auth.uid()`. Si faltan, el job falla ahí: así un
+arranque incompleto no se confunde con una regresión SQL.
+
+El paso "Start Supabase" imprime su duración en el log y en el resumen del run
+para poder compararla con la referencia previa (run `35543605857`: ~3m20s en
+ese paso, 4m55s de job). Si excluir `kong`/`postgrest` rompiera el arranque o no
+diera mejora material, se revierte esa exclusión.
+
+
 Los smoke SQL **también bloquean**. Eran `continue-on-error` por la sospecha de
 que asumían datos de staging; con la base creada desde las migraciones las 42
 suites pasan, así que un rojo aquí es una regresión real. Con eso sobraban el
