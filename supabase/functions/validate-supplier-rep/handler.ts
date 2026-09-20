@@ -1,0 +1,438 @@
+// Handler con dependencias inyectadas (testable sin red) para
+// validate-supplier-rep.
+//
+// Endurecimiento multiempresa (P1): corre con service_role, así que las RLS no
+// lo protegen. La empresa se deriva SIEMPRE de `organization_memberships`
+// (nunca del body) y se aplica como filtro explícito en el pago, la factura,
+// la comprobación de UUID duplicado, la actualización y la bitácora.
+//
+// Ruta preferida de la aplicación: src/lib/supplierRep.functions.ts. Este
+// endpoint se mantiene sólo por compatibilidad con consumidores antiguos.
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { isUUID } from "../_shared/validate.ts";
+import { organizationStoragePath } from "../_shared/storagePath.ts";
+import { resolveCallerOrganization } from "../_shared/orgContext.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
+
+const BUCKET = "cfdi-files";
+const TOLERANCE = 0.01;
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB (mismo cap que parse-csf)
+
+// ---------- Helpers (XML parsing sin DOM) ----------
+
+export function extractAttr(
+  xml: string,
+  tag: string,
+  attr: string,
+): string | null {
+  const re = new RegExp(
+    `<(?:[a-zA-Z0-9]+:)?${tag}\\b[^>]*\\b${attr}\\s*=\\s*"([^"]*)"`,
+    "i",
+  );
+  const m = xml.match(re);
+  return m ? m[1] : null;
+}
+
+export function extractAllAttr(
+  xml: string,
+  tag: string,
+  attr: string,
+): string[] {
+  const re = new RegExp(
+    `<(?:[a-zA-Z0-9]+:)?${tag}\\b[^>]*\\b${attr}\\s*=\\s*"([^"]*)"`,
+    "ig",
+  );
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml)) !== null) out.push(m[1]);
+  return out;
+}
+
+// L-8: chequeo estructural mínimo de XML bien formado (balance de tags) antes
+// de cualquier parseo por regex: evita extraer datos de un XML truncado o
+// corrupto que el regex aceptaría silenciosamente.
+export function isWellFormedXml(xml: string): boolean {
+  if (!/^\s*</.test(xml)) return false;
+  const stack: string[] = [];
+  const re =
+    /<(\/?)([a-zA-Z_][\w.-]*(?::[\w.-]+)?)((?:"[^"]*"|'[^']*'|[^"'<>])*?)(\/?)>/g;
+  let m: RegExpExecArray | null;
+  let sawRoot = false;
+  while ((m = re.exec(xml)) !== null) {
+    const closing = m[1];
+    const name = m[2];
+    const selfClose = m[4];
+    if (closing) {
+      if (stack.pop() !== name) return false;
+    } else if (!selfClose) {
+      stack.push(name);
+      sawRoot = true;
+    } else {
+      sawRoot = true;
+    }
+  }
+  return sawRoot && stack.length === 0;
+}
+
+// Encuentra TODOS los nodos cfdi/pago Pago para extraer Monto y sus DoctoRelacionado
+export function extractPagoNodes(
+  xml: string,
+): Array<{ monto: number; doctos: string[] }> {
+  const reOpen = /<(?:[a-zA-Z0-9]+:)?Pago\b[^>]*>/g;
+  const out: Array<{ monto: number; doctos: string[] }> = [];
+  let m: RegExpExecArray | null;
+  while ((m = reOpen.exec(xml)) !== null) {
+    const openTag = m[0];
+    const montoMatch = openTag.match(/\bMonto\s*=\s*"([^"]*)"/i);
+    const monto = montoMatch ? Number(montoMatch[1]) : NaN;
+    const start = m.index + openTag.length;
+    const closeIdx = xml.toLowerCase().indexOf("</pago", start);
+    const inner = closeIdx === -1
+      ? xml.slice(start)
+      : xml.slice(start, closeIdx);
+    const doctos = extractAllAttr(inner, "DoctoRelacionado", "IdDocumento");
+    out.push({ monto, doctos });
+  }
+  return out;
+}
+
+export interface RepAuthOk {
+  ok: true;
+  userId: string;
+  adminClient: SupabaseLike;
+}
+export interface RepAuthFail {
+  ok: false;
+  response: Response;
+}
+export type RepAuth = RepAuthOk | RepAuthFail;
+
+export interface ValidateSupplierRepDeps {
+  authenticate: (req: Request, roles: string[]) => Promise<RepAuth>;
+  enforceRateLimit: (
+    req: Request,
+    admin: SupabaseLike,
+    bucket: string,
+    identifier: string,
+    max: number,
+    windowSeconds: number,
+  ) => Promise<Response | null>;
+  now?: () => Date;
+}
+
+export async function handleValidateSupplierRep(
+  req: Request,
+  deps: ValidateSupplierRepDeps,
+): Promise<Response> {
+  const corsRes = handleCors(req);
+  if (corsRes) return corsRes;
+
+  try {
+    const auth = await deps.authenticate(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const { userId, adminClient: supabase } = auth;
+
+    // Mismo rate limit que parse-csf (5 req / 60s por usuario).
+    const limited = await deps.enforceRateLimit(
+      req,
+      supabase,
+      "validate-supplier-rep",
+      userId,
+      5,
+      60,
+    );
+    if (limited) return limited;
+
+    // Multiempresa (P1): fail-closed antes de leer ningún documento.
+    const org = await resolveCallerOrganization(supabase, userId);
+    if (!org.ok) return jsonError(req, org.status, org.message);
+    const organizationId = org.organizationId;
+
+    const body = await req.json().catch(() => ({}));
+    const { payment_id, xml_base64, pdf_base64, force } = body as {
+      payment_id?: string;
+      xml_base64?: string;
+      pdf_base64?: string | null;
+      force?: boolean;
+    };
+    if (!isUUID(payment_id)) {
+      return jsonError(req, 400, "payment_id inválido");
+    }
+    if (!xml_base64 || typeof xml_base64 !== "string") {
+      return jsonError(req, 400, "xml_base64 es obligatorio");
+    }
+    // Cap de tamaño (mismo formato que parse-csf): base64 length * 3/4 ≈ bytes.
+    if (xml_base64.length > Math.ceil(MAX_FILE_BYTES * 4 / 3)) {
+      return jsonError(
+        req,
+        413,
+        "El XML excede el tamaño máximo permitido (5MB)",
+      );
+    }
+    if (
+      pdf_base64 != null && typeof pdf_base64 === "string" &&
+      pdf_base64.length > Math.ceil(MAX_FILE_BYTES * 4 / 3)
+    ) {
+      return jsonError(
+        req,
+        413,
+        "El PDF excede el tamaño máximo permitido (5MB)",
+      );
+    }
+
+    // Load payment + bill + supplier, siempre acotados a la empresa del caller.
+    const { data: paymentRow, error: payErr } = await supabase
+      .from("supplier_payments")
+      .select(
+        "id, bill_id, organization_id, amount, rep_status, rep_required, rep_cfdi_uuid",
+      )
+      .eq("id", payment_id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    const payment = paymentRow as
+      | {
+        id: string;
+        bill_id: string;
+        organization_id: string | null;
+        amount: number;
+        rep_status: string | null;
+        rep_required: boolean | null;
+        rep_cfdi_uuid: string | null;
+      }
+      | null;
+    // Un pago de otra empresa es indistinguible de uno inexistente.
+    if (payErr || !payment || payment.organization_id !== organizationId) {
+      return jsonError(req, 404, "Pago no encontrado");
+    }
+    if (!payment.rep_required) {
+      return jsonError(req, 400, "Este pago no requiere REP");
+    }
+    // N-32: no sobrescribir un REP ya validado sin intención explícita.
+    if (payment.rep_status === "received" && payment.rep_cfdi_uuid && !force) {
+      return jsonError(
+        req,
+        409,
+        `Este pago ya tiene un REP validado (${payment.rep_cfdi_uuid}). Envía force=true para reemplazarlo.`,
+      );
+    }
+
+    const { data: billRow } = await supabase
+      .from("supplier_bills")
+      .select(
+        "id, organization_id, cfdi_uuid, supplier_id, payment_method_sat, suppliers(rfc, name)",
+      )
+      .eq("id", payment.bill_id)
+      .eq("organization_id", organizationId)
+      .maybeSingle();
+    const bill = billRow as
+      | {
+        id: string;
+        organization_id: string | null;
+        cfdi_uuid: string | null;
+        suppliers: { rfc?: string | null; name?: string | null } | null;
+      }
+      | null;
+    if (!bill || bill.organization_id !== organizationId) {
+      return jsonError(req, 404, "Factura no encontrada");
+    }
+    if (!bill.cfdi_uuid) {
+      return jsonError(req, 400, "La factura no tiene UUID CFDI");
+    }
+
+    // Decode XML
+    let xmlText: string;
+    try {
+      const bin = atob(xml_base64);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      xmlText = new TextDecoder("utf-8").decode(bytes);
+    } catch {
+      return jsonError(req, 400, "XML inválido (base64)");
+    }
+
+    if (!isWellFormedXml(xmlText)) {
+      return jsonError(
+        req,
+        400,
+        "XML malformado: el documento no está bien formado (tags desbalanceados o truncado)",
+      );
+    }
+
+    // Validaciones
+    const tipo = extractAttr(xmlText, "Comprobante", "TipoDeComprobante");
+    if (tipo !== "P") {
+      return jsonError(
+        req,
+        400,
+        "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
+      );
+    }
+
+    const rfcEmisor = extractAttr(xmlText, "Emisor", "Rfc");
+    const supplierRfc = bill.suppliers?.rfc?.trim().toUpperCase();
+    if (!supplierRfc) {
+      return jsonError(req, 400, "El proveedor no tiene RFC capturado");
+    }
+    if (!rfcEmisor || rfcEmisor.trim().toUpperCase() !== supplierRfc) {
+      return jsonError(
+        req,
+        400,
+        `RFC emisor (${
+          rfcEmisor ?? "n/a"
+        }) no coincide con el proveedor (${supplierRfc})`,
+      );
+    }
+
+    // UUID del REP
+    const repUuid = extractAttr(xmlText, "TimbreFiscalDigital", "UUID");
+    if (!repUuid || !isUUID(repUuid)) {
+      return jsonError(
+        req,
+        400,
+        "No se encontró UUID válido en TimbreFiscalDigital",
+      );
+    }
+
+    // Pagos: validar que al menos uno referencie nuestra factura con monto correcto
+    const pagos = extractPagoNodes(xmlText);
+    if (pagos.length === 0) {
+      return jsonError(req, 400, "El XML no contiene nodos Pago");
+    }
+
+    const targetUuid = bill.cfdi_uuid.toLowerCase();
+    const expectedAmount = Number(payment.amount);
+    const match = pagos.find((p) =>
+      p.doctos.some((d) => d.toLowerCase() === targetUuid) &&
+      Math.abs(p.monto - expectedAmount) <= TOLERANCE
+    );
+
+    if (!match) {
+      const partial = pagos.some((p) =>
+        p.doctos.some((d) => d.toLowerCase() === targetUuid)
+      );
+      const msg = partial
+        ? `El REP referencia la factura pero el monto no coincide (esperado ${
+          expectedAmount.toFixed(2)
+        })`
+        : `El REP no incluye la factura ${bill.cfdi_uuid}`;
+      return jsonError(req, 400, msg);
+    }
+
+    // Verificar UUID único DENTRO de la empresa: el REP de otra empresa no
+    // puede bloquear un pago propio ni revelar su existencia.
+    const { data: dup } = await supabase
+      .from("supplier_payments")
+      .select("id")
+      .eq("rep_cfdi_uuid", repUuid)
+      .eq("organization_id", organizationId)
+      .neq("id", payment_id)
+      .maybeSingle();
+    if (dup) {
+      return jsonError(
+        req,
+        409,
+        `El UUID ${repUuid} ya está registrado en otro pago`,
+      );
+    }
+
+    // Upload XML (rutas derivadas de la empresa de la factura)
+    const xmlPath = organizationStoragePath(
+      bill.organization_id,
+      `supplier-rep/${bill.id}/${payment_id}.xml`,
+    );
+    const { error: xmlErr } = await supabase.storage.from(BUCKET).upload(
+      xmlPath,
+      new Blob([xmlText], { type: "application/xml" }),
+      { contentType: "application/xml", upsert: true },
+    );
+    if (xmlErr) {
+      return jsonError(
+        req,
+        500,
+        `No se pudo subir XML: ${(xmlErr as { message?: string }).message}`,
+      );
+    }
+
+    // Upload PDF (opcional, sin validar)
+    let pdfPath: string | null = null;
+    if (pdf_base64 && typeof pdf_base64 === "string") {
+      try {
+        const bin = atob(pdf_base64);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        const p = organizationStoragePath(
+          bill.organization_id,
+          `supplier-rep/${bill.id}/${payment_id}.pdf`,
+        );
+        const { error: pdfErr } = await supabase.storage.from(BUCKET).upload(
+          p,
+          bytes,
+          { contentType: "application/pdf", upsert: true },
+        );
+        if (!pdfErr) pdfPath = p;
+      } catch (e) {
+        console.error("PDF upload failed:", e);
+      }
+    }
+
+    // Update payment (acotado a la empresa)
+    const { error: updErr } = await supabase
+      .from("supplier_payments")
+      .update({
+        rep_status: "received",
+        rep_cfdi_uuid: repUuid,
+        rep_xml_url: xmlPath,
+        rep_pdf_url: pdfPath,
+        rep_received_at: (deps.now?.() ?? new Date()).toISOString(),
+        rep_notes: null,
+        rep_uploaded_by: userId,
+      })
+      .eq("id", payment_id)
+      .eq("organization_id", organizationId);
+
+    if (updErr) {
+      // N-32: el índice único parcial sobre rep_cfdi_uuid puede dispararse si
+      // otro pago registró el mismo UUID entre la verificación y el guardado.
+      if ((updErr as { code?: string }).code === "23505") {
+        return jsonError(
+          req,
+          409,
+          `El UUID ${repUuid} ya está registrado en otro pago`,
+        );
+      }
+      // M-16b/R4-33: no filtrar el error crudo de BD al cliente; log interno.
+      console.error(
+        "[validate-supplier-rep] supplier_payments update:",
+        updErr,
+      );
+      return jsonError(req, 500, "No se pudo guardar el pago");
+    }
+
+    // Activity feed (best effort), con la empresa explícita.
+    try {
+      await supabase.from("activity_feed").insert({
+        organization_id: organizationId,
+        event_type: "supplier_payment.rep_uploaded",
+        entity_type: "supplier_payments",
+        entity_id: payment_id,
+        title: "REP cargado",
+        description:
+          `Complemento de pago ${repUuid} cargado para la factura ${bill.cfdi_uuid}`,
+        actor_id: userId,
+      });
+    } catch (e) {
+      console.error("activity_feed insert failed:", e);
+    }
+
+    return jsonResponse(req, {
+      success: true,
+      rep_cfdi_uuid: repUuid,
+      xml_url: xmlPath,
+      pdf_url: pdfPath,
+    });
+  } catch (err) {
+    console.error("validate-supplier-rep error:", err);
+    return jsonError(req, 500, "Internal server error");
+  }
+}
