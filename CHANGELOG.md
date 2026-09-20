@@ -1,3 +1,12 @@
+## [8.25.23] - 2026-09-20 · patch · chore
+
+El flujo que levanta una base completa para probar los permisos se disparaba con cualquier cambio en la carpeta de Supabase, aunque fuera solo una función que no toca la base. Ahora solo se dispara cuando cambian migraciones, SQL, configuración o scripts de base; las funciones ya se validan aparte con Deno y el CI principal.
+
+- .github/workflows/rls-db-tests.yml: el filtro supabase/** se reemplaza por supabase/migrations/**, supabase/tests/** y supabase/config.toml; se añaden drizzle/migrations/** y scripts/check-drizzle-journal.ts; push a main, pull_request a main y workflow_dispatch se conservan, igual que la concurrencia y los permisos.
+- docs/ci.md: nueva sección que explica la separación: cambios de supabase/functions/** se validan con deno-functions (deno fmt/lint y tests unitarios offline) y el CI principal (lint/typecheck/build/smoke); cambios de migraciones, SQL, configuración o scripts de base disparan RLS DB tests; ninguna suite se reduce cuando el workflow sí corre.
+- actionlint sobre el workflow resultante: sin errores.
+- No se cambiaron migraciones, código de aplicación, RLS, datos, Storage, secretos ni publicación.
+
 ## [8.25.22] - 2026-09-20 · patch · docs
 
 Se dejó por escrito, con fecha y enlaces, que la revisión automática completa del sistema quedó en verde para el cambio 44dacee. También se agregó una guía reproducible y sin riesgo para los dos requisitos que siguen abiertos: el ensayo con dos empresas de prueba y el ensayo de recuperación de respaldo. Sólo se tocó documentación: no se ejecutó nada en la base real, ni en archivos, permisos, datos o publicación.
