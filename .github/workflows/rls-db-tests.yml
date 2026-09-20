@@ -133,37 +133,11 @@ jobs:
       # Drizzle debe aplicar desde su propio journal, no solo desde la lista
       # de archivos. Así el job valida que el mismo carril del rollout encuentra
       # y ejecuta cada migración después del historial Supabase.
-      - name: Validar journal de migraciones Drizzle
-        run: |
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          directory = Path("drizzle/migrations")
-          files = sorted(path.stem for path in directory.glob("*.sql"))
-          journal = json.loads((directory / "meta" / "_journal.json").read_text(encoding="utf-8"))
-          entries = journal.get("entries", [])
-          tags = [entry.get("tag") for entry in entries]
-          indexes = [entry.get("idx") for entry in entries]
-          timestamps = [entry.get("when") for entry in entries]
-
-          errors = []
-          if files != tags:
-              errors.append(f"SQL/journal no coinciden; sin journal: {sorted(set(files) - set(tags))}; sin SQL: {sorted(set(tags) - set(files))}")
-          if indexes != list(range(len(entries))):
-              errors.append("Los índices del journal no son continuos desde cero")
-          if any(not isinstance(value, int) for value in timestamps) or any(
-              later <= earlier for earlier, later in zip(timestamps, timestamps[1:])
-          ):
-              errors.append("Los timestamps del journal deben ser enteros y estrictamente crecientes")
-
-          if errors:
-              raise SystemExit("\\n".join(errors))
-          print(f"OK: {len(files)} migraciones Drizzle registradas en orden")
-          PY
-
       - name: Setup Bun project for Drizzle Kit
         uses: ./.github/actions/setup-bun-project
+
+      - name: Validar journal de migraciones Drizzle
+        run: bun run migrations:check
 
       - name: Aplicar migraciones Drizzle con drizzle-kit
         run: |
