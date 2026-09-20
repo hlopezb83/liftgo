@@ -2,7 +2,7 @@ name: CI
 
 # CI mínimo y honesto (ver docs/ci.md):
 #   - Dos jobs base que siempre corren: `quality` (estático + build + arranque
-#     real del bundle) y `tests` (Vitest en 2 shards) + `tests-merge`, que une
+#     real del bundle) y `tests` (Vitest en 4 shards) + `tests-merge`, que une
 #     los blobs y aplica los umbrales de cobertura.
 #   - Jobs condicionales que solo corren cuando su área cambió.
 #   - CERO secretos de producción: el build de CI apunta a un backend
