@@ -97,6 +97,11 @@ Deno.test("classify: la lectura y la actualización filtran por organization_id"
         error: null,
       },
     },
+    // Secuencia de update: el simulador sólo registra la actualización cuando
+    // la cadena `.update().select().single()` se resuelve por esta vía.
+    updatesSeq: {
+      feedback_reports: [{ data: { id: reportId }, error: null }],
+    },
   });
   const aiCalls = { n: 0 };
 
