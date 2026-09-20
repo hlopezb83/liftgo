@@ -75,7 +75,7 @@ Deno.test("classify: un report_id de otra empresa no llama a AI ni actualiza nad
 });
 
 Deno.test("classify: la lectura y la actualización filtran por organization_id", async () => {
-  const reportId = "dddddddd-dddd-dddd-dddd-dddddddddddd";
+  const reportId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
   const mock = buildSupabaseMock({
     selects: {
       organization_memberships: {
