@@ -1,3 +1,14 @@
+## [8.25.21] - 2026-09-20 · patch · security
+
+Endurecimiento multiempresa (P1) de los dos endpoints heredados que seguían invocables con service_role. Sin cambios de esquema, RLS, Storage real, datos ni publicación.
+
+- `supabase/functions/classify-feedback-report/`: handler con dependencias inyectadas; empresa resuelta desde `organization_memberships` antes de consultar AI y filtro `organization_id` en lectura y actualización de `feedback_reports`.
+- `supabase/functions/validate-supplier-rep/`: empresa resuelta antes de leer el pago; filtros `organization_id` en `supplier_payments`, `supplier_bills`, comprobación de UUID duplicado y actualización; `activity_feed` con empresa explícita; rutas de Storage derivadas de `bill.organization_id`.
+- Ambos ignoran cualquier `organization_id` del cuerpo y fallan cerrado (403 sin membresía, 503 ante error de lectura).
+- Pruebas offline de aislamiento (`orgIsolation_test.ts`) en ambas funciones; smoke tests existentes conservados.
+- `docs/functions-inventory.md`: clasificación de cada endpoint activo (tenant-scoped, cron/service_role, global explícito, retirado) y razón de las funciones globales.
+- Los endpoints se conservan por compatibilidad; las rutas preferidas son `src/lib/feedbackAi.functions.ts` y `src/lib/supplierRep.functions.ts`.
+
 ## [8.25.20] - 2026-09-20 · patch · chore
 
 Verificador reutilizable del journal de migraciones Drizzle y política de migraciones documentada. Sin cambios de esquema, datos ni lógica de la aplicación.

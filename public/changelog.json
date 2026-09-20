@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.25.21",
+    "date": "2026-09-20",
+    "type": "patch",
+    "category": "security",
+    "title": "Aislamiento por empresa en las funciones heredadas de clasificacion de reportes y validacion de REP",
+    "description": "Estas dos funciones antiguas trabajaban con una llave maestra: podían abrir cualquier expediente sin fijarse de qué empresa era. Ahora primero revisan a qué empresa pertenece quien las llama y sólo tocan los documentos de esa empresa; un identificador ajeno responde «no encontrado» sin gastar créditos de inteligencia artificial ni mover nada.",
+    "changes": [
+      "classify-feedback-report: la empresa se deriva de la membresía del usuario y se aplica como filtro en la lectura y la actualización del reporte; la verificación ocurre antes de llamar a la inteligencia artificial.",
+      "validate-supplier-rep: pago, factura, búsqueda de UUID duplicado y actualización filtran por la empresa del usuario; la bitácora guarda organization_id y las rutas de archivos siguen derivando de la factura.",
+      "Ninguna de las dos acepta organization_id enviado por el cliente; ante error de lectura o falta de membresía fallan cerrado (403/503).",
+      "Nuevas pruebas sin conexión que demuestran el aislamiento: identificadores de otra empresa no provocan llamada a IA, lectura sensible, subida de archivos ni actualización, y un REP de otra empresa no bloquea pagos propios.",
+      "Nuevo docs/functions-inventory.md con la clasificación de cada endpoint activo y la razón por la que generate-manual y parse-csf siguen siendo globales.",
+      "Sin cambios de esquema, RLS, Storage real, datos, branding ni publicación."
+    ]
+  },
+  {
     "version": "8.25.20",
     "date": "2026-09-20",
     "type": "patch",
