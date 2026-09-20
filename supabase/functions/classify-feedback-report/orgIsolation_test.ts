@@ -11,9 +11,9 @@ import {
   handleClassifyFeedbackReport,
 } from "./handler.ts";
 
-const ORG_A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
-const REPORT_OTHER_ORG = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
-const USER = "cccccccc-cccc-cccc-cccc-cccccccccccc";
+const ORG_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const REPORT_OTHER_ORG = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const USER = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
 
 function makeReq(reportId: string, force = false): Request {
   return new Request("https://example.com/classify-feedback-report", {
