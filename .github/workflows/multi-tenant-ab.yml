@@ -1,0 +1,172 @@
+name: Multi-tenant A/B gate
+
+# Gate multiempresa: ensayo A/B REAL pero 100% local y efímero.
+#
+# Levanta un Supabase local del runner (Postgres + gotrue + kong + postgrest +
+# storage-api), aplica el MISMO carril de migraciones que RLS DB tests (parche
+# legado local + `db reset` + Drizzle en el orden oficial), siembra dos
+# organizaciones ficticias y ejecuta la suite Playwright del gate:
+# aislamiento de datos por API, Storage por API real y portal en navegador.
+#
+# Este workflow NUNCA lee secrets: todas las credenciales salen de la CLI local
+# (`supabase status -o env`). El guard de tests/multi-tenant-ab/fixtures/
+# localBackend.ts aborta fail-closed ante cualquier host remoto o el ref
+# productivo, antes de login, seed, upload o cualquier escritura.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "supabase/config.toml"
+      - "drizzle/migrations/**"
+      - "src/features/portal/**"
+      - "src/routes/_portal/**"
+      - "src/routes/portal.login.tsx"
+      - "src/lib/storage/**"
+      - "tests/multi-tenant-ab/**"
+      - "tests/e2e/fixtures/productionGuard.ts"
+      - "playwright.multitenant.config.ts"
+      - "scripts/patch_legacy_migrations.py"
+      - ".github/workflows/multi-tenant-ab.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "supabase/tests/**"
+      - "supabase/config.toml"
+      - "drizzle/migrations/**"
+      - "src/features/portal/**"
+      - "src/routes/_portal/**"
+      - "src/routes/portal.login.tsx"
+      - "src/lib/storage/**"
+      - "tests/multi-tenant-ab/**"
+      - "tests/e2e/fixtures/productionGuard.ts"
+      - "playwright.multitenant.config.ts"
+      - "scripts/patch_legacy_migrations.py"
+      - ".github/workflows/multi-tenant-ab.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: multi-tenant-ab-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  multi-tenant-ab:
+    name: Gate A/B multiempresa (Supabase local efímero)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    # Mismo criterio que rls-db-tests: los PRs desde forks no corren jobs con Docker.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+
+    env:
+      DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      # Marca explícita de backend aislado que exige el guard.
+      E2E_ISOLATED_BACKEND: "1"
+      VITE_SUPABASE_PROJECT_ID: local-ab-ephemeral
+      SUPABASE_PROJECT_ID: local-ab-ephemeral
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Supabase CLI
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/share/supabase-cli
+          key: ${{ runner.os }}-supabase-cli-2.34.0
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
+        with:
+          version: 2.34.0
+
+      - name: Setup Bun project
+        uses: ./.github/actions/setup-bun-project
+
+      # Mismo parche local que RLS DB tests: migraciones históricas escritas
+      # contra producción que desde cero fallarían con 42P01.
+      - name: Parchar migraciones fuera de orden (solo en el runner)
+        run: python3 scripts/patch_legacy_migrations.py
+
+      # A diferencia de RLS DB tests, este gate SÍ necesita el gateway (kong),
+      # PostgREST y storage-api: prueba la API real, no solo psql.
+      - name: Start Supabase (DB + auth + API + Storage)
+        timeout-minutes: 15
+        run: |
+          set -euxo pipefail
+          supabase start \
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor \
+            --debug
+          supabase status
+
+      - name: Verificar schema auth disponible
+        run: |
+          set -euo pipefail
+          HAS_USERS=$(psql "$DB_URL" -Atc "select to_regclass('auth.users') is not null")
+          HAS_UID=$(psql "$DB_URL" -Atc "select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'auth' and p.proname = 'uid')")
+          if [[ "$HAS_USERS" != "t" || "$HAS_UID" != "t" ]]; then
+            echo "::error::El schema auth no está completo (auth.users=$HAS_USERS, auth.uid()=$HAS_UID)"
+            exit 1
+          fi
+
+      - name: Reset DB (aplica todas las migraciones desde cero)
+        run: supabase db reset --no-seed
+
+      - name: Validar journal de migraciones Drizzle
+        run: bun run migrations:check
+
+      - name: Aplicar migraciones Drizzle con drizzle-kit
+        run: |
+          set -euo pipefail
+          export LOVABLE_DB_MIGRATION_URL="$DB_URL"
+          bunx drizzle-kit migrate --config=drizzle.config.ts
+
+      # Credenciales SOLO de la CLI local. Se enmascaran para que ningún log
+      # ni artifact las exponga.
+      - name: Exportar credenciales locales efímeras
+        run: |
+          set -euo pipefail
+          supabase status -o env > /tmp/supabase-local.env
+          # shellcheck disable=SC1091
+          set -a; source /tmp/supabase-local.env; set +a
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          {
+            echo "VITE_SUPABASE_URL=$API_URL"
+            echo "SUPABASE_URL=$API_URL"
+            echo "VITE_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+          } >> "$GITHUB_ENV"
+          rm -f /tmp/supabase-local.env
+          case "$API_URL" in
+            http://127.0.0.1:*|http://localhost:*) ;;
+            *) echo "::error::La API local no es loopback"; exit 1 ;;
+          esac
+
+      - name: Instalar navegador Playwright
+        run: bunx playwright install --with-deps chromium
+
+      - name: Ejecutar gate A/B (datos + Storage + portal)
+        run: bun run test:multitenant-ab
+
+      - name: Subir evidencia (sin credenciales)
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: multitenant-ab-evidence
+          path: |
+            reports/multitenant-ab-junit.xml
+            reports/multitenant-ab.json
+            reports/multitenant-ab-matrix.json
+            reports/multitenant-ab-matrix.md
+            playwright-report-multitenant/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Destruir entorno efímero
+        if: always()
+        run: supabase stop --no-backup || true
