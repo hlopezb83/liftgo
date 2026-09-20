@@ -96,17 +96,38 @@ jobs:
       - name: Parchar migraciones fuera de orden (solo en el runner)
         run: python3 scripts/patch_legacy_migrations.py
 
-      - name: Start Supabase (solo DB + auth)
+      - name: Start Supabase (DB + auth, sin gateway ni PostgREST)
         continue-on-error: false
         timeout-minutes: 15
         run: |
           set -euxo pipefail
           docker version
           supabase --version
+          START_TS=$(date +%s)
           supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor \
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest \
             --debug
-          supabase status
+          ELAPSED=$(( $(date +%s) - START_TS ))
+          echo "Start Supabase: ${ELAPSED}s (referencia run 35543605857: ~200s)"
+          echo "### Start Supabase: ${ELAPSED}s (referencia previa ~200s)" >> "$GITHUB_STEP_SUMMARY"
+          # `status` imprime URLs de servicios; con kong/postgrest excluidos puede
+          # devolver salida parcial y no debe tumbar el job.
+          supabase status || echo "supabase status parcial (servicios excluidos)"
+
+      # Gate temprano: si el schema auth no quedó disponible, fallar ANTES del
+      # db reset (las migraciones y las suites RLS dependen de auth.users y
+      # auth.uid()). Así un arranque incompleto se distingue de una regresión SQL.
+      - name: Verificar schema auth disponible
+        run: |
+          set -euo pipefail
+          HAS_USERS=$(psql "$DB_URL" -Atc "select to_regclass('auth.users') is not null")
+          HAS_UID=$(psql "$DB_URL" -Atc "select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'auth' and p.proname = 'uid')")
+          echo "auth.users: $HAS_USERS / auth.uid(): $HAS_UID"
+          if [[ "$HAS_USERS" != "t" || "$HAS_UID" != "t" ]]; then
+            echo "::error::El schema auth no está completo (auth.users=$HAS_USERS, auth.uid()=$HAS_UID)"
+            exit 1
+          fi
+
 
       # Diagnóstico para futuros fallos de arranque: sin esto el log del job
       # solo muestra "service not healthy" sin decir cuál ni por qué.
