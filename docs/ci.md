@@ -12,7 +12,7 @@ misma rama se cancelan.
 | Job | Corre | Qué protege |
 | --- | --- | --- |
 | `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build y **smoke de arranque** |
-| `tests` (matriz 1/2 y 2/2) | siempre | Suite completa de Vitest, repartida en dos shards |
+| `tests` (matriz 1/4 … 4/4) | siempre | Suite completa de Vitest, repartida en cuatro shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
