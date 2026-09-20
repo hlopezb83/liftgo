@@ -1,0 +1,16 @@
+{
+  "version": "8.25.20",
+  "date": "2026-09-20",
+  "type": "patch",
+  "category": "chore",
+  "title": "Verificador reutilizable del journal de migraciones y política documentada",
+  "description": "Antes la revisión del orden de las migraciones vivía escondida dentro del flujo de CI, como una nota pegada en la puerta de un solo cuarto. Ahora es una herramienta del proyecto que cualquiera puede correr, y la política de migraciones quedó escrita en un solo lugar.",
+  "changes": [
+    "Nuevo scripts/check-drizzle-journal.ts: valida correspondencia 1:1 entre archivos .sql y entradas del journal, índices continuos desde 0, when entero y estrictamente creciente, y ausencia de tags o archivos duplicados; sale con código distinto de cero y mensajes accionables.",
+    "Nuevo script bun run migrations:check en package.json.",
+    "El workflow .github/workflows/rls-db-tests.yml sustituye el bloque Python inline por bun run migrations:check, conservando el orden supabase db reset → validación → drizzle-kit migrate.",
+    "Nuevo docs/migrations.md con la política vigente: supabase/migrations legado forward-only, drizzle/migrations como carril vigente, aplicación en producción sólo por el canal oficial con preflight y verificación del ledger, y el id 31 desconocido que no se borra ni se atribuye.",
+    "README.md enlaza docs/migrations.md; pruebas unitarias nuevas del verificador sin dependencia de base de datos.",
+    "Sin cambios de SQL, journal, esquema, RLS, Storage, datos, dependencias ni lógica de la aplicación."
+  ]
+}

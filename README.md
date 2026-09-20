@@ -72,6 +72,7 @@ reportes puntuales) vive en el historial de cambios:
 
 - `architecture.md` — arquitectura, convenciones y reglas de negocio críticas.
 - `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
+- `docs/migrations.md` — política de migraciones (legado Supabase vs. carril Drizzle).
 - `docs/paginacion-cursor.md` — patrón de listados y cuándo migrar a cursor.
 - `CHANGELOG.md` + `public/changelog/` — historial funcional versión por versión.
 

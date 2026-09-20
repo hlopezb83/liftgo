@@ -23,6 +23,7 @@
     "test:e2e:smoke": "playwright test --config playwright.smoke.config.ts",
     "test:functions": "bash scripts/deno-tests-offline.sh",
     "changelog:check": "bun scripts/validate-changelog.ts",
+    "migrations:check": "bun scripts/check-drizzle-journal.ts",
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
     "format": "prettier --write ."

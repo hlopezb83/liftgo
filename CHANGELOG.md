@@ -1,3 +1,13 @@
+## [8.25.20] - 2026-09-20 · patch · chore
+
+Verificador reutilizable del journal de migraciones Drizzle y política de migraciones documentada. Sin cambios de esquema, datos ni lógica de la aplicación.
+
+- `scripts/check-drizzle-journal.ts`: correspondencia 1:1 SQL/journal, `idx` continuo desde 0, `when` entero y estrictamente creciente, sin duplicados; exit distinto de cero con mensajes accionables.
+- `package.json`: nuevo script `migrations:check`.
+- `.github/workflows/rls-db-tests.yml`: reemplaza el bloque Python inline por `bun run migrations:check`, manteniendo el orden del workflow.
+- `docs/migrations.md`: carril legado vs. carril vigente, orden de CI, canal oficial en producción, ledger id 31 y límite de certeza documental; enlazado desde `README.md`.
+- Pruebas unitarias del verificador sin dependencia de base de datos.
+
 ## [8.25.19] - 2026-09-19 · patch · refactor
 
 Separación estructural de la carga de estados de cuenta bancarios. Sin cambios de comportamiento, límites, mensajes, parsers, payload de importación ni contratos.
