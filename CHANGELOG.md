@@ -1,3 +1,12 @@
+## [8.25.24] - 2026-09-20 · patch · chore
+
+Las pruebas de permisos ya no encienden el intermediario de red ni la interfaz de datos, porque ese trabajo solo consulta la base directamente. Se conserva la autenticación y se agrega una comprobación temprana que detiene el proceso si esa parte no quedó lista.
+
+- .github/workflows/rls-db-tests.yml: supabase start ahora excluye tambien kong y postgrest; se conservan postgres y gotrue, y el comentario describe con precision que se levanta DB + auth sin gateway ni PostgREST.
+- .github/workflows/rls-db-tests.yml: nuevo paso previo al db reset que falla si no existen auth.users y auth.uid(); el paso de arranque ahora mide e imprime su duracion en el log y en el resumen del run para comparar contra la referencia (run 35543605857: ~3m20s de arranque, 4m55s de job).
+- docs/ci.md: nueva seccion Servicios levantados con el alcance real, el gate de auth y el criterio de revertir la exclusion si rompe el arranque o no aporta mejora material.
+- Se conservan todas las suites RLS, los smoke SQL, el db reset y el carril Drizzle; sin paralelizar. actionlint sin errores. No se cambiaron migraciones, RLS, datos, Storage, secretos ni produccion.
+
 ## [8.25.23] - 2026-09-20 · patch · chore
 
 El flujo que levanta una base completa para probar los permisos se disparaba con cualquier cambio en la carpeta de Supabase, aunque fuera solo una función que no toca la base. Ahora solo se dispara cuando cambian migraciones, SQL, configuración o scripts de base; las funciones ya se validan aparte con Deno y el CI principal.

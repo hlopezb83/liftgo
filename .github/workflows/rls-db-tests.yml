@@ -77,16 +77,18 @@ jobs:
         with:
           version: 2.34.0
 
-      # Solo se necesita Postgres + el schema `auth`: se excluyen los servicios
-      # pesados para bajar el arranque de ~4 min a ~1 min.
+      # Este job habla con la base SOLO por DB_URL/psql (y drizzle-kit): no usa
+      # la API REST ni el gateway. Por eso se levanta únicamente Postgres + auth
+      # (gotrue), sin gateway (kong) ni PostgREST, y sin el resto de servicios.
       #
       # IMPORTANTE: los nombres de `-x` deben existir en la CLI pineada. En
       # 2.34.0 los válidos son exactamente:
       #   edge-runtime, gotrue, imgproxy, kong, logflare, mailpit,
       #   postgres-meta, postgrest, realtime, storage-api, studio, supavisor, vector
       # `pgbouncer` ya no existe (se reemplazó por supavisor) y hacía que el
-      # arranque no fuera el esperado. `gotrue` se conserva porque las suites
-      # RLS necesitan el schema `auth` poblado.
+      # arranque no fuera el esperado. `gotrue` NO se excluye: las migraciones y
+      # las suites RLS necesitan el schema `auth` (auth.users, auth.uid()).
+
       # Algunas migraciones históricas se escribieron contra producción, donde
       # la tabla referenciada ya existía por otro camino. Desde cero fallan con
       # 42P01 y tumban el job antes de correr un test. Este script envuelve esas
@@ -94,17 +96,38 @@ jobs:
       - name: Parchar migraciones fuera de orden (solo en el runner)
         run: python3 scripts/patch_legacy_migrations.py
 
-      - name: Start Supabase (solo DB + auth)
+      - name: Start Supabase (DB + auth, sin gateway ni PostgREST)
         continue-on-error: false
         timeout-minutes: 15
         run: |
           set -euxo pipefail
           docker version
           supabase --version
+          START_TS=$(date +%s)
           supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor \
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest \
             --debug
-          supabase status
+          ELAPSED=$(( $(date +%s) - START_TS ))
+          echo "Start Supabase: ${ELAPSED}s (referencia run 35543605857: ~200s)"
+          echo "### Start Supabase: ${ELAPSED}s (referencia previa ~200s)" >> "$GITHUB_STEP_SUMMARY"
+          # `status` imprime URLs de servicios; con kong/postgrest excluidos puede
+          # devolver salida parcial y no debe tumbar el job.
+          supabase status || echo "supabase status parcial (servicios excluidos)"
+
+      # Gate temprano: si el schema auth no quedó disponible, fallar ANTES del
+      # db reset (las migraciones y las suites RLS dependen de auth.users y
+      # auth.uid()). Así un arranque incompleto se distingue de una regresión SQL.
+      - name: Verificar schema auth disponible
+        run: |
+          set -euo pipefail
+          HAS_USERS=$(psql "$DB_URL" -Atc "select to_regclass('auth.users') is not null")
+          HAS_UID=$(psql "$DB_URL" -Atc "select exists (select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'auth' and p.proname = 'uid')")
+          echo "auth.users: $HAS_USERS / auth.uid(): $HAS_UID"
+          if [[ "$HAS_USERS" != "t" || "$HAS_UID" != "t" ]]; then
+            echo "::error::El schema auth no está completo (auth.users=$HAS_USERS, auth.uid()=$HAS_UID)"
+            exit 1
+          fi
+
 
       # Diagnóstico para futuros fallos de arranque: sin esto el log del job
       # solo muestra "service not healthy" sin decir cuál ni por qué.
