@@ -148,13 +148,33 @@ funciona sobre la copia restaurada. El respaldo diario **no cuenta** como gate.
 
 ### 3.1 Procedimiento
 
-1. Seleccionar un respaldo reciente y registrar su marca de tiempo.
-2. Restaurarlo en un **proyecto o instancia aislada**, nunca sobre producción y
-   nunca sobre el entorno de la aplicación en uso.
-3. Verificar arranque de la aplicación apuntando a la copia restaurada, con el
-   guard anti-producción activo.
-4. Ejecutar comprobaciones de integridad de sólo lectura sobre la copia.
-5. Destruir el entorno restaurado al finalizar y dejar constancia.
+La restauración se realiza **fuera del repositorio** por el propietario o
+administrador de la plataforma:
+
+1. Seleccionar un respaldo reciente y registrar su timestamp UTC y el momento
+   UTC del incidente simulado.
+2. Crear un proyecto o instancia desechable, separado de producción.
+3. Restaurar allí el respaldo por el canal oficial del proveedor. El workflow
+   del repositorio **no ejecuta** `pg_restore` ni modifica ninguna base.
+4. En GitHub, crear el environment protegido `restore-rehearsal` y guardar
+   únicamente el secret `RESTORE_REHEARSAL_DATABASE_URL` de la copia. El
+   environment debe requerir aprobación y el secret se elimina al cerrar el
+   ensayo.
+5. Lanzar manualmente
+   `.github/workflows/restore-rehearsal-verify.yml` con el ref/host esperado,
+   timestamps UTC de backup, incidente, inicio y fin del restore, objetivos
+   RPO/RTO y la confirmación exacta `VERIFY-ISOLATED-RESTORE`.
+6. Revisar el artefacto `restore-rehearsal-evidence`. Sólo contiene JSON y
+   Markdown con conteos agregados, etiquetas `ORG-001` y buckets canónicos;
+   nunca incluye la conexión, host/ref, UUID, rutas, nombres, correos o tokens.
+7. Registrar la evidencia del restore real y destruir la instancia aislada.
+   Borrar el secret del environment.
+
+El workflow valida el destino antes de conectarse, bloquea el ref productivo
+`zxefrzfaynnfwazqhwxp` y ejecuta todas las consultas dentro de una única
+transacción `READ ONLY` con timeouts. Una corrida verde sólo acredita la
+verificación posterior: el gate continúa **Pendiente** hasta adjuntar además la
+evidencia del restore real, RPO/RTO aprobados y destrucción del entorno.
 
 ### 3.2 Métricas a medir
 

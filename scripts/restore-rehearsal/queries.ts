@@ -1,20 +1,17 @@
 /**
- * Consultas de SÓLO LECTURA sobre la copia restaurada.
- *
- * Todas corren dentro de una transacción READ ONLY con timeouts fijos y
- * devuelven únicamente agregados numéricos o etiquetas enmascaradas.
+ * Consultas de solo lectura sobre una copia restaurada.
+ * Devuelven exclusivamente agregados numericos o etiquetas enmascaradas.
  */
 
 import { buildOrgLabels, labelFor } from "./masking";
 import type { FolioAggregate, LedgerState, StorageAggregate, TableCount } from "./report";
 
-/** Firma mínima de la API de `postgres` que usamos (tagged template). */
 export type SqlClient = {
+  // La firma refleja solo la parte de postgres.js que usa este modulo.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   unsafe: (query: string, params?: any[]) => Promise<any[]>;
 };
 
-/** Tablas operativas principales que se cuentan en agregado. */
 export const OPERATIONAL_TABLES = [
   "organizations",
   "organization_memberships",
@@ -29,6 +26,26 @@ export const OPERATIONAL_TABLES = [
   "documents",
   "user_roles",
 ] as const;
+
+export const STORAGE_REFERENCE_SPECS = [
+  { table: "documents", column: "file_url", bucket: "documents" },
+  { table: "feedback_reports", column: "screenshot_url", bucket: "feedback-screenshots" },
+  { table: "customer_payment_intents", column: "proof_url", bucket: "payment-proofs" },
+  { table: "invoices", column: "cfdi_xml_url", bucket: "cfdi-files" },
+  { table: "invoices", column: "cfdi_pdf_url", bucket: "cfdi-files" },
+  { table: "invoices", column: "acuse_xml_url", bucket: "cfdi-files" },
+  { table: "invoices", column: "acuse_pdf_url", bucket: "cfdi-files" },
+  { table: "credit_notes", column: "cfdi_xml_url", bucket: "cfdi-files" },
+  { table: "credit_notes", column: "cfdi_pdf_url", bucket: "cfdi-files" },
+  { table: "payments", column: "rep_xml_url", bucket: "cfdi-files" },
+  { table: "payments", column: "rep_pdf_url", bucket: "cfdi-files" },
+  { table: "supplier_bills", column: "cfdi_xml_url", bucket: "supplier-bill-cfdi-xml" },
+  { table: "supplier_payments", column: "receipt_url", bucket: "supplier-payment-receipts" },
+  { table: "supplier_payments", column: "rep_xml_url", bucket: "cfdi-files" },
+  { table: "supplier_payments", column: "rep_pdf_url", bucket: "cfdi-files" },
+] as const;
+
+export const CANONICAL_STORAGE_BUCKETS = [...new Set(STORAGE_REFERENCE_SPECS.map((spec) => spec.bucket))].sort();
 
 export async function readLedger(sql: SqlClient): Promise<LedgerState> {
   const supabase = await sql.unsafe(
@@ -64,36 +81,57 @@ export async function readActiveOrganizations(sql: SqlClient): Promise<number> {
 export async function readFolios(sql: SqlClient): Promise<FolioAggregate[]> {
   const rows = await sql.unsafe(
     `select organization_id::text as org_id,
-            extract(year from issue_date)::int as year,
+            extract(year from issued_at)::int as year,
             count(*)::int as documents,
             coalesce(max(nullif(regexp_replace(coalesce(folio, '0'), '\\D', '', 'g'), ''))::bigint, 0) as last_folio
        from public.invoices
-      where organization_id is not null and issue_date is not null
+      where organization_id is not null and issued_at is not null
       group by 1, 2
       order by 1, 2`,
   );
-  const labels = buildOrgLabels(rows.map((r) => String(r.org_id)));
-  return rows.map((r) => ({
-    org: labelFor(labels, String(r.org_id)),
-    year: Number(r.year),
-    documents: Number(r.documents),
-    lastFolio: Number(r.last_folio ?? 0),
+  const labels = buildOrgLabels(rows.map((row) => String(row.org_id)));
+  return rows.map((row) => ({
+    org: labelFor(labels, String(row.org_id)),
+    year: Number(row.year),
+    documents: Number(row.documents),
+    lastFolio: Number(row.last_folio ?? 0),
   }));
 }
 
 export async function readStorage(sql: SqlClient): Promise<StorageAggregate[]> {
-  const objects = await sql.unsafe(
+  const objectRows = await sql.unsafe(
     `select bucket_id::text as bucket, count(*)::int as n
-       from storage.objects group by 1 order by 1`,
+       from storage.objects
+      group by 1`,
   );
-  const refs = await sql.unsafe(
-    `select coalesce(bucket, 'documents')::text as bucket, count(*)::int as n
-       from public.documents group by 1`,
-  );
-  const refMap = new Map<string, number>(refs.map((r) => [String(r.bucket), Number(r.n)]));
-  return objects.map((o) => ({
-    bucket: String(o.bucket),
-    objects: Number(o.n),
-    referencedRows: refMap.get(String(o.bucket)) ?? 0,
-  }));
+  const canonical = new Set(CANONICAL_STORAGE_BUCKETS);
+  const objects = new Map(CANONICAL_STORAGE_BUCKETS.map((bucket) => [bucket, 0]));
+  let otherObjects = 0;
+  for (const row of objectRows) {
+    const bucket = String(row.bucket);
+    if (canonical.has(bucket)) objects.set(bucket, Number(row.n));
+    else otherObjects += Number(row.n);
+  }
+
+  const references = new Map(CANONICAL_STORAGE_BUCKETS.map((bucket) => [bucket, 0]));
+  for (const spec of STORAGE_REFERENCE_SPECS) {
+    // table/column provienen de la constante cerrada anterior, nunca de input.
+    const rows = await sql.unsafe(
+      `select count(*)::int as n
+         from public.${spec.table}
+        where ${spec.column} is not null
+          and btrim(${spec.column}::text) <> ''`,
+    );
+    references.set(spec.bucket, (references.get(spec.bucket) ?? 0) + Number(rows[0]?.n ?? 0));
+  }
+
+  return [
+    ...CANONICAL_STORAGE_BUCKETS.map((bucket) => ({
+      bucket,
+      objects: objects.get(bucket) ?? 0,
+      referencedRows: references.get(bucket) ?? 0,
+    })),
+    { bucket: "other", objects: otherObjects, referencedRows: 0 },
+  ];
 }
+

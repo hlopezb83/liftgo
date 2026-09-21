@@ -1,3 +1,12 @@
+## [8.26.9] - 2026-09-21 · patch · security
+
+Se añade un verificador manual de sólo lectura para una copia ya restaurada en una instancia aislada. Bloquea el proyecto productivo antes de conectar, mide RPO desde el backup hasta el incidente simulado y RTO durante la restauración, consulta integridad y Storage con agregados sanitizados y nunca realiza la restauración. El gate Restore probado permanece pendiente hasta ejecutar un restore real, obtener un run verde y destruir el entorno.
+
+- .github/workflows/restore-rehearsal-verify.yml: workflow_dispatch protegido por environment, confirmación exacta, inputs UTC y secret único; no ejecuta pg_restore ni escribe en la base.
+- scripts/restore-rehearsal/: guards fail-closed, transacción READ ONLY, timeouts, ledger, conteos operativos, folios con invoices.issued_at y referencias canónicas de Storage sin depender de columnas inexistentes.
+- src/test/restoreRehearsalVerify.test.ts: regresiones para producción bloqueada, RPO/RTO, columnas reales, buckets canónicos, masking y reportes sin datos sensibles.
+- docs/multiempresa/gates-segunda-organizacion.md: procedimiento externo, configuración del environment, ejecución manual, revisión de evidencia y destrucción del destino; Restore sigue pendiente.
+
 ## [8.26.8] - 2026-09-21 · patch · docs
 
 El ensayo A/B real de datos, Storage y portal contra un Supabase local efímero quedó en verde por primera vez. La corrida 9 probó el commit c4a6b69 y pasó las 16 pruebas de Playwright en 29.6s, con el guard anti-producción activo, bindings locales vía .dev.vars efímero y teardown limpio. Este cambio es sólo documental: marca el gate A/B como verificado y deja restore probado como el siguiente gate externo pendiente. No toca código, RLS, workflows, tests, fixtures, middleware ni guards.
