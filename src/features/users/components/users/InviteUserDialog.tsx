@@ -115,7 +115,7 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
       </DialogTrigger>
       <FormDialog
       isPending={inviteUser.isPending}
-        isDirty={fullName.trim() !== "" || email.trim() !== ""}
+        isDirty={fullName.trim() !== "" || email.trim() !== "" || password !== ""}
         open={open}
         onOpenChange={setOpen}
         title="Crear nuevo usuario"
