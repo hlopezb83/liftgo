@@ -66,14 +66,19 @@ export function validateCreateInput(g: Guards, data: CreateOrganizationInput) {
     throw new g.HttpError(400, "El nombre del administrador es obligatorio");
   }
   if (data.admin_password !== undefined && data.admin_password !== "") {
-    if (
-      typeof data.admin_password !== "string" ||
-      data.admin_password.length < 8 ||
-      data.admin_password.length > 72
-    ) {
+    const pwd = data.admin_password;
+    const strong =
+      typeof pwd === "string" &&
+      pwd.length >= 12 &&
+      pwd.length <= 72 &&
+      /[a-z]/.test(pwd) &&
+      /[A-Z]/.test(pwd) &&
+      /[0-9]/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd);
+    if (!strong) {
       throw new g.HttpError(
         400,
-        "La contraseña inicial debe tener entre 8 y 72 caracteres",
+        "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
       );
     }
   }
@@ -165,14 +170,18 @@ export async function createFirstAdminAuthUser(
   if (createErr || !newUser?.user) {
     await compensateOnboarding(g, admin, actorId, organizationId, null);
     const msg = createErr?.message || "";
-    const status = /already|registered|exists/i.test(msg) ? 409 : 400;
     console.error("[platform-admin] createUser:", createErr);
-    throw new g.HttpError(
-      status,
-      status === 409
-        ? "Ya existe un usuario con ese correo"
-        : "No se pudo procesar la solicitud",
-    );
+    if (/already|registered|exists/i.test(msg)) {
+      throw new g.HttpError(409, "Ya existe un usuario con ese correo");
+    }
+    // El servicio de autenticación rechaza contraseñas filtradas o comunes.
+    if (/weak|easy to guess|pwned|password/i.test(msg)) {
+      throw new g.HttpError(
+        400,
+        "La contraseña es muy común o fácil de adivinar. Elige una contraseña más segura.",
+      );
+    }
+    throw new g.HttpError(400, "No se pudo procesar la solicitud");
   }
   return newUser.user.id;
 }
