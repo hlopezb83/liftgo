@@ -117,6 +117,7 @@ describe("TS-01 · transporte real de server functions", () => {
     for (const [key, value] of Object.entries(FAKE_ENV)) vi.stubEnv(key, value);
     getSession.mockReset();
     getClaims.mockReset();
+    getUser.mockReset();
     business.mockClear();
     interceptedRequest = null;
     capturedUrl = "";
@@ -165,10 +166,23 @@ describe("TS-01 · transporte real de server functions", () => {
 
   it("con credenciales inválidas el receptor rechaza y el negocio no corre", async () => {
     getSession.mockResolvedValue({ data: { session: { access_token: "a.b.c" } } });
+    // Ambas vías de verificación fallan: getClaims y el fallback getUser.
     getClaims.mockResolvedValue({ data: null, error: new Error("bad") });
+    getUser.mockResolvedValue({ data: { user: null }, error: new Error("bad") });
 
     await expect(call("x")).rejects.toThrow(/Invalid token/);
     expect(business).not.toHaveBeenCalled();
+  });
+
+  it("si getClaims falla pero getUser valida el token, el negocio corre", async () => {
+    getSession.mockResolvedValue({ data: { session: { access_token: "a.b.c" } } });
+    getClaims.mockResolvedValue({ data: null, error: new Error("claims no disponibles") });
+    getUser.mockResolvedValue({ data: { user: { id: "user-fallback" } }, error: null });
+
+    const res = await call("hola");
+
+    expect(res.userId).toBe("user-fallback");
+    expect(business).toHaveBeenCalledTimes(1);
   });
 
   it("el token viaja sólo en el encabezado, nunca en URL ni en el cuerpo", async () => {
