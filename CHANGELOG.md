@@ -1,3 +1,14 @@
+## [8.26.1] - 2026-09-20 · patch · fix
+
+El ensayo fallaba al dar de alta al cliente de la segunda empresa, como intentar registrar una carpeta sin decir a qué sucursal pertenece. Ahora la segunda empresa se prepara apagada, se enciende al final por la vía oficial y se comprueba que ambas quedaron activas antes de empezar las pruebas.
+
+- tests/multi-tenant-ab/fixtures/abSeed.ts: la empresa B se crea suspendida y se siembra completa mientras sólo A está activa; el cliente declara su empresa dueña (created_by_organization_id) y la relación comercial se hace con upsert para no chocar con el alta automática.
+- tests/multi-tenant-ab/fixtures/abSeed.ts: se da de alta un operador de plataforma sintético y B se activa con la RPC oficial platform_set_organization_active; antes de guardar el contexto se verifica por API admin que A y B estén activas.
+- tests/multi-tenant-ab/global.teardown.ts: la limpieza elimina también al operador sintético del ensayo.
+- tests/multi-tenant-ab/portal-isolation.spec.ts: la prueba del logo global usa un contexto de navegador por empresa, porque limpiar cookies no borra la sesión guardada en el navegador; los asertos no cambian.
+- .github/workflows/multi-tenant-ab.yml: actions/upload-artifact pasa de v5 a v7 para eliminar el aviso de Node 20.
+- No se debilitó ningún guard, RLS, productionGuard ni localBackend; sin cambios de migraciones, políticas, producto, datos reales, secretos ni producción. El gate A/B sigue ABIERTO hasta tener un run completo en verde.
+
 ## [8.26.0] - 2026-09-20 · minor · chore
 
 Se agrega una prueba que crea dos empresas de mentira en una copia temporal del sistema y comprueba que ninguna ve facturas, documentos, archivos ni pantallas de la otra. Nunca toca la información real.
