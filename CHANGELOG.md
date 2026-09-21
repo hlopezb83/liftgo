@@ -1,3 +1,12 @@
+## [8.26.8] - 2026-09-21 · patch · docs
+
+El ensayo A/B real de datos, Storage y portal contra un Supabase local efímero quedó en verde por primera vez. La corrida 9 probó el commit c4a6b69 y pasó las 16 pruebas de Playwright en 29.6s, con el guard anti-producción activo, bindings locales vía .dev.vars efímero y teardown limpio. Este cambio es sólo documental: marca el gate A/B como verificado y deja restore probado como el siguiente gate externo pendiente. No toca código, RLS, workflows, tests, fixtures, middleware ni guards.
+
+- docs/multiempresa/gates-segunda-organizacion.md: el gate «Ensayo A/B real (datos + Storage + portal)» pasa de Pendiente/ABIERTO a Verificado; se registra la corrida 9 (commit c4a6b69, run 35566123833, job 106228183532, success, 16/16 Playwright), el log «.dev.vars OK», el teardown limpio, el artefacto seguro multitenant-ab-evidence (id 10624198616, digest sha256:26443b6a…), el CI complementario (35566124245) y el Gitleaks (35566123931); se conserva el histórico de corridas 1–8; «Restore probado» sigue PENDIENTE como siguiente gate externo.
+- docs/multiempresa/onboarding.md: el gate 1 (Ensayo A/B aislado) pasa de «requiere verificación» a verificado el 2026-09-21 para el commit c4a6b69 con los enlaces y la evidencia de la corrida 9; el gate 2 (Restore probado) sigue pendiente.
+- roadmap.md: la línea de gates marca (1) como verificado el 2026-09-21 para c4a6b69 con todos los enlaces y la evidencia, y mantiene (2) restore y los items productivos como pendientes.
+- Sin cambios en código, RLS, workflows, tests, fixtures, middleware, guards, Storage real, datos ni producción. Validaciones documentales: changelog:check y lecturas de coherencia.
+
 ## [8.26.7] - 2026-09-21 · patch · fix
 
 El ensayo A/B seguía recibiendo «Unauthorized: Invalid token» aunque el navegador y el login ya funcionaban contra el Supabase local. La causa profunda: el servidor del preview se ejecuta con wrangler dev, que lee sus variables de un archivo .dev.vars (o del .env si no existe) y no hereda las variables del proceso. Como el repositorio tiene un .env versionado con la dirección productiva, el servidor validaba las credenciales locales contra la base productiva, como un portero que verifica las credenciales llamando a la oficina equivocada. Ahora el workflow crea un .dev.vars efímero que apunta al Supabase local, lo verifica sin mostrar valores y lo borra al terminar.
