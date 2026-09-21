@@ -124,18 +124,8 @@ DECLARE
   v_org_a uuid := '38000000-0000-4000-8000-0000000000a0';
   v_org_b uuid := '38000000-0000-4000-8000-0000000000b0';
   v_fallas text[] := '{}';
-  t text;
 BEGIN
-  FOREACH t IN ARRAY ARRAY['invoices','bookings','quotes','forklifts','equipment_models'] LOOP
-    EXECUTE format(
-      'SELECT count(*) FROM public.%I WHERE is_e2e AND e2e_scope = $1 AND organization_id = $2', t)
-      INTO STRICT v_org_a USING 'ab-e2e-scope', v_org_a; -- placeholder, reasignado abajo
-  END LOOP;
-  RAISE EXCEPTION 'unreachable';
-EXCEPTION WHEN OTHERS THEN
-  -- El bucle dinámico anterior sólo existe para documentar la intención; la
-  -- verificación real es explícita y sin EXECUTE.
-  v_org_a := '38000000-0000-4000-8000-0000000000a0';
+
 
   IF EXISTS (SELECT 1 FROM public.invoices
               WHERE is_e2e AND e2e_scope = 'ab-e2e-scope' AND organization_id = v_org_a) THEN
