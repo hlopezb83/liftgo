@@ -1,3 +1,10 @@
+## [8.28.1] - 2026-09-21 · patch · fix
+
+Al crear una empresa con una contraseña inicial débil, el servicio de autenticación la rechazaba y la pantalla sólo mostraba «No se pudo procesar la solicitud». Ahora la contraseña inicial exige 12-72 caracteres con mayúsculas, minúsculas, números y símbolos (igual que el alta de usuarios internos), el formulario avisa antes de enviar y, si el servicio la rechaza por común o filtrada, se muestra el motivo real.
+
+- src/lib/platformAdmin.helpers.ts: validateCreateInput homologa la regla fuerte de contraseña y createFirstAdminAuthUser traduce el rechazo por contraseña débil a un mensaje explícito.
+- src/features/platform/components/PlatformOrganizationDialogs.tsx: validación en el formulario, ayuda actualizada, aviso en línea y botón deshabilitado mientras la contraseña no cumpla.
+
 ## [8.28.0] - 2026-09-21 · minor · feature
 
 Al crear un usuario del personal, el administrador ahora puede escribir una contraseña inicial y el usuario entra de inmediato. Si deja el campo vacío se conserva el comportamiento anterior: contraseña aleatoria y enlace de acceso de un solo uso. La contraseña nunca se muestra en la confirmación y el usuario nuevo queda ligado únicamente a la empresa del administrador.
