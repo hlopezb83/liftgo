@@ -1,4 +1,13 @@
+## [8.27.1] - 2026-09-21 · patch · fix
+
+Cuando el correo de recuperación entregaba el enlace en formato con código, nadie lo canjeaba: no se creaba la sesión temporal y el usuario terminaba en la pantalla de inicio de sesión sin poder escribir su nueva contraseña. Ahora la app detecta ese formato al abrir el enlace, lo canjea una sola vez, limpia la dirección y muestra el formulario; si el enlace es inválido o ya expiró se muestra el aviso para pedir uno nuevo.
+
+- src/features/auth/recoverySession.ts: detectRecoveryCodeFromHref reconoce enlaces ?code= de recuperación, stripRecoveryCodeFromUrl limpia la URL y el arranque en frío marca el flujo como pendiente.
+- src/features/auth/recoveryCapture.ts: exchangeRecoveryCodeFromUrl canjea el código una sola vez al arrancar y activa o invalida el flujo según el resultado; nunca registra el código.
+- src/features/auth/__tests__/passwordRecoveryCodeLink.test.ts: regresiones de detección, canje exitoso, código inválido y ausencia de llamadas sin código.
+
 ## [8.27.0] - 2026-09-21 · minor · feature
+
 
 Al dar de alta una empresa, el operador de plataforma ahora puede escribir la contraseña inicial del primer administrador. Si la deja vacía, el comportamiento anterior se conserva: el sistema genera una contraseña aleatoria y entrega un enlace de acceso de un solo uso. La contraseña nunca se muestra de vuelta en la confirmación.
 
