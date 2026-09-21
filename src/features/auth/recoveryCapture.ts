@@ -1,5 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
-import { markRecoveryActive, syncRecoverySessionUser } from "./recoverySession";
+import {
+  detectRecoveryCodeFromHref,
+  getRecoveryStatus,
+  markRecoveryActive,
+  markRecoveryError,
+  stripRecoveryCodeFromUrl,
+  syncRecoverySessionUser,
+} from "./recoverySession";
 
 /**
  * AUTH-REC-01 / P1 — captura TEMPRANA del evento `PASSWORD_RECOVERY`.
@@ -13,6 +20,42 @@ import { markRecoveryActive, syncRecoverySessionUser } from "./recoverySession";
  * bloquear su lock interno.
  */
 let started = false;
+
+/**
+ * AUTH-REC-02 — enlaces de correo en formato `?code=…`.
+ *
+ * Sin canje explícito no hay sesión de recuperación ni evento del SDK: el
+ * usuario aterrizaba en la pantalla de inicio de sesión. Se canjea una sola
+ * vez, se limpia la URL y el resultado decide `active` o `error`. El código
+ * nunca se registra ni se persiste.
+ */
+export function exchangeRecoveryCodeFromUrl(): void {
+  if (typeof window === "undefined") return;
+  const code = detectRecoveryCodeFromHref(window.location.href);
+  if (!code) return;
+  const exchange = (
+    supabase.auth as unknown as {
+      exchangeCodeForSession?: (
+        code: string,
+      ) => Promise<{ data?: { session?: { user?: { id?: string } } | null }; error?: unknown }>;
+    }
+  ).exchangeCodeForSession;
+  if (typeof exchange !== "function") return;
+  stripRecoveryCodeFromUrl();
+  void exchange
+    .call(supabase.auth, code)
+    .then(({ data, error }) => {
+      const userId = data?.session?.user?.id;
+      if (error || !userId) {
+        markRecoveryError();
+        return;
+      }
+      if (getRecoveryStatus() !== "active") markRecoveryActive(userId);
+    })
+    .catch(() => {
+      markRecoveryError();
+    });
+}
 
 export function startRecoveryCapture(): void {
   if (started || typeof window === "undefined") return;
@@ -29,6 +72,7 @@ export function startRecoveryCapture(): void {
     // Un refresco de token del mismo usuario lo mantiene intacto.
     syncRecoverySessionUser(session?.user?.id ?? null);
   });
+  exchangeRecoveryCodeFromUrl();
 }
 
 /** Sólo para pruebas: permite volver a registrar la captura. */
@@ -37,3 +81,4 @@ export function resetRecoveryCaptureForTests(): void {
 }
 
 startRecoveryCapture();
+
