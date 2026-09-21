@@ -1,0 +1,13 @@
+{
+  "version": "8.26.6",
+  "date": "2026-09-21",
+  "type": "patch",
+  "category": "fix",
+  "title": "Octava corrección del ensayo A/B: la prueba de transporte simula la verificación remota y el gate vigila los archivos de autenticación y contexto",
+  "description": "Dos piezas quedaron desalineadas tras la corrección anterior. La prueba que simula el servicio de autenticación no incluía la nueva vía de verificación remota, como un simulacro al que le falta una puerta, y fallaba aunque el comportamiento real era correcto; ahora la incluye y el caso inválido hace fallar ambas vías. Además, la alarma del ensayo A/B no escuchaba cambios en los archivos del camino de autenticación y contexto; ahora sí los vigila para que ningún ajuste ahí eluda la revisión.",
+  "changes": [
+    "src/lib/__tests__/serverFnTransport.test.ts: el mock compartido de Supabase incluye auth.getUser; el caso de credenciales inválidas hace fallar getClaims y getUser; nueva prueba que cubre el fallback (getClaims falla, getUser valida y el negocio corre con el userId del usuario remoto). Sin cambios en el middleware.",
+    ".github/workflows/multi-tenant-ab.yml: los filtros paths de pull_request y push añaden src/integrations/supabase/auth-middleware.ts, src/lib/authAttacher.ts, src/lib/organizationContext.functions.ts, src/contexts/OrganizationContext.tsx y src/layouts/AuthGuard.tsx, para que cambios del camino de autenticación/contexto disparen el gate. Sin patrones amplios.",
+    "Validaciones: Vitest requireSupabaseAuth + serverFnTransport 12/12, tsgo --noEmit, ESLint del test y actionlint del workflow, todo en verde. El gate A/B sigue ABIERTO hasta un run completo en verde."
+  ]
+}
