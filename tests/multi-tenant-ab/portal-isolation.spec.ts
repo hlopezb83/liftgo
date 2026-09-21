@@ -40,6 +40,7 @@ test.describe("portal A/B", () => {
   test("el portal de A solo muestra la factura de A", async ({ page }) => {
     await portalLogin(page, ctx.A);
     await page.goto("/portal/invoices");
+    await expectAuthenticatedPortal(page);
     await expect(page.getByText(ctx.A.invoiceNumber)).toBeVisible();
     await expect(page.getByText(ctx.B.invoiceNumber)).toHaveCount(0);
   });
@@ -47,6 +48,7 @@ test.describe("portal A/B", () => {
   test("el portal de B solo muestra la factura de B", async ({ page }) => {
     await portalLogin(page, ctx.B);
     await page.goto("/portal/invoices");
+    await expectAuthenticatedPortal(page);
     await expect(page.getByText(ctx.B.invoiceNumber)).toBeVisible();
     await expect(page.getByText(ctx.A.invoiceNumber)).toHaveCount(0);
   });
@@ -54,6 +56,9 @@ test.describe("portal A/B", () => {
   test("abrir una factura de la otra empresa no revela monto ni nombre", async ({ page }) => {
     await portalLogin(page, ctx.A);
     await page.goto(`/portal/invoices/${ctx.B.invoiceId}`);
+    // El layout autenticado debe estar visible ANTES de los asertos negativos:
+    // sin esta señal, una pantalla de login podría pasar la prueba falsamente.
+    await expectAuthenticatedPortal(page);
     const body = page.locator("body");
     await expect(body).not.toContainText(ctx.B.invoiceNumber);
     await expect(body).not.toContainText(ctx.B.organizationName);
@@ -69,6 +74,7 @@ test.describe("portal A/B", () => {
       try {
         await portalLogin(page, side);
         await page.goto("/portal/invoices");
+        await expectAuthenticatedPortal(page);
         const brand = page.getByAltText(/liftgo/i).first();
         await expect(brand).toBeVisible();
         await expect(brand).toHaveAttribute("src", /liftgo-montacargas/i);
