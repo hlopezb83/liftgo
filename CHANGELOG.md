@@ -1,3 +1,16 @@
+## [8.30.0] - 2026-09-21 · minor · security
+
+Varias funciones internas del sistema leían la base con permisos elevados, así que podían devolver información de otra empresa si recibían un identificador ajeno. El cambio de base 0039 (preparado en Git, NO aplicado) hace que seis de ellas consulten con los permisos de quien las llama, acota el tablero de puntos a la empresa del usuario y obliga a los ayudantes de identidad del portal a responder sólo por el propio usuario y su empresa. Se agregan dos pruebas nuevas con dos empresas inventadas.
+
+- Nuevo cambio de base drizzle/migrations/0039_multi_org_rpc_helper_invoker_scope.sql (no aplicado): assert_invoice_cancellable, audit_fleet_status_consistency, damage_restore_forklift_status, get_my_feedback_points_total, has_active_rental y has_open_rental pasan a SECURITY INVOKER conservando firma, resultado, volatilidad, search_path y guardas de rol.
+- get_feedback_leaderboard sigue elevada para agregar toda la empresa, pero exige sesión con empresa definida y filtra los reportes por esa empresa; se conserva el enmascaramiento para clientes.
+- get_customer_id_for_user y current_portal_customer_id sólo responden por el propio usuario y su empresa, sin elegir una fila arbitraria: cero o varias coincidencias devuelven vacío. Se elimina el atajo heredado de «una sola empresa activa».
+- is_internal_member deja de servir como consulta de membresía de usuarios ajenos y exige pertenencia interna dentro de la empresa actual.
+- Permisos: PUBLIC y anon revocados en las once funciones; authenticated y service_role conservan su acceso.
+- Nueva prueba supabase/tests/rls/rpc_helper_security_contract.sql: verifica el modo de seguridad, la guarda de empresa y los permisos de catálogo.
+- Nueva prueba supabase/tests/rls/rpc_helper_org_scope_ab.sql: dos empresas y tres sesiones distintas comprueban que desde la empresa A no se leen flota, pagos, puntos, clientes ni membresías de la empresa B, y que B conserva lo suyo.
+- Los triggers que usan estas funciones son de privilegio elevado, por lo que su comportamiento no cambia; la migración queda en Git para validación transaccional antes de aplicarse.
+
 ## [8.29.1] - 2026-09-21 · patch · fix
 
 La prueba automatizada que siembra datos de prueba en dos empresas inventadas fallaba al dar de alta sus usuarios: la plataforma crea automáticamente un rol al registrar un usuario y la prueba intentaba crear otro, chocando con la regla de un solo rol por usuario. La prueba ahora actualiza el rol existente en lugar de insertar uno nuevo. No cambia ninguna función del sistema ni la migración 0038, que sigue preparada en Git sin aplicar.

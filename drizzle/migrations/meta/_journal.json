@@ -274,6 +274,13 @@
       "when": 1790528564000,
       "tag": "0038_e2e_utilities_tenant_scoped",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1790614964000,
+      "tag": "0039_multi_org_rpc_helper_invoker_scope",
+      "breakpoints": true
     }
   ]
 }
