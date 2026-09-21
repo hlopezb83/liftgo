@@ -45,7 +45,9 @@ export const STORAGE_REFERENCE_SPECS = [
   { table: "supplier_payments", column: "rep_pdf_url", bucket: "cfdi-files" },
 ] as const;
 
-export const CANONICAL_STORAGE_BUCKETS = [...new Set(STORAGE_REFERENCE_SPECS.map((spec) => spec.bucket))].sort();
+export const CANONICAL_STORAGE_BUCKETS: string[] = [
+  ...new Set(STORAGE_REFERENCE_SPECS.map((spec) => spec.bucket)),
+].sort();
 
 export async function readLedger(sql: SqlClient): Promise<LedgerState> {
   const supabase = await sql.unsafe(

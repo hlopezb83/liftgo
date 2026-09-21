@@ -40,7 +40,7 @@ export function computeTiming(input: TimingInput): TimingResult {
   const started = parseUtc("restore_started_utc", input.restoreStartedUtc);
   const ready = parseUtc("restore_ready_utc", input.restoreReadyUtc);
 
-  if (incident < backup) throw new Error("incident_timestamp_utc no puede ser anterior al backup.");
+  if (incident < backup) throw new Error("El incidente no puede ser anterior al backup.");
   if (started < incident) throw new Error("restore_started_utc no puede ser anterior al incidente.");
   if (ready < started) throw new Error("restore_ready_utc no puede ser anterior al inicio del restore.");
 
