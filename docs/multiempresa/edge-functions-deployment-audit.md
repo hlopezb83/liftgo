@@ -61,9 +61,10 @@ ni autoriza por sí mismo el alta de otra organización.
 ## Ejecución protegida en GitHub
 
 El workflow manual `Edge Functions deployment audit` ejecuta el mismo proceso
-sin exponer credenciales. Requiere los secretos `SUPABASE_ACCESS_TOKEN` y
-`SUPABASE_PROJECT_REF`. Sólo lista y descarga funciones; no contiene comandos
-de despliegue, borrado ni escritura sobre la base de datos.
+sin exponer credenciales. Requiere el secreto `SUPABASE_ACCESS_TOKEN`; obtiene
+el identificador público del proyecto desde `SUPABASE_PROJECT_ID` en `.env` y
+lo enmascara antes de usarlo. Sólo lista y descarga funciones; no contiene
+comandos de despliegue, borrado ni escritura sobre la base de datos.
 
 El artefacto `edge-functions-deployment-audit` conserva durante 14 días
 únicamente el JSON sanitizado con nombres, clasificaciones, versiones y hashes.
