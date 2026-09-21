@@ -260,6 +260,13 @@
       "when": 1790355764000,
       "tag": "0036_multi_org_analytics_rpc_invoker_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1790442164000,
+      "tag": "0037_multi_org_invoice_balance_rpc_invoker_scope",
+      "breakpoints": true
     }
   ]
 }

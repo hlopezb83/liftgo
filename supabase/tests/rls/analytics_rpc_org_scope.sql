@@ -1,7 +1,7 @@
 -- Regresión: las RPC analíticas deben respetar RLS por organización.
 --
 -- El incidente real se reprodujo con una segunda organización: get_mrr_detail
--- y get_financial_kpis devolvían datos de la primera porque eran SECURITY
+-- get_financial_kpis y list_invoices_with_balance devolvían datos de la primera porque eran SECURITY
 -- DEFINER. Las cuatro RPC comparten tablas/vistas operativas y deben permanecer
 -- SECURITY INVOKER. Las suites de RLS de tablas comprueban el filtro A/B.
 BEGIN;
@@ -19,7 +19,8 @@ BEGIN
     'public.get_financial_kpis()'::regprocedure,
     'public.get_forklift_financials(uuid)'::regprocedure,
     'public.get_income_statement(date,date,text)'::regprocedure,
-    'public.get_mrr_detail()'::regprocedure
+    'public.get_mrr_detail()'::regprocedure,
+    'public.list_invoices_with_balance(text[],date,date,boolean,integer,integer)'::regprocedure
   )
     AND p.prosecdef;
 

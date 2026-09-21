@@ -111,10 +111,10 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
 /**
  * Fuente única de verdad para "facturas + saldo".
  *
- * SEC-005 + PERF-001: consume el RPC SECURITY DEFINER
+ * SEC-005 + PERF-001: consume el RPC SECURITY INVOKER
  * `list_invoices_with_balance(statuses, due_from, due_to, with_balance_only, limit, offset)`
- * que aplica filtros por rol (customers solo ven sus propias facturas) y
- * empuja el resto de filtros + paginación al servidor.
+ * que aplica filtros por rol y conserva RLS por organización en la vista
+ * security_invoker; además empuja filtros + paginación al servidor.
  */
 export function useInvoicesWithBalance(filter: Filter = {}, enabled = true) {
   // GUI-FE-05: `enabled=false` evita disparar el RPC (y su toast de error)
