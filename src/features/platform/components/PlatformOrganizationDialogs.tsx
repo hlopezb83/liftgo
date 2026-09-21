@@ -49,46 +49,6 @@ function slugify(value: string): string {
     .slice(0, 63);
 }
 
-function AdminPasswordField({
-  value,
-  onChange,
-  error,
-  visible,
-  onToggleVisible,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  error: string | null;
-  visible: boolean;
-  onToggleVisible: () => void;
-}) {
-  return (
-    <div className="space-y-2">
-      <Label htmlFor="org-admin-password">Contraseña inicial (opcional)</Label>
-      <Input
-        id="org-admin-password"
-        type={visible ? "text" : "password"}
-        autoComplete="new-password"
-        minLength={12}
-        maxLength={72}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-invalid={error ? true : undefined}
-      />
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">
-          12 a 72 caracteres con mayúsculas, minúsculas, números y símbolos.
-          Evita contraseñas comunes. Si la dejas vacía, se genera un enlace de
-          acceso de un solo uso.
-        </p>
-        <Button type="button" variant="ghost" size="sm" onClick={onToggleVisible}>
-          {visible ? "Ocultar" : "Mostrar"}
-        </Button>
-      </div>
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
-    </div>
-  );
-}
 
 export function CreateOrganizationDialog({
   open,
