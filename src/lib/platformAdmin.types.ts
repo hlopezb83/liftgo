@@ -23,6 +23,11 @@ export interface CreateOrganizationInput {
   slug: string;
   admin_email: string;
   admin_full_name: string;
+  /**
+   * Contraseña inicial opcional del primer administrador. Si viene vacía o no
+   * se envía, el servidor genera una aleatoria y entrega un enlace de acceso.
+   */
+  admin_password?: string;
 }
 
 export interface CreateOrganizationResult {
@@ -32,7 +37,10 @@ export interface CreateOrganizationResult {
   admin_email: string;
   /** Enlace de un solo uso para que el primer administrador defina su contraseña. */
   recovery_link: string | null;
+  /** `true` cuando el operador definió la contraseña inicial manualmente. */
+  password_set_manually: boolean;
 }
+
 
 export interface SetOrganizationActiveInput {
   organization_id: string;

@@ -28,7 +28,14 @@ import {
   useSetOrganizationActive,
 } from "../hooks/usePlatformOperator";
 
-const EMPTY_FORM = { name: "", slug: "", admin_email: "", admin_full_name: "" };
+const EMPTY_FORM = {
+  name: "",
+  slug: "",
+  admin_email: "",
+  admin_full_name: "",
+  admin_password: "",
+};
+
 
 function slugify(value: string): string {
   return value
@@ -51,7 +58,9 @@ export function CreateOrganizationDialog({
 }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [slugTouched, setSlugTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const create = useCreateOrganization();
+
 
   const update = (field: keyof typeof EMPTY_FORM) => (value: string) => {
     setForm((prev) => {
@@ -63,12 +72,17 @@ export function CreateOrganizationDialog({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    const result = await create.mutateAsync(form);
+    const result = await create.mutateAsync({
+      ...form,
+      admin_password: form.admin_password.trim() || undefined,
+    });
     setForm(EMPTY_FORM);
     setSlugTouched(false);
+    setShowPassword(false);
     onOpenChange(false);
     onCreated(result);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -133,6 +147,36 @@ export function CreateOrganizationDialog({
               onChange={(e) => update("admin_email")(e.target.value)}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="org-admin-password">
+              Contraseña inicial (opcional)
+            </Label>
+            <Input
+              id="org-admin-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={72}
+              value={form.admin_password}
+              onChange={(e) => update("admin_password")(e.target.value)}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Mínimo 8 caracteres. Si la dejas vacía, se genera un enlace de
+                acceso de un solo uso.
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </Button>
+            </div>
+          </div>
+
+
 
           <DialogFooter>
             <Button
@@ -166,11 +210,21 @@ export function CreatedResultDialog({
         <DialogHeader>
           <DialogTitle>Empresa creada</DialogTitle>
           <DialogDescription>
-            Comparte el enlace de acceso con {result?.admin_email}. Es de un
-            solo uso y le permite definir su contraseña.
+            {result?.password_set_manually
+              ? `La cuenta de ${result?.admin_email} ya tiene la contraseña que definiste. Compártela por un medio seguro.`
+              : `Comparte el enlace de acceso con ${result?.admin_email}. Es de un solo uso y le permite definir su contraseña.`}
           </DialogDescription>
         </DialogHeader>
-        {result?.recovery_link ? (
+        {result?.password_set_manually ? (
+          <Alert>
+            <AlertTitle>Acceso listo</AlertTitle>
+            <AlertDescription>
+              El administrador puede entrar con su correo y la contraseña que
+              acabas de asignar. Por seguridad no se muestra aquí; pídele que la
+              cambie después del primer ingreso.
+            </AlertDescription>
+          </Alert>
+        ) : result?.recovery_link ? (
           <Input
             readOnly
             value={result.recovery_link}
@@ -186,6 +240,7 @@ export function CreatedResultDialog({
             </AlertDescription>
           </Alert>
         )}
+
         <DialogFooter>
           <Button onClick={onClose}>Listo</Button>
         </DialogFooter>

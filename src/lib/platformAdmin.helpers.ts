@@ -65,7 +65,20 @@ export function validateCreateInput(g: Guards, data: CreateOrganizationInput) {
   if (!g.isNonEmptyString(data.admin_full_name, 200)) {
     throw new g.HttpError(400, "El nombre del administrador es obligatorio");
   }
+  if (data.admin_password !== undefined && data.admin_password !== "") {
+    if (
+      typeof data.admin_password !== "string" ||
+      data.admin_password.length < 8 ||
+      data.admin_password.length > 72
+    ) {
+      throw new g.HttpError(
+        400,
+        "La contraseña inicial debe tener entre 8 y 72 caracteres",
+      );
+    }
+  }
 }
+
 
 /**
  * Compensación del alta. Orden: primero el usuario Auth (cascada sobre perfil,
@@ -136,11 +149,13 @@ export async function createFirstAdminAuthUser(
   organizationId: string,
   email: string,
   fullName: string,
+  password?: string,
 ): Promise<string> {
   const { data: newUser, error: createErr } = await admin.auth.admin.createUser(
     {
       email,
-      password: g.generateSecurePassword(),
+      password: password || g.generateSecurePassword(),
+
       email_confirm: true,
       // Tramo 12 (0033): contexto de empresa por `app_metadata` (server-only).
       user_metadata: { full_name: fullName },
