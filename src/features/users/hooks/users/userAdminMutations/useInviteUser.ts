@@ -16,6 +16,12 @@ export function useInviteUser() {
     // tenía forma de entrar. Mismo patrón que useResetPassword: toast con el link.
     // `successMsg` se omite a propósito para no duplicar el toast de éxito.
     onSuccess: (data) => {
+      if (data.password_set_manually) {
+        notifySuccess("Usuario creado", {
+          description: `${data.email} ya puede entrar con la contraseña que definiste.`,
+        });
+        return;
+      }
       if (data.recovery_link) {
         const link = data.recovery_link;
         notifySuccess("Usuario creado", {
