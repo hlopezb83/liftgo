@@ -24,6 +24,8 @@ export interface InviteUserResult {
   user_id: string;
   email: string;
   recovery_link: string | null;
+  /** true cuando el administrador definió la contraseña manualmente. */
+  password_set_manually: boolean;
 }
 
 export const inviteUserFn = createServerFn({ method: "POST" })
