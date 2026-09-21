@@ -1,3 +1,12 @@
+## [8.28.0] - 2026-09-21 · minor · feature
+
+Al crear un usuario del personal, el administrador ahora puede escribir una contraseña inicial y el usuario entra de inmediato. Si deja el campo vacío se conserva el comportamiento anterior: contraseña aleatoria y enlace de acceso de un solo uso. La contraseña nunca se muestra en la confirmación y el usuario nuevo queda ligado únicamente a la empresa del administrador.
+
+- src/lib/userAdmin.functions.ts: con contraseña manual no se genera enlace de recuperación y el resultado informa password_set_manually.
+- src/features/users/components/users/InviteUserDialog.tsx: campo «Contraseña inicial (opcional)» con mostrar/ocultar y validación de 12-72 caracteres con cuatro clases.
+- src/features/users/hooks/users/userAdminMutations/useInviteUser.ts: confirmación diferenciada según se haya definido contraseña o generado enlace.
+- src/features/users/hooks/users/__tests__/useInviteUser.test.tsx: regresión de alta con contraseña manual sin exponerla en el aviso.
+
 ## [8.27.1] - 2026-09-21 · patch · fix
 
 Cuando el correo de recuperación entregaba el enlace en formato con código, nadie lo canjeaba: no se creaba la sesión temporal y el usuario terminaba en la pantalla de inicio de sesión sin poder escribir su nueva contraseña. Ahora la app detecta ese formato al abrir el enlace, lo canjea una sola vez, limpia la dirección y muestra el formulario; si el enlace es inválido o ya expiró se muestra el aviso para pedir uno nuevo.

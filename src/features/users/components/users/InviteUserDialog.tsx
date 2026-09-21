@@ -15,6 +15,18 @@ import type { AppRole } from "../../hooks/useUserRole";
 // v7.226.0 · E2E-N7: validar email antes de invocar la edge function.
 const inviteEmailSchema = z.string().trim().email("Ingresa un correo válido");
 
+// SEC-B5: contraseña inicial opcional; misma regla que valida el servidor.
+const PASSWORD_HINT =
+  "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos.";
+const invitePasswordSchema = z
+  .string()
+  .min(12)
+  .max(72)
+  .regex(/[a-z]/)
+  .regex(/[A-Z]/)
+  .regex(/[0-9]/)
+  .regex(/[^A-Za-z0-9]/);
+
 interface InviteUserDialogProps {
   onCreated: () => void;
   /**
@@ -35,6 +47,9 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<string>("dispatcher");
   const inviteUser = useInviteUser();
 
@@ -52,16 +67,30 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
       return;
     }
     setEmailError(null);
+    // SEC-B5: misma regla que el servidor (12-72 caracteres, 4 clases).
+    const manualPassword = password.trim();
+    if (manualPassword && !invitePasswordSchema.safeParse(manualPassword).success) {
+      setPasswordError(PASSWORD_HINT);
+      return;
+    }
+    setPasswordError(null);
     // R15 AUTH-2: el toast de error lo maneja useEntityMutation; capturamos
     // aquí para evitar unhandled rejection en la consola / Sentry.
     try {
-      await inviteUser.mutateAsync({ email: parsed.data, full_name: fullName.trim(), role });
+      await inviteUser.mutateAsync({
+        email: parsed.data,
+        full_name: fullName.trim(),
+        role,
+        ...(manualPassword ? { password: manualPassword } : {}),
+      });
     } catch {
       return;
     }
     setOpen(false);
     setFullName("");
     setEmail("");
+    setPassword("");
+    setShowPassword(false);
     setRole("dispatcher");
     onCreated();
   };
@@ -86,7 +115,7 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
       </DialogTrigger>
       <FormDialog
       isPending={inviteUser.isPending}
-        isDirty={fullName.trim() !== "" || email.trim() !== ""}
+        isDirty={fullName.trim() !== "" || email.trim() !== "" || password !== ""}
         open={open}
         onOpenChange={setOpen}
         title="Crear nuevo usuario"
@@ -111,6 +140,30 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
               aria-invalid={emailError ? true : undefined}
             />
             {emailError ? <p className="text-sm text-destructive">{emailError}</p> : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="inv-password">Contraseña inicial (opcional)</Label>
+            <Input
+              id="inv-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              maxLength={72}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError(null);
+              }}
+              aria-invalid={passwordError ? true : undefined}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Si la dejas vacía, se genera un enlace de acceso de un solo uso.
+              </p>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword((v) => !v)}>
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </Button>
+            </div>
+            {passwordError ? <p className="text-sm text-destructive">{passwordError}</p> : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-role">Rol</Label>
