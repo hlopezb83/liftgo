@@ -72,12 +72,17 @@ export function CreateOrganizationDialog({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    const result = await create.mutateAsync(form);
+    const result = await create.mutateAsync({
+      ...form,
+      admin_password: form.admin_password.trim() || undefined,
+    });
     setForm(EMPTY_FORM);
     setSlugTouched(false);
+    setShowPassword(false);
     onOpenChange(false);
     onCreated(result);
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
