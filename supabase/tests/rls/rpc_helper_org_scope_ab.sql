@@ -66,7 +66,9 @@ BEGIN
   -- Operación de B: montacargas rentado con entrega completada y factura
   -- con pago aplicado.
   INSERT INTO public.forklifts (id, name, model, status, organization_id)
-  VALUES (v_fork_b, 'MC-B-01', 'Toyota 8FGU25', 'rented', v_org_b);
+  -- Estado inicial 'available': guard_forklift_status_insert prohíbe crear
+  -- directamente en 'rented'; la entrega completada de abajo avanza el flujo.
+  VALUES (v_fork_b, 'MC-B-01', 'Toyota 8FGU25', 'available', v_org_b);
 
   INSERT INTO public.bookings
     (id, forklift_id, customer_id, start_date, end_date, booking_number, status, organization_id)
@@ -76,13 +78,24 @@ BEGIN
     'RES-B-0001', 'confirmed', v_org_b
   );
 
+  -- enforce_delivery_completed_evidence exige operador, firma o justificación.
   INSERT INTO public.deliveries
-    (forklift_id, booking_id, scheduled_date, delivery_number, type, status, organization_id)
-  VALUES (v_fork_b, v_book_b, public.today_mty() - 5, 'ENT-B-0001', 'delivery', 'completed', v_org_b);
+    (forklift_id, booking_id, scheduled_date, delivery_number, type, status,
+     completed_no_evidence_reason, organization_id)
+  VALUES (
+    v_fork_b, v_book_b, public.today_mty() - 5, 'ENT-B-0001', 'delivery', 'completed',
+    'Entrega de prueba autorizada por coordinación operativa', v_org_b
+  );
 
+  -- validate_invoice_totals y validate_invoice_line_items_signs exigen
+  -- partidas coherentes con subtotal + impuestos = total.
   INSERT INTO public.invoices
-    (id, invoice_number, customer_id, status, total, organization_id)
-  VALUES (v_inv_b, 'FAC-B-0001', v_cust_b, 'sent', 11600, v_org_b);
+    (id, invoice_number, customer_id, status, line_items, subtotal, tax_amount, total, organization_id)
+  VALUES (
+    v_inv_b, 'FAC-B-0001', v_cust_b, 'sent',
+    '[{"description":"Renta mensual Toyota 8FGU25","quantity":1,"unit_price":10000,"amount":10000}]'::jsonb,
+    10000, 1600, 11600, v_org_b
+  );
 
   INSERT INTO public.payments (invoice_id, amount, organization_id)
   VALUES (v_inv_b, 1160, v_org_b);
