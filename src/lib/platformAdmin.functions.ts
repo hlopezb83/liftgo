@@ -164,21 +164,29 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
     if (profileUpdErr)
       console.error("[platform-admin] profiles update:", profileUpdErr.message);
 
-    const { data: linkData, error: linkErr } =
-      await admin.auth.admin.generateLink({
-        type: "recovery",
-        email,
-      });
-    if (linkErr)
-      console.error("[platform-admin] generateLink:", linkErr.message);
+    // Con contraseña manual el administrador ya puede entrar: no se genera
+    // enlace de recuperación para no ofrecer dos caminos de acceso a la vez.
+    let recoveryLink: string | null = null;
+    if (!manualPassword) {
+      const { data: linkData, error: linkErr } =
+        await admin.auth.admin.generateLink({
+          type: "recovery",
+          email,
+        });
+      if (linkErr)
+        console.error("[platform-admin] generateLink:", linkErr.message);
+      recoveryLink = linkData?.properties?.action_link ?? null;
+    }
 
     return {
       success: true,
       organization_id: organizationId,
       admin_user_id: adminUserId,
       admin_email: email,
-      recovery_link: linkData?.properties?.action_link ?? null,
+      recovery_link: recoveryLink,
+      password_set_manually: manualPassword.length > 0,
     };
+
   });
 
 export const setOrganizationActiveFn = createServerFn({ method: "POST" })
