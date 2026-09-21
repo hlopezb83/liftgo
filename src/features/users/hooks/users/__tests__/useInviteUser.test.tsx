@@ -63,4 +63,24 @@ describe("useInviteUser (FIX-R2-02 / N8: recovery_link visible)", () => {
     expect(opts.description).toContain("Restablecer contraseña");
     expect(opts.action).toBeUndefined();
   });
+
+  it("confirma acceso directo cuando el admin definió la contraseña", async () => {
+    invokeMock.mockResolvedValue({
+      success: true,
+      user_id: "u3",
+      email: payload.email,
+      recovery_link: null,
+      password_set_manually: true,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useInviteUser(), { wrapper: Wrapper });
+
+    result.current.mutate({ ...payload, password: "Contrasena1!Segura" });
+
+    await waitFor(() => expect(notifySuccessMock).toHaveBeenCalled());
+    const [, opts] = notifySuccessMock.mock.calls[0] as [string, { description: string; action?: unknown }];
+    expect(opts.description).toContain(payload.email);
+    expect(opts.description).not.toContain("Contrasena1!Segura");
+    expect(opts.action).toBeUndefined();
+  });
 });
