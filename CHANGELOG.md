@@ -1,3 +1,13 @@
+## [8.26.2] - 2026-09-21 · patch · fix
+
+La copia temporal del sistema ya nace con una empresa creada por las migraciones. Al agregar la empresa A quedaban dos activas y el alta del cliente fallaba por no saber a cuál pertenecía. Ahora el ensayo apaga primero esa empresa inicial por la vía oficial, siembra A y B, y al terminar la vuelve a encender.
+
+- tests/multi-tenant-ab/fixtures/abSeed.ts: el operador de plataforma sintético se crea antes que cualquier empresa; se consultan por API admin las empresas activas preexistentes, se guardan sus IDs en el contexto y se suspenden con la RPC oficial platform_set_organization_active.
+- tests/multi-tenant-ab/fixtures/abSeed.ts: se verifica que no quede ninguna empresa activa antes de sembrar, y antes de guardar el contexto se exige exactamente A y B activas y ninguna empresa inicial activa.
+- tests/multi-tenant-ab/global.teardown.ts: tras borrar A/B se restauran las empresas iniciales con la misma RPC oficial y sólo después se elimina el operador sintético; en CI supabase stop sigue siendo la red final.
+- Se conservan los contextos de navegador por empresa en la prueba del logo y actions/upload-artifact@v7; el workflow sigue destruyendo Supabase con if: always() aunque el seed falle.
+- Sin UPDATE directo sobre organizations, sin deshabilitar triggers y sin cambios de migraciones, políticas, producto, secretos, branding, datos reales ni producción. El gate A/B sigue ABIERTO hasta un run completo en verde.
+
 ## [8.26.1] - 2026-09-20 · patch · fix
 
 El ensayo fallaba al dar de alta al cliente de la segunda empresa, como intentar registrar una carpeta sin decir a qué sucursal pertenece. Ahora la segunda empresa se prepara apagada, se enciende al final por la vía oficial y se comprueba que ambas quedaron activas antes de empezar las pruebas.
