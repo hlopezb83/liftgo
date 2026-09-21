@@ -281,6 +281,13 @@
       "when": 1790614964000,
       "tag": "0039_multi_org_rpc_helper_invoker_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1790701364000,
+      "tag": "0040_multi_org_mutating_rpc_org_guard",
+      "breakpoints": true
     }
   ]
 }
