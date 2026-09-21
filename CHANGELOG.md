@@ -1,3 +1,18 @@
+## [8.31.0] - 2026-09-21 · minor · security
+
+Catorce acciones internas (aprobar un pago reportado, asignar folio timbrado, cancelar un lote de pago a proveedores, cambiar el estado de un reporte o de un montacargas, archivar y restaurar clientes, proveedores, montacargas y órdenes de trabajo, reabrir una orden y reclamar el timbrado de un pago) sólo revisaban el rol y, con un identificador ajeno, podían modificar información de otra empresa. El cambio de base 0040 (preparado en Git, NO aplicado) exige además pertenecer a la empresa, toma la empresa de la fila afectada y responde igual ante un identificador ajeno que ante uno inexistente.
+
+- Nuevo cambio de base drizzle/migrations/0040_multi_org_mutating_rpc_org_guard.sql (no aplicado): approve_payment_intent, assign_stamped_invoice_number, cancel_supplier_payment_batch, change_feedback_status, change_forklift_status, claim_payment_rep_stamping, delete_forklift, reopen_work_order, restore_customer, restore_forklift, restore_maintenance_log, restore_supplier, soft_delete_maintenance_log y soft_delete_supplier conservan firma, resultado, valores por omisión, mensajes y privilegio elevado.
+- Para una sesión con usuario se exige, además del rol actual, una empresa interna única y pertenencia comprobada a ella; el rol por sí solo ya no alcanza.
+- La empresa se toma siempre de la fila afectada, nunca de datos enviados por el cliente, y se compara antes de leer o modificar; las consultas, subconsultas, actualizaciones y borrados incluyen la empresa en ambos lados.
+- Las filas derivadas (pagos, bitácora de estados e historial de reportes) se crean ya con la empresa correcta.
+- restore_customer autoriza por el vínculo cliente-empresa o por la empresa que lo dio de alta, sin depender de las reglas de acceso por fila.
+- Un identificador de otra empresa y uno inexistente producen el mismo aviso genérico, sin confirmar si el registro existe.
+- Se conserva el canal interno de servicio sólo donde ya existía (assign_stamped_invoice_number y claim_payment_rep_stamping); permisos: PUBLIC y anon revocados, authenticated y service_role sin cambios.
+- Nueva prueba supabase/tests/rls/mutating_rpc_org_guard_contract.sql: verifica privilegio elevado, guarda de empresa y permisos de catálogo en las catorce funciones.
+- Nueva prueba supabase/tests/rls/mutating_rpc_org_scope_ab.sql: con dos empresas inventadas comprueba que desde la empresa A no cambian estados, folios, puntos, archivado ni lotes de la empresa B, y que la empresa A conserva sus propios flujos.
+- La migración queda en Git para validación transaccional antes de aplicarse; no se aplicó nada en la nube.
+
 ## [8.30.0] - 2026-09-21 · minor · security
 
 Varias funciones internas del sistema leían la base con permisos elevados, así que podían devolver información de otra empresa si recibían un identificador ajeno. El cambio de base 0039 (preparado en Git, NO aplicado) hace que seis de ellas consulten con los permisos de quien las llama, acota el tablero de puntos a la empresa del usuario y obliga a los ayudantes de identidad del portal a responder sólo por el propio usuario y su empresa. Se agregan dos pruebas nuevas con dos empresas inventadas.
