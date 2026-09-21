@@ -146,10 +146,36 @@ async function seedSide(
   const internal = await createUser(admin, ids.internalEmail, org.id);
   const portal = await createUser(admin, ids.portalEmail, org.id);
 
+  // El trigger `handle_new_user` ya crea la fila de `user_roles` al dar de
+  // alta el usuario por `auth.admin.createUser`: un INSERT plano revienta con
+  // duplicate key ("user_roles_one_role_per_user"). Mismo patrón que las
+  // suites SQL del repo y las funciones de invitación: upsert por user_id.
   must(
     "user_roles (interno admin)",
-    (await admin.from("user_roles").insert({ user_id: internal.userId, role: "admin" })).error,
+    (await admin
+      .from("user_roles")
+      .upsert({ user_id: internal.userId, role: "admin" }, { onConflict: "user_id" })).error,
   );
+  must(
+    "user_roles (portal customer)",
+    (await admin
+      .from("user_roles")
+      .upsert({ user_id: portal.userId, role: "customer" }, { onConflict: "user_id" })).error,
+  );
+
+  // Verificación explícita por API admin: interno=admin y portal=customer.
+  const { data: rolesData, error: rolesError } = await admin
+    .from("user_roles")
+    .select("user_id, role")
+    .in("user_id", [internal.userId, portal.userId]);
+  must("verificación de roles", rolesError);
+  const roleOf = (userId: string) =>
+    (rolesData ?? []).find((row) => row.user_id === userId)?.role;
+  if (roleOf(internal.userId) !== "admin" || roleOf(portal.userId) !== "customer") {
+    throw new Error(
+      `[ab-seed] roles inesperados para ${org.slug}: interno=${roleOf(internal.userId) ?? "sin rol"}, portal=${roleOf(portal.userId) ?? "sin rol"}.`,
+    );
+  }
 
   must(
     "organization_memberships",
