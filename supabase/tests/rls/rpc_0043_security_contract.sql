@@ -36,19 +36,15 @@ BEGIN
     END IF;
     v_oid := to_regprocedure(v_sig)::oid;
 
-    SELECT prosecdef::boolean, proconfig, pg_get_functiondef(oid)
-      INTO STRICT v_cfg[1], v_cfg, v_def
-      FROM pg_proc WHERE oid = v_oid;
+    SELECT p.proconfig, pg_get_functiondef(p.oid)
+      INTO v_cfg, v_def
+      FROM pg_proc p WHERE p.oid = v_oid;
 
-    IF NOT (SELECT prosecdef FROM pg_proc WHERE oid = v_oid) THEN
+    IF NOT (SELECT p.prosecdef FROM pg_proc p WHERE p.oid = v_oid) THEN
       v_fallas := array_append(v_fallas, format('%s no es SECURITY DEFINER', v_sig));
     END IF;
 
-    IF NOT EXISTS (
-      SELECT 1 FROM pg_proc p
-      WHERE p.oid = v_oid
-        AND p.proconfig @> ARRAY['search_path=public']
-    ) THEN
+    IF v_cfg IS NULL OR position('search_path=public' in array_to_string(v_cfg, ',')) = 0 THEN
       v_fallas := array_append(v_fallas, format('%s sin search_path=public fijo', v_sig));
     END IF;
 
