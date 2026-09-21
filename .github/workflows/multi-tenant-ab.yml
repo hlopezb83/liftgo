@@ -169,6 +169,42 @@ jobs:
             *) echo "::error::La API local no es loopback"; exit 1 ;;
           esac
 
+      # El preview se ejecuta con `wrangler dev`, que carga bindings desde
+      # `.dev.vars` y NO expone automaticamente las variables del proceso al
+      # Worker. Sin este archivo, el Worker tomaria el `.env` versionado con
+      # el ref productivo y validaria los JWT locales contra produccion
+      # ("Unauthorized: Invalid token" en requireSupabaseAuth). El archivo es
+      # efimero: se crea aqui y se elimina en el teardown, nunca llega a
+      # artifacts ni al repo (esta en .gitignore).
+      - name: Crear .dev.vars efímero para Wrangler
+        run: |
+          set -euo pipefail
+          {
+            echo "SUPABASE_URL=$SUPABASE_URL"
+            echo "SUPABASE_PUBLISHABLE_KEY=$SUPABASE_PUBLISHABLE_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY"
+            echo "SUPABASE_PROJECT_ID=local-ab-ephemeral"
+          } > .dev.vars
+          chmod 600 .dev.vars
+
+      # Fail-closed: verifica SOLO nombres/presencia y que SUPABASE_URL sea
+      # loopback y no el ref productivo. No imprime claves ni valores.
+      - name: Verificar .dev.vars apunta al Supabase local
+        run: |
+          set -euo pipefail
+          for key in SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY SUPABASE_PROJECT_ID; do
+            grep -q "^${key}=." .dev.vars || { echo "::error::Falta $key en .dev.vars"; exit 1; }
+          done
+          url="$(grep '^SUPABASE_URL=' .dev.vars | cut -d= -f2-)"
+          case "$url" in
+            http://127.0.0.1:*|http://localhost:*) ;;
+            *) echo "::error::SUPABASE_URL de .dev.vars no es loopback"; exit 1 ;;
+          esac
+          if grep -q "zxefrzfaynnfwazqhwxp" .dev.vars; then
+            echo "::error::.dev.vars contiene el ref productivo"; exit 1
+          fi
+          echo ".dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo"
+
       - name: Instalar navegador Playwright
         run: bunx playwright install --with-deps chromium
 
