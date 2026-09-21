@@ -149,11 +149,13 @@ export async function createFirstAdminAuthUser(
   organizationId: string,
   email: string,
   fullName: string,
+  password?: string,
 ): Promise<string> {
   const { data: newUser, error: createErr } = await admin.auth.admin.createUser(
     {
       email,
-      password: g.generateSecurePassword(),
+      password: password || g.generateSecurePassword(),
+
       email_confirm: true,
       // Tramo 12 (0033): contexto de empresa por `app_metadata` (server-only).
       user_metadata: { full_name: fullName },
