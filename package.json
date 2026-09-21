@@ -26,7 +26,6 @@
     "test:functions": "bash scripts/deno-tests-offline.sh",
     "changelog:check": "bun scripts/validate-changelog.ts",
     "migrations:check": "bun scripts/check-drizzle-journal.ts",
-    "edge-functions:audit": "bun scripts/edge-functions-audit.ts",
     "restore:verify": "bun scripts/restore-rehearsal/verify.ts",
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
