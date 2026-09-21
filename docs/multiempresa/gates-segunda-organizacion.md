@@ -11,8 +11,31 @@ Estado de los gates (última revisión: 2026-09-20):
 | Gate | Estado | Evidencia |
 | --- | --- | --- |
 | CI completo en verde | **Verificado** para el commit `44dacee` (2026-09-20) | Runs [35543605798](https://github.com/hlopezb83/liftgo/actions/runs/35543605798), [35543605857](https://github.com/hlopezb83/liftgo/actions/runs/35543605857), [35543605759](https://github.com/hlopezb83/liftgo/actions/runs/35543605759) |
-| Ensayo A/B real (datos + Storage + portal) | **Pendiente** — requiere evidencia externa | — |
+| Ensayo A/B real (datos + Storage + portal) | **Pendiente** — automatización *implementada, pendiente de primera corrida* (`.github/workflows/multi-tenant-ab.yml`, `tests/multi-tenant-ab/`). No hay run verde registrado. | — |
 | Restore probado | **Pendiente** — requiere evidencia externa | — |
+
+### Automatización del ensayo A/B (sin resultado aún)
+
+El gate A/B ya tiene un carril reproducible que corre **sólo** contra el
+Supabase local efímero del runner:
+
+- `.github/workflows/multi-tenant-ab.yml` — Postgres + gotrue + kong + postgrest
+  + storage-api, mismo carril de migraciones que RLS DB tests, sin leer ningún
+  secret; destruye el entorno con `if: always()`.
+- `tests/multi-tenant-ab/fixtures/localBackend.ts` — guard fail-closed que
+  endurece `productionGuard`: prohíbe el ref productivo, exige loopback,
+  `E2E_ISOLATED_BACKEND=1` e identificadores `local*`, y rechaza cualquier
+  escape remoto.
+- Suites: `data-isolation.spec.ts` (API/PostgREST), `storage-isolation.spec.ts`
+  (Storage API real: listar, descargar, URL firmada, objeto legado sin prefijo)
+  y `portal-isolation.spec.ts` (portal A/B en navegador, id cruzado sin revelar
+  monto ni nombre, mismo logo global LiftGo).
+- Evidencia: JUnit/JSON/HTML de Playwright y una matriz A/B resumida sin
+  tokens, credenciales ni identificadores reales.
+
+**El gate sigue abierto** hasta que exista una corrida completa en verde con
+commit y enlace registrados aquí.
+
 
 **Criterio de cierre:** hasta que el ensayo A/B y el restore estén ejecutados,
 documentados y aprobados con evidencia fechada, **no se habilita una segunda

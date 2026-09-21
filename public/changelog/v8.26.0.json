@@ -1,0 +1,18 @@
+{
+  "version": "8.26.0",
+  "date": "2026-09-20",
+  "type": "minor",
+  "category": "chore",
+  "title": "Nuevo ensayo automático con dos empresas ficticias en un entorno desechable",
+  "description": "Se agrega una prueba que crea dos empresas de mentira en una copia temporal del sistema y comprueba que ninguna ve facturas, documentos, archivos ni pantallas de la otra. Nunca toca la información real.",
+  "changes": [
+    "tests/multi-tenant-ab/: nueva suite del gate A/B con guard fail-closed (localBackend.ts), identidades sintéticas deterministas, seed y limpieza del entorno efímero.",
+    "tests/multi-tenant-ab/data-isolation.spec.ts y storage-isolation.spec.ts: aislamiento por API real (PostgREST y Storage) de lecturas, escrituras, listados, descargas, URL firmadas y objetos legados sin prefijo de empresa.",
+    "tests/multi-tenant-ab/portal-isolation.spec.ts: portal A/B en navegador; cada cliente sólo ve lo suyo, un id ajeno no revela monto ni nombre y ambos portales muestran el mismo logo global LiftGo.",
+    "playwright.multitenant.config.ts, script test:multitenant-ab y abMatrixReporter.ts: configuración separada de las E2E históricas y matriz de evidencia sin tokens, credenciales ni identificadores reales.",
+    ".github/workflows/multi-tenant-ab.yml: Supabase local efímero (Postgres, gotrue, kong, postgrest, storage-api) con el mismo carril de migraciones que RLS DB tests, sin leer secrets y con destrucción del entorno en if: always().",
+    "src/test/multiTenantAbGuard.test.ts: regresión offline que confirma que la suite aborta ante hosts remotos, el ref productivo, la falta de entorno aislado o un escape remoto declarado.",
+    "supabase/tests/rls/README.md: se corrigen los disparadores, el carácter bloqueante de los smoke SQL y la publicación de JUnit; docs/multiempresa/gates-segunda-organizacion.md registra el gate A/B como implementado y pendiente de primera corrida.",
+    "No se cambiaron migraciones, RLS, datos, Storage real, secretos, branding ni producción. El gate A/B sigue abierto hasta tener un run verde verificable."
+  ]
+}

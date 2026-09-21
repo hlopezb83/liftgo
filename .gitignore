@@ -41,3 +41,7 @@ test-results/
 
 # Wrangler (preview local del build SSR)
 .wrangler/
+
+# Estado efímero del gate A/B (credenciales desechables del runner)
+tests/multi-tenant-ab/.state/
+playwright-report-multitenant/
