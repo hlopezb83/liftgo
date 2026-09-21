@@ -46,6 +46,7 @@ export const AB_EMAILS = {
   internalB: "ab-gate-interno-b@example.invalid",
   portalA: "ab-gate-portal-a@example.invalid",
   portalB: "ab-gate-portal-b@example.invalid",
+  platformOperator: "ab-gate-operador@example.invalid",
 } as const;
 
 export type AbRole = keyof typeof AB_EMAILS;
