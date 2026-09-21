@@ -42,12 +42,14 @@ BEGIN
   VALUES (v_plain, 'staff-a@e2e-ab.test', now(), now()) ON CONFLICT DO NOTHING;
   INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
   VALUES (v_org_a, v_admin_a, 'internal'), (v_org_a, v_plain, 'internal');
+  -- user_roles tiene unicidad por user_id (user_roles_one_role_per_user) y el alta
+  -- en auth.users puede crear el rol automáticamente: usamos upsert por user_id.
   INSERT INTO public.user_roles (user_id, role)
   VALUES (v_admin_a, 'admin'::public.app_role)
-  ON CONFLICT (user_id, role) DO NOTHING;
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
   INSERT INTO public.user_roles (user_id, role)
   VALUES (v_plain, 'dispatcher'::public.app_role)
-  ON CONFLICT (user_id, role) DO NOTHING;
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
   PERFORM set_config('app.organization_id', v_org_b::text, true);
   INSERT INTO auth.users (id, email, created_at, updated_at)
@@ -56,7 +58,7 @@ BEGIN
   VALUES (v_org_b, v_admin_b, 'internal');
   INSERT INTO public.user_roles (user_id, role)
   VALUES (v_admin_b, 'admin'::public.app_role)
-  ON CONFLICT (user_id, role) DO NOTHING;
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 END;
 $$;
 
