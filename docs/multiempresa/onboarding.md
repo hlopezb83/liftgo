@@ -77,10 +77,22 @@ legal de la organización**, no branding configurable.
 Ninguno puede darse por cumplido sin evidencia fechada y enlazable.
 
 1. **Ensayo A/B aislado** con organizaciones de prueba, cubriendo **datos,
-   Storage y portal** — *requiere verificación*.
+   Storage y portal** — **verificado el 2026-09-21** para el commit `c4a6b69`
+   (`c4a6b69ccb4fe0561d3660c2603b637336ec631f`): run A/B
+   [35566123833](https://github.com/hlopezb83/liftgo/actions/runs/35566123833)
+   (job `106228183532`, conclusión success, 16/16 Playwright en 29.6s); log
+   «.dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo»;
+   teardown «Stopped supabase local development setup.»; artefacto seguro
+   `multitenant-ab-evidence` (id `10624198616`,
+   digest `sha256:26443b6a2ac1f62c1f6c8fb291663d09c3d8c660a8952280ac313991f746ce57`),
+   el workflow sólo sube reports y `playwright-report-multitenant/`, nunca
+   `.dev.vars`. CI complementario en verde: CI principal
+   [35566124245](https://github.com/hlopezb83/liftgo/actions/runs/35566124245)
+   y Gitleaks [35566123931](https://github.com/hlopezb83/liftgo/actions/runs/35566123931),
+   ambos success. Un commit posterior exige su propio run.
 2. **Restore probado**: no basta el respaldo diario; hace falta una
    **restauración ensayada y documentada** — *requiere verificación* (a la
-   fecha no consta ninguna).
+   fecha no consta ninguna). Éste es el siguiente gate externo pendiente.
 3. **CI completo en verde** (lint, tipos, build/smoke, Vitest y cobertura, Deno
    offline, RLS/smoke SQL y secretos) — **verificado el 2026-09-20** para el
    commit `44dacee`; ver los tres enlaces en «Verificado con evidencia externa
