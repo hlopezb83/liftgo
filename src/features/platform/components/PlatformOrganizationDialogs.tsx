@@ -24,6 +24,7 @@ import type {
   PlatformOrganizationRow,
 } from "@/lib/platformAdmin.functions";
 import { isStrongAdminPassword } from "@/lib/platformAdmin.helpers";
+import { AdminPasswordField } from "./AdminPasswordField";
 import {
   useCreateOrganization,
   useSetOrganizationActive,
