@@ -70,11 +70,18 @@ export function CreateOrganizationDialog({
     });
   };
 
+  const rawPassword = form.admin_password.trim();
+  const passwordError =
+    rawPassword && !isStrongPassword(rawPassword)
+      ? "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos"
+      : null;
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (passwordError) return;
     const result = await create.mutateAsync({
       ...form,
-      admin_password: form.admin_password.trim() || undefined,
+      admin_password: rawPassword || undefined,
     });
     setForm(EMPTY_FORM);
     setSlugTouched(false);
