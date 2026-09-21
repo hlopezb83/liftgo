@@ -74,7 +74,7 @@ export function CreateOrganizationDialog({
 
   const rawPassword = form.admin_password.trim();
   const passwordError =
-    rawPassword && !isStrongPassword(rawPassword)
+    rawPassword && !isStrongAdminPassword(rawPassword)
       ? "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos"
       : null;
 
