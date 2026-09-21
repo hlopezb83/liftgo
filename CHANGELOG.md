@@ -1,3 +1,12 @@
+## [8.29.1] - 2026-09-21 · patch · fix
+
+La prueba automatizada que siembra datos de prueba en dos empresas inventadas fallaba al dar de alta sus usuarios: la plataforma crea automáticamente un rol al registrar un usuario y la prueba intentaba crear otro, chocando con la regla de un solo rol por usuario. La prueba ahora actualiza el rol existente en lugar de insertar uno nuevo. No cambia ninguna función del sistema ni la migración 0038, que sigue preparada en Git sin aplicar.
+
+- supabase/tests/rls/e2e_utilities_org_scope_ab.sql: las tres altas de roles (administrador de A, personal sin rol admin y administrador de B) usan ahora ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role, compatible con el índice único real user_roles_one_role_per_user.
+- Se verificó contra la base activa (sólo lectura) que user_roles tiene unicidad por usuario mediante índice único, y que el alta en usuarios crea el rol inicial automáticamente (handle_new_user).
+- Réplica local desechable: el patrón anterior reproduce la violación de unicidad reportada y el patrón corregido deja los tres roles esperados sin duplicados.
+- La ejecución completa de la cadena Drizzle más la prueba queda para GitHub Actions: en este entorno no hay privilegios de propietario sobre las funciones ni sobre el esquema de usuarios, y nada se aplicó a producción.
+
 ## [8.29.0] - 2026-09-21 · minor · security
 
 Hasta ahora las funciones internas que siembran y limpian datos de prueba sólo revisaban el rol de administrador, que es global: un administrador de una empresa podía sembrar, limpiar o borrar datos de prueba de otra. El cambio de base 0038 (preparado en Git, NO aplicado) exige un contexto interno único y rol de administrador, escribe siempre la empresa dueña, limpia únicamente lo de esa empresa y elimina la función de borrado global. Se agregan dos pruebas nuevas con dos empresas inventadas.
