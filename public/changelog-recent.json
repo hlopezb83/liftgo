@@ -1,5 +1,25 @@
 [
   {
+    "version": "8.32.0",
+    "date": "2026-09-21",
+    "type": "minor",
+    "category": "security",
+    "title": "Paso 4-B multiempresa: cuentas por pagar, daños y bitácora quedan atados a la empresa del usuario",
+    "description": "Diecisiete acciones internas de cuentas por pagar (aprobar, rechazar o reactivar una factura de proveedor, registrar pagos, marcar y reiniciar el REP, crear lotes de pago y liberar bloqueos añejos), de daños y órdenes de trabajo, de facturación recurrente y de la bitácora seguían sin verificar la empresa: con un identificador ajeno podían modificar información de otra empresa. El cambio de base 0041 (preparado en Git, NO aplicado) exige pertenecer a la empresa, toma la empresa de las filas reales y responde igual ante un identificador ajeno que ante uno inexistente.",
+    "changes": [
+      "Nuevo cambio de base drizzle/migrations/0041_multi_org_supplier_damage_rpc_org_guard.sql (no aplicado): approve_supplier_bill, reject_supplier_bill, request_bill_reapproval, los dos registros de pago a proveedor, mark_supplier_rep_rejected, reset_supplier_rep_pending, los dos armados de lote de pago, release_stale_payment_locks, soft_delete_damage_record, restore_damage_record, start_repair_work_order, revert_audit_log, sync_forklift_rental_status, sync_invoice_status y create_recurring_invoice conservan firma, valores por omisión, resultado, mensajes y privilegio elevado.",
+      "Para una sesión con usuario se exige, además del rol actual, una empresa interna única y pertenencia comprobada a ella.",
+      "La empresa se toma de las filas reales (factura de proveedor, pago, daño, reserva, bitácora) y se valida antes de cualquier lectura o cambio; las tablas encadenadas se filtran por empresa y las filas derivadas se crean ya con la empresa correcta.",
+      "Las listas de identificadores de los dos armados de lote y de la facturación recurrente deben pertenecer por completo a la empresa actual: una mezcla de dos empresas falla antes de escribir nada.",
+      "Las operaciones masivas sin identificador (liberar bloqueos de pago y sincronizar el estado de renta de la flota) sólo procesan la empresa actual cuando hay sesión; se conservan únicamente los canales internos que ya usaban los procesos automáticos, sin agregar excepciones nuevas.",
+      "La reversión de bitácora comprueba que tanto el registro como la fila afectada son de la empresa actual, mantiene la lista blanca de tablas y agrega la empresa como condición en la instrucción generada.",
+      "Un identificador de otra empresa y uno inexistente producen el mismo aviso genérico, sin confirmar si el registro existe; permisos: PUBLIC y anon revocados, authenticated y service_role sin cambios.",
+      "Nueva prueba supabase/tests/rls/supplier_damage_rpc_org_guard_contract.sql: verifica privilegio elevado, guarda de empresa y permisos de catálogo en las diecisiete firmas.",
+      "Nueva prueba supabase/tests/rls/supplier_damage_rpc_org_scope_ab.sql: con dos empresas inventadas comprueba negativos por firma, mezclas de identificadores, operaciones masivas que dejan intacta la empresa B y los flujos propios de la empresa A.",
+      "La migración queda en Git para validación transaccional antes de aplicarse; no se aplicó nada en la nube."
+    ]
+  },
+  {
     "version": "8.31.0",
     "date": "2026-09-21",
     "type": "minor",
