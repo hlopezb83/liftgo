@@ -28,7 +28,14 @@ import {
   useSetOrganizationActive,
 } from "../hooks/usePlatformOperator";
 
-const EMPTY_FORM = { name: "", slug: "", admin_email: "", admin_full_name: "" };
+const EMPTY_FORM = {
+  name: "",
+  slug: "",
+  admin_email: "",
+  admin_full_name: "",
+  admin_password: "",
+};
+
 
 function slugify(value: string): string {
   return value
