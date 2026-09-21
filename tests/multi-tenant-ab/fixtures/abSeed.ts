@@ -56,6 +56,8 @@ export type AbContext = {
   legacyObjectPath: string;
   /** Operador de plataforma sintético usado para activar la empresa B. */
   platformOperatorUserId: string;
+  /** Empresas iniciales que el ensayo suspendió y debe restaurar al terminar. */
+  initialActiveOrganizationIds: string[];
 };
 
 function must(label: string, error: { message?: string } | null): void {
