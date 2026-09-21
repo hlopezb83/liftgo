@@ -210,11 +210,21 @@ export function CreatedResultDialog({
         <DialogHeader>
           <DialogTitle>Empresa creada</DialogTitle>
           <DialogDescription>
-            Comparte el enlace de acceso con {result?.admin_email}. Es de un
-            solo uso y le permite definir su contraseña.
+            {result?.password_set_manually
+              ? `La cuenta de ${result?.admin_email} ya tiene la contraseña que definiste. Compártela por un medio seguro.`
+              : `Comparte el enlace de acceso con ${result?.admin_email}. Es de un solo uso y le permite definir su contraseña.`}
           </DialogDescription>
         </DialogHeader>
-        {result?.recovery_link ? (
+        {result?.password_set_manually ? (
+          <Alert>
+            <AlertTitle>Acceso listo</AlertTitle>
+            <AlertDescription>
+              El administrador puede entrar con su correo y la contraseña que
+              acabas de asignar. Por seguridad no se muestra aquí; pídele que la
+              cambie después del primer ingreso.
+            </AlertDescription>
+          </Alert>
+        ) : result?.recovery_link ? (
           <Input
             readOnly
             value={result.recovery_link}
@@ -230,6 +240,7 @@ export function CreatedResultDialog({
             </AlertDescription>
           </Alert>
         )}
+
         <DialogFooter>
           <Button onClick={onClose}>Listo</Button>
         </DialogFooter>
