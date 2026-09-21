@@ -7,10 +7,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getRequest = vi.fn();
 const getClaims = vi.fn();
+const getUser = vi.fn();
 
 vi.mock("@tanstack/react-start/server", () => ({ getRequest: () => getRequest() }));
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({ auth: { getClaims: (t: string) => getClaims(t) } }),
+  createClient: () => ({
+    auth: { getClaims: (t: string) => getClaims(t), getUser: (t: string) => getUser(t) },
+  }),
 }));
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -29,6 +32,7 @@ describe("requireSupabaseAuth", () => {
   beforeEach(() => {
     getRequest.mockReset();
     getClaims.mockReset();
+    getUser.mockReset();
     process.env["SUPABASE_URL"] = "http://127.0.0.1:54321";
     process.env["SUPABASE_PUBLISHABLE_KEY"] = "sb_publishable_local";
   });
