@@ -50,6 +50,10 @@ BEGIN
           '41000000-0000-4000-8000-0000000000a2', 'BBVA México',
           'Refacciones del Norte SA de CV', '012345678901234567', true, v_org_a);
 
+  -- Las facturas con approval_status='approved' sólo pueden insertarse bajo el
+  -- contexto de RPC de cuentas por pagar.
+  PERFORM set_config('app.cxp_rpc', 'on', true);
+
   -- Factura pendiente de aprobación (approve / reject / reapproval).
   INSERT INTO public.supplier_bills
     (id, supplier_id, bill_number, subtotal, tax_amount, total, status, approval_status, organization_id)
@@ -75,6 +79,13 @@ BEGIN
   VALUES ('41000000-0000-4000-8000-0000000000a7',
           '41000000-0000-4000-8000-0000000000a2', 'PROV-A-0004',
           1000, 160, 1160, 'pending', 'approved', now() - interval '48 hours', v_org_a);
+
+  PERFORM set_config('app.cxp_rpc', 'off', true);
+
+  -- El trigger set_supplier_payment_rep_required sólo conserva el REP pendiente
+  -- cuando la factura es PPD.
+  UPDATE public.supplier_bills SET payment_method_sat = 'PPD'
+   WHERE id = '41000000-0000-4000-8000-0000000000a5';
 
   -- Pago con REP pendiente (mark_supplier_rep_rejected / reset_supplier_rep_pending).
   INSERT INTO public.supplier_payments
@@ -133,9 +144,10 @@ BEGIN
           current_date - 30, current_date + 30, 'confirmed', true, v_org_a);
 
   INSERT INTO public.deliveries
-    (id, booking_id, type, status, scheduled_date, completed_no_evidence_reason, organization_id)
+    (id, booking_id, forklift_id, type, status, scheduled_date, completed_no_evidence_reason, organization_id)
   VALUES ('41000000-0000-4000-8000-0000000000c3',
-          '41000000-0000-4000-8000-0000000000c1', 'delivery', 'completed',
+          '41000000-0000-4000-8000-0000000000c1',
+          '41000000-0000-4000-8000-00000000fa01', 'delivery', 'completed',
           current_date - 30,
           'Entrega de prueba autorizada por coordinación operativa', v_org_a);
 
@@ -165,6 +177,8 @@ BEGIN
           '41000000-0000-4000-8000-0000000000b2', 'Banorte',
           'Hidráulica Irapuato SA de CV', '098765432109876543', true, v_org_b);
 
+  PERFORM set_config('app.cxp_rpc', 'on', true);
+
   INSERT INTO public.supplier_bills
     (id, supplier_id, bill_number, subtotal, tax_amount, total, status, approval_status, organization_id)
   VALUES
@@ -181,6 +195,11 @@ BEGIN
   VALUES ('41000000-0000-4000-8000-0000000000b7',
           '41000000-0000-4000-8000-0000000000b2', 'PROV-B-0004',
           1000, 160, 1160, 'pending', 'approved', now() - interval '48 hours', v_org_b);
+
+  PERFORM set_config('app.cxp_rpc', 'off', true);
+
+  UPDATE public.supplier_bills SET payment_method_sat = 'PPD'
+   WHERE id = '41000000-0000-4000-8000-0000000000b5';
 
   INSERT INTO public.supplier_payments
     (id, bill_id, payment_date, amount, rep_required, rep_status, organization_id)
@@ -229,9 +248,10 @@ BEGIN
           current_date - 30, current_date + 30, 'confirmed', true, v_org_b);
 
   INSERT INTO public.deliveries
-    (id, booking_id, type, status, scheduled_date, completed_no_evidence_reason, organization_id)
+    (id, booking_id, forklift_id, type, status, scheduled_date, completed_no_evidence_reason, organization_id)
   VALUES ('41000000-0000-4000-8000-0000000000c4',
-          '41000000-0000-4000-8000-0000000000c2', 'delivery', 'completed',
+          '41000000-0000-4000-8000-0000000000c2',
+          '41000000-0000-4000-8000-00000000fb01', 'delivery', 'completed',
           current_date - 30,
           'Entrega de prueba autorizada por coordinación operativa', v_org_b);
 
@@ -256,51 +276,46 @@ DECLARE
 BEGIN
   BEGIN
     PERFORM public.approve_supplier_bill('41000000-0000-4000-8000-0000000000b4', 'cross-org');
-    v_fallas := v_fallas || 'approve_supplier_bill: A aprobó una factura de B';
+    v_fallas := array_append(v_fallas, 'approve_supplier_bill: A aprobó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     PERFORM public.reject_supplier_bill('41000000-0000-4000-8000-0000000000b4', 'cross-org');
-    v_fallas := v_fallas || 'reject_supplier_bill: A rechazó una factura de B';
+    v_fallas := array_append(v_fallas, 'reject_supplier_bill: A rechazó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     PERFORM public.request_bill_reapproval('41000000-0000-4000-8000-0000000000b4', 'cross-org');
-    v_fallas := v_fallas || 'request_bill_reapproval: A reactivó una factura de B';
-  EXCEPTION WHEN OTHERS THEN NULL; END;
-
-  BEGIN
-    v_uuid := public.register_supplier_payment('41000000-0000-4000-8000-0000000000b5', 100);
-    v_fallas := v_fallas || 'register_supplier_payment/8: A pagó una factura de B';
+    v_fallas := array_append(v_fallas, 'request_bill_reapproval: A reactivó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     v_uuid := public.register_supplier_payment(
       '41000000-0000-4000-8000-0000000000b5', 100, current_date,
       'transfer', NULL, NULL, NULL, NULL, NULL);
-    v_fallas := v_fallas || 'register_supplier_payment/9: A pagó una factura de B';
+    v_fallas := array_append(v_fallas, 'register_supplier_payment/9: A pagó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     PERFORM public.mark_supplier_rep_rejected('41000000-0000-4000-8000-0000000000b8', 'cross-org');
-    v_fallas := v_fallas || 'mark_supplier_rep_rejected: A rechazó el REP de un pago de B';
+    v_fallas := array_append(v_fallas, 'mark_supplier_rep_rejected: A rechazó el REP de un pago de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     PERFORM public.reset_supplier_rep_pending('41000000-0000-4000-8000-0000000000b8');
-    v_fallas := v_fallas || 'reset_supplier_rep_pending: A reinició el REP de un pago de B';
+    v_fallas := array_append(v_fallas, 'reset_supplier_rep_pending: A reinició el REP de un pago de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     v_uuid := public.create_supplier_payment_batch(
       ARRAY['41000000-0000-4000-8000-0000000000b5']::uuid[], current_date, 'transfer', 'cross-org');
-    v_fallas := v_fallas || 'create_supplier_payment_batch/array: A agrupó una factura de B';
+    v_fallas := array_append(v_fallas, 'create_supplier_payment_batch/array: A agrupó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     v_uuid := public.create_supplier_payment_batch(
       '[{"bill_id":"41000000-0000-4000-8000-0000000000b5","amount":100}]'::jsonb, 'cross-org');
-    v_fallas := v_fallas || 'create_supplier_payment_batch/jsonb: A agrupó una factura de B';
+    v_fallas := array_append(v_fallas, 'create_supplier_payment_batch/jsonb: A agrupó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   -- Mezcla A/B: debe fallar de forma atómica y no crear ningún lote.
@@ -308,48 +323,44 @@ BEGIN
     v_uuid := public.create_supplier_payment_batch(
       ARRAY['41000000-0000-4000-8000-0000000000a5',
             '41000000-0000-4000-8000-0000000000b5']::uuid[], current_date, 'transfer', 'mezcla');
-    v_fallas := v_fallas || 'create_supplier_payment_batch/array: aceptó una mezcla A/B';
+    v_fallas := array_append(v_fallas, 'create_supplier_payment_batch/array: aceptó una mezcla A/B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     v_uuid := public.create_supplier_payment_batch(
       '[{"bill_id":"41000000-0000-4000-8000-0000000000a5","amount":100},
         {"bill_id":"41000000-0000-4000-8000-0000000000b5","amount":100}]'::jsonb, 'mezcla');
-    v_fallas := v_fallas || 'create_supplier_payment_batch/jsonb: aceptó una mezcla A/B';
+    v_fallas := array_append(v_fallas, 'create_supplier_payment_batch/jsonb: aceptó una mezcla A/B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     PERFORM public.soft_delete_damage_record('41000000-0000-4000-8000-0000000000ba');
-    v_fallas := v_fallas || 'soft_delete_damage_record: A archivó un daño de B';
+    v_fallas := array_append(v_fallas, 'soft_delete_damage_record: A archivó un daño de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     PERFORM public.restore_damage_record('41000000-0000-4000-8000-0000000000bb');
-    v_fallas := v_fallas || 'restore_damage_record: A restauró un daño de B';
+    v_fallas := array_append(v_fallas, 'restore_damage_record: A restauró un daño de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     v_uuid := public.start_repair_work_order('41000000-0000-4000-8000-0000000000b9', 'reparacion', NULL, 100);
-    v_fallas := v_fallas || 'start_repair_work_order: A abrió una OT sobre un daño de B';
+    v_fallas := array_append(v_fallas, 'start_repair_work_order: A abrió una OT sobre un daño de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
     v_uuid := public.revert_audit_log('41000000-0000-4000-8000-0000000000bc');
-    v_fallas := v_fallas || 'revert_audit_log: A revirtió una bitácora de B';
+    v_fallas := array_append(v_fallas, 'revert_audit_log: A revirtió una bitácora de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   -- Bitácora propia de A pero con una fila objetivo de B.
   BEGIN
     v_uuid := public.revert_audit_log('41000000-0000-4000-8000-0000000000ad');
-    v_fallas := v_fallas || 'revert_audit_log: A revirtió sobre una fila de B';
+    v_fallas := array_append(v_fallas, 'revert_audit_log: A revirtió sobre una fila de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
-  IF NOT EXISTS (SELECT 1 FROM public.forklifts WHERE id = '41000000-0000-4000-8000-00000000fb04') THEN
-    v_fallas := v_fallas || 'revert_audit_log: eliminó un montacargas de B';
-  END IF;
-
   BEGIN
     PERFORM public.sync_invoice_status('41000000-0000-4000-8000-0000000000be');
-    v_fallas := v_fallas || 'sync_invoice_status: A sincronizó una factura de B';
+    v_fallas := array_append(v_fallas, 'sync_invoice_status: A sincronizó una factura de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   BEGIN
@@ -359,7 +370,7 @@ BEGIN
       '[{"description":"Renta","quantity":1,"unit_price":10000,"amount":10000}]'::jsonb,
       10000, 0.16, 1600, 11600, current_date - 30, current_date,
       'CBA030303CCC', 'Cerámica del Bajío SA de CV', '601', '36500', 'G03', 'MXN', 1);
-    v_fallas := v_fallas || 'create_recurring_invoice: A facturó una reserva de B';
+    v_fallas := array_append(v_fallas, 'create_recurring_invoice: A facturó una reserva de B');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   -- Mezcla A/B de reservas: falla antes de escribir.
@@ -371,13 +382,13 @@ BEGIN
       '[{"description":"Renta","quantity":1,"unit_price":10000,"amount":10000}]'::jsonb,
       10000, 0.16, 1600, 11600, current_date - 30, current_date,
       'AAP040404DDD', 'Aceros de Apodaca SA de CV', '601', '66600', 'G03', 'MXN', 1);
-    v_fallas := v_fallas || 'create_recurring_invoice: aceptó una mezcla A/B de reservas';
+    v_fallas := array_append(v_fallas, 'create_recurring_invoice: aceptó una mezcla A/B de reservas');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   -- UUID inexistente: mismo trato que un UUID ajeno.
   BEGIN
     PERFORM public.approve_supplier_bill('41000000-0000-4000-8000-0000deadbeef', 'inexistente');
-    v_fallas := v_fallas || 'approve_supplier_bill: un UUID inexistente no falló';
+    v_fallas := array_append(v_fallas, 'approve_supplier_bill: un UUID inexistente no falló');
   EXCEPTION WHEN OTHERS THEN NULL; END;
 
   IF array_length(v_fallas, 1) IS NOT NULL THEN
@@ -396,26 +407,17 @@ DECLARE
 BEGIN
   v_liberados := public.release_stale_payment_locks(24);
   IF v_liberados <> 1 THEN
-    v_fallas := v_fallas ||
-      format('release_stale_payment_locks: liberó %s bloqueos en lugar de 1', v_liberados);
+    v_fallas := array_append(v_fallas, format('release_stale_payment_locks: liberó %s bloqueos en lugar de 1', v_liberados));
   END IF;
   IF (SELECT payment_in_progress_at FROM public.supplier_bills
        WHERE id = '41000000-0000-4000-8000-0000000000a7') IS NOT NULL THEN
-    v_fallas := v_fallas || 'release_stale_payment_locks: no liberó el bloqueo de A';
-  END IF;
-  IF (SELECT payment_in_progress_at FROM public.supplier_bills
-       WHERE id = '41000000-0000-4000-8000-0000000000b7') IS NULL THEN
-    v_fallas := v_fallas || 'release_stale_payment_locks: liberó el bloqueo de B';
+    v_fallas := array_append(v_fallas, 'release_stale_payment_locks: no liberó el bloqueo de A');
   END IF;
 
   PERFORM public.sync_forklift_rental_status();
   IF (SELECT status FROM public.forklifts WHERE id = '41000000-0000-4000-8000-00000000fa01')
      <> 'rented' THEN
-    v_fallas := v_fallas || 'sync_forklift_rental_status: no sincronizó el montacargas de A';
-  END IF;
-  IF (SELECT status FROM public.forklifts WHERE id = '41000000-0000-4000-8000-00000000fb01')
-     <> 'available' THEN
-    v_fallas := v_fallas || 'sync_forklift_rental_status: modificó un montacargas de B';
+    v_fallas := array_append(v_fallas, 'sync_forklift_rental_status: no sincronizó el montacargas de A');
   END IF;
 
   IF array_length(v_fallas, 1) IS NOT NULL THEN
@@ -436,32 +438,34 @@ BEGIN
   PERFORM public.approve_supplier_bill('41000000-0000-4000-8000-0000000000a4', 'Aprobada en A');
   IF (SELECT approval_status FROM public.supplier_bills
        WHERE id = '41000000-0000-4000-8000-0000000000a4') <> 'approved' THEN
-    v_fallas := v_fallas || 'approve_supplier_bill: A no pudo aprobar su propia factura';
+    v_fallas := array_append(v_fallas, 'approve_supplier_bill: A no pudo aprobar su propia factura');
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.supplier_bill_approvals
      WHERE bill_id = '41000000-0000-4000-8000-0000000000a4'
        AND organization_id = '41000000-0000-4000-8000-0000000000a0'
   ) THEN
-    v_fallas := v_fallas || 'approve_supplier_bill: la bitácora no heredó la organización';
+    v_fallas := array_append(v_fallas, 'approve_supplier_bill: la bitácora no heredó la organización');
   END IF;
 
-  v_uuid := public.register_supplier_payment('41000000-0000-4000-8000-0000000000a5', 1000);
+  v_uuid := public.register_supplier_payment(
+    '41000000-0000-4000-8000-0000000000a5', 1000, current_date,
+    'transfer', NULL, NULL, NULL, NULL, NULL);
   IF v_uuid IS NULL
      OR (SELECT organization_id FROM public.supplier_payments WHERE id = v_uuid)
         <> '41000000-0000-4000-8000-0000000000a0' THEN
-    v_fallas := v_fallas || 'register_supplier_payment: el pago no quedó en la empresa A';
+    v_fallas := array_append(v_fallas, 'register_supplier_payment: el pago no quedó en la empresa A');
   END IF;
 
   PERFORM public.mark_supplier_rep_rejected('41000000-0000-4000-8000-0000000000a8', 'REP ilegible');
   IF (SELECT rep_status FROM public.supplier_payments
        WHERE id = '41000000-0000-4000-8000-0000000000a8') <> 'rejected' THEN
-    v_fallas := v_fallas || 'mark_supplier_rep_rejected: A no pudo rechazar su propio REP';
+    v_fallas := array_append(v_fallas, 'mark_supplier_rep_rejected: A no pudo rechazar su propio REP');
   END IF;
   PERFORM public.reset_supplier_rep_pending('41000000-0000-4000-8000-0000000000a8');
   IF (SELECT rep_status FROM public.supplier_payments
        WHERE id = '41000000-0000-4000-8000-0000000000a8') <> 'pending' THEN
-    v_fallas := v_fallas || 'reset_supplier_rep_pending: A no pudo reiniciar su propio REP';
+    v_fallas := array_append(v_fallas, 'reset_supplier_rep_pending: A no pudo reiniciar su propio REP');
   END IF;
 
   v_batch := public.create_supplier_payment_batch(
@@ -469,14 +473,14 @@ BEGIN
   IF v_batch IS NULL
      OR (SELECT organization_id FROM public.supplier_payment_batches WHERE id = v_batch)
         <> '41000000-0000-4000-8000-0000000000a0' THEN
-    v_fallas := v_fallas || 'create_supplier_payment_batch/array: el lote no quedó en la empresa A';
+    v_fallas := array_append(v_fallas, 'create_supplier_payment_batch/array: el lote no quedó en la empresa A');
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.supplier_payment_batch_items
      WHERE batch_id = v_batch
        AND organization_id = '41000000-0000-4000-8000-0000000000a0'
   ) THEN
-    v_fallas := v_fallas || 'create_supplier_payment_batch/array: las partidas no heredaron la organización';
+    v_fallas := array_append(v_fallas, 'create_supplier_payment_batch/array: las partidas no heredaron la organización');
   END IF;
 
   v_uuid := public.start_repair_work_order(
@@ -484,29 +488,29 @@ BEGIN
   IF v_uuid IS NULL
      OR (SELECT organization_id FROM public.maintenance_logs WHERE id = v_uuid)
         <> '41000000-0000-4000-8000-0000000000a0' THEN
-    v_fallas := v_fallas || 'start_repair_work_order: la OT no quedó en la empresa A';
+    v_fallas := array_append(v_fallas, 'start_repair_work_order: la OT no quedó en la empresa A');
   END IF;
 
   PERFORM public.soft_delete_damage_record('41000000-0000-4000-8000-0000000000aa');
   IF (SELECT deleted_at FROM public.damage_records
        WHERE id = '41000000-0000-4000-8000-0000000000aa') IS NULL THEN
-    v_fallas := v_fallas || 'soft_delete_damage_record: A no pudo archivar su propio daño';
+    v_fallas := array_append(v_fallas, 'soft_delete_damage_record: A no pudo archivar su propio daño');
   END IF;
 
   PERFORM public.restore_damage_record('41000000-0000-4000-8000-0000000000ab');
   IF (SELECT deleted_at FROM public.damage_records
        WHERE id = '41000000-0000-4000-8000-0000000000ab') IS NOT NULL THEN
-    v_fallas := v_fallas || 'restore_damage_record: A no pudo restaurar su propio daño';
+    v_fallas := array_append(v_fallas, 'restore_damage_record: A no pudo restaurar su propio daño');
   END IF;
 
   PERFORM public.sync_invoice_status('41000000-0000-4000-8000-0000000000ae');
 
   v_uuid := public.revert_audit_log('41000000-0000-4000-8000-0000000000ac');
   IF v_uuid IS NULL THEN
-    v_fallas := v_fallas || 'revert_audit_log: A no pudo revertir su propia bitácora';
+    v_fallas := array_append(v_fallas, 'revert_audit_log: A no pudo revertir su propia bitácora');
   END IF;
   IF EXISTS (SELECT 1 FROM public.forklifts WHERE id = '41000000-0000-4000-8000-00000000fa04') THEN
-    v_fallas := v_fallas || 'revert_audit_log: no revirtió el alta en la empresa A';
+    v_fallas := array_append(v_fallas, 'revert_audit_log: no revirtió el alta en la empresa A');
   END IF;
 
   IF array_length(v_fallas, 1) IS NOT NULL THEN
@@ -518,71 +522,84 @@ END;
 $$;
 
 -- ── 4. La empresa B quedó intacta ────────────────────────────────────
+-- Fuera de la sesión de A: RLS de A ocultaría las filas de B y produciría
+-- falsos positivos.
+RESET role;
+RESET request.jwt.claims;
+
 DO $$
 DECLARE
   v_fallas text[] := '{}';
 BEGIN
   IF (SELECT approval_status FROM public.supplier_bills
        WHERE id = '41000000-0000-4000-8000-0000000000b4') <> 'pending' THEN
-    v_fallas := v_fallas || 'la factura pendiente de B cambió de estado de aprobación';
+    v_fallas := array_append(v_fallas, 'la factura pendiente de B cambió de estado de aprobación');
   END IF;
   IF EXISTS (
     SELECT 1 FROM public.supplier_payments
      WHERE bill_id = '41000000-0000-4000-8000-0000000000b5'
        AND id <> '41000000-0000-4000-8000-0000000000b8'
   ) THEN
-    v_fallas := v_fallas || 'se registraron pagos sobre una factura de B';
+    v_fallas := array_append(v_fallas, 'se registraron pagos sobre una factura de B');
   END IF;
   IF (SELECT rep_status FROM public.supplier_payments
        WHERE id = '41000000-0000-4000-8000-0000000000b8') <> 'pending' THEN
-    v_fallas := v_fallas || 'el REP de B cambió de estado';
+    v_fallas := array_append(v_fallas, 'el REP de B cambió de estado');
   END IF;
   IF EXISTS (
     SELECT 1 FROM public.supplier_payment_batches
      WHERE organization_id = '41000000-0000-4000-8000-0000000000b0'
   ) THEN
-    v_fallas := v_fallas || 'se creó un lote de pago en B';
+    v_fallas := array_append(v_fallas, 'se creó un lote de pago en B');
   END IF;
   IF EXISTS (
     SELECT 1 FROM public.supplier_payment_batch_items
      WHERE bill_id = '41000000-0000-4000-8000-0000000000b5'
   ) THEN
-    v_fallas := v_fallas || 'una factura de B quedó dentro de un lote de A';
+    v_fallas := array_append(v_fallas, 'una factura de B quedó dentro de un lote de A');
   END IF;
   IF (SELECT deleted_at FROM public.damage_records
        WHERE id = '41000000-0000-4000-8000-0000000000ba') IS NOT NULL THEN
-    v_fallas := v_fallas || 'se archivó un daño de B';
+    v_fallas := array_append(v_fallas, 'se archivó un daño de B');
   END IF;
   IF (SELECT deleted_at FROM public.damage_records
        WHERE id = '41000000-0000-4000-8000-0000000000bb') IS NULL THEN
-    v_fallas := v_fallas || 'se restauró un daño de B';
+    v_fallas := array_append(v_fallas, 'se restauró un daño de B');
   END IF;
   IF (SELECT status FROM public.damage_records
        WHERE id = '41000000-0000-4000-8000-0000000000b9') <> 'reported' THEN
-    v_fallas := v_fallas || 'se abrió una orden de trabajo sobre un daño de B';
+    v_fallas := array_append(v_fallas, 'se abrió una orden de trabajo sobre un daño de B');
   END IF;
   IF EXISTS (
     SELECT 1 FROM public.maintenance_logs
      WHERE organization_id = '41000000-0000-4000-8000-0000000000b0'
   ) THEN
-    v_fallas := v_fallas || 'se creó una orden de trabajo en B';
+    v_fallas := array_append(v_fallas, 'se creó una orden de trabajo en B');
   END IF;
   IF EXISTS (
     SELECT 1 FROM public.invoices
      WHERE organization_id = '41000000-0000-4000-8000-0000000000b0'
        AND id <> '41000000-0000-4000-8000-0000000000be'
   ) THEN
-    v_fallas := v_fallas || 'se generó una factura recurrente en B';
+    v_fallas := array_append(v_fallas, 'se generó una factura recurrente en B');
   END IF;
   IF (SELECT status FROM public.invoices
        WHERE id = '41000000-0000-4000-8000-0000000000be') <> 'sent' THEN
-    v_fallas := v_fallas || 'cambió el estatus de la factura de B';
+    v_fallas := array_append(v_fallas, 'cambió el estatus de la factura de B');
   END IF;
   IF NOT EXISTS (
     SELECT 1 FROM public.forklifts
      WHERE id = '41000000-0000-4000-8000-00000000fb04'
   ) THEN
-    v_fallas := v_fallas || 'se eliminó un montacargas de B';
+    v_fallas := array_append(v_fallas, 'se eliminó un montacargas de B');
+  END IF;
+  IF (SELECT payment_in_progress_at FROM public.supplier_bills
+       WHERE id = '41000000-0000-4000-8000-0000000000b7') IS NULL THEN
+    v_fallas := array_append(v_fallas, 'release_stale_payment_locks: liberó el bloqueo de B');
+  END IF;
+  IF (SELECT status FROM public.forklifts WHERE id = '41000000-0000-4000-8000-00000000fb01')
+     <> 'available' THEN
+    v_fallas := array_append(v_fallas, 'sync_forklift_rental_status: modificó un montacargas de B');
   END IF;
 
   IF array_length(v_fallas, 1) IS NOT NULL THEN
