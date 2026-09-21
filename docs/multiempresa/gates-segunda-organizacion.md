@@ -11,7 +11,7 @@ Estado de los gates (última revisión: 2026-09-20):
 | Gate | Estado | Evidencia |
 | --- | --- | --- |
 | CI completo en verde | **Verificado** para el commit `44dacee` (2026-09-20) | Runs [35543605798](https://github.com/hlopezb83/liftgo/actions/runs/35543605798), [35543605857](https://github.com/hlopezb83/liftgo/actions/runs/35543605857), [35543605759](https://github.com/hlopezb83/liftgo/actions/runs/35543605759) |
-| Ensayo A/B real (datos + Storage + portal) | **Pendiente** — automatización *implementada, pendiente de primera corrida* (`.github/workflows/multi-tenant-ab.yml`, `tests/multi-tenant-ab/`). No hay run verde registrado. | — |
+| Ensayo A/B real (datos + Storage + portal) | **Pendiente** — automatización *implementada, pendiente de corrida verde* (`.github/workflows/multi-tenant-ab.yml`, `tests/multi-tenant-ab/`). Primera corrida (commit `55ee6cb`, run 35546306009): infraestructura, auth, reset, Drizzle y navegador OK; falló el seed de la empresa B por falta de contexto de organización. Corregido en 8.26.1 (B se siembra suspendida y se activa con `platform_set_organization_active`). No hay run verde registrado. | — |
 | Restore probado | **Pendiente** — requiere evidencia externa | — |
 
 ### Automatización del ensayo A/B (sin resultado aún)
