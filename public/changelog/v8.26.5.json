@@ -1,0 +1,13 @@
+{
+  "version": "8.26.5",
+  "date": "2026-09-21",
+  "type": "patch",
+  "category": "fix",
+  "title": "Séptima corrección del ensayo A/B: la verificación del token acepta la vía remota cuando la verificación local no reconoce los JWT del entorno local",
+  "description": "El portero que revisa la credencial en cada llamada al servidor sólo usaba una verificación local de firma; con los JWT HS256 que emite el Supabase local del ensayo esa vía fallaba y la sesión se marcaba como expirada aunque el token era válido, como un guardia que sólo acepta una forma de identificación. Ahora, si la vía local no entrega datos, la misma credencial se valida a distancia contra el servicio de autenticación; si ambas fallan, el acceso sigue bloqueado.",
+  "changes": [
+    "src/integrations/supabase/auth-middleware.ts: getClaims(token) sigue siendo la vía principal; si no entrega claims válidos se valida el mismo token con supabase.auth.getUser(token) y se acepta sólo si devuelve un usuario con id, con claims mínimos {sub}; si ambos fallan se conserva fail-closed con 'Unauthorized: Invalid token'. Sin decodificar el JWT, sin service role y sin relajar RLS.",
+    "src/lib/__tests__/requireSupabaseAuth.test.ts: pruebas para getClaims exitoso, fallback getUser exitoso, ambos métodos fallando y fallback con usuario sin id.",
+    "docs/multiempresa/gates-segunda-organizacion.md: se registra la corrida 7 (run 35561856480) y su causa demostrada por el artefacto. El gate A/B sigue ABIERTO hasta un run completo en verde."
+  ]
+}
