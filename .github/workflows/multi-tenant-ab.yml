@@ -133,12 +133,24 @@ jobs:
           supabase status -o env > /tmp/supabase-local.env
           # shellcheck disable=SC1091
           set -a; source /tmp/supabase-local.env; set +a
+          # Fail-closed: si la CLI local no entregó credenciales, aborta antes
+          # de escribir nada en GITHUB_ENV.
+          if [[ -z "$API_URL" || -z "$ANON_KEY" || -z "$SERVICE_ROLE_KEY" ]]; then
+            echo "::error::Credenciales locales incompletas (API_URL/ANON_KEY/SERVICE_ROLE_KEY vacíos)"
+            rm -f /tmp/supabase-local.env
+            exit 1
+          fi
           echo "::add-mask::$ANON_KEY"
           echo "::add-mask::$SERVICE_ROLE_KEY"
+          # El middleware server-side (auth-middleware.ts) exige SUPABASE_URL y
+          # SUPABASE_PUBLISHABLE_KEY ademas de las variantes VITE_*. Sin
+          # SUPABASE_PUBLISHABLE_KEY, requireSupabaseAuth falla y el portal nunca
+          # monta el layout autenticado.
           {
             echo "VITE_SUPABASE_URL=$API_URL"
             echo "SUPABASE_URL=$API_URL"
             echo "VITE_SUPABASE_PUBLISHABLE_KEY=$ANON_KEY"
+            echo "SUPABASE_PUBLISHABLE_KEY=$ANON_KEY"
             echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
           } >> "$GITHUB_ENV"
           rm -f /tmp/supabase-local.env
