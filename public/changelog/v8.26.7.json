@@ -1,0 +1,14 @@
+{
+  "version": "8.26.7",
+  "date": "2026-09-21",
+  "type": "patch",
+  "category": "fix",
+  "title": "Novena corrección del ensayo A/B: el servidor del preview recibe bindings locales vía .dev.vars efímero y deja de validar los JWT contra producción",
+  "description": "La corrida 8 demostró la causa profunda de los 'Unauthorized: Invalid token': el preview corre con wrangler dev, que carga sus variables desde .dev.vars (o .env si no existe) y no hereda automáticamente las variables del proceso. Como el repositorio tiene un .env versionado con el ref productivo, el Worker validaba los JWT locales contra el Supabase productivo, como un portero que verifica las credenciales llamando a la oficina equivocada. Ahora el workflow crea un .dev.vars efímero apuntando al Supabase local, lo verifica sin imprimir valores y lo elimina en el teardown.",
+  "changes": [
+    ".github/workflows/multi-tenant-ab.yml: nuevo paso que crea .dev.vars con SUPABASE_URL/ANON_KEY/SERVICE_ROLE_KEY locales y SUPABASE_PROJECT_ID=local-ab-ephemeral (chmod 600, sin imprimir valores); paso fail-closed que verifica sólo nombres/presencia, URL loopback y ausencia del ref productivo; el teardown elimina .dev.vars con if: always() para que nunca llegue a artifacts.",
+    ".gitignore: se añade .dev.vars* para que el archivo efímero nunca se versione.",
+    "docs/multiempresa/gates-segunda-organizacion.md: se registra la corrida 8 (run 35565322198) y su causa demostrada: bindings de Wrangler apuntando al ref productivo por el .env versionado. El gate A/B sigue ABIERTO hasta un run completo en verde.",
+    "Sin cambios en RLS, middleware, guards, fixtures ni asertos Playwright; el bloqueo explícito del ref productivo se conserva."
+  ]
+}
