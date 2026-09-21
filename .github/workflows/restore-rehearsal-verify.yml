@@ -1,0 +1,131 @@
+name: Restore rehearsal · verificación posterior a restore
+
+# ESTE WORKFLOW **NO** RESTAURA NADA.
+#
+# Verifica, en SÓLO LECTURA, una copia que YA fue restaurada por el propietario
+# en una instancia AISLADA. No ejecuta pg_restore, no escribe en la base y no
+# toca producción: la conexión llega por el secret del environment
+# `restore-rehearsal` y los guards abortan si la URL o el ref esperado apuntan
+# al ref productivo bloqueado.
+#
+# Los reportes subidos son agregados y enmascarados (ORG-001, conteos): nunca
+# contienen UUID, nombres, correos, rutas, tokens ni la cadena de conexión.
+
+on:
+  workflow_dispatch:
+    inputs:
+      expected_ref:
+        description: "Ref/host esperado de la instancia AISLADA (nunca el productivo)"
+        required: true
+        type: string
+      backup_timestamp_utc:
+        description: "Timestamp UTC del backup restaurado (ISO-8601)"
+        required: true
+        type: string
+      restore_started_utc:
+        description: "Inicio del restore en UTC (ISO-8601)"
+        required: true
+        type: string
+      restore_ready_utc:
+        description: "Copia lista para verificar, UTC (ISO-8601)"
+        required: true
+        type: string
+      rpo_target_minutes:
+        description: "Objetivo de RPO en minutos"
+        required: true
+        type: string
+      rto_target_minutes:
+        description: "Objetivo de RTO en minutos"
+        required: true
+        type: string
+      confirm:
+        description: "Escribe exactamente VERIFY-ISOLATED-RESTORE"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: restore-rehearsal-verify-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verificar copia restaurada (sólo lectura)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: restore-rehearsal
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Bun project
+        uses: ./.github/actions/setup-bun-project
+
+      # Fail-closed antes de tocar el secret: confirmación exacta, inputs
+      # presentes y bien formados, y ref esperado distinto del productivo.
+      - name: Validar inputs (fail-closed)
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          EXPECTED_REF: ${{ inputs.expected_ref }}
+          BACKUP_TS: ${{ inputs.backup_timestamp_utc }}
+          STARTED: ${{ inputs.restore_started_utc }}
+          READY: ${{ inputs.restore_ready_utc }}
+          RPO: ${{ inputs.rpo_target_minutes }}
+          RTO: ${{ inputs.rto_target_minutes }}
+        run: |
+          set -euo pipefail
+          if [[ "$CONFIRM" != "VERIFY-ISOLATED-RESTORE" ]]; then
+            echo "::error::Confirmación inválida. Se requiere exactamente VERIFY-ISOLATED-RESTORE"; exit 1
+          fi
+          for name in EXPECTED_REF BACKUP_TS STARTED READY RPO RTO; do
+            if [[ -z "${!name}" ]]; then echo "::error::Input vacío: $name"; exit 1; fi
+          done
+          if [[ "$EXPECTED_REF" == *"zxefrzfaynnfwazqhwxp"* ]]; then
+            echo "::error::El ref esperado es el productivo bloqueado"; exit 1
+          fi
+          iso='^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}(:[0-9]{2})?(\.[0-9]+)?Z$'
+          for ts in "$BACKUP_TS" "$STARTED" "$READY"; do
+            if [[ ! "$ts" =~ $iso ]]; then echo "::error::Timestamp UTC inválido (se espera ISO-8601 con Z)"; exit 1; fi
+          done
+          for n in "$RPO" "$RTO"; do
+            if [[ ! "$n" =~ ^[0-9]+$ ]] || [[ "$n" -le 0 ]]; then echo "::error::Objetivo de minutos inválido"; exit 1; fi
+          done
+
+      # Comprueba SÓLO que el secret existe y que no contiene el ref productivo.
+      # No imprime el valor ni fragmentos de él.
+      - name: Verificar destino aislado (sin imprimir el secret)
+        env:
+          RESTORE_REHEARSAL_DATABASE_URL: ${{ secrets.RESTORE_REHEARSAL_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${RESTORE_REHEARSAL_DATABASE_URL:-}" ]]; then
+            echo "::error::Falta el secret RESTORE_REHEARSAL_DATABASE_URL en el environment restore-rehearsal"; exit 1
+          fi
+          if [[ "$RESTORE_REHEARSAL_DATABASE_URL" == *"zxefrzfaynnfwazqhwxp"* ]]; then
+            echo "::error::La conexión apunta al ref productivo bloqueado"; exit 1
+          fi
+          echo "Destino OK: secret presente y sin ref productivo"
+
+      - name: Verificar copia restaurada (READ ONLY)
+        env:
+          RESTORE_REHEARSAL_DATABASE_URL: ${{ secrets.RESTORE_REHEARSAL_DATABASE_URL }}
+          RESTORE_REHEARSAL_EXPECTED_REF: ${{ inputs.expected_ref }}
+          RESTORE_REHEARSAL_BACKUP_TIMESTAMP_UTC: ${{ inputs.backup_timestamp_utc }}
+          RESTORE_REHEARSAL_STARTED_UTC: ${{ inputs.restore_started_utc }}
+          RESTORE_REHEARSAL_READY_UTC: ${{ inputs.restore_ready_utc }}
+          RESTORE_REHEARSAL_RPO_TARGET_MINUTES: ${{ inputs.rpo_target_minutes }}
+          RESTORE_REHEARSAL_RTO_TARGET_MINUTES: ${{ inputs.rto_target_minutes }}
+        run: bun run restore:verify
+
+      - name: Subir reportes enmascarados
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: restore-rehearsal-evidence
+          path: |
+            reports/restore-rehearsal.json
+            reports/restore-rehearsal.md
+          if-no-files-found: warn
+          retention-days: 5
