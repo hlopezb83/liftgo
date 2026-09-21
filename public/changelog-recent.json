@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.32.1",
+    "date": "2026-09-21",
+    "type": "patch",
+    "category": "security",
+    "title": "Ajustes de la validación 0041: reversión de altas, armado de lotes y prueba de aislamiento",
+    "description": "La validación transaccional del cambio 0041 detectó defectos reales: la reversión de un alta podía reportar éxito aunque la fila fuera de otra empresa, el armado de lotes usaba columnas inexistentes y la prueba de aislamiento ocultaba falsos negativos. Se corrigieron sin tocar otras funciones y sin aplicar nada en la nube.",
+    "changes": [
+      "La reversión de bitácora ahora exige que la fila afectada exista y sea de la empresa actual también cuando se revierte un alta.",
+      "El armado de lote de pago por lista de facturas usa las columnas reales del lote, conserva la fecha programada y el método de pago dentro de las notas, agrega la referencia obligatoria de cada partida y actualiza el total y el número de facturas del lote.",
+      "La prueba de aislamiento siembra las facturas aprobadas con el contexto correcto, marca como PPD las facturas con REP, incluye el montacargas en las entregas completadas y acumula las fallas de forma confiable.",
+      "Las comprobaciones de la empresa B se hacen fuera de la sesión de la empresa A para evitar falsos positivos, y el registro de pago a proveedor se prueba con la firma completa para evitar ambigüedad.",
+      "El cambio de base 0041 sigue sin aplicarse en la nube."
+    ]
+  },
+  {
     "version": "8.32.0",
     "date": "2026-09-21",
     "type": "minor",
@@ -874,21 +889,6 @@
     "changes": [
       "Se cambió `let end` por `const end` en la prueba de aislamiento porque su valor no cambia tras asignarse.",
       "La revisión automática de código (ESLint) vuelve a terminar sin errores; typecheck, build y la prueba de aislamiento (16/16) pasan."
-    ]
-  },
-  {
-    "version": "8.20.4",
-    "date": "2026-09-18",
-    "type": "patch",
-    "category": "security",
-    "title": "La revisión automática ahora exige que la empresa venga del servidor, no de la petición",
-    "description": "La revisión anterior daba por buena cualquier alta que simplemente mencionara la empresa, aunque ese dato viniera de quien hace la petición: como aceptar un paquete porque trae etiqueta, sin comprobar quién la escribió. Ahora distingue entre guardar y consultar, y sólo acepta la empresa cuando el servidor la dedujo de la membresía; si el valor procede de la petición, falla, y ninguna excepción registrada puede taparlo.",
-    "changes": [
-      "Las altas deben asignar la empresa deducida en el servidor; las consultas, modificaciones y bajas deben filtrar por ella en la misma operación.",
-      "Se rechaza cualquier empresa tomada del contenido de la petición.",
-      "Las excepciones registradas sólo cubren el caso de falta de filtro, nunca un origen no confiable.",
-      "Se añadieron casos de prueba que deben fallar, incluido un alta con la empresa tomada de la petición, para evitar aprobaciones falsas.",
-      "Se documentó el límite: es una revisión de texto, no de recorrido del dato, y no cubre las llamadas a funciones de la base; esas rutas se verificaron a mano y quedaron registradas."
     ]
   }
 ]

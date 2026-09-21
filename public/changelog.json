@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.32.1",
+    "date": "2026-09-21",
+    "type": "patch",
+    "category": "security",
+    "title": "Ajustes de la validación 0041: reversión de altas, armado de lotes y prueba de aislamiento",
+    "description": "La validación transaccional del cambio 0041 detectó defectos reales: la reversión de un alta podía reportar éxito aunque la fila fuera de otra empresa, el armado de lotes usaba columnas inexistentes y la prueba de aislamiento ocultaba falsos negativos. Se corrigieron sin tocar otras funciones y sin aplicar nada en la nube.",
+    "changes": [
+      "La reversión de bitácora ahora exige que la fila afectada exista y sea de la empresa actual también cuando se revierte un alta.",
+      "El armado de lote de pago por lista de facturas usa las columnas reales del lote, conserva la fecha programada y el método de pago dentro de las notas, agrega la referencia obligatoria de cada partida y actualiza el total y el número de facturas del lote.",
+      "La prueba de aislamiento siembra las facturas aprobadas con el contexto correcto, marca como PPD las facturas con REP, incluye el montacargas en las entregas completadas y acumula las fallas de forma confiable.",
+      "Las comprobaciones de la empresa B se hacen fuera de la sesión de la empresa A para evitar falsos positivos, y el registro de pago a proveedor se prueba con la firma completa para evitar ambigüedad.",
+      "El cambio de base 0041 sigue sin aplicarse en la nube."
+    ]
+  },
+  {
     "version": "8.32.0",
     "date": "2026-09-21",
     "type": "minor",
