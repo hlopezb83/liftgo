@@ -51,3 +51,15 @@ tramo: se conservan endurecidos para consumidores antiguos. Las rutas nuevas de
 la aplicación (`src/lib/feedbackAi.functions.ts` y
 `src/lib/supplierRep.functions.ts`) son las preferidas para cualquier trabajo
 nuevo.
+
+
+## Verificación del despliegue
+
+Esta clasificación describe el código versionado; no demuestra qué versión está
+desplegada. Antes de habilitar una segunda organización se debe ejecutar el
+[auditor de despliegue](multiempresa/edge-functions-deployment-audit.md).
+
+Las rutas retiradas son especialmente sensibles: pueden no estar desplegadas,
+pero si existen en producción deben coincidir con la implementación segura que
+responde `410`. La herramienta `migrate-storage-org-prefix` sigue la misma
+regla y no es necesaria como endpoint permanente.
