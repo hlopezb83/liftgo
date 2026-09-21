@@ -78,6 +78,16 @@ async function createUser(
   return { email, password, userId };
 }
 
+/**
+ * Siembra una empresa completa.
+ *
+ * `active`: la empresa A se crea activa; la B se crea SUSPENDIDA y se activa
+ * al final por la vía oficial (`platform_set_organization_active`). Motivo: el
+ * guard `enforce_organization_write_context` exige contexto explícito cuando
+ * hay más de una empresa activa, y las filas derivadas de `customers` (tabla
+ * de identidad global, sin `organization_id`) no lo llevan. Sembrar B mientras
+ * sólo A está activa respeta el contrato sin tocar el guard.
+ */
 async function seedSide(
   admin: SupabaseClient,
   org: { id: string; name: string; slug: string },
@@ -90,6 +100,7 @@ async function seedSide(
     internalEmail: string;
     portalEmail: string;
   },
+  active: boolean,
 ): Promise<AbSide> {
   must(
     "organizations",
@@ -97,27 +108,36 @@ async function seedSide(
       id: org.id,
       name: org.name,
       slug: org.slug,
-      is_active: true,
+      is_active: active,
     })).error,
   );
 
+  // `created_by_organization_id` explícito: el contrato documentado en la
+  // migración 0030 pide que los fixtures A/B declaren la empresa dueña.
   must(
     "customers",
     (await admin.from("customers").insert({
       id: ids.customerId,
       name: `Cliente ficticio de ${org.name}`,
+      created_by_organization_id: org.id,
     })).error,
   );
 
+  // La relación puede haberla creado ya el trigger de alta cuando sólo hay una
+  // empresa activa; el upsert la deja idéntica en ambos casos.
   must(
     "organization_customers",
-    (await admin.from("organization_customers").insert({
-      organization_id: org.id,
-      customer_id: ids.customerId,
-      razon_social: `${org.name} SA de CV`,
-      status: "active",
-    })).error,
+    (await admin.from("organization_customers").upsert(
+      {
+        organization_id: org.id,
+        customer_id: ids.customerId,
+        razon_social: `${org.name} SA de CV`,
+        status: "active",
+      },
+      { onConflict: "organization_id,customer_id" },
+    )).error,
   );
+
 
   const internal = await createUser(admin, ids.internalEmail, org.id);
   const portal = await createUser(admin, ids.portalEmail, org.id);
