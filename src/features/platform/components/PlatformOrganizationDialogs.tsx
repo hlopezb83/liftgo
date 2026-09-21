@@ -156,39 +156,14 @@ export function CreateOrganizationDialog({
               onChange={(e) => update("admin_email")(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-admin-password">
-              Contraseña inicial (opcional)
-            </Label>
-            <Input
-              id="org-admin-password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              minLength={12}
-              maxLength={72}
-              value={form.admin_password}
-              onChange={(e) => update("admin_password")(e.target.value)}
-              aria-invalid={passwordError ? true : undefined}
-            />
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">
-                12 a 72 caracteres con mayúsculas, minúsculas, números y
-                símbolos. Evita contraseñas comunes. Si la dejas vacía, se
-                genera un enlace de acceso de un solo uso.
-              </p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPassword((v) => !v)}
-              >
-                {showPassword ? "Ocultar" : "Mostrar"}
-              </Button>
-            </div>
-            {passwordError ? (
-              <p className="text-xs text-destructive">{passwordError}</p>
-            ) : null}
-          </div>
+          <AdminPasswordField
+            value={form.admin_password}
+            onChange={update("admin_password")}
+            error={passwordError}
+            visible={showPassword}
+            onToggleVisible={() => setShowPassword((v) => !v)}
+          />
+
 
 
 
