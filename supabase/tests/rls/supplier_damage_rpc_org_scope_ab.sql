@@ -261,6 +261,26 @@ BEGIN
           '41000000-0000-4000-8000-0000000000bf', 'sent',
           '[{"description":"Renta mensual Toyota 8FGU25","quantity":1,"unit_price":10000,"amount":10000}]'::jsonb,
           10000, 1600, 11600, v_org_b);
+
+  -- Los triggers de entregas completadas dejan FA01/FB01 en 'rented', por lo
+  -- que la aserción final sobre FB01='available' fallaría antes de probar
+  -- aislamiento y FA01='rented' no demostraría una transición de la RPC.
+  -- Se reinician ambos a 'available' bajo el contexto de RPC de montacargas y
+  -- se restaura el contexto; la precondición se verifica a continuación.
+  PERFORM set_config('app.forklift_rpc', 'on', true);
+  UPDATE public.forklifts SET status = 'available'
+   WHERE id IN ('41000000-0000-4000-8000-00000000fa01',
+                '41000000-0000-4000-8000-00000000fb01');
+  PERFORM set_config('app.forklift_rpc', 'off', true);
+
+  -- Precondición determinista: ambos montacargas deben iniciar en 'available'
+  -- antes de invocar sync_forklift_rental_status.
+  IF (SELECT status FROM public.forklifts
+       WHERE id = '41000000-0000-4000-8000-00000000fa01') <> 'available'
+     OR (SELECT status FROM public.forklifts
+       WHERE id = '41000000-0000-4000-8000-00000000fb01') <> 'available' THEN
+    RAISE EXCEPTION 'RPC ORG 0041: precondición falló — FA01/FB01 no inician en available';
+  END IF;
 END;
 $$;
 
