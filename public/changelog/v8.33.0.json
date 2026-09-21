@@ -1,0 +1,16 @@
+{
+  "version": "8.33.0",
+  "date": "2026-09-21",
+  "type": "minor",
+  "category": "security",
+  "title": "Aislamiento por empresa en 12 operaciones de banca, devoluciones, cobranza, prospectos, roles y secretos",
+  "description": "Se endurecieron doce operaciones internas para que siempre trabajen dentro de la empresa del usuario: banca (carga, bloques, cierre y conciliación), inspecciones de devolución, pólizas de mantenimiento, rechazo de intentos de pago, orden de prospectos, cambio de rol, secretos de facturación y folio de nota de crédito. El cambio quedó listo en Git; aún no se aplica en la nube.",
+  "changes": [
+    "Cada operación verifica la sesión, la membresía interna y la empresa activa antes de leer o modificar información.",
+    "La empresa se determina desde el registro afectado; un identificador de otra empresa se comporta igual que uno inexistente.",
+    "Las filas derivadas (importaciones, líneas bancarias, inspecciones, daños y bitácora de estatus) heredan la empresa correcta.",
+    "Las operaciones con varias entidades fallan por completo si mezclan datos de dos empresas, antes de escribir.",
+    "Se cerraron los permisos: nadie anónimo puede ejecutarlas y sólo usuarios autenticados con las guardas correspondientes.",
+    "Se agregaron una prueba de contrato y una prueba A/B con dos empresas; ambas se validaron en una transacción reversible sin dejar datos."
+  ]
+}
