@@ -24,11 +24,11 @@ import type {
   PlatformOrganizationRow,
 } from "@/lib/platformAdmin.functions";
 import { isStrongAdminPassword } from "@/lib/platformAdmin.helpers";
-import { AdminPasswordField } from "./AdminPasswordField";
 import {
   useCreateOrganization,
   useSetOrganizationActive,
 } from "../hooks/usePlatformOperator";
+import { AdminPasswordField } from "./AdminPasswordField";
 
 const EMPTY_FORM = {
   name: "",
