@@ -91,20 +91,34 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       }
     );
 
+    // Vía principal: verificación local de claims.
     const { data, error } = await supabase.auth.getClaims(token);
-    if (error || !data?.claims) {
-      throw new Error('Unauthorized: Invalid token');
+    if (!error && data?.claims) {
+      if (!data.claims.sub) {
+        throw new Error('Unauthorized: No user ID found in token');
+      }
+      return next({
+        context: {
+          supabase,
+          userId: data.claims.sub,
+          claims: data.claims,
+        },
+      });
     }
 
-    if (!data.claims.sub) {
-      throw new Error('Unauthorized: No user ID found in token');
+    // Fallback: getClaims puede fallar con JWT HS256 de Supabase local
+    // (gate A/B multiempresa); valida el mismo token remotamente. Nunca se
+    // decodifica el JWT ni se confía en el payload sin verificar.
+    const { data: userData, error: userError } = await supabase.auth.getUser(token);
+    if (userError || !userData?.user?.id) {
+      throw new Error('Unauthorized: Invalid token');
     }
 
     return next({
       context: {
         supabase,
-        userId: data.claims.sub,
-        claims: data.claims,
+        userId: userData.user.id,
+        claims: { sub: userData.user.id },
       },
     });
   },
