@@ -1,3 +1,11 @@
+## [8.26.6] - 2026-09-21 · patch · fix
+
+Dos piezas quedaron desalineadas tras la corrección anterior. La prueba que simula el servicio de autenticación no incluía la nueva vía de verificación remota, como un simulacro al que le falta una puerta, y fallaba aunque el comportamiento real era correcto; ahora la incluye y el caso inválido hace fallar ambas vías. Además, la alarma del ensayo A/B no escuchaba cambios en los archivos del camino de autenticación y contexto; ahora sí los vigila para que ningún ajuste ahí eluda la revisión.
+
+- src/lib/__tests__/serverFnTransport.test.ts: el mock compartido de Supabase incluye auth.getUser; el caso de credenciales inválidas hace fallar getClaims y getUser; nueva prueba que cubre el fallback (getClaims falla, getUser valida y el negocio corre con el userId del usuario remoto). Sin cambios en el middleware.
+- .github/workflows/multi-tenant-ab.yml: los filtros paths de pull_request y push añaden src/integrations/supabase/auth-middleware.ts, src/lib/authAttacher.ts, src/lib/organizationContext.functions.ts, src/contexts/OrganizationContext.tsx y src/layouts/AuthGuard.tsx, para que cambios del camino de autenticación/contexto disparen el gate. Sin patrones amplios.
+- Validaciones: Vitest requireSupabaseAuth + serverFnTransport 12/12, tsgo --noEmit, ESLint del test y actionlint del workflow, todo en verde. El gate A/B sigue ABIERTO hasta un run completo en verde.
+
 ## [8.26.5] - 2026-09-21 · patch · fix
 
 El portero que revisa la credencial en cada llamada al servidor sólo usaba una verificación local de firma; con los JWT HS256 que emite el Supabase local del ensayo esa vía fallaba y la sesión se marcaba como expirada aunque el token era válido, como un guardia que sólo acepta una forma de identificación. Ahora, si la vía local no entrega datos, la misma credencial se valida a distancia contra el servicio de autenticación; si ambas fallan, el acceso sigue bloqueado.
