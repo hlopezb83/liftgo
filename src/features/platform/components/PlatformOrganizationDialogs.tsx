@@ -37,6 +37,18 @@ const EMPTY_FORM = {
 };
 
 
+/** Misma regla que el servidor: 12-72 caracteres y cuatro clases. */
+function isStrongPassword(value: string): boolean {
+  return (
+    value.length >= 12 &&
+    value.length <= 72 &&
+    /[a-z]/.test(value) &&
+    /[A-Z]/.test(value) &&
+    /[0-9]/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
+  );
+}
+
 function slugify(value: string): string {
   return value
     .normalize("NFD")
