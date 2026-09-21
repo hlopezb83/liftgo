@@ -102,7 +102,7 @@ BEGIN
       USING ERRCODE = 'check_violation';
   END IF;
 
-  -- (e) moneda de la factura y exchange_rate NULL (no falsear el TC)
+  -- (e) moneda de la factura y exchange_rate por defecto (no falsear el TC)
   INSERT INTO public.payments(
     invoice_id, amount, payment_date, payment_method, payment_form_sat,
     reference_number, notes, currency, exchange_rate, organization_id
@@ -110,7 +110,7 @@ BEGIN
     v_intent.invoice_id, v_intent.amount, v_intent.transfer_date,
     'transfer', COALESCE(p_payment_form_sat, '03'), v_intent.tracking_key,
     'Aprobado desde portal (intent ' || v_intent.id::text || ')',
-    v_invoice_currency, NULL, v_org
+    v_invoice_currency, COALESCE(NULLIF(v_invoice_exchange, 0), 1), v_org
   ) RETURNING id INTO v_payment_id;
 
   UPDATE public.customer_payment_intents
