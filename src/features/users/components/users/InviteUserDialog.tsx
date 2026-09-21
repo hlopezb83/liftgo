@@ -35,6 +35,9 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState<string>("dispatcher");
   const inviteUser = useInviteUser();
 
