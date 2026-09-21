@@ -15,6 +15,18 @@ import type { AppRole } from "../../hooks/useUserRole";
 // v7.226.0 · E2E-N7: validar email antes de invocar la edge function.
 const inviteEmailSchema = z.string().trim().email("Ingresa un correo válido");
 
+// SEC-B5: contraseña inicial opcional; misma regla que valida el servidor.
+const PASSWORD_HINT =
+  "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos.";
+const invitePasswordSchema = z
+  .string()
+  .min(12)
+  .max(72)
+  .regex(/[a-z]/)
+  .regex(/[A-Z]/)
+  .regex(/[0-9]/)
+  .regex(/[^A-Za-z0-9]/);
+
 interface InviteUserDialogProps {
   onCreated: () => void;
   /**
