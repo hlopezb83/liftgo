@@ -5427,7 +5427,10 @@ export type Database = {
         Args: { p_quote_id: string }
         Returns: undefined
       }
-      e2e_purge_all: { Args: never; Returns: Json }
+      e2e_require_admin_organization: {
+        Args: { p_function: string }
+        Returns: string
+      }
       e2e_seed_portal_scenario: {
         Args: { p_portal_email: string; p_scope: string }
         Returns: Json
