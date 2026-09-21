@@ -84,18 +84,24 @@ export const inviteUserFn = createServerFn({ method: "POST" })
 
     await finalizeInvitedUser(g, admin, userId, data, organizationId);
 
-    // SEC-B5: recovery link para que el invitado defina su contraseña.
-    const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email,
-    });
-    if (linkErr) console.error("[invite-user] generateLink:", linkErr.message);
+    // SEC-B5: sólo cuando el administrador NO definió contraseña se genera el
+    // enlace de recuperación; con contraseña manual hay un único camino de acceso.
+    let recoveryLink: string | null = null;
+    if (!password) {
+      const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email,
+      });
+      if (linkErr) console.error("[invite-user] generateLink:", linkErr.message);
+      recoveryLink = linkData?.properties?.action_link ?? null;
+    }
 
     return {
       success: true,
       user_id: userId,
       email,
-      recovery_link: linkData?.properties?.action_link ?? null,
+      recovery_link: recoveryLink,
+      password_set_manually: Boolean(password),
     };
   });
 
