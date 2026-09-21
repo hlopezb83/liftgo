@@ -44,17 +44,38 @@ describe("requireSupabaseAuth", () => {
     );
   });
 
-  it("rechaza credenciales inválidas", async () => {
+  it("rechaza cuando getClaims y getUser fallan", async () => {
     withHeaders({ authorization: "Bearer a.b.c" });
     getClaims.mockResolvedValue({ data: null, error: new Error("bad") });
+    getUser.mockResolvedValue({ data: null, error: new Error("bad") });
     await expect(serverMiddleware()({ next: vi.fn() })).rejects.toThrow(/Invalid token/);
   });
 
-  it("acepta un Bearer válido y expone el userId", async () => {
+  it("acepta un Bearer válido por getClaims y expone el userId", async () => {
     withHeaders({ authorization: "Bearer a.b.c" });
     getClaims.mockResolvedValue({ data: { claims: { sub: "user-1" } }, error: null });
     const next = vi.fn((o?: unknown) => o);
     const out = (await serverMiddleware()({ next })) as { context: { userId: string } };
     expect(out.context.userId).toBe("user-1");
+    expect(getUser).not.toHaveBeenCalled();
+  });
+
+  it("cae a getUser cuando getClaims no entrega claims y acepta el userId", async () => {
+    withHeaders({ authorization: "Bearer a.b.c" });
+    getClaims.mockResolvedValue({ data: null, error: new Error("bad jwt") });
+    getUser.mockResolvedValue({ data: { user: { id: "user-2" } }, error: null });
+    const next = vi.fn((o?: unknown) => o);
+    const out = (await serverMiddleware()({ next })) as {
+      context: { userId: string; claims: { sub: string } };
+    };
+    expect(out.context.userId).toBe("user-2");
+    expect(out.context.claims.sub).toBe("user-2");
+  });
+
+  it("rechaza cuando el fallback getUser devuelve usuario sin id", async () => {
+    withHeaders({ authorization: "Bearer a.b.c" });
+    getClaims.mockResolvedValue({ data: null, error: new Error("bad jwt") });
+    getUser.mockResolvedValue({ data: { user: null }, error: null });
+    await expect(serverMiddleware()({ next: vi.fn() })).rejects.toThrow(/Invalid token/);
   });
 });
