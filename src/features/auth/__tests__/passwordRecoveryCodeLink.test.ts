@@ -61,7 +61,7 @@ describe("recuperación por enlace con código", () => {
 
   afterEach(() => {
     resetRecoveryForTests();
-    setHref("http://localhost/");
+    setHref("/");
   });
 
   it("marca el flujo como pendiente al aterrizar con ?code=", () => {
@@ -70,7 +70,7 @@ describe("recuperación por enlace con código", () => {
   });
 
   it("canjea el código, activa el formulario y limpia la URL", async () => {
-    setHref("http://localhost/auth?code=abc123");
+    setHref("/auth?code=abc123");
     initRecoveryFromLocation(window.location.href);
     exchangeRecoveryCodeFromUrl();
     await vi.waitFor(() => expect(getRecoveryStatus()).toBe("active"));
@@ -84,7 +84,7 @@ describe("recuperación por enlace con código", () => {
       data: { session: null },
       error: { message: "invalid" },
     } as never);
-    setHref("http://localhost/auth?code=roto");
+    setHref("/auth?code=roto");
     initRecoveryFromLocation(window.location.href);
     exchangeRecoveryCodeFromUrl();
     await vi.waitFor(() => expect(getRecoveryStatus()).toBe("error"));
@@ -92,7 +92,7 @@ describe("recuperación por enlace con código", () => {
   });
 
   it("sin código no se llama al SDK", () => {
-    setHref("http://localhost/auth");
+    setHref("/auth");
     exchangeRecoveryCodeFromUrl();
     expect(h.exchangeCodeForSession).not.toHaveBeenCalled();
   });
