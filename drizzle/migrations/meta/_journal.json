@@ -267,6 +267,13 @@
       "when": 1790442164000,
       "tag": "0037_multi_org_invoice_balance_rpc_invoker_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1790528564000,
+      "tag": "0038_e2e_utilities_tenant_scoped",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.29.0",
+    "date": "2026-09-21",
+    "type": "minor",
+    "category": "security",
+    "title": "Las utilidades de pruebas automatizadas quedan encerradas en la empresa de quien las ejecuta",
+    "description": "Hasta ahora las funciones internas que siembran y limpian datos de prueba sólo revisaban el rol de administrador, que es global: un administrador de una empresa podía sembrar, limpiar o borrar datos de prueba de otra. El cambio de base 0038 (preparado en Git, NO aplicado) exige un contexto interno único y rol de administrador, escribe siempre la empresa dueña, limpia únicamente lo de esa empresa y elimina la función de borrado global. Se agregan dos pruebas nuevas con dos empresas inventadas.",
+    "changes": [
+      "Nuevo cambio de base drizzle/migrations/0038_e2e_utilities_tenant_scoped.sql (no aplicado): se elimina e2e_purge_all, se agrega la guarda e2e_require_admin_organization y se reescriben e2e_seed_scenario, e2e_seed_portal_scenario, e2e_teardown, purge_e2e_data y purge_e2e_audit_logs con alcance por empresa, conservando firmas y resultados.",
+      "La configuración allow_e2e_seed se lee sólo de la empresa del llamante; las inserciones llevan la empresa explícita y crean o verifican el enlace de cliente por empresa.",
+      "Permisos: PUBLIC y anon quedan revocados; authenticated sólo conserva las funciones con guarda de empresa y service_role mantiene su acceso.",
+      "Nueva prueba supabase/tests/rls/e2e_utilities_org_scope_ab.sql: dos empresas siembran el mismo alcance y se comprueba que limpiar o purgar en A no lee, cambia ni borra nada de B.",
+      "Nueva prueba supabase/tests/rls/e2e_utilities_contract.sql: impide reintroducir e2e_purge_all y exige guarda de empresa y permisos cerrados en el bloque de utilidades de prueba.",
+      "No se aplicó nada en producción y no se editó ninguna migración histórica; los tipos generados se actualizarán cuando la migración se aplique por el canal oficial."
+    ]
+  },
+  {
     "version": "8.28.1",
     "date": "2026-09-21",
     "type": "patch",
@@ -39,7 +55,6 @@
     ]
   },
   {
-
     "version": "8.27.0",
     "date": "2026-09-21",
     "type": "minor",
@@ -54,7 +69,6 @@
     ]
   },
   {
-
     "version": "8.26.9",
     "date": "2026-09-21",
     "type": "patch",
