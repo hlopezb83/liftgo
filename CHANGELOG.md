@@ -1,3 +1,12 @@
+## [8.26.7] - 2026-09-21 · patch · fix
+
+El ensayo A/B seguía recibiendo «Unauthorized: Invalid token» aunque el navegador y el login ya funcionaban contra el Supabase local. La causa profunda: el servidor del preview se ejecuta con wrangler dev, que lee sus variables de un archivo .dev.vars (o del .env si no existe) y no hereda las variables del proceso. Como el repositorio tiene un .env versionado con la dirección productiva, el servidor validaba las credenciales locales contra la base productiva, como un portero que verifica las credenciales llamando a la oficina equivocada. Ahora el workflow crea un .dev.vars efímero que apunta al Supabase local, lo verifica sin mostrar valores y lo borra al terminar.
+
+- .github/workflows/multi-tenant-ab.yml: nuevo paso que crea .dev.vars con SUPABASE_URL/ANON_KEY/SERVICE_ROLE_KEY locales y SUPABASE_PROJECT_ID=local-ab-ephemeral (permisos 600, sin imprimir valores); paso de verificación fail-closed que sólo comprueba nombres/presencia, que la URL sea loopback y que no contenga el ref productivo; el teardown elimina .dev.vars con if: always() para que nunca llegue a artifacts.
+- .gitignore: se añade .dev.vars* para que el archivo efímero nunca se versione.
+- docs/multiempresa/gates-segunda-organizacion.md: se registra la corrida 8 (run 35565322198) y su causa demostrada (bindings de Wrangler hacia producción por el .env versionado). El gate A/B sigue ABIERTO hasta un run completo en verde.
+- Sin cambios en RLS, middleware, guards, fixtures ni asertos Playwright; se conserva el bloqueo explícito del ref productivo.
+
 ## [8.26.6] - 2026-09-21 · patch · fix
 
 Dos piezas quedaron desalineadas tras la corrección anterior. La prueba que simula el servicio de autenticación no incluía la nueva vía de verificación remota, como un simulacro al que le falta una puerta, y fallaba aunque el comportamiento real era correcto; ahora la incluye y el caso inválido hace fallar ambas vías. Además, la alarma del ensayo A/B no escuchaba cambios en los archivos del camino de autenticación y contexto; ahora sí los vigila para que ningún ajuste ahí eluda la revisión.
