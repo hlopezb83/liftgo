@@ -104,6 +104,7 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
     const email = data.admin_email.trim();
     const emailLc = email.toLowerCase();
     const fullName = data.admin_full_name.trim();
+    const manualPassword = data.admin_password?.trim() || "";
 
     await assertEmailAvailable(g, admin, emailLc);
 
@@ -133,7 +134,9 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
       organizationId,
       email,
       fullName,
+      manualPassword || undefined,
     );
+
 
     // 3) Membresía interna + rol admin + perfil activo, atómico en la base.
     const attached = await g
