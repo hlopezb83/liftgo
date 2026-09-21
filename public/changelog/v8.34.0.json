@@ -1,0 +1,16 @@
+{
+  "version": "8.34.0",
+  "date": "2026-09-21",
+  "type": "minor",
+  "category": "security",
+  "title": "Folios, secretos de facturación y bloqueos de pago acotados a la empresa del usuario",
+  "description": "Diez operaciones internas (conteo de bloqueos de pago liberables, estado de las llaves de facturación y los ocho folios de contrato, cotización, cuentas por pagar, borradores y factura) ahora exigen una sesión interna de una empresa activa y sólo leen o consumen información de esa empresa. El cambio quedó listo en Git; aún no se aplica en la nube.",
+  "changes": [
+    "El conteo de bloqueos de pago liberables ya no suma los de otras empresas.",
+    "El estado de las llaves de facturación sólo refleja la empresa de la sesión.",
+    "Los ocho folios validan la sesión interna antes de consumir o mostrar el siguiente número.",
+    "Una identidad de portal con un rol administrativo residual queda bloqueada en las diez operaciones.",
+    "Los procesos internos conservan su canal, exigiendo empresa explícita cuando hay más de una activa.",
+    "Se agregaron una prueba de contrato y una prueba A/B con dos empresas, validadas en una transacción reversible."
+  ]
+}

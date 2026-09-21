@@ -302,6 +302,13 @@
       "when": 1790874164000,
       "tag": "0042_multi_org_bank_inspection_rpc_org_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1790874165000,
+      "tag": "0043_multi_org_counters_secrets_locks_guard",
+      "breakpoints": true
     }
   ]
 }
