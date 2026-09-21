@@ -1,3 +1,12 @@
+## [8.26.3] - 2026-09-21 · patch · fix
+
+Al crear un usuario de prueba, el sistema le asigna automáticamente un rol. El ensayo intentaba asignárselo otra vez, como registrar dos veces el mismo puesto de trabajo, y la base lo rechazaba por duplicado. Ahora el ensayo actualiza el rol existente en vez de insertar otro, y comprueba que el interno quede como admin y el del portal como cliente.
+
+- tests/multi-tenant-ab/fixtures/abSeed.ts: el rol del usuario interno se fija con upsert por user_id (mismo patrón que las suites SQL y las funciones de invitación), sin borrar la fila creada por el trigger ni deshabilitarlo.
+- tests/multi-tenant-ab/fixtures/abSeed.ts: el rol del usuario del portal se fija con el mismo upsert por user_id, nunca con un segundo INSERT.
+- tests/multi-tenant-ab/fixtures/abSeed.ts: nueva verificación por API admin antes de seguir — interno=admin y portal=customer en cada empresa; si no, el seed aborta.
+- Sin cambios en la lógica de organizaciones que ya pasó, guards, RLS, migraciones, producto ni datos reales. Se conservan destrucción con if: always(), contextos de navegador por empresa y upload-artifact@v7. El gate A/B sigue ABIERTO hasta un run completo en verde.
+
 ## [8.26.2] - 2026-09-21 · patch · fix
 
 La copia temporal del sistema ya nace con una empresa creada por las migraciones. Al agregar la empresa A quedaban dos activas y el alta del cliente fallaba por no saber a cuál pertenecía. Ahora el ensayo apaga primero esa empresa inicial por la vía oficial, siembra A y B, y al terminar la vuelve a encender.
