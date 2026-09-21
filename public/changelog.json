@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.26.8",
+    "date": "2026-09-21",
+    "type": "patch",
+    "category": "docs",
+    "title": "Gate A/B multiempresa verificado: corrida 9 en verde con commit c4a6b69",
+    "description": "El ensayo A/B real de datos, Storage y portal contra un Supabase local efímero quedó en verde por primera vez. La corrida 9 probó el commit c4a6b69 y pasó las 16 pruebas de Playwright en 29.6s, con el guard anti-producción activo, bindings locales vía .dev.vars efímero y teardown limpio. Este cambio es sólo documental: marca el gate A/B como verificado en el runbook, el onboarding y el roadmap, y deja restore probado como el siguiente gate externo pendiente. No toca código, RLS, workflows, tests, fixtures, middleware ni guards.",
+    "changes": [
+      "docs/multiempresa/gates-segunda-organizacion.md: el gate «Ensayo A/B real (datos + Storage + portal)» pasa de Pendiente/ABIERTO a Verificado; se registra la corrida 9 (commit c4a6b69, run 35566123833, job 106228183532, success, 16/16 Playwright), el log «.dev.vars OK», el teardown limpio, el artefacto seguro multitenant-ab-evidence (id 10624198616, digest sha256:26443b6a…), el CI complementario (35566124245) y el Gitleaks (35566123931); se conserva el histórico de corridas 1–8; «Restore probado» sigue PENDIENTE como siguiente gate externo.",
+      "docs/multiempresa/onboarding.md: el gate 1 (Ensayo A/B aislado) pasa de «requiere verificación» a verificado el 2026-09-21 para el commit c4a6b69 con los enlaces y la evidencia de la corrida 9; el gate 2 (Restore probado) sigue pendiente.",
+      "roadmap.md: la línea de gates marca (1) como verificado el 2026-09-21 para c4a6b69 con todos los enlaces y la evidencia, y mantiene (2) restore y los items productivos como pendientes.",
+      "Sin cambios en código, RLS, workflows, tests, fixtures, middleware, guards, Storage real, datos ni producción. Validaciones documentales: changelog:check, lecturas de coherencia."
+    ]
+  },
+  {
     "version": "8.26.7",
     "date": "2026-09-21",
     "type": "patch",
