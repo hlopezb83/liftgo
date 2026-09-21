@@ -1,0 +1,13 @@
+{
+  "version": "8.26.4",
+  "date": "2026-09-21",
+  "type": "patch",
+  "category": "fix",
+  "title": "Cuarta corrección del ensayo A/B: la factura de prueba incluye su partida porque el trigger exige al menos una",
+  "description": "El ensayo creaba la factura de prueba sin partidas. El trigger de la base exige que toda factura fuera de borrador tenga al menos una partida cuyo importe cuadre con el subtotal, como un recibo que no puede quedar en blanco. Ahora la factura se crea con una partida sintética de importe igual al subtotal y se comprueba por API que quedó emitida, en la empresa correcta y con esa partida antes de seguir.",
+  "changes": [
+    "tests/multi-tenant-ab/fixtures/abSeed.ts: el INSERT de invoices incluye line_items con una partida canónica (quantity 1, unit_price = total = subtotal), tax_rate 0 y tax_amount 0, sin relajar validate_invoice_line_items_signs.",
+    "tests/multi-tenant-ab/fixtures/abSeed.ts: nueva verificación por API admin tras insertar la factura — status sent, organization_id correcta y exactamente una partida cuyo total coincide con el subtotal; si no, el seed aborta.",
+    "Sin cambios en la lógica de organizaciones, suspensión/restauración por RPC, upsert de roles, guards fail-closed, aislamiento A/B, RLS, Storage, contextos de navegador, teardown if: always(), artifacts v7 ni bloqueo del ref productivo. El gate A/B sigue ABIERTO hasta un run completo en verde."
+  ]
+}

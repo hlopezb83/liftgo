@@ -1,3 +1,11 @@
+## [8.26.4] - 2026-09-21 · patch · fix
+
+El ensayo creaba la factura de prueba sin partidas. El trigger de la base exige que toda factura fuera de borrador tenga al menos una partida cuyo importe cuadre con el subtotal, como un recibo que no puede quedar en blanco. Ahora la factura se crea con una partida sintética de importe igual al subtotal y se comprueba por API que quedó emitida, en la empresa correcta y con esa partida antes de seguir.
+
+- tests/multi-tenant-ab/fixtures/abSeed.ts: el INSERT de invoices incluye line_items con una partida canónica (quantity 1, unit_price = total = subtotal), tax_rate 0 y tax_amount 0, sin relajar validate_invoice_line_items_signs.
+- tests/multi-tenant-ab/fixtures/abSeed.ts: nueva verificación por API admin tras insertar la factura — status sent, organization_id correcta y exactamente una partida cuyo total coincide con el subtotal; si no, el seed aborta.
+- Sin cambios en la lógica de organizaciones, suspensión/restauración por RPC, upsert de roles, guards fail-closed, aislamiento A/B, RLS, Storage, contextos de navegador, teardown if: always(), artifacts v7 ni bloqueo del ref productivo. El gate A/B sigue ABIERTO hasta un run completo en verde.
+
 ## [8.26.3] - 2026-09-21 · patch · fix
 
 Al crear un usuario de prueba, el sistema le asigna automáticamente un rol. El ensayo intentaba asignárselo otra vez, como registrar dos veces el mismo puesto de trabajo, y la base lo rechazaba por duplicado. Ahora el ensayo actualiza el rol existente en vez de insertar otro, y comprueba que el interno quede como admin y el del portal como cliente.

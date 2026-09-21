@@ -196,6 +196,10 @@ async function seedSide(
     })).error,
   );
 
+  // Una factura fuera de borrador exige al menos una partida en `line_items`
+  // cuyo importe cuadre con `subtotal` (trigger `validate_invoice_line_items_signs`).
+  // Forma canónica de `e2e_seed_portal_scenario`: una partida con quantity 1,
+  // unit_price = total = subtotal. tax_rate/tax_amount por defecto en 0.
   must(
     "invoices",
     (await admin.from("invoices").insert({
@@ -204,11 +208,41 @@ async function seedSide(
       customer_id: ids.customerId,
       invoice_number: ids.invoiceNumber,
       customer_name: `Cliente ficticio de ${org.name}`,
-      total: ids.invoiceTotal,
+      line_items: [
+        {
+          description: `Partida sintética ${org.slug}`,
+          quantity: 1,
+          unit_price: ids.invoiceTotal,
+          total: ids.invoiceTotal,
+        },
+      ],
       subtotal: ids.invoiceTotal,
+      tax_rate: 0,
+      tax_amount: 0,
+      total: ids.invoiceTotal,
       status: "sent",
     })).error,
   );
+
+  // Verificación por API admin: status sent, pertenece a la org y exactamente
+  // una partida cuyo total coincide con el subtotal.
+  const { data: inv, error: invErr } = await admin
+    .from("invoices")
+    .select("status, organization_id, subtotal, line_items")
+    .eq("id", ids.invoiceId)
+    .single();
+  must("verificación de factura", invErr);
+  if (!inv || inv.status !== "sent" || inv.organization_id !== org.id) {
+    throw new Error(
+      `[ab-seed] factura inesperada para ${org.slug}: status=${inv?.status}, org=${inv?.organization_id}.`,
+    );
+  }
+  const items = Array.isArray(inv.line_items) ? inv.line_items : [];
+  if (items.length !== 1 || Number(items[0]?.total) !== Number(inv.subtotal)) {
+    throw new Error(
+      `[ab-seed] partidas inválidas para ${org.slug}: count=${items.length}, itemTotal=${items[0]?.total}, subtotal=${inv.subtotal}.`,
+    );
+  }
 
   const storagePath = storagePathFor(org.id);
   const upload = await admin.storage
