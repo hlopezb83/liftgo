@@ -1,0 +1,12 @@
+{
+  "version": "8.28.1",
+  "date": "2026-09-21",
+  "type": "patch",
+  "category": "fix",
+  "title": "Alta de empresa: aviso claro cuando la contraseña inicial es débil",
+  "description": "Al crear una empresa con una contraseña inicial débil, el servicio de autenticación la rechazaba y la pantalla sólo mostraba «No se pudo procesar la solicitud». Ahora la contraseña inicial exige 12-72 caracteres con mayúsculas, minúsculas, números y símbolos (igual que el alta de usuarios internos), el formulario avisa antes de enviar y, si el servicio la rechaza por común o filtrada, se muestra el motivo real.",
+  "changes": [
+    "src/lib/platformAdmin.helpers.ts: validateCreateInput homologa la regla fuerte de contraseña y createFirstAdminAuthUser traduce el rechazo por contraseña débil a un mensaje explícito.",
+    "src/features/platform/components/PlatformOrganizationDialogs.tsx: validación en el formulario, ayuda actualizada, aviso en línea y botón deshabilitado mientras la contraseña no cumpla."
+  ]
+}

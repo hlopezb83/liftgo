@@ -23,10 +23,12 @@ import type {
   CreateOrganizationResult,
   PlatformOrganizationRow,
 } from "@/lib/platformAdmin.functions";
+import { isStrongAdminPassword } from "@/lib/platformAdmin.helpers";
 import {
   useCreateOrganization,
   useSetOrganizationActive,
 } from "../hooks/usePlatformOperator";
+import { AdminPasswordField } from "./AdminPasswordField";
 
 const EMPTY_FORM = {
   name: "",
@@ -35,6 +37,7 @@ const EMPTY_FORM = {
   admin_full_name: "",
   admin_password: "",
 };
+
 
 
 function slugify(value: string): string {
@@ -46,6 +49,7 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 63);
 }
+
 
 export function CreateOrganizationDialog({
   open,
@@ -70,11 +74,18 @@ export function CreateOrganizationDialog({
     });
   };
 
+  const rawPassword = form.admin_password.trim();
+  const passwordError =
+    rawPassword && !isStrongAdminPassword(rawPassword)
+      ? "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos"
+      : null;
+
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if (passwordError) return;
     const result = await create.mutateAsync({
       ...form,
-      admin_password: form.admin_password.trim() || undefined,
+      admin_password: rawPassword || undefined,
     });
     setForm(EMPTY_FORM);
     setSlugTouched(false);
@@ -147,34 +158,14 @@ export function CreateOrganizationDialog({
               onChange={(e) => update("admin_email")(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-admin-password">
-              Contraseña inicial (opcional)
-            </Label>
-            <Input
-              id="org-admin-password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="new-password"
-              minLength={8}
-              maxLength={72}
-              value={form.admin_password}
-              onChange={(e) => update("admin_password")(e.target.value)}
-            />
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">
-                Mínimo 8 caracteres. Si la dejas vacía, se genera un enlace de
-                acceso de un solo uso.
-              </p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPassword((v) => !v)}
-              >
-                {showPassword ? "Ocultar" : "Mostrar"}
-              </Button>
-            </div>
-          </div>
+          <AdminPasswordField
+            value={form.admin_password}
+            onChange={update("admin_password")}
+            error={passwordError}
+            visible={showPassword}
+            onToggleVisible={() => setShowPassword((v) => !v)}
+          />
+
 
 
 
@@ -187,7 +178,10 @@ export function CreateOrganizationDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={create.isPending}>
+            <Button
+              type="submit"
+              disabled={create.isPending || Boolean(passwordError)}
+            >
               {create.isPending ? "Creando…" : "Crear empresa"}
             </Button>
           </DialogFooter>
