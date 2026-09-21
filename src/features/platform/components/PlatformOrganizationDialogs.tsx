@@ -155,15 +155,17 @@ export function CreateOrganizationDialog({
               id="org-admin-password"
               type={showPassword ? "text" : "password"}
               autoComplete="new-password"
-              minLength={8}
+              minLength={12}
               maxLength={72}
               value={form.admin_password}
               onChange={(e) => update("admin_password")(e.target.value)}
+              aria-invalid={passwordError ? true : undefined}
             />
             <div className="flex items-center justify-between gap-2">
               <p className="text-xs text-muted-foreground">
-                Mínimo 8 caracteres. Si la dejas vacía, se genera un enlace de
-                acceso de un solo uso.
+                12 a 72 caracteres con mayúsculas, minúsculas, números y
+                símbolos. Evita contraseñas comunes. Si la dejas vacía, se
+                genera un enlace de acceso de un solo uso.
               </p>
               <Button
                 type="button"
