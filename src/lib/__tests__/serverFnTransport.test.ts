@@ -20,6 +20,7 @@ const FAKE_ENV = {
 
 const getSession = vi.fn();
 const getClaims = vi.fn();
+const getUser = vi.fn();
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: { auth: { getSession: () => getSession() } },
@@ -32,7 +33,12 @@ vi.mock("@tanstack/react-start/server", () => ({
   getRequest: () => interceptedRequest,
 }));
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: () => ({ auth: { getClaims: (t: string) => getClaims(t) } }),
+  createClient: () => ({
+    auth: {
+      getClaims: (t: string) => getClaims(t),
+      getUser: (t: string) => getUser(t),
+    },
+  }),
 }));
 
 import { createServerFn } from "@tanstack/react-start";
