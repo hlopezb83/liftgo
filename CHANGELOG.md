@@ -1,4 +1,14 @@
+## [8.27.0] - 2026-09-21 · minor · feature
+
+Al dar de alta una empresa, el operador de plataforma ahora puede escribir la contraseña inicial del primer administrador. Si la deja vacía, el comportamiento anterior se conserva: el sistema genera una contraseña aleatoria y entrega un enlace de acceso de un solo uso. La contraseña nunca se muestra de vuelta en la confirmación.
+
+- src/lib/platformAdmin.types.ts: CreateOrganizationInput admite admin_password opcional y CreateOrganizationResult expone password_set_manually.
+- src/lib/platformAdmin.helpers.ts: validateCreateInput exige entre 8 y 72 caracteres cuando se envía contraseña; createFirstAdminAuthUser acepta la contraseña y mantiene el fallback aleatorio.
+- src/lib/platformAdmin.functions.ts: con contraseña manual no se genera enlace de recuperación y se informa password_set_manually.
+- src/features/platform/components/PlatformOrganizationDialogs.tsx: campo «Contraseña inicial (opcional)» con mostrar/ocultar y confirmación diferenciada según el camino elegido.
+
 ## [8.26.9] - 2026-09-21 · patch · security
+
 
 Se añade un verificador manual de sólo lectura para una copia ya restaurada en una instancia aislada. Bloquea el proyecto productivo antes de conectar, mide RPO desde el backup hasta el incidente simulado y RTO durante la restauración, consulta integridad y Storage con agregados sanitizados y nunca realiza la restauración. El gate Restore probado permanece pendiente hasta ejecutar un restore real, obtener un run verde y destruir el entorno.
 
