@@ -58,7 +58,9 @@ export function CreateOrganizationDialog({
 }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [slugTouched, setSlugTouched] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const create = useCreateOrganization();
+
 
   const update = (field: keyof typeof EMPTY_FORM) => (value: string) => {
     setForm((prev) => {
