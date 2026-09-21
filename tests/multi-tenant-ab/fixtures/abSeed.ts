@@ -56,6 +56,8 @@ export type AbContext = {
   legacyObjectPath: string;
   /** Operador de plataforma sintético usado para activar la empresa B. */
   platformOperatorUserId: string;
+  /** Empresas iniciales que el ensayo suspendió y debe restaurar al terminar. */
+  initialActiveOrganizationIds: string[];
 };
 
 function must(label: string, error: { message?: string } | null): void {
@@ -239,10 +241,60 @@ async function createPlatformOperator(admin: SupabaseClient): Promise<string> {
   return userId;
 }
 
+/** Cambia el estado activo de una empresa SIEMPRE por la RPC oficial. */
+async function setOrganizationActive(
+  admin: SupabaseClient,
+  actorId: string,
+  organizationId: string,
+  active: boolean,
+): Promise<void> {
+  must(
+    `platform_set_organization_active(${active ? "activar" : "suspender"})`,
+    (await admin.rpc("platform_set_organization_active", {
+      p_actor: actorId,
+      p_organization_id: organizationId,
+      p_active: active,
+    })).error,
+  );
+}
+
 export async function seedAbEnvironment(): Promise<AbContext> {
   const admin = createLocalAdminClient("seed");
 
-  // 1. A se crea activa: con UNA sola empresa activa el guard de contexto
+  // 1. El operador sintético se crea ANTES que cualquier empresa: es la única
+  //    vía oficial para cambiar el estado activo de una organización.
+  const operatorId = await createPlatformOperator(admin);
+
+  // 2. Las migraciones dejan una organización inicial activa. Con ella activa,
+  //    crear A daría DOS activas y el guard de contexto rechazaría las filas
+  //    derivadas sin organization_id (p. ej. las de `customers`). Se suspenden
+  //    por la RPC oficial; nada de UPDATE directo ni triggers deshabilitados.
+  const { data: preexisting, error: preexistingError } = await admin
+    .from("organizations")
+    .select("id, is_active")
+    .eq("is_active", true);
+  must("lectura de empresas iniciales", preexistingError);
+  const initialActiveOrganizationIds = (preexisting ?? [])
+    .map((row) => row.id as string)
+    .filter((id) => id !== AB_ORG_A.id && id !== AB_ORG_B.id);
+
+  for (const id of initialActiveOrganizationIds) {
+    await setOrganizationActive(admin, operatorId, id, false);
+  }
+
+  // 3. Verificación: no debe quedar ninguna empresa activa antes de sembrar.
+  const { data: stillActive, error: stillActiveError } = await admin
+    .from("organizations")
+    .select("id")
+    .eq("is_active", true);
+  must("verificación de empresas iniciales suspendidas", stillActiveError);
+  if ((stillActive ?? []).length > 0) {
+    throw new Error(
+      "[ab-seed] quedaron empresas iniciales activas; el ensayo no puede continuar de forma determinista.",
+    );
+  }
+
+  // 4. A se crea activa: con UNA sola empresa activa el guard de contexto
   //    resuelve por compatibilidad las filas derivadas sin organization_id.
   const A = await seedSide(
     admin,
@@ -259,9 +311,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     true,
   );
 
-  const operatorId = await createPlatformOperator(admin);
-
-  // 2. B se siembra COMPLETA mientras sigue suspendida (sólo A activa).
+  // 5. B se siembra COMPLETA mientras sigue suspendida (sólo A activa).
   const B = await seedSide(
     admin,
     AB_ORG_B,
@@ -285,27 +335,21 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     });
   must("storage upload (legado)", legacy.error);
 
-  // 3. Activación de B por la RPC oficial de plataforma.
-  must(
-    "platform_set_organization_active(B)",
-    (await admin.rpc("platform_set_organization_active", {
-      p_actor: operatorId,
-      p_organization_id: AB_ORG_B.id,
-      p_active: true,
-    })).error,
-  );
+  // 6. Activación de B por la misma RPC oficial.
+  await setOrganizationActive(admin, operatorId, AB_ORG_B.id, true);
 
-  // 4. Verificación por API admin ANTES de guardar el contexto: el ensayo sólo
-  //    es válido con las DOS empresas activas.
-  const { data: orgs, error: orgsError } = await admin
+  // 7. Verificación ANTES de guardar el contexto: exactamente A y B activas y
+  //    ninguna empresa inicial activa.
+  const { data: activeNow, error: activeNowError } = await admin
     .from("organizations")
-    .select("id, is_active")
-    .in("id", [AB_ORG_A.id, AB_ORG_B.id]);
-  must("verificación de empresas activas", orgsError);
-  const inactive = (orgs ?? []).filter((row) => row.is_active !== true);
-  if ((orgs ?? []).length !== 2 || inactive.length > 0) {
+    .select("id")
+    .eq("is_active", true);
+  must("verificación de empresas activas", activeNowError);
+  const activeIds = (activeNow ?? []).map((row) => row.id as string).sort();
+  const expectedIds = [AB_ORG_A.id, AB_ORG_B.id].sort();
+  if (activeIds.length !== 2 || activeIds[0] !== expectedIds[0] || activeIds[1] !== expectedIds[1]) {
     throw new Error(
-      "[ab-seed] el ensayo requiere las dos empresas activas y no quedaron ambas activas tras el seed.",
+      "[ab-seed] el ensayo requiere exactamente las empresas A y B activas y ninguna empresa inicial activa.",
     );
   }
 
@@ -314,11 +358,13 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     B,
     legacyObjectPath: AB_LEGACY_OBJECT,
     platformOperatorUserId: operatorId,
+    initialActiveOrganizationIds,
   };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });
   writeFileSync(AB_CONTEXT_FILE, JSON.stringify(context, null, 2), { mode: 0o600 });
   return context;
 }
+
 
 
 export function readAbContext(): AbContext {

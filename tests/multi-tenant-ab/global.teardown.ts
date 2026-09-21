@@ -31,6 +31,17 @@ export default async function globalTeardown(): Promise<void> {
     await admin.from("organizations").delete().eq("id", side.organizationId);
   }
 
+  // El operador sintético debe seguir existiendo durante la restauración: es
+  // la única vía oficial para reactivar las empresas iniciales que el seed
+  // suspendió. En CI el `supabase stop` sigue siendo la red final.
+  for (const organizationId of ctx.initialActiveOrganizationIds ?? []) {
+    await admin.rpc("platform_set_organization_active", {
+      p_actor: ctx.platformOperatorUserId,
+      p_organization_id: organizationId,
+      p_active: true,
+    });
+  }
+
   await admin.from("platform_operators").delete().eq("auth_user_id", ctx.platformOperatorUserId);
   await admin.auth.admin.deleteUser(ctx.platformOperatorUserId);
 
