@@ -140,6 +140,36 @@ export function CreateOrganizationDialog({
               onChange={(e) => update("admin_email")(e.target.value)}
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="org-admin-password">
+              Contraseña inicial (opcional)
+            </Label>
+            <Input
+              id="org-admin-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={72}
+              value={form.admin_password}
+              onChange={(e) => update("admin_password")(e.target.value)}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Mínimo 8 caracteres. Si la dejas vacía, se genera un enlace de
+                acceso de un solo uso.
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPassword((v) => !v)}
+              >
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </Button>
+            </div>
+          </div>
+
+
 
           <DialogFooter>
             <Button
