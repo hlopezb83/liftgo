@@ -20,7 +20,7 @@ DECLARE
   v_cust_b uuid := '39000000-0000-4000-8000-0000000000bc';
   v_fork_b uuid := '39000000-0000-4000-8000-0000000000bf';
   v_book_b uuid := '39000000-0000-4000-8000-0000000000bb';
-  v_inv_b uuid := '39000000-0000-4000-8000-0000000000bi';
+  v_inv_b uuid := '39000000-0000-4000-8000-0000000000b9';
 BEGIN
   IF (SELECT prosecdef FROM pg_proc WHERE oid = 'public.has_open_rental(uuid)'::regprocedure) THEN
     RAISE EXCEPTION 'RPC ORG 0039: la cadena Drizzle 0039 no se aplicó';
@@ -119,7 +119,7 @@ DECLARE
   v_admin_b uuid := '39000000-0000-4000-8000-0000000000b1';
   v_portal_b uuid := '39000000-0000-4000-8000-0000000000b2';
   v_fork_b uuid := '39000000-0000-4000-8000-0000000000bf';
-  v_inv_b uuid := '39000000-0000-4000-8000-0000000000bi';
+  v_inv_b uuid := '39000000-0000-4000-8000-0000000000b9';
   v_fallas text[] := '{}';
   v_texto text;
   v_bool boolean;
@@ -210,7 +210,7 @@ SET LOCAL request.jwt.claims TO
 DO $$
 DECLARE
   v_fork_b uuid := '39000000-0000-4000-8000-0000000000bf';
-  v_inv_b uuid := '39000000-0000-4000-8000-0000000000bi';
+  v_inv_b uuid := '39000000-0000-4000-8000-0000000000b9';
   v_fallas text[] := '{}';
   v_num bigint;
 BEGIN
