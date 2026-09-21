@@ -55,16 +55,30 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
       return;
     }
     setEmailError(null);
+    // SEC-B5: misma regla que el servidor (12-72 caracteres, 4 clases).
+    const manualPassword = password.trim();
+    if (manualPassword && !invitePasswordSchema.safeParse(manualPassword).success) {
+      setPasswordError(PASSWORD_HINT);
+      return;
+    }
+    setPasswordError(null);
     // R15 AUTH-2: el toast de error lo maneja useEntityMutation; capturamos
     // aquí para evitar unhandled rejection en la consola / Sentry.
     try {
-      await inviteUser.mutateAsync({ email: parsed.data, full_name: fullName.trim(), role });
+      await inviteUser.mutateAsync({
+        email: parsed.data,
+        full_name: fullName.trim(),
+        role,
+        ...(manualPassword ? { password: manualPassword } : {}),
+      });
     } catch {
       return;
     }
     setOpen(false);
     setFullName("");
     setEmail("");
+    setPassword("");
+    setShowPassword(false);
     setRole("dispatcher");
     onCreated();
   };
