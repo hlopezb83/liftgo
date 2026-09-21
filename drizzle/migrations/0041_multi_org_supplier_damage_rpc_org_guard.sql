@@ -448,6 +448,8 @@ DECLARE
   v_user_id uuid := (select auth.uid());
   v_org uuid;
   v_visible integer;
+  v_total numeric(14,2) := 0;
+  v_count integer := 0;
 BEGIN
   IF v_user_id IS NULL THEN RAISE EXCEPTION 'unauthenticated'; END IF;
   IF NOT (public.has_role(v_user_id, 'admin'::app_role) OR public.has_role(v_user_id, 'administrativo'::app_role)) THEN
@@ -472,8 +474,20 @@ BEGIN
     RAISE EXCEPTION 'bill % not found', p_bill_ids[1];
   END IF;
 
-  INSERT INTO public.supplier_payment_batches (scheduled_for, payment_method, notes, created_by, organization_id)
-  VALUES (p_scheduled_for, p_payment_method, p_notes, v_user_id, v_org) RETURNING id INTO v_batch_id;
+  -- El esquema real de supplier_payment_batches no tiene scheduled_for,
+  -- payment_method ni created_by: se conservan dentro de notes.
+  INSERT INTO public.supplier_payment_batches (exported_by, total_amount, bill_count, notes, organization_id)
+  VALUES (
+    v_user_id,
+    0,
+    0,
+    concat_ws(' | ',
+      NULLIF(p_notes, ''),
+      CASE WHEN p_scheduled_for IS NOT NULL THEN 'Programado: ' || p_scheduled_for::text END,
+      CASE WHEN NULLIF(p_payment_method, '') IS NOT NULL THEN 'Método: ' || p_payment_method END
+    ),
+    v_org
+  ) RETURNING id INTO v_batch_id;
 
   FOREACH v_bill_id IN ARRAY p_bill_ids LOOP
     SELECT * INTO v_bill FROM public.supplier_bills
@@ -498,17 +512,25 @@ BEGIN
 
     INSERT INTO public.supplier_payment_batch_items (
       batch_id, bill_id, supplier_id, bill_number, supplier_name,
-      bank_name, clabe, account_number, amount, currency, organization_id
+      bank_name, clabe, account_number, amount, currency, reference, organization_id
     )
     SELECT v_batch_id, v_bill.id, v_bill.supplier_id, v_bill.bill_number, s.name,
-           sba.bank_name, sba.clabe, sba.account_number, v_bill.balance, v_bill.currency, v_org
+           sba.bank_name, sba.clabe, sba.account_number, v_bill.balance, v_bill.currency,
+           'LIFTGO-' || v_bill.bill_number, v_org
       FROM public.suppliers s
       LEFT JOIN public.supplier_bank_accounts sba
         ON sba.supplier_id = s.id AND sba.is_primary = true
        AND COALESCE(sba.organization_id, v_org) = v_org
      WHERE s.id = v_bill.supplier_id
        AND COALESCE(s.organization_id, v_org) = v_org;
+
+    v_total := v_total + v_bill.balance;
+    v_count := v_count + 1;
   END LOOP;
+
+  UPDATE public.supplier_payment_batches
+     SET total_amount = v_total, bill_count = v_count
+   WHERE id = v_batch_id AND organization_id = v_org;
 
   RETURN v_batch_id;
 END;
@@ -1032,7 +1054,9 @@ BEGIN
   EXECUTE format('SELECT EXISTS (SELECT 1 FROM %I WHERE id = %L%s)',
                  v_log.table_name, v_log.record_id, v_org_pred)
     INTO v_exists;
-  IF NOT v_exists AND v_log.action <> 'INSERT' THEN
+  -- También para INSERT: si la fila objetivo no existe dentro de la organización
+  -- actual, el DELETE filtrado no afectaría filas y devolvería éxito falso.
+  IF NOT v_exists THEN
     RAISE EXCEPTION 'Audit log not found';
   END IF;
 
