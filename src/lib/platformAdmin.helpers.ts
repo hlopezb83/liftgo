@@ -65,22 +65,15 @@ export function validateCreateInput(g: Guards, data: CreateOrganizationInput) {
   if (!g.isNonEmptyString(data.admin_full_name, 200)) {
     throw new g.HttpError(400, "El nombre del administrador es obligatorio");
   }
-  if (data.admin_password !== undefined && data.admin_password !== "") {
-    const pwd = data.admin_password;
-    const strong =
-      typeof pwd === "string" &&
-      pwd.length >= 12 &&
-      pwd.length <= 72 &&
-      /[a-z]/.test(pwd) &&
-      /[A-Z]/.test(pwd) &&
-      /[0-9]/.test(pwd) &&
-      /[^A-Za-z0-9]/.test(pwd);
-    if (!strong) {
-      throw new g.HttpError(
-        400,
-        "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
-      );
-    }
+  if (
+    data.admin_password !== undefined &&
+    data.admin_password !== "" &&
+    !isStrongAdminPassword(data.admin_password)
+  ) {
+    throw new g.HttpError(
+      400,
+      "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
+    );
   }
 }
 
