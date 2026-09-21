@@ -216,28 +216,64 @@ async function seedSide(
   };
 }
 
+/**
+ * Alta del operador de plataforma del ensayo (usuario sintético del runner).
+ * Es la vía oficial para activar una empresa: `platform_set_organization_active`
+ * exige un operador verificado. No se toca el guard ni las políticas.
+ */
+async function createPlatformOperator(admin: SupabaseClient): Promise<string> {
+  const password = disposablePassword();
+  const { data, error } = await admin.auth.admin.createUser({
+    email: AB_EMAILS.platformOperator,
+    password,
+    email_confirm: true,
+  });
+  must("alta del operador de plataforma", error);
+  const userId = data?.user?.id;
+  if (!userId) throw new Error("[ab-seed] el alta del operador no devolvió id.");
+
+  must("profiles (operador activo)", (await admin.from("profiles").update({ is_active: true }).eq("user_id", userId)).error);
+  must("platform_operators", (await admin.from("platform_operators").insert({ auth_user_id: userId })).error);
+  return userId;
+}
+
 export async function seedAbEnvironment(): Promise<AbContext> {
   const admin = createLocalAdminClient("seed");
 
-  const A = await seedSide(admin, AB_ORG_A, {
-    customerId: AB_CUSTOMER_A,
-    invoiceId: AB_INVOICE_A,
-    invoiceNumber: AB_INVOICE_NUMBER_A,
-    invoiceTotal: AB_INVOICE_TOTAL_A,
-    documentId: AB_DOCUMENT_A,
-    internalEmail: AB_EMAILS.internalA,
-    portalEmail: AB_EMAILS.portalA,
-  });
+  // 1. A se crea activa: con UNA sola empresa activa el guard de contexto
+  //    resuelve por compatibilidad las filas derivadas sin organization_id.
+  const A = await seedSide(
+    admin,
+    AB_ORG_A,
+    {
+      customerId: AB_CUSTOMER_A,
+      invoiceId: AB_INVOICE_A,
+      invoiceNumber: AB_INVOICE_NUMBER_A,
+      invoiceTotal: AB_INVOICE_TOTAL_A,
+      documentId: AB_DOCUMENT_A,
+      internalEmail: AB_EMAILS.internalA,
+      portalEmail: AB_EMAILS.portalA,
+    },
+    true,
+  );
 
-  const B = await seedSide(admin, AB_ORG_B, {
-    customerId: AB_CUSTOMER_B,
-    invoiceId: AB_INVOICE_B,
-    invoiceNumber: AB_INVOICE_NUMBER_B,
-    invoiceTotal: AB_INVOICE_TOTAL_B,
-    documentId: AB_DOCUMENT_B,
-    internalEmail: AB_EMAILS.internalB,
-    portalEmail: AB_EMAILS.portalB,
-  });
+  const operatorId = await createPlatformOperator(admin);
+
+  // 2. B se siembra COMPLETA mientras sigue suspendida (sólo A activa).
+  const B = await seedSide(
+    admin,
+    AB_ORG_B,
+    {
+      customerId: AB_CUSTOMER_B,
+      invoiceId: AB_INVOICE_B,
+      invoiceNumber: AB_INVOICE_NUMBER_B,
+      invoiceTotal: AB_INVOICE_TOTAL_B,
+      documentId: AB_DOCUMENT_B,
+      internalEmail: AB_EMAILS.internalB,
+      portalEmail: AB_EMAILS.portalB,
+    },
+    false,
+  );
 
   const legacy = await admin.storage
     .from(AB_BUCKET)
@@ -247,11 +283,36 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     });
   must("storage upload (legado)", legacy.error);
 
+  // 3. Activación de B por la RPC oficial de plataforma.
+  must(
+    "platform_set_organization_active(B)",
+    (await admin.rpc("platform_set_organization_active", {
+      p_actor: operatorId,
+      p_organization_id: AB_ORG_B.id,
+      p_active: true,
+    })).error,
+  );
+
+  // 4. Verificación por API admin ANTES de guardar el contexto: el ensayo sólo
+  //    es válido con las DOS empresas activas.
+  const { data: orgs, error: orgsError } = await admin
+    .from("organizations")
+    .select("id, is_active")
+    .in("id", [AB_ORG_A.id, AB_ORG_B.id]);
+  must("verificación de empresas activas", orgsError);
+  const inactive = (orgs ?? []).filter((row) => row.is_active !== true);
+  if ((orgs ?? []).length !== 2 || inactive.length > 0) {
+    throw new Error(
+      "[ab-seed] el ensayo requiere las dos empresas activas y no quedaron ambas activas tras el seed.",
+    );
+  }
+
   const context: AbContext = { A, B, legacyObjectPath: AB_LEGACY_OBJECT };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });
   writeFileSync(AB_CONTEXT_FILE, JSON.stringify(context, null, 2), { mode: 0o600 });
   return context;
 }
+
 
 export function readAbContext(): AbContext {
   return JSON.parse(readFileSync(AB_CONTEXT_FILE, "utf8")) as AbContext;
