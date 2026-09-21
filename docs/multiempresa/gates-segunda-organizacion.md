@@ -14,9 +14,9 @@ Estado de los gates (última revisión: 2026-09-21):
 | Ensayo A/B real (datos + Storage + portal) | **Verificado** (corrida 9, commit `c4a6b69`, 2026-09-21) | Run [35566123833](https://github.com/hlopezb83/liftgo/actions/runs/35566123833), job `106228183532`, conclusión **success**. Log: «.dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo». Playwright: **16 passed** (29.6s) — seed, datos, Storage y portal aislados. Teardown: «Stopped supabase local development setup.». Artefacto seguro `multitenant-ab-evidence` (id `10624198616`, digest `sha256:26443b6a2ac1f62c1f6c8fb291663d09c3d8c660a8952280ac313991f746ce57`): el workflow sólo sube `reports/multitenant-ab-*` y `playwright-report-multitenant/`, nunca `.dev.vars`. CI complementario en verde: CI principal [35566124245](https://github.com/hlopezb83/liftgo/actions/runs/35566124245) y Gitleaks [35566123931](https://github.com/hlopezb83/liftgo/actions/runs/35566123931), ambos success. Histórico de corridas 1–8 (todas fallidas, superadas): corrida 1 (`55ee6cb`, run 35546306009) falló el seed de B por contexto de organización (corregido en 8.26.1); corrida 2 (`ca77e98`, run 35547021465) falló por organización inicial activa (8.26.2 la suspende por RPC y la restaura); corrida 3 (`887c514`, run 35547626020) falló el seed de roles por duplicado (8.26.3 con upsert); corrida 4 (run 35558699815) falló por invoices sin partidas (8.26.4 inserta una partida canónica cuadrada con el subtotal); corrida 5 (`c3415c9`, run 35560422331) falló 3 pruebas de navegador por login que no esperaba la sesión persistida (reutiliza `loginPortal` + señal de portal autenticado); corrida 6 (`91999fb`, run 35561265562) falló 4 pruebas por falta de `SUPABASE_PUBLISHABLE_KEY` server-side (añadida al `GITHUB_ENV`); corrida 7 (run 35561856480) falló por `getClaims` rechazando el JWT HS256 local (8.26.5 añade fallback `getUser`); corrida 8 (run 35565322198) falló porque `wrangler dev` validaba los JWT contra el ref productivo del `.env` versionado (8.26.7 crea `.dev.vars` efímero con bindings locales). El gate A/B queda **verificado para el commit `c4a6b69`**; un commit posterior exigiría su propio run. |
 | Restore probado | **Pendiente** — requiere evidencia externa | — |
 
-### Automatización del ensayo A/B (sin resultado aún)
+### Automatización del ensayo A/B (verificada en la corrida 9)
 
-El gate A/B ya tiene un carril reproducible que corre **sólo** contra el
+El gate A/B tiene un carril reproducible que corre **sólo** contra el
 Supabase local efímero del runner:
 
 - `.github/workflows/multi-tenant-ab.yml` — Postgres + gotrue + kong + postgrest
@@ -33,8 +33,9 @@ Supabase local efímero del runner:
 - Evidencia: JUnit/JSON/HTML de Playwright y una matriz A/B resumida sin
   tokens, credenciales ni identificadores reales.
 
-**El gate sigue abierto** hasta que exista una corrida completa en verde con
-commit y enlace registrados aquí.
+**Gate verificado** en la corrida 9 (commit `c4a6b69`, run `35566123833`,
+conclusión success, 16/16 Playwright). El siguiente gate externo pendiente es
+**restore probado**.
 
 
 **Criterio de cierre:** hasta que el ensayo A/B y el restore estén ejecutados,
