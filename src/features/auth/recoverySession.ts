@@ -158,6 +158,49 @@ export function detectRecoveryFromHref(href: string): RecoveryStatus {
   return "idle";
 }
 
+/**
+ * AUTH-REC-02 — enlaces con código (`?code=…`).
+ *
+ * Los correos de autenticación pueden entregar el enlace en formato "code"
+ * en vez de fragmento. Si nadie canjea ese código, el SDK no emite
+ * `PASSWORD_RECOVERY`, no hay sesión y el usuario acababa viendo la pantalla
+ * de inicio de sesión en lugar del formulario de nueva contraseña.
+ *
+ * Esta app NO usa OAuth social (no hay `signInWithOAuth` en el código), así
+ * que un `?code=` en la URL sólo puede venir de un enlace de correo.
+ * Devuelve el código, nunca lo registra.
+ */
+export function detectRecoveryCodeFromHref(href: string): string | null {
+  try {
+    const url = new URL(href, "http://localhost");
+    const code = url.searchParams.get("code");
+    if (!code) return null;
+    const type = url.searchParams.get("type");
+    if (type && type !== "recovery") return null;
+    if (url.searchParams.get("error")) return null;
+    return code;
+  } catch {
+    return null;
+  }
+}
+
+/** Quita el código de la barra de direcciones (un solo uso, sin historial). */
+export function stripRecoveryCodeFromUrl(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has("code")) return;
+    url.searchParams.delete("code");
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search}${url.hash}`,
+    );
+  } catch {
+    /* sin efecto si el navegador bloquea replaceState */
+  }
+}
+
 /** Arranque en frío: se ejecuta antes de que el SDK limpie el fragmento. */
 export function initRecoveryFromLocation(href?: string): void {
   const target = href ?? (typeof window !== "undefined" ? window.location.href : "");
@@ -165,6 +208,8 @@ export function initRecoveryFromLocation(href?: string): void {
   const detected = detectRecoveryFromHref(target);
   if (detected === "pending") markRecoveryPending();
   else if (detected === "error") markRecoveryError();
+  else if (detectRecoveryCodeFromHref(target)) markRecoveryPending();
 }
 
 if (typeof window !== "undefined") initRecoveryFromLocation();
+
