@@ -45,14 +45,22 @@ test.describe("portal A/B", () => {
     await expect(body).not.toContainText("7,890.12");
   });
 
-  test("el mismo logo global LiftGo aparece en ambos portales", async ({ page }) => {
+  test("el mismo logo global LiftGo aparece en ambos portales", async ({ browser }) => {
+    // Un contexto de navegador por empresa: `clearCookies()` no borra la sesión
+    // de Supabase guardada en localStorage y dejaría viva la sesión de A.
     for (const side of [ctx.A, ctx.B]) {
-      await page.context().clearCookies();
-      await portalLogin(page, side);
-      await page.goto("/portal/invoices");
-      const brand = page.getByAltText(/liftgo/i).first();
-      await expect(brand).toBeVisible();
-      await expect(brand).toHaveAttribute("src", /liftgo-montacargas/i);
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      try {
+        await portalLogin(page, side);
+        await page.goto("/portal/invoices");
+        const brand = page.getByAltText(/liftgo/i).first();
+        await expect(brand).toBeVisible();
+        await expect(brand).toHaveAttribute("src", /liftgo-montacargas/i);
+      } finally {
+        await context.close();
+      }
     }
   });
 });
+
