@@ -6,7 +6,7 @@ evidencia fechada de los dos gates que siguen abiertos —**ensayo A/B real** y
 autoriza cambios: es el procedimiento a seguir cuando el propietario autorice
 cada ensayo.
 
-Estado de los gates (última revisión: 2026-09-20):
+Estado de los gates (última revisión: 2026-09-21):
 
 | Gate | Estado | Evidencia |
 | --- | --- | --- |
