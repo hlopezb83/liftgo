@@ -54,6 +54,8 @@ export type AbContext = {
   A: AbSide;
   B: AbSide;
   legacyObjectPath: string;
+  /** Operador de plataforma sintético usado para activar la empresa B. */
+  platformOperatorUserId: string;
 };
 
 function must(label: string, error: { message?: string } | null): void {
@@ -307,7 +309,12 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     );
   }
 
-  const context: AbContext = { A, B, legacyObjectPath: AB_LEGACY_OBJECT };
+  const context: AbContext = {
+    A,
+    B,
+    legacyObjectPath: AB_LEGACY_OBJECT,
+    platformOperatorUserId: operatorId,
+  };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });
   writeFileSync(AB_CONTEXT_FILE, JSON.stringify(context, null, 2), { mode: 0o600 });
   return context;

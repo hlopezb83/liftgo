@@ -31,5 +31,8 @@ export default async function globalTeardown(): Promise<void> {
     await admin.from("organizations").delete().eq("id", side.organizationId);
   }
 
+  await admin.from("platform_operators").delete().eq("auth_user_id", ctx.platformOperatorUserId);
+  await admin.auth.admin.deleteUser(ctx.platformOperatorUserId);
+
   rmSync(AB_CONTEXT_FILE, { force: true });
 }
