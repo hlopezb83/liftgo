@@ -195,6 +195,9 @@ export function CreateOrganizationDialog({
                 {showPassword ? "Ocultar" : "Mostrar"}
               </Button>
             </div>
+            {passwordError ? (
+              <p className="text-xs text-destructive">{passwordError}</p>
+            ) : null}
           </div>
 
 
@@ -208,7 +211,10 @@ export function CreateOrganizationDialog({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={create.isPending}>
+            <Button
+              type="submit"
+              disabled={create.isPending || Boolean(passwordError)}
+            >
               {create.isPending ? "Creando…" : "Crear empresa"}
             </Button>
           </DialogFooter>
