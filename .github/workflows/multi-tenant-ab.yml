@@ -227,4 +227,6 @@ jobs:
 
       - name: Destruir entorno efímero
         if: always()
-        run: supabase stop --no-backup || true
+        run: |
+          rm -f .dev.vars
+          supabase stop --no-backup || true
