@@ -154,8 +154,8 @@ SELECT pg_temp.expect_true(
   pg_temp.src('get_income_statement') ILIKE '%f.deleted_at IS NULL OR f.deleted_at::date >= ms.month_start%'
 );
 SELECT pg_temp.expect_true(
-  'R9-08 get_income_statement sigue siendo SECURITY DEFINER con search_path',
-  (SELECT p.prosecdef AND p.proconfig::text ILIKE '%search_path%'
+  'R9-08 get_income_statement respeta RLS como SECURITY INVOKER con search_path fijo',
+  (SELECT NOT p.prosecdef AND p.proconfig::text ILIKE '%search_path%'
      FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
     WHERE n.nspname = 'public' AND p.proname = 'get_income_statement')
 );

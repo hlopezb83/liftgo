@@ -58,8 +58,8 @@ SELECT pg_temp.expect_true(
 );
 
 SELECT pg_temp.expect_true(
-  'get_financial_kpis sigue siendo SECURITY DEFINER con search_path',
-  (SELECT p.prosecdef AND p.proconfig::text ILIKE '%search_path%'
+  'get_financial_kpis respeta RLS como SECURITY INVOKER con search_path fijo',
+  (SELECT NOT p.prosecdef AND p.proconfig::text ILIKE '%search_path%'
      FROM pg_proc p WHERE p.proname = 'get_financial_kpis')
 );
 
