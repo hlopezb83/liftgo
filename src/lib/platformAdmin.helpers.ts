@@ -43,6 +43,19 @@ export function rpcError(
   throw new g.HttpError(500, "No se pudo completar la operación de plataforma");
 }
 
+/** Contraseña inicial fuerte: 12-72 caracteres y cuatro clases de caracteres. */
+export function isStrongAdminPassword(value: unknown): boolean {
+  return (
+    typeof value === "string" &&
+    value.length >= 12 &&
+    value.length <= 72 &&
+    /[a-z]/.test(value) &&
+    /[A-Z]/.test(value) &&
+    /[0-9]/.test(value) &&
+    /[^A-Za-z0-9]/.test(value)
+  );
+}
+
 export function validateCreateInput(g: Guards, data: CreateOrganizationInput) {
   if (!g.isNonEmptyString(data.name, 120) || data.name.trim().length < 2) {
     throw new g.HttpError(
