@@ -65,7 +65,20 @@ export function validateCreateInput(g: Guards, data: CreateOrganizationInput) {
   if (!g.isNonEmptyString(data.admin_full_name, 200)) {
     throw new g.HttpError(400, "El nombre del administrador es obligatorio");
   }
+  if (data.admin_password !== undefined && data.admin_password !== "") {
+    if (
+      typeof data.admin_password !== "string" ||
+      data.admin_password.length < 8 ||
+      data.admin_password.length > 72
+    ) {
+      throw new g.HttpError(
+        400,
+        "La contraseña inicial debe tener entre 8 y 72 caracteres",
+      );
+    }
+  }
 }
+
 
 /**
  * Compensación del alta. Orden: primero el usuario Auth (cascada sobre perfil,
