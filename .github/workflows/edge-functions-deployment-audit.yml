@@ -1,0 +1,69 @@
+name: Edge Functions deployment audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: edge-functions-deployment-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Comparar repositorio con despliegue
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-bun-project
+
+      - name: Verificar credenciales de solo lectura
+        shell: bash
+        run: |
+          if [[ -z "$SUPABASE_ACCESS_TOKEN" || -z "$SUPABASE_PROJECT_REF" ]]; then
+            echo "Faltan SUPABASE_ACCESS_TOKEN o SUPABASE_PROJECT_REF en GitHub Secrets."
+            exit 1
+          fi
+
+      - name: Instalar Supabase CLI
+        uses: supabase/setup-cli@v3.0.0
+        with:
+          version: 2.117.0
+
+      - name: Descargar inventario y fuentes desplegadas
+        shell: bash
+        run: |
+          audit_dir="$RUNNER_TEMP/edge-functions-audit"
+          mkdir -p "$audit_dir"
+          cd "$audit_dir"
+          supabase init
+          supabase --output json functions list \
+            --project-ref "$SUPABASE_PROJECT_REF" > functions.json
+          supabase functions download \
+            --project-ref "$SUPABASE_PROJECT_REF" \
+            --use-api
+
+      - name: Comparar fuentes
+        shell: bash
+        run: |
+          set -o pipefail
+          bun scripts/edge-functions-audit.ts \
+            --inventory "$RUNNER_TEMP/edge-functions-audit/functions.json" \
+            --downloaded "$RUNNER_TEMP/edge-functions-audit/supabase/functions" \
+            | tee "$RUNNER_TEMP/edge-functions-audit-report.json"
+
+      - name: Guardar reporte sanitizado
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: edge-functions-deployment-audit
+          path: ${{ runner.temp }}/edge-functions-audit-report.json
+          if-no-files-found: warn
+          retention-days: 14
+

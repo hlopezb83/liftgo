@@ -58,3 +58,13 @@ bun scripts/edge-functions-audit.ts `
 Un resultado verde permite cerrar el inventario. No sustituye las pruebas A/B
 ni autoriza por sí mismo el alta de otra organización.
 
+## Ejecución protegida en GitHub
+
+El workflow manual `Edge Functions deployment audit` ejecuta el mismo proceso
+sin exponer credenciales. Requiere los secretos `SUPABASE_ACCESS_TOKEN` y
+`SUPABASE_PROJECT_REF`. Sólo lista y descarga funciones; no contiene comandos
+de despliegue, borrado ni escritura sobre la base de datos.
+
+El artefacto `edge-functions-deployment-audit` conserva durante 14 días
+únicamente el JSON sanitizado con nombres, clasificaciones, versiones y hashes.
+
