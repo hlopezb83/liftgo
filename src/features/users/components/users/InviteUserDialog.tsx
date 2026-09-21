@@ -142,6 +142,30 @@ export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: In
             {emailError ? <p className="text-sm text-destructive">{emailError}</p> : null}
           </div>
           <div className="space-y-2">
+            <Label htmlFor="inv-password">Contraseña inicial (opcional)</Label>
+            <Input
+              id="inv-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              maxLength={72}
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (passwordError) setPasswordError(null);
+              }}
+              aria-invalid={passwordError ? true : undefined}
+            />
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                Si la dejas vacía, se genera un enlace de acceso de un solo uso.
+              </p>
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowPassword((v) => !v)}>
+                {showPassword ? "Ocultar" : "Mostrar"}
+              </Button>
+            </div>
+            {passwordError ? <p className="text-sm text-destructive">{passwordError}</p> : null}
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="inv-role">Rol</Label>
             <Select value={role} onValueChange={setRole}>
               <SelectTrigger id="inv-role"><SelectValue /></SelectTrigger>
