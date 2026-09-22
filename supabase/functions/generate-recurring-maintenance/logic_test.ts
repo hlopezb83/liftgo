@@ -14,7 +14,7 @@ import {
 function policy(
   over: Partial<MaintenancePolicyRow> = {},
 ): MaintenancePolicyRow {
-  return {
+  const p: MaintenancePolicyRow = {
     id: "p1",
     organization_id: "org-1",
     forklift_id: "f1",
@@ -26,6 +26,11 @@ function policy(
     forklifts: { name: "MC-1", status: "rented" },
     ...over,
   };
+  // Falla cerrada: la unidad debe declarar la MISMA empresa que la póliza.
+  if (!("forklifts" in over) && p.forklifts) {
+    p.forklifts = { ...p.forklifts, organization_id: p.organization_id };
+  }
+  return p;
 }
 
 interface Recorded {
