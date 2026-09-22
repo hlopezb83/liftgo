@@ -88,13 +88,13 @@ ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 INSERT INTO public.organization_memberships (
   organization_id, auth_user_id, member_type
 )
-SELECT org_a, '47000000-0000-4000-8000-0000000000f0', 'internal'
+SELECT org_a, '47000000-0000-4000-8000-0000000000f0'::uuid, 'internal'
 FROM phase1_fixture
 UNION ALL
-SELECT org_a, '47000000-0000-4000-8000-0000000000a1', 'internal'
+SELECT org_a, '47000000-0000-4000-8000-0000000000a1'::uuid, 'internal'
 FROM phase1_fixture
 UNION ALL
-SELECT org_b, '47000000-0000-4000-8000-0000000000a2', 'internal'
+SELECT org_b, '47000000-0000-4000-8000-0000000000a2'::uuid, 'internal'
 FROM phase1_fixture
 ON CONFLICT DO NOTHING;
 
