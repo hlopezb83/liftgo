@@ -1,0 +1,40 @@
+export type SerializableValue =
+  | string
+  | number
+  | boolean
+  | null
+  | SerializableValue[]
+  | { [key: string]: SerializableValue };
+
+export interface PlatformEquipmentModelRow {
+  id: string;
+  manufacturer: string;
+  model: string;
+  capacity_kg: number | null;
+  mast_height_m: number | null;
+  fuel_type: string | null;
+  specifications: { [key: string]: SerializableValue };
+  image_url: string | null;
+  spec_sheet_url: string | null;
+  is_active: boolean;
+  organization_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EquipmentModelCatalogInput {
+  id?: string;
+  manufacturer: string;
+  model: string;
+  capacity_kg?: number | null;
+  mast_height_m?: number | null;
+  fuel_type?: string | null;
+  specifications?: { [key: string]: SerializableValue };
+  image_url?: string | null;
+  spec_sheet_url?: string | null;
+}
+
+export interface SetEquipmentModelCatalogActiveInput {
+  id: string;
+  active: boolean;
+}

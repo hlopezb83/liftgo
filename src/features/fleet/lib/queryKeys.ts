@@ -22,6 +22,7 @@ export const forkliftKeys = {
 export const equipmentModelKeys = {
   all: ["equipment_models"] as const,
   list: () => [...equipmentModelKeys.all, "list"] as const,
+  catalog: () => [...equipmentModelKeys.all, "global-catalog"] as const,
   detail: (id: string) => [...equipmentModelKeys.all, "detail", id] as const,
 } as const;
 

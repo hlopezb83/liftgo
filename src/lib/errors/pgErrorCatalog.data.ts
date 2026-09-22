@@ -91,6 +91,14 @@ export const CONSTRAINT_MESSAGES: Record<string, CatalogEntry> = {
     message:
       "Ese fabricante y modelo ya existen en el catálogo compartido de modelos. Selecciónalo de la lista en lugar de crearlo otra vez.",
   },
+  equipment_models_org_mfr_model_unique: {
+    message:
+      "Ese modelo ya está habilitado para tu empresa. Edita su alias o sus tarifas en la lista actual.",
+  },
+  equipment_models_org_catalog_unique: {
+    message:
+      "Ese modelo global ya está habilitado para tu empresa. Edita su configuración local en la lista actual.",
+  },
   drivers_name_unique: {
     message:
       "Ese nombre de operador ya está registrado en el sistema. Si no aparece en tu lista, agrega un distintivo al nombre o solicita apoyo al administrador: el nombre aún es único entre empresas.",

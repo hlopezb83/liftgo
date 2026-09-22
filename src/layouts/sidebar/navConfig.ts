@@ -107,6 +107,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Configuración", url: "/settings/operations", icon: SettingsIcon },
       // Operación de plataforma: alta/suspensión de empresas (tramo 9).
       { title: "Empresas", url: "/settings/organizations", icon: CompanyIcon, platformOperatorOnly: true },
+      { title: "Catálogo LiftGo", url: "/settings/catalogs", icon: FleetIcon, platformOperatorOnly: true },
     ],
   },
   {

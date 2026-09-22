@@ -1,3 +1,26 @@
+## [8.38.0] - 2026-09-22 · minor · feature
+
+Se preparó la primera integración funcional del catálogo compartido de modelos. Fabricante, modelo y ficha técnica pertenecen al maestro LiftGo; cada organización decide cuáles modelos habilita y conserva en privado su alias y sus tarifas. El cambio está listo en Git y todavía no se aplica en la nube.
+
+- La migración `0047_shared_equipment_models_phase1.sql` cambia la unicidad histórica por una regla acotada a organización, agrega alias y habilitación local y sincroniza la ficha enlazada desde el maestro global.
+- Los administradores de empresa habilitan modelos del catálogo LiftGo y sólo editan alias y tarifas locales.
+- Los operadores de plataforma reciben la pantalla **Catálogo LiftGo** para crear, editar, desactivar y reactivar fichas globales.
+- Los formularios de flota y cotización siguen consumiendo `equipment_models`, ahora filtrado a la configuración local activa; no se mezclan tarifas ni unidades.
+- La prueba `shared_equipment_models_phase1.sql` comprueba con dos organizaciones que ambas usan el mismo maestro con tarifas distintas, que las configuraciones no cruzan empresas y que la ficha técnica se mantiene sincronizada.
+- El cambio está preparado en Git y todavía no se aplica en Lovable Cloud.
+
+## [8.37.0] - 2026-09-22 · minor · feature
+
+Se preparó una base aditiva para compartir entre las empresas LiftGo el logo oficial, los modelos técnicos de equipos, el catálogo de SKUs y las plantillas legales versionadas. La Org 1 alimenta el machote inicial; tarifas, existencias, costos, ubicaciones y datos fiscales continúan siendo propios de cada empresa. El cambio quedó listo en Git y todavía no se aplica en la nube.
+
+- La Org 1 se usa como fuente inicial: sus modelos técnicos y plantillas legales se copian a maestros globales, y sus refacciones se copian cuando tienen un SKU válido.
+- El logo oficial `/brand/liftgo-montacargas.png` queda registrado como activo global para todas las organizaciones.
+- Se agregan vínculos opcionales desde los modelos, inventarios y plantillas actuales, sin cambiar todavía las lecturas ni las pantallas existentes.
+- Los catálogos globales sólo pueden modificarlos los operadores de plataforma; el personal interno de cualquier empresa puede leer los registros activos.
+- Las versiones legales son inmutables una vez creadas y cada empresa conserva en privado la versión que adoptó y sus ajustes locales permitidos.
+- La prueba `supabase/tests/rls/shared_catalogs_foundation.sql` usa dos empresas para comprobar la lectura compartida, la escritura restringida, la privacidad de asignaciones y el bloqueo para usuarios anónimos y del portal.
+- La migración completa y su prueba RLS pasaron contra Lovable Cloud dentro de una transacción revertida; no se dejó ningún cambio en producción.
+
 ## [8.36.1] - 2026-09-22 · patch · fix
 
 Al aprobar un pago reportado por un cliente desde el portal, el sistema guardaba el tipo de cambio histórico de la factura, aunque el pago se registra en la misma moneda. La corrección (migración 0045, preparada en Git, NO aplicada) fija el valor neutral 1, porque la columna exchange_rate no admite vacío y el tipo de cambio histórico no aplica a un pago en la misma moneda. También se actualizaron las pruebas automáticas de seguridad que aún esperaban las reglas anteriores a la separación por empresa.

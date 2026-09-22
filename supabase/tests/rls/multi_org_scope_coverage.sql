@@ -33,7 +33,13 @@ DECLARE
     'role_permissions',             -- catálogo de permisos por rol
     'user_roles',                   -- rol por usuario auth
     'storage_reference_migrations', -- ledger técnico del migrador Storage (service_role)
-    'platform_operators'            -- operadores de plataforma (0030), select propio
+    'platform_operators',           -- operadores de plataforma (0030), select propio
+    'brand_assets',                 -- identidad visual oficial compartida de LiftGo (0046)
+    'equipment_model_catalog',      -- maestro técnico compartido de modelos (0046)
+    'parts_catalog',                -- maestro compartido de SKUs, sin stock ni costos (0046)
+    'parts_catalog_equipment_models', -- compatibilidad global SKU-modelo (0046)
+    'legal_template_definitions',   -- definiciones legales globales LiftGo (0046)
+    'legal_template_versions'       -- versiones legales globales append-only (0046)
   ];
   -- Tablas CON organization_id que usan policies propias (relación/infra)
   -- en lugar de org_scope_isolation. Se exige igualmente que TODAS sus
@@ -43,7 +49,8 @@ DECLARE
     'organization_customers',       -- relación comercial por empresa
     'customer_portal_accounts',     -- cuenta portal por (empresa, cliente)
     'organization_document_counters', -- folios por empresa (sin policies: sólo funciones)
-    'storage_object_migrations'     -- ledger técnico del migrador Storage
+    'storage_object_migrations',    -- ledger técnico del migrador Storage
+    'organization_legal_template_assignments' -- adopción legal privada por empresa (0046)
   ];
   -- Tablas CON organization_id de INFRAESTRUCTURA SENSIBLE: no son tablas de
   -- negocio y NO deben ser alcanzables desde la aplicación. En lugar de
@@ -240,3 +247,4 @@ END;
 $$;
 
 ROLLBACK;
+

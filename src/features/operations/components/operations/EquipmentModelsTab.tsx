@@ -11,197 +11,148 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, useForklifts, EquipmentModel } from "@/features/fleet";
 import {
-  countUnitsForModel,
-  isDuplicateModel,
-  validateNonNegative,
-} from "@/features/operations/lib/equipmentModelValidation";
+  useActivateEquipmentModel,
+  useDeleteEquipmentModel,
+  useEquipmentModelCatalog,
+  useEquipmentModels,
+  useForklifts,
+  useUpdateEquipmentModel,
+  type EquipmentModel,
+} from "@/features/fleet";
+import { countUnitsForModel, validateNonNegative } from "@/features/operations/lib/equipmentModelValidation";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
+import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
+type FormState = {
+  catalogId: string;
+  alias: string;
+  daily: string;
+  weekly: string;
+  monthly: string;
+};
+
+const EMPTY: FormState = { catalogId: "", alias: "", daily: "", weekly: "", monthly: "" };
 
 export function EquipmentModelsTab() {
   const isMobile = useIsMobile();
-  const { data: models, isLoading, isError, refetch } = useEquipmentModels();
+  const local = useEquipmentModels();
+  const catalog = useEquipmentModelCatalog();
   const { data: forklifts } = useForklifts();
-  const create = useCreateEquipmentModel();
+  const activate = useActivateEquipmentModel();
   const update = useUpdateEquipmentModel();
-  const del = useDeleteEquipmentModel();
+  const deactivate = useDeleteEquipmentModel();
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const emptyForm = { manufacturer: "", model: "", default_capacity_kg: "", default_mast_height_m: "", default_fuel_type: "Diesel", default_daily_rate: "", default_weekly_rate: "", default_monthly_rate: "" };
-  const [form, setForm] = useState(emptyForm);
-  const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
+  const [form, setForm] = useState<FormState>(EMPTY);
+  const set = (key: keyof FormState, value: string) => setForm((current) => ({ ...current, [key]: value }));
 
-  // R7 Bloque 19c: contar montacargas activos por modelo (match manufacturer+model,
-  // case-insensitive). El schema no tiene FK equipment_model_id en forklifts, así que
-  // se resuelve por composición del par visible al usuario.
+  const models = local.data ?? [];
   const forkliftList = useMemo(() => forklifts ?? [], [forklifts]);
-  const countUnits = (m: EquipmentModel) => countUnitsForModel(forkliftList, m.manufacturer, m.model);
+  const countUnits = (model: EquipmentModel) =>
+    countUnitsForModel(forkliftList, model.manufacturer, model.model);
 
-  const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
-  const openEdit = (m: EquipmentModel) => {
-    setEditId(m.id);
-    setForm({ manufacturer: m.manufacturer, model: m.model, default_capacity_kg: m.default_capacity_kg?.toString() ?? "", default_mast_height_m: m.default_mast_height_m?.toString() ?? "", default_fuel_type: m.default_fuel_type, default_daily_rate: m.default_daily_rate?.toString() ?? "", default_weekly_rate: m.default_weekly_rate?.toString() ?? "", default_monthly_rate: m.default_monthly_rate?.toString() ?? "" });
+  const openNew = () => { setEditId(null); setForm(EMPTY); setOpen(true); };
+  const openEdit = (model: EquipmentModel) => {
+    setEditId(model.id);
+    setForm({
+      catalogId: model.catalog_model_id ?? "",
+      alias: model.local_alias ?? "",
+      daily: model.default_daily_rate?.toString() ?? "",
+      weekly: model.default_weekly_rate?.toString() ?? "",
+      monthly: model.default_monthly_rate?.toString() ?? "",
+    });
     setOpen(true);
   };
 
-  const handleSubmit = () => {
-    const manufacturer = form.manufacturer.trim();
-    const model = form.model.trim();
-    if (!manufacturer || !model) {
-      notifyValidation({ message: "Fabricante y modelo son requeridos" });
+  const submit = () => {
+    if (!editId && !form.catalogId) {
+      notifyValidation({ message: "Selecciona un modelo del catálogo LiftGo" });
       return;
     }
-    // R7 Bloque 19c: duplicado (fabricante+modelo) case-insensitive; el índice
-    // parcial de la DB (`WHERE deleted_at IS NULL`) es la defensa final.
-    if (isDuplicateModel(models ?? [], manufacturer, model, editId)) {
-      notifyValidation({ message: `Ya existe el modelo ${manufacturer} ${model}` });
-      return;
+    for (const [value, label] of [[form.daily, "Tarifa diaria"], [form.weekly, "Tarifa semanal"], [form.monthly, "Tarifa mensual"]] as const) {
+      const error = validateNonNegative(value, label);
+      if (error) { notifyValidation({ message: error }); return; }
     }
-    // R7 Bloque 19c: rangos ≥ 0 para tarifas y specs numéricas.
-    const numericFields: Array<[keyof typeof form, string]> = [
-      ["default_daily_rate", "Tarifa diaria"],
-      ["default_weekly_rate", "Tarifa semanal"],
-      ["default_monthly_rate", "Tarifa mensual"],
-      ["default_capacity_kg", "Capacidad"],
-      ["default_mast_height_m", "Altura de mástil"],
-    ];
-    for (const [field, label] of numericFields) {
-      const err = validateNonNegative(form[field], label);
-      if (err) {
-        notifyValidation({ message: err });
-        return;
-      }
-    }
-    const payload = { manufacturer, model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type, default_daily_rate: form.default_daily_rate ? parseFloat(form.default_daily_rate) : 0, default_weekly_rate: form.default_weekly_rate ? parseFloat(form.default_weekly_rate) : 0, default_monthly_rate: form.default_monthly_rate ? parseFloat(form.default_monthly_rate) : 0 };
+    const rates = {
+      local_alias: form.alias.trim() || null,
+      default_daily_rate: form.daily ? Number(form.daily) : 0,
+      default_weekly_rate: form.weekly ? Number(form.weekly) : 0,
+      default_monthly_rate: form.monthly ? Number(form.monthly) : 0,
+    };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); } });
+      update.mutate({ id: editId, ...rates }, {
+        onSuccess: () => { notifySuccess("Configuración local actualizada"); setOpen(false); },
+      });
     } else {
-      create.mutate(payload, { onSuccess: () => { notifySuccess("Agregado"); setOpen(false); } });
+      activate.mutate({ catalog_model_id: form.catalogId, ...rates }, {
+        onSuccess: () => { notifySuccess("Modelo habilitado para esta empresa"); setOpen(false); },
+      });
     }
   };
 
   const columns: ColumnDef<EquipmentModel>[] = [
     { id: "manufacturer", header: "Fabricante", accessorKey: "manufacturer", cell: ({ row }) => <span className="font-medium">{row.original.manufacturer}</span> },
-    { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => row.original.model },
-    { id: "default_capacity_kg", header: "Capacidad (kg)", accessorKey: "default_capacity_kg", meta: { kind: "number" }, cell: ({ row }) => row.original.default_capacity_kg ?? "—" },
-    { id: "default_mast_height_m", header: "Altura Mástil (m)", accessorKey: "default_mast_height_m", meta: { kind: "number" }, cell: ({ row }) => row.original.default_mast_height_m ?? "—" },
-    { id: "default_fuel_type", header: "Combustible", accessorKey: "default_fuel_type", cell: ({ row }) => FUEL_TYPE_LABELS[row.original.default_fuel_type] || row.original.default_fuel_type },
+    { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => row.original.local_alias || row.original.model },
+    { id: "capacity", header: "Capacidad", accessorKey: "default_capacity_kg", cell: ({ row }) => row.original.default_capacity_kg ? `${row.original.default_capacity_kg} kg` : "—" },
+    { id: "fuel", header: "Combustible", accessorKey: "default_fuel_type", cell: ({ row }) => FUEL_TYPE_LABELS[row.original.default_fuel_type] || row.original.default_fuel_type },
+    { id: "daily", header: "Tarifa diaria", accessorKey: "default_daily_rate", meta: { kind: "money" } },
     {
-      id: "actions",
-      header: "",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <EquipmentModelRowActions
-          model={row.original}
-          unitsInUse={countUnits(row.original)}
-          onEdit={() => openEdit(row.original)}
-          onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
-        />
-      ),
+      id: "actions", header: "", enableSorting: false,
+      cell: ({ row }) => <EquipmentModelRowActions model={row.original} unitsInUse={countUnits(row.original)} onEdit={() => openEdit(row.original)} onDeactivate={() => deactivate.mutate(row.original.id, { onSuccess: () => notifySuccess("Modelo desactivado para esta empresa") })} />,
     },
   ];
+  const table = useLiftgoTable<EquipmentModel>({ data: models, columns, getRowId: (model) => model.id, initialSorting: [{ id: "manufacturer", desc: false }], paginated: false });
+  const pending = activate.isPending || update.isPending;
 
-
-  const table = useLiftgoTable<EquipmentModel>({
-    data: models,
-    columns,
-    getRowId: (m) => m.id,
-    initialSorting: [{ id: "manufacturer", desc: false }],
-    paginated: false,
-  });
+  if (local.isError || catalog.isError) {
+    return <QueryErrorState bare entity="los modelos de equipo" onRetry={() => { void local.refetch(); void catalog.refetch(); }} />;
+  }
 
   return (
     <div>
-      <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Modelo</Button>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">La ficha técnica es global; el alias y las tarifas pertenecen a esta empresa.</p>
+        <Button onClick={openNew} size="sm"><AddIcon className="mr-2 h-4 w-4" />Habilitar modelo</Button>
       </div>
-      {isError ? (
-        <QueryErrorState bare entity="los modelos de equipo" onRetry={() => { void refetch(); }} />
-      ) : isLoading ? (
+      {local.isLoading || catalog.isLoading ? (
         <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
       ) : isMobile ? (
-        <MobileCardList
-          items={models ?? []}
-          keyExtractor={(m) => m.id}
-          emptyMessage="No hay modelos de equipo configurados"
-          renderCard={(m) => (
-            <Card>
-              <CardContent className="p-3 space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium">{m.manufacturer} {m.model}</span>
-                  <EquipmentModelRowActions
-                    model={m}
-                    unitsInUse={countUnits(m)}
-                    onEdit={() => openEdit(m)}
-                    onDelete={() => del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
-                  />
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {FUEL_TYPE_LABELS[m.default_fuel_type] || m.default_fuel_type}
-                  {m.default_capacity_kg ? ` · ${m.default_capacity_kg} kg` : ""}
-                  {m.default_mast_height_m ? ` · ${m.default_mast_height_m} m` : ""}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        />
-      ) : (
-        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
-      )}
-      <FormDialog
-      isPending={create.isPending || update.isPending} open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Modelo de Equipo`} description="Define una combinación de fabricante/modelo con especificaciones predeterminadas.">
-          <div className="grid gap-4 py-2">
-            <div className="space-y-1.5"><Label>Fabricante *</Label><Input placeholder="ej. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>
-            <div className="space-y-1.5"><Label>Modelo *</Label><Input placeholder="ej. H50" value={form.model} onChange={(e) => set("model", e.target.value)} /></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Capacidad (kg)</Label><Input type="number" placeholder="2500" value={form.default_capacity_kg} onChange={(e) => set("default_capacity_kg", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Altura Mástil (m)</Label><Input type="number" placeholder="4.5" value={form.default_mast_height_m} onChange={(e) => set("default_mast_height_m", e.target.value)} /></div>
+        <MobileCardList items={models} keyExtractor={(model) => model.id} emptyMessage="No hay modelos de equipo configurados" renderCard={(model) => (
+          <Card><CardContent className="space-y-1 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-medium">{model.manufacturer} {model.local_alias || model.model}</span>
+              <EquipmentModelRowActions model={model} unitsInUse={countUnits(model)} onEdit={() => openEdit(model)} onDeactivate={() => deactivate.mutate(model.id)} />
             </div>
-            <div className="space-y-1.5">
-              <Label>Combustible</Label>
-              <Select value={form.default_fuel_type} onValueChange={(v) => set("default_fuel_type", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5"><Label>Tarifa Diaria</Label><Input type="number" placeholder="0" value={form.default_daily_rate} onChange={(e) => set("default_daily_rate", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Tarifa Semanal</Label><Input type="number" placeholder="0" value={form.default_weekly_rate} onChange={(e) => set("default_weekly_rate", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Tarifa Mensual</Label><Input type="number" placeholder="0" value={form.default_monthly_rate} onChange={(e) => set("default_monthly_rate", e.target.value)} /></div>
-            </div>
+            <div className="text-xs text-muted-foreground">{model.default_capacity_kg ? `${model.default_capacity_kg} kg · ` : ""}{FUEL_TYPE_LABELS[model.default_fuel_type] || model.default_fuel_type}</div>
+          </CardContent></Card>
+        )} />
+      ) : <DataTableV2 table={table} isLoading={local.isLoading} emptyMessage="No hay modelos de equipo configurados" />}
+
+      <FormDialog open={open} onOpenChange={setOpen} isPending={pending} title={editId ? "Configuración local del modelo" : "Habilitar modelo global"} description="Las tarifas y el alias sólo aplican a esta organización.">
+        <div className="grid gap-4 py-2">
+          {!editId && <div className="space-y-1.5"><Label>Modelo LiftGo *</Label><Select value={form.catalogId} onValueChange={(value) => set("catalogId", value)}><SelectTrigger><SelectValue placeholder="Selecciona un modelo" /></SelectTrigger><SelectContent>{(catalog.data ?? []).map((item) => <SelectItem key={item.id} value={item.id}>{item.manufacturer} {item.model}</SelectItem>)}</SelectContent></Select></div>}
+          {editId && <div className="rounded-md border bg-muted/40 p-3 text-sm"><span className="font-medium">{models.find((model) => model.id === editId)?.manufacturer} {models.find((model) => model.id === editId)?.model}</span><p className="text-muted-foreground">La ficha técnica se administra en el Catálogo LiftGo.</p></div>}
+          <div className="space-y-1.5"><Label>Alias interno</Label><Input value={form.alias} onChange={(event) => set("alias", event.target.value)} placeholder="Opcional" /></div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <RateField label="Tarifa diaria" value={form.daily} onChange={(value) => set("daily", value)} />
+            <RateField label="Tarifa semanal" value={form.weekly} onChange={(value) => set("weekly", value)} />
+            <RateField label="Tarifa mensual" value={form.monthly} onChange={(value) => set("monthly", value)} />
           </div>
-          <FormDialogFooter>
-            <FormDialogCancelButton onCancel={() => setOpen(false)} disabled={create.isPending || update.isPending} />
-            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
-          </FormDialogFooter>
-        </FormDialog>
+        </div>
+        <FormDialogFooter><FormDialogCancelButton onCancel={() => setOpen(false)} disabled={pending} /><Button onClick={submit} disabled={pending}>{editId ? "Guardar" : "Habilitar"}</Button></FormDialogFooter>
+      </FormDialog>
     </div>
   );
 }
 
-function EquipmentModelRowActions({ model, unitsInUse, onEdit, onDelete }: { model: EquipmentModel; unitsInUse: number; onEdit: () => void; onDelete: () => void }) {
-  const [open, setOpen] = useState(false);
-  // R7 Bloque 19c: informar cuántas unidades activas dependen de este modelo.
-  const usageMsg = unitsInUse > 0
-    ? `Hay ${unitsInUse} montacargas activo${unitsInUse === 1 ? "" : "s"} con este fabricante/modelo. La eliminación no afectará esas unidades pero perderán sus tarifas y specs predeterminadas.`
-    : "Ningún montacargas activo usa este modelo.";
-  return (
-    <div className="flex gap-1">
-      <Button variant="ghost" size="icon" aria-label="Editar modelo" title="Editar modelo" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" aria-label="Eliminar modelo" title="Eliminar modelo" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
-      <ConfirmDialog
-        open={open}
-        onOpenChange={setOpen}
-        title={`¿Eliminar ${model.manufacturer} ${model.model}?`}
-        description={usageMsg}
-        confirmLabel="Eliminar"
-        destructive
-        onConfirm={onDelete}
-      />
-    </div>
-  );
+function RateField({ label, value, onChange }: { label: string; value: string; onChange: (value: string) => void }) {
+  return <div className="space-y-1.5"><Label>{label}</Label><Input type="number" min="0" value={value} onChange={(event) => onChange(event.target.value)} /></div>;
+}
+
+function EquipmentModelRowActions({ model, unitsInUse, onEdit, onDeactivate }: { model: EquipmentModel; unitsInUse: number; onEdit: () => void; onDeactivate: () => void }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const usage = unitsInUse > 0 ? `Hay ${unitsInUse} unidad${unitsInUse === 1 ? "" : "es"} activa${unitsInUse === 1 ? "" : "s"} con este modelo. Las unidades existentes conservarán su ficha.` : "Ninguna unidad activa usa este modelo.";
+  return <div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="Editar tarifas y alias" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button><Button variant="ghost" size="icon" aria-label="Desactivar modelo" onClick={() => setConfirmOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button><ConfirmDialog open={confirmOpen} onOpenChange={setConfirmOpen} title={`¿Desactivar ${model.manufacturer} ${model.model}?`} description={usage} confirmLabel="Desactivar" destructive onConfirm={onDeactivate} /></div>;
 }
