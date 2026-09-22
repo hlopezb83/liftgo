@@ -218,6 +218,7 @@ $$;
 DO $$
 DECLARE
   v_remaining_definers text;
+  v_sig text;
 BEGIN
   SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
   INTO v_remaining_definers
