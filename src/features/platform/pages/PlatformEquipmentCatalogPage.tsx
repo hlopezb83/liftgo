@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { PlatformEquipmentModelRow } from "@/lib/platformCatalog.functions";
 import { PlatformEquipmentModelDialog } from "../components/PlatformEquipmentModelDialog";
+import { PlatformPartsCatalogCard } from "../components/PlatformPartsCatalogCard";
 import {
   usePlatformEquipmentCatalog,
   useSetPlatformEquipmentModelActive,
@@ -89,6 +90,7 @@ export default function PlatformEquipmentCatalogPage() {
           )}
         </CardContent>
       </Card>
+      <PlatformPartsCatalogCard models={data ?? []} />
       {open && <PlatformEquipmentModelDialog open onOpenChange={setOpen} model={editing} />}
     </div>
   );

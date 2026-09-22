@@ -1,3 +1,14 @@
+## [8.39.0] - 2026-09-22 · minor · feature
+
+El catálogo global de refacciones ya separa la identidad técnica compartida de las existencias y costos de cada empresa. Los operadores de plataforma administran SKU, nombre, fabricante, categoría y compatibilidad; cada organización habilita los SKUs que usa y conserva en privado stock, mínimo, costo y ubicación.
+
+- La migración `0048_shared_parts_catalog_phase2.sql` agrega habilitación local, unicidad por empresa y SKU global, sincronización de columnas heredadas y RPCs con verificación de actor.
+- Los administradores y mecánicos conservan el flujo operativo de inventario, pero las altas nuevas se seleccionan desde el catálogo LiftGo.
+- Desactivar una refacción sólo la oculta para esa organización; no borra el maestro global ni el historial de mantenimiento.
+- La pantalla de plataforma permite crear, editar, activar y desactivar SKUs, números OEM y compatibilidad con modelos globales.
+- La prueba A/B usa el mismo SKU en dos organizaciones con stock, costo y ubicación distintos, comprueba RLS y verifica la propagación de identidad sin mezclar datos locales.
+- Org 1 no contiene refacciones actualmente; el código no inventa SKUs y deja la carga inicial para datos reales aprobados.
+
 ## [8.38.0] - 2026-09-22 · minor · feature
 
 Se preparó la primera integración funcional del catálogo compartido de modelos. Fabricante, modelo y ficha técnica pertenecen al maestro LiftGo; cada organización decide cuáles modelos habilita y conserva en privado su alias y sus tarifas. El cambio está listo en Git y todavía no se aplica en la nube.

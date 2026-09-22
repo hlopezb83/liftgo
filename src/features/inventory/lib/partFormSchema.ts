@@ -7,6 +7,7 @@ export const partFormSchema = z.object({
   stock_quantity: z.coerce.number({ error: "Cantidad inválida" }).int("Debe ser entero").min(0, "No puede ser negativo"),
   min_stock_level: z.coerce.number({ error: "Cantidad inválida" }).int("Debe ser entero").min(0, "No puede ser negativo"),
   unit_cost: z.coerce.number({ error: "Costo inválido" }).min(0, "No puede ser negativo"),
+  location: z.string().default(""),
 });
 
 export type PartFormData = z.infer<typeof partFormSchema>;

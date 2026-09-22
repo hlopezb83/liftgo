@@ -1,7 +1,6 @@
 import { useForm } from "react-hook-form";
 import {
   TextField,
-  SelectField,
   NumberField,
   CurrencyField,
 } from "@/components/forms/fields";
@@ -13,8 +12,7 @@ import { Form } from "@/components/ui/form";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
-import { CATEGORY_OPTIONS } from "../../lib/partConstants";
+import { useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
 
 interface PartFormDialogProps {
@@ -24,11 +22,10 @@ interface PartFormDialogProps {
 }
 
 const empty: PartFormData = {
-  name: "", sku: "", category: "Otros", stock_quantity: 0, min_stock_level: 5, unit_cost: 0,
+  name: "", sku: "", category: "Otros", stock_quantity: 0, min_stock_level: 5, unit_cost: 0, location: "",
 };
 
 export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps) {
-  const createPart = useCreatePart();
   const updatePart = useUpdatePart();
 
   const form = useForm<PartFormData>({
@@ -47,6 +44,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
             stock_quantity: part.stock_quantity,
             min_stock_level: part.min_stock_level,
             unit_cost: part.unit_cost,
+            location: part.location ?? "",
           }
         : empty,
     );
@@ -54,21 +52,16 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
 
   const onSubmit = form.handleSubmit((data) => {
     const payload = {
-      name: data.name,
-      sku: data.sku || null,
-      category: data.category,
       stock_quantity: data.stock_quantity,
       min_stock_level: data.min_stock_level,
       unit_cost: data.unit_cost,
+      location: data.location || null,
     };
-    if (part) {
-      updatePart.mutate({ id: part.id, ...payload }, { onSuccess: () => onOpenChange(false) });
-    } else {
-      createPart.mutate(payload, { onSuccess: () => onOpenChange(false) });
-    }
+    if (!part) return;
+    updatePart.mutate({ id: part.id, ...payload }, { onSuccess: () => onOpenChange(false) });
   });
 
-  const isPending = createPart.isPending || updatePart.isPending;
+  const isPending = updatePart.isPending;
   useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
 
   return (
@@ -77,26 +70,16 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
       isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
-      title={part ? "Editar refacción" : "Nueva refacción"}
+      title="Editar inventario local"
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
-          <FormSection title="Identidad" first>
-            <TextField
-              control={form.control}
-              name="name"
-              label="Nombre"
-              required
-              placeholder="Ej. Filtro de aceite"
-            />
-            <TextField control={form.control} name="sku" label="SKU" placeholder="Ej. FLT-001" />
-            <SelectField
-              control={form.control}
-              name="category"
-              label="Categoría"
-              required
-              options={CATEGORY_OPTIONS}
-            />
+          <FormSection title="Identidad LiftGo" first>
+            <div className="rounded-md border bg-muted/40 p-3 text-sm">
+              <span className="font-mono font-medium">{part?.sku}</span>
+              <p>{part?.name}</p>
+              <p className="text-muted-foreground">El SKU, nombre y categoría se administran en el catálogo global.</p>
+            </div>
           </FormSection>
           <FormSection title="Inventario y costo">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -120,11 +103,12 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
                 label="Costo Unitario"
               />
             </div>
+            <TextField control={form.control} name="location" label="Ubicación" placeholder="Ej. Pasillo A · Estante 3" />
           </FormSection>
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Guardando…" : part ? "Guardar" : "Agregar refacción"}
+              {isPending ? "Guardando…" : "Guardar"}
             </Button>
           </FormDialogFooter>
         </form>

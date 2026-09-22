@@ -38,3 +38,38 @@ export interface SetEquipmentModelCatalogActiveInput {
   id: string;
   active: boolean;
 }
+
+export interface PlatformPartCatalogRow {
+  id: string;
+  sku: string;
+  name: string;
+  description: string | null;
+  manufacturer: string | null;
+  oem_numbers: string[];
+  category: string | null;
+  unit_of_measure: string;
+  image_url: string | null;
+  is_active: boolean;
+  equipment_model_ids: string[];
+  organization_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PartCatalogInput {
+  id?: string;
+  sku: string;
+  name: string;
+  description?: string | null;
+  manufacturer?: string | null;
+  oem_numbers?: string[];
+  category?: string | null;
+  unit_of_measure?: string;
+  image_url?: string | null;
+  equipment_model_ids?: string[];
+}
+
+export interface SetPartCatalogActiveInput {
+  id: string;
+  active: boolean;
+}

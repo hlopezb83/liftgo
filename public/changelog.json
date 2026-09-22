@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.39.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "feature",
+    "title": "SKUs globales con inventario independiente por empresa",
+    "description": "El catálogo global de refacciones separa la identidad técnica compartida de las existencias y costos locales. LiftGo administra SKU, nombre, fabricante y compatibilidad; cada empresa conserva stock, mínimo, costo, ubicación y habilitación.",
+    "changes": [
+      "Las altas nuevas de inventario seleccionan un SKU real del catálogo LiftGo en lugar de duplicar su identidad.",
+      "SKU, nombre y categoría se sincronizan desde el maestro global mientras stock, costo y ubicación permanecen privados por organización.",
+      "Los operadores de plataforma administran SKUs, números OEM, unidad de medida y compatibilidad con modelos de equipo.",
+      "Desactivar una refacción sólo afecta a la organización actual y conserva el maestro y el historial de mantenimiento.",
+      "La prueba A/B comprueba que dos empresas usan el mismo SKU con existencias y costos distintos sin cruces.",
+      "La carga inicial queda vacía porque Org 1 no tiene refacciones; no se generan SKUs ficticios."
+    ]
+  },
+  {
     "version": "8.38.0",
     "date": "2026-09-22",
     "type": "minor",
