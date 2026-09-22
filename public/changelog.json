@@ -1,11 +1,28 @@
 [
   {
+    "version": "8.37.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "feature",
+    "title": "Cimientos de catálogos compartidos para el ecosistema LiftGo",
+    "description": "Se preparó una base aditiva para compartir entre las empresas LiftGo el logo oficial, los modelos técnicos de equipos, el catálogo de SKUs y las plantillas legales versionadas. La Org 1 alimenta el machote inicial; tarifas, existencias, costos, ubicaciones y datos fiscales continúan siendo propios de cada empresa. El cambio quedó listo en Git y todavía no se aplica en la nube.",
+    "changes": [
+      "La Org 1 se usa como fuente inicial: sus modelos técnicos y plantillas legales se copian a maestros globales, y sus refacciones se copian cuando tienen un SKU válido.",
+      "El logo oficial /brand/liftgo-montacargas.png queda registrado como activo global para todas las organizaciones.",
+      "Se agregan vínculos opcionales desde los modelos, inventarios y plantillas actuales, sin cambiar todavía las lecturas ni las pantallas existentes.",
+      "Los catálogos globales sólo pueden modificarlos los operadores de plataforma; el personal interno de cualquier empresa puede leer los registros activos.",
+      "Las versiones legales son inmutables una vez creadas y cada empresa conserva en privado la versión que adoptó y sus ajustes locales permitidos.",
+      "Una prueba RLS con dos empresas comprueba la lectura compartida, la escritura restringida, la privacidad de asignaciones y el bloqueo para usuarios anónimos y del portal.",
+      "La migración completa y su prueba RLS pasaron contra Lovable Cloud dentro de una transacción revertida; no se dejó ningún cambio en producción."
+    ]
+  },
+  {
     "version": "8.36.1",
     "date": "2026-09-22",
     "type": "patch",
     "category": "fix",
     "title": "El pago aprobado desde el portal deja de inventar un tipo de cambio",
-    "description": "Al aprobar un pago reportado por un cliente, el sistema guardaba un tipo de cambio que nadie capturó, aunque el pago se registra en la misma moneda de la factura. Ahora ese dato vuelve a quedar vacío. También se actualizaron las pruebas automáticas de seguridad que aún esperaban las reglas anteriores a la separación por empresa."
+    "description": "Al aprobar un pago reportado por un cliente, el sistema guardaba el tipo de cambio histórico de la factura, aunque el pago se registra en la misma moneda. Ahora se guarda el valor neutral 1, compatible con la regla de que ese dato no puede quedar vacío. También se actualizaron las pruebas automáticas de seguridad que aún esperaban las reglas anteriores a la separación por empresa."
   },
   {
     "version": "8.36.0",
