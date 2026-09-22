@@ -3,6 +3,8 @@ import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
+import { resolveCallerOrganization } from "../_shared/orgContext.ts";
+import { insertManual } from "./manual.ts";
 
 const SYSTEM_PROMPT =
   `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
@@ -85,6 +87,14 @@ serve(async (req) => {
     );
     if (limited) return limited;
 
+    // Multiempresa: la organización sale SIEMPRE de la membresía interna
+    // verificada. Una identidad de portal con rol admin residual no tiene
+    // membresía `internal` y queda bloqueada aquí (fail-closed).
+    const callerOrg = await resolveCallerOrganization(supabase, auth.userId);
+    if (!callerOrg.ok) {
+      return jsonError(req, callerOrg.status, callerOrg.message);
+    }
+
     // LOVABLE_API_KEY se valida dentro de aiChatCompletion.
 
     // Call Lovable AI with tool calling to get structured JSON
@@ -156,37 +166,21 @@ serve(async (req) => {
       return jsonError(req, 500, "No se generaron secciones");
     }
 
-    // Calculate next version
-    const { data: latestManual } = await supabase
-      .from("user_manual")
-      .select("version")
-      .order("generated_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    let nextVersion = "1.0";
-    if (latestManual?.version) {
-      const major = parseInt(latestManual.version.split(".")[0], 10);
-      nextVersion = `${(isNaN(major) ? 0 : major) + 1}.0`;
+    // Multiempresa: el consecutivo y el manual son POR ORGANIZACIÓN.
+    const saved = await insertManual(
+      supabase,
+      callerOrg.organizationId,
+      sections,
+    );
+    if (!saved.ok) {
+      return jsonError(
+        req,
+        saved.status,
+        saved.message ?? "Error al guardar el manual",
+      );
     }
 
-    const { data: manual, error: insertError } = await supabase
-      .from("user_manual")
-      .insert({
-        version: nextVersion,
-        content: sections,
-        generated_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      console.error("Insert error:", insertError);
-      return jsonError(req, 500, "Error al guardar el manual");
-    }
-
-    return jsonResponse(req, { success: true, manual });
+    return jsonResponse(req, { success: true, manual: saved.manual });
   } catch (e) {
     console.error("[generate-manual] error:", e);
     return jsonError(req, 500, "Error interno del servidor");

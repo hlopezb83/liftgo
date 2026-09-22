@@ -23,7 +23,13 @@ export interface MaintenancePolicyRow {
   provider_name: string | null;
   monthly_cost: number;
   last_generated_month: string | null;
-  forklifts?: { name?: string | null; status?: string | null } | null;
+  forklifts?:
+    | {
+      name?: string | null;
+      status?: string | null;
+      organization_id?: string | null;
+    }
+    | null;
 }
 
 export interface PostgrestErrorLike {
@@ -123,10 +129,33 @@ export interface GenerationResult {
   pendingRemaining: number;
 }
 
+/**
+ * Multiempresa: la póliza debe tener organización y el montacargas ligado
+ * debe pertenecer a la MISMA organización. Cuando la corrida está acotada
+ * (persona autenticada) también debe coincidir con la suya. Cualquier mezcla
+ * se rechaza ANTES de escribir un solo `maintenance_logs`.
+ */
+export function policyOrganizationIssue(
+  policy: MaintenancePolicyRow,
+  scopeOrganizationId: string | null,
+): string | null {
+  const policyOrg = policy.organization_id ?? null;
+  if (!policyOrg) return "la póliza no tiene empresa asignada";
+  const forkliftOrg = policy.forklifts?.organization_id ?? null;
+  if (forkliftOrg !== null && forkliftOrg !== policyOrg) {
+    return "la unidad pertenece a otra empresa";
+  }
+  if (scopeOrganizationId !== null && scopeOrganizationId !== policyOrg) {
+    return "la póliza pertenece a otra empresa";
+  }
+  return null;
+}
+
 export async function generateForPolicies(
   supabase: MaintenanceClientLike,
   candidates: MaintenancePolicyRow[],
   currentMonth: string,
+  scopeOrganizationId: string | null = null,
 ): Promise<GenerationResult> {
   let generated = 0;
   let skipped = 0;
@@ -134,6 +163,16 @@ export async function generateForPolicies(
   const details: string[] = [];
 
   for (const policy of candidates) {
+    const orgIssue = policyOrganizationIssue(policy, scopeOrganizationId);
+    if (orgIssue) {
+      skipped += 1;
+      details.push(
+        `⊘ ${
+          policy.forklifts?.name ?? policy.id
+        } — omitida sin escribir: ${orgIssue}`,
+      );
+      continue;
+    }
     let lastOkMonth = policy.last_generated_month;
 
     for (const month of pendingMonthsFor(lastOkMonth, currentMonth)) {

@@ -1,5 +1,13 @@
 [
   {
+    "version": "8.36.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "security",
+    "title": "Manual de usuario y pólizas de mantenimiento acotados a la empresa del usuario",
+    "description": "Dos procesos automáticos (la generación del manual de usuario y la generación mensual de servicios por póliza) ya no operan de forma global cuando los inicia una persona: ahora se limitan a la empresa a la que realmente pertenece. El proceso programado nocturno sigue atendiendo a todas las empresas. El cambio quedó listo en Git; aún no se despliega."
+  },
+  {
     "version": "8.35.0",
     "date": "2026-09-22",
     "type": "minor",
