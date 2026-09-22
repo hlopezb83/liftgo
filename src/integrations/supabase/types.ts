@@ -3312,11 +3312,120 @@ export type Database = {
         }
         Relationships: []
       }
+      parts_catalog: {
+        Row: {
+          category: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          manufacturer: string | null
+          metadata: Json
+          name: string
+          oem_numbers: string[]
+          sku: string
+          source_organization_id: string | null
+          source_record_id: string | null
+          unit_of_measure: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          manufacturer?: string | null
+          metadata?: Json
+          name: string
+          oem_numbers?: string[]
+          sku: string
+          source_organization_id?: string | null
+          source_record_id?: string | null
+          unit_of_measure?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          manufacturer?: string | null
+          metadata?: Json
+          name?: string
+          oem_numbers?: string[]
+          sku?: string
+          source_organization_id?: string | null
+          source_record_id?: string | null
+          unit_of_measure?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_catalog_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts_catalog_equipment_models: {
+        Row: {
+          compatibility_notes: string | null
+          created_at: string
+          created_by: string | null
+          equipment_model_catalog_id: string
+          part_catalog_id: string
+        }
+        Insert: {
+          compatibility_notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          equipment_model_catalog_id: string
+          part_catalog_id: string
+        }
+        Update: {
+          compatibility_notes?: string | null
+          created_at?: string
+          created_by?: string | null
+          equipment_model_catalog_id?: string
+          part_catalog_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_catalog_equipment_models_equipment_model_catalog_id_fkey"
+            columns: ["equipment_model_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_model_catalog"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parts_catalog_equipment_models_part_catalog_id_fkey"
+            columns: ["part_catalog_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalog"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parts_inventory: {
         Row: {
+          catalog_part_id: string | null
           category: string
           created_at: string
           id: string
+          is_active: boolean
           location: string | null
           min_stock_level: number
           name: string
@@ -3327,9 +3436,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          catalog_part_id?: string | null
           category?: string
           created_at?: string
           id?: string
+          is_active?: boolean
           location?: string | null
           min_stock_level?: number
           name: string
@@ -3340,9 +3451,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          catalog_part_id?: string | null
           category?: string
           created_at?: string
           id?: string
+          is_active?: boolean
           location?: string | null
           min_stock_level?: number
           name?: string
@@ -3353,6 +3466,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "parts_inventory_catalog_part_id_fkey"
+            columns: ["catalog_part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalog"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "parts_inventory_organization_id_fkey"
             columns: ["organization_id"]
@@ -5183,6 +5303,16 @@ export type Database = {
           p_local_alias?: string | null
           p_monthly_rate?: number
           p_weekly_rate?: number
+        }
+        Returns: string
+      }
+      activate_parts_catalog: {
+        Args: {
+          p_catalog_part_id: string
+          p_location?: string | null
+          p_min_stock_level?: number
+          p_stock_quantity?: number
+          p_unit_cost?: number
         }
         Returns: string
       }

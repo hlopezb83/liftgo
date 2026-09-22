@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
+import { ActivatePartDialog } from "../components/inventory/ActivatePartDialog";
 import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
 import { PartFormDialog } from "../components/inventory/PartFormDialog";
 import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
@@ -24,13 +25,14 @@ export default function InventoryPage() {
   const parts = visibleListRows(partsRaw);
 
   const formDialog = useToggleDialog();
+  const activateDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
   const detail = useDialogState<PartInventory>();
 
   const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount } =
     useInventoryFilters(parts);
 
-  const openCreate = () => { setEditing(null); formDialog.openDialog(); };
+  const openCreate = () => { setEditing(null); activateDialog.openDialog(); };
   const openEdit = (p: PartInventory) => { setEditing(p); formDialog.openDialog(); };
 
   const columns: ColumnDef<PartInventory>[] = [
@@ -107,9 +109,9 @@ export default function InventoryPage() {
     <>
       <ListPageLayout<PartInventory>
         title="Control de Refacciones"
-        subtitle="Gestiona el inventario de partes y refacciones"
+        subtitle="Gestiona existencias y costos locales sobre el catálogo LiftGo"
         totalCount={filtered.length}
-        actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Nueva refacción</Button>}
+        actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Habilitar refacción</Button>}
         notice={
           <ListTruncationNotice rows={partsRaw} />
         }
@@ -145,7 +147,7 @@ export default function InventoryPage() {
         onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={InventoryIcon}
-        emptyActionLabel="Nueva refacción"
+        emptyActionLabel="Habilitar refacción"
         onEmptyAction={openCreate}
         skeletonColumns={5}
         mobileCardRender={mobileCard}
@@ -159,6 +161,7 @@ export default function InventoryPage() {
       />
 
       <PartFormDialog open={formDialog.open} onOpenChange={formDialog.setOpen} part={editing} />
+      <ActivatePartDialog open={activateDialog.open} onOpenChange={activateDialog.setOpen} />
     </>
   );
 }

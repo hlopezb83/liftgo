@@ -80,8 +80,8 @@ ejecuta y no fija cantidades ni UUID de producción.
 
 ## Fase 1 — Modelos globales de equipo
 
-**Estado:** implementación preparada en Git mediante la migración `0047` y la
-interfaz de catálogo global; pendiente de despliegue y conciliación final.
+**Estado:** completada y desplegada en Lovable Cloud. Org 1 y Org 2 tienen los
+8 modelos enlazados al mismo maestro; producción sirve la interfaz `v8.38.0`.
 
 1. Publicar funciones de plataforma para crear, actualizar y desactivar modelos.
 2. Construir la pantalla **Catálogo LiftGo de modelos** para operadores de
@@ -100,6 +100,10 @@ interfaz de catálogo global; pendiente de despliegue y conciliación final.
 - Sólo plataforma modifica fabricante, modelo o especificaciones.
 
 ## Fase 2 — SKUs globales e inventario local
+
+**Estado:** implementación preparada en Git mediante la migración `0048` y las
+interfaces global/local. Org 1 tiene 0 refacciones, por lo que la carga inicial
+se mantiene vacía hasta contar con SKUs reales aprobados.
 
 1. Cargar o capturar en Org 1 el maestro inicial de refacciones.
 2. Publicar administración de `parts_catalog` para plataforma.

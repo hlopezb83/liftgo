@@ -19,7 +19,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
 
 const inserts: unknown[] = [];
 const updates: Array<{ patch: unknown; eqArgs: unknown[] }> = [];
-const deletes: unknown[][] = [];
+const activationArgs: unknown[] = [];
 
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "p-1", sku: "SKU-001" }, error: null,
@@ -27,12 +27,15 @@ let insertResp: { data: unknown; error: { message: string } | null } = {
 let updateResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "p-1" }, error: null,
 };
-let deleteResp: { data: unknown; error: { message: string } | null } = {
-  data: null, error: null,
-};
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
+    rpcResolvers: {
+      activate_parts_catalog: (args) => {
+        activationArgs.push(args);
+        return { data: "local-part-id", error: null };
+      },
+    },
     tableResolvers: {
       parts_inventory: (calls) => {
         const ins = calls.find((c) => c.method === "insert");
@@ -43,12 +46,6 @@ vi.mock("@/integrations/supabase/client", () => ({
           updates.push({ patch: upd.args[0], eqArgs: eq?.args ?? [] });
           return updateResp;
         }
-        const del = calls.find((c) => c.method === "delete");
-        if (del) {
-          const eq = calls.find((c) => c.method === "eq");
-          deletes.push(eq?.args ?? []);
-          return deleteResp;
-        }
         return { data: null, error: null };
       },
     },
@@ -56,15 +53,39 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import {
-  useCreatePart, useUpdatePart, useDeletePart,
+  useActivateCatalogPart, useCreatePart, useUpdatePart, useDeletePart,
 } from "../usePartInventoryMutations";
 
 beforeEach(() => {
-  inserts.length = 0; updates.length = 0; deletes.length = 0;
+  inserts.length = 0; updates.length = 0; activationArgs.length = 0;
   notifyErrorMock.mockReset();
   insertResp = { data: { id: "p-1", sku: "SKU-001" }, error: null };
   updateResp = { data: { id: "p-1" }, error: null };
-  deleteResp = { data: null, error: null };
+});
+
+describe("useActivateCatalogPart", () => {
+  it("envía al RPC sólo el SKU global y la configuración local", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useActivateCatalogPart(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        catalogPartId: "10000000-0000-4000-8000-000000000001",
+        stockQuantity: 12,
+        minStockLevel: 3,
+        unitCost: 480,
+        location: "Pasillo A",
+      });
+    });
+
+    expect(activationArgs[0]).toEqual({
+      p_catalog_part_id: "10000000-0000-4000-8000-000000000001",
+      p_stock_quantity: 12,
+      p_min_stock_level: 3,
+      p_unit_cost: 480,
+      p_location: "Pasillo A",
+    });
+  });
 });
 
 describe("useCreatePart", () => {
@@ -113,17 +134,17 @@ describe("useUpdatePart", () => {
 });
 
 describe("useDeletePart", () => {
-  it("elimina filtrando por id", async () => {
+  it("desactiva localmente sin borrar el SKU global", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useDeletePart(), { wrapper: Wrapper });
 
     await act(async () => { await result.current.mutateAsync("p-1"); });
 
-    expect(deletes[0]).toEqual(["id", "p-1"]);
+    expect(updates[0]).toEqual({ patch: { is_active: false }, eqArgs: ["id", "p-1"] });
   });
 
-  it("propaga error (FK en maintenance_parts) con título localizado", async () => {
-    deleteResp = { data: null, error: { message: "fk maintenance_parts_part_id_fkey" } };
+  it("propaga error al desactivar con título localizado", async () => {
+    updateResp = { data: null, error: { message: "update rejected" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useDeletePart(), { wrapper: Wrapper });
 
@@ -132,6 +153,6 @@ describe("useDeletePart", () => {
     });
 
     await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
-    expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({ title: "Error al eliminar refacción" });
+    expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({ title: "Error al desactivar refacción" });
   });
 });

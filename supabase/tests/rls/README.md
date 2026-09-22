@@ -127,6 +127,7 @@ ROLLBACK;
 | `maintenance_parts.sql` | `maintenance_parts` | Auditor read-only; mecánico/admin escriben; cliente y anon sin acceso |
 | `supplier_payment_batches.sql` | `supplier_payment_batches`, `supplier_payment_batch_items` | CLABEs solo para admin/administrativo; auditor y mecánico sin acceso |
 | `folio_functions.sql` | funciones de folio (`next_supplier_bill_number`, `next_contract_number`, `next_quote_number`) | Regresión v7.300.1: staff obtiene folio, portal y anon bloqueados, triggers de folio en SECURITY DEFINER |
+| `shared_parts_catalog_phase2.sql` | `parts_catalog`, `parts_catalog_equipment_models`, `parts_inventory` | Un mismo SKU global se habilita en dos organizaciones con existencias, costo y ubicación locales; la identidad global solo la administra plataforma y se propaga sin mezclar datos locales |
 
 Convención adicional en las suites nuevas: cada una prueba **anon** (`SET LOCAL
 role = 'anon'`), el **cliente del portal**, el **staff según `role_permissions`**

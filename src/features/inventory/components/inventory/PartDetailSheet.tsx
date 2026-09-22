@@ -98,14 +98,14 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
                 <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>
               <Button variant="destructive" className="flex-1" onClick={() => setConfirmOpen(true)}>
-                <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
+                <DeleteIcon className="h-4 w-4 mr-1" /> Desactivar
               </Button>
               <ConfirmDialog
                 open={confirmOpen}
                 onOpenChange={setConfirmOpen}
-                title="¿Eliminar refacción?"
-                description={`Esta acción no se puede deshacer. Se eliminará permanentemente "${part.name}" del inventario.`}
-                confirmLabel="Eliminar"
+                title="¿Desactivar refacción?"
+                description={`"${part.name}" dejará de aparecer en el inventario de esta empresa. El SKU global y su historial se conservarán.`}
+                confirmLabel="Desactivar"
                 destructive
                 loading={deletePart.isPending}
                 onConfirm={handleDelete}

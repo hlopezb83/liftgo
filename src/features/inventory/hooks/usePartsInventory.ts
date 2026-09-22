@@ -7,9 +7,10 @@ import { maintenancePartKeys } from "../lib/queryKeys";
 
 const sel = (s: string): string => s;
 
-const PART_COLUMNS = sel("id, name, sku, category, stock_quantity, min_stock_level, unit_cost, location, created_at, updated_at");
+const PART_COLUMNS = sel("id, catalog_part_id, name, sku, category, stock_quantity, min_stock_level, unit_cost, location, is_active, created_at, updated_at");
 
 export type PartInventory = Tables<"parts_inventory">;
+export type PartCatalog = Tables<"parts_catalog">;
 
 export const partsInventoryQueries = defineEntityQueries<"parts_inventory", PartInventory[], never>(
   "parts_inventory",
@@ -18,6 +19,7 @@ export const partsInventoryQueries = defineEntityQueries<"parts_inventory", Part
       const { data, error } = await supabase
         .from("parts_inventory")
         .select(PART_COLUMNS)
+        .eq("is_active", true)
         .order("name")
         .limit(LIST_FETCH_LIMIT)
         .returns<PartInventory[]>();
@@ -29,6 +31,23 @@ export const partsInventoryQueries = defineEntityQueries<"parts_inventory", Part
 
 export function usePartsInventory() {
   return useQuery(partsInventoryQueries.list());
+}
+
+export function usePartsCatalog() {
+  return useQuery({
+    queryKey: ["parts_catalog", "active"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("parts_catalog")
+        .select("*")
+        .eq("is_active", true)
+        .order("sku")
+        .limit(LIST_FETCH_LIMIT)
+        .returns<PartCatalog[]>();
+      if (error) throw error;
+      return data;
+    },
+  });
 }
 
 export function useMaintenanceParts(maintenanceLogId?: string) {
@@ -50,6 +69,7 @@ export function useMaintenanceParts(maintenanceLogId?: string) {
 
 export {
   useCreatePart,
+  useActivateCatalogPart,
   useUpdatePart,
   useDeletePart,
   useAddMaintenancePart,
