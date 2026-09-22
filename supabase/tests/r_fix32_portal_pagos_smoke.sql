@@ -38,9 +38,15 @@ RETURNS text LANGUAGE sql STABLE AS $$
 $$;
 
 -- R6-04
+-- Multiempresa 0040: entre el WHERE y el FOR UPDATE la lectura ahora incluye
+-- el predicado organization_id = v_org. El contrato se verifica por partes
+-- para no depender del orden textual de un solo ILIKE.
 SELECT pg_temp.expect_true(
-  'R6-04 approve_payment_intent bloquea la factura (FOR UPDATE)',
-  pg_temp.fndef('approve_payment_intent') ILIKE '%FROM public.invoices WHERE id = v_intent.invoice_id%FOR UPDATE%'
+  'R6-04 approve_payment_intent bloquea la factura (FOR UPDATE, acotada a la organización)',
+  pg_temp.fndef('approve_payment_intent') ILIKE '%FROM public.invoices%'
+    AND pg_temp.fndef('approve_payment_intent') ILIKE '%id = v_intent.invoice_id%'
+    AND pg_temp.fndef('approve_payment_intent') ILIKE '%organization_id = v_org%'
+    AND pg_temp.fndef('approve_payment_intent') ILIKE '%FOR UPDATE%'
 );
 SELECT pg_temp.expect_true(
   'R6-04 approve_payment_intent convierte pagos con tipo de cambio',
