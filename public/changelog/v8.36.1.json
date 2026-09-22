@@ -1,0 +1,15 @@
+{
+  "version": "8.36.1",
+  "date": "2026-09-22",
+  "type": "patch",
+  "category": "fix",
+  "title": "El pago aprobado desde el portal deja de inventar un tipo de cambio",
+  "description": "Al aprobar un pago reportado por un cliente, el sistema guardaba un tipo de cambio que nadie capturó, aunque el pago se registra en la misma moneda de la factura. Ahora ese dato vuelve a quedar vacío. También se actualizaron las pruebas automáticas de seguridad que aún esperaban las reglas anteriores a la separación por empresa.",
+  "changes": [
+    "El pago generado al aprobar un reporte del portal ya no guarda un tipo de cambio inventado; se registra en la moneda de la factura.",
+    "Se conservan todas las validaciones: permisos, pertenencia a la empresa, bloqueo de la factura, notas de crédito y reportes pendientes.",
+    "Las pruebas de padrón de clientes y de folios ahora crean una empresa de prueba con sus membresías, y siguen comprobando el mismo comportamiento: el cliente sólo ve lo suyo y no puede editarlo, el mecánico no ve el padrón y el portal no obtiene folios.",
+    "Se actualizaron las pruebas de banco, devoluciones, unidades y folio de pago para reconocer las reglas de empresa vigentes.",
+    "El cambio quedó listo en Git; aún no se aplica en la nube."
+  ]
+}
