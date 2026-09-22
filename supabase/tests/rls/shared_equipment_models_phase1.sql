@@ -204,6 +204,10 @@ BEGIN
 END
 $$;
 
+-- El servidor invoca estos RPC con el cliente service-role y pasa el actor
+-- autenticado de forma explícita; no conserva el JWT de una organización.
+SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
+
 SELECT public.platform_update_equipment_model_catalog(
   '47000000-0000-4000-8000-0000000000f0',
   c.id,
