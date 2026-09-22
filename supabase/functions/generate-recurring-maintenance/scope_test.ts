@@ -10,7 +10,9 @@ import {
   policyOrganizationIssue,
 } from "./logic.ts";
 
-function membershipClient(result: { data?: unknown[]; error?: unknown }) {
+function membershipClient(
+  result: { data?: unknown[] | null; error?: unknown },
+) {
   return {
     from() {
       const q = {
