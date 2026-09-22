@@ -1,3 +1,14 @@
+## [8.40.0] - 2026-09-22 · minor · security
+
+Los contratos y pagarés ahora resuelven el machote legal versionado asignado a la empresa activa. Al firmar, el ERP congela la versión, el checksum, el contenido y los ajustes locales para que un cambio posterior del machote no altere documentos históricos ni permita tomar cláusulas de otra empresa.
+
+- La migración `0049_versioned_legal_templates_phase3.sql` asigna a cada empresa activa el machote global vigente de LiftGo sin duplicar cláusulas ni inventar contenido.
+- La resolución del machote ocurre en base de datos a partir de la sesión; el navegador no envía ni decide el identificador de la organización.
+- La firma valida que contrato, cliente y montacargas pertenezcan a la misma empresa y guarda una instantánea inmutable con versión y checksum.
+- Los ajustes locales admitidos se limitan a ciudad, jurisdicción, representante legal y testigos; las cláusulas compartidas quedan bajo control de plataforma.
+- La pantalla operativa muestra el machote compartido en modo lectura, junto con su versión y checksum.
+- La prueba RLS A/B comprueba que dos empresas comparten una versión con ajustes privados y que adoptar una versión nueva no modifica contratos ya firmados.
+
 ## [8.39.0] - 2026-09-22 · minor · feature
 
 El catálogo global de refacciones ya separa la identidad técnica compartida de las existencias y costos de cada empresa. Los operadores de plataforma administran SKU, nombre, fabricante, categoría y compatibilidad; cada organización habilita los SKUs que usa y conserva en privado stock, mínimo, costo y ubicación.

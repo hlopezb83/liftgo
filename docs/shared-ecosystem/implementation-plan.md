@@ -101,9 +101,10 @@ ejecuta y no fija cantidades ni UUID de producción.
 
 ## Fase 2 — SKUs globales e inventario local
 
-**Estado:** implementación preparada en Git mediante la migración `0048` y las
-interfaces global/local. Org 1 tiene 0 refacciones, por lo que la carga inicial
-se mantiene vacía hasta contar con SKUs reales aprobados.
+**Estado:** completada y desplegada en Lovable Cloud mediante la migración
+`0048` y las interfaces global/local. Producción sirve `v8.39.0`. Org 1 tiene
+0 refacciones, por lo que la carga inicial se mantiene vacía hasta contar con
+SKUs reales aprobados.
 
 1. Cargar o capturar en Org 1 el maestro inicial de refacciones.
 2. Publicar administración de `parts_catalog` para plataforma.
@@ -120,6 +121,10 @@ se mantiene vacía hasta contar con SKUs reales aprobados.
 - Un SKU global puede estar desactivado localmente sin borrarse de la red.
 
 ## Fase 3 — Contratos y pagarés versionados
+
+**Estado:** en implementación. La migración `0049` corrige la selección global
+de plantilla al firmar, asigna explícitamente la versión vigente a cada
+organización y registra versión y checksum en el snapshot inmutable.
 
 1. Revisar legalmente la versión importada desde Org 1.
 2. Publicar el editor de versiones para plataforma.

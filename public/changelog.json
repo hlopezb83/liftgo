@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.40.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "security",
+    "title": "Machotes legales versionados y firmas inmutables por empresa",
+    "description": "Los contratos y pagarés resuelven el machote global asignado a la empresa activa. Al firmar, el ERP congela versión, checksum, contenido y ajustes locales para impedir cruces entre empresas y cambios retroactivos.",
+    "changes": [
+      "Cada empresa activa adopta el machote global vigente de LiftGo sin duplicar cláusulas.",
+      "La base de datos determina la empresa desde la sesión y rechaza asignaciones ausentes o ambiguas.",
+      "La firma valida que contrato, cliente y montacargas pertenezcan a la misma empresa.",
+      "La instantánea firmada conserva la versión, el checksum, el contenido y los ajustes locales usados.",
+      "Los ajustes locales se limitan a ciudad, jurisdicción, representante legal y testigos.",
+      "El personal de empresa consulta el machote en modo lectura; la publicación de versiones pertenece a plataforma.",
+      "La prueba A/B confirma aislamiento de ajustes y permanencia histórica después de adoptar una versión nueva."
+    ]
+  },
+  {
     "version": "8.39.0",
     "date": "2026-09-22",
     "type": "minor",

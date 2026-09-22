@@ -97,25 +97,12 @@ export async function fetchRelatedData(contract: ContractData) {
  * filas se usan los textos por defecto del sistema; con más de una
  * predeterminada se detiene con un mensaje explícito en vez de elegir una.
  */
-async function fetchOrganizationTemplateRow(contract: ContractData) {
-  const { data: owner, error: ownerError } = await supabase
-    .from("contracts")
-    .select("organization_id")
-    .eq("id", contract.id)
-    .maybeSingle();
-  if (ownerError) throw new ContractTemplateUnavailableError("read_error");
-  const organizationId = owner?.organization_id ?? null;
-  if (!organizationId) throw new ContractTemplateUnavailableError("organization_unresolved");
-
+async function fetchOrganizationTemplateRow(_contract: ContractData) {
   const { data, error } = await supabase
-    .from("contract_templates")
-    .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text, updated_at")
-    .eq("organization_id", organizationId)
-    .eq("is_default", true)
-    .order("updated_at", { ascending: false })
-    .limit(2);
+    .rpc("get_effective_legal_template", { p_document_type: "rental_contract" });
   if (error) throw new ContractTemplateUnavailableError("read_error");
-  return resolveSingleDefaultTemplate(data);
+  const row = resolveSingleDefaultTemplate(data ?? []);
+  return row?.content as Partial<TemplateData> | undefined;
 }
 
 export async function fetchTemplate(contract: ContractData): Promise<TemplateData> {
@@ -147,4 +134,3 @@ export async function fetchTemplate(contract: ContractData): Promise<TemplateDat
     pagare_text: (data.pagare_text as string) || DEFAULT_PAGARE,
   };
 }
-

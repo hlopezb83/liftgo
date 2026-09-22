@@ -344,6 +344,13 @@
       "when": 1790874170000,
       "tag": "0048_shared_parts_catalog_phase2",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1790874171000,
+      "tag": "0049_versioned_legal_templates_phase3",
+      "breakpoints": true
     }
   ]
 }

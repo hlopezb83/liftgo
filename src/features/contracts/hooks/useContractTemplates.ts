@@ -6,10 +6,8 @@ import {
 } from "@/features/contracts/lib/contractTemplateResolution";
 import type { ContractClause, ChecklistSection } from "@/features/contracts/lib/contractTypes";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
+import type { Json } from "@/integrations/supabase/types";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { contractTemplateKeys } from "../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
@@ -21,20 +19,26 @@ export interface ContractTemplate {
   id: string;
   name: string;
   body_text: string;
-  is_default: boolean;
+  version: number;
+  checksum_sha256: string;
+  local_overrides: Record<string, unknown>;
   intro_text: string | null;
   declarations_landlord: string[];
   declarations_tenant: string[];
   clauses: ContractClause[];
   checklist_sections: ChecklistSection[];
   pagare_text: string | null;
-  updated_at: string | null;
 }
 
-// v7.216.0 (C6): columnas explícitas.
-const CONTRACT_TEMPLATE_COLUMNS =
-  "id, name, body_text, is_default, intro_text, declarations_landlord, declarations_tenant, " +
-  "clauses, checklist_sections, pagare_text, updated_at, created_at";
+type EffectiveTemplateContent = {
+  body_text?: string | null;
+  intro_text?: string | null;
+  declarations_landlord?: Json | null;
+  declarations_tenant?: Json | null;
+  clauses?: Json | null;
+  checklist_sections?: Json | null;
+  pagare_text?: string | null;
+};
 
 /**
  * Subtramo 6.1: la plantilla se lee dentro de la organización verificada en
@@ -42,26 +46,28 @@ const CONTRACT_TEMPLATE_COLUMNS =
  * Mientras la organización no esté resuelta, la consulta queda deshabilitada.
  */
 export async function fetchDefaultContractTemplate(
-  organizationId: string,
+  _organizationId: string,
 ): Promise<ContractTemplate | null> {
   const { data, error } = await supabase
-    .from("contract_templates")
-    .select(CONTRACT_TEMPLATE_COLUMNS)
-    .eq("organization_id", organizationId)
-    .eq("is_default", true)
-    .order("updated_at", { ascending: false })
-    .limit(2)
-    .returns<Tables<"contract_templates">[]>();
+    .rpc("get_effective_legal_template", { p_document_type: "rental_contract" });
   if (error) throw new ContractTemplateUnavailableError("read_error");
-  const row = resolveSingleDefaultTemplate(data);
+  const row = resolveSingleDefaultTemplate(data ?? []);
   if (!row) return null;
+  const content = (row.content ?? {}) as EffectiveTemplateContent;
   return {
-    ...row,
-    declarations_landlord: parseJsonbArray<string>(row.declarations_landlord),
-    declarations_tenant: parseJsonbArray<string>(row.declarations_tenant),
-    clauses: parseJsonbArray<ContractClause>(row.clauses),
-    checklist_sections: parseJsonbArray<ChecklistSection>(row.checklist_sections),
-  } as ContractTemplate;
+    id: row.version_id,
+    name: row.template_name,
+    body_text: content.body_text ?? "",
+    version: row.version,
+    checksum_sha256: row.checksum_sha256,
+    local_overrides: (row.local_overrides ?? {}) as Record<string, unknown>,
+    intro_text: content.intro_text ?? null,
+    declarations_landlord: parseJsonbArray<string>(content.declarations_landlord),
+    declarations_tenant: parseJsonbArray<string>(content.declarations_tenant),
+    clauses: parseJsonbArray<ContractClause>(content.clauses),
+    checklist_sections: parseJsonbArray<ChecklistSection>(content.checklist_sections),
+    pagare_text: content.pagare_text ?? null,
+  };
 }
 
 export function useDefaultContractTemplate() {
@@ -75,26 +81,5 @@ export function useDefaultContractTemplate() {
       if (!organizationId) throw new ContractTemplateUnavailableError("organization_unresolved");
       return fetchDefaultContractTemplate(organizationId);
     },
-  });
-}
-
-export function useUpdateContractTemplate() {
-  return useEntityMutation({
-    mutationFn: async (template: Partial<ContractTemplate> & { id: string }) => {
-      const { id, ...rest } = template;
-      const updatePayload = {
-        ...rest,
-        updated_at: new Date().toISOString(),
-      } as unknown as TablesUpdate<"contract_templates">;
-      const { data, error } = await supabase
-        .from("contract_templates")
-        .update(updatePayload)
-        .eq("id", id)
-        .select("id");
-      if (error) throw error;
-      assertRowsAffected(data, "Actualizar plantilla de contrato");
-    },
-    invalidateKeys: [contractTemplateKeys.all],
-    errorTitle: "Error al actualizar plantilla",
   });
 }
