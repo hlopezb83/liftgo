@@ -88,7 +88,8 @@ BEGIN
       USING ERRCODE = 'check_violation';
   END IF;
 
-  -- (e) moneda de la factura y exchange_rate por defecto (no falsear el TC)
+  -- (e) el pago se registra en la moneda de la factura: exchange_rate queda
+  -- NULL para no inventar un tipo de cambio que nadie capturó.
   INSERT INTO public.payments(
     invoice_id, amount, payment_date, payment_method, payment_form_sat,
     reference_number, notes, currency, exchange_rate, organization_id
