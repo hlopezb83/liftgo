@@ -68,6 +68,7 @@ import { Route as MainReturnsIndexRouteImport } from './routes/_main/returns.ind
 import { Route as MainReturnsIdRouteImport } from './routes/_main/returns.$id'
 import { Route as MainReturnsPendingRouteImport } from './routes/_main/returns.pending'
 import { Route as MainSettingsIndexRouteImport } from './routes/_main/settings.index'
+import { Route as MainSettingsCatalogsRouteImport } from './routes/_main/settings.catalogs'
 import { Route as MainSettingsCompanyRouteImport } from './routes/_main/settings.company'
 import { Route as MainSettingsOperationsRouteImport } from './routes/_main/settings.operations'
 import { Route as MainSettingsOrganizationsRouteImport } from './routes/_main/settings.organizations'
@@ -395,6 +396,11 @@ const MainSettingsIndexRoute = MainSettingsIndexRouteImport.update({
   path: '/settings/',
   getParentRoute: () => MainRoute,
 } as any)
+const MainSettingsCatalogsRoute = MainSettingsCatalogsRouteImport.update({
+  id: '/settings/catalogs',
+  path: '/settings/catalogs',
+  getParentRoute: () => MainRoute,
+} as any)
 const MainSettingsCompanyRoute = MainSettingsCompanyRouteImport.update({
   id: '/settings/company',
   path: '/settings/company',
@@ -582,6 +588,7 @@ export interface FileRoutesByFullPath {
   '/quotes/new': typeof MainQuotesNewRoute
   '/returns/$id': typeof MainReturnsIdRoute
   '/returns/pending': typeof MainReturnsPendingRoute
+  '/settings/catalogs': typeof MainSettingsCatalogsRoute
   '/settings/company': typeof MainSettingsCompanyRoute
   '/settings/operations': typeof MainSettingsOperationsRoute
   '/settings/organizations': typeof MainSettingsOrganizationsRoute
@@ -668,6 +675,7 @@ export interface FileRoutesByTo {
   '/quotes/new': typeof MainQuotesNewRoute
   '/returns/$id': typeof MainReturnsIdRoute
   '/returns/pending': typeof MainReturnsPendingRoute
+  '/settings/catalogs': typeof MainSettingsCatalogsRoute
   '/settings/company': typeof MainSettingsCompanyRoute
   '/settings/operations': typeof MainSettingsOperationsRoute
   '/settings/organizations': typeof MainSettingsOrganizationsRoute
@@ -757,6 +765,7 @@ export interface FileRoutesById {
   '/_main/quotes/new': typeof MainQuotesNewRoute
   '/_main/returns/$id': typeof MainReturnsIdRoute
   '/_main/returns/pending': typeof MainReturnsPendingRoute
+  '/_main/settings/catalogs': typeof MainSettingsCatalogsRoute
   '/_main/settings/company': typeof MainSettingsCompanyRoute
   '/_main/settings/operations': typeof MainSettingsOperationsRoute
   '/_main/settings/organizations': typeof MainSettingsOrganizationsRoute
@@ -845,6 +854,7 @@ export interface FileRouteTypes {
     | '/quotes/new'
     | '/returns/$id'
     | '/returns/pending'
+    | '/settings/catalogs'
     | '/settings/company'
     | '/settings/operations'
     | '/settings/organizations'
@@ -931,6 +941,7 @@ export interface FileRouteTypes {
     | '/quotes/new'
     | '/returns/$id'
     | '/returns/pending'
+    | '/settings/catalogs'
     | '/settings/company'
     | '/settings/operations'
     | '/settings/organizations'
@@ -1019,6 +1030,7 @@ export interface FileRouteTypes {
     | '/_main/quotes/new'
     | '/_main/returns/$id'
     | '/_main/returns/pending'
+    | '/_main/settings/catalogs'
     | '/_main/settings/company'
     | '/_main/settings/operations'
     | '/_main/settings/organizations'
@@ -1482,6 +1494,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainSettingsIndexRouteImport
       parentRoute: typeof MainRoute
     }
+    '/_main/settings/catalogs': {
+      id: '/_main/settings/catalogs'
+      path: '/settings/catalogs'
+      fullPath: '/settings/catalogs'
+      preLoaderRoute: typeof MainSettingsCatalogsRouteImport
+      parentRoute: typeof MainRoute
+    }
     '/_main/settings/company': {
       id: '/_main/settings/company'
       path: '/settings/company'
@@ -1718,6 +1737,7 @@ interface MainRouteChildren {
   MainQuotesNewRoute: typeof MainQuotesNewRoute
   MainReturnsIdRoute: typeof MainReturnsIdRoute
   MainReturnsPendingRoute: typeof MainReturnsPendingRoute
+  MainSettingsCatalogsRoute: typeof MainSettingsCatalogsRoute
   MainSettingsCompanyRoute: typeof MainSettingsCompanyRoute
   MainSettingsOperationsRoute: typeof MainSettingsOperationsRoute
   MainSettingsOrganizationsRoute: typeof MainSettingsOrganizationsRoute
@@ -1792,6 +1812,7 @@ const MainRouteChildren: MainRouteChildren = {
   MainQuotesNewRoute: MainQuotesNewRoute,
   MainReturnsIdRoute: MainReturnsIdRoute,
   MainReturnsPendingRoute: MainReturnsPendingRoute,
+  MainSettingsCatalogsRoute: MainSettingsCatalogsRoute,
   MainSettingsCompanyRoute: MainSettingsCompanyRoute,
   MainSettingsOperationsRoute: MainSettingsOperationsRoute,
   MainSettingsOrganizationsRoute: MainSettingsOrganizationsRoute,

@@ -16,6 +16,7 @@ import { MechanicsTab } from "../MechanicsTab";
 const useDriversMock = vi.fn();
 const useMechanicsMock = vi.fn();
 const useEquipmentModelsMock = vi.fn();
+const useEquipmentModelCatalogMock = vi.fn();
 const useMaintenancePoliciesMock = vi.fn();
 const useForkliftsMock = vi.fn();
 
@@ -33,7 +34,8 @@ vi.mock("@/features/fleet", () => ({
   useUpdateDriver: idleMutation,
   useDeleteDriver: idleMutation,
   useEquipmentModels: () => useEquipmentModelsMock(),
-  useCreateEquipmentModel: idleMutation,
+  useEquipmentModelCatalog: () => useEquipmentModelCatalogMock(),
+  useActivateEquipmentModel: idleMutation,
   useUpdateEquipmentModel: idleMutation,
   useDeleteEquipmentModel: idleMutation,
   useForklifts: () => useForkliftsMock(),
@@ -85,9 +87,11 @@ beforeEach(() => {
   useDriversMock.mockReset();
   useMechanicsMock.mockReset();
   useEquipmentModelsMock.mockReset();
+  useEquipmentModelCatalogMock.mockReset();
   useMaintenancePoliciesMock.mockReset();
   useForkliftsMock.mockReset();
   useForkliftsMock.mockReturnValue(idleQueryResult);
+  useEquipmentModelCatalogMock.mockReturnValue(idleQueryResult);
 });
 
 const cases: Array<{

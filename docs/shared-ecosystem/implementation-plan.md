@@ -80,6 +80,9 @@ ejecuta y no fija cantidades ni UUID de producción.
 
 ## Fase 1 — Modelos globales de equipo
 
+**Estado:** implementación preparada en Git mediante la migración `0047` y la
+interfaz de catálogo global; pendiente de despliegue y conciliación final.
+
 1. Publicar funciones de plataforma para crear, actualizar y desactivar modelos.
 2. Construir la pantalla **Catálogo LiftGo de modelos** para operadores de
    plataforma.

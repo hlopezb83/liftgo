@@ -330,6 +330,13 @@
       "when": 1790874168000,
       "tag": "0046_liftgo_shared_catalogs_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1790874169000,
+      "tag": "0047_shared_equipment_models_phase1",
+      "breakpoints": true
     }
   ]
 }

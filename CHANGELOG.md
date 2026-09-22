@@ -1,3 +1,14 @@
+## [8.38.0] - 2026-09-22 · minor · feature
+
+Se preparó la primera integración funcional del catálogo compartido de modelos. Fabricante, modelo y ficha técnica pertenecen al maestro LiftGo; cada organización decide cuáles modelos habilita y conserva en privado su alias y sus tarifas. El cambio está listo en Git y todavía no se aplica en la nube.
+
+- La migración `0047_shared_equipment_models_phase1.sql` cambia la unicidad histórica por una regla acotada a organización, agrega alias y habilitación local y sincroniza la ficha enlazada desde el maestro global.
+- Los administradores de empresa habilitan modelos del catálogo LiftGo y sólo editan alias y tarifas locales.
+- Los operadores de plataforma reciben la pantalla **Catálogo LiftGo** para crear, editar, desactivar y reactivar fichas globales.
+- Los formularios de flota y cotización siguen consumiendo `equipment_models`, ahora filtrado a la configuración local activa; no se mezclan tarifas ni unidades.
+- La prueba `shared_equipment_models_phase1.sql` comprueba con dos organizaciones que ambas usan el mismo maestro con tarifas distintas, que las configuraciones no cruzan empresas y que la ficha técnica se mantiene sincronizada.
+- El cambio está preparado en Git y todavía no se aplica en Lovable Cloud.
+
 ## [8.37.0] - 2026-09-22 · minor · feature
 
 Se preparó una base aditiva para compartir entre las empresas LiftGo el logo oficial, los modelos técnicos de equipos, el catálogo de SKUs y las plantillas legales versionadas. La Org 1 alimenta el machote inicial; tarifas, existencias, costos, ubicaciones y datos fiscales continúan siendo propios de cada empresa. El cambio quedó listo en Git y todavía no se aplica en la nube.

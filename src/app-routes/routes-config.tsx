@@ -80,6 +80,7 @@ const rawRoutes: RawRoute[] = [
   { path: "/settings/operations", loader: () => import("@/features/operations/pages/OperationsSetupPage"), module: "Configuración" },
   { path: "/settings/company", loader: () => import("@/features/company-settings/pages/CompanySettingsPage"), module: "Configuración" },
   { path: "/settings/organizations", loader: () => import("@/features/platform/pages/PlatformOrganizationsPage"), module: "Configuración" },
+  { path: "/settings/catalogs", loader: () => import("@/features/platform/pages/PlatformEquipmentCatalogPage"), module: "Configuración", minAccess: "full" },
   { path: "/users", loader: () => import("@/features/users/pages/UserManagementPage"), module: "Gestión de Usuarios" },
   { path: "/users/permissions", loader: () => import("@/features/users/pages/RolePermissionsPage"), module: "Gestión de Usuarios" },
   { path: "/changelog", loader: () => import("@/features/changelog/pages/ChangelogPage") },

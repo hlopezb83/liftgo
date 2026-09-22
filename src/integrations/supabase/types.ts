@@ -1958,8 +1958,74 @@ export type Database = {
           },
         ]
       }
+      equipment_model_catalog: {
+        Row: {
+          capacity_kg: number | null
+          created_at: string
+          created_by: string | null
+          fuel_type: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          manufacturer: string
+          mast_height_m: number | null
+          model: string
+          source_organization_id: string | null
+          source_record_id: string | null
+          spec_sheet_url: string | null
+          specifications: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          capacity_kg?: number | null
+          created_at?: string
+          created_by?: string | null
+          fuel_type?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          manufacturer: string
+          mast_height_m?: number | null
+          model: string
+          source_organization_id?: string | null
+          source_record_id?: string | null
+          spec_sheet_url?: string | null
+          specifications?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          capacity_kg?: number | null
+          created_at?: string
+          created_by?: string | null
+          fuel_type?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          manufacturer?: string
+          mast_height_m?: number | null
+          model?: string
+          source_organization_id?: string | null
+          source_record_id?: string | null
+          spec_sheet_url?: string | null
+          specifications?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_model_catalog_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_models: {
         Row: {
+          catalog_model_id: string | null
           created_at: string
           default_capacity_kg: number | null
           default_daily_rate: number | null
@@ -1969,13 +2035,16 @@ export type Database = {
           default_weekly_rate: number | null
           e2e_scope: string | null
           id: string
+          is_active: boolean
           is_e2e: boolean
+          local_alias: string | null
           manufacturer: string
           model: string
           organization_id: string | null
           updated_at: string
         }
         Insert: {
+          catalog_model_id?: string | null
           created_at?: string
           default_capacity_kg?: number | null
           default_daily_rate?: number | null
@@ -1985,13 +2054,16 @@ export type Database = {
           default_weekly_rate?: number | null
           e2e_scope?: string | null
           id?: string
+          is_active?: boolean
           is_e2e?: boolean
+          local_alias?: string | null
           manufacturer: string
           model: string
           organization_id?: string | null
           updated_at?: string
         }
         Update: {
+          catalog_model_id?: string | null
           created_at?: string
           default_capacity_kg?: number | null
           default_daily_rate?: number | null
@@ -2001,13 +2073,22 @@ export type Database = {
           default_weekly_rate?: number | null
           e2e_scope?: string | null
           id?: string
+          is_active?: boolean
           is_e2e?: boolean
+          local_alias?: string | null
           manufacturer?: string
           model?: string
           organization_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "equipment_models_catalog_model_id_fkey"
+            columns: ["catalog_model_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_model_catalog"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "equipment_models_organization_id_fkey"
             columns: ["organization_id"]
@@ -5092,6 +5173,16 @@ export type Database = {
           p_intent_id: string
           p_payment_form_sat?: string
           p_review_notes?: string
+        }
+        Returns: string
+      }
+      activate_equipment_model_catalog: {
+        Args: {
+          p_catalog_model_id: string
+          p_daily_rate?: number
+          p_local_alias?: string | null
+          p_monthly_rate?: number
+          p_weekly_rate?: number
         }
         Returns: string
       }

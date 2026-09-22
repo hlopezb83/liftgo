@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.38.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "feature",
+    "title": "Modelos globales LiftGo con tarifas independientes por empresa",
+    "description": "Se preparó la primera integración funcional del catálogo compartido de modelos. Fabricante, modelo y ficha técnica pertenecen al maestro LiftGo; cada organización decide cuáles modelos habilita y conserva en privado su alias y sus tarifas. El cambio está listo en Git y todavía no se aplica en la nube.",
+    "changes": [
+      "El índice heredado deja de impedir que dos organizaciones habiliten el mismo fabricante y modelo.",
+      "Las columnas técnicas locales enlazadas se sincronizan automáticamente desde el maestro global para mantener compatibilidad con las consultas actuales.",
+      "Los administradores de empresa pueden habilitar un modelo global y configurar alias y tarifas sin modificar la ficha compartida.",
+      "Los operadores de plataforma reciben una pantalla exclusiva para crear, editar, desactivar y reactivar modelos globales.",
+      "Los formularios de flota y cotización continúan leyendo la configuración local activa, por lo que las tarifas no cruzan organizaciones.",
+      "La prueba A/B comprueba que dos empresas usan el mismo maestro con tarifas distintas y que un cambio técnico global se propaga sin mezclar la configuración local."
+    ]
+  },
+  {
     "version": "8.37.0",
     "date": "2026-09-22",
     "type": "minor",
