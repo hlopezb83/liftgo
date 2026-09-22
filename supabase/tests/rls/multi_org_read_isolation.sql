@@ -278,52 +278,46 @@ BEGIN
     RAISE EXCEPTION 'CONFIG ORG: maintenance_buffer_days no valida organización';
   END IF;
 
-  IF position(
-    'organization_scope_matches'
-    IN pg_get_functiondef(
-      'public.begin_bank_statement_upload(uuid,uuid,text,date,date,integer)'::regprocedure
-    )
-  ) = 0 OR position(
-    'organization_scope_matches'
-    IN pg_get_functiondef(
-      'public.stage_bank_statement_chunk(uuid,integer,jsonb)'::regprocedure
-    )
-  ) = 0 THEN
-    RAISE EXCEPTION
-      'BANK ORG: las cargas privilegiadas no validan organización';
-  END IF;
+  -- Multiempresa 0042: las RPC privilegiadas de banco y devoluciones ya no
+  -- usan organization_scope_matches; resuelven la organización con
+  -- current_internal_organization_id() + is_internal_member() y filtran las
+  -- filas objetivo por organization_id. El contrato exige ese patrón vigente.
+  FOREACH v_sig IN ARRAY ARRAY[
+    'public.begin_bank_statement_upload(uuid,uuid,text,date,date,integer)',
+    'public.stage_bank_statement_chunk(uuid,integer,jsonb)',
+    'public.finalize_bank_statement_upload(uuid)',
+    'public.match_bank_statement_lines(uuid)'
+  ] LOOP
+    IF position(
+      'current_internal_organization_id' IN pg_get_functiondef(v_sig::regprocedure)
+    ) = 0 OR position(
+      'is_internal_member' IN pg_get_functiondef(v_sig::regprocedure)
+    ) = 0 OR position(
+      'organization_id' IN pg_get_functiondef(v_sig::regprocedure)
+    ) = 0 THEN
+      RAISE EXCEPTION
+        'BANK ORG: % no valida organización con el patrón vigente', v_sig;
+    END IF;
+  END LOOP;
 
-  IF position(
-    'organization_scope_matches'
-    IN pg_get_functiondef('public.finalize_bank_statement_upload(uuid)'::regprocedure)
-  ) = 0 OR position(
-    'organization_scope_matches'
-    IN pg_get_functiondef('public.match_bank_statement_lines(uuid)'::regprocedure)
-  ) = 0 THEN
-    RAISE EXCEPTION
-      'BANK ORG: la finalización privilegiada no valida organización';
-  END IF;
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_proc p
-    WHERE p.oid = 'public.complete_return_inspection(uuid,uuid,text,text,numeric,numeric,text,text,timestamptz)'::regprocedure
-      AND p.prosecdef
-      AND position('organization_scope_matches' IN pg_get_functiondef(p.oid)) > 0
-  ) THEN
-    RAISE EXCEPTION
-      'RETURN ORG: complete_return_inspection debe conservar definer con guarda de organización';
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_proc p
-    WHERE p.oid = 'public.correct_return_inspection(uuid,text,text,text,numeric,numeric,text)'::regprocedure
-      AND p.prosecdef
-      AND position('organization_scope_matches' IN pg_get_functiondef(p.oid)) > 0
-  ) THEN
-    RAISE EXCEPTION
-      'RETURN ORG: correct_return_inspection debe conservar definer con guarda de organización';
-  END IF;
+  FOREACH v_sig IN ARRAY ARRAY[
+    'public.complete_return_inspection(uuid,uuid,text,text,numeric,numeric,text,text,timestamptz)',
+    'public.correct_return_inspection(uuid,text,text,text,numeric,numeric,text)'
+  ] LOOP
+    IF NOT EXISTS (
+      SELECT 1
+      FROM pg_proc p
+      WHERE p.oid = v_sig::regprocedure
+        AND p.prosecdef
+        AND position('current_internal_organization_id' IN pg_get_functiondef(p.oid)) > 0
+        AND position('is_internal_member' IN pg_get_functiondef(p.oid)) > 0
+        AND position('organization_id' IN pg_get_functiondef(p.oid)) > 0
+    ) THEN
+      RAISE EXCEPTION
+        'RETURN ORG: % debe conservar definer con guarda de organización vigente',
+        v_sig;
+    END IF;
+  END LOOP;
 END;
 $$;
 
