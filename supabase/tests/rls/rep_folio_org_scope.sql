@@ -66,9 +66,11 @@ BEGIN
 
   -- El rol no basta: un caller autenticado debe pertenecer a la organización
   -- del pago (contexto verificado en base, no parámetro del llamante).
-  IF v_def !~ 'current_organization_id' OR v_def !~ 'is_internal_member' THEN
+  -- Multiempresa 0044: la organización interna se resuelve con
+  -- current_internal_organization_id(); is_internal_member sigue siendo exigible.
+  IF v_def !~ 'current_internal_organization_id' OR v_def !~ 'is_internal_member' THEN
     RAISE EXCEPTION
-      'REP FOLIO ORG: la función debe validar el contexto del llamante autenticado (current_organization_id + is_internal_member)';
+      'REP FOLIO ORG: la función debe validar el contexto del llamante autenticado (current_internal_organization_id + is_internal_member)';
   END IF;
 
   -- 2. Wrapper de compatibilidad de dos parámetros: OBLIGATORIO (lo usa el

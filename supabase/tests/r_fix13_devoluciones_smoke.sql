@@ -65,8 +65,13 @@ SELECT pg_temp.expect_true(
 
 -- Guards que no deben perderse.
 SELECT pg_temp.expect_true(
-  'complete_return_inspection conserva el guard de roles',
-  pg_temp.fndef('complete_return_inspection') ILIKE '%has_role((select auth.uid()), ''admin''%'
+  'complete_return_inspection conserva el guard de roles y el contexto interno',
+  (
+    pg_temp.fndef('complete_return_inspection') ILIKE '%has_role(v_uid, ''admin''%'
+    OR pg_temp.fndef('complete_return_inspection') ILIKE '%has_role((select auth.uid()), ''admin''%'
+  )
+    AND pg_temp.fndef('complete_return_inspection') ILIKE '%current_internal_organization_id%'
+    AND pg_temp.fndef('complete_return_inspection') ILIKE '%is_internal_member%'
 );
 SELECT pg_temp.expect_true(
   'complete_return_inspection libera la unidad sólo si sigue rented (N-38)',
