@@ -141,8 +141,13 @@ export function policyOrganizationIssue(
 ): string | null {
   const policyOrg = policy.organization_id ?? null;
   if (!policyOrg) return "la póliza no tiene empresa asignada";
+  // Falla cerrada: sin unidad ligada, o con unidad sin organización, se
+  // omite — nunca se asume la organización de la póliza para la unidad.
   const forkliftOrg = policy.forklifts?.organization_id ?? null;
-  if (forkliftOrg !== null && forkliftOrg !== policyOrg) {
+  if (!policy.forklifts || !forkliftOrg) {
+    return "la unidad no tiene empresa asignada";
+  }
+  if (forkliftOrg !== policyOrg) {
     return "la unidad pertenece a otra empresa";
   }
   if (scopeOrganizationId !== null && scopeOrganizationId !== policyOrg) {

@@ -11,7 +11,7 @@
     "Si no se puede confirmar a qué empresa pertenece la cuenta, la operación se detiene en lugar de continuar.",
     "La generación mensual de servicios iniciada por una persona sólo toma las pólizas de su empresa.",
     "El proceso programado conserva el alcance completo y cada servicio generado hereda la empresa de su propia póliza.",
-    "Una póliza cuya unidad pertenece a otra empresa se omite sin escribir nada y se reporta en el detalle.",
-    "Se agregaron 16 pruebas automáticas con dependencias simuladas, sin usar la base real."
+    "Una póliza cuya unidad pertenece a otra empresa, no tiene empresa asignada o no está ligada a una unidad se omite sin escribir nada y se reporta en el detalle.",
+    "Se agregaron 18 pruebas automáticas con dependencias simuladas, sin usar la base real."
   ]
 }
