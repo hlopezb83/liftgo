@@ -3,6 +3,8 @@ import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
+import { resolveCallerOrganization } from "../_shared/orgContext.ts";
+import { insertManual } from "./manual.ts";
 
 const SYSTEM_PROMPT =
   `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
