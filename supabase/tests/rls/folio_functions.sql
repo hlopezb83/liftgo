@@ -12,17 +12,40 @@
 --   3) anon no tiene EXECUTE
 --   4) insertar en supplier_bills / deliveries / return_inspections como staff
 --      asigna folio automáticamente (trigger SECURITY DEFINER)
+--
+-- Multiempresa (0043): los folios exigen `current_internal_organization_id()`
+-- e `is_internal_member()`, así que el staff necesita membresía interna real y
+-- el cliente del portal una membresía de portal. El contrato de ejecución no
+-- cambia: staff obtiene CXP/CTR/COT, portal bloqueado, anon sin EXECUTE.
 BEGIN;
 
-INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
-  ('4a000099-0000-4000-8000-000000000001', 'admin.folio@test.local', now(), now()),
-  ('4a000099-0000-4000-8000-000000000002', 'cliente.folio@test.local', now(), now())
-ON CONFLICT DO NOTHING;
+DO $$
+DECLARE
+  v_org uuid := '4a000099-0000-4000-8000-0000000000f0';
+  v_staff uuid := '4a000099-0000-4000-8000-000000000001';
+  v_portal uuid := '4a000099-0000-4000-8000-000000000002';
+BEGIN
+  INSERT INTO public.organizations (id, name, slug, is_active)
+  VALUES (v_org, 'Organización folios de prueba', 'rls-folio-functions', true);
 
-INSERT INTO public.user_roles (user_id, role) VALUES
-  ('4a000099-0000-4000-8000-000000000001', 'administrativo'),
-  ('4a000099-0000-4000-8000-000000000002', 'customer')
-ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+  PERFORM set_config('app.organization_id', v_org::text, true);
+
+  INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
+    (v_staff, 'admin.folio@test.local', now(), now()),
+    (v_portal, 'cliente.folio@test.local', now(), now())
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.user_roles (user_id, role) VALUES
+    (v_staff, 'administrativo'::public.app_role),
+    (v_portal, 'customer'::public.app_role)
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+  INSERT INTO public.organization_memberships (
+    organization_id, auth_user_id, member_type
+  ) VALUES
+    (v_org, v_staff, 'internal'),
+    (v_org, v_portal, 'portal');
+END $$;
 
 -- 1) anon: sin EXECUTE en las funciones de folio expuestas.
 DO $$

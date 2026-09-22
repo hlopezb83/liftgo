@@ -1,5 +1,13 @@
 [
   {
+    "version": "8.36.1",
+    "date": "2026-09-22",
+    "type": "patch",
+    "category": "fix",
+    "title": "El pago aprobado desde el portal deja de inventar un tipo de cambio",
+    "description": "Al aprobar un pago reportado por un cliente, el sistema guardaba un tipo de cambio que nadie capturó, aunque el pago se registra en la misma moneda de la factura. Ahora ese dato vuelve a quedar vacío. También se actualizaron las pruebas automáticas de seguridad que aún esperaban las reglas anteriores a la separación por empresa."
+  },
+  {
     "version": "8.36.0",
     "date": "2026-09-22",
     "type": "minor",

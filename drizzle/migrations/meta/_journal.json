@@ -316,6 +316,13 @@
       "when": 1790874166000,
       "tag": "0044_multi_org_customer_reads_link_rep_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1790874167000,
+      "tag": "0045_approve_payment_intent_null_exchange_rate",
+      "breakpoints": true
     }
   ]
 }

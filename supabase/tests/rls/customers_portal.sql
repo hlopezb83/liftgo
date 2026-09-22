@@ -1,19 +1,54 @@
 -- RLS: customers — aislamiento del portal y mecánico sin acceso al padrón.
+--
+-- Multiempresa: desde las migraciones 0040-0044 el portal se resuelve por
+-- `customer_portal_accounts` (cuenta vigente) y la pertenencia interna por
+-- `organization_memberships`; los roles globales ya no bastan. La siembra
+-- refleja ese contexto, pero la aserción sigue siendo CONDUCTUAL.
 BEGIN;
 
-INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
-  ('33333333-0000-4000-8000-000000000001', 'cliente.cust@test.local', now(), now()),
-  ('33333333-0000-4000-8000-000000000002', 'mecanico.cust@test.local', now(), now())
-ON CONFLICT DO NOTHING;
+DO $$
+DECLARE
+  v_org uuid := '33333333-0000-4000-8000-0000000000f0';
+  v_portal_uid uuid := '33333333-0000-4000-8000-000000000001';
+  v_mech_uid uuid := '33333333-0000-4000-8000-000000000002';
+  v_own uuid := '33333333-0000-4000-8000-0000000000a1';
+  v_other uuid := '33333333-0000-4000-8000-0000000000c1';
+BEGIN
+  INSERT INTO public.organizations (id, name, slug, is_active)
+  VALUES (v_org, 'Organización portal de prueba', 'rls-customers-portal', true);
 
-INSERT INTO public.user_roles (user_id, role) VALUES
-  ('33333333-0000-4000-8000-000000000001', 'customer'),
-  ('33333333-0000-4000-8000-000000000002', 'mechanic')
-ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+  PERFORM set_config('app.organization_id', v_org::text, true);
 
-INSERT INTO public.customers (id, name, user_id) VALUES
-  ('33333333-0000-4000-8000-0000000000a1', 'Cliente Propio', '33333333-0000-4000-8000-000000000001'),
-  ('33333333-0000-4000-8000-0000000000c1', 'Cliente Ajeno', NULL);
+  INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
+    (v_portal_uid, 'cliente.cust@test.local', now(), now()),
+    (v_mech_uid, 'mecanico.cust@test.local', now(), now())
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.user_roles (user_id, role) VALUES
+    (v_portal_uid, 'customer'::public.app_role),
+    (v_mech_uid, 'mechanic'::public.app_role)
+  ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
+  -- El cliente entra por el portal; el mecánico es personal interno.
+  INSERT INTO public.organization_memberships (
+    organization_id, auth_user_id, member_type
+  ) VALUES
+    (v_org, v_portal_uid, 'portal'),
+    (v_org, v_mech_uid, 'internal');
+
+  INSERT INTO public.customers (id, name, user_id) VALUES
+    (v_own, 'Cliente Propio', v_portal_uid),
+    (v_other, 'Cliente Ajeno', NULL);
+
+  INSERT INTO public.organization_customers (organization_id, customer_id)
+  VALUES (v_org, v_own), (v_org, v_other);
+
+  INSERT INTO public.customer_portal_accounts (
+    organization_id, customer_id, auth_user_id, email
+  ) VALUES (
+    v_org, v_own, v_portal_uid, 'cliente.cust@test.local'
+  );
+END $$;
 
 SET LOCAL role = 'authenticated';
 

@@ -65,9 +65,16 @@ SELECT pg_temp.expect_true(
   'N-41 sync_forklift_rental_status no degrada rentas vencidas sin devolución',
   pg_temp.fndef('sync_forklift_rental_status') ILIKE '%booking_is_returned%'
 );
+-- Multiempresa 0041: el guard de admin se evalúa sobre v_uid y se suma el
+-- contexto interno (organización + membresía).
 SELECT pg_temp.expect_true(
-  'N-41 sync_forklift_rental_status conserva el guard de admin',
-  pg_temp.fndef('sync_forklift_rental_status') ILIKE '%has_role((select auth.uid()), ''admin''%'
+  'N-41 sync_forklift_rental_status conserva el guard de admin y el contexto interno',
+  (
+    pg_temp.fndef('sync_forklift_rental_status') ILIKE '%has_role(v_uid, ''admin''%'
+    OR pg_temp.fndef('sync_forklift_rental_status') ILIKE '%has_role((select auth.uid()), ''admin''%'
+  )
+    AND pg_temp.fndef('sync_forklift_rental_status') ILIKE '%current_internal_organization_id%'
+    AND pg_temp.fndef('sync_forklift_rental_status') ILIKE '%is_internal_member%'
 );
 
 -- N-42: la guarda cubre cualquier salida de 'rented'.
