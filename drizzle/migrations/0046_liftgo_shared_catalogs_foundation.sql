@@ -471,13 +471,11 @@ REVOKE ALL ON TABLE
   public.organization_legal_template_assignments
 FROM PUBLIC, anon, authenticated;
 
-GRANT SELECT, INSERT, UPDATE ON TABLE
-  public.brand_assets,
-  public.equipment_model_catalog,
-  public.parts_catalog,
-  public.parts_catalog_equipment_models,
-  public.legal_template_definitions
-TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.brand_assets TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.equipment_model_catalog TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.parts_catalog TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.parts_catalog_equipment_models TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.legal_template_definitions TO authenticated;
 
 GRANT SELECT, INSERT ON TABLE public.legal_template_versions TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
@@ -704,3 +702,4 @@ BEGIN
   END IF;
 END
 $verify$;
+
