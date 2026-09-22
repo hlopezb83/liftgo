@@ -8,6 +8,7 @@ import {
   type MaintenanceClientLike,
   type MaintenancePolicyRow,
 } from "./logic.ts";
+import { resolveMaintenanceScope } from "./scope.ts";
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
