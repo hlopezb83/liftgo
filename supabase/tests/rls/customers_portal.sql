@@ -1,7 +1,7 @@
 -- RLS: customers — aislamiento del portal y mecánico sin acceso al padrón.
 --
 -- Multiempresa: desde las migraciones 0040-0044 el portal se resuelve por
--- `customer_portal_accounts` y la pertenencia interna por
+-- `customer_portal_accounts` (cuenta vigente) y la pertenencia interna por
 -- `organization_memberships`; los roles globales ya no bastan. La siembra
 -- refleja ese contexto, pero la aserción sigue siendo CONDUCTUAL.
 BEGIN;
@@ -44,9 +44,9 @@ BEGIN
   VALUES (v_org, v_own), (v_org, v_other);
 
   INSERT INTO public.customer_portal_accounts (
-    organization_id, customer_id, auth_user_id, email, is_active
+    organization_id, customer_id, auth_user_id, email
   ) VALUES (
-    v_org, v_own, v_portal_uid, 'cliente.cust@test.local', true
+    v_org, v_own, v_portal_uid, 'cliente.cust@test.local'
   );
 END $$;
 
