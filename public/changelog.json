@@ -1,5 +1,13 @@
 [
   {
+    "version": "8.35.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "security",
+    "title": "Lecturas de cliente, ranking de reportes, vínculo por RFC y folio de pago acotados a la empresa real",
+    "description": "Cinco operaciones internas (rentabilidad y resumen de cliente, ranking de reportes, vínculo de cliente por RFC y folio del comprobante de pago) ya no deciden quién eres por un permiso suelto, sino por tu pertenencia real a una empresa o a una cuenta del portal. El cambio quedó listo en Git; aún no se aplica en la nube."
+  },
+  {
     "version": "8.34.0",
     "date": "2026-09-21",
     "type": "minor",
