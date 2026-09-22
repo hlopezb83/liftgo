@@ -175,7 +175,6 @@ export async function generateForPolicies(
     }
     let lastOkMonth = policy.last_generated_month;
 
-
     for (const month of pendingMonthsFor(lastOkMonth, currentMonth)) {
       const monthFirstDay = `${month}-01`;
 

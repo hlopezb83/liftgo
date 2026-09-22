@@ -31,7 +31,9 @@ function membershipClient(
   };
 }
 
-function policy(over: Partial<MaintenancePolicyRow> = {}): MaintenancePolicyRow {
+function policy(
+  over: Partial<MaintenancePolicyRow> = {},
+): MaintenancePolicyRow {
   return {
     id: "p1",
     organization_id: "org-a",

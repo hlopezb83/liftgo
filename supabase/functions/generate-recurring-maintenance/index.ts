@@ -72,7 +72,6 @@ Deno.serve(async (req) => {
     }
     const { data: policies, error: pErr } = await policiesQuery;
 
-
     if (pErr) throw pErr;
 
     const pendingPolicies = ((policies ?? []) as MaintenancePolicyRow[]).filter(

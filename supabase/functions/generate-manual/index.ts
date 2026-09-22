@@ -167,9 +167,17 @@ serve(async (req) => {
     }
 
     // Multiempresa: el consecutivo y el manual son POR ORGANIZACIÓN.
-    const saved = await insertManual(supabase, callerOrg.organizationId, sections);
+    const saved = await insertManual(
+      supabase,
+      callerOrg.organizationId,
+      sections,
+    );
     if (!saved.ok) {
-      return jsonError(req, saved.status, saved.message ?? "Error al guardar el manual");
+      return jsonError(
+        req,
+        saved.status,
+        saved.message ?? "Error al guardar el manual",
+      );
     }
 
     return jsonResponse(req, { success: true, manual: saved.manual });
