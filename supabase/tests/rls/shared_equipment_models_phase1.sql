@@ -112,7 +112,9 @@ SELECT public.activate_equipment_model_catalog(
 );
 
 DO $$
-DECLARE v_blocked boolean := false;
+DECLARE
+  v_blocked boolean := false;
+  v_affected integer := 0;
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM public.equipment_models m
@@ -129,6 +131,8 @@ BEGIN
     UPDATE public.equipment_model_catalog
     SET model = 'CAMBIO NO AUTORIZADO'
     WHERE id = (SELECT catalog_id FROM phase1_fixture);
+    GET DIAGNOSTICS v_affected = ROW_COUNT;
+    v_blocked := v_affected = 0;
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     v_blocked := true;
   END;
