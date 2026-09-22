@@ -4,8 +4,9 @@
 -- valor insertado en payments.exchange_rate de NULL a
 -- COALESCE(NULLIF(v_invoice_exchange, 0), 1). El pago derivado del portal se
 -- registra SIEMPRE en la moneda de la factura, así que un tipo de cambio
--- explícito inventa un TC que nadie capturó y rompe el contrato previo
--- (r_fix32 R6-04). Esta migración restituye NULL sin tocar nada más.
+-- histórico de la factura no aplica; y payments.exchange_rate es NOT NULL
+-- DEFAULT 1, por lo que NULL viola el esquema. Esta migración fija el valor
+-- neutral 1 (misma moneda, sin conversión) sin tocar nada más.
 --
 -- No se modifica 0040 porque ya está desplegada.
 CREATE OR REPLACE FUNCTION public.approve_payment_intent(p_intent_id uuid, p_payment_form_sat text DEFAULT '03'::text, p_review_notes text DEFAULT NULL::text)
@@ -88,8 +89,9 @@ BEGIN
       USING ERRCODE = 'check_violation';
   END IF;
 
-  -- (e) el pago se registra en la moneda de la factura: exchange_rate queda
-  -- NULL para no inventar un tipo de cambio que nadie capturó.
+  -- (e) el pago se registra en la moneda de la factura: exchange_rate se
+  -- fija en 1 (valor neutral, sin conversión) porque la columna es NOT NULL
+  -- y el TC histórico de la factura no aplica a un pago en la misma moneda.
   INSERT INTO public.payments(
     invoice_id, amount, payment_date, payment_method, payment_form_sat,
     reference_number, notes, currency, exchange_rate, organization_id
@@ -97,7 +99,7 @@ BEGIN
     v_intent.invoice_id, v_intent.amount, v_intent.transfer_date,
     'transfer', COALESCE(p_payment_form_sat, '03'), v_intent.tracking_key,
     'Aprobado desde portal (intent ' || v_intent.id::text || ')',
-    v_invoice_currency, NULL, v_org
+    v_invoice_currency, 1, v_org
   ) RETURNING id INTO v_payment_id;
 
   UPDATE public.customer_payment_intents
@@ -112,4 +114,4 @@ REVOKE ALL ON FUNCTION public.approve_payment_intent(uuid, text, text) FROM PUBL
 GRANT EXECUTE ON FUNCTION public.approve_payment_intent(uuid, text, text) TO authenticated, service_role;
 
 COMMENT ON FUNCTION public.approve_payment_intent(uuid, text, text) IS
-  'Multiempresa 0045: conserva el guard 0040 (rol + membresia interna + organization_id = current_internal_organization_id()) y restituye exchange_rate NULL en el pago derivado, porque se registra en la moneda de la factura.';
+  'Multiempresa 0045: conserva el guard 0040 (rol + membresia interna + organization_id = current_internal_organization_id()) y fija exchange_rate = 1 (valor neutral) en el pago derivado, porque se registra en la moneda de la factura y la columna es NOT NULL.';

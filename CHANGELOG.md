@@ -1,3 +1,14 @@
+## [8.36.1] - 2026-09-22 · patch · fix
+
+Al aprobar un pago reportado por un cliente desde el portal, el sistema guardaba el tipo de cambio histórico de la factura, aunque el pago se registra en la misma moneda. La corrección (migración 0045, preparada en Git, NO aplicada) fija el valor neutral 1, porque la columna exchange_rate no admite vacío y el tipo de cambio histórico no aplica a un pago en la misma moneda. También se actualizaron las pruebas automáticas de seguridad que aún esperaban las reglas anteriores a la separación por empresa.
+
+- Nuevo cambio de base drizzle/migrations/0045_approve_payment_intent_neutral_exchange_rate.sql (no aplicado): approve_payment_intent conserva las guardas multiempresa de 0040 (rol admin/administrativo, empresa interna única, pertenencia comprobada, filtros por empresa y bloqueo FOR UPDATE de la factura) y sólo cambia el valor insertado en payments.exchange_rate a 1.
+- Se conservan los cálculos de saldo: conversión de pagos con tipo de cambio, notas de crédito timbradas y reportes pendientes de revisión.
+- Permisos sin cambios: PUBLIC y anon revocados, authenticated y service_role conservan ejecución.
+- Las pruebas de padrón de clientes y de folios ahora siembran empresa de prueba con membresías, y siguen comprobando el mismo comportamiento: el cliente sólo ve lo suyo y no puede editarlo, el mecánico no ve el padrón y el portal no obtiene folios.
+- Se actualizaron las pruebas de banco, devoluciones, unidades y folio de pago para reconocer las reglas de empresa vigentes, sin relajar ninguna protección.
+- La migración queda en Git para validación; no se aplicó nada en la nube.
+
 ## [8.32.0] - 2026-09-21 · minor · security
 
 Diecisiete acciones internas de cuentas por pagar (aprobar, rechazar o reactivar una factura de proveedor, registrar pagos, marcar y reiniciar el REP, crear lotes de pago y liberar bloqueos añejos), de daños y órdenes de trabajo, de facturación recurrente y de la bitácora seguían sin verificar la empresa: con un identificador ajeno podían modificar información de otra empresa. El cambio de base 0041 (preparado en Git, NO aplicado) exige pertenecer a la empresa, toma la empresa de las filas reales y responde igual ante un identificador ajeno que ante uno inexistente.

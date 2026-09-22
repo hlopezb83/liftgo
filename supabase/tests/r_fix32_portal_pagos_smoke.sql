@@ -62,8 +62,8 @@ SELECT pg_temp.expect_true(
     AND pg_temp.fndef('approve_payment_intent') ILIKE '%status <> ''cancelled''%'
 );
 SELECT pg_temp.expect_true(
-  'R6-04 el pago generado no falsea el tipo de cambio',
-  pg_temp.fndef('approve_payment_intent') ILIKE '%v_invoice_currency, NULL%'
+  'R6-04 el pago generado usa tipo de cambio neutral 1 (misma moneda, columna NOT NULL)',
+  pg_temp.fndef('approve_payment_intent') ILIKE '%v_invoice_currency, 1%'
 );
 
 -- R6-09
