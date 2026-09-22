@@ -9,32 +9,42 @@ CREATE TEMP TABLE phase1_fixture (
 GRANT SELECT ON phase1_fixture TO authenticated;
 
 INSERT INTO public.organizations (id, name, slug, is_active)
-VALUES (
-  '47000000-0000-4000-8000-0000000000b2',
-  'LiftGo Modelos B',
-  'liftgo-modelos-b',
-  true
+VALUES
+  (
+    '47000000-0000-4000-8000-0000000000a0',
+    'LiftGo Modelos A',
+    'liftgo-modelos-a',
+    true
+  ),
+  (
+    '47000000-0000-4000-8000-0000000000b2',
+    'LiftGo Modelos B',
+    'liftgo-modelos-b',
+    true
+  )
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO public.equipment_model_catalog (
+  id, manufacturer, model, capacity_kg, mast_height_m, fuel_type,
+  source_organization_id
+) VALUES (
+  '47000000-0000-4000-8000-0000000000e1',
+  'LiftGo', 'MODELO GLOBAL 0047', 2500, 4.5, 'Diesel',
+  '47000000-0000-4000-8000-0000000000a0'
 )
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO phase1_fixture (catalog_id, org_a, org_b)
-SELECT
-  c.id,
-  (
-    SELECT o.id FROM public.organizations o
-    WHERE o.is_active AND o.id <> '47000000-0000-4000-8000-0000000000b2'
-    ORDER BY o.created_at, o.id LIMIT 1
-  ),
+VALUES (
+  '47000000-0000-4000-8000-0000000000e1',
+  '47000000-0000-4000-8000-0000000000a0',
   '47000000-0000-4000-8000-0000000000b2'
-FROM public.equipment_model_catalog c
-WHERE c.is_active
-ORDER BY c.created_at, c.id
-LIMIT 1;
+);
 
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM phase1_fixture) THEN
-    RAISE EXCEPTION 'SETUP 0047: se requiere un modelo global activo sembrado desde Org 1';
+    RAISE EXCEPTION 'SETUP 0047: no se creó el fixture de modelo global';
   END IF;
 END
 $$;
@@ -253,3 +263,4 @@ END
 $$;
 
 ROLLBACK;
+
