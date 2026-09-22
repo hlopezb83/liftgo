@@ -65,7 +65,7 @@ function makeManualClient(rows: ManualRow[]) {
 }
 
 function membershipClient(
-  result: { data?: unknown[]; error?: unknown },
+  result: { data?: unknown[] | null; error?: unknown },
 ) {
   return {
     from() {
