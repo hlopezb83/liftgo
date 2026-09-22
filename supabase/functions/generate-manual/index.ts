@@ -87,6 +87,14 @@ serve(async (req) => {
     );
     if (limited) return limited;
 
+    // Multiempresa: la organización sale SIEMPRE de la membresía interna
+    // verificada. Una identidad de portal con rol admin residual no tiene
+    // membresía `internal` y queda bloqueada aquí (fail-closed).
+    const callerOrg = await resolveCallerOrganization(supabase, auth.userId);
+    if (!callerOrg.ok) {
+      return jsonError(req, callerOrg.status, callerOrg.message);
+    }
+
     // LOVABLE_API_KEY se valida dentro de aiChatCompletion.
 
     // Call Lovable AI with tool calling to get structured JSON
