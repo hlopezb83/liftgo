@@ -192,9 +192,12 @@ BEGIN
       AND d.is_active
       AND d.document_type = 'rental_contract';
 
-    SELECT * INTO v_customer
-      FROM public.customers
-      WHERE id = NEW.customer_id AND organization_id = NEW.organization_id;
+    SELECT c.* INTO v_customer
+      FROM public.customers c
+      JOIN public.organization_customers oc ON oc.customer_id = c.id
+      WHERE c.id = NEW.customer_id
+        AND oc.organization_id = NEW.organization_id
+        AND oc.status = 'active';
     SELECT * INTO v_forklift
       FROM public.forklifts
       WHERE id = NEW.forklift_id AND organization_id = NEW.organization_id;
