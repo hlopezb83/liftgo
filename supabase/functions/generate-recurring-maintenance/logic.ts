@@ -23,7 +23,13 @@ export interface MaintenancePolicyRow {
   provider_name: string | null;
   monthly_cost: number;
   last_generated_month: string | null;
-  forklifts?: { name?: string | null; status?: string | null } | null;
+  forklifts?:
+    | {
+      name?: string | null;
+      status?: string | null;
+      organization_id?: string | null;
+    }
+    | null;
 }
 
 export interface PostgrestErrorLike {
