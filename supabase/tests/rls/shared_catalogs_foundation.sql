@@ -87,6 +87,20 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
+-- Los triggers de alta de auth.users escriben perfiles y bitácora. Con dos
+-- empresas activas, el writer de sistema debe declarar la empresa de contexto.
+SELECT set_config(
+  'app.organization_id',
+  (
+    SELECT id::text
+    FROM public.organizations
+    WHERE is_active AND id <> '46000000-0000-4000-8000-0000000000b2'
+    ORDER BY created_at, id
+    LIMIT 1
+  ),
+  true
+);
+
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('46000000-0000-4000-8000-0000000000f0', 'plataforma.catalogos@test.local', now(), now()),
   ('46000000-0000-4000-8000-0000000000a1', 'admin.a.catalogos@test.local', now(), now()),
@@ -292,3 +306,4 @@ END
 $$;
 
 ROLLBACK;
+
