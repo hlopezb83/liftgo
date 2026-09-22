@@ -104,6 +104,7 @@ Deno.serve(async (req) => {
       supabase as unknown as MaintenanceClientLike,
       candidates,
       currentMonth,
+      scopeOrganizationId,
     );
     const generated = run.generated;
     skipped += run.skipped;
