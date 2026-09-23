@@ -215,8 +215,10 @@ export async function getFacturapiConfigForOrganization(input: {
         organizationId,
       );
     }
-    if ((otherOwner as { organization_id?: string } | null)
-      ?.organization_id) {
+    if (
+      (otherOwner as { organization_id?: string } | null)
+        ?.organization_id
+    ) {
       throw new FacturapiConfigError(
         "config_duplicate_key",
         "La llave de Facturapi está configurada en otra empresa. Usa una llave propia de esta organización emisora.",
