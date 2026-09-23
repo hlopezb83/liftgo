@@ -79,7 +79,7 @@ export function useActivateEquipmentModel() {
     mutationFn: async (input) => {
       const { data, error } = await supabase.rpc("activate_equipment_model_catalog", {
         p_catalog_model_id: input.catalog_model_id,
-        p_local_alias: input.local_alias ?? null,
+        p_local_alias: input.local_alias ?? undefined,
         p_daily_rate: input.default_daily_rate ?? 0,
         p_weekly_rate: input.default_weekly_rate ?? 0,
         p_monthly_rate: input.default_monthly_rate ?? 0,

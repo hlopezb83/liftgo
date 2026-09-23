@@ -20,7 +20,7 @@ export function useActivateCatalogPart() {
         p_stock_quantity: input.stockQuantity,
         p_min_stock_level: input.minStockLevel,
         p_unit_cost: input.unitCost,
-        p_location: input.location || null,
+        p_location: input.location || undefined,
       });
       if (error) throw error;
       return data;
