@@ -206,7 +206,6 @@ export async function getFacturapiConfigForOrganization(input: {
       .select("organization_id")
       .neq("organization_id", organizationId)
       .eq(keyColumn, dbKey)
-      .limit(1)
       .maybeSingle();
     if (ownersErr) {
       throw new FacturapiConfigError(
