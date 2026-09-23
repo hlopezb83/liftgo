@@ -1,5 +1,14 @@
 # Plan de implementación: ecosistema compartido LiftGo
 
+**Estado al 2026-09-23:** las fases 0–3 están desplegadas en Lovable Cloud
+(`v8.42.1`, migraciones `0046`–`0053`). Org 1 y la segunda organización
+comparten los ocho modelos; el inventario global de refacciones sigue vacío
+porque Org 1 no tiene SKUs aprobados. La segunda organización ya tiene una
+unidad, cliente, cotización, reserva y contrato en borrador para el ensayo
+operativo. Su configuración fiscal sigue vacía, por lo que no se han firmado
+contratos ni emitido CFDI de esa empresa. Las fases 4–7 continúan en el plan;
+el uso del logo global ya está implementado en la interfaz y los PDF.
+
 ## Objetivo
 
 Permitir que las sociedades que operan bajo la marca LiftGo compartan maestros
@@ -81,7 +90,7 @@ ejecuta y no fija cantidades ni UUID de producción.
 ## Fase 1 — Modelos globales de equipo
 
 **Estado:** completada y desplegada en Lovable Cloud. Org 1 y Org 2 tienen los
-8 modelos enlazados al mismo maestro; producción sirve la interfaz `v8.38.0`.
+8 modelos enlazados al mismo maestro; la entrega inicial fue `v8.38.0`.
 
 1. Publicar funciones de plataforma para crear, actualizar y desactivar modelos.
 2. Construir la pantalla **Catálogo LiftGo de modelos** para operadores de
@@ -102,7 +111,7 @@ ejecuta y no fija cantidades ni UUID de producción.
 ## Fase 2 — SKUs globales e inventario local
 
 **Estado:** completada y desplegada en Lovable Cloud mediante la migración
-`0048` y las interfaces global/local. Producción sirve `v8.39.0`. Org 1 tiene
+`0048` y las interfaces global/local. La entrega inicial fue `v8.39.0`. Org 1 tiene
 0 refacciones, por lo que la carga inicial se mantiene vacía hasta contar con
 SKUs reales aprobados.
 
@@ -122,9 +131,13 @@ SKUs reales aprobados.
 
 ## Fase 3 — Contratos y pagarés versionados
 
-**Estado:** en implementación. La migración `0049` corrige la selección global
-de plantilla al firmar, asigna explícitamente la versión vigente a cada
-organización y registra versión y checksum en el snapshot inmutable.
+**Estado:** implementación técnica completada y desplegada en `v8.42.1`.
+Las migraciones `0049`–`0053` publican versiones globales, asignación y
+ajustes locales por empresa, y snapshot de cliente, equipo, plantilla,
+términos e identidad fiscal del emisor al firmar. Falta revisión jurídica del
+machote importado desde Org 1 y completar la identidad fiscal de Org 2 antes
+de firmar o generar sus PDF. Un contrato de Org 1 firmado antes de `0053`
+carece de emisor fiscal en su snapshot histórico; no se rellenó retroactivamente.
 
 1. Revisar legalmente la versión importada desde Org 1.
 2. Publicar el editor de versiones para plataforma.
@@ -142,6 +155,11 @@ organización y registra versión y checksum en el snapshot inmutable.
 - El contrato renderizado usa datos fiscales de la organización emisora.
 
 ## Fase 4 — Marca y formatos documentales
+
+**Estado:** logo único LiftGo implementado en navegación, portal y generadores
+de PDF. Quedan la administración de otros activos globales mediante
+`brand_assets`, la revisión visual de todos los formatos y la retirada segura
+del campo legado `company_settings.logo_url`.
 
 1. Mantener `/brand/liftgo-montacargas.png` como logo oficial inicial.
 2. Consumir `brand_assets` sólo para activos administrados por plataforma.
