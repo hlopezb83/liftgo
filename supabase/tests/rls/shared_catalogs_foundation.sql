@@ -273,13 +273,24 @@ BEGIN
 END
 $$;
 
+-- Desde 0051 las empresas no escriben asignaciones directamente; plataforma
+-- conserva el canal service_role para adoptar versiones.
+RESET ROLE;
+SET LOCAL role = 'service_role';
+
 INSERT INTO public.organization_legal_template_assignments (
   organization_id, definition_id, version_id
 )
 SELECT
-  public.current_internal_organization_id(),
+  m.organization_id,
   '46000000-0000-4000-8000-0000000000d2',
-  '46000000-0000-4000-8000-0000000000d3';
+  '46000000-0000-4000-8000-0000000000d3'
+FROM public.organization_memberships m
+WHERE m.auth_user_id = '46000000-0000-4000-8000-0000000000a1'
+  AND m.member_type = 'internal';
+
+RESET ROLE;
+SET LOCAL role = 'authenticated';
 
 SET LOCAL request.jwt.claims TO
   '{"sub":"46000000-0000-4000-8000-0000000000a2","role":"authenticated"}';

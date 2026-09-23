@@ -145,7 +145,8 @@ SET LOCAL role = 'service_role';
 
 UPDATE public.organization_legal_template_assignments
 SET version_id = '49000000-0000-4000-8000-0000000000d2'
-WHERE definition_id = '49000000-0000-4000-8000-0000000000d0';
+WHERE definition_id = '49000000-0000-4000-8000-0000000000d0'
+  AND organization_id = '49000000-0000-4000-8000-0000000000a0';
 
 RESET ROLE;
 SET LOCAL role = 'authenticated';
