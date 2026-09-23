@@ -139,4 +139,3 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
     return jsonError(req, 500, "Error interno del servidor");
   }
 });
-
