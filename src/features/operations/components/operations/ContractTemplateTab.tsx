@@ -49,7 +49,7 @@ export function ContractTemplateTab() {
 
       <LegalTemplateOverridesForm
         key={`${template.id}-${JSON.stringify(template.local_overrides)}`}
-        definitionId={template.id}
+        definitionId={template.definition_id}
         overrides={template.local_overrides}
         canEdit={role === "admin" || role === "administrativo"}
       />

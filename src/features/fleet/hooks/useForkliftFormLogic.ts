@@ -42,7 +42,7 @@ export function useForkliftFormLogic() {
   useForkliftPrefill(existing, form, equipmentModels !== undefined);
   // M-11b: `updated_at` del registro cargado → bloqueo optimista al guardar.
   const { onSubmit, navigate, isPending } = useForkliftFormSubmit({
-    id, isEdit, expectedUpdatedAt, equipmentModels,
+    id, isEdit, expectedUpdatedAt, equipmentModels, existing,
   });
 
   const handleManufacturerChange = (value: string) => {

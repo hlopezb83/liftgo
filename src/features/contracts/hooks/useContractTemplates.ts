@@ -22,6 +22,8 @@ export type { ContractClause, ChecklistSection };
 
 export interface ContractTemplate {
   id: string;
+  /** UUID de la definición legal (lo exige la RPC de datos legales). */
+  definition_id: string;
   name: string;
   body_text: string;
   version: number;
@@ -61,6 +63,7 @@ export async function fetchDefaultContractTemplate(
   const content = (row.content ?? {}) as EffectiveTemplateContent;
   return {
     id: row.version_id,
+    definition_id: row.definition_id,
     name: row.template_name,
     body_text: content.body_text ?? "",
     version: row.version,
