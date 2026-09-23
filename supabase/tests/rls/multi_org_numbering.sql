@@ -115,6 +115,7 @@ DECLARE
   v_quote_b text;
   v_booking_a text;
   v_booking_b text;
+  v_folio text;
 BEGIN
   SELECT public.next_quote_number() INTO v_quote_a;
   IF v_quote_a !~ '^COT-[0-9]{4,}$' THEN
@@ -135,9 +136,9 @@ BEGIN
   );
 
   SELECT public.next_quote_number() INTO v_quote_b;
-  IF v_quote_b <> 'COT-0101' THEN
+  IF v_quote_b <> 'COT-0001' THEN
     RAISE EXCEPTION
-      'NUMBER ORG: B debió iniciar su contador independiente en COT-0101, obtuvo %',
+      'NUMBER ORG: B debió iniciar su contador independiente en COT-0001, obtuvo %',
       v_quote_b;
   END IF;
 
@@ -145,6 +146,24 @@ BEGIN
   IF v_booking_b <> 'RSV-0001' THEN
     RAISE EXCEPTION 'NUMBER ORG: B debió iniciar reservas en RSV-0001, obtuvo %', v_booking_b;
   END IF;
+
+  -- Una empresa nueva inicia cada familia de folios internos en 0001.
+  SELECT public.next_contract_number() INTO v_folio;
+  IF v_folio <> 'CTR-0001' THEN RAISE EXCEPTION 'NUMBER ORG: contrato inicial %', v_folio; END IF;
+  SELECT public.next_invoice_number() INTO v_folio;
+  IF v_folio <> 'FAC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: factura inicial %', v_folio; END IF;
+  SELECT public.next_credit_note_number() INTO v_folio;
+  IF v_folio <> 'NC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: nota de crédito inicial %', v_folio; END IF;
+  SELECT public.next_supplier_bill_number() INTO v_folio;
+  IF v_folio <> 'CXP-0001' THEN RAISE EXCEPTION 'NUMBER ORG: cuenta por pagar inicial %', v_folio; END IF;
+  SELECT public.next_delivery_number() INTO v_folio;
+  IF v_folio <> 'ENT-0001' THEN RAISE EXCEPTION 'NUMBER ORG: entrega inicial %', v_folio; END IF;
+  SELECT public.next_inspection_number() INTO v_folio;
+  IF v_folio <> 'DEV-0001' THEN RAISE EXCEPTION 'NUMBER ORG: devolución inicial %', v_folio; END IF;
+  SELECT public.next_draft_invoice_number() INTO v_folio;
+  IF v_folio <> 'BORRADOR-0001' THEN RAISE EXCEPTION 'NUMBER ORG: borrador inicial %', v_folio; END IF;
+  SELECT public.next_draft_credit_note_number() INTO v_folio;
+  IF v_folio <> 'BORRADOR-NC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: borrador de nota inicial %', v_folio; END IF;
 
   INSERT INTO public.fiscal_periods (organization_id, period)
   VALUES (
