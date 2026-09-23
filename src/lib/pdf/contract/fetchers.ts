@@ -34,6 +34,13 @@ export type ContractData = Pick<ContractViewModel,
 };
 
 interface SignedSnapshot {
+  contract?: Partial<ContractData> | null;
+  issuer?: {
+    razon_social?: string;
+    rfc?: string;
+    regimen_fiscal?: string;
+    lugar_expedicion?: string;
+  } | null;
   customer?: Record<string, unknown> | null;
   forklift?: Record<string, unknown> | null;
   template?: Partial<TemplateData> | null;
@@ -52,6 +59,31 @@ export function readSignedSnapshot(contract: ContractData): SignedSnapshot | nul
   const snap = contract.signed_snapshot;
   if (!snap || typeof snap !== "object") return null;
   return snap as SignedSnapshot;
+}
+
+/** Los campos del contrato impreso también salen de la copia firmada. */
+export function contractForPdf(contract: ContractData): ContractData {
+  const frozen = readSignedSnapshot(contract)?.contract;
+  return frozen ? { ...contract, ...frozen, signed_snapshot: contract.signed_snapshot } : contract;
+}
+
+/** Los contratos anteriores a 0053 no tienen emisor congelado. */
+export function issuerForPdf(
+  contract: ContractData,
+  current: { razon_social: string; rfc: string; regimen_fiscal: string; lugar_expedicion: string },
+) {
+  const frozen = readSignedSnapshot(contract)?.issuer;
+  if (!frozen) return current;
+  if (typeof frozen.razon_social !== "string" || typeof frozen.rfc !== "string"
+      || typeof frozen.regimen_fiscal !== "string" || typeof frozen.lugar_expedicion !== "string") {
+    throw new Error("El respaldo fiscal del contrato firmado está incompleto.");
+  }
+  return {
+    razon_social: frozen.razon_social,
+    rfc: frozen.rfc,
+    regimen_fiscal: frozen.regimen_fiscal,
+    lugar_expedicion: frozen.lugar_expedicion,
+  };
 }
 
 
@@ -92,7 +124,7 @@ export async function fetchRelatedData(contract: ContractData) {
           .single()
       : Promise.resolve({ data: null }),
   ]);
-  return { company: issuer.company, customer: customerRes.data, forklift: forkliftRes.data };
+  return { company: issuerForPdf(contract, issuer.company), customer: customerRes.data, forklift: forkliftRes.data };
 }
 
 
