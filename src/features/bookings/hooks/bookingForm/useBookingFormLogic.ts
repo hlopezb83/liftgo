@@ -11,7 +11,7 @@ export function useBookingFormLogic() {
   const submitBag = useBookingFormSubmit();
 
   const selectedForklift = stateBag.forklifts?.find(
-    (f) => f.id === submitBag.postBooking?.forkliftId,
+    (f) => f.id === (submitBag.postBooking?.forkliftId ?? stateBag.forkliftId),
   );
 
   return {
