@@ -1,3 +1,11 @@
+## [8.42.4] - 2026-09-23 · patch · bugfix
+
+Crear un usuario desde /users fallaba al asignar el rol y dejaba una cuenta sin empresa; ahora membresía, rol y perfil se guardan juntos en una sola operación.
+
+- Migración 0057: RPC server-only provision_invited_internal_user valida admin de la empresa, app_metadata y empresa activa, fija el contexto y crea membresía/rol/perfil atómicamente.
+- Compensación con discard_invited_internal_user antes de borrar la cuenta, para no dejar cuentas huérfanas.
+- 0058 documenta la función; se reparó la cuenta parcial de Mariana Garza (Empresa Prueba, ventas) sin tocar su contraseña.
+
 ## [8.42.3] - 2026-09-23 · patch · bugfix
 
 El alta de usuarios fallaba porque el registro inicial de la cuenta todavía no trae la empresa; ahora el perfil y el rol se crean hasta que llega la empresa verificada.
