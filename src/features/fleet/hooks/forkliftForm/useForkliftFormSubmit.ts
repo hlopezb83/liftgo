@@ -2,7 +2,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import {
   buildForkliftPayload,
-  resolveEquipmentModelId,
+  resolveEquipmentModelIdForSave,
   validateForkliftUniqueness,
   mapForkliftMutationError,
 } from "../../lib/forkliftPayload";
@@ -16,9 +16,10 @@ interface Args {
   /** M-11b: `updated_at` cargado en el formulario (bloqueo optimista). */
   expectedUpdatedAt?: string | null;
   equipmentModels?: EquipmentModel[];
+  existing?: { manufacturer: string | null; model: string; equipment_model_id: string | null } | null;
 }
 
-export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipmentModels }: Args) {
+export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipmentModels, existing }: Args) {
   const navigate = useNavigateTransition();
   const create = useCreateForklift();
   const update = useUpdateForklift();
@@ -32,12 +33,12 @@ export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt, equipment
       return;
     }
 
-    const equipmentModelId = resolveEquipmentModelId(values, equipmentModels);
-    if (!equipmentModelId) {
+    const resolved = resolveEquipmentModelIdForSave(values, equipmentModels, isEdit ? existing : null);
+    if (!resolved.ok) {
       notifyError({ error: new Error("Selecciona un modelo habilitado y vuelve a intentar") });
       return;
     }
-    const payload = buildForkliftPayload(values, equipmentModelId);
+    const payload = buildForkliftPayload(values, resolved.id);
     const onError = (err: Error) => notifyError({ error: err, message: mapForkliftMutationError(err.message) });
 
     if (isEdit && id) {

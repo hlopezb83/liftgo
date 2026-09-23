@@ -1,3 +1,10 @@
+## [8.42.6] - 2026-09-23 · patch · bugfix
+
+Guardar datos legales de la empresa fallaba siempre y editar un montacargas con modelo fuera del catálogo se bloqueaba; ambos ya guardan.
+
+- Plantilla legal: se envía el id de la definición (no el de la versión) a la RPC de datos legales.
+- Montacargas: al editar sin cambiar fabricante/modelo se conserva el vínculo de modelo existente aunque esté inactivo o sea legado.
+
 ## [8.42.5] - 2026-09-23 · patch · bugfix
 
 Si Correo o Teléfono aparecían vacíos al editar un cliente, guardar otro cambio los borraba; ahora se conservan salvo que el usuario los borre a propósito.

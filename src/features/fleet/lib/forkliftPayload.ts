@@ -20,7 +20,24 @@ const numOrNull = (v: string) => (v ? parseFloat(v) : null);
 const moneyOrNull = (v: string) => (v ? roundMoney(parseFloat(v)) : null);
 const moneyOrZero = (v: string) => (v ? roundMoney(parseFloat(v)) : 0);
 
-export function buildForkliftPayload(form: ForkliftFormData, equipmentModelId: string) {
+/**
+ * Al editar sin cambiar fabricante/modelo, conserva el vínculo existente
+ * (aunque el modelo esté inactivo o sea legado) para no bloquear el guardado.
+ */
+export function resolveEquipmentModelIdForSave(
+  form: Pick<ForkliftFormData, "manufacturer" | "model">,
+  models: readonly SelectableModel[] | undefined,
+  existing?: { manufacturer: string | null; model: string; equipment_model_id: string | null } | null,
+): { ok: true; id: string | null } | { ok: false } {
+  const resolved = resolveEquipmentModelId(form, models);
+  if (resolved) return { ok: true, id: resolved };
+  if (existing && (existing.manufacturer ?? "") === form.manufacturer && existing.model === form.model) {
+    return { ok: true, id: existing.equipment_model_id };
+  }
+  return { ok: false };
+}
+
+export function buildForkliftPayload(form: ForkliftFormData, equipmentModelId: string | null) {
   return {
     name: form.name,
     model: form.model,
