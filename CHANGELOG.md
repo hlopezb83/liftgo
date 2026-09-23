@@ -1,3 +1,11 @@
+## [8.42.2] - 2026-09-23 · patch · bugfix
+
+La descarga de CFDI (XML/PDF) fallaba siempre con error 500 porque `download-cfdi` separaba el método `rpc` del cliente Supabase, perdía el contexto `this` y caía en el rate limit antes de servir el archivo.
+
+- `enforceRateLimitWithDeps` ahora llama `supabase.rpc(...)` directamente sobre la instancia, conservando el contexto interno de supabase-js.
+- Se mantiene el rate limit (30 req/min por usuario), el fail-closed 503/429 y las guardas multiempresa sin cambios.
+- Las pruebas unitarias no detectaban el fallo porque los mocks son funciones planas sin `this`; el contrato observable no cambia.
+
 ## [8.42.1] - 2026-09-23 · patch · security
 
 Los PDF de contratos firmados conservan la identidad fiscal y los términos usados al momento de la firma, incluso si después cambia la configuración de la empresa.
