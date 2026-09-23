@@ -26,7 +26,7 @@ function mapContractToForm(c: ContractRow): ContractFormValues {
     extra_hour_rate: toNumStr(c.extra_hour_rate),
     payment_frequency: toStr(c.payment_frequency, "Mensual"),
     late_interest_rate: toNumStr(c.late_interest_rate, "5"),
-    contract_city: toStr(c.contract_city, "San Pedro Garza García, N.L."),
+    contract_city: toStr(c.contract_city),
     witness_1: toStr(c.witness_1),
     witness_2: toStr(c.witness_2),
   };
@@ -61,3 +61,4 @@ export function useContractFormState(existing: ContractRow | null | undefined, i
 
   return { form, templateApplied, setTemplateApplied };
 }
+

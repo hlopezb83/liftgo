@@ -5336,6 +5336,10 @@ export type Database = {
           version_id: string
         }[]
       }
+      update_current_organization_legal_template_overrides: {
+        Args: { p_definition_id: string; p_local_overrides: Json }
+        Returns: Json
+      }
       approve_supplier_bill: {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined

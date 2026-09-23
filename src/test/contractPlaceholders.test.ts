@@ -100,6 +100,15 @@ describe("buildPlaceholderVars", () => {
     expect(vars.ciudad).toBe("Monterrey, N.L.");
   });
 
+  it("resuelve jurisdicción y representante del arrendador desde la empresa", () => {
+    const vars = buildPlaceholderVars(baseContract, null, null, null, {
+      jurisdiction: "Saltillo, Coahuila",
+      legal_representative: "Ana Pérez",
+    });
+    expect(vars.jurisdiccion).toBe("Saltillo, Coahuila");
+    expect(vars.representante_legal_arrendador).toBe("Ana Pérez");
+  });
+
   it("respeta un interés moratorio de 0% y expone firmado_por", () => {
     const vars = buildPlaceholderVars(
       { ...baseContract, late_interest_rate: 0, signed_by: "MAHA MESTASSI", max_hours_per_month: 0 },
@@ -131,3 +140,4 @@ describe("buildPlaceholderVars", () => {
     expect(replacePlaceholders(text, vars)).toBe("Entre LiftGo S.A. y Acme en Monterrey, N.L..");
   });
 });
+

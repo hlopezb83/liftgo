@@ -15,9 +15,10 @@ export const defaultContractForm = {
   extra_hour_rate: "",
   payment_frequency: "Mensual",
   late_interest_rate: "5",
-  contract_city: "San Pedro Garza García, N.L.",
+  contract_city: "",
   witness_1: "",
   witness_2: "",
 };
 
 export type ContractFormShape = typeof defaultContractForm;
+

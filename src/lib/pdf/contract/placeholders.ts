@@ -1,3 +1,4 @@
+import type { LegalTemplateOverrides } from "@/features/contracts/lib/legalTemplateOverrides";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatLegalAddress } from "@/lib/format/formatLegalAddress";
@@ -118,6 +119,7 @@ export function buildPlaceholderVars(
   company: CompanyInfo | null,
   customer: CustomerInfo | null,
   forklift: ForkliftInfo | null,
+  overrides?: Partial<LegalTemplateOverrides> | null,
 ): Record<string, string> {
   const signing = contractSigningDate(contract);
   const montoPagare = resolvePagareAmount(contract, forklift);
@@ -130,7 +132,9 @@ export function buildPlaceholderVars(
     monto_pagare_letra: numeroALetras(montoPagare),
     contrato: contract.contract_number || "—",
     firmado_por: contract.signed_by || "",
-    ciudad: contract.contract_city || "San Pedro Garza García, N.L.",
+    ciudad: contract.contract_city || overrides?.city || "[Ciudad]",
+    jurisdiccion: overrides?.jurisdiction || contract.contract_city || "[Jurisdicción]",
+    representante_legal_arrendador: overrides?.legal_representative || "[Representante Legal del Arrendador]",
     fecha_firma: signing ? fmtDate(signing) : "[Fecha de firma]",
     vencimiento_pagare: fmtDate(contract.end_date),
   };
@@ -157,3 +161,4 @@ export function buildPagareVars(vars: Record<string, string>): Record<string, st
     interes_moratorio: invalid ? PAGARE_DEFAULT_LATE_INTEREST : String(rate),
   };
 }
+

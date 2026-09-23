@@ -35,7 +35,7 @@ export const contractFormSchema = z
     extra_hour_rate: nonNegativeNumeric,
     payment_frequency: z.string().min(1),
     late_interest_rate: nonNegativeNumeric,
-    contract_city: z.string(),
+    contract_city: z.string().trim().min(1, "Ciudad de firma requerida").max(160),
     witness_1: z.string(),
     witness_2: z.string(),
   })
@@ -45,3 +45,4 @@ export const contractFormSchema = z
   );
 
 export type ContractFormValues = z.infer<typeof contractFormSchema>;
+

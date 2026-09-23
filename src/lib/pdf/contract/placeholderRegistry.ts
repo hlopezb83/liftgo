@@ -18,6 +18,7 @@ export const CONTRACT_PLACEHOLDERS: readonly ContractPlaceholder[] = [
   { key: "{cp_cliente}", desc: "C.P. fiscal del cliente" },
   { key: "{rfc_cliente}", desc: "RFC del cliente" },
   { key: "{representante_legal}", desc: "Rep. legal del cliente" },
+  { key: "{representante_legal_arrendador}", desc: "Rep. legal del arrendador" },
   { key: "{ubicacion}", desc: "Ubicación de uso" },
   { key: "{horas_max}", desc: "Horas máximas por mes" },
   { key: "{tarifa_extra}", desc: "Tarifa por hora extra (ya incluye $)" },
@@ -40,5 +41,7 @@ export const CONTRACT_PLACEHOLDERS: readonly ContractPlaceholder[] = [
   { key: "{capacidad}", desc: "Capacidad de carga" },
   { key: "{combustible}", desc: "Tipo de combustible" },
   { key: "{ciudad}", desc: "Ciudad del contrato" },
+  { key: "{jurisdiccion}", desc: "Jurisdicción configurada por la empresa" },
   { key: "{firmado_por}", desc: "Persona que firma por el cliente (campo \"Firmado por\")" },
 ] as const;
+

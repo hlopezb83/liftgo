@@ -8,6 +8,11 @@ import type { ContractClause, ChecklistSection } from "@/features/contracts/lib/
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import {
+  normalizeLegalTemplateOverrides,
+  type LegalTemplateOverrides,
+} from "../lib/legalTemplateOverrides";
 import { contractTemplateKeys } from "../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
@@ -21,7 +26,7 @@ export interface ContractTemplate {
   body_text: string;
   version: number;
   checksum_sha256: string;
-  local_overrides: Record<string, unknown>;
+  local_overrides: LegalTemplateOverrides;
   intro_text: string | null;
   declarations_landlord: string[];
   declarations_tenant: string[];
@@ -60,7 +65,7 @@ export async function fetchDefaultContractTemplate(
     body_text: content.body_text ?? "",
     version: row.version,
     checksum_sha256: row.checksum_sha256,
-    local_overrides: (row.local_overrides ?? {}) as Record<string, unknown>,
+    local_overrides: normalizeLegalTemplateOverrides(row.local_overrides),
     intro_text: content.intro_text ?? null,
     declarations_landlord: parseJsonbArray<string>(content.declarations_landlord),
     declarations_tenant: parseJsonbArray<string>(content.declarations_tenant),
@@ -83,3 +88,26 @@ export function useDefaultContractTemplate() {
     },
   });
 }
+
+export function useUpdateLegalTemplateOverrides() {
+  return useEntityMutation({
+    mutationFn: async ({
+      definitionId,
+      overrides,
+    }: {
+      definitionId: string;
+      overrides: LegalTemplateOverrides;
+    }) => {
+      const { data, error } = await supabase.rpc(
+        "update_current_organization_legal_template_overrides",
+        { p_definition_id: definitionId, p_local_overrides: overrides as unknown as Json },
+      );
+      if (error) throw error;
+      return normalizeLegalTemplateOverrides(data);
+    },
+    invalidateKeys: [contractTemplateKeys.all],
+    successMsg: "Datos legales de la empresa guardados",
+    errorTitle: "No se pudieron guardar los datos legales",
+  });
+}
+
