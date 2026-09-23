@@ -435,6 +435,13 @@
       "when": 1790874183000,
       "tag": "0061_pending_organization_first_admin_provisioning",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1790874184000,
+      "tag": "0062_ledger_sync_noop",
+      "breakpoints": true
     }
   ]
 }
