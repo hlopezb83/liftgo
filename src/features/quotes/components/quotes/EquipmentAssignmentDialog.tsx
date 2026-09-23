@@ -1,5 +1,5 @@
 import { parseISO } from "date-fns";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -122,8 +122,6 @@ export function EquipmentAssignmentDialog({
     mode: "onChange",
   });
   const { fields } = useFieldArray({ control: form.control, name: "assignments" });
-
-  useEffect(() => { form.reset({ assignments: slots }); }, [slots, form]);
 
   const watched = useWatch({ control: form.control, name: "assignments" });
 
