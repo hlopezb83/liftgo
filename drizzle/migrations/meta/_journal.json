@@ -379,7 +379,13 @@
       "when": 1790874175000,
       "tag": "0053_contract_signed_issuer_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1790874176000,
+      "tag": "0054_rate_limits_platform_scope",
+      "breakpoints": true
     }
   ]
 }
-
