@@ -17,7 +17,7 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
     <div className="space-y-1.5">
       <Label>Montacargas *</Label>
       <Select value={value} onValueChange={onValueChange} disabled={!datesSelected}>
-        <SelectTrigger>
+        <SelectTrigger aria-label="Montacargas">
           <SelectValue placeholder={datesSelected ? "Seleccionar montacargas" : "Primero selecciona fechas"} />
         </SelectTrigger>
         <SelectContent>
@@ -35,4 +35,3 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
     </div>
   );
 }
-
