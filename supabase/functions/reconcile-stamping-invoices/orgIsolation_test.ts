@@ -35,10 +35,12 @@ Deno.test("dos empresas: cada una resuelve SU PROPIA llave/modo (nunca la de la 
           data: { facturapi_test_key: null, facturapi_live_key: "sk_live_A" },
           error: null,
         },
+        { data: null, error: null }, // llave live de A sin otra organización
         {
           data: { facturapi_test_key: "sk_test_B", facturapi_live_key: null },
           error: null,
         },
+        { data: null, error: null }, // llave test de B sin otra organización
       ],
     },
   });

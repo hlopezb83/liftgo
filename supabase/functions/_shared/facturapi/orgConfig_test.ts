@@ -32,18 +32,25 @@ function adminFor(
   return {
     from(table: string) {
       const filters: Record<string, unknown> = {};
+      const excluded: Record<string, unknown> = {};
       const all = (rows as unknown as Record<string, unknown[]>)[table] ?? [];
       const err = errors[table] ?? null;
       const match = () =>
         all.filter((r) =>
           Object.entries(filters).every(([k, v]) =>
             (r as Record<string, unknown>)[k] === v
+          ) && Object.entries(excluded).every(([k, v]) =>
+            (r as Record<string, unknown>)[k] !== v
           )
         );
       const builder = {
         select: () => builder,
         eq: (col: string, val: unknown) => {
           filters[col] = val;
+          return builder;
+        },
+        neq: (col: string, val: unknown) => {
+          excluded[col] = val;
           return builder;
         },
         limit: (n: number) =>
@@ -118,6 +125,44 @@ Deno.test("cada empresa usa sus propias llaves y su propio modo", async () => {
   });
   assertEquals(b.mode, "test");
   assertEquals(b.apiKey, "b_test");
+});
+
+Deno.test("rechaza una llave test compartida por dos empresas", async () => {
+  const admin = adminFor({
+    company_settings: [{ organization_id: ORG_B, facturapi_mode: "test" }],
+    billing_secrets: [
+      { organization_id: ORG_A, facturapi_test_key: "shared_test" },
+      { organization_id: ORG_B, facturapi_test_key: "shared_test" },
+    ],
+    organizations: [{ id: ORG_A }, { id: ORG_B }],
+  });
+  const err = await assertRejects(() =>
+    getFacturapiConfigForOrganization({
+      admin,
+      env: envKeys,
+      organizationId: ORG_B,
+    })
+  );
+  assertEquals((err as FacturapiConfigError).code, "config_duplicate_key");
+});
+
+Deno.test("rechaza una llave live compartida por dos empresas", async () => {
+  const admin = adminFor({
+    company_settings: [{ organization_id: ORG_A, facturapi_mode: "live" }],
+    billing_secrets: [
+      { organization_id: ORG_A, facturapi_live_key: "shared_live" },
+      { organization_id: ORG_B, facturapi_live_key: "shared_live" },
+    ],
+    organizations: [{ id: ORG_A }, { id: ORG_B }],
+  });
+  const err = await assertRejects(() =>
+    getFacturapiConfigForOrganization({
+      admin,
+      env: envKeys,
+      organizationId: ORG_A,
+    })
+  );
+  assertEquals((err as FacturapiConfigError).code, "config_duplicate_key");
 });
 
 Deno.test("empresa sin configuración NO reutiliza llaves de otra ni del entorno", async () => {
