@@ -30,6 +30,10 @@ export async function invokeEdgeFunction<T = unknown>(
     const message = await extractEdgeErrorMessage(error);
     const wrapped = new Error(message);
     (wrapped as Error & { cause?: unknown }).cause = error;
+    const context = (error as { context?: unknown }).context;
+    if (context instanceof Response) {
+      (wrapped as Error & { status?: number }).status = context.status;
+    }
     throw wrapped;
   }
 

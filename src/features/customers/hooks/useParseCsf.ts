@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 
 export interface ParsedCsfData {
   name?: string;
@@ -30,12 +30,9 @@ export function useParseCsf() {
   return useMutation({
     mutationFn: async (file: File): Promise<ParsedCsfData> => {
       const base64 = await fileToBase64(file);
-      const { data, error } = await supabase.functions.invoke("parse-csf", {
+      return invokeEdgeFunction<ParsedCsfData>("parse-csf", {
         body: { pdf_base64: base64 },
       });
-      if (error) throw new Error(error.message || "Error al procesar CSF");
-      if (data?.error) throw new Error(data.error);
-      return data as ParsedCsfData;
     },
   });
 }

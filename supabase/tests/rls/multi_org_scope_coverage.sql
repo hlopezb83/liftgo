@@ -42,14 +42,15 @@ DECLARE
     'legal_template_versions'       -- versiones legales globales append-only (0046)
   ];
   -- Tablas CON organization_id que usan policies propias (relación/infra)
-  -- en lugar de org_scope_isolation. Se exige igualmente que TODAS sus
-  -- policies referencien la organización o al usuario autenticado.
+  -- en lugar del trigger de negocio. Sus contratos se verifican aquí y en
+  -- las suites RLS dedicadas; ninguna policy permisiva puede ser abierta.
   c_relacion CONSTANT text[] := ARRAY[
     'organization_memberships',     -- la propia membresía define el contexto
     'organization_customers',       -- relación comercial por empresa
     'customer_portal_accounts',     -- cuenta portal por (empresa, cliente)
     'organization_document_counters', -- folios por empresa (sin policies: sólo funciones)
     'storage_object_migrations',    -- ledger técnico del migrador Storage
+    'rate_limits',                   -- contador global solo del servidor; suite rate_limits.sql
     'organization_legal_template_assignments' -- adopción legal privada por empresa (0046)
   ];
   -- Tablas CON organization_id de INFRAESTRUCTURA SENSIBLE: no son tablas de
@@ -247,4 +248,3 @@ END;
 $$;
 
 ROLLBACK;
-
