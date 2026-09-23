@@ -134,8 +134,10 @@ async function enforceRateLimitWithDeps(
   maxRequests: number,
   windowSeconds: number,
 ): Promise<Response | null> {
-  const rpc = (supabase as unknown as { rpc: SupabaseLike["rpc"] }).rpc;
-  const res = await rpc?.("check_and_record_rate_limit", {
+  // Llamar `supabase.rpc(...)` directamente sobre la instancia: separar el
+  // método (const rpc = supabase.rpc) pierde `this` dentro de supabase-js y
+  // lanza "Cannot read properties of undefined (reading 'rest')" → 500.
+  const res = await supabase.rpc?.("check_and_record_rate_limit", {
     _bucket: bucket,
     _identifier: identifier,
     _max_requests: maxRequests,
