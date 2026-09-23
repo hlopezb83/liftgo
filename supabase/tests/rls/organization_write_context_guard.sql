@@ -52,7 +52,6 @@ DECLARE
     'prospects',
     'quote_assigned_forklifts',
     'quotes',
-    'rate_limits',
     'return_inspections',
     'status_logs',
     'supplier_bank_accounts',
