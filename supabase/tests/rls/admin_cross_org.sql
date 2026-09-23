@@ -11,7 +11,30 @@
 -- No modifica policies ni funciones: sólo ejercita el contrato vigente.
 BEGIN;
 
-DO $$
+-- La policy de autoedición nunca puede autorizar administradores de forma
+-- global: las policies separadas limitan sus cambios a la empresa activa.
+DO $
+DECLARE
+  v_qual text;
+  v_check text;
+BEGIN
+  SELECT qual, with_check INTO v_qual, v_check
+    FROM pg_policies
+   WHERE schemaname = 'public'
+     AND tablename = 'profiles'
+     AND policyname = 'Users can update own profile';
+
+  IF v_qual IS NULL OR v_check IS NULL
+     OR v_qual !~ 'auth.uid.*user_id'
+     OR v_check !~ 'auth.uid.*user_id'
+     OR v_qual ~* 'has_role|is_admin'
+     OR v_check ~* 'has_role|is_admin' THEN
+    RAISE EXCEPTION 'ADMIN ORG: la policy de autoedición de profiles concede UPDATE global';
+  END IF;
+END;
+$;
+
+DO $
 DECLARE
   v_org_a uuid;
   v_org_b uuid := 'a5000000-0000-4000-8000-0000000000b1';
