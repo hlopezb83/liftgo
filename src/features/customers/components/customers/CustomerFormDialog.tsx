@@ -75,7 +75,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       testId="customer-form-dialog"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit((data) => onSubmit(preserveUntouched(data, initialData, isEdit, form.formState.dirtyFields)))} className="space-y-4">
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="w-full">
               <TabsTrigger value="manual" className="flex-1">

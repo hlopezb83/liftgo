@@ -14,17 +14,21 @@ export function ContactSection() {
         placeholder="María García"
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* autoComplete="off": el autorrelleno del navegador no debe pisar el prellenado. */}
         <TextField
           control={control}
           name="email"
           label="Correo"
           type="email"
+          autoComplete="off"
           placeholder="contacto@empresa.com"
         />
         <TextField
           control={control}
           name="phone"
           label="Teléfono"
+          type="tel"
+          autoComplete="off"
           placeholder="+52 81 1234 5678"
         />
       </div>
