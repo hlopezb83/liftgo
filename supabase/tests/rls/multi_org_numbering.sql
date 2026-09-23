@@ -150,16 +150,8 @@ BEGIN
   -- Una empresa nueva inicia cada familia de folios internos en 0001.
   SELECT public.next_contract_number() INTO v_folio;
   IF v_folio <> 'CTR-0001' THEN RAISE EXCEPTION 'NUMBER ORG: contrato inicial %', v_folio; END IF;
-  SELECT public.next_invoice_number() INTO v_folio;
-  IF v_folio <> 'FAC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: factura inicial %', v_folio; END IF;
-  SELECT public.next_credit_note_number() INTO v_folio;
-  IF v_folio <> 'NC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: nota de crédito inicial %', v_folio; END IF;
   SELECT public.next_supplier_bill_number() INTO v_folio;
   IF v_folio <> 'CXP-0001' THEN RAISE EXCEPTION 'NUMBER ORG: cuenta por pagar inicial %', v_folio; END IF;
-  SELECT public.next_delivery_number() INTO v_folio;
-  IF v_folio <> 'ENT-0001' THEN RAISE EXCEPTION 'NUMBER ORG: entrega inicial %', v_folio; END IF;
-  SELECT public.next_inspection_number() INTO v_folio;
-  IF v_folio <> 'DEV-0001' THEN RAISE EXCEPTION 'NUMBER ORG: devolución inicial %', v_folio; END IF;
   SELECT public.next_draft_invoice_number() INTO v_folio;
   IF v_folio <> 'BORRADOR-0001' THEN RAISE EXCEPTION 'NUMBER ORG: borrador inicial %', v_folio; END IF;
   SELECT public.next_draft_credit_note_number() INTO v_folio;
@@ -200,7 +192,27 @@ $$;
 
 RESET role;
 
-DO $$
+-- Los folios de factura, nota, entrega, devolución y feedback son internos:
+-- authenticated no ejecuta sus generadores directamente.
+DO $
+DECLARE v_folio text;
+BEGIN
+  PERFORM set_config('request.jwt.claims', '', true);
+  PERFORM set_config('app.organization_id', 'e6000000-0000-4000-8000-0000000000b1', true);
+  SELECT public.next_invoice_number() INTO v_folio;
+  IF v_folio <> 'FAC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: factura inicial %', v_folio; END IF;
+  SELECT public.next_credit_note_number() INTO v_folio;
+  IF v_folio <> 'NC-0001' THEN RAISE EXCEPTION 'NUMBER ORG: nota de crédito inicial %', v_folio; END IF;
+  SELECT public.next_delivery_number() INTO v_folio;
+  IF v_folio <> 'ENT-0001' THEN RAISE EXCEPTION 'NUMBER ORG: entrega inicial %', v_folio; END IF;
+  SELECT public.next_inspection_number() INTO v_folio;
+  IF v_folio <> 'DEV-0001' THEN RAISE EXCEPTION 'NUMBER ORG: devolución inicial %', v_folio; END IF;
+  SELECT public.generate_feedback_number() INTO v_folio;
+  IF v_folio <> 'FB-0001' THEN RAISE EXCEPTION 'NUMBER ORG: reporte inicial %', v_folio; END IF;
+END;
+$;
+
+DO $
 BEGIN
   IF (
     SELECT count(*)
