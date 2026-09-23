@@ -40,8 +40,10 @@ export function validateInviteInput(
 }
 
 /**
- * N-30: enlaza rol y perfil del invitado; ante cualquier fallo compensa
- * borrando el usuario auth recién creado.
+ * N-30 / 0057: membresía + rol + perfil en UNA transacción mediante la RPC
+ * server-only `provision_invited_internal_user`, que fija el contexto de
+ * empresa (audit_logs lo exige con varias empresas activas). Ante fallo,
+ * compensa primero las filas públicas con contexto y luego borra la cuenta.
  */
 export async function finalizeInvitedUser(
   g: Guards,
@@ -49,47 +51,27 @@ export async function finalizeInvitedUser(
   userId: string,
   data: ValidatedInvite,
   organizationId: string,
+  callerId: string,
 ): Promise<void> {
-  const cleanupInvitedUser = async () => {
-    const { error: delErr } = await admin.auth.admin.deleteUser(userId);
-    if (delErr) console.error("invite-user cleanup deleteUser failed:", delErr);
-    await admin.from("user_roles").delete().eq("user_id", userId);
-    await admin.from("profiles").delete().eq("user_id", userId);
-    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
-  };
+  const { error: provisionErr } = await admin.rpc("provision_invited_internal_user", {
+    p_caller_id: callerId,
+    p_user_id: userId,
+    p_organization_id: organizationId,
+    p_role: data.role,
+    p_full_name: data.full_name,
+    p_email: data.email,
+  });
+  if (!provisionErr) return;
 
-  // Tramo 5: el invitado queda ligado a UNA sola empresa, la del administrador
-  // que lo invitó. Sin esta membresía no habría contexto verificado.
-  const { error: membershipErr } = await g.createInternalMembership(
-    admin,
-    userId,
-    organizationId,
-  );
-  if (membershipErr) {
-    console.error("[invite-user] membership:", membershipErr.message);
-    await cleanupInvitedUser();
-    throw new g.HttpError(500, "No se pudo completar la invitación");
-  }
-
-  // DB2-01: upsert sobre (user_id), el índice único vigente.
-  const { error: roleErr } = await admin
-    .from("user_roles")
-    .upsert({ user_id: userId, role: data.role }, { onConflict: "user_id" });
-  if (roleErr) {
-    console.error("[invite-user] assignRoleToUser:", roleErr.message);
-    await cleanupInvitedUser();
-    throw new g.HttpError(500, "No se pudo completar la invitación");
-  }
-
-  const { error: profileErr } = await admin
-    .from("profiles")
-    .update({ full_name: data.full_name, email: data.email })
-    .eq("user_id", userId);
-  if (profileErr) {
-    console.error("[invite-user] profiles update:", profileErr);
-    await cleanupInvitedUser();
-    throw new g.HttpError(500, "No se pudo completar la invitación");
-  }
+  console.error("[invite-user] provision:", provisionErr.message);
+  const { error: discardErr } = await admin.rpc("discard_invited_internal_user", {
+    p_user_id: userId,
+    p_organization_id: organizationId,
+  });
+  if (discardErr) console.error("[invite-user] cleanup discard:", discardErr.message);
+  const { error: delErr } = await admin.auth.admin.deleteUser(userId);
+  if (delErr) console.error("[invite-user] cleanup deleteUser:", delErr.message);
+  throw new g.HttpError(500, "No se pudo completar la invitación");
 }
 
 /**

@@ -1,0 +1,1 @@
+COMMENT ON FUNCTION public.provision_invited_internal_user(uuid, uuid, uuid, public.app_role, text, text) IS 'Alta atómica de personal interno (membresía+rol+perfil) con contexto de empresa; sólo service_role; fail-closed.';

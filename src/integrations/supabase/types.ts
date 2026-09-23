@@ -5868,6 +5868,10 @@ export type Database = {
         Args: { p_quote_id: string }
         Returns: undefined
       }
+      discard_invited_internal_user: {
+        Args: { p_organization_id: string; p_user_id: string }
+        Returns: undefined
+      }
       e2e_require_admin_organization: {
         Args: { p_function: string }
         Returns: string
@@ -6631,6 +6635,17 @@ export type Database = {
       profile_update_preserves_protected: {
         Args: { _email: string; _is_active: boolean; _user_id: string }
         Returns: boolean
+      }
+      provision_invited_internal_user: {
+        Args: {
+          p_caller_id: string
+          p_email: string
+          p_full_name: string
+          p_organization_id: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
       }
       purge_e2e_audit_logs: { Args: never; Returns: number }
       purge_e2e_data: { Args: never; Returns: Json }

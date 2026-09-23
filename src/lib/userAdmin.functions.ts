@@ -82,7 +82,7 @@ export const inviteUserFn = createServerFn({ method: "POST" })
 
     const userId = newUser.user.id;
 
-    await finalizeInvitedUser(g, admin, userId, data, organizationId);
+    await finalizeInvitedUser(g, admin, userId, data, organizationId, context.userId);
 
     // SEC-B5: sólo cuando el administrador NO definió contraseña se genera el
     // enlace de recuperación; con contraseña manual hay un único camino de acceso.
