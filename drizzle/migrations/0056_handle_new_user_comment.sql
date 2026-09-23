@@ -1,0 +1,1 @@
+COMMENT ON FUNCTION public.handle_new_user() IS 'Aprovisiona profiles/user_roles sólo con app_metadata.organization_id válido y activo; sin org en INSERT difiere al UPDATE de raw_app_meta_data (fail-closed).';
