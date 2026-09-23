@@ -4,6 +4,8 @@ import { InfoIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDefaultContractTemplate } from "@/features/contracts";
+import { useUserRole } from "@/features/users";
+import { LegalTemplateOverridesForm } from "./contractTemplate/LegalTemplateOverridesForm";
 
 function TextList({ items }: { items: string[] }) {
   return (
@@ -15,6 +17,7 @@ function TextList({ items }: { items: string[] }) {
 
 export function ContractTemplateTab() {
   const { data: template, isLoading, isError, refetch } = useDefaultContractTemplate();
+  const { data: role } = useUserRole();
 
   if (isLoading) return <TableSkeleton />;
   if (isError) {
@@ -31,7 +34,7 @@ export function ContractTemplateTab() {
           <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
             Esta plantilla es el machote legal compartido de LiftGo. Sólo plataforma publica
-            nuevas versiones. La ciudad, representantes y testigos se capturan en cada contrato.
+            nuevas versiones. Cada empresa administra únicamente sus datos locales permitidos.
           </p>
         </CardContent>
       </Card>
@@ -43,6 +46,13 @@ export function ContractTemplateTab() {
           SHA-256 {template.checksum_sha256.slice(0, 12)}…
         </Badge>
       </div>
+
+      <LegalTemplateOverridesForm
+        key={`${template.id}-${JSON.stringify(template.local_overrides)}`}
+        definitionId={template.id}
+        overrides={template.local_overrides}
+        canEdit={role === "admin" || role === "administrativo"}
+      />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Introducción</CardTitle></CardHeader>
@@ -71,3 +81,4 @@ export function ContractTemplateTab() {
     </div>
   );
 }
+

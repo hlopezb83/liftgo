@@ -137,6 +137,13 @@ export const contract: ContractData = {
 };
 
 export const template: TemplateData = {
+  local_overrides: {
+    city: "Monterrey, N.L.",
+    jurisdiction: "Monterrey, Nuevo León",
+    legal_representative: "",
+    witness_1: "",
+    witness_2: "",
+  },
   intro_text: "Intro del contrato.",
   declarations_landlord: ["Declara el arrendador..."],
   declarations_tenant: ["Declara el arrendatario..."],
@@ -145,3 +152,4 @@ export const template: TemplateData = {
 
   pagare_text: "Pagaré demo.",
 };
+

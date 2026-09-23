@@ -1,3 +1,15 @@
+## [8.42.0] - 2026-09-22 · minor · feature
+
+Cada empresa LiftGo puede configurar su ciudad, jurisdicción, representante legal y testigos sin modificar el machote global. Los contratos nuevos toman esos valores como base y la firma congela exactamente los datos usados.
+
+- La migración `0051_organization_legal_overrides_phase3c.sql` agrega una RPC que deriva la organización desde la sesión y sólo permite Admin o Administrativo.
+- La escritura directa de asignaciones queda revocada para que una empresa no pueda adoptar por sí misma una versión global distinta.
+- La versión vigente se publica de forma append-only con `{jurisdiccion}`; las versiones históricas permanecen intactas.
+- Ciudad y testigos precargan contratos nuevos; jurisdicción y representante del arrendador se resuelven al generar el PDF.
+- La ciudad fija de San Pedro se retira del código. Si una empresa aún no configura una ciudad, el formulario exige capturarla antes de crear el contrato.
+- Los overrides usados por un contrato firmado se leen desde su snapshot inmutable, aunque la empresa cambie después su configuración.
+- La prueba RLS A/B verifica aislamiento, permisos, normalización, canal anónimo y bloqueo de escritura directa.
+
 ## [8.41.0] - 2026-09-22 · minor · feature
 
 Los operadores de plataforma ya pueden publicar nuevas versiones de los machotes legales globales y decidir cuándo las adopta cada empresa. El contenido se edita por secciones, cada versión queda inmutable y una adopción nueva no cambia contratos firmados con versiones anteriores.

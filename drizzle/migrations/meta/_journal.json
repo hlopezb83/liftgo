@@ -358,6 +358,14 @@
       "when": 1790874172000,
       "tag": "0050_platform_legal_template_versions_phase3b",
       "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1790874173000,
+      "tag": "0051_organization_legal_overrides_phase3c",
+      "breakpoints": true
     }
   ]
 }
+

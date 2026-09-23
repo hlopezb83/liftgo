@@ -2,6 +2,10 @@ import {
   ContractTemplateUnavailableError,
   resolveSingleDefaultTemplate,
 } from "@/features/contracts/lib/contractTemplateResolution";
+import {
+  normalizeLegalTemplateOverrides,
+  type LegalTemplateOverrides,
+} from "@/features/contracts/lib/legalTemplateOverrides";
 import { supabase } from "@/integrations/supabase/client";
 import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
@@ -33,6 +37,7 @@ interface SignedSnapshot {
   customer?: Record<string, unknown> | null;
   forklift?: Record<string, unknown> | null;
   template?: Partial<TemplateData> | null;
+  template_local_overrides?: Record<string, unknown> | null;
 }
 
 /**
@@ -57,6 +62,7 @@ export interface TemplateData {
   clauses: ContractClause[];
   checklist_sections: ChecklistSection[];
   pagare_text: string | null;
+  local_overrides: LegalTemplateOverrides;
 }
 
 export async function fetchRelatedData(contract: ContractData) {
@@ -102,13 +108,17 @@ async function fetchOrganizationTemplateRow(_contract: ContractData) {
     .rpc("get_effective_legal_template", { p_document_type: "rental_contract" });
   if (error) throw new ContractTemplateUnavailableError("read_error");
   const row = resolveSingleDefaultTemplate(data ?? []);
-  return row?.content as Partial<TemplateData> | undefined;
+  return row ?? undefined;
 }
 
 export async function fetchTemplate(contract: ContractData): Promise<TemplateData> {
   // A6R2-3: si el contrato firmado guardó su plantilla, se usa esa copia.
-  const snapshotTpl = readSignedSnapshot(contract)?.template;
-  const data = snapshotTpl ?? (await fetchOrganizationTemplateRow(contract));
+  const snapshot = readSignedSnapshot(contract);
+  const liveRow = snapshot ? undefined : await fetchOrganizationTemplateRow(contract);
+  const data = snapshot?.template ?? (liveRow?.content as Partial<TemplateData> | undefined);
+  const localOverrides = normalizeLegalTemplateOverrides(
+    snapshot?.template_local_overrides ?? liveRow?.local_overrides,
+  );
 
 
 
@@ -117,6 +127,7 @@ export async function fetchTemplate(contract: ContractData): Promise<TemplateDat
       intro_text: DEFAULT_INTRO, declarations_landlord: DEFAULT_DECL_LANDLORD,
       declarations_tenant: DEFAULT_DECL_TENANT, clauses: DEFAULT_CLAUSES,
       checklist_sections: DEFAULT_CHECKLIST, pagare_text: DEFAULT_PAGARE,
+      local_overrides: localOverrides,
     };
   }
 
@@ -132,5 +143,7 @@ export async function fetchTemplate(contract: ContractData): Promise<TemplateDat
     clauses: clauses.length ? clauses : DEFAULT_CLAUSES,
     checklist_sections: checklist.length ? checklist : DEFAULT_CHECKLIST,
     pagare_text: (data.pagare_text as string) || DEFAULT_PAGARE,
+    local_overrides: localOverrides,
   };
 }
+

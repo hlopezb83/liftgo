@@ -10,7 +10,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
 
   const { company, customer, forklift } = await fetchRelatedData(contract);
   const tpl = await fetchTemplate(contract);
-  const vars = buildPlaceholderVars(contract, company, customer, forklift);
+  const vars = buildPlaceholderVars(contract, company, customer, forklift, tpl.local_overrides);
   // Marca global: mismo asset local de LiftGo para cualquier organización.
   const logoBase64 = await loadGlobalBrandLogo();
 
@@ -45,3 +45,4 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
     `${contract.contract_number}${suffix}.pdf`,
   );
 }
+

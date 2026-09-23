@@ -37,8 +37,9 @@ export function buildContractPayload(
     extra_hour_rate: numOrNull(form.extra_hour_rate),
     payment_frequency: form.payment_frequency || "Mensual",
     late_interest_rate: numOrNull(form.late_interest_rate, 5),
-    contract_city: form.contract_city || "San Pedro Garza García, N.L.",
+    contract_city: form.contract_city.trim(),
     witness_1: nn(form.witness_1),
     witness_2: nn(form.witness_2),
   };
 }
+

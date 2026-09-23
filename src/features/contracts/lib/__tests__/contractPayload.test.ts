@@ -18,7 +18,7 @@ describe("buildContractPayload", () => {
     expect(payload.end_date).toBeNull();
     expect(payload.terms_text).toBeNull();
     expect(payload.payment_frequency).toBe("Mensual");
-    expect(payload.contract_city).toBe("San Pedro Garza García, N.L.");
+    expect(payload.contract_city).toBe("");
     expect(payload.late_interest_rate).toBe(5);
     expect(payload.max_hours_per_month).toBeNull();
     expect(payload.extra_hour_rate).toBeNull();
@@ -57,3 +57,4 @@ describe("buildContractPayload", () => {
     expect(payload.late_interest_rate).toBe(5);
   });
 });
+

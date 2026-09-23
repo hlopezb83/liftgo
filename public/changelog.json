@@ -1,5 +1,23 @@
 [
   {
+    "version": "8.42.0",
+    "date": "2026-09-22",
+    "type": "minor",
+    "category": "feature",
+    "title": "Datos legales propios por empresa en contratos compartidos",
+    "description": "Cada empresa LiftGo puede configurar su ciudad, jurisdicción, representante legal y testigos sin modificar el machote global. Los contratos nuevos toman esos valores como base y la firma congela exactamente los datos usados.",
+    "changes": [
+      "Admin y Administrativo editan únicamente los cinco campos legales permitidos de su propia empresa.",
+      "La empresa se deriva de la sesión en la base; el navegador no envía ni decide organization_id.",
+      "La escritura directa de asignaciones legales queda bloqueada para que una empresa no cambie versiones globales.",
+      "Ciudad y testigos precargan contratos nuevos, pero pueden ajustarse antes de firmar.",
+      "Jurisdicción y representante del arrendador se resuelven en el PDF desde la configuración local.",
+      "La ciudad fija de San Pedro se retira del código para evitar heredar un territorio ajeno.",
+      "La versión vigente parametriza la cláusula de jurisdicción sin modificar versiones históricas.",
+      "La prueba A/B cubre permisos, aislamiento, normalización y bloqueo de escritura directa."
+    ]
+  },
+  {
     "version": "8.41.0",
     "date": "2026-09-22",
     "type": "minor",

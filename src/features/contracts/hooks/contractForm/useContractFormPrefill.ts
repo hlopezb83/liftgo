@@ -70,6 +70,18 @@ export function useContractFormPrefill({
   const customerId = useWatch({ control: form.control, name: "customer_id" });
   const forkliftId = useWatch({ control: form.control, name: "forklift_id" });
 
+  // Los valores territoriales pertenecen a la organización activa. Sólo se
+  // aplican a contratos nuevos y nunca pisan datos que el usuario ya capturó.
+  useEffect(() => {
+    if (isEdit || !template) return;
+    const values = form.getValues();
+    const defaults = template.local_overrides;
+    const opts = { shouldDirty: false } as const;
+    if (!values.contract_city && defaults.city) form.setValue("contract_city", defaults.city, opts);
+    if (!values.witness_1 && defaults.witness_1) form.setValue("witness_1", defaults.witness_1, opts);
+    if (!values.witness_2 && defaults.witness_2) form.setValue("witness_2", defaults.witness_2, opts);
+  }, [form, isEdit, template]);
+
   // Pre-fill desde booking (crear nuevo desde reserva).
   useEffect(() => {
     if (isEdit || !bookingId || !bookings || !forklifts) return;
@@ -107,3 +119,4 @@ export function useContractFormPrefill({
     setTemplateApplied(true);
   }, [isEdit, templateApplied, template, customerId, forkliftId, customers, forklifts, company, form, setTemplateApplied]);
 }
+

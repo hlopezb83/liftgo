@@ -26,9 +26,9 @@ function Bullet({ text }: { text: string }) {
   return <Text style={contractStyles.bullet}>•  {text}</Text>;
 }
 
-function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }: {
+function SignaturePair({ leftLabel, leftName, leftSub, rightLabel, rightName, rightSub }: {
   leftLabel: string; leftName: string;
-  rightLabel: string; rightName: string; rightSub?: string[];
+  leftSub?: string[]; rightLabel: string; rightName: string; rightSub?: string[];
 }) {
   return (
     <View style={contractStyles.signatureRow} wrap={false}>
@@ -36,6 +36,9 @@ function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }:
         <View style={contractStyles.signatureBox}>
           <Text style={contractStyles.signatureLabel}>{leftLabel}</Text>
           <Text style={contractStyles.signatureName}>{leftName}</Text>
+          {leftSub?.map((line) => (
+            <Text key={line} style={contractStyles.signatureName}>{line}</Text>
+          ))}
         </View>
       </View>
       <View style={contractStyles.signatureCol}>
@@ -124,6 +127,9 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
       <SignaturePair
         leftLabel="EL ARRENDADOR"
         leftName={company?.razon_social || ""}
+        leftSub={tpl.local_overrides.legal_representative
+          ? [`Rep. Legal: ${tpl.local_overrides.legal_representative}`]
+          : undefined}
         rightLabel="EL ARRENDATARIO"
         rightName={customer?.name || contract.customer_name || ""}
         rightSub={rightSub}
@@ -137,3 +143,4 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
     </View>
   );
 }
+
