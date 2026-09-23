@@ -129,6 +129,7 @@ ROLLBACK;
 | `folio_functions.sql` | funciones de folio (`next_supplier_bill_number`, `next_contract_number`, `next_quote_number`) | Regresión v7.300.1: staff obtiene folio, portal y anon bloqueados, triggers de folio en SECURITY DEFINER |
 | `shared_parts_catalog_phase2.sql` | `parts_catalog`, `parts_catalog_equipment_models`, `parts_inventory` | Un mismo SKU global se habilita en dos organizaciones con existencias, costo y ubicación locales; la identidad global solo la administra plataforma y se propaga sin mezclar datos locales |
 | `versioned_legal_templates_phase3.sql` | `legal_template_versions`, `organization_legal_template_assignments`, `contracts` | Dos empresas adoptan el mismo machote con overrides privados; la firma congela versión, checksum y contenido sin cruces ni cambios retroactivos |
+| `platform_legal_template_versions_phase3b.sql` | `legal_template_versions`, `organization_legal_template_assignments`, RPC `platform_*_legal_template*` | Sólo plataforma publica versiones inmutables; adopción individual/general conserva overrides, historial y aislamiento A/B |
 
 Convención adicional en las suites nuevas: cada una prueba **anon** (`SET LOCAL
 role = 'anon'`), el **cliente del portal**, el **staff según `role_permissions`**

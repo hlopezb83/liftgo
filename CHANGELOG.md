@@ -1,3 +1,14 @@
+## [8.41.0] - 2026-09-22 · minor · feature
+
+Los operadores de plataforma ya pueden publicar nuevas versiones de los machotes legales globales y decidir cuándo las adopta cada empresa. El contenido se edita por secciones, cada versión queda inmutable y una adopción nueva no cambia contratos firmados con versiones anteriores.
+
+- La migración `0050_platform_legal_template_versions_phase3b.sql` agrega RPCs privadas para listar, publicar y asignar versiones legales con verificación explícita del operador en la base.
+- El editor de plataforma parte del machote vigente y separa introducción, declaraciones, cláusulas, checklist y pagaré; no expone JSON crudo ni inventa contenido.
+- Publicar exige un resumen de cambios y genera un checksum SHA-256. La nueva versión puede quedar disponible sin adopción automática o asignarse a todas las empresas activas.
+- La vista de asignaciones permite elegir una versión histórica por empresa; los ajustes locales permitidos se conservan al cambiar de versión.
+- Un trigger bloquea cualquier actualización o eliminación de versiones publicadas, incluso por canales privilegiados.
+- La prueba RLS A/B comprueba permisos, publicación, adopción individual y general, preservación de ajustes locales e historial inmutable.
+
 ## [8.40.0] - 2026-09-22 · minor · security
 
 Los contratos y pagarés ahora resuelven el machote legal versionado asignado a la empresa activa. Al firmar, el ERP congela la versión, el checksum, el contenido y los ajustes locales para que un cambio posterior del machote no altere documentos históricos ni permita tomar cláusulas de otra empresa.

@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { PlatformEquipmentModelRow } from "@/lib/platformCatalog.functions";
 import { PlatformEquipmentModelDialog } from "../components/PlatformEquipmentModelDialog";
+import { PlatformLegalTemplatesCard } from "../components/PlatformLegalTemplatesCard";
 import { PlatformPartsCatalogCard } from "../components/PlatformPartsCatalogCard";
 import {
   usePlatformEquipmentCatalog,
@@ -28,7 +29,7 @@ export default function PlatformEquipmentCatalogPage() {
   if (isOperator !== true) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Catálogo LiftGo de modelos" subtitle="Operación de plataforma" />
+        <PageHeader title="Maestros compartidos LiftGo" subtitle="Operación de plataforma" />
         <Alert>
           <AlertTitle>Sección restringida</AlertTitle>
           <AlertDescription>Sólo los operadores de plataforma administran los maestros compartidos.</AlertDescription>
@@ -43,8 +44,8 @@ export default function PlatformEquipmentCatalogPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Catálogo LiftGo de modelos"
-        subtitle="Ficha técnica compartida por todas las organizaciones"
+        title="Maestros compartidos LiftGo"
+        subtitle="Modelos, refacciones y documentos globales para todas las organizaciones"
         actions={<Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo modelo</Button>}
       />
       <Card>
@@ -91,6 +92,7 @@ export default function PlatformEquipmentCatalogPage() {
         </CardContent>
       </Card>
       <PlatformPartsCatalogCard models={data ?? []} />
+      <PlatformLegalTemplatesCard />
       {open && <PlatformEquipmentModelDialog open onOpenChange={setOpen} model={editing} />}
     </div>
   );

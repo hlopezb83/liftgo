@@ -17,12 +17,23 @@ export function portalCredentials(): { email: string; password: string } | null 
 }
 
 export async function loginPortal(page: Page, email: string, password: string): Promise<void> {
-  await page.context().clearCookies();
-  await page.goto("/portal/login", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /portal|cliente|iniciar/i }).first())
-    .toBeVisible({ timeout: TIMEOUTS.long });
-  await signIn(page, email, password);
-  await waitForAuthToken(page);
+  let authenticated = false;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2 && !authenticated; attempt++) {
+    await page.context().clearCookies();
+    await page.goto("/portal/login", { waitUntil: "domcontentloaded" });
+    await page.evaluate(() => window.localStorage.clear());
+    await expect(page.getByRole("heading", { name: /portal|cliente|iniciar/i }).first())
+      .toBeVisible({ timeout: TIMEOUTS.long });
+    await signIn(page, email, password);
+    try {
+      await waitForAuthToken(page, TIMEOUTS.long);
+      authenticated = true;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  if (!authenticated) throw lastError;
   // PortalLogin redirige a "/" tras auth; el router de cliente resuelve luego
   // a /portal. Aceptamos ambos para no depender del timing exacto del segundo
   // redirect (v7.224.4).

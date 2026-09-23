@@ -351,6 +351,13 @@
       "when": 1790874171000,
       "tag": "0049_versioned_legal_templates_phase3",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790874172000,
+      "tag": "0050_platform_legal_template_versions_phase3b",
+      "breakpoints": true
     }
   ]
 }

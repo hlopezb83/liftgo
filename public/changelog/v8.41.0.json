@@ -1,0 +1,17 @@
+{
+  "version": "8.41.0",
+  "date": "2026-09-22",
+  "type": "minor",
+  "category": "feature",
+  "title": "Publicación legal versionada y adopción controlada por empresa",
+  "description": "Los operadores de plataforma pueden publicar nuevas versiones de los machotes legales globales y decidir cuándo las adopta cada empresa. El contenido se edita por secciones, cada versión queda inmutable y los contratos firmados conservan su versión histórica.",
+  "changes": [
+    "Las RPC privadas vuelven a verificar al operador para listar, publicar y asignar versiones legales.",
+    "El editor estructura introducción, declaraciones, cláusulas, checklist y pagaré sin exponer JSON crudo.",
+    "Publicar exige un resumen del cambio, genera checksum SHA-256 y conserva un historial append-only.",
+    "La versión nueva puede publicarse sin adopción automática o asignarse a todas las empresas activas.",
+    "Plataforma puede elegir una versión histórica por empresa sin perder sus ajustes locales permitidos.",
+    "Un trigger impide actualizar o borrar cualquier versión ya publicada.",
+    "La prueba A/B comprueba permisos, adopción individual y general, overrides privados e inmutabilidad."
+  ]
+}
