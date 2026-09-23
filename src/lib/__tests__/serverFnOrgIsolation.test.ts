@@ -52,7 +52,7 @@ describe("aislamiento por organización en código de servidor", () => {
   });
 
   it("recorre los directorios de servidor esperados", () => {
-    const files = serverSourceFiles().map((f) => relative(ROOT, f));
+    const files = serverSourceFiles().map((f) => relative(ROOT, f).replaceAll("\\", "/"));
     expect(files.some((f) => f.startsWith("src/lib/"))).toBe(true);
     expect(files).toContain("src/lib/feedbackAi.functions.ts");
     expect(files).toContain("src/lib/server/adminGuards.server.ts");
