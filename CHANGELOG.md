@@ -1,3 +1,11 @@
+## [8.42.3] - 2026-09-23 · patch · bugfix
+
+El alta de usuarios fallaba porque el registro inicial de la cuenta todavía no trae la empresa; ahora el perfil y el rol se crean hasta que llega la empresa verificada.
+
+- Migración 0055: handle_new_user difiere el aprovisionamiento si el INSERT no trae app_metadata.organization_id y lo completa en AFTER UPDATE OF raw_app_meta_data.
+- Fail-closed: organization_id malformado, inexistente o inactivo rechaza con 23514; nunca se usa user_metadata ni la inferencia por organización única.
+- Inserciones de profiles/user_roles idempotentes; 0056 documenta la función. Journal corregido para que when sea estrictamente creciente.
+
 ## [8.42.2] - 2026-09-23 · patch · bugfix
 
 La descarga de CFDI (XML/PDF) fallaba siempre con error 500 porque `download-cfdi` separaba el método `rpc` del cliente Supabase, perdía el contexto `this` y caía en el rate limit antes de servir el archivo.
