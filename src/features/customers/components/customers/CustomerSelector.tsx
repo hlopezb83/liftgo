@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { CloseIcon as XIcon, ChevronDownIcon, SuccessIcon as CheckIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,7 +88,7 @@ function CustomerCombobox({
             type="button"
             variant="outline"
             role="combobox"
-            aria-label={compact ? `Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}` : undefined}
+            aria-label={`Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}`}
             aria-expanded={open}
             className={cn(
               "w-full justify-between font-normal",
@@ -171,16 +171,17 @@ function ManualCustomerFields({
   customerContact?: string;
   onCustomerContactChange?: (contact: string) => void;
 }) {
+  const fieldId = useId();
   return (
     <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
       <div className="space-y-1.5">
-        <Label>Nombre del Cliente</Label>
-        <Input value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
+        <Label htmlFor={`${fieldId}-name`}>Nombre del Cliente</Label>
+        <Input id={`${fieldId}-name`} value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
       </div>
       {onCustomerContactChange && (
         <div className="space-y-1.5">
-          <Label>Contacto</Label>
-          <Input placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
+          <Label htmlFor={`${fieldId}-contact`}>Contacto</Label>
+          <Input id={`${fieldId}-contact`} placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
         </div>
       )}
     </div>
