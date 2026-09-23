@@ -41,6 +41,20 @@ El workflow `.github/workflows/rls-db-tests.yml` ejecuta, en este orden:
 - El registro con id 31 del ledger productivo tiene origen desconocido: **no se
   borra, no se edita y no se atribuye automáticamente** a ningún archivo.
 
+### Desfase observado el 23 de septiembre de 2026
+
+- En Lovable Cloud, el último registro leído fue `id=59`,
+  `created_at=1790874179000`, correspondiente al archivo 0057. El journal de
+  Git llega hasta 0061; **0058–0061 aún no constan en el ledger**.
+- 0058 sólo agrega un comentario. Los efectos de 0059 (folios), 0060 (policy de
+  perfiles) y 0061 (`handle_new_user`) se comprobaron directamente en la base,
+  pero esa comprobación **no equivale a registrar las migraciones**.
+- La herramienta de Lovable disponible para crear migraciones no aplica archivos
+  existentes. Se detuvo la reconciliación sin insertar filas del ledger a mano
+  ni crear una migración 0062. La próxima operación de migración en producción
+  debe resolver primero este desfase por el canal oficial de Lovable y volver a
+  verificar tanto el ledger como los objetos resultantes.
+
 ## Límite de certeza
 
 Ningún documento, fecha o changelog de este repositorio certifica por sí solo
