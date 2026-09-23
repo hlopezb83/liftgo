@@ -1,10 +1,25 @@
-# Gates para habilitar una segunda organización
+# Gates para operar varias organizaciones
 
-Runbook versionado, **no destructivo** y reproducible. Describe cómo producir la
-evidencia fechada de los dos gates que siguen abiertos —**ensayo A/B real** y
-**restore probado**— y cómo aprobarlos. Este documento **no ejecuta nada** ni
-autoriza cambios: es el procedimiento a seguir cuando el propietario autorice
-cada ensayo.
+Runbook versionado y no destructivo. La segunda organización ya existe en
+Lovable Cloud como entorno de prueba, por autorización del propietario.
+Las secciones de preparación de abajo conservan la evidencia histórica de
+2026-09-21; el estado vigente se resume aquí.
+
+**Estado al 2026-09-23:** `v8.42.1` y migraciones hasta `0053` desplegadas.
+CI, RLS y ensayo A/B sobre una base efímera pasaron para la
+[PR #87](https://github.com/hlopezb83/liftgo/pull/87). En producción se creó
+una reserva y un contrato en borrador de la segunda organización, sin cruces
+detectados en las relaciones principales. Esto prueba un flujo de administrador;
+no sustituye el ensayo con varios usuarios internos y de portal.
+
+**Restore probado: pendiente.** [Lovable Cloud documenta](https://docs.lovable.dev/features/database)
+que el botón de restauración revierte la base del proyecto activo y pierde
+los cambios posteriores. Sus respaldos diarios no incluyen archivos de
+Storage. Por ello no se debe pulsar **Restore to this backup** en el proyecto
+productivo para este ensayo. Hace falta una copia aislada provista por Lovable
+o un procedimiento acordado con soporte que permita demostrar la restauración
+del respaldo diario sin afectar producción; además se debe ensayar la
+recuperación de Storage por separado.
 
 Estado de los gates (última revisión: 2026-09-21):
 
@@ -38,15 +53,14 @@ conclusión success, 16/16 Playwright). El siguiente gate externo pendiente es
 **restore probado**.
 
 
-**Criterio de cierre:** hasta que el ensayo A/B y el restore estén ejecutados,
-documentados y aprobados con evidencia fechada, **no se habilita una segunda
-organización** en el entorno productivo. El gate de CI cubierto no sustituye a
-los otros dos.
+**Criterio de cierre vigente:** la segunda organización permanece para pruebas.
+La operación multiempresa general no se declara 100 % lista hasta completar
+el ensayo con varios usuarios, el restore aislado y la recuperación de Storage
+con evidencia fechada. El gate de CI no sustituye esas pruebas.
 
-No se marcan como realizados, y este runbook no los declara: migraciones
-productivas `0030`–`0035`, asignación de operador raíz, conteo de
-organizaciones, migración o borrado de Storage histórico y alta de la segunda
-organización. Todos siguen en **requiere verificación**.
+La segunda organización está creada y las migraciones productivas llegan a
+`0053`. Los párrafos históricos que describen su alta como pendiente quedan
+superados por el estado actual indicado arriba.
 
 ---
 
