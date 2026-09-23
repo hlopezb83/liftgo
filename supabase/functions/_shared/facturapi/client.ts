@@ -73,6 +73,7 @@ export type FacturapiConfigErrorCode =
   | "config_read_error"
   | "config_missing"
   | "config_invalid_mode"
+  | "config_duplicate_key"
   | "organization_required";
 
 /**
@@ -194,6 +195,34 @@ export async function getFacturapiConfigForOrganization(input: {
 
   const dbKey = resolveFacturapiKey({ mode, dbTestKey, dbLiveKey });
   if (dbKey) {
+    // Una llave de Facturapi identifica a una sola organización emisora. Si
+    // aparece en dos empresas del ERP, usarla mezclaría sus recursos fiscales
+    // aunque la factura y el secreto se hayan leído con organization_id.
+    const keyColumn = mode === "test"
+      ? "facturapi_test_key"
+      : "facturapi_live_key";
+    const { data: otherOwner, error: ownersErr } = await admin
+      .from("billing_secrets")
+      .select("organization_id")
+      .neq("organization_id", organizationId)
+      .eq(keyColumn, dbKey)
+      .limit(1)
+      .maybeSingle();
+    if (ownersErr) {
+      throw new FacturapiConfigError(
+        "config_read_error",
+        "No se pudo verificar la exclusividad de la llave fiscal. Reintenta en unos segundos.",
+        organizationId,
+      );
+    }
+    if ((otherOwner as { organization_id?: string } | null)
+      ?.organization_id) {
+      throw new FacturapiConfigError(
+        "config_duplicate_key",
+        "La llave de Facturapi está configurada en otra empresa. Usa una llave propia de esta organización emisora.",
+        organizationId,
+      );
+    }
     return { mode, apiKey: dbKey, organizationId, fromEnvFallback: false };
   }
 
