@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 79883)
-Total output lines: 3106
-
 ## [8.42.1] - 2026-09-23 · patch · security
 
 Los PDF de contratos firmados conservan la identidad fiscal y los términos usados al momento de la firma, incluso si después cambia la configuración de la empresa.
@@ -734,7 +731,1194 @@ El folio interno del complemento de pago ya se asigna dentro de la empresa dueñ
 - La revisión automática de timbrados recupera el folio de los complementos que quedaron sin él, dentro de su propia empresa y sin repetir el timbrado.
 - Nuevas pruebas de pago de otra empresa, doble ejecución, choque de folio y recuperación; se conserva el índice actual y no se aplicó ninguna migración.
 
-## [8.8.26] - 2026-09-15 · pat…29883 tokens truncated…ON DELETE SET NULL` intacto) ni en la máquina de estados de facturas de proveedor.
+## [8.8.26] - 2026-09-15 · patch · documentación
+
+Se midió, solo con consultas de lectura, cuántos datos chocarían si cada catálogo pasara a ser propio de cada empresa.
+
+- Nuevo documento docs/multiempresa/tramo-7-colisiones-unicidad.md con las consultas usadas y los conteos agregados.
+- Cero duplicados y cero filas sin empresa en flota, mecánicos, operadores, refacciones, prospectos, pagos, reportes y proveedores.
+- Se documentó el efecto del borrado lógico, los índices parciales y el RFC normalizado sobre el resultado.
+- Recomendación reversible por lotes y decisión pendiente sobre proveedores; no se aplicaron migraciones, índices ni escrituras.
+
+## [8.8.25] - 2026-09-15 · patch · corrección
+
+Las plantillas de contrato y la búsqueda de clientes ya se resuelven dentro de la empresa verificada, y los choques de catálogos compartidos explican qué hacer.
+
+- La plantilla de contrato predeterminada se lee por empresa verificada, con estados explícitos de ausencia, ambigüedad y error de lectura.
+- El PDF de contrato toma la plantilla de la empresa dueña del contrato en lugar del primer registro disponible.
+- La búsqueda global parte de la relación comercial de la empresa y une el cliente global, sin depender de datos del navegador.
+- Los choques de unicidad en flota, mecánicos, operadores, refacciones, proveedores y modelos se traducen a mensajes seguros y accionables.
+- Nuevas pruebas de ausencia, ambigüedad y aislamiento entre empresas; sin migraciones, índices ni escrituras en producción.
+
+## [8.8.24] - 2026-09-15 · patch · documentación
+
+Se documentó, sin cambiar la base, qué catálogos comparten unicidad global y cuáles deberían ser propios de cada empresa.
+
+- Nuevo documento `docs/multiempresa/tramo-6-unicidad-catalogos.md` con el inventario de índices únicos leído de producción.
+- Matriz propuesta global / por organización / por relación, riesgos históricos y plan de migración reversible por lotes.
+- Consultas que dependen de una unicidad frágil identificadas; no se aplicaron migraciones, índices ni escrituras.
+
+## [8.8.23] - 2026-09-15 · patch · corrección
+
+Se corrigió el fixture que confundía una lectura vacía por aislamiento con un cambio de rol.
+
+- El intento cruzado y la RPC siguen ejecutándose como administrador de A.
+- El rol del administrador de B se comprueba en un bloque autenticado como B y luego se restablece el contexto de A.
+- Se conservan la comprobación del último administrador por empresa y el flujo válido de A, sin tocar políticas ni la migración 0025.
+
+## [8.8.22] - 2026-09-15 · patch · corrección
+
+Se corrigieron dos fixtures de pruebas de seguridad que fallaban desde una base limpia, sin relajar el aislamiento entre empresas.
+
+- La prueba de bitácora de actividad crea membresías internas para administrador, despachador y ventas antes de validar lecturas.
+- La prueba de administración cruzada respeta el índice único de un rol por usuario al asignar roles.
+- No se modificaron current_organization_id, las políticas de aislamiento ni el modelo de datos.
+
+## [8.8.21] - 2026-09-15 · patch · corrección
+
+Migración de aislamiento administrativo compatible con UUID desde una base limpia.
+
+- `current_organization_id()` deja de aplicar una agregación no disponible para UUID y obtiene el único valor mediante `array_agg`.
+- Se conserva el contrato cerrado: devuelve la organización sólo con exactamente una membresía; con cero o varias devuelve `NULL`.
+- No cambian el modelo, las políticas, los permisos ni el alcance de la migración 0025.
+
+## [8.8.20] - 2026-09-15 · minor · seguridad
+
+Administración, invitaciones y roles acotados a la organización verificada (tramo 5 multiempresa).
+
+- Nuevo `src/lib/organization/adminScope.ts` (`resolveInternalScope`, `resolveTargetScope`): la empresa sale de `organization_memberships` y un objetivo de otra empresa es indistinguible de uno inexistente.
+- Nuevos guards `requireInternalOrganization`, `assertTargetInOrganization` y `createInternalMembership` en `adminGuards.server.ts`; autorizan antes de cualquier lectura privilegiada y distinguen `read_error` (503) de `not_found` (404).
+- `inviteUserFn`, `deleteUserFn`, `resetUserPasswordFn` y `toggleUserStatusFn` verifican la organización del objetivo; el alta crea la membresía `internal` y el borrado la elimina.
+- `inviteCustomerFn` exige relación activa en `organization_customers` y crea `customer_portal_accounts` + membresía `portal` con compensación ante fallo.
+- `assertNotLastActiveAdmin` evalúa el invariante del último administrador por organización.
+- Migración revisable `0025_multi_org_phase8_admin_membership_scope.sql` (no aplicada): `current_organization_id` sin `LIMIT 1` arbitrario, `is_internal_member`, `user_in_current_organization`, RLS de `profiles`/`user_roles` por organización y `update_user_role_safe`/`assert_not_last_admin` acotadas.
+- Nueva suite `supabase/tests/rls/admin_cross_org.sql` y pruebas Vitest del alcance de administración.
+
+## [8.8.19] - 2026-09-15 · minor · seguridad
+
+Prospectos y operaciones escriben siempre en la organización verificada (tramo 4 multiempresa).
+
+- Nuevo `src/lib/organization/writeContext.ts` (`stripOrganizationId`, `WithoutOrganization`): ningún payload del navegador viaja con `organization_id`.
+- `useProspects`/`useProspectMutations`, `useCreateForklift`/`useUpdateForklift`, `useDamageRecords`, `useMaintenanceLogs` y `useMaintenanceLabor` dejan de aceptar la organización como campo editable.
+- Se conservan sin cambios el trigger `enforce_organization_write_context`, las policies `org_scope_isolation` y las validaciones de propietario/cliente.
+- Nueva suite `supabase/tests/rls/operations_cross_org.sql`: A no lee ni modifica registros de B, los IDs directos de B no filtran datos, un payload con la organización de B se rechaza (42501), un alta sin organización queda en A y el portal no alcanza operaciones internas.
+- Pruebas Vitest del saneado y de los payloads de prospectos.
+
+## [8.8.18] - 2026-09-15 · minor · seguridad
+
+Emisor de documentos resuelto por organización verificada (tramo 3 multiempresa).
+
+- Nuevo `resolveIssuerBranding` + server fn `getIssuerBranding` (`requireSupabaseAuth`): razón social, RFC, régimen, lugar de expedición y logo salen de la organización verificada y, cuando aplica, de la organización propietaria del documento.
+- `fetchCompanyDataAndLogo` deja de leer `company_settings` con `limit(1)`; ahora recibe el documento (factura, cotización, contrato, cliente) y verifica pertenencia y acceso del usuario o cuenta de portal.
+- Estados explícitos `no_organization`, `document_not_found`, `document_forbidden`, `settings_missing`, `settings_ambiguous` y error de lectura; sin empresa de respaldo ni herencia entre organizaciones.
+- `companySettingsQueries` y `cxpApprovalThresholdQueries` piden 2 filas y tratan la duplicidad como error explícito en lugar de elegir una arbitraria.
+- `get_public_branding` (LiftGo fija) y los secretos fiscales quedan intactos; sólo se expone configuración pública y el indicador `facturapi_mode`.
+
+## [8.8.17] - 2026-09-15 · minor · seguridad
+
+Caché de TanStack Query aislada por identidad verificada (usuario + organización).
+
+- `IdentityScopedPersistence` reemplaza el `PersistQueryClientProvider` global: purga, restaura y persiste bajo `liftgo:rq-cache:v4:{identidad}`.
+- Se eliminan las claves globales `liftgo:rq-cache:v1..v3` y las de cualquier otra identidad presentes en `localStorage`.
+- Nada se restaura antes de que `AuthProvider` y `OrganizationProvider` estén en `ready`; al cambiar identidad se cancelan consultas en vuelo y se purga la caché antes de renderizar.
+- `AuthQueryCacheSync` se conserva y purga todo salvo la consulta de identidad (`organization-context`).
+- `portalKeys` usa la identidad verificada en lugar de `user_id`; allowlist/blocklist de persistencia sin cambios.
+
+## [8.8.16] - 2026-09-15 · minor · seguridad
+
+Contexto de organización verificado en la aplicación y portal por cuenta verificada.
+
+- `getOrganizationContext` (server fn con `requireSupabaseAuth`) resuelve la empresa desde `organization_memberships` y, en portal, desde `customer_portal_accounts` activa y coherente.
+- `OrganizationProvider`/`OrganizationGate` exponen `loading`, `error`, `no-membership` y `ready`; `AuthGuard` no renderiza contenido protegido hasta `ready`.
+- `usePortalCustomer` deja de usar `customers.limit(1)` y consulta el cliente verificado por ID.
+- Migración revisable `0024_portal_fallback_respects_account_status.sql` (no aplicada): el respaldo `customers.user_id` sólo opera sin cuenta de portal.
+- Nueva suite `supabase/tests/rls/portal_account_status_fallback.sql` y pruebas Vitest del resolver, del gate y del portal.
+
+## [8.8.15] - 2026-09-15 · patch · pruebas
+
+Smoke SQL alineado con la migración 0023.
+
+- R6-15 verifica que la policy llame `invoice_eligible_for_payment_intent(invoice_id)` y que no consulte `invoices` directamente.
+- Nuevas aserciones sobre `pg_temp.fndef('invoice_eligible_for_payment_intent')`: `cancelled`, `draft`, `cancellation_status IS DISTINCT FROM accepted`, cliente propietario y organización de la sesión.
+- Se conservan las aserciones de `payment_proof_path_allowed`, `storage_relative_segments` e `invoice_in_current_organization`.
+
+## [8.8.14] - 2026-09-15 · patch · seguridad
+
+Reporte de pago del portal desbloqueado sin perder aislamiento multiempresa.
+
+- Nueva función interna `invoice_eligible_for_payment_intent` (SECURITY DEFINER) que evita la subconsulta a `invoices` bajo RLS dentro de la policy.
+- Se conservan cliente propietario, organización de la sesión, estado de factura, `payment_proof_path_allowed` y la igualdad del segmento de factura en la ruta.
+- Guards de diagnóstico y rechazos cross-tenant ampliados en `supabase/tests/rls/storage_org_prefix.sql`.
+
+## [8.8.13] - 2026-09-15 · patch · ui
+
+Pantalla de acceso homologada con el sitio público liftgo.com.mx.
+
+- Panel de marca en azul marino `#0B1F3E` con acento dorado `#C39B76` y títulos en Montserrat.
+- Fondo claro `#FCF7F4` y botón principal en el dorado `#B8862B`, en mayúsculas, al estilo del sitio.
+- Distintivo tipográfico "Lift Go / Montacargas" cuando no hay logotipo cargado.
+- Los tokens nuevos viven en `.auth-brandscape`: el interior de la app conserva su paleta y tipografía.
+
+## [8.8.12] - 2026-09-15 · patch · test
+
+Setup RLS de Storage ordenado desde el primer registro ficticio.
+
+- El contexto local de la organización A se establece antes de insertar cualquier organización de prueba.
+- Las organizaciones A y B se crean por separado, manteniendo contexto explícito para todos los disparadores del montaje.
+- Las sesiones autenticadas siguen limpiando el contexto del setup y se conservan intactas las pruebas positivas y de rechazo entre empresas.
+- No se modificaron el guardia de escritura, las políticas RLS ni la migración 0022.
+
+## [8.8.11] - 2026-09-15 · patch · test
+
+Arnés RLS multiempresa con contexto explícito, sin cambios en producción.
+
+- La preparación usa la conexión privilegiada del runner sólo para insertar datos de soporte y establece `app.organization_id` para los disparadores que requieren atribución explícita.
+- Antes de cada escenario autenticado se limpian rol, JWT y contexto; después se simula de nuevo una sesión real de la organización A.
+- Se conservan los rechazos cross-tenant de lectura, subida y borrado en Storage, además de factura y `proof_url` ajenos en `customer_payment_intents`.
+- No se modificaron el trigger `enforce_organization_write_context`, las políticas RLS ni la migración 0022.
+
+## [8.8.10] - 2026-09-15 · patch · security
+
+Aislamiento completo de archivos entre organizaciones (migración 0022).
+
+- Subir un comprobante exige la carpeta de la empresa de la sesión y una factura de esa misma empresa.
+- Leer o borrar comprobantes, capturas de feedback y documentos de otra empresa queda bloqueado.
+- El reporte de pago del portal sólo se acepta si la factura y el comprobante son de la empresa de la sesión.
+- Nueva suite RLS `supabase/tests/rls/storage_org_prefix.sql` con dos organizaciones y un cliente compartido.
+- Smoke `r_fix32_portal_pagos_smoke.sql` actualizado al contrato real (R6-15/R6-25).
+
+## [8.8.9] - 2026-09-15
+
+### Permisos de Storage compatibles con el prefijo de organización
+
+- Migración `0021_storage_policies_org_prefix_aware`: nueva función `public.storage_relative_segments(text)` (SECURITY DEFINER) que descarta el primer segmento cuando corresponde a una organización existente, y lo conserva para objetos legados sin prefijo.
+- Políticas actualizadas en `storage.objects`: `Customers upload/read/delete own proofs` (payment-proofs), `Users upload/read/delete own feedback screenshots` (feedback-screenshots) y la rama de `mechanic` en `Staff read documents` (documents).
+- Política `Customers create own payment intents` en `public.customer_payment_intents`: la validación de `proof_url` (cliente/factura) se hace sobre la ruta relativa, sin el prefijo de organización.
+- Corrige 3 hallazgos de monitoreo: comprobante de pago del portal rechazado siempre, captura de feedback rechazada y URLs firmadas de documentos fallando para mecánicos.
+
+## [8.8.8] - 2026-09-15
+
+### Cierre del parche fiscal: `deno fmt` de CI, `organizations` ilegible y regresiones ampliadas
+
+- `deno fmt` aplicado a `validate-receptor-tax-info/handler.ts` y `download-cfdi/handler.ts`, los 2 archivos que `deno fmt --check` reportaba en el job "Funciones Supabase (Deno, sin red)" antes de ejecutar las pruebas. Verificación final ejecutada como en CI: `cd supabase/functions && deno fmt --check && deno lint` sobre los 132 archivos, no sobre una selección.
+- `_shared/facturapi/client.ts`: nuevo `readSoleLegacyOrganizationStrict`. En el camino de resolución fiscal, un error al leer `organizations` ya no se degrada a "el fallback no aplica": se propaga como `FacturapiConfigError('config_read_error')`, sin llave, sin entorno y sin timbrado stub. `isSoleLegacyOrganization` conserva su semántica booleana fail-closed para el resto de consumidores.
+- Pruebas nuevas de helper (`_shared/facturapi/orgConfig_test.ts`): `organizations` ilegible con modo `test` y sin llave propia → `config_read_error`; el mismo caso vía `loadFacturapiConfigOutcome` → 503; `isSoleLegacyOrganization` sigue devolviendo `false` ante error.
+- Pruebas nuevas de portal (`download-cfdi/handler_test.ts`): descarga correcta de **acuse**, **REP** y **nota de crédito** propios (antes sólo factura); cuenta **revocada** cubierta explícitamente; cuenta de otro usuario rechazada (los fixtures ahora respetan `auth_user_id` además de `member_type` y `status`); recuperación desde un PAC simulado que comprueba que se invoca `deps.fetchImpl` y que viaja **sólo** la llave de la empresa dueña del documento (`Authorization: Bearer <llave de la empresa>`), con una llave global de entorno presente y sin usar. Los casos negativos siguen sin PAC ni Storage.
+- Prueba nueva de handler (`stamp-cfdi/handler_test.ts`): error de lectura de configuración fiscal **después** del claim → 503, liberación de la reserva (`cfdi_status = 'error'`), sin llamada al PAC, sin UUID y sin marcar la factura como timbrada.
+- Validación local (no es CI): `deno fmt --check` y `deno lint` completos, y la selección offline de pruebas Deno. Sin migraciones, escrituras en producción, operaciones fiscales reales ni despliegues.
+
+## [8.8.7] - 2026-09-14
+
+### Corrección de la fase fiscal: portal, configuración explícita y cola de reintentos
+
+- `download-cfdi`: nueva ruta de acceso para clientes del portal. `_shared/orgContext.ts` incorpora `resolvePortalAccess`, que exige exactamente una fila ACTIVA en `customer_portal_accounts` y una membresía `member_type = 'portal'` de la MISMA organización (0 o >1 filas → 403; error de lectura → 503; discrepancia → 403). El resolver interno sigue exigiendo `member_type = 'internal'` y no acepta cuentas de portal. Se conserva la doble restricción organización + cliente propietario para factura, acuse, REP y nota de crédito; en REP se verifica además que la factura relacionada pertenezca a la misma organización.
+- `download-cfdi` usa `deps.fetchImpl` y `deps.env` en todas las rutas (antes algunas llamadas usaban `fetch`/`Deno.env` globales), de modo que los espías de las pruebas interceptan el transporte real y "cero llamadas al PAC" es un contador conectado.
+- `_shared/facturapi/client.ts`: `FacturapiConfigError` con códigos `config_read_error` | `config_missing` | `config_invalid_mode` | `organization_required`. `getFacturapiConfigForOrganization` falla explícitamente ante error de lectura de `company_settings`/`billing_secrets`/`organizations`, configuración ausente o modo inválido; no cae a `test` ni al entorno. `modeOverride: null` se trata como configuración ausente (cierra el hueco de `stamp-credit-note`). Nuevo `loadFacturapiConfigOutcome` traduce el fallo a HTTP (503 lectura, 400 configuración) sin excepciones, y los handlers con reserva liberan el claim antes de responder.
+- `process-cfdi-retry-queue`: nueva `classifyInvoiceReadOutcome` en `decisions.ts` distingue el fallo transitorio de lectura (`deferred`: status `pending`, sin subir `attempts`, con `next_retry_at`, sin PAC) de la factura realmente sin organización (`exhausted`). Se conserva el aplazamiento seguro por `!apiKey`.
+- Pruebas: portal (cliente legítimo descarga, otra empresa, otro cliente, cuenta suspendida, membresía interna que no habilita el portal, error de membresía → 503, REP de factura ajena bloqueada) con mocks sensibles a filtros (`selectsByFilter` en `_shared/test/supabaseClientMock.ts`, respeta `status` y `member_type`); errores en cada lookup fiscal, modo ausente/inválido y `modeOverride: null`; aplazamiento sin agotar en la cola.
+- Validación local: `deno fmt`, `deno lint` (56 archivos, 0 problemas), `deno check` de los archivos modificados y la selección offline de CI → **368 pruebas verdes, 0 fallos**. Las suites completas y la cobertura corresponden a GitHub Actions. Sin migraciones, escrituras en producción, operaciones fiscales reales ni despliegues.
+
+## [8.8.6] - 2026-09-14
+
+### CI Deno en verde (formato y lint de las funciones)
+
+- `deno fmt` aplicado a los 17 archivos que `deno fmt --check` reportaba sin formatear en el job "Funciones Supabase (Deno, sin red)".
+- `deno lint` sin errores y sin desactivar reglas ni excluir archivos: `Record<string, any>` sustituido por interfaces locales `PaymentRow`/`RelatedInvoiceRow` (`stamp-payment-complement/handler.ts`) y `CreditNoteRow` (`cancel-credit-note/handler.ts`); `buildPlan` de `generate-recurring-invoices/index.ts` tipa `supabase: SupabaseClient` (se retira el `deno-lint-ignore` que había quedado sin uso) y las relaciones embebidas se convierten vía `as unknown as` para satisfacer el chequeo de tipos; `assert` sin usar retirado de `download-cfdi/handler_test.ts`.
+- Sin cambios de comportamiento ni en las pruebas del aislamiento multiempresa de 8.8.5.
+- Validación local: `deno fmt --check` (132 archivos), `deno lint` (131 archivos), `deno check` de los archivos modificados y la selección offline de pruebas Deno → 351 verdes, 0 fallos. La suite completa y la cobertura corresponden a GitHub Actions.
+
+## [8.8.5] - 2026-09-14
+
+### Aislamiento fiscal por empresa (fase 1 multiempresa)
+
+- Nuevo `_shared/orgContext.ts` en las Edge Functions: `resolveCallerOrganization` (membresía interna; fail-closed 403/503/409), `assertDocumentOrganization`, `resolveDocumentOrganization` y `groupByOrganization`. La organización se deriva siempre del servidor (membresía o fila de BD), nunca del payload; un JWT `service_role` no hereda la del usuario.
+- `_shared/facturapi/client.ts`: `getFacturapiConfig` (leía `limit(1)`) sustituido por `getFacturapiConfigForOrganization`, que filtra `company_settings` y `billing_secrets` por `organization_id`. El fallback a llaves de entorno sólo aplica mientras exista exactamente una organización (`isSoleLegacyOrganization`), con su retirada documentada.
+- Verificación de organización antes de claims, UPDATE, lectura de secretos o llamada al PAC en `stamp-cfdi`, `cancel-cfdi`, `refresh-cancellation-status`, `download-cfdi`, `stamp-credit-note`, `cancel-credit-note`, `stamp-payment-complement`, `cancel-payment-complement`, `validate-receptor-tax-info` y `validate-customers-tax-info`.
+- Tareas programadas separadas por empresa: `reconcile-stamping-invoices` agrupa con `groupByOrganization` y usa un cliente Facturapi por organización; `process-cfdi-retry-queue` deriva la organización de la factura en BD (nunca del payload) y sin organización resoluble marca la fila `exhausted` sin llamar al PAC; `generate-recurring-invoices` incluye organización en consulta, clave de agrupación y plan, y acota las corridas manuales a la organización del caller; `generate-recurring-maintenance` propaga el `organization_id` de la póliza a cada registro insertado.
+- `cancel-credit-note`, `stamp-payment-complement` y `download-cfdi` reestructurados al patrón `handler.ts` (inyección de dependencias) + `index.ts` wrapper, sin cambio de comportamiento observable, para poder probarse sin red.
+- Pruebas: nuevas suites `_shared/orgContext_test.ts`, `_shared/facturapi/orgConfig_test.ts`, `*/orgIsolation_test.ts` y `handler_test.ts` de `cancel-credit-note`, `stamp-payment-complement` y `download-cfdi`; fixtures existentes actualizados con `organization_id`. Validación local: selección offline de pruebas Deno → 351 verdes. Sin migraciones, sin cambios en BD ni despliegues.
+
+## [8.8.4] - 2026-09-14
+
+### Precisión en la documentación técnica
+
+- §15.6: `ci.yml` ejecuta ESLint, `tsc`, `arch-check`, build, un smoke de arranque con `playwright.smoke.config.ts` (no la suite E2E completa), Vitest en 2 shards + merge de cobertura, y jobs condicionales Deno/lint SQL/dependency-review/actionlint. No ejecuta knip.
+- §7: los archivos de ruta declaran sus propios guards (`module`/`minAccess` locales + `RoleGuard`); `src/app-routes/routes-config.tsx` es un registro heredado consumido por sidebar y búsqueda global, no la fuente efectiva de permisos en runtime. Se ajustan el mapa de carpetas, el paso para agregar rutas y las referencias.
+- Diagrama: se retira el enlace directo Facturapi/AI → Postgres; los proveedores externos solo son invocados desde Edge Functions o código servidor.
+- Se reemplaza "siguen desplegadas" por "presentes en el repositorio" (incluida la entrada 8.8.3 de este archivo): la presencia en Git no acredita un despliegue activo.
+- Las notas multi-organización dejan de enumerar pendientes como hechos: esta revisión documental no certifica el cierre de la migración.
+
+## [8.8.3] - 2026-09-14
+
+### Documentación técnica alineada con el sistema actual
+
+- `README.md` y `architecture.md` describen el stack real: React 19, Vite 8, TypeScript 6, Tailwind v4 y TanStack Start/Router con SSR.
+- Diagrama, mapa de carpetas y sección de enrutamiento reescritos sobre rutas file-based (`src/routes/`, layouts `_main`/`_portal`, `routeTree.gen.ts` generado); se eliminan referencias a `src/App.tsx`, `src/main.tsx`, `react-router-dom`, `src/lib/routes-config.tsx` y `tailwind.config.ts`.
+- Nueva §6.3: server functions (`createServerFn` en `src/lib/*.functions.ts`) vs Edge Functions Deno presentes en el repositorio (sin certificar su estado de despliegue).
+- Despliegue documentado según `vite.config.ts` y `wrangler.jsonc`: build SSR con Nitro, preset `cloudflare-module`, salidas `dist/client` y `dist/server`; `bun run preview` = `wrangler dev --port 4173`.
+- Testing actualizado: Vitest 4 con happy-dom (jsdom opt-in) y suite offline; Playwright sobre el build servido en 4173.
+- Migraciones: se documenta `drizzle/migrations/` junto al historial de `supabase/migrations/`. Se marca la migración multi-organización como **en curso**, no terminada.
+- Requisitos de entorno: Node `>=24` y Bun como runner.
+- Validación local: `bun scripts/validate-changelog.ts` y verificación de que cada archivo/comando citado existe. Suite completa y cobertura en GitHub Actions.
+
+## [8.7.1] - 2026-09-13
+
+### Hallazgos QA: estado del montacargas en su ficha
+
+- `deriveForkliftDisplayStatus` vuelve a usar `availability.rentedForkliftIds`: la ficha muestra `rented` cuando hay reserva `confirmed` vigente hoy, igual que FleetPage y el tablero. Mantenimiento/retiro/venta siguen mandando.
+- Comentario obsoleto en `FleetPage.tsx` corregido (ya no afirma que el helper ignora las reservas).
+- Hallazgo del filtro `?status=scheduled` en Entregas: no reproducible. `useTableFilters` usa storage `url` y lee `location.search`; verificado en preview con sesión administrativa (sólo entregas programadas en la lista).
+- Validación local: 14 pruebas focalizadas de disponibilidad verdes. Suite completa y cobertura en GitHub Actions.
+
+## [8.2.1] - 2026-09-10
+
+### Correcciones de la auditoría QA
+
+- RPC desligado: todas las llamadas que guardan `supabase.rpc` en una variable usan `supabase.rpc.bind(supabase)` (conciliación bancaria: consulta/KPIs/importación, portal de clientes, asignación de montacargas, puntos de feedback, facturas con saldo y el wrapper compartido `callRpc`).
+- Dashboard: la alerta de facturas vencidas muestra el saldo pendiente en MXN (`balance_mxn`), con fallback a `balance` y luego a `total` para fixtures legacy; regresión añadida para factura parcialmente pagada.
+- Reportes: utilización de flota con barras horizontales, nombre por barra, etiquetas truncadas y scroll interno; se conservan tooltip, porcentajes y exportación CSV.
+- Conciliación bancaria: `get_bank_statement_lines_page` escapa `%`, `_` y `\` y aplica `ESCAPE '\'`; migración posterior para entornos donde la original ya corrió, sin tocar datos.
+- Móvil: la acción primaria de Clientes, Reservas y Cotizaciones se renderiza al final de la lista, en flujo, con espacio de safe-area, en lugar del overlay fijo que tapaba las tarjetas.
+- Validación local: `tsc --noEmit` limpio, ESLint sin errores en los archivos tocados y 366 pruebas focalizadas (1 timeout por carga, verde al reejecutar aislado). Suite completa y cobertura en GitHub Actions.
+
+## [8.2.0] - 2026-09-09
+
+### Correcciones integrales de lógica de negocio
+
+- Facturas: `paid` sólo persiste con saldo cubierto por pagos convertidos y notas de crédito timbradas; el dashboard abre el flujo de pago y una reconciliación corrige facturas históricas inconsistentes.
+- Notas de crédito: los descuentos fijos se prorratean por la cantidad acreditada; cada línea se liga a su partida fiscal origen y el claim atómico congela el snapshot que se envía al PAC.
+- Flota: una reserva no convierte físicamente la unidad en rentada antes de completar la entrega; entrega, devolución, venta, contratos, daños y mantenimiento validan transiciones terminales y compromisos concurrentes bajo bloqueo.
+- Daños y mantenimiento: reparar, facturar, archivar y restaurar conservan evidencia y estados coherentes; `pending`, `in_progress` y `waiting_parts` bloquean disponibilidad de forma uniforme.
+- Conciliación bancaria: el fingerprint usa la descripción completa, el parser corta antes de hashear más de 50,000 líneas, la importación usa staging transaccional idempotente y los filtros/KPI se calculan en servidor con paginación real.
+- Portal, feedback y ayuda: consultas de detalle independientes, colecciones paginadas, totales globales, cargas/errores recuperables, Kanban por estado y puntos agregados sin truncamiento.
+- Validación local: typecheck y linter de migraciones limpios; lint conserva únicamente los 14 avisos preexistentes; 748 pruebas focalizadas verdes. Las migraciones y Edge Functions requieren el entorno Supabase/PAC de staging antes de producción.
+
+## [8.1.12] - 2026-09-08
+
+### UI-DEP-01 — Cabecera de detalle de reserva comprimida en escritorio mediano
+
+- Estado original: a 1280 px los botones de acción (Crear contrato, Extender, Devolución Anticipada, Cambiar Estatus, Eliminar, Cancelar) comprimían la columna de texto y el número de reserva caía a dos líneas con el subtítulo casi sin espacio; a 1024 px título y subtítulo dejaban de verse y las acciones desbordaban con scroll horizontal. Resultado final: el bloque de acciones baja a su propia fila cuando no cabe y sus botones envuelven dentro del ancho disponible, sin desbordamiento en 1024/1280/1440.
+- Ajuste mínimo de CSS en `src/components/layout/DetailPageHeader.tsx`: la fila de escritorio permite envolver (`lg:flex-wrap`), el título reserva al menos 20 rem (`lg:min-w-[20rem]`) y el bloque de acciones deja de ser rígido (`min-w-0` sin `shrink-0`) para que sus botones envuelvan dentro del ancho disponible sin desbordar.
+- Sin cambios en botones, etiquetas, permisos, handlers, accesibilidad ni en el comportamiento móvil apilado. No se tocaron consumidores ni lógica de negocio. Verificación visual con sesión administrativa a 390/1024/1280/1440 px: título en una línea, subtítulo visible, los 6 botones visibles sin recorte. `tsc --noEmit` limpio, `lint` sin errores (14 avisos preexistentes), prueba focalizada `BookingDetail.test.tsx` 1/1. Suite completa, cobertura y smoke quedan a cargo de GitHub Actions.
+
+## [8.1.11] - 2026-09-08
+
+### Mantenimiento YAGNI - lote DEP-04 (Vite/Rolldown)
+
+- Actualizacion dirigida con pins exactos: `vite` 8.1.5 -> 8.2.2 (devDependencies) y el override `rolldown` 1.2.1 -> 1.2.7. Se conserva el override para que Vite y Nitro sigan resolviendo la misma version controlada; no se agrego `rolldown` como dependencia directa.
+- Transitivas movidas por exigencia del par: bindings nativos `@rolldown/binding-*` a 1.2.7 y `@oxc-project/types` a 0.148.0 (requerido exactamente por Rolldown 1.2.7). Sin otras familias tocadas.
+- Sin cambios en Start 1.168.50, Router 1.170.33, Nitro 3.0.260603-beta, `@lovable.dev/vite-tanstack-config` 2.21.0, `@vitejs/plugin-react` 5.2.0, TypeScript, ESLint, Vitest/cobertura, Table, React, Tailwind, Supabase ni Bun. `@rolldown/plugin-babel` permanece en 0.2.3. Se conservan DEP-01/02/03 y el ajuste de `ErrorComponentProps`. Sin cambios en `vite.config.ts`, `wrangler.jsonc` ni `playwright.smoke.config.ts`.
+- Validacion puntual en Lovable: `tsc --noEmit` limpio (exit 0), `lint` sin errores (exit 0, 14 avisos preexistentes) y 114 pruebas focalizadas verdes en 7 archivos de transporte, red, serializacion, rutas y recarga por chunk stale. Suite completa, cobertura y smoke del bundle real quedan a cargo de GitHub Actions.
+
+## [8.1.10] - 2026-09-08
+
+### Mantenimiento YAGNI - lote DEP-03 (par Start/Router)
+
+- Actualizacion dirigida del par de enrutamiento con versiones exactas: `@tanstack/react-start` 1.168.32 -> 1.168.50 y `@tanstack/react-router` 1.170.18 -> 1.170.33 (Start 1.168.50 depende exactamente de Router 1.170.33). No se instalo el peer OPCIONAL `@rsbuild/core` ni se activaron RSC, React Compiler o plugins nuevos.
+- Adaptacion de compatibilidad requerida por el typecheck: Router 1.170.33 tipa el `error` de los boundaries como `unknown`. En `src/routes/__root.tsx`, `RootErrorComponent` pasa de `{ error: Error; reset: () => void }` a `ErrorComponentProps` (tipo publico de la libreria). Sin casts a `any`, sin normalizadores nuevos y sin extraer componentes; `reportLovableError` ya acepta `unknown` y la UI no lee `error.message`. Ningun otro consumidor requirio cambios.
+- Sin cambios en Vite/Rolldown, Nitro, TypeScript 5.9.3, ESLint, Vitest/cobertura, Table, React, Tailwind, Bun, workflows ni en la configuracion de Lovable; se conservan los lotes DEP-01 y DEP-02 y las guardas de chunks stale, shell, QueryClient por peticion, auth, scroll y serializacion de busquedas.
+- Validacion puntual en Lovable: `tsc --noEmit` limpio, `lint` sin errores (14 avisos preexistentes) y 112 pruebas focalizadas verdes en 7 archivos de rutas y transporte (`routes.test.ts`, `routerCompatLocation.test.tsx`, `searchSerialization.test.ts`, `NavLinkActive.test.tsx`, `mainScrollRestoration.test.tsx`, `serverFnTransport.test.ts`, `authAttacher.test.ts`). Suite completa, cobertura y smoke quedan a cargo de GitHub Actions.
+
+## [8.1.9] - 2026-09-08
+
+### Mantenimiento YAGNI - lote DEP-02 (dependencias puntuales)
+
+- Actualizacion de mantenimiento, sin cambios de comportamiento ni de API en los consumidores: `@supabase/supabase-js` 2.115.0 -> 2.116.0 (manifiesto `^2.116.0`), `typescript-eslint` 8.69.0 -> 8.70.0 (manifiesto `^8.70.0`) y `@types/node` 22.20.1 -> 24.13.3 (manifiesto `^24.13.3`, alineado con Node 24 de `.nvmrc`/CI).
+- Transitivas movidas por exigencia de esos paquetes: `@supabase/auth-js`, `@supabase/functions-js`, `@supabase/postgrest-js`, `@supabase/realtime-js` y `@supabase/storage-js` a 2.116.0; familia `@typescript-eslint/*` (eslint-plugin, parser, project-service, tsconfig-utils, type-utils, typescript-estree, visitor-keys) a 8.70.0; `undici-types` a 7.18.2 requerido por `@types/node` 24.
+- Sin cambios en TypeScript 5.9.3, ESLint 9, Bun, Vite/Rolldown, Start/Router, Nitro, Vitest, Tailwind ni configuracion de Lovable. Sin nuevas funciones de backend, sin regenerar tipos de BD y sin cambios de cliente/sesion.
+- Validacion puntual en Lovable: `tsc --noEmit` limpio, lint sin errores (14 avisos preexistentes) y 32 pruebas focalizadas de sesion, transporte autenticado y barrera de red verdes (todas con mocks, sin backend real). Suite completa y cobertura quedan a cargo de GitHub Actions.
+
+## [8.1.8] - 2026-09-09
+
+### Permisos de facturación recurrente
+
+- El interruptor «Facturación recurrente» del detalle de reserva ahora también está disponible para quien tiene acceso completo al módulo Facturas (rol administrativo), además de quien tiene acceso completo a Reservas. La recurrencia es una decisión de facturación y el backend ya permitía la operación a ese rol. Sin cambios en RLS, reglas de negocio ni en los estados cerrados (cancelada/completada siguen bloqueando el cambio). Pruebas: `src/features/bookings/components/booking-detail/__tests__/BookingBillingCard.test.tsx`.
+
+## [8.1.7] - 2026-09-09
+
+### Mantenimiento YAGNI — lote DEP-01 (dependencias puntuales)
+
+- Actualización mínima de tres librerías sin cambios de comportamiento: `dompurify` 3.4.14 → 3.4.15 (parche de sanitización, versión exacta), `marked` 18.0.11 → 18.0.12 (manifiesto `^18.0.12`) y `@tanstack/react-virtual` 3.14.10 → 3.14.11 (manifiesto `^3.14.11`). Dependencia transitiva: `@tanstack/virtual-core` 3.17.8 → 3.17.9 (parche requerido por react-virtual 3.14.11). Sin cambios de API en los consumidores (`VirtualBody`, manual de ayuda Markdown). Pruebas focalizadas: sanitización/renderizado Markdown (13) y tabla virtual (14) verdes.
+
+## [8.1.6] - 2026-09-09
+
+### Corrección puntual V27-02 (regresión de zona horaria)
+
+- La etiqueta «Cartera vencida al día de hoy» en Reportes → Antigüedad de Cartera usaba `formatDateMty(nowMty())`. `nowMty()` ya aplica `toZonedTime(…, America/Monterrey)` y `formatDateMty`, al recibir un instante, volvía a aplicarlo; en navegadores con TZ distinta a Monterrey mostraba el día anterior. Se cambusa a `formatDateMty(toYMD(nowMty()))` (date-only), que evita la doble conversión y muestra siempre la fecha actual de Monterrey, también de madrugada. No cambia `nowMty` ni `formatDateMty` globalmente. Regresión: `src/features/reports/lib/__tests__/agingCuttoffLabel.test.ts` (reloj fijo 2026-09-09T07:00:00Z bajo TZ=UTC).
+
+## [8.1.5] - 2026-09-09
+
+### Correcciones V27 (presentación y accesibilidad, sin reglas de negocio)
+
+- V27-01 Ingresos: el detalle mensual, su contador y su exportación se recortan al rango activo del reporte (límites inclusivos por día calendario, sin desplazamientos UTC) mediante `invoicesWithinRange` en `src/features/reports/lib/drilldown.ts`. No cambia SQL/RPC ni las reglas de importes, pagos o notas de crédito. Regresión: `src/features/reports/lib/__tests__/invoicesWithinRange.test.ts`.
+- V27-02 Antigüedad de Cartera: se oculta el selector de rango que el reporte nunca usaba y se muestra «Cartera vencida al día de hoy (fecha)». Los demás reportes conservan su rango al volver a ellos.
+- V27-03 Menú lateral móvil: los enlaces de `SidebarNavSection` cierran el panel móvil al navegar (sólo con clic normal; Ctrl/Cmd/Shift/Alt o botón no primario lo respetan). Escritorio, prefetch y grupos recordados sin cambios.
+- V27-04 Tarjetas de reservas: cada tarjeta móvil es un `Link` real con nombre accesible «Reserva NÚMERO» y foco visible; Tab/Enter y el tap siguen abriendo el detalle correcto.
+- V27-05 `CurrencyField`: `FormControl` envuelve directamente el `Input`, de modo que la etiqueta, la descripción y el error quedan asociados al campo (por ejemplo «Costo» en Mantenimiento). Parseo, formato y estado de RHF intactos. Regresión: `src/components/forms/fields/__tests__/CurrencyField.a11y.test.tsx`.
+
+## [8.1.4] - 2026-09-08
+
+### Calidad interna (sin cambios funcionales)
+
+- `router-compat` se separa en tres módulos: `src/lib/router-compat-url.ts` (parseo de URLs), `src/lib/router-compat-ui.tsx` (`Link`, `Navigate`, `Outlet`) y `src/lib/router-compat.ts` (hooks). Se actualizaron ~60 importaciones; API y comportamiento idénticos.
+- `createAppQueryClient` se mueve a `src/lib/query/appQueryClient.ts`; `AppProviders.tsx` exporta sólo el componente.
+- Complejidad reducida sin alterar reglas ni mensajes: `invoiceFormSchema` divide su `superRefine` en validaciones por tema; `customerPortal.functions.ts` extrae validación, alta de usuario, enlazado con limpieza y generación del enlace (pasos secuenciales, mismo orden y mismos errores); `feedbackAi.functions.ts` extrae la construcción del prompt y del payload de actualización; `AuthPage` extrae encabezado y enlaces secundarios; `CustomerSelector` extrae combobox y captura manual.
+- La prueba `useUnsavedChangesGuardBlocker` deja de asignar una variable externa durante el render (se registra en un efecto), conservando todas sus aserciones.
+
+## [8.1.3] - 2026-09-08
+
+### Corrección visual puntual V26-03
+
+- El rango «Fecha de emisión» apila inicio y fin únicamente en móvil y reserva una columna fija para el calendario; el contenedor del filtro puede encogerse junto al botón de quitar filtro. Las fechas completas DD/MM/AAAA quedan legibles a 320 px sin recortar texto ni ocultar desbordamiento, mientras que desde 640 px se conserva la distribución horizontal.
+
+## [8.1.2] - 2026-09-08
+
+### Auditoría visual V26 (presentación y accesibilidad, sin reglas de negocio)
+
+- V26-01 `DataTablePaginationV2` / `TablePagination`: el pie apila selector+rango sobre la navegación en móvil (`sm:` vuelve a una fila) y sustituye la numeración por «N de M»; Anterior/Siguiente conservan handlers y estados. Regresión: `src/components/feedback/__tests__/TablePagination.test.tsx`.
+- V26-02 `SidebarNavSection`: el disparador de grupo es un `<button type="button">` real vía `SidebarGroupLabel asChild` (Tab, Enter/Espacio, foco visible), sin listeners manuales ni botones anidados; estilo y estado recordado intactos.
+- V26-03 `InvoicesToolbar` / `DateRangePickerField`: etiqueta visible «Fecha de emisión», ancho `sm:w-80` y nombres accesibles completos («Fecha de emisión — inicio/fin», «Abrir calendario de Fecha de emisión»); con `label` vacío se usa «Rango de fechas» y no se renderiza `<Label>` vacío.
+- V26-04 `SearchBar`: `type="search"` y `aria-label` (por defecto el placeholder contextual del módulo, sobreescribible); placeholder, debounce, limpieza y atajo sin cambios. Regresión: `src/components/forms/__tests__/SearchBar.test.tsx`.
+- V26-05 `DateRangePickerField`: el diálogo pasa de `min-w-[22rem]` a `min-w-[min(22rem,calc(100vw-2rem))]` con `max-w-[calc(100vw-2rem)]`, padding responsive y footer que envuelve; dos meses en escritorio, uno en móvil.
+- V26-06 `KpiTile`: `h-full` en enlace/botón y tarjeta, contenido alineado arriba y altura reservada de 2 líneas en la etiqueta: todas las tarjetas de la fila miden lo mismo sin truncar importes ni títulos.
+- V26-07 `QuoteTypeCard`, `CustomerSelector` (nueva prop `compact`, usada sólo desde `CustomerField`) y `QuoteForm` (`space-y-4`): se retiran encabezados redundantes y se reduce el padding; orden, validaciones, controles táctiles y ayuda se conservan.
+- V26-08 `QuoteDetailActions`: en convertidas se elimina la CTA deshabilitada «Ya convertida a Reserva» (redundante con el badge), «Ver reserva» pasa a acción principal y Eliminar baja de énfasis manteniendo `RoleGuard` y confirmación; sin reserva ligada queda el aviso de estado en texto.
+
+## [8.1.1] - 2026-09-08
+
+### Correcciones (auditoría ronda 2)
+
+- TS-05 (accesibilidad del menú): `NavLink` ahora pasa `activeOptions={{ exact, includeSearch: false }}` al enlace de TanStack, de modo que el estado activo nativo (`aria-current="page"`) coincide con el resaltado visual. En `/invoices/reconciliation` sólo «Conciliación CFDI» queda como página actual; las listas con filtros y los detalles siguen activando su sección. Regresión con router real en `src/layouts/__tests__/NavLinkActive.test.tsx`.
+- AUTH-REC-01 (recuperación de contraseña): nuevo estado explícito del flujo (`src/features/auth/recoverySession.ts`) detectado en arranque en frío antes de que el SDK limpie el fragmento y confirmado ÚNICAMENTE por el evento `PASSWORD_RECOVERY`, capturado temprano en `src/features/auth/recoveryCapture.ts` (sin tokens persistidos, sin logs, sin red ni llamadas al SDK dentro del callback). Una sesión previa de otra persona ya no confirma la recuperación (auth-js 2.115.0 la conserva cuando el enlace falla), y un enlace incompleto/inválido termina en error con un límite de espera, nunca en `pending` infinito ni en autorización. `AuthGuard` mantiene `AuthPage` mientras el flujo esté activo y se añade la ruta pública `/auth`, destino de los enlaces de restablecimiento e invitación. Los enlaces expirados estándar sin `type` (`error_code=otp_expired`) ya se reconocen. Tras cambiar la contraseña o iniciar sesión en `/auth` se navega al destino normal (el guard decide interno/portal); cancelar sólo cierra la sesión cuando es la de recuperación, y «Solicitar un enlace nuevo» abre el formulario de correo. P1b: el flujo activo guarda en memoria SÓLO el id del usuario validado; si el SDK cierra sesión o cambia de cuenta (otra pestaña) la recuperación se invalida y el formulario deja de poder actualizar o cerrar esa sesión ajena, mientras que un refresco de token del mismo usuario la conserva. Un único listener (`recoveryCapture`) gobierna el estado con identidad; se retiran las reactivaciones sin identidad de `AuthContext` y de `AuthPage`. Sin cambios de guards, RLS ni reglas de negocio; no se registran ni se propagan tokens.
+
+## [8.1.0] - 2026-09-08
+
+### Seguridad de pruebas (producción protegida)
+
+- Nuevo guard fail-closed `tests/e2e/fixtures/productionGuard.ts`: lista negra del ref productivo, exigencia de `E2E_ISOLATED_BACKEND=1`, destino obligatorio y host local/efímero (escape remoto explícito y aun así sujeto a la lista negra). Comprueba variables de cliente (VITE__) y de servidor (SUPABASE__).
+- Invocado antes de login, de `ensureE2eSeedEnabled`, del seeding y del teardown (`purge_e2e_data`), y en `supabaseEnv()` como chokepoint único.
+- CI: el job `e2e` deja de recibir secretos productivos, exige `E2E_SUPABASE_URL` aislado y verifica que `dist/client` no fue compilado contra producción; sin precondición el job falla explícitamente (no se silencian tests).
+- Los suites SQL ya usaban Postgres local efímero (127.0.0.1:54322) con rollback: sin cambios.
+
+## [8.0.0] - 2026-09-08
+
+### Mayor (migración de framework)
+
+- Migración completa del stack Classic (Vite + React Router) a TanStack Start con SSR. 62 rutas convertidas a archivos TanStack Router; guards de acceso (AuthGuard, RoleGuard, AdminRouteGuard) preservados y verificados mecánicamente uno a uno (56 entradas de cobertura).
+- Alias históricos (/expenses, /accounts-payable, /payments, /prospects, /availability, /cash-flow, /conciliacion, /bank-reconciliation, /customers/new) y /login siguen redirigiendo igual; portal de clientes con sus 11 vistas y login en /portal/login.
+- Compat layer `src/lib/router-compat.tsx` (useNavigate, useLocation, useParams, useSearchParams, useBlocker, useNavigationType, Link, Navigate, Outlet) — las pantallas no cambian de comportamiento.
+- Metadatos SEO, favicon, fuentes, Sentry, shim Intl.Locale y recarga por chunks stale portados a `src/routes/__root.tsx`; tema Tailwind conservado (147 tokens/utilities re-aplicados).
+- Los 23 servicios backend (Edge Functions) permanecen en su lugar sin cambio de URL: 4 cron, clúster fiscal CFDI compartido, 2 con dependencias Deno y 7 internos candidatos a migrar después.
+- Fix: `OfflineBanner` asumía `navigator.onLine` en el servidor y causaba mismatch de hidratación; ahora sincroniza tras hidratar.
+- Gates verificados: build limpio, `tsc --noEmit` 0 errores, 62/62 rutas responden 200 en SSR, sin errores de runtime tras hidratación.
+
+## [7.423.3] - 2026-09-08
+
+### Corrección (timbrado de complemento de pago)
+
+- REP: la razón social del receptor se normaliza con `sanitizeLegalName` (mayúsculas, sin acentos, sin régimen societario), igual que en `stamp-cfdi` y `stamp-credit-note`. Corrige el rechazo del SAT CFDI40145 "El campo Nombre del receptor debe pertenecer al nombre asociado al RFC".
+- Receptor global (XAXX010101000) timbra como "PUBLICO EN GENERAL"; se elimina el fallback a "Público General" para receptores con RFC real.
+- Fail-fast (400) en español si falta la razón social del receptor, liberando el claim para reintentar tras corregir el cliente.
+- El 502 del PAC ahora devuelve el mensaje real del SAT en vez de "Facturapi error: 400". Sin cambios de reglas de negocio, RLS, importes ni datos.
+
+## [7.423.2] - 2026-09-07
+
+### Corrección (auditoría externa verificada)
+
+- Invitación al portal: si el correo ya pertenece a otra cuenta, la edge function `invite-customer` responde 409 "Ya existe un usuario con ese correo" y la pantalla muestra el motivo real en español, en vez de un error genérico.
+- Verificación de la auditoría externa (9 hallazgos): 6 no existen en el código actual (`v_supplier_bills`, `pickupHorometerSchema.ts`, policy "public access" en facturas, tolerancia bancaria ya presente, limpieza de caché al cerrar sesión ya presente, periodos recurrentes ya calculados en America/Monterrey en el servidor). Sin cambios de reglas de negocio, RLS, importes ni datos. No publicado.
+
+## [7.423.1] - 2026-09-07
+
+### Corrección (Bug 3 endurecido en base de datos)
+
+- Entregas: la justificación para completar sin operador ni firma ya no depende sólo de la pantalla; un trigger de base de datos (`trg_delivery_completed_evidence`) exige `completed_no_evidence_reason` con contenido al dar de alta una entrega ya completada o al pasarla a completada cuando `driver_name` y `signature_base64` están vacíos (espacios en blanco no cuentan).
+- Históricos intactos: la regla sólo se evalúa en el alta o en la transición a completada; las entregas que ya estaban completadas sin evidencia (ENT-0027 y compañía) siguen siendo editables y no se modificó ningún dato.
+- Pruebas: nuevo smoke SQL `r_fix41_delivery_evidence_smoke.sql` (firma, operador, razón, rechazo en alta y en transición, histórico editable) y ajuste mínimo del fixture de `fix03_m7_m8_l2_smoke.sql` (sus entregas de prueba ahora llevan operador). Sin cambios de RLS, permisos ni máquinas de estado. No publicado.
+
+## [7.423.0] - 2026-09-03
+
+### Corrección (regresión v7.422.0 — atomicidad y coherencia de facturas agrupadas)
+
+- Facturas: crear o editar una factura con sus reservas ahora ocurre en UNA sola transacción de base de datos (RPC `save_invoice_with_bookings`); un fallo al ligar cualquier reserva revierte todo — ya no pueden quedar facturas parciales o huérfanas.
+- Concurrencia: candados advisory por reserva (misma clave md5/60-bits y orden ascendente que la facturación recurrente) adquiridos ANTES del chequeo de duplicados; dos intentos simultáneos con la misma reserva+período (incluida como secundaria) dejan exactamente una factura y el perdedor recibe un error claro sin persistir nada. Verificado con 4 POST simultáneos y carrera de reserva secundaria contra la base real.
+- Multi-selección: sólo se pueden agrupar reservas del mismo cliente, misma moneda/tipo de cambio y exactamente el mismo periodo facturable canónico; las incompatibles se deshabilitan con la razón ("moneda distinta", "periodo facturable distinto", etc.) y la misma regla se valida al guardar (cliente y servidor). Sin conversión automática de monedas.
+- Periodo: `billingPeriodEnd` obligatorio con reserva, inicio ≤ fin, y el periodo debe caber en el rango de TODAS las reservas seleccionadas — validado en el formulario y de nuevo dentro del RPC transaccional; se eliminó el fallback silencioso a un mes ajeno a la reserva.
+- Bloqueo optimista intacto: `expectedVersion`/`stale_write` se conserva y un guardado fallido ya no consume la versión (el reintento usa la misma sin falso conflicto).
+- Datos históricos intactos: FAC-0113 (hash y versión verificados), reservas legadas por `booking_id` directo y regla canónica de facturas canceladas sin cambios.
+
+## [7.422.0] - 2026-09-03
+
+### Corrección (9 bugs de auditoría)
+
+- Entregas: `completed_at` lo sella el servidor en toda transición a completada (trigger en DB); el navegador ya no envía fecha, eliminando completadas sin fecha o con fecha anterior a la creación. Históricos ENT-0027/0028/0029/0031/0032/0033 intactos.
+- Entregas: completar sin operador ni firma exige una justificación breve (nuevo campo `completed_no_evidence_reason`) en detalle, alta histórica y registro post-reserva.
+- Facturas: el período inicial prellenado siempre se acota a las fechas de la reserva; una recurrente que termina dentro de su mes inicial ya no hereda el mes de emisión.
+- Facturas agrupadas: la sincronización de reservas es atómica en DB (RPC `sync_invoice_bookings`) con bloqueo de duplicados por reserva+período contra facturas no canceladas (incluye `booking_id` legado).
+- Panel: los KPIs financieros distinguen carga (skeleton), error ("No disponible" + reintentar) y cero real; se acabaron los $0 falsos.
+- Navegación: "Búsqueda global" ahora es "Navegación rápida" con placeholder "Ir a…" (Ctrl+K se conserva).
+- Cotizaciones: pestañas en plural (Todas, Borradores, Enviadas, Aceptadas, Convertidas, Rechazadas, Expiradas, Canceladas); badges siguen en singular.
+- Cuentas bancarias: botones de editar/eliminar con aria-label contextual, tooltip y tamaño de icono consistente.
+
+## [7.421.3] - 2026-09-03
+
+### Corrección
+
+- Facturas: la lista ya no descarga todo el historial en cadena al abrirla o filtrar; sólo pide la siguiente página del servidor cuando el usuario llega a la última página ya cargada.
+
+## [7.421.2] - 2026-09-03
+
+### Corrección
+
+- Contratos: el candado de "un contrato vigente por reserva" ahora vive en la base de datos (trigger transaccional) y valida contra todos los contratos, sin importar su fecha; el índice con corte por fecha dejaba pasar un contrato nuevo frente a duplicados históricos.
+- Bloquea también mover un contrato a una reserva ocupada y reactivar uno cancelado si duplicaría; cancelar sigue permitido (incluso varios cancelados por reserva).
+- Seguro ante concurrencia y clientes externos; los históricos CTR-0002/CTR-0003 permanecen intactos y la UI conserva su aviso "Ya existe un contrato para esta reserva".
+
+## [7.421.1] - 2026-09-03
+
+### Corrección (10 hallazgos confirmados)
+
+- Panel: alerta de seguros sin equipos de prueba (E2E); refleja la flota real.
+- Facturas: una sola paginación por páginas (sin "Mostrando…" ni "Cargar más").
+- Inicio de sesión: el error de un intento fallido se descarta al reintentar o al entrar con éxito.
+- KPIs: títulos largos con wrap de dos líneas en vez de truncarse.
+- Entregas: badge "Atrasada" derivado con fecha local (sin desfase UTC).
+- Contratos: candado de un contrato vigente por reserva (aviso claro + índice único; históricos intactos).
+- Bitácora: identidad "Sistema" única y campos técnicos traducidos al español.
+- Devoluciones: el inspector se registra automáticamente con el usuario autenticado (solo admin puede cambiarlo).
+- Estado de resultados: "Egresos antes de depreciación" + tarjeta "Depreciación total".
+
+## [7.421.0] - 2026-09-03
+
+### Función
+
+- Invitación al portal: enlace de acceso + mensaje en español con contexto del portal, listos para copiar y compartir.
+
+## [7.420.5] - 2026-09-03
+
+### Corrección
+
+- Invitación al portal: ahora sí se envía el correo de acceso (antes sólo se generaba el enlace sin enviarlo).
+
+## [7.420.4] - 2026-09-03
+
+### Corrección
+
+- Invitar al portal: el rol administrativo ya puede crear accesos de cliente (antes sólo admin), y los errores muestran el motivo real en español.
+
+## [7.420.3] - 2026-09-02
+
+### Corrección
+
+- Pagos a proveedores: cada pago se liga al lote vigente de su factura (si existe), evitando cancelar un lote ya pagado y volver a exportarlo.
+- Timbrado automático: la cola de reintentos y la reconciliación tienen presupuesto de tiempo por corrida y lotes más chicos; sus crons se escalonan para no encimarse.
+
+## [7.420.0] - 2026-09-02
+
+### Corrección (auditoría ronda 3)
+
+- Complemento de pago: el IVA se desglosa por partida de la factura original (exentas, tasa 0 y tasas mixtas) en vez de una sola tasa de encabezado.
+- Complemento de pago: un REP cancelado que falla al re-timbrarse vuelve a estado cancelado y puede reintentarse.
+- Saldo anterior del complemento: un pago con complemento cancelado ya no reduce el saldo declarado.
+- Pagos a proveedores: la liga pago-lote es explícita; un abono manual ya no bloquea la cancelación del lote.
+- Clientes: la edición guarda la tasa de IVA del cliente.
+- Facturación recurrente: los extras se consideran cobrados sólo si hay factura vigente con esas partidas, incluyendo las ligadas directo a la reserva.
+- Moneda extranjera: cotizaciones y vista previa recurrente exigen tipo de cambio real (no 0 ni 1).
+- Exportación de facturas a CSV con columnas Moneda y Tipo de cambio.
+
+## [7.419.0] - 2026-09-02
+
+### Corrección (auditoría ronda 2)
+
+- Notas de crédito: el máximo acreditable convierte los pagos con complemento vigente a la moneda de la factura; sin tipo de cambio se bloquea la emisión con explicación.
+- Complemento de pago: saldo anterior con todos los pagos válidos y parcialidad contada sólo con complementos vigentes.
+- Pagos a proveedores: cada pago se liga al lote vigente de su factura; cancelar un lote ya no se bloquea por abonos ajenos previos.
+- Flujo de efectivo: las rentas recurrentes se proyectan con IVA del cliente (16% por omisión, 0% si está configurado así).
+- Facturación recurrente: seguro y logística de la cotización se cobran una sola vez, en la primera factura de la reserva.
+- Mantenimiento: no se puede programar un servicio que se traslapa con reservas confirmadas (con días de colchón).
+
+## [7.418.2] - 2026-09-02
+
+### Corrección (pruebas)
+
+- Las 9 pruebas de documentos PDF fallaban tras la actualización de jsdom 30: el mock de react-pdf pasaba estilos como arreglo al DOM y jsdom lo rechaza. El mock ahora aplana los arreglos de estilos antes de renderizar; sin cambios en producción.
+
+## [7.418.1] - 2026-09-02
+
+### Corrección (guardrail de arquitectura)
+
+- El chequeo arch-check ya reconoce `src/lib/domain/bookingRates.ts` como archivo legítimo: lo usan reservas y facturas, y moverlo a un solo feature violaría la regla de imports cruzados (G5).
+- Se documentó la excepción en el README de `lib/domain`.
+
+## [7.418.0] - 2026-09-02
+
+### Corrección (auditoría fixes_lovable: facturación y datos fiscales)
+
+- Un periodo recurrente cuya factura fue cancelada vuelve a poder facturarse: el índice único ya sólo considera facturas vigentes.
+- Las tarifas de la factura manual y las de una extensión usan la misma regla: la tarifa pactada manda sólo si es mayor a cero; en cero o vacía se usa la del catálogo.
+- El cliente ahora tiene campo de tasa de IVA (por ejemplo 8% en frontera) y la factura la toma automáticamente al elegirlo.
+- Los cargos extra de seguro y logística ya no se vuelven a precargar si la reserva ya los tiene facturados, evitando doble cobro.
+- La edición de cotizaciones congela la versión al abrir el formulario, de modo que el candado contra cambios simultáneos vuelve a ser efectivo.
+- Una factura en moneda extranjera ya no acepta tipo de cambio 1.00: se exige el tipo de cambio real para que los indicadores no se distorsionen.
+
+## [7.417.2] - 2026-09-02
+
+### Mantenimiento (actualización de dependencias)
+
+- Se actualizaron dompurify (3.4.14), react-dropzone (20.1.1), jsdom (30.0.1), @types/node (26.4.1) y eslint-plugin-react-refresh (0.5.5) sin cambios de comportamiento.
+- react-table permanece en v8: la v9 cambia la API por completo y exigiría migrar el DataTable; se evaluará como proyecto aparte.
+- TypeScript permanece en 5.x hasta que typescript-eslint soporte la v7.
+
+## [7.417.1] - 2026-09-02
+
+### Corrección (estabilidad de CI y conciliación)
+
+- La conciliación bancaria dejó de consultar una columna inexistente en pagos a proveedores; conserva la exclusión de pagos de clientes marcados como pruebas.
+- Las pruebas del asistente recurrente ahora reflejan correctamente que nada inicia preseleccionado.
+- Vitest y su cobertura quedaron en la misma versión, y la configuración ya no depende de `__dirname`.
+- Se resolvieron los avisos de imports, complejidad y tamaño reportados por ESLint sin cambiar comportamiento.
+
+## [7.417.0] - 2026-09-02
+
+### Corrección (remediación integral R10)
+
+- Indicadores financieros, MRR y rentabilidad por montacargas usan la regla canónica de tipo de cambio; los equipos archivados permanecen en la depreciación histórica hasta su fecha de baja.
+- La conciliación bancaria excluye datos E2E y `fx_is_missing` queda restringida a roles autenticados y de servicio.
+- Las reservas no recurrentes se precargan completas al facturar manualmente; las recurrentes conservan su primer periodo prorrateado.
+- El proceso recurrente informa cuando alcanza el límite de 24 periodos y cuántos quedan pendientes, sin generar periodos adicionales.
+- Eliminar y cancelar reservas evita dobles envíos; el diálogo de cancelación sólo cierra cuando la operación termina correctamente.
+- Los totales y CSV de mantenimiento respetan filtros; la exportación de facturas consulta hasta 10,000 filas con los filtros activos.
+- Desactivar recurrencia requiere confirmación explícita. Los smoke tests SQL ahora fallan de verdad ante una regresión.
+
+## [7.416.0] - 2026-09-02
+
+### Mejora (optimización móvil, fase 2)
+
+- `src/lib/charts/useChartSizing.ts` (nuevo): medidas de gráficas dependientes del ancho (tick, eje X rotado, ancho de eje Y, alto del área, truncado de etiquetas).
+- Reportes adaptados: Utilización de Flota, Ingresos por Mes, Costos de Mantenimiento, Utilización por Modelo y Rentabilidad por Modelo.
+- Fichas de detalle (Reserva, Cliente, Montacarga, Proveedor, Entrega, Devolución): `md:grid-cols-2` → `sm:grid-cols-2` y `gap-4 sm:gap-6`, para dos columnas desde 640 px.
+- Sin cambios de backend, reglas de negocio, RLS ni permisos.
+
+## [7.415.3] - 2026-09-02
+
+### Fix (auditoría móvil en celular plegable 692×764)
+
+- Auditoría visual con navegador real a 692×764 en Panel, Reservas, Clientes, Facturas, Flota, Mantenimiento, Cotizaciones y Reportes: sin desbordamiento horizontal, cajón del menú lateral y tarjetas móviles correctos.
+- `FormDialog.tsx`: el `p-6` del contenedor scrollable impedía que el footer sticky llegara al borde; quedaban ~25 px de formulario asomando bajo los botones. Ahora `pb-0` en el scrollport, `pb-6` en el cuerpo y `-mb-6` en el footer.
+- `FormDialogFooter`: padding inferior con `env(safe-area-inset-bottom)` para la barra de gestos del teléfono.
+- Sin cambios de backend, reglas de negocio, RLS ni permisos.
+
+## [7.415.2] - 2026-09-01
+
+### Fix (pulido visual: sidebar colapsado y modales)
+
+- Auditoría visual con navegador sobre sidebar y modales.
+- `SidebarBranding.tsx`: en modo icono (riel de 3rem) el recuadro del logo (h-12, max-w-10rem) se desbordaba y quedaba cortado; ahora encoge a 8×8 con padding reducido.
+- `SidebarUserFooter.tsx`: correo, rol y número de versión se salían del riel al colapsar; ahora se ocultan y los botones (tema, contraseña, salir) se apilan verticalmente centrados.
+- `FormDialog.tsx`: el `pb-20` del cuerpo scrollable dejaba ~5rem de hueco muerto debajo del footer sticky en todos los modales de formulario. Eliminado (el footer ya es el último hijo del scroll, no hay solapamiento).
+- `dialog.tsx`: el botón de cerrar usa `CloseIcon` del registro en vez de importar `X` por el wildcard de lucide.
+- Sin cambios de backend, reglas de negocio, RLS ni permisos.
+
+## [7.415.1] - 2026-09-01
+
+### Patch (UX: wizard recurrente sin preselección)
+
+- Reporte de usuario: al abrir la vista previa de facturas recurrentes, algunas líneas venían preseleccionadas. Era por diseño ("fila nueva y seleccionable se marca por defecto"), pero el equipo prefiere selección explícita.
+- Cambio (solo frontend, `src/features/invoices/lib/recurringSelection.ts`): `resolveId()` ya no devuelve `"selected"` para filas nuevas; la selección inicia vacía (fail-closed) y sólo el toggle del operador agrega filas. Activar la confirmación de tarifa modificada habilita las líneas con `rateWarning` pero ya no las marca solas.
+- Protecciones intactas: lo desmarcado no resucita con refrescos (R8-12), cambio de monto/periodo exige re-aprobación (R8-05), la intención sobrevive a ausencias temporales (R9-01) y la selección es por reserva + periodo (R9-18).
+- Texto del diálogo: "Desmarca las que quieras excluir" → "Marca las que quieras incluir".
+- Sin cambios en backend, elegibilidad, prorrateo ni en la Edge Function. Tests: `recurringSelection.test.ts` actualizado (19/19 ok).
+
+## [7.414.3] - 2026-09-01
+
+### Fix (UX: eliminar reserva confirmada terminaba en reporte de error)
+
+- Error reportado: admin intentaba eliminar una reserva `confirmed` y recibía `DB_PERMISSION_DENIED` con el mensaje crudo de la RPC `delete_booking` ("Solo se pueden eliminar reservas canceladas o completadas").
+- Causa: `BookingActions.tsx` mostraba el botón **Eliminar** habilitado para reservas confirmadas, acción que siempre falla en el servidor.
+- Corrección (solo frontend): el botón usa `BlockedActionButton` y queda bloqueado con tooltip explicativo cuando la reserva está confirmada ("Primero usa Cancelar y después podrás eliminarla"); en `cancelled`/`completed` funciona como antes. Nuevo código de bloqueo `booking_not_final_for_delete` en `businessBlocks.ts` con patrón de error mapeado.
+- Backend intacto: `delete_booking`, triggers, RLS y máquina de estados sin cambios. Tests nuevos en `bookingDeleteGuard.test.ts`.
+
+## [7.414.2] - 2026-09-01
+
+### Fix (hotfix: ficha de cliente no cargaba)
+
+- Error reportado en producción: `/customers/:id` mostraba "No se pudo cargar la información" con `42702 column reference "fx_missing" is ambiguous`.
+- Causa: la CTE `scoped` de `public.get_customer_summary` hacía `SELECT v.*` sobre `v_invoices_with_balance` (que ya expone `fx_missing`) y además agregaba un alias calculado con el mismo nombre.
+- Corrección (solo SQL, `CREATE OR REPLACE`): se elimina el alias redundante; la función usa la columna `fx_missing` de la vista (misma regla canónica `fx_is_missing`). El JSON de salida es idéntico.
+- Sin cambios en RLS, permisos, reglas de negocio ni en la vista. Warnings del security linter posteriores a la migración son preexistentes del proyecto.
+
+## [7.414.1] - 2026-09-01
+
+### Fix (primer ciclo: días al precio diario)
+
+- `prorateMonthlyLine()` (`src/lib/domain/firstBillingPeriod.ts`): devuelve `quantity = días facturados`, `unitPrice = renta mensual / días del mes` (6 decimales, CFDI 4.0) y `total = round2(qty × precio)`. Reemplaza a `prorateMonthlyAmount()` (eliminado, sin otros consumidores).
+- `buildLinesForBooking`: la partida del primer ciclo ya no es `1 × importe prorrateado`; ahora es `N días × precio diario` con descripción `Renta <mes año> (N días al precio diario)` y `clave_unidad: DAY`.
+- Sin cambios en el motor recurrente, esquema, RLS, RPC, permisos ni reglas fiscales.
+- Pruebas actualizadas en `firstBillingPeriod.test.ts` y `useInvoiceFormHandlers.test.ts` (28/30/31 días e inicio día 1).
+
+## [7.414.0] - 2026-09-01
+
+### Feature (primer ciclo prorrateado en facturas desde reserva)
+
+- `src/lib/domain/firstBillingPeriod.ts` (nuevo): `firstBillingPeriod(start,end)` recorta el primer periodo al fin del mes de inicio cuando la reserva se extiende más allá, y `prorateMonthlyAmount()` replica la fórmula en centavos de `generate-recurring-invoices/prorate.ts`.
+- `buildLinesForBooking` (`useInvoiceFormHandlers.ts`): reserva de largo plazo que inicia a mitad de mes ⇒ una sola partida `Renta mensual (prorrateo N días)` con `quantity: 1` (invariante timbrable `total = qty × precio`); inicio el día 1 ⇒ `generateLineItems` sobre el rango recortado (mes completo). Rentas dentro del mismo mes: sin cambios.
+- `handleBookingsChange` precarga `billingPeriodStart/End` con el periodo recortado cuando aplica; si no, conserva el mes de emisión (H-6).
+- Sin cambios en el edge function recurrente, esquema, RLS, RPC, permisos ni reglas fiscales.
+- Pruebas: `src/lib/domain/__tests__/firstBillingPeriod.test.ts` (7) y 3 casos nuevos en `useInvoiceFormHandlers.test.ts`.
+
+## [7.413.0] - 2026-09-01
+
+### Fix (cierre R9 · recurrentes, REP y reportes)
+
+- R9-18 fail-closed: `supabase/functions/generate-recurring-invoices/selection.ts` filtra exclusivamente por `selections` (vacío/inválido ⇒ 0) o, si `selections` no vino, exclusivamente por `bookingIds` (vacío ⇒ 0). Sin ningún selector devuelve `null` y `index.ts` responde 400 "Se requiere una selección explícita" sin escribir. El cron mutante sigue siendo no-op.
+- R9-17: la recuperación de mantenimiento reporta `pendingRemaining` tras el tope de 12 meses y el cursor sólo avanza hasta lo realmente creado.
+- R9-02 (REP): `resolveRepExchange` es la única decisión compartida por `validateRelatedInvoiceExchange` y `computeRepExchange`. Misma moneda ⇒ 1; factura extranjera + pago MXN ⇒ TC de la factura (finito, > 0, != 1); factura MXN + pago extranjero ⇒ TC del pago; dos extranjeras distintas ⇒ falla cerrada antes del PAC. `index.ts` pasa `payment.exchange_rate`.
+- Reporte mensual: `report_revenue_by_month` no reinterpreta la moneda del pago con la de la factura. Estado de cuenta: `get_customer_summary` advierte también pagos sin conversión válida.
+- Pruebas: `selection_test.ts` cubre selección vacía, inválida, inexistente, legacy y sin selector; `decisions_test.ts` cubre la matriz de monedas del REP; `supabase/tests/r9_payment_fx_smoke.sql` ahora usa `ON_ERROR_STOP on` y `RAISE EXCEPTION` (mantiene BEGIN/ROLLBACK) y agrega una prueba semántica de `get_customer_summary`.
+- R9-12: la aplicabilidad de 629/630 se documenta contra el catálogo oficial del SAT descargado de omawww.sat.gob.mx (`catCFDI_V_33_23032023.xls`, hoja `c_RegimenFiscal`: Física="Sí", Moral="No", vigencia 01-01-2024). Sin cambios de aplicabilidad.
+- YAGNI: se elimina `roadmap.md`.
+
+## [7.412.0] - 2026-09-01
+
+### Fix (facturación recurrente manual)
+
+- Se desprogramó el cron `generate-recurring-invoices-daily` (migración con `cron.unschedule`): los borradores de renta mensual ya no se crean solos, porque agrupar/separar reservas en una factura es decisión del operador.
+- `supabase/functions/generate-recurring-invoices/index.ts`: si la llamada viene autenticada como cron y no es `preview`, la función responde `skipped: "automatic_generation_disabled"` sin escribir nada (fail-safe si el job se reagenda por error).
+- Vista previa: cuando el siguiente periodo aún no empieza y el mes EN CURSO ya está facturado, se agrega una línea `already_invoiced` con el número y la liga de la factura existente, además de la línea `period_in_future`.
+- `RecurringPreviewBody.tsx`: nuevo aviso "El periodo en curso ya está facturado" cuando no hay líneas elegibles.
+- Sin cambios en prorrateo, FX, IVA, `allowStaleRate`, agrupación ni en el RPC `create_recurring_invoice`.
+
+## [7.411.1] - 2026-09-01
+
+### Refactor (YAGNI · verificaciones R9)
+
+- `supabase/tests/r9_fx_canonical_guard.sql`: se elimina el bloque 2 (escaneo global de deriva FX sobre todas las funciones y vistas de `public` buscando `tipo_cambio > 0` / `COALESCE(..., 1)`). Era un lint arquitectónico sin caso confirmado; se conservan las aserciones directas sobre los consumidores migrados, la matriz de `fx_to_mxn`/`fx_convert_amount` y los checks de las vistas.
+- `supabase/tests/r9_lote_ac_smoke.sql`: se elimina el conteo espejo de utilización (dos consultas idénticas comparadas entre sí, imposible de fallar). La paridad se afirma sobre el fuente de `report_utilization_by_unit` y `report_utilization_by_model`.
+- Decisión documentada: la ronda R9 no introduce tablas, colas, estados, overrides ni sistemas de reparación nuevos. Las señales de R9-05 son mensajes dentro del `details[]` que el cron ya devolvía. Los helpers `fx_to_mxn`, `fx_convert_amount` y `bank_amount_in_account_currency` se conservan porque tienen consumidores reales (vistas y RPC de bancos), no como capa especulativa.
+- Fuera de alcance por indicación explícita: R9-15, R9-17 (se mantiene el límite de 12 meses), R9-18, R9-19, R9-20 y R9-22.
+- Sin cambios de comportamiento, UI, esquema ni permisos.
+
+## [7.411.0] - 2026-09-01
+
+### Fix (auditoría R9 · lotes A, B y C — 17 hallazgos)
+
+LOTE A · integridad y fiscal
+
+- R9-01: `set_supplier_bill_approval_status()` compara también `NEW.total` vs `OLD.total`, de modo que un cambio de importe con TC faltante (ambos totales MXN en NULL) ya no sale por el no-op sin re-evaluar aprobación. Guards de pagos, aprobada y segregación de funciones intactos.
+- R9-02: nuevo `supabase/functions/_shared/fxGate.ts`; los tres timbrados comparten el mismo gate FX (`fx_is_missing` en TS): divisa sin TC válido (null, <= 0 o exactamente 1) no se timbra.
+- R9-03: `get_customer_summary()` se calcula desde `v_invoices_with_balance` y expone `fx_missing_count`; el PDF de estado de cuenta muestra la advertencia en lugar de sumar 1:1. Sigue SECURITY DEFINER con `search_path` fijo.
+- R9-13: `stamp-credit-note/handler.ts` usa actualización condicional y consulta al PAC antes de reintentar, eliminando el doble timbrado de una misma nota de crédito.
+
+LOTE B · barrido canónico de FX
+
+- Nuevos helpers SQL `public.fx_to_mxn` y `public.fx_convert_amount` como única autoridad de conversión.
+- R9-06: `v_invoices_with_balance` soporta pagos cross-currency en ambos sentidos y expone `payments_fx_missing`.
+- R9-07: `v_overdue_invoices` sin fallback 1:1.
+- R9-09: seis consumidores SQL (reportes, dashboard y rentabilidad) migrados a los helpers; `supabase/tests/r9_fx_canonical_guard.sql` impide reintroducir reglas FX duplicadas.
+- R9-10: `create_recurring_invoice()` falla cerrado ante TC inválido en divisa.
+- R9-11: en `useAccountsPayableKpis`, una bill en divisa sin TC cuenta en `countPorAprobar` sin sumar importe a `totalPorAprobar`.
+
+LOTE C · operación, reportes y coherencia
+
+- R9-04: nuevo `public.bank_amount_in_account_currency`; auto-match, candidatos y confirmación comparten una sola conversión. Sin TC no hay candidato (NULL, no importe crudo). Locks, roles e idempotencia sin cambios.
+- R9-23: `unmatch_bank_line()` sólo revierte líneas `matched`/`suggested` y ya no borra `ignored_reason`.
+- R9-05: `generate-recurring-maintenance/logic.ts` verifica la existencia real del log cuando el claim es rechazado (evita huecos permanentes) y reporta rollback fallido/desplazado en vez de silenciarlo.
+- R9-08: la depreciación de `get_income_statement()` filtra `forklifts.deleted_at IS NULL`.
+- R9-12: catálogo SAT — 629 y 630 sólo persona física.
+- R9-14: `resolveVatRatePercent` distingue 0% explícito de dato ausente (16%).
+- R9-16: `report_utilization_by_unit` y `report_utilization_by_model` comparten universo de flota (sin archivados, vendidos/retirados ni `is_e2e`).
+- R9-21: el drag & drop del Kanban de mantenimiento archivado ya no invalida la caché del tablero activo.
+- Excluidos por indicación explícita: R9-15, R9-17, R9-18, R9-19, R9-20; R9-22 ya resuelto.
+- Smoke: `supabase/tests/r9_lote_ac_smoke.sql`, `supabase/tests/r9_fx_canonical_guard.sql`. Pruebas: `src/lib/money/__tests__/vatRate.test.ts`, `useAccountsPayableKpis.fxMissing.test.ts`, `generate-recurring-maintenance/logic_test.ts`, `_shared/fxGate_test.ts`.
+
+## [7.410.0] - 2026-09-01
+
+### Security (auditoría R10 · cuentas por pagar) — R10-01 / R10-02
+
+- R10-01: `public.request_bill_reapproval()` podía resolver una factura **rechazada** a `not_required` cuando el total en MXN quedaba bajo `company_settings.cxp_approval_threshold_mxn`, borrando además `rejected_by/rejected_at/approval_notes`. El propio solicitante (admin/administrativo) borraba así un rechazo explícito y la factura quedaba pagable sin segundo par de ojos.
+- R10-01: ahora la reaprobación fija **siempre** `approval_status = 'pending'` (nunca `not_required`, nunca `approved`), sin importar umbral ni tipo de cambio. Sólo limpia `approved_by/approved_at`; la evidencia del rechazo se conserva hasta que un aprobador resuelva el nuevo ciclo. `supplier_bill_approvals` y `activity_feed` siguen registrando el evento `reapproval_requested`.
+- R10-01: por coherencia, `set_supplier_bill_approval_status()` también fuerza `pending` cuando `OLD.approval_status = 'rejected'` y se corrige un campo financiero (antes podía caer en `not_required` por debajo del umbral). El resto de la re-evaluación de R9-08 no cambia.
+- R10-02: `set_supplier_bill_approval_status()` y `guard_supplier_bill_approval()` retornaban temprano cuando `auth.jwt() ->> 'role'` era NULL, es decir cualquier conexión sin JWT (SQL directo, backfills, herramientas internas) se saltaba el recálculo de aprobación y los candados de "ya aprobada" / "ya tiene pagos".
+- R10-02: se elimina ese bypass. Se conservan sólo los dos caminos confiables: rol de servicio real (`auth.jwt() ->> 'role' = 'service_role'` y, en el trigger no-DEFINER, `current_user = 'service_role'` por el `SET ROLE` de PostgREST) y la convención interna acotada `app.cxp_rpc = 'on'` que ya usan `approve_supplier_bill`, `reject_supplier_bill` y `request_bill_reapproval`.
+- Sin cambios en RLS, permisos, UI, portal, facturación recurrente, normalización fiscal ni mantenimiento.
+- Smoke: `supabase/tests/r10_cxp_approval_integrity_smoke.sql`.
+
+## [7.409.6] - 2026-09-01
+
+### Refactor (auditoría R9 · deduplicación y privilegios) — R9-04 / R9-06 / R9-10 / R9-05
+
+- R9-04: `stamp-cfdi/handler.ts` usa `resolveReceptorRegimenFiscal` del módulo compartido (igual que NC y REP). Comportamiento idéntico: global XAXX -> `"616"`, no global -> valor recortado + `isValidRegimenFiscalCode`. Sin cambios en el payload al PAC. Función redesplegada.
+- R9-06: nueva migración idempotente que revoca `EXECUTE` de PUBLIC/anon/authenticated sobre `public.normalize_regimen_fiscal(text)` y conserva `service_role`. Sin llamadas desde la app (sólo aparece en `types.ts` generado). Incluye assert de privilegios en la propia migración.
+- R9-10: `src/features/dashboard/lib/collectionForecast.ts` delega en el `isFxMissing` canónico de cash-flow; se conserva la bandera `fx_missing` de la vista y todos los cálculos/filtros del pronóstico.
+- R9-05: sin cuarta lista. Nueva prueba `satRegimenSqlParity.test.ts` deriva los códigos del catálogo del frontend y los contrasta con el fuente SQL de `normalize_regimen_fiscal`.
+- R9-07 intencionalmente sin cambios (no hay consumidor service/cron actual; sería especulativo).
+
+## [7.409.5] - 2026-09-01
+
+### Fix (auditoría R9 · portal) — R9-09
+
+- `derivePortalKpis` contaba en `fxMissingCount` cualquier factura en divisa sin tipo de cambio válido, incluidas las de saldo cero, que no distorsionan ningún total en MXN.
+- Ahora sólo se cuentan las facturas con saldo real por convertir (> `BALANCE_EPSILON`, la tolerancia ya usada por el Estado de Cuenta y el filtro "Solo con saldo").
+- Se reutiliza la regla canónica `isFxMissing` de cash-flow; sin nuevas reglas FX ni umbrales mágicos. Resto de KPIs del portal sin cambios.
+- Pruebas: `src/features/portal/lib/__tests__/portalKpis.test.ts`.
+
+## [7.409.4] - 2026-09-01
+
+### Fix (auditoría R9 · régimen fiscal) — R9-03
+
+- La reparación de `receptor_regimen_fiscal` de R8-14 sólo cubría `status='draft'`, pero existen facturas `sent`/`partial`/`paid` sin timbrar (`cfdi_uuid IS NULL`) que siguen siendo fiscalmente mutables y timbrables.
+- Nueva migración inmutable con predicado por estado de emisión fiscal: `cfdi_uuid IS NULL AND cfdi_status NOT IN ('stamped','cancelled') AND status <> 'cancelled' AND cancellation_status IN ('none','')`. Las canceladas quedan fuera aunque no tengan UUID (evidencia congelada).
+- Reutiliza `public.normalize_regimen_fiscal(text)`; sólo escribe cuando la normalización es determinista y cambia el valor. Ambiguos intactos. Idempotente; 0 filas candidatas en vivo antes y después.
+- Sin cambios en notas de crédito, complementos de pago, snapshots fiscales ni otros campos de la factura. Ningún cambio de TypeScript.
+- Smoke: `supabase/tests/r9_03_regimen_fiscal_no_timbradas_smoke.sql`.
+
+## [7.409.3] - 2026-09-01
+
+### Fix (auditoría R9 · cuentas por pagar) — R9-08
+
+- `set_supplier_bill_approval_status()` sólo recalculaba desde `pending`/`not_required`: una factura rechazada que se corregía (total, moneda o tipo de cambio) seguía `rejected` y quedaba fuera de los KPIs y del aging de CxP pese a tener saldo. Ahora `rejected` también entra a la re-evaluación cuando cambia un campo financiero relevante.
+- La re-evaluación limpia `rejected_by`, `rejected_at` y `approval_notes`, y resuelve a `pending` (umbral superado o FX faltante, fail-closed con `public.fx_is_missing`) o `not_required`. Nunca auto-aprueba.
+- `public.request_bill_reapproval()` deja de forzar siempre `pending`: aplica el mismo umbral (`company_settings.cxp_approval_threshold_mxn`) y la regla canónica de tipo de cambio faltante.
+- Sin cambios en RLS, segregación de funciones, candados de factura aprobada/con pagos ni semántica de borradores. Las ediciones no financieras (p. ej. `notes`) no alteran el estado de aprobación.
+- Smoke: `supabase/tests/r9_08_supplier_bill_rejected_recalc_smoke.sql` (bajo umbral → not_required, sobre umbral → pending, USD TC=1 → pending, notas → rejected intacto, candado de aprobada intacto).
+
+## [7.409.2] - 2026-09-01
+
+### Fix (auditoría R9 · facturación recurrente) — R9-01 / R9-02
+
+- R9-01: `reconcileRecurringSelection` conserva `history` e `intentSelected` de las reservas ausentes del preview mientras el diálogo siga abierto, así una fila que desaparece y reaparece con la misma firma material mantiene la intención del operador en vez de auto-seleccionarse como nueva.
+- Una reaparición con firma distinta (periodo, monto facturable, IVA o prorrateo) sigue quedando desmarcada y requiere re-aprobación manual (comportamiento R8-05 intacto).
+- R9-02: `RecurringInvoicesPreviewDialog` detecta la transición de cierre→apertura y reinicia `allowStaleRate=false` y la selección desde el preview actual; el consentimiento de tarifa modificada es explícito por sesión y no se hereda al reabrir.
+- Dentro de una sesión abierta no cambia nada: los refrescos del preview no reinician las decisiones y el switch de tarifa modificada sólo afecta a las líneas con aviso.
+- Tests: `recurringSelection.test.ts` (+4) y nuevo `src/features/invoices/components/recurring/__tests__/RecurringInvoicesPreviewDialog.test.tsx` (3).
+
+## [7.409.1] - 2026-09-01
+
+### Fix (auditoría R8 · cierre de bajos) — R8-11 / R8-13 / R8-14
+
+- R8-11: el KPI "sin tipo de cambio" de CxP contaba antes de filtrar borradores mientras el aging los excluía; ahora ambos cuentan el mismo universo exigible (no borrador, con saldo) con el predicado canónico `isFxMissing`.
+- R8-13: migración idempotente que hace explícita la decisión de privilegios sobre `public.releasable_payment_locks(integer)` (sin EXECUTE para anon/authenticated). Los wrappers SECURITY DEFINER siguen funcionando. La entrada en `types.ts` es informativa, no una frontera de autorización.
+- R8-14: nuevo `public.normalize_regimen_fiscal(text)` y reparación fail-safe de `receptor_regimen_fiscal` sólo en facturas borrador sin timbrar con prefijo determinista de código SAT soportado (0 filas candidatas en vivo). No se toca ningún documento timbrado, enviado, pagado o cancelado.
+- Tests: `useAccountsPayableKpis.test.ts` (+2) y smoke `supabase/tests/r8_13_14_privilegios_regimen_smoke.sql`.
+
+## [7.409.0] - 2026-09-01
+
+### Fix (auditoría R8 · CFDI régimen fiscal) — R8-06 / R8-09
+
+- R8-06: nuevo helper compartido resolveReceptorRegimenFiscal; el receptor global (XAXX010101000) envía exactamente `616` al PAC en stamp-credit-note y stamp-payment-complement (antes podía ir la etiqueta heredada "616 - Sin obligaciones fiscales").
+- R8-09: aplicabilidad explícita para 607, 609, 611, 615, 628, 629 y 630; se elimina el fallback permisivo que aceptaba persona física y moral para códigos sin matriz.
+- Fallback conservador: un código sin aplicabilidad declarada ya no aplica a nadie (falla cerrado).
+- Pruebas nuevas: `supabase/functions/_shared/regimenFiscal_test.ts` (3) y `src/lib/fiscal/regimenFiscal.test.ts` (5, incluye paridad de catálogos cliente/servidor).
+
+## [7.408.0] - 2026-09-01
+
+### Fix (auditoría R8 · facturación recurrente) — R8-05 / R8-12
+
+- Nuevo reducer puro `src/features/invoices/lib/recurringSelection.ts`: la selección del asistente se reconcilia contra las filas actuales del preview en vez de reconstruirse desde cero.
+- R8-05: las reservas que desaparecen, dejan de ser elegibles o cambian de periodo / monto facturable / IVA se desmarcan y no se vuelven a marcar solas (requieren re-aprobación explícita).
+- R8-12: lo que el operador desmarcó nunca se re-agrega por un refresh del preview ni por alternar la confirmación de tarifa modificada; ese switch sólo agrega las líneas con `rateWarning` no desmarcadas.
+- Sin cambios de backend: elegibilidad, prorrateo y el candado `allowStaleRate` siguen siendo autoridad del Edge Function.
+- Tests: `src/features/invoices/lib/__tests__/recurringSelection.test.ts` (19 casos).
+
+## [7.407.1] - 2026-09-01
+
+### Fix (auditoría R8 · CxP) — R8-10
+
+- `set_supplier_bill_approval_status`: el total en MXN se calculaba con `COALESCE(NEW.exchange_rate, 1)`, así que una divisa sin TC real (nulo, <= 0 o exactamente 1) se convertía 1:1 y podía quedar por debajo del umbral como `not_required`.
+- Ahora usa el helper canónico `public.fx_is_missing(currency, exchange_rate)`: si el TC falta o es inválido en moneda extranjera, `approval_status` = `pending` (fail closed) y no se inventa total en pesos.
+- La comparación de UPDATE también considera el cambio de validez del TC; umbral, segregación de funciones, guards de pagos y transiciones de estatus quedan intactos.
+- Smoke: `supabase/tests/r8_10_supplier_bill_fx_approval_smoke.sql` (MXN bajo/sobre umbral, USD TC=20 bajo/sobre umbral, USD 0 / negativo / 1 => pending, matriz de `fx_is_missing`, alta pre-aprobada sigue bloqueada).
+
+## [7.407.0] - 2026-09-01
+
+### Fix (auditoría R8 · consistencia FX) — R8-02 / R8-03 / R8-04
+
+- Nuevo helper SQL canónico `public.fx_is_missing(moneda, tipo_cambio)`: divisa con TC nulo, <= 0 o exactamente 1. MXN nunca es fx_missing.
+- `v_invoices_with_balance`: `fx_missing`, `total_mxn` y `balance_mxn` derivan del helper (TC = 1 en divisa ya no convierte 1:1). Se conserva `security_invoker = true`.
+- `get_financial_kpis`: MRR actual/previo y `overdue_total` excluyen documentos fx_missing y sus contadores (`mrr_fx_missing_count`, `mrr_prev_fx_missing_count`, `overdue_fx_missing_count`) usan el mismo predicado. Recreada con `CREATE OR REPLACE` completo (sin parcheo por string).
+- `get_portal_invoices`: deja de hacer `COALESCE(tipo_cambio, 1)`; devuelve el valor real (nullable). Guards de rol/RLS sin cambios.
+- Portal: `derivePortalKpis` y el nuevo `lib/statementRows.ts` reutilizan el helper TS canónico `isFxMissing` de cash-flow; el Estado de Cuenta excluye esas filas de los totales MXN, muestra el aviso y el filtro "Solo con saldo" usa `balanceMxn`.
+- Tests: `statementRows.test.ts`, `portalKpis.test.ts` y smoke `supabase/tests/r8_fx_missing_smoke.sql` (matriz MXN / USD null / 0 / negativo / 1 / 18).
+
+## [7.406.2] - 2026-09-01
+
+### Fix (monitoreo)
+
+- Kanban de mantenimiento: el optimistic update usaba la key `{forkliftId: null}` mientras la lista se cachea como `{forkliftId: null, archived: false}`; ahora ambos comparten `maintenanceLogQueries.list(...)`, así la tarjeta se queda en la columna destino sin esperar el refetch.
+
+## [7.406.1] - 2026-09-01
+
+### Fix (auditoría R8 · cron de mantenimiento)
+
+- `generate-recurring-maintenance`: el catch-up mensual se extrajo a `logic.ts` (testeable sin red) manteniendo las reglas de negocio.
+- Un `23505` contra el índice único parcial `(policy_id, policy_month)` se trata como mes ya generado: avanza `lastOkMonth` y continúa el catch-up (R8-01).
+- El rollback de `last_generated_month` es compare-and-set (`.eq('last_generated_month', month)`): una corrida concurrente no puede ser retrocedida (R8-07).
+- `claimErr` corta el bucle de meses de esa póliza (antes `continue`, que podía dejar un hueco permanente) (R8-08).
+- Nuevos tests Deno en `logic_test.ts`: recuperación tras fallo transitorio con duplicado posterior, rollback condicional y corte por claim fallido.
+
+## [7.406.0] - 2026-09-01
+
+### Fix (auditoría R7 · lote 3)
+
+- `get_income_statement`: nueva CTE `contributing_bill_ids` — el gasto operativo ligado a una `supplier_bill` sólo se deduplica si esa factura aporta al periodo/base (antes desaparecía del P&L si la factura estaba cancelada/draft/rechazada, sin TC o impaga en base cash) (R7-10).
+- CxP: el botón "Liberar bloqueos" se habilita con `count_releasable_payment_locks` (universo completo, mismas precondiciones del RPC) y muestra el conteo liberado en un toast (R7-12).
+
+## [7.405.0] - 2026-09-01
+
+### Fix (auditoría R7 · lote 2)
+
+- `_shared/regimenFiscal.ts`: catálogo `c_RegimenFiscal` completo (añadidos 609/628/629/630) y `normalizeRegimenFiscal` con frontera `(?!\d)` — "6010" ya no se normaliza a "601" (R7-04, R7-16).
+- `src/lib/domain/satCatalogs.ts` alineado 1:1 con el catálogo del servidor (R7-04).
+- `stamp-credit-note` y `stamp-payment-complement` aplican el fail-fast 422 de régimen fiscal antes de llamar al PAC (R7-03).
+- `isFxMissing` (cash-flow y `collectionForecast`) trata TC = 1 en moneda foránea como faltante; `parseCfdiXml` devuelve `exchangeRate: null` sin `TipoCambio` y el formulario de CxP rechaza TC = 1 en divisa (R7-08).
+- `useAgingReport` itera `visibleListRows` igual que los KPIs de CxP (R7-13).
+- `FinancialKpiCards`: la tarjeta de MRR vigente muestra sólo su propio conteo de exclusiones (R7-14).
+- Verificado en producción: sin snapshots legacy de régimen fiscal (R7-07) y sin duplicados que bloqueen `operating_expenses_supplier_bill_id_uniq` (R7-17).
+
+## [7.404.0] - 2026-09-01
+
+### Fix (auditoría R7 · lote 1)
+
+- `set_supplier_bill_approval_status` usaba `supplier_payments.supplier_bill_id` (inexistente): toda edición de monto/moneda de una factura con pagos fallaba con 42703.
+- `release_bills_on_batch_delete` ya no libera facturas que siguen en otro lote vivo; `release_stale_payment_locks` comparte predicado con la nueva `releasable_payment_locks` y libera lotes abandonados sin pagos.
+- `maintenance_logs.policy_id`/`policy_month` + índice único parcial: el cron de pólizas es idempotente y el rollback del claim ya no salta meses.
+- `v_booking_occupancy` con `security_invoker = on` y casts de fecha en America/Monterrey.
+- `get_financial_kpis`: TC ≤ 0 se trata como faltante (antes restaba del MRR).
+- Portal: el saldo pendiente excluye facturas en divisa sin TC y muestra el conteo excluido.
+- Vista previa de recurrentes: activar `allowStaleRate` ya no reinicia las deselecciones manuales.
+
+## [7.403.0] - 2026-09-01
+
+### Fix (auditoría R6 · gastos + MRR)
+
+- `operating_expenses.supplier_bill_id` poblado por backfill 1:1 (131/142) y con índice único parcial; la heurística monto+fecha queda sólo como respaldo legacy.
+- `get_financial_kpis` expone `mrr_prev_fx_missing_count`; el KPI de MRR avisa las rentas en divisa excluidas por falta de TC (nunca 1:1).
+
+## [7.402.0] - 2026-09-01
+
+### Fix (auditoría R6 · recurrentes + contratos)
+
+- Los periodos recurrentes cuya reserva se editó después del periodo ya no se facturan sin confirmación explícita del operador (fail-closed); el cron nunca los factura.
+- La vista previa marca esos periodos y exige confirmar antes de incluirlos; la respuesta reporta `skippedStaleRate`.
+- Backfill: los contratos firmados sin respaldo ahora tienen su copia inmutable de cliente, unidad y plantilla.
+
+## [7.401.0] - 2026-09-01
+
+### Fix (auditoría R6 · fiscal + CxP)
+
+- El timbrado valida que el régimen fiscal del receptor sea un código de 3 dígitos del catálogo SAT (c_RegimenFiscal) y responde 422 explicando el error antes de llamar al PAC.
+- `parse-csf` normaliza el régimen fiscal extraído al código puro; si no es reconocible, deja el campo vacío.
+- Al eliminar un lote de pago a proveedores, se liberan las facturas sin pagos registrados (`payment_in_progress_at`).
+- Nuevo RPC `release_stale_payment_locks` (admin/administrativo) y botón "Liberar bloqueos" en Facturas de Proveedor para facturas atoradas >24 h sin lote vivo ni pagos.
+
+## [7.400.0] - 2026-09-01
+
+### Fix (auditoría R5 · integridad)
+
+- Archivar una orden de trabajo abierta ya no borra sus refacciones ni su mano de obra.
+- Nueva vista "Archivados" en Mantenimiento y Seguimiento de Daños con restauración para administradores (queda en bitácora).
+- Una cotización convertida vuelve a "Aceptada" cuando todas sus reservas se cancelan.
+- La liberación de un daño al cancelar/eliminar su factura queda registrada en la bitácora del equipo.
+- Criterio único de "unidad devuelta" basado en la inspección de retorno.
+
+## [7.399.0] - 2026-09-01
+
+### Feature (auditoría R5)
+
+- Los administradores pueden reabrir una OT cerrada por error desde el detalle de mantenimiento (con motivo obligatorio).
+- Los cambios de estatus de reserva usan bloqueo optimista: si otro usuario ya la movió, el sistema avisa en vez de pisar el cambio.
+
+## [7.398.2] - 2026-09-01
+
+### Fix (auditoría R5)
+
+- Una cotización cuyas reservas fueron todas canceladas ya puede eliminarse; las que tienen reservas vigentes o están aceptadas siguen protegidas.
+- En el calendario, el mantenimiento se dibuja como la ventana completa (fecha del servicio ± los días de holgura configurados) en lugar de una marca de un solo día.
+- Las pruebas automáticas se ejecutan con zona horaria fija, eliminando una falla intermitente en el cálculo de vencimientos de facturas de proveedor.
+
+## [7.398.1] - 2026-08-31
+
+### Fix (validación fiscal SAT)
+
+- Se corrigió la lectura de la respuesta del PAC: la consulta valida el RFC contra la lista EFOS (art. 69-B) del SAT y devuelve el resultado dentro de `efos`, que antes no se interpretaba y marcaba a todos como con diferencias.
+- Cuando el SAT responde sin detalle, se guarda y muestra el mensaje textual del SAT en vez de dejar la columna en blanco.
+- Los mensajes de error del PAC se normalizan a un texto legible con el nombre del campo (RFC, razón social, régimen fiscal, C.P.).
+- Se ajustaron los textos de la pantalla para reflejar lo que realmente se valida: “Sin observaciones” / “Con observaciones (EFOS 69-B)” y datos fiscales incompletos.
+
+## [7.398.0] - 2026-08-31
+
+### Feature (cron CFDI + validación masiva SAT)
+
+- Las tareas programadas (reintentos de timbrado, reconciliación, facturación y mantenimiento recurrente) vuelven a ejecutarse: ahora aceptan tanto el secreto del entorno como el guardado en la bóveda de la base de datos.
+- Se eliminaron tareas programadas obsoletas y se reagendaron las vigentes con la firma correcta.
+- Nueva pantalla “Validación fiscal contra el SAT” en Clientes: valida en lote hasta 40 clientes por corrida, sin consumir timbres, y muestra el estado (coincide, diferencias, error) con la fecha de la última validación.
+- Cada cliente guarda su estado de validación fiscal, la fecha y el detalle de diferencias.
+- La validación fiscal de facturas y la masiva comparten la misma lógica de consulta al PAC.
+
+## [7.397.0] - 2026-08-31
+
+### Refactor (pulido YAGNI)
+
+- El historial de cambios abre mostrando las versiones recientes y carga el archivo completo solo cuando se pide, reduciendo la descarga inicial de ~650 KB a ~56 KB.
+- Se eliminaron tres funciones de servidor que ya no tenían consumidores.
+- Todas las pantallas usan un único formateador de fechas (zona horaria Monterrey), eliminando la variante duplicada en 61 archivos.
+- Se documentó en la arquitectura por qué se conservan las librerías con un solo punto de uso.
+- Sin cambios en reglas de negocio, permisos, RLS ni base de datos.
+
+## [7.396.2] - 2026-08-31
+
+### Fix (pruebas SQL de humo y permisos de periodos fiscales)
+
+- Las pruebas de humo dejaron de referenciar la columna inexistente `bill_date` (ahora `issue_date`) y apuntan a `sync_invoice_status`, donde vive la lógica de saldos.
+- Se actualizaron aserciones de texto desfasadas: buffer de mantenimiento configurable en `create_booking`, guard `(select auth.uid())` en `sync_forklift_rental_status`, liberación en `complete_return_inspection`, mensaje de `validate_transition`, FX en `trg_payment_amount_mxn`, bandera `app.maintenance_archive_rpc` y `app.e2e_seed`.
+- Se revocaron los permisos heredados del rol anónimo sobre `fiscal_periods` (las policies ya lo bloqueaban).
+- `useCustomerDetailPage` extrae el cálculo de totales para bajar la complejidad reportada por ESLint.
+
+## [7.396.1] - 2026-08-31
+
+### Fix (pruebas)
+
+- Las pruebas de `rfcOptional` usaban RFCs inventados sin dígito verificador válido y fallaban desde que A4-05 activó el checksum SAT; ahora usan ejemplos consistentes.
+- Sin cambios funcionales, de RLS ni de permisos.
+
+## [7.396.0] - 2026-08-31
+
+### Fix (estado de resultados, MRR, rechazo de CxP y quick wins)
+
+- **2A-1:** `get_income_statement` convierte gastos y facturas de proveedor en divisa con su tipo de cambio, excluye borradores y rechazadas, y reporta `fx_missing`; el reporte muestra un aviso cuando hay documentos sin tipo de cambio.
+- **A2-7:** `get_mrr_detail` excluye rentas recurrentes en divisa sin tipo de cambio y devuelve `fx_missing_count`; la pantalla de MRR avisa cuántas quedaron fuera.
+- **A6R2-2:** `supplier_bills` gana `rejected_by` / `rejected_at`; `reject_supplier_bill` deja de escribir en `approved_by` y el detalle muestra la fecha real de rechazo.
+- **A3B-05:** una cotización cuyas reservas fueron todas canceladas vuelve a ser convertible (RPC y UI ignoran reservas canceladas).
+- **A4-05:** el RFC opcional de clientes y proveedores valida el dígito verificador desde la captura.
+- **A5-05:** el formulario de cotización envía la versión leída (bloqueo optimista) y avisa si otro usuario guardó antes.
+- **A1-6:** al reeditar cotizaciones antiguas las partidas se deduplican por ocurrencia (no por modelo) y respetan el tipo de tarifa (diaria/semanal/mensual).
+- Sin cambios en RLS, permisos ni máquinas de estado.
+
+## [7.395.0] - 2026-08-31
+
+### Feature (buffer de mantenimiento configurable)
+
+- **A6R2-7:** el buffer de días alrededor del próximo servicio deja de estar hardcodeado; ahora vive en `company_settings.maintenance_buffer_days` (default 3, rango 0-30) y lo leen `create_booking`, `extend_booking` y `get_available_forklifts` vía `public.maintenance_buffer_days()`.
+- Nueva tarjeta **Buffer de Mantenimiento** en Configuración > Pólizas de Mantenimiento (`MaintenanceBufferCard`) con los hooks `useMaintenanceBuffer` / `useUpdateMaintenanceBuffer`.
+- Sin cambios en RLS, permisos ni máquinas de estado.
+
+## [7.394.0] - 2026-08-31
+
+### Fix (residuales fiscales y devoluciones)
+
+- **B5-02:** el PDF de estado de cuenta resta `total_credited` al saldo y muestra la tarjeta de notas de crédito.
+- **Residual (a):** `stamp-credit-note` y `stamp-payment-complement` ya no usan los defaults `616`/`06600`; exigen régimen y CP fiscal reales salvo receptor genérico `XAXX010101000`.
+- **Residual (b):** `create_recurring_invoice` ya no aplica `G03` por default; si el cliente no tiene uso de CFDI, el periodo falla con mensaje explicable.
+- **Residual (c):** la llave de agrupación de `generate-recurring-invoices` incluye moneda y tipo de cambio (ya no se mezclan MXN y USD en una factura).
+- **A3B-03:** `complete_return_inspection` rechaza `inspected_at` futuro (antes permitía hasta 30 días adelante).
+- Sin cambios en RLS, permisos ni máquinas de estado.
+
+## [7.393.2] - 2026-08-31
+
+### Chore (calidad de código)
+
+- Se redujo la complejidad reportada por ESLint: `quoteFormSchema` divide su `superRefine` en `refineRentalLines`/`refineSaleLines`/`refineDateRange`, `useQuoteDetailData` extrae `useQuoteLinks`, `ContractDetail` usa `ContractDetailFallback`/`InfoCard`/`depositProps` y `CalendarPage` mueve el Gantt a `components/calendar/GanttCard.tsx` con el hook `useMaintenanceWindows`.
+- Sin cambios funcionales, de validaciones, RLS, permisos ni cálculos.
+
+## [7.393.1] - 2026-08-31
+
+### Chore (arquitectura)
+
+- Se eliminaron los 2 imports profundos entre features detectados por `arch:check`: `useDamagePrefill` y `useAgingReport` ahora importan desde los barrels públicos `@/features/damage` y `@/features/cash-flow`.
+- Sin cambios funcionales, de RLS, permisos ni cálculos.
+
+## [7.393.0] - 2026-08-31
+
+### Fix (bugs abiertos — lotes 2 y 3)
+
+- **A6R2-5:** el kanban de mantenimiento ya no permite arrastrar una OT `completed`/`cancelled` a un estado abierto; muestra el bloqueo explicable `maintenance_work_order_closed` y la reapertura formal sigue siendo por `reopen_work_order` (admin + motivo).
+- **A6R2-6:** nuevo trigger `trg_release_damage_on_invoice_cancel` (+ borrado) que desliga el daño de la factura cancelada y lo regresa a `repaired`, para que vuelva a ser facturable.
+- **2A-8:** nueva vista `v_booking_occupancy` (entrega real / devolución real, rentas vencidas cuentan hasta hoy) usada por `utilization` y `monthly_utilization` en `get_dashboard_stats`.
+- **B5-06:** `sanitizeInvoiceSearchForQuery` también neutraliza `_`, que es comodín de `ilike`.
+- Sin cambios en RLS, permisos, máquinas de estado ni cálculos fiscales.
+
+## [7.392.1] - 2026-08-31
+
+### Fix (UX de bloqueos explicables — CxP)
+
+- `useApproveSupplierBill` acepta `onBusinessBlock` y `ApproveBillDialog` muestra `BlockedActionNotice` con el código `supplier_bill_self_approval` en vez del toast genérico.
+- Sin cambios en RLS, permisos, RPC ni cálculos.
+
+## [7.392.0] - 2026-08-31
+
+### Fix (catálogo QA — segregación de funciones CxP y utilización del tablero)
+
+- **CxP:** `approve_supplier_bill` rechaza la auto-aprobación (`created_by = auth.uid()`) con `check_violation`; se agregó el bloqueo explicable `supplier_bill_self_approval`.
+- **2A-7:** `get_dashboard_stats` excluye reservas `is_e2e` en `overdue_bookings`, `utilization` y `monthly_utilization`.
+- Sin cambios en RLS, permisos, máquinas de estado ni cálculos fiscales.
+
+## [7.391.0] - 2026-08-31
+
+### Fix (catálogo QA — lotes 2/3: A6R2-3, A6R2-4, 2A-9, A3B-03, A4B-05, estado de resultados FX)
+
+- **A6R2-3:** `capture_contract_signed_snapshot` + `contracts.signed_snapshot` guardan contrato, cliente, unidad y plantilla al firmar; el snapshot es inmutable y `src/lib/pdf/contract/fetchers.ts` lo usa para rendir el PDF de contratos firmados.
+- **A6R2-4:** `contracts.deposit_status/deposit_settled_at/deposit_settled_amount/deposit_notes` + RPC `set_contract_deposit_status` (admin/administrativo, monto ≤ depósito) y `ContractDepositCard`.
+- **Estado de resultados:** `get_income_statement` excluye documentos en divisa sin TC válido y facturas de proveedor `rejected`; expone `fx_missing`.
+- **2A-9:** `recurringBookingItems` proyecta las rentas recurrentes no facturadas dentro del horizonte del flujo de efectivo (FX-aware, marcadas `isProjected`).
+- **A3B-03:** la inspección de devolución rechaza fechas futuras.
+- **A4B-05:** RPCs `restore_customer` / `restore_supplier` (sólo admin). Falta la vista de archivados en UI.
+- Sin cambios en RLS, permisos, máquinas de estado ni cálculos fiscales existentes.
+
+## [7.390.0] - 2026-08-31
+
+### Fix (catálogo QA — lote 1: A4B-01/02/03/04/06, A3B-01/02/04/05/06, A1-1, 2A-1(parcial), 2A-3, 2A-4, 2A-5, 2A-6, A6R2-1, A6R2-8, A4B-08/09/10, B5-01, B5-07, B5-08)
+
+- **A4B-01/02/03:** `get_forklift_financials`, `get_customer_profitability` y `get_sidebar_badge_counts` excluyen OTs archivadas (`deleted_at`) y `is_e2e`.
+- **A4B-04:** `audit_fleet_status_consistency` y `guard_forklift_status_change` dejan de tratar OTs archivadas como abiertas.
+- **A4B-06:** `create_booking` rechaza montacargas archivados.
+- **A3B-02:** `sync_forklift_status_on_maintenance` devuelve la unidad a `rented` (no `available`) cuando sigue habiendo renta activa.
+- **A3B-06:** `sync_forklift_rental_status` no degrada unidades con daño/OT abierta y escribe `status_logs`.
+- **A3B-01/A3B-05:** `guard_quote_cancellation` cubre también `converted → cancelled`.
+- **A3B-04:** `cancel_booking` bloquea la cancelación si hay facturas emitidas vigentes ligadas.
+- **A1-1:** `create_recurring_invoice` recibe `p_moneda`/`p_tipo_cambio` (TC obligatorio en divisa) y `generate-recurring-invoices` los propaga desde la reserva.
+- **2A-4:** `prepare_payment_complement` descuenta NCs timbradas vigentes del `prior_balance`.
+- **A6R2-1:** `set_supplier_bill_approval_status` ahora corre en `INSERT OR UPDATE OF total, currency, exchange_rate`; reevalúa el umbral y bloquea cambios con pagos o ya aprobada.
+- **2A-5:** `parseAmount` interpreta `"1.500"` como miles.
+- Frontend: 2A-3 (rechazadas fuera de KPIs/aging), 2A-6 (fechas imposibles), B5-07 (Windows-1252), A4B-10 (5 MB CSF), A6R2-8 (reintento de captura), A4B-08/09 (catálogo SAT y validación RFC↔régimen), B5-08 (mes calendario), B5-01/B5-02/B5-04/B5-06 (moneda, tarifas legacy, redondeo por partida, saneado de búsqueda).
+- Sin cambios en permisos, RLS ni máquinas de estado.
+
+## [7.389.1] - 2026-08-31
+
+### Fix (QA — dígito verificador RFC)
+
+- `src/lib/fiscal/rfcChecksum.ts` mapeaba mal el módulo 11 del algoritmo SAT: el dígito correcto es `11 - (sum % 11)` con 11→"0" y 10→"A"; el código producía "10" (imposible) cuando el residuo era 1 y esperaba "A" cuando debía ser "1". ~2/11 de los RFCs reales eran rechazados en `rfcRequired()` (datos fiscales de la empresa, facturación).
+- `rfcChecksum.test.ts` ahora valida contra una implementación de referencia independiente y cubre los casos borde "0", "A" y "1".
+
+## [7.389.0] - 2026-08-31
+
+### Fix (auditoría QA — cierre de hallazgos abiertos: A1-B3, A2-3, A3-07, A5-05, A5-09)
+
+- **A1-B3:** `supabase/functions/stamp-credit-note/handler.ts` reconcilia el total devuelto por Facturapi contra `credit_notes.total` con `computeStampVariance` (mismo contrato que `stamp-cfdi`/BL-A5). Fuera de tolerancia persiste identidad fiscal + `cfdi_status='error'`, `stamp_variance`/`stamp_variance_checked_at` (columnas nuevas) y responde 502.
+- **A2-3:** nuevo `useCancelPaymentBatch` (RPC `cancel_supplier_payment_batch`); si `useExportPaymentsForm` crea el lote pero falla la descarga del Excel, el lote huérfano se cancela y libera las facturas. Las reglas de cancelabilidad siguen en el RPC.
+- **A3-07:** `validate_delivery_booking_integrity()` ya sólo exime del checklist a los UPDATE. Insertar una entrega con `status='completed'` vuelve a exigir reserva `confirmed` y fecha dentro de `start_date`/`end_date`.
+- **A5-05:** `useUpdateBooking` acepta `expectedVersion` opcional (patrón M-11a/R4-25) y distingue `stale_write` de un fallo por RLS; los cambios de estado internos conservan el comportamiento previo.
+- **A5-09:** `bank_statement_lines.occurrence` + índice único `(bank_account_id, hash, occurrence)`; `buildLine` calcula el hash sólo con el contenido del movimiento y `assignOccurrences` numera las repeticiones idénticas. Reimportar un archivo traslapado o reordenado ya no duplica, y dos movimientos legítimamente iguales se conservan.
+- Sin cambios en permisos, máquinas de estado, cálculos de totales ni RLS.
+
+## [7.388.0] - 2026-08-31
+
+### Fix (auditoría QA — A5-03, A2-9, A4-05, A5-05, A5-06, A5-07, A5-08)
+
+- **A5-03 (PUE):** `enforce_payment_within_invoice_total` rechaza pagos que dejen saldo pendiente en facturas con `metodo_pago='PUE'` y `cfdi_status='stamped'` (`check_violation`).
+- **A2-9:** nueva columna `operating_expenses.supplier_bill_id` (FK, `ON DELETE SET NULL`) e índice parcial; `get_income_statement` excluye del dedup heurístico los gastos ya ligados explícitamente.
+- **A4-05:** `src/lib/fiscal/rfcChecksum.ts` valida el dígito verificador SAT (con excepción de RFC genéricos) y se aplica en `rfcRequired`.
+- **A5-05:** `useUpdateQuote` acepta `version` opcional y aplica bloqueo optimista, avisando en vez de sobrescribir cambios ajenos.
+- **A5-06:** `generate-recurring-invoices/prorate.ts` prorratea en centavos enteros.
+- **A5-07:** `useGanttSegments`/`GanttRow`/`GanttChart`/`CalendarPage` pintan mantenimientos programados y OT abiertas como capa del Gantt.
+- **A5-08:** `forkliftFormSchema` obtiene el año de vigencia del seguro del string `YYYY-MM-DD`, sin `new Date(string)`.
+- **A3-01/A3-04:** la reasignación de cliente en cotizaciones aceptadas usa la RPC `reassign_quote_customer`; se retiró el cierre directo de reservas al marcar factura pagada.
+- Pendiente documentado: **A5-09** (hash de líneas bancarias) requiere rediseñar el índice único `bank_statement_lines_account_hash_uq` antes de quitar `lineSeq`.
+
+## [7.387.0] - 2026-08-30
+
+### Fix (auditoría QA — A2-1 saldo FX-aware en flujo de efectivo)
+
+- **A2-1:** `src/features/cash-flow/lib/cashFlowTransformers.ts` recalculaba el saldo sumando `payments.amount` crudo, asumiendo que el pago siempre viene en la moneda de la factura. La BD permite el cruce con tipo de cambio, así que un pago en MXN sobre una factura USD subestimaba (o desaparecía) el saldo proyectado.
+- `invoiceToItem(inv)` ahora consume `v_invoices_with_balance.balance_mxn`, el saldo canónico que ya usan cobranza y el portal: pagos convertidos con el TC del pago o del documento, NCs timbradas descontadas y conversión final a MXN. `balance_mxn` nulo (TC faltante) excluye la factura, igual que antes.
+- `cashFlowProjectionQueries.list` deja de descargar `payments`; `buildPaidByInvoice` queda deprecado para este flujo.
+- Sin cambios en SQL, RLS, permisos, máquinas de estado ni lógica fiscal.
+- Pruebas: `cashFlowTransformers.test.ts` y `cashFlowFxMissing.test.ts` (31 pruebas de cash-flow verdes).
+
+## [7.386.0] - 2026-08-30
+
+### Fix (auditoría QA — A1-B2 IVA de recurrentes, A5-02 tipo de cambio en cotizaciones)
+
+- **A1-B2:** `supabase/functions/generate-recurring-invoices/index.ts` calculaba el IVA con un solo `Math.round` sobre el subtotal agrupado, divergiendo de `computeTotals` y de Facturapi (que redondean por partida). Nuevo helper `sumLineTaxCents` en `supabase/functions/_shared/money.ts`.
+- **A5-02:** las cotizaciones en moneda distinta a MXN capturan `tipoCambio` (obligatorio > 0, mismo criterio que `invoiceFormSchema`), se persiste en `quotes.tipo_cambio` desde `buildQuotePayload` y `buildFromQuote` lo hereda al prellenar el CFDI. Antes quedaba en el DEFAULT 1 (paridad ficticia USD 1:1).
+- Sin cambios en SQL, RLS, permisos ni máquinas de estado.
+- Pruebas: `supabase/functions/_shared/money_test.ts`, `quoteFormPayload.test.ts` e `invoiceFormBuilders.test.ts`.
+
+## [7.385.0] - 2026-08-30
+
+### Fix (auditoría QA — A6-1 archivado de OT, A4-04 datos fiscales genéricos)
+
+- **A6-1:** `trg_sync_forklift_on_maintenance` ahora es `AFTER INSERT OR UPDATE OF work_status, deleted_at`. Antes sólo escuchaba `work_status`, así que archivar una OT `in_progress` (vía `soft_delete_maintenance_log`) dejaba el montacargas atascado en `maintenance` para siempre. `sync_forklift_status_on_maintenance()` trata la transición `deleted_at NULL -> NOT NULL` como cancelación y conserva todos los frenos: rentas `confirmed` vigentes, daños `reported`/`in_repair` y otras OT `pending`/`in_progress` mantienen la unidad en mantenimiento con su nota en `status_logs`.
+- **A4-04:** `supabase/functions/stamp-cfdi/handler.ts` deja de usar los defaults genéricos `616` (régimen) y `06600` (CP) para receptores con RFC real. Si faltan `receptor_regimen_fiscal` o `receptor_domicilio_fiscal_cp` responde 400, libera el claim y no llama al PAC. Público en General (`XAXX010101000`) conserva su comportamiento actual.
+- Sin cambios en RLS, permisos, costos, inventario ni cálculos fiscales.
+- Pruebas: `supabase/tests/r_fix38_maintenance_archive_releases_forklift_smoke.sql` y `supabase/functions/stamp-cfdi/handler_test.ts` (16 pruebas).
+
+## [7.384.0] - 2026-08-30
+
+### Fix (auditoría QA — críticos A5-01, A1-B1, A1-B3)
+
+- **A5-01 (sobrecobro de 1 día):** `src/lib/domain/rentalCalculation.ts` avanza un día el ancla del remanente cuando `addMonths` clampeó por mes corto (31-ene → 28-feb). Antes sólo neutralizaba el remanente si `endDate` era fin de mes, así que 31-ene → 01-mar facturaba 1 mes + 2 días cobrando dos veces el 28-feb. Reemplaza `isClampedShortMonthEnd` por `isClampedAnchor`.
+- **A1-B1 (línea de prorrateo intimbrable):** la línea `Renta mensual (prorrateo N días)` de extensiones sale con `quantity: 1` y `unit_price = total`, cumpliendo la invariante `total === unit_price × quantity` que exige el timbrado. Antes la división entre días dejaba centavos sueltos.
+- **A1-B3 (IVA de notas de crédito):** `supabase/functions/stamp-credit-note/handler.ts` respeta `objeto_imp === "01"` (línea sin traslados) y `tax_rate` por línea con fallback a la tasa de la NC, espejo de `stamp-cfdi`. También usa `clave_prod_serv` de la línea antes del genérico `84111506`.
+- Sin cambios en SQL, RLS, permisos ni máquinas de estado.
+- Pruebas: `src/lib/domain/__tests__/rentalCalculation.test.ts` (4 casos de mes corto + invariante timbrable) y `supabase/functions/stamp-credit-note/handler_test.ts` (objeto_imp/tasa por línea).
+
+## [7.383.1] - 2026-08-30
+
+### Fix (QA): `StatusChangeCard` bloqueaba unidades ya devueltas
+
+- La prevención en UI usaba sólo `currentStatus === 'rented'`, más estricta que el backend: `public.change_forklift_status` sólo rechaza cuando además `public.has_open_rental()` (entrega completada sin devolución). Una unidad devuelta que quedó en estado `rented` no podía volver a disponible/mantenimiento/venta/baja.
+- Se elimina el pre-bloqueo determinista; el rechazo real del backend se sigue explicando con `describeForkliftRentalBlock` vía `onBusinessBlock`. Sin cambios en SQL, RPC ni reglas.
+- Prueba de regresión: `src/features/fleet/components/forklift-detail/__tests__/StatusChangeCard.test.tsx`.
+
+## [7.383.0] - 2026-08-30
+
+### Feat (integridad): saldo pendiente como regla dura para archivar clientes
+
+- Nuevas funciones `public.customer_outstanding_balance(uuid)` y `public.customer_has_outstanding_balance(uuid)` (SECURITY DEFINER, `SET search_path = public`, `EXECUTE` revocado a `anon`/`authenticated`): definición canónica del saldo por cobrar reutilizando `v_invoices_with_balance` (`balance_mxn`, estados `sent`/`partial`/`overdue`, sin `cancellation_status = 'accepted'`) — la misma fuente que `get_customer_summary.outstanding_revenue`. Tolerancia monetaria 0.01, igual que los guards de pagos.
+- `public.soft_delete_customer()` y `public.guard_customer_archive()` aplican el MISMO helper: RPC y UPDATE directo no pueden divergir; la BD es la autoridad ante carreras. Rechazo de negocio con P0001 (`No se puede archivar: el cliente tiene saldo pendiente`); permisos siguen con 42501.
+- Sin cambios en v7.380.0: sólo admin/administrativo archivan, reservas `confirmed`/`in_progress` siguen bloqueando, desarchivar y ediciones normales intactas. No se borra, cancela ni desliga ninguna factura, pago o cobranza.
+- UX: nuevo código explicable `customer_outstanding_balance` en `lib/rules/businessBlocks` (+ patrón de reconocimiento); `CustomerDeleteDialog` usa esa copia canónica y muestra `BlockedActionNotice` si la BD rechaza por carrera (`useDeleteCustomer` acepta `onBusinessBlock`). El saldo mostrado usa `outstanding_revenue` canónico.
+- Pruebas: `supabase/tests/r_fix37_customer_outstanding_archive_smoke.sql` (catálogo + comportamiento, con ROLLBACK) y `CustomerDeleteDialog.test.tsx` (mapeo del bloqueo, copia canónica, carrera).
+
+## [7.382.0] - 2026-08-30
+
+### Fix (P2 integridad): el archivado de mantenimientos pasa siempre por el RPC canónico
+
+- Nueva función `public.guard_maintenance_archive()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_maintenance_archive` (BEFORE UPDATE OF `deleted_at` en `public.maintenance_logs`): sólo actúa en la transición `deleted_at IS NULL -> NOT NULL` y rechaza con 42501 (`El archivado de mantenimientos solo procede por soft_delete_maintenance_log`) cualquier UPDATE directo.
+- Decisión: **forzar el RPC** en vez de espejear reglas. `soft_delete_maintenance_log` tiene efectos colaterales (regla de OT cerrada sólo-admin y limpieza de `maintenance_parts`/`maintenance_labor` de OT abiertas, con devolución de inventario y recálculo de costo por trigger); duplicarlos en un guard habría creado dos definiciones divergentes.
+- `soft_delete_maintenance_log` conserva su semántica intacta; sólo marca la transacción con `app.maintenance_archive_rpc = 'on'` (local) alrededor del UPDATE.
+- Sin bypass para `service_role` ni para admin por SQL directo: la integridad manda. Sólo `app.e2e_seed = 'on'` queda exento, como el resto de guards del repo. `EXECUTE` del guard revocado a `anon`/`authenticated`.
+- Sin cambios en transiciones de estado de OT, costos, inventario, daños, permisos, desarchivado ni ediciones ordinarias. La UI ya usaba el RPC: no requiere cambios.
+- Pruebas: `supabase/tests/r_fix36_maintenance_archive_guard_smoke.sql` (catálogo + comportamiento, transacción con ROLLBACK).
+
+## [7.381.1] - 2026-08-30
+
+### Fix (UX): bloque explicable ante rechazo por carrera del guard de asignación de venta
+
+- `useCreateInvoice` ahora acepta `onBusinessBlock` (convención de fase 1/2); `useInvoiceFormSubmit` y `useInvoiceFormLogic` lo cablean sólo para el código `quote_sale_assignment_incomplete`.
+- Si `trg_guard_invoice_sale_assignment` rechaza el INSERT por carrera/estado obsoleto, el formulario reusa la pantalla existente `SaleAssignmentBlocked` en vez del toast genérico de error.
+- Sin cambios en SQL, reglas de negocio ni en la prevención determinística de la UI; los demás errores de facturación conservan su toast estándar.
+- Prueba de regresión: `useCreateInvoice.businessBlock.test.tsx` (bloque entregado + toast suprimido; errores no relacionados intactos).
+
+## [7.381.0] - 2026-08-30
+
+### Fix (P1-B integridad): guard de asignación completa para facturar cotizaciones de venta
+
+- Nueva función `public.quote_sale_units_unassigned(uuid)` (SECURITY DEFINER, `SET search_path = public`): espejo exacto de `useQuoteSaleAssignmentStatus` — partida de venta = descripción que termina en `- Venta de equipo`; requerido = `quantity` (0/NULL => 1); asignado = filas de `quote_assigned_forklifts` con ese `line_index`. `EXECUTE` revocado a `anon`/`authenticated`.
+- Nueva función `public.guard_invoice_sale_assignment()` y trigger `trg_guard_invoice_sale_assignment` (BEFORE INSERT en `public.invoices`): si la factura referencia una cotización con partidas de venta incompletas, rechaza con P0001 indicando cuántas unidades faltan. Cubre todas las rutas de alta (UI, RPC, edge functions, SQL directo).
+- Sin cambios para facturas sin `quote_id`, cotizaciones de renta ni cotizaciones totalmente asignadas. El guard no muta asignaciones ni el estatus de las unidades.
+- `service_role`/tareas internas también quedan sujetas a la regla (es invariante de integridad); sólo `app.e2e_seed = 'on'` está exento, como el resto de guards del repo.
+- `businessBlocks`: nuevo código `quote_sale_assignment_incomplete` con la copia canónica; el rechazo del backend por carrera/estado obsoleto se explica igual que la prevención de la UI (`SaleAssignmentBlocked`).
+- Pruebas: `supabase/tests/r_fix35_invoice_sale_assignment_guard_smoke.sql` y `src/lib/rules/__tests__/invoiceSaleAssignmentGuard.test.ts`.
+
+## [7.380.0] - 2026-08-30
+
+### Fix (P1 integridad): guard de archivado de clientes en la BD
+
+- Nueva función `public.guard_customer_archive()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_customer_archive` (BEFORE UPDATE OF `deleted_at` en `public.customers`): sólo actúa en la transición `deleted_at IS NULL -> NOT NULL`. Rechaza con 42501 si quien archiva no es `admin`/`administrativo` (ventas incluido, pese a la policy amplia) y con P0001 si el cliente tiene reservas activas.
+- Nuevo helper `public.customer_has_active_bookings(uuid)` con la definición canónica de reserva activa (`confirmed`, `in_progress`); `soft_delete_customer` lo reutiliza para evitar lógica duplicada. `EXECUTE` revocado a `anon`/`authenticated`.
+- El saldo pendiente NO se convierte en regla de base de datos: sigue siendo advertencia/bloqueo de UI (decisión de producto separada).
+- Desarchivar (`deleted_at` -> NULL) y las ediciones normales de clientes quedan sin cambios. Sin sesión (service_role/tareas) y con `app.e2e_seed = 'on'` el guard no interviene.
+- Pruebas: `supabase/tests/r_fix34_customer_archive_guard_smoke.sql` (catálogo + comportamiento por rol, transacción con ROLLBACK).
+
+## [7.379.0] - 2026-08-29
+
+### Fix (P0 integridad): guard de borrado de pagos a proveedor en la BD
+
+- Nueva función `public.guard_supplier_payment_delete()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_supplier_payment_delete` (BEFORE DELETE en `public.supplier_payments`): rechaza el borrado si `rep_status = 'received'` (P0001), si la factura de proveedor está `cancelled` (P0001) o si el usuario no es `admin` (42501).
+- Convención preservada: sin sesión (`auth.uid() IS NULL`, service_role/tareas) y con `app.e2e_seed = 'on'` el guard no interviene, igual que `validate_prospect_close()`.
+- `businessBlocks`: los mensajes del guard se mapean a `supplier_payment_rep_received` y `supplier_bill_cancelled`; `useDeleteSupplierPayment` acepta `onBusinessBlock` y `useSupplierPaymentActions` muestra el bloqueo del servidor con la misma copia que la prevención en UI.
+- Sin cambios en cálculos de saldo, emisión/recepción de REP, conciliación bancaria (`ON DELETE SET NULL` intacto) ni en la máquina de estados de facturas de proveedor.
 - Pruebas: `supabase/tests/r_fix33_supplier_payment_delete_guard_smoke.sql` (catálogo + comportamiento real por rol) y `src/lib/rules/__tests__/supplierPaymentDeleteGuard.test.ts`.
 
 ## [7.378.0] - 2026-08-29
