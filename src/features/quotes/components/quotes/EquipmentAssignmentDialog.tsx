@@ -90,6 +90,18 @@ interface EquipmentAssignmentDialogProps {
   isLoading?: boolean;
 }
 
+function AvailabilityErrorAlert({ onRetry }: { onRetry: () => void }) {
+  return (
+    <Alert variant="destructive">
+      <WarnIcon className="h-4 w-4" />
+      <AlertDescription>
+        No se pudo verificar la disponibilidad de los equipos.
+        <Button type="button" variant="link" onClick={onRetry}>Reintentar</Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
 export function EquipmentAssignmentDialog({
   open, onOpenChange, startDate, endDate, rentalMeta, models, forklifts, onConfirm, isLoading,
 }: EquipmentAssignmentDialogProps) {
@@ -97,10 +109,16 @@ export function EquipmentAssignmentDialog({
   // H11: reusar la RPC get_available_forklifts con la ventana de la cotización
   // para no ofrecer unidades con OT en curso o dentro del buffer de mantenimiento
   // (create_booking las rechazaría al confirmar).
-  const { availableForklifts, datesSelected } = useAvailableForklifts(
+  const {
+    availableForklifts, datesSelected,
+    isLoading: availabilityLoading, isSuccess: availabilityReady,
+    isError: availabilityError, refetch: retryAvailability,
+  } = useAvailableForklifts(
     startDate && endDate ? { from: parseISO(startDate), to: parseISO(endDate) } : undefined,
   );
-  const rpcAvailableIds = datesSelected ? new Set(availableForklifts.map((f) => f.id)) : null;
+  const availabilityUnresolved = datesSelected && !availabilityReady;
+  const rpcAvailableIds = datesSelected && availabilityReady
+    ? new Set(availableForklifts.map((f) => f.id)) : null;
   // El estado físico es canónico; la RPC valida por separado compromisos de la
   // ventana elegida y mantenimiento operativo.
   const { data: assignmentBookings } = useBookings();
@@ -126,6 +144,7 @@ export function EquipmentAssignmentDialog({
   const watched = useWatch({ control: form.control, name: "assignments" });
 
   const getAvailableForModel = (modelId: string, currentIndex: number) => {
+    if (availabilityUnresolved) return [];
     const model = models.find((m) => m.id === modelId);
     if (!model) return [];
     const alreadyAssigned = new Set(
@@ -179,7 +198,9 @@ export function EquipmentAssignmentDialog({
             <span className="text-sm font-semibold">{assignedCount} de {fields.length}</span>
           </div>
 
-          {modelsWithoutStock.length > 0 && (
+          {availabilityError && <AvailabilityErrorAlert onRetry={() => { void retryAvailability(); }} />}
+
+          {!availabilityUnresolved && modelsWithoutStock.length > 0 && (
             <Alert variant="destructive">
               <WarnIcon className="h-4 w-4" />
               <AlertDescription>
@@ -204,7 +225,10 @@ export function EquipmentAssignmentDialog({
                         <Badge variant="outline" className="text-xs">Unidad {index + 1}</Badge>
                       </div>
                       {available.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-2">No hay unidades disponibles</p>
+                        <p className="text-sm text-muted-foreground py-2">
+                          {availabilityLoading ? "Comprobando disponibilidad…" : availabilityError
+                            ? "No se pudo verificar la disponibilidad" : "No hay unidades disponibles"}
+                        </p>
                       ) : (
                         <Select value={field.value} onValueChange={field.onChange}>
                           <FormControl>
@@ -233,7 +257,7 @@ export function EquipmentAssignmentDialog({
           </div>
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isLoading} />
-            <Button type="submit" disabled={!form.formState.isValid || isLoading}>
+            <Button type="submit" disabled={!form.formState.isValid || isLoading || availabilityUnresolved}>
               {isLoading ? "Creando reservas…" : "Confirmar y Crear reservas"}
             </Button>
           </FormDialogFooter>
