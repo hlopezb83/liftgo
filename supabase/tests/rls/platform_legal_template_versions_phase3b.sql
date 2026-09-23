@@ -5,13 +5,17 @@ INSERT INTO public.organizations (id, name, slug, is_active) VALUES
   ('50000000-0000-4000-8000-0000000000a0', 'LiftGo Legal Platform A', 'liftgo-legal-platform-a', true),
   ('50000000-0000-4000-8000-0000000000b0', 'LiftGo Legal Platform B', 'liftgo-legal-platform-b', true);
 
-INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
-  ('50000000-0000-4000-8000-000000000001', 'platform.legal@test.local', now(), now()),
-  ('50000000-0000-4000-8000-000000000002', 'regular.legal@test.local', now(), now());
+SELECT set_config('app.organization_id', '50000000-0000-4000-8000-0000000000a0', true);
+
+INSERT INTO auth.users (id, email, created_at, updated_at, raw_user_meta_data) VALUES
+  ('50000000-0000-4000-8000-000000000001', 'platform.legal@test.local', now(), now(), '{"organization_id":"50000000-0000-4000-8000-0000000000a0"}'::jsonb),
+  ('50000000-0000-4000-8000-000000000002', 'regular.legal@test.local', now(), now(), '{"organization_id":"50000000-0000-4000-8000-0000000000a0"}'::jsonb);
 
 INSERT INTO public.profiles (user_id, full_name, email, is_active) VALUES
   ('50000000-0000-4000-8000-000000000001', 'Operador legal', 'platform.legal@test.local', true),
-  ('50000000-0000-4000-8000-000000000002', 'Usuario regular', 'regular.legal@test.local', true);
+  ('50000000-0000-4000-8000-000000000002', 'Usuario regular', 'regular.legal@test.local', true)
+ON CONFLICT (user_id) DO UPDATE
+SET full_name = EXCLUDED.full_name, email = EXCLUDED.email, is_active = true;
 
 INSERT INTO public.platform_operators (auth_user_id, notes)
 VALUES ('50000000-0000-4000-8000-000000000001', 'Prueba 0050');
