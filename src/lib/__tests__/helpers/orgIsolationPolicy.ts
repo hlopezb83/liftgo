@@ -39,13 +39,6 @@ export interface AllowEntry {
 
 export const ALLOWLIST: AllowEntry[] = [
   {
-    file: "src/lib/userAdmin.helpers.ts",
-    table: "organization_memberships",
-    match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,
-    reason:
-      "Compensación tras borrar la cuenta de autenticación recién creada: la clave es la identidad, no la empresa.",
-  },
-  {
     file: "src/lib/userAdmin.functions.ts",
     table: "organization_memberships",
     match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,
