@@ -230,6 +230,11 @@ BEGIN
   VALUES ('32000000-0000-4000-8000-000000000005', 'Asignación explícita de prueba')
   ON CONFLICT (auth_user_id) DO NOTHING;
 
+  -- 0055 difiere el perfil si auth.users no trae app_metadata de empresa.
+  INSERT INTO public.profiles (user_id, full_name, is_active)
+  VALUES ('32000000-0000-4000-8000-000000000005', 'Operador de prueba', true)
+  ON CONFLICT (user_id) DO UPDATE SET is_active = true;
+
   v_org := public.platform_create_organization(
     '32000000-0000-4000-8000-000000000005', 'Empresa Pendiente', 'empresa-pendiente-0031');
 

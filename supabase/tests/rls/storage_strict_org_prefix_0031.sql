@@ -73,6 +73,10 @@ BEGIN
   VALUES (v_actor, 'bootstrap de prueba 0031')
   ON CONFLICT DO NOTHING;
 
+  INSERT INTO public.profiles (user_id, full_name, is_active)
+  VALUES (v_actor, 'Operador Storage 0031', true)
+  ON CONFLICT (user_id) DO UPDATE SET is_active = true;
+
   PERFORM public.platform_set_organization_active(
     v_actor, '31000000-0000-4000-8000-00000000000c', false);
 END $suspend$;

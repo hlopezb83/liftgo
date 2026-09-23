@@ -501,6 +501,15 @@ BEGIN
   IF EXISTS (SELECT 1 FROM public.organizations WHERE id = v_org_b AND is_active) THEN
     RAISE EXCEPTION 'SUSPENSIÓN: B sigue activa';
   END IF;
+
+  -- El permiso excepcional de 0061 sólo cubre el primer administrador de
+  -- una empresa pendiente. Una empresa suspendida con miembros sigue cerrada.
+  BEGIN
+    INSERT INTO auth.users (id, email, raw_app_meta_data, created_at, updated_at)
+    VALUES ('30000000-0000-4000-8000-0000000000b2', 'nuevo-b@onboarding.test',
+            jsonb_build_object('organization_id', v_org_b::text), now(), now());
+    RAISE EXCEPTION 'SUSPENSIÓN: se aprovisionó usuario en empresa suspendida';
+  EXCEPTION WHEN check_violation THEN NULL; END;
 END;
 $$;
 

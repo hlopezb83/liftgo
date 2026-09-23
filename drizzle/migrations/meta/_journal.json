@@ -428,6 +428,13 @@
       "when": 1790874182000,
       "tag": "0060_profile_self_update_org_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1790874183000,
+      "tag": "0061_pending_organization_first_admin_provisioning",
+      "breakpoints": true
     }
   ]
 }
