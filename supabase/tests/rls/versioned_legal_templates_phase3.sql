@@ -28,6 +28,13 @@ INSERT INTO public.organization_memberships (organization_id, auth_user_id, memb
   ('49000000-0000-4000-8000-0000000000b0', '49000000-0000-4000-8000-0000000000b1', 'internal')
 ON CONFLICT DO NOTHING;
 
+INSERT INTO public.company_settings (
+  organization_id, razon_social, rfc, regimen_fiscal, lugar_expedicion
+) VALUES (
+  '49000000-0000-4000-8000-0000000000a0',
+  'LiftGo Legal A, S.A. de C.V.', 'LLA010101AAA', '601', '64000'
+);
+
 INSERT INTO public.legal_template_definitions (id, template_key, document_type, name, is_active)
 VALUES ('49000000-0000-4000-8000-0000000000d0', 'rental_contract_phase3_test', 'rental_contract', 'Contrato LiftGo fase 3', true);
 
@@ -134,6 +141,9 @@ BEGIN
       AND signed_snapshot ->> 'legal_template_checksum_sha256' = repeat('a', 64)
       AND signed_snapshot #>> '{template,intro_text}' = 'Versión global uno'
       AND signed_snapshot #>> '{template_local_overrides,city}' = 'Monterrey'
+      AND signed_snapshot #>> '{issuer,razon_social}' = 'LiftGo Legal A, S.A. de C.V.'
+      AND signed_snapshot #>> '{issuer,rfc}' = 'LLA010101AAA'
+      AND signed_snapshot #>> '{issuer,organization_id}' = '49000000-0000-4000-8000-0000000000a0'
   ) THEN
     RAISE EXCEPTION 'SNAPSHOT 0049: A no congeló versión, checksum y override';
   END IF;
@@ -142,6 +152,10 @@ $$;
 
 RESET ROLE;
 SET LOCAL role = 'service_role';
+
+UPDATE public.company_settings
+SET razon_social = 'LiftGo Legal A Renovada, S.A. de C.V.', rfc = 'LLA020202BBB'
+WHERE organization_id = '49000000-0000-4000-8000-0000000000a0';
 
 UPDATE public.organization_legal_template_assignments
 SET version_id = '49000000-0000-4000-8000-0000000000d2'
@@ -160,6 +174,8 @@ BEGIN
     WHERE id = '49000000-0000-4000-8000-0000000000e1'
       AND legal_template_version_id = '49000000-0000-4000-8000-0000000000d1'
       AND signed_snapshot #>> '{template,intro_text}' = 'Versión global uno'
+      AND signed_snapshot #>> '{issuer,razon_social}' = 'LiftGo Legal A, S.A. de C.V.'
+      AND signed_snapshot #>> '{issuer,rfc}' = 'LLA010101AAA'
   ) THEN
     RAISE EXCEPTION 'INMUTABLE 0049: adoptar v2 alteró el contrato firmado con v1';
   END IF;
@@ -179,7 +195,7 @@ $$;
 
 SET LOCAL request.jwt.claims TO '{"sub":"49000000-0000-4000-8000-0000000000b1","role":"authenticated"}';
 DO $$
-DECLARE v_row record;
+DECLARE v_row record; v_blocked boolean := false;
 BEGIN
   SELECT * INTO v_row FROM public.get_effective_legal_template('rental_contract');
   IF v_row.version_id <> '49000000-0000-4000-8000-0000000000d1'::uuid
@@ -191,6 +207,29 @@ BEGIN
     WHERE id = '49000000-0000-4000-8000-0000000000e1'
   ) THEN
     RAISE EXCEPTION 'RLS 0049: B ve el contrato firmado de A';
+  END IF;
+
+  BEGIN
+    UPDATE public.contracts
+    SET signed_snapshot = '{"issuer":{"razon_social":"inyectado"}}'::jsonb
+    WHERE id = '49000000-0000-4000-8000-0000000000e2';
+  EXCEPTION WHEN check_violation THEN
+    v_blocked := true;
+  END;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'SNAPSHOT 0053: B pudo precargar un emisor falso';
+  END IF;
+  v_blocked := false;
+
+  BEGIN
+    UPDATE public.contracts
+    SET status = 'signed', signed_at = now(), signed_by = 'Firmante B'
+    WHERE id = '49000000-0000-4000-8000-0000000000e2';
+  EXCEPTION WHEN check_violation THEN
+    v_blocked := true;
+  END;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'SNAPSHOT 0053: B firmó sin datos fiscales';
   END IF;
 END
 $$;

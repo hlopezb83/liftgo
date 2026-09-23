@@ -1,3 +1,11 @@
+## [8.42.1] - 2026-09-23 · patch · security
+
+Los PDF de contratos firmados conservan la identidad fiscal y los términos usados al momento de la firma, incluso si después cambia la configuración de la empresa.
+
+- La migración `0053_contract_signed_issuer_snapshot.sql` exige datos fiscales completos, captura el emisor por organización y rechaza snapshots inyectados por el cliente.
+- El PDF usa los términos y el emisor congelados en el snapshot; el logo global LiftGo permanece igual para todas las empresas.
+- Un contrato firmado antes de 0053 conserva su snapshot original sin atribuirle datos fiscales históricos no verificables.
+
 ## [8.42.0] - 2026-09-22 · minor · feature
 
 Cada empresa LiftGo puede configurar su ciudad, jurisdicción, representante legal y testigos sin modificar el machote global. Los contratos nuevos toman esos valores como base y la firma congela exactamente los datos usados.

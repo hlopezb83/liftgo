@@ -5,12 +5,13 @@ import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 
 export async function buildContractPdf(contract: ContractData, mode: PDFMode): Promise<void> {
-  const { fetchRelatedData, fetchTemplate, buildPlaceholderVars, resolvePagareAmount } =
+  const { fetchRelatedData, fetchTemplate, buildPlaceholderVars, resolvePagareAmount, contractForPdf } =
     await import("@/lib/pdf/contract/data");
 
+  const printableContract = contractForPdf(contract);
   const { company, customer, forklift } = await fetchRelatedData(contract);
   const tpl = await fetchTemplate(contract);
-  const vars = buildPlaceholderVars(contract, company, customer, forklift, tpl.local_overrides);
+  const vars = buildPlaceholderVars(printableContract, company, customer, forklift, tpl.local_overrides);
   // Marca global: mismo asset local de LiftGo para cualquier organización.
   const logoBase64 = await loadGlobalBrandLogo();
 
@@ -21,7 +22,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
   }
 
   // G-A2: sin costo de adquisición ni depósito el Anexo B sale "Bueno por $0.00".
-  if ((mode === "full" || mode === "pagare") && resolvePagareAmount(contract, forklift) <= 0) {
+  if ((mode === "full" || mode === "pagare") && resolvePagareAmount(printableContract, forklift) <= 0) {
     notifyWarning("El pagaré saldrá por $0.00", {
       description:
         "El equipo no tiene costo de adquisición y el contrato no tiene depósito en garantía. Captura alguno de los dos antes de recabar la firma.",
@@ -34,7 +35,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
   await renderAndSave(
     <ContractDocument
       mode={mode}
-      contract={contract}
+      contract={printableContract}
       tpl={tpl}
       vars={vars}
       logoBase64={logoBase64}
@@ -42,7 +43,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
       customer={customer}
       forklift={forklift}
     />,
-    `${contract.contract_number}${suffix}.pdf`,
+    `${printableContract.contract_number}${suffix}.pdf`,
   );
 }
 

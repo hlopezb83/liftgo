@@ -372,6 +372,13 @@
       "when": 1790874174000,
       "tag": "0052_booking_number_authenticated_acl",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1790874175000,
+      "tag": "0053_contract_signed_issuer_snapshot",
+      "breakpoints": true
     }
   ]
 }
