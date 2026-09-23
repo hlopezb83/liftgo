@@ -194,7 +194,7 @@ RESET role;
 
 -- Los folios de factura, nota, entrega, devolución y feedback son internos:
 -- authenticated no ejecuta sus generadores directamente.
-DO $
+DO $$
 DECLARE v_folio text;
 BEGIN
   PERFORM set_config('request.jwt.claims', '', true);
@@ -210,9 +210,9 @@ BEGIN
   SELECT public.generate_feedback_number() INTO v_folio;
   IF v_folio <> 'FB-0001' THEN RAISE EXCEPTION 'NUMBER ORG: reporte inicial %', v_folio; END IF;
 END;
-$;
+$$;
 
-DO $
+DO $$
 BEGIN
   IF (
     SELECT count(*)
