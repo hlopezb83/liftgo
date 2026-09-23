@@ -984,6 +984,7 @@ export type Database = {
           created_at: string
           declarations_landlord: Json | null
           declarations_tenant: Json | null
+          global_template_version_id: string | null
           id: string
           intro_text: string | null
           is_default: boolean
@@ -999,6 +1000,7 @@ export type Database = {
           created_at?: string
           declarations_landlord?: Json | null
           declarations_tenant?: Json | null
+          global_template_version_id?: string | null
           id?: string
           intro_text?: string | null
           is_default?: boolean
@@ -1014,6 +1016,7 @@ export type Database = {
           created_at?: string
           declarations_landlord?: Json | null
           declarations_tenant?: Json | null
+          global_template_version_id?: string | null
           id?: string
           intro_text?: string | null
           is_default?: boolean
@@ -1050,6 +1053,7 @@ export type Database = {
           forklift_id: string | null
           id: string
           late_interest_rate: number | null
+          legal_template_version_id: string | null
           max_hours_per_month: number | null
           monthly_rate: number | null
           notes: string | null
@@ -1084,6 +1088,7 @@ export type Database = {
           forklift_id?: string | null
           id?: string
           late_interest_rate?: number | null
+          legal_template_version_id?: string | null
           max_hours_per_month?: number | null
           monthly_rate?: number | null
           notes?: string | null
@@ -1118,6 +1123,7 @@ export type Database = {
           forklift_id?: string | null
           id?: string
           late_interest_rate?: number | null
+          legal_template_version_id?: string | null
           max_hours_per_month?: number | null
           monthly_rate?: number | null
           notes?: string | null
@@ -5315,6 +5321,20 @@ export type Database = {
           p_unit_cost?: number
         }
         Returns: string
+      }
+      get_effective_legal_template: {
+        Args: { p_document_type?: string }
+        Returns: {
+          checksum_sha256: string
+          content: Json
+          definition_id: string
+          document_type: string
+          local_overrides: Json
+          template_key: string
+          template_name: string
+          version: number
+          version_id: string
+        }[]
       }
       approve_supplier_bill: {
         Args: { p_bill_id: string; p_notes?: string }

@@ -1,152 +1,73 @@
-import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
-import { SaveIcon, InfoIcon } from "@/components/icons";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { InfoIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Textarea } from "@/components/ui/textarea";
-import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts";
-import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
-import { CONTRACT_PLACEHOLDERS as PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { ChecklistEditor } from "./contractTemplate/ChecklistEditor";
-import { ClausesEditor } from "./contractTemplate/ClausesEditor";
-import { EditableList } from "./contractTemplate/EditableList";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDefaultContractTemplate } from "@/features/contracts";
+
+function TextList({ items }: { items: string[] }) {
+  return (
+    <ul className="list-disc space-y-1 pl-5 text-sm">
+      {items.map((item, index) => <li key={`${index}-${item.slice(0, 20)}`}>{item}</li>)}
+    </ul>
+  );
+}
 
 export function ContractTemplateTab() {
   const { data: template, isLoading, isError, refetch } = useDefaultContractTemplate();
-  const updateMutation = useUpdateContractTemplate();
-
-  const [introText, setIntroText] = useState("");
-  const [declLandlord, setDeclLandlord] = useState<string[]>([]);
-  const [declTenant, setDeclTenant] = useState<string[]>([]);
-  const [clauses, setClauses] = useState<ContractClause[]>([]);
-  const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
-  const [pagareText, setPagareText] = useState("");
-
-  // Prev-prop guard: hidrata el editor cuando cambia la plantilla cargada.
-  const [prevTemplateId, setPrevTemplateId] = useState<string | null>(null);
-  const nextTemplateId = template?.id ?? null;
-  if (template && prevTemplateId !== nextTemplateId) {
-    setPrevTemplateId(nextTemplateId);
-    setIntroText(template.intro_text || "");
-    setDeclLandlord(template.declarations_landlord || []);
-    setDeclTenant(template.declarations_tenant || []);
-    setClauses(template.clauses || []);
-    setChecklistSections(template.checklist_sections || []);
-    setPagareText(template.pagare_text || "");
-  }
 
   if (isLoading) return <TableSkeleton />;
-  // A3-02: distinguir error de "no existe plantilla" — antes caían en el
-  // mismo mensaje y el admin no sabía que debía reintentar.
   if (isError) {
-    return (
-      <QueryErrorState bare entity="la plantilla de contrato" onRetry={() => { void refetch(); }} />
-    );
+    return <QueryErrorState bare entity="la plantilla legal LiftGo" onRetry={() => { void refetch(); }} />;
   }
-  if (!template) return <p className="text-muted-foreground p-4">No se encontró plantilla por defecto. Crea una desde la base de datos.</p>;
-
-  const handleSave = async () => {
-    const invalidClause = clauses.find((c) => !c.title.trim() || !c.body.trim());
-    if (invalidClause) {
-      notifyValidation({ message: "Todas las cláusulas deben tener título y contenido." });
-      return;
-    }
-    try {
-      await updateMutation.mutateAsync({
-        id: template.id,
-        intro_text: introText,
-        declarations_landlord: declLandlord,
-        declarations_tenant: declTenant,
-        clauses,
-        checklist_sections: checklistSections,
-        pagare_text: pagareText,
-      });
-      notifySuccess("Plantilla guardada correctamente.");
-    } catch (err) {
-      notifyError({ error: err, message: "Error al guardar la plantilla." });
-    }
-  };
+  if (!template) {
+    return <p className="p-4 text-muted-foreground">Tu organización no tiene una versión legal asignada.</p>;
+  }
 
   return (
-    <div className="space-y-4 mt-4">
-      <Collapsible>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" size="sm" className="gap-2 mb-2">
-            <InfoIcon className="h-4 w-4" />
-            Placeholders disponibles
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <Card className="mb-4">
-            <CardContent className="pt-4">
-              <div className="flex flex-wrap gap-2">
-                {PLACEHOLDERS.map((p) => (
-                  <Badge key={p.key} variant="secondary" className="text-xs font-mono">
-                    {p.key} <span className="ml-1 font-sans text-muted-foreground">— {p.desc}</span>
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
+    <div className="mt-4 space-y-4">
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="flex gap-3 pt-4 text-sm">
+          <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
+          <p>
+            Esta plantilla es el machote legal compartido de LiftGo. Sólo plataforma publica
+            nuevas versiones. La ciudad, representantes y testigos se capturan en cada contrato.
+          </p>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-semibold">{template.name}</h3>
+        <Badge>Versión {template.version}</Badge>
+        <Badge variant="outline" className="font-mono text-[10px]">
+          SHA-256 {template.checksum_sha256.slice(0, 12)}…
+        </Badge>
+      </div>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Introducción</CardTitle></CardHeader>
+        <CardContent className="whitespace-pre-wrap text-sm">{template.intro_text}</CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Declaraciones del arrendador</CardTitle></CardHeader>
+        <CardContent><TextList items={template.declarations_landlord} /></CardContent>
+      </Card>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Declaraciones del arrendatario</CardTitle></CardHeader>
+        <CardContent><TextList items={template.declarations_tenant} /></CardContent>
+      </Card>
+      <div className="space-y-3">
+        {template.clauses.map((clause, index) => (
+          <Card key={`${index}-${clause.title}`}>
+            <CardHeader><CardTitle className="text-base">{clause.title}</CardTitle></CardHeader>
+            <CardContent className="whitespace-pre-wrap text-sm">{clause.body}</CardContent>
           </Card>
-        </CollapsibleContent>
-      </Collapsible>
-
-      <Accordion type="multiple" defaultValue={["intro", "clauses"]} className="space-y-2">
-        <AccordionItem value="intro">
-          <AccordionTrigger>Párrafo Introductorio</AccordionTrigger>
-          <AccordionContent>
-            <Textarea value={introText} onChange={(e) => setIntroText(e.target.value)} rows={4} />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="decl-landlord">
-          <AccordionTrigger>Declaraciones del Arrendador</AccordionTrigger>
-          <AccordionContent>
-            <EditableList items={declLandlord} onChange={setDeclLandlord} />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="decl-tenant">
-          <AccordionTrigger>Declaraciones del Arrendatario</AccordionTrigger>
-          <AccordionContent>
-            <EditableList items={declTenant} onChange={setDeclTenant} />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="clauses">
-          <AccordionTrigger>Cláusulas del Contrato</AccordionTrigger>
-          <AccordionContent>
-            <ClausesEditor clauses={clauses} onChange={setClauses} />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="checklist">
-          <AccordionTrigger>Checklist — Anexo A</AccordionTrigger>
-          <AccordionContent>
-            <ChecklistEditor sections={checklistSections} onChange={setChecklistSections} />
-          </AccordionContent>
-        </AccordionItem>
-
-        <AccordionItem value="pagare">
-          <AccordionTrigger>Pagaré — Anexo B</AccordionTrigger>
-          <AccordionContent className="space-y-2">
-            <Textarea value={pagareText} onChange={(e) => setPagareText(e.target.value)} rows={12} />
-            <Button variant="outline" size="sm" onClick={() => setPagareText(DEFAULT_PAGARE)}>
-              Restaurar texto sugerido
-            </Button>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-
-      <Button onClick={handleSave} disabled={updateMutation.isPending} className="gap-2">
-        <SaveIcon className="h-4 w-4" />
-        {updateMutation.isPending ? "Guardando…" : "Guardar plantilla"}
-      </Button>
+        ))}
+      </div>
+      <Card>
+        <CardHeader><CardTitle className="text-base">Pagaré — Anexo B</CardTitle></CardHeader>
+        <CardContent className="whitespace-pre-wrap text-sm">{template.pagare_text}</CardContent>
+      </Card>
     </div>
   );
 }
