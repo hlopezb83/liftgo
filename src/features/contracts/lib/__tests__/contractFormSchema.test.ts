@@ -9,6 +9,7 @@ describe("contractFormSchema", () => {
     forklift_id: "flk-1",
     start_date: "2026-01-01",
     end_date: "2026-06-30",
+    contract_city: "Monterrey, N.L.",
   };
 
   it("acepta un payload válido con cliente + equipo + rango correcto", () => {
@@ -42,6 +43,15 @@ describe("contractFormSchema", () => {
     }
   });
 
+  it("rechaza un contrato sin ciudad de firma", () => {
+    const parsed = contractFormSchema.safeParse({ ...validBase, contract_city: "" });
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) {
+      const msg = parsed.error.issues.find((i) => i.path[0] === "contract_city")?.message;
+      expect(msg).toMatch(/Ciudad de firma requerida/i);
+    }
+  });
+
   it("rechaza end_date < start_date", () => {
     const parsed = contractFormSchema.safeParse({
       ...validBase,
@@ -60,3 +70,4 @@ describe("contractFormSchema", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
