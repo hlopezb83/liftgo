@@ -84,4 +84,3 @@ export async function extractEdgeErrorMessage(error: unknown): Promise<string> {
     return fallback;
   }
 }
-
