@@ -226,6 +226,9 @@ BEGIN
   END IF;
 
   -- ── 6. Alta en dos tiempos con un operador explícito ───────────────
+  -- La prueba quitó el contexto para comprobar el aislamiento. Lo restituye
+  -- antes de crear el perfil sin membresía y su fila de auditoría.
+  PERFORM set_config('app.organization_id', '32000000-0000-4000-8000-00000000000a', true);
   INSERT INTO public.platform_operators (auth_user_id, notes)
   VALUES ('32000000-0000-4000-8000-000000000005', 'Asignación explícita de prueba')
   ON CONFLICT (auth_user_id) DO NOTHING;

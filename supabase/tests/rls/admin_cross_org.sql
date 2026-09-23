@@ -13,7 +13,7 @@ BEGIN;
 
 -- La policy de autoedición nunca puede autorizar administradores de forma
 -- global: las policies separadas limitan sus cambios a la empresa activa.
-DO $
+DO $$
 DECLARE
   v_qual text;
   v_check text;
@@ -32,9 +32,9 @@ BEGIN
     RAISE EXCEPTION 'ADMIN ORG: la policy de autoedición de profiles concede UPDATE global';
   END IF;
 END;
-$;
+$$;
 
-DO $
+DO $$
 DECLARE
   v_org_a uuid;
   v_org_b uuid := 'a5000000-0000-4000-8000-0000000000b1';
