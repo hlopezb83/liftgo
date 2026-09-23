@@ -23,7 +23,10 @@ export async function fetchQuotePdfData(quoteId: string): Promise<QuoteDocumentP
   let customerCp: string | null = null;
   if (quote.customer_id) {
     const { data: cust } = await supabase
-      .from("customers").select("rfc, domicilio_fiscal_cp").eq("id", quote.customer_id).single();
+      .from("organization_customers")
+      .select("rfc, domicilio_fiscal_cp")
+      .eq("customer_id", quote.customer_id)
+      .maybeSingle();
     if (cust) { customerRfc = cust.rfc; customerCp = cust.domicilio_fiscal_cp; }
   }
 
