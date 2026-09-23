@@ -296,7 +296,14 @@ async function createPlatformOperator(admin: SupabaseClient): Promise<string> {
   const userId = data?.user?.id;
   if (!userId) throw new Error("[ab-seed] el alta del operador no devolvió id.");
 
-  must("profiles (operador activo)", (await admin.from("profiles").update({ is_active: true }).eq("user_id", userId)).error);
+  // 0055 no crea perfil cuando el alta no incluye app_metadata.organization_id.
+  // El operador de plataforma no pertenece todavía a una empresa del ensayo.
+  must("profiles (operador activo)", (await admin.from("profiles").upsert({
+    user_id: userId,
+    full_name: "Operador de plataforma de prueba",
+    email: AB_EMAILS.platformOperator,
+    is_active: true,
+  }, { onConflict: "user_id" })).error);
   must("platform_operators", (await admin.from("platform_operators").insert({ auth_user_id: userId })).error);
   return userId;
 }

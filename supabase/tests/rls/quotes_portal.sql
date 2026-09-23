@@ -28,6 +28,18 @@ VALUES
   ('b2222222-2222-4222-8222-222222222222', 'b@test.local', now(), now())
 ON CONFLICT DO NOTHING;
 
+-- Las cuentas creadas sin app_metadata no reciben perfil/rol del trigger 0055.
+-- Preparar aquí cuentas de portal reales antes de comprobar la lectura RLS.
+INSERT INTO public.profiles (user_id, full_name, is_active) VALUES
+  ('a1111111-1111-4111-8111-111111111111', 'Portal A', true),
+  ('b2222222-2222-4222-8222-222222222222', 'Portal B', true)
+ON CONFLICT (user_id) DO UPDATE SET is_active = true;
+
+INSERT INTO public.user_roles (user_id, role) VALUES
+  ('a1111111-1111-4111-8111-111111111111', 'customer'),
+  ('b2222222-2222-4222-8222-222222222222', 'customer')
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
+
 INSERT INTO public.customers (id, name, user_id) VALUES
   ('c1111111-1111-4111-8111-111111111111', 'A', 'a1111111-1111-4111-8111-111111111111'),
   ('c2222222-2222-4222-8222-222222222222', 'B', 'b2222222-2222-4222-8222-222222222222')
