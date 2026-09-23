@@ -737,6 +737,54 @@ export type Database = {
           },
         ]
       }
+      brand_assets: {
+        Row: {
+          alt_text: string | null
+          asset_key: string
+          asset_type: string
+          checksum_sha256: string | null
+          created_at: string
+          created_by: string | null
+          file_url: string
+          id: string
+          is_active: boolean
+          metadata: Json
+          updated_at: string
+          updated_by: string | null
+          version: number
+        }
+        Insert: {
+          alt_text?: string | null
+          asset_key: string
+          asset_type: string
+          checksum_sha256?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_url: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Update: {
+          alt_text?: string | null
+          asset_key?: string
+          asset_type?: string
+          checksum_sha256?: string | null
+          created_at?: string
+          created_by?: string | null
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json
+          updated_at?: string
+          updated_by?: string | null
+          version?: number
+        }
+        Relationships: []
+      }
       cfdi_retry_queue: {
         Row: {
           attempts: number
@@ -1027,6 +1075,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "contract_templates_global_template_version_id_fkey"
+            columns: ["global_template_version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_template_versions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "contract_templates_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1175,6 +1230,13 @@ export type Database = {
             columns: ["forklift_id"]
             isOneToOne: false
             referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_legal_template_version_id_fkey"
+            columns: ["legal_template_version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_template_versions"
             referencedColumns: ["id"]
           },
           {
@@ -2700,6 +2762,110 @@ export type Database = {
           },
         ]
       }
+      legal_template_definitions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          current_version_id: string | null
+          description: string | null
+          document_type: string
+          id: string
+          is_active: boolean
+          name: string
+          source_organization_id: string | null
+          source_record_id: string | null
+          template_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          description?: string | null
+          document_type: string
+          id?: string
+          is_active?: boolean
+          name: string
+          source_organization_id?: string | null
+          source_record_id?: string | null
+          template_key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          current_version_id?: string | null
+          description?: string | null
+          document_type?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          source_organization_id?: string | null
+          source_record_id?: string | null
+          template_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_template_definitions_current_version_fkey"
+            columns: ["id", "current_version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_template_versions"
+            referencedColumns: ["definition_id", "id"]
+          },
+          {
+            foreignKeyName: "legal_template_definitions_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_template_versions: {
+        Row: {
+          change_summary: string | null
+          checksum_sha256: string
+          content: Json
+          created_at: string
+          created_by: string | null
+          definition_id: string
+          id: string
+          version: number
+        }
+        Insert: {
+          change_summary?: string | null
+          checksum_sha256: string
+          content: Json
+          created_at?: string
+          created_by?: string | null
+          definition_id: string
+          id?: string
+          version: number
+        }
+        Update: {
+          change_summary?: string | null
+          checksum_sha256?: string
+          content?: Json
+          created_at?: string
+          created_by?: string | null
+          definition_id?: string
+          id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_template_versions_definition_id_fkey"
+            columns: ["definition_id"]
+            isOneToOne: false
+            referencedRelation: "legal_template_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_labor: {
         Row: {
           created_at: string
@@ -3253,6 +3419,54 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      organization_legal_template_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          definition_id: string
+          is_active: boolean
+          local_overrides: Json
+          organization_id: string
+          updated_at: string
+          version_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          definition_id: string
+          is_active?: boolean
+          local_overrides?: Json
+          organization_id: string
+          updated_at?: string
+          version_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          definition_id?: string
+          is_active?: boolean
+          local_overrides?: Json
+          organization_id?: string
+          updated_at?: string
+          version_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_legal_template_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_legal_template_version_fkey"
+            columns: ["definition_id", "version_id"]
+            isOneToOne: false
+            referencedRelation: "legal_template_versions"
+            referencedColumns: ["definition_id", "id"]
           },
         ]
       }
@@ -5294,19 +5508,11 @@ export type Database = {
           isSetofReturn: false
         }
       }
-      approve_payment_intent: {
-        Args: {
-          p_intent_id: string
-          p_payment_form_sat?: string
-          p_review_notes?: string
-        }
-        Returns: string
-      }
       activate_equipment_model_catalog: {
         Args: {
           p_catalog_model_id: string
           p_daily_rate?: number
-          p_local_alias?: string | null
+          p_local_alias?: string
           p_monthly_rate?: number
           p_weekly_rate?: number
         }
@@ -5315,30 +5521,20 @@ export type Database = {
       activate_parts_catalog: {
         Args: {
           p_catalog_part_id: string
-          p_location?: string | null
+          p_location?: string
           p_min_stock_level?: number
           p_stock_quantity?: number
           p_unit_cost?: number
         }
         Returns: string
       }
-      get_effective_legal_template: {
-        Args: { p_document_type?: string }
-        Returns: {
-          checksum_sha256: string
-          content: Json
-          definition_id: string
-          document_type: string
-          local_overrides: Json
-          template_key: string
-          template_name: string
-          version: number
-          version_id: string
-        }[]
-      }
-      update_current_organization_legal_template_overrides: {
-        Args: { p_definition_id: string; p_local_overrides: Json }
-        Returns: Json
+      approve_payment_intent: {
+        Args: {
+          p_intent_id: string
+          p_payment_form_sat?: string
+          p_review_notes?: string
+        }
+        Returns: string
       }
       approve_supplier_bill: {
         Args: { p_bill_id: string; p_notes?: string }
@@ -5839,6 +6035,20 @@ export type Database = {
       }
       get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
+      get_effective_legal_template: {
+        Args: { p_document_type?: string }
+        Returns: {
+          checksum_sha256: string
+          content: Json
+          definition_id: string
+          document_type: string
+          local_overrides: Json
+          template_key: string
+          template_name: string
+          version: number
+          version_id: string
+        }[]
+      }
       get_feedback_leaderboard: {
         Args: { _period?: string }
         Returns: {
@@ -6201,12 +6411,50 @@ export type Database = {
         Args: { p_document_type: string; p_minimum?: number }
         Returns: number
       }
+      platform_assign_legal_template_version: {
+        Args: {
+          p_actor: string
+          p_definition_id: string
+          p_organization_id: string
+          p_version_id: string
+        }
+        Returns: boolean
+      }
       platform_attach_first_admin: {
         Args: { p_actor: string; p_organization_id: string; p_user_id: string }
         Returns: undefined
       }
+      platform_create_equipment_model_catalog: {
+        Args: {
+          p_actor: string
+          p_capacity_kg?: number
+          p_fuel_type?: string
+          p_image_url?: string
+          p_manufacturer: string
+          p_mast_height_m?: number
+          p_model: string
+          p_spec_sheet_url?: string
+          p_specifications?: Json
+        }
+        Returns: string
+      }
       platform_create_organization: {
         Args: { p_actor: string; p_name: string; p_slug: string }
+        Returns: string
+      }
+      platform_create_parts_catalog: {
+        Args: {
+          p_actor: string
+          p_category?: string
+          p_description?: string
+          p_equipment_model_ids?: string[]
+          p_image_url?: string
+          p_manufacturer?: string
+          p_name: string
+          p_oem_numbers?: string[]
+          p_sku: string
+          p_unit_of_measure?: string
+        }
         Returns: string
       }
       platform_discard_organization: {
@@ -6216,6 +6464,72 @@ export type Database = {
       platform_grant_operator: {
         Args: { p_actor: string; p_notes?: string; p_user_id: string }
         Returns: undefined
+      }
+      platform_list_equipment_model_catalog: {
+        Args: { p_actor: string }
+        Returns: {
+          capacity_kg: number
+          created_at: string
+          fuel_type: string
+          id: string
+          image_url: string
+          is_active: boolean
+          manufacturer: string
+          mast_height_m: number
+          model: string
+          organization_count: number
+          spec_sheet_url: string
+          specifications: Json
+          updated_at: string
+        }[]
+      }
+      platform_list_legal_template_assignments: {
+        Args: { p_actor: string; p_definition_id: string }
+        Returns: {
+          assignment_is_active: boolean
+          checksum_sha256: string
+          local_overrides: Json
+          organization_id: string
+          organization_is_active: boolean
+          organization_name: string
+          organization_slug: string
+          updated_at: string
+          version: number
+          version_id: string
+        }[]
+      }
+      platform_list_legal_template_versions: {
+        Args: { p_actor: string; p_definition_id: string }
+        Returns: {
+          change_summary: string
+          checksum_sha256: string
+          content: Json
+          created_at: string
+          created_by: string
+          definition_id: string
+          id: string
+          version: number
+        }[]
+      }
+      platform_list_legal_templates: {
+        Args: { p_actor: string }
+        Returns: {
+          active_organization_count: number
+          assignment_count: number
+          change_summary: string
+          checksum_sha256: string
+          content: Json
+          current_version: number
+          current_version_id: string
+          description: string
+          document_type: string
+          id: string
+          is_active: boolean
+          name: string
+          template_key: string
+          updated_at: string
+          version_count: number
+        }[]
       }
       platform_list_organizations: {
         Args: { p_actor: string }
@@ -6230,12 +6544,84 @@ export type Database = {
           slug: string
         }[]
       }
+      platform_list_parts_catalog: {
+        Args: { p_actor: string }
+        Returns: {
+          category: string
+          created_at: string
+          description: string
+          equipment_model_ids: string[]
+          id: string
+          image_url: string
+          is_active: boolean
+          manufacturer: string
+          name: string
+          oem_numbers: string[]
+          organization_count: number
+          sku: string
+          unit_of_measure: string
+          updated_at: string
+        }[]
+      }
+      platform_publish_legal_template_version: {
+        Args: {
+          p_actor: string
+          p_assign_all_active?: boolean
+          p_change_summary: string
+          p_content: Json
+          p_definition_id: string
+        }
+        Returns: {
+          checksum_sha256: string
+          version: number
+          version_id: string
+        }[]
+      }
       platform_revoke_operator: {
         Args: { p_actor: string; p_user_id: string }
         Returns: undefined
       }
+      platform_set_equipment_model_catalog_active: {
+        Args: { p_active: boolean; p_actor: string; p_id: string }
+        Returns: undefined
+      }
       platform_set_organization_active: {
         Args: { p_active: boolean; p_actor: string; p_organization_id: string }
+        Returns: undefined
+      }
+      platform_set_parts_catalog_active: {
+        Args: { p_active: boolean; p_actor: string; p_id: string }
+        Returns: undefined
+      }
+      platform_update_equipment_model_catalog: {
+        Args: {
+          p_actor: string
+          p_capacity_kg?: number
+          p_fuel_type?: string
+          p_id: string
+          p_image_url?: string
+          p_manufacturer: string
+          p_mast_height_m?: number
+          p_model: string
+          p_spec_sheet_url?: string
+          p_specifications?: Json
+        }
+        Returns: undefined
+      }
+      platform_update_parts_catalog: {
+        Args: {
+          p_actor: string
+          p_category?: string
+          p_description?: string
+          p_equipment_model_ids?: string[]
+          p_id: string
+          p_image_url?: string
+          p_manufacturer?: string
+          p_name: string
+          p_oem_numbers?: string[]
+          p_sku: string
+          p_unit_of_measure?: string
+        }
         Returns: undefined
       }
       prepare_payment_complement: {
@@ -6696,6 +7082,10 @@ export type Database = {
         Returns: undefined
       }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
+      update_current_organization_legal_template_overrides: {
+        Args: { p_definition_id: string; p_local_overrides: Json }
+        Returns: Json
+      }
       update_user_role_safe: {
         Args: {
           _new_role: Database["public"]["Enums"]["app_role"]
@@ -6710,6 +7100,10 @@ export type Database = {
       user_in_current_organization: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      validate_legal_template_content: {
+        Args: { p_content: Json }
+        Returns: undefined
       }
     }
     Enums: {
