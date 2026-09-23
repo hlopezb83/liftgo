@@ -22,6 +22,11 @@ BEGIN
       'NUMBER ORG: authenticated no debe consultar los contadores internos';
   END IF;
 
+  IF NOT has_function_privilege('authenticated', 'public.next_booking_number()', 'EXECUTE')
+     OR has_function_privilege('anon', 'public.next_booking_number()', 'EXECUTE') THEN
+    RAISE EXCEPTION 'NUMBER ORG: ACL incorrecta del generador de reservas';
+  END IF;
+
   SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
   INTO v_global_sequence_generators
   FROM pg_proc p
@@ -108,12 +113,19 @@ DO $$
 DECLARE
   v_quote_a text;
   v_quote_b text;
+  v_booking_a text;
+  v_booking_b text;
 BEGIN
   SELECT public.next_quote_number() INTO v_quote_a;
   IF v_quote_a !~ '^COT-[0-9]{4,}$' THEN
     RAISE EXCEPTION
       'NUMBER ORG: el folio de A tiene formato inválido: %',
       v_quote_a;
+  END IF;
+
+  SELECT public.next_booking_number() INTO v_booking_a;
+  IF v_booking_a !~ '^RSV-[0-9]{4,}$' THEN
+    RAISE EXCEPTION 'NUMBER ORG: el folio de reserva de A tiene formato inválido: %', v_booking_a;
   END IF;
 
   PERFORM set_config(
@@ -127,6 +139,11 @@ BEGIN
     RAISE EXCEPTION
       'NUMBER ORG: B debió iniciar su contador independiente en COT-0101, obtuvo %',
       v_quote_b;
+  END IF;
+
+  SELECT public.next_booking_number() INTO v_booking_b;
+  IF v_booking_b <> 'RSV-0001' THEN
+    RAISE EXCEPTION 'NUMBER ORG: B debió iniciar reservas en RSV-0001, obtuvo %', v_booking_b;
   END IF;
 
   INSERT INTO public.fiscal_periods (organization_id, period)
@@ -147,6 +164,18 @@ BEGIN
     public.current_organization_id(),
     '2099-01'
   );
+
+  PERFORM set_config(
+    'request.jwt.claims',
+    '{"sub":"e6000000-0000-4000-8000-0000000000ff","role":"authenticated"}',
+    true
+  );
+  BEGIN
+    PERFORM public.next_booking_number();
+    RAISE EXCEPTION 'NUMBER ORG: usuario ajeno pudo generar un folio de reserva';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL;
+  END;
 END;
 $$;
 
@@ -174,3 +203,4 @@ END;
 $$;
 
 ROLLBACK;
+
