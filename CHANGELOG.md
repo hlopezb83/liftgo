@@ -1,3 +1,11 @@
+## [8.42.5] - 2026-09-23 · patch · bugfix
+
+Si Correo o Teléfono aparecían vacíos al editar un cliente, guardar otro cambio los borraba; ahora se conservan salvo que el usuario los borre a propósito.
+
+- Correo y Teléfono con autoComplete=off para que el autorrelleno del navegador no pise el prellenado; Teléfono usa type=tel.
+- preserveUntouched: en edición, un campo no modificado que llega vacío conserva su valor original.
+- Prueba de regresión preserveUntouched.test.ts.
+
 ## [8.42.4] - 2026-09-23 · patch · bugfix
 
 Crear un usuario desde /users fallaba al asignar el rol y dejaba una cuenta sin empresa; ahora membresía, rol y perfil se guardan juntos en una sola operación.

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   buildForkliftPayload,
+  resolveEquipmentModelId,
   validateForkliftUniqueness,
   mapForkliftMutationError,
 } from "../forkliftPayload";
@@ -29,7 +30,8 @@ const base: ForkliftFormData = {
 
 describe("buildForkliftPayload", () => {
   it("coerce numéricos y aplica null para opcionales vacíos", () => {
-    const r = buildForkliftPayload({ ...base, manufacturer: "", insurance_cost: "" });
+    const r = buildForkliftPayload({ ...base, manufacturer: "", insurance_cost: "" }, "model-1");
+    expect(r.equipment_model_id).toBe("model-1");
     expect(r.year).toBe(2024);
     expect(r.capacity_kg).toBe(2500);
     expect(r.manufacturer).toBeNull();
@@ -38,7 +40,7 @@ describe("buildForkliftPayload", () => {
   });
 
   it("usa 0 como fallback en rates vacíos", () => {
-    const r = buildForkliftPayload({ ...base, daily_rate: "", monthly_rate: "" });
+    const r = buildForkliftPayload({ ...base, daily_rate: "", monthly_rate: "" }, "model-1");
     expect(r.daily_rate).toBe(0);
     expect(r.monthly_rate).toBe(0);
   });
@@ -93,7 +95,7 @@ describe("buildForkliftPayload · redondeo monetario (F7)", () => {
   };
 
   it("redondea tarifas y costos a 2 decimales", () => {
-    const payload = buildForkliftPayload(form);
+    const payload = buildForkliftPayload(form, "model-1");
     expect(payload.daily_rate).toBe(501);
     expect(payload.weekly_rate).toBe(2500.01);
     expect(payload.monthly_rate).toBe(8000.44);
@@ -102,8 +104,24 @@ describe("buildForkliftPayload · redondeo monetario (F7)", () => {
   });
 
   it("conserva los fallbacks de campos vacíos", () => {
-    const payload = buildForkliftPayload({ ...form, daily_rate: "", insurance_cost: "" });
+    const payload = buildForkliftPayload({ ...form, daily_rate: "", insurance_cost: "" }, "model-1");
     expect(payload.daily_rate).toBe(0);
     expect(payload.insurance_cost).toBeNull();
+  });
+});
+
+describe("resolveEquipmentModelId", () => {
+  const models = [
+    { id: "org-1-model", manufacturer: "Toyota", model: "8FBE" },
+    { id: "other-model", manufacturer: "LiftGo", model: "8FBE" },
+  ];
+
+  it("vincula la unidad al modelo habilitado que corresponde al fabricante", () => {
+    expect(resolveEquipmentModelId(base, models)).toBe("org-1-model");
+  });
+
+  it("impide crear una unidad sin modelo cargado o con coincidencias ambiguas", () => {
+    expect(resolveEquipmentModelId(base, undefined)).toBeNull();
+    expect(resolveEquipmentModelId(base, [...models, models[0]])).toBeNull();
   });
 });

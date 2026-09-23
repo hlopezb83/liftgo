@@ -1,6 +1,18 @@
 import { roundMoney } from "@/lib/money";
 import type { ForkliftFormData } from "./forkliftFormSchema";
 
+type SelectableModel = { id: string; manufacturer: string; model: string };
+
+export function resolveEquipmentModelId(
+  form: Pick<ForkliftFormData, "manufacturer" | "model">,
+  models: readonly SelectableModel[] | undefined,
+): string | null {
+  const matches = models?.filter(
+    (item) => item.manufacturer === form.manufacturer && item.model === form.model,
+  ) ?? [];
+  return matches.length === 1 ? matches[0].id : null;
+}
+
 const numOrNull = (v: string) => (v ? parseFloat(v) : null);
 // Frontera de persistencia monetaria: las tarifas/costos se redondean a 2
 // decimales con la regla del repo (currency.js) — parseFloat crudo admitía
@@ -8,10 +20,11 @@ const numOrNull = (v: string) => (v ? parseFloat(v) : null);
 const moneyOrNull = (v: string) => (v ? roundMoney(parseFloat(v)) : null);
 const moneyOrZero = (v: string) => (v ? roundMoney(parseFloat(v)) : 0);
 
-export function buildForkliftPayload(form: ForkliftFormData) {
+export function buildForkliftPayload(form: ForkliftFormData, equipmentModelId: string) {
   return {
     name: form.name,
     model: form.model,
+    equipment_model_id: equipmentModelId,
     manufacturer: form.manufacturer || null,
     year: form.year ? parseInt(form.year) : null,
     capacity_kg: numOrNull(form.capacity_kg),
