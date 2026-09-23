@@ -32,9 +32,10 @@ describe("invokeEdgeFunction", () => {
     );
     err.context = ctx;
     invokeMock.mockResolvedValue({ data: null, error: err });
-    await expect(invokeEdgeFunction("stamp-cfdi", { body: {} })).rejects.toThrow(
-      "Invoice already stamped",
-    );
+    await expect(invokeEdgeFunction("stamp-cfdi", { body: {} })).rejects.toMatchObject({
+      message: "Invoice already stamped",
+      status: 409,
+    });
   });
 
   it("hace fallback a texto cuando el body no es JSON", async () => {
@@ -57,3 +58,4 @@ describe("invokeEdgeFunction", () => {
     );
   });
 });
+
