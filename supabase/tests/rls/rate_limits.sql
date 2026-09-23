@@ -4,6 +4,20 @@
 -- check_and_record_rate_limit (SECURITY DEFINER).
 BEGIN;
 
+-- El contador es global del servidor: con varias empresas activas, el RPC
+-- debe seguir pudiendo insertar sin organization_id.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_trigger
+    WHERE tgrelid = 'public.rate_limits'::regclass
+      AND tgname = 'trg_organization_write_context'
+      AND NOT tgisinternal
+  ) THEN
+    RAISE EXCEPTION 'ROTO: rate_limits conserva el trigger de datos por empresa';
+  END IF;
+END $$;
+
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('4a000011-0000-4000-8000-000000000001', 'admin.rl@test.local', now(), now()),
   ('4a000011-0000-4000-8000-000000000002', 'cliente.rl@test.local', now(), now())
@@ -95,7 +109,14 @@ BEGIN
   IF (SELECT COUNT(*) FROM public.rate_limits WHERE bucket = 'rls-test-bucket') <> 1 THEN
     RAISE EXCEPTION 'ROTO: service_role deberia ver los contadores de rate_limits';
   END IF;
+  IF NOT public.check_and_record_rate_limit('rls-test-rpc', 'user', 1, 60) THEN
+    RAISE EXCEPTION 'ROTO: service_role no puede crear el primer contador';
+  END IF;
+  IF public.check_and_record_rate_limit('rls-test-rpc', 'user', 1, 60) THEN
+    RAISE EXCEPTION 'ROTO: el segundo intento debia exceder el limite';
+  END IF;
   RAISE NOTICE 'OK: service_role administra rate_limits';
 END $$;
 
 ROLLBACK;
+
