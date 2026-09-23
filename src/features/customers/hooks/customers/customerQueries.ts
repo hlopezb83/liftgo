@@ -1,9 +1,8 @@
 /**
  * Lecturas de la cartera de clientes (sin mutaciones).
  *
- * Extraído de `useCustomers.ts` (Paquete 7) sin cambios de comportamiento:
- * mismas columnas, misma relación `organization_customers` + `customers!inner`,
- * mismos filtros de archivado/E2E, mismo límite y mismas query keys.
+ * La identidad de `customers` se combina con la relación comercial visible
+ * para la empresa actual (`organization_customers`).
  */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,13 +18,13 @@ const sel = (s: string): string => s;
 // régimen, uso CFDI, CP fiscal), dirección y representante legal para que el
 // auto-fill no borre datos previamente cargados. Ver hallazgos QA v7.163.x.
 const CUSTOMER_LIST_COLUMNS = sel(
-  "id, name, company, rfc, email, phone, contact_person, address, razon_social, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_rate"
+  "id, name, company, rfc, email, phone, contact_person, address, razon_social, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_rate, created_by_organization_id"
 );
 
 // M-11a: `version` es indispensable para el bloqueo optimista del formulario
 // de edición (trigger `bump_version_optimistic` la incrementa en cada UPDATE).
 const CUSTOMER_DETAIL_COLUMNS = sel(
-  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_rate, tax_id, user_id, version, created_at, updated_at"
+  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_rate, tax_id, user_id, version, created_at, updated_at, created_by_organization_id"
 );
 
 /**
@@ -43,12 +42,45 @@ const CUSTOMER_DETAIL_COLUMNS = sel(
  */
 const ACTIVE_RELATION_FILTER = { column: "status", value: "active" } as const;
 
-type CustomerRelationRow<T> = { customers: T };
+export type Customer = Tables<"customers"> & { relation_updated_at?: string };
 
-const unwrapRelation = <T,>(rows: CustomerRelationRow<T>[] | null): T[] =>
-  (rows ?? []).map((row) => row.customers).filter((c): c is T => c != null);
+type CustomerRelationRow = Pick<Tables<"organization_customers">,
+  "alias" | "razon_social" | "rfc" | "regimen_fiscal" | "uso_cfdi" |
+  "domicilio_fiscal_cp" | "representante_legal" | "contact_person" |
+  "email" | "phone" | "billing_address" | "tax_rate" | "notes" |
+  "updated_at" | "organization_id"
+> & { website?: string | null; customers: Customer };
 
-export type Customer = Tables<"customers">;
+const RELATION_COLUMNS = "organization_id, alias, razon_social, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, contact_person, email, phone, billing_address, tax_rate, notes, website, updated_at";
+
+/** La identidad es compartida; la ficha comercial y fiscal pertenece a cada empresa. */
+export function mergeCustomerRelation(row: CustomerRelationRow): Customer {
+  const customer = row.customers;
+  const name = row.alias ?? customer.name;
+  const ownsIdentity = row.organization_id === customer.created_by_organization_id;
+  return {
+    ...customer,
+    name,
+    company: name,
+    razon_social: row.razon_social ?? customer.razon_social,
+    rfc: row.rfc ?? customer.rfc,
+    regimen_fiscal: row.regimen_fiscal,
+    uso_cfdi: row.uso_cfdi,
+    domicilio_fiscal_cp: row.domicilio_fiscal_cp,
+    representante_legal: row.representante_legal,
+    contact_person: row.contact_person,
+    email: row.email,
+    phone: row.phone,
+    address: row.billing_address,
+    tax_rate: row.tax_rate,
+    notes: row.notes,
+    website: row.website ?? (ownsIdentity ? customer.website : null),
+    relation_updated_at: row.updated_at,
+  };
+}
+
+const unwrapRelation = (rows: CustomerRelationRow[] | null): Customer[] =>
+  (rows ?? []).filter((row) => row.customers != null).map(mergeCustomerRelation);
 
 export const customerQueries = defineEntityQueries<"customers", Customer[], Customer | null>(
   "customers",
@@ -56,7 +88,7 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
     list: () => async () => {
       const { data, error } = await supabase
         .from("organization_customers")
-        .select(`status, customers!inner(${CUSTOMER_LIST_COLUMNS})`)
+        .select(`status, ${RELATION_COLUMNS}, customers!inner(${CUSTOMER_LIST_COLUMNS})`)
         .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
         .is("customers.deleted_at", null)
         .or("is_e2e.is.null,is_e2e.eq.false", { referencedTable: "customers" })
@@ -64,7 +96,7 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
         .or("email.is.null,email.neq.e2e-ui@test.local", { referencedTable: "customers" })
         .order("customers(name)")
         .limit(LIST_FETCH_LIMIT)
-        .returns<CustomerRelationRow<Customer>[]>();
+        .returns<CustomerRelationRow[]>();
       if (error) throw error;
       return unwrapRelation(data);
     },
@@ -72,14 +104,14 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
       if (!id) return null;
       const { data, error } = await supabase
         .from("organization_customers")
-        .select(`status, customers!inner(${CUSTOMER_DETAIL_COLUMNS})`)
+        .select(`status, ${RELATION_COLUMNS}, customers!inner(${CUSTOMER_DETAIL_COLUMNS})`)
         .eq("customer_id", id)
         .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
         .is("customers.deleted_at", null)
         .maybeSingle()
-        .returns<CustomerRelationRow<Customer>>();
+        .returns<CustomerRelationRow>();
       if (error) throw error;
-      return data?.customers ?? null;
+      return data?.customers ? mergeCustomerRelation(data) : null;
     },
   },
 );
