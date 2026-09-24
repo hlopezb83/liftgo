@@ -14,6 +14,7 @@ import { computeFleetAvailability, deriveForkliftDisplayStatus } from "@/feature
 import { useBookings } from "@/features/bookings";
 import { DamagePhotosSection } from "@/features/damage";
 import { useMaintenanceLogs } from "@/features/maintenance";
+import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { useParams } from "@/lib/router-compat";
@@ -32,6 +33,7 @@ import { useForkliftLocation } from "../hooks/forklifts/useForkliftLocation";
 import { useForklift, useDeleteForklift, useStatusLogs } from "../hooks/forklifts/useForklifts";
 
 export default function ForkliftDetail() {
+  const canUploadDamagePhotos = useHasModuleAccess("Daños", "full");
   const { id } = useParams();
   const navigate = useNavigateTransition();
   const { data: forklift, isLoading, isError, refetch } = useForklift(id);
@@ -123,7 +125,7 @@ export default function ForkliftDetail() {
       <ForkliftBookingsList bookings={bookings || []} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
       {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
-      {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" />}
+      {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" showUploader={canUploadDamagePhotos} />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} />}
       <ForkliftStatusHistory logs={logs || []} />
     </PageContainer>
