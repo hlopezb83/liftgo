@@ -18,7 +18,7 @@ import { useCreateReturnInspection } from "../useReturnInspections";
 export { returnInspectionSchema, initialReturnInspectionForm } from "../../lib/returnInspectionSchema";
 export type { ReturnInspectionFormValues } from "../../lib/returnInspectionSchema";
 
-export function useReturnInspectionDialog(bookings: Booking[] | undefined, activeBookings: Booking[] | undefined) {
+export function useReturnInspectionDialog(bookings: Booking[] | undefined, activeBookings: Booking[] | undefined, canWrite: boolean) {
   const [dialogOpen, setDialogOpen] = useState(false);
   // Hallazgo 9: el inspector se registra automáticamente con el usuario
   // autenticado; sólo un admin puede editar el campo (capacidad ya existente
@@ -42,14 +42,16 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   // vigente y la reserva prellenada permanezca en `activeBookings` (que se
   // recalcula en el padre según `early`). Se limpian al cerrar el diálogo.
   usePrefillEffect(() => {
+    if (!canWrite) return;
     const bookingId = searchParams.get("booking_id");
     if (bookingId && activeBookings?.some((b) => b.id === bookingId)) {
       form.reset({ ...defaultFormValues, bookingId });
       setDialogOpen(true);
     }
-  }, [searchParams, activeBookings]);
+  }, [searchParams, activeBookings, canWrite]);
 
   const handleDialogOpenChange = (open: boolean) => {
+    if (open && !canWrite) return;
     setDialogOpen(open);
     if (!open && (searchParams.has("booking_id") || searchParams.has("early"))) {
       const next = new URLSearchParams(searchParams);
@@ -60,11 +62,13 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   };
 
   const openNew = () => {
+    if (!canWrite) return;
     form.reset(defaultFormValues);
     setDialogOpen(true);
   };
 
   const onSubmit = (values: ReturnInspectionFormValues) => {
+    if (!canWrite) return;
     const booking = bookings?.find((b) => b.id === values.bookingId);
     if (!booking) {
       notifyValidation({ message: "Reserva no encontrada" });
@@ -120,7 +124,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   };
 
   return {
-    dialogOpen,
+    dialogOpen: canWrite && dialogOpen,
     setDialogOpen: handleDialogOpenChange,
     form,
     openNew,

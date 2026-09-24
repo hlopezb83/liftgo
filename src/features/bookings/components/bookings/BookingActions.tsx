@@ -6,7 +6,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
+import { getAccessLevel, useRolePermissions, useUserRole, type AppRole, type PermissionsMap } from "@/features/users";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateRange } from "@/lib/utils";
 import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
@@ -14,6 +14,15 @@ import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
 import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";
 
 interface BookingActionsProps { booking: BookingWithForklift; }
+
+function resolveActionAccess(perms: PermissionsMap | undefined, role: AppRole | undefined) {
+  const hasFullAccess = (module: string) => getAccessLevel(perms, role, module) === "full";
+  return {
+    canCreateContract: hasFullAccess("Contratos"),
+    canManageBooking: hasFullAccess("Reservas"),
+    canCompleteReturn: hasFullAccess("Entregas"),
+  };
+}
 
 interface CancelBookingDialogProps {
   booking: BookingWithForklift;
@@ -78,9 +87,8 @@ export function BookingActions({ booking }: BookingActionsProps) {
   // "Crear contrato" y "Cancelar"; el cancel moría en la DB con error críptico.
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
-  const canCreateContract = !!perms && getAccessLevel(perms, role ?? undefined, "Contratos") === "full";
-  const canCancelBooking = !!perms && getAccessLevel(perms, role ?? undefined, "Reservas") === "full";
-  const cancelBlockReason = canCancelBooking
+  const { canCreateContract, canManageBooking, canCompleteReturn } = resolveActionAccess(perms, role ?? undefined);
+  const cancelBlockReason = canManageBooking
     ? undefined
     : "Tu rol solo puede consultar reservas; pide a un administrador cancelarla";
 
@@ -150,12 +158,12 @@ export function BookingActions({ booking }: BookingActionsProps) {
           <DocumentIcon className="h-4 w-4 mr-1" />Crear contrato
         </Button>
       )}
-      <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
+      {canManageBooking && <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}&early=1`)}>
+      </Button>}
+      {canCompleteReturn && <Button variant="outline" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}&early=1`)}>
         <UndoIcon className="h-4 w-4 mr-1" />Devolución Anticipada
-      </Button>
+      </Button>}
 
 
       {isAdmin && (
@@ -168,7 +176,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
       )}
 
       <span title={cancelBlockReason}>
-        <Button variant="destructive" size="sm" disabled={!canCancelBooking || cancelBookingPending} onClick={() => setCancelOpen(true)}>
+        <Button variant="destructive" size="sm" disabled={!canManageBooking || cancelBookingPending} onClick={() => setCancelOpen(true)}>
           <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
         </Button>
       </span>
@@ -188,7 +196,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
         })}
       />
 
-      <BookingExtendDialog
+      {canManageBooking && <BookingExtendDialog
         open={extendOpen}
         onOpenChange={setExtendOpen}
         currentEndDate={booking.end_date}
@@ -197,7 +205,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
         extendPreview={extendPreview}
         isPending={extendBookingPending}
         onExtend={() => handleExtend(() => setExtendOpen(false))}
-      />
+      />}
 
       {statusChangeDialog}
     </div>
