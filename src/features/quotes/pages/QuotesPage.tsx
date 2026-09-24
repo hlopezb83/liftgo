@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -36,7 +37,12 @@ export default function QuotesPage() {
   const { data: quotesRaw, isLoading, isError, refetch } = useQuotes();
   const quotes = visibleListRows(quotesRaw);
   const navigate = useNavigateTransition();
-  usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
+  const canWrite = useHasModuleAccess("Cotizaciones", "full");
+  usePageActions({
+    onNew: canWrite ? () => navigate("/quotes/new") : undefined,
+    onRefresh: refetch,
+    newLabel: canWrite ? "Nueva cotización" : undefined,
+  });
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Quote, {
     q: { type: "text"; fields: (keyof Quote)[] };
@@ -106,8 +112,8 @@ export default function QuotesPage() {
       onClearFilters={reset}
       emptyIcon={DocumentIcon}
       emptyMessage="No hay cotizaciones aún"
-      emptyActionLabel="Nueva cotización"
-      onEmptyAction={() => navigate("/quotes/new")}
+      emptyActionLabel={canWrite ? "Nueva cotización" : undefined}
+      onEmptyAction={canWrite ? () => navigate("/quotes/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(q) => {
         // R7 Bloque 19b: reutilizamos el cálculo de vencida en la vista móvil.
