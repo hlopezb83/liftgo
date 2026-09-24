@@ -1,3 +1,4 @@
+import { ROUTES } from "@/app-routes/routes";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { quoteStatusLabel } from "../../constants";
@@ -60,9 +61,13 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     if (state.currentDeliveryIndex < state.pendingDeliveries.length - 1) {
       state.setCurrentDeliveryIndex((prev) => prev + 1);
     } else {
+      const bookingId = state.pendingDeliveries[0]?.bookingId;
+      const destination = state.pendingDeliveries.length === 1 && bookingId
+        ? ROUTES.bookings.detail(bookingId)
+        : ROUTES.bookings.list;
       state.setPendingDeliveries([]);
       state.setCurrentDeliveryIndex(0);
-      navigate("/calendar");
+      navigate(destination);
     }
   };
 

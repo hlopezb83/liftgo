@@ -135,7 +135,7 @@ export function PostBookingDeliveryDialog({
     <FormDialog
       isPending={createDelivery.isPending}
       open={open}
-      onOpenChange={(o) => { if (!o) onSkip(); onOpenChange(o); }}
+      onOpenChange={onOpenChange}
       width="md"
       title={totalCount > 1 ? `Entrega ${currentIndex + 1} de ${totalCount}` : "Reserva Creada"}
       description={
