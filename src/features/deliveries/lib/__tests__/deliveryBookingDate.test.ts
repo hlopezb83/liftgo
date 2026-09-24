@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { deliveryBookingDateError, suggestedScheduledTransportDate } from "../deliveryBookingDate";
+import { deliveryBookingDateError, suggestedDateAfterTransportTypeChange, suggestedScheduledTransportDate } from "../deliveryBookingDate";
 
 const booking = { start_date: "2026-11-09", end_date: "2026-11-13" };
 
@@ -43,5 +43,25 @@ describe("suggestedScheduledTransportDate", () => {
 
   it("suggests today for a late pickup when the booking has ended", () => {
     expect(suggestedScheduledTransportDate("pickup", "2026-11-08", booking, "2026-11-20", false)).toBe("2026-11-20");
+  });
+});
+
+describe("suggestedDateAfterTransportTypeChange", () => {
+  it("moves an automatically proposed delivery date to the pickup end date", () => {
+    expect(suggestedDateAfterTransportTypeChange(
+      "pickup", "2026-11-09", "2026-11-09", booking, "2026-09-24", false,
+    )).toBe("2026-11-13");
+  });
+
+  it("moves an automatically proposed pickup date back to the delivery start", () => {
+    expect(suggestedDateAfterTransportTypeChange(
+      "delivery", "2026-11-13", "2026-11-13", booking, "2026-09-24", false,
+    )).toBe("2026-11-09");
+  });
+
+  it("keeps a date changed by the operator", () => {
+    expect(suggestedDateAfterTransportTypeChange(
+      "pickup", "2026-11-10", "2026-11-09", booking, "2026-09-24", false,
+    )).toBeNull();
   });
 });

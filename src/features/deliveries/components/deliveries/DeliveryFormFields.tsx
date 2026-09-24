@@ -7,7 +7,7 @@ import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
-import { suggestedScheduledTransportDate } from "../../lib/deliveryBookingDate";
+import { suggestedDateAfterTransportTypeChange, suggestedScheduledTransportDate } from "../../lib/deliveryBookingDate";
 import { selectableBookings } from "./selectableBookings";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -41,6 +41,8 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   const transportType = useWatch({ control: form.control, name: "type" });
   const lastBookingId = useRef("");
+  const lastTransportType = useRef(transportType);
+  const lastSuggestedDate = useRef<string | null>(null);
   // Bug 3: histórico sin operador → pedir justificación de evidencia.
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
 
@@ -79,6 +81,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
   useEffect(() => {
     if (!bookingId) {
       lastBookingId.current = "";
+      lastSuggestedDate.current = null;
       return;
     }
     if (lastBookingId.current === bookingId) return;
@@ -93,6 +96,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
       toYMD(nowMty()),
       form.getValues("alreadyCompleted"),
     );
+    lastSuggestedDate.current = suggestedDate;
     if (suggestedDate) {
       form.setValue("scheduledDate", parseDateLocal(suggestedDate), {
         shouldDirty: true,
@@ -100,6 +104,32 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
       });
     }
   }, [bookingId, bookings, form]);
+
+  // Si cambia el tipo, mover sólo la fecha propuesta por este formulario.
+  useEffect(() => {
+    if (lastTransportType.current === transportType) return;
+    lastTransportType.current = transportType;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (!booking) return;
+
+    const currentDate = toYMD(form.getValues("scheduledDate"));
+    const suggestedDate = suggestedDateAfterTransportTypeChange(
+      transportType,
+      currentDate,
+      lastSuggestedDate.current,
+      booking,
+      toYMD(nowMty()),
+      form.getValues("alreadyCompleted"),
+    );
+    if (currentDate !== lastSuggestedDate.current) lastSuggestedDate.current = null;
+    if (suggestedDate) {
+      lastSuggestedDate.current = suggestedDate;
+      form.setValue("scheduledDate", parseDateLocal(suggestedDate), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [transportType, bookingId, bookings, form]);
 
   // R-C6: si el montacargas cambia y ya no coincide con la reserva, limpiar.
   useEffect(() => {
