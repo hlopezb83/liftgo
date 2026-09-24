@@ -7,6 +7,7 @@ import { Form } from "@/components/ui/form";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { toYMD } from "@/lib/date/toYMD";
+import { deliveryBookingDateError } from "@/lib/domain/deliveryBookingDate";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty, parseDateLocal } from "@/lib/utils";
@@ -52,9 +53,12 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
       form.setError("scheduledDate", { message: "Elige hoy o una fecha futura" });
       return;
     }
-    if (linkedBooking && (date < linkedBooking.start_date || date > linkedBooking.end_date)) {
-      form.setError("scheduledDate", { message: "La entrega debe caer dentro del periodo de la reserva" });
-      return;
+    if (linkedBooking) {
+      const dateError = deliveryBookingDateError(delivery.type, date, linkedBooking);
+      if (dateError) {
+        form.setError("scheduledDate", { type: "manual", message: dateError });
+        return;
+      }
     }
 
     updateDelivery.mutate({
