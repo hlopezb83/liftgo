@@ -5,6 +5,7 @@ import { MaintenanceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState } from "@/hooks/useDialogState";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -35,7 +36,11 @@ export default function MaintenancePage() {
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
   const formCtl = useMaintenanceForm(forkliftMap);
-  usePageActions({ onNew: formCtl.openCreate, newLabel: "Nuevo servicio" });
+  const canWrite = useHasModuleAccess("Mantenimiento", "full");
+  usePageActions({
+    onNew: canWrite ? formCtl.openCreate : undefined,
+    newLabel: canWrite ? "Nuevo servicio" : undefined,
+  });
 
   const enrichedLogs = enrichLogs(logs, forkliftMap);
 
@@ -86,6 +91,7 @@ export default function MaintenancePage() {
             onGenerateRecurring={() => generateRecurring.mutate()}
             isGenerating={generateRecurring.isPending}
             onCreate={formCtl.openCreate}
+            canCreate={canWrite}
           />
         }
         notice={
@@ -117,8 +123,8 @@ export default function MaintenancePage() {
         onClearFilters={reset}
         emptyMessage="No se encontraron registros de mantenimiento"
         emptyIcon={MaintenanceIcon}
-        emptyActionLabel="Nuevo servicio"
-        onEmptyAction={formCtl.openCreate}
+        emptyActionLabel={canWrite ? "Nuevo servicio" : undefined}
+        onEmptyAction={canWrite ? formCtl.openCreate : undefined}
         customContent={kanbanContent}
         mobileCardRender={(log) => (
           <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
