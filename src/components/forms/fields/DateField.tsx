@@ -28,7 +28,7 @@ export function DateField<TFieldValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
+      render={({ field }) => (
         <FormItem>
           <FormControl>
             <DatePickerField
@@ -37,7 +37,6 @@ export function DateField<TFieldValues extends FieldValues>({
               onSelect={field.onChange}
               placeholder={placeholder}
               required={required}
-              error={fieldState.error?.message}
               disabled={disabledMatcher}
             />
           </FormControl>
