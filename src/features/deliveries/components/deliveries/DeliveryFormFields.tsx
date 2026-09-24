@@ -57,25 +57,18 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
       label: `${b.customer_name || "Desconocido"} (${formatDateRange(b.start_date, b.end_date)})`,
     })) ?? [];
 
-  const driverOptions: SelectOption[] =
-    activeDrivers?.map((d) => ({ value: d.name, label: d.name })) ?? [];
-
-  // Auto-rellena el teléfono cuando cambia el operador seleccionado.
   const driverName = useWatch({ control: form.control, name: "driverName" });
-  useEffect(() => {
-    if (!driverName) return;
-    const driver = activeDrivers?.find((d) => d.name === driverName);
-    if (driver?.phone) form.setValue("driverPhone", driver.phone, { shouldDirty: true });
-  }, [driverName, activeDrivers, form]);
 
-  // R-C6: al elegir una reserva, auto-asignar su montacargas.
-  useEffect(() => {
-    if (!bookingId) return;
-    const booking = bookings?.find((b) => b.id === bookingId);
-    if (booking && booking.forklift_id !== forkliftId) {
-      form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
+  const selectBooking = (id: string) => {
+    const booking = bookings?.find((b) => b.id === id);
+    if (booking) form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
+  };
+  const selectForklift = (id: string) => {
+    const booking = bookings?.find((b) => b.id === form.getValues("bookingId"));
+    if (booking && booking.forklift_id !== id) {
+      form.setValue("bookingId", "", { shouldDirty: true, shouldValidate: true });
     }
-  }, [bookingId, bookings, forkliftId, form]);
+  };
 
   // Al elegir otra reserva, proponer una fecha válida sin pisar una fecha ya válida.
   useEffect(() => {
@@ -131,18 +124,6 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
     }
   }, [transportType, bookingId, bookings, form]);
 
-  // R-C6: si el montacargas cambia y ya no coincide con la reserva, limpiar.
-  useEffect(() => {
-    if (!bookingId || !forkliftId) return;
-    const booking = bookings?.find((b) => b.id === bookingId);
-    if (booking && booking.forklift_id !== forkliftId) {
-      form.setValue("bookingId", "", { shouldDirty: true });
-    }
-  }, [forkliftId, bookingId, bookings, form]);
-
-
-
-
   return (
     <Form {...form}>
       <FormSection title="Detalles" first>
@@ -154,6 +135,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
             label="Montacargas"
             required
             options={forkliftOptions}
+            onValueChange={selectForklift}
             placeholder="Seleccionar"
           />
         </div>
@@ -163,6 +145,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           name="bookingId"
           label="Reserva Vinculada"
           options={bookingOptions}
+          onValueChange={selectBooking}
           // GUI-FE-11a (G-DIS-03): la regla exige reserva; el placeholder
           // "Opcional" contradecía la validación.
           required
@@ -188,21 +171,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           placeholder="Calle, número, colonia y ciudad"
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SelectField
-            control={form.control}
-            name="driverName"
-            label="Operador"
-            options={driverOptions}
-            placeholder="Seleccionar operador"
-          />
-          <TextField
-            control={form.control}
-            name="driverPhone"
-            label="Teléfono del Operador"
-            placeholder="+52 55 1234 5678"
-          />
-        </div>
+        <DeliveryOperatorFields form={form} activeDrivers={activeDrivers} />
 
         {/* Bug 3: histórico sin operador ni firma → justificación obligatoria. */}
         {alreadyCompleted && !driverName?.trim() && (
@@ -225,5 +194,36 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
         />
       </FormSection>
     </Form>
+  );
+}
+
+function DeliveryOperatorFields({ form, activeDrivers }: Pick<Props, "form" | "activeDrivers">) {
+  const noDrivers = activeDrivers?.length === 0;
+  const driverOptions = activeDrivers?.map((d) => ({ value: d.name, label: d.name })) ?? [];
+  const selectDriver = (name: string) => {
+    const driver = activeDrivers?.find((d) => d.name === name);
+    form.setValue("driverPhone", driver?.phone ?? "", { shouldDirty: true, shouldValidate: true });
+  };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <SelectField
+        control={form.control}
+        name="driverName"
+        label="Operador"
+        options={driverOptions}
+        onValueChange={selectDriver}
+        disabled={noDrivers}
+        placeholder={noDrivers ? "Sin operadores activos" : "Seleccionar operador"}
+        description={noDrivers ? "No hay operadores activos registrados. Puedes asignar uno después." : undefined}
+      />
+      <TextField
+        control={form.control}
+        name="driverPhone"
+        label="Teléfono del Operador"
+        type="tel"
+        placeholder="+52 55 1234 5678"
+      />
+    </div>
   );
 }
