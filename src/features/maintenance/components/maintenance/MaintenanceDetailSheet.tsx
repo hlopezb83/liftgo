@@ -7,7 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSuppliers } from "@/features/suppliers";
-import { useUserRole } from "@/features/users";
+import { useHasModuleAccess, useUserRole } from "@/features/users";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
@@ -28,6 +28,8 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
   completed: { label: "Completado", variant: "secondary" },
 };
 
+const sectionsReadOnly = (isClosed: boolean, canWrite: boolean) => isClosed || !canWrite;
+
 interface Props {
   log: MaintenanceLog | null;
   open: boolean;
@@ -42,6 +44,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   // E1: una OT cerrada ya trae costos capturados; solo admin puede archivarla
   // (el RPC lo valida en el servidor, aqui evitamos el intento fallido).
   const { data: role } = useUserRole();
+  const canWrite = useHasModuleAccess("Mantenimiento", "full");
   const { data: suppliers } = useSuppliers();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
@@ -51,6 +54,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
   const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
   const isClosed = log.work_status === "completed";
+  const readOnly = sectionsReadOnly(isClosed, canWrite);
   const isArchived = log.deleted_at !== null;
 
   const handleDelete = () => {
@@ -113,13 +117,13 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           <MaintenancePartsSection
             maintenanceLogId={log.id}
             currentCost={log.cost || 0}
-            readOnly={log.work_status === "completed"}
+            readOnly={readOnly}
           />
 
           <Separator />
           <MaintenanceLaborSection
             maintenanceLogId={log.id}
-            readOnly={log.work_status === "completed"}
+            readOnly={readOnly}
           />
 
           <Separator />
