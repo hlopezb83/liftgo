@@ -12,7 +12,8 @@ const delivery = {
 };
 const booking = { id: "old-booking", booking_number: "RSV-0001", end_date: "2026-11-13" };
 
-vi.mock("@/features/bookings", () => ({
+vi.mock("@/features/bookings", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/bookings")>(),
   useBooking: (id: string) => mocks.booking(id),
   useBookings: () => { throw new Error("El detalle no debe depender del listado limitado"); },
 }));
