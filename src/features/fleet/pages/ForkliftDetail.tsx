@@ -126,7 +126,7 @@ export default function ForkliftDetail() {
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
       {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
       {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" showUploader={canUploadDamagePhotos} />}
-      {id && <DocumentAttachments entityType="forklift" entityId={id} />}
+      {id && <DocumentAttachments entityType="forklift" entityId={id} accessModule="Flota" />}
       <ForkliftStatusHistory logs={logs || []} />
     </PageContainer>
   );
