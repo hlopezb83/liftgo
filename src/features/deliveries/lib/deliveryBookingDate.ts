@@ -38,3 +38,19 @@ export function suggestedScheduledTransportDate(
   const candidate = alreadyCompleted || bookingDate >= today ? bookingDate : today;
   return deliveryBookingDateError(type, candidate, booking) ? null : candidate;
 }
+
+/** Reconsider only the date this form suggested; preserve manual edits. */
+export function suggestedDateAfterTransportTypeChange(
+  type: string,
+  selectedDate: string | undefined,
+  lastSuggestedDate: string | null,
+  booking: { start_date: string; end_date: string },
+  today: string,
+  alreadyCompleted: boolean,
+): string | null {
+  if (!lastSuggestedDate || selectedDate !== lastSuggestedDate) return null;
+  const nextDate = suggestedScheduledTransportDate(
+    type, undefined, booking, today, alreadyCompleted,
+  );
+  return nextDate === selectedDate ? null : nextDate;
+}
