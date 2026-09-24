@@ -136,6 +136,16 @@ describe("useUpdateDelivery", () => {
 });
 
 describe("useCompleteDelivery", () => {
+  it("invalida reservas elegibles tras completar una entrega", async () => {
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const key = ["bookings", "list", { purpose: "return-inspection" }];
+    queryClient.setQueryData(key, []);
+    const { result } = renderHook(() => useCompleteDelivery(), { wrapper: Wrapper });
+    await act(async () => { await result.current.mutateAsync({ id: "d-1" }); });
+    expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true);
+  });
+
+
   it("usa la RPC atómica y no hace UPDATE directo de status", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCompleteDelivery(), { wrapper: Wrapper });

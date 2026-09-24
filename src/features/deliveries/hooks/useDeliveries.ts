@@ -66,7 +66,7 @@ export function useCreateDelivery() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [deliveryKeys.all],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const],
     errorTitle: "Error al crear entrega",
   });
 }
@@ -78,7 +78,7 @@ export function useUpdateDelivery() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [deliveryKeys.all],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const],
     errorTitle: "Error al actualizar entrega",
   });
 }
@@ -104,7 +104,7 @@ export function useCompleteDelivery() {
         p_completed_no_evidence_reason: completed_no_evidence_reason,
       });
     },
-    invalidateKeys: [deliveryKeys.all, ["forklifts"] as const, ["status_logs"] as const],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const],
     errorTitle: "Error al completar entrega",
   });
 }
@@ -116,7 +116,7 @@ export function useDeleteDelivery() {
       if (error) throw error;
       return id;
     },
-    invalidateKeys: [deliveryKeys.all],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const],
     errorTitle: "Error al eliminar entrega",
   });
 }

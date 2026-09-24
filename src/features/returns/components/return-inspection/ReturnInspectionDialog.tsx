@@ -1,4 +1,5 @@
 import { useWatch, type UseFormReturn } from "react-hook-form";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import {
   SelectField,
@@ -15,8 +16,9 @@ import { Label } from "@/components/ui/label";
 import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
-import { formatDateRange } from "@/lib/utils";
+import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { DAMAGE_CONDITIONS } from "../../lib/returnInspectionSchema";
+import { ReturnBookingAvailability } from "./ReturnBookingAvailability";
 import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
 import type { FormEvent as ReactFormEvent } from "react";
 
@@ -25,6 +27,13 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<ReturnInspectionFormValues>;
   activeBookings?: Booking[];
+  bookingsRaw?: Booking[];
+  bookingsLoading: boolean;
+  bookingsError: boolean;
+  bookingsRetrying: boolean;
+  onRetryBookings: () => void;
+  requestedBookingId: string | null;
+  isEarlyReturn: boolean;
   forkliftMap: Map<string, Forklift>;
   isPending: boolean;
   onSubmit: (e: ReactFormEvent) => void;
@@ -34,6 +43,7 @@ interface Props {
 
 export function ReturnInspectionDialog({
   open, onOpenChange, form, activeBookings, forkliftMap, isPending, onSubmit, inspectorLocked = false,
+  bookingsRaw, bookingsLoading, bookingsError, bookingsRetrying, onRetryBookings, requestedBookingId, isEarlyReturn,
 }: Props) {
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   // R7-FE-07a (N7-UX-01): señalar la obligatoriedad ANTES del submit
@@ -59,6 +69,7 @@ export function ReturnInspectionDialog({
   return (
     <FormDialog
       isPending={isPending}
+      isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
       title="Inspección de Devolución"
@@ -68,22 +79,36 @@ export function ReturnInspectionDialog({
         </span>
       }
     >
-      <Form {...form}>
+      {bookingsLoading || bookingsError || !bookingOptions.length ? (
+        <ReturnBookingAvailability
+          isLoading={bookingsLoading}
+          isError={bookingsError}
+          isRetrying={bookingsRetrying}
+          onRetry={onRetryBookings}
+          onClose={() => onOpenChange(false)}
+          hasRequestedBooking={!!requestedBookingId}
+          isEarlyReturn={isEarlyReturn}
+        />
+      ) : <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
+          <ListTruncationNotice rows={bookingsRaw} />
           <SelectField
             control={form.control}
             name="bookingId"
             label="Reserva a Devolver"
             required
-            placeholder="Seleccionar reserva activa"
+            placeholder="Seleccionar reserva lista para devolver"
             options={bookingOptions}
-            description="Solo se muestran reservas cuyo periodo de renta ha finalizado (o rentas vigentes si vienes del flujo de devolución anticipada). Si no encuentras la reserva, verifica la fecha de fin o ajústala en el módulo de reservas."
+            description="Reservas iniciadas con entrega completada y devolución pendiente."
           />
 
           <DateField
             control={form.control}
             name="inspectedAt"
-            disabledMatcher={{ after: new Date() }}
+            disabledMatcher={[
+              { after: nowMty() },
+              ...(selectedBooking ? [{ before: parseDateLocal(selectedBooking.start_date) }] : []),
+            ]}
             label="Fecha de Inspección"
             required
           />
@@ -163,11 +188,12 @@ export function ReturnInspectionDialog({
 
           <FormActions
             submitLabel="Completar Devolución"
+            submitDisabled={!selectedBooking}
             isPending={isPending}
             onCancel={() => onOpenChange(false)}
           />
         </form>
-      </Form>
+      </Form>}
     </FormDialog>
   );
 }

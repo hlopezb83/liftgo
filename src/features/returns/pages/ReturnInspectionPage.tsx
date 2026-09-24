@@ -8,7 +8,6 @@ import { PlusCircle } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -16,9 +15,9 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
-import { nowMty, parseDateLocal } from "@/lib/utils";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
 import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
+import { useReturnableBookings } from "../hooks/useReturnableBookings";
 import { useReturnInspections } from "../hooks/useReturnInspections";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
@@ -27,30 +26,26 @@ export default function ReturnInspectionPage() {
   const canWrite = useHasModuleAccess("Entregas", "full");
   const navigate = useNavigateTransition();
   const [searchParams] = useSearchParams();
-  const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const { data: inspectionsRaw, isLoading, isError, refetch } = useReturnInspections();
   const inspections = visibleListRows(inspectionsRaw);
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
-  // R10 Bloque 7: en modo `?early=1`, incluir rentas vigentes con fin futuro
-  // para permitir devolución anticipada. En modo normal, exigir end_date <= hoy.
   const isEarlyReturn = searchParams.get("early") === "1";
-  // BL-R8-21 (R8-FE-16): fuente única de "hoy" = America/Monterrey, no la TZ
-  // del browser (con browser en GMT+9 una renta que vence hoy en MX quedaba
-  // fuera del filtro de devolución).
-  const today = nowMty();
-  today.setHours(23, 59, 59, 999);
-  const activeBookings = bookings?.filter(
-    (b) => b.status === "confirmed"
-      && !b.return_status
-      && (isEarlyReturn || parseDateLocal(b.end_date) <= today),
-  );
-
+  const requestedBookingId = searchParams.get("booking_id");
+  const returnable = useReturnableBookings({
+    early: isEarlyReturn,
+    bookingId: requestedBookingId,
+    enabled: canWrite,
+  });
+  const activeBookings = visibleListRows(returnable.data);
   const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending, inspectorLocked } =
-    useReturnInspectionDialog(bookings, activeBookings, canWrite);
-
+    useReturnInspectionDialog(activeBookings, canWrite);
+  const openNewInspection = () => {
+    void returnable.refetch();
+    openNew();
+  };
 
   const filteredInspections = !inspections
     ? []
@@ -131,7 +126,7 @@ export default function ReturnInspectionPage() {
           </div>
         }
         actions={canWrite ? (
-          <Button onClick={openNew} size="sm">
+          <Button onClick={openNewInspection} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> Nueva Devolución
           </Button>
         ) : undefined}
@@ -142,7 +137,7 @@ export default function ReturnInspectionPage() {
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
         emptyActionLabel={canWrite ? "Nueva Devolución" : undefined}
-        onEmptyAction={canWrite ? openNew : undefined}
+        onEmptyAction={canWrite ? openNewInspection : undefined}
         mobileCardRender={(ins) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
             <CardContent className="p-4">
@@ -170,6 +165,13 @@ export default function ReturnInspectionPage() {
         onOpenChange={setDialogOpen}
         form={form}
         activeBookings={activeBookings}
+        bookingsRaw={returnable.data}
+        bookingsLoading={returnable.isLoading}
+        bookingsError={returnable.isError}
+        bookingsRetrying={returnable.isFetching}
+        onRetryBookings={() => { void returnable.refetch(); }}
+        requestedBookingId={requestedBookingId}
+        isEarlyReturn={isEarlyReturn}
         forkliftMap={forkliftMap}
         isPending={isPending}
         onSubmit={handleSubmit}
