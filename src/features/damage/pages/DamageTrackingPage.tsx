@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
@@ -27,6 +28,7 @@ const DAMAGE_STATUS_OPTIONS = [
 ];
 
 export default function DamageTrackingPage() {
+  const canWrite = useHasModuleAccess("Daños", "full");
   // R5-A6: vista de archivados para poder restaurarlos.
   const [showArchived, setShowArchived] = useState(false);
   const { data: records, isLoading, isError, refetch } = useDamageRecords(showArchived);
@@ -67,7 +69,7 @@ export default function DamageTrackingPage() {
       <ListPageLayout
         title="Seguimiento de Daños"
         subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
-        actions={<ReportDamageDialog open={reportDialog.open} onOpenChange={reportDialog.setOpen} />}
+        actions={canWrite ? <ReportDamageDialog open={reportDialog.open} onOpenChange={reportDialog.setOpen} /> : undefined}
         filters={
           <FiltersToolbar>
             <FiltersToolbar.Search
@@ -101,8 +103,8 @@ export default function DamageTrackingPage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyMessage="No se encontraron registros de daños"
-        emptyActionLabel="Reportar daño"
-        onEmptyAction={reportDialog.openDialog}
+        emptyActionLabel={canWrite ? "Reportar daño" : undefined}
+        onEmptyAction={canWrite ? reportDialog.openDialog : undefined}
         mobileCardRender={(r) => (
           <Card className="cursor-pointer" onClick={() => detail.open(r as DamageRecordWithJoins)}>
             <CardContent className="p-4 space-y-2">
