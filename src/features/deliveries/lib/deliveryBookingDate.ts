@@ -19,3 +19,22 @@ export function deliveryBookingDateError(
   }
   return null;
 }
+
+/**
+ * Suggests a valid date only when a newly selected booking makes the current
+ * date invalid. A valid date chosen by the operator is never replaced.
+ */
+export function suggestedScheduledTransportDate(
+  type: string,
+  selectedDate: string | undefined,
+  booking: { start_date: string; end_date: string },
+  today: string,
+  alreadyCompleted: boolean,
+): string | null {
+  if (type !== "delivery" && type !== "pickup") return null;
+  if (selectedDate && !deliveryBookingDateError(type, selectedDate, booking)) return null;
+
+  const bookingDate = type === "pickup" ? booking.end_date : booking.start_date;
+  const candidate = alreadyCompleted || bookingDate >= today ? bookingDate : today;
+  return deliveryBookingDateError(type, candidate, booking) ? null : candidate;
+}
