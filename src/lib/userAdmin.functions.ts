@@ -143,15 +143,17 @@ export const deleteUserFn = createServerFn({ method: "POST" })
       throw new g.HttpError(500, "Failed to validate admin invariant");
     }
 
-    const { error: deleteErr } = await admin.auth.admin.deleteUser(userId);
+    // Baja atómica con contexto de empresa: auditoría, cascadas y SET NULL
+    // corren con app.organization_id fijado (necesario con 2+ empresas activas).
+    const { error: deleteErr } = await admin.rpc("discard_internal_user", {
+      p_caller_id: context.userId,
+      p_user_id: userId,
+      p_organization_id: organizationId,
+    });
     if (deleteErr) {
-      console.error("auth.admin.deleteUser failed:", deleteErr);
+      console.error("discard_internal_user failed:", deleteErr);
       throw new g.HttpError(400, "Failed to delete user");
     }
-
-    await admin.from("user_roles").delete().eq("user_id", userId);
-    await admin.from("profiles").delete().eq("user_id", userId);
-    await admin.from("organization_memberships").delete().eq("auth_user_id", userId);
 
     return { success: true };
   });

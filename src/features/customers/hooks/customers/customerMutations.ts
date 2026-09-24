@@ -1,8 +1,10 @@
 /**
  * Mutaciones de clientes (sin lecturas de cartera).
  *
- * El alta crea la identidad; la edición modifica la relación comercial local.
- * El navegador nunca envía `organization_id`.
+ * Extraído de `useCustomers.ts` (Paquete 7) sin cambios de comportamiento:
+ * mismos payloads, bloqueo optimista con `expectedVersion`/`stale_write`,
+ * `assertRowsAffected`, RPC `soft_delete_customer`, invalidaciones y títulos
+ * de error. El navegador nunca envía `organization_id`.
  */
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -24,48 +26,37 @@ export function useCreateCustomer() {
 }
 
 /**
- * La edición cambia únicamente la relación comercial de esta empresa.
- * updated_at actúa como versión optimista de esa relación.
+ * M-11a: bloqueo optimista. El llamador envía `expectedVersion` — el valor de
+ * `version` que tenía el registro CUANDO se abrió el formulario. Si otro
+ * usuario guardó en el intermedio, el trigger `bump_version_optimistic` ya
+ * incrementó la columna, el UPDATE afecta 0 filas y abortamos en vez de pisar
+ * los cambios ajenos (lost update). Sin `expectedVersion` se conserva el
+ * comportamiento anterior (sin bloqueo) para no romper flujos internos.
  */
 export function useUpdateCustomer() {
   return useEntityMutation({
-    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: TablesUpdate<"customers"> & {
+    mutationFn: async ({ id, expectedVersion, ...updates }: TablesUpdate<"customers"> & {
       id: string;
-      expectedUpdatedAt?: string | null;
+      expectedVersion?: number | null;
     }) => {
-      const relationUpdates = {
-        alias: updates.name,
-        razon_social: updates.razon_social,
-        rfc: updates.rfc,
-        regimen_fiscal: updates.regimen_fiscal,
-        uso_cfdi: updates.uso_cfdi,
-        domicilio_fiscal_cp: updates.domicilio_fiscal_cp,
-        representante_legal: updates.representante_legal,
-        contact_person: updates.contact_person,
-        email: updates.email,
-        phone: updates.phone,
-        billing_address: updates.address,
-        tax_rate: updates.tax_rate,
-        notes: updates.notes,
-        website: updates.website,
-        updated_at: new Date().toISOString(),
-      };
-      // RLS restringe el UPDATE a organization_id de la sesión, sin aceptar
-      // un id de empresa enviado por el navegador.
-      let q = supabase.from("organization_customers")
-        .update(relationUpdates).eq("customer_id", id).eq("status", "active");
-      if (expectedUpdatedAt != null) q = q.eq("updated_at", expectedUpdatedAt);
+      // R10 Bloque 12.7: no actualizar clientes archivados.
+      let q = supabase.from("customers").update(updates).eq("id", id).is("deleted_at", null);
+      if (expectedVersion != null) q = q.eq("version", expectedVersion);
       const { data, error } = await q.select();
 
       if (error) throw error;
-      if ((!data || data.length === 0) && expectedUpdatedAt != null) {
+      if ((!data || data.length === 0) && expectedVersion != null) {
+        // Distinguir conflicto de concurrencia de "sin permisos / archivado".
         const { data: still } = await supabase
-          .from("organization_customers").select("updated_at")
-          .eq("customer_id", id).eq("status", "active").maybeSingle();
-        if (still && still.updated_at !== expectedUpdatedAt) {
+          .from("customers").select("version").eq("id", id).is("deleted_at", null).maybeSingle();
+        // FIX R6-11: conflicto real solo si la versión cambió; si coincide, el
+        // UPDATE falló por RLS/permisos y no hay que reportar un falso
+        // stale_write (patrón R5-17 de facturas).
+        if (still && still.version !== expectedVersion) {
           throw new Error("stale_write: otro usuario modificó este cliente; recarga y vuelve a intentar");
         }
       }
+      // GUI-FE-08: 0 filas = sin permisos (RLS) o registro archivado/inexistente.
       assertRowsAffected(data, "Actualizar cliente");
       return data[0];
     },

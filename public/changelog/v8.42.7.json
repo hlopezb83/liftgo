@@ -1,0 +1,13 @@
+{
+  "version": "8.42.7",
+  "date": "2026-09-23",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Eliminar usuarios vuelve a funcionar con varias empresas",
+  "description": "Borrar un usuario desde /users fallaba con error del servidor al haber 2 empresas activas; ahora la baja se hace completa y dentro de la empresa correcta.",
+  "changes": [
+    "Migración 0063: RPC server-only discard_internal_user valida admin de la empresa, membresía del usuario y que no sea operador de plataforma; fija el contexto y borra rol, perfil, membresía y cuenta en una sola operación.",
+    "0062 y 0064 son migraciones inocuas (SELECT 1) para registrar migraciones pendientes en orden.",
+    "deleteUserFn usa la nueva RPC; se retiró una excepción obsoleta de la prueba de aislamiento."
+  ]
+}

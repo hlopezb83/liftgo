@@ -41,18 +41,19 @@ El workflow `.github/workflows/rls-db-tests.yml` ejecuta, en este orden:
 - El registro con id 31 del ledger productivo tiene origen desconocido: **no se
   borra, no se edita y no se atribuye automáticamente** a ningún archivo.
 
-### Reconciliación del 23 de septiembre de 2026
+### Desfase observado el 23 de septiembre de 2026
 
-- El migrador oficial de Lovable ejecutó y registró 0058–0061 en orden.
-  Una lectura directa confirmó `created_at=1790874180000` hasta
-  `1790874183000` y el hash SHA-256 de cada archivo. No se insertaron filas
-  manualmente en el ledger.
-- Lovable creó `0062_ledger_sync_noop.sql` con sólo `SELECT 1`; su entrada
-  del journal quedó corregida a `when=1790874184000`, pero **todavía no consta
-  en el ledger**. Se registrará al aplicar la siguiente migración oficial.
-- `0063_customer_relation_edit_isolation.sql` prepara el aislamiento de edición
-  de clientes. Antes de publicar la interfaz, el migrador oficial debe aplicar
-  0062 y 0063, y deben comprobarse sus objetos y pruebas A/B.
+- En Lovable Cloud, el último registro leído fue `id=59`,
+  `created_at=1790874179000`, correspondiente al archivo 0057. El journal de
+  Git llega hasta 0061; **0058–0061 aún no constan en el ledger**.
+- 0058 sólo agrega un comentario. Los efectos de 0059 (folios), 0060 (policy de
+  perfiles) y 0061 (`handle_new_user`) se comprobaron directamente en la base,
+  pero esa comprobación **no equivale a registrar las migraciones**.
+- La herramienta de Lovable disponible para crear migraciones no aplica archivos
+  existentes. Se detuvo la reconciliación sin insertar filas del ledger a mano
+  ni crear una migración 0062. La próxima operación de migración en producción
+  debe resolver primero este desfase por el canal oficial de Lovable y volver a
+  verificar tanto el ledger como los objetos resultantes.
 
 ## Límite de certeza
 

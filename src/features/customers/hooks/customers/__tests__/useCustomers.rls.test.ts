@@ -13,7 +13,6 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import { useCustomer, useCustomers } from "../useCustomers";
-import { mergeCustomerRelation } from "../customerQueries";
 
 describe("useCustomers — RLS contract", () => {
   beforeEach(() => {
@@ -72,33 +71,5 @@ describe("useCustomer — detalle por id", () => {
     const { result } = renderHook(() => useCustomer("cust-otra-empresa"), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toBeNull();
-  });
-
-  it("usa datos de la relación y mantiene la identidad global como respaldo", () => {
-    const customer = mergeCustomerRelation({
-      customers: { id: "c1", name: "HYVA", email: "global@example.com", phone: "111", website: "global.example", address: "global", created_by_organization_id: "org-a" },
-      organization_id: "org-a",
-      alias: "HYVA Monterrey", email: "mty@example.com", phone: "222",
-      website: null, billing_address: "Dirección local", updated_at: "2026-09-23T00:00:00Z",
-      tax_rate: 16,
-    } as Parameters<typeof mergeCustomerRelation>[0]);
-    expect(customer).toMatchObject({
-      name: "HYVA Monterrey", email: "mty@example.com", phone: "222",
-      website: "global.example", address: "Dirección local",
-      relation_updated_at: "2026-09-23T00:00:00Z",
-    });
-  });
-
-  it("no muestra contacto global en otra empresa cuando su relación está vacía", () => {
-    const customer = mergeCustomerRelation({
-      customers: { id: "c1", name: "HYVA", email: "a@example.com", phone: "111", website: "a.example", address: "Dirección A", notes: "Sólo A", created_by_organization_id: "org-a" },
-      organization_id: "org-b", alias: "HYVA Bajío", email: null, phone: null,
-      billing_address: null, notes: null, contact_person: null, website: null,
-      updated_at: "2026-09-23T00:00:00Z", tax_rate: 16,
-    } as Parameters<typeof mergeCustomerRelation>[0]);
-    expect(customer).toMatchObject({
-      name: "HYVA Bajío", email: null, phone: null, address: null,
-      notes: null, contact_person: null, website: null,
-    });
   });
 });

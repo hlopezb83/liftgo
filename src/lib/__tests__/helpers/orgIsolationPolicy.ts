@@ -39,13 +39,6 @@ export interface AllowEntry {
 
 export const ALLOWLIST: AllowEntry[] = [
   {
-    file: "src/lib/userAdmin.functions.ts",
-    table: "organization_memberships",
-    match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,
-    reason:
-      "deleteUserFn valida antes assertTargetInOrganization y después elimina la cuenta completa.",
-  },
-  {
     file: "src/lib/platformAdmin.helpers.ts",
     table: "organization_memberships",
     match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,

@@ -11,6 +11,7 @@ import {
 } from "@/test/helpers/supabaseChain";
 
 const orgCustomerCalls: ChainCall[][] = [];
+const customerCalls: ChainCall[][] = [];
 let updateResponse: SupabaseMockResponse = { data: [{ id: "c1", version: 3 }], error: null };
 
 vi.mock("@/integrations/supabase/client", () => ({
@@ -18,7 +19,11 @@ vi.mock("@/integrations/supabase/client", () => ({
     tableResolvers: {
       organization_customers: (calls) => {
         orgCustomerCalls.push(calls);
-        return calls.some((c) => c.method === "update") ? updateResponse : { data: [], error: null };
+        return { data: [], error: null };
+      },
+      customers: (calls) => {
+        customerCalls.push(calls);
+        return updateResponse;
       },
     },
   }),
@@ -32,6 +37,7 @@ const findArg = (calls: ChainCall[], method: string) =>
 describe("useCustomers — fachada de compatibilidad", () => {
   beforeEach(() => {
     orgCustomerCalls.length = 0;
+    customerCalls.length = 0;
     updateResponse = { data: [{ id: "c1", version: 3 }], error: null };
   });
 
@@ -56,9 +62,8 @@ describe("useCustomers — fachada de compatibilidad", () => {
     expect(select).toContain("customers!inner(");
     expect(findArg(calls, "eq")).toContainEqual(["status", "active"]);
     expect(findArg(calls, "is")).toContainEqual(["customers.deleted_at", null]);
-    // Se lee organization_id para decidir el respaldo de datos legados, pero
-    // nunca se usa como filtro aportado por el navegador.
-    expect(findArg(calls, "eq").some((args) => args[0] === "organization_id")).toBe(false);
+    // El navegador nunca envía organization_id: el aislamiento es por relación/RLS.
+    expect(JSON.stringify(calls)).not.toContain("organization_id");
   });
 
   it("el detalle también pasa por organization_customers", async () => {
@@ -71,11 +76,11 @@ describe("useCustomers — fachada de compatibilidad", () => {
 
 describe("useUpdateCustomer — bloqueo optimista", () => {
   beforeEach(() => {
-    orgCustomerCalls.length = 0;
+    customerCalls.length = 0;
     updateResponse = { data: [{ id: "c1", version: 3 }], error: null };
   });
 
-  it("edita sólo la relación local y compara su fecha de modificación", async () => {
+  it("expectedVersion llega al filtro de actualización", async () => {
     // Se captura el mutationFn y se invoca directamente (sin React).
     const captured: { mutationFn?: (v: unknown) => Promise<unknown> } = {};
     vi.doMock("@/lib/hooks/useEntityMutation", () => ({
@@ -87,13 +92,10 @@ describe("useUpdateCustomer — bloqueo optimista", () => {
     vi.resetModules();
     const mod = await import("../customerMutations");
     mod.useUpdateCustomer();
-    await captured.mutationFn?.({ id: "c1", name: "Nuevo", email: "local@example.com", expectedUpdatedAt: "2026-09-23T00:00:00Z" });
-    const calls = orgCustomerCalls.at(-1)!;
-    expect(findArg(calls, "eq")).toContainEqual(["customer_id", "c1"]);
-    expect(findArg(calls, "eq")).toContainEqual(["status", "active"]);
-    expect(findArg(calls, "eq")).toContainEqual(["updated_at", "2026-09-23T00:00:00Z"]);
-    expect(findArg(calls, "update")[0]?.[0]).toMatchObject({ alias: "Nuevo", email: "local@example.com" });
-    expect(JSON.stringify(calls)).not.toContain("organization_id");
+    await captured.mutationFn?.({ id: "c1", name: "Nuevo", expectedVersion: 2 });
+    const calls = customerCalls.at(-1)!;
+    expect(findArg(calls, "eq")).toContainEqual(["version", 2]);
+    expect(findArg(calls, "is")).toContainEqual(["deleted_at", null]);
     vi.doUnmock("@/lib/hooks/useEntityMutation");
     vi.resetModules();
   });

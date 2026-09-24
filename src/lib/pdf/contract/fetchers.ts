@@ -97,25 +97,6 @@ export interface TemplateData {
   local_overrides: LegalTemplateOverrides;
 }
 
-async function fetchLocalContractCustomer(customerId: string) {
-  const { data, error } = await supabase
-    .from("organization_customers")
-    .select("alias, razon_social, rfc, billing_address, contact_person, representante_legal, domicilio_fiscal_cp, customers!inner(name)")
-    .eq("customer_id", customerId)
-    .maybeSingle();
-  if (error) throw error;
-  return {
-    data: data ? {
-      name: data.razon_social ?? data.alias ?? data.customers.name,
-      rfc: data.rfc,
-      address: data.billing_address,
-      contact_person: data.contact_person,
-      representante_legal: data.representante_legal,
-      domicilio_fiscal_cp: data.domicilio_fiscal_cp,
-    } : null,
-  };
-}
-
 export async function fetchRelatedData(contract: ContractData) {
   // A6R2-3: contrato firmado con snapshot → cliente y unidad desde la copia.
   const snapshot = readSignedSnapshot(contract);
@@ -127,7 +108,11 @@ export async function fetchRelatedData(contract: ContractData) {
     snapshot?.customer
       ? Promise.resolve({ data: snapshot.customer })
       : contract.customer_id
-      ? fetchLocalContractCustomer(contract.customer_id)
+      ? supabase
+          .from("customers")
+          .select("name, rfc, address, contact_person, representante_legal, domicilio_fiscal_cp")
+          .eq("id", contract.customer_id)
+          .single()
       : Promise.resolve({ data: null }),
     snapshot?.forklift
       ? Promise.resolve({ data: snapshot.forklift })

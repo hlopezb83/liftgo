@@ -5871,6 +5871,14 @@ export type Database = {
         Args: { p_quote_id: string }
         Returns: undefined
       }
+      discard_internal_user: {
+        Args: {
+          p_caller_id: string
+          p_organization_id: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       discard_invited_internal_user: {
         Args: { p_organization_id: string; p_user_id: string }
         Returns: undefined

@@ -19,13 +19,13 @@ function customerFormToUpdate(form: CustomerFormData) {
 
 interface Params {
   id: string | undefined;
-  /** Marca temporal de la relación comercial al abrir (bloqueo optimista). */
-  expectedUpdatedAt?: string | null;
+  /** M-11a: `version` del cliente tal como se cargó (bloqueo optimista). */
+  expectedVersion?: number | null;
   setInviteOpen: (open: boolean) => void;
   setEditOpen: (open: boolean) => void;
 }
 
-export function useCustomerDetailActions({ id, expectedUpdatedAt, setInviteOpen, setEditOpen }: Params) {
+export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, setEditOpen }: Params) {
   const navigate = useNavigateTransition();
   const updateCustomer = useUpdateCustomer();
   // Carrera: la BD es la autoridad. Si el saldo cambió entre el render y el
@@ -56,7 +56,7 @@ export function useCustomerDetailActions({ id, expectedUpdatedAt, setInviteOpen,
 
   const handleEditSubmit = (form: CustomerFormData) => {
     if (!id) return;
-    updateCustomer.mutate({ id, expectedUpdatedAt, ...customerFormToUpdate(form) }, {
+    updateCustomer.mutate({ id, expectedVersion, ...customerFormToUpdate(form) }, {
       onSuccess: () => { notifySuccess("Cliente actualizado"); setEditOpen(false); },
     });
   };

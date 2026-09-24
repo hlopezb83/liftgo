@@ -19,7 +19,7 @@ export interface InvoicePdfPayload {
  * (`receptor_*`). El PDF debe reflejar ESE snapshot, no el estado actual del
  * cliente: si el cliente cambió de domicilio fiscal o fue eliminado, el PDF
  * antes mostraba el CP vacío o un dato distinto al del XML timbrado.
- * El respaldo para facturas antiguas se lee de la relación comercial local.
+ * El JOIN vivo a `customers` queda solo como respaldo para facturas antiguas.
  */
 async function resolveCustomerFiscal(invoice: {
   customer_id: string | null;
@@ -31,9 +31,9 @@ async function resolveCustomerFiscal(invoice: {
 
   if ((!customerRfc || !customerCp) && invoice.customer_id) {
     const { data: cust } = await supabase
-      .from("organization_customers")
+      .from("customers")
       .select("rfc, domicilio_fiscal_cp")
-      .eq("customer_id", invoice.customer_id)
+      .eq("id", invoice.customer_id)
       .maybeSingle();
     if (cust) {
       customerRfc = customerRfc || cust.rfc;
