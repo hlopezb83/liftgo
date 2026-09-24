@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useHasModuleAccess } from "@/features/users";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
@@ -21,6 +22,7 @@ import { partCategoryLabel } from "../lib/partCategories";
 import { PART_CATEGORIES } from "../lib/partConstants";
 
 export default function InventoryPage() {
+  const canWrite = useHasModuleAccess("Refacciones", "full");
   const { data: partsRaw, isLoading, isError, refetch } = usePartsInventory();
   const parts = visibleListRows(partsRaw);
 
@@ -32,8 +34,8 @@ export default function InventoryPage() {
   const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount } =
     useInventoryFilters(parts);
 
-  const openCreate = () => { setEditing(null); activateDialog.openDialog(); };
-  const openEdit = (p: PartInventory) => { setEditing(p); formDialog.openDialog(); };
+  const openCreate = () => { if (!canWrite) return; setEditing(null); activateDialog.openDialog(); };
+  const openEdit = (p: PartInventory) => { if (!canWrite) return; setEditing(p); formDialog.openDialog(); };
 
   const columns: ColumnDef<PartInventory>[] = [
     {
@@ -111,7 +113,7 @@ export default function InventoryPage() {
         title="Control de Refacciones"
         subtitle="Gestiona existencias y costos locales sobre el catálogo LiftGo"
         totalCount={filtered.length}
-        actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Habilitar refacción</Button>}
+        actions={canWrite ? <Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Habilitar refacción</Button> : undefined}
         notice={
           <ListTruncationNotice rows={partsRaw} />
         }
@@ -147,8 +149,8 @@ export default function InventoryPage() {
         onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={InventoryIcon}
-        emptyActionLabel="Habilitar refacción"
-        onEmptyAction={openCreate}
+        emptyActionLabel={canWrite ? "Habilitar refacción" : undefined}
+        onEmptyAction={canWrite ? openCreate : undefined}
         skeletonColumns={5}
         mobileCardRender={mobileCard}
       />
@@ -160,8 +162,8 @@ export default function InventoryPage() {
         onEdit={(p) => openEdit(p)}
       />
 
-      <PartFormDialog open={formDialog.open} onOpenChange={formDialog.setOpen} part={editing} />
-      <ActivatePartDialog open={activateDialog.open} onOpenChange={activateDialog.setOpen} />
+      {canWrite && <PartFormDialog open={formDialog.open} onOpenChange={formDialog.setOpen} part={editing} />}
+      {canWrite && <ActivatePartDialog open={activateDialog.open} onOpenChange={activateDialog.setOpen} />}
     </>
   );
 }
