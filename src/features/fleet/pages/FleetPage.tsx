@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
 import { useBookings } from "@/features/bookings";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -65,7 +66,8 @@ export default function FleetPage() {
   const activePolicyForkliftIds = fleetLocations?.activePolicyForkliftIds ?? EMPTY_SET;
 
   const navigate = useNavigateTransition();
-  usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });
+  const canWrite = useHasModuleAccess("Flota", "full");
+  usePageActions({ onNew: canWrite ? () => navigate("/fleet/new") : undefined, newLabel: canWrite ? "Nuevo equipo" : undefined });
 
   const columns = useFleetColumns(activePolicyForkliftIds, locationMap);
 
@@ -159,8 +161,8 @@ export default function FleetPage() {
       onClearFilters={reset}
       emptyMessage="No se encontraron montacargas"
       emptyIcon={ForkliftIcon}
-      emptyActionLabel="Agregar montacargas"
-      onEmptyAction={() => navigate("/fleet/new")}
+      emptyActionLabel={canWrite ? "Agregar montacargas" : undefined}
+      onEmptyAction={canWrite ? () => navigate("/fleet/new") : undefined}
       skeletonColumns={6}
       mobileCardRender={(f) => (
         <FleetMobileCard
