@@ -20,7 +20,7 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
 /**
  * Encapsula la creación de reservas a partir de una cotización.
  *
- * BL-32 (v7.94.0): usa la RPC transaccional `convert_quote_to_bookings`. Si
+ * Usa la puerta de organización de la RPC transaccional `convert_quote_to_bookings`. Si
  * alguna reserva falla, la transacción se revierte completa en el servidor.
  * El cliente ya no ejecuta rollback best-effort.
  */
@@ -32,7 +32,7 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
     if (!quote) return;
     state.setIsConverting(true);
     try {
-      const { data: rows, error } = await supabase.rpc("convert_quote_to_bookings", {
+      const { data: rows, error } = await supabase.rpc("convert_quote_to_bookings_scoped", {
         p_quote_id: quote.id,
         p_assignments: assignments.map((a) => ({
           forklift_id: a.forkliftId,

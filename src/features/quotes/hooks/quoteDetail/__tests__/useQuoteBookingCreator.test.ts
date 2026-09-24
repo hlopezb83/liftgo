@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 /**
  * v7.94.1 · Regresión de useQuoteBookingCreator con la RPC atómica
- * `convert_quote_to_bookings` (BL-32). Se valida el payload snake_case,
+ * `convert_quote_to_bookings_scoped` (BL-32). Se valida el payload snake_case,
  * el manejo de error de la RPC y las invalidaciones de query.
  */
 
@@ -69,7 +69,7 @@ describe("useQuoteBookingCreator (BL-32, v7.94.1)", () => {
     invalidateSpy.mockResolvedValue(undefined);
   });
 
-  it("llama a convert_quote_to_bookings con payload snake_case y difunde IDs devueltos", async () => {
+  it("llama a convert_quote_to_bookings_scoped con payload snake_case y difunde IDs devueltos", async () => {
     rpcMock.mockResolvedValue({
       data: [
         { booking_id: "b-1", forklift_id: "f-1" },
@@ -88,7 +88,7 @@ describe("useQuoteBookingCreator (BL-32, v7.94.1)", () => {
       true,
     );
 
-    expect(rpcMock).toHaveBeenCalledWith("convert_quote_to_bookings", {
+    expect(rpcMock).toHaveBeenCalledWith("convert_quote_to_bookings_scoped", {
       p_quote_id: "q-1",
       p_assignments: [
         { forklift_id: "f-1", daily_rate: 100, weekly_rate: 0, monthly_rate: 0 },

@@ -484,6 +484,13 @@
       "when": 1790874190000,
       "tag": "0068_ledger_sync_noop_0067",
       "breakpoints": true
+    },
+    {
+      "idx": 69,
+      "version": "7",
+      "when": 1790874191000,
+      "tag": "0069_quote_booking_staff_scoped_rpc",
+      "breakpoints": true
     }
   ]
 }
