@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DateRangePickerField } from "../DateRangePickerField";
 
 const selectedRange = {
@@ -7,7 +7,29 @@ const selectedRange = {
   to: new Date(2026, 8, 30),
 };
 
-vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => true }));
+const viewport = vi.hoisted(() => ({ mobile: true, tabletOrBelow: true }));
+vi.mock("@/hooks/use-mobile", () => ({
+  useIsMobile: () => viewport.mobile,
+  useIsTabletOrBelow: () => viewport.tabletOrBelow,
+}));
+
+afterEach(() => {
+  viewport.mobile = true;
+  viewport.tabletOrBelow = true;
+  it.each([
+    ["tablet", true, 1],
+    ["escritorio", false, 2],
+  ] as const)("muestra %i mes(es) en %s", (_name, tabletOrBelow, count) => {
+    viewport.mobile = false;
+    viewport.tabletOrBelow = tabletOrBelow;
+    render(<DateRangePickerField label="Fecha de emisión" onSelect={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir calendario de Fecha de emisión" }));
+
+    expect(screen.getAllByRole("table")).toHaveLength(count);
+    expect(screen.getByRole("dialog")).toHaveClass("max-w-[22rem]", "lg:max-w-[36rem]");
+  });
+});
 
 describe("DateRangePickerField — distribución responsive V26-03", () => {
   it.each([
