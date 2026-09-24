@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { useBookings } from "@/features/bookings";
 import { useActiveDrivers, useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
-import { deliveryBookingDateError } from "@/lib/domain/deliveryBookingDate";
 import { toYMD } from "@/lib/format/dateFormats";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
+import { deliveryBookingDateError } from "../../lib/deliveryBookingDate";
 import { deliverySchema } from "../../lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
 
