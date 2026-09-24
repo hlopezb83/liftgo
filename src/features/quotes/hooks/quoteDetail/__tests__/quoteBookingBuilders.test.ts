@@ -14,7 +14,7 @@ const customers = [{ id: "c1", address: "Av. Industrial 123" }];
 describe("buildDeliveryInfos", () => {
   it("empareja booking_id ↔ forklift_id y arrastra dirección del cliente", () => {
     const result = buildDeliveryInfos(
-      { customer_id: "c1", start_date: "2026-03-01" },
+      { customer_id: "c1", start_date: "2026-03-01", end_date: "2026-03-31" },
       customers, forklifts,
       ["f1", "f2"],
       ["BK-1", "BK-2"],
@@ -22,7 +22,7 @@ describe("buildDeliveryInfos", () => {
     expect(result).toHaveLength(2);
     expect(result[0]).toEqual({
       bookingId: "BK-1", forkliftId: "f1", forkliftName: "MC-001",
-      startDate: "2026-03-01", customerAddress: "Av. Industrial 123",
+      startDate: "2026-03-01", endDate: "2026-03-31", customerAddress: "Av. Industrial 123",
     });
     expect(result[1].forkliftName).toBe("MC-002");
   });
@@ -33,7 +33,7 @@ describe("buildDeliveryInfos", () => {
     );
     expect(result[0]).toEqual({
       bookingId: "BK-1", forkliftId: "fx", forkliftName: "Montacargas",
-      startDate: "", customerAddress: null,
+      startDate: "", endDate: "", customerAddress: null,
     });
   });
 });
