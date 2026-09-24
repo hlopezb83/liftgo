@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
+import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -23,6 +24,7 @@ import { useReturnInspections } from "../hooks/useReturnInspections";
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 
 export default function ReturnInspectionPage() {
+  const canWrite = useHasModuleAccess("Entregas", "full");
   const navigate = useNavigateTransition();
   const [searchParams] = useSearchParams();
   const { data: bookings } = useBookings();
@@ -47,7 +49,7 @@ export default function ReturnInspectionPage() {
   );
 
   const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending, inspectorLocked } =
-    useReturnInspectionDialog(bookings, activeBookings);
+    useReturnInspectionDialog(bookings, activeBookings, canWrite);
 
 
   const filteredInspections = !inspections
@@ -128,19 +130,19 @@ export default function ReturnInspectionPage() {
             )}
           </div>
         }
-        actions={
+        actions={canWrite ? (
           <Button onClick={openNew} size="sm">
             <PlusCircle className="h-4 w-4 mr-1" /> Nueva Devolución
           </Button>
-        }
+        ) : undefined}
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
-        emptyActionLabel="Nueva Devolución"
-        onEmptyAction={openNew}
+        emptyActionLabel={canWrite ? "Nueva Devolución" : undefined}
+        onEmptyAction={canWrite ? openNew : undefined}
         mobileCardRender={(ins) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
             <CardContent className="p-4">
@@ -163,7 +165,7 @@ export default function ReturnInspectionPage() {
         )}
       />
 
-      <ReturnInspectionDialog
+      {canWrite && <ReturnInspectionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         form={form}
@@ -172,7 +174,7 @@ export default function ReturnInspectionPage() {
         isPending={isPending}
         onSubmit={handleSubmit}
         inspectorLocked={inspectorLocked}
-      />
+      />}
     </>
   );
 }
