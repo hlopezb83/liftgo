@@ -3331,6 +3331,7 @@ export type Database = {
           tax_rate: number
           updated_at: string
           uso_cfdi: string | null
+          website: string | null
         }
         Insert: {
           alias?: string | null
@@ -3353,6 +3354,7 @@ export type Database = {
           tax_rate?: number
           updated_at?: string
           uso_cfdi?: string | null
+          website?: string | null
         }
         Update: {
           alias?: string | null
@@ -3375,6 +3377,7 @@ export type Database = {
           tax_rate?: number
           updated_at?: string
           uso_cfdi?: string | null
+          website?: string | null
         }
         Relationships: [
           {
