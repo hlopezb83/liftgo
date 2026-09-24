@@ -101,6 +101,7 @@ export function ListPageLayout<T extends { id?: string }>({
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;
   const hasMobileFab = !!(isMobile && mobileFab);
+  const visibleActions = hasMobileFab ? undefined : actions;
 
   return (
     <PageTransition>
@@ -120,15 +121,29 @@ export function ListPageLayout<T extends { id?: string }>({
         <PageHeader
           title={title}
           subtitle={buildSubtitle(subtitle, totalCount)}
-          action={hasMobileFab ? undefined : actions}
+          action={isMobile ? undefined : visibleActions}
         />
         {notice}
-        <FiltersSlot
-          filters={filters}
-          inSheet={isMobile && !!filters}
-          open={filtersOpen}
-          onOpenChange={setFiltersOpen}
-        />
+        {isMobile ? (
+          (visibleActions || filters) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {visibleActions}
+              <FiltersSlot
+                filters={filters}
+                inSheet
+                open={filtersOpen}
+                onOpenChange={setFiltersOpen}
+              />
+            </div>
+          )
+        ) : (
+          <FiltersSlot
+            filters={filters}
+            inSheet={false}
+            open={filtersOpen}
+            onOpenChange={setFiltersOpen}
+          />
+        )}
         <ListPageBody
           customContent={customContent}
           isLoading={isLoading}

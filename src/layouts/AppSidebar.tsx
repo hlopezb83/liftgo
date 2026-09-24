@@ -20,7 +20,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarBranding razonSocial={company?.razon_social} />
       <SidebarQuickCreate />
-      <SidebarContent>
+      <SidebarContent className="pb-6">
         {visibleNavGroups.map((group) => (
           <SidebarNavSection key={group.label} group={group} />
         ))}

@@ -47,7 +47,7 @@ export default function Dashboard() {
         <PageHeader title="Panel" />
         <div className="flex flex-col gap-6" role="status">
           <span className="sr-only">Cargando tablero…</span>
-          <section className="order-2 md:order-1">
+          <section className="order-1">
             <DashboardSectionLabel>Operación</DashboardSectionLabel>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
@@ -59,7 +59,7 @@ export default function Dashboard() {
               {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
             </div>
           </section>
-          <Skeleton className="order-1 md:order-3 h-16 rounded-xl" />
+          <Skeleton className="order-2 md:order-3 h-16 rounded-xl" />
           <div className="order-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
             <Skeleton className="h-72 rounded-xl xl:col-span-1" />
             <Skeleton className="h-72 rounded-xl xl:col-span-2" />
@@ -76,7 +76,7 @@ export default function Dashboard() {
         <PageHeader title="Panel" subtitle="Vista general de la flota" />
         <div className="flex flex-col gap-6">
           {/* v7.181: agrupar KPIs por área (Operación vs Finanzas) para dar jerarquía. */}
-          <section className="order-2 md:order-1">
+          <section className="order-1">
             <DashboardSectionLabel>Operación</DashboardSectionLabel>
             <StatCards cards={statCards} />
           </section>
@@ -110,7 +110,7 @@ export default function Dashboard() {
               )}
             </section>
           )}
-          <div className="order-1 md:order-3">
+          <div className="order-2 md:order-3">
             <DashboardAlertsSection
               overdueInvoices={overdueInvoices}
               maintenanceAlerts={maintenanceAlerts}

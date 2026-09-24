@@ -63,14 +63,13 @@ export function TableContent<T extends { id?: string }>({
 
   if (showMobileCards) {
     return (
-      <div className="p-4">
-        <MobileCardList
-          items={items}
-          keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
-          emptyMessage={emptyMessage}
-          renderCard={(item) => (mobileCardRender ? mobileCardRender(item) : null)}
-        />
-      </div>
+      <MobileCardList
+        items={items}
+        keyExtractor={(item) => (mobileKeyExtractor ? mobileKeyExtractor(item) : (item.id ?? ""))}
+        emptyMessage={emptyMessage}
+        renderCard={(item) => (mobileCardRender ? mobileCardRender(item) : null)}
+        className="pb-0"
+      />
     );
   }
   if (table) {
