@@ -16,13 +16,13 @@ import { deliveryBookingDateError } from "../../lib/deliveryBookingDate";
 import { deliverySchema } from "../../lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
 
-const initialForm: DeliveryFormValues = {
+const getInitialForm = (): DeliveryFormValues => ({
   forkliftId: "", bookingId: "", type: "delivery",
   alreadyCompleted: false,
   scheduledDate: nowMty(), scheduledTime: "",
   address: "", driverName: "", driverPhone: "", notes: "",
   noEvidenceReason: "",
-};
+});
 
 interface DeliveryFormDialogProps {
   /**
@@ -44,7 +44,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
   };
   const form = useForm<DeliveryFormValues>({
     resolver: zodResolver(deliverySchema),
-    defaultValues: initialForm,
+    defaultValues: getInitialForm(),
   });
   const { forklifts } = useForkliftMap();
   const { data: bookings } = useBookings();
@@ -85,7 +85,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
         onSuccess: () => {
           notifySuccess("Transporte programado");
           setOpen(false);
-          form.reset(initialForm);
+          form.reset(getInitialForm());
         },
       }
     );
@@ -95,7 +95,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
 
   return (
     <>
-      <Button onClick={() => { form.reset(initialForm); setOpen(true); }} size="sm">
+      <Button onClick={() => { form.reset(getInitialForm()); setOpen(true); }} size="sm">
         <PlusCircle className="h-4 w-4 mr-1" /> Programar
       </Button>
 

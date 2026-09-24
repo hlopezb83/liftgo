@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import {
   TextField, TextareaField, DateField, SelectField, CheckboxField, type SelectOption,
 } from "@/components/forms/fields";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
-import { formatDateRange } from "@/lib/utils";
+import { toYMD } from "@/lib/format/dateFormats";
+import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
+import { suggestedScheduledTransportDate } from "../../lib/deliveryBookingDate";
 import { selectableBookings } from "./selectableBookings";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -37,6 +39,8 @@ const TYPE_OPTIONS: SelectOption[] = [
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
+  const transportType = useWatch({ control: form.control, name: "type" });
+  const lastBookingId = useRef("");
   // Bug 3: histórico sin operador → pedir justificación de evidencia.
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
 
@@ -70,6 +74,32 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
       form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
     }
   }, [bookingId, bookings, forkliftId, form]);
+
+  // Al elegir otra reserva, proponer una fecha válida sin pisar una fecha ya válida.
+  useEffect(() => {
+    if (!bookingId) {
+      lastBookingId.current = "";
+      return;
+    }
+    if (lastBookingId.current === bookingId) return;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (!booking) return;
+    lastBookingId.current = bookingId;
+
+    const suggestedDate = suggestedScheduledTransportDate(
+      form.getValues("type"),
+      toYMD(form.getValues("scheduledDate")),
+      booking,
+      toYMD(nowMty()),
+      form.getValues("alreadyCompleted"),
+    );
+    if (suggestedDate) {
+      form.setValue("scheduledDate", parseDateLocal(suggestedDate), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [bookingId, bookings, form]);
 
   // R-C6: si el montacargas cambia y ya no coincide con la reserva, limpiar.
   useEffect(() => {
@@ -110,7 +140,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DateField control={form.control} name="scheduledDate" label="Fecha" required />
+          <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />
           <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
         </div>
 
@@ -118,14 +148,14 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           control={form.control}
           name="alreadyCompleted"
           label="Ya se realizó (registrar histórico)"
-          description="Permite fecha pasada; la entrega se registra directamente como completada."
+          description="Permite fecha pasada; el transporte se registra directamente como completado."
         />
 
         <TextField
           control={form.control}
           name="address"
-          label="Dirección de Entrega"
-          placeholder="Av. Reforma 123, CDMX"
+          label={transportType === "pickup" ? "Dirección de recolección" : "Dirección de entrega"}
+          placeholder="Calle, número, colonia y ciudad"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -152,7 +182,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
             label="Justificación (sin operador ni firma)"
             rows={2}
             placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
-            description="La entrega quedará completada sin evidencia operativa; registra quién la autorizó."
+            description="El transporte quedará completado sin evidencia operativa; registra quién lo autorizó."
           />
         )}
 
