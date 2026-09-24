@@ -1,17 +1,20 @@
 import { format } from "date-fns";
+import type { ReactNode } from "react";
 import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useHasModuleAccess } from "@/features/users";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
 import { parseDateLocal, formatDateRange } from "@/lib/utils";
 
-interface InfoRowProps { label: string; value: string }
+interface InfoRowProps { label: string; value: ReactNode }
 
 function InfoRow({ label, value }: InfoRowProps) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-right max-w-[60%]">{value}</span>
+    <div className="flex items-start justify-between gap-4">
+      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
+      <span className="min-w-0 max-w-[65%] break-words text-right text-sm font-medium">{value}</span>
     </div>
   );
 }
@@ -100,20 +103,30 @@ export function DeliveryLogisticsCard({ address, driverName, driverPhone, transp
 }
 
 interface DeliveryBookingCardProps {
+  bookingId: string;
   bookingNumber: string;
   customerName: string | null;
   startDate: string;
   endDate: string;
 }
 
-export function DeliveryBookingCard({ bookingNumber, customerName, startDate, endDate }: DeliveryBookingCardProps) {
+export function DeliveryBookingCard({ bookingId, bookingNumber, customerName, startDate, endDate }: DeliveryBookingCardProps) {
+  const canOpen = useHasModuleAccess("Reservas", "read");
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2"><CalendarIcon className="h-4 w-4 text-muted-foreground" />Reserva Vinculada</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <InfoRow label="Número" value={bookingNumber} />
+        <InfoRow label="Número" value={canOpen ? (
+          <Link
+            to={`/bookings/${bookingId}`}
+            aria-label={`Abrir reserva ${bookingNumber}`}
+            className="rounded-sm text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            {bookingNumber}
+          </Link>
+        ) : bookingNumber} />
         <InfoRow label="Cliente" value={customerName || "—"} />
         <InfoRow label="Periodo" value={`${formatDateRange(startDate, endDate)}`} />
       </CardContent>
