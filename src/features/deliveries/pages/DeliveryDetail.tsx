@@ -5,7 +5,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBookings } from "@/features/bookings";
+import { useBooking } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -24,20 +24,17 @@ export default function DeliveryDetail() {
   const navigate = useNavigateTransition();
   const { data: delivery, isLoading, isError, refetch } = useDelivery(id);
   const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
-  const { data: bookings } = useBookings();
+  const { data: linkedBooking, isLoading: bookingLoading, isError: bookingError, refetch: refetchBooking } = useBooking(delivery?.booking_id ?? undefined);
   const { forkliftMap } = useForkliftMap();
   const deleteDelivery = useDeleteDelivery();
   const { data: role } = useUserRole();
   const [editOpen, setEditOpen] = useState(false);
 
   const forklift = delivery ? forkliftMap.get(delivery.forklift_id) : undefined;
-  const linkedBooking = delivery?.booking_id
-    ? bookings?.find((b) => b.id === delivery.booking_id) ?? null
-    : null;
 
   const completion = useDeliveryCompletion(delivery, siblingDeliveries, linkedBooking, forklift);
 
-  if (isLoading) {
+  if (isLoading || (delivery?.booking_id && bookingLoading)) {
     return (
       <PageContainer>
         <Skeleton className="h-10 w-64" />
@@ -50,6 +47,14 @@ export default function DeliveryDetail() {
     return (
       <PageContainer>
         <QueryErrorState entity="la entrega" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
+
+  if (delivery?.booking_id && bookingError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="la reserva vinculada" onRetry={() => { void refetchBooking(); }} />
       </PageContainer>
     );
   }
@@ -96,7 +101,7 @@ export default function DeliveryDetail() {
           forkliftName={forklift?.name}
           forkliftModel={forklift?.model}
           hoursUsed={computeHoursUsed(delivery.booking_id, siblingDeliveries)}
-          linkedBooking={linkedBooking}
+          linkedBooking={linkedBooking ?? null}
         />
       </PageContainer>
 
@@ -114,7 +119,7 @@ export default function DeliveryDetail() {
       {editOpen && (
         <RescheduleDeliveryDialog
           delivery={delivery}
-          linkedBooking={linkedBooking}
+          linkedBooking={linkedBooking ?? null}
           open={editOpen}
           onOpenChange={setEditOpen}
         />
