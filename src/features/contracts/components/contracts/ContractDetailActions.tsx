@@ -2,6 +2,7 @@ import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { DeliveryIcon, SignIcon, ErrorIcon, EditIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
 
@@ -19,7 +20,7 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
   const isLocked = status === "signed" || status === "completed";
   const hasSigner = !!contract.signed_by && contract.signed_by.trim() !== "";
 
-  return (
+  const writeActions = (
     <>
       {status === "draft" && (
         <>
@@ -64,6 +65,14 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
           <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
         </Button>
       )}
+    </>
+  );
+
+  return (
+    <>
+      <RoleGuard module="Contratos" minAccess="full" fallback={null}>
+        {writeActions}
+      </RoleGuard>
       <ContractPDFButton contract={contract} />
     </>
   );
