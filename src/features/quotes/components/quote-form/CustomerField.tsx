@@ -27,7 +27,9 @@ export function CustomerField({ form, customers }: Props) {
               required
               hideManualName
               compact
-              helpText="Si tu cliente no aparece en la lista, selecciona 'Público en General' o regístralo primero en el módulo de Clientes."
+              helpText={customers.some((customer) => customer.name === "Público en General")
+                ? "Si tu cliente no aparece, selecciona 'Público en General' o regístralo en Clientes."
+                : "Si tu cliente no aparece, regístralo primero en Clientes."}
             />
           </FormControl>
           <FormMessage />

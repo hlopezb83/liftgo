@@ -5764,6 +5764,13 @@ export type Database = {
           forklift_id: string
         }[]
       }
+      convert_quote_to_bookings_scoped: {
+        Args: { p_assignments: Json; p_quote_id: string; p_recurring?: boolean }
+        Returns: {
+          booking_id: string
+          forklift_id: string
+        }[]
+      }
       correct_return_inspection: {
         Args: {
           p_condition?: string

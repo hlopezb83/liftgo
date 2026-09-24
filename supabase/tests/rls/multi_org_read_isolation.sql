@@ -495,6 +495,21 @@ BEGIN
         RAISE;
       END IF;
   END;
+
+  -- La puerta privilegiada de conversión tampoco acepta cotizaciones de B,
+  -- aunque el usuario de A conozca el UUID exacto.
+  BEGIN
+    PERFORM public.convert_quote_to_bookings_scoped(
+      'e5000000-0000-4000-8000-0000000000e2',
+      '[{"forklift_id":"e5000000-0000-4000-8000-0000000000f2"}]'::jsonb,
+      false
+    );
+    RAISE EXCEPTION
+      'BOOKING ORG: la RPC scoped convirtió una cotización de B';
+  EXCEPTION
+    WHEN SQLSTATE 'P0002' THEN
+      IF SQLERRM <> 'Cotización no encontrada' THEN RAISE; END IF;
+  END;
 END;
 $$;
 
