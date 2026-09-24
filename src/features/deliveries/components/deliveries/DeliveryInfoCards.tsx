@@ -1,5 +1,4 @@
 import { format } from "date-fns";
-import type { ReactNode } from "react";
 import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasModuleAccess } from "@/features/users";
@@ -7,6 +6,7 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 import { parseDateLocal, formatDateRange } from "@/lib/utils";
+import type { ReactNode } from "react";
 
 interface InfoRowProps { label: string; value: ReactNode }
 
