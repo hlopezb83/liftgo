@@ -77,12 +77,13 @@ export function FormDialog({
     <>
       <Dialog open={open} onOpenChange={(v) => { if (v) { onOpenChange(true); return; } requestClose(); }}>
         <DialogContent
-          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto pb-0", className)}
+          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto pt-0 pb-0", className)}
           data-testid={testId}
           onEscapeKeyDown={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
           onInteractOutside={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
         >
-          <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
+          {/* El padding superior pertenece al header para cubrir todo el borde al hacer scroll. */}
+          <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pt-6 pb-3 border-b">
             <DialogTitle>{title}</DialogTitle>
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
