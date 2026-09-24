@@ -26,7 +26,7 @@ export function DateRangeField<TFieldValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
+      render={({ field }) => (
         <FormItem>
           <FormControl>
             <DateRangePickerField
@@ -35,7 +35,6 @@ export function DateRangeField<TFieldValues extends FieldValues>({
               onSelect={field.onChange}
               placeholder={placeholder}
               required={required}
-              error={fieldState.error?.message}
             />
           </FormControl>
           <FormMessage />
