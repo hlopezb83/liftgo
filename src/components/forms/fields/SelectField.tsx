@@ -19,6 +19,8 @@ interface SelectFieldProps<TFieldValues extends FieldValues> {
   required?: boolean;
   disabled?: boolean;
   className?: string;
+  /** Runs after the field value changes through user selection. */
+  onValueChange?: (value: string) => void;
 }
 
 export function SelectField<TFieldValues extends FieldValues>({
@@ -31,6 +33,7 @@ export function SelectField<TFieldValues extends FieldValues>({
   required,
   disabled,
   className,
+  onValueChange,
 }: SelectFieldProps<TFieldValues>) {
   return (
     <FormField
@@ -44,7 +47,7 @@ export function SelectField<TFieldValues extends FieldValues>({
           </FormLabel>
           <Select
             value={(field.value as string | undefined) ?? ""}
-            onValueChange={field.onChange}
+            onValueChange={(value) => { field.onChange(value); onValueChange?.(value); }}
             disabled={disabled}
           >
             <FormControl>
