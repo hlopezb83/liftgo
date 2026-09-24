@@ -18,6 +18,22 @@ import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
 
+function renderSupplierActions(showExport: boolean, showCreate: boolean, onExport: () => void, onCreate: () => void) {
+  if (!showExport && !showCreate) return null;
+  return (
+    <div className="flex gap-2">
+      {showExport && <Button variant="outline" size="sm" onClick={onExport}>
+        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
+      </Button>}
+      {showCreate && <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
+        <Button onClick={onCreate} size="sm">
+          <PlusCircle className="h-4 w-4 mr-1" />Nuevo proveedor
+        </Button>
+      </RoleGuard>}
+    </div>
+  );
+}
+
 export default function SuppliersPage() {
   const { data: suppliersRaw, isLoading, isError, refetch } = useSuppliers();
   const suppliers = visibleListRows(suppliersRaw);
@@ -82,6 +98,8 @@ export default function SuppliersPage() {
     columns,
     getRowId: (s) => s.id,
   });
+  const showEmptyCreate = !isLoading && !isError && suppliers.length === 0 && !hasActive;
+  const showExport = suppliers.length > 0;
 
   const openCreate = () => {
     setEditing(null);
@@ -114,18 +132,7 @@ export default function SuppliersPage() {
         notice={
           <ListTruncationNotice rows={suppliersRaw} />
         }
-        actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
-            </Button>
-            <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
-              <Button onClick={openCreate} size="sm">
-                <PlusCircle className="h-4 w-4 mr-1" />Nuevo proveedor
-              </Button>
-            </RoleGuard>
-          </div>
-        }
+        actions={renderSupplierActions(showExport, canWrite && !showEmptyCreate, handleExport, openCreate)}
         filters={
           <FiltersToolbar>
             <FiltersToolbar.Search

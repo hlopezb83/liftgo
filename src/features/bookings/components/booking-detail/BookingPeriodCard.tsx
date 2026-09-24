@@ -1,5 +1,4 @@
 import { differenceInDays, parseISO } from "date-fns";
-import { InfoRow } from "@/components/forms/InfoRow";
 import { CalendarDays } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMtyDate } from "@/lib/utils";
@@ -15,10 +14,19 @@ export function BookingPeriodCard({ startDate, endDate }: { startDate: string; e
           <CalendarDays className="h-4 w-4 text-muted-foreground" /> Periodo de Renta
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <InfoRow label="Fecha de inicio" value={formatMtyDate(startDate)} />
-        <InfoRow label="Fecha de fin" value={formatMtyDate(endDate)} />
-        <InfoRow label="Duración" value={`${duration} día${duration !== 1 ? "s" : ""}`} />
+      <CardContent className="grid gap-3 sm:grid-cols-3 sm:gap-4">
+        <div className="flex items-center justify-between gap-3 sm:block">
+          <span className="text-sm text-muted-foreground sm:block">Fecha de inicio</span>
+          <span className="text-sm font-medium">{formatMtyDate(startDate)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3 sm:block">
+          <span className="text-sm text-muted-foreground sm:block">Fecha de fin</span>
+          <span className="text-sm font-medium">{formatMtyDate(endDate)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-3 sm:block">
+          <span className="text-sm text-muted-foreground sm:block">Duración</span>
+          <span className="text-sm font-medium">{duration} día{duration !== 1 ? "s" : ""}</span>
+        </div>
       </CardContent>
     </Card>
   );
