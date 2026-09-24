@@ -1,3 +1,11 @@
+## [8.42.7] - 2026-09-23 · patch · bugfix
+
+Borrar un usuario desde /users fallaba con error del servidor al haber 2 empresas activas; ahora la baja se hace completa y dentro de la empresa correcta.
+
+- Migración 0063: RPC server-only discard_internal_user valida admin de la empresa, membresía del usuario y que no sea operador de plataforma; fija el contexto y borra rol, perfil, membresía y cuenta en una sola operación.
+- 0062 y 0064 son migraciones inocuas (SELECT 1) para registrar migraciones pendientes en orden.
+- deleteUserFn usa la nueva RPC; se retiró una excepción obsoleta de la prueba de aislamiento.
+
 ## [8.42.6] - 2026-09-23 · patch · bugfix
 
 Guardar datos legales de la empresa fallaba siempre y editar un montacargas con modelo fuera del catálogo se bloqueaba; ambos ya guardan.
