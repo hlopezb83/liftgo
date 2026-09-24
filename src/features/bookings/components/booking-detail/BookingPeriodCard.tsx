@@ -16,11 +16,11 @@ export function BookingPeriodCard({ startDate, endDate }: { startDate: string; e
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-3 sm:gap-4">
         <div className="flex items-center justify-between gap-3 sm:block">
-          <span className="text-sm text-muted-foreground sm:block">Fecha de inicio</span>
+          <span className="text-sm text-muted-foreground sm:block">Inicio</span>
           <span className="text-sm font-medium">{formatMtyDate(startDate)}</span>
         </div>
         <div className="flex items-center justify-between gap-3 sm:block">
-          <span className="text-sm text-muted-foreground sm:block">Fecha de fin</span>
+          <span className="text-sm text-muted-foreground sm:block">Fin</span>
           <span className="text-sm font-medium">{formatMtyDate(endDate)}</span>
         </div>
         <div className="flex items-center justify-between gap-3 sm:block">
