@@ -139,6 +139,8 @@ export default function InvoicesPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const canCreate = useHasModuleAccess("Facturas", "full");
+  const showExport = invoiceRows.length > 0 || !!hasNextPage;
+  const showHeaderNew = isLoading || isError || hasActive || showExport;
   usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
   const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
@@ -180,12 +182,14 @@ export default function InvoicesPage() {
       <ListPageLayout
         title="Facturas"
         subtitle="Administrar facturación y pagos"
-        actions={
+        actions={(canCreate || showExport) &&
           <InvoicesActionsBar
             onOpenPreview={openPreview}
              onExport={() => { void exportCsv(); }}
             onNew={() => navigate("/invoices/new")}
             previewPending={previewRecurring.isPending}
+            showExport={showExport}
+            showNew={showHeaderNew}
           />
         }
         filters={

@@ -13,9 +13,11 @@ interface ActionsProps {
   onExport: () => void;
   onNew: () => void;
   previewPending: boolean;
+  showExport: boolean;
+  showNew: boolean;
 }
 
-export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPending }: ActionsProps) {
+export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPending, showExport, showNew }: ActionsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       <RoleGuard module="Facturas" minAccess="full" fallback={null}>
@@ -32,13 +34,13 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
           <span className="hidden sm:inline">Generar Recurrentes</span>
         </Button>
       </RoleGuard>
-      <Button variant="outline" size="sm" className="min-w-11" onClick={onExport} aria-label="Exportar CSV" title="Exportar CSV">
+      {showExport && <Button variant="outline" size="sm" className="min-w-11" onClick={onExport} aria-label="Exportar CSV" title="Exportar CSV">
         <DownloadIcon className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar CSV</span>
-      </Button>
-      <RoleGuard module="Facturas" minAccess="full" fallback={null}>
+      </Button>}
+      {showNew && <RoleGuard module="Facturas" minAccess="full" fallback={null}>
         <Button size="sm" onClick={onNew}><AddIcon className="h-4 w-4 mr-1" />Nueva factura</Button>
-      </RoleGuard>
+      </RoleGuard>}
     </div>
   );
 }

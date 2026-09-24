@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { cn } from "@/lib/utils";
 import { useSetContractDepositStatus, type DepositStatus } from "../../hooks/useContracts";
 
 const DEPOSIT_STATUS_LABELS: Record<DepositStatus, string> = {
@@ -44,6 +45,7 @@ export function ContractDepositCard({
   const [settledAmount, setSettledAmount] = useState<string>("");
   const [notes, setNotes] = useState<string>(depositNotes ?? "");
   const mutation = useSetContractDepositStatus();
+  const summaryColumns = ["sm:grid-cols-2", "sm:grid-cols-3", "sm:grid-cols-4"][Number(!!depositSettledAt) + Number(depositSettledAmount != null)];
 
   if (amount <= 0) return null;
 
@@ -60,7 +62,7 @@ export function ContractDepositCard({
     <Card>
       <CardHeader><CardTitle className="text-base">Depósito en Garantía</CardTitle></CardHeader>
       <CardContent className="space-y-4 text-sm">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className={cn("grid grid-cols-2 gap-4", summaryColumns)}>
           <div><span className="text-muted-foreground block">Monto</span>{formatCurrency(amount)}</div>
           <div><span className="text-muted-foreground block">Estado</span>{DEPOSIT_STATUS_LABELS[current]}</div>
           {depositSettledAt && (

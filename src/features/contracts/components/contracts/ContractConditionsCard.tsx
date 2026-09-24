@@ -10,17 +10,19 @@ export function ContractConditionsCard({ contract }: { contract: ContractData })
   // v7.302.2: comparar contra null/undefined — un `0` capturado es un dato
   // válido y antes desaparecía junto con su etiqueta.
   const has = (v: unknown) => v !== null && v !== undefined && v !== "";
-  const visible =
-    has(contract.usage_location) || has(contract.max_hours_per_month) || has(contract.payment_frequency);
+  const visible = [
+    contract.usage_location, contract.max_hours_per_month, contract.extra_hour_rate,
+    contract.payment_frequency, contract.late_interest_rate, contract.witness_1, contract.witness_2,
+  ].some(has);
   if (!visible) return null;
 
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Condiciones de Uso</CardTitle></CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+        <div className="grid grid-cols-2 gap-4 text-sm lg:grid-cols-4">
           {contract.usage_location && (
-            <div className="col-span-2 sm:col-span-3">
+            <div className="col-span-2 lg:col-span-4">
               <span className="text-muted-foreground block">Ubicación de Uso</span>
               {contract.usage_location}
             </div>
