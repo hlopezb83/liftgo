@@ -34,6 +34,7 @@ interface Props {
 
 export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpenChange }: Props) {
   const updateDelivery = useUpdateDelivery();
+  const operationLabel = delivery.type === "pickup" ? "recolección" : delivery.type === "return" ? "devolución" : "entrega";
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -71,7 +72,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
       notes: values.notes.trim() || null,
     }, {
       onSuccess: () => {
-        notifySuccess("Entrega reprogramada");
+        notifySuccess(`${operationLabel.charAt(0).toUpperCase()}${operationLabel.slice(1)} reprogramada`);
         onOpenChange(false);
       },
     });
@@ -79,7 +80,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
 
   return (
     <FormDialog
-      title="Reprogramar entrega"
+      title={`Reprogramar ${operationLabel}`}
       description="Ajusta la fecha y los datos de despacho antes de completar la entrega."
       open={open}
       onOpenChange={onOpenChange}
@@ -97,7 +98,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
             </p>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <DateField control={form.control} name="scheduledDate" label="Fecha de entrega" required />
+            <DateField control={form.control} name="scheduledDate" label={`Fecha de ${operationLabel}`} required />
             <TextField control={form.control} name="scheduledTime" label="Hora programada" type="time" />
           </div>
           <TextField control={form.control} name="address" label="Dirección de entrega" />
