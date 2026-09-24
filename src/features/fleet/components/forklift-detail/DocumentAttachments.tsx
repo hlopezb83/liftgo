@@ -4,6 +4,7 @@ import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DOC_ACCEPT, DOC_MAX_BYTES, partitionFiles } from "@/features/fleet/lib/documentAttachmentRules";
+import { useHasModuleAccess } from "@/features/users";
 import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
@@ -15,6 +16,7 @@ function FileIcon({ mime }: { mime?: string | null }) {
 }
 
 export function DocumentAttachments({ entityType, entityId }: { entityType: string; entityId: string }) {
+  const canManage = useHasModuleAccess("Flota", "full");
   const { data: documents, isLoading } = useDocuments(entityType, entityId);
   const uploadDoc = useUploadDocument();
   const deleteDoc = useDeleteDocument();
@@ -22,6 +24,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
+    if (!canManage) return;
     const files = e.target.files;
     if (!files || files.length === 0) return;
     const all = Array.from(files);
@@ -51,6 +54,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
   };
 
   const handleDelete = async (id: string, fileName: string) => {
+    if (!canManage) return;
     const ok = await confirm({
       title: "¿Eliminar adjunto?",
       description: `Se eliminará "${fileName}" permanentemente. Esta acción no se puede deshacer.`,
@@ -73,10 +77,10 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" /> Adjuntos</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
+          {canManage && <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
             <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo…" : "Subir"}
-          </Button>
-          <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden" onChange={handleUpload} />
+          </Button>}
+          {canManage && <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden" onChange={handleUpload} />}
         </div>
       </CardHeader>
       <CardContent>
@@ -91,9 +95,9 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
                   <span className="truncate">{doc.file_name}</span>
                   <span className="text-xs text-muted-foreground shrink-0">{formatSize(doc.file_size)}</span>
                 </a>
-                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Eliminar documento" title="Eliminar documento" onClick={() => handleDelete(doc.id, doc.file_name)}>
+                {canManage && <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Eliminar documento" title="Eliminar documento" onClick={() => handleDelete(doc.id, doc.file_name)}>
                   <DeleteIcon className="h-3.5 w-3.5 text-destructive" />
-                </Button>
+                </Button>}
               </div>
             ))}
           </div>
