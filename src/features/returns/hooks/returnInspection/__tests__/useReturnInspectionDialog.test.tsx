@@ -37,6 +37,7 @@ describe("useReturnInspectionDialog", () => {
     );
     act(() => result.current.openNew());
     expect(result.current.dialogOpen).toBe(false);
+    act(() => result.current.form.setValue("bookingId", booking.id));
     await act(async () => { await result.current.handleSubmit(); });
     expect(mocks.mutate).not.toHaveBeenCalled();
     rerender({ canWrite: true });
