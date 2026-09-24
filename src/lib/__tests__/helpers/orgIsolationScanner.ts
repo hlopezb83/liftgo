@@ -40,7 +40,7 @@ export function orgScopedTables(): Set<string> {
   const types = readFileSync(TYPES_FILE, "utf8");
   const tables = new Set<string>();
   // Bloques `      nombre_tabla: {` dentro de Tables/Views con su Row.
-  const re = /\n {6}(\w+): \{\n {8}Row: \{([\s\S]*?)\n {8}\}/g;
+  const re = /\r?\n {6}(\w+): \{\r?\n {8}Row: \{([\s\S]*?)\r?\n {8}\}/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(types)) !== null) {
     const [, table, row] = m;

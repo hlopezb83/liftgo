@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useUserRole } from "@/features/users";
-import type { Tables } from "@/integrations/supabase/types";
 import { isValidUuid } from "@/lib/isValidUuid";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
 import { useCustomerProfitability } from "./useCustomerProfitability";
 import { useCustomer, useCustomerPortalAccount } from "./useCustomers";
 import { useCustomerSummary } from "./useCustomerSummary";
-
-type Customer = Tables<"customers">;
+import type { Customer } from "./customerQueries";
 
 const EDIT_FIELDS = [
   "name", "email", "phone", "address", "notes", "website", "contact_person",
@@ -68,22 +66,21 @@ export function useCustomerDetailPage(id: string | undefined) {
   const { data: role } = useUserRole();
 
   const dialogs = useCustomerDetailDialogs();
-  // FIX R6-06: snapshot de `customer.version` al ABRIR el diálogo de edición
+  // Snapshot de la relación comercial al ABRIR el diálogo de edición
   // (patrón R5-09 de facturas). Sin él, un refetch de `useCustomer` mientras el
-  // diálogo está abierto actualiza `customer.version` en vivo y el guardado
+  // diálogo está abierto actualiza `relation_updated_at` en vivo y el guardado
   // pisa cambios ajenos (lost update).
   // useState (no ref): el snapshot sólo se escribe en el handler de apertura
   // del diálogo y se lee como estado — leer un ref durante render está
   // prohibido por react-hooks/refs.
-  const [customerVersion, setCustomerVersion] = useState<number | null>(null);
+  const [relationUpdatedAt, setRelationUpdatedAt] = useState<string | null>(null);
   const setEditOpen = (open: boolean) => {
-    if (open) setCustomerVersion(customer?.version ?? null);
+    if (open) setRelationUpdatedAt(customer?.relation_updated_at ?? null);
     dialogs.setEditOpen(open);
   };
   const actions = useCustomerDetailActions({
     id,
-    // M-11a: versión congelada al abrir → bloqueo optimista en el guardado.
-    expectedVersion: customerVersion,
+    expectedUpdatedAt: relationUpdatedAt,
     setInviteOpen: dialogs.setInviteOpen,
     setEditOpen: dialogs.setEditOpen,
   });

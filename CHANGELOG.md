@@ -1,3 +1,11 @@
+## [8.42.8] - 2026-09-23 · patch · bugfix
+
+La ficha, la edición y los documentos de un cliente compartido usan los datos de la empresa activa sin modificar la identidad global ni los datos de otra empresa.
+
+- Listado, detalle y edición de clientes leen y actualizan organization_customers, con control de cambios simultáneos.
+- Facturas, cotizaciones y contratos toman los datos fiscales y comerciales de la relación de la empresa activa.
+- La migración 0065 registra de forma idempotente la protección de la identidad global y el borrado seguro después de la colisión de numeración 0063.
+
 ## [8.42.7] - 2026-09-23 · patch · bugfix
 
 Borrar un usuario desde /users fallaba con error del servidor al haber 2 empresas activas; ahora la baja se hace completa y dentro de la empresa correcta.
