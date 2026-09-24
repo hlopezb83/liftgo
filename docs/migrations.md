@@ -43,21 +43,21 @@ El workflow `.github/workflows/rls-db-tests.yml` ejecuta, en este orden:
 
 ### Estado observado el 23 de septiembre de 2026
 
-- El migrador oficial ya registró 0058–0063. La última fila comprobada fue
-  `id=65`, `created_at=1790874185000`: corresponde a
-  `0063_discard_internal_user_atomic.sql`, y su hash coincide con ese archivo.
+- El migrador oficial ya registró 0058–0065. La última fila comprobada fue
+  `id=67`, `created_at=1790874187000`: corresponde a
+  `0065_customer_relation_edit_isolation.sql`, y su hash coincide con ese archivo.
 - Antes de ese registro, una ejecución SQL directa expresamente autorizada
   aplicó el contenido que entonces se llamaba
   `0063_customer_relation_edit_isolation.sql`. Después Lovable reutilizó el
   número 0063 para la baja de usuarios y eliminó el archivo de aislamiento del
-  repositorio. Por ello, el esquema productivo tiene la protección de clientes,
-  pero el historial reproducible aún no la registra bajo su nombre final.
-- `0064_ledger_sync_noop_0063.sql` y
-  `0065_customer_relation_edit_isolation.sql` quedan pendientes de registro. El
-  segundo reaplica de forma idempotente la protección de clientes para que una
-  base reconstruida y producción lleguen al mismo estado. Deben ejecutarse por
-  el migrador oficial en ese orden y verificarse en el ledger, sin insertar ni
-  modificar sus filas a mano.
+  repositorio. La migración 0065 reaplicó esa protección de forma idempotente y
+  quedó registrada por el canal oficial. El 0063 actual registra la baja
+  atómica de usuarios y su hash también coincide con su archivo.
+- `0064_ledger_sync_noop_0063.sql` está registrado. El archivo
+  `0066_ledger_sync_noop_0065.sql` sólo contiene `SELECT 1` y queda
+  pendiente de registro: se creó para disparar la aplicación oficial de 0064 y
+  0065. La próxima migración debe usar 0067 y un `when` mayor que
+  1790874188000; el canal oficial registrará 0066 junto con ella.
 
 ## Límite de certeza
 
