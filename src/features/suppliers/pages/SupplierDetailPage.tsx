@@ -131,7 +131,7 @@ export default function SupplierDetailPage() {
         <SupplierBankAccountsSection supplierId={supplier.id} />
       </div>
 
-      <DocumentAttachments entityType="supplier" entityId={supplier.id} />
+      <DocumentAttachments entityType="supplier" entityId={supplier.id} accessModule="Proveedores" />
 
 
 
