@@ -34,7 +34,10 @@ interface Props {
 
 export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpenChange }: Props) {
   const updateDelivery = useUpdateDelivery();
-  const operationLabel = delivery.type === "pickup" ? "recolección" : delivery.type === "return" ? "devolución" : "entrega";
+  const operationLabel = delivery.type === "pickup"
+    ? "recolección"
+    : delivery.type === "return" ? "devolución" : "entrega";
+  const operationTitle = `${operationLabel.charAt(0).toUpperCase()}${operationLabel.slice(1)}`;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -72,7 +75,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
       notes: values.notes.trim() || null,
     }, {
       onSuccess: () => {
-        notifySuccess(`${operationLabel.charAt(0).toUpperCase()}${operationLabel.slice(1)} reprogramada`);
+        notifySuccess(`${operationTitle} reprogramada`);
         onOpenChange(false);
       },
     });
