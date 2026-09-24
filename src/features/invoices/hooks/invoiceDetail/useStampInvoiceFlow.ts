@@ -80,9 +80,12 @@ export function useStampInvoiceFlow(refetch: () => void) {
         onSettled: () => { inFlightRef.current = false; },
       });
 
-    } catch (err) {
+    } catch {
       inFlightRef.current = false;
-      throw err;
+      notifyValidation({
+        title: "No se pudo preparar la factura",
+        message: "No se guardaron los datos fiscales. Reintenta antes de timbrar.",
+      });
     }
   };
 
@@ -94,3 +97,4 @@ export function useStampInvoiceFlow(refetch: () => void) {
     clearStampError: () => setStampError(null),
   };
 }
+
