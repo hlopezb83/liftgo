@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useForm } from "react-hook-form";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { DeliveryFormFields, type DeliveryFormValues } from "../DeliveryFormFields";
@@ -31,7 +31,8 @@ function Harness({ activeDrivers = drivers }: { activeDrivers?: Driver[] }) {
 
 async function choose(label: string, option: string | RegExp) {
   fireEvent.keyDown(screen.getByRole("combobox", { name: label }), { key: "Enter" });
-  fireEvent.click(await screen.findByRole("option", { name: option }));
+  const item = await screen.findByRole("option", { name: option });
+  await act(async () => { fireEvent.click(item); });
 }
 
 const originalScroll = Object.getOwnPropertyDescriptor(HTMLElement.prototype, "scrollIntoView");
@@ -94,6 +95,6 @@ describe("DeliveryFormFields · selecciones relacionadas", () => {
   it("explica la ausencia de operadores en lugar de abrir una lista vacía", () => {
     render(<Harness activeDrivers={[]} />);
     expect(screen.getByRole("combobox", { name: "Operador" })).toBeDisabled();
-    expect(screen.getByText("No hay operadores activos registrados. Puedes asignar uno después.")).toBeInTheDocument();
+    expect(screen.getByText("No hay operadores activos registrados.")).toBeInTheDocument();
   });
 });
