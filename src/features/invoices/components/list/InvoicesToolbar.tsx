@@ -82,6 +82,7 @@ export function InvoicesFiltersBar({
           value={search}
           onChange={setSearch}
           placeholder="Buscar facturas…"
+          className="w-full sm:w-64 sm:flex-none"
         />
         <FiltersToolbar.StatusTabs
           value={statusFilter}
