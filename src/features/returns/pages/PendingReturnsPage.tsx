@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { type BookingWithForklift } from "@/features/bookings";
+import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { nowMty, parseDateLocal } from "@/lib/utils";
@@ -17,6 +18,7 @@ import { usePendingReturns } from "../hooks/usePendingReturns";
  * las alertas de "Rentas Vencidas" del dashboard.
  */
 export default function PendingReturnsPage() {
+  const canWrite = useHasModuleAccess("Entregas", "full");
   const navigate = useNavigateTransition();
   // Query dedicada server-side (status/return_status/end_date filtrados en
   // PostgREST, orden end_date ASC): el listado genérico de useBookings está
@@ -75,23 +77,24 @@ export default function PendingReturnsPage() {
         );
       },
     },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate(`/returns?booking_id=${row.original.id}`);
-          }}
-        >
-          <PlusCircle className="h-4 w-4 mr-1" /> Registrar devolución
-        </Button>
-      ),
-    },
   ];
+
+  if (canWrite) columns.push({
+    id: "actions",
+    header: "",
+    cell: ({ row }) => (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={(e) => {
+          e.stopPropagation();
+          navigate(`/returns?booking_id=${row.original.id}`);
+        }}
+      >
+        <PlusCircle className="h-4 w-4 mr-1" /> Registrar devolución
+      </Button>
+    ),
+  });
 
   const table = useLiftgoTable<BookingWithForklift>({
     data: pending,
@@ -110,8 +113,8 @@ export default function PendingReturnsPage() {
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
       emptyMessage="No hay retornos pendientes — toda la flota rentada está al corriente"
-      emptyActionLabel="Registrar devolución"
-      onEmptyAction={() => navigate("/returns")}
+      emptyActionLabel={canWrite ? "Registrar devolución" : undefined}
+      onEmptyAction={canWrite ? () => navigate("/returns") : undefined}
       mobileCardRender={(b) => {
         const days = differenceInCalendarDays(today, parseDateLocal(b.end_date));
         return (
@@ -128,7 +131,7 @@ export default function PendingReturnsPage() {
               <p className="text-xs font-mono text-muted-foreground">
                 Fin: {formatDateMty(b.end_date)}
               </p>
-              <Button
+              {canWrite && <Button
                 size="sm"
                 variant="outline"
                 className="w-full mt-2"
@@ -138,7 +141,7 @@ export default function PendingReturnsPage() {
                 }}
               >
                 <PlusCircle className="h-4 w-4 mr-1" /> Registrar devolución
-              </Button>
+              </Button>}
             </CardContent>
           </Card>
         );
