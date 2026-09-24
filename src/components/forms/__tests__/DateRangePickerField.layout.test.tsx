@@ -47,14 +47,14 @@ describe("DateRangePickerField — distribución responsive V26-03", () => {
   it.each([
     ["tablet", true, 1],
     ["escritorio", false, 2],
-  ] as const)("%s abre %i mes(es)", (_name, tabletOrBelow, count) => {
+  ] as const)("%s abre el calendario esperado", (_name, tabletOrBelow, count) => {
     viewport.mobile = false;
     viewport.tabletOrBelow = tabletOrBelow;
     render(<DateRangePickerField label="Fecha de emisión" onSelect={vi.fn()} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Abrir calendario de Fecha de emisión" }));
 
-    expect(screen.getAllByRole("table")).toHaveLength(count);
+    expect(screen.getAllByRole("grid")).toHaveLength(count);
     expect(screen.getByRole("dialog")).toHaveClass("max-w-[22rem]", "lg:max-w-[36rem]");
   });
 });
