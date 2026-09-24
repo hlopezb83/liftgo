@@ -6,7 +6,7 @@ import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, I
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { useUserRole } from "@/features/users";
+import { useHasModuleAccess, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -173,32 +173,35 @@ export function QuoteDetailActions({
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
   const navigate = useNavigateTransition();
+  const canWrite = useHasModuleAccess("Cotizaciones", "full");
   const isEditable = isQuoteEditable(quote);
   // BL-R8-19: rechazar pasa por diálogo de motivo (patrón "Perdido" del CRM).
   const [rejectOpen, setRejectOpen] = useState(false);
   return (
     <>
       <QuotePDFButton quoteId={quote.id} />
-      {isEditable && (
+      {canWrite && isEditable && (
         <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${quote.id}/edit`)}>
           <EditIcon className="h-4 w-4 mr-1" />Editar
         </Button>
       )}
-      {quote.status === "draft" && (
+      {canWrite && quote.status === "draft" && (
         <Button size="sm" onClick={() => onSetStatus("sent")}>
           <DeliveryIcon className="h-4 w-4 mr-1" />Marcar Enviada
         </Button>
       )}
-      <ConvertButton
-        quote={quote} isSale={isSale} alreadyConverted={alreadyConverted}
-        linkedBookingId={linkedBookingId} isConverting={isConverting} onConvertClick={onConvertClick}
-      />
+      {(canWrite || alreadyConverted) && (
+        <ConvertButton
+          quote={quote} isSale={isSale} alreadyConverted={alreadyConverted}
+          linkedBookingId={linkedBookingId} isConverting={isConverting} onConvertClick={onConvertClick}
+        />
+      )}
       <InvoiceButton
         quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
         draftInvoiceId={draftInvoiceId}
         canInvoice={canInvoice} invoiceBlockedReason={invoiceBlockedReason}
       />
-      {quote.status === "sent" && (() => {
+      {canWrite && quote.status === "sent" && (() => {
         // R7 Bloque 7: bloquear "Aceptar" si la cotización ya venció.
         const validUntil = quote.valid_until ? parseDateLocal(quote.valid_until) : null;
         // FIX B4: `new Date()` usaba el reloj/TZ del navegador; con un equipo mal

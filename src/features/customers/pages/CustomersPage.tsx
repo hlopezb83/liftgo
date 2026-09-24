@@ -5,6 +5,7 @@ import { AddIcon, UsersIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -29,6 +30,7 @@ export default function CustomersPage() {
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
   const updateProspect = useUpdateProspect();
+  const canWrite = useHasModuleAccess("Clientes", "full");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [prospectId, setProspectId] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export default function CustomersPage() {
   // `runProspectPrefill` es useEffectEvent → lee siempre los searchParams frescos
   // y llama a los setters estables sin necesidad de listarlos en las deps.
   const runProspectPrefill = useEffectEvent(() => {
+    if (!canWrite) return;
     if (searchParams.get("from_prospect") !== "true") return;
     const pId = searchParams.get("prospect_id");
     setProspectId(pId);
@@ -53,6 +56,7 @@ export default function CustomersPage() {
   });
   // Oleada 1 sidebar: `+ Nuevo` navega a /customers?new=1 y aquí lo consumimos.
   const runQuickCreatePrefill = useEffectEvent(() => {
+    if (!canWrite) return;
     if (searchParams.get("new") !== "1") return;
     setEditId(null);
     setInitialData(undefined);
@@ -64,7 +68,7 @@ export default function CustomersPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     runProspectPrefill();
     runQuickCreatePrefill();
-  }, []);
+  }, [canWrite]);
 
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Customer, {
@@ -90,7 +94,11 @@ export default function CustomersPage() {
 
   const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };
 
-  usePageActions({ onNew: openCreate, onRefresh: refetch, newLabel: "Nuevo cliente" });
+  usePageActions({
+    onNew: canWrite ? openCreate : undefined,
+    onRefresh: refetch,
+    newLabel: canWrite ? "Nuevo cliente" : undefined,
+  });
 
   const handleCreateSuccess = (newCustomer: { id?: string } | null | undefined) => {
     notifySuccess("Cliente agregado");
@@ -152,8 +160,8 @@ export default function CustomersPage() {
         onClearFilters={reset}
         emptyIcon={UsersIcon}
         emptyMessage="No se encontraron clientes"
-        emptyActionLabel="Nuevo cliente"
-        onEmptyAction={openCreate}
+        emptyActionLabel={canWrite ? "Nuevo cliente" : undefined}
+        onEmptyAction={canWrite ? openCreate : undefined}
         mobileCardRender={renderMobileCard}
         mobileKeyExtractor={(c) => c.id}
         skeletonColumns={6}

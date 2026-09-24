@@ -12,19 +12,16 @@ type CreateAction = {
   label: string;
   to: string;
   module: string;
-  requiresFull?: boolean;
   adminOnly?: boolean;
 };
 
 // Mismos módulos/gating que routes-config.tsx:
 // - /bookings/new       → adminOnly
-// - /invoices/new       → minAccess "full"
-// - /quotes/new         → módulo Cotizaciones (read+)
-// - /customers?new=1    → módulo Clientes (read+)
+// - Todas las demás acciones crean registros y exigen acceso "full".
 const ACTIONS: CreateAction[] = [
   { label: "Nueva reserva", to: "/bookings/new", module: "Reservas", adminOnly: true },
   { label: "Nueva cotización", to: "/quotes/new", module: "Cotizaciones" },
-  { label: "Nueva factura", to: "/invoices/new", module: "Facturas", requiresFull: true },
+  { label: "Nueva factura", to: "/invoices/new", module: "Facturas" },
   { label: "Nuevo cliente", to: "/customers?new=1", module: "Clientes" },
 ];
 
@@ -52,8 +49,7 @@ export function SidebarQuickCreate() {
   const allowed = ACTIONS.filter((a) => {
     if (a.adminOnly) return role === "admin";
     const access = permissions?.[role ?? ""]?.[a.module];
-    if (!access || access === "none") return false;
-    return a.requiresFull ? access === "full" : true;
+    return access === "full";
   });
 
   if (allowed.length === 0) return null;
