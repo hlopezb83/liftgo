@@ -8,7 +8,7 @@ const QuoteForm = lazy(() => import("@/features/quotes/pages/QuoteForm"));
 // Guards declarativos preservados de la config de rutas Classic
 // (mismo patrón que wrapWithGuards en el router previo).
 const module = "Cotizaciones";
-const minAccess: "read" | "full" | undefined = undefined;
+const minAccess: "read" | "full" | undefined = "full";
 
 function GuardedRoute() {
   let element: ReactElement = (
