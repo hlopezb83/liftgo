@@ -5,6 +5,7 @@ export interface DeliveryInfo {
   forkliftId: string;
   forkliftName: string;
   startDate: string;
+  endDate: string;
   customerAddress: string | null;
 }
 
