@@ -3,7 +3,7 @@
  *
  * v7.233.0 (P1-4b): la lista NO trae `old_data`/`new_data` — proyecta sólo
  * los campos necesarios para el label (name/booking/contract/invoice/quote/
- * description). El detalle re-descarga la fila completa por id.
+ * delivery/description). El detalle re-descarga la fila completa por id.
  */
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
@@ -22,11 +22,11 @@ const LIST_SELECT =
   "id, table_name, record_id, action, changed_fields, user_id, created_at, source, is_e2e, " +
   "new_name:new_data->>name, new_booking:new_data->>booking_number, " +
   "new_contract:new_data->>contract_number, new_invoice:new_data->>invoice_number, " +
-  "new_quote:new_data->>quote_number, new_desc:new_data->>description, " +
+  "new_quote:new_data->>quote_number, new_delivery:new_data->>delivery_number, new_desc:new_data->>description, " +
   "new_full:new_data->>full_name, new_email:new_data->>email, new_role:new_data->>role, " +
   "old_name:old_data->>name, old_booking:old_data->>booking_number, " +
   "old_contract:old_data->>contract_number, old_invoice:old_data->>invoice_number, " +
-  "old_quote:old_data->>quote_number, old_desc:old_data->>description, " +
+  "old_quote:old_data->>quote_number, old_delivery:old_data->>delivery_number, old_desc:old_data->>description, " +
   "old_full:old_data->>full_name, old_email:old_data->>email, old_role:old_data->>role";
 
 const DETAIL_SELECT =

@@ -62,7 +62,7 @@ function formatDateString(field: string, value: string): string | null {
   }
   if (DATE_ONLY_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const d = new Date(value);
-    if (!isNaN(d.getTime())) return formatDateMty(d);
+    if (!isNaN(d.getTime())) return formatDateMty(value);
   }
   return null;
 }
@@ -100,6 +100,6 @@ export function getRecordLabel(log: AuditLog): string {
   // BL-R8-16: profiles tiene `full_name` (no `name`); sin él caía al UUID
   // cortado. Como último recurso se muestra la tabla traducida + UUID corto
   // para que al menos se entienda el contexto.
-  return pick("name") || pick("full_name") || pick("booking_number") || pick("contract_number") || pick("invoice_number") || pick("quote_number") || desc?.slice(0, 30)
+  return pick("name") || pick("full_name") || pick("booking_number") || pick("contract_number") || pick("invoice_number") || pick("quote_number") || pick("delivery_number") || desc?.slice(0, 30)
     || `${translateTable(log.table_name)} ${log.record_id.slice(0, 8)}`;
 }

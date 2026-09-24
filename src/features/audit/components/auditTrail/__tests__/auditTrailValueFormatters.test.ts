@@ -21,6 +21,15 @@ describe("auditTrailValueFormatters", () => {
     expect(formatAuditValue("role", "ventas")).toBe("Ventas");
   });
 
+  it("conserva el día de una fecha sin hora en la bitácora", () => {
+    expect(formatAuditValue("scheduled_date", "2026-11-10")).toBe("10/11/2026");
+    expect(formatAuditValue("scheduled_date", "2026-11-09")).toBe("09/11/2026");
+  });
+
+  it("usa el folio de entrega si el detalle no tiene etiqueta precalculada", () => {
+    expect(getRecordLabel(log({ table_name: "deliveries", new_data: { delivery_number: "ENT-0002" } }))).toBe("ENT-0002");
+  });
+
   it("BL-R8-16 · getRecordLabel usa full_name cuando no hay name", () => {
     const l = log({ new_data: { full_name: "Juana Pérez", role: "ventas" } });
     expect(getRecordLabel(l)).toBe("Juana Pérez");

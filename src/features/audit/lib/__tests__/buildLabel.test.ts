@@ -4,9 +4,9 @@ import { buildLabel, type LabelProjectionRow } from "../queryKeys";
 const empty: LabelProjectionRow = {
   table_name: "quotes",
   new_name: null, new_booking: null, new_contract: null,
-  new_invoice: null, new_quote: null, new_desc: null,
+  new_invoice: null, new_quote: null, new_delivery: null, new_desc: null,
   old_name: null, old_booking: null, old_contract: null,
-  old_invoice: null, old_quote: null, old_desc: null,
+  old_invoice: null, old_quote: null, old_delivery: null, old_desc: null,
   new_full: null, old_full: null,
   new_email: null, old_email: null,
   new_role: null, old_role: null,
@@ -45,6 +45,11 @@ describe("buildLabel — etiquetas de bitácora (R9-P2-05)", () => {
 
   it("mantiene la etiqueta habitual del resto de tablas", () => {
     expect(buildLabel({ ...empty, table_name: "quotes", new_quote: "COT-0042" }, "cccccccc")).toBe("COT-0042");
+  });
+
+  it("muestra el folio de entrega en lugar del UUID corto", () => {
+    expect(buildLabel({ ...empty, table_name: "deliveries", new_delivery: "ENT-0002" }, "a25b2a4c-4721")).toBe("ENT-0002");
+    expect(buildLabel({ ...empty, table_name: "deliveries", old_delivery: "ENT-0002" }, "a25b2a4c-4721")).toBe("ENT-0002");
   });
 
   it("cae al identificador corto sólo cuando no hay ninguna fuente", () => {
