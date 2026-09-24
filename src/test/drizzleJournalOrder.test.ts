@@ -10,17 +10,17 @@ import { describe, expect, it } from "vitest";
  * menor o igual al máximo ya aplicado se omite en silencio: no falla, simplemente nunca corre.
  *
  * Baseline confirmado por SELECT de sólo lectura sobre drizzle.__drizzle_migrations:
- * el máximo `created_at` aplicado es 1790874185000 y corresponde al archivo
- * `0063_discard_internal_user_atomic` (hash del ledger == sha256 del archivo).
- * Por eso el último idx aplicado es 63: cada entrada hasta ahí tiene su fila en el ledger.
+ * el máximo `created_at` aplicado es 1790874187000 y corresponde al archivo
+ * `0065_customer_relation_edit_isolation` (hash del ledger == sha256 del archivo).
+ * Por eso el último idx aplicado es 65: cada entrada hasta ahí tiene su fila en el ledger.
  *
  * Histórico: el canal oficial llegó a dejar copias redundantes 0036–0041 de los archivos
  * 0030–0035 con `when` anterior al baseline; nunca se aplicaron (los hashes del ledger son
  * los de 0030–0035) y drizzle jamás las habría corrido. Se retiraron como artefactos
  * redundantes; ninguna migración aplicada se editó ni se renombró.
  */
-const APPLIED_MAX_CREATED_AT = 1790874185000;
-const APPLIED_THROUGH_IDX = 63;
+const APPLIED_MAX_CREATED_AT = 1790874187000;
+const APPLIED_THROUGH_IDX = 65;
 
 interface JournalEntry {
   idx: number;
