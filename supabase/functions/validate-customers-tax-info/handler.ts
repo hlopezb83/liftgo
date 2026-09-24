@@ -154,14 +154,18 @@ export async function handleValidateCustomers(
     // resultado y llave del PAC pertenecen a la empresa del caller.
     let linksQuery = supabase
       .from("organization_customers")
-      .select("customer_id,alias,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp,sat_validation_status,sat_validated_at,updated_at,customers!inner(name,deleted_at)")
+      .select(
+        "customer_id,alias,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp,sat_validation_status,sat_validated_at,updated_at,customers!inner(name,deleted_at)",
+      )
       .eq("organization_id", organizationId)
       .eq("status", "active")
       .is("customers.deleted_at", null)
       .not("rfc", "is", null)
       .neq("rfc", "")
       .neq("rfc", RFC_PUBLICO_GENERAL);
-    if (onlyPending) linksQuery = linksQuery.eq("sat_validation_status", "not_validated");
+    if (onlyPending) {
+      linksQuery = linksQuery.eq("sat_validation_status", "not_validated");
+    }
     const { data: links, error: linksErr } = await linksQuery
       .order("sat_validated_at", { ascending: true, nullsFirst: true })
       .limit(limit);
@@ -253,7 +257,8 @@ export async function handleValidateCustomers(
       }
       if (!Array.isArray(saved) || saved.length !== 1) {
         return json({
-          error: "La ficha fiscal cambió durante la validación. Vuelve a intentarlo.",
+          error:
+            "La ficha fiscal cambió durante la validación. Vuelve a intentarlo.",
         }, 409);
       }
 
@@ -269,7 +274,10 @@ export async function handleValidateCustomers(
 
     const { count, error: countError } = await supabase
       .from("organization_customers")
-      .select("customer_id, customers!inner(id)", { count: "exact", head: true })
+      .select("customer_id, customers!inner(id)", {
+        count: "exact",
+        head: true,
+      })
       .eq("organization_id", organizationId)
       .eq("status", "active")
       .is("customers.deleted_at", null)

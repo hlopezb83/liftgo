@@ -143,8 +143,14 @@ Deno.test("validate-customers: cliente válido según el PAC → status valid", 
   assertEquals(body.valid, 1);
   const upd = state.updates.find((u) => u.table === "organization_customers");
   assertEquals(upd?.patch.sat_validation_status, "valid");
-  assertEquals(upd?.filters.find((f) => f.col === "organization_id")?.val, ORG_A);
-  assertEquals(upd?.filters.find((f) => f.col === "updated_at")?.val, ORG_A_LINK.updated_at);
+  assertEquals(
+    upd?.filters.find((f) => f.col === "organization_id")?.val,
+    ORG_A,
+  );
+  assertEquals(
+    upd?.filters.find((f) => f.col === "updated_at")?.val,
+    ORG_A_LINK.updated_at,
+  );
 });
 
 Deno.test("validate-customers: diferencias del PAC → status mismatch con campos", async () => {
@@ -274,15 +280,19 @@ Deno.test("validate-customers: cliente compartido guarda el resultado sólo en l
       rfc: "BBB010101BBB",
     }],
   });
-  const fetchImpl = (() => Promise.resolve(
-    new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
-  )) as unknown as typeof fetch;
+  const fetchImpl = (() =>
+    Promise.resolve(
+      new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
+    )) as unknown as typeof fetch;
 
   const res = await handleValidateCustomers(req(), deps(state, fetchImpl));
   assertEquals(res.status, 200);
   assertEquals(state.updates.length, 1);
   assertEquals(state.updates[0].table, "organization_customers");
-  assertEquals(state.updates[0].filters.find((f) => f.col === "organization_id")?.val, ORG_B);
+  assertEquals(
+    state.updates[0].filters.find((f) => f.col === "organization_id")?.val,
+    ORG_B,
+  );
   assertEquals(state.updates[0].patch.sat_validation_status, "valid");
 });
 
@@ -291,14 +301,17 @@ Deno.test("validate-customers: si cambia la ficha durante la consulta al PAC no 
     organizationCustomers: [ORG_A_LINK],
     saveRows: [],
   });
-  const fetchImpl = (() => Promise.resolve(
-    new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
-  )) as unknown as typeof fetch;
+  const fetchImpl = (() =>
+    Promise.resolve(
+      new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
+    )) as unknown as typeof fetch;
 
   const res = await handleValidateCustomers(req(), deps(state, fetchImpl));
   assertEquals(res.status, 409);
-  assertEquals(state.updates[0].filters.find((f) => f.col === "updated_at")?.val,
-    ORG_A_LINK.updated_at);
+  assertEquals(
+    state.updates[0].filters.find((f) => f.col === "updated_at")?.val,
+    ORG_A_LINK.updated_at,
+  );
 });
 
 Deno.test("validate-customers: sin vínculos organization_customers → no procesa nada (200 vacío)", async () => {
