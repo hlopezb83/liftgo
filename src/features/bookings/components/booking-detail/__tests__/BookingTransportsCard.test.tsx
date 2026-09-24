@@ -49,7 +49,8 @@ describe("BookingTransportsCard", () => {
     const view = render(<TestRouter><BookingTransportsCard {...props} deliveries={undefined} isLoading /></TestRouter>);
     expect(await screen.findByRole("status", { name: "Cargando transportes" })).toBeInTheDocument();
     expect(screen.queryByText(/aún no tiene transportes/)).not.toBeInTheDocument();
-    view.rerender(<TestRouter><BookingTransportsCard {...props} deliveries={[]} /></TestRouter>);
+    view.unmount();
+    render(<TestRouter><BookingTransportsCard {...props} deliveries={[]} /></TestRouter>);
     expect(await screen.findByText(/aún no tiene transportes registrados/)).toBeInTheDocument();
   });
 });
