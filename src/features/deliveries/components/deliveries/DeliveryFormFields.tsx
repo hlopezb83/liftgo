@@ -215,7 +215,7 @@ function DeliveryOperatorFields({ form, activeDrivers }: Pick<Props, "form" | "a
         onValueChange={selectDriver}
         disabled={noDrivers}
         placeholder={noDrivers ? "Sin operadores activos" : "Seleccionar operador"}
-        description={noDrivers ? "No hay operadores activos registrados. Puedes asignar uno después." : undefined}
+        description={noDrivers ? "No hay operadores activos registrados." : undefined}
       />
       <TextField
         control={form.control}
