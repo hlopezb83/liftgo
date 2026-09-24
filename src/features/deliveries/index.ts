@@ -3,3 +3,4 @@
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./hooks/useDeliveries";
 export * from "./lib/deliveryOverdue";
+export * from "./lib/deliveryBookingDate";
