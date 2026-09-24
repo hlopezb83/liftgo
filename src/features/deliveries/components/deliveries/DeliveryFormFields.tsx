@@ -39,6 +39,7 @@ const TYPE_OPTIONS: SelectOption[] = [
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
+  const transportType = useWatch({ control: form.control, name: "type" });
   const lastBookingId = useRef("");
   // Bug 3: histórico sin operador → pedir justificación de evidencia.
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
@@ -139,7 +140,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <DateField control={form.control} name="scheduledDate" label="Fecha" required />
+          <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />
           <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
         </div>
 
@@ -147,14 +148,14 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           control={form.control}
           name="alreadyCompleted"
           label="Ya se realizó (registrar histórico)"
-          description="Permite fecha pasada; la entrega se registra directamente como completada."
+          description="Permite fecha pasada; el transporte se registra directamente como completado."
         />
 
         <TextField
           control={form.control}
           name="address"
-          label="Dirección de Entrega"
-          placeholder="Av. Reforma 123, CDMX"
+          label={transportType === "pickup" ? "Dirección de recolección" : "Dirección de entrega"}
+          placeholder="Calle, número, colonia y ciudad"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -181,7 +182,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
             label="Justificación (sin operador ni firma)"
             rows={2}
             placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
-            description="La entrega quedará completada sin evidencia operativa; registra quién la autorizó."
+            description="El transporte quedará completado sin evidencia operativa; registra quién lo autorizó."
           />
         )}
 
