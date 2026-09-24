@@ -21,6 +21,7 @@ function renderActions(status: string, canDelete: boolean) {
     <DeliveryActions
       status={status}
       canDelete={canDelete}
+      onEdit={vi.fn()}
       onComplete={vi.fn()}
       onDelete={vi.fn()}
     />,
@@ -58,11 +59,26 @@ describe("DeliveryActions - botón Eliminar (DB3-15)", () => {
     roleGuardAccessMock.mockReturnValue(true);
     const onDelete = vi.fn();
     render(
-      <DeliveryActions status="cancelled" canDelete onComplete={vi.fn()} onDelete={onDelete} />,
+      <DeliveryActions status="cancelled" canDelete onEdit={vi.fn()} onComplete={vi.fn()} onDelete={onDelete} />,
     );
     fireEvent.click(screen.getByRole("button", { name: /eliminar/i }));
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Eliminar" }));
     expect(onDelete).toHaveBeenCalled();
+  });
+
+  it("permite reprogramar solo entregas programadas con acceso completo", () => {
+    roleGuardAccessMock.mockReturnValue(true);
+    const onEdit = vi.fn();
+    render(
+      <DeliveryActions status="scheduled" canDelete={false} onEdit={onEdit} onComplete={vi.fn()} onDelete={vi.fn()} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: /reprogramar/i }));
+    expect(onEdit).toHaveBeenCalledOnce();
+
+    roleGuardAccessMock.mockReturnValue(false);
+    renderActions("scheduled", false);
+    expect(screen.getAllByRole("button", { name: /reprogramar/i })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /completar/i })).toHaveLength(1);
   });
 });

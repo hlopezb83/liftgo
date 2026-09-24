@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -13,6 +14,7 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailBody } from "../components/deliveries/DeliveryDetailBody";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
+import { RescheduleDeliveryDialog } from "../components/deliveries/RescheduleDeliveryDialog";
 import { useDeliveries, useDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
 import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
 import { buildDeliverySubtitle, canDeleteDeliveryFor, computeHoursUsed } from "../lib/deliveryDetailHelpers";
@@ -26,6 +28,7 @@ export default function DeliveryDetail() {
   const { forkliftMap } = useForkliftMap();
   const deleteDelivery = useDeleteDelivery();
   const { data: role } = useUserRole();
+  const [editOpen, setEditOpen] = useState(false);
 
   const forklift = delivery ? forkliftMap.get(delivery.forklift_id) : undefined;
   const linkedBooking = delivery?.booking_id
@@ -81,6 +84,7 @@ export default function DeliveryDetail() {
             <DeliveryActions
               status={delivery.status}
               canDelete={canDeleteDeliveryFor(delivery.status, role)}
+              onEdit={() => setEditOpen(true)}
               onComplete={() => completion.setSignatureOpen(true)}
               onDelete={handleDelete}
             />
@@ -107,7 +111,14 @@ export default function DeliveryDetail() {
         minHours={completion.minHours}
         operatorName={delivery.driver_name}
       />
+      {editOpen && (
+        <RescheduleDeliveryDialog
+          delivery={delivery}
+          linkedBooking={linkedBooking}
+          open={editOpen}
+          onOpenChange={setEditOpen}
+        />
+      )}
     </>
   );
 }
-
