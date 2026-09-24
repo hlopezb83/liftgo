@@ -7,11 +7,11 @@ import { Form } from "@/components/ui/form";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { toYMD } from "@/lib/date/toYMD";
-import { deliveryBookingDateError } from "@/lib/domain/deliveryBookingDate";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import { useUpdateDelivery } from "../../hooks/useDeliveries";
+import { deliveryBookingDateError } from "../../lib/deliveryBookingDate";
 
 const schema = z.object({
   scheduledDate: z.date({ error: "Fecha requerida" }),
