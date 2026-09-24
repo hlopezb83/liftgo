@@ -62,7 +62,7 @@ function formatDateString(field: string, value: string): string | null {
   }
   if (DATE_ONLY_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const d = new Date(value);
-    if (!isNaN(d.getTime())) return formatDateMty(d);
+    if (!isNaN(d.getTime())) return formatDateMty(value);
   }
   return null;
 }
