@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { invoiceKeys } from "../../lib/queryKeys";
 
@@ -45,7 +46,7 @@ interface UpdateReceptorInput {
 
 /**
  * Actualiza el snapshot fiscal del receptor en la factura y, opcionalmente,
- * sincroniza los mismos valores en el cliente.
+ * sincroniza los mismos valores en la relación comercial de esta empresa.
  */
 export function useUpdateReceptorFiscalInfo() {
   return useEntityMutation({
@@ -56,15 +57,19 @@ export function useUpdateReceptorFiscalInfo() {
         .eq("id", input.invoiceId);
       if (error) throw error;
       if (input.syncCustomer && input.customerId) {
-        const { error: cErr } = await supabase
-          .from("customers")
+        const { data: relation, error: cErr } = await supabase
+          .from("organization_customers")
           .update({
             razon_social: input.patch.receptor_razon_social,
             regimen_fiscal: input.patch.receptor_regimen_fiscal,
             domicilio_fiscal_cp: input.patch.receptor_domicilio_fiscal_cp,
+            updated_at: new Date().toISOString(),
           })
-          .eq("id", input.customerId);
+          .eq("customer_id", input.customerId)
+          .eq("status", "active")
+          .select("customer_id");
         if (cErr) throw cErr;
+        assertRowsAffected(relation, "Actualizar datos fiscales del cliente");
       }
       return input;
     },

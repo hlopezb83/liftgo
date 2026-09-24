@@ -41,19 +41,23 @@ El workflow `.github/workflows/rls-db-tests.yml` ejecuta, en este orden:
 - El registro con id 31 del ledger productivo tiene origen desconocido: **no se
   borra, no se edita y no se atribuye automáticamente** a ningún archivo.
 
-### Desfase observado el 23 de septiembre de 2026
+### Estado observado el 23 de septiembre de 2026
 
-- En Lovable Cloud, el último registro leído fue `id=59`,
-  `created_at=1790874179000`, correspondiente al archivo 0057. El journal de
-  Git llega hasta 0061; **0058–0061 aún no constan en el ledger**.
-- 0058 sólo agrega un comentario. Los efectos de 0059 (folios), 0060 (policy de
-  perfiles) y 0061 (`handle_new_user`) se comprobaron directamente en la base,
-  pero esa comprobación **no equivale a registrar las migraciones**.
-- La herramienta de Lovable disponible para crear migraciones no aplica archivos
-  existentes. Se detuvo la reconciliación sin insertar filas del ledger a mano
-  ni crear una migración 0062. La próxima operación de migración en producción
-  debe resolver primero este desfase por el canal oficial de Lovable y volver a
-  verificar tanto el ledger como los objetos resultantes.
+- El migrador oficial ya registró 0058–0063. La última fila comprobada fue
+  `id=65`, `created_at=1790874185000`: corresponde a
+  `0063_discard_internal_user_atomic.sql`, y su hash coincide con ese archivo.
+- Antes de ese registro, una ejecución SQL directa expresamente autorizada
+  aplicó el contenido que entonces se llamaba
+  `0063_customer_relation_edit_isolation.sql`. Después Lovable reutilizó el
+  número 0063 para la baja de usuarios y eliminó el archivo de aislamiento del
+  repositorio. Por ello, el esquema productivo tiene la protección de clientes,
+  pero el historial reproducible aún no la registra bajo su nombre final.
+- `0064_ledger_sync_noop_0063.sql` y
+  `0065_customer_relation_edit_isolation.sql` quedan pendientes de registro. El
+  segundo reaplica de forma idempotente la protección de clientes para que una
+  base reconstruida y producción lleguen al mismo estado. Deben ejecutarse por
+  el migrador oficial en ese orden y verificarse en el ledger, sin insertar ni
+  modificar sus filas a mano.
 
 ## Límite de certeza
 

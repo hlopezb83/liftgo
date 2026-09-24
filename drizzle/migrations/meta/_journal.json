@@ -456,6 +456,13 @@
       "when": 1790874186000,
       "tag": "0064_ledger_sync_noop_0063",
       "breakpoints": true
+    },
+    {
+      "idx": 65,
+      "version": "7",
+      "when": 1790874187000,
+      "tag": "0065_customer_relation_edit_isolation",
+      "breakpoints": true
     }
   ]
 }
