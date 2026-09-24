@@ -10,6 +10,7 @@ type Props = {
   onGenerateRecurring: () => void;
   isGenerating: boolean;
   onCreate: () => void;
+  canCreate: boolean;
 };
 
 export function MaintenancePageActions({
@@ -19,6 +20,7 @@ export function MaintenancePageActions({
   onGenerateRecurring,
   isGenerating,
   onCreate,
+  canCreate,
 }: Props) {
   return (
     <div className="flex flex-wrap gap-2 items-center">
@@ -52,10 +54,11 @@ export function MaintenancePageActions({
           <span className="hidden sm:inline">Generar Recurrente</span>
         </Button>
       </RoleGuard>
-      <Button onClick={onCreate} size="sm">
-        <AddIcon className="h-4 w-4 mr-1" /> Registrar servicio
-      </Button>
+      {canCreate && (
+        <Button onClick={onCreate} size="sm">
+          <AddIcon className="h-4 w-4 mr-1" /> Registrar servicio
+        </Button>
+      )}
     </div>
   );
 }
-
