@@ -5,6 +5,7 @@ import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } f
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useHasModuleAccess, useUserRole } from "@/features/users";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMtyDate } from "@/lib/utils";
@@ -21,6 +22,8 @@ interface Props {
 }
 
 export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
+  const canManageDamage = useHasModuleAccess("Daños", "full");
+  const { data: role } = useUserRole();
   const restore = useRestoreDamageRecord();
   if (!record) return null;
 
@@ -63,21 +66,21 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           </div>
 
           <Separator />
-          <DamagePhotosSection entityType="damage_record" entityId={record.id} title="Fotos de Daño" />
+          <DamagePhotosSection entityType="damage_record" entityId={record.id} title="Fotos de Daño" showUploader={canManageDamage} />
 
           <Separator />
           {record.deleted_at ? (
             // R5-A6: un daño archivado solo admite restaurarse (solo admin).
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Este registro está archivado.</p>
-              <Button
+              {role === "admin" && canManageDamage && <Button
                 variant="outline"
                 className="w-full"
                 disabled={restore.isPending}
                 onClick={() => restore.mutate(record.id, { onSuccess: () => onOpenChange(false) })}
               >
                 Restaurar registro
-              </Button>
+              </Button>}
             </div>
           ) : (
             <div className="flex items-center gap-2">
