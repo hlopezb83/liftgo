@@ -108,10 +108,12 @@ export function PostBookingDeliveryDialog({
   }, [open, customerAddress, defaultDate, form]);
 
   const handleSchedule = form.handleSubmit((values) => {
-    const dateError = deliveryBookingDateError("delivery", toYMD(values.scheduledDate), {
-      start_date: startDate,
-      end_date: endDate,
-    });
+    const dateError = startDate && endDate
+      ? deliveryBookingDateError("delivery", toYMD(values.scheduledDate), {
+          start_date: startDate,
+          end_date: endDate,
+        })
+      : null;
     if (dateError) {
       form.setError("scheduledDate", { type: "manual", message: dateError });
       return;
