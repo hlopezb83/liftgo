@@ -12,6 +12,7 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
+import { deliveryBookingDateError } from "../../lib/deliveryBookingDate";
 import { deliverySchema } from "../../lib/deliveryFormSchema";
 import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormFields";
 
@@ -52,6 +53,14 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
 
   const onSubmit = (values: DeliveryFormValues) => {
     if (!canWrite) return;
+    const booking = bookings?.find((b) => b.id === values.bookingId);
+    if (booking) {
+      const dateError = deliveryBookingDateError(values.type, toYMD(values.scheduledDate), booking);
+      if (dateError) {
+        form.setError("scheduledDate", { type: "manual", message: dateError });
+        return;
+      }
+    }
     createDelivery.mutate(
       {
         forklift_id: values.forkliftId,

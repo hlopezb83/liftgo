@@ -30,6 +30,7 @@ export function QuoteConversionDialogs({ logic }: Props) {
           forkliftId={pendingDeliveries[currentDeliveryIndex].forkliftId}
           forkliftName={pendingDeliveries[currentDeliveryIndex].forkliftName}
           startDate={pendingDeliveries[currentDeliveryIndex].startDate}
+          endDate={pendingDeliveries[currentDeliveryIndex].endDate}
           customerAddress={pendingDeliveries[currentDeliveryIndex].customerAddress}
           onSkip={handleDeliveryNext}
           currentIndex={currentDeliveryIndex}

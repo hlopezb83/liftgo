@@ -11,6 +11,7 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import { useUpdateDelivery } from "../../hooks/useDeliveries";
+import { deliveryBookingDateError } from "../../lib/deliveryBookingDate";
 
 const schema = z.object({
   scheduledDate: z.date({ error: "Fecha requerida" }),
@@ -33,6 +34,10 @@ interface Props {
 
 export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpenChange }: Props) {
   const updateDelivery = useUpdateDelivery();
+  const operationLabel = delivery.type === "pickup"
+    ? "recolección"
+    : delivery.type === "return" ? "devolución" : "entrega";
+  const operationTitle = `${operationLabel.charAt(0).toUpperCase()}${operationLabel.slice(1)}`;
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -52,9 +57,12 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
       form.setError("scheduledDate", { message: "Elige hoy o una fecha futura" });
       return;
     }
-    if (linkedBooking && (date < linkedBooking.start_date || date > linkedBooking.end_date)) {
-      form.setError("scheduledDate", { message: "La entrega debe caer dentro del periodo de la reserva" });
-      return;
+    if (linkedBooking) {
+      const dateError = deliveryBookingDateError(delivery.type, date, linkedBooking);
+      if (dateError) {
+        form.setError("scheduledDate", { type: "manual", message: dateError });
+        return;
+      }
     }
 
     updateDelivery.mutate({
@@ -67,7 +75,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
       notes: values.notes.trim() || null,
     }, {
       onSuccess: () => {
-        notifySuccess("Entrega reprogramada");
+        notifySuccess(`${operationTitle} reprogramada`);
         onOpenChange(false);
       },
     });
@@ -75,7 +83,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
 
   return (
     <FormDialog
-      title="Reprogramar entrega"
+      title={`Reprogramar ${operationLabel}`}
       description="Ajusta la fecha y los datos de despacho antes de completar la entrega."
       open={open}
       onOpenChange={onOpenChange}
@@ -93,7 +101,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
             </p>
           )}
           <div className="grid gap-3 sm:grid-cols-2">
-            <DateField control={form.control} name="scheduledDate" label="Fecha de entrega" required />
+            <DateField control={form.control} name="scheduledDate" label={`Fecha de ${operationLabel}`} required />
             <TextField control={form.control} name="scheduledTime" label="Hora programada" type="time" />
           </div>
           <TextField control={form.control} name="address" label="Dirección de entrega" />

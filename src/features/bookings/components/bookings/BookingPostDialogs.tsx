@@ -6,6 +6,7 @@ type PostBooking = {
   forkliftId: string;
   forkliftName: string;
   startDate: string;
+  endDate: string;
   customerAddress?: string | null;
 };
 
@@ -36,6 +37,7 @@ export function BookingPostDialogs({ postBooking, showPolicyDialog, forkliftName
           forkliftId={postBooking.forkliftId}
           forkliftName={name}
           startDate={postBooking.startDate}
+          endDate={postBooking.endDate}
           customerAddress={postBooking.customerAddress ?? null}
           onSkip={onDeliveryDone}
         />

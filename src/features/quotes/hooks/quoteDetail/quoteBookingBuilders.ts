@@ -13,6 +13,7 @@ export type Assignment = {
 type QuoteLike = {
   customer_id?: string | null;
   start_date?: string | null;
+  end_date?: string | null;
   forklift_id?: string | null;
   line_items?: Json | null;
 };
@@ -34,6 +35,7 @@ export function buildDeliveryInfos(
       forkliftId: fId,
       forkliftName: fl?.name || "Montacargas",
       startDate: quote.start_date ?? "",
+      endDate: quote.end_date ?? "",
       customerAddress: cust?.address || null,
     };
   });

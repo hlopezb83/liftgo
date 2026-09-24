@@ -14,6 +14,7 @@ interface PostBookingState {
   forkliftId: string;
   forkliftName: string;
   startDate: string;
+  endDate: string;
   customerAddress: string | null;
 }
 
@@ -54,6 +55,7 @@ export function useBookingFormSubmit() {
             forkliftId: data.forklift_id,
             forkliftName,
             startDate: toYMD(from),
+            endDate: toYMD(to),
             customerAddress: cust?.address || null,
           });
         },
