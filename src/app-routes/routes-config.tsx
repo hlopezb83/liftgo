@@ -51,9 +51,9 @@ const rawRoutes: RawRoute[] = [
   { path: "/deliveries", loader: () => import("@/features/deliveries/pages/DeliveriesPage"), module: "Entregas" },
   { path: "/deliveries/:id", loader: () => import("@/features/deliveries/pages/DeliveryDetail"), module: "Entregas" },
   { path: "/quotes", loader: () => import("@/features/quotes/pages/QuotesPage"), module: "Cotizaciones" },
-  { path: "/quotes/new", loader: () => import("@/features/quotes/pages/QuoteForm"), module: "Cotizaciones" },
+  { path: "/quotes/new", loader: () => import("@/features/quotes/pages/QuoteForm"), module: "Cotizaciones", minAccess: "full" },
   { path: "/quotes/:id", loader: () => import("@/features/quotes/pages/QuoteDetail"), module: "Cotizaciones" },
-  { path: "/quotes/:id/edit", loader: () => import("@/features/quotes/pages/QuoteForm"), module: "Cotizaciones" },
+  { path: "/quotes/:id/edit", loader: () => import("@/features/quotes/pages/QuoteForm"), module: "Cotizaciones", minAccess: "full" },
   { path: "/contracts", loader: () => import("@/features/contracts/pages/ContractsPage"), module: "Contratos" },
   // GUI-FE-04 (G-DIS-05): crear contrato requiere acceso "full" a Contratos.
   { path: "/contracts/new", loader: () => import("@/features/contracts/pages/ContractForm"), module: "Contratos", minAccess: "full" },
