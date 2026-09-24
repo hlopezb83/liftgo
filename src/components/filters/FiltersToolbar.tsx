@@ -59,7 +59,7 @@ function Search({ value, onChange, placeholder, className }: SearchProps) {
       value={value}
       onChange={onChange}
       placeholder={placeholder ?? "Buscar…"}
-      className={className ?? "w-full sm:w-64"}
+      className={className ?? "w-full sm:w-64 sm:min-w-64"}
       data-testid="filters-search"
     />
   );

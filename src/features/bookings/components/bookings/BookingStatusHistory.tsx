@@ -16,6 +16,8 @@ const FIELD_LABELS: Record<string, string> = {
   status: "Estatus",
   start_date: "Fecha inicio",
   end_date: "Fecha fin",
+  daily_rate: "Tarifa diaria",
+  weekly_rate: "Tarifa semanal",
   monthly_rate: "Tarifa mensual",
   included_hours: "Horas incluidas",
   extra_hour_rate: "Tarifa hora extra",
@@ -39,10 +41,13 @@ const ACTION_LABELS: Record<string, string> = {
 
 const DATE_FIELDS = new Set(["start_date", "end_date"]);
 const CURRENCY_FIELDS = new Set([
+  "daily_rate",
+  "weekly_rate",
   "monthly_rate",
   "extra_hour_rate",
 ]);
 const HIDDEN_FIELDS = new Set([
+  "version",
   "updated_at",
   "created_at",
   "is_e2e",
