@@ -17,8 +17,8 @@ import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
 import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
-import { useReturnInspections } from "../hooks/useReturnInspections";
 import { useReturnableBookings } from "../hooks/useReturnableBookings";
+import { useReturnInspections } from "../hooks/useReturnInspections";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 
