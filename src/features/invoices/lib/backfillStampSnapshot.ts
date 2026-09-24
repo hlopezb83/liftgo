@@ -12,7 +12,7 @@ const isEmpty = (v: unknown) => v === null || v === undefined || String(v).trim(
 interface CustomerSnap {
   rfc: string | null;
   razon_social: string | null;
-  name: string | null;
+  alias: string | null;
   regimen_fiscal: string | null;
   domicilio_fiscal_cp: string | null;
   uso_cfdi: string | null;
@@ -20,7 +20,7 @@ interface CustomerSnap {
 
 function mergeCustomerFields(invoice: Tables<"invoices">, customer: CustomerSnap, patch: Partial<Tables<"invoices">>) {
   if (isEmpty(invoice.receptor_rfc) && customer.rfc) patch.receptor_rfc = customer.rfc;
-  const razon = customer.razon_social ?? customer.name;
+  const razon = customer.razon_social ?? customer.alias;
   if (isEmpty(invoice.receptor_razon_social) && razon) patch.receptor_razon_social = razon;
   if (isEmpty(invoice.receptor_regimen_fiscal) && customer.regimen_fiscal) {
     patch.receptor_regimen_fiscal = customer.regimen_fiscal;
@@ -43,11 +43,15 @@ export async function backfillStampSnapshot(invoice: Tables<"invoices">): Promis
   if (missing.length === 0) return invoice;
   if (!invoice.customer_id) return invoice;
 
-  const { data: customer } = await supabase
-    .from("customers")
-    .select("rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi")
-    .eq("id", invoice.customer_id)
+  // Un cliente puede tener fichas fiscales distintas en cada empresa. La RLS
+  // de esta relación resuelve la empresa de la sesión; nunca usamos la
+  // identidad global como respaldo para timbrar.
+  const { data: customer, error: customerError } = await supabase
+    .from("organization_customers")
+    .select("rfc, razon_social, alias, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi")
+    .eq("customer_id", invoice.customer_id)
     .maybeSingle();
+  if (customerError) throw customerError;
 
   const patch: Partial<Tables<"invoices">> = {};
   if (customer) mergeCustomerFields(invoice, customer as CustomerSnap, patch);
@@ -62,6 +66,10 @@ export async function backfillStampSnapshot(invoice: Tables<"invoices">): Promis
     .select()
     .single();
 
-  if (error || !updated) return { ...invoice, ...patch } as Tables<"invoices">;
+  // El timbrado posterior lee la factura de la base. No podemos tratar un
+  // parche fallido como guardado: eso permitiría continuar con datos viejos.
+  if (error) throw error;
+  if (!updated) throw new Error("No se pudo guardar el respaldo fiscal de la factura");
   return updated;
 }
+
