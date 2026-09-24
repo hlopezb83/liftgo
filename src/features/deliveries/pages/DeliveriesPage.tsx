@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { useForkliftMap } from "@/features/fleet";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -140,6 +141,7 @@ export default function DeliveriesPage() {
   // Control externo del diálogo para abrirlo también desde el CTA del
   // EmptyState (mismo patrón que InventoryPage/PartFormDialog).
   const scheduleDialog = useToggleDialog();
+  const canSchedule = useHasModuleAccess("Entregas", "full");
 
   // Ronda C (C2): filtros estándar por estado y tipo — antes la lista mezclaba
   // entregas, recolecciones y completadas sin manera de separarlas.
@@ -219,12 +221,11 @@ export default function DeliveriesPage() {
       hasActiveFilters={hasActive}
       onClearFilters={reset}
       emptyMessage="No hay entregas programadas"
-      emptyActionLabel="Programar entrega"
-      onEmptyAction={scheduleDialog.openDialog}
+      emptyActionLabel={canSchedule ? "Programar entrega" : undefined}
+      onEmptyAction={canSchedule ? scheduleDialog.openDialog : undefined}
       mobileCardRender={(d) => (
         <DeliveryMobileCard d={d} forkliftMap={forkliftMap} onClick={() => navigate(`/deliveries/${d.id}`)} />
       )}
     />
   );
 }
-

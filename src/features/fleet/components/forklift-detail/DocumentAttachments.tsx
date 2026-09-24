@@ -15,8 +15,8 @@ function FileIcon({ mime }: { mime?: string | null }) {
   return <File className="h-4 w-4 text-muted-foreground" />;
 }
 
-export function DocumentAttachments({ entityType, entityId }: { entityType: string; entityId: string }) {
-  const canManage = useHasModuleAccess("Flota", "full");
+export function DocumentAttachments({ entityType, entityId, accessModule }: { entityType: string; entityId: string; accessModule: "Flota" | "Proveedores" }) {
+  const canManage = useHasModuleAccess(accessModule, "full");
   const { data: documents, isLoading } = useDocuments(entityType, entityId);
   const uploadDoc = useUploadDocument();
   const deleteDoc = useDeleteDocument();

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -23,6 +24,7 @@ export default function SuppliersPage() {
   const navigate = useNavigateTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
+  const canWrite = useHasModuleAccess("Proveedores", "full");
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<
     Supplier,
@@ -86,7 +88,7 @@ export default function SuppliersPage() {
     setDialogOpen(true);
   };
 
-  usePageActions({ onNew: openCreate, newLabel: "Nuevo proveedor" });
+  usePageActions({ onNew: canWrite ? openCreate : undefined, newLabel: canWrite ? "Nuevo proveedor" : undefined });
 
 
 
@@ -143,8 +145,8 @@ export default function SuppliersPage() {
         onClearFilters={reset}
         emptyIcon={SupplierIcon}
         emptyMessage="No se encontraron proveedores"
-        emptyActionLabel="Nuevo proveedor"
-        onEmptyAction={openCreate}
+        emptyActionLabel={canWrite ? "Nuevo proveedor" : undefined}
+        onEmptyAction={canWrite ? openCreate : undefined}
         mobileCardRender={(s) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/suppliers/${s.id}`)}>
             <CardContent className="p-4">
@@ -167,7 +169,7 @@ export default function SuppliersPage() {
         )}
       />
 
-      <SupplierFormDialog open={dialogOpen} onOpenChange={setDialogOpen} supplier={editing} />
+      {canWrite && <SupplierFormDialog open={dialogOpen} onOpenChange={setDialogOpen} supplier={editing} />}
     </>
   );
 }

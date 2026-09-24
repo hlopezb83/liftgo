@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Untranslated } from "@/components/ui/Untranslated";
+import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -28,6 +29,7 @@ const CONTRACT_STATUS_OPTIONS = [
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
+  const canWrite = useHasModuleAccess("Contratos", "full");
   const { data: contractsRaw, isLoading, isError, refetch } = useContracts();
   const contracts = visibleListRows(contractsRaw);
   const navigate = useNavigateTransition();
@@ -162,8 +164,8 @@ export default function ContractsPage() {
       onClearFilters={reset}
       emptyIcon={DocumentIcon}
       emptyMessage="No se encontraron contratos"
-      emptyActionLabel="Nuevo contrato"
-      onEmptyAction={() => navigate("/contracts/new")}
+      emptyActionLabel={canWrite ? "Nuevo contrato" : undefined}
+      onEmptyAction={canWrite ? () => navigate("/contracts/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(c) => (
         <ContractMobileCard contract={c} onClick={() => navigate(`/contracts/${c.id}`)} />

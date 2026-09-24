@@ -6,6 +6,7 @@ import { PlusCircle } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useBookings } from "@/features/bookings";
 import { useActiveDrivers, useForkliftMap } from "@/features/fleet";
+import { useHasModuleAccess } from "@/features/users";
 import { toYMD } from "@/lib/format/dateFormats";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -32,9 +33,11 @@ interface DeliveryFormDialogProps {
 }
 
 export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFormDialogProps = {}) {
+  const canWrite = useHasModuleAccess("Entregas", "full");
   const [internalOpen, setInternalOpen] = useState(false);
-  const open = openProp ?? internalOpen;
+  const open = canWrite && (openProp ?? internalOpen);
   const setOpen = (v: boolean) => {
+    if (v && !canWrite) return;
     setInternalOpen(v);
     onOpenChange?.(v);
   };
@@ -48,6 +51,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
   const createDelivery = useCreateDelivery();
 
   const onSubmit = (values: DeliveryFormValues) => {
+    if (!canWrite) return;
     createDelivery.mutate(
       {
         forklift_id: values.forkliftId,
@@ -77,6 +81,8 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
       }
     );
   };
+
+  if (!canWrite) return null;
 
   return (
     <>
