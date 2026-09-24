@@ -7,6 +7,8 @@ const selectedRange = {
   to: new Date(2026, 8, 30),
 };
 
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: () => true }));
+
 describe("DateRangePickerField — distribución responsive V26-03", () => {
   it.each([
     ["vacío", undefined, "", ""],
@@ -27,9 +29,10 @@ describe("DateRangePickerField — distribución responsive V26-03", () => {
 
     expect(start).toHaveValue(from);
     expect(end).toHaveValue(to);
-    expect(start.parentElement).toHaveClass("col-start-1", "row-start-1", "min-w-0", "sm:flex-1");
-    expect(end.parentElement).toHaveClass("col-start-1", "row-start-2", "min-w-0", "sm:flex-1");
-    expect(calendar).toHaveClass("col-start-2", "row-span-2", "h-full", "sm:h-10");
-    expect(controls).toHaveClass("grid", "grid-cols-[minmax(0,1fr)_auto]", "sm:flex");
+    expect(start.parentElement).toHaveClass("min-w-0", "sm:flex-1");
+    expect(end.parentElement).toHaveClass("min-w-0", "sm:flex-1");
+    expect(calendar).toHaveClass("h-10", "w-10");
+    expect(calendar.parentElement).toContainElement(screen.getByText("Fecha de emisión"));
+    expect(controls).toHaveClass("grid", "grid-cols-1", "sm:flex");
   });
 });

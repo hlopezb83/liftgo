@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import type { EquipmentModel } from "@/features/fleet";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { cn } from "@/lib/utils";
 import { computeRentalLineTotal } from "./rentalLineHelpers";
 import type { RentalLine } from "./RentalLineItems";
 
@@ -27,8 +28,13 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
   return (
 
     <div className="space-y-3 border-b border-border pb-4 last:border-0 last:pb-0">
-      <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_40px] gap-3 items-end">
-        <div className="space-y-1.5">
+      <div className={cn(
+        "grid gap-3 items-end",
+        disableRemove
+          ? "grid-cols-1 sm:grid-cols-[minmax(0,1fr)_80px]"
+          : "grid-cols-[minmax(0,1fr)_40px] sm:grid-cols-[minmax(0,1fr)_80px_40px]",
+      )}>
+        <div className={cn("space-y-1.5", !disableRemove && "col-span-2 sm:col-span-1")}>
           <Label className="text-xs">Modelo *</Label>
           {/* R10-FE-01 (P0): el BubbleSelect de Radix emite onValueChange("")
               cuando el valor se hidrata sin colección registrada (dropdown
@@ -56,11 +62,11 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
             onChange={(e) => onUpdate(index, "quantity", Math.max(1, parseInt(e.target.value) || 1))}
           />
         </div>
-        <div>
-          <Button type="button" variant="ghost" size="icon" className="h-10 w-10" aria-label="Eliminar línea" title="Eliminar línea" onClick={() => onRemove(index)} disabled={disableRemove}>
+        {!disableRemove && <div>
+          <Button type="button" variant="ghost" size="icon" className="h-10 w-10" aria-label="Eliminar línea" title="Eliminar línea" onClick={() => onRemove(index)}>
             <DeleteIcon className="h-4 w-4 text-destructive" />
           </Button>
-        </div>
+        </div>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

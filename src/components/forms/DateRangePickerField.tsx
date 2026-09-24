@@ -14,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
-import { cn, nowMty } from "@/lib/utils";
+import { nowMty } from "@/lib/utils";
 import { isPartialRange, nextRangeState, normalizeRange } from "./dateRangeState";
 import { RequiredMark } from "./RequiredMark";
 import type { DateRange } from "react-day-picker";
@@ -40,6 +40,37 @@ function formatRangeLabel(range: DateRange | undefined, empty: string, partialSu
   if (isPartialRange(range)) return `${from} — ${partialSuffix}`;
   const to = formatMtyCalendarDate(range.to);
   return `${from} — ${to}`;
+}
+
+function RangeFieldHeading({
+  label, required, isMobile, fieldName, triggerLabel,
+}: {
+  label: string;
+  required?: boolean;
+  isMobile: boolean;
+  fieldName: string;
+  triggerLabel: string;
+}) {
+  if (!label.trim() && !isMobile) return null;
+  return (
+    <div className="flex items-center justify-between gap-2 sm:block">
+      {label.trim() && <Label>{label}{required && <RequiredMark />}</Label>}
+      {isMobile && (
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            title={triggerLabel}
+            aria-label={`Abrir calendario de ${fieldName}`}
+            className="h-10 w-10 shrink-0"
+          >
+            <CalendarIcon className="h-4 w-4" />
+          </Button>
+        </DialogTrigger>
+      )}
+    </div>
+  );
 }
 
 
@@ -111,18 +142,18 @@ export function DateRangePickerField({
 
   return (
     <div className="space-y-1.5">
-      {label.trim() ? (
-        <Label>
-          {label}
-          {required && <RequiredMark />}
-        </Label>
-      ) : null}
       <Dialog open={open} onOpenChange={setOpen}>
-        {/* V26-03: en móvil las fechas se apilan y el calendario ocupa una
-            columna fija. Así DD/MM/AAAA conserva ancho legible incluso junto
-            al botón externo para quitar el filtro; desde `sm` vuelve la fila. */}
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-stretch gap-2 sm:flex sm:items-start">
-          <div className="col-start-1 row-start-1 min-w-0 sm:flex-1">
+        <RangeFieldHeading
+          label={label}
+          required={required}
+          isMobile={isMobile}
+          fieldName={fieldName}
+          triggerLabel={triggerLabel}
+        />
+        {/* En móvil ambos campos conservan el mismo ancho; el botón queda
+            junto a la etiqueta y no se estira a la altura de dos filas. */}
+        <div className="grid grid-cols-1 gap-2 sm:flex sm:items-start">
+          <div className="min-w-0 sm:flex-1">
             <MaskedDateInput
               value={dateRange?.from}
               onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
@@ -132,7 +163,7 @@ export function DateRangePickerField({
             />
           </div>
           <span className="hidden pt-2 text-muted-foreground sm:block">—</span>
-          <div className="col-start-1 row-start-2 min-w-0 sm:flex-1">
+          <div className="min-w-0 sm:flex-1">
             <MaskedDateInput
               value={dateRange?.to}
               onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
@@ -141,21 +172,18 @@ export function DateRangePickerField({
               className="min-w-0"
             />
           </div>
-          <DialogTrigger asChild>
+          {!isMobile && <DialogTrigger asChild>
             <Button
               type="button"
               variant="outline"
               size="icon"
               title={triggerLabel}
               aria-label={`Abrir calendario de ${fieldName}`}
-              className={cn(
-                "col-start-2 row-span-2 row-start-1 h-full min-h-10 shrink-0 sm:h-10",
-                !dateRange?.from && "text-muted-foreground",
-              )}
+              className="h-10 shrink-0"
             >
               <CalendarIcon className="h-4 w-4" />
             </Button>
-          </DialogTrigger>
+          </DialogTrigger>}
         </div>
 
         <RangeDialogBody

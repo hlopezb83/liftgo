@@ -111,7 +111,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
   useEffect(() => () => cancelPrefetch(), []);
 
   return (
-    <SidebarMenuItem ref={itemRef}>
+    <SidebarMenuItem ref={itemRef} className="scroll-mb-6">
       <SidebarMenuButton asChild tooltip={item.title}>
         <NavLink
           to={item.url}

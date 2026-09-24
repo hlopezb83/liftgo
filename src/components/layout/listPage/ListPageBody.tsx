@@ -29,6 +29,10 @@ interface Props<T> {
   loadMore?: LoadMoreProps;
 }
 
+function shouldUseMobileCards(showMobileCards: boolean, isLoading: boolean, isError: boolean, showEmpty: boolean) {
+  return showMobileCards && !isLoading && !isError && !showEmpty;
+}
+
 /**
  * v7.226.1 · extraído de ListPageLayout para bajar complejidad ciclomática.
  * Renderiza contenido custom o la Card estándar (tabla + paginación + loadMore).
@@ -59,33 +63,44 @@ export function ListPageBody<T extends { id?: string }>({
 
   const hasPagination = items.length > 0 && !!table;
   const showLoadMore = !!loadMore && !isError && !isLoading && items.length > 0;
+  const mobileCardsReady = shouldUseMobileCards(showMobileCards, isLoading, isError, showEmpty);
 
-  return (
-    <Card>
-      <CardContent className="p-0">
-        <TableContent
-          isLoading={isLoading}
-          isError={isError}
-          onRetry={onRetry}
-          showEmpty={showEmpty}
-          showMobileCards={showMobileCards}
-          items={items}
-          table={table}
-          emptyMessage={emptyMessage}
-          emptyIcon={emptyIcon}
-          emptyActionLabel={emptyActionLabel}
-          onEmptyAction={onEmptyAction}
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={onClearFilters}
-          onRowClick={onRowClick}
-          onRowPrefetch={onRowPrefetch}
-          mobileCardRender={mobileCardRender}
-          mobileKeyExtractor={mobileKeyExtractor}
-          skeletonColumns={skeletonColumns}
-        />
-        {hasPagination && !isError && <DataTablePaginationV2 table={table} />}
-        {showLoadMore && loadMore && <LoadMoreFooter {...loadMore} />}
-      </CardContent>
-    </Card>
+  const body = (
+    <>
+      <TableContent
+        isLoading={isLoading}
+        isError={isError}
+        onRetry={onRetry}
+        showEmpty={showEmpty}
+        showMobileCards={showMobileCards}
+        items={items}
+        table={table}
+        emptyMessage={emptyMessage}
+        emptyIcon={emptyIcon}
+        emptyActionLabel={emptyActionLabel}
+        onEmptyAction={onEmptyAction}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={onClearFilters}
+        onRowClick={onRowClick}
+        onRowPrefetch={onRowPrefetch}
+        mobileCardRender={mobileCardRender}
+        mobileKeyExtractor={mobileKeyExtractor}
+        skeletonColumns={skeletonColumns}
+      />
+      {hasPagination && !isError && (
+        <div className={mobileCardsReady ? "rounded-lg border bg-card py-3" : undefined}>
+          <DataTablePaginationV2 table={table} />
+        </div>
+      )}
+      {showLoadMore && loadMore && (
+        <div className={mobileCardsReady ? "rounded-lg border bg-card" : undefined}>
+          <LoadMoreFooter {...loadMore} />
+        </div>
+      )}
+    </>
   );
+
+  if (mobileCardsReady) return <div className="space-y-3">{body}</div>;
+
+  return <Card><CardContent className="p-0">{body}</CardContent></Card>;
 }
