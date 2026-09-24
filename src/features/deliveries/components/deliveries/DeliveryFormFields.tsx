@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import {
   TextField, TextareaField, DateField, SelectField, CheckboxField, type SelectOption,
 } from "@/components/forms/fields";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
-import { formatDateRange } from "@/lib/utils";
+import { toYMD } from "@/lib/format/dateFormats";
+import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
+import { suggestedScheduledTransportDate } from "../../lib/deliveryBookingDate";
 import { selectableBookings } from "./selectableBookings";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -37,6 +39,7 @@ const TYPE_OPTIONS: SelectOption[] = [
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
+  const lastBookingId = useRef("");
   // Bug 3: histórico sin operador → pedir justificación de evidencia.
   const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
 
@@ -70,6 +73,32 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
       form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
     }
   }, [bookingId, bookings, forkliftId, form]);
+
+  // Al elegir otra reserva, proponer una fecha válida sin pisar una fecha ya válida.
+  useEffect(() => {
+    if (!bookingId) {
+      lastBookingId.current = "";
+      return;
+    }
+    if (lastBookingId.current === bookingId) return;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (!booking) return;
+    lastBookingId.current = bookingId;
+
+    const suggestedDate = suggestedScheduledTransportDate(
+      form.getValues("type"),
+      toYMD(form.getValues("scheduledDate")),
+      booking,
+      toYMD(nowMty()),
+      form.getValues("alreadyCompleted"),
+    );
+    if (suggestedDate) {
+      form.setValue("scheduledDate", parseDateLocal(suggestedDate), {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  }, [bookingId, bookings, form]);
 
   // R-C6: si el montacargas cambia y ya no coincide con la reserva, limpiar.
   useEffect(() => {
