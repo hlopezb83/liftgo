@@ -38,6 +38,7 @@ interface MakeServiceOpts {
   customers?: unknown[];
   billingSecrets?: Record<string, unknown> | null;
   organizationsCount?: Array<{ id: string }>;
+  saveRows?: unknown[];
 }
 
 function makeService(opts: MakeServiceOpts) {
@@ -68,6 +69,12 @@ function makeService(opts: MakeServiceOpts) {
         error: null,
       },
     },
+    updates: {
+      organization_customers: {
+        data: opts.saveRows ?? [{ customer_id: CUSTOMER_A_ID }],
+        error: null,
+      },
+    },
   });
 }
 
@@ -92,6 +99,7 @@ const ORG_A_LINK = {
   domicilio_fiscal_cp: "64000",
   sat_validation_status: "not_validated",
   sat_validated_at: null,
+  updated_at: "2026-09-23T00:00:00Z",
 };
 
 function deps(
@@ -136,6 +144,7 @@ Deno.test("validate-customers: cliente válido según el PAC → status valid", 
   const upd = state.updates.find((u) => u.table === "organization_customers");
   assertEquals(upd?.patch.sat_validation_status, "valid");
   assertEquals(upd?.filters.find((f) => f.col === "organization_id")?.val, ORG_A);
+  assertEquals(upd?.filters.find((f) => f.col === "updated_at")?.val, ORG_A_LINK.updated_at);
 });
 
 Deno.test("validate-customers: diferencias del PAC → status mismatch con campos", async () => {
@@ -275,6 +284,21 @@ Deno.test("validate-customers: cliente compartido guarda el resultado sólo en l
   assertEquals(state.updates[0].table, "organization_customers");
   assertEquals(state.updates[0].filters.find((f) => f.col === "organization_id")?.val, ORG_B);
   assertEquals(state.updates[0].patch.sat_validation_status, "valid");
+});
+
+Deno.test("validate-customers: si cambia la ficha durante la consulta al PAC no guarda un resultado obsoleto", async () => {
+  const state = makeService({
+    organizationCustomers: [ORG_A_LINK],
+    saveRows: [],
+  });
+  const fetchImpl = (() => Promise.resolve(
+    new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
+  )) as unknown as typeof fetch;
+
+  const res = await handleValidateCustomers(req(), deps(state, fetchImpl));
+  assertEquals(res.status, 409);
+  assertEquals(state.updates[0].filters.find((f) => f.col === "updated_at")?.val,
+    ORG_A_LINK.updated_at);
 });
 
 Deno.test("validate-customers: sin vínculos organization_customers → no procesa nada (200 vacío)", async () => {

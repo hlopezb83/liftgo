@@ -39,6 +39,7 @@ export interface ValidateCustomersDeps {
 interface CustomerRow {
   id: string;
   name: string;
+  relation_updated_at: string;
   rfc: string | null;
   razon_social: string | null;
   regimen_fiscal: string | null;
@@ -56,6 +57,7 @@ interface OrganizationCustomerLink {
   domicilio_fiscal_cp: string | null;
   sat_validation_status: string;
   sat_validated_at: string | null;
+  updated_at: string;
 }
 
 export interface ValidateCustomersSummary {
@@ -152,7 +154,7 @@ export async function handleValidateCustomers(
     // resultado y llave del PAC pertenecen a la empresa del caller.
     let linksQuery = supabase
       .from("organization_customers")
-      .select("customer_id,alias,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp,sat_validation_status,sat_validated_at,customers!inner(name,deleted_at)")
+      .select("customer_id,alias,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp,sat_validation_status,sat_validated_at,updated_at,customers!inner(name,deleted_at)")
       .eq("organization_id", organizationId)
       .eq("status", "active")
       .is("customers.deleted_at", null)
@@ -189,6 +191,7 @@ export async function handleValidateCustomers(
     const customers = orgLinks.map((link) => ({
       id: link.customer_id,
       name: link.alias || link.customers.name,
+      relation_updated_at: link.updated_at,
       rfc: link.rfc,
       razon_social: link.razon_social,
       regimen_fiscal: link.regimen_fiscal,
@@ -232,7 +235,7 @@ export async function handleValidateCustomers(
         await sleep(DELAY_MS);
       }
 
-      const { error: saveError } = await supabase
+      const { data: saved, error: saveError } = await supabase
         .from("organization_customers")
         .update({
           sat_validation_status: status,
@@ -241,10 +244,17 @@ export async function handleValidateCustomers(
         })
         .eq("organization_id", organizationId)
         .eq("customer_id", c.id)
-        .eq("status", "active");
+        .eq("status", "active")
+        .eq("updated_at", c.relation_updated_at)
+        .select("customer_id");
       if (saveError) {
         console.error("[validate-customers-tax-info] save", saveError);
         return json({ error: "No se pudo guardar la validación fiscal" }, 500);
+      }
+      if (!Array.isArray(saved) || saved.length !== 1) {
+        return json({
+          error: "La ficha fiscal cambió durante la validación. Vuelve a intentarlo.",
+        }, 409);
       }
 
       summary.processed += 1;

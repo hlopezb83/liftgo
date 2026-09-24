@@ -32,6 +32,7 @@ WHERE c.id = oc.customer_id
 -- servidor que consulta al PAC puede acreditar un resultado de validación.
 CREATE OR REPLACE FUNCTION public.guard_organization_customer_sat_validation()
 RETURNS trigger LANGUAGE plpgsql SET search_path = public AS $$
+DECLARE v_fiscal_changed boolean := false;
 BEGIN
   IF TG_OP = 'INSERT' THEN
     IF current_user NOT IN ('service_role', 'postgres') AND (
@@ -57,9 +58,16 @@ BEGIN
        NEW.alias IS DISTINCT FROM OLD.alias OR
        NEW.regimen_fiscal IS DISTINCT FROM OLD.regimen_fiscal OR
        NEW.domicilio_fiscal_cp IS DISTINCT FROM OLD.domicilio_fiscal_cp THEN
+      v_fiscal_changed := true;
       NEW.sat_validation_status := 'not_validated';
       NEW.sat_validated_at := NULL;
       NEW.sat_validation_errors := '[]'::jsonb;
+    END IF;
+    IF v_fiscal_changed OR
+       NEW.sat_validation_status IS DISTINCT FROM OLD.sat_validation_status OR
+       NEW.sat_validated_at IS DISTINCT FROM OLD.sat_validated_at OR
+       NEW.sat_validation_errors IS DISTINCT FROM OLD.sat_validation_errors THEN
+      NEW.updated_at := clock_timestamp();
     END IF;
   END IF;
   RETURN NEW;
