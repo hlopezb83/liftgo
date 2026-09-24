@@ -83,9 +83,9 @@ export function normalizeJson(value: unknown): Record<string, unknown> | null {
 export type LabelProjectionRow = {
   table_name: string;
   new_name: string | null; new_booking: string | null; new_contract: string | null;
-  new_invoice: string | null; new_quote: string | null; new_desc: string | null;
+  new_invoice: string | null; new_quote: string | null; new_delivery: string | null; new_desc: string | null;
   old_name: string | null; old_booking: string | null; old_contract: string | null;
-  old_invoice: string | null; old_quote: string | null; old_desc: string | null;
+  old_invoice: string | null; old_quote: string | null; old_delivery: string | null; old_desc: string | null;
   new_full: string | null; old_full: string | null;
   new_email: string | null; old_email: string | null;
   new_role: string | null; old_role: string | null;
@@ -111,8 +111,8 @@ function buildIdentityLabel(row: LabelProjectionRow): string | null {
 export function buildLabel(row: LabelProjectionRow, recordId: string): string {
   const first = (
     buildIdentityLabel(row)
-    ?? row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote
-    ?? row.old_name ?? row.old_booking ?? row.old_contract ?? row.old_invoice ?? row.old_quote
+    ?? row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote ?? row.new_delivery
+    ?? row.old_name ?? row.old_booking ?? row.old_contract ?? row.old_invoice ?? row.old_quote ?? row.old_delivery
     ?? row.new_desc ?? row.old_desc
   );
   if (!first) return recordId.slice(0, 8);
