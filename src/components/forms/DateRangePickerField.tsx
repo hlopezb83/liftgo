@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { nowMty } from "@/lib/utils";
 import { isPartialRange, nextRangeState, normalizeRange } from "./dateRangeState";
@@ -115,6 +115,7 @@ export function DateRangePickerField({
   helperText,
 }: DateRangePickerFieldProps) {
   const isMobile = useIsMobile();
+  const isTabletOrBelow = useIsTabletOrBelow();
   const [open, setOpen] = useState(false);
   const [localRange, setLocalRange] = useState<DateRange | undefined>(dateRange);
 
@@ -190,7 +191,7 @@ export function DateRangePickerField({
           label={fieldName}
           liveLabel={liveLabel}
           localRange={localRange}
-          isMobile={isMobile}
+          singleMonth={isTabletOrBelow}
           onCalendarSelect={(r) => {
             const { range, apply } = nextRangeState(localRange, r);
             setLocalRange(range);
@@ -211,7 +212,7 @@ function RangeDialogBody({
   label,
   liveLabel,
   localRange,
-  isMobile,
+  singleMonth,
   onCalendarSelect,
   onClear,
   onCancel,
@@ -220,19 +221,19 @@ function RangeDialogBody({
   label: string;
   liveLabel: string;
   localRange?: DateRange;
-  isMobile: boolean;
+  singleMonth: boolean;
   onCalendarSelect: (r?: DateRange) => void;
   onClear: () => void;
   onCancel: () => void;
   onApply: () => void;
 }) {
-  const months = isMobile ? 1 : 2;
+  const months = singleMonth ? 1 : 2;
   return (
     // El ancho se fija (no `max-w-fit`) para que el diálogo no se re-centre
     // al cambiar la etiqueta viva: el reflow provocaba clics inestables.
     // V26-05: `min-w-[22rem]` (352px) ganaba a `max-w-[95vw]` y a 320px el
     // diálogo se salía de pantalla. El mínimo ahora está acotado al viewport.
-    <DialogContent className="w-fit min-w-[min(22rem,calc(100vw-2rem))] max-w-[calc(100vw-2rem)] p-0 gap-0">
+    <DialogContent className="w-[calc(100vw-2rem)] max-w-[22rem] lg:max-w-[36rem] p-0 gap-0">
       <DialogHeader className="px-4 pt-5 pb-3 border-b sm:px-5">
         <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
         <p className="text-sm text-muted-foreground font-mono mt-1 h-5 whitespace-nowrap overflow-hidden text-ellipsis">
