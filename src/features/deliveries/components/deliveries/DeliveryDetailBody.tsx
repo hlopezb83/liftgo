@@ -8,6 +8,7 @@ import { DeliverySignatureCard } from "./DeliverySignatureCard";
 type Delivery = Tables<"deliveries">;
 
 interface LinkedBooking {
+  id: string;
   booking_number: string;
   customer_name: string | null;
   start_date: string;
@@ -54,6 +55,7 @@ export function DeliveryDetailBody({
         />
         {linkedBooking && (
           <DeliveryBookingCard
+            bookingId={linkedBooking.id}
             bookingNumber={linkedBooking.booking_number}
             customerName={linkedBooking.customer_name}
             startDate={linkedBooking.start_date}

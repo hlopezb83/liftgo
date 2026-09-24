@@ -5,8 +5,6 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBookings } from "@/features/bookings";
-import { useForkliftMap } from "@/features/fleet";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
@@ -15,29 +13,23 @@ import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailBody } from "../components/deliveries/DeliveryDetailBody";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import { RescheduleDeliveryDialog } from "../components/deliveries/RescheduleDeliveryDialog";
-import { useDeliveries, useDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
+import { useDeleteDelivery } from "../hooks/useDeliveries";
 import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
+import { useDeliveryDetailData } from "../hooks/useDeliveryDetailData";
 import { buildDeliverySubtitle, canDeleteDeliveryFor, computeHoursUsed } from "../lib/deliveryDetailHelpers";
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigateTransition();
-  const { data: delivery, isLoading, isError, refetch } = useDelivery(id);
-  const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
-  const { data: bookings } = useBookings();
-  const { forkliftMap } = useForkliftMap();
+  const { deliveryQuery, bookingQuery, hasLinkedBooking, linkedBooking, siblingDeliveries, forklift } = useDeliveryDetailData(id);
+  const { data: delivery, isLoading, isError, refetch } = deliveryQuery;
   const deleteDelivery = useDeleteDelivery();
   const { data: role } = useUserRole();
   const [editOpen, setEditOpen] = useState(false);
 
-  const forklift = delivery ? forkliftMap.get(delivery.forklift_id) : undefined;
-  const linkedBooking = delivery?.booking_id
-    ? bookings?.find((b) => b.id === delivery.booking_id) ?? null
-    : null;
-
   const completion = useDeliveryCompletion(delivery, siblingDeliveries, linkedBooking, forklift);
 
-  if (isLoading) {
+  if (isLoading || (hasLinkedBooking && bookingQuery.isLoading)) {
     return (
       <PageContainer>
         <Skeleton className="h-10 w-64" />
@@ -50,6 +42,14 @@ export default function DeliveryDetail() {
     return (
       <PageContainer>
         <QueryErrorState entity="la entrega" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
+
+  if (hasLinkedBooking && bookingQuery.isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="la reserva vinculada" onRetry={() => { void bookingQuery.refetch(); }} />
       </PageContainer>
     );
   }

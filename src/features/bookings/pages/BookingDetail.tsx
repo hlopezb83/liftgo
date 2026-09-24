@@ -13,6 +13,7 @@ import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipm
 import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
 import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
 import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCard";
+import { BookingTransportsCard } from "../components/booking-detail/BookingTransportsCard";
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
 import { useBookingExtensions } from "../hooks/bookingActions/useBookingExtensions";
@@ -23,7 +24,7 @@ export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigateTransition();
   const { data: booking, isLoading, isError, refetch } = useBooking(id);
-  const { data: deliveries } = useDeliveries(id);
+  const { data: deliveries, isLoading: transportsLoading, isError: transportsError, isFetching: transportsFetching, refetch: refetchTransports } = useDeliveries(id);
   const { data: extensions } = useBookingExtensions(id);
 
   const hourometer = useBookingHourometer(deliveries);
@@ -90,6 +91,13 @@ export default function BookingDetail() {
         <BookingBillingCard booking={booking} />
       </div>
 
+      <BookingTransportsCard
+        deliveries={deliveries}
+        isLoading={transportsLoading}
+        isError={transportsError}
+        isRetrying={transportsFetching}
+        onRetry={() => { void refetchTransports(); }}
+      />
       <BookingHourometerCard {...hourometer} />
       <BookingExtensionsCard
         extensions={extensionsList}
