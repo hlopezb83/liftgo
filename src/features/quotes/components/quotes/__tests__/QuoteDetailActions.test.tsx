@@ -16,6 +16,7 @@ vi.mock("../QuotePDFButton", () => ({
 }));
 vi.mock("@/features/users", () => ({
   useUserRole: () => useUserRoleMock(),
+  useHasModuleAccess: () => useUserRoleMock().data !== "auditor",
 }));
 
 const quote = {
@@ -114,6 +115,20 @@ describe("QuoteDetailActions - Cancelar cotización (FE4-03 / N-R4-C)", () => {
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar cotización" }));
     expect(onSetStatus).toHaveBeenCalledWith("cancelled");
+  });
+});
+
+describe("QuoteDetailActions - solo lectura", () => {
+  it("oculta las mutaciones al auditor", () => {
+    useUserRoleMock.mockReturnValue({ data: "auditor" });
+    renderActions(vi.fn(), quote);
+    expect(screen.queryByRole("button", { name: /aceptar|rechazar|editar|convertir/i })).not.toBeInTheDocument();
+  });
+
+  it("conserva Ver reserva para el auditor", async () => {
+    useUserRoleMock.mockReturnValue({ data: "auditor" });
+    renderActions(vi.fn(), quote, { alreadyConverted: true, linkedBookingId: "b-1" });
+    expect(await screen.findByRole("button", { name: /ver reserva/i })).toBeInTheDocument();
   });
 });
 
