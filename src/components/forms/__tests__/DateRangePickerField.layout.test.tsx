@@ -16,19 +16,6 @@ vi.mock("@/hooks/use-mobile", () => ({
 afterEach(() => {
   viewport.mobile = true;
   viewport.tabletOrBelow = true;
-  it.each([
-    ["tablet", true, 1],
-    ["escritorio", false, 2],
-  ] as const)("muestra %i mes(es) en %s", (_name, tabletOrBelow, count) => {
-    viewport.mobile = false;
-    viewport.tabletOrBelow = tabletOrBelow;
-    render(<DateRangePickerField label="Fecha de emisión" onSelect={vi.fn()} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Abrir calendario de Fecha de emisión" }));
-
-    expect(screen.getAllByRole("table")).toHaveLength(count);
-    expect(screen.getByRole("dialog")).toHaveClass("max-w-[22rem]", "lg:max-w-[36rem]");
-  });
 });
 
 describe("DateRangePickerField — distribución responsive V26-03", () => {
@@ -56,5 +43,18 @@ describe("DateRangePickerField — distribución responsive V26-03", () => {
     expect(calendar).toHaveClass("h-10", "w-10");
     expect(calendar.parentElement).toContainElement(screen.getByText("Fecha de emisión"));
     expect(controls).toHaveClass("grid", "grid-cols-1", "sm:flex");
+  });
+  it.each([
+    ["tablet", true, 1],
+    ["escritorio", false, 2],
+  ] as const)("%s abre %i mes(es)", (_name, tabletOrBelow, count) => {
+    viewport.mobile = false;
+    viewport.tabletOrBelow = tabletOrBelow;
+    render(<DateRangePickerField label="Fecha de emisión" onSelect={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Abrir calendario de Fecha de emisión" }));
+
+    expect(screen.getAllByRole("table")).toHaveLength(count);
+    expect(screen.getByRole("dialog")).toHaveClass("max-w-[22rem]", "lg:max-w-[36rem]");
   });
 });
