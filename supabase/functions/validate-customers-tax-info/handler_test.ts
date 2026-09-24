@@ -1,7 +1,7 @@
 // Cobertura de la validación masiva de la cartera contra el SAT.
 // Verifica: rol requerido, guardado del resultado por cliente, detección de
 // datos faltantes sin pegarle al PAC, manejo de error del PAC y aislamiento
-// fiscal multiempresa (Fase 1): la corrida sólo toca clientes/credenciales
+// fiscal multiempresa: la corrida sólo toca relaciones/credenciales
 // de la empresa del caller.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { handleValidateCustomers } from "./handler.ts";
@@ -38,6 +38,7 @@ interface MakeServiceOpts {
   customers?: unknown[];
   billingSecrets?: Record<string, unknown> | null;
   organizationsCount?: Array<{ id: string }>;
+  saveRows?: unknown[];
 }
 
 function makeService(opts: MakeServiceOpts) {
@@ -68,6 +69,12 @@ function makeService(opts: MakeServiceOpts) {
         error: null,
       },
     },
+    updates: {
+      organization_customers: {
+        data: opts.saveRows ?? [{ customer_id: CUSTOMER_A_ID }],
+        error: null,
+      },
+    },
   });
 }
 
@@ -84,10 +91,15 @@ const CUSTOMER_B_ID = "22222222-2222-2222-2222-222222222222";
 
 const ORG_A_LINK = {
   customer_id: CUSTOMER_A_ID,
+  alias: "ACME",
+  customers: { name: "ACME" },
   razon_social: "ACME SA DE CV",
   rfc: "AAA010101AAA",
   regimen_fiscal: "601",
   domicilio_fiscal_cp: "64000",
+  sat_validation_status: "not_validated",
+  sat_validated_at: null,
+  updated_at: "2026-09-23T00:00:00Z",
 };
 
 function deps(
@@ -129,8 +141,16 @@ Deno.test("validate-customers: cliente válido según el PAC → status valid", 
   assertEquals(res.status, 200);
   assertEquals(body.processed, 1);
   assertEquals(body.valid, 1);
-  const upd = state.updates.find((u) => u.table === "customers");
+  const upd = state.updates.find((u) => u.table === "organization_customers");
   assertEquals(upd?.patch.sat_validation_status, "valid");
+  assertEquals(
+    upd?.filters.find((f) => f.col === "organization_id")?.val,
+    ORG_A,
+  );
+  assertEquals(
+    upd?.filters.find((f) => f.col === "updated_at")?.val,
+    ORG_A_LINK.updated_at,
+  );
 });
 
 Deno.test("validate-customers: diferencias del PAC → status mismatch con campos", async () => {
@@ -227,9 +247,8 @@ Deno.test("validate-customers: caller sin membresía de organización → 403", 
 });
 
 Deno.test("validate-customers: la corrida sólo toca clientes ligados a la organización del caller", async () => {
-  // `organization_customers` ya viene acotado por organization_id (RLS +
-  // filtro `.eq`); simulamos que sólo el cliente de ORG_A vuelve, aunque
-  // exista otro cliente global (ORG_B) en la tabla `customers`.
+  // `organization_customers` ya viene acotado por organization_id; simulamos
+  // que sólo el cliente de ORG_A vuelve aunque exista otro cliente global.
   const state = makeService({
     organizationCustomers: [ORG_A_LINK],
     customers: [
@@ -247,9 +266,52 @@ Deno.test("validate-customers: la corrida sólo toca clientes ligados a la organ
   assertEquals(body.processed, 1);
   assertEquals(body.results[0].customer_id, CUSTOMER_A_ID);
   const updatedIds = state.updates
-    .filter((u) => u.table === "customers")
-    .map((u) => u.filters.find((f) => f.col === "id")?.val);
+    .filter((u) => u.table === "organization_customers")
+    .map((u) => u.filters.find((f) => f.col === "customer_id")?.val);
   assertEquals(updatedIds, [CUSTOMER_A_ID]);
+});
+
+Deno.test("validate-customers: cliente compartido guarda el resultado sólo en la empresa B", async () => {
+  const state = makeService({
+    membershipOrgId: ORG_B,
+    organizationCustomers: [{
+      ...ORG_A_LINK,
+      razon_social: "ACME BAJÍO SA DE CV",
+      rfc: "BBB010101BBB",
+    }],
+  });
+  const fetchImpl = (() =>
+    Promise.resolve(
+      new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
+    )) as unknown as typeof fetch;
+
+  const res = await handleValidateCustomers(req(), deps(state, fetchImpl));
+  assertEquals(res.status, 200);
+  assertEquals(state.updates.length, 1);
+  assertEquals(state.updates[0].table, "organization_customers");
+  assertEquals(
+    state.updates[0].filters.find((f) => f.col === "organization_id")?.val,
+    ORG_B,
+  );
+  assertEquals(state.updates[0].patch.sat_validation_status, "valid");
+});
+
+Deno.test("validate-customers: si cambia la ficha durante la consulta al PAC no guarda un resultado obsoleto", async () => {
+  const state = makeService({
+    organizationCustomers: [ORG_A_LINK],
+    saveRows: [],
+  });
+  const fetchImpl = (() =>
+    Promise.resolve(
+      new Response(JSON.stringify({ is_valid: true }), { status: 200 }),
+    )) as unknown as typeof fetch;
+
+  const res = await handleValidateCustomers(req(), deps(state, fetchImpl));
+  assertEquals(res.status, 409);
+  assertEquals(
+    state.updates[0].filters.find((f) => f.col === "updated_at")?.val,
+    ORG_A_LINK.updated_at,
+  );
 });
 
 Deno.test("validate-customers: sin vínculos organization_customers → no procesa nada (200 vacío)", async () => {

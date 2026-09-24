@@ -2,7 +2,7 @@
  * Validación masiva de la cartera contra la Constancia de Situación Fiscal
  * del SAT (vía el PAC, sin consumir timbre).
  *
- * `useSatValidationOverview` lee el estado guardado en `customers`;
+ * `useSatValidationOverview` lee el estado de la relación comercial local;
  * `useValidateCustomersTaxInfo` dispara la corrida por lotes en la edge
  * function `validate-customers-tax-info`.
  */
@@ -30,6 +30,17 @@ export interface SatValidationRow {
   sat_validation_errors: SatValidationError[];
 }
 
+interface SatValidationRelation {
+  customer_id: string;
+  alias: string | null;
+  razon_social: string | null;
+  rfc: string | null;
+  sat_validation_status: string;
+  sat_validated_at: string | null;
+  sat_validation_errors: unknown;
+  customers: { name: string } | null;
+}
+
 export interface ValidateCustomersSummary {
   processed: number;
   valid: number;
@@ -53,19 +64,21 @@ export function useSatValidationOverview() {
     queryKey: satValidationKey,
     queryFn: async (): Promise<SatValidationRow[]> => {
       const { data, error } = await supabase
-        .from("customers")
+        .from("organization_customers")
         .select(
-          "id, name, razon_social, rfc, sat_validation_status, sat_validated_at, sat_validation_errors",
+          "customer_id, alias, razon_social, rfc, sat_validation_status, sat_validated_at, sat_validation_errors, customers!inner(name, deleted_at)",
         )
-        .is("deleted_at", null)
+        .eq("status", "active")
+        .is("customers.deleted_at", null)
         .not("rfc", "is", null)
         .neq("rfc", "")
         .neq("rfc", RFC_PUBLICO_GENERAL)
-        .order("name");
+        .order("razon_social")
+        .returns<SatValidationRelation[]>();
       if (error) throw error;
       return (data ?? []).map((row) => ({
-        id: row.id,
-        name: row.name,
+        id: row.customer_id,
+        name: row.alias ?? row.customers?.name ?? "Cliente",
         razon_social: row.razon_social,
         rfc: row.rfc,
         sat_validation_status: (row.sat_validation_status ??

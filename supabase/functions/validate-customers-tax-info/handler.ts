@@ -3,7 +3,7 @@
 // No consume timbre. Sólo Admin / Administrativo.
 //
 // Procesa por lotes con pausa entre llamadas para no saturar al PAC y guarda
-// el resultado en `customers.sat_validation_*`. Cada corrida atiende primero
+// el resultado en `organization_customers.sat_validation_*`. Cada corrida atiende primero
 // a los clientes nunca validados o validados hace más tiempo, de modo que
 // llamadas sucesivas recorren toda la cartera.
 import { handleCors } from "../_shared/cors.ts";
@@ -39,6 +39,7 @@ export interface ValidateCustomersDeps {
 interface CustomerRow {
   id: string;
   name: string;
+  relation_updated_at: string;
   rfc: string | null;
   razon_social: string | null;
   regimen_fiscal: string | null;
@@ -48,10 +49,15 @@ interface CustomerRow {
 /** Fila cruda de `organization_customers`: datos fiscales por empresa. */
 interface OrganizationCustomerLink {
   customer_id: string;
+  alias: string | null;
+  customers: { name: string };
   razon_social: string | null;
   rfc: string | null;
   regimen_fiscal: string | null;
   domicilio_fiscal_cp: string | null;
+  sat_validation_status: string;
+  sat_validated_at: string | null;
+  updated_at: string;
 }
 
 export interface ValidateCustomersSummary {
@@ -144,18 +150,25 @@ export async function handleValidateCustomers(
       }, 400);
     }
 
-    // `customers` es la identidad global del cliente; los datos fiscales
-    // (RFC, razón social, régimen, CP) que se validan contra el SAT viven en
-    // `organization_customers`, la relación propia de cada empresa. Acotamos
-    // primero por organización ahí antes de tocar nada de `customers`.
-    const { data: links, error: linksErr } = await supabase
+    // La identidad global aporta sólo el nombre de respaldo. Ficha fiscal,
+    // resultado y llave del PAC pertenecen a la empresa del caller.
+    let linksQuery = supabase
       .from("organization_customers")
-      .select("customer_id,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp")
+      .select(
+        "customer_id,alias,razon_social,rfc,regimen_fiscal,domicilio_fiscal_cp,sat_validation_status,sat_validated_at,updated_at,customers!inner(name,deleted_at)",
+      )
       .eq("organization_id", organizationId)
-      .neq("status", "archived")
+      .eq("status", "active")
+      .is("customers.deleted_at", null)
       .not("rfc", "is", null)
       .neq("rfc", "")
       .neq("rfc", RFC_PUBLICO_GENERAL);
+    if (onlyPending) {
+      linksQuery = linksQuery.eq("sat_validation_status", "not_validated");
+    }
+    const { data: links, error: linksErr } = await linksQuery
+      .order("sat_validated_at", { ascending: true, nullsFirst: true })
+      .limit(limit);
     if (linksErr) {
       console.error(
         "[validate-customers-tax-info] organization_customers query",
@@ -165,10 +178,6 @@ export async function handleValidateCustomers(
     }
 
     const orgLinks = (links ?? []) as OrganizationCustomerLink[];
-    const linkByCustomerId = new Map(
-      orgLinks.map((l) => [l.customer_id, l] as const),
-    );
-    const customerIds = orgLinks.map((l) => l.customer_id);
 
     const summary: ValidateCustomersSummary = {
       processed: 0,
@@ -179,41 +188,19 @@ export async function handleValidateCustomers(
       results: [],
     };
 
-    if (customerIds.length === 0) {
+    if (orgLinks.length === 0) {
       return json(summary, 200);
     }
 
-    let query = supabase
-      .from("customers")
-      .select("id,name")
-      .in("id", customerIds)
-      .is("deleted_at", null);
-    if (onlyPending) query = query.eq("sat_validation_status", "not_validated");
-
-    const { data, error } = await query
-      .order("sat_validated_at", { ascending: true, nullsFirst: true })
-      .limit(limit);
-    if (error) {
-      console.error("[validate-customers-tax-info] query", error);
-      return json({ error: "No se pudo leer la cartera de clientes" }, 500);
-    }
-
-    const customers = ((data ?? []) as Array<{ id: string; name: string }>)
-      // Cinturón y tirantes: aunque la consulta ya acota por `customerIds`,
-      // descartamos cualquier fila sin vínculo con esta empresa para que un
-      // cliente de otra organización jamás entre a la corrida.
-      .filter((c) => linkByCustomerId.has(c.id))
-      .map((c) => {
-        const link = linkByCustomerId.get(c.id);
-        return {
-          id: c.id,
-          name: c.name,
-          rfc: link?.rfc ?? null,
-          razon_social: link?.razon_social ?? null,
-          regimen_fiscal: link?.regimen_fiscal ?? null,
-          domicilio_fiscal_cp: link?.domicilio_fiscal_cp ?? null,
-        } satisfies CustomerRow;
-      });
+    const customers = orgLinks.map((link) => ({
+      id: link.customer_id,
+      name: link.alias || link.customers.name,
+      relation_updated_at: link.updated_at,
+      rfc: link.rfc,
+      razon_social: link.razon_social,
+      regimen_fiscal: link.regimen_fiscal,
+      domicilio_fiscal_cp: link.domicilio_fiscal_cp,
+    } satisfies CustomerRow));
     for (const c of customers) {
       let status: "valid" | "mismatch" | "error" = "error";
       let errors: TaxIdValidationError[] = missingFieldErrors(c);
@@ -252,14 +239,28 @@ export async function handleValidateCustomers(
         await sleep(DELAY_MS);
       }
 
-      await supabase
-        .from("customers")
+      const { data: saved, error: saveError } = await supabase
+        .from("organization_customers")
         .update({
           sat_validation_status: status,
           sat_validated_at: new Date().toISOString(),
           sat_validation_errors: errors,
         })
-        .eq("id", c.id);
+        .eq("organization_id", organizationId)
+        .eq("customer_id", c.id)
+        .eq("status", "active")
+        .eq("updated_at", c.relation_updated_at)
+        .select("customer_id");
+      if (saveError) {
+        console.error("[validate-customers-tax-info] save", saveError);
+        return json({ error: "No se pudo guardar la validación fiscal" }, 500);
+      }
+      if (!Array.isArray(saved) || saved.length !== 1) {
+        return json({
+          error:
+            "La ficha fiscal cambió durante la validación. Vuelve a intentarlo.",
+        }, 409);
+      }
 
       summary.processed += 1;
       summary[status] += 1;
@@ -271,12 +272,23 @@ export async function handleValidateCustomers(
       });
     }
 
-    const { count } = await supabase
-      .from("customers")
-      .select("id", { count: "exact", head: true })
-      .in("id", customerIds)
-      .is("deleted_at", null)
+    const { count, error: countError } = await supabase
+      .from("organization_customers")
+      .select("customer_id, customers!inner(id)", {
+        count: "exact",
+        head: true,
+      })
+      .eq("organization_id", organizationId)
+      .eq("status", "active")
+      .is("customers.deleted_at", null)
+      .not("rfc", "is", null)
+      .neq("rfc", "")
+      .neq("rfc", RFC_PUBLICO_GENERAL)
       .eq("sat_validation_status", "not_validated");
+    if (countError) {
+      console.error("[validate-customers-tax-info] remaining", countError);
+      return json({ error: "No se pudo contar la cartera pendiente" }, 500);
+    }
     summary.remaining = count ?? 0;
 
     return json(summary, 200);
