@@ -9,6 +9,7 @@ import { Form } from "@/components/ui/form";
 import { useCreateDelivery } from "@/features/deliveries";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { toYMD } from "@/lib/date/toYMD";
+import { deliveryBookingDateError } from "@/lib/domain/deliveryBookingDate";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty, parseDateLocal } from "@/lib/utils";
@@ -20,6 +21,7 @@ interface PostBookingDeliveryDialogProps {
   forkliftId: string;
   forkliftName: string;
   startDate: string;
+  endDate: string;
   customerAddress: string | null;
   onSkip: () => void;
   currentIndex?: number;
@@ -62,7 +64,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function PostBookingDeliveryDialog({
-  open, onOpenChange, bookingId, forkliftId, forkliftName, startDate, customerAddress, onSkip,
+  open, onOpenChange, bookingId, forkliftId, forkliftName, startDate, endDate, customerAddress, onSkip,
   currentIndex = 0, totalCount = 1,
 }: PostBookingDeliveryDialogProps) {
   const createDelivery = useCreateDelivery();
@@ -106,6 +108,14 @@ export function PostBookingDeliveryDialog({
   }, [open, customerAddress, defaultDate, form]);
 
   const handleSchedule = form.handleSubmit((values) => {
+    const dateError = deliveryBookingDateError("delivery", toYMD(values.scheduledDate), {
+      start_date: startDate,
+      end_date: endDate,
+    });
+    if (dateError) {
+      form.setError("scheduledDate", { type: "manual", message: dateError });
+      return;
+    }
     createDelivery.mutate(
       {
         forklift_id: forkliftId,
