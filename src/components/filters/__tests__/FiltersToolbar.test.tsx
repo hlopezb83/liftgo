@@ -33,6 +33,40 @@ describe("FiltersToolbar", () => {
     expect(screen.getByRole("tab", { name: "Todos" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Pagadas" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Vencidas" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Filtrar por estado" })).toHaveTextContent("Todos");
+  });
+
+  it("keeps the compact selector and desktop tabs on the same selected status", () => {
+    const options = [
+      { value: "all", label: "Todos" },
+      { value: "paid", label: "Pagadas" },
+      { value: "overdue", label: "Vencidas" },
+    ] as const;
+    const onChange = vi.fn();
+    const renderTabs = (value: "all" | "paid" | "overdue") => (
+      <FiltersToolbar.StatusTabs value={value} onChange={onChange} options={options} />
+    );
+    const { rerender } = render(renderTabs("all"));
+
+    rerender(renderTabs("overdue"));
+
+    expect(screen.getByRole("combobox", { name: "Filtrar por estado" })).toHaveTextContent("Vencidas");
+    expect(screen.getByRole("tab", { name: "Vencidas" })).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("uses a single selector when there are more than five statuses", () => {
+    const options = [
+      { value: "all", label: "Todas" },
+      { value: "draft", label: "Borradores" },
+      { value: "sent", label: "Enviadas" },
+      { value: "accepted", label: "Aceptadas" },
+      { value: "converted", label: "Convertidas" },
+      { value: "cancelled", label: "Canceladas" },
+    ] as const;
+    render(<FiltersToolbar.StatusTabs value="cancelled" onChange={vi.fn()} options={options} />);
+
+    expect(screen.getByRole("combobox", { name: "Filtrar por estado" })).toHaveTextContent("Canceladas");
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
   });
 
   it("only renders ClearAll when visible=true and fires onClick", () => {

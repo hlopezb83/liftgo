@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ComponentProps, Ref } from "react";
-import { useIsTabletOrBelow } from "@/hooks/use-mobile";
+import { useIsCompactDesktop, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
@@ -47,9 +47,15 @@ export const SidebarProvider = ({
   ref?: Ref<HTMLDivElement>;
 }) => {
   const isMobile = useIsTabletOrBelow();
+  const isCompactDesktop = useIsCompactDesktop();
   const [openMobile, setOpenMobile] = useState(false);
 
-  const [_open, _setOpen] = useState(defaultOpen);
+  const [_open, _setOpen] = useState(defaultOpen && !isCompactDesktop);
+  useEffect(() => {
+    // Mantener la elección manual hasta cruzar un breakpoint; el sidebar móvil
+    // usa openMobile y no comparte este estado.
+    if (openProp === undefined) _setOpen(defaultOpen && !isCompactDesktop);
+  }, [defaultOpen, isCompactDesktop, openProp]);
   const open = openProp ?? _open;
   const setOpen = useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {

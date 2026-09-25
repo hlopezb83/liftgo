@@ -2,6 +2,7 @@ import { useMediaQuery } from "usehooks-ts";
 
 const MOBILE_BREAKPOINT = 768;
 const TABLET_BREAKPOINT = 1024;
+const WIDE_DESKTOP_BREAKPOINT = 1280;
 
 /**
  * R24-B: al imprimir, el page box de la hoja (<768px) disparaba la vista móvil
@@ -24,4 +25,14 @@ export function useIsTabletOrBelow(): boolean {
   const isPrinting = usePrintMedia();
   const isNarrow = useMediaQuery(`(max-width: ${TABLET_BREAKPOINT - 1}px)`, { initializeWithValue: true });
   return isNarrow && !isPrinting;
+}
+
+/** En escritorio compacto, el menú de iconos deja más ancho para las tablas. */
+export function useIsCompactDesktop(): boolean {
+  const isPrinting = usePrintMedia();
+  const isCompact = useMediaQuery(
+    `(min-width: ${TABLET_BREAKPOINT}px) and (max-width: ${WIDE_DESKTOP_BREAKPOINT - 1}px)`,
+    { initializeWithValue: true },
+  );
+  return isCompact && !isPrinting;
 }
