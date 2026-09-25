@@ -408,7 +408,10 @@ async function handleRequest(req: Request): Promise<Response> {
           }).list;
           if (typeof listFn === "function") {
             const res = await retryOnFacturapi5xx(() =>
-              listFn.call(client.invoices, { q: row.id, limit: 5 }) as Promise<
+              listFn.call(client.invoices, {
+                external_id: row.id,
+                limit: 5,
+              }) as Promise<
                 unknown
               >
             );
@@ -664,7 +667,7 @@ async function handleRequest(req: Request): Promise<Response> {
           if (typeof listFn === "function") {
             const res = await retryOnFacturapi5xx(() =>
               listFn.call(client.invoices, {
-                q: paymentId,
+                external_id: paymentId,
                 limit: 5,
               }) as Promise<
                 unknown
@@ -935,7 +938,10 @@ async function handleRequest(req: Request): Promise<Response> {
           }).list;
           if (typeof listFn === "function") {
             const res = await retryOnFacturapi5xx(() =>
-              listFn.call(client.invoices, { q: ncId, limit: 5 }) as Promise<
+              listFn.call(client.invoices, {
+                external_id: ncId,
+                limit: 5,
+              }) as Promise<
                 unknown
               >
             );

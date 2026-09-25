@@ -254,6 +254,11 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
     assertEquals(body.success, true);
     assertEquals(body.cfdi_uuid, "CFDI-UUID-OK");
     assertEquals(body.stub, false);
+    assertEquals(
+      JSON.parse(mock.calls.find((call) => call.method === "POST")!.body!)
+        .idempotency_key,
+      INVOICE_ID,
+    );
 
     // Verify the update persisted the UUID and stamped status.
     const stampUpdate = serviceState.updates.find((u) =>

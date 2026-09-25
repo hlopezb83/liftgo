@@ -442,7 +442,7 @@ export async function handleRequest(
             if (typeof listFn === "function") {
               const res = await retryOnFacturapi5xx(() =>
                 listFn.call(pacClient.invoices, {
-                  q: row.invoice_id,
+                  external_id: row.invoice_id,
                   limit: 5,
                 }) as Promise<unknown>
               );
