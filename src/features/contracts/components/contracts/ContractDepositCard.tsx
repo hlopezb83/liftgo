@@ -26,6 +26,35 @@ type Props = {
   depositNotes: string | null;
 };
 
+function getDepositFormState({
+  amount, current, status, settledAmount, depositSettledAmount, notes, depositNotes,
+}: {
+  amount: number;
+  current: DepositStatus;
+  status: DepositStatus;
+  settledAmount: string;
+  depositSettledAmount: number | string | null;
+  notes: string;
+  depositNotes: string | null;
+}) {
+  const amountInput = settledAmount.trim();
+  const storedAmount = Number(depositSettledAmount ?? amount);
+  const currentAmount = current === "held" ? null : storedAmount;
+  const nextAmount = status === "held" ? null : Number(
+    amountInput === "" ? storedAmount : amountInput,
+  );
+  const amountValid = status === "held" || amountInput === "" || (
+    Number.isFinite(Number(amountInput)) && Number(amountInput) >= 0 && Number(amountInput) <= amount
+  );
+  return {
+    amountValid,
+    hasChanges: status !== current || nextAmount !== currentAmount ||
+      notes.trim() !== (depositNotes ?? "").trim(),
+    amountToSubmit: status === "held" || amountInput === "" ? null : Number(amountInput),
+    notesToSubmit: notes.trim() === "" ? null : notes.trim(),
+  };
+}
+
 /**
  * A6R2-4: ciclo de vida del depósito en garantía. Sólo presenta y dispara la
  * RPC `set_contract_deposit_status`; las reglas (rol, monto máximo) viven en la
@@ -42,10 +71,16 @@ export function ContractDepositCard({
   const amount = Number(depositAmount ?? 0);
   const current = (depositStatus ?? "held") as DepositStatus;
   const [status, setStatus] = useState<DepositStatus>(current);
-  const [settledAmount, setSettledAmount] = useState<string>("");
+  const [settledAmount, setSettledAmount] = useState<string>(
+    depositSettledAmount == null ? "" : String(depositSettledAmount),
+  );
   const [notes, setNotes] = useState<string>(depositNotes ?? "");
   const mutation = useSetContractDepositStatus();
   const summaryColumns = ["sm:grid-cols-2", "sm:grid-cols-3", "sm:grid-cols-4"][Number(!!depositSettledAt) + Number(depositSettledAmount != null)];
+
+  const formState = getDepositFormState({
+    amount, current, status, settledAmount, depositSettledAmount, notes, depositNotes,
+  });
 
   if (amount <= 0) return null;
 
@@ -53,8 +88,8 @@ export function ContractDepositCard({
     mutation.mutate({
       contractId,
       status,
-      amount: settledAmount === "" ? null : Number(settledAmount),
-      notes: notes.trim() === "" ? null : notes.trim(),
+      amount: formState.amountToSubmit,
+      notes: formState.notesToSubmit,
     });
   };
 
@@ -114,7 +149,7 @@ export function ContractDepositCard({
               />
             </div>
             <div>
-              <Button size="sm" onClick={handleSave} disabled={mutation.isPending}>
+              <Button size="sm" onClick={handleSave} disabled={mutation.isPending || !formState.hasChanges || !formState.amountValid}>
                 {mutation.isPending ? "Guardando…" : "Guardar depósito"}
               </Button>
             </div>
