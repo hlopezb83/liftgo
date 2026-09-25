@@ -138,7 +138,7 @@ describe("QuoteDetailActions · bloqueos explicables (lote 3)", () => {
     const onSetStatus = vi.fn();
     renderActions(onSetStatus, expired);
     const accept = await screen.findByRole("button", { name: /aceptar/i });
-    expect(accept).toBeDisabled();
+    expect(accept).toHaveAttribute("aria-disabled", "true");
     fireEvent.click(accept);
     expect(onSetStatus).not.toHaveBeenCalled();
   });

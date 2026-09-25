@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
 import { describe, expect, it, vi } from "vitest";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
@@ -33,15 +33,24 @@ describe("BlockedActionNotice", () => {
 });
 
 describe("BlockedActionButton", () => {
-  it("mantiene la acción visible pero deshabilitada cuando hay bloqueo", async () => {
+  it("mantiene la acción visible e inactiva cuando hay bloqueo", async () => {
     const onClick = vi.fn();
     renderWithRouter(
       <BlockedActionButton block={block} onClick={onClick}>Vender</BlockedActionButton>,
     );
     const button = await screen.findByRole("button", { name: "Vender" });
-    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute("aria-disabled", "true");
     fireEvent.click(button);
     expect(onClick).not.toHaveBeenCalled();
+  });
+
+  it("permite consultar el motivo con teclado o tap", async () => {
+    renderWithRouter(<BlockedActionButton block={block}>Vender</BlockedActionButton>);
+    const button = await screen.findByRole("button", { name: "Vender" });
+    await act(async () => { button.focus(); });
+    expect(document.activeElement).toBe(button);
+    fireEvent.click(button);
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(block.nextStep);
   });
 
   it("permite la acción cuando no hay bloqueo", async () => {

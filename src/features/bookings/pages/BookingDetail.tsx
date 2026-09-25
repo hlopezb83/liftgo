@@ -75,7 +75,12 @@ export default function BookingDetail() {
         subtitle={subtitle}
         badges={<StatusBadge status={booking.status} />}
         backTo="/bookings"
-        actions={<BookingActions booking={booking} />}
+        actions={<BookingActions
+          booking={booking}
+          deliveries={deliveries}
+          transportsLoading={transportsLoading}
+          transportsError={transportsError}
+        />}
       />
 
 
