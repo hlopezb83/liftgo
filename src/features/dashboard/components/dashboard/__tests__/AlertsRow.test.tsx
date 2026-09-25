@@ -24,6 +24,9 @@ describe("AlertsRow — cobranza", () => {
         maintenanceAlerts={[]}
         agingBuckets={[]}
         overdueBookings={[]}
+        canManageInvoices
+        canManageReturns
+        canManageMaintenance
       />,
     );
 
@@ -47,6 +50,9 @@ describe("AlertsRow — cobranza", () => {
         maintenanceAlerts={[]}
         agingBuckets={[]}
         overdueBookings={[]}
+        canManageInvoices
+        canManageReturns
+        canManageMaintenance
       />,
     );
 
@@ -67,9 +73,54 @@ describe("AlertsRow — cobranza", () => {
         maintenanceAlerts={[]}
         agingBuckets={[]}
         overdueBookings={[]}
+        canManageInvoices
+        canManageReturns
+        canManageMaintenance
       />,
     );
 
     expect(screen.getByText("$1,000.00")).toBeInTheDocument();
+  });
+
+  it("con permisos de lectura muestra alertas sin ofrecer acciones de escritura", () => {
+    render(<AlertsRow
+      overdueInvoices={[{
+        id: "inv-read", invoice_number: "FAC-004", customer_name: "Cliente",
+        total: 100, due_date: "2026-09-01",
+      }]}
+      maintenanceAlerts={[{ forkliftName: "Unidad 1", forkliftId: "fork-1", nextDate: "2026-09-01" }]}
+      agingBuckets={[]}
+      overdueBookings={[{
+        booking_id: "booking-1", forklift_name: "Unidad 2", forklift_id: "fork-2",
+        customer_name: "Cliente", end_date: "2026-09-01", days_overdue: 2,
+      }]}
+      canManageInvoices={false}
+      canManageReturns={false}
+      canManageMaintenance={false}
+    />);
+
+    expect(screen.queryByRole("button", { name: "Registrar pago" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Registrar devolución" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Registrar servicio" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByText("Unidad 2"));
+    expect(navigate).toHaveBeenCalledWith("/bookings/booking-1");
+  });
+
+  it("Enter sobre la acción de servicio no abre además la ficha de flota", () => {
+    render(<AlertsRow
+      overdueInvoices={[]}
+      maintenanceAlerts={[{ forkliftName: "Unidad 1", forkliftId: "fork-1", nextDate: "2026-09-01" }]}
+      agingBuckets={[]}
+      overdueBookings={[]}
+      canManageInvoices={false}
+      canManageReturns={false}
+      canManageMaintenance
+    />);
+
+    const action = screen.getByRole("button", { name: "Registrar servicio" });
+    fireEvent.keyDown(action, { key: "Enter" });
+    fireEvent.click(action);
+    expect(navigate).toHaveBeenCalledTimes(1);
+    expect(navigate).toHaveBeenCalledWith("/maintenance");
   });
 });

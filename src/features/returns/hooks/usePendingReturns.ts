@@ -1,9 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { bookingKeys } from "@/features/bookings";
 import { supabase } from "@/integrations/supabase/client";
-import { toYMD } from "@/lib/date/toYMD";
+import { todayKeyMty } from "@/lib/format/dateFormats";
 import { e2eVisibilityFilter } from "@/lib/supabase/constants";
-import { nowMty } from "@/lib/utils";
 import type { BookingWithForklift } from "@/types/rental";
 
 /**
@@ -19,20 +18,23 @@ const PENDING_RETURNS_LIMIT = 2000;
  * Retornos pendientes: reservas confirmadas, ya vencidas (end_date < hoy,
  * America/Monterrey) y sin devolución registrada.
  *
- * Filtros server-side alineados con get_dashboard_stats():
+ * Filtros server-side alineados con useReturnableBookings y get_dashboard_stats():
  * - status = 'confirmed'
- * - return_status IS DISTINCT FROM 'returned' → `.or("return_status.is.null,return_status.neq.returned")`
- *   (un `.neq` simple excluiría los NULL, que son precisamente los pendientes)
- * - end_date < CURRENT_DATE (no incluye el día actual)
+ * - return_status IS NULL
+ * - entrega al cliente completada
+ * - end_date < hoy en Monterrey (no incluye el día actual)
  */
 async function fetchPendingReturns(): Promise<BookingWithForklift[]> {
-  const today = toYMD(nowMty());
+  const today = todayKeyMty();
   const { data, error } = await supabase
     .from("bookings")
-    .select("*, forklifts(name, model)")
+    .select("*, forklifts(name, model), deliveries!deliveries_booking_id_fkey!inner(id)")
     .or(e2eVisibilityFilter())
     .eq("status", "confirmed")
-    .or("return_status.is.null,return_status.neq.returned")
+    .is("return_status", null)
+    .eq("deliveries.type", "delivery")
+    .eq("deliveries.status", "completed")
+    .lte("start_date", today)
     .lt("end_date", today)
     .order("end_date", { ascending: true }) // más vencidos primero
     .limit(PENDING_RETURNS_LIMIT);

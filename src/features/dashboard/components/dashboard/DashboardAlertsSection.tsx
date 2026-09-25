@@ -21,6 +21,9 @@ interface DashboardAlertsSectionProps {
   /** GUI-FE-05 (G-VEN-05/06): roles sin acceso a Facturas no ven widgets
    *  ni links de cobranza (evita "Sin permisos" y toast Forbidden). */
   canSeeFinancials?: boolean;
+  canManageInvoices: boolean;
+  canManageReturns: boolean;
+  canManageMaintenance: boolean;
 }
 
 export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
@@ -33,6 +36,9 @@ export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
         agingBuckets={props.agingBuckets}
         overdueBookings={props.overdueBookings}
         pendingDeliveriesCount={props.pendingDeliveriesCount}
+        canManageInvoices={props.canManageInvoices}
+        canManageReturns={props.canManageReturns}
+        canManageMaintenance={props.canManageMaintenance}
       />
       {showFinancials && (
         <CollectionForecast overdueInvoices={props.overdueInvoices} upcomingInvoices={props.upcomingInvoices} />
