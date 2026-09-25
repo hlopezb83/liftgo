@@ -26,6 +26,7 @@ import {
   type SatValidationRow,
   type SatValidationStatus,
 } from "../hooks/customers/useSatValidation";
+import { SAT_VALIDATION_ROLES } from "../lib/satAccess";
 
 const STATUS_LABEL: Record<SatValidationStatus, string> = {
   not_validated: "Sin validar",
@@ -242,7 +243,7 @@ function SatValidationContent() {
 
 export default function CustomersSatValidationPage() {
   return (
-    <RoleGuard module="Clientes" minAccess="full">
+    <RoleGuard module="Clientes" minAccess="full" allowedRoles={SAT_VALIDATION_ROLES}>
       <SatValidationContent />
     </RoleGuard>
   );

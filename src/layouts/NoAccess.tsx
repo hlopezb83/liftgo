@@ -7,7 +7,7 @@ import { useUserRole } from "@/features/users";
 import type { AccessLevel } from "@/features/users";
 import { ROLE_LABELS } from "@/lib/constants";
 
-type NoAccessReason = "forbidden" | "no-role" | "error";
+type NoAccessReason = "forbidden" | "role-forbidden" | "no-role" | "error";
 
 interface NoAccessProps {
   module?: string;
@@ -27,6 +27,11 @@ const REASON_CONFIG: Record<NoAccessReason, { icon: typeof Lock; title: string; 
     icon: Lock,
     title: "Sin permisos para acceder",
     description: "Tu rol actual no tiene el nivel de acceso requerido para esta sección. Si crees que es un error, recarga tu sesión o solicita permisos a un administrador.",
+  },
+  "role-forbidden": {
+    icon: Lock,
+    title: "Sin permisos para acceder",
+    description: "Tu rol no puede usar esta sección. Si necesitas acceso, solicita apoyo a un administrador.",
   },
   "no-role": {
     icon: UserX,
