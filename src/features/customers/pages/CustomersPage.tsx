@@ -27,6 +27,7 @@ export default function CustomersPage() {
   const customers = visibleListRows(customersRaw);
   const navigate = useNavigateTransition();
   const [searchParams, setSearchParams] = useSearchParams();
+  const searchKey = searchParams.toString();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
   const updateProspect = useUpdateProspect();
@@ -58,6 +59,7 @@ export default function CustomersPage() {
   const runQuickCreatePrefill = useEffectEvent(() => {
     if (!canWrite) return;
     if (searchParams.get("new") !== "1") return;
+    setProspectId(null);
     setEditId(null);
     setInitialData(undefined);
     setDialogOpen(true);
@@ -68,7 +70,7 @@ export default function CustomersPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     runProspectPrefill();
     runQuickCreatePrefill();
-  }, [canWrite]);
+  }, [canWrite, searchKey]);
 
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Customer, {
@@ -92,7 +94,18 @@ export default function CustomersPage() {
     <CustomerMobileCard customer={c} onOpen={(id) => navigate(`/customers/${id}`)} />
   );
 
-  const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };
+  const openCreate = () => {
+    if (!canWrite) return;
+    setProspectId(null);
+    setEditId(null);
+    setInitialData(undefined);
+    setDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) setProspectId(null);
+  };
 
   usePageActions({
     onNew: canWrite ? openCreate : undefined,
@@ -170,7 +183,7 @@ export default function CustomersPage() {
 
       <CustomerFormDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={handleDialogOpenChange}
         initialData={initialData}
         isEdit={!!editId}
         isPending={createCustomer.isPending || updateCustomer.isPending}

@@ -5,7 +5,6 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { EditIcon, DocumentIcon } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { sanitizeCsfName } from "../../lib/csfSanitize";
@@ -35,38 +34,31 @@ interface CustomerFormDialogProps {
   onSubmit: (data: CustomerFormData) => void;
 }
 
-export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, isPending, onSubmit }: CustomerFormDialogProps) {
+export function CustomerFormDialog(props: CustomerFormDialogProps) {
+  return props.open ? <CustomerFormSession {...props} /> : null;
+}
+
+function CustomerFormSession({ open, onOpenChange, initialData, isEdit, isPending, onSubmit }: CustomerFormDialogProps) {
+  // El borrador y su base pertenecen a esta apertura. Un refetch no los reemplaza.
+  const [initialValues] = useState(() => ({ ...emptyCustomer, ...initialData }));
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),
-    defaultValues: emptyCustomer,
+    defaultValues: initialValues,
   });
   const [tab, setTab] = useState("manual");
-
-  usePrefillEffect(() => {
-    if (!open) return;
-    if (initialData) {
-      form.reset({ ...emptyCustomer, ...initialData });
-    } else {
-      form.reset(emptyCustomer);
-      setTab("manual");
-    }
-  }, [open, initialData]);
-
-  useUnsavedChangesGuard(open && form.formState.isDirty && !(isPending ?? false));
+  const busy = (isPending ?? false) || form.formState.isSubmitting;
+  useUnsavedChangesGuard(open && form.formState.isDirty && !busy);
 
   const handleCsfParsed = (patch: Partial<CustomerFormData>) => {
-    const current = form.getValues();
-    const next: CustomerFormData = { ...current };
     (Object.keys(patch) as (keyof CustomerFormData)[]).forEach((k) => {
       const v = patch[k];
-      if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
+      if (v !== undefined && v !== "") form.setValue(k, v, { shouldDirty: true, shouldValidate: true });
     });
-    form.reset(next, { keepDirty: true });
   };
 
   return (
     <FormDialog
-      isPending={isPending}
+      isPending={busy}
       isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
@@ -75,16 +67,19 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       testId="customer-form-dialog"
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit((data) => onSubmit(preserveUntouched(data, initialData, isEdit, form.formState.dirtyFields)))} className="space-y-4">
+        <form onSubmit={form.handleSubmit((data) => {
+          if (isPending) return;
+          onSubmit(preserveUntouched(data, initialValues, isEdit, form.formState.dirtyFields));
+        })} className="space-y-4">
           <Tabs value={tab} onValueChange={setTab}>
-            <TabsList className="w-full">
-              <TabsTrigger value="manual" className="flex-1">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="manual" className="min-w-0 px-2">
                 <EditIcon className="h-3.5 w-3.5 mr-1.5" />
-                Llenar manualmente
+                Manual
               </TabsTrigger>
-              <TabsTrigger value="csf" className="flex-1">
+              <TabsTrigger value="csf" className="min-w-0 px-2">
                 <DocumentIcon className="h-3.5 w-3.5 mr-1.5" />
-                Importar desde CSF
+                Importar CSF
               </TabsTrigger>
             </TabsList>
 
