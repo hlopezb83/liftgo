@@ -455,6 +455,7 @@ export async function handleStampCreditNote(
       // se pierde (timeout), reconcile-stamping-invoices recupera el CFDI de
       // egreso por external_id en vez de dejar la NC atascada o re-timbrar.
       external_id: credit_note_id as string,
+      idempotency_key: credit_note_id as string,
       customer: {
         legal_name: legalName,
         tax_id: taxId,

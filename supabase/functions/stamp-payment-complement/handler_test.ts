@@ -224,6 +224,11 @@ Deno.test("handler: happy path calls Facturapi and persists REP", async () => {
     assertEquals(res.status, 200);
     assertEquals(body.success, true);
     assertEquals(body.rep_cfdi_uuid, "REP-UUID-OK");
+    assertEquals(
+      JSON.parse(mock.calls.find((call) => call.method === "POST")!.body!)
+        .idempotency_key,
+      PAYMENT_ID,
+    );
 
     const stampUpdate = serviceState.updates.find((u) =>
       u.table === "payments" && u.patch.rep_cfdi_status === "stamped"

@@ -505,6 +505,7 @@ export async function handleStampPaymentComplement(
     const payload = {
       type: "P",
       external_id: payment_id as string,
+      idempotency_key: payment_id as string,
       customer: {
         legal_name: repLegalName,
         tax_id: repTaxId,

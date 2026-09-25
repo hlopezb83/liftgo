@@ -5,10 +5,10 @@
 // Ventajas vs fetch directo:
 // - Auth y serialización gestionadas por el SDK.
 // - Errores tipados (`FacturapiError` con .status, .code, .message).
-// - Mantenido oficialmente por Facturapi (v4.18+).
+// - Mantenido oficialmente por Facturapi (v5.1.0).
 //
 // deno-lint-ignore-file no-explicit-any
-import * as FacturapiPkg from "npm:facturapi@4.18.0";
+import * as FacturapiPkg from "npm:facturapi@5.1.0";
 
 // El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
 // clase como `default.default` (CJS) o `default` (ESM), así que resolvemos
@@ -331,7 +331,6 @@ export async function readSoleLegacyOrganizationStrict(
 }
 
 /** Crea una instancia del SDK con la API key resuelta. */
-/** Crea una instancia del SDK con la API key resuelta. */
 export function createFacturapiClient(apiKey: string): FacturapiClient {
   return new Facturapi(apiKey);
 }
@@ -342,7 +341,7 @@ export function createFacturapiClient(apiKey: string): FacturapiClient {
  * `invoices.create()` del SDK no acepta `signal`, pero el wrapper HTTP interno
  * (campo público `client` del recurso, tipado como WrapperClient en el paquete)
  * esparce las opciones extra en el RequestInit del fetch subyacente — verificado
- * en facturapi@4.18.0 (`request()` hace `{...rest, headers, body}`). Llamamos al
+ * en facturapi@5.1.0 (`request()` hace `{...rest, headers, body}`). Llamamos al
  * wrapper directamente y así el AbortController sí cancela el socket en vuelo.
  *
  * Si el cliente no expone el wrapper (p. ej. un mock distinto en tests), cae al
@@ -376,10 +375,10 @@ export async function cancelInvoiceWithSignal(
   opts: { signal?: AbortSignal } = {},
 ): Promise<unknown> {
   const wrapper = client?.invoices?.client;
-  if (wrapper && typeof wrapper.del === "function") {
+  if (wrapper && typeof wrapper.delete === "function") {
     const init: Record<string, unknown> = { params };
     if (opts.signal) init.signal = opts.signal;
-    return await wrapper.del(`/invoices/${invoiceId}`, init);
+    return await wrapper.delete(`/invoices/${invoiceId}`, init);
   }
   return await client.invoices.cancel(invoiceId, params);
 }
@@ -406,10 +405,10 @@ export async function updateInvoiceStatusWithSignal(
   opts: { signal?: AbortSignal } = {},
 ): Promise<unknown> {
   const wrapper = client?.invoices?.client;
-  if (wrapper && typeof wrapper.get === "function") {
+  if (wrapper && typeof wrapper.put === "function") {
     const init: Record<string, unknown> = {};
     if (opts.signal) init.signal = opts.signal;
-    return await wrapper.get(`/invoices/${invoiceId}/status`, init);
+    return await wrapper.put(`/invoices/${invoiceId}/status`, init);
   }
   // Fallback al método del SDK si el wrapper no está disponible.
   const inv = client.invoices as any;
