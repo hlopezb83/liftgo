@@ -29,19 +29,19 @@ export function ConvertQuoteSummary({ quote, durationDays, unitCount }: Props) {
 
   return (
     <div className="rounded-md border bg-muted/30 divide-y">
-      <div className="px-3">
+      <div className="px-3 py-2">
         <InfoRow label="Cliente" value={quote.customer_name || "—"} />
       </div>
-      <div className="px-3">
+      <div className="px-3 py-2">
         <InfoRow label="Periodo" value={periodo} />
       </div>
-      <div className="px-3">
+      <div className="px-3 py-2">
         <InfoRow label="Duración" value={duracion} />
       </div>
-      <div className="px-3">
+      <div className="px-3 py-2">
         <InfoRow label="Reservas a crear" value={`${unitCount} unidad(es)`} />
       </div>
-      <div className="px-3">
+      <div className="px-3 py-2">
         <InfoRow label="Total cotizado" value={formatCurrencyWithCode(quote.total ?? 0, quote.currency ?? "MXN")} />
       </div>
     </div>
