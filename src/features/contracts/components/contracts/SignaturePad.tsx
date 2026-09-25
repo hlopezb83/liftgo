@@ -7,9 +7,10 @@ interface SignaturePadProps {
   onClear?: () => void;
   width?: number;
   height?: number;
+  disabled?: boolean;
 }
 
-export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: SignaturePadProps) {
+export function SignaturePad({ onSave, onClear, width = 400, height = 200, disabled = false }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
@@ -48,6 +49,7 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
   };
 
   const handlePointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (disabled) return;
     e.preventDefault();
     canvasRef.current?.setPointerCapture(e.pointerId);
     saveSnapshot();
@@ -60,7 +62,7 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
   };
 
   const handlePointerMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return;
+    if (disabled || !isDrawing) return;
     const ctx = getCtx();
     if (!ctx) return;
     const { x, y } = getPos(e);
@@ -93,18 +95,18 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
   };
 
   const save = () => {
-    if (!canvasRef.current || !hasDrawn) return;
+    if (disabled || !canvasRef.current || !hasDrawn) return;
     onSave(canvasRef.current.toDataURL("image/png"));
   };
 
   return (
-    <div className="space-y-3">
+    <div className="min-w-0 space-y-3">
       <div className="relative border rounded-lg overflow-hidden bg-background">
         <canvas
           ref={canvasRef}
           width={width}
           height={height}
-          className="w-full touch-none cursor-crosshair"
+          className="block w-full max-w-full touch-none cursor-crosshair"
           style={{ aspectRatio: `${width}/${height}` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -122,15 +124,14 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
           </p>
         )}
       </div>
-      <div className="flex items-center gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={undo} disabled={history.length === 0}>
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+        <Button type="button" variant="outline" size="sm" onClick={undo} disabled={disabled || history.length === 0}>
           <UndoIcon className="h-4 w-4 mr-1" /> Deshacer
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={clear}>
+        <Button type="button" variant="outline" size="sm" onClick={clear} disabled={disabled}>
           <Eraser className="h-4 w-4 mr-1" /> Limpiar
         </Button>
-        <div className="flex-1" />
-        <Button type="button" size="sm" onClick={save} disabled={!hasDrawn}>
+        <Button type="button" size="sm" className="col-span-2 sm:ml-auto" onClick={save} disabled={disabled || !hasDrawn}>
           Confirmar Firma
         </Button>
       </div>
