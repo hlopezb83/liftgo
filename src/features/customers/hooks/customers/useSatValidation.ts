@@ -30,6 +30,14 @@ export interface SatValidationRow {
   sat_validation_errors: SatValidationError[];
 }
 
+export interface SatValidationOverview {
+  rows: SatValidationRow[];
+  total: number;
+  pending: number;
+  mismatch: number;
+  error: number;
+}
+
 interface SatValidationRelation {
   customer_id: string;
   alias: string | null;
@@ -56,38 +64,69 @@ export interface ValidateCustomersSummary {
 }
 
 const RFC_PUBLICO_GENERAL = "XAXX010101000";
+export const SAT_VALIDATION_PAGE_SIZE = 25;
 
 export const satValidationKey = [...customerKeys.all, "sat-validation"] as const;
 
-export function useSatValidationOverview() {
+async function countWithStatus(status: SatValidationStatus): Promise<number> {
+  const { count, error } = await supabase
+    .from("organization_customers")
+    .select("customer_id, customers!inner(deleted_at)", { count: "exact", head: true })
+    .eq("status", "active")
+    .is("customers.deleted_at", null)
+    .not("rfc", "is", null)
+    .neq("rfc", "")
+    .neq("rfc", RFC_PUBLICO_GENERAL)
+    .eq("sat_validation_status", status);
+  if (error) throw error;
+  return count ?? 0;
+}
+
+export function useSatValidationOverview(page = 1) {
+  const safePage = Math.max(1, Math.trunc(page));
+  const from = (safePage - 1) * SAT_VALIDATION_PAGE_SIZE;
   return useQuery({
-    queryKey: satValidationKey,
-    queryFn: async (): Promise<SatValidationRow[]> => {
-      const { data, error } = await supabase
-        .from("organization_customers")
-        .select(
-          "customer_id, alias, razon_social, rfc, sat_validation_status, sat_validated_at, sat_validation_errors, customers!inner(name, deleted_at)",
-        )
-        .eq("status", "active")
-        .is("customers.deleted_at", null)
-        .not("rfc", "is", null)
-        .neq("rfc", "")
-        .neq("rfc", RFC_PUBLICO_GENERAL)
-        .order("razon_social")
-        .returns<SatValidationRelation[]>();
-      if (error) throw error;
-      return (data ?? []).map((row) => ({
-        id: row.customer_id,
-        name: row.alias ?? row.customers?.name ?? "Cliente",
-        razon_social: row.razon_social,
-        rfc: row.rfc,
-        sat_validation_status: (row.sat_validation_status ??
-          "not_validated") as SatValidationStatus,
-        sat_validated_at: row.sat_validated_at,
-        sat_validation_errors: Array.isArray(row.sat_validation_errors)
-          ? (row.sat_validation_errors as SatValidationError[])
-          : [],
-      }));
+    queryKey: [...satValidationKey, safePage],
+    queryFn: async (): Promise<SatValidationOverview> => {
+      const [list, pending, mismatch, failed] = await Promise.all([
+        supabase
+          .from("organization_customers")
+          .select(
+            "customer_id, alias, razon_social, rfc, sat_validation_status, sat_validated_at, sat_validation_errors, customers!inner(name, deleted_at)",
+            { count: "exact" },
+          )
+          .eq("status", "active")
+          .is("customers.deleted_at", null)
+          .not("rfc", "is", null)
+          .neq("rfc", "")
+          .neq("rfc", RFC_PUBLICO_GENERAL)
+          .order("razon_social")
+          .order("customer_id")
+          .range(from, from + SAT_VALIDATION_PAGE_SIZE - 1)
+          .returns<SatValidationRelation[]>(),
+        countWithStatus("not_validated"),
+        countWithStatus("mismatch"),
+        countWithStatus("error"),
+      ]);
+      if (list.error) throw list.error;
+      return {
+        rows: (list.data ?? []).map((row) => ({
+          id: row.customer_id,
+          name: row.alias ?? row.customers?.name ?? "Cliente",
+          razon_social: row.razon_social,
+          rfc: row.rfc,
+          sat_validation_status: (row.sat_validation_status ??
+            "not_validated") as SatValidationStatus,
+          sat_validated_at: row.sat_validated_at,
+          sat_validation_errors: Array.isArray(row.sat_validation_errors)
+            ? (row.sat_validation_errors as SatValidationError[])
+            : [],
+        })),
+        total: list.count ?? 0,
+        pending,
+        mismatch,
+        error: failed,
+      };
     },
   });
 }

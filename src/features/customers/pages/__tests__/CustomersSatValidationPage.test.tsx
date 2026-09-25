@@ -12,7 +12,18 @@ const state = vi.hoisted(() => ({
 }));
 
 vi.mock("../../hooks/customers/useSatValidation", () => ({
-  useSatValidationOverview: () => ({ data: state.rows, isLoading: false, isError: false }),
+  SAT_VALIDATION_PAGE_SIZE: 25,
+  useSatValidationOverview: (page = 1) => ({
+    data: {
+      rows: state.rows.slice((page - 1) * 25, page * 25),
+      total: state.rows.length,
+      pending: state.rows.filter((row) => row.sat_validation_status === "not_validated").length,
+      mismatch: state.rows.filter((row) => row.sat_validation_status === "mismatch").length,
+      error: state.rows.filter((row) => row.sat_validation_status === "error").length,
+    },
+    isLoading: false,
+    isError: false,
+  }),
   useValidateCustomersTaxInfo: () => ({ mutate: state.mutate, isPending: state.isPending }),
 }));
 vi.mock("@/layouts/RoleGuard", () => ({
@@ -63,5 +74,22 @@ describe("CustomersSatValidationPage", () => {
     const mobileResult = screen.getByRole("article", { name: "Cliente Empresa observado" });
     expect(within(mobileResult).getByText("Última validación")).toBeInTheDocument();
     expect(within(mobileResult).getByText("Sin detalle del SAT. Vuelve a validar para obtener el motivo.")).toBeInTheDocument();
+  });
+
+  it("mantiene métricas y validación de toda la cartera al paginar los resultados", async () => {
+    state.rows = Array.from({ length: 1100 }, (_, i) =>
+      makeRow(String(i), i === 1099 ? "not_validated" : "valid"),
+    );
+    renderPage();
+
+    expect(await screen.findByText("1,100")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Validar pendientes (1)" })).toBeEnabled();
+    expect(screen.getByText("Mostrando 1–25 de 1,100 clientes")).toBeInTheDocument();
+    expect(screen.getAllByRole("article")).toHaveLength(25);
+
+    fireEvent.click(screen.getByRole("button", { name: "44" }));
+    expect(screen.getByText("Mostrando 1,076–1,100 de 1,100 clientes")).toBeInTheDocument();
+    expect(screen.getByRole("article", { name: "Cliente Empresa 1099" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Validar pendientes (1)" })).toBeEnabled();
   });
 });

@@ -19,6 +19,7 @@ import { vi } from "vitest";
 export type SupabaseMockResponse = {
   data: unknown;
   error: { code?: string; message: string } | null;
+  count?: number | null;
 };
 
 export type ChainCall = { method: string; args: unknown[] };
