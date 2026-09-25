@@ -103,9 +103,11 @@ export default function CustomerDetailPage() {
         }
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <CustomerContactCard customer={s.customer} />
-        <CustomerFinancialSummary totalInvoiced={s.totalInvoiced} totalPaid={s.totalPaid} outstanding={s.outstanding} />
+        <div className={s.profitability ? undefined : "sm:col-span-2"}>
+          <CustomerFinancialSummary totalInvoiced={s.totalInvoiced} totalPaid={s.totalPaid} outstanding={s.outstanding} />
+        </div>
         {s.profitability && (
           <CustomerProfitabilityCard
             revenue={s.profitability.revenue}
@@ -124,6 +126,7 @@ export default function CustomerDetailPage() {
       {s.customer.notes && <NotesCard value={s.customer.notes} readOnly />}
 
       <CustomerFormDialog
+        key={s.customer.id}
         open={s.editOpen}
         onOpenChange={s.setEditOpen}
         initialData={s.editInitialData}
