@@ -1,5 +1,38 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { binaryToBytes } from "./client.ts";
+import { binaryToBytes, retryOnFacturapi5xx } from "./client.ts";
+
+Deno.test("lecturas 429 respetan Retry-After breve y difieren uno largo", async () => {
+  let calls = 0;
+  const short = Object.assign(new Error("rate limit"), {
+    status: 429,
+    code: "rate_limit_exceeded",
+    headers: { "retry-after": "0" },
+  });
+  const result = await retryOnFacturapi5xx(() => {
+    calls++;
+    if (calls === 1) return Promise.reject(short);
+    return Promise.resolve("ok");
+  });
+  assertEquals(result, "ok");
+  assertEquals(calls, 2);
+
+  calls = 0;
+  const long = Object.assign(new Error("rate limit"), {
+    status: 429,
+    code: "rate_limit_exceeded",
+    headers: { "retry-after": "60" },
+  });
+  try {
+    await retryOnFacturapi5xx(() => {
+      calls++;
+      return Promise.reject(long);
+    });
+    throw new Error("expected 429 to be deferred");
+  } catch (err) {
+    assertEquals(err, long);
+  }
+  assertEquals(calls, 1);
+});
 
 Deno.test("binaryToBytes soporta objeto con body stream", async () => {
   const body = new Response(new Uint8Array([1, 2, 3])).body;

@@ -1,8 +1,12 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { notifyInfo } from "@/lib/ui/appFeedback";
+import { isPacPending } from "../../../lib/pacPending";
 import { invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
 
 export function useStampPaymentComplement() {
+  const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: async (paymentId: string) => {
       return await invokeEdgeFunction("stamp-payment-complement", {
@@ -12,6 +16,12 @@ export function useStampPaymentComplement() {
     invalidateKeys: [paymentKeys.all, invoiceKeys.all],
     successMsg: "Complemento de Pago timbrado",
     errorTitle: "Error al timbrar REP",
+    onError: (error) => {
+      if (!isPacPending(error)) return;
+      notifyInfo("Facturapi aceptó el REP. El UUID aparecerá cuando concluya el timbrado.");
+      void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+      return true;
+    },
   });
 }
 

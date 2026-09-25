@@ -15,6 +15,7 @@ import {
   isFacturapiConfigError,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import { classifyPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   enqueueCfdiRetry,
@@ -141,6 +142,17 @@ export async function handleStampCfdi(
       });
       return json(
         { error: "Invoice already stamped", cfdi_uuid: inv.cfdi_uuid },
+        409,
+        jsonHeaders,
+      );
+    }
+    if (inv.facturapi_invoice_id) {
+      return json(
+        {
+          error:
+            "El CFDI ya tiene un ID de Facturapi. Espera la conciliación o revisa su estado antes de reemitir.",
+          facturapi_invoice_id: inv.facturapi_invoice_id,
+        },
         409,
         jsonHeaders,
       );
@@ -548,7 +560,7 @@ export async function handleStampCfdi(
       };
     }
 
-    let facturApiInvoice: { id: string; uuid: string };
+    let facturApiInvoice: { id: string; uuid?: string; status?: string };
     // EC-A2: timeout hard-cap con AbortController (abort real del fetch en
     // vuelo). Sin abort, Promise.race resolvía TIMEOUT pero la petición seguía
     // consumiendo cuota; si Facturapi alcanzaba a emitir el CFDI, un reintento
@@ -575,7 +587,7 @@ export async function handleStampCfdi(
       facturApiInvoice = await Promise.race([
         createInvoiceWithSignal(client, payload, { signal: stampAbort.signal }),
         timeoutPromise,
-      ]) as { id: string; uuid: string };
+      ]) as { id: string; uuid?: string; status?: string };
     } catch (err) {
       const desc = describeFacturapiError(err);
       const isTimeout = (desc as { code?: string }).code === "TIMEOUT" ||
@@ -639,8 +651,37 @@ export async function handleStampCfdi(
       clearTimeout(stampTimeoutId);
     }
 
-    const facturApiId = facturApiInvoice.id;
-    const cfdiUuid = facturApiInvoice.uuid;
+    // A 202 response has an ID but no UUID. The PAC owns this document now;
+    // never release the claim or try to create it again while it is pending.
+    cfdiPersisted = true;
+    const pacResult = classifyPacInvoice(facturApiInvoice);
+    if (pacResult.kind !== "hit") {
+      const facturapiId = "facturapi_id" in pacResult
+        ? pacResult.facturapi_id
+        : (typeof facturApiInvoice.id === "string"
+          ? facturApiInvoice.id
+          : null);
+      await supabase.from("invoices").update({
+        ...(facturapiId ? { facturapi_invoice_id: facturapiId } : {}),
+        cfdi_status: pacResult.kind === "failed" ? "error" : "stamping",
+        cfdi_error_message: pacResult.kind === "pending"
+          ? "Facturapi aceptó el CFDI; timbrado pendiente de resolución."
+          : "Respuesta de Facturapi sin UUID válido. Revisar antes de reemitir.",
+      }).eq("id", invoice_id);
+      return json(
+        {
+          error: pacResult.kind === "pending"
+            ? "Facturapi aceptó el CFDI; timbrado pendiente de resolución."
+            : "Facturapi no devolvió un UUID válido; requiere conciliación.",
+          code: pacResult.kind === "pending" ? "PAC_PENDING" : "PAC_INCOMPLETE",
+          ...(facturapiId ? { facturapi_invoice_id: facturapiId } : {}),
+        },
+        pacResult.kind === "pending" ? 202 : 502,
+        jsonHeaders,
+      );
+    }
+    const facturApiId = pacResult.facturapi_id;
+    const cfdiUuid = pacResult.uuid;
     const facturApiSeries: string | null =
       (facturApiInvoice as { series?: string | null }).series ?? null;
     const facturApiFolioRaw =

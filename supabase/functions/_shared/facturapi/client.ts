@@ -351,19 +351,28 @@ export async function createInvoiceWithSignal(
   client: FacturapiClient,
   payload: Record<string, unknown>,
   opts: { signal?: AbortSignal } = {},
-): Promise<{ id: string; uuid: string }> {
+): Promise<
+  {
+    id: string;
+    uuid?: string;
+    status?: string;
+    folio_number?: number | string | null;
+    series?: string | null;
+    total?: number;
+  }
+> {
   const wrapper = client?.invoices?.client;
   if (wrapper && typeof wrapper.post === "function") {
     const init: Record<string, unknown> = { body: payload };
     if (opts.signal) init.signal = opts.signal;
     return (await wrapper.post("/invoices", init)) as {
       id: string;
-      uuid: string;
+      uuid?: string;
     };
   }
   return (await client.invoices.create(payload)) as {
     id: string;
-    uuid: string;
+    uuid?: string;
   };
 }
 
@@ -545,9 +554,8 @@ export async function binaryToText(bin: unknown): Promise<string> {
 }
 
 /**
- * Reintenta `fn` con backoff exponencial cuando Facturapi devuelve 5xx o
- * cuando la llamada falla por red (status=0). Los 4xx (validaciones)
- * salen inmediatamente sin reintentar.
+ * Usar sólo para lecturas (GET): 5xx/red y 429 con Retry-After breve.
+ * Un Retry-After largo se difiere al siguiente ciclo en vez de bloquear el cron.
  */
 export async function retryOnFacturapi5xx<T>(
   fn: () => Promise<T>,
@@ -562,10 +570,26 @@ export async function retryOnFacturapi5xx<T>(
     } catch (err) {
       lastErr = err;
       const desc = describeFacturapiError(err);
-      const retriable = desc.status === 0 ||
-        (desc.status >= 500 && desc.status <= 599);
+      const sdkError = err as {
+        status?: unknown;
+        code?: unknown;
+        headers?: Record<string, string>;
+      };
+      const status = typeof sdkError?.status === "number"
+        ? sdkError.status
+        : desc.status;
+      const isRateLimit = status === 429 &&
+        sdkError?.code === "rate_limit_exceeded";
+      const retriable = status === 0 ||
+        (status >= 500 && status <= 599) || isRateLimit;
       if (!retriable || i === attempts - 1) throw err;
-      const delay = baseDelayMs * Math.pow(3, i);
+      const retryAfter = Number(sdkError?.headers?.["retry-after"]);
+      if (isRateLimit && (!Number.isFinite(retryAfter) || retryAfter > 10)) {
+        throw err;
+      }
+      const delay = isRateLimit
+        ? Math.max(0, retryAfter * 1_000)
+        : baseDelayMs * Math.pow(3, i);
       await new Promise((r) => setTimeout(r, delay));
     }
   }

@@ -78,6 +78,14 @@ Deno.test("FIX-15: factura ya timbrada/cancelada -> no-op succeeded (no re-timbr
   );
   assertEquals(decideStampRetry(null), "succeeded_noop_state");
   assertEquals(
+    decideStampRetry({
+      cfdi_status: "error",
+      cfdi_uuid: null,
+      facturapi_invoice_id: "pac-1",
+    }),
+    "succeeded_noop_state",
+  );
+  assertEquals(
     decideStampRetry({ cfdi_status: "error", cfdi_uuid: null }),
     "proceed",
   );

@@ -18,8 +18,8 @@ import {
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfigForOrganization,
-  retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import { lookupPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import {
   classifyInvoiceReadOutcome,
   decideStampRetry,
@@ -339,7 +339,9 @@ export async function handleRequest(
       if (row.operation === "stamp") {
         const { data: invRowFull, error: invReadErr } = await admin
           .from("invoices")
-          .select("cfdi_status, cfdi_uuid, organization_id")
+          .select(
+            "cfdi_status, cfdi_uuid, facturapi_invoice_id, organization_id",
+          )
           .eq("id", row.invoice_id)
           .maybeSingle();
         // 8.8.7: un fallo TRANSITORIO al leer la factura (BD no disponible)
@@ -436,45 +438,48 @@ export async function handleRequest(
         try {
           if (apiKey) {
             const pacClient = createFacturapiClient(apiKey);
-            const listFn = (pacClient.invoices as unknown as {
-              list?: (q: Record<string, unknown>) => Promise<unknown>;
-            }).list;
-            if (typeof listFn === "function") {
-              const res = await retryOnFacturapi5xx(() =>
-                listFn.call(pacClient.invoices, {
-                  external_id: row.invoice_id,
-                  limit: 5,
-                }) as Promise<unknown>
-              );
-              const data = ((res as { data?: unknown }).data ?? []) as Array<
-                Record<string, unknown>
-              >;
-              const hit = data.find((d) =>
-                String((d as { external_id?: unknown }).external_id ?? "") ===
-                  row.invoice_id
-              );
-              if (
-                hit && typeof hit.id === "string" &&
-                typeof hit.uuid === "string"
-              ) {
-                await admin.from("invoices")
-                  .update({
-                    facturapi_invoice_id: hit.id,
-                    cfdi_uuid: hit.uuid,
-                    cfdi_status: "stamping", // reconcile descarga el XML y cierra
-                  })
-                  .eq("id", row.invoice_id);
-                await markQueueRow(admin, row.id, {
-                  status: "succeeded",
-                  attempts: nextAttempts,
-                  last_error: null,
-                });
-                results.push({
-                  id: row.id,
-                  status: "succeeded_recovered_from_pac",
-                });
-                continue;
-              }
+            const pac = await lookupPacInvoice(
+              pacClient,
+              row.invoice_id,
+              st?.facturapi_invoice_id ?? null,
+            );
+            if (pac.kind === "hit" || pac.kind === "pending") {
+              await admin.from("invoices").update({
+                facturapi_invoice_id: pac.facturapi_id,
+                ...(pac.kind === "hit" ? { cfdi_uuid: pac.uuid } : {}),
+                cfdi_status: "stamping",
+              }).eq("id", row.invoice_id);
+              await markQueueRow(admin, row.id, {
+                status: "succeeded",
+                attempts: nextAttempts,
+                last_error: null,
+              });
+              results.push({
+                id: row.id,
+                status: pac.kind === "hit"
+                  ? "succeeded_recovered_from_pac"
+                  : "succeeded_pac_pending",
+              });
+              continue;
+            }
+            if (pac.kind === "failed") {
+              await admin.from("invoices").update({
+                facturapi_invoice_id: pac.facturapi_id,
+                cfdi_status: "error",
+                cfdi_error_message:
+                  "Facturapi confirmó fallo del timbrado. Revisión manual requerida.",
+              }).eq("id", row.invoice_id);
+              await markQueueRow(admin, row.id, {
+                status: "exhausted",
+                attempts: nextAttempts,
+                last_error:
+                  "Facturapi confirmó fallo; revisión manual requerida",
+              });
+              results.push({ id: row.id, status: "pac_failed_manual_review" });
+              continue;
+            }
+            if (pac.kind === "lookup_failed") {
+              throw new Error("Facturapi lookup inconcluso");
             }
           }
         } catch (lookupErr) {

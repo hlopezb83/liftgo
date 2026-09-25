@@ -1,8 +1,10 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { translateFacturapiError } from "../../../lib/facturapiErrors";
 import { notifyCfdiError } from "../../../lib/notifyCfdiError";
+import { isPacPending } from "../../../lib/pacPending";
 import { invoiceKeys } from "../../../lib/queryKeys";
 
 interface StampCfdiResponse {
@@ -32,6 +34,7 @@ function isBenignStampError(raw: string): boolean {
  * códigos de error de Facturapi sin renunciar a la invalidación estándar.
  */
 export function useStampCfdi() {
+  const queryClient = useQueryClient();
   return useEntityMutation<string, StampCfdiResponse>({
     mutationFn: async (invoiceId) => {
       return await invokeEdgeFunction<StampCfdiResponse>("stamp-cfdi", {
@@ -45,7 +48,12 @@ export function useStampCfdi() {
       const raw = error instanceof Error ? error.message : String(error);
       return translateFacturapiError(raw);
     },
-    onError: (error) => {
+    onError: (error, invoiceId) => {
+      if (isPacPending(error)) {
+        notifyInfo("Facturapi aceptó el CFDI. El UUID aparecerá cuando concluya el timbrado.");
+        void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
+        return true;
+      }
       const raw = error instanceof Error ? error.message : String(error);
       if (isBenignStampError(raw)) {
         notifyInfo("El timbrado ya está en proceso; actualizando estado…");

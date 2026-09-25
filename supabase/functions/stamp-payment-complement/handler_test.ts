@@ -240,6 +240,51 @@ Deno.test("handler: happy path calls Facturapi and persists REP", async () => {
   }
 });
 
+Deno.test("handler: Facturapi 202 preserves REP without marking it stamped", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": () =>
+      new Response(
+        JSON.stringify({ id: "fapi_rep_pending", status: "pending" }),
+        {
+          status: 202,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          payments: { data: VALID_PAYMENT, error: null },
+          invoices: { data: VALID_INVOICE, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { payments: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID }),
+      deps,
+    );
+    assertEquals(res.status, 202);
+    assertEquals((await res.json()).code, "PAC_PENDING");
+    assertEquals(mock.calls.length, 1);
+    const pending = serviceState.updates.find((u) =>
+      u.table === "payments" && u.patch.rep_facturapi_id === "fapi_rep_pending"
+    );
+    assert(pending);
+    assertEquals(pending.patch.rep_cfdi_status, "stamping");
+  } finally {
+    mock.restore();
+  }
+});
+
 Deno.test("handler: Facturapi 400 returns 502 and marks REP as error", async () => {
   const mock = installFacturapiMock({
     "/invoices": () => facturapiBadRequest("Invalid"),

@@ -474,6 +474,60 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
   }
 });
 
+Deno.test("handler: Facturapi 202 preserves NC without downloading files", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": () =>
+      new Response(
+        JSON.stringify({ id: "fapi_nc_pending", status: "pending" }),
+        {
+          status: 202,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+  });
+  try {
+    const ncData = { ...VALID_CREDIT_NOTE };
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: { data: ncData, error: null },
+          invoices: { data: STAMPED_INVOICE, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+        },
+        selectsSeq: {
+          credit_notes: [{ data: ncData, error: null }, {
+            data: [],
+            error: null,
+          }],
+        },
+        updatesSeq: { credit_notes: [{ data: { id: NC_ID }, error: null }] },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    assertEquals(res.status, 202);
+    assertEquals((await res.json()).code, "PAC_PENDING");
+    assertEquals(mock.calls.length, 1);
+    const pending = serviceState.updates.find((u) =>
+      u.table === "credit_notes" &&
+      u.patch.facturapi_invoice_id === "fapi_nc_pending"
+    );
+    assert(pending);
+    assertEquals(pending.patch.cfdi_status, "stamping");
+  } finally {
+    mock.restore();
+  }
+});
+
 Deno.test(
   "handler: Facturapi 400 returns 502 and marks credit note as error",
   async () => {

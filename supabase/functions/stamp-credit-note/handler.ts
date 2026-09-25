@@ -20,6 +20,7 @@ import {
   getFacturapiConfigForOrganization,
   isFacturapiConfigError,
 } from "../_shared/facturapi/client.ts";
+import { classifyPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   isFacturapiTimeout,
@@ -130,6 +131,16 @@ export async function handleStampCreditNote(
         uuid: initialNcRow.cfdi_uuid,
       });
       return json({ error: "Credit note already stamped" }, 409, jsonHeaders);
+    }
+    if (initialNcRow.facturapi_invoice_id) {
+      return json(
+        {
+          error:
+            "La NC ya tiene un ID de Facturapi. Espera la conciliación o revisa su estado antes de reemitir.",
+        },
+        409,
+        jsonHeaders,
+      );
     }
     // Claim + snapshot atómicos: la RPC bloquea la fila, cambia a stamping y
     // devuelve exactamente el contenido fiscal que se enviará al PAC.
@@ -477,7 +488,8 @@ export async function handleStampCreditNote(
 
     let fa: {
       id: string;
-      uuid: string;
+      uuid?: string;
+      status?: string;
       folio_number?: number | string | null;
     };
     try {
@@ -485,7 +497,8 @@ export async function handleStampCreditNote(
         createInvoiceWithSignal(client, payload, { signal })
       )) as {
         id: string;
-        uuid: string;
+        uuid?: string;
+        status?: string;
         folio_number?: number | string | null;
       };
     } catch (err) {
@@ -536,10 +549,32 @@ export async function handleStampCreditNote(
     // referencias para dejar la NC en 'stamping' (reconciliable) en vez de
     // reabrirla para un reintento que duplicaría el timbre.
     pacEmitted = true;
-    const facturApiId = fa.id;
-    const cfdiUuid = fa.uuid;
-    emittedFacturapiId = facturApiId;
-    emittedCfdiUuid = cfdiUuid;
+    const pacResult = classifyPacInvoice(fa);
+    emittedFacturapiId = typeof fa.id === "string" ? fa.id : null;
+    emittedCfdiUuid = typeof fa.uuid === "string" ? fa.uuid : null;
+    if (pacResult.kind !== "hit") {
+      await supabase.from("credit_notes").update({
+        ...(emittedFacturapiId
+          ? { facturapi_invoice_id: emittedFacturapiId }
+          : {}),
+        cfdi_status: pacResult.kind === "failed" ? "error" : "stamping",
+        cfdi_error_message: pacResult.kind === "pending"
+          ? "Facturapi aceptó la NC; timbrado pendiente de resolución."
+          : "Respuesta de Facturapi sin UUID válido. Revisar antes de reemitir.",
+      }).eq("id", credit_note_id).eq("cfdi_status", "stamping");
+      return json(
+        {
+          error: pacResult.kind === "pending"
+            ? "Facturapi aceptó la NC; timbrado pendiente de resolución."
+            : "Facturapi no devolvió un UUID válido; requiere conciliación.",
+          code: pacResult.kind === "pending" ? "PAC_PENDING" : "PAC_INCOMPLETE",
+        },
+        pacResult.kind === "pending" ? 202 : 502,
+        jsonHeaders,
+      );
+    }
+    const facturApiId = pacResult.facturapi_id;
+    const cfdiUuid = pacResult.uuid;
 
     let xmlPath: string | null = null;
     let pdfPath: string | null = null;

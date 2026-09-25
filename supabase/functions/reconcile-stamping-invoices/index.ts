@@ -29,6 +29,7 @@ import {
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
+import { lookupPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import {
   groupByOrganization,
   resolveCallerOrganization,
@@ -401,39 +402,13 @@ async function handleRequest(req: Request): Promise<Response> {
         // R12-B2 / TESTS-ARQ2 DIFF 2: la decisión (recover vs retry vs revert)
         // vive en `decisions.ts`; aquí solo materializamos la consulta al PAC y
         // aplicamos la acción resuelta.
-        let pac: PacLookup = { kind: "miss" };
+        let pac: PacLookup = { kind: "lookup_failed" };
         try {
-          const listFn = (client.invoices as unknown as {
-            list?: (q: Record<string, unknown>) => Promise<unknown>;
-          }).list;
-          if (typeof listFn === "function") {
-            const res = await retryOnFacturapi5xx(() =>
-              listFn.call(client.invoices, {
-                external_id: row.id,
-                limit: 5,
-              }) as Promise<
-                unknown
-              >
-            );
-            const data = ((res as { data?: unknown }).data ?? []) as Array<
-              Record<string, unknown>
-            >;
-            // Match estricto: external_id === row.id.
-            const hit = data.find((d) =>
-              String((d as { external_id?: unknown }).external_id ?? "") ===
-                row.id
-            );
-            if (
-              hit && typeof hit.id === "string" && typeof hit.uuid === "string"
-            ) {
-              pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
-            }
-          } else {
-            // N5: el SDK no expone invoices.list → NO es un "miss" (nunca se
-            // consultó al PAC). lookup_failed: difiere sin consumir el
-            // presupuesto de misses y jamás revierte sin haber consultado.
-            pac = { kind: "lookup_failed" };
-          }
+          pac = await lookupPacInvoice(
+            client,
+            row.id,
+            row.facturapi_invoice_id,
+          );
         } catch (err) {
           console.error("[reconcile-stamping] lookup by external_id failed", {
             invoice_id: row.id,
@@ -453,6 +428,28 @@ async function handleRequest(req: Request): Promise<Response> {
             })
             .eq("id", row.id);
           results.push({ invoice_id: row.id, status: "recovered_from_pac" });
+          continue;
+        }
+        if (action.kind === "pending") {
+          await admin.from("invoices").update({
+            facturapi_invoice_id: action.facturapi_id,
+            cfdi_error_message:
+              "Facturapi aceptó el CFDI; timbrado pendiente de resolución.",
+          }).eq("id", row.id);
+          results.push({ invoice_id: row.id, status: "pac_pending" });
+          continue;
+        }
+        if (action.kind === "manual_review") {
+          await admin.from("invoices").update({
+            facturapi_invoice_id: action.facturapi_id,
+            cfdi_status: "error",
+            cfdi_error_message:
+              "Facturapi confirmó fallo del timbrado. Revisar el comprobante antes de volver a emitir.",
+          }).eq("id", row.id);
+          results.push({
+            invoice_id: row.id,
+            status: "pac_failed_manual_review",
+          });
           continue;
         }
         if (action.kind === "retry_lookup") {
@@ -659,37 +656,9 @@ async function handleRequest(req: Request): Promise<Response> {
 
       // R12-B2 (payments): sin ids persistidos, lookup al PAC por external_id.
       if (!facturapiId || !repUuid) {
-        let pac: PacLookup = { kind: "miss" };
+        let pac: PacLookup = { kind: "lookup_failed" };
         try {
-          const listFn = (client.invoices as unknown as {
-            list?: (q: Record<string, unknown>) => Promise<unknown>;
-          }).list;
-          if (typeof listFn === "function") {
-            const res = await retryOnFacturapi5xx(() =>
-              listFn.call(client.invoices, {
-                external_id: paymentId,
-                limit: 5,
-              }) as Promise<
-                unknown
-              >
-            );
-            const data = ((res as { data?: unknown }).data ?? []) as Array<
-              Record<string, unknown>
-            >;
-            const hit = data.find((d) =>
-              String((d as { external_id?: unknown }).external_id ?? "") ===
-                paymentId
-            );
-            if (
-              hit && typeof hit.id === "string" && typeof hit.uuid === "string"
-            ) {
-              pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
-            }
-          } else {
-            // N5: SDK sin invoices.list → lookup_failed (nunca revertir sin
-            // haber consultado al PAC).
-            pac = { kind: "lookup_failed" };
-          }
+          pac = await lookupPacInvoice(client, paymentId, facturapiId);
         } catch (err) {
           pac = { kind: "lookup_failed" };
           console.error("[reconcile-stamping] REP lookup failed", {
@@ -710,6 +679,26 @@ async function handleRequest(req: Request): Promise<Response> {
               rep_lookup_attempts: 0, // racha de misses consecutivos: reset
             })
             .eq("id", paymentId);
+        } else if (outcome.kind === "pending") {
+          await admin.from("payments").update({
+            rep_facturapi_id: outcome.facturapi_id,
+            rep_error_message:
+              "Facturapi aceptó el REP; timbrado pendiente de resolución.",
+          }).eq("id", paymentId);
+          results.push({ invoice_id: paymentId, status: "rep_pac_pending" });
+          continue;
+        } else if (outcome.kind === "manual_review") {
+          await admin.from("payments").update({
+            rep_facturapi_id: outcome.facturapi_id,
+            rep_cfdi_status: "error",
+            rep_error_message:
+              "Facturapi confirmó fallo del REP. Revisar el comprobante antes de volver a emitir.",
+          }).eq("id", paymentId);
+          results.push({
+            invoice_id: paymentId,
+            status: "rep_pac_failed_manual_review",
+          });
+          continue;
         } else if (outcome.kind === "defer") {
           // N9: solo un miss REAL incrementa el contador; lookup_failed no.
           if (outcome.consume_attempt) {
@@ -931,37 +920,9 @@ async function handleRequest(req: Request): Promise<Response> {
       let ncUuid = nc.cfdi_uuid as string | null;
 
       if (!facturapiId || !ncUuid) {
-        let pac: PacLookup = { kind: "miss" };
+        let pac: PacLookup = { kind: "lookup_failed" };
         try {
-          const listFn = (client.invoices as unknown as {
-            list?: (q: Record<string, unknown>) => Promise<unknown>;
-          }).list;
-          if (typeof listFn === "function") {
-            const res = await retryOnFacturapi5xx(() =>
-              listFn.call(client.invoices, {
-                external_id: ncId,
-                limit: 5,
-              }) as Promise<
-                unknown
-              >
-            );
-            const data = ((res as { data?: unknown }).data ?? []) as Array<
-              Record<string, unknown>
-            >;
-            const hit = data.find((d) =>
-              String((d as { external_id?: unknown }).external_id ?? "") ===
-                ncId
-            );
-            if (
-              hit && typeof hit.id === "string" && typeof hit.uuid === "string"
-            ) {
-              pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
-            }
-          } else {
-            // N5: SDK sin invoices.list → lookup_failed (nunca revertir sin
-            // haber consultado al PAC).
-            pac = { kind: "lookup_failed" };
-          }
+          pac = await lookupPacInvoice(client, ncId, facturapiId);
         } catch (err) {
           pac = { kind: "lookup_failed" };
           console.error("[reconcile-stamping] NC lookup failed", {
@@ -982,6 +943,26 @@ async function handleRequest(req: Request): Promise<Response> {
               lookup_attempts: 0, // racha de misses consecutivos: reset
             })
             .eq("id", ncId);
+        } else if (outcome.kind === "pending") {
+          await admin.from("credit_notes").update({
+            facturapi_invoice_id: outcome.facturapi_id,
+            cfdi_error_message:
+              "Facturapi aceptó la NC; timbrado pendiente de resolución.",
+          }).eq("id", ncId);
+          results.push({ invoice_id: ncId, status: "nc_pac_pending" });
+          continue;
+        } else if (outcome.kind === "manual_review") {
+          await admin.from("credit_notes").update({
+            facturapi_invoice_id: outcome.facturapi_id,
+            cfdi_status: "error",
+            cfdi_error_message:
+              "Facturapi confirmó fallo de la NC. Revisar el comprobante antes de volver a emitir.",
+          }).eq("id", ncId);
+          results.push({
+            invoice_id: ncId,
+            status: "nc_pac_failed_manual_review",
+          });
+          continue;
         } else if (outcome.kind === "defer") {
           // N9: solo un miss REAL incrementa el contador; lookup_failed no.
           if (outcome.consume_attempt) {

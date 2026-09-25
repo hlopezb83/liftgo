@@ -56,6 +56,43 @@ Deno.test("R12-B2: PAC lookup falló → retry en próximo cron (no revert)", ()
   );
 });
 
+Deno.test("202 pending no consume intentos; failed exige revisión sin reemisión", () => {
+  const row = {
+    id: "local-1",
+    cfdi_uuid: null,
+    facturapi_invoice_id: "pac-1",
+    stamping_attempts: MAX_STAMPING_ATTEMPTS,
+  };
+  assertEquals(
+    decideRowAction(row, { kind: "pending", facturapi_id: "pac-1" }),
+    {
+      kind: "pending",
+      facturapi_id: "pac-1",
+    },
+  );
+  assertEquals(
+    decideRowAction(row, { kind: "failed", facturapi_id: "pac-1" }),
+    {
+      kind: "manual_review",
+      facturapi_id: "pac-1",
+    },
+  );
+  assertEquals(
+    decideLookupOutcome({ kind: "pending", facturapi_id: "pac-1" }, 99),
+    {
+      kind: "pending",
+      facturapi_id: "pac-1",
+    },
+  );
+  assertEquals(
+    decideLookupOutcome({ kind: "failed", facturapi_id: "pac-1" }, 99),
+    {
+      kind: "manual_review",
+      facturapi_id: "pac-1",
+    },
+  );
+});
+
 Deno.test("H6: primer 'miss' del PAC → retry_lookup (no revierte todavía)", () => {
   assertEquals(
     decideRowAction(
