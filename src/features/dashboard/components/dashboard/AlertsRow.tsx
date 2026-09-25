@@ -53,9 +53,15 @@ interface AlertsRowProps {
   overdueBookings: OverdueBooking[];
   /** Entregas programadas con fecha ya pasada que nadie cerró. */
   pendingDeliveriesCount?: number;
+  canManageInvoices: boolean;
+  canManageReturns: boolean;
+  canManageMaintenance: boolean;
 }
 
-export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings, pendingDeliveriesCount = 0 }: AlertsRowProps) {
+export function AlertsRow({
+  overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings,
+  pendingDeliveriesCount = 0, canManageInvoices, canManageReturns, canManageMaintenance,
+}: AlertsRowProps) {
   const navigate = useNavigateTransition();
 
   if (
@@ -134,7 +140,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               onClick={() => navigate(`/invoices/${inv.id}`)}
               rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(pendingAmountMxn(inv))}</span>}
               rightBottom={`Vence: ${formatDateMty(inv.due_date)}`}
-              action={{
+              action={canManageInvoices ? {
                 icon: PaymentIcon,
                 title: "Registrar pago",
                 onClick: (e) => {
@@ -142,7 +148,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
                   navigate(`/invoices/${inv.id}`);
                 },
                 className: "text-status-available",
-              }}
+              } : undefined}
             />
           ))}
         </AlertCard>
@@ -172,15 +178,17 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               key={ob.booking_id}
               primary={ob.forklift_name}
               secondary={ob.customer_name}
-              onClick={() => navigate(`/returns?booking_id=${ob.booking_id}`)}
+              onClick={() => navigate(canManageReturns
+                ? `/returns?booking_id=${ob.booking_id}`
+                : `/bookings/${ob.booking_id}`)}
               rightTop={<span className="tabular-nums font-semibold text-warning whitespace-nowrap">{ob.days_overdue} días</span>}
               rightBottom={`Venció: ${formatDateMty(ob.end_date)}`}
-              action={{
+              action={canManageReturns ? {
                 icon: ClipboardList,
                 title: "Registrar devolución",
                 onClick: (e) => { e.stopPropagation(); navigate(`/returns?booking_id=${ob.booking_id}`); },
                 className: "text-warning",
-              }}
+              } : undefined}
             />
           ))}
         </AlertCard>
@@ -196,12 +204,12 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               primary={a.forkliftName}
               onClick={() => navigate(`/fleet/${a.forkliftId}`)}
               rightTop={<span className="text-xs text-muted-foreground">Vence: {a.nextDate}</span>}
-              action={{
+              action={canManageMaintenance ? {
                 icon: ClipboardList,
                 title: "Registrar servicio",
                 onClick: (e) => { e.stopPropagation(); navigate("/maintenance"); },
                 className: "text-status-maintenance",
-              }}
+              } : undefined}
             />
           ))}
         </AlertCard>

@@ -53,6 +53,9 @@ export function AlertRow({ primary, secondary, rightTop, rightBottom, onClick, a
       className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       onClick={onClick}
       onKeyDown={(e) => {
+        // A focused action button handles its own key press; do not also open
+        // the parent row (which may lead to a different page).
+        if (e.target !== e.currentTarget) return;
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           onClick();

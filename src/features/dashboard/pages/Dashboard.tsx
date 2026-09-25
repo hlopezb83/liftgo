@@ -3,6 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useHasModuleAccess } from "@/features/users";
 import { DashboardAlertsSection } from "../components/dashboard/DashboardAlertsSection";
 import { DashboardChartsSection } from "../components/dashboard/DashboardChartsSection";
 import { FinancialKpiCards } from "../components/dashboard/FinancialKpiCards";
@@ -18,6 +19,9 @@ function DashboardSectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 export default function Dashboard() {
+  const canManageInvoices = useHasModuleAccess("Facturas", "full");
+  const canManageReturns = useHasModuleAccess("Entregas", "full");
+  const canManageMaintenance = useHasModuleAccess("Mantenimiento", "full");
   const {
     isLoading, isError, isFetching, refetch, insuranceData,
     statCards, utilizationPercent,
@@ -118,6 +122,9 @@ export default function Dashboard() {
               insuranceData={insuranceData}
               pendingDeliveriesCount={pendingDeliveriesCount}
               canSeeFinancials={canSeeFinancials}
+              canManageInvoices={canManageInvoices}
+              canManageReturns={canManageReturns}
+              canManageMaintenance={canManageMaintenance}
               {...alertsProps}
             />
           </div>

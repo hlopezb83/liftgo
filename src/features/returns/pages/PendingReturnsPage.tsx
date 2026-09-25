@@ -13,21 +13,19 @@ import { nowMty, parseDateLocal } from "@/lib/utils";
 import { usePendingReturns } from "../hooks/usePendingReturns";
 
 /**
- * /returns/pending — Montacargas cuya reserva ya terminó y siguen sin regresar
- * al almacén (sin `return_inspection` registrada). Fuente única de verdad para
- * las alertas de "Rentas Vencidas" del dashboard.
+ * /returns/pending — Reservas vencidas con entrega completada y devolución
+ * pendiente. El dashboard aplica los mismos requisitos de elegibilidad.
  */
 export default function PendingReturnsPage() {
   const canWrite = useHasModuleAccess("Entregas", "full");
   const navigate = useNavigateTransition();
-  // Query dedicada server-side (status/return_status/end_date filtrados en
+  // Query dedicada server-side (estado, entrega y fechas filtrados en
   // PostgREST, orden end_date ASC): el listado genérico de useBookings está
   // truncado (LIMIT) y ordenado por start_date DESC, lo que hacía desaparecer
   // de esta página los retornos más vencidos.
   const { data: pendingReturns, isLoading, isError, refetch } = usePendingReturns();
 
-  // Alineado con get_dashboard_stats(): return_status IS DISTINCT FROM 'returned'
-  // y end_date < CURRENT_DATE (America/Monterrey), sin incluir el día actual.
+  // Alineado con get_dashboard_stats(): fin < hoy (America/Monterrey).
   const today = nowMty();
   today.setHours(0, 0, 0, 0);
 
@@ -105,14 +103,14 @@ export default function PendingReturnsPage() {
   return (
     <ListPageLayout
       title="Retornos Pendientes"
-      subtitle="Montacargas con reserva vencida que siguen sin regresar al almacén"
+      subtitle="Equipos entregados cuya reserva venció y esperan devolución"
       totalCount={pending.length}
       isLoading={isLoading}
       isError={isError}
       onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
-      emptyMessage="No hay retornos pendientes — toda la flota rentada está al corriente"
+      emptyMessage="No hay devoluciones vencidas pendientes"
       emptyActionLabel={canWrite ? "Registrar devolución" : undefined}
       onEmptyAction={canWrite ? () => navigate("/returns") : undefined}
       mobileCardRender={(b) => {
