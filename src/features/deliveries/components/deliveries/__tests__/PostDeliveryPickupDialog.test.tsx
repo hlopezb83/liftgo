@@ -52,13 +52,13 @@ describe("PostDeliveryPickupDialog", () => {
     openForm();
     fireEvent.change(screen.getByRole("textbox", { name: "Notas" }), { target: { value: "Acceso por patio norte" } });
     if (action === "Escape") fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
-    else fireEvent.click(screen.getByRole("button", { name: action, exact: true }));
+    else fireEvent.click(screen.getByRole("button", { name: action }));
     expect(screen.getByText("¿Descartar cambios?")).toBeInTheDocument();
     expect(onOpenChange).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Seguir editando" }));
     expect(screen.getByRole("textbox", { name: "Notas" })).toHaveValue("Acceso por patio norte");
-    fireEvent.click(screen.getByRole("button", { name: "Cancelar", exact: true }));
-    fireEvent.click(screen.getByRole("button", { name: "Descartar", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(mutation.mutate).not.toHaveBeenCalled();
   });
@@ -70,7 +70,7 @@ describe("PostDeliveryPickupDialog", () => {
     rerender(<PostDeliveryPickupDialog {...props} />);
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Guardando…" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "Cerrar", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar" }));
     fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
     const form = screen.getByRole("textbox", { name: "Notas" }).closest("form");
     if (!form) throw new Error("Formulario ausente");
