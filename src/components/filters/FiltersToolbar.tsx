@@ -24,7 +24,8 @@ import type { DateRange } from "react-day-picker";
  * Convenciones de UX (v7.62.0):
  * - Los filtros van en una sola fila responsive (wrap en móvil).
  * - Búsqueda a la izquierda, facetas en el centro, "Limpiar" a la derecha.
- * - Status con ≤5 opciones → `<Tabs>`; con >5 → `<Select>`.
+ * - Status con ≤5 opciones → `<Tabs>` en escritorio, `<Select>` en ancho estrecho.
+ * - Status con >5 opciones → `<Select>` en todos los anchos.
  * - El botón "Limpiar filtros" sólo aparece si hay filtros activos.
  */
 
@@ -78,25 +79,48 @@ function StatusTabs<V extends string>({
   options,
   className,
 }: StatusTabsProps<V>) {
+  if (options.length > 5) {
+    return (
+      <StatusSelect
+        value={value}
+        onChange={onChange}
+        options={options}
+        ariaLabel="Filtrar por estado"
+        className={className}
+      />
+    );
+  }
+
   return (
-    <Tabs
-      value={value}
-      onValueChange={(v) => onChange(v as V | "all")}
-      className={cn("w-full sm:w-auto overflow-x-auto", className)}
-    >
-      <TabsList className="whitespace-nowrap">
-        {options.map((opt) => (
-          <TabsTrigger
-            key={opt.value}
-            value={opt.value}
-            data-testid={`status-tab-${opt.value}`}
-            className="data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:ring-1 data-[state=active]:ring-border"
-          >
-            {opt.label}
-          </TabsTrigger>
-        ))}
-      </TabsList>
-    </Tabs>
+    <>
+      <div className={cn("w-full lg:hidden", className)}>
+        <StatusSelect
+          value={value}
+          onChange={onChange}
+          options={options}
+          ariaLabel="Filtrar por estado"
+          className="w-full sm:w-full"
+        />
+      </div>
+      <Tabs
+        value={value}
+        onValueChange={(v) => onChange(v as V | "all")}
+        className={cn("hidden w-full overflow-x-auto lg:block lg:w-auto", className)}
+      >
+        <TabsList className="whitespace-nowrap">
+          {options.map((opt) => (
+            <TabsTrigger
+              key={opt.value}
+              value={opt.value}
+              data-testid={`status-tab-${opt.value}`}
+              className="data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:ring-1 data-[state=active]:ring-border"
+            >
+              {opt.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </>
   );
 }
 
@@ -106,6 +130,7 @@ interface StatusSelectProps<V extends string> {
   options: readonly { value: V | "all"; label: string }[];
   placeholder?: string;
   className?: string;
+  ariaLabel?: string;
 }
 
 function StatusSelect<V extends string>({
@@ -114,10 +139,11 @@ function StatusSelect<V extends string>({
   options,
   placeholder,
   className,
+  ariaLabel,
 }: StatusSelectProps<V>) {
   return (
     <Select value={value} onValueChange={(v) => onChange(v as V | "all")}>
-      <SelectTrigger className={cn("w-full sm:w-48", className)}>
+      <SelectTrigger aria-label={ariaLabel} className={cn("w-full sm:w-48", className)}>
         <SelectValue placeholder={placeholder ?? "Todos"} />
       </SelectTrigger>
       <SelectContent>
