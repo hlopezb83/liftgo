@@ -1,4 +1,16 @@
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+
+function subscribeToConnectivity(onChange: () => void) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
+const getOnlineSnapshot = () => navigator.onLine;
+const getServerSnapshot = () => true;
 
 /**
  * R6-FE-10 (offline consolidado ×4): banner "Sin conexión" global.
@@ -8,19 +20,7 @@ export function OfflineBanner() {
   // SSR-safe: el servidor no conoce la conectividad del cliente; se asume
   // online (banner oculto) y el estado real se sincroniza tras la hidratación
   // para no provocar mismatch de HTML servidor/cliente.
-  const [online, setOnline] = useState(true);
-
-  useEffect(() => {
-    setOnline(navigator.onLine);
-    const onOnline = () => setOnline(true);
-    const onOffline = () => setOnline(false);
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
-    return () => {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
-    };
-  }, []);
+  const online = useSyncExternalStore(subscribeToConnectivity, getOnlineSnapshot, getServerSnapshot);
 
   if (online) return null;
   return (

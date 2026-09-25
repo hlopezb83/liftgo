@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { preserveUntouched } from "../CustomerFormDialog";
+import { preserveUntouched } from "../../../lib/preserveUntouched";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
 
 const base = {

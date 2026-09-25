@@ -109,12 +109,12 @@ function buildIdentityLabel(row: LabelProjectionRow): string | null {
 }
 
 export function buildLabel(row: LabelProjectionRow, recordId: string): string {
-  const first = (
-    buildIdentityLabel(row)
-    ?? row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote ?? row.new_delivery
-    ?? row.old_name ?? row.old_booking ?? row.old_contract ?? row.old_invoice ?? row.old_quote ?? row.old_delivery
-    ?? row.new_desc ?? row.old_desc
-  );
+  const first = [
+    buildIdentityLabel(row),
+    row.new_name, row.new_booking, row.new_contract, row.new_invoice, row.new_quote, row.new_delivery,
+    row.old_name, row.old_booking, row.old_contract, row.old_invoice, row.old_quote, row.old_delivery,
+    row.new_desc, row.old_desc,
+  ].find((value) => value != null);
   if (!first) return recordId.slice(0, 8);
   return first.length > 30 ? first.slice(0, 30) : first;
 }

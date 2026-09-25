@@ -9,6 +9,11 @@ puede escribir en producción, no corre solo.
 Dos jobs base + condicionales. Sin `schedule`. Las corridas obsoletas de la
 misma rama se cancelan.
 
+Los workflows fijan `ubuntu-24.04` para mantener el sistema operativo validado
+y evitar la migración automática de `ubuntu-latest`. El job de calidad usa
+`bun run lint --max-warnings=0`: tanto errores como advertencias de ESLint
+bloquean la integración. Los avisos informativos de pruebas aprobadas se conservan.
+
 | Job | Corre | Qué protege |
 | --- | --- | --- |
 | `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build y **smoke de arranque** |
@@ -227,7 +232,7 @@ Validación extendida a mano: `bun run changelog:check`.
 ## Comandos locales equivalentes
 
 ```bash
-bun run lint && bun run typecheck && bun run arch:check
+bun run lint --max-warnings=0 && bun run typecheck && bun run arch:check
 bun run knip                    # archivos/dependencias sin uso (no corre en CI)
 bun run test:coverage
 bun run build && bun run test:e2e:smoke

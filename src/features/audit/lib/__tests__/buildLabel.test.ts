@@ -55,4 +55,15 @@ describe("buildLabel — etiquetas de bitácora (R9-P2-05)", () => {
   it("cae al identificador corto sólo cuando no hay ninguna fuente", () => {
     expect(buildLabel({ ...empty, table_name: "user_roles" }, "dddddddd-2222")).toBe("dddddddd");
   });
+
+  it("conserva la prioridad de datos nuevos y el límite de 30 caracteres", () => {
+    const name = "Nombre de equipo con más de treinta caracteres";
+    expect(buildLabel({ ...empty, new_name: name, new_quote: "COT-0042", old_name: "Anterior" }, "id"))
+      .toBe(name.slice(0, 30));
+  });
+
+  it("un nombre vacío usa el identificador sin rescatar un valor anterior", () => {
+    expect(buildLabel({ ...empty, new_name: "", old_name: "Nombre borrado" }, "abcdefgh-1234"))
+      .toBe("abcdefgh");
+  });
 });
