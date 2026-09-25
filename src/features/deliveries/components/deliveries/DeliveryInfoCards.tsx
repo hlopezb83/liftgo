@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { InfoRow } from "@/components/forms/InfoRow";
 import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasModuleAccess } from "@/features/users";
@@ -6,18 +7,6 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 import { parseDateLocal, formatDateRange } from "@/lib/utils";
-import type { ReactNode } from "react";
-
-interface InfoRowProps { label: string; value: ReactNode }
-
-function InfoRow({ label, value }: InfoRowProps) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <span className="shrink-0 text-sm text-muted-foreground">{label}</span>
-      <span className="min-w-0 max-w-[65%] break-words text-right text-sm font-medium">{value}</span>
-    </div>
-  );
-}
 
 interface DeliveryStatusCardProps {
   type: string;
