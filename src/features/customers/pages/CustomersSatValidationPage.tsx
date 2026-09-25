@@ -2,8 +2,9 @@
  * Validación masiva de la cartera contra el SAT (Constancia de Situación
  * Fiscal, vía el PAC). No consume timbre. Sólo Clientes con acceso `full`.
  */
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ROUTES } from "@/app-routes/routes";
+import { TablePagination } from "@/components/feedback/TablePagination";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
   useSatValidationOverview,
   useValidateCustomersTaxInfo,
+  SAT_VALIDATION_PAGE_SIZE,
   type SatValidationRow,
   type SatValidationStatus,
 } from "../hooks/customers/useSatValidation";
@@ -46,10 +48,6 @@ const STATUS_VARIANT: Record<
 };
 
 const VALIDATION_BATCH_LIMIT = 40;
-
-function countBy(rows: SatValidationRow[], status: SatValidationStatus): number {
-  return rows.filter((r) => r.sat_validation_status === status).length;
-}
 
 function validationDetail(row: SatValidationRow): string {
   const detail = row.sat_validation_errors.map((error) => error.message).filter(Boolean).join(" · ");
@@ -93,6 +91,41 @@ function SatValidationMobileResults({ rows }: { rows: SatValidationRow[] }) {
   );
 }
 
+function SatValidationDesktopResults({ rows }: { rows: SatValidationRow[] }) {
+  return (
+    <div className="hidden overflow-x-auto md:block">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Cliente</TableHead>
+            <TableHead>RFC</TableHead>
+            <TableHead>Estado</TableHead>
+            <TableHead>Última validación</TableHead>
+            <TableHead>Detalle</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row) => (
+            <TableRow key={row.id}>
+              <TableCell className="font-medium">{row.razon_social || row.name}</TableCell>
+              <TableCell className="font-mono text-xs">{row.rfc}</TableCell>
+              <TableCell>
+                <Badge variant={STATUS_VARIANT[row.sat_validation_status]}>
+                  {STATUS_LABEL[row.sat_validation_status]}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {row.sat_validated_at ? formatDateMty(row.sat_validated_at) : "—"}
+              </TableCell>
+              <TableCell className="text-xs">{validationDetail(row)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 interface SatValidationActionsProps {
   onlyPending: boolean;
   setOnlyPending: (value: boolean) => void;
@@ -120,14 +153,87 @@ function SatValidationActions({ onlyPending, setOnlyPending, batchCount, canRun,
   );
 }
 
-function SatValidationContent() {
-  const { data, isLoading, isError } = useSatValidationOverview();
-  const validate = useValidateCustomersTaxInfo();
-  const [onlyPending, setOnlyPending] = useState(true);
-  const rows = useMemo(() => data ?? [], [data]);
+function SatValidationMetrics({ data, loading }: {
+  data: { total: number; pending: number; mismatch: number; error: number } | undefined;
+  loading: boolean;
+}) {
+  const metrics = [
+    ["Total con RFC", data?.total ?? 0],
+    ["Sin validar", data?.pending ?? 0],
+    ["Con observaciones", data?.mismatch ?? 0],
+    ["Con error", data?.error ?? 0],
+  ] as const;
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {metrics.map(([label, value]) => (
+        <Card key={label}>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-medium text-muted-foreground">{label}</CardTitle>
+          </CardHeader>
+          <CardContent className="text-2xl font-semibold tabular-nums">
+            {loading ? "—" : value.toLocaleString("es-MX")}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
 
-  const pending = countBy(rows, "not_validated");
-  const batchCount = Math.min(VALIDATION_BATCH_LIMIT, onlyPending ? pending : rows.length);
+function SatValidationResults({ rows, total, page, onPageChange, isLoading, isError }: {
+  rows: SatValidationRow[];
+  total: number;
+  page: number;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
+  isError: boolean;
+}) {
+  const totalPages = Math.max(1, Math.ceil(total / SAT_VALIDATION_PAGE_SIZE));
+  const start = (page - 1) * SAT_VALIDATION_PAGE_SIZE + 1;
+  const end = start + rows.length - 1;
+  const ready = !isLoading && !isError;
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">Resultado por cliente</CardTitle></CardHeader>
+      <CardContent>
+        {isLoading && <p className="text-sm text-muted-foreground">Cargando cartera…</p>}
+        {isError && <p className="text-sm text-destructive">No se pudo cargar la cartera de clientes.</p>}
+        {ready && total === 0 && (
+          <p className="text-sm text-muted-foreground">No hay clientes con RFC registrado.</p>
+        )}
+        {ready && total > 0 && rows.length === 0 && (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">Esta página ya no tiene clientes.</p>
+            <Button variant="outline" size="sm" onClick={() => onPageChange(1)}>
+              Volver a la primera página
+            </Button>
+          </div>
+        )}
+        {ready && rows.length > 0 && (
+          <>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Mostrando {start.toLocaleString("es-MX")}–{end.toLocaleString("es-MX")} de {total.toLocaleString("es-MX")} clientes
+            </p>
+            <SatValidationMobileResults rows={rows} />
+            <SatValidationDesktopResults rows={rows} />
+          </>
+        )}
+        {ready && total > SAT_VALIDATION_PAGE_SIZE && (
+          <TablePagination page={Math.min(page, totalPages)} totalPages={totalPages} onPageChange={onPageChange} />
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function SatValidationContent() {
+  const [page, setPage] = useState(1);
+  const [onlyPending, setOnlyPending] = useState(true);
+  const { data, isLoading, isError } = useSatValidationOverview(page);
+  const validate = useValidateCustomersTaxInfo();
+  const rows = data?.rows ?? [];
+  const total = data?.total ?? 0;
+  const pending = data?.pending ?? 0;
+  const batchCount = Math.min(VALIDATION_BATCH_LIMIT, onlyPending ? pending : total);
   const canRun = !isLoading && !isError && !validate.isPending && batchCount > 0;
 
   const run = () => {
@@ -157,85 +263,8 @@ function SatValidationContent() {
           actions={<SatValidationActions onlyPending={onlyPending} setOnlyPending={setOnlyPending} batchCount={batchCount} canRun={canRun} isPending={validate.isPending} onRun={run} />}
         />
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {(
-            [
-              ["Total con RFC", rows.length],
-              ["Sin validar", pending],
-              ["Con observaciones", countBy(rows, "mismatch")],
-              ["Con error", countBy(rows, "error")],
-            ] as const
-          ).map(([label, value]) => (
-            <Card key={label}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium text-muted-foreground">
-                  {label}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-2xl font-semibold">{value}</CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Resultado por cliente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading && (
-              <p className="text-sm text-muted-foreground">Cargando cartera…</p>
-            )}
-            {isError && (
-              <p className="text-sm text-destructive">
-                No se pudo cargar la cartera de clientes.
-              </p>
-            )}
-            {!isLoading && !isError && rows.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No hay clientes con RFC registrado.
-              </p>
-            )}
-            {rows.length > 0 && (
-              <SatValidationMobileResults rows={rows} />
-            )}
-            {rows.length > 0 && (
-              <div className="hidden overflow-x-auto md:block">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>RFC</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Última validación</TableHead>
-                      <TableHead>Detalle</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {rows.map((r) => (
-                      <TableRow key={r.id}>
-                        <TableCell className="font-medium">
-                          {r.razon_social || r.name}
-                        </TableCell>
-                        <TableCell className="font-mono text-xs">{r.rfc}</TableCell>
-                        <TableCell>
-                          <Badge variant={STATUS_VARIANT[r.sat_validation_status]}>
-                            {STATUS_LABEL[r.sat_validation_status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {r.sat_validated_at ? formatDateMty(r.sat_validated_at) : "—"}
-                        </TableCell>
-                        <TableCell className="text-xs">
-                          {validationDetail(r)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SatValidationMetrics data={data} loading={isLoading || isError} />
+        <SatValidationResults rows={rows} total={total} page={page} onPageChange={setPage} isLoading={isLoading} isError={isError} />
       </div>
     </PageContainer>
   );
