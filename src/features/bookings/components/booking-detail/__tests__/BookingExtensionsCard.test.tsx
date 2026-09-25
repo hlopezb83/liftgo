@@ -24,7 +24,7 @@ function renderCard(ext: Record<string, unknown>) {
 describe("BookingExtensionsCard · extensión ya facturada", () => {
   it("mantiene visible el botón de facturar pero deshabilitado, junto a Ver factura", async () => {
     renderCard({ invoice_id: "inv-9" });
-    expect(await screen.findByRole("button", { name: /facturar extensión/i })).toBeDisabled();
+    expect(await screen.findByRole("button", { name: /facturar extensión/i })).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("button", { name: /ver factura/i })).toBeInTheDocument();
     expect(screen.getByText("Facturada")).toBeInTheDocument();
   });
@@ -37,7 +37,7 @@ describe("BookingExtensionsCard · extensión ya facturada", () => {
   it("muestra pendiente de emisión cuando la factura sigue en borrador", async () => {
     renderCard({ pending_invoice_id: "inv-draft" });
     expect(await screen.findByText("Pendiente de emisión")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /facturar extensión/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /facturar extensión/i })).toHaveAttribute("aria-disabled", "true");
     expect(screen.getByRole("button", { name: /ver factura/i })).toBeInTheDocument();
   });
 });

@@ -55,6 +55,6 @@ describe("DamageActionButtons · archivar bloqueado", () => {
       />,
     );
     const archive = screen.getByRole("button", { name: /archivar/i });
-    expect(archive).toBeDisabled();
+    expect(archive).toHaveAttribute("aria-disabled", "true");
   });
 });

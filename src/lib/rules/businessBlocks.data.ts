@@ -34,7 +34,10 @@ export type BusinessBlockCode =
   | "quote_sale_assignment_incomplete"
   | "supplier_bill_self_approval"
   | "customer_outstanding_balance"
-  | "booking_not_final_for_delete";
+  | "booking_not_final_for_delete"
+  | "booking_return_not_started"
+  | "booking_return_delivery_unverified"
+  | "booking_return_already_recorded";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
 export type BusinessBlockTone = "info" | "warning";
@@ -214,6 +217,24 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     action: "No puedes eliminar esta reserva",
     reason: "La reserva sigue confirmada (activa); sólo se pueden eliminar reservas canceladas o completadas.",
     nextStep: "Primero usa Cancelar y después podrás eliminarla.",
+    tone: "info",
+  },
+  booking_return_not_started: {
+    action: "Todavía no puedes registrar la devolución",
+    reason: "El periodo de renta aún no ha comenzado.",
+    nextStep: "Espera a la fecha de inicio y completa la entrega antes de registrar la devolución.",
+    tone: "info",
+  },
+  booking_return_delivery_unverified: {
+    action: "Todavía no puedes registrar la devolución",
+    reason: "La reserva no tiene una entrega completada.",
+    nextStep: "Completa la entrega del equipo antes de registrar su devolución.",
+    tone: "info",
+  },
+  booking_return_already_recorded: {
+    action: "No puedes registrar otra devolución",
+    reason: "Esta reserva ya tiene una devolución registrada.",
+    nextStep: "Consulta la devolución existente para revisar su estado.",
     tone: "info",
   },
 };
