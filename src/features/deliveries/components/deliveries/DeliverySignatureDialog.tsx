@@ -9,6 +9,7 @@ import { isMissingOperationalEvidence } from "../../lib/deliveryDetailHelpers";
 
 type Props = {
   open: boolean;
+  isPending?: boolean;
   onOpenChange: (open: boolean) => void;
   hoursReading: string;
   onHoursReadingChange: (value: string) => void;
@@ -21,6 +22,7 @@ type Props = {
 
 export function DeliverySignatureDialog({
   open,
+  isPending = false,
   onOpenChange,
   hoursReading,
   onHoursReadingChange,
@@ -40,7 +42,7 @@ export function DeliverySignatureDialog({
   }, [open]);
 
   const handleSkipSignature = () => {
-    if (belowMin) return;
+    if (isPending || belowMin) return;
     if (!isMissingOperationalEvidence(operatorName)) {
       // Hay operador asignado: el registro conserva evidencia operativa.
       onComplete();
@@ -50,7 +52,7 @@ export function DeliverySignatureDialog({
   };
 
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title="Firma del Cliente" width="lg">
+    <FormDialog open={open} onOpenChange={onOpenChange} isPending={isPending} title="Firma del Cliente" width="lg">
       <p className="text-sm text-muted-foreground">
         Solicite la firma del cliente para confirmar la entrega.
       </p>
@@ -58,6 +60,7 @@ export function DeliverySignatureDialog({
         <Label htmlFor="hours-reading">Lectura de Horómetro (horas)</Label>
         <Input
           id="hours-reading"
+          disabled={isPending}
           type="number"
           step="0.1"
           min={minHours ?? 0}
@@ -73,15 +76,16 @@ export function DeliverySignatureDialog({
         )}
       </div>
       <div className="mt-3">
-        <SignaturePad onSave={(base64) => !belowMin && onComplete(base64)} />
+        <SignaturePad disabled={isPending} onSave={(base64) => !isPending && !belowMin && onComplete(base64)} />
       </div>
+      {isPending && <p role="status" className="text-sm text-muted-foreground">Guardando transporte…</p>}
       {!omitting ? (
         <Button
           variant="link"
           size="sm"
           className="text-muted-foreground mt-2"
           onClick={handleSkipSignature}
-          disabled={belowMin}
+          disabled={isPending || belowMin}
         >
           Omitir Firma
         </Button>
@@ -95,19 +99,20 @@ export function DeliverySignatureDialog({
           <Label htmlFor="no-evidence-reason" className="sr-only">Justificación</Label>
           <Textarea
             id="no-evidence-reason"
+            disabled={isPending}
             rows={2}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
           />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => setOmitting(false)}>
+            <Button variant="outline" size="sm" disabled={isPending} onClick={() => setOmitting(false)}>
               Volver
             </Button>
             <Button
               size="sm"
-              disabled={belowMin || !reason.trim()}
-              onClick={() => !belowMin && reason.trim() && onComplete(undefined, reason)}
+              disabled={isPending || belowMin || !reason.trim()}
+              onClick={() => !isPending && !belowMin && reason.trim() && onComplete(undefined, reason)}
             >
               Completar sin evidencia
             </Button>
