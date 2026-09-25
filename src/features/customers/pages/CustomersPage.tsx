@@ -14,7 +14,7 @@ import { visibleListRows } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { CustomerMobileCard } from "../components/customers/CustomerMobileCard";
-import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
+import { CustomersActions, CustomersFilters, CustomersSecondaryActions } from "../components/customers/CustomersToolbar";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
 import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";
@@ -77,7 +77,7 @@ export default function CustomersPage() {
     q: { type: "text"; fields: (keyof Customer)[] };
   }>({
     items: customers ?? [],
-    facets: { q: { type: "text", fields: ["name", "company", "email", "rfc"] as (keyof Customer)[] } },
+    facets: { q: { type: "text", fields: ["name", "company", "email", "phone", "contact_person", "rfc"] as (keyof Customer)[] } },
   });
 
 
@@ -144,6 +144,7 @@ export default function CustomersPage() {
         title="Clientes"
         subtitle={customers ? `${customers.length} clientes` : undefined}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
+        mobileActions={<CustomersSecondaryActions filtered={filtered} />}
         mobileFab={
           <RoleGuard module="Clientes" minAccess="full" fallback={null}>
             <button

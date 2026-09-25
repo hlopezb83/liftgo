@@ -18,7 +18,19 @@ interface Props {
 
 export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" | "onCreate">) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
+      <CustomersSecondaryActions filtered={filtered} />
+      {/* R7 Bloque 8: Nuevo cliente exige `full` según matriz de permisos. */}
+      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+        <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo cliente</Button>
+      </RoleGuard>
+    </div>
+  );
+}
+
+export function CustomersSecondaryActions({ filtered }: Pick<Props, "filtered">) {
+  return (
+    <>
       <Button
         variant="outline"
         size="sm"
@@ -42,11 +54,7 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
           <Link to={ROUTES.customers.satValidation}>Validar SAT</Link>
         </Button>
       </RoleGuard>
-      {/* R7 Bloque 8: Nuevo cliente exige `full` según matriz de permisos. */}
-      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-        <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo cliente</Button>
-      </RoleGuard>
-    </div>
+    </>
   );
 }
 
