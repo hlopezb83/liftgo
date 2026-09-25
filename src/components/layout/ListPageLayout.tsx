@@ -16,6 +16,8 @@ interface ListPageLayoutProps<T> {
   subtitle?: string;
   totalCount?: number;
   actions?: ReactNode;
+  /** Acciones secundarias que siguen disponibles cuando móvil usa mobileFab. */
+  mobileActions?: ReactNode;
   /**
    * Acción primaria opcional para móvil. QA-UX-05: se renderiza al final de la
    * lista, en el flujo normal, para no tapar las tarjetas.
@@ -68,6 +70,7 @@ export function ListPageLayout<T extends { id?: string }>({
   subtitle,
   totalCount,
   actions,
+  mobileActions,
   mobileFab,
   filters,
   notice,
@@ -101,7 +104,7 @@ export function ListPageLayout<T extends { id?: string }>({
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;
   const hasMobileFab = !!(isMobile && mobileFab);
-  const visibleActions = hasMobileFab ? undefined : actions;
+  const visibleActions = hasMobileFab ? mobileActions : actions;
 
   return (
     <PageTransition>

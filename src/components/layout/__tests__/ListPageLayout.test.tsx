@@ -1,8 +1,16 @@
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ListPageLayout } from "../ListPageLayout";
+
+vi.mock("@/hooks/use-mobile", () => ({
+  useIsMobile: vi.fn(() => false),
+  useIsTabletOrBelow: vi.fn(() => false),
+}));
+
+beforeEach(() => { vi.mocked(useIsMobile).mockReturnValue(false); });
 
 // Stub del hook TanStack Table para no montar toda la maquinaria.
 function makeTableStub<T>(rows: T[]) {
@@ -65,5 +73,22 @@ describe("ListPageLayout — UX-M6 EmptyState honesto", () => {
       await screen.findByText("No hay resultados con los filtros actuales"),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /limpiar filtros/i })).toBeNull();
+  });
+});
+
+describe("ListPageLayout — acciones móviles", () => {
+  it("mantiene acciones secundarias y filtros junto al botón principal móvil", async () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    renderLayout({
+      actions: <button>Alta de escritorio</button>,
+      mobileActions: <button>Exportar CSV</button>,
+      mobileFab: <button aria-label="Nuevo cliente">+</button>,
+      filters: <input aria-label="Buscar clientes" />,
+    });
+
+    expect(await screen.findByRole("button", { name: "Exportar CSV" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Filtros" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Nuevo cliente" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Alta de escritorio" })).toBeNull();
   });
 });

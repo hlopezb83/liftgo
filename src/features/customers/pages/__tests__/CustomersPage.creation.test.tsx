@@ -31,6 +31,7 @@ vi.mock("../../hooks/customers/useCustomers", () => ({
 vi.mock("../../components/customers/CustomerMobileCard", () => ({ CustomerMobileCard: () => null }));
 vi.mock("../../components/customers/CustomersToolbar", () => ({
   CustomersActions: ({ onCreate }: { onCreate: () => void }) => <button onClick={onCreate}>Nuevo cliente</button>,
+  CustomersSecondaryActions: () => null,
   CustomersFilters: () => null,
 }));
 vi.mock("../../components/customers/CustomerFormDialog", () => ({
