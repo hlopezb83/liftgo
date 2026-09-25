@@ -1,11 +1,12 @@
 import { useIsRestoring } from "@tanstack/react-query";
-import { getAccessLevel, type AccessLevel, useRolePermissions, useUserRole } from "@/features/users";
+import { getAccessLevel, type AccessLevel, type AppRole, useRolePermissions, useUserRole } from "@/features/users";
 import { NoAccess } from "@/layouts/NoAccess";
 import type { ReactNode } from "react";
 
 interface RoleGuardProps {
   module?: string;
   minAccess?: AccessLevel;
+  allowedRoles?: readonly AppRole[];
   children: ReactNode;
   fallback?: ReactNode;
 }
@@ -33,7 +34,7 @@ function renderFallback(fallback: ReactNode | undefined, node: ReactNode) {
   return <>{fallback === undefined ? node : fallback}</>;
 }
 
-export function RoleGuard({ module, minAccess = "read", children, fallback }: RoleGuardProps) {
+export function RoleGuard({ module, minAccess = "read", allowedRoles, children, fallback }: RoleGuardProps) {
   const isRestoring = useIsRestoring();
   const { data: role, isLoading: roleLoading, isError: roleError } = useUserRole();
   const { data: perms, isLoading: permsLoading, isError: permsError } = useRolePermissions();
@@ -48,6 +49,10 @@ export function RoleGuard({ module, minAccess = "read", children, fallback }: Ro
   if (reason === "loading") return null;
   if (reason === "error") return renderFallback(fallback, <NoAccess module={module} reason="error" />);
   if (reason === "no-role") return renderFallback(fallback, <NoAccess module={module} reason="no-role" />);
+
+  if (allowedRoles && (!role || !allowedRoles.includes(role))) {
+    return renderFallback(fallback, <NoAccess module={module} reason="role-forbidden" />);
+  }
 
   if (!module || !perms || !role) return <>{children}</>;
 

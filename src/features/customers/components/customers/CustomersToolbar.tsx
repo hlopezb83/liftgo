@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Link } from "@/lib/router-compat-ui";
+import { SAT_VALIDATION_ROLES } from "../../lib/satAccess";
 import type { Customer } from "../../hooks/customers/useCustomers";
 
 interface Props {
@@ -49,7 +50,7 @@ export function CustomersSecondaryActions({ filtered }: Pick<Props, "filtered">)
       >
         <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
-      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+      <RoleGuard module="Clientes" minAccess="full" allowedRoles={SAT_VALIDATION_ROLES} fallback={null}>
         <Button asChild variant="outline" size="sm">
           <Link to={ROUTES.customers.satValidation}>Validar SAT</Link>
         </Button>

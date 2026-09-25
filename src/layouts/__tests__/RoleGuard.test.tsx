@@ -1,9 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const state = vi.hoisted(() => ({ role: "dispatcher", access: "none" }));
 
 vi.mock("@/features/users", () => ({
-  getAccessLevel: () => "none",
-  useUserRole: () => ({ data: "dispatcher", isLoading: false, isError: false }),
+  getAccessLevel: () => state.access,
+  useUserRole: () => ({ data: state.role, isLoading: false, isError: false }),
   useRolePermissions: () => ({ data: {}, isLoading: false, isError: false }),
 }));
 
@@ -12,6 +14,11 @@ vi.mock("@/layouts/NoAccess", () => ({
 }));
 
 import { RoleGuard } from "@/layouts/RoleGuard";
+
+beforeEach(() => {
+  state.role = "dispatcher";
+  state.access = "none";
+});
 
 describe("RoleGuard (R6-B1)", () => {
   it("fallback={null} → no renderiza NoAccess ni children", () => {
@@ -40,5 +47,27 @@ describe("RoleGuard (R6-B1)", () => {
       </RoleGuard>,
     );
     expect(screen.getByTestId("child")).toBeInTheDocument();
+  });
+
+  it("oculta una acción aunque el módulo sea full cuando el servidor restringe el rol", () => {
+    state.role = "ventas";
+    state.access = "full";
+    const { container } = render(
+      <RoleGuard module="Clientes" minAccess="full" allowedRoles={["admin", "administrativo"]} fallback={null}>
+        <button>Validar SAT</button>
+      </RoleGuard>,
+    );
+    expect(container.querySelector("button")).toBeNull();
+  });
+
+  it("permite la misma acción a Administrativo con acceso full", () => {
+    state.role = "administrativo";
+    state.access = "full";
+    render(
+      <RoleGuard module="Clientes" minAccess="full" allowedRoles={["admin", "administrativo"]}>
+        <button>Validar SAT</button>
+      </RoleGuard>,
+    );
+    expect(screen.getByRole("button", { name: "Validar SAT" })).toBeInTheDocument();
   });
 });
