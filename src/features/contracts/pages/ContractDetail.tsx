@@ -118,7 +118,7 @@ export default function ContractDetail() {
         signedBy={contract.signed_by}
       />
 
-      <ContractDepositCard {...depositProps(contract, id)} />
+      <ContractDepositCard key={id} {...depositProps(contract, id)} />
 
       <ContractConditionsCard contract={contract} />
 
