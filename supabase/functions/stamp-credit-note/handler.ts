@@ -57,13 +57,12 @@ export async function handleStampCreditNote(
   // atómico ante excepciones inesperadas y evitar que la NC quede en "stamping".
   let supabaseRef: SupabaseLike | null = null;
   let claimed = false;
-  // R9-13: una vez que Facturapi confirma la emisión, el CFDI de egreso YA
-  // EXISTE ante el SAT. Si algo falla después (persistencia, red, excepción
-  // inesperada), el outer-catch NO debe marcar 'error' ni permitir reintento
-  // ciego — eso duplicaría el timbrado. En ese caso la NC se deja en
+  // Una respuesta aceptada puede estar timbrada o seguir pending sin UUID.
+  // Si algo falla después, el outer-catch NO debe permitir un reintento
+  // ciego. En ese caso la NC se deja en
   // 'stamping' (con evidencia si se alcanzó a capturar) para que
   // `reconcile-stamping-invoices` la reconcilie por external_id/facturapi_id.
-  let pacEmitted = false;
+  let pacAccepted = false;
   let emittedFacturapiId: string | null = null;
   let emittedCfdiUuid: string | null = null;
   try {
@@ -543,12 +542,11 @@ export async function handleStampCreditNote(
       );
     }
 
-    // R9-13: a partir de aquí Facturapi YA EMITIÓ el CFDI de egreso ante el
-    // SAT. Cualquier falla posterior (persistencia, red, excepción inesperada)
-    // NO puede tratarse como "nunca se timbró": el outer-catch usa estas
+    // Facturapi aceptó la solicitud; puede haber timbrado o seguir pending.
+    // Una falla posterior no prueba que sea seguro reemitir: el outer-catch usa estas
     // referencias para dejar la NC en 'stamping' (reconciliable) en vez de
     // reabrirla para un reintento que duplicaría el timbre.
-    pacEmitted = true;
+    pacAccepted = true;
     const pacResult = classifyPacInvoice(fa);
     emittedFacturapiId = typeof fa.id === "string" ? fa.id : null;
     emittedCfdiUuid = typeof fa.uuid === "string" ? fa.uuid : null;
@@ -776,19 +774,19 @@ export async function handleStampCreditNote(
     console.error("[stamp-credit-note] unhandled exception", {
       credit_note_id,
       userId,
-      pacEmitted,
+      pacAccepted,
       message: err instanceof Error ? err.message : String(err),
       stack: err instanceof Error ? err.stack : undefined,
     });
     // BL-03 (cierre) + R9-13: liberar el claim atómico ante excepción no
-    // manejada — PERO sólo cuando el PAC nunca confirmó emisión. Si
-    // `pacEmitted` es true, el CFDI de egreso ya existe ante el SAT y
+    // manejada — PERO sólo cuando el PAC nunca aceptó la solicitud. Si
+    // `pacAccepted` es true, puede existir un CFDI ante el SAT y
     // marcar 'error' (re-timbrable) produciría un doble timbrado. En ese
     // caso dejamos la NC en 'stamping' con la evidencia que se alcanzó a
     // capturar para que `reconcile-stamping-invoices` la reconcilie.
     if (claimed && supabaseRef && credit_note_id) {
       try {
-        if (pacEmitted) {
+        if (pacAccepted) {
           await supabaseRef
             .from("credit_notes")
             .update({
@@ -797,8 +795,9 @@ export async function handleStampCreditNote(
                 ? { facturapi_invoice_id: emittedFacturapiId }
                 : {}),
               ...(emittedCfdiUuid ? { cfdi_uuid: emittedCfdiUuid } : {}),
-              cfdi_error_message:
-                "CFDI emitido en Facturapi pero la persistencia local falló tras una excepción inesperada. Pendiente de reconciliación automática.",
+              cfdi_error_message: emittedCfdiUuid
+                ? "CFDI timbrado en Facturapi pero la persistencia local falló. Pendiente de reconciliación automática."
+                : "Facturapi aceptó la NC sin UUID; la persistencia local falló. Pendiente de reconciliación automática.",
             })
             .eq("id", credit_note_id)
             .eq("cfdi_status", "stamping");
@@ -822,11 +821,12 @@ export async function handleStampCreditNote(
         });
       }
     }
-    if (pacEmitted) {
+    if (pacAccepted) {
       return json(
         {
-          error:
-            "El CFDI se timbró pero ocurrió un error interno al finalizar. Se reconciliará automáticamente; no reintentes el timbrado manualmente.",
+          error: emittedCfdiUuid
+            ? "El CFDI se timbró pero ocurrió un error interno al finalizar. Se reconciliará automáticamente; no reintentes el timbrado manualmente."
+            : "Facturapi aceptó la NC sin UUID, pero ocurrió un error interno al guardar. Se reconciliará automáticamente; no reintentes el timbrado manualmente.",
           reconciling: true,
         },
         502,
