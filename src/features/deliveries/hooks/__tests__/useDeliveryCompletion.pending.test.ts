@@ -9,6 +9,8 @@ vi.mock("../useDeliveries", () => ({
   useCompleteDelivery: () => mutation,
 }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {} }));
+// El payload sólo usa la regla de horómetro; el catálogo de reservas no participa.
+vi.mock("@/features/bookings", () => ({ computeHourometer: vi.fn() }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn(), notifyError: vi.fn() }));
 
 const delivery = {
