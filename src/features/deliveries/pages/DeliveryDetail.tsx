@@ -102,6 +102,7 @@ export default function DeliveryDetail() {
 
       <DeliveryDetailDialogs
         signatureOpen={completion.signatureOpen}
+        isCompleting={completion.isPending}
         setSignatureOpen={completion.setSignatureOpen}
         hoursReading={completion.hoursReading}
         setHoursReading={completion.setHoursReading}

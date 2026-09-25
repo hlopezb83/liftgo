@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -34,6 +34,7 @@ export function useDeliveryCompletion(
   forklift: Forklift | undefined,
 ) {
   const completeDelivery = useCompleteDelivery();
+  const completionInFlight = useRef(false);
   const [signatureOpen, setSignatureOpen] = useState(false);
   const [hoursReading, setHoursReading] = useState("");
   const [pickupPrompt, setPickupPrompt] = useState<PickupPrompt | null>(null);
@@ -95,7 +96,7 @@ export function useDeliveryCompletion(
   };
 
   const markComplete = (signature?: string, noEvidenceReason?: string) => {
-    if (!delivery) return;
+    if (!delivery || completeDelivery.isPending || completionInFlight.current) return;
     try {
       const payload = buildCompletionPayload(
         // Bugs 1-2: el trigger de DB sella completed_at con now() del servidor;
@@ -103,7 +104,9 @@ export function useDeliveryCompletion(
         // producían completed_at < created_at o NULL).
         delivery.id, signature, hoursReading, minHours, noEvidenceReason,
       );
+      completionInFlight.current = true;
       completeDelivery.mutate(payload, {
+        onSettled: () => { completionInFlight.current = false; },
         onSuccess: () => {
           notifySuccess("Marcado como completado");
           setSignatureOpen(false);
@@ -113,11 +116,13 @@ export function useDeliveryCompletion(
         },
       });
     } catch (err) {
+      completionInFlight.current = false;
       notifyError({ title: "Horómetro inválido", error: err });
     }
   };
 
   return {
+    isPending: completeDelivery.isPending,
     signatureOpen, setSignatureOpen,
     hoursReading, setHoursReading,
     pickupPrompt, setPickupPrompt,

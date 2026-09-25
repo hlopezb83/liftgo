@@ -90,7 +90,7 @@ export function FormDialog({
           <FormDialogCloseContext.Provider value={closeValue}>
             {/* `pb-6` reemplaza el padding inferior que se le quitó al scrollport
                 para que el footer sticky pueda pegarse al borde real del modal. */}
-            <div className="pt-2 pb-6">{children}</div>
+            <div className="min-w-0 pt-2 pb-6">{children}</div>
           </FormDialogCloseContext.Provider>
 
 

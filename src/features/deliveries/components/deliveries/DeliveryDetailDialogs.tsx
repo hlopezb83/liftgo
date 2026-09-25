@@ -9,6 +9,7 @@ type PickupPrompt = {
 
 interface Props {
   signatureOpen: boolean;
+  isCompleting?: boolean;
   setSignatureOpen: (open: boolean) => void;
   hoursReading: string;
   setHoursReading: (value: string) => void;
@@ -22,13 +23,14 @@ interface Props {
 }
 
 export function DeliveryDetailDialogs({
-  signatureOpen, setSignatureOpen, hoursReading, setHoursReading, onComplete,
+  signatureOpen, isCompleting, setSignatureOpen, hoursReading, setHoursReading, onComplete,
   pickupPrompt, onPickupClose, minHours, operatorName,
 }: Props) {
   return (
     <>
       <DeliverySignatureDialog
         open={signatureOpen}
+        isPending={isCompleting}
         onOpenChange={setSignatureOpen}
         hoursReading={hoursReading}
         onHoursReadingChange={setHoursReading}
