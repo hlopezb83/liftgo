@@ -9,14 +9,14 @@ export interface StuckRow {
   stamping_attempts: number | null;
 }
 
-export type PacLookup =
-  | { kind: "hit"; facturapi_id: string; uuid: string }
-  | { kind: "miss" }
-  | { kind: "lookup_failed" };
+import type { PacLookup } from "../_shared/facturapi/invoiceRecovery.ts";
+export type { PacLookup };
 
 export type RowAction =
   | { kind: "reconcile" } // descargar XML/PDF con facturapi_id + uuid
   | { kind: "recover"; facturapi_id: string; uuid: string } // R12-B2: recuperado vía external_id
+  | { kind: "pending"; facturapi_id: string }
+  | { kind: "manual_review"; facturapi_id: string }
   // N9: `consume_attempt` distingue un miss REAL (consume el presupuesto de
   // reintentos) de un lookup_failed (PAC caído / SDK sin list → NO consume:
   // no aprendimos nada del PAC en este ciclo).
@@ -33,6 +33,10 @@ export function decideRowAction(
   // consulta al PAC por external_id (la fila pudo timbrarse tras un timeout).
   if (pac.kind === "hit") {
     return { kind: "recover", facturapi_id: pac.facturapi_id, uuid: pac.uuid };
+  }
+  if (pac.kind === "pending") return pac;
+  if (pac.kind === "failed") {
+    return { kind: "manual_review", facturapi_id: pac.facturapi_id };
   }
   // N9: lookup_failed NO consume el presupuesto de misses — con el PAC caído
   // MAX_STAMPING_ATTEMPTS ciclos seguidos, el primer miss real ya no revierte
@@ -72,6 +76,8 @@ export const MAX_LOOKUP_MISSES = 5;
 
 export type LookupOutcome =
   | { kind: "recover"; facturapi_id: string; uuid: string }
+  | { kind: "pending"; facturapi_id: string }
+  | { kind: "manual_review"; facturapi_id: string }
   | { kind: "defer"; consume_attempt: boolean }
   | { kind: "revert" };
 
@@ -91,6 +97,10 @@ export function decideLookupOutcome(
 ): LookupOutcome {
   if (pac.kind === "hit") {
     return { kind: "recover", facturapi_id: pac.facturapi_id, uuid: pac.uuid };
+  }
+  if (pac.kind === "pending") return pac;
+  if (pac.kind === "failed") {
+    return { kind: "manual_review", facturapi_id: pac.facturapi_id };
   }
   if (pac.kind === "lookup_failed") {
     return { kind: "defer", consume_attempt: false };

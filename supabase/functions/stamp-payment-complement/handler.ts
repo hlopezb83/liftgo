@@ -13,6 +13,7 @@ import {
   describeFacturapiError,
   loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
+import { classifyPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import { assignRepFolio, repFolioPendingMessage } from "../_shared/repFolio.ts";
 import {
@@ -49,6 +50,7 @@ interface PaymentRow {
   invoice_id?: string | null;
   amount?: number | string | null;
   rep_cfdi_status?: string | null;
+  rep_facturapi_id?: string | null;
   payment_form_sat?: string | null;
   payment_date?: string | null;
   currency?: string | null;
@@ -194,6 +196,13 @@ export async function handleStampPaymentComplement(
 
     if (paymentRow.rep_cfdi_status === "stamped") {
       return jsonError(req, 409, "Este pago ya tiene un REP timbrado");
+    }
+    if (paymentRow.rep_facturapi_id) {
+      return jsonError(
+        req,
+        409,
+        "El REP ya tiene un ID de Facturapi. Espera la conciliación o revisa su estado antes de reemitir.",
+      );
     }
     if (!paymentRow.payment_form_sat) {
       return jsonError(req, 400, "Falta forma de pago SAT en el pago");
@@ -518,7 +527,8 @@ export async function handleStampPaymentComplement(
     const client = createFacturapiClient(apiKey);
     let repInvoice: {
       id: string;
-      uuid: string;
+      uuid?: string;
+      status?: string;
       folio_number?: number | string | null;
     };
     try {
@@ -526,7 +536,8 @@ export async function handleStampPaymentComplement(
         createInvoiceWithSignal(client, payload, { signal })
       ) as {
         id: string;
-        uuid: string;
+        uuid?: string;
+        status?: string;
         folio_number?: number | string | null;
       };
     } catch (err) {
@@ -553,8 +564,25 @@ export async function handleStampPaymentComplement(
       );
     }
 
-    const repId = repInvoice.id;
-    const repUuid = repInvoice.uuid;
+    const pacResult = classifyPacInvoice(repInvoice);
+    if (pacResult.kind !== "hit") {
+      const repId = typeof repInvoice.id === "string" ? repInvoice.id : null;
+      await supabase.from("payments").update({
+        ...(repId ? { rep_facturapi_id: repId } : {}),
+        rep_cfdi_status: pacResult.kind === "failed" ? "error" : "stamping",
+        rep_error_message: pacResult.kind === "pending"
+          ? "Facturapi aceptó el REP; timbrado pendiente de resolución."
+          : "Respuesta de Facturapi sin UUID válido. Revisar antes de reemitir.",
+      }).eq("id", payment_id);
+      return jsonResponse(req, {
+        error: pacResult.kind === "pending"
+          ? "Facturapi aceptó el REP; timbrado pendiente de resolución."
+          : "Facturapi no devolvió un UUID válido; requiere conciliación.",
+        code: pacResult.kind === "pending" ? "PAC_PENDING" : "PAC_INCOMPLETE",
+      }, { status: pacResult.kind === "pending" ? 202 : 502 });
+    }
+    const repId = pacResult.facturapi_id;
+    const repUuid = pacResult.uuid;
 
     let xmlPath: string | null = null;
     let pdfPath: string | null = null;

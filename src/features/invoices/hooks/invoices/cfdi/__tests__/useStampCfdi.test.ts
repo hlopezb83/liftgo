@@ -54,6 +54,24 @@ describe("useStampCfdi", () => {
     expect((result.current.error as Error).message).toBe("Invalid RFC");
   });
 
+  it("202 pending informa sin anunciar timbrado exitoso", async () => {
+    const appFeedback = await import("@/lib/ui/appFeedback");
+    const notifyError = vi.mocked(appFeedback.notifyError);
+    const notifyInfo = vi.mocked(appFeedback.notifyInfo);
+    const notifySuccess = vi.mocked(appFeedback.notifySuccess);
+    notifyError.mockClear();
+    notifyInfo.mockClear();
+    notifySuccess.mockClear();
+    stampResp = { data: { error: "Facturapi aceptó el CFDI; timbrado pendiente de resolución.", code: "PAC_PENDING" }, error: null };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useStampCfdi(), { wrapper: Wrapper });
+    result.current.mutate(INVOICE_ID);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(notifyInfo).toHaveBeenCalledTimes(1);
+    expect(notifySuccess).not.toHaveBeenCalled();
+    expect(notifyError).not.toHaveBeenCalled();
+  });
+
   it("propaga error de transporte (functions.invoke error)", async () => {
     stampResp = { data: null, error: { message: "network down" } };
     const { Wrapper } = createQueryWrapper();

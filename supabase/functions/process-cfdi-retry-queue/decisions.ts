@@ -14,6 +14,7 @@ export function decideTerminalStatus(
 export interface StampInvoiceState {
   cfdi_status?: string;
   cfdi_uuid?: string | null;
+  facturapi_invoice_id?: string | null;
 }
 
 /**
@@ -25,7 +26,7 @@ export function decideStampRetry(
   st: StampInvoiceState | null,
 ): "succeeded_noop_state" | "proceed" {
   if (
-    !st || st.cfdi_uuid ||
+    !st || st.cfdi_uuid || st.facturapi_invoice_id ||
     (st.cfdi_status !== "pending" && st.cfdi_status !== "error")
   ) {
     return "succeeded_noop_state";

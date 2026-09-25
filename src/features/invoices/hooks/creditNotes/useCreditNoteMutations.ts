@@ -1,9 +1,11 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { satStatusLabel } from "@/features/feedback";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { isPacPending } from "../../lib/pacPending";
 import { creditNoteKeys, invoiceKeys } from "../../lib/queryKeys";
 
 /**
@@ -13,6 +15,7 @@ import { creditNoteKeys, invoiceKeys } from "../../lib/queryKeys";
 const CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all] as const;
 
 export function useCreateCreditNote() {
+  const queryClient = useQueryClient();
   return useEntityMutation({
     // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
     mutationFn: async (input: Omit<TablesInsert<"credit_notes">, "credit_note_number" | "organization_id"> & { stamp?: boolean }) => {
@@ -36,16 +39,11 @@ export function useCreateCreditNote() {
             body: { credit_note_id: created.id },
           });
         } catch (stampErr) {
-          // L-3: rollback compensatorio. Si el timbrado falla después de crear
-          // el draft, se elimina para no dejar registros huérfanos ni consumir
-          // folios. El error de timbrado siempre se re-lanza tal cual.
-          const { error: rollbackErr } = await supabase
-            .from("credit_notes")
-            .delete()
-            .eq("id", created.id);
-          if (rollbackErr) {
-            console.error("No se pudo revertir la nota de crédito draft", rollbackErr);
-          }
+          // A timeout or 202 can mean the PAC owns a live CFDI. Retain the
+          // local note so the reconciler has its external_id and organization.
+          await Promise.all(CREDIT_NOTE_INVALIDATIONS.map((queryKey) =>
+            queryClient.invalidateQueries({ queryKey })
+          ));
           throw stampErr;
         }
       }
@@ -58,10 +56,16 @@ export function useCreateCreditNote() {
     onSuccess: ({ stamped }) => {
       notifySuccess(stamped ? "Nota de crédito timbrada" : "Nota de crédito creada");
     },
+    onError: (error) => {
+      if (!isPacPending(error)) return;
+      notifyInfo("Nota de crédito creada; Facturapi aceptó el timbrado y espera el UUID.");
+      return true;
+    },
   });
 }
 
 export function useStampCreditNote() {
+  const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: async (creditNoteId: string) => {
       return await invokeEdgeFunction("stamp-credit-note", {
@@ -71,6 +75,12 @@ export function useStampCreditNote() {
     invalidateKeys: CREDIT_NOTE_INVALIDATIONS,
     successMsg: "Nota de crédito timbrada",
     errorTitle: "Error al timbrar nota de crédito",
+    onError: (error) => {
+      if (!isPacPending(error)) return;
+      notifyInfo("Facturapi aceptó la nota de crédito. El UUID aparecerá cuando concluya el timbrado.");
+      void queryClient.invalidateQueries({ queryKey: creditNoteKeys.all });
+      return true;
+    },
   });
 }
 

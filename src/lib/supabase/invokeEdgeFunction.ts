@@ -46,7 +46,12 @@ export async function invokeEdgeFunction<T = unknown>(
     (data as { error?: unknown }).error
   ) {
     const raw = (data as { error: unknown }).error;
-    throw new Error(typeof raw === "string" ? raw : JSON.stringify(raw));
+    const wrapped = new Error(typeof raw === "string" ? raw : JSON.stringify(raw));
+    const code = (data as { code?: unknown }).code;
+    if (typeof code === "string") {
+      (wrapped as Error & { code?: string }).code = code;
+    }
+    throw wrapped;
   }
 
   return data as T;

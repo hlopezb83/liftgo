@@ -282,6 +282,65 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
   }
 });
 
+Deno.test("handler: Facturapi 202 keeps remote ID and waits without XML or duplicate stamp", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": () =>
+      new Response(JSON.stringify({ id: "fapi_pending", status: "pending" }), {
+        status: 202,
+        headers: { "Content-Type": "application/json" },
+      }),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: ORG_ID,
+              total: 1160,
+              subtotal: 1000,
+              tax_rate: 16,
+              line_items: [{
+                description: "Renta",
+                quantity: 1,
+                unit_price: 1000,
+              }],
+              receptor_rfc: RECEPTOR_RFC,
+              receptor_regimen_fiscal: "601",
+              receptor_domicilio_fiscal_cp: "64000",
+            },
+            error: null,
+          },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    assertEquals(res.status, 202);
+    assertEquals((await res.json()).code, "PAC_PENDING");
+    assertEquals(mock.calls.length, 1);
+    const pendingUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.facturapi_invoice_id === "fapi_pending"
+    );
+    assert(pendingUpdate);
+    assertEquals(pendingUpdate.patch.cfdi_status, "stamping");
+    assertEquals(pendingUpdate.patch.cfdi_uuid, undefined);
+  } finally {
+    mock.restore();
+  }
+});
+
 Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async () => {
   const mock = installFacturapiMock({
     "/invoices": () => facturapiBadRequest("Invalid RFC"),
