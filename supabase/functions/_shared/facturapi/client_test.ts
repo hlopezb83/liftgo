@@ -8,10 +8,10 @@ Deno.test("lecturas 429 respetan Retry-After breve y difieren uno largo", async 
     code: "rate_limit_exceeded",
     headers: { "retry-after": "0" },
   });
-  const result = await retryOnFacturapi5xx(async () => {
+  const result = await retryOnFacturapi5xx(() => {
     calls++;
-    if (calls === 1) throw short;
-    return "ok";
+    if (calls === 1) return Promise.reject(short);
+    return Promise.resolve("ok");
   });
   assertEquals(result, "ok");
   assertEquals(calls, 2);
@@ -23,9 +23,9 @@ Deno.test("lecturas 429 respetan Retry-After breve y difieren uno largo", async 
     headers: { "retry-after": "60" },
   });
   try {
-    await retryOnFacturapi5xx(async () => {
+    await retryOnFacturapi5xx(() => {
       calls++;
-      throw long;
+      return Promise.reject(long);
     });
     throw new Error("expected 429 to be deferred");
   } catch (err) {

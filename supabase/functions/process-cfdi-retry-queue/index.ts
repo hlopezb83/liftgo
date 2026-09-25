@@ -18,7 +18,6 @@ import {
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfigForOrganization,
-  retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import { lookupPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import {

@@ -27,15 +27,16 @@ Deno.test("known ID is retrieved, never mistaken for a list miss", async () => {
   let lists = 0;
   const client = {
     invoices: {
-      list: async () => {
+      list: () => {
         lists++;
-        return { data: [] };
+        return Promise.resolve({ data: [] });
       },
-      retrieve: async (id: string) => ({
-        id,
-        external_id: "local-1",
-        status: "pending",
-      }),
+      retrieve: (id: string) =>
+        Promise.resolve({
+          id,
+          external_id: "local-1",
+          status: "pending",
+        }),
     },
   };
   assertEquals(await lookupPacInvoice(client, "local-1", "pac-1"), {
@@ -54,15 +55,16 @@ Deno.test("exact external ID and ambiguous matches fail closed", async () => {
   };
   const pending = { id: "pac-1", external_id: "local-1", status: "pending" };
   const client = {
-    invoices: { list: async () => ({ data: [other, pending] }) },
+    invoices: { list: () => Promise.resolve({ data: [other, pending] }) },
   };
   assertEquals(await lookupPacInvoice(client, "local-1", null), {
     kind: "pending",
     facturapi_id: "pac-1",
   });
-  client.invoices.list = async () => ({
-    data: [pending, { ...pending, id: "pac-2" }],
-  });
+  client.invoices.list = () =>
+    Promise.resolve({
+      data: [pending, { ...pending, id: "pac-2" }],
+    });
   assertEquals(await lookupPacInvoice(client, "local-1", null), {
     kind: "lookup_failed",
   });
