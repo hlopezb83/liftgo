@@ -33,7 +33,7 @@ concurrency:
 jobs:
   changes:
     name: Detectar cambios
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 3
     # `dorny/paths-filter` consulta la API de archivos de la PR: con solo el
     # `contents: read` heredado devuelve 403 en pull_request y los jobs
@@ -77,14 +77,14 @@ jobs:
   # ---------------------------------------------------------------------------
   quality:
     name: Calidad (lint, tipos, build y arranque)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
 
       - name: ESLint
-        run: bun run lint
+        run: bun run lint --max-warnings=0
 
       - name: Typecheck
         run: bun run typecheck
@@ -145,7 +145,7 @@ jobs:
   # ---------------------------------------------------------------------------
   tests:
     name: Pruebas (Vitest shard ${{ matrix.shard }}/4)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -181,7 +181,7 @@ jobs:
   # artifact, `download-artifact` falla y el workflow queda rojo.
   tests-merge:
     name: Pruebas (merge + cobertura)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     needs: tests
     steps:
@@ -233,7 +233,7 @@ jobs:
   # ---------------------------------------------------------------------------
   deno-functions:
     name: Funciones Supabase (Deno, sin red)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: changes
     if: needs.changes.outputs.functions == 'true'
@@ -287,7 +287,7 @@ jobs:
 
   supabase-lint:
     name: Lint de migraciones
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     needs: changes
     if: needs.changes.outputs.migrations == 'true' || github.event_name == 'workflow_dispatch'
@@ -329,7 +329,7 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 3
     if: github.event_name == 'pull_request'
     steps:
@@ -347,7 +347,7 @@ jobs:
   # que el propio cambio provoca en el resto del archivo.
   actionlint:
     name: Actionlint
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 3
     needs: changes
     if: needs.changes.outputs.workflows == 'true' || github.event_name == 'workflow_dispatch'

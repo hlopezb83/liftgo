@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useParams } from "@/lib/router-compat";
 import { forkliftFormSchema, type ForkliftFormData } from "../lib/forkliftFormSchema";
@@ -20,16 +20,7 @@ export function useForkliftFormLogic() {
   const isEdit = !!id;
   const { data: existing } = useForklift(id);
 
-  // FIX R6-12: snapshot de `updated_at` al abrir el form (no el valor vivo de
-  // React Query, que un refetch sobrescribiría, neutralizando el candado
-  // optimista igual que en R6-06). Se resetea al cambiar el id de ruta.
-  // useState + efectos (no ref en render): react-hooks/refs prohíbe leer/
-  // escribir refs durante el renderizado.
-  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | null>(null);
-  useEffect(() => { setExpectedUpdatedAt(null); }, [id]);
-  useEffect(() => {
-    if (existing) setExpectedUpdatedAt((prev) => prev ?? existing.updated_at);
-  }, [existing]);
+  const expectedUpdatedAt = useInitialRecordVersion(id, existing?.id, existing?.updated_at);
 
   const form = useForm<ForkliftFormData>({
     resolver: zodResolver(forkliftFormSchema),

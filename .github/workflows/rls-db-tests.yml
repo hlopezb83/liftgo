@@ -46,7 +46,7 @@ concurrency:
 jobs:
   rls-db-tests:
     name: RLS DB tests (Supabase local)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     # Mismo criterio que los jobs e2e/edge-functions de ci.yml: los PRs desde
     # forks no tienen acceso al entorno con secrets, y este job depende del

@@ -68,7 +68,7 @@ concurrency:
 jobs:
   multi-tenant-ab:
     name: Gate A/B multiempresa (Supabase local efímero)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 35
     # Mismo criterio que rls-db-tests: los PRs desde forks no corren jobs con Docker.
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository

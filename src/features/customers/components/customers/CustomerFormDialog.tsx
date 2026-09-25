@@ -10,6 +10,7 @@ import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { sanitizeCsfName } from "../../lib/csfSanitize";
 import { customerFormSchema, type CustomerFormData } from "../../lib/customerFormSchema";
+import { preserveUntouched } from "../../lib/preserveUntouched";
 import {
   Form,
   IdentitySection,
@@ -24,27 +25,6 @@ const emptyCustomer: CustomerFormData = {
   rfc: "", regimen_fiscal: "", uso_cfdi: "", domicilio_fiscal_cp: "",
   representante_legal: "", tax_rate: "",
 };
-
-/**
- * Anti-borrado en edición: un campo que el usuario NO tocó conserva su valor
- * original aunque el input haya llegado vacío (prellenado fallido/autorrelleno).
- * Borrar a propósito sigue funcionando porque ese campo queda marcado como modificado.
- */
-export function preserveUntouched(
-  data: CustomerFormData,
-  initialData: Partial<CustomerFormData> | undefined,
-  isEdit: boolean | undefined,
-  dirty: Partial<Record<keyof CustomerFormData, unknown>>,
-): CustomerFormData {
-  if (!isEdit || !initialData) return data;
-  const next = { ...data };
-  (Object.keys(initialData) as (keyof CustomerFormData)[]).forEach((k) => {
-    const original = initialData[k];
-    if (!dirty[k] && (next[k] ?? "") === "" && original) next[k] = original;
-  });
-  return next;
-}
-
 
 interface CustomerFormDialogProps {
   open: boolean;

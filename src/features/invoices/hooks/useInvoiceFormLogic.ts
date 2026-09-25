@@ -1,10 +1,11 @@
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
+import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
@@ -128,20 +129,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: invoiceBookingsRows } = useInvoiceBookings(id);
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
 
-  // R5-09: snapshot congelado de la versión la primera vez que `existing`
-  // resuelve (no la versión viva de React Query, que un refetch sobrescribiría).
-  // useState + efectos (no ref en render): react-hooks/refs prohíbe leer/
-  // escribir refs durante el renderizado.
-  const [invoiceVersion, setInvoiceVersion] = useState<number | null>(null);
-  // FIX R6-19: al navegar de /invoices/A/edit a /invoices/B/edit React Router
-  // no remonta el form; resetear el snapshot para no arrastrar el candado de
-  // otra factura (falso stale_write o candado neutralizado).
-  useEffect(() => { setInvoiceVersion(null); }, [id]);
-  // Captura única: la primera vez que `existing` resuelve. Un refetch posterior
-  // no sobrescribe el snapshot (`prev ??` guard).
-  useEffect(() => {
-    if (existing) setInvoiceVersion((prev) => prev ?? existing.version);
-  }, [existing]);
+  const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
