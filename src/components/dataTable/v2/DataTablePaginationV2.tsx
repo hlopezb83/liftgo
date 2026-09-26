@@ -1,15 +1,16 @@
 import { TablePagination } from "@/components/feedback/TablePagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Table } from "@tanstack/react-table";
+import type { LiftgoTable } from "./types";
+import type { RowData } from "@tanstack/react-table";
 
-interface Props<T> {
-  table: Table<T>;
+interface Props<T extends RowData> {
+  table: LiftgoTable<T>;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
-export function DataTablePaginationV2<T>({ table }: Props<T>) {
-  const { pageIndex, pageSize } = table.getState().pagination;
+export function DataTablePaginationV2<T extends RowData>({ table }: Props<T>) {
+  const { pageIndex, pageSize } = table.state.pagination;
   const totalPages = table.getPageCount();
   // Indicador de rango: filas visibles de la página actual sobre el total
   // filtrado. Con paginación manual desactivada (getPageCount() === -1) se

@@ -1,22 +1,18 @@
 import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  type ColumnDef,
+  useTable,
   type SortingState,
   type RowSelectionState,
   type PaginationState,
-  type Table,
+  type RowData,
   type Updater,
 } from "@tanstack/react-table";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { APP_CONFIG } from "@/lib/config";
+import { liftgoTableFeatures } from "./features";
 import { createLiftgoSortingFn } from "./sorting";
-import type { DataTableSelectionContext } from "./types";
+import type { ColumnDef, DataTableSelectionContext, LiftgoTable } from "./types";
 
-interface Options<T> {
+interface Options<T extends RowData> {
   data: T[] | undefined;
   columns: ColumnDef<T>[];
   getRowId: (row: T, index: number) => string;
@@ -31,13 +27,10 @@ interface Options<T> {
 }
 
 /**
- * Hook único para tablas LiftGo. Todo el estado (sort, filtro, paginación,
- * selección) lo administra TanStack. Sin `useEffect`s para sincronizar
- * arreglos: el sort lo hace `getSortedRowModel`, el filtro `getFilteredRowModel`,
- * la paginación `getPaginationRowModel`, y la selección la poda TanStack
- * automáticamente al cambiar `data` si `getRowId` es estable.
+ * Hook único para tablas LiftGo. TanStack v9 administra el estado de sort, filtro,
+ * paginación y selección con los row models registrados en features.
  */
-export function useLiftgoTable<T>({
+export function useLiftgoTable<T extends RowData>({
   data,
   columns,
   getRowId,
@@ -49,41 +42,46 @@ export function useLiftgoTable<T>({
   paginated = true,
   resetKey,
   onSelectionChange,
-}: Options<T>): Table<T> {
+}: Options<T>): LiftgoTable<T> {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: initialPageSize,
-  });
-
   const tableData = useMemo(() => data ?? [], [data]);
 
-  // v7.281.1 · Huella de CONTENIDO de los datos. Se usa tanto para invalidar la
-  // memoización del compiler (abajo) como para decidir si hay que volver a la
-  // página 1. Antes el efecto dependía de la REFERENCIA `tableData`, y como las
-  // páginas derivan arreglos en cada render (map/filtros), la paginación se
-  // reiniciaba sola en cada click y nunca avanzaba de página.
+  // El contenido determina cuándo volver a la primera página; las listas derivan
+  // arreglos nuevos con frecuencia y su referencia sola no sirve.
   const dataVersion = useMemo(
     () => tableData.map((r) => JSON.stringify(r)).join("|"),
     [tableData],
   );
+  const [paginationSnapshot, setPaginationSnapshot] = useState(() => ({
+    dataVersion,
+    resetKey,
+    value: { pageIndex: 0, pageSize: initialPageSize } as PaginationState,
+  }));
+  const paginationIsCurrent =
+    paginationSnapshot.dataVersion === dataVersion && paginationSnapshot.resetKey === resetKey;
+  const pagination = paginationIsCurrent
+    ? paginationSnapshot.value
+    : { ...paginationSnapshot.value, pageIndex: 0 };
+  const handlePaginationChange = (updater: Updater<PaginationState>): void => {
+    setPaginationSnapshot((previous) => {
+      const current = previous.dataVersion === dataVersion && previous.resetKey === resetKey
+        ? previous.value
+        : { ...previous.value, pageIndex: 0 };
+      return {
+        dataVersion,
+        resetKey,
+        value: typeof updater === "function" ? updater(current) : updater,
+      };
+    });
+  };
 
   // R22-W: nulos siempre al final, también al invertir a `desc`.
   const sortingFnWithNullsLast = useMemo(
-    () =>
-      createLiftgoSortingFn<T>(
-        (columnId) => sorting.find((s) => s.id === columnId)?.desc === true,
-      ),
-    [sorting],
+    () => createLiftgoSortingFn<T>((columnId, row) =>
+      row.table.atoms.sorting.get().some((item) => item.id === columnId && item.desc)),
+    [],
   );
-
-  useEffect(() => {
-    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
-  }, [dataVersion, resetKey]);
-
-
-
 
   const resolveSelectable =
     typeof enableRowSelection === "function"
@@ -109,14 +107,12 @@ export function useLiftgoTable<T>({
     });
   };
 
-  // `useReactTable` retorna una API imperativa que muta internamente; el Proxy
-  // de la línea 120 restablece identidad para el compiler. Ver comentario abajo.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable<T>({
+  const table = useTable<typeof liftgoTableFeatures, T>({
+    features: liftgoTableFeatures,
     autoResetPageIndex: false,
     data: tableData,
     columns,
-    defaultColumn: { sortingFn: sortingFnWithNullsLast },
+    defaultColumn: { sortFn: sortingFnWithNullsLast, sortUndefined: "last" },
     state: {
       sorting,
       rowSelection,
@@ -125,45 +121,13 @@ export function useLiftgoTable<T>({
     },
     onSortingChange: setSorting,
     onRowSelectionChange: handleSelectionChange,
-    onPaginationChange: paginated ? setPagination : undefined,
+    onPaginationChange: paginated ? handlePaginationChange : undefined,
     enableRowSelection: resolveSelectable,
     enableSorting,
     getRowId,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: paginated ? getPaginationRowModel() : undefined,
+    manualPagination: !paginated,
   });
 
-  // React Compiler + TanStack Table: `useReactTable` retorna la MISMA referencia
-  // en cada render (muta internamente). Sin cambio de identidad, el compiler
-  // memoiza el JSX aguas abajo y las tablas no se actualizan al filtrar/sortear.
-  // Envolvemos con Proxy transparente cuya identidad cambia con `data`, estado
-  // de sort/paginación y selección para invalidar la memoización de forma segura.
-  // R12 A1 + R13-1: versionar por CONTENIDO completo, no por identidad.
-  // El fix anterior solo hasheaba `id`, así que ediciones in-place (mismo id,
-  // distintos campos) no invalidaban el memo y la tabla mostraba datos viejos
-  // hasta un reload. Con `JSON.stringify(r)` completo, cualquier cambio de
-  // contenido genera nueva huella.
-  // R-Perf P0-1: memoizado con `[tableData]` — TanStack Query produce nueva
-  // referencia ante cualquier cambio de contenido, así que solo se recalcula
-  // cuando la data realmente cambia (no en cada render por sort/paginación/
-  // selección/apertura de diálogo). Ahorro medido: 21ms → <1ms a 500 filas.
-  // `dataVersion` se calcula arriba (junto al efecto de reinicio de página).
-
-
-
-  const sortKey = sorting.map((s) => `${s.id}:${s.desc ? "d" : "a"}`).join(",");
-  const selKey = Object.keys(rowSelection).length;
-  const pagKey = paginated ? `${pagination.pageIndex}:${pagination.pageSize}` : "";
-  // v7.226.1 · `table` es la referencia mutable de TanStack; las claves derivadas
-  // se consumen dentro del memo (vía `void`) para satisfacer exhaustive-deps sin
-  // desactivar la regla y sin bloquear al React Compiler.
-  return useMemo(() => {
-    void dataVersion;
-    void sortKey;
-    void selKey;
-    void pagKey;
-    return new Proxy(table, {});
-  }, [table, dataVersion, sortKey, selKey, pagKey]);
+  // v9 devuelve una referencia React actualizada con el estado y compatible con el Compiler.
+  return table;
 }

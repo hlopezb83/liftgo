@@ -1,5 +1,5 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { flexRender, type Row } from "@tanstack/react-table";
+import { flexRender, type RowData } from "@tanstack/react-table";
 import { useCallback, useEffect, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -7,11 +7,12 @@ import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { resolveColumnKind } from "./columnKind";
 import { alignClass } from "./sorting";
+import type { LiftgoRow } from "./types";
 
 const PREFETCH_DELAY_MS = 120;
 
-interface Props<T> {
-  rows: Row<T>[];
+interface Props<T extends RowData> {
+  rows: LiftgoRow<T>[];
   columnCount: number;
   emptyMessage: string;
   showSelection: boolean;
@@ -34,7 +35,7 @@ interface Props<T> {
  * filas × N celdas de TODAS las tablas). Los timers viven dentro del hook,
  * el body sólo recibe callbacks estables.
  */
-function useRowPrefetchArm<T>(onRowPrefetch: Props<T>["onRowPrefetch"]) {
+function useRowPrefetchArm<T extends RowData>(onRowPrefetch: Props<T>["onRowPrefetch"]) {
   const queryClient = useQueryClient();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -92,7 +93,7 @@ function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
   return { ...clickHandlers, ...prefetchHandlers };
 }
 
-export function DataTableBodyV2<T>({
+export function DataTableBodyV2<T extends RowData>({
   rows,
   columnCount,
   emptyMessage,
