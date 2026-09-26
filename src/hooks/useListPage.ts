@@ -1,7 +1,8 @@
 import { useMemo, useCallback } from "react";
+import type { ColumnDef } from "@/components/dataTable/v2/types";
 import { useLiftgoTable } from "@/components/dataTable/v2/useLiftgoTable";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
+import type { RowData, SortingState } from "@tanstack/react-table";
 
 type SortDirection = "asc" | "desc";
 
@@ -19,7 +20,7 @@ interface UseListPageOptions<T> {
  *
  * Para tablas nuevas, prefiere `useLiftgoTable` + `DataTableV2` directamente.
  */
-export function useListPage<T>(
+export function useListPage<T extends RowData>(
   items: T[] | undefined,
   options: UseListPageOptions<T> = {},
 ) {
@@ -54,7 +55,7 @@ export function useListPage<T>(
     paginated: true,
   });
 
-  const sortingState = table.getState().sorting;
+  const sortingState = table.state.sorting;
   const sortKey = sortingState[0]?.id ?? null;
   const sortDirection: SortDirection = sortingState[0]?.desc ? "desc" : "asc";
 
@@ -70,7 +71,7 @@ export function useListPage<T>(
     [table],
   );
 
-  const paginationState = table.getState().pagination;
+  const paginationState = table.state.pagination;
   const totalItems = data.length;
   const totalPages = Math.max(1, table.getPageCount());
   const paginatedItems = table.getRowModel().rows.map((r) => r.original);

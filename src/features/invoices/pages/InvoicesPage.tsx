@@ -160,7 +160,7 @@ export default function InvoicesPage() {
   // se pide SOLO cuando el usuario llega a la última página ya cargada
   // (QA: antes se descargaba todo el historial en cadena al montar/filtrar).
   // Cambiar filtros/búsqueda reinicia la queryKey (página 0).
-  const { pageIndex, pageSize } = table.getState().pagination;
+  const { pageIndex, pageSize } = table.state.pagination;
   const reachedLoadedEnd = (pageIndex + 1) * pageSize >= invoiceRows.length;
   useEffect(() => {
     if (reachedLoadedEnd && hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();

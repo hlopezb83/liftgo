@@ -1,14 +1,15 @@
-import { flexRender, type Header, type Table as TanstackTable } from "@tanstack/react-table";
+import { flexRender, type RowData } from "@tanstack/react-table";
 import { ArrowUp, ArrowDown, ArrowUpDown } from "@/components/icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { resolveColumnKind } from "./columnKind";
 import { alignClass } from "./sorting";
+import type { LiftgoHeader, LiftgoTable } from "./types";
 import type { ReactNode } from "react";
 
-interface Props<T> {
-  table: TanstackTable<T>;
+interface Props<T extends RowData> {
+  table: LiftgoTable<T>;
   showSelection: boolean;
 }
 
@@ -32,11 +33,15 @@ function buildHeaderClass(
   );
 }
 
-function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
+interface HeaderCellProps<T extends RowData> {
+  header: LiftgoHeader<T>;
+  canSort: boolean;
+  sortDir: false | "asc" | "desc";
+}
+
+function HeaderCell<T extends RowData>({ header, canSort, sortDir }: HeaderCellProps<T>): ReactNode {
   const meta = header.column.columnDef.meta;
   const { align: resolvedAlign } = resolveColumnKind(meta);
-  const canSort = header.column.getCanSort();
-  const sortDir = header.column.getIsSorted();
   const className = buildHeaderClass(meta, sortDir);
   if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
   const innerClass = cn(
@@ -77,7 +82,7 @@ function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
   );
 }
 
-export function DataTableHeaderV2<T>({ table, showSelection }: Props<T>): ReactNode {
+export function DataTableHeaderV2<T extends RowData>({ table, showSelection }: Props<T>): ReactNode {
   const allRows = table.getRowModel().rows;
   const selectable = allRows.filter((r) => r.getCanSelect());
   const allSelected = selectable.length > 0 && selectable.every((r) => r.getIsSelected());
@@ -102,7 +107,12 @@ export function DataTableHeaderV2<T>({ table, showSelection }: Props<T>): ReactN
             </TableHead>
           )}
           {group.headers.map((header) => (
-            <HeaderCell key={header.id} header={header} />
+            <HeaderCell
+              key={header.id}
+              header={header}
+              canSort={header.column.getCanSort()}
+              sortDir={header.column.getIsSorted()}
+            />
           ))}
         </TableRow>
       ))}

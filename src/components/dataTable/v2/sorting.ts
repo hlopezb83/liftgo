@@ -1,4 +1,5 @@
-import type { Row } from "@tanstack/react-table";
+import type { LiftgoRow } from "./types";
+import type { RowData } from "@tanstack/react-table";
 
 /**
  * Comparador estándar LiftGo: números nativos, strings con localeCompare
@@ -10,9 +11,9 @@ import type { Row } from "@tanstack/react-table";
  * indica si la columna está en desc y pre-invierte el signo de los nulos para
  * que SIEMPRE queden al final, en ambos sentidos.
  */
-export function createLiftgoSortingFn<T>(
-  isDesc: (columnId: string) => boolean,
-): (rowA: Row<T>, rowB: Row<T>, columnId: string) => number {
+export function createLiftgoSortingFn<T extends RowData>(
+  isDesc: (columnId: string, row: LiftgoRow<T>) => boolean,
+): (rowA: LiftgoRow<T>, rowB: LiftgoRow<T>, columnId: string) => number {
   return (rowA, rowB, columnId) => {
     const a = rowA.getValue(columnId);
     const b = rowB.getValue(columnId);
@@ -20,7 +21,7 @@ export function createLiftgoSortingFn<T>(
     if (a == null || b == null) {
       // +1 => a al final. Se pre-invierte en desc porque TanStack negará el valor.
       const last = a == null ? 1 : -1;
-      return isDesc(columnId) ? -last : last;
+      return isDesc(columnId, rowA) ? -last : last;
     }
     if (typeof a === "number" && typeof b === "number") return a - b;
     return String(a).localeCompare(String(b), undefined, {
@@ -31,7 +32,11 @@ export function createLiftgoSortingFn<T>(
 }
 
 /** Variante ascendente (sin estado de sort). Se conserva para consumidores simples. */
-export const liftgoSortingFn = createLiftgoSortingFn(() => false);
+export function liftgoSortingFn<T extends RowData>(
+  rowA: LiftgoRow<T>, rowB: LiftgoRow<T>, columnId: string,
+): number {
+  return createLiftgoSortingFn<T>(() => false)(rowA, rowB, columnId);
+}
 
 export const alignClass: Record<"left" | "right" | "center", string> = {
   left: "text-left",

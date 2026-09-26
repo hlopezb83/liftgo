@@ -1,20 +1,20 @@
 import { DataTableV2 } from "@/components/dataTable/v2/DataTableV2";
+import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { FilterIcon, type LucideIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
-import type { Table as TanstackTable } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
-export interface TableContentProps<T> {
+export interface TableContentProps<T extends { id?: string }> {
   isLoading: boolean;
   isError: boolean;
   onRetry?: () => void;
   showEmpty: boolean;
   showMobileCards: boolean;
   items: T[];
-  table?: TanstackTable<T>;
+  table?: LiftgoTable<T>;
   emptyMessage: string;
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;

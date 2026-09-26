@@ -1,5 +1,5 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { flexRender, type Row } from "@tanstack/react-table";
+import { flexRender, type RowData } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useEffect, useRef, type ReactNode, type Ref } from "react";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
@@ -7,11 +7,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+import type { LiftgoRow } from "./types";
 
 const PREFETCH_DELAY_MS = 120;
 
-interface Props<T> {
-  rows: Row<T>[];
+interface Props<T extends RowData> {
+  rows: LiftgoRow<T>[];
   columnCount: number;
   emptyMessage: string;
   showSelection: boolean;
@@ -24,7 +25,7 @@ interface Props<T> {
   maxHeight?: number;
 }
 
-export function VirtualBody<T>({
+export function VirtualBody<T extends RowData>({
   rows,
   columnCount,
   emptyMessage,

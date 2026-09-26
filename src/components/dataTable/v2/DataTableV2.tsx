@@ -6,11 +6,11 @@ import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { DataTableBodyV2 } from "./DataTableBodyV2";
 import { DataTableHeaderV2 } from "./DataTableHeaderV2";
 import { VirtualBody } from "./VirtualBody";
-import type { DataTableSelectionContext } from "./types";
-import type { Table as TanstackTable } from "@tanstack/react-table";
+import type { DataTableSelectionContext, LiftgoTable } from "./types";
+import type { RowData } from "@tanstack/react-table";
 
-interface Props<T> {
-  table: TanstackTable<T>;
+interface Props<T extends RowData> {
+  table: LiftgoTable<T>;
   isLoading?: boolean;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
@@ -25,13 +25,13 @@ interface Props<T> {
   virtualizationThreshold?: number;
 }
 
-function buildToolbar<T>(
-  table: TanstackTable<T>,
+function buildToolbar<T extends RowData>(
+  table: LiftgoTable<T>,
   enabled: boolean,
   render: ((ctx: DataTableSelectionContext<T>) => ReactNode) | undefined,
 ): ReactNode {
   if (!enabled || !render) return null;
-  const sel = table.getState().rowSelection;
+  const sel = table.state.rowSelection;
   const selectedIds = Object.keys(sel).filter((k) => sel[k]);
   if (selectedIds.length === 0) return null;
   const ctx: DataTableSelectionContext<T> = {
@@ -42,7 +42,7 @@ function buildToolbar<T>(
   return render(ctx);
 }
 
-export function DataTableV2<T>({
+export function DataTableV2<T extends RowData>({
   table,
   isLoading,
   emptyMessage = "Sin resultados",
@@ -80,7 +80,7 @@ export function DataTableV2<T>({
 
   const toolbar = buildToolbar(table, enableRowSelection, selectionToolbar);
   const useVirtual = virtualized && rows.length > virtualizationThreshold;
-  const selectionState = table.getState().rowSelection;
+  const selectionState = table.state.rowSelection;
   // R-Sel: llave estable de string; `rows` no cambia de identidad al seleccionar,
   // así que sin esto el body queda memoizado y los checkboxes no se marcan.
   const selectionKey = Object.keys(selectionState)

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Row } from "@tanstack/react-table";
+import type { LiftgoRow as Row } from "../types";
 import { createLiftgoSortingFn, liftgoSortingFn } from "../sorting";
 
 interface Item {
@@ -63,9 +63,8 @@ describe("createLiftgoSortingFn", () => {
   });
 
   it("liftgoSortingFn es la variante ascendente", () => {
-    const asUnknown = (v: Item["value"]) => row(v) as unknown as Row<unknown>;
-    expect(liftgoSortingFn(asUnknown(1), asUnknown(null), "value")).toBeLessThan(0);
-    expect(liftgoSortingFn(asUnknown(null), asUnknown(1), "value")).toBeGreaterThan(0);
+    expect(liftgoSortingFn(row(1), row(null), "value")).toBeLessThan(0);
+    expect(liftgoSortingFn(row(null), row(1), "value")).toBeGreaterThan(0);
 
   });
 

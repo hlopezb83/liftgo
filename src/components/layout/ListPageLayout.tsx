@@ -1,4 +1,5 @@
 import { ReactNode, useState } from "react";
+import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
 import { FiltersSlot } from "@/components/layout/listPage/FiltersSlot";
 import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
@@ -9,9 +10,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import type { Table as TanstackTable } from "@tanstack/react-table";
 
-interface ListPageLayoutProps<T> {
+interface ListPageLayoutProps<T extends { id?: string }> {
   title: string;
   subtitle?: string;
   totalCount?: number;
@@ -48,7 +48,7 @@ interface ListPageLayoutProps<T> {
    * Instancia de tabla TanStack (usar `useLiftgoTable`).
    * Se renderiza con `DataTableV2` y `DataTablePaginationV2`.
    */
-  table?: TanstackTable<T>;
+  table?: LiftgoTable<T>;
   /** Click handler para filas (modo tabla). */
   onRowClick?: (item: T) => void;
   /** Handler opcional para prefetch de detalle al hacer hover en fila. */

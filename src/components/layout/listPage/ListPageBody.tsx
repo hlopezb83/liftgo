@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
 import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
+import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
 import { LoadMoreFooter, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { TableContent } from "@/components/layout/listPage/TableContent";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Table as TanstackTable } from "@tanstack/react-table";
 
-interface Props<T> {
+interface Props<T extends { id?: string }> {
   customContent?: ReactNode;
   isLoading: boolean;
   isError: boolean;
@@ -14,7 +14,7 @@ interface Props<T> {
   showEmpty: boolean;
   showMobileCards: boolean;
   items: T[];
-  table?: TanstackTable<T>;
+  table?: LiftgoTable<T>;
   emptyMessage: string;
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;
