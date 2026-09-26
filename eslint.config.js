@@ -41,7 +41,6 @@ export default tseslint.config(
     ignores: ["tests/**"],
     languageOptions: {
       ecmaVersion: 2022,
-      globals: globals.browser,
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -119,6 +118,21 @@ export default tseslint.config(
       // y hooks con branching de UI ya probados.
       complexity: ["warn", 15],
     },
+  },
+  {
+    // Los globales del navegador solo aplican al cliente, no a funciones SSR.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/server.ts", "src/**/*.server.{ts,tsx}", "src/**/*.functions.{ts,tsx}"],
+    languageOptions: { globals: globals.browser },
+  },
+  {
+    files: [
+      "src/server.ts",
+      "src/**/*.server.{ts,tsx}",
+      "src/**/*.functions.{ts,tsx}",
+      "*.config.ts",
+    ],
+    languageOptions: { globals: globals.nodeBuiltin },
   },
   {
     // Tests pueden usar `any` y funciones largas.
@@ -364,7 +378,7 @@ export default tseslint.config(
     plugins: { playwright, "react-hooks": reactHooks },
     languageOptions: {
       parser: tseslint.parser,
-      globals: { ...globals.node },
+      globals: globals.nodeBuiltin,
     },
     rules: {
       ...playwright.configs["flat/recommended"].rules,
