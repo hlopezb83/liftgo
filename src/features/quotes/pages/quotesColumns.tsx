@@ -29,7 +29,7 @@ export function buildQuotesColumns<Q extends {
       id: "quote_number",
       header: "Folio",
       accessorKey: "quote_number",
-      cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.quote_number}</Untranslated>,
+      cell: ({ row }) => <Untranslated className="font-mono font-medium whitespace-nowrap">{row.original.quote_number}</Untranslated>,
     },
     {
       id: "type",
