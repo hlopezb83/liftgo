@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.42.10",
+    "date": "2026-09-26",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Folios de cotización siempre legibles",
+    "description": "Los folios de cotización se mantienen completos en una sola línea en la tabla de escritorio.",
+    "changes": [
+      "La columna Folio conserva el número completo al adaptar el ancho de la tabla."
+    ]
+  },
+  {
     "version": "8.42.9",
     "date": "2026-09-26",
     "type": "patch",
