@@ -30,5 +30,5 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
     { label: "Utilización", value: stats.utilization, icon: ChartIcon, color: "text-chart-5" },
   ];
 
-  return <StatCards cards={cards} />;
+  return <StatCards cards={cards} columns={4} />;
 }

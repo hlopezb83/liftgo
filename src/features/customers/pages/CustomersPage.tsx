@@ -3,6 +3,7 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { AddIcon, UsersIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useHasModuleAccess } from "@/features/users";
@@ -145,16 +146,15 @@ export default function CustomersPage() {
         subtitle={customers ? `${customers.length} clientes` : undefined}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
         mobileActions={<CustomersSecondaryActions filtered={filtered} />}
-        mobileFab={
+        mobilePrimaryAction={
           <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-            <button
-              type="button"
+            <Button
+              size="sm"
               onClick={openCreate}
               aria-label="Agregar cliente"
-              className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center"
             >
-              <AddIcon className="h-6 w-6" />
-            </button>
+              <AddIcon className="h-4 w-4" />Nuevo cliente
+            </Button>
           </RoleGuard>
         }
         notice={

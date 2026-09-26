@@ -90,7 +90,7 @@ export function CalendarLoadingSkeleton() {
       <PageHeader title="Calendario de Disponibilidad" />
       <div className="space-y-6" role="status">
         <span className="sr-only">Cargando calendario…</span>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
         </div>
         <div className="flex items-center flex-wrap gap-2">

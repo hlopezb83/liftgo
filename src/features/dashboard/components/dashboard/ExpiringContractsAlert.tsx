@@ -25,7 +25,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
   return (
     <Card className="border-warning/30 bg-warning/5">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2 text-warning">
+        <CardTitle className="text-base flex items-center gap-2 text-warning-text">
           <DocumentIcon className="h-4 w-4" /> Contratos por Vencer ({contracts.length})
         </CardTitle>
       </CardHeader>
@@ -48,7 +48,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <span className={`tabular-nums font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-warning"}`}>
+                <span className={`tabular-nums font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-warning-text"}`}>
                   {c.days_remaining} días
                 </span>
                 <p className="text-xs text-muted-foreground">Vence: {formatDateMty(c.end_date)}</p>

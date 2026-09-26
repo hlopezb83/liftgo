@@ -18,7 +18,7 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
   return (
     <Card className="border-warning/30 bg-warning/5">
       <CardHeader className="pb-2">
-        <CardTitle className="text-base flex items-center gap-2 text-warning">
+        <CardTitle className="text-base flex items-center gap-2 text-warning-text">
           <ShieldAlert className="h-4 w-4" /> Seguros ({expiring.length + noInsuranceCount})
         </CardTitle>
       </CardHeader>
@@ -34,7 +34,7 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
           >
             <span className="font-medium">{f.name}</span>
             <div className="text-right">
-              <span className={`tabular-nums font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-warning"}`}>
+              <span className={`tabular-nums font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-warning-text"}`}>
                 {f.days_left <= 0 ? "Vencida" : `${f.days_left} días`}
               </span>
               <p className="text-xs text-muted-foreground">Vence: {formatDateMty(f.insurance_expiry)}</p>
