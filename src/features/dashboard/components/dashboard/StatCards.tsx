@@ -13,11 +13,12 @@ interface StatCard {
 
 interface StatCardsProps {
   cards: StatCard[];
+  columns?: 4 | 5;
 }
 
-export function StatCards({ cards }: StatCardsProps) {
+export function StatCards({ cards, columns = 5 }: StatCardsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 [&>*:last-child:nth-child(odd)]:col-span-2 md:[&>*:last-child:nth-child(odd)]:col-span-1">
+    <div className={`grid grid-cols-2 gap-4 [&>*:last-child:nth-child(odd)]:col-span-2 md:[&>*:last-child:nth-child(odd)]:col-span-1 ${columns === 4 ? "lg:grid-cols-4" : "md:grid-cols-3 lg:grid-cols-5"}`}>
       {cards.map((card) => (
         <KpiTile
           key={card.label}

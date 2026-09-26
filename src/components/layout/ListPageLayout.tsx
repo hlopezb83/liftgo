@@ -9,20 +9,16 @@ import { useListPagePullToRefresh } from "@/components/layout/listPage/useListPa
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
 
 interface ListPageLayoutProps<T extends { id?: string }> {
   title: string;
   subtitle?: string;
   totalCount?: number;
   actions?: ReactNode;
-  /** Acciones secundarias que siguen disponibles cuando móvil usa mobileFab. */
+  /** Acciones secundarias junto a la acción primaria y los filtros en móvil. */
   mobileActions?: ReactNode;
-  /**
-   * Acción primaria opcional para móvil. QA-UX-05: se renderiza al final de la
-   * lista, en el flujo normal, para no tapar las tarjetas.
-   */
-  mobileFab?: ReactNode;
+  /** Sustituye actions en móvil; permanece en el flujo, antes de la lista. */
+  mobilePrimaryAction?: ReactNode;
   filters?: ReactNode;
   /**
    * N-01: aviso persistente (p.ej. truncamiento de lista). Se renderiza entre
@@ -71,7 +67,7 @@ export function ListPageLayout<T extends { id?: string }>({
   totalCount,
   actions,
   mobileActions,
-  mobileFab,
+  mobilePrimaryAction,
   filters,
   notice,
   isLoading,
@@ -103,17 +99,13 @@ export function ListPageLayout<T extends { id?: string }>({
 
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;
-  const hasMobileFab = !!(isMobile && mobileFab);
-  const visibleActions = hasMobileFab ? mobileActions : actions;
+  const visibleActions = isMobile ? (mobilePrimaryAction ?? actions) : actions;
 
   return (
     <PageTransition>
       <div
         ref={sentinelRef}
-        className={cn(
-          "p-4 sm:p-6 space-y-6",
-          hasMobileFab && "pb-[calc(env(safe-area-inset-bottom)+1.5rem)]",
-        )}
+        className="p-4 sm:p-6 space-y-6"
       >
         <PullToRefreshIndicator
           visible={indicatorVisible}
@@ -128,9 +120,10 @@ export function ListPageLayout<T extends { id?: string }>({
         />
         {notice}
         {isMobile ? (
-          (visibleActions || filters) && (
+          (visibleActions || mobileActions || filters) && (
             <div className="flex flex-wrap items-center gap-2">
               {visibleActions}
+              {mobileActions}
               <FiltersSlot
                 filters={filters}
                 inSheet
@@ -169,25 +162,8 @@ export function ListPageLayout<T extends { id?: string }>({
           skeletonColumns={skeletonColumns}
           loadMore={loadMore}
         />
-        {hasMobileFab && <MobileActionFooter>{mobileFab}</MobileActionFooter>}
       </div>
     </PageTransition>
-  );
-}
-
-/**
- * QA-UX-05: la acción primaria móvil vivía en un overlay `fixed` que cubría la
- * última tarjeta de Clientes, Reservas y Cotizaciones. Ahora se coloca en el
- * flujo, al final de la lista, reservando el safe-area inferior.
- */
-function MobileActionFooter({ children }: { children: ReactNode }) {
-  return (
-    <div
-      className="flex justify-center pt-2 [&_button]:w-full"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
-    >
-      {children}
-    </div>
   );
 }
 

@@ -52,6 +52,8 @@
 
     --warning: 38 92% 50%;
     --warning-foreground: 220 30% 15%;
+    /* Text on light warning surfaces; the brighter warning token is an accent. */
+    --warning-text: 38 92% 28%;
 
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
@@ -141,6 +143,7 @@
     /* BL-R8-15: en dark heredamos el token; 26% se hunde sobre fondo oscuro.
      * 50% da ≈5.0:1 sobre bg-success/10 en dark. */
     --success: 142 65% 50%;
+    --warning-text: 38 92% 65%;
 
     --border: 220 20% 18%;
     --input: 220 20% 18%;
@@ -194,6 +197,7 @@
   --color-success-foreground: hsl(var(--success-foreground));
   --color-warning: hsl(var(--warning));
   --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-warning-text: hsl(var(--warning-text));
   --color-info: hsl(var(--info));
   --color-info-foreground: hsl(var(--info-foreground));
 

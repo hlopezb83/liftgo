@@ -27,7 +27,7 @@ export function buildQuotesColumns<Q extends {
   return [
     {
       id: "quote_number",
-      header: "Cotización #",
+      header: "Folio",
       accessorKey: "quote_number",
       cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.quote_number}</Untranslated>,
     },

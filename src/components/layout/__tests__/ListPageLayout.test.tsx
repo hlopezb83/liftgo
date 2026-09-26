@@ -19,7 +19,7 @@ function makeTableStub<T>(rows: T[]) {
     // Métodos consumidos por DataTableV2/DataTablePaginationV2 — no se ejecutan
     // porque la lista está vacía o el error/loading interceptan primero.
     getHeaderGroups: () => [],
-    getState: () => ({ pagination: { pageIndex: 0, pageSize: 25 } }),
+    state: { pagination: { pageIndex: 0, pageSize: 25 } },
     getPageCount: () => 0,
     getCanPreviousPage: () => false,
     getCanNextPage: () => false,
@@ -82,7 +82,7 @@ describe("ListPageLayout — acciones móviles", () => {
     renderLayout({
       actions: <button>Alta de escritorio</button>,
       mobileActions: <button>Exportar CSV</button>,
-      mobileFab: <button aria-label="Nuevo cliente">+</button>,
+      mobilePrimaryAction: <button>Nuevo cliente</button>,
       filters: <input aria-label="Buscar clientes" />,
     });
 
@@ -90,5 +90,16 @@ describe("ListPageLayout — acciones móviles", () => {
     expect(screen.getByRole("button", { name: "Filtros" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Nuevo cliente" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Alta de escritorio" })).toBeNull();
+    const primary = screen.getByRole("button", { name: "Nuevo cliente" });
+    expect(primary.compareDocumentPosition(screen.getByRole("button", { name: "Exportar CSV" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(primary.compareDocumentPosition(screen.getByText("Sin resultados")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("reutiliza la acción del encabezado antes de la lista si no hay sustitución móvil", async () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    renderLayout({ actions: <button>Nueva cotización</button>, filters: <input aria-label="Buscar" /> });
+    const primary = await screen.findByRole("button", { name: "Nueva cotización" });
+    expect(screen.getAllByRole("button", { name: "Nueva cotización" })).toHaveLength(1);
+    expect(primary.compareDocumentPosition(screen.getByText("Sin resultados")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });

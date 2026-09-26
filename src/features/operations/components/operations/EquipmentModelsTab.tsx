@@ -23,6 +23,7 @@ import {
 import { countUnitsForModel, validateNonNegative } from "@/features/operations/lib/equipmentModelValidation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 type FormState = {
@@ -97,7 +98,7 @@ export function EquipmentModelsTab() {
     { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => row.original.local_alias || row.original.model },
     { id: "capacity", header: "Capacidad", accessorKey: "default_capacity_kg", cell: ({ row }) => row.original.default_capacity_kg ? `${row.original.default_capacity_kg} kg` : "—" },
     { id: "fuel", header: "Combustible", accessorKey: "default_fuel_type", cell: ({ row }) => FUEL_TYPE_LABELS[row.original.default_fuel_type] || row.original.default_fuel_type },
-    { id: "daily", header: "Tarifa diaria", accessorKey: "default_daily_rate", meta: { kind: "money" } },
+    { id: "daily", header: "Tarifa diaria", accessorKey: "default_daily_rate", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.default_daily_rate) },
     {
       id: "actions", header: "", enableSorting: false,
       cell: ({ row }) => <EquipmentModelRowActions model={row.original} unitsInUse={countUnits(row.original)} onEdit={() => openEdit(row.original)} onDeactivate={() => deactivate.mutate(row.original.id, { onSuccess: () => notifySuccess("Modelo desactivado para esta empresa") })} />,
@@ -112,7 +113,7 @@ export function EquipmentModelsTab() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">La ficha técnica es global; el alias y las tarifas pertenecen a esta empresa.</p>
         <Button onClick={openNew} size="sm"><AddIcon className="mr-2 h-4 w-4" />Habilitar modelo</Button>
       </div>
@@ -126,6 +127,10 @@ export function EquipmentModelsTab() {
               <EquipmentModelRowActions model={model} unitsInUse={countUnits(model)} onEdit={() => openEdit(model)} onDeactivate={() => deactivate.mutate(model.id)} />
             </div>
             <div className="text-xs text-muted-foreground">{model.default_capacity_kg ? `${model.default_capacity_kg} kg · ` : ""}{FUEL_TYPE_LABELS[model.default_fuel_type] || model.default_fuel_type}</div>
+            <div className="flex items-baseline justify-between gap-2 pt-2 text-sm">
+              <span className="text-muted-foreground">Tarifa diaria</span>
+              <span className="font-medium tabular-nums">{formatCurrency(model.default_daily_rate)}</span>
+            </div>
           </CardContent></Card>
         )} />
       ) : <DataTableV2 table={table} isLoading={local.isLoading} emptyMessage="No hay modelos de equipo configurados" />}

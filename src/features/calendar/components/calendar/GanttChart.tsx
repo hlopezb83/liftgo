@@ -106,7 +106,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
 
   return (
     <div>
-      <p className="text-xs text-muted-foreground sm:hidden mb-2">Desliza para ver la semana →</p>
+      <p className="text-xs text-muted-foreground sm:hidden mb-2">Desliza para ver las fechas →</p>
       <div className="overflow-x-auto sm:[mask-image:none] [mask-image:linear-gradient(to_right,black_92%,transparent)]">
         <div className="min-w-[800px] relative">
           <GanttHeader days={days} />

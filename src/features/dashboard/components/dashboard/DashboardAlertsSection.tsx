@@ -29,7 +29,7 @@ interface DashboardAlertsSectionProps {
 export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
   const showFinancials = props.canSeeFinancials ?? true;
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <AlertsRow
         overdueInvoices={showFinancials ? props.overdueInvoices : []}
         maintenanceAlerts={props.maintenanceAlerts}
@@ -45,6 +45,6 @@ export function DashboardAlertsSection(props: DashboardAlertsSectionProps) {
       )}
       <ExpiringContractsAlert contracts={props.expiringContracts} />
       <InsuranceAlert data={props.insuranceData} />
-    </>
+    </div>
   );
 }

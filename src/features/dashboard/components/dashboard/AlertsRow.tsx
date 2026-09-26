@@ -167,7 +167,7 @@ export function AlertsRow({
               variant="link"
               size="sm"
               onClick={() => navigate("/returns/pending")}
-              className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning"
+              className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning-text"
             >
               Ver todos los retornos pendientes →
             </Button>
@@ -181,13 +181,13 @@ export function AlertsRow({
               onClick={() => navigate(canManageReturns
                 ? `/returns?booking_id=${ob.booking_id}`
                 : `/bookings/${ob.booking_id}`)}
-              rightTop={<span className="tabular-nums font-semibold text-warning whitespace-nowrap">{ob.days_overdue} días</span>}
+              rightTop={<span className="tabular-nums font-semibold text-warning-text whitespace-nowrap">{ob.days_overdue} días</span>}
               rightBottom={`Venció: ${formatDateMty(ob.end_date)}`}
               action={canManageReturns ? {
                 icon: ClipboardList,
                 title: "Registrar devolución",
                 onClick: (e) => { e.stopPropagation(); navigate(`/returns?booking_id=${ob.booking_id}`); },
-                className: "text-warning",
+                className: "text-warning-text",
               } : undefined}
             />
           ))}
@@ -234,7 +234,7 @@ function PendingDeliveriesCard({ count }: { count: number }) {
           variant="link"
           size="sm"
           onClick={() => navigate("/deliveries?status=scheduled")}
-          className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning"
+          className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning-text"
         >
           Ver entregas por cerrar →
         </Button>
