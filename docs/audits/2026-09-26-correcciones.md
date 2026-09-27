@@ -27,9 +27,9 @@ El descuento porcentual o fijo se reparte en centavos de forma estable entre las
 
 No hay migración ni actualización de facturas, reservas o cotizaciones existentes. La protección automática requiere desplegar la Edge Function, además del frontend.
 
-## C-PDF-01: abierto
+## C-PDF-01: retirado por falso positivo
 
-El encabezado invisible del Anexo A en CTR-0003 no se reprodujo localmente con el renderer Node ni con su edición browser. Se verificaron cuatro modos y un caso largo con Poppler y PDFium; condiciones y encabezados aparecen. No se cambió la composición del encabezado por una hipótesis. Falta regenerar y contrastar el mismo documento en la UI publicada.
+Al revisar individualmente las imágenes originales y regenerar CTR-0003 desde la UI publicada 8.42.11, el encabezado aparece completo en las cuatro páginas con Poppler y PDFium. Los nuevos PNG coinciden byte a byte con los originales por motor, y los cuatro flujos de contenido del PDF también coinciden. La clasificación visual inicial fue errónea; no hay evidencia de un fallo intermitente. Se retira el hallazgo y no se modifica el encabezado.
 
 ## Validación
 
