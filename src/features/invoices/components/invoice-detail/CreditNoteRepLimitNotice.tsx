@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import type { Payment } from "../../hooks/usePayments";
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
   maxCreditable: number;
   repPayments: Payment[];
   blocked: boolean;
+  currency?: string;
 }
 
 /**
@@ -18,6 +19,7 @@ interface Props {
  */
 export function CreditNoteRepLimitNotice({
   invoiceTotal, priorCredits, repBacked, maxCreditable, repPayments, blocked,
+  currency = "MXN",
 }: Props) {
   return (
     <div className="mx-6 mb-4 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
@@ -29,19 +31,19 @@ export function CreditNoteRepLimitNotice({
       <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
         <div className="flex justify-between">
           <span>Total de la factura</span>
-          <span className="font-mono tabular-nums">{formatCurrency(invoiceTotal)}</span>
+          <span className="font-mono tabular-nums">{formatCurrencyWithCode(invoiceTotal, currency)}</span>
         </div>
         <div className="flex justify-between">
           <span>Notas de crédito previas</span>
-          <span className="font-mono tabular-nums">− {formatCurrency(priorCredits)}</span>
+          <span className="font-mono tabular-nums">− {formatCurrencyWithCode(priorCredits, currency)}</span>
         </div>
         <div className="flex justify-between">
           <span>Declarado en complementos de pago (REP) vigentes</span>
-          <span className="font-mono tabular-nums">− {formatCurrency(repBacked)}</span>
+          <span className="font-mono tabular-nums">− {formatCurrencyWithCode(repBacked, currency)}</span>
         </div>
         <div className="flex justify-between border-t pt-0.5 font-medium text-foreground">
           <span>Máximo acreditable</span>
-          <span className="font-mono tabular-nums">{formatCurrency(maxCreditable)}</span>
+          <span className="font-mono tabular-nums">{formatCurrencyWithCode(maxCreditable, currency)}</span>
         </div>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
@@ -53,7 +55,7 @@ export function CreditNoteRepLimitNotice({
           <li key={p.id} className="flex items-center justify-between gap-2">
             <span className="font-mono">{p.rep_number ?? p.rep_folio ?? "REP"}</span>
             <span className="text-muted-foreground">{formatDateMty(p.payment_date)}</span>
-            <span className="font-mono tabular-nums">{formatCurrency(Number(p.amount) || 0)}</span>
+            <span className="font-mono tabular-nums">{formatCurrencyWithCode(Number(p.amount) || 0, p.currency ?? "MXN")}</span>
             <Badge variant="outline" className="border-warning/30 text-warning">Timbrado</Badge>
           </li>
         ))}

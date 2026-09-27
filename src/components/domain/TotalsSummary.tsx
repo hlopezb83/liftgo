@@ -20,36 +20,32 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex flex-col items-end gap-2">
-          <div className="flex items-center gap-4 text-sm">
-            <span className="text-muted-foreground">Subtotal</span>
-            <span className="tabular-nums w-28 text-right">{fmt(subtotal)}</span>
-          </div>
-          <div className="flex items-center gap-4 text-sm">
-            {onTaxRateChange ? (
-              <>
-                <span className="text-muted-foreground">IVA</span>
-                <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v))}>
-                  <SelectTrigger className="w-36 h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {APP_CONFIG.TAX_RATE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
-            ) : (
-              <span className="text-muted-foreground">IVA ({displayRate}%)</span>
-            )}
-            <span className="tabular-nums w-28 text-right">{fmt(taxAmount)}</span>
-          </div>
-          <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 text-sm sm:ml-auto sm:w-fit">
+          <span className="text-muted-foreground">Subtotal</span>
+          <span className="tabular-nums min-w-28 text-right whitespace-nowrap">{fmt(subtotal)}</span>
+          {onTaxRateChange ? (
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+              <span className="text-muted-foreground">IVA</span>
+              <Select value={String(taxRate)} onValueChange={(v) => onTaxRateChange(Number(v))}>
+                <SelectTrigger className="w-36 max-w-full h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {APP_CONFIG.TAX_RATE_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={String(opt.value)}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <span className="text-muted-foreground">IVA ({displayRate}%)</span>
+          )}
+          <span className="tabular-nums min-w-28 text-right whitespace-nowrap">{fmt(taxAmount)}</span>
+          <div className="col-span-2 flex items-center justify-between gap-4 text-base font-bold border-t pt-2">
             <span>Total</span>
-            <span className="tabular-nums w-28 text-right">{fmt(total)}</span>
+            <span className="tabular-nums min-w-28 text-right whitespace-nowrap">{fmt(total)}</span>
           </div>
         </div>
       </CardContent>

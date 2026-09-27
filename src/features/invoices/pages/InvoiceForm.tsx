@@ -42,6 +42,7 @@ export default function InvoiceForm() {
   });
 
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
+  const currency = useWatch({ control: f.form.control, name: "cfdi.moneda" });
   const isSubmitting = f.saveInvoice.isPending;
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
@@ -159,6 +160,7 @@ export default function InvoiceForm() {
             taxRate={taxRate}
             taxAmount={f.taxAmount}
             total={f.total}
+            currency={currency}
             onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
           />
 

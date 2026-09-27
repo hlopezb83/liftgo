@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { PhoneCall, AddIcon, CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useHasModuleAccess } from "@/features/users";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { useCollectionNotes, useCreateCollectionNote } from "../../hooks/invoices/collections/useCollectionNotes";
@@ -14,6 +15,8 @@ interface CollectionNotesCardProps {
 }
 
 export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
+  const noteInputId = useId();
+  const canWrite = useHasModuleAccess("Facturas", "full");
   const { data: notes, isLoading } = useCollectionNotes(invoiceId);
   const createNote = useCreateCollectionNote();
   const [showForm, setShowForm] = useState(false);
@@ -21,7 +24,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
   const [followupDate, setFollowupDate] = useState<Date | undefined>(undefined);
 
   const handleSubmit = () => {
-    if (!noteText.trim()) return;
+    if (!canWrite || createNote.isPending || !noteText.trim()) return;
     createNote.mutate(
       { invoice_id: invoiceId, note: noteText.trim(), next_followup_date: toYMD(followupDate) ?? null },
       { onSuccess: () => { setNoteText(""); setFollowupDate(undefined); setShowForm(false); } }
@@ -31,21 +34,22 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <CardTitle className="text-base flex items-center gap-2">
             <PhoneCall className="h-4 w-4" /> Gestiones de Cobranza
           </CardTitle>
-          <Button variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
+          {canWrite && <Button variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
             <AddIcon className="h-4 w-4 mr-1" /> Nueva Gestión
-          </Button>
+          </Button>}
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {showForm && (
+        {canWrite && showForm && (
           <div className="space-y-3 p-3 rounded-lg border bg-muted/30">
             <div className="space-y-1.5">
-              <Label>Nota de seguimiento</Label>
+              <Label htmlFor={noteInputId}>Nota de seguimiento</Label>
               <Textarea
+                id={noteInputId}
                 placeholder="Ej: Se habló con el contacto, prometió pago para el viernes…"
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}

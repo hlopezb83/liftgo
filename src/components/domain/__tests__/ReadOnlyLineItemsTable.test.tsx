@@ -5,6 +5,15 @@ import { ReadOnlyLineItemsTable } from "../ReadOnlyLineItemsTable";
 afterEach(cleanup);
 
 describe("ReadOnlyLineItemsTable — neto de factura", () => {
+  it("una factura USD identifica precio, descuento fijo y neto en dólares", () => {
+    render(<ReadOnlyLineItemsTable currency="USD" lineItems={[
+      { description: "Renta diaria", quantity: 3, unit_price: 400, total: 1200, discount: 100, discount_type: "$" },
+    ]} />);
+    expect(screen.getByText(/(?:US\$|USD\s+)400\.00/)).toBeInTheDocument();
+    expect(screen.getByText(/-(?:US\$|USD\s+)100\.00/)).toBeInTheDocument();
+    expect(screen.getByText(/(?:US\$|USD\s+)1,100\.00/)).toBeInTheDocument();
+  });
+
   it("separa descuento y neto en el detalle sin volver a descontar el precio", () => {
     render(<ReadOnlyLineItemsTable lineItems={[
       { description: "Semanal", quantity: 1, unit_price: 4250.25, total: 4250.25, discount: 425.03, discount_type: "$" },

@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.42.17",
+    "date": "2026-09-27",
+    "type": "patch",
+    "category": "fix",
+    "title": "Saldos, moneda y permisos de facturas",
+    "description": "Los saldos de facturas esperan a que carguen pagos y notas de crédito. Las acciones respetan el acceso de consulta y los importes muestran la moneda del documento.",
+    "changes": [
+      "Un error al consultar pagos o notas de crédito muestra un aviso con reintento y evita presentar un saldo incompleto.",
+      "Los usuarios de consulta conservan historiales y descargas, sin acciones para modificar pagos, complementos, notas de crédito, cobranza o reportes de pago.",
+      "La validación del receptor fiscal se ofrece a administración con acceso completo, conforme a los permisos del servicio.",
+      "Las partidas, descuentos, totales y resúmenes usan la moneda de la factura; los límites y montos de notas de crédito identifican también su divisa.",
+      "Los resúmenes financieros y el selector de IVA distribuyen su espacio para facilitar la lectura en pantallas pequeñas."
+    ]
+  },
+  {
     "version": "8.42.16",
     "date": "2026-09-26",
     "type": "patch",

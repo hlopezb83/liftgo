@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/invoices/hooks/paymentIntents";
+import { useHasModuleAccess } from "@/features/users";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import {
@@ -29,6 +30,7 @@ const schema = z.object({
 type FormValues = z.input<typeof schema>;
 
 export function PaymentIntentsSection({ invoiceId }: Props) {
+  const canWrite = useHasModuleAccess("Facturas", "full");
   const { data: intents } = useAdminPaymentIntents(invoiceId);
   const review = useReviewPaymentIntent();
   const [rejectId, setRejectId] = useState<string | null>(null);
@@ -51,20 +53,20 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
     [],
   );
   const onApprove = useCallback(
-    (intentId: string) => review.mutate({ intentId, action: "approve" }),
-    [review],
+    (intentId: string) => { if (canWrite && !review.isPending) review.mutate({ intentId, action: "approve" }); },
+    [canWrite, review],
   );
-  const onReject = useCallback((intentId: string) => setRejectId(intentId), []);
+  const onReject = useCallback((intentId: string) => { if (canWrite) setRejectId(intentId); }, [canWrite]);
 
   const submitReject = form.handleSubmit((values) => {
-    if (!rejectId) return;
+    if (!canWrite || review.isPending || !rejectId) return;
     review.mutate(
       { intentId: rejectId, action: "reject", notes: values.notes.trim() },
       { onSuccess: () => setRejectId(null) },
     );
   });
 
-  const columns = usePaymentIntentsColumns({ onOpenProof: openProof, onApprove, onReject });
+  const columns = usePaymentIntentsColumns({ onOpenProof: openProof, onApprove, onReject, canWrite });
 
   const table = useLiftgoTable<PaymentIntent>({
     data: intents,
@@ -89,7 +91,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
 
       <FormDialog
       isPending={review.isPending}
-        open={!!rejectId}
+        open={canWrite && !!rejectId}
         onOpenChange={(o) => !o && setRejectId(null)}
         title="Rechazar reporte de pago"
         description="El motivo será visible para el cliente en el portal."

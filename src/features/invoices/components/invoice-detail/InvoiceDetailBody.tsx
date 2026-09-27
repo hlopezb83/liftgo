@@ -62,6 +62,7 @@ export function InvoiceDetailBody({
 }: Props) {
   const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance,
     unconvertiblePayments, showCfdiError, showCollectionNotes, visibility, ppdStamped } = derived;
+  const currency = invoice.moneda ?? "MXN";
 
   return (
     <>
@@ -81,7 +82,7 @@ export function InvoiceDetailBody({
           <InvoiceDetailActions
             invoice={invoice}
             cfdiStatus={cfdiStatus}
-            userRole={userRole ?? undefined}
+            userRole={userRole}
             visibility={visibility}
             balance={balance}
             isStamping={actions.stampCfdi.isPending}
@@ -126,12 +127,13 @@ export function InvoiceDetailBody({
 
       <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBookings={sourceBookings} />
       <InvoiceFiscalDataCard invoice={invoice} extraActions={<ValidateReceptorButton invoice={invoice} />} />
-      <ReadOnlyLineItemsTable lineItems={lineItems} />
+      <ReadOnlyLineItemsTable lineItems={lineItems} currency={currency} />
       <TotalsSummary
         subtotal={Number(invoice.subtotal)}
         taxRate={Number(invoice.tax_rate)}
         taxAmount={Number(invoice.tax_amount)}
         total={total}
+        currency={currency}
       />
 
       <InvoicePaymentSummary
@@ -141,6 +143,7 @@ export function InvoiceDetailBody({
         ppdStamped={ppdStamped}
         allowRepMutations={visibility.allowRepMutations}
         creditedAmount={creditedAmount}
+        currency={currency}
       />
       <PaymentIntentsSection invoiceId={id} />
       <InvoiceCreditNotesCard invoice={invoice} />

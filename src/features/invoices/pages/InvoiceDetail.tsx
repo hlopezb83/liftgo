@@ -65,8 +65,8 @@ export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
   const { data: invoice, isLoading, isError, refetch } = useInvoice(id);
-  const { data: payments } = usePayments(id);
-  const { data: creditNotes = [] } = useCreditNotesForInvoice(id);
+  const paymentsQuery = usePayments(id);
+  const creditNotesQuery = useCreditNotesForInvoice(id);
   const { data: userRole } = useUserRole();
   const { data: company } = useCompanySettings();
   const { data: sourceQuote } = useQuote(invoice?.quote_id ?? undefined);
@@ -78,12 +78,7 @@ export default function InvoiceDetail() {
   const actions = useInvoiceDetailActions(invoice ?? undefined, refetch);
 
   if (isLoading) {
-    return (
-      <PageContainer className="space-y-4">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-64" />
-      </PageContainer>
-    );
+    return <InvoiceDetailSkeleton />;
   }
   if (isError) {
     return (
@@ -104,7 +99,22 @@ export default function InvoiceDetail() {
     );
   }
 
-  const derived = deriveInvoiceData(invoice, payments, creditNotes, company);
+  // Un historial pendiente o fallido no equivale a cero pagos/notas de crédito.
+  // Ocultar también las acciones evita registrar un cobro con saldo incompleto.
+  if (paymentsQuery.isError || creditNotesQuery.isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState
+          entity="los pagos y notas de crédito de la factura"
+          isRetrying={paymentsQuery.isFetching || creditNotesQuery.isFetching}
+          onRetry={() => { void paymentsQuery.refetch(); void creditNotesQuery.refetch(); }}
+        />
+      </PageContainer>
+    );
+  }
+  if (paymentsQuery.isPending || creditNotesQuery.isPending) return <InvoiceDetailSkeleton />;
+
+  const derived = deriveInvoiceData(invoice, paymentsQuery.data, creditNotesQuery.data, company);
 
   return (
     <PageContainer maxWidth="wide">
@@ -118,6 +128,15 @@ export default function InvoiceDetail() {
         sourceBookings={sourceBookings}
         refetch={refetch}
       />
+    </PageContainer>
+  );
+}
+
+function InvoiceDetailSkeleton() {
+  return (
+    <PageContainer className="space-y-4">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-64" />
     </PageContainer>
   );
 }

@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
@@ -70,6 +70,7 @@ interface RowProps {
 
 function LineItemRow({ index, onRemove }: RowProps) {
   const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
+  const currency = useWatch({ control, name: "cfdi.moneda" });
   const [quantity, unitPrice, discount, discountType] = useWatch({
     control,
     name: [`lineItems.${index}.quantity`, `lineItems.${index}.unit_price`,
@@ -78,7 +79,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
   const gross = lineItemTotal(Number(quantity ?? 0), Number(unitPrice ?? 0));
   const net = applyDiscountToBase(gross, discount, discountType);
   const discountLabel = discount && discount > 0
-    ? (discountType === "$" ? `-${formatCurrency(discount)}` : `-${discount}%`) : "—";
+    ? (discountType === "$" ? `-${formatCurrencyWithCode(discount, currency)}` : `-${discount}%`) : "—";
 
   const syncTotal = (q: number, p: number) => {
     const next = lineItemTotal(q, p);
@@ -149,7 +150,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
       </TableCell>
       <TableCell className="text-right font-mono">{discountLabel}</TableCell>
       <TableCell className="text-right font-mono">
-        <output aria-label={`Importe neto partida ${index + 1}`}>{formatCurrency(net)}</output>
+        <output aria-label={`Importe neto partida ${index + 1}`}>{formatCurrencyWithCode(net, currency)}</output>
       </TableCell>
       <TableCell>
         <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Eliminar partida" title="Eliminar partida" onClick={() => onRemove(index)}>
