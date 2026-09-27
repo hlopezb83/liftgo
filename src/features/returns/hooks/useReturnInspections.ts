@@ -61,15 +61,19 @@ export function useCreateReturnInspection() {
   return useEntityMutation({
     // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
     mutationFn: async (inspection: Omit<TablesInsert<"return_inspections">, "inspection_number" | "organization_id">) => {
+      // El overload desplegado exige p_forklift_id (uuid, 2º arg, sin default).
+      // supabase-js descarta claves undefined, lo que reduce la aridad y hace
+      // que Postgres no resuelva ningún overload. Pasamos null explícito para
+      // los campos opcionales y exigimos forklift_id arriba (en el diálogo).
       const { data, error } = await supabase.rpc("complete_return_inspection", {
         p_booking_id: inspection.booking_id,
         p_forklift_id: inspection.forklift_id,
         p_condition: inspection.condition ?? "good",
-        p_damage_notes: inspection.damage_notes ?? undefined,
+        p_damage_notes: inspection.damage_notes ?? null,
         p_damage_cost: inspection.damage_cost ?? 0,
-        p_hours_used: inspection.hours_used ?? undefined,
-        p_fuel_level: inspection.fuel_level ?? undefined,
-        p_inspected_by: inspection.inspected_by ?? undefined,
+        p_hours_used: inspection.hours_used ?? null,
+        p_fuel_level: inspection.fuel_level ?? null,
+        p_inspected_by: inspection.inspected_by ?? null,
         // R6-FE-06: UTC real (mismo bug de doble offset que deliveries).
         p_inspected_at: inspection.inspected_at ?? new Date().toISOString(),
       });
