@@ -18,7 +18,7 @@ const QUOTE_COLUMNS = sel(
 );
 
 const QUOTE_LIST_COLUMNS = sel(
-  "id, quote_number, customer_id, customer_name, forklift_id, start_date, end_date, subtotal, tax_rate, tax_amount, total, status, valid_until, quote_type, currency"
+  "id, quote_number, customer_id, customer_name, forklift_id, start_date, end_date, subtotal, tax_rate, tax_amount, total, status, valid_until, quote_type, currency, tipo_cambio"
 );
 
 type QuoteListRow = Quote;
@@ -82,7 +82,7 @@ export function useQuotesByIds(ids: string[] | undefined) {
     staleTime: 60_000,
     queryFn: async () => {
       if (!ids || ids.length === 0) return [];
-      const { data, error } = await supabase.from("quotes").select("id, line_items").in("id", ids);
+      const { data, error } = await supabase.from("quotes").select("id, line_items, rental_meta, start_date, end_date").in("id", ids);
       if (error) throw error;
       return data;
     },

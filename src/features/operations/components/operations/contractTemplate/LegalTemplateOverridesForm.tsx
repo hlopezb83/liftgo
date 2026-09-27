@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useUpdateLegalTemplateOverrides } from "@/features/contracts";
 import {
   EMPTY_LEGAL_TEMPLATE_OVERRIDES,
+  useUpdateLegalTemplateOverrides,
   type LegalTemplateOverrides,
-} from "@/features/contracts/lib/legalTemplateOverrides";
+} from "@/features/contracts";
 
 const fields: Array<{
   key: keyof LegalTemplateOverrides;

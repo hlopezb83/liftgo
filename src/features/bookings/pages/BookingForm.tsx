@@ -1,4 +1,3 @@
-import { differenceInCalendarMonths, addMonths } from "date-fns";
 import { useWatch } from "react-hook-form";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SwitchField } from "@/components/forms/fields";
@@ -13,6 +12,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
+import { allowsRecurringBilling } from "../lib/recurringBillingEligibility";
 
 export default function BookingForm() {
   const {
@@ -39,9 +39,7 @@ export default function BookingForm() {
   // facturación (rentalCalculation.ts) en vez de un umbral de 30 días fijo,
   // para que la oferta de facturación recurrente coincida con cuándo el
   // motor realmente generará al menos una línea "Renta mensual".
-  const showRecurring = Boolean(
-    startDate && endDate && addMonths(startDate, 1) <= endDate && differenceInCalendarMonths(endDate, startDate) >= 1,
-  );
+  const showRecurring = allowsRecurringBilling(startDate, endDate);
   const forkliftName = selectedForklift?.name ?? "";
   // GUI-FE-11b (G-ADM-06): advertencia no bloqueante para fechas pasadas.
   const startYmd = toYMD(startDate);

@@ -16,7 +16,7 @@ interface KanbanColumnProps {
   pipelineTotal: number;
   density: "comfortable" | "compact";
   quoteMap: Map<string, string>;
-  onAdd: () => void;
+  onAdd?: () => void;
   onCardClick: (p: Prospect) => void;
 }
 
@@ -70,7 +70,7 @@ export function KanbanColumn({
         >
 
           <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-            {items.length === 0 ? (
+            {items.length === 0 && onAdd ? (
               // Oleada 2 (B-11): empty state por columna con CTA — mantiene el
               // droppable activo (setNodeRef está arriba) para poder soltar cards aquí.
               <button
@@ -81,6 +81,10 @@ export function KanbanColumn({
                 Sin prospectos<br />
                 <span className="text-xs opacity-70">Clic para agregar</span>
               </button>
+            ) : items.length === 0 ? (
+              <p className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-xs text-muted-foreground">
+                Sin prospectos
+              </p>
             ) : (
               items.map((prospect) => (
                 <ProspectCard
@@ -101,11 +105,13 @@ export function KanbanColumn({
         </div>
       </ScrollArea>
 
-      <div className="p-2 border-t">
-        <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onAdd}>
-          <AddIcon className="h-3.5 w-3.5 mr-1" /> Agregar
-        </Button>
-      </div>
+      {onAdd && (
+        <div className="p-2 border-t">
+          <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onAdd}>
+            <AddIcon className="h-3.5 w-3.5 mr-1" /> Agregar
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

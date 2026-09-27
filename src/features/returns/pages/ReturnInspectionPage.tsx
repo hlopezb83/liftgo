@@ -7,15 +7,14 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { PlusCircle } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
+import { ReturnInspectionMobileCard } from "../components/return-inspection/ReturnInspectionMobileCard";
 import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
 import { useReturnableBookings } from "../hooks/useReturnableBookings";
 import { useReturnInspections } from "../hooks/useReturnInspections";
@@ -138,26 +137,7 @@ export default function ReturnInspectionPage() {
         emptyMessage="No hay inspecciones de devolución"
         emptyActionLabel={canWrite ? "Nueva Devolución" : undefined}
         onEmptyAction={canWrite ? openNewInspection : undefined}
-        mobileCardRender={(ins) => (
-          <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-mono text-muted-foreground">{ins.inspection_number}</span>
-                <StatusBadge status={ins.condition} />
-              </div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-semibold">{ins.forklifts?.name || "—"}</span>
-              </div>
-              <p className="text-sm text-muted-foreground">{ins.bookings?.customer_name || "—"}</p>
-              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">{formatDateMty(ins.inspected_at)}</span>
-                {ins.damage_cost ? (
-                  <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        mobileCardRender={(ins) => <ReturnInspectionMobileCard inspection={ins} />}
       />
 
       {canWrite && <ReturnInspectionDialog

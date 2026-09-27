@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { initialReturnInspectionForm, returnInspectionSchema } from "./returnInspectionSchema";
 
+const validInspection = { ...initialReturnInspectionForm, bookingId: "b1", fuelLevel: "1/2" };
+
 describe("returnInspectionSchema", () => {
   it("permite condición sin daño sin notas ni costo", () => {
     const result = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       condition: "good",
       damageNotes: "",
@@ -16,7 +18,7 @@ describe("returnInspectionSchema", () => {
 
   it("exige notas y costo cuando la condición implica daño", () => {
     const result = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       condition: "major_damage",
       damageNotes: "",
@@ -32,7 +34,7 @@ describe("returnInspectionSchema", () => {
 
   it("acepta daño con notas y costo válidos (0 incluido)", () => {
     const result = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       condition: "minor_damage",
       damageNotes: "Rayón en el mástil",
@@ -43,7 +45,7 @@ describe("returnInspectionSchema", () => {
 
   it("rechaza notas o costo de daño cuando la condición es 'good' (FE2-12)", () => {
     const result = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       condition: "good",
       damageNotes: "Rayón en el mástil",
@@ -59,7 +61,7 @@ describe("returnInspectionSchema", () => {
 
   it("rechaza costos negativos y no numéricos", () => {
     const negative = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       condition: "minor_damage",
       damageNotes: "Abolladura",
@@ -68,7 +70,7 @@ describe("returnInspectionSchema", () => {
     expect(negative.success).toBe(false);
 
     const nonNumeric = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       condition: "minor_damage",
       damageNotes: "Abolladura",
@@ -79,7 +81,7 @@ describe("returnInspectionSchema", () => {
 
   it("rechaza horas usadas negativas", () => {
     const result = returnInspectionSchema.safeParse({
-      ...initialReturnInspectionForm,
+      ...validInspection,
       bookingId: "b1",
       hoursUsed: "-5",
     });
@@ -88,6 +90,18 @@ describe("returnInspectionSchema", () => {
       const paths = result.error.issues.map((i) => i.path.join("."));
       expect(paths).toContain("hoursUsed");
     }
+  });
+});
+
+describe("returnInspectionSchema · combustible exigido por backend", () => {
+  it.each(["", "   ", "1/3", "full"])("rechaza '%s' en el campo de combustible", (fuelLevel) => {
+    const result = returnInspectionSchema.safeParse({ ...validInspection, fuelLevel });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.issues.some((issue) => issue.path[0] === "fuelLevel")).toBe(true);
+  });
+
+  it.each(["Full", "3/4", "1/2", "1/4", "Empty"])("acepta el valor permitido %s", (fuelLevel) => {
+    expect(returnInspectionSchema.safeParse({ ...validInspection, fuelLevel }).success).toBe(true);
   });
 });
 

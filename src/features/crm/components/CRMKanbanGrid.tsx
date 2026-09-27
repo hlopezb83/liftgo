@@ -115,7 +115,7 @@ export function CRMKanbanGrid({
             pipelineTotal={pipelineTotal}
             density={density}
             quoteMap={quoteMap}
-            onAdd={() => onAdd(stage.key)}
+            onAdd={stage.key === "nuevo_prospecto" ? () => onAdd(stage.key) : undefined}
             onCardClick={onCardClick}
           />
         ))}

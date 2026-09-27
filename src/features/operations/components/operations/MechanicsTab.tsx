@@ -13,10 +13,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
+import { useHasModuleAccess } from "@/features/users";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function MechanicsTab() {
+  const canWrite = useHasModuleAccess("Configuración", "full");
   const isMobile = useIsMobile();
   const { data: mechanics, isLoading, isError, refetch } = useMechanics();
   const create = useCreateMechanic();
@@ -28,14 +30,16 @@ export function MechanicsTab() {
   const [form, setForm] = useState(emptyForm);
   const set = (key: string, value: string | boolean) => setForm((p) => ({ ...p, [key]: value }));
 
-  const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
+  const openNew = () => { if (!canWrite) return; setEditId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (m: Mechanic) => {
+    if (!canWrite) return;
     setEditId(m.id);
     setForm({ name: m.name, phone: m.phone ?? "", email: m.email ?? "", specialization: m.specialization ?? "", is_active: m.is_active, notes: m.notes ?? "" });
     setOpen(true);
   };
 
   const handleSubmit = () => {
+    if (!canWrite || create.isPending || update.isPending) return;
     if (!form.name) { notifyValidation({ message: "El nombre es requerido" }); return; }
     const payload = { name: form.name, phone: form.phone || null, email: form.email || null, specialization: form.specialization || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
@@ -63,7 +67,7 @@ export function MechanicsTab() {
         <MechanicRowActions
           mechanic={row.original}
           onEdit={() => openEdit(row.original)}
-          onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+          onDelete={() => canWrite && del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
         />
       ),
     },
@@ -81,7 +85,7 @@ export function MechanicsTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Mecánico</Button>
+        {canWrite && <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Mecánico</Button>}
       </div>
       {isError ? (
         <QueryErrorState bare entity="los mecánicos" onRetry={() => { void refetch(); }} />
@@ -102,7 +106,7 @@ export function MechanicsTab() {
                     <MechanicRowActions
                       mechanic={m}
                       onEdit={() => openEdit(m)}
-                      onDelete={() => del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                      onDelete={() => canWrite && del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
                     />
                   </div>
                 </div>
@@ -120,7 +124,7 @@ export function MechanicsTab() {
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
       )}
       <FormDialog
-      isPending={create.isPending || update.isPending} open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
+      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -144,7 +148,9 @@ export function MechanicsTab() {
 }
 
 function MechanicRowActions({ mechanic, onEdit, onDelete }: { mechanic: Mechanic; onEdit: () => void; onDelete: () => void }) {
+  const canWrite = useHasModuleAccess("Configuración", "full");
   const [open, setOpen] = useState(false);
+  if (!canWrite) return null;
   return (
     <div className="flex gap-1">
       <Button variant="ghost" size="icon" aria-label="Editar mecánico" title="Editar mecánico" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>

@@ -27,4 +27,12 @@ describe("buildQuotesColumns Untranslated wrapping", () => {
     expect(c1.querySelector('[translate="no"]')?.textContent).toContain("COT-0001");
     expect(c2.querySelector('[translate="no"]')?.textContent).toContain("Industrias del Valle");
   });
+  it.each(["USD", "MXN"])("el total identifica %s aunque ambas monedas usen el signo $", (currency) => {
+    const row = { ...quote, total: 1160, currency };
+    const column = buildQuotesColumns<typeof row>().find((c) => c.id === "total");
+    if (typeof column?.cell !== "function") throw new Error("missing total cell");
+    const { container } = render(<>{column.cell({ row: { original: row } } as never)}</>);
+    expect(container.textContent).toContain(currency);
+    expect(container.textContent).toContain("1,160.00");
+  });
 });

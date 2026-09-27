@@ -5,10 +5,10 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
+import { formatQuoteTotal } from "../lib/quoteDisplay";
 
 // Definición externa de columnas del listado de cotizaciones. Extraído de
 // QuotesPage.tsx en v7.226.3 para mantener el componente bajo el límite de
@@ -21,6 +21,7 @@ export function buildQuotesColumns<Q extends {
   start_date?: string | null;
   end_date?: string | null;
   total: number;
+  currency?: string | null;
   status: string;
   valid_until?: string | null;
 }>(): ColumnDef<Q>[] {
@@ -67,7 +68,7 @@ export function buildQuotesColumns<Q extends {
       header: "Total",
       accessorKey: "total",
       meta: { kind: "money" },
-      cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.total)}</span>,
+      cell: ({ row }) => <span className="font-mono">{formatQuoteTotal(row.original)}</span>,
     },
     {
       id: "status",

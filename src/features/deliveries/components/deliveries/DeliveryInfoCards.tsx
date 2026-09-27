@@ -1,12 +1,11 @@
-import { format } from "date-fns";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasModuleAccess } from "@/features/users";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
-import { parseDateLocal, formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/utils";
 
 interface DeliveryStatusCardProps {
   type: string;
@@ -25,7 +24,7 @@ export function DeliveryStatusCard({ type, scheduledDate, scheduledTime, complet
         <InfoRow label="Tipo" value={type === "delivery" ? "Entrega" : "Recolección"} />
         <InfoRow label="Fecha programada" value={formatDateMty(scheduledDate)} />
         {scheduledTime && <InfoRow label="Hora" value={scheduledTime} />}
-        {completedAt && <InfoRow label="Completado" value={format(parseDateLocal(completedAt), "dd/MM/yyyy HH:mm")} />}
+        {completedAt && <InfoRow label="Completado" value={formatDateTimeMty(completedAt)} />}
       </CardContent>
     </Card>
   );

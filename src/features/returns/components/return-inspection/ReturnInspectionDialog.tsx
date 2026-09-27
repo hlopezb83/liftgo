@@ -1,4 +1,4 @@
-import { useWatch, type UseFormReturn } from "react-hook-form";
+import { useFormState, useWatch, type UseFormReturn } from "react-hook-form";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import {
@@ -169,6 +169,7 @@ export function ReturnInspectionDialog({
               control={form.control}
               name="fuelLevel"
               label="Nivel de Combustible"
+              required
               options={fuelOptions}
               placeholder="Seleccionar"
             />
@@ -186,6 +187,7 @@ export function ReturnInspectionDialog({
             />
           </div>
 
+          <ReturnInspectionServerError form={form} />
           <FormActions
             submitLabel="Completar Devolución"
             submitDisabled={!selectedBooking}
@@ -196,4 +198,10 @@ export function ReturnInspectionDialog({
       </Form>}
     </FormDialog>
   );
+}
+
+function ReturnInspectionServerError({ form }: { form: UseFormReturn<ReturnInspectionFormValues> }) {
+  const { errors } = useFormState({ control: form.control });
+  const message = errors.root?.server?.message;
+  return message ? <p role="alert" className="text-sm text-destructive">{message}</p> : null;
 }

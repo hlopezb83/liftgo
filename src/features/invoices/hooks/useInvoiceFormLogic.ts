@@ -21,6 +21,7 @@ import {
   type InvoiceFormValues,
   type LineItemValues,
 } from "../lib/invoiceFormSchema";
+import { quotedBillingPeriodError } from "../lib/quotedBookingLines";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
@@ -210,6 +211,12 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
       .map((bid) => bookings?.find((b) => b.id === bid))
       .filter(Boolean) as unknown as BillableBooking[];
     if (selected.length === 0) return null;
+    if (!isEdit) {
+      const quoted = (values.bookingIds ?? []).flatMap((bid) => bookings?.find((booking) => booking.id === bid) ?? []);
+      const pactError = quotedBillingPeriodError(quoted, bookingSourceQuotes, values.billingPeriodStart, values.billingPeriodEnd,
+        { requestedId: extensionId, loaded: extension });
+      if (pactError) return { field: "billingPeriodStart", message: pactError };
+    }
     const issue = values.issueDate ?? nowMty();
     const mix = validateBookingSelection(selected, issue);
     if (mix) return { field: "bookingIds", message: mix };

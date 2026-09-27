@@ -7,6 +7,7 @@ import {
   validateDealValue,
   type ProspectFormPayload,
 } from "../lib/prospectFormSchema";
+import { quoteDealValueMxn } from "../lib/quoteDealValue";
 import type { Prospect } from "./useProspects";
 
 export { STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
@@ -44,7 +45,7 @@ function isProspectFormDirty(
 }
 
 export function useProspectForm({
-  prospect, open, defaultStage, overrideStage,
+  prospect, open, overrideStage,
 }: UseProspectFormParams) {
   const [company, setCompany] = useState("");
   const [contact, setContact] = useState("");
@@ -61,7 +62,8 @@ export function useProspectForm({
 
   const matchingQuotes = sortQuotesByCompanyMatch(allQuotes, company);
 
-  const effectiveStage = overrideStage ?? prospect?.stage ?? defaultStage;
+  // El alta respeta la etapa inicial del servidor, incluso desde un acceso rápido heredado.
+  const effectiveStage = prospect ? (overrideStage ?? prospect.stage) : "nuevo_prospecto";
   const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);
 
   useEffect(() => {
@@ -90,13 +92,22 @@ export function useProspectForm({
     if (selectedId) {
       const quote = allQuotes.find((q) => q.id === selectedId);
       if (quote) {
-        setDealValue(String(quote.total ?? 0));
-        setDealValueError(null);
+        const converted = quoteDealValueMxn(quote);
+        setDealValue(converted.value === null ? "" : String(converted.value));
+        setDealValueError(converted.error);
       }
+    } else {
+      setDealValueError(null);
     }
   };
 
   const buildPayload = (): ProspectFormPayload | null => {
+    const linkedQuote = allQuotes.find((q) => q.id === quoteId);
+    const quoteError = linkedQuote ? quoteDealValueMxn(linkedQuote).error : null;
+    if (quoteError) {
+      setDealValueError(quoteError);
+      return null;
+    }
     const { value, error } = validateDealValue(dealValue, requiresDealValue);
     if (error) {
       setDealValueError(error);

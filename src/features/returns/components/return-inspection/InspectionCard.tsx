@@ -1,9 +1,8 @@
-import { format } from "date-fns";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { ClipboardCheck } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseDateLocal } from "@/lib/utils";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export function InspectionCard({ ins }: { ins: ReturnInspectionWithJoins }) {
@@ -15,7 +14,7 @@ export function InspectionCard({ ins }: { ins: ReturnInspectionWithJoins }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <InfoRow label="Fecha" value={format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy HH:mm")} />
+        <InfoRow label="Fecha" value={formatDateTimeMty(ins.inspected_at)} />
         <div className="flex items-center justify-between">
           <span className="text-sm text-muted-foreground">Condición</span>
           <StatusBadge status={ins.condition} />

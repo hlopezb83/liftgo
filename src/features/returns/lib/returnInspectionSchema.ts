@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { FUEL_LEVELS } from "@/lib/constants";
 import { nowMty } from "@/lib/utils";
 
 // R17-F: rechazar costos negativos y horas negativas desde el form (además del
@@ -22,7 +23,10 @@ export const returnInspectionSchema = z
     damageNotes: z.string(),
     damageCost: nonNegativeNumericString("El costo de daño"),
     hoursUsed: nonNegativeNumericString("Las horas usadas"),
-    fuelLevel: z.string(),
+    fuelLevel: z.string().trim().min(1, "Selecciona el nivel de combustible").refine(
+      (value) => !value || FUEL_LEVELS.some((level) => level === value),
+      "Selecciona un nivel de combustible válido",
+    ),
     inspectedBy: z.string(),
   })
   .superRefine((values, ctx) => {

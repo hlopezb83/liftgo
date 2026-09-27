@@ -3,8 +3,10 @@ import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
+import { buildQuotedBookingLines, type BookingQuoteSource } from "../../lib/quotedBookingLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
@@ -29,7 +31,7 @@ type Booking = {
   recurring_billing?: boolean | null;
 };
 
-type QuoteSource = { id: string; line_items: unknown };
+type QuoteSource = BookingQuoteSource;
 
 interface Props {
   form: UseFormReturn<InvoiceFormValues>;
@@ -178,6 +180,15 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
       .map((id) => bookings?.find((b) => b.id === id))
       .filter((b): b is Booking => !!b);
 
+    let rentalLines: LineItemValues[];
+    try {
+      rentalLines = buildQuotedBookingLines(selected, bookings ?? [], forklifts ?? [], quotes,
+        (booking) => buildLinesForBooking(booking, forklifts));
+    } catch (error) {
+      notifyValidation({ message: error instanceof Error ? error.message : "No se pudieron recuperar los precios pactados." });
+      return;
+    }
+
     form.setValue("bookingIds", selectedIds, { shouldDirty: true });
     form.setValue("bookingId", selectedIds[0] ?? "", { shouldDirty: true });
 
@@ -195,7 +206,6 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     applyPrimaryCustomer(form, selected[0], customers);
     applyPrimaryCurrency(form, selected[0]);
 
-    const rentalLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
     const extraLines = collectExtraLinesFromQuotes(selected, quotes, bookingsWithBilledExtras);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });

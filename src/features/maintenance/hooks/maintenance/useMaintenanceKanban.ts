@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
+import { canModifyMaintenance } from "../../lib/maintenanceAccess";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 import {
   maintenanceLogQueries,
@@ -9,6 +10,12 @@ import {
   type MaintenanceLog,
 } from "./useMaintenanceLogs";
 import type { DragEndEvent } from "@dnd-kit/core";
+
+function dragTargetStatus(over: NonNullable<DragEndEvent["over"]>): string {
+  return over.data.current?.type === "column"
+    ? String(over.id)
+    : (over.data.current?.status as string | undefined) ?? String(over.id);
+}
 
 /**
  * Encapsula el optimistic update del kanban de mantenimiento al arrastrar
@@ -19,7 +26,7 @@ import type { DragEndEvent } from "@dnd-kit/core";
  * se expone `pendingCloseId` para que la vista pida confirmación con el
  * resumen de costos antes de aplicar el cambio.
  */
-export function useMaintenanceKanban(archived = false) {
+export function useMaintenanceKanban(archived = false, canWrite = false) {
   const updateLog = useUpdateMaintenanceLog();
   const queryClient = useQueryClient();
   const [pendingCloseId, setPendingCloseId] = useState<string | null>(null);
@@ -32,24 +39,23 @@ export function useMaintenanceKanban(archived = false) {
     .queryKey as readonly unknown[];
 
   const onDragEnd = (event: DragEndEvent) => {
+    if (!canWrite || updateLog.isPending) return;
     const { active, over } = event;
     if (!over) return;
 
     const logId = String(active.id);
-    const sourceStatus = (active.data.current?.status as string | undefined) ?? null;
+    const log = queryClient.getQueryData<MaintenanceLog[]>(kanbanListKey)?.find((l) => l.id === logId);
+    if (!log || log.deleted_at) return;
+    const sourceStatus = log.work_status || "pending";
 
-    const overType = over.data.current?.type as "column" | "card" | undefined;
-    const newStatus =
-      overType === "column"
-        ? String(over.id)
-        : (over.data.current?.status as string | undefined) ?? String(over.id);
+    const newStatus = dragTargetStatus(over);
 
     if (!newStatus || !sourceStatus || sourceStatus === newStatus) return;
 
     // A6R2-5: una OT cerrada no se reabre arrastrando la tarjeta; el guard
     // `trg_guard_maintenance_reopen` ya lo rechaza en la base de datos y aquí
     // se explica en vez de dejar pasar el error crudo.
-    if (sourceStatus === "completed" || sourceStatus === "cancelled") {
+    if (!canModifyMaintenance(log, canWrite)) {
       const block = describeBusinessBlock("maintenance_work_order_closed");
       notifyValidation({ title: block.action, message: businessBlockSummary(block) });
       return;

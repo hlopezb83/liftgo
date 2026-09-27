@@ -12,6 +12,7 @@ import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
 import { selectTargetItems } from "./selection.ts";
+import { recurringQuoteIssue } from "./quoteDiscountGuard.ts";
 import {
   fromCents,
   resolveVatRatePercent,
@@ -109,7 +110,9 @@ type PreviewLine = {
     | "no_monthly_rate"
     | "period_in_future"
     | "booking_ended"
-    | "no_exchange_rate";
+    | "no_exchange_rate"
+    | "quote_discount_review"
+    | "quote_source_missing";
   // A1-1: bandera para exponer al operador que la reserva no es MXN.
   currency?: string;
   // B5-01: la tarifa pudo cambiar después de este período (booking.updated_at
@@ -168,7 +171,7 @@ async function buildPlan(
   let bookingsQuery = supabase
     .from("bookings")
     .select(
-      "id, organization_id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
+      "id, organization_id, booking_number, customer_id, customer_name, quote_id, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number), quotes(organization_id, line_items, rental_meta)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
@@ -220,6 +223,11 @@ async function buildPlan(
 
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
+    const quoteIssue = recurringQuoteIssue(
+      booking.quote_id,
+      booking.organization_id,
+      booking.quotes,
+    );
 
     // A1-1: moneda y tipo de cambio de la reserva (default MXN/1 si no hay dato).
     const bookingCurrency = String(booking.currency ?? "MXN").toUpperCase();
@@ -478,6 +486,11 @@ async function buildPlan(
       // facturar este periodo (ni los siguientes, ya que la moneda/TC son
       // atributos de la reserva, no del periodo). Se reporta explícitamente
       // en vez de facturar en MXN con TC=1 por default (bug crítico).
+      if (quoteIssue) {
+        lines.push({ ...baseLine, eligible: false, reason: quoteIssue });
+        exitedNaturally = true;
+        break;
+      }
       if (!hasValidExchangeRate) {
         lines.push({
           ...baseLine,

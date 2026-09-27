@@ -8,14 +8,16 @@ import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLo
 interface Props {
   log: MaintenanceLog & { forklift_name: string };
   isDragging?: boolean;
+  draggable?: boolean;
   onSelect: () => void;
 }
 
-export function MaintenanceKanbanCard({ log, isDragging, onSelect }: Props) {
+export function MaintenanceKanbanCard({ log, isDragging, draggable = false, onSelect }: Props) {
   return (
     <Card
       className={cn(
-        "cursor-grab active:cursor-grabbing transition-shadow hover:ring-2 hover:ring-primary/20",
+        "transition-shadow hover:ring-2 hover:ring-primary/20",
+        draggable ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
         isDragging && "shadow-lg ring-2 ring-primary/20"
       )}
       onClick={onSelect}

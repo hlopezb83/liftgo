@@ -13,11 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet";
+import { useHasModuleAccess } from "@/features/users";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { validateDriverForm } from "../../lib/driverFormValidation";
 
 export function DriversTab() {
+  const canWrite = useHasModuleAccess("Configuración", "full");
   const isMobile = useIsMobile();
   const { data: drivers, isLoading, isError, refetch } = useDrivers();
   const create = useCreateDriver();
@@ -29,8 +31,9 @@ export function DriversTab() {
   const [form, setForm] = useState(emptyForm);
   const set = (key: string, value: string | boolean) => setForm((p) => ({ ...p, [key]: value }));
 
-  const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
+  const openNew = () => { if (!canWrite) return; setEditId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (d: Driver) => {
+    if (!canWrite) return;
     setEditId(d.id);
     setForm({ name: d.name, phone: d.phone ?? "", email: d.email ?? "", license_number: d.license_number ?? "", is_active: d.is_active, notes: d.notes ?? "" });
     setOpen(true);
@@ -38,6 +41,7 @@ export function DriversTab() {
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
+    if (!canWrite) return;
     if (create.isPending || update.isPending) return; // guard doble-submit
     const err = validateDriverForm({ name: form.name, email: form.email });
     if (err) { notifyValidation({ message: err.message }); return; }
@@ -71,7 +75,7 @@ export function DriversTab() {
         <DriverRowActions
           driver={row.original}
           onEdit={() => openEdit(row.original)}
-          onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+          onDelete={() => canWrite && del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
         />
       ),
     },
@@ -89,7 +93,7 @@ export function DriversTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Operador</Button>
+        {canWrite && <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Operador</Button>}
       </div>
       {isError ? (
         <QueryErrorState bare entity="los operadores" onRetry={() => { void refetch(); }} />
@@ -110,7 +114,7 @@ export function DriversTab() {
                     <DriverRowActions
                       driver={d}
                       onEdit={() => openEdit(d)}
-                      onDelete={() => del.mutate(d.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                      onDelete={() => canWrite && del.mutate(d.id, { onSuccess: () => notifySuccess("Eliminado") })}
                     />
                   </div>
                 </div>
@@ -128,7 +132,7 @@ export function DriversTab() {
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
       )}
       <FormDialog
-      isPending={create.isPending || update.isPending} open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
+      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} required /></div>
@@ -154,7 +158,9 @@ export function DriversTab() {
 }
 
 function DriverRowActions({ driver, onEdit, onDelete }: { driver: Driver; onEdit: () => void; onDelete: () => void }) {
+  const canWrite = useHasModuleAccess("Configuración", "full");
   const [open, setOpen] = useState(false);
+  if (!canWrite) return null;
   return (
     <div className="flex gap-1">
       <Button variant="ghost" size="icon" aria-label="Editar operador" title="Editar operador" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
