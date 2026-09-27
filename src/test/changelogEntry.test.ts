@@ -14,6 +14,16 @@ describe("validateEntries", () => {
     expect(validateEntries(entries)).toEqual([]);
   });
 
+  it("publica detalles válidos para todas las versiones del índice reciente", () => {
+    const entries = JSON.parse(readFileSync("public/changelog-recent.json", "utf8"));
+    for (const entry of entries) {
+      const detail = JSON.parse(readFileSync(`public/changelog/v${entry.version}.json`, "utf8"));
+      expect(typeof detail.description, entry.version).toBe("string");
+      expect(Array.isArray(detail.changes), entry.version).toBe(true);
+      expect(detail.changes.every((change: unknown) => typeof change === "string"), entry.version).toBe(true);
+    }
+  });
+
   it("rechaza un array vacío", () => {
     expect(validateEntries([])).toHaveLength(1);
   });

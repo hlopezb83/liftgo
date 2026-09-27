@@ -1,0 +1,7 @@
+{
+  "description": "El rango de fecha de emisión ahora acomoda inicio y fin en dos renglones cuando el espacio es reducido, sin recortar DD/MM/AAAA ni desplazar los botones de calendario y quitar filtro.",
+  "changes": [
+    "A 320 y 390 px, inicio y fin se apilan y el calendario conserva una columna fija; con un rango seleccionado también cabe el botón para quitar el filtro.",
+    "Desde 640 px, el control conserva su distribución horizontal de escritorio sin cambios en selección, normalización ni consultas."
+  ]
+}

@@ -1,3 +1,11 @@
+## [8.42.16] - 2026-09-26 · patch · bugfix
+
+El historial muestra el detalle de las versiones recientes y la publicación exige un archivo de detalle válido para la nueva versión.
+
+- Se recuperan 24 detalles faltantes desde sus textos ya guardados en el índice, incluidas 8.42.14 y 8.42.15.
+- La preparación de publicación se detiene cuando el detalle nuevo falta o tiene un formato inválido.
+- Una regresión comprueba que las 60 versiones recientes tengan detalles válidos.
+
 ## [8.42.15] - 2026-09-26 · patch · bugfix
 
 El resumen financiero contractual reconoce la renta facturada de extensiones y conserva el neto después de sus descuentos. Una factura mixta ya no omite silenciosamente las partidas de extensión.

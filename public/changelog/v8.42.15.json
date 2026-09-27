@@ -1,0 +1,8 @@
+{
+  "description": "El resumen financiero del contrato incluye la renta de las extensiones identificables, conservando sus descuentos y excluyendo logística.",
+  "changes": [
+    "Las partidas de extensión se atribuyen junto con la renta original por reserva, nombre único o serie del equipo.",
+    "Una partida cuyo vínculo explícito contradice las reservas de la factura solicita revisión en lugar de publicar un importe atribuible.",
+    "El resumen pide revisar el contrato si sus fechas difieren de la reserva actual, evitando comparar periodos distintos."
+  ]
+}

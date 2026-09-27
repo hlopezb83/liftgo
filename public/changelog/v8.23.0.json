@@ -1,0 +1,10 @@
+{
+  "description": "Todos los archivos anteriores (facturas, comprobantes, documentos y capturas) se copiaron al espacio de la única empresa activa y sus referencias en la base apuntan ya a la ubicación nueva. Es como haber mudado el archivero a la oficina de la empresa dejando intacta una copia en la bodega vieja: nada se borró. También se corrigió el candado del proceso, que confundía esas copias de respaldo con archivos sin dueño y frenaba la mudanza.",
+  "changes": [
+    "293 referencias actualizadas a la ruta nueva y 0 pendientes, sin fallos ni omisiones.",
+    "17 archivos sin referencia quedaron copiados, verificados y con su registro de trazabilidad; uno de ellos con una resolución manual activa.",
+    "El candado ahora reconoce como resuelto sólo un origen con registro terminal, destino válido existente y dueño determinado o resuelto; todo lo demás sigue bloqueando.",
+    "Se corrigió la lectura de resoluciones manuales, que fallaba en silencio al consultar cientos de rutas de una sola vez.",
+    "Ningún archivo original fue borrado y el permiso temporal de traslado se retiró al terminar."
+  ]
+}

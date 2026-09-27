@@ -1,0 +1,14 @@
+{
+  "description": "Se aplicaron en orden, por el canal oficial de migraciones, las seis migraciones pendientes del programa multiempresa. La base productiva pasó de 0023 a 0029. No se movieron objetos de almacenamiento ni se modificaron datos.",
+  "changes": [
+    "0024: el respaldo legado del portal solo aplica a usuarios sin cuenta de portal registrada.",
+    "0025: perfiles, roles y funciones privilegiadas de administración acotados a la empresa verificada.",
+    "0026: asignador de folio de recibo de pago con validación de empresa y wrapper de compatibilidad solo para el canal interno.",
+    "0027: políticas de almacenamiento por empresa en los buckets restantes y resolución del legado de documentos por su ficha dueña.",
+    "0028: retiro del permiso de ejecución anónimo en 22 funciones y del permiso público en 7.",
+    "0029: unicidad de catálogos, folios y proveedores por empresa, con preflight y postflight superados en producción.",
+    "Verificación posterior por lecturas: las migraciones 0024–0029 quedaron aplicadas como ids 25–30 con la huella exacta de los archivos; los ocho índices únicos por empresa válidos, los globales retirados, políticas de perfiles y roles por empresa activas, 19 políticas de almacenamiento con prefijo de empresa y 0 funciones objetivo con permiso de ejecución para el rol anónimo.",
+    "Registro histórico en la base: queda una fila extra (id 31) correspondiente a un duplicado del SQL de 0024; no se edita ni se borra. Drizzle elige la última migración por mayor fecha aplicada, que corresponde a 0029, por lo que ese registro sobrante queda detrás y no afecta el estado.",
+    "Limpieza del repositorio: se retiraron los artefactos redundantes 0030 (archivo SQL, snapshot y entrada del journal) que el canal generó con fecha menor a la de 0029 y que hacían fallar el validador del journal en CI; la cadena versionada queda 0024–0029 con fechas estrictamente crecientes. Las pruebas RLS y smoke de ese run se detuvieron antes de ejecutarse por ese fallo, no por un error de base de datos."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "description": "Antes el logo se pintaba con el enlace guardado tal cual, aunque viniera de un sitio desconocido: como colgar en tu oficina un cuadro que alguien dejó en la puerta. Ahora el logo se pide siempre al archivo de tu empresa con un permiso temporal, y cualquier enlace que no se pueda verificar simplemente no se muestra: aparece el distintivo con las iniciales.",
+  "changes": [
+    "El logo se firma al momento y por poco tiempo; ya no se guardan enlaces permanentes.",
+    "Al subir un logo se guarda su ubicación dentro del espacio de la empresa, no una dirección pública.",
+    "Un enlace externo o no reconocido no se muestra ni se descarga, tampoco en los PDF.",
+    "Se agregaron pruebas de que cada empresa sólo obtiene su propio logo.",
+    "Documentación y roadmap actualizados al estado real del 18 de septiembre de 2026."
+  ]
+}

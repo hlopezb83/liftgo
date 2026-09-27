@@ -1,0 +1,6 @@
+{
+  "description": "Los folios de cotización se mantienen completos en una sola línea en la tabla de escritorio.",
+  "changes": [
+    "La columna Folio conserva el número completo al adaptar el ancho de la tabla."
+  ]
+}

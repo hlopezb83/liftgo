@@ -37,6 +37,19 @@ if (errors.length > 0) {
 }
 
 const version = String(arr[0].version);
+// El índice y el detalle se publican por separado. Un detalle ausente puede
+// devolver el HTML de la app y fallar al expandir la versión en producción.
+// Validamos el archivo que consumirá la página antes de generar la versión.
+try {
+  const detail = JSON.parse(await readFile(resolve(root, `public/changelog/v${version}.json`), "utf8"));
+  if (typeof detail?.description !== "string" || !Array.isArray(detail?.changes)
+    || !detail.changes.every((change) => typeof change === "string")) {
+    throw new Error("description o changes inválidos");
+  }
+} catch (err) {
+  console.error(`[gen-version] detalle de v${version} ausente o inválido: ${err.message}`);
+  process.exit(1);
+}
 const generatedAt = new Date().toISOString();
 await writeFile(outPath, JSON.stringify({ version, generatedAt }, null, 2) + "\n", "utf8");
 await writeFile(recentPath, JSON.stringify(arr.slice(0, RECENT_COUNT)) + "\n", "utf8");

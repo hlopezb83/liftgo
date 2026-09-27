@@ -1,0 +1,8 @@
+{
+  "description": "En las pantallas de inicio de sesión del sistema y del portal todavía podía pintarse el logo guardado en Configuración, incluso si venía de una dirección de internet. Es como recibir a las visitas con un letrero prestado. Ahora esas pantallas usan siempre el logo de LiftGo del propio sistema y el nombre LiftGo. El logo que sube cada empresa sigue usándose sólo en Configuración y en sus documentos, separado por empresa.",
+  "changes": [
+    "El panel de bienvenida y los encabezados de acceso del sistema y del portal usan el logo local de LiftGo.",
+    "Se retiró de esas pantallas todo consumo del logo configurable de la empresa.",
+    "Pruebas nuevas: aunque exista un logo configurado, no se pinta en las pantallas de acceso."
+  ]
+}
