@@ -1,0 +1,8 @@
+{
+  "description": "La edición de facturas tolera la moneda pendiente durante la carga, sin interrumpir el formulario ni representar los importes como pesos.",
+  "changes": [
+    "Una moneda vacía o incompleta muestra un importe no disponible hasta que se carga o selecciona una divisa válida.",
+    "Los códigos de moneda se normalizan al mostrar importes; el valor y los cálculos del documento se conservan.",
+    "Se verifica la transición de moneda vacía a USD en partidas y totales."
+  ]
+}
