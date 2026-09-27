@@ -32,10 +32,9 @@ const EMPTY_SET: Set<string> = new Set();
 export default function FleetPage() {
   const { data: forkliftsRaw, isLoading, isError, refetch } = useForklifts();
   const forklifts = useMemo(() => visibleListRows(forkliftsRaw), [forkliftsRaw]);
-  // El filtro "Rentado" usa el estado físico canónico compartido por Panel y
-  // Calendario; una reserva sin entrega no lo modifica.
+  // Ocupación operativa compartida con Panel y Calendario: una reserva
+  // confirmada vigente ocupa una unidad available; una completada no lo hace.
   const { data: fleetBookings } = useBookings();
-  // Se conserva la firma compartida del helper mientras migran sus consumidores.
   const todayYmd = useServerTodayMty();
   const rentedIds = useMemo(
     () =>

@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.42.20",
+    "date": "2026-09-27",
+    "type": "patch",
+    "category": "fix",
+    "title": "Ubicación registrada y retornos accesibles",
+    "description": "Flota distingue la dirección registrada de la ubicación física actual y unifica su consulta. Los retornos pendientes mejoran su navegación en tarjetas.",
+    "changes": [
+      "La ficha y el listado consultan la misma dirección registrada; una ubicación de contrato o último movimiento puede ser histórica.",
+      "La ficha adapta direcciones largas y conserva la distinción entre un error de consulta y una ubicación ausente.",
+      "Las tarjetas móviles de flota identifican expresamente la ubicación registrada.",
+      "Las tarjetas de retornos pendientes ofrecen enlaces separados a la reserva y a registrar devolución, con foco por teclado y permisos existentes."
+    ]
+  },
+  {
     "version": "8.42.19",
     "date": "2026-09-27",
     "type": "patch",

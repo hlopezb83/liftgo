@@ -4,12 +4,12 @@ import { PlusCircle } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { type BookingWithForklift } from "@/features/bookings";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { nowMty, parseDateLocal } from "@/lib/utils";
+import { PendingReturnCard } from "../components/PendingReturnCard";
 import { usePendingReturns } from "../hooks/usePendingReturns";
 
 /**
@@ -115,34 +115,7 @@ export default function PendingReturnsPage() {
       onEmptyAction={canWrite ? () => navigate("/returns") : undefined}
       mobileCardRender={(b) => {
         const days = differenceInCalendarDays(today, parseDateLocal(b.end_date));
-        return (
-          <Card className="cursor-pointer" onClick={() => navigate(`/bookings/${b.id}`)}>
-            <CardContent className="p-4 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-muted-foreground">{b.booking_number}</span>
-                <Badge variant={days > 7 ? "destructive" : "secondary"} className="font-mono text-[10px]">
-                  {days} {days === 1 ? "día" : "días"}
-                </Badge>
-              </div>
-              <p className="text-sm font-semibold">{b.forklifts?.name ?? "—"}</p>
-              <p className="text-sm text-muted-foreground">{b.customer_name}</p>
-              <p className="text-xs font-mono text-muted-foreground">
-                Fin: {formatDateMty(b.end_date)}
-              </p>
-              {canWrite && <Button
-                size="sm"
-                variant="outline"
-                className="w-full mt-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(`/returns?booking_id=${b.id}`);
-                }}
-              >
-                <PlusCircle className="h-4 w-4 mr-1" /> Registrar devolución
-              </Button>}
-            </CardContent>
-          </Card>
-        );
+        return <PendingReturnCard booking={b} daysOverdue={days} canWrite={canWrite} />;
       }}
     />
   );
