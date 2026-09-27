@@ -4,3 +4,5 @@
 export * from "./hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 export * from "./hooks/quotes/useQuotes";
 export { formatQuoteTotal } from "./lib/quoteDisplay";
+export { allocateQuotedRentalLines, hasQuotedDiscount } from "./lib/quotedRentalAllocation";
+export type { QuotedRentalBooking, QuotedRentalUnit, RentalQuoteSource } from "./lib/quotedRentalAllocation";

@@ -28,6 +28,11 @@ export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteR
   "quotes",
   {
     list: () => async () => {
+      // RLS can return [] for an anonymous request. That is a missing session,
+      // not evidence that this organization has no quotes.
+      const { data: auth, error: authError } = await supabase.auth.getSession();
+      if (authError) throw authError;
+      if (!auth.session) throw Object.assign(new Error("Tu sesión expiró. Inicia sesión para consultar las cotizaciones."), { status: 401 });
       const { data, error } = await supabase
         .from("quotes")
         .select(QUOTE_LIST_COLUMNS)
@@ -82,7 +87,7 @@ export function useQuotesByIds(ids: string[] | undefined) {
     staleTime: 60_000,
     queryFn: async () => {
       if (!ids || ids.length === 0) return [];
-      const { data, error } = await supabase.from("quotes").select("id, line_items, rental_meta, start_date, end_date").in("id", ids);
+      const { data, error } = await supabase.from("quotes").select("id, organization_id, currency, line_items, rental_meta, start_date, end_date").in("id", ids);
       if (error) throw error;
       return data;
     },

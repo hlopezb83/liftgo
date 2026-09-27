@@ -47,12 +47,10 @@ function RecoveryNotice({
 /** Encabezado con la marca global de LiftGo y el título del modo actual. */
 function AuthCardHeader({
   mode,
-  unknownPath,
-  pathname,
+  showSessionNotice,
 }: {
   mode: AuthMode;
-  unknownPath: boolean;
-  pathname: string;
+  showSessionNotice: boolean;
 }) {
   return (
     <CardHeader className="text-center pt-8 pb-2">
@@ -64,10 +62,9 @@ function AuthCardHeader({
         {TITLES[mode].title}
       </CardTitle>
       <CardDescription>{TITLES[mode].desc}</CardDescription>
-      {unknownPath && (
+      {showSessionNotice && (
         <p className="text-xs text-muted-foreground mt-2">
-          La página «{pathname}» no existe o requiere sesión. Inicia sesión para
-          continuar.
+          Inicia sesión para continuar en esta página.
         </p>
       )}
     </CardHeader>

@@ -24,8 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    let receivedAuthEvent = false;
     // Subscribe first so we don't miss any auth events fired during bootstrap.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (!active) return;
+      receivedAuthEvent = true;
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setIsLoading(false);
@@ -37,18 +41,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (nextSession) dismissAuthError();
     });
 
-    // Defensive bootstrap: if INITIAL_SESSION never fires (SDK bug, network blip)
-    // this guarantees isLoading transitions to false. Setters are idempotent.
+    // Bootstrap is a fallback only. An older response must not overwrite a
+    // sign-in, sign-out or token refresh received while it was pending.
     supabase.auth.getSession()
       .then(({ data: { session: initialSession } }) => {
+        if (!active || receivedAuthEvent) return;
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         setIsLoading(false);
       })
 
-      .catch(() => setIsLoading(false));
+      .catch(() => { if (active && !receivedAuthEvent) setIsLoading(false); });
 
-    return () => subscription.unsubscribe();
+    return () => { active = false; subscription.unsubscribe(); };
   }, []);
 
 

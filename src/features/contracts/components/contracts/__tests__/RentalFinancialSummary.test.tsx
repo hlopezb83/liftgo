@@ -1,21 +1,26 @@
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateLineItemsFromModel } from "@/lib/domain/invoiceHelpers";
+import type { ContractQuoteTerms, ContractRevenueBooking } from "../../../lib/contractRevenueVerification";
 import { RentalFinancialSummary } from "../RentalFinancialSummary";
 
 const state = vi.hoisted(() => ({
   booking: { data: { quote_id: "quote", organization_id: "org", currency: "MXN" } as
-    { quote_id: string | null; organization_id: string; currency: string } | undefined, isLoading: false, isError: false },
+    (ContractRevenueBooking & { currency: string }) | undefined, isLoading: false, isError: false },
   quote: { data: { id: "quote", organization_id: "org", line_items: [{ discount: 10 }], rental_meta: [] } as
-    { id: string; organization_id: string; line_items: { discount: number }[]; rental_meta: unknown[] } | null | undefined,
+    ContractQuoteTerms | null | undefined,
   isFetching: false, isError: false },
-  invoices: { data: [{ subtotal: 4500.67 }] as { subtotal: number }[] | undefined, isLoading: false, isError: false },
+  invoices: { data: [{ subtotal: 4500.67 }] as { subtotal: number | null }[] | undefined, isLoading: false, isError: false },
 }));
 
 vi.mock("@/features/bookings", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/features/bookings")>(),
   useBooking: () => state.booking,
 }));
-vi.mock("@/features/quotes", () => ({ quoteKeys: { all: ["quotes"] } }));
+vi.mock("@/features/quotes", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/quotes")>(),
+  quoteKeys: { all: ["quotes"] },
+}));
 vi.mock("@tanstack/react-query", async (importOriginal) => ({
   ...await importOriginal<typeof import("@tanstack/react-query")>(),
   useQuery: () => state.quote,
@@ -81,5 +86,37 @@ describe("RentalFinancialSummary", () => {
     expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
     expect(balance().getByText("—")).toBeVisible();
     expect(screen.getAllByText("No se pudieron verificar las facturas.")).toHaveLength(2);
+  });
+
+  it("un reparto ambiguo no se presenta como cero facturado ni balance válido", () => {
+    if (state.booking.data) state.booking.data.quote_id = null;
+    state.invoices.data = [{ subtotal: null }];
+    render(<RentalFinancialSummary {...props} />);
+    expect(screen.getByText("$5,000.75")).toBeVisible();
+    expect(screen.queryByText("$0.00")).not.toBeInTheDocument();
+    expect(screen.getAllByText(/No se pudo atribuir lo facturado/)).toHaveLength(2);
+    expect(balance().getByText("—")).toBeVisible();
+  });
+
+  it("el neto completo verificable reemplaza el bruto y permite comparar el balance", () => {
+    const bookings = ["booking", "sibling"].map((id) => ({
+      id, quote_id: "quote", organization_id: "org", forklift_id: id, currency: "MXN",
+      start_date: props.startDate, end_date: props.endDate,
+      daily_rate: props.dailyRate, weekly_rate: props.weeklyRate, monthly_rate: props.monthlyRate,
+    }));
+    state.booking.data = bookings[0];
+    state.quote.data = {
+      id: "quote", organization_id: "org", start_date: props.startDate, end_date: props.endDate,
+      rental_meta: [{ modelId: "model", quantity: 2, dailyRate: props.dailyRate, weeklyRate: props.weeklyRate, monthlyRate: props.monthlyRate }],
+      bookings, units: bookings.map((booking) => ({ id: booking.forklift_id, equipment_model_id: "model" })),
+      line_items: generateLineItemsFromModel("LiftGo FD50", props.dailyRate, props.weeklyRate, props.monthlyRate, props.startDate, props.endDate, 2)
+        .map((line) => ({ ...line, discount: 10, discount_type: "%" })),
+    };
+    render(<RentalFinancialSummary {...props} />);
+    expect(screen.getAllByText("$4,500.67")).toHaveLength(2);
+    expect(screen.queryByText("$5,000.75")).not.toBeInTheDocument();
+    expect(screen.queryByText("Revisar importe pactado")).not.toBeInTheDocument();
+    expect(balance().getByText("$0.00")).toBeVisible();
+    expect(screen.getByText("Al día")).toBeVisible();
   });
 });

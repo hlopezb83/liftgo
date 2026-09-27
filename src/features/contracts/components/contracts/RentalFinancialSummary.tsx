@@ -48,6 +48,14 @@ function RemainingBalance({ canCompare, isForeignRate, rateCurrency, remaining, 
   </>;
 }
 
+function invoiceVerification(invoices: { subtotal: number | null }[] | undefined, loading: boolean, error: boolean) {
+  const complete = invoices?.every((invoice) => invoice.subtotal !== null) ?? false;
+  const verified = !loading && !error && complete;
+  if (loading) return { verified, notice: "Verificando facturas." };
+  if (error || invoices === undefined) return { verified, notice: "No se pudieron verificar las facturas." };
+  return { verified, notice: "No se pudo atribuir lo facturado a esta reserva. Revisa las partidas y sus vínculos." };
+}
+
 export function RentalFinancialSummary({
   bookingId,
   startDate,
@@ -58,7 +66,9 @@ export function RentalFinancialSummary({
 }: RentalFinancialSummaryProps) {
   const { data: invoices, isLoading: invoicesLoading, isError: invoicesError } = useContractFinancialSummary(bookingId);
   const { data: booking, isLoading: bookingLoading, isError: bookingError } = useBooking(bookingId);
-  const revenue = useContractRevenueVerification(booking, bookingLoading, bookingError);
+  const revenue = useContractRevenueVerification(booking, bookingLoading, bookingError, {
+    start_date: startDate, end_date: endDate, daily_rate: dailyRate, weekly_rate: weeklyRate, monthly_rate: monthlyRate,
+  });
   // Ronda D·#4: las tarifas del contrato están en la moneda de la reserva.
   // Lo facturado ya viene normalizado a MXN, así que comparar 1:1 contra una
   // reserva en USD inventaba un "balance restante" falso.
@@ -69,15 +79,14 @@ export function RentalFinancialSummary({
   const end = parseDateLocal(endDate);
   const days = rentalDaysInclusive(start, end);
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
-  const expectedRevenue = sumMoney(items.map((item) => item.total));
+  const expectedRevenue = revenue.expectedRevenue ?? sumMoney(items.map((item) => item.total));
   // M-14: expectedRevenue es sin IVA → comparar contra el SUBTOTAL de las
   // facturas (antes se usaba `total`, con IVA, y el balance restante salía
   // artificialmente negativo).
   const invoicedAmount = sumMoney((invoices || []).map((inv) => Number(inv.subtotal)));
   const remaining = sumMoney([expectedRevenue, -invoicedAmount]);
   const invoiceCount = invoices?.length || 0;
-  const invoicesVerified = !invoicesLoading && !invoicesError && invoices !== undefined;
-  const invoiceNotice = invoicesLoading ? "Verificando facturas." : "No se pudieron verificar las facturas.";
+  const { verified: invoicesVerified, notice: invoiceNotice } = invoiceVerification(invoices, invoicesLoading, invoicesError);
 
 
   return (
