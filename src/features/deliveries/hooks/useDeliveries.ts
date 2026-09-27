@@ -105,7 +105,7 @@ export function useCompleteDelivery() {
         p_completed_no_evidence_reason: completed_no_evidence_reason,
       });
     },
-    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const, operationSummaryKeys.dashboardStats.all, operationSummaryKeys.fleetLocations.all],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const, operationSummaryKeys.dashboardStats.all, operationSummaryKeys.fleetLocations.all, operationSummaryKeys.forkliftLocation.all],
     errorTitle: "Error al completar entrega",
   });
 }

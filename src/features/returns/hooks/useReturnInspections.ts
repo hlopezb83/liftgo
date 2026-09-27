@@ -92,6 +92,7 @@ export function useCreateReturnInspection() {
       ["status_logs"],
       operationSummaryKeys.dashboardStats.all,
       operationSummaryKeys.fleetLocations.all,
+      operationSummaryKeys.forkliftLocation.all,
     ],
     errorTitle: "Error al completar inspección de retorno",
   });

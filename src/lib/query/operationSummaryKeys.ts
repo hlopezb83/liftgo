@@ -5,4 +5,5 @@ import { createEntityKeys } from "./createEntityKeys";
 export const operationSummaryKeys = {
   dashboardStats: createEntityKeys("dashboard-stats"),
   fleetLocations: createEntityKeys("fleet_locations"),
+  forkliftLocation: createEntityKeys("forklift-location"),
 } as const;

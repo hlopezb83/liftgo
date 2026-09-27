@@ -22,7 +22,7 @@ const cases = [
 describe.each(cases)("Refresco después de $name", ({ useHook, input }) => {
   it("refresca el panel y las ubicaciones aunque sus consultas estén frescas", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
-    const keys = [["dashboard-stats", "list", { dateKey: "2026-09-27" }], ["fleet_locations", "list"]] as const;
+    const keys = [["dashboard-stats", "list", { dateKey: "2026-09-27" }], ["fleet_locations", "list"], ["forklift-location", "detail", "forklift-1"]] as const;
     let serverRevision = "before";
     const observers = keys.map((queryKey) => {
       queryClient.setQueryData(queryKey, "before");
@@ -43,7 +43,7 @@ describe.each(cases)("Refresco después de $name", ({ useHook, input }) => {
   it("marca para recarga las vistas desmontadas y conserva consultas ajenas", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
     queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
-    const roots = ["dashboard-stats", "fleet_locations", "bookings", "forklifts", "status_logs"];
+    const roots = ["dashboard-stats", "fleet_locations", "forklift-location", "bookings", "forklifts", "status_logs"];
     for (const root of roots) queryClient.setQueryData([root, "list"], "before");
     queryClient.setQueryData(["customers", "list"], "unchanged");
     const { result } = renderHook(() => useHook(), { wrapper: Wrapper });
