@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { quoteKeys } from "@/features/quotes";
+import { quoteKeys, hasQuotedDiscount, type QuotedRentalBooking } from "@/features/quotes";
 import { supabase } from "@/integrations/supabase/client";
-import { hasQuotedDiscount, type QuotedRentalBooking } from "@/lib/domain/quotedRentalAllocation";
 import { verifyContractRevenue, type ContractPriceTerms, type ContractQuoteTerms, type ContractRevenueBooking } from "../../lib/contractRevenueVerification";
 
 type QuoteBooking = QuotedRentalBooking & { forklifts: { equipment_model_id: string | null } | null };

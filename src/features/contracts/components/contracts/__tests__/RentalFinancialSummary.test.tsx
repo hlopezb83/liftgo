@@ -17,7 +17,10 @@ vi.mock("@/features/bookings", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/features/bookings")>(),
   useBooking: () => state.booking,
 }));
-vi.mock("@/features/quotes", () => ({ quoteKeys: { all: ["quotes"] } }));
+vi.mock("@/features/quotes", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/quotes")>(),
+  quoteKeys: { all: ["quotes"] },
+}));
 vi.mock("@tanstack/react-query", async (importOriginal) => ({
   ...await importOriginal<typeof import("@tanstack/react-query")>(),
   useQuery: () => state.quote,

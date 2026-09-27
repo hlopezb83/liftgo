@@ -1,5 +1,5 @@
+import { allocateQuotedRentalLines, hasQuotedDiscount, type QuotedRentalBooking, type QuotedRentalUnit, type RentalQuoteSource } from "@/features/quotes";
 import { applyDiscount } from "@/lib/domain/invoiceTotals";
-import { allocateQuotedRentalLines, hasQuotedDiscount, type QuotedRentalBooking, type QuotedRentalUnit, type RentalQuoteSource } from "@/lib/domain/quotedRentalAllocation";
 import { sumMoney } from "@/lib/money";
 
 export interface ContractRevenueBooking extends Partial<QuotedRentalBooking> {

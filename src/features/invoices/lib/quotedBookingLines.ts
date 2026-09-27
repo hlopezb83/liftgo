@@ -1,5 +1,5 @@
 import { extensionBillableRange } from "@/features/bookings";
-import { allocateQuotedRentalLines, hasQuotedDiscount, type QuotedRentalBooking, type RentalQuoteSource, type QuotedRentalUnit } from "@/lib/domain/quotedRentalAllocation";
+import { allocateQuotedRentalLines, hasQuotedDiscount, type QuotedRentalBooking, type RentalQuoteSource, type QuotedRentalUnit } from "@/features/quotes";
 import type { LineItemValues } from "./invoiceFormSchema";
 
 export type QuotedBooking = QuotedRentalBooking;

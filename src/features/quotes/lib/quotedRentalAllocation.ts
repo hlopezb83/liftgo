@@ -1,5 +1,5 @@
-import { applyDiscount, lineItemTotal, money, type LineItem } from "./invoiceTotals";
-import { generateLineItemsFromModel } from "./rentalCalculation";
+import { applyDiscount, lineItemTotal, money, type LineItem } from "@/lib/domain/invoiceTotals";
+import { generateLineItemsFromModel } from "@/lib/domain/rentalCalculation";
 
 export interface QuotedRentalBooking {
   id: string;
