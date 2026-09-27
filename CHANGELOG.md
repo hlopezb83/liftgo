@@ -1,3 +1,11 @@
+## [8.42.15] - 2026-09-26 · patch · bugfix
+
+El resumen financiero contractual reconoce la renta facturada de extensiones y conserva el neto después de sus descuentos. Una factura mixta ya no omite silenciosamente las partidas de extensión.
+
+- Las extensiones generadas se identifican por su formato de renta y se atribuyen por nombre único o serie entre varias reservas; logística y seguros permanecen fuera del ingreso de renta.
+- Un vínculo explícito de partida inválido o contradictorio requiere revisión, también cuando sólo existe una reserva ligada.
+- Si el contrato conserva un periodo distinto de la reserva actual, solicita revisar contrato y extensiones antes de comparar el balance.
+
 ## [8.42.14] - 2026-09-26 · patch · bugfix
 
 El resumen contractual recupera el importe neto del acuerdo completo y pide revisión cuando no puede atribuir lo facturado a cada reserva. El listado de cotizaciones comprueba la sesión antes de consultar.
