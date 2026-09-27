@@ -61,6 +61,14 @@ export function useCreateReturnInspection() {
   return useEntityMutation({
     // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
     mutationFn: async (inspection: Omit<TablesInsert<"return_inspections">, "inspection_number" | "organization_id">) => {
+      // El overload desplegado exige p_forklift_id (uuid, 2º arg, sin default).
+      // supabase-js descarta claves undefined: si forklift_id falta, PostgREST
+      // arma un call con menos argumentos y Postgres no resuelve ningún
+      // overload. La validación del diálogo garantiza que booking.forklift_id
+      // existe; aquí reforzamos con fail-closed explícito.
+      if (!inspection.forklift_id) {
+        throw new Error("La reserva no tiene un montacargas asignado. Asigna la unidad antes de completar la devolución.");
+      }
       const { data, error } = await supabase.rpc("complete_return_inspection", {
         p_booking_id: inspection.booking_id,
         p_forklift_id: inspection.forklift_id,
