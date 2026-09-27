@@ -28,6 +28,9 @@ export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinanci
         <CardTitle className="text-base flex items-center gap-2">
           <ChartIcon className="h-4 w-4" /> Resumen Financiero
         </CardTitle>
+        <p className="text-xs text-muted-foreground">
+          Días calendario desde la entrega hasta la devolución registrada. La utilización los compara con los días desde la adquisición o el alta del equipo.
+        </p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
