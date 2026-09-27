@@ -6,11 +6,12 @@ import type { ReactNode } from "react";
 interface Props {
   filters: ReactNode;
   inSheet: boolean;
+  hasActive?: boolean;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }
 
-export function FiltersSlot({ filters, inSheet, open, onOpenChange }: Props) {
+export function FiltersSlot({ filters, inSheet, hasActive = false, open, onOpenChange }: Props) {
   if (!filters) return null;
   if (!inSheet) return <>{filters}</>;
   return (
@@ -18,7 +19,7 @@ export function FiltersSlot({ filters, inSheet, open, onOpenChange }: Props) {
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="touch:h-11 w-auto justify-start gap-2">
           <FilterIcon className="h-4 w-4" />
-          Filtros
+          {hasActive ? "Filtros activos" : "Filtros"}
         </Button>
       </SheetTrigger>
       <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto pb-[max(1rem,env(safe-area-inset-bottom))]">

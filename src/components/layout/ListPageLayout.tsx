@@ -14,6 +14,8 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   title: string;
   subtitle?: string;
   totalCount?: number;
+  /** La tabla aún tiene páginas por cargar; el conteo es un mínimo conocido. */
+  hasMoreRows?: boolean;
   actions?: ReactNode;
   /** Acciones secundarias junto a la acción primaria y los filtros en móvil. */
   mobileActions?: ReactNode;
@@ -65,6 +67,7 @@ export function ListPageLayout<T extends { id?: string }>({
   title,
   subtitle,
   totalCount,
+  hasMoreRows = false,
   actions,
   mobileActions,
   mobilePrimaryAction,
@@ -127,6 +130,7 @@ export function ListPageLayout<T extends { id?: string }>({
               <FiltersSlot
                 filters={filters}
                 inSheet
+                hasActive={hasActiveFilters}
                 open={filtersOpen}
                 onOpenChange={setFiltersOpen}
               />
@@ -141,6 +145,7 @@ export function ListPageLayout<T extends { id?: string }>({
           />
         )}
         <ListPageBody
+          hasMoreRows={hasMoreRows}
           customContent={customContent}
           isLoading={isLoading}
           isError={isError}
