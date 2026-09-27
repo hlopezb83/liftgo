@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 
 /**
  * Resolves the current location of a forklift:
@@ -8,7 +9,7 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
  * 2. Falls back to the latest completed delivery address.
  */
 export const forkliftLocationQueries = defineEntityQueries<"forklift-location", never, string | null>(
-  "forklift-location",
+  operationSummaryKeys.forkliftLocation.all[0],
   {
     list: () => () => {
       throw new Error("forklift-location: usar detail(forkliftId)");

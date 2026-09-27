@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { callRpc } from "@/lib/rpc";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 
@@ -104,7 +105,7 @@ export function useCompleteDelivery() {
         p_completed_no_evidence_reason: completed_no_evidence_reason,
       });
     },
-    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const],
+    invalidateKeys: [deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const, operationSummaryKeys.dashboardStats.all, operationSummaryKeys.fleetLocations.all, operationSummaryKeys.forkliftLocation.all],
     errorTitle: "Error al completar entrega",
   });
 }

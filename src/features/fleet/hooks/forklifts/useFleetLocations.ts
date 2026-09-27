@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 
 /**
  * Tanda 3 P1-5 · Consulta consolidada de ubicación + póliza activa por equipo.
@@ -21,7 +22,7 @@ interface FleetLocationsIndex {
   activePolicyForkliftIds: Set<string>;
 }
 
-export const fleetLocationsQueries = defineEntityQueries("fleet_locations", {
+export const fleetLocationsQueries = defineEntityQueries(operationSummaryKeys.fleetLocations.all[0], {
   list: () => async (): Promise<FleetLocationsIndex> => {
     const { data, error } = await supabase
       // La vista no está en types.ts hasta la próxima regeneración; el cast

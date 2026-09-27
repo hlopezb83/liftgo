@@ -11,8 +11,8 @@ export function useInventoryFilters(parts: PartInventory[] | undefined) {
 
   const filtered = (parts || []).filter((p) => {
     if (filterCategory !== "all" && p.category !== filterCategory) return false;
-    if (search) {
-      const q = search.toLowerCase();
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
       if (!p.name.toLowerCase().includes(q) && !(p.sku || "").toLowerCase().includes(q)) return false;
     }
     return true;
@@ -20,5 +20,7 @@ export function useInventoryFilters(parts: PartInventory[] | undefined) {
 
   const lowStockCount = (parts || []).filter((p) => p.stock_quantity <= p.min_stock_level).length;
 
-  return { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount };
+  const hasActive = search.trim().length > 0 || filterCategory !== "all";
+  const reset = () => { setSearch(""); setFilterCategory("all"); };
+  return { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount, hasActive, reset };
 }
