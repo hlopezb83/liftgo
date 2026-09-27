@@ -21,7 +21,9 @@ import {
   type EquipmentModel,
 } from "@/features/fleet";
 import { countUnitsForModel, validateNonNegative } from "@/features/operations/lib/equipmentModelValidation";
+import { useHasModuleAccess } from "@/features/users";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
@@ -37,6 +39,7 @@ type FormState = {
 const EMPTY: FormState = { catalogId: "", alias: "", daily: "", weekly: "", monthly: "" };
 
 export function EquipmentModelsTab() {
+  const canWrite = useHasModuleAccess("Configuración", "full");
   const isMobile = useIsMobile();
   const local = useEquipmentModels();
   const catalog = useEquipmentModelCatalog();
@@ -53,9 +56,14 @@ export function EquipmentModelsTab() {
   const forkliftList = useMemo(() => forklifts ?? [], [forklifts]);
   const countUnits = (model: EquipmentModel) =>
     countUnitsForModel(forkliftList, model.manufacturer, model.model);
+  const deactivateModel = (id: string) => {
+    if (!canWrite) return;
+    deactivate.mutate(id, { onSuccess: () => notifySuccess("Modelo desactivado para esta empresa") });
+  };
 
-  const openNew = () => { setEditId(null); setForm(EMPTY); setOpen(true); };
+  const openNew = () => { if (!canWrite) return; setEditId(null); setForm(EMPTY); setOpen(true); };
   const openEdit = (model: EquipmentModel) => {
+    if (!canWrite) return;
     setEditId(model.id);
     setForm({
       catalogId: model.catalog_model_id ?? "",
@@ -68,6 +76,7 @@ export function EquipmentModelsTab() {
   };
 
   const submit = () => {
+    if (!canWrite || activate.isPending || update.isPending) return;
     if (!editId && !form.catalogId) {
       notifyValidation({ message: "Selecciona un modelo del catálogo LiftGo" });
       return;
@@ -101,7 +110,7 @@ export function EquipmentModelsTab() {
     { id: "daily", header: "Tarifa diaria", accessorKey: "default_daily_rate", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.default_daily_rate) },
     {
       id: "actions", header: "", enableSorting: false,
-      cell: ({ row }) => <EquipmentModelRowActions model={row.original} unitsInUse={countUnits(row.original)} onEdit={() => openEdit(row.original)} onDeactivate={() => deactivate.mutate(row.original.id, { onSuccess: () => notifySuccess("Modelo desactivado para esta empresa") })} />,
+      cell: ({ row }) => <EquipmentModelRowActions model={row.original} unitsInUse={countUnits(row.original)} onEdit={() => openEdit(row.original)} onDeactivate={() => deactivateModel(row.original.id)} />,
     },
   ];
   const table = useLiftgoTable<EquipmentModel>({ data: models, columns, getRowId: (model) => model.id, initialSorting: [{ id: "manufacturer", desc: false }], paginated: false });
@@ -115,7 +124,7 @@ export function EquipmentModelsTab() {
     <div>
       <div className="mb-4 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-muted-foreground">La ficha técnica es global; el alias y las tarifas pertenecen a esta empresa.</p>
-        <Button onClick={openNew} size="sm"><AddIcon className="mr-2 h-4 w-4" />Habilitar modelo</Button>
+        <RoleGuard module="Configuración" minAccess="full" fallback={null}><Button onClick={openNew} size="sm"><AddIcon className="mr-2 h-4 w-4" />Habilitar modelo</Button></RoleGuard>
       </div>
       {local.isLoading || catalog.isLoading ? (
         <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
@@ -124,7 +133,7 @@ export function EquipmentModelsTab() {
           <Card><CardContent className="space-y-1 p-3">
             <div className="flex items-center justify-between gap-2">
               <span className="font-medium">{model.manufacturer} {model.local_alias || model.model}</span>
-              <EquipmentModelRowActions model={model} unitsInUse={countUnits(model)} onEdit={() => openEdit(model)} onDeactivate={() => deactivate.mutate(model.id)} />
+              <EquipmentModelRowActions model={model} unitsInUse={countUnits(model)} onEdit={() => openEdit(model)} onDeactivate={() => deactivateModel(model.id)} />
             </div>
             <div className="text-xs text-muted-foreground">{model.default_capacity_kg ? `${model.default_capacity_kg} kg · ` : ""}{FUEL_TYPE_LABELS[model.default_fuel_type] || model.default_fuel_type}</div>
             <div className="flex items-baseline justify-between gap-2 pt-2 text-sm">
@@ -135,6 +144,7 @@ export function EquipmentModelsTab() {
         )} />
       ) : <DataTableV2 table={table} isLoading={local.isLoading} emptyMessage="No hay modelos de equipo configurados" />}
 
+      <RoleGuard module="Configuración" minAccess="full" fallback={null}>
       <FormDialog open={open} onOpenChange={setOpen} isPending={pending} title={editId ? "Configuración local del modelo" : "Habilitar modelo global"} description="Las tarifas y el alias sólo aplican a esta organización.">
         <div className="grid gap-4 py-2">
           {!editId && <div className="space-y-1.5"><Label>Modelo LiftGo *</Label><Select value={form.catalogId} onValueChange={(value) => set("catalogId", value)}><SelectTrigger><SelectValue placeholder="Selecciona un modelo" /></SelectTrigger><SelectContent>{(catalog.data ?? []).map((item) => <SelectItem key={item.id} value={item.id}>{item.manufacturer} {item.model}</SelectItem>)}</SelectContent></Select></div>}
@@ -148,6 +158,7 @@ export function EquipmentModelsTab() {
         </div>
         <FormDialogFooter><FormDialogCancelButton onCancel={() => setOpen(false)} disabled={pending} /><Button onClick={submit} disabled={pending}>{editId ? "Guardar" : "Habilitar"}</Button></FormDialogFooter>
       </FormDialog>
+      </RoleGuard>
     </div>
   );
 }
@@ -157,7 +168,9 @@ function RateField({ label, value, onChange }: { label: string; value: string; o
 }
 
 function EquipmentModelRowActions({ model, unitsInUse, onEdit, onDeactivate }: { model: EquipmentModel; unitsInUse: number; onEdit: () => void; onDeactivate: () => void }) {
+  const canWrite = useHasModuleAccess("Configuración", "full");
   const [confirmOpen, setConfirmOpen] = useState(false);
+  if (!canWrite) return null;
   const usage = unitsInUse > 0 ? `Hay ${unitsInUse} unidad${unitsInUse === 1 ? "" : "es"} activa${unitsInUse === 1 ? "" : "s"} con este modelo. Las unidades existentes conservarán su ficha.` : "Ninguna unidad activa usa este modelo.";
   return <div className="flex gap-1"><Button variant="ghost" size="icon" aria-label="Editar tarifas y alias" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button><Button variant="ghost" size="icon" aria-label="Desactivar modelo" onClick={() => setConfirmOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button><ConfirmDialog open={confirmOpen} onOpenChange={setConfirmOpen} title={`¿Desactivar ${model.manufacturer} ${model.model}?`} description={usage} confirmLabel="Desactivar" destructive onConfirm={onDeactivate} /></div>;
 }

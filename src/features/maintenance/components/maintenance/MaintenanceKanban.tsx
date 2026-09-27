@@ -16,6 +16,7 @@ import { MaintenanceIcon, ClockIcon, WaitingPartsIcon, SuccessIcon } from "@/com
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
 import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { canModifyMaintenance } from "../../lib/maintenanceAccess";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
 import { MaintenanceKanbanCard } from "./kanban/MaintenanceKanbanCard";
@@ -33,13 +34,15 @@ interface Props {
   /** R9-21: vista actualmente visible (activos vs. archivados) en `MaintenancePage`,
    * para que el optimistic update patchee exactamente esa query key. */
   archived?: boolean;
+  canWrite: boolean;
 }
 
-export function MaintenanceKanban({ logs, archived = false }: Props) {
+export function MaintenanceKanban({ logs, archived = false, canWrite }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban(archived);
-  const pendingCloseLog = pendingCloseId ? logs.find((l) => l.id === pendingCloseId) ?? null : null;
+  const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban(archived, canWrite);
+  const closeCandidate = pendingCloseId ? logs.find((l) => l.id === pendingCloseId) ?? null : null;
+  const pendingCloseLog = canModifyMaintenance(closeCandidate, canWrite) ? closeCandidate : null;
 
 
   const sensors = useSensors(
@@ -63,7 +66,8 @@ export function MaintenanceKanban({ logs, archived = false }: Props) {
   const activeLog = activeId ? logs.find((l) => l.id === activeId) ?? null : null;
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(String(event.active.id));
+    const log = logs.find((l) => l.id === String(event.active.id));
+    if (canModifyMaintenance(log, canWrite)) setActiveId(String(event.active.id));
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -74,7 +78,7 @@ export function MaintenanceKanban({ logs, archived = false }: Props) {
   return (
     <>
       <DndContext
-        sensors={sensors}
+        sensors={canWrite ? sensors : []}
         collisionDetection={closestCorners}
         measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
         onDragStart={handleDragStart}
@@ -92,6 +96,7 @@ export function MaintenanceKanban({ logs, archived = false }: Props) {
               bg={col.bg}
               border={col.border}
               items={col.items}
+              canWrite={canWrite}
               onSelectLog={setSelectedLog}
             />
           ))}
@@ -99,13 +104,13 @@ export function MaintenanceKanban({ logs, archived = false }: Props) {
         <DragOverlay dropAnimation={null}>
           {activeLog ? (
             <div className="shadow-lg rotate-1">
-              <MaintenanceKanbanCard log={activeLog} isDragging onSelect={() => {}} />
+              <MaintenanceKanbanCard log={activeLog} isDragging draggable onSelect={() => {}} />
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      <MaintenanceDetailSheet log={currentLog} onClose={() => setSelectedLog(null)} />
+      <MaintenanceDetailSheet log={currentLog} canWrite={canWrite} onClose={() => setSelectedLog(null)} />
 
       <CloseWorkOrderDialog
         open={!!pendingCloseLog}

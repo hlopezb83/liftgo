@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { DriversTab } from "../DriversTab";
 import { EquipmentModelsTab } from "../EquipmentModelsTab";
@@ -19,13 +19,21 @@ const useEquipmentModelsMock = vi.fn();
 const useEquipmentModelCatalogMock = vi.fn();
 const useMaintenancePoliciesMock = vi.fn();
 const useForkliftsMock = vi.fn();
+const access = vi.hoisted(() => ({ full: false, mobile: true }));
+vi.mock("@/features/users", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/users")>(),
+  useHasModuleAccess: () => access.full,
+  useUserRole: () => ({ data: "auditor", isLoading: false, isError: false }),
+  useRolePermissions: () => ({ data: { auditor: { Configuración: access.full ? "full" : "read" } }, isLoading: false, isError: false }),
+}));
 
 function idleMutation() {
   return { mutate: vi.fn(), isPending: false };
 }
 
 vi.mock("@/hooks/use-mobile", () => ({
-  useIsMobile: () => true,
+  useIsMobile: () => access.mobile,
+  useIsTabletOrBelow: () => access.mobile,
 }));
 
 vi.mock("@/features/fleet", () => ({
@@ -84,6 +92,8 @@ const errorQueryResult = { data: undefined, isLoading: false, isError: true, ref
 const idleQueryResult = { data: undefined, isLoading: false, isError: false, refetch: vi.fn() };
 
 beforeEach(() => {
+  access.full = false;
+  access.mobile = true;
   useDriversMock.mockReset();
   useMechanicsMock.mockReset();
   useEquipmentModelsMock.mockReset();
@@ -92,6 +102,34 @@ beforeEach(() => {
   useForkliftsMock.mockReset();
   useForkliftsMock.mockReturnValue(idleQueryResult);
   useEquipmentModelCatalogMock.mockReturnValue(idleQueryResult);
+});
+
+describe.each([
+  { Component: DriversTab, mock: useDriversMock, label: "Agregar Operador", edit: "Editar operador", row: { id: "d1", name: "Operador visible", is_active: true } },
+  { Component: MechanicsTab, mock: useMechanicsMock, label: "Agregar Mecánico", edit: "Editar mecánico", row: { id: "m1", name: "Mecánico visible", is_active: true } },
+  { Component: EquipmentModelsTab, mock: useEquipmentModelsMock, label: "Habilitar modelo", edit: "Editar tarifas y alias", row: { id: "e1", manufacturer: "Toyota", model: "8FG", default_fuel_type: "gas" } },
+])("$label: permisos de configuración", ({ Component, mock, label, edit, row }) => {
+  it.each([true, false])("con read conserva datos y oculta escritura (mobile=%s)", (mobile) => {
+    access.mobile = mobile;
+    mock.mockReturnValue({ ...idleQueryResult, data: [row] });
+    renderWithProviders(<Component />);
+    expect(screen.getByText(row.name ?? /Toyota/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: label })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: edit })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Eliminar|Desactivar/ })).not.toBeInTheDocument();
+  });
+
+  it("full puede abrir captura; perder el permiso cierra la captura", () => {
+    access.full = true;
+    mock.mockReturnValue({ ...idleQueryResult, data: [row] });
+    const client = createTestQueryClient();
+    const view = render(<QueryClientProvider client={client}><Component /></QueryClientProvider>);
+    fireEvent.click(screen.getByRole("button", { name: label }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    access.full = false;
+    view.rerender(<QueryClientProvider client={client}><Component /></QueryClientProvider>);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
 });
 
 const cases: Array<{

@@ -40,6 +40,9 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
   no_monthly_rate: "Sin tarifa mensual",
   period_in_future: "Período futuro",
   booking_ended: "Reserva terminada — completa la devolución",
+  no_exchange_rate: "Tipo de cambio pendiente",
+  quote_discount_review: "Descuento pactado — requiere facturación manual revisada",
+  quote_source_missing: "No se pudo verificar la cotización de origen",
 };
 
 export function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {

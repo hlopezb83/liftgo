@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { MAINTENANCE_WORK_STATUS_LABELS, serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { canModifyMaintenance } from "../../../lib/maintenanceAccess";
 import { MaintenanceLaborSection } from "../MaintenanceLaborSection";
 import { MaintenancePartsSection } from "../MaintenancePartsSection";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
@@ -12,9 +13,11 @@ import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLo
 interface Props {
   log: (MaintenanceLog & { forklift_name: string }) | null;
   onClose: () => void;
+  canWrite: boolean;
 }
 
-export function MaintenanceDetailSheet({ log, onClose }: Props) {
+export function MaintenanceDetailSheet({ log, onClose, canWrite }: Props) {
+  const readOnly = !canModifyMaintenance(log, canWrite);
   return (
     <Sheet open={!!log} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="sm:max-w-md overflow-y-auto">
@@ -60,11 +63,12 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
               <MaintenancePartsSection
                 maintenanceLogId={log.id}
                 currentCost={log.cost || 0}
+                readOnly={readOnly}
               />
 
               <Separator />
 
-              <MaintenanceLaborSection maintenanceLogId={log.id} />
+              <MaintenanceLaborSection maintenanceLogId={log.id} readOnly={readOnly} />
             </div>
             </Activity>
           </>

@@ -1,9 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { ChecklistEditor } from "@/features/operations/components/operations/contractTemplate/ChecklistEditor";
-import { ClausesEditor } from "@/features/operations/components/operations/contractTemplate/ClausesEditor";
-import { EditableList } from "@/features/operations/components/operations/contractTemplate/EditableList";
+import { ChecklistEditor, ClausesEditor, EditableList } from "@/features/operations";
 import type { LegalTemplateContent } from "@/lib/platformLegalTemplates.functions";
 
 export function LegalTemplateContentEditor({

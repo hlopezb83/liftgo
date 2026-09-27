@@ -55,6 +55,7 @@ describe("useReturnInspectionDialog", () => {
       ({ rows }) => useReturnInspectionDialog(rows, true), { initialProps: { rows: [booking] } },
     );
     rerender({ rows: [] });
+    act(() => result.current.form.setValue("fuelLevel", "1/2"));
     await act(async () => { await result.current.handleSubmit(); });
     expect(mocks.mutate).not.toHaveBeenCalled();
     expect(result.current.form.getFieldState("bookingId").error?.message).toContain("ya no está disponible");
@@ -62,7 +63,10 @@ describe("useReturnInspectionDialog", () => {
 
   it("rechaza una inspección anterior al inicio de renta", async () => {
     const { result } = renderHook(() => useReturnInspectionDialog([booking], true));
-    act(() => result.current.form.setValue("inspectedAt", new Date(2026, 7, 31)));
+    act(() => {
+      result.current.form.setValue("inspectedAt", new Date(2026, 7, 31));
+      result.current.form.setValue("fuelLevel", "1/2");
+    });
     await act(async () => { await result.current.handleSubmit(); });
     expect(mocks.mutate).not.toHaveBeenCalled();
     expect(result.current.form.getFieldState("inspectedAt").error?.message).toContain("inicio de la renta");
@@ -70,7 +74,10 @@ describe("useReturnInspectionDialog", () => {
 
   it("conserva el día de Monterrey al enviar y limpia el contexto después del éxito", async () => {
     const { result } = renderHook(() => useReturnInspectionDialog([booking], true));
-    act(() => result.current.form.setValue("inspectedAt", new Date(2026, 8, 10)));
+    act(() => {
+      result.current.form.setValue("inspectedAt", new Date(2026, 8, 10));
+      result.current.form.setValue("fuelLevel", "1/2");
+    });
     await act(async () => { await result.current.handleSubmit(); });
     expect(mocks.mutate).toHaveBeenCalledWith(
       expect.objectContaining({ inspected_at: "2026-09-10T06:00:00.000Z", booking_id: "bk-1" }),
@@ -93,5 +100,32 @@ describe("useReturnInspectionDialog", () => {
     vi.setSystemTime(new Date("2026-09-25T18:00:00Z"));
     act(() => result.current.openNew());
     expect(result.current.form.getValues("inspectedAt").getTime()).toBe(nowMty().getTime());
+  });
+});
+
+describe("useReturnInspectionDialog · rechazo y borrador", () => {
+  it("bloquea combustible vacío antes de invocar la mutación y conserva las horas", async () => {
+    const { result } = renderHook(() => useReturnInspectionDialog([booking], true));
+    act(() => result.current.form.setValue("hoursUsed", "2.5"));
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(mocks.mutate).not.toHaveBeenCalled();
+    expect(result.current.form.getFieldState("fuelLevel").error?.message).toBe("Selecciona el nivel de combustible");
+    expect(result.current.form.getValues("hoursUsed")).toBe("2.5");
+  });
+
+  it("mantiene un rechazo servidor inline sin cerrar el diálogo ni borrar datos", async () => {
+    const { result } = renderHook(() => {
+      const dialog = useReturnInspectionDialog([booking], true);
+      return { ...dialog, errors: dialog.form.formState.errors };
+    });
+    act(() => {
+      result.current.form.setValue("hoursUsed", "2.5");
+      result.current.form.setValue("fuelLevel", "1/2");
+    });
+    await act(async () => { await result.current.handleSubmit(); });
+    act(() => mocks.mutate.mock.calls[0][1].onError(new Error("La reserva cambió; revisa los datos")));
+    expect(result.current.errors.root?.server?.message).toContain("La reserva cambió");
+    expect(result.current.form.getValues("hoursUsed")).toBe("2.5");
+    expect(result.current.dialogOpen).toBe(true);
   });
 });

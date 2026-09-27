@@ -1,21 +1,31 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { describe, expect, it, vi } from "vitest";
 import type { Booking } from "@/features/bookings";
-import { initialReturnInspectionForm, type ReturnInspectionFormValues } from "../../../lib/returnInspectionSchema";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import { initialReturnInspectionForm, returnInspectionSchema, type ReturnInspectionFormValues } from "../../../lib/returnInspectionSchema";
 import { ReturnInspectionDialog } from "../ReturnInspectionDialog";
 
 const onRetry = vi.fn();
 const onClose = vi.fn();
+const onSubmit = vi.fn();
+vi.mock("@/components/forms/DragDropImageUploader", () => ({ DragDropImageUploader: () => null }));
 
-function Harness({ loading = false, error = false, rows = [] as Booking[] }) {
-  const form = useForm<ReturnInspectionFormValues>({ defaultValues: initialReturnInspectionForm });
+function Harness({ loading = false, error = false, rows = [] as Booking[], serverError = false }) {
+  const form = useForm<ReturnInspectionFormValues>({
+    defaultValues: { ...initialReturnInspectionForm, bookingId: rows[0]?.id ?? "" },
+    resolver: zodResolver(returnInspectionSchema),
+  });
+  useEffect(() => {
+    if (serverError) form.setError("root.server", { message: "La reserva cambió; revisa los datos" });
+  }, [form, serverError]);
   return (
     <ReturnInspectionDialog
       open onOpenChange={onClose} form={form} activeBookings={rows} bookingsRaw={rows}
       bookingsLoading={loading} bookingsError={error} bookingsRetrying={false}
       onRetryBookings={onRetry} requestedBookingId="bk-1" isEarlyReturn
-      forkliftMap={new Map()} isPending={false} onSubmit={vi.fn()}
+      forkliftMap={new Map()} isPending={false} onSubmit={form.handleSubmit(onSubmit)}
     />
   );
 }
@@ -42,5 +52,20 @@ describe("ReturnInspectionDialog · preparación", () => {
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     expect(onRetry).toHaveBeenCalledOnce();
     expect(screen.queryByRole("button", { name: "Completar Devolución" })).not.toBeInTheDocument();
+  });
+
+  it("marca combustible obligatorio y bloquea el envío con un mensaje inline", async () => {
+    render(<Harness rows={[{ id: "bk-1", forklift_id: "fk-1", start_date: "2000-01-01", end_date: "2100-01-01" } as Booking]} />);
+    const fuel = screen.getByRole("combobox", { name: "Nivel de Combustible" });
+    fireEvent.click(screen.getByRole("button", { name: "Completar Devolución" }));
+    expect(await screen.findByText("Selecciona el nivel de combustible")).toBeInTheDocument();
+    expect(fuel).toHaveAttribute("aria-invalid", "true");
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it("muestra el rechazo servidor dentro del formulario", async () => {
+    render(<Harness serverError rows={[{ id: "bk-1", forklift_id: "fk-1", start_date: "2000-01-01", end_date: "2100-01-01" } as Booking]} />);
+    expect(await screen.findByRole("alert")).toHaveTextContent("La reserva cambió; revisa los datos");
+    expect(screen.getByRole("button", { name: "Completar Devolución" })).toBeInTheDocument();
   });
 });

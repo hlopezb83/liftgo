@@ -36,6 +36,7 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   const laborTotal = labor.reduce((sum, l) => sum + Number(l.total_cost ?? 0), 0);
 
   const handleAdd = () => {
+    if (readOnly || addLabor.isPending) return;
     const h = Number(hours);
     const r = Number(hourlyRate);
     if (!mechanicId) return notifyValidation({ message: "Selecciona un mecánico" });
@@ -62,6 +63,7 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
   };
 
   const handleDelete = async (id: string) => {
+    if (readOnly || deleteLabor.isPending) return;
     const ok = await confirm({
       title: "¿Eliminar mano de obra?",
       description: "El costo asociado se retirará del total del servicio. Esta acción no se puede deshacer.",

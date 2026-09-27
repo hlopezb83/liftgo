@@ -14,6 +14,7 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useDeleteMaintenanceLog, useRestoreMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { canModifyMaintenance } from "../../lib/maintenanceAccess";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
@@ -27,8 +28,6 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
   waiting_parts: { label: "Esperando Refacciones", variant: "outline" },
   completed: { label: "Completado", variant: "secondary" },
 };
-
-const sectionsReadOnly = (isClosed: boolean, canWrite: boolean) => isClosed || !canWrite;
 
 interface Props {
   log: MaintenanceLog | null;
@@ -54,7 +53,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
   const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
   const isClosed = log.work_status === "completed";
-  const readOnly = sectionsReadOnly(isClosed, canWrite);
+  const readOnly = !canModifyMaintenance(log, canWrite);
   const isArchived = log.deleted_at !== null;
 
   const handleDelete = () => {

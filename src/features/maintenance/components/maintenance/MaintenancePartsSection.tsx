@@ -32,6 +32,7 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost, readOnl
   const availableParts = parts.filter((p) => p.stock_quantity > 0);
 
   const handleAddPart = () => {
+    if (readOnly || addPart.isPending) return;
     if (!selectedPart) { notifyValidation({ message: "Selecciona una refacción" }); return; }
     if (quantity < 1) { notifyValidation({ message: "La cantidad debe ser al menos 1" }); return; }
     if (quantity > selectedPart.stock_quantity) {

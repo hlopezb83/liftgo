@@ -2,6 +2,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
+import { canModifyMaintenance } from "../../../lib/maintenanceAccess";
 import { MaintenanceKanbanCard } from "./MaintenanceKanbanCard";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
 import type { ComponentType } from "react";
@@ -14,13 +15,15 @@ interface Props {
   bg: string;
   border: string;
   items: (MaintenanceLog & { forklift_name: string })[];
+  canWrite: boolean;
   onSelectLog: (log: MaintenanceLog & { forklift_name: string }) => void;
 }
 
-export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, border, items, onSelectLog }: Props) {
+export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, border, items, canWrite, onSelectLog }: Props) {
   const { setNodeRef, isOver } = useDroppable({
     id,
     data: { type: "column", status: id },
+    disabled: !canWrite,
   });
 
   const itemIds = items.map((l) => l.id);
@@ -48,6 +51,7 @@ export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, bord
               key={log.id}
               log={log}
               status={id}
+              canWrite={canWrite}
               onSelect={() => onSelectLog(log)}
             />
           ))}
@@ -61,14 +65,18 @@ function SortableMaintenanceItem({
   log,
   status,
   onSelect,
+  canWrite,
 }: {
   log: MaintenanceLog & { forklift_name: string };
   status: string;
   onSelect: () => void;
+  canWrite: boolean;
 }) {
+  const canDrag = canModifyMaintenance(log, canWrite);
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: log.id,
     data: { type: "card", status },
+    disabled: { draggable: !canDrag, droppable: !canWrite },
   });
 
   const style = {
@@ -81,11 +89,21 @@ function SortableMaintenanceItem({
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      {...(canDrag ? attributes : {})}
+      {...(canDrag ? listeners : {})}
+      role="button"
+      tabIndex={canDrag ? attributes.tabIndex : 0}
+      onKeyDown={(event) => {
+        if (canDrag) {
+          listeners?.onKeyDown?.(event);
+        } else if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
       data-testid={`maintenance-kanban-card-${log.id}`}
     >
-      <MaintenanceKanbanCard log={log} isDragging={isDragging} onSelect={onSelect} />
+      <MaintenanceKanbanCard log={log} isDragging={isDragging} draggable={canDrag} onSelect={onSelect} />
     </div>
   );
 }

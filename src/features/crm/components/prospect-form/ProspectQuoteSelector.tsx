@@ -1,13 +1,14 @@
 import { DocumentIcon } from "@/components/icons";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatQuoteTotal } from "@/features/quotes";
 
 interface QuoteLite {
   id: string;
   quote_number: string;
   customer_name: string | null;
   total: number;
+  currency?: string | null;
   status: string;
 }
 
@@ -32,7 +33,7 @@ export function ProspectQuoteSelector({ quoteId, onChange, matchingQuotes, selec
             <SelectItem key={q.id} value={q.id}>
               <span className="flex items-center gap-2">
                 <DocumentIcon className="h-3.5 w-3.5" />
-                {q.quote_number} — {q.customer_name} — {formatCurrency(q.total)}
+                {q.quote_number} — {q.customer_name} — {formatQuoteTotal(q)}
               </span>
             </SelectItem>
           ))}
@@ -40,7 +41,7 @@ export function ProspectQuoteSelector({ quoteId, onChange, matchingQuotes, selec
       </Select>
       {selectedQuote && (
         <p className="text-xs text-muted-foreground">
-          Cotización por {formatCurrency(selectedQuote.total)} — Estado: {selectedQuote.status}
+          Cotización por {formatQuoteTotal(selectedQuote)} — Estado: {selectedQuote.status}
         </p>
       )}
     </div>

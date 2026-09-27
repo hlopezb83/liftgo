@@ -13,6 +13,7 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
+import { Link } from "@/lib/router-compat-ui";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
@@ -155,24 +156,30 @@ export default function SuppliersPage() {
         emptyActionLabel={canWrite ? "Nuevo proveedor" : undefined}
         onEmptyAction={canWrite ? openCreate : undefined}
         mobileCardRender={(s) => (
-          <Card className="cursor-pointer" onClick={() => navigate(`/suppliers/${s.id}`)}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold">{s.name}</span>
-                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-              </div>
-              {s.category && (
-                <Badge variant="outline" className="mb-1">
-                  {SUPPLIER_CATEGORIES[s.category] || s.category}
-                </Badge>
-              )}
-              <div className="text-sm text-muted-foreground space-y-0.5">
-                {s.rfc && <p className="font-mono">{s.rfc}</p>}
-                {s.email && <p>{s.email}</p>}
-                {s.phone && <p>{s.phone}</p>}
-              </div>
-            </CardContent>
-          </Card>
+          <Link
+            to={`/suppliers/${s.id}`}
+            aria-label={`Ver proveedor ${s.name}`}
+            className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-semibold">{s.name}</span>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
+                {s.category && (
+                  <Badge variant="outline" className="mb-1">
+                    {SUPPLIER_CATEGORIES[s.category] || s.category}
+                  </Badge>
+                )}
+                <div className="text-sm text-muted-foreground space-y-0.5">
+                  {s.rfc && <p className="font-mono">{s.rfc}</p>}
+                  {s.email && <p>{s.email}</p>}
+                  {s.phone && <p>{s.phone}</p>}
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
         )}
       />
 

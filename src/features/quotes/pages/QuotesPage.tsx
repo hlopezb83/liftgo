@@ -15,13 +15,13 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_TAB_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
+import { formatQuoteTotal } from "../lib/quoteDisplay";
 import { buildQuotesColumns } from "./quotesColumns";
 
 const QUOTE_STATUSES = ["draft", "sent", "accepted", "converted", "rejected", "expired", "cancelled"] as const;
@@ -140,7 +140,7 @@ export default function QuotesPage() {
                 <div className="flex items-center justify-between mt-3 pt-3 border-t">
                   <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold tabular-nums">{formatCurrency(q.total)}</span>
+                    <span className="text-sm font-semibold tabular-nums">{formatQuoteTotal(q)}</span>
                     <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>

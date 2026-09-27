@@ -6,6 +6,7 @@ import type { Booking } from "@/features/bookings";
 import { useUserRole } from "@/features/users";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { APP_CONFIG } from "@/lib/config";
+import { translateDbError } from "@/lib/errors/dbErrors";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useSearchParams } from "@/lib/router-compat";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
@@ -70,6 +71,7 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
 
   const onSubmit = (values: ReturnInspectionFormValues) => {
     if (!canWrite) return;
+    form.clearErrors("root.server");
     const booking = activeBookings?.find((b) => b.id === values.bookingId);
     if (!booking) {
       form.setError("bookingId", { message: "La reserva ya no está disponible para devolución. Actualiza la lista." });
@@ -106,6 +108,11 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
         inspected_at: fromZonedTime(values.inspectedAt, APP_CONFIG.TIMEZONE).toISOString(),
       },
       {
+        onError: (error) => {
+          form.setError("root.server", {
+            message: translateDbError(error, "No se pudo completar la devolución").message,
+          });
+        },
         onSuccess: () => {
           // R6-FE-02 (N6-DIS-01): GUI-DB-04 cambió la RPC
           // `complete_return_inspection` (20260730135234): CUALQUIER condición

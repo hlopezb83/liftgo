@@ -26,20 +26,21 @@ let updateResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "log-1", work_status: "in_progress" },
   error: null,
 };
+let updateCount = 0;
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     tableResolvers: {
       maintenance_logs: (calls) => {
         const upd = calls.find((c) => c.method === "update");
-        if (upd) return updateResp;
+        if (upd) { updateCount++; return updateResp; }
         return { data: null, error: null };
       },
     },
   }),
 }));
 
-import { maintenanceLogQueries } from "../useMaintenanceLogs";
+import { maintenanceLogQueries, type MaintenanceLog } from "../useMaintenanceLogs";
 import { useMaintenanceKanban } from "../useMaintenanceKanban";
 
 const ACTIVE_KEY = maintenanceLogQueries.list({ forkliftId: null, archived: false }).queryKey;
@@ -57,6 +58,7 @@ function dragEvent(id: string, sourceStatus: string, targetStatus: string): Drag
 }
 
 beforeEach(() => {
+  updateCount = 0;
   updateResp = { data: { id: "log-1", work_status: "in_progress" }, error: null };
 });
 
@@ -66,7 +68,7 @@ describe("useMaintenanceKanban · vista activa", () => {
     queryClient.setQueryData(ACTIVE_KEY, [makeLog("log-1", "pending")]);
     queryClient.setQueryData(ARCHIVED_KEY, [makeLog("log-9", "pending")]);
 
-    const { result } = renderHook(() => useMaintenanceKanban(false), { wrapper: Wrapper });
+    const { result } = renderHook(() => useMaintenanceKanban(false, true), { wrapper: Wrapper });
 
     act(() => {
       result.current.onDragEnd(dragEvent("log-1", "pending", "in_progress"));
@@ -91,7 +93,7 @@ describe("useMaintenanceKanban · vista de archivados", () => {
     queryClient.setQueryData(ACTIVE_KEY, [makeLog("log-5", "pending")]);
     queryClient.setQueryData(ARCHIVED_KEY, [makeLog("log-1", "pending")]);
 
-    const { result } = renderHook(() => useMaintenanceKanban(true), { wrapper: Wrapper });
+    const { result } = renderHook(() => useMaintenanceKanban(true, true), { wrapper: Wrapper });
 
     act(() => {
       result.current.onDragEnd(dragEvent("log-1", "pending", "in_progress"));
@@ -114,7 +116,7 @@ describe("useMaintenanceKanban · vista de archivados", () => {
     queryClient.setQueryData(ARCHIVED_KEY, [makeLog("log-1", "pending")]);
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
-    const { result } = renderHook(() => useMaintenanceKanban(true), { wrapper: Wrapper });
+    const { result } = renderHook(() => useMaintenanceKanban(true, true), { wrapper: Wrapper });
 
     act(() => {
       result.current.onDragEnd(dragEvent("log-1", "pending", "in_progress"));
@@ -127,5 +129,41 @@ describe("useMaintenanceKanban · vista de archivados", () => {
     // ambas vistas desde el server en vez de dejar un parche optimista roto.
     expect(calledKeys).toEqual([["maintenance_logs"]]);
     expect(JSON.stringify(ARCHIVED_KEY).startsWith(JSON.stringify(calledKeys[0]).slice(0, -1))).toBe(true);
+  });
+});
+
+describe("useMaintenanceKanban · permisos y estado vigente", () => {
+  it("falla cerrado sin permiso: no parchea, no muta ni abre cierre", () => {
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const rows = [makeLog("log-1", "pending")];
+    queryClient.setQueryData(ACTIVE_KEY, rows);
+    const { result } = renderHook(() => useMaintenanceKanban(false), { wrapper: Wrapper });
+    act(() => {
+      result.current.onDragEnd(dragEvent("log-1", "pending", "in_progress"));
+      result.current.onDragEnd(dragEvent("log-1", "pending", "completed"));
+    });
+    expect(queryClient.getQueryData(ACTIVE_KEY)).toEqual(rows);
+    expect(result.current.pendingCloseId).toBeNull();
+    expect(updateCount).toBe(0);
+  });
+
+  it.each(["completed", "cancelled"])("usa la fila vigente %s aunque el evento de arrastre traiga un estado viejo", (work_status) => {
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const rows = [makeLog("log-1", work_status)];
+    queryClient.setQueryData(ACTIVE_KEY, rows);
+    const { result } = renderHook(() => useMaintenanceKanban(false, true), { wrapper: Wrapper });
+    act(() => result.current.onDragEnd(dragEvent("log-1", "pending", "in_progress")));
+    expect(queryClient.getQueryData(ACTIVE_KEY)).toEqual(rows);
+    expect(updateCount).toBe(0);
+  });
+
+  it("no modifica una orden archivada", () => {
+    const { Wrapper, queryClient } = createQueryWrapper();
+    const rows = [{ id: "log-1", work_status: "pending", deleted_at: "2026-09-26T20:00:00Z" } as MaintenanceLog];
+    queryClient.setQueryData(ARCHIVED_KEY, rows);
+    const { result } = renderHook(() => useMaintenanceKanban(true, true), { wrapper: Wrapper });
+    act(() => result.current.onDragEnd(dragEvent("log-1", "pending", "in_progress")));
+    expect(queryClient.getQueryData(ARCHIVED_KEY)).toEqual(rows);
+    expect(updateCount).toBe(0);
   });
 });

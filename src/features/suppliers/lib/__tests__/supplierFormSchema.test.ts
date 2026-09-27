@@ -52,7 +52,7 @@ describe("supplierFormSchema", () => {
   });
 
   it("rechaza default_payment_terms_days fuera de rango o no numérico", () => {
-    for (const v of ["-1", "366", "abc"]) {
+    for (const v of ["-1", "366", "abc", "30.5", "0.1", "365.01", "Infinity"]) {
       expect(
         supplierFormSchema.safeParse({
           ...emptySupplierFormData,
@@ -61,6 +61,21 @@ describe("supplierFormSchema", () => {
         }).success,
       ).toBe(false);
     }
+  });
+  it("identifica los días fraccionarios junto al campo de crédito", () => {
+    const result = supplierFormSchema.safeParse({
+      ...emptySupplierFormData,
+      name: "Servicios Técnicos Valle del Mezquite",
+      default_payment_terms_days: "30.5",
+    });
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("Expected invalid credit days");
+    expect(result.error.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        path: ["default_payment_terms_days"],
+        message: "Los días de crédito deben ser un número entero entre 0 y 365",
+      }),
+    ]));
   });
   it("rechaza campos de texto que exceden su límite máximo", () => {
     const cases: Array<[keyof typeof emptySupplierFormData, number]> = [

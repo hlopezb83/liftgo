@@ -25,7 +25,7 @@ describe("readSignedSnapshot (bloque 2 · C)", () => {
   it("imprime los términos y el emisor tal como estaban al firmar", () => {
     const signed = {
       ...contract("signed", {
-        contract: { contract_number: "CTR-001", monthly_rate: 12000, usage_location: "Apodaca" },
+        contract: { contract_number: "CTR-001", monthly_rate: 12000, usage_location: "Apodaca", terms_text: "Condiciones pactadas al firmar" },
         issuer: {
           razon_social: "LiftGo A", rfc: "AAA010101AAA",
           regimen_fiscal: "601", lugar_expedicion: "64000",
@@ -34,6 +34,7 @@ describe("readSignedSnapshot (bloque 2 · C)", () => {
       contract_number: "CTR-EDITADO",
       monthly_rate: 99000,
       usage_location: "Otra ciudad",
+      terms_text: "Condiciones modificadas después",
     } as ContractData;
     const current = {
       razon_social: "LiftGo A Renovada", rfc: "AAA020202BBB",
@@ -41,7 +42,7 @@ describe("readSignedSnapshot (bloque 2 · C)", () => {
     };
 
     expect(contractForPdf(signed)).toMatchObject({
-      contract_number: "CTR-001", monthly_rate: 12000, usage_location: "Apodaca",
+      contract_number: "CTR-001", monthly_rate: 12000, usage_location: "Apodaca", terms_text: "Condiciones pactadas al firmar",
     });
     expect(issuerForPdf(signed, current)).toMatchObject({
       razon_social: "LiftGo A", rfc: "AAA010101AAA", lugar_expedicion: "64000",

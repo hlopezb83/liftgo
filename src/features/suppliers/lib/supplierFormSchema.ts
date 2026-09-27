@@ -23,8 +23,8 @@ const supplierFormBaseSchema = z.object({
       const t = v.trim();
       if (t === "") return true;
       const n = Number(t);
-      return Number.isFinite(n) && n >= 0 && n <= 365;
-    }, { message: "Debe ser un número entre 0 y 365" }),
+      return Number.isInteger(n) && n >= 0 && n <= 365;
+    }, { message: "Los días de crédito deben ser un número entero entre 0 y 365" }),
 });
 
 export const supplierFormSchema = supplierFormBaseSchema.refine(

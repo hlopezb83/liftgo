@@ -99,6 +99,16 @@ function buildTenantDecls(
   return decls;
 }
 
+function ParticularTerms({ text }: { text: string | null }) {
+  if (!text?.trim()) return null;
+  return (
+    <View minPresenceAhead={40}>
+      <SectionTitle text="III. CONDICIONES PARTICULARES" />
+      <Text style={contractStyles.clauseBody}>{text}</Text>
+    </View>
+  );
+}
+
 export function ContractBody({ contract, tpl, vars, company, customer, city, formattedDate }: PartiesContractBodyProps) {
   const tenantDecls = buildTenantDecls(tpl.declarations_tenant, customer);
   // v7.302.1: el recuadro de EL ARRENDATARIO ahora imprime también quién firma
@@ -119,6 +129,7 @@ export function ContractBody({ contract, tpl, vars, company, customer, city, for
 
       <DeclarationsSection landlord={tpl.declarations_landlord} tenant={tenantDecls} vars={vars} />
       <ClausesSection clauses={tpl.clauses} vars={vars} />
+      <ParticularTerms text={contract.terms_text} />
 
       <Text style={[contractStyles.closingLine, { marginTop: PAGE_MARGIN / 2 }]}>
         Leído el presente contrato, lo firman en {city}, el día {formattedDate}.

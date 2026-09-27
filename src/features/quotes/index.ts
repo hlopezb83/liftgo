@@ -3,3 +3,4 @@
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 export * from "./hooks/quotes/useQuotes";
+export { formatQuoteTotal } from "./lib/quoteDisplay";
