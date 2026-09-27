@@ -1,0 +1,9 @@
+{
+  "description": "Los listados móviles permiten navegar con teclado y muestran los filtros activos. Las facturas conservan la página al cargar más registros.",
+  "changes": [
+    "Enlaces accesibles en tarjetas móviles de facturas, entregas y contratos.",
+    "Indicador de filtros activos visible en móvil.",
+    "Facturas conserva la página actual al cargar resultados adicionales y distingue los conteos parciales.",
+    "La tarjeta móvil de entrega muestra el nombre del equipo con el mismo criterio que la tabla."
+  ]
+}

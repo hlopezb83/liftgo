@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.42.16",
+    "date": "2026-09-26",
+    "type": "patch",
+    "category": "fix",
+    "title": "Historial de cambios completo",
+    "description": "Las versiones recientes muestran sus detalles al expandirse. La publicación comprueba que exista un detalle válido para la versión nueva.",
+    "changes": [
+      "Se recuperan los detalles faltantes cuyo texto ya estaba guardado en el historial, incluidas las versiones 8.42.14 y 8.42.15.",
+      "La preparación de publicación se detiene si el detalle de la nueva versión está ausente o tiene un formato inválido.",
+      "Una comprobación automática verifica los detalles de las 60 versiones recientes."
+    ]
+  },
+  {
     "version": "8.42.15",
     "date": "2026-09-26",
     "type": "patch",

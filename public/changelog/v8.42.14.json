@@ -1,0 +1,9 @@
+{
+  "description": "Los contratos recuperan el importe neto del acuerdo completo y atribuyen la renta facturada cuando sus partidas identifican cada equipo. El acceso a cotizaciones comprueba la sesión antes de cargar.",
+  "changes": [
+    "El ingreso esperado conserva el descuento de la cotización completa y sus centavos por equipo cuando se puede verificar el acuerdo.",
+    "Lo facturado suma las partidas de renta después del descuento, excluye logística y evita repartos iguales o índices ordinales sin vínculo comprobado. Los casos ambiguos solicitan revisión.",
+    "Una respuesta de sesión inicial atrasada ya no reemplaza un inicio, cierre o renovación de sesión más reciente.",
+    "Una sesión ausente no se presenta como un listado de cotizaciones vacío. La pantalla de acceso invita a continuar sin afirmar que la ruta no existe."
+  ]
+}
