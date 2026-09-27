@@ -25,6 +25,8 @@ El descuento porcentual o fijo se reparte en centavos de forma estable entre las
 
 **Pendiente:** automatizar descuentos para ciclos recurrentes y periodos parciales. La función `generate-recurring-invoices` excluye cotizaciones con cualquier descuento (incluidos extras) y explica el motivo en la vista previa. También excluye una fuente ausente o de otra organización. Es una contención deliberada del cobro incorrecto, no soporte completo de esos escenarios.
 
+La verificación publicada también detectó que el resumen contractual calculaba el ingreso esperado y el balance con tarifas brutas. El seguimiento 8.42.13 conserva lo facturado y pide revisar el importe pactado si la cotización tiene descuentos o no puede verificarse. Determinar automáticamente el neto por contrato sigue pendiente junto con COM-02; no se presenta una estimación bruta como un acuerdo verificado.
+
 No hay migración ni actualización de facturas, reservas o cotizaciones existentes. La protección automática requiere desplegar la Edge Function, además del frontend.
 
 ## C-PDF-01: retirado por falso positivo
@@ -38,3 +40,11 @@ Al revisar individualmente las imágenes originales y regenerar CTR-0003 desde l
 - ESLint sin warnings, TypeScript y compilación local.
 - Deno: formato, lint y comprobación de tipos de la función modificada, sin ejecutarla contra datos.
 - La verificación funcional publicada se registra aparte; pruebas locales no equivalen a un despliegue.
+
+## Verificación publicada y seguimiento 8.42.13
+
+La versión 8.42.12 se verificó con administrador en el navegador interno y auditor en Chrome: catálogos sin edición para consulta; orden cerrada de mantenimiento sin controles de escritura; fecha de devolución 26/09/2026 20:05; reserva mensual inclusiva; validación de crédito entero y navegación móvil por teclado a 375×812. El PDF real CTR-0003 incluye las condiciones particulares antes de las firmas y conserva encabezados en sus cuatro páginas.
+
+La precarga de la reserva activa RSV-0006 produce subtotal 4,500.67, IVA 720.11 y total 5,220.78. Su reserva hermana ya fue devuelta y no aparece en ese selector; la combinación de ambas se comprobó con pruebas automatizadas. Elegir COT-0009 (USD 1,160) en CRM rellenó 21,170 MXN. Las capturas de formularios se descartaron sin guardar.
+
+El seguimiento corrige tres detalles detectados en esa revisión: desglose de descuento/neto por partida en el formulario de factura, código de moneda sin duplicación y la protección del resumen contractual descrita arriba. No modifica fórmulas, importes guardados, permisos, SQL ni funciones del servidor.

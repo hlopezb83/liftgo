@@ -6,6 +6,8 @@ import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurre
 import { sumMoney } from "@/lib/money";
 import { parseDateLocal } from "@/lib/utils";
 import { useContractFinancialSummary } from "../../hooks/contractDetail/useContractFinancialSummary";
+import { useContractRevenueVerification } from "../../hooks/contractDetail/useContractRevenueVerification";
+import type { ContractRevenueVerification } from "../../lib/contractRevenueVerification";
 
 interface RentalFinancialSummaryProps {
   bookingId: string;
@@ -16,6 +18,36 @@ interface RentalFinancialSummaryProps {
   monthlyRate: number | null;
 }
 
+function ExpectedRevenue({ revenue, value, currency }: {
+  revenue: ContractRevenueVerification; value: number; currency: string;
+}) {
+  if (revenue.status === "verified") {
+    return <p className="text-lg font-bold">{formatCurrencyWithCode(value, currency)}</p>;
+  }
+  return <>
+    <p className="text-sm font-semibold">{revenue.status === "loading" ? "Verificando importe pactado" : "Revisar importe pactado"}</p>
+    <p className="text-xs text-muted-foreground">{revenue.reason}</p>
+  </>;
+}
+
+function RemainingBalance({ canCompare, isForeignRate, rateCurrency, remaining, notice }: {
+  canCompare: boolean; isForeignRate: boolean; rateCurrency: string; remaining: number; notice: string;
+}) {
+  if (!canCompare) {
+    return <><p className="text-lg font-bold text-muted-foreground">—</p><p className="text-xs text-muted-foreground">{notice}</p></>;
+  }
+  if (isForeignRate) {
+    return <>
+      <p className="text-lg font-bold text-muted-foreground">—</p>
+      <p className="text-xs text-muted-foreground">Tarifas en {rateCurrency}; no comparable contra lo facturado en MXN.</p>
+    </>;
+  }
+  return <>
+    <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>{formatCurrency(remaining)}</p>
+    <p className="text-xs text-muted-foreground">{remaining <= 0 ? "Al día" : "Pendiente"}</p>
+  </>;
+}
+
 export function RentalFinancialSummary({
   bookingId,
   startDate,
@@ -24,8 +56,9 @@ export function RentalFinancialSummary({
   weeklyRate,
   monthlyRate,
 }: RentalFinancialSummaryProps) {
-  const { data: invoices } = useContractFinancialSummary(bookingId);
-  const { data: booking } = useBooking(bookingId);
+  const { data: invoices, isLoading: invoicesLoading, isError: invoicesError } = useContractFinancialSummary(bookingId);
+  const { data: booking, isLoading: bookingLoading, isError: bookingError } = useBooking(bookingId);
+  const revenue = useContractRevenueVerification(booking, bookingLoading, bookingError);
   // Ronda D·#4: las tarifas del contrato están en la moneda de la reserva.
   // Lo facturado ya viene normalizado a MXN, así que comparar 1:1 contra una
   // reserva en USD inventaba un "balance restante" falso.
@@ -43,6 +76,8 @@ export function RentalFinancialSummary({
   const invoicedAmount = sumMoney((invoices || []).map((inv) => Number(inv.subtotal)));
   const remaining = sumMoney([expectedRevenue, -invoicedAmount]);
   const invoiceCount = invoices?.length || 0;
+  const invoicesVerified = !invoicesLoading && !invoicesError && invoices !== undefined;
+  const invoiceNotice = invoicesLoading ? "Verificando facturas." : "No se pudieron verificar las facturas.";
 
 
   return (
@@ -57,7 +92,7 @@ export function RentalFinancialSummary({
               <TrendingUpIcon className="h-3.5 w-3.5" />
               Ingreso Esperado
             </div>
-            <p className="text-lg font-bold">{formatCurrencyWithCode(expectedRevenue, rateCurrency)}</p>
+            <ExpectedRevenue revenue={revenue} value={expectedRevenue} currency={rateCurrency} />
             <p className="text-xs text-muted-foreground">{days} días</p>
           </div>
           <div className="space-y-1">
@@ -65,31 +100,23 @@ export function RentalFinancialSummary({
               <DocumentIcon className="h-3.5 w-3.5" />
               Facturado
             </div>
-            <p className="text-lg font-bold">{formatCurrency(invoicedAmount)}</p>
-            <p className="text-xs text-muted-foreground">{invoiceCount} factura{invoiceCount !== 1 ? "s" : ""}</p>
+            <p className="text-lg font-bold">{invoicesVerified ? formatCurrency(invoicedAmount) : "—"}</p>
+            <p className="text-xs text-muted-foreground">
+              {invoicesVerified ? `${invoiceCount} factura${invoiceCount !== 1 ? "s" : ""}` : invoiceNotice}
+            </p>
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
               <MoneyIcon className="h-3.5 w-3.5" />
               Balance Restante
             </div>
-            {isForeignRate ? (
-              <>
-                <p className="text-lg font-bold text-muted-foreground">—</p>
-                <p className="text-xs text-muted-foreground">
-                  Tarifas en {rateCurrency}; no comparable contra lo facturado en MXN.
-                </p>
-              </>
-            ) : (
-              <>
-                <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>
-                  {formatCurrency(remaining)}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {remaining <= 0 ? "Al día" : "Pendiente"}
-                </p>
-              </>
-            )}
+            <RemainingBalance
+              canCompare={revenue.status === "verified" && invoicesVerified}
+              isForeignRate={isForeignRate}
+              rateCurrency={rateCurrency}
+              remaining={remaining}
+              notice={revenue.status !== "verified" ? "Verifica el importe pactado para comparar el balance." : invoiceNotice}
+            />
           </div>
         </div>
       </CardContent>

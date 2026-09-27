@@ -26,8 +26,8 @@ export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProp
               <TableHead>Descripción</TableHead>
               <TableHead className="w-24 text-right">Cant.</TableHead>
               <TableHead className="w-32 text-right">Precio Unit.</TableHead>
-              {hasDiscount && <TableHead className="w-28 text-right">Dto.</TableHead>}
-              <TableHead className="w-32 text-right">Total</TableHead>
+              {hasDiscount && <TableHead className="w-28 text-right">Descuento</TableHead>}
+              <TableHead className="w-32 text-right">{hasDiscount ? "Importe neto" : "Total"}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
