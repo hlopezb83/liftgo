@@ -103,3 +103,10 @@ describe("ListPageLayout — acciones móviles", () => {
     expect(primary.compareDocumentPosition(screen.getByText("Sin resultados")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 });
+
+it("indica filtros activos en el botón móvil fuera del panel", async () => {
+  vi.mocked(useIsMobile).mockReturnValue(true);
+  renderLayout({ filters: <input aria-label="Buscar" />, hasActiveFilters: true });
+  expect(await screen.findByRole("button", { name: "Filtros activos" })).toBeInTheDocument();
+  expect(screen.queryByRole("button", { name: "Filtros" })).toBeNull();
+});

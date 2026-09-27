@@ -1,4 +1,5 @@
-import { render } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
+import { TestRouter } from "@/test/router";
 import { describe, it, expect } from "vitest";
 import { ContractMobileCard } from "../ContractMobileCard";
 
@@ -13,8 +14,10 @@ const contract = {
 };
 
 describe("ContractMobileCard Untranslated wrapping", () => {
-  it("marks contract_number, customer and forklift name as translate=no", () => {
-    const { container } = render(<ContractMobileCard contract={contract} onClick={() => {}} />);
+  it("marks contract_number, customer and forklift name as translate=no", async () => {
+    const { container } = render(<TestRouter><ContractMobileCard contract={contract} /></TestRouter>);
+    const link = await screen.findByRole("link", { name: "Ver contrato CT-0001 de Constructora Regia" });
+    expect(link).toHaveAttribute("href", "/contracts/ct-1");
     const nodes = container.querySelectorAll('[translate="no"]');
     const texts = Array.from(nodes).map((n) => n.textContent);
     expect(texts.some((t) => t?.includes("CT-0001"))).toBe(true);

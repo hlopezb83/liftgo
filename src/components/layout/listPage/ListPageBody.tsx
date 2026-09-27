@@ -15,6 +15,7 @@ interface Props<T extends { id?: string }> {
   showMobileCards: boolean;
   items: T[];
   table?: LiftgoTable<T>;
+  hasMoreRows?: boolean;
   emptyMessage: string;
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;
@@ -46,6 +47,7 @@ export function ListPageBody<T extends { id?: string }>({
   showMobileCards,
   items,
   table,
+  hasMoreRows = false,
   emptyMessage,
   emptyIcon,
   emptyActionLabel,
@@ -89,7 +91,7 @@ export function ListPageBody<T extends { id?: string }>({
       />
       {hasPagination && !isError && (
         <div className={mobileCardsReady ? "rounded-lg border bg-card py-3" : undefined}>
-          <DataTablePaginationV2 table={table} />
+          <DataTablePaginationV2 table={table} hasMoreRows={hasMoreRows} />
         </div>
       )}
       {showLoadMore && loadMore && (

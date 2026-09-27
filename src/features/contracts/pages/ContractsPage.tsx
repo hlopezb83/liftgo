@@ -168,7 +168,7 @@ export default function ContractsPage() {
       onEmptyAction={canWrite ? () => navigate("/contracts/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(c) => (
-        <ContractMobileCard contract={c} onClick={() => navigate(`/contracts/${c.id}`)} />
+        <ContractMobileCard contract={c} />
       )}
     />
   );

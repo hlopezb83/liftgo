@@ -2,9 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ViewIcon, ChevronRightIcon, InvoiceIcon } from "@/components/icons";
+import { ViewIcon, InvoiceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
@@ -15,6 +14,7 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
@@ -89,43 +89,6 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
     ];
 }
 
-function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
-  return (
-    <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onClick}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-1">
-          <Untranslated className="font-mono font-semibold text-sm">{inv.invoice_number}</Untranslated>
-          <StatusBadge status={inv.status} />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {inv.customer_name ? <Untranslated>{inv.customer_name}</Untranslated> : "Sin cliente"}
-        </p>
-        <div className="flex items-center justify-between mt-3 pt-3 border-t">
-          <div className="text-xs text-muted-foreground">
-            <span>{formatDateMty(inv.issued_at)}</span>
-            {inv.due_date && <span> → {formatDateMty(inv.due_date)}</span>}
-          </div>
-          <div className="flex items-center gap-1">
-            {(() => {
-              // R8 Bloque 6·#3: badge de moneda en la tarjeta móvil (paridad con el listado desktop).
-              const moneda = (inv as Invoice & { moneda?: string | null }).moneda ?? "MXN";
-              return (
-                <>
-                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(Number(inv.total))}</span>
-                  {moneda !== "MXN" && (
-                    <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded">{moneda}</span>
-                  )}
-                </>
-              );
-            })()}
-            <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 export default function InvoicesPage() {
   const {
     search, setSearch, statusFilter, setStatusFilter, cfdiFilter, setCfdiFilter,
@@ -153,6 +116,7 @@ export default function InvoicesPage() {
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
     resetKey: filterKey,
+    preservePaginationOnAppend: true,
   });
 
   // Hallazgo 2: convivían dos paginaciones (páginas + "Cargar más"); se
@@ -213,6 +177,7 @@ export default function InvoicesPage() {
         table={table}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
         onRowPrefetch={(inv) => invoiceQueries.detail(inv.id)}
+        hasMoreRows={!!hasNextPage}
         hasActiveFilters={hasActive}
         onClearFilters={clearAll}
         emptyMessage="No se encontraron facturas"
@@ -220,7 +185,7 @@ export default function InvoicesPage() {
         emptyActionLabel={canCreate ? "Nueva factura" : undefined}
         onEmptyAction={canCreate ? () => navigate("/invoices/new") : undefined}
         skeletonColumns={7}
-        mobileCardRender={(inv) => <InvoiceCard inv={inv} onClick={() => navigate(`/invoices/${inv.id}`)} />}
+        mobileCardRender={(inv) => <InvoiceMobileCard inv={inv} />}
       />
       <RecurringInvoicesPreviewDialog
         open={previewOpen}

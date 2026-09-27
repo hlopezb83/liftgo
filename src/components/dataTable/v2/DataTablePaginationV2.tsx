@@ -5,15 +5,17 @@ import type { RowData } from "@tanstack/react-table";
 
 interface Props<T extends RowData> {
   table: LiftgoTable<T>;
+  hasMoreRows?: boolean;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
-export function DataTablePaginationV2<T extends RowData>({ table }: Props<T>) {
+export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = false }: Props<T>) {
   const { pageIndex, pageSize } = table.state.pagination;
   const totalPages = table.getPageCount();
   // Indicador de rango: filas visibles de la página actual sobre el total
-  // filtrado. Con paginación manual desactivada (getPageCount() === -1) se
+  // filtrado cargado; hasMoreRows indica que ese total es un mínimo conocido.
+  // Con paginación manual desactivada (getPageCount() === -1) se
   // muestran todas las filas, así que el rango cubre el total completo.
   const totalRows = table.getFilteredRowModel().rows.length;
   const isPaginated = totalPages !== -1;
@@ -44,7 +46,7 @@ export function DataTablePaginationV2<T extends RowData>({ table }: Props<T>) {
           </SelectContent>
         </Select>
         <span className="whitespace-nowrap">
-          {rangeStart}–{rangeEnd} de {totalRows}
+          {rangeStart}–{rangeEnd} de {hasMoreRows ? "al menos " : ""}{totalRows}
         </span>
       </div>
       <TablePagination

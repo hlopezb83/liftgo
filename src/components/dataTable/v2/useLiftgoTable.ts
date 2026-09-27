@@ -23,7 +23,14 @@ interface Options<T extends RowData> {
   globalFilter?: string;
   paginated?: boolean;
   resetKey?: string | number;
+  /** Conserva la página al anexar filas sin alterar las ya cargadas. */
+  preservePaginationOnAppend?: boolean;
   onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
+}
+
+function canKeepPaginationData(previous: string, current: string, preserveAppend: boolean): boolean {
+  return previous === current ||
+    (preserveAppend && previous !== "" && current.startsWith(`${previous}|`));
 }
 
 /**
@@ -41,6 +48,7 @@ export function useLiftgoTable<T extends RowData>({
   globalFilter,
   paginated = true,
   resetKey,
+  preservePaginationOnAppend = false,
   onSelectionChange,
 }: Options<T>): LiftgoTable<T> {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -59,13 +67,15 @@ export function useLiftgoTable<T extends RowData>({
     value: { pageIndex: 0, pageSize: initialPageSize } as PaginationState,
   }));
   const paginationIsCurrent =
-    paginationSnapshot.dataVersion === dataVersion && paginationSnapshot.resetKey === resetKey;
+    canKeepPaginationData(paginationSnapshot.dataVersion, dataVersion, preservePaginationOnAppend) &&
+    paginationSnapshot.resetKey === resetKey;
   const pagination = paginationIsCurrent
     ? paginationSnapshot.value
     : { ...paginationSnapshot.value, pageIndex: 0 };
   const handlePaginationChange = (updater: Updater<PaginationState>): void => {
     setPaginationSnapshot((previous) => {
-      const current = previous.dataVersion === dataVersion && previous.resetKey === resetKey
+      const current = canKeepPaginationData(previous.dataVersion, dataVersion, preservePaginationOnAppend) &&
+        previous.resetKey === resetKey
         ? previous.value
         : { ...previous.value, pageIndex: 0 };
       return {

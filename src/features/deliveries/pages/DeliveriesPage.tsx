@@ -6,7 +6,6 @@ import { WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
@@ -16,8 +15,10 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
+import { DeliveryMobileCard } from "../components/deliveries/DeliveryMobileCard";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
 import { countOverdueDeliveries, deliveryOverdueDays, deliveryOverdueLabel } from "../lib/deliveryOverdue";
+import { deliveryTypeLabel } from "../lib/deliveryTypeLabel";
 import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
 
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
@@ -38,12 +39,6 @@ const TYPE_OPTIONS = [
   { value: "return", label: "Devolución" },
 ];
 
-function typeLabel(type: string | null | undefined): string {
-  if (type === "delivery") return "Entrega";
-  if (type === "pickup") return "Recolección";
-  if (type === "return") return "Devolución";
-  return "—";
-}
 
 type ForkliftMap = ReturnType<typeof useForkliftMap>["forkliftMap"];
 
@@ -59,8 +54,8 @@ function buildDeliveryColumns(forkliftMap: ForkliftMap): ColumnDef<Delivery>[] {
       // C2: el tipo (entrega vs recolección) sólo existía en la tarjeta móvil.
       id: "type",
       header: "Tipo",
-      accessorFn: (d) => typeLabel(d.type),
-      cell: ({ row }) => <span className="text-sm">{typeLabel(row.original.type)}</span>,
+      accessorFn: (d) => deliveryTypeLabel(d.type),
+      cell: ({ row }) => <span className="text-sm">{deliveryTypeLabel(row.original.type)}</span>,
     },
     {
       id: "scheduled_date",
@@ -107,30 +102,6 @@ function buildDeliveryColumns(forkliftMap: ForkliftMap): ColumnDef<Delivery>[] {
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
   ];
-}
-
-function DeliveryMobileCard({ d, forkliftMap, onClick }: { d: Delivery; forkliftMap: ForkliftMap; onClick: () => void }) {
-  const overdue = deliveryOverdueDays(d);
-  return (
-    <Card className="cursor-pointer" onClick={onClick}>
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-1">
-          <Untranslated className="text-xs font-mono text-muted-foreground">{d.delivery_number}</Untranslated>
-          <StatusBadge status={d.status} />
-        </div>
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-semibold">{typeLabel(d.type)}</span>
-          {overdue > 0 && (
-            <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
-          )}
-        </div>
-        <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name ? <Untranslated>{forkliftMap.get(d.forklift_id)?.name}</Untranslated> : "—"}</p>
-        <p className="text-xs text-muted-foreground mt-1">{formatDateMty(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
-        {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
-        {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
-      </CardContent>
-    </Card>
-  );
 }
 
 export default function DeliveriesPage() {
@@ -224,7 +195,7 @@ export default function DeliveriesPage() {
       emptyActionLabel={canSchedule ? "Programar entrega" : undefined}
       onEmptyAction={canSchedule ? scheduleDialog.openDialog : undefined}
       mobileCardRender={(d) => (
-        <DeliveryMobileCard d={d} forkliftMap={forkliftMap} onClick={() => navigate(`/deliveries/${d.id}`)} />
+        <DeliveryMobileCard d={d} forkliftMap={forkliftMap} />
       )}
     />
   );

@@ -89,6 +89,50 @@ describe("useLiftgoTable · paginación", () => {
   });
 });
 
+describe("useLiftgoTable · páginas anexadas", () => {
+  it("conserva la página 4 al cargar de 100 a 120 filas y permite avanzar", () => {
+    const { result, rerender } = renderHook(
+      ({ data, key }: { data: Row[]; key: string }) => useLiftgoTable({
+        data, columns, getRowId, resetKey: key, preservePaginationOnAppend: true,
+      }),
+      { initialProps: { data: makeRows(100), key: "all" } },
+    );
+    act(() => result.current.setPageIndex(3));
+    rerender({ data: makeRows(120), key: "all" });
+    expect(result.current.state.pagination.pageIndex).toBe(3);
+    expect(result.current.getRowModel().rows[0]?.original.name).toBe("Row 75");
+    act(() => result.current.nextPage());
+    expect(result.current.state.pagination.pageIndex).toBe(4);
+    expect(result.current.getRowModel().rows[0]?.original.name).toBe("Row 100");
+  });
+
+  it("reinicia al cambiar filtros aunque las filas se hayan anexado", () => {
+    const { result, rerender } = renderHook(
+      ({ data, key }: { data: Row[]; key: string }) => useLiftgoTable({
+        data, columns, getRowId, resetKey: key, preservePaginationOnAppend: true,
+      }),
+      { initialProps: { data: makeRows(100), key: "all" } },
+    );
+    act(() => result.current.setPageIndex(3));
+    rerender({ data: makeRows(120), key: "paid" });
+    expect(result.current.state.pagination.pageIndex).toBe(0);
+  });
+
+  it("reinicia si una fila previa se editó; no lo trata como anexado", () => {
+    const { result, rerender } = renderHook(
+      ({ data }: { data: Row[] }) => useLiftgoTable({
+        data, columns, getRowId, preservePaginationOnAppend: true,
+      }),
+      { initialProps: { data: makeRows(100) } },
+    );
+    act(() => result.current.setPageIndex(3));
+    const updated = makeRows(120);
+    updated[0].name = "Edited";
+    rerender({ data: updated });
+    expect(result.current.state.pagination.pageIndex).toBe(0);
+  });
+});
+
 describe("useLiftgoTable · funciones v9", () => {
   it("ordena números en ambos sentidos y deja null y undefined al final", () => {
     const values: Array<{ id: string; amount: number | null | undefined }> = [
