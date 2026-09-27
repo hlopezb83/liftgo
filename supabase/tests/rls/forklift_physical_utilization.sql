@@ -66,11 +66,11 @@ BEGIN
     VALUES (v_forklift, 'MC-' || v_case.case_id, 'Toyota 8FGU25', 'available',
       CASE WHEN v_case.case_id = 10 THEN NULL ELSE v_today-20 END, 10000,
       v_today::timestamp AT TIME ZONE 'UTC', v_org_a);
-    INSERT INTO public.bookings (id, booking_number, forklift_id, customer_name, start_date, end_date, status, return_status, is_e2e, organization_id)
+    INSERT INTO public.bookings (id, booking_number, forklift_id, customer_name, start_date, end_date, status, return_status, is_e2e, e2e_scope, organization_id)
     VALUES (v_booking, 'RSV-0071-' || v_case.case_id, v_forklift, 'Logística Norte',
       v_today+v_case.start_offset, v_today+v_case.end_offset, v_case.booking_status,
       CASE WHEN v_case.booking_status = 'completed' THEN 'returned' ELSE 'pending' END,
-      v_case.e2e, v_org_a);
+      v_case.e2e, CASE WHEN v_case.e2e THEN 'utilization-0071' END, v_org_a);
     INSERT INTO public.deliveries (booking_id, forklift_id, delivery_number, type, status, scheduled_date, completed_at, completed_no_evidence_reason, organization_id)
     VALUES (v_booking, v_forklift, 'ENT-0071-' || v_case.case_id, 'delivery',
       CASE WHEN v_case.delivered_offset IS NULL THEN 'scheduled' ELSE 'completed' END,
