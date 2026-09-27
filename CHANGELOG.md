@@ -1,3 +1,12 @@
+## [8.42.14] - 2026-09-26 · patch · bugfix
+
+El resumen contractual recupera el importe neto del acuerdo completo y pide revisión cuando no puede atribuir lo facturado a cada reserva. El listado de cotizaciones comprueba la sesión antes de consultar.
+
+- La renta pactada conserva los descuentos originales y los centavos asignados a cada equipo, con comprobaciones de periodo, modelo, tarifas, moneda y organización.
+- Lo facturado suma partidas de renta netas con vínculo comprobable y excluye logística; no usa índices ordinales ni reparto igual sin evidencia. Las respuestas truncadas y tipos de cambio ausentes requieren revisión.
+- El arranque de sesión no pisa eventos más recientes con una respuesta inicial atrasada y no aplica respuestas después de desmontar.
+- La ausencia de sesión no se presenta como un listado de cotizaciones vacío; la pantalla de acceso conserva un mensaje correcto de continuación.
+
 ## [8.42.13] - 2026-09-27 · patch · bugfix
 
 Completar una inspección de retorno fallaba con error de base de datos cuando la reserva no tenía montacargas asignado; ahora se valida antes de llamar.

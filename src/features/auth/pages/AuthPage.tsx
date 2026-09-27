@@ -22,9 +22,8 @@ export default function AuthPage() {
   const { pathname } = useLocation();
   const navigate = useNavigateTransition();
   const recovery = useRecoveryStatus();
-  // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
-  // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
-  const unknownPath =
+  // El guard conserva la ruta protegida cuando se necesita iniciar sesión.
+  const showSessionNotice =
     recovery === "idle" &&
     pathname !== "/" &&
     pathname !== "/login" &&
@@ -130,8 +129,7 @@ export default function AuthPage() {
         <Card className="w-full max-w-md animate-fade-in shadow-lg">
           <AuthCardHeader
             mode={mode}
-            unknownPath={unknownPath}
-            pathname={pathname}
+            showSessionNotice={showSessionNotice}
           />
           <CardContent>
             {recovery === "error" || recovery === "pending" ? (

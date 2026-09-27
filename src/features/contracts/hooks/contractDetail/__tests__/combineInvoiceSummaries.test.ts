@@ -64,31 +64,31 @@ describe("atribución de facturas multi-reserva", () => {
     ],
   };
 
-  it("usa la partida indicada por line_index", () => {
+  it("un índice ordinal no demuestra que la partida pertenezca a esta reserva", () => {
     const result = combineInvoiceSummaries(
       [],
       [{ invoice_id: "inv-9", line_index: 0, invoices: invoice }],
       { "inv-9": 2 },
     );
-    expect(result).toEqual([{ id: "inv-9", subtotal: 18000, status: "sent" }]);
+    expect(result).toEqual([{ id: "inv-9", subtotal: null, status: "sent" }]);
   });
 
-  it("calcula la partida por cantidad × precio unitario", () => {
+  it("tampoco atribuye por cantidad × precio una partida sin vínculo comprobado", () => {
     const result = combineInvoiceSummaries(
       [],
       [{ invoice_id: "inv-9", line_index: 1, invoices: invoice }],
       { "inv-9": 2 },
     );
-    expect(result[0].subtotal).toBe(12000);
+    expect(result[0].subtotal).toBeNull();
   });
 
-  it("sin line_index prorratea entre las reservas de la factura", () => {
+  it("sin reparto comprobado pide revisión y no inventa tres partes iguales", () => {
     const result = combineInvoiceSummaries(
       [],
       [{ invoice_id: "inv-9", line_index: null, invoices: { ...invoice, line_items: null } }],
       { "inv-9": 3 },
     );
-    expect(result[0].subtotal).toBe(10000);
+    expect(result[0].subtotal).toBeNull();
   });
 
   it("factura de una sola reserva conserva su subtotal completo", () => {
