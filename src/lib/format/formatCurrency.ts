@@ -44,7 +44,10 @@ export function formatCurrencyWithCode(
   currencyCode: string = "MXN",
 ): string {
   if (!isRenderable(amount)) return "—";
-  return getFormatter(currencyCode).format(amount);
+  // Un campo pendiente/vacío no es MXN. Evitar RangeError sin inventar divisa.
+  const code = currencyCode.trim().toUpperCase();
+  if (!/^[A-Z]{3}$/.test(code)) return "—";
+  return getFormatter(code).format(amount);
 }
 
 /**

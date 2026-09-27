@@ -1,8 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 
 describe("TotalsSummary — normalización de taxRate (R5)", () => {
+  it("una moneda pendiente se presenta como no disponible, sin asumir MXN", () => {
+    const { container } = render(<TotalsSummary subtotal={1200} taxRate={16} taxAmount={192} total={1392} currency="" />);
+    expect(within(container).getAllByText("—")).toHaveLength(3);
+    expect(within(container).queryByText("$1,392.00")).not.toBeInTheDocument();
+  });
+
   it("muestra IVA (16%) cuando taxRate viene como fracción 0.16", () => {
     render(<TotalsSummary subtotal={100} taxRate={0.16} taxAmount={16} total={116} />);
     expect(screen.getByText("IVA (16%)")).toBeInTheDocument();

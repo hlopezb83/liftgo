@@ -26,6 +26,7 @@ function Harness({ lines = quotedLines, currency = "MXN" }: { lines?: LineItemVa
     <Form {...form}>
       <EditableLineItemsTable />
       <button onClick={() => form.setValue("cfdi.moneda", "MXN")}>Cambiar a pesos</button>
+      <button onClick={() => form.setValue("cfdi.moneda", "USD")}>Cambiar a dólares</button>
       <output aria-label="Totales contables">{JSON.stringify(totals)}</output>
       <output aria-label="Partidas conservadas">{JSON.stringify(stored)}</output>
     </Form>
@@ -33,6 +34,17 @@ function Harness({ lines = quotedLines, currency = "MXN" }: { lines?: LineItemVa
 }
 
 describe("EditableLineItemsTable — descuentos visibles", () => {
+  it("tolera la moneda vacía durante carga y después muestra USD sin tocar los importes", () => {
+    render(<Harness currency="" lines={[
+      { description: "Renta diaria", quantity: 3, unit_price: 400, total: 1200 },
+    ]} />);
+    expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent("—");
+    fireEvent.click(screen.getByRole("button", { name: "Cambiar a dólares" }));
+    expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent(/(?:US\$|USD\s+)1,200\.00/);
+    expect(JSON.parse(screen.getByLabelText("Totales contables").textContent ?? "{}"))
+      .toEqual({ subtotal: 1200, taxAmount: 192, total: 1392 });
+  });
+
   it("cambiar la moneda actualiza neto y descuento fijo sin alterar los montos", () => {
     render(<Harness currency="USD" lines={[
       { description: "Renta diaria", quantity: 3, unit_price: 400, total: 1200, discount: 100, discount_type: "$" },

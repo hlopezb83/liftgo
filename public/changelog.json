@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.42.18",
+    "date": "2026-09-27",
+    "type": "patch",
+    "category": "fix",
+    "title": "Edición de facturas con moneda pendiente",
+    "description": "La edición de facturas tolera la moneda pendiente durante la carga, sin interrumpir el formulario ni representar los importes como pesos.",
+    "changes": [
+      "Una moneda vacía o incompleta muestra un importe no disponible hasta que se carga o selecciona una divisa válida.",
+      "Los códigos de moneda se normalizan al mostrar importes; el valor y los cálculos del documento se conservan.",
+      "Se verifica la transición de moneda vacía a USD en partidas y totales."
+    ]
+  },
+  {
     "version": "8.42.17",
     "date": "2026-09-27",
     "type": "patch",

@@ -18,6 +18,14 @@ describe("formatCurrency", () => {
 });
 
 describe("formatCurrencyWithCode", () => {
+  it.each(["", " ", "MX", "US_D", "123"])("moneda incompleta %j no rompe la pantalla ni presume pesos", (code) => {
+    expect(formatCurrencyWithCode(1200, code)).toBe("—");
+  });
+
+  it("normaliza espacios y minúsculas sin cambiar la moneda", () => {
+    expect(formatCurrencyWithCode(1200, " usd ")).toBe(formatCurrencyWithCode(1200, "USD"));
+  });
+
   it("usa USD cuando se especifica", () => {
     const r = formatCurrencyWithCode(100, "USD");
     expect(r).toMatch(/100\.00/);
