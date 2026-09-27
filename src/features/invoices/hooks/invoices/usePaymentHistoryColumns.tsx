@@ -4,6 +4,7 @@ import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon, RefreshIcon } 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
+import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -35,6 +36,8 @@ async function downloadRep(paymentId: string, format: CfdiFormat) {
  * Aísla la lógica de las acciones REP (timbrar/cancelar/descargar).
  */
 export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations: boolean = ppdStamped) {
+  const canWrite = useHasModuleAccess("Facturas", "full");
+  const canMutateRep = canWrite && allowRepMutations;
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   // Fix B v7.90.0: el motivo de cancelación de REP ya no se hardcodea a "02";
   // se elige en un diálogo dedicado (CancelRepDialog).
@@ -86,7 +89,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
         cell: ({ row }) => {
           const p = row.original;
           const status = (p.rep_cfdi_status as string | null) ?? "none";
-          const repNumber = (p.rep_number as string | null) ?? null;
+          const repNumber = p.rep_number;
           // FIX R4-04: cancelación REP en proceso ante el SAT.
           const repCancelPending = (p.rep_cancellation_status as string | null) === "pending";
           return (
@@ -103,7 +106,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" aria-label="Descargar REP XML" onClick={() => downloadRep(p.id, "xml")}>
                     <FileCode2 className="h-3.5 w-3.5" />
                   </Button>
-                  {allowRepMutations && !repCancelPending && (
+                  {canMutateRep && !repCancelPending && (
                     <Button
                       variant="ghost" size="icon" className="h-7 w-7 text-destructive"
                       title="Cancelar REP"
@@ -118,7 +121,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                       <Badge variant="outline" className="border-warning/30 text-warning text-[10px]">
                         Cancelación REP en proceso
                       </Badge>
-                      <Button
+                      {canWrite && <Button
                         variant="ghost" size="icon" className="h-7 w-7"
                         title="Consultar estado SAT"
                         aria-label="Consultar estado SAT"
@@ -126,12 +129,12 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                         onClick={() => refreshRepCancel.mutate(p.id)}
                       >
                         <RefreshIcon className={`h-3.5 w-3.5 ${refreshRepCancel.isPending ? "animate-spin" : ""}`} />
-                      </Button>
+                      </Button>}
                     </>
                   )}
                 </>
               )}
-              {allowRepMutations && (status === "none" || status === "error") && (
+              {canMutateRep && (status === "none" || status === "error") && (
                 <Button
                   variant="outline" size="sm" className="h-7 text-xs"
                   disabled={stampRep.isPending}
@@ -158,7 +161,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
       });
     }
 
-    base.push({
+    if (canWrite) base.push({
       id: "actions", header: "", enableSorting: false,
       cell: ({ row }) => {
         const p = row.original;
@@ -185,5 +188,5 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
     return base;
   })();
 
-  return { columns, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId };
+  return { columns, canWrite, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId };
 }

@@ -3,6 +3,7 @@ import { useConfirm } from "@/components/feedback/useConfirm";
 import { AddIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useHasModuleAccess } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import {
   useCreditNotesForInvoice,
@@ -21,7 +22,13 @@ interface Props {
   invoice: Tables<"invoices">;
 }
 
+function invoiceAllowsCredit(invoice: Props["invoice"], maxCreditable: number, blockedByMissingFx: boolean) {
+  return invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" &&
+    maxCreditable > 0.005 && !blockedByMissingFx;
+}
+
 export function InvoiceCreditNotesCard({ invoice }: Props) {
+  const canWrite = useHasModuleAccess("Facturas", "full");
   const { data: creditNotes = [] } = useCreditNotesForInvoice(invoice.id);
   const { data: payments = [] } = usePayments(invoice.id);
   const [createOpen, setCreateOpen] = useState(false);
@@ -40,11 +47,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
   });
 
   // FIX-1 (ronda 2): sin tipo de cambio el tope es incalculable → fail-closed.
-  const canCreate =
-    invoice.cfdi_status === "stamped" &&
-    invoice.status !== "cancelled" &&
-    maxCreditable > 0.005 &&
-    !blockedByMissingFx;
+  const canCreate = canWrite && invoiceAllowsCredit(invoice, maxCreditable, blockedByMissingFx);
 
   if (creditNotes.length === 0 && !canCreate && !blockedByReps && !blockedByMissingFx) return null;
 
@@ -71,6 +74,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
             blockedByReps={blockedByReps}
             willCreateCredit={willCreateCredit}
             otherPaid={otherPaid}
+            currency={invoice.moneda ?? "MXN"}
           />
           <CreditNotesTable
             creditNotes={creditNotes}
@@ -83,7 +87,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
         </CardContent>
       </Card>
 
-      {createOpen && (
+      {canWrite && createOpen && (
         <CreateCreditNoteDialog
           open={createOpen}
           onOpenChange={setCreateOpen}
@@ -93,7 +97,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
         />
       )}
 
-      {cancelTarget && (
+      {canWrite && cancelTarget && (
         <CancelCreditNoteDialog
           open={!!cancelTarget}
           onOpenChange={(o) => { if (!o) setCancelTarget(null); }}

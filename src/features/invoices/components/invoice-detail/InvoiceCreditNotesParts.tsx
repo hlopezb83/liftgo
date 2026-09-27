@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
+import { useHasModuleAccess } from "@/features/users";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { CreditNoteRepLimitNotice } from "./CreditNoteRepLimitNotice";
 import { downloadCreditNote } from "./downloadCreditNote";
 import type {
@@ -39,11 +40,13 @@ export interface CreditNoteNoticesProps {
   blockedByReps: boolean;
   willCreateCredit: boolean;
   otherPaid: number;
+  currency?: string;
 }
 
 export function CreditNoteNotices({
   blockedByMissingFx, fxMissingReps, repBacked, invoiceTotal,
   priorCredits, maxCreditable, repPayments, blockedByReps, willCreateCredit, otherPaid,
+  currency = "MXN",
 }: CreditNoteNoticesProps) {
   return (
     <>
@@ -65,11 +68,12 @@ export function CreditNoteNotices({
           maxCreditable={maxCreditable}
           repPayments={repPayments}
           blocked={blockedByReps}
+          currency={currency}
         />
       )}
       {willCreateCredit && (
         <p className="mx-6 mb-4 text-xs text-muted-foreground">
-          Esta factura tiene {formatCurrency(otherPaid)} cobrados sin complemento de pago vigente. Una nota de
+          Esta factura tiene {formatCurrencyWithCode(otherPaid, currency)} cobrados sin complemento de pago vigente. Una nota de
           crédito por ese importe dejará saldo a favor del cliente, aplicable a facturas futuras.
         </p>
       )}
@@ -87,6 +91,7 @@ export interface CreditNoteActionsProps {
 }
 
 export function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget }: CreditNoteActionsProps) {
+  const canWrite = useHasModuleAccess("Facturas", "full");
   return (
     <div className="flex items-center justify-end gap-1">
       {cn.cfdi_status === "stamped" && (
@@ -97,7 +102,7 @@ export function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCa
           <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" aria-label="Descargar XML SAT" onClick={() => downloadCreditNote(cn.id, "xml", cn.credit_note_number)}>
             <DownloadIcon className="h-3.5 w-3.5" />
           </Button>
-          {cn.cancellation_status === "pending" ? (
+          {canWrite && (cn.cancellation_status === "pending" ? (
             <Button
               variant="ghost"
               size="icon"
@@ -113,10 +118,10 @@ export function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCa
             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Cancelar NC" aria-label="Cancelar nota de crédito" onClick={() => setCancelTarget(cn)}>
               <ErrorIcon className="h-3.5 w-3.5" />
             </Button>
-          ) : null}
+          ) : null)}
         </>
       )}
-      {cn.status === "draft" && (
+      {canWrite && cn.status === "draft" && (
         <>
           <Button variant="outline" size="sm" className="h-7 text-xs" disabled={stampMutation.isPending} onClick={() => stampMutation.mutate(cn.id)}>
             <StampIcon className="h-3 w-3 mr-1" /> Timbrar
@@ -169,7 +174,7 @@ export function CreditNotesTable({ creditNotes, stampMutation, deleteMutation, r
             <TableCell className="font-mono text-xs">{cn.credit_note_number}</TableCell>
             <TableCell className="text-sm">{formatDateMty(cn.issued_at)}</TableCell>
             <TableCell className="text-sm">{MOTIVE_LABELS[cn.motive] ?? cn.motive}</TableCell>
-            <TableCell className="text-right font-mono">{formatCurrency(Number(cn.total))}</TableCell>
+            <TableCell className="text-right font-mono whitespace-nowrap">{formatCurrencyWithCode(Number(cn.total), cn.currency ?? "MXN")}</TableCell>
             <TableCell><CnBadge cn={cn} /></TableCell>
             <TableCell>
               <CreditNoteActions

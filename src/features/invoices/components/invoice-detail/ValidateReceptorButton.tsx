@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { InfoAlertIcon, SuccessIcon, SpinnerIcon, EditIcon, SecurityIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { useHasModuleAccess, useUserRole } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
@@ -27,12 +28,16 @@ function labelFor(path: string): string {
 }
 
 export function ValidateReceptorButton({ invoice }: Props) {
+  const { data: role } = useUserRole();
+  const canWrite = useHasModuleAccess("Facturas", "full");
+  const canValidate = canWrite && (role === "admin" || role === "administrativo");
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [result, setResult] = useState<ReceptorValidationResult | null>(null);
   const validate = useValidateReceptorTaxInfo();
 
   const handleValidate = () => {
+    if (!canValidate || validate.isPending) return;
     setResult(null);
     setOpen(true);
     validate.mutate(invoice.id, {
@@ -42,6 +47,8 @@ export function ValidateReceptorButton({ invoice }: Props) {
       },
     });
   };
+
+  if (!canValidate) return null;
 
   return (
     <>

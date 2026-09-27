@@ -12,12 +12,14 @@ export type PaymentIntent = NonNullable<
 >[number];
 
 interface Options {
+  canWrite: boolean;
   onOpenProof: (path: string) => void;
   onApprove: (intentId: string) => void;
   onReject: (intentId: string) => void;
 }
 
 export function usePaymentIntentsColumns({
+  canWrite,
   onOpenProof,
   onApprove,
   onReject,
@@ -87,7 +89,7 @@ export function usePaymentIntentsColumns({
                   Comprobante
                 </Button>
               )}
-              {pending && (
+              {canWrite && pending && (
                 <>
                   <Button size="sm" onClick={() => onApprove(intent.id)}>
                     Aprobar
@@ -106,6 +108,6 @@ export function usePaymentIntentsColumns({
         },
       },
     ],
-    [onOpenProof, onApprove, onReject],
+    [canWrite, onOpenProof, onApprove, onReject],
   );
 }

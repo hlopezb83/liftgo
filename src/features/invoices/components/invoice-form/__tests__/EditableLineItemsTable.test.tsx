@@ -15,15 +15,17 @@ const quotedLines: LineItemValues[] = [
     total: 750.50, discount: 75.05, discount_type: "$", objeto_imp: "02" },
 ];
 
-function Harness({ lines = quotedLines }: { lines?: LineItemValues[] }) {
+function Harness({ lines = quotedLines, currency = "MXN" }: { lines?: LineItemValues[]; currency?: string }) {
   const form = useForm<InvoiceFormValues>({
-    defaultValues: { ...buildEmptyInvoiceValues(), lineItems: lines },
+    defaultValues: { ...buildEmptyInvoiceValues(), lineItems: lines,
+      cfdi: { ...buildEmptyInvoiceValues().cfdi, moneda: currency } },
   });
   const totals = useInvoiceFormTotals(form);
   const stored = useWatch({ control: form.control, name: "lineItems" });
   return (
     <Form {...form}>
       <EditableLineItemsTable />
+      <button onClick={() => form.setValue("cfdi.moneda", "MXN")}>Cambiar a pesos</button>
       <output aria-label="Totales contables">{JSON.stringify(totals)}</output>
       <output aria-label="Partidas conservadas">{JSON.stringify(stored)}</output>
     </Form>
@@ -31,6 +33,19 @@ function Harness({ lines = quotedLines }: { lines?: LineItemValues[] }) {
 }
 
 describe("EditableLineItemsTable — descuentos visibles", () => {
+  it("cambiar la moneda actualiza neto y descuento fijo sin alterar los montos", () => {
+    render(<Harness currency="USD" lines={[
+      { description: "Renta diaria", quantity: 3, unit_price: 400, total: 1200, discount: 100, discount_type: "$" },
+    ]} />);
+    expect(screen.getByText(/-(?:US\$|USD\s+)100\.00/)).toBeInTheDocument();
+    expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent(/(?:US\$|USD\s+)1,100\.00/);
+    fireEvent.click(screen.getByRole("button", { name: "Cambiar a pesos" }));
+    expect(screen.getByText("-$100.00")).toBeInTheDocument();
+    expect(screen.getByLabelText("Importe neto partida 1")).toHaveTextContent("$1,100.00");
+    expect(JSON.parse(screen.getByLabelText("Totales contables").textContent ?? "{}"))
+      .toEqual({ subtotal: 1100, taxAmount: 176, total: 1276 });
+  });
+
   it("RSV-0006 muestra descuentos y netos que suman el subtotal real", () => {
     render(<Harness />);
     expect(screen.getByRole("columnheader", { name: "Descuento" })).toBeInTheDocument();

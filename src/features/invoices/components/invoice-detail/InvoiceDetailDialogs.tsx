@@ -1,5 +1,6 @@
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useHasModuleAccess } from "@/features/users";
 import { RecordPaymentDialog } from "../invoices/RecordPaymentDialog";
 import { CancelCfdiDialog } from "./CancelCfdiDialog";
 import { CollectionNotesCard } from "./CollectionNotesCard";
@@ -46,23 +47,26 @@ export function InvoiceDetailDialogs({
   onDelete,
   ppdStamped,
 }: Props) {
+  const canWrite = useHasModuleAccess("Facturas", "full");
   return (
     <>
       {notes && <NotesCard value={notes} readOnly />}
       {showCollectionNotes && <CollectionNotesCard invoiceId={invoiceId} />}
-      <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} invoiceCurrency={invoiceCurrency} invoiceExchangeRate={invoiceExchangeRate} invoiceIssuedAt={invoiceIssuedAt} ppdStamped={ppdStamped} />
-
-
-      <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
-      <ConfirmDialog
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        title={`¿Eliminar factura ${invoiceNumber}?`}
-        description="Esta acción no se puede deshacer. Se eliminará la factura y sus datos asociados permanentemente."
-        confirmLabel="Eliminar"
-        destructive
-        onConfirm={onDelete}
-      />
+      {canWrite && (
+        <>
+          <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} invoiceCurrency={invoiceCurrency} invoiceExchangeRate={invoiceExchangeRate} invoiceIssuedAt={invoiceIssuedAt} ppdStamped={ppdStamped} />
+          <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
+          <ConfirmDialog
+            open={deleteOpen}
+            onOpenChange={setDeleteOpen}
+            title={`¿Eliminar factura ${invoiceNumber}?`}
+            description="Esta acción no se puede deshacer. Se eliminará la factura y sus datos asociados permanentemente."
+            confirmLabel="Eliminar"
+            destructive
+            onConfirm={onDelete}
+          />
+        </>
+      )}
     </>
   );
 }

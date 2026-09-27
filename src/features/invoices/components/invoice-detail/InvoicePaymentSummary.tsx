@@ -1,7 +1,7 @@
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
 import { CancelRepDialog } from "./CancelRepDialog";
 import { EditPaymentDialog } from "./EditPaymentDialog";
@@ -17,6 +17,7 @@ interface Props {
   /** Permitir Timbrar/Cancelar REP (false si la factura padre está cancelada). */
   allowRepMutations?: boolean;
   creditedAmount?: number;
+  currency?: string;
 }
 
 function countPendingReps(payments: Payment[]): number {
@@ -31,29 +32,31 @@ function PaymentSummaryCard({
   balance,
   creditedAmount,
   pendingReps,
+  currency,
 }: {
   totalPaid: number;
   balance: number;
   creditedAmount: number;
   pendingReps: number;
+  currency: string;
 }) {
   return (
     <Card>
       <CardContent className="py-4">
-        <div className="flex items-center justify-between">
+        <div className={`grid gap-4 ${creditedAmount > 0 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
           <div>
             <p className="text-sm text-muted-foreground">Total Pagado</p>
-            <p className="text-lg font-bold tabular-nums text-success">{formatCurrency(totalPaid)}</p>
+            <p className="text-lg font-bold tabular-nums text-success">{formatCurrencyWithCode(totalPaid, currency)}</p>
           </div>
           {creditedAmount > 0 ? (
             <div>
               <p className="text-sm text-muted-foreground">Notas de Crédito</p>
-              <p className="text-lg font-bold tabular-nums text-info">−{formatCurrency(creditedAmount)}</p>
+              <p className="text-lg font-bold tabular-nums text-info">−{formatCurrencyWithCode(creditedAmount, currency)}</p>
             </div>
           ) : null}
-          <div className="text-right">
+          <div className="sm:text-right">
             <p className="text-sm text-muted-foreground">Saldo Pendiente</p>
-            <p className={`text-lg font-bold tabular-nums ${balance <= 0 ? "text-success" : "text-destructive"}`}>{formatCurrency(balance)}</p>
+            <p className={`text-lg font-bold tabular-nums ${balance <= 0 ? "text-success" : "text-destructive"}`}>{formatCurrencyWithCode(balance, currency)}</p>
           </div>
         </div>
         {pendingReps > 0 ? (
@@ -67,9 +70,9 @@ function PaymentSummaryCard({
 }
 
 export function InvoicePaymentSummary({
-  totalPaid, balance, payments, ppdStamped = false, allowRepMutations = ppdStamped, creditedAmount = 0,
+  totalPaid, balance, payments, ppdStamped = false, allowRepMutations = ppdStamped, creditedAmount = 0, currency = "MXN",
 }: Props) {
-  const { columns, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId } = usePaymentHistoryColumns(ppdStamped, allowRepMutations);
+  const { columns, canWrite, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId } = usePaymentHistoryColumns(ppdStamped, allowRepMutations);
 
   const table = useLiftgoTable<Payment>({
     data: payments,
@@ -90,6 +93,7 @@ export function InvoicePaymentSummary({
           balance={balance}
           creditedAmount={creditedAmount}
           pendingReps={pendingReps}
+          currency={currency}
         />
       ) : null}
 
@@ -102,7 +106,7 @@ export function InvoicePaymentSummary({
         </Card>
       ) : null}
 
-      {editingPayment ? (
+      {canWrite && editingPayment ? (
         <EditPaymentDialog
           open={true}
           onOpenChange={(open) => { if (!open) setEditingPayment(null); }}
@@ -111,11 +115,13 @@ export function InvoicePaymentSummary({
         />
       ) : null}
 
-      <CancelRepDialog
-        open={cancelRepPaymentId !== null}
-        onOpenChange={(open) => { if (!open) setCancelRepPaymentId(null); }}
-        paymentId={cancelRepPaymentId}
-      />
+      {canWrite && (
+        <CancelRepDialog
+          open={cancelRepPaymentId !== null}
+          onOpenChange={(open) => { if (!open) setCancelRepPaymentId(null); }}
+          paymentId={cancelRepPaymentId}
+        />
+      )}
     </>
   );
 }

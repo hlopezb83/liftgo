@@ -46,10 +46,12 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
         </Badge>
       )}
       {flags.isRejectedCancel && <Badge variant="destructive">Cancelación rechazada</Badge>}
-      <Button size="sm" variant="outline" onClick={() => refresh.mutate(invoiceId)} disabled={refresh.isPending}>
-        <RefreshIcon className={`h-4 w-4 mr-1 ${refresh.isPending ? "animate-spin" : ""}`} />
-        Actualizar estado SAT
-      </Button>
+      <RoleGuard module="Facturas" minAccess="full" fallback={null}>
+        <Button size="sm" variant="outline" onClick={() => refresh.mutate(invoiceId)} disabled={refresh.isPending}>
+          <RefreshIcon className={`h-4 w-4 mr-1 ${refresh.isPending ? "animate-spin" : ""}`} />
+          Actualizar estado SAT
+        </Button>
+      </RoleGuard>
     </>
   );
 }
