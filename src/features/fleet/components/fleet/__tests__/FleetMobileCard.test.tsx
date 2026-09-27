@@ -9,13 +9,13 @@ describe("FleetMobileCard", () => {
   it("incluye la ubicación registrada sin perder la identidad y el estado", () => {
     render(<FleetMobileCard forklift={forklift} hasActivePolicy={false} location="Av. Industria 428 · Andén 3" onClick={vi.fn()} />);
     expect(screen.getByText("Av. Industria 428 · Andén 3")).toBeInTheDocument();
-    expect(screen.getByRole("button")).toHaveAccessibleName(/Ubicación:.*Av. Industria/);
+    expect(screen.getByRole("button")).toHaveAccessibleName(/Ubicación registrada.*Av. Industria/);
     expect(screen.getByText("MTY-LG-2602")).toBeInTheDocument();
     expect(screen.getByText("Disponible")).toBeInTheDocument();
   });
 
   it("no presume una ubicación cuando no hay dato", () => {
     render(<FleetMobileCard forklift={forklift} hasActivePolicy={false} onClick={vi.fn()} />);
-    expect(screen.queryByText("Ubicación:")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ubicación registrada")).not.toBeInTheDocument();
   });
 });

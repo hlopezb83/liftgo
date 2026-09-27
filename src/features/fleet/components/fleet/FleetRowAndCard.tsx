@@ -36,10 +36,13 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, location, onClic
         </div>
         <p className="text-sm text-muted-foreground">{f.model}</p>
         {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: <Untranslated>{f.serial_number}</Untranslated></p>}
-        {location && <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+        {location && <div className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
           <LocationIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="min-w-0 break-words"><span className="sr-only">Ubicación: </span>{location}</span>
-        </p>}
+          <div className="min-w-0 break-words">
+            <p className="font-medium">Ubicación registrada</p>
+            <p>{location}</p>
+          </div>
+        </div>}
         <div className="flex items-center justify-between mt-3 pt-3 border-t">
           <div className="flex gap-4 text-xs text-muted-foreground">
             {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}

@@ -45,6 +45,14 @@ describe("computeFleetAvailability", () => {
     expect(result?.available).toBe(1);
   });
 
+  it("una devolución anticipada completada no ocupa el resto del periodo original", () => {
+    const forklifts = [{ id: "f-1", status: "available" }];
+    const bookings = [{ forklift_id: "f-1", status: "completed", start_date: "2026-09-26", end_date: "2026-10-03" }];
+    const result = computeFleetAvailability(forklifts, bookings, "2026-09-27");
+    expect(result?.rented).toBe(0);
+    expect(result?.available).toBe(1);
+  });
+
   it("mantiene rentada una unidad sin reinterpretarla por ausencia de reservas en la consulta", () => {
     const forklifts = [{ id: "f-2", status: "rented" }];
     const bookings: never[] = [];

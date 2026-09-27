@@ -71,7 +71,7 @@ export function useFleetColumns(
       },
       {
         id: "location",
-        header: "Ubicación",
+        header: "Ubicación registrada",
         enableSorting: false,
         meta: { cellClassName: "hidden lg:table-cell text-xs text-muted-foreground max-w-[200px] truncate" },
         cell: ({ row }) => locationMap.get(row.original.id) || "—",

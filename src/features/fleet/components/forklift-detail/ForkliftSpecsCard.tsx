@@ -26,7 +26,8 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
     { label: "Tipo de Combustible", value: forklift.fuel_type ? (FUEL_TYPE_LABELS[forklift.fuel_type] || forklift.fuel_type) : null },
     { label: "No. de Serie", value: forklift.serial_number },
     { label: "Costo de Adquisición", value: acquisitionCost ? formatCurrency(Number(acquisitionCost)) : null },
-    { label: "Ubicación Actual", value: locationError ? "No se pudo cargar la ubicación" : (currentLocation || null) },
+    { label: "Ubicación registrada", value: locationError ? "No se pudo cargar la ubicación" : (currentLocation || null),
+      help: locationHelp(currentLocation, locationError) },
     { label: "Aseguradora", value: forklift.insurance_provider || null },
     { label: "No. Póliza", value: forklift.insurance_policy_number || null },
     { label: "Vigencia Seguro", value: forklift.insurance_expiry || null },
@@ -41,13 +42,18 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
       <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {specs.map((s) => (
-            <div key={s.label}>
+            <div key={s.label} className="min-w-0">
               <p className="text-xs text-muted-foreground">{s.label}</p>
-              <p className="font-medium text-sm">{s.value || "—"}</p>
+              <p className="font-medium text-sm break-words">{s.value || "—"}</p>
+              {s.help && <p className="mt-1 text-xs text-muted-foreground">{s.help}</p>}
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
   );
+}
+
+function locationHelp(location?: string | null, error?: boolean) {
+  return !error && location ? "Del contrato o último movimiento registrado. Puede ser histórica." : null;
 }
