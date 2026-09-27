@@ -20,6 +20,18 @@ const verify = (source = quote, contractTerms = terms, booking = bookings[0]) =>
 });
 
 describe("neto contractual desde la cotización completa", () => {
+  it("no compara la vigencia anterior del contrato con una reserva extendida", () => {
+    const extended = { ...bookings[0], end_date: "2026-10-05" };
+    expect(verify({ ...quote, bookings: [extended, bookings[1]] }, terms, extended).status).toBe("review");
+  });
+
+  it("revisa periodos distintos también en un contrato sin cotización", () => {
+    const extended = { ...bookings[0], quote_id: null, end_date: "2026-10-05" };
+    const result = verifyContractRevenue({ booking: extended, quote: null, terms, isLoading: false, isError: false });
+    expect(result.status).toBe("review");
+    expect(result.expectedRevenue).toBeUndefined();
+  });
+
   it("cada equipo conserva su asignación de centavos: 4,500.67 y 4,500.68 netos", () => {
     expect(verify()).toEqual({ status: "verified", reason: null, expectedRevenue: 4500.67 });
     expect(verify(quote, terms, bookings[1]).expectedRevenue).toBe(4500.68);

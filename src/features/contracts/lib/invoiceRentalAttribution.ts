@@ -11,6 +11,11 @@ type InvoiceLine = {
   discount?: unknown; discount_type?: unknown; booking_id?: unknown;
 };
 
+// Matches the rental prefixes emitted by ordinary, recurring and extension billing.
+// Mentions of renta inside logistics/insurance descriptions remain extras.
+const RENTAL_PREFIX = /^(?:Extensión: )?Renta /;
+const GENERATED_RENTAL = /(?:^| — )(?:Extensión: )?Renta /;
+
 function nonnegative(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
@@ -40,7 +45,9 @@ function lineNet(value: unknown): number | null {
 }
 
 function linkedBooking(line: InvoiceLine, links: InvoiceBookingLink[]): string | null {
-  if (typeof line.booking_id === "string") return links.some((link) => link.booking_id === line.booking_id) ? line.booking_id : null;
+  if (line.booking_id != null) {
+    return typeof line.booking_id === "string" && links.some((link) => link.booking_id === line.booking_id) ? line.booking_id : null;
+  }
   const description = typeof line.description === "string" ? line.description : "";
   const bySerial = links.filter((link) => {
     const serial = link.bookings?.forklifts?.serial_number;
@@ -49,7 +56,8 @@ function linkedBooking(line: InvoiceLine, links: InvoiceBookingLink[]): string |
   if (bySerial.length > 0) return bySerial.length === 1 ? bySerial[0].booking_id : null;
   const byName = links.filter((link) => {
     const name = link.bookings?.forklifts?.name;
-    return !!name && description.startsWith(`${name} — Renta `);
+    const prefix = `${name} — `;
+    return !!name && description.startsWith(prefix) && RENTAL_PREFIX.test(description.slice(prefix.length));
   });
   return byName.length === 1 ? byName[0].booking_id : null;
 }
@@ -68,8 +76,9 @@ export function attributedRentalSubtotal(
   const rental = lineItems.flatMap((value, index) => {
     const line = value as InvoiceLine;
     if (typeof line.description !== "string"
-      || !(line.description.includes(" — Renta ") || line.description.startsWith("Renta "))) return [];
-    return [{ bookingId: distinct.size <= 1 ? bookingId : linkedBooking(line, links), net: net[index] ?? 0 }];
+      || !GENERATED_RENTAL.test(line.description)) return [];
+    const assigned = line.booking_id != null || distinct.size > 1 ? linkedBooking(line, links) : bookingId;
+    return [{ bookingId: assigned, net: net[index] ?? 0 }];
   });
   if (rental.length === 0 || rental.some((line) => line.bookingId === null)
     || (distinct.size > 1 && [...distinct].some((id) => !rental.some((line) => line.bookingId === id)))) return null;

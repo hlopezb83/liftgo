@@ -34,6 +34,11 @@ function quotedRevenue(booking: ContractRevenueBooking, quote: ContractQuoteTerm
   }
 }
 
+function periodMismatch(booking: ContractRevenueBooking, terms: ContractPriceTerms): boolean {
+  return Boolean((booking.start_date && booking.start_date !== terms.start_date)
+    || (booking.end_date && booking.end_date !== terms.end_date));
+}
+
 /** Gross contract rates cannot establish the net agreement of a discounted quote. */
 export function verifyContractRevenue({
   booking, quote, isLoading, isError, terms,
@@ -47,6 +52,9 @@ export function verifyContractRevenue({
   if (isLoading) return { status: "loading", reason: "Verificando el importe pactado." };
   if (!booking || isError) {
     return { status: "review", reason: "No se pudo verificar el importe pactado. Vuelve a consultar la reserva y su cotización." };
+  }
+  if (terms && periodMismatch(booking, terms)) {
+    return { status: "review", reason: "El periodo del contrato no coincide con la reserva actual. Revisa el contrato y sus extensiones antes de comparar el balance." };
   }
   // A loaded booking with an explicit null is legitimately not linked to a quote.
   if (booking.quote_id === null) return { status: "verified", reason: null };
