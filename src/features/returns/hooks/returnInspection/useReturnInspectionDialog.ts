@@ -77,6 +77,15 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
       form.setError("bookingId", { message: "La reserva ya no está disponible para devolución. Actualiza la lista." });
       return;
     }
+    // El overload desplegado de complete_return_inspection exige forklift_id
+    // (uuid, sin default). Si la reserva no tiene unidad asignada, la RPC no
+    // resuelve ningún overload y falla con un error genérico. Bloqueamos aquí.
+    if (!booking.forklift_id) {
+      form.setError("bookingId", {
+        message: "La reserva no tiene un montacargas asignado. Asigna la unidad antes de completar la devolución.",
+      });
+      return;
+    }
     if (values.inspectedAt < parseDateLocal(booking.start_date)) {
       form.setError("inspectedAt", { message: "La inspección no puede ser anterior al inicio de la renta." });
       return;
