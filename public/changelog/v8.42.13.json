@@ -1,0 +1,9 @@
+{
+  "description": "Las partidas de factura muestran el descuento y su importe neto; los contratos piden revisar el importe pactado cuando no es posible estimarlo con certeza.",
+  "changes": [
+    "El desglose de facturación permite comprobar la suma después del descuento, manteniendo las mismas fórmulas e importes guardados.",
+    "Cotizaciones y CRM muestran una sola indicación de moneda, sin duplicar USD.",
+    "El resumen financiero contractual conserva lo facturado y evita presentar un ingreso o balance bruto como pactado cuando la cotización requiere revisión.",
+    "La devolución valida que la reserva tenga un montacargas asignado antes de guardar."
+  ]
+}

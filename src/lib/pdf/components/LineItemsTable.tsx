@@ -37,9 +37,9 @@ export function LineItemsTable({ items, currency }: LineItemsTableProps) {
         <Text style={[sharedStyles.tableHeaderText, sharedStyles.cellNum]}>CANT.</Text>
         <Text style={[sharedStyles.tableHeaderText, sharedStyles.cellMoney]}>P. UNITARIO</Text>
         {hasDiscount && (
-          <Text style={[sharedStyles.tableHeaderText, sharedStyles.cellDiscount]}>DTO.</Text>
+          <Text style={[sharedStyles.tableHeaderText, sharedStyles.cellDiscount]}>DESCUENTO</Text>
         )}
-        <Text style={[sharedStyles.tableHeaderText, sharedStyles.cellTotal]}>TOTAL</Text>
+        <Text style={[sharedStyles.tableHeaderText, sharedStyles.cellTotal]}>{hasDiscount ? "NETO" : "TOTAL"}</Text>
       </View>
 
       {items.map((item, i) => {

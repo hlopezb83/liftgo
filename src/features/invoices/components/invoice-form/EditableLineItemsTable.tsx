@@ -6,7 +6,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
+import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
@@ -30,6 +30,7 @@ export function EditableLineItemsTable() {
             <AddIcon className="h-3 w-3 mr-1" />Agregar Fila
           </Button>
         </div>
+        <p className="text-sm text-muted-foreground">El importe neto incluye el descuento, antes de IVA.</p>
       </CardHeader>
       <CardContent className="p-0">
         <Table>
@@ -40,7 +41,8 @@ export function EditableLineItemsTable() {
               <TableHead className="w-20">ClaveUnidad</TableHead>
               <TableHead className="w-20">Cant.</TableHead>
               <TableHead className="w-28">Precio Unit.</TableHead>
-              <TableHead className="w-28 text-right">Total</TableHead>
+              <TableHead className="w-28 text-right">Descuento</TableHead>
+              <TableHead className="w-28 text-right">Importe neto</TableHead>
               <TableHead className="w-12" />
             </TableRow>
           </TableHeader>
@@ -49,7 +51,7 @@ export function EditableLineItemsTable() {
               <LineItemRow key={row.id} index={idx} onRemove={removeLineItem} />
             ))}
             {fields.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-6">Sin partidas aún</TableCell></TableRow>
+              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground py-6">Sin partidas aún</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -68,11 +70,15 @@ interface RowProps {
 
 function LineItemRow({ index, onRemove }: RowProps) {
   const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
-  const [quantity, unitPrice] = useWatch({
+  const [quantity, unitPrice, discount, discountType] = useWatch({
     control,
-    name: [`lineItems.${index}.quantity`, `lineItems.${index}.unit_price`],
+    name: [`lineItems.${index}.quantity`, `lineItems.${index}.unit_price`,
+      `lineItems.${index}.discount`, `lineItems.${index}.discount_type`],
   });
-  const total = lineItemTotal(Number(quantity ?? 0), Number(unitPrice ?? 0));
+  const gross = lineItemTotal(Number(quantity ?? 0), Number(unitPrice ?? 0));
+  const net = applyDiscountToBase(gross, discount, discountType);
+  const discountLabel = discount && discount > 0
+    ? (discountType === "$" ? `-${formatCurrency(discount)}` : `-${discount}%`) : "—";
 
   const syncTotal = (q: number, p: number) => {
     const next = lineItemTotal(q, p);
@@ -117,7 +123,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
         <FormField control={control} name={`lineItems.${index}.quantity`} render={({ field }) => (
           <FormItem>
             <FormControl>
-              <Input type="number" min={1} className="h-8" value={field.value} onChange={(e) => {
+              <Input type="number" min={1} aria-label={`Cantidad partida ${index + 1}`} className="h-8" value={field.value} onChange={(e) => {
                 const v = Number(e.target.value);
                 field.onChange(v);
                 syncTotal(v, Number(unitPrice ?? 0));
@@ -131,7 +137,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
         <FormField control={control} name={`lineItems.${index}.unit_price`} render={({ field }) => (
           <FormItem>
             <FormControl>
-              <Input type="number" step="0.01" min={0} className="h-8" value={field.value} onChange={(e) => {
+              <Input type="number" step="0.01" min={0} aria-label={`Precio unitario partida ${index + 1}`} className="h-8" value={field.value} onChange={(e) => {
                 const v = Number(e.target.value);
                 field.onChange(v);
                 syncTotal(Number(quantity ?? 0), v);
@@ -141,7 +147,10 @@ function LineItemRow({ index, onRemove }: RowProps) {
           </FormItem>
         )} />
       </TableCell>
-      <TableCell className="text-right font-mono">{formatCurrency(total)}</TableCell>
+      <TableCell className="text-right font-mono">{discountLabel}</TableCell>
+      <TableCell className="text-right font-mono">
+        <output aria-label={`Importe neto partida ${index + 1}`}>{formatCurrency(net)}</output>
+      </TableCell>
       <TableCell>
         <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Eliminar partida" title="Eliminar partida" onClick={() => onRemove(index)}>
           <DeleteIcon className="h-3.5 w-3.5 text-destructive" />

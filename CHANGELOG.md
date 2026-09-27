@@ -4,6 +4,9 @@ Completar una inspección de retorno fallaba con error de base de datos cuando l
 
 - El diálogo de devolución bloquea el guardado si la reserva no tiene forklift_id y muestra un mensaje claro en lugar de enviar una RPC que no resuelve ningún overload.
 - El hook useCreateReturnInspection incluye fail-closed: si forklift_id falta, lanza un error explícito en vez de omitir la clave y dejar que PostgREST arme una firma incompleta.
+- Las partidas de factura muestran descuento y neto antes de IVA, conservando los importes almacenados.
+- Cotizaciones y CRM muestran una sola indicación de moneda.
+- El resumen contractual pide revisar el importe pactado cuando la cotización tiene descuento o no puede verificarse; conserva lo facturado verificable.
 
 ## [8.42.8] - 2026-09-23 · patch · bugfix
 

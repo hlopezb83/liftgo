@@ -104,6 +104,20 @@ describe("useReturnInspectionDialog", () => {
 });
 
 describe("useReturnInspectionDialog · rechazo y borrador", () => {
+  it.each([null, undefined])("bloquea una reserva sin unidad (%s) antes de enviar y conserva el borrador", async (forkliftId) => {
+    const unassigned = { ...booking, forklift_id: forkliftId } as unknown as Booking;
+    const { result } = renderHook(() => useReturnInspectionDialog([unassigned], true));
+    act(() => {
+      result.current.form.setValue("hoursUsed", "2.5");
+      result.current.form.setValue("fuelLevel", "1/2");
+    });
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(mocks.mutate).not.toHaveBeenCalled();
+    expect(result.current.form.getFieldState("bookingId").error?.message).toContain("no tiene un montacargas asignado");
+    expect(result.current.form.getValues("hoursUsed")).toBe("2.5");
+    expect(result.current.dialogOpen).toBe(true);
+  });
+
   it("bloquea combustible vacío antes de invocar la mutación y conserva las horas", async () => {
     const { result } = renderHook(() => useReturnInspectionDialog([booking], true));
     act(() => result.current.form.setValue("hoursUsed", "2.5"));

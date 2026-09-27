@@ -1,0 +1,11 @@
+{
+  "description": "CRM convierte cotizaciones USD a MXN; contratos incluyen condiciones particulares y los permisos de consulta se respetan en mantenimiento y configuración.",
+  "changes": [
+    "Las facturas desde reservas conservan los descuentos y centavos de la cotización en su periodo original no recurrente. Los casos recurrentes o modificados con descuento requieren revisión manual; la generación automática los excluye.",
+    "Cotizaciones y CRM muestran moneda explícita; los prospectos nuevos inician en la etapa permitida.",
+    "Los contratos PDF incluyen las condiciones particulares antes de las firmas y la ayuda de interés cero coincide con el pagaré.",
+    "Mantenimiento respeta permisos y órdenes cerradas en Lista y Tablero. Configuración de consulta no ofrece altas ni cambios.",
+    "Entregas y devoluciones conservan la hora de Monterrey; combustible obligatorio y crédito de proveedor entero se validan antes del envío.",
+    "La recurrencia reconoce meses inclusivos y las tarjetas móviles de proveedores y devoluciones permiten navegación por teclado."
+  ]
+}
