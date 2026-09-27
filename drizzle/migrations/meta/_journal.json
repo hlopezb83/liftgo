@@ -498,6 +498,13 @@
       "when": 1790874192000,
       "tag": "0070_contract_deposit_idempotence",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1790874193000,
+      "tag": "0071_forklift_financials_physical_occupancy",
+      "breakpoints": true
     }
   ]
 }

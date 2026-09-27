@@ -20,9 +20,9 @@ const cases = [
 ] as const;
 
 describe.each(cases)("Refresco después de $name", ({ useHook, input }) => {
-  it("refresca el panel y las ubicaciones aunque sus consultas estén frescas", async () => {
+  it("refresca el panel, las ubicaciones y la utilización aunque estén frescos", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
-    const keys = [["dashboard-stats", "list", { dateKey: "2026-09-27" }], ["fleet_locations", "list"], ["forklift-location", "detail", "forklift-1"]] as const;
+    const keys = [["dashboard-stats", "list", { dateKey: "2026-09-27" }], ["fleet_locations", "list"], ["forklift-location", "detail", "forklift-1"], ["forklift-financials", "detail", "forklift-1"]] as const;
     let serverRevision = "before";
     const observers = keys.map((queryKey) => {
       queryClient.setQueryData(queryKey, "before");
@@ -43,7 +43,7 @@ describe.each(cases)("Refresco después de $name", ({ useHook, input }) => {
   it("marca para recarga las vistas desmontadas y conserva consultas ajenas", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
     queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
-    const roots = ["dashboard-stats", "fleet_locations", "forklift-location", "bookings", "forklifts", "status_logs"];
+    const roots = ["dashboard-stats", "fleet_locations", "forklift-location", "forklift-financials", "bookings", "forklifts", "status_logs"];
     for (const root of roots) queryClient.setQueryData([root, "list"], "before");
     queryClient.setQueryData(["customers", "list"], "unchanged");
     const { result } = renderHook(() => useHook(), { wrapper: Wrapper });
@@ -55,7 +55,7 @@ describe.each(cases)("Refresco después de $name", ({ useHook, input }) => {
   it("conserva la caché si el servidor rechaza la transición", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
     queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
-    const key = ["dashboard-stats", "list"];
+    const key = ["forklift-financials", "detail", "forklift-1"];
     queryClient.setQueryData(key, "before");
     mocks.rpc.mockResolvedValue({ data: null, error: new Error("Transición rechazada") });
     const { result } = renderHook(() => useHook(), { wrapper: Wrapper });

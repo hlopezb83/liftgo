@@ -1,0 +1,9 @@
+{
+  "description": "La ficha del equipo calcula días de renta con los movimientos completados y refresca las métricas después de cada entrega o devolución.",
+  "changes": [
+    "Días Rentado empieza con una entrega completada y termina con la devolución registrada; una reserva sin entrega no suma ocupación.",
+    "La utilización usa fechas de Monterrey, excluye reservas E2E y cuenta una sola vez las fechas superpuestas.",
+    "Completar una entrega o devolución refresca también las métricas de la ficha.",
+    "La ficha explica el cálculo y ocupa todo el ancho cuando el rol no puede ver las tarifas."
+  ]
+}
