@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
@@ -89,6 +90,8 @@ export function useCreateReturnInspection() {
       ["bookings"],
       ["forklifts"],
       ["status_logs"],
+      operationSummaryKeys.dashboardStats.all,
+      operationSummaryKeys.fleetLocations.all,
     ],
     errorTitle: "Error al completar inspección de retorno",
   });

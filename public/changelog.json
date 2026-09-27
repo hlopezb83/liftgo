@@ -1,5 +1,21 @@
 [
   {
+    "version": "8.42.19",
+    "date": "2026-09-27",
+    "type": "patch",
+    "category": "fix",
+    "title": "Refacciones y operación en móvil",
+    "description": "El alta de refacciones descarta capturas canceladas y distingue errores del catálogo. Flota y devoluciones mejoran su lectura y refresco después de movimientos.",
+    "changes": [
+      "Habilitar refacción inicia una captura limpia, confirma el descarte y requiere un SKU activo; existencias y mínimo aceptan sólo unidades enteras.",
+      "El catálogo global distingue carga, ausencia de SKUs y error con reintento; los campos tienen etiquetas accesibles.",
+      "Flota permite acomodar sus botones en pantallas pequeñas y muestra la ubicación registrada también en tarjetas móviles.",
+      "Refacciones y devoluciones distinguen filtros sin coincidencias de listas vacías y ofrecen limpiar los filtros.",
+      "Las tarjetas de refacciones se pueden abrir por teclado; editar inventario identifica las existencias como stock actual.",
+      "Completar una entrega o devolución actualiza las consultas del panel y las ubicaciones de flota, conservando la validación transaccional existente."
+    ]
+  },
+  {
     "version": "8.42.18",
     "date": "2026-09-27",
     "type": "patch",

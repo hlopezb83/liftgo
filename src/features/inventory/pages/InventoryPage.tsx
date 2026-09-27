@@ -31,7 +31,7 @@ export default function InventoryPage() {
   const [editing, setEditing] = useState<PartInventory | null>(null);
   const detail = useDialogState<PartInventory>();
 
-  const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount } =
+  const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount, hasActive, reset } =
     useInventoryFilters(parts);
 
   const openCreate = () => { if (!canWrite) return; setEditing(null); activateDialog.openDialog(); };
@@ -89,16 +89,22 @@ export default function InventoryPage() {
   const mobileCard = (p: PartInventory) => {
     const isLow = p.stock_quantity <= p.min_stock_level;
     return (
-      <Card onClick={() => detail.open(p)} className="cursor-pointer">
+      <Card onClick={() => detail.open(p)} role="button" tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          detail.open(p);
+        }}
+        className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <CardContent className="p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{p.name}</p>
-              <p className="text-xs font-mono text-muted-foreground">{p.sku || "Sin SKU"}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="font-medium break-words">{p.name}</p>
+              <p className="text-xs font-mono text-muted-foreground break-words">{p.sku || "Sin SKU"}</p>
             </div>
             <Badge variant={isLow ? "destructive" : "secondary"}>{p.stock_quantity}</Badge>
           </div>
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
             <Badge variant="outline">{partCategoryLabel(p.category)}</Badge>
             <span className="font-mono">{formatCurrency(p.unit_cost)}</span>
           </div>
@@ -145,6 +151,8 @@ export default function InventoryPage() {
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}
+        hasActiveFilters={hasActive}
+        onClearFilters={reset}
         table={table}
         onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"

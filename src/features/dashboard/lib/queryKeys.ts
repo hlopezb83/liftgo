@@ -11,6 +11,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { roundMoney } from "@/lib/money";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { callRpc } from "@/lib/rpc";
 
 
@@ -160,7 +161,7 @@ export interface DashboardStats {
 }
 
 export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", DashboardStats>(
-  "dashboard-stats",
+  operationSummaryKeys.dashboardStats.all[0],
   {
     list: () => () => callRpc<DashboardStats>("get_dashboard_stats"),
     staleTime: 30_000,

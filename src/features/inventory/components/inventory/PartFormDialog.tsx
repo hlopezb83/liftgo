@@ -86,7 +86,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
               <NumberField
                 control={form.control}
                 name="stock_quantity"
-                label="Stock Inicial"
+                label="Stock Actual"
                 min={0}
                 nullOnEmpty={false}
               />

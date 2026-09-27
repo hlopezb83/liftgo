@@ -1,5 +1,5 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ChevronRightIcon, SecurityIcon } from "@/components/icons";
+import { ChevronRightIcon, LocationIcon, SecurityIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
@@ -8,10 +8,11 @@ import type { Forklift } from "../../hooks/forklifts/useForklifts";
 interface CardProps {
   forklift: Forklift;
   hasActivePolicy: boolean;
+  location?: string;
   onClick: () => void;
 }
 
-export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardProps) {
+export function FleetMobileCard({ forklift: f, hasActivePolicy, location, onClick }: CardProps) {
   return (
     <Card
       className="cursor-pointer active:scale-[0.98] transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -26,8 +27,8 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardP
       role="button"
     >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between mb-2">
-          <Untranslated as="span" className="font-mono font-semibold text-sm flex items-center gap-1.5">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <Untranslated as="span" className="min-w-0 break-words font-mono font-semibold text-sm flex items-center gap-1.5">
             {f.name}
             {hasActivePolicy && <SecurityIcon className="h-3.5 w-3.5 text-success shrink-0" />}
           </Untranslated>
@@ -35,6 +36,10 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardP
         </div>
         <p className="text-sm text-muted-foreground">{f.model}</p>
         {f.serial_number && <p className="text-xs text-muted-foreground font-mono">S/N: <Untranslated>{f.serial_number}</Untranslated></p>}
+        {location && <p className="mt-2 flex items-start gap-1.5 text-xs text-muted-foreground">
+          <LocationIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 break-words"><span className="sr-only">Ubicación: </span>{location}</span>
+        </p>}
         <div className="flex items-center justify-between mt-3 pt-3 border-t">
           <div className="flex gap-4 text-xs text-muted-foreground">
             {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}

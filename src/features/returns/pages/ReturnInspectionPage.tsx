@@ -115,7 +115,7 @@ export default function ReturnInspectionPage() {
           <ListTruncationNotice rows={inspectionsRaw} />
         }
         filters={
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <DatePickerField label="Filtrar por fecha" date={filterDate} onSelect={setFilterDate} placeholder="Todas las fechas" />
             {filterDate && (
               <Button variant="ghost" size="sm" onClick={() => setFilterDate(undefined)}>
@@ -132,6 +132,8 @@ export default function ReturnInspectionPage() {
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}
+        hasActiveFilters={!!filterDate}
+        onClearFilters={() => setFilterDate(undefined)}
         table={table}
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
