@@ -49,12 +49,13 @@ export function FinancialKpiCards({
     },
 
     {
-      label: "Utilización de Flota",
+      label: "Flota comprometida hoy",
       value: `${utilizationPercent}%`,
       icon: TrendingUpIcon,
       color: "text-info",
       bgColor: "bg-info/10",
-      href: "/reports?type=utilization",
+      href: "/fleet",
+      hint: <span className="text-xs text-muted-foreground">En renta o con reserva confirmada hoy</span>,
     },
     {
       label: "DSO (Días de Cobro)",

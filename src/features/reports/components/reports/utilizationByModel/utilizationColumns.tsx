@@ -11,7 +11,7 @@ export const utilizationColumns: ColumnDef<ModelRow>[] = [
   { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { kind: "number" }, cell: ({ row }) => row.original.totalDays },
   {
     id: "utilization",
-    header: "Utilización",
+    header: "Ocupación %",
     accessorKey: "utilization",
     meta: { kind: "number" },
     cell: ({ row }) => (
