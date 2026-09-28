@@ -577,6 +577,14 @@ async function buildPlan(
   return { lines, items, truncated, pendingCount };
 }
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String(error.message);
+  }
+  return String(error);
+}
+
 async function executePlan(
   supabase: SupabaseClient,
   items: PlanItem[],
@@ -759,11 +767,7 @@ async function executePlan(
       if (row.already_existed === true) alreadyExisting.push(result);
       else created.push(result);
     } catch (err) {
-      const msg = err instanceof Error ? err.message
-        : typeof err === "object" && err !== null && "message" in err
-        ? String(err.message)
-        : String(err);
-      failed.push({ bookingIds, error: msg });
+      failed.push({ bookingIds, error: errorMessage(err) });
     }
   }
 
