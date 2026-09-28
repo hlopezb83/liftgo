@@ -42,7 +42,7 @@ export default function FleetPage() {
   const forkliftsForFilter = useMemo(
     () =>
       (forklifts ?? []).map((f) => {
-        if (!rentedIds || (f.status !== "available" && f.status !== "rented")) return f;
+        if (!rentedIds || f.status !== "available") return f;
         const derived = rentedIds.has(f.id) ? ("rented" as const) : ("available" as const);
         return derived === f.status ? f : { ...f, status: derived };
       }),
