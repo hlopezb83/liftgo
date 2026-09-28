@@ -1,0 +1,8 @@
+{
+  "description": "La generación de borradores recurrentes consulta el historial completo de cada reserva y se detiene si una lectura falla.",
+  "changes": [
+    "Las facturas vigentes con estado fiscal vacío y las facturas antiguas sin vínculo intermedio cuentan como periodos ya facturados.",
+    "Las facturas canceladas no bloquean un periodo ni marcan extras como cobrados.",
+    "Una falla al leer facturas, impuestos o cotizaciones detiene el borrador afectado en lugar de asumir datos vacíos; las cotizaciones se buscan dentro de su empresa."
+  ]
+}
