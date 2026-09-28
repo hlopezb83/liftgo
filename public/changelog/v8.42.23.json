@@ -1,0 +1,7 @@
+{
+  "description": "El selector de reportes muestra completo el nombre de días reservados y las tarjetas del panel conservan su altura compacta.",
+  "changes": [
+    "El selector de reportes permite leer completo «Días reservados por unidad/modelo» en escritorio y móvil.",
+    "El indicador de flota comprometida hoy conserva el enlace a Equipos sin aumentar la altura de toda la fila."
+  ]
+}
