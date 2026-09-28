@@ -1,0 +1,7 @@
+{
+  "description": "Una selección de reservas desactualizada ya no marca como facturadas las reservas que aún no tienen factura.",
+  "changes": [
+    "La generación rechaza un grupo cuando sólo algunas reservas tienen factura para ese periodo y pide actualizar la vista previa.",
+    "Las facturas ya existentes aparecen separadas de las nuevas; los choques de concurrencia se muestran como fallos en lugar de éxitos silenciosos."
+  ]
+}

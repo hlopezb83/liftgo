@@ -587,6 +587,7 @@ async function executePlan(
     invoiceId: string;
     invoiceNumber: string | null;
   }> = [];
+  const alreadyExisting: typeof created = [];
   const failed: Array<{ bookingIds: string[]; error: string }> = [];
   // R6-F5: fail-closed. Un periodo cuya reserva se actualizó DESPUÉS del fin
   // del periodo pudo cambiar de tarifa; no se factura salvo confirmación
@@ -744,34 +745,29 @@ async function executePlan(
       );
 
       if (rpcErr) {
-        // 23505 = unique_violation → duplicado del índice único parcial.
-        // Otra corrida en paralelo ya facturó este período; no es error.
-        if (rpcErr.code === "23505") {
-          console.log(
-            `[generate-recurring-invoices] already_billed bookings=${
-              bookingIds.join(",")
-            } period=${first.startStr}..${first.endStr}`,
-          );
-          continue;
-        }
         throw rpcErr;
       }
 
       const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
       if (!row?.invoice_id) throw new Error("RPC returned no invoice_id");
 
-      created.push({
+      const result = {
         bookingIds,
         invoiceId: row.invoice_id as string,
         invoiceNumber: (row.invoice_number as string) ?? null,
-      });
+      };
+      if (row.already_existed === true) alreadyExisting.push(result);
+      else created.push(result);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
+      const msg = err instanceof Error ? err.message
+        : typeof err === "object" && err !== null && "message" in err
+        ? String(err.message)
+        : String(err);
       failed.push({ bookingIds, error: msg });
     }
   }
 
-  return { created, failed, rateWarnings, skippedStaleRate };
+  return { created, alreadyExisting, failed, rateWarnings, skippedStaleRate };
 }
 
 Deno.serve(async (req) => {
@@ -833,6 +829,7 @@ Deno.serve(async (req) => {
         invoicesCreated: 0,
         bookingsBilled: 0,
         created: [],
+        alreadyExisting: [],
         failed: [],
         rateWarnings: [],
         skippedStaleRate: [],
@@ -873,7 +870,7 @@ Deno.serve(async (req) => {
     // facturar periodos cuya tarifa pudo cambiar después del periodo.
     const allowStaleRate = !cronAuth.ok && body.allowStaleRate === true;
 
-    const { created, failed, rateWarnings, skippedStaleRate } =
+    const { created, alreadyExisting, failed, rateWarnings, skippedStaleRate } =
       await executePlan(
         supabase,
         targetItems,
@@ -890,6 +887,7 @@ Deno.serve(async (req) => {
       invoicesCreated,
       bookingsBilled,
       created,
+      alreadyExisting,
       failed,
       // B5-01: periodos catch-up facturados con posible tarifa desactualizada.
       rateWarnings,

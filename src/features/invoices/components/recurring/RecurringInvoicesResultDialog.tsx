@@ -12,8 +12,16 @@ interface Props {
   isRetrying: boolean;
 }
 
+function formatResultSummary(created: number, existing: number, failed: number): string {
+  const parts = [`${created} factura${created === 1 ? "" : "s"} creada${created === 1 ? "" : "s"}`];
+  if (existing > 0) parts.push(`${existing} ya existente${existing === 1 ? "" : "s"}`);
+  if (failed > 0) parts.push(`${failed} fallida${failed === 1 ? "" : "s"}`);
+  return `${parts.join(", ")}.`;
+}
+
 export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRetry, isRetrying }: Props) {
   const created = result?.created ?? [];
+  const alreadyExisting = result?.alreadyExisting ?? [];
   const failed = result?.failed ?? [];
 
   return (
@@ -23,13 +31,7 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
       onOpenChange={onOpenChange}
       width="xl"
       title="Resultado de generación"
-      description={
-        <>
-          {created.length} factura{created.length === 1 ? "" : "s"} creada
-          {created.length === 1 ? "" : "s"}
-          {failed.length > 0 && `, ${failed.length} fallida${failed.length === 1 ? "" : "s"}`}.
-        </>
-      }
+      description={formatResultSummary(created.length, alreadyExisting.length, failed.length)}
     >
       {/* v7.279.3: scroll nativo — ScrollArea de Radix no activa scroll con sólo max-h. */}
       <div className="max-h-[60vh] overflow-y-auto pr-3">
@@ -55,6 +57,24 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
             </div>
           )}
 
+          {alreadyExisting.length > 0 && (
+            <div>
+              <h4 className="text-sm font-semibold mb-2">Ya existentes ({alreadyExisting.length})</h4>
+              <div className="border rounded-md divide-y">
+                {alreadyExisting.map((invoice) => (
+                  <div key={invoice.invoiceId} className="flex items-center justify-between px-3 py-2 text-sm">
+                    <span className="text-muted-foreground">
+                      {invoice.bookingIds.length} reserva{invoice.bookingIds.length === 1 ? "" : "s"}
+                    </span>
+                    <Link to={`/invoices/${invoice.invoiceId}`} className="font-mono text-sm underline">
+                      {invoice.invoiceNumber ?? "Ver factura"}
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {failed.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
@@ -66,14 +86,16 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
                   <div key={idx} className="px-3 py-2 text-sm">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs text-muted-foreground truncate">{f.error}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onRetry(f.bookingIds)}
-                        disabled={isRetrying}
-                      >
-                        Reintentar
-                      </Button>
+                      {!f.error.startsWith("El grupo de reservas cambió:") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onRetry(f.bookingIds)}
+                          disabled={isRetrying}
+                        >
+                          Reintentar
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}
