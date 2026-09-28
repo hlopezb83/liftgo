@@ -11,6 +11,11 @@ export interface GenerateRecurringResponse {
     invoiceId: string;
     invoiceNumber: string | null;
   }>;
+  alreadyExisting?: Array<{
+    bookingIds: string[];
+    invoiceId: string;
+    invoiceNumber: string | null;
+  }>;
   failed?: Array<{ bookingIds: string[]; error: string }>;
   /** R6-F5: periodos NO facturados porque la tarifa pudo cambiar. */
   skippedStaleRate?: Array<{
