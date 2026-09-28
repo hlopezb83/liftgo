@@ -21,6 +21,8 @@ export interface RecurringPreviewLine {
   periodEnd: string;
   periodLabel: string;
   monthlyRate: number;
+  /** Divisa original de la reserva; el servidor no mezcla importes entre divisas. */
+  currency?: string;
   // BL-12: monto real a facturar (prorrateado en el primer ciclo si aplica).
   billedAmount: number;
   // M-13: tasa de IVA del cliente (0–100, porcentaje) devuelta por el edge

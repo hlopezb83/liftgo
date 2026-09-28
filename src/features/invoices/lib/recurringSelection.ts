@@ -6,7 +6,7 @@
  *  - La selección vivía en un `Set<string>` que se reconstruía desde cero cuando
  *    cambiaba el conjunto de reservas elegibles: cualquier refresh del preview
  *    borraba las líneas que el operador había desmarcado a propósito (R8-12).
- *  - Si una línea cambiaba de periodo o de monto sin cambiar de `bookingId`, la
+ *  - Si una línea cambiaba de cliente, equipo, divisa, periodo o monto sin cambiar de `bookingId`, la
  *    llave de rehidratación no cambiaba y la fila seguía seleccionada en
  *    silencio con datos distintos a los que el usuario aprobó (R8-05).
  *
@@ -75,15 +75,22 @@ export function recurringLineKey(line: RecurringPreviewLine): string {
   return `${line.bookingId}|${line.periodStart}`;
 }
 
-/** Firma material de una línea: cambia si cambia el periodo, el monto o el IVA. */
+/** Una selección debe caducar si cambia el receptor, el equipo o el importe mostrado. */
 function lineSignature(line: RecurringPreviewLine): string {
-  return [
+  return JSON.stringify([
+    line.bookingCode,
+    line.customerId,
+    line.customerName,
+    line.forkliftName,
     line.periodStart,
     line.periodEnd,
+    line.currency?.trim().toUpperCase() || "MXN",
+    String(line.monthlyRate),
     String(line.billedAmount),
     String(line.taxRate ?? ""),
     line.isProrated ? "p" : "-",
-  ].join("~");
+    line.proratedDays ?? null,
+  ]);
 }
 
 /** Firma por línea (reserva + periodo). */
@@ -105,10 +112,9 @@ export function recurringPreviewFingerprint(
   const selectable = new Set(
     lines.filter((l) => isLineSelectable(l, allowStaleRate)).map(recurringLineKey),
   );
-  return Object.keys(sigs)
+  return JSON.stringify(Object.keys(sigs)
     .sort()
-    .map((id) => `${id}:${sigs[id]}:${selectable.has(id) ? "1" : "0"}`)
-    .join(";");
+    .map((id) => [id, sigs[id], selectable.has(id)]));
 }
 
 type IdOutcome = "deselected" | "selected" | "known-only" | "absent-known";

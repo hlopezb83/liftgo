@@ -1,22 +1,23 @@
 import { InfoAlertIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 import { recurringLineKey } from "../../lib/recurringSelection";
+import { recurringCurrency } from "./recurringPreviewPresentation";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
 export function SummaryBar({
   eligibleCount,
   selectedCount,
-  totalSelected,
+  totalsLabel,
 }: {
   eligibleCount: number;
   selectedCount: number;
-  totalSelected: number;
+  totalsLabel: string;
 }) {
   return (
-    <div className="flex items-center gap-4 text-sm border rounded-md p-3 bg-muted/30">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm border rounded-md p-3 bg-muted/30">
       <div>
         <span className="text-muted-foreground">Elegibles: </span>
         <span className="font-semibold">{eligibleCount}</span>
@@ -25,10 +26,10 @@ export function SummaryBar({
         <span className="text-muted-foreground">Seleccionadas: </span>
         <span className="font-semibold">{selectedCount}</span>
       </div>
-      <div className="ml-auto">
-        <span className="text-muted-foreground">Total: </span>
-        <span className="tabular-nums font-bold">{formatCurrency(totalSelected)}</span>
-        <span className="text-xs text-muted-foreground ml-1">(IVA incl.)</span>
+      <div className="w-full sm:ml-auto sm:w-auto">
+        <span className="text-muted-foreground">Renta estimada: </span>
+        <span className="tabular-nums font-bold">{totalsLabel}</span>
+        <span className="block text-xs text-muted-foreground">IVA incluido; extras pactados pueden sumarse al borrador.</span>
       </div>
     </div>
   );
@@ -72,11 +73,13 @@ export function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
 export function AlreadyInvoicedNotice({
   eligibleCount,
   alreadyInvoicedCount,
+  hasOtherReasons,
 }: {
   eligibleCount: number;
   alreadyInvoicedCount: number;
+  hasOtherReasons: boolean;
 }) {
-  if (eligibleCount > 0 || alreadyInvoicedCount === 0) return null;
+  if (eligibleCount > 0 || alreadyInvoicedCount === 0 || hasOtherReasons) return null;
   return (
     <div className="mb-3 flex items-start gap-3 rounded-md border border-blue-500/40 bg-blue-500/10 p-3 text-sm">
       <InfoAlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
@@ -165,7 +168,9 @@ export function LineRow({
         </div>
       </div>
       {line.eligible ? (
-        <span className="font-mono text-sm">{formatCurrency(line.billedAmount)}</span>
+        <span className="shrink-0 font-mono text-sm">
+          {formatCurrencyWithCode(line.billedAmount, recurringCurrency(line))} {recurringCurrency(line)}
+        </span>
       ) : (
         <IneligibleBadge line={line} />
       )}
