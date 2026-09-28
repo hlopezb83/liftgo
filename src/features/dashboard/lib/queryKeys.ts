@@ -163,7 +163,13 @@ export interface DashboardStats {
 export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", DashboardStats>(
   operationSummaryKeys.dashboardStats.all[0],
   {
-    list: () => () => callRpc<DashboardStats>("get_dashboard_stats"),
+    list: () => async () => {
+      const [stats, fleetCounts] = await Promise.all([
+        callRpc<DashboardStats>("get_dashboard_stats"),
+        callRpc<DashboardStats["fleet_counts"]>("get_dashboard_fleet_counts"),
+      ]);
+      return { ...stats, fleet_counts: fleetCounts };
+    },
     staleTime: 30_000,
   },
 );

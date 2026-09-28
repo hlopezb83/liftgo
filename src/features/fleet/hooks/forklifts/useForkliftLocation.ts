@@ -5,8 +5,8 @@ import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 
 /**
  * Ubicación registrada, con la misma prioridad y RLS que el listado de flota.
- * La vista descarta direcciones vacías antes de elegir contrato/movimiento.
- * No garantiza ubicación física vigente después de una devolución.
+ * La vista descarta direcciones vacías y deja la ubicación sin confirmar
+ * cuando la última operación es una recolección o inspección de devolución.
  */
 export const forkliftLocationQueries = defineEntityQueries<"forklift-location", never, string | null>(
   operationSummaryKeys.forkliftLocation.all[0],

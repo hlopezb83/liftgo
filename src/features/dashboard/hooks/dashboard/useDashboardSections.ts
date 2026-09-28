@@ -1,9 +1,7 @@
 
 import { differenceInDays, parseISO } from "date-fns";
-import { useServerTodayMty, computeFleetAvailability } from "@/features/availability";
-import { useBookings } from "@/features/bookings";
 import { useDeliveries, countOverdueDeliveries } from "@/features/deliveries";
-import { useForklifts, useInsuranceAlerts } from "@/features/fleet";
+import { useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
 import { useUserRole } from "@/features/users";
 import { toMxn } from "@/lib/money";
@@ -79,21 +77,6 @@ function dashboardAccess(role: string | null | undefined) {
   };
 }
 
-/** R6-FE-07: `rented` de la RPC usa CURRENT_DATE del servidor (otra TZ); se
- *  sobrescribe con la definición única compartida (booking confirmed hoy MTY). */
-function mergeFleetCounts(
-  baseCounts: typeof EMPTY_COUNTS,
-  availability: ReturnType<typeof computeFleetAvailability>,
-) {
-  if (!availability) return baseCounts;
-  return {
-    ...baseCounts,
-    rented: availability.rented,
-    available: availability.available,
-    maintenance: availability.maintenance,
-  };
-}
-
 export function useDashboardSections() {
   const { data: stats, isLoading, isError, isFetching, refetch } = useDashboardStats();
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
@@ -108,18 +91,12 @@ export function useDashboardSections() {
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
   const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
 
-  const { data: forklifts } = useForklifts();
-  const { data: bookings } = useBookings();
   // Entregas programadas con fecha vencida: mientras no se cierren, la unidad
   // sigue marcada como disponible en el catálogo.
   const { data: deliveries } = useDeliveries();
-  // R10.9: fecha "hoy" resuelta en servidor — evita que un reloj/TZ mal
-  // configurado en el navegador corra las unidades rentadas/disponibles.
-  const todayYmd = useServerTodayMty();
-  const counts = mergeFleetCounts(
-    stats?.fleet_counts ?? EMPTY_COUNTS,
-    computeFleetAvailability(forklifts, bookings, todayYmd),
-  );
+  // La RPC cuenta toda la flota visible con la fecha de Monterrey y RLS por
+  // empresa. Los listados de reservas y unidades tienen un límite de 500.
+  const counts = stats?.fleet_counts ?? EMPTY_COUNTS;
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = computeUtilizationPercent(counts, activeFleet);
 

@@ -26,7 +26,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
     { label: "Tipo de Combustible", value: forklift.fuel_type ? (FUEL_TYPE_LABELS[forklift.fuel_type] || forklift.fuel_type) : null },
     { label: "No. de Serie", value: forklift.serial_number },
     { label: "Costo de Adquisición", value: acquisitionCost ? formatCurrency(Number(acquisitionCost)) : null },
-    { label: "Ubicación registrada", value: locationError ? "No se pudo cargar la ubicación" : (currentLocation || null),
+    { label: "Ubicación registrada", value: locationError ? "No se pudo cargar la ubicación" : (currentLocation || "Sin ubicación confirmada"),
       help: locationHelp(currentLocation, locationError) },
     { label: "Aseguradora", value: forklift.insurance_provider || null },
     { label: "No. Póliza", value: forklift.insurance_policy_number || null },
