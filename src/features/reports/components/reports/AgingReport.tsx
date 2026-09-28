@@ -60,12 +60,11 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
 
   const bucketTotals: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
   overdueInvoices.forEach((i) => { if (i.balance_mxn != null) bucketTotals[i.bucket] += i.balance_mxn; });
-  const fxMissingCount = overdueInvoices.filter((i) => i.balance_mxn == null).length;
-
   const grandTotal = Object.values(bucketTotals).reduce((s, v) => s + v, 0);
   const visibleInvoices = selectedBucket
     ? overdueInvoices.filter((i) => i.bucket === selectedBucket)
     : overdueInvoices;
+  const fxMissingCount = visibleInvoices.filter((i) => i.balance_mxn == null).length;
   const visibleTotal = visibleInvoices.reduce((s, i) => s + (i.balance_mxn ?? 0), 0);
 
   type Row = typeof overdueInvoices[number];
@@ -126,11 +125,11 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
 
       <Card>
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <CardTitle className="text-base">
               Detalle de cartera vencida{selectedBucket ? ` (${selectedBucket} días)` : ""} — Total: {formatCurrency(selectedBucket ? visibleTotal : grandTotal)}
             </CardTitle>
-            <Button variant="outline" size="sm" onClick={handleExport}>
+            <Button variant="outline" size="sm" onClick={handleExport} className="self-start shrink-0 sm:self-auto">
               <DownloadIcon className="h-4 w-4 mr-1" /> Exportar CSV
             </Button>
           </div>

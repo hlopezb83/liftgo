@@ -104,8 +104,26 @@ describe("useUploadDocument · BL-35/BL-36", () => {
     expect(removeMock).toHaveBeenCalledTimes(1);
     const removedPaths = removeMock.mock.calls[0][0] as string[];
     expect(removedPaths[0]).toMatch(
-      new RegExp(`^${ORGANIZATION_ID}/supplier/s-1/\\d+_cfdi\\.xml$`),
+      new RegExp(`^${ORGANIZATION_ID}/supplier/s-1/\\d+_[0-9a-f-]{36}_cfdi\\.xml$`),
     );
+  });
+
+  it("usa rutas distintas al subir en paralelo archivos con el mismo nombre", async () => {
+    uploadMock.mockResolvedValue({ error: null });
+    insertMock.mockReturnValue({ data: { id: "d1" }, error: null });
+
+    const { result } = renderHook(() => useUploadDocument(), { wrapper });
+    const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
+    await Promise.all([
+      result.current.mutateAsync({ file, entityType: "return_inspection", entityId: "r-1" }),
+      result.current.mutateAsync({ file, entityType: "return_inspection", entityId: "r-1" }),
+    ]);
+
+    const paths = uploadMock.mock.calls.map(([path]) => path as string);
+    expect(paths).toHaveLength(2);
+    expect(new Set(paths).size).toBe(2);
+    expect(paths[0]).toContain(`${ORGANIZATION_ID}/return_inspection/r-1/`);
+    expect(paths[1]).toContain(`${ORGANIZATION_ID}/return_inspection/r-1/`);
   });
 
   it("no llama a remove si el upload al bucket falla", async () => {
