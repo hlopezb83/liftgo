@@ -59,7 +59,7 @@ export default function Dashboard() {
           </section>
           <section className="order-3 md:order-2 border-t border-border/60 pt-5">
             <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
               {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
             </div>
           </section>
@@ -98,7 +98,7 @@ export default function Dashboard() {
                   isRetrying={financialsIsFetching}
                 />
               ) : financialsState === "loading" ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4" role="status">
+                <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4" role="status">
                   <span className="sr-only">Cargando KPIs financieros…</span>
                   {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
                 </div>
