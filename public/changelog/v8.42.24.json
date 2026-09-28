@@ -1,0 +1,9 @@
+{
+  "description": "Devoluciones, inventario, contratos, flota y reportes reflejan los datos de cada empresa con mayor precisión.",
+  "changes": [
+    "Las devoluciones usan la fecha local y vinculan las fotos a la inspección; subir archivos con el mismo nombre ya no provoca colisiones.",
+    "Reactivar refacciones conserva existencias y costos, y el folio del contrato se asigna junto con su guardado.",
+    "Flota, CRM y cartera muestran resultados completos y respetan los permisos de cada usuario y empresa.",
+    "El detalle de cartera se acomoda mejor en móvil y sus avisos de tipo de cambio siguen el filtro seleccionado."
+  ]
+}

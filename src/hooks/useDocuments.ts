@@ -40,7 +40,9 @@ export function useUploadDocument() {
       // provocaba "Invalid key". Se conserva el file.name original en la fila
       // documents; sólo se sanea el path físico.
       const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 128);
-      const relativePath = `${entityType}/${entityId}/${Date.now()}_${safeName}`;
+      // Varios archivos pueden subir en el mismo milisegundo y compartir nombre.
+      // Un identificador por subida evita colisiones entre cargas paralelas.
+      const relativePath = `${entityType}/${entityId}/${Date.now()}_${crypto.randomUUID()}_${safeName}`;
       const filePath = await organizationStoragePathForSession(
         supabase,
         relativePath,
