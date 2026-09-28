@@ -152,6 +152,20 @@ describe("R8-05 — selección obsoleta tras cambios del preview", () => {
     expect(ids(s)).toEqual([]);
   });
 
+  it("exige volver a aprobar si cambia el cliente, equipo o divisa aunque el importe sea igual", () => {
+    const original = line({ bookingId: "a", currency: "MXN" });
+    for (const change of [
+      { customerId: "c2", customerName: "Otra empresa" },
+      { forkliftName: "MT-02" },
+      { currency: "USD" },
+    ]) {
+      let s = reconcile(emptyRecurringSelection(), [original]);
+      s = toggleRecurringSelection(s, K("a"));
+      s = reconcile(s, [{ ...original, ...change }]);
+      expect(ids(s)).toEqual([]);
+    }
+  });
+
   it("el usuario puede volver a marcar la fila cambiada y ya persiste", () => {
     let s = reconcile(emptyRecurringSelection(), [line({ bookingId: "a" })]);
     s = toggleRecurringSelection(s, K("a"));
@@ -185,6 +199,7 @@ describe("recurringPreviewFingerprint", () => {
     const fp = recurringPreviewFingerprint(base, false);
     expect(recurringPreviewFingerprint(base, false)).toBe(fp);
     expect(recurringPreviewFingerprint([line({ bookingId: "a", billedAmount: 1 })], false)).not.toBe(fp);
+    expect(recurringPreviewFingerprint([line({ bookingId: "a", customerId: "c2" })], false)).not.toBe(fp);
     expect(recurringPreviewFingerprint([line({ bookingId: "a", eligible: false })], false)).not.toBe(fp);
     // Con aviso de tarifa y sin confirmar, la fila deja de ser seleccionable.
     expect(recurringPreviewFingerprint([line({ bookingId: "a", rateWarning: true })], false)).not.toBe(fp);

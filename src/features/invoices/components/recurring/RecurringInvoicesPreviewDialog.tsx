@@ -2,9 +2,7 @@ import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
-import { applyVat, resolveVatRatePercent, sumMoney } from "@/lib/money";
 import {
   emptyRecurringSelection,
   isLineSelectable,
@@ -16,6 +14,7 @@ import {
   type RecurringSelectionState,
 } from "../../lib/recurringSelection";
 import { RecurringPreviewBody } from "./RecurringPreviewBody";
+import { buildCustomerGroups, rentalTotalsLabel } from "./recurringPreviewPresentation";
 import type {
   RecurringPreviewLine,
   RecurringPreviewResponse,
@@ -39,17 +38,6 @@ function periodTitle(period: string | null): string {
   const [y, m] = period.split("-").map(Number);
   if (!y || !m) return "Vista previa";
   return `Vista previa — ${formatMonthLongEs(new Date(y, m - 1, 1))}`;
-}
-
-/**
- * M-13 / R9-14: tasa de IVA de la línea como fracción (0.16 por defecto).
- * Usa `resolveVatRatePercent` — el mismo resolutor que la Edge Function de
- * generación — para que null/undefined/NaN caigan en DEFAULT_VAT_RATE_PERCENT
- * y un 0% explícito del cliente se respete (antes `Number(null) === 0` los
- * confundía).
- */
-function vatRateFor(line: RecurringPreviewLine): number {
-  return resolveVatRatePercent(line.taxRate) / 100;
 }
 
 export function RecurringInvoicesPreviewDialog({
@@ -91,23 +79,10 @@ export function RecurringInvoicesPreviewDialog({
 
   const selected = selection.selected as Set<string>;
 
-  // Derivaciones puras: React Compiler las memoiza.
-  const groupMap = new Map<string, RecurringPreviewLine[]>();
-  for (const line of lines) {
-    const key = line.customerName ?? "Sin cliente";
-    const arr = groupMap.get(key) ?? [];
-    arr.push(line);
-    groupMap.set(key, arr);
-  }
-  const groups = Array.from(groupMap.entries()).sort((a, b) => a[0].localeCompare(b[0], "es"));
+  const groups = buildCustomerGroups(lines);
 
-  // M-13: IVA por línea con la tasa del cliente (customer.tax_rate) en vez de
-  // 16% fijo, y acumulación con sumMoney (centavos) — sin drift de centavos.
-  const totalSelected = sumMoney(
-    lines
-      .filter((l) => isSelectable(l) && selected.has(recurringLineKey(l)))
-      .map((l) => applyVat(l.billedAmount, vatRateFor(l))),
-  );
+  const selectedLines = lines.filter((l) => isSelectable(l) && selected.has(recurringLineKey(l)));
+  const totalsLabel = rentalTotalsLabel(selectedLines);
 
   const toggle = (id: string) => setSelection((prev) => toggleRecurringSelection(prev, id));
 
@@ -116,9 +91,9 @@ export function RecurringInvoicesPreviewDialog({
     setSelection((prev) => toggleRecurringGroup(prev, groupEligibleIds));
   };
 
-  // R14-I: el edge genera UNA factura por línea (período pendiente). Contar
-  // facturas reales para que el botón no mienta ("Generar 1" cuando serán 3).
-  const selectedLines = lines.filter((l) => isSelectable(l) && selected.has(recurringLineKey(l)));
+  // El servidor puede agrupar varias reservas del mismo cliente, periodo,
+  // divisa y tipo de cambio en una factura. Contamos periodos seleccionados,
+  // no prometemos un número de facturas que la vista previa no conoce.
   const selectedCount = selectedLines.length;
 
 
@@ -144,10 +119,12 @@ export function RecurringInvoicesPreviewDialog({
         lines={lines}
         allowStaleRate={allowStaleRate}
         staleCount={staleCount}
+        truncated={data?.truncated === true}
+        pendingCount={data?.pending_count ?? 0}
         onAllowStaleRateChange={setAllowStaleRate}
         eligibleCount={eligibleIds.length}
         selectedCount={selectedCount}
-        totalSelected={totalSelected}
+        totalsLabel={totalsLabel}
         groups={groups}
         selected={selected}
         onToggle={toggle}
@@ -166,7 +143,7 @@ export function RecurringInvoicesPreviewDialog({
         >
           {isGenerating
             ? "Generando…"
-            : `Generar ${selectedCount} factura${selectedCount === 1 ? "" : "s"} · ${formatCurrency(totalSelected)}`}
+            : `Generar ${selectedCount} periodo${selectedCount === 1 ? "" : "s"}`}
         </Button>
       </FormDialogFooter>
     </FormDialog>

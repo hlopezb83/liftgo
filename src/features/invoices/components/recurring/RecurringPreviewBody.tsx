@@ -7,6 +7,7 @@ import {
   StaleRateNotice,
   SummaryBar,
 } from "./RecurringPreviewParts";
+import type { RecurringCustomerGroup } from "./recurringPreviewPresentation";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
 interface Props {
@@ -18,8 +19,10 @@ interface Props {
   onAllowStaleRateChange: (value: boolean) => void;
   eligibleCount: number;
   selectedCount: number;
-  totalSelected: number;
-  groups: [string, RecurringPreviewLine[]][];
+  totalsLabel: string;
+  groups: RecurringCustomerGroup[];
+  truncated: boolean;
+  pendingCount: number;
   selected: Set<string>;
   onToggle: (id: string) => void;
   onToggleGroup: (groupLines: RecurringPreviewLine[]) => void;
@@ -30,8 +33,10 @@ export function RecurringPreviewBody({
   lines,
   eligibleCount,
   selectedCount,
-  totalSelected,
+  totalsLabel,
   groups,
+  truncated,
+  pendingCount,
   selected,
   onToggle,
   onToggleGroup,
@@ -62,11 +67,21 @@ export function RecurringPreviewBody({
   const alreadyInvoicedCount = lines.filter((l) => l.reason === "already_invoiced").length;
   return (
     <>
-      <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalSelected={totalSelected} />
+      <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalsLabel={totalsLabel} />
       <div className="mt-3">
+        {truncated && (
+          <div role="status" className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+            <p className="font-medium">Vista previa parcial</p>
+            <p className="text-xs text-muted-foreground">
+              Hay periodos adicionales fuera de este lote{pendingCount > 0 ? ` (aproximadamente ${pendingCount})` : ""}.
+              No se generarán al confirmar; vuelve a calcular después de revisar los visibles.
+            </p>
+          </div>
+        )}
         <AlreadyInvoicedNotice
           eligibleCount={eligibleCount}
           alreadyInvoicedCount={alreadyInvoicedCount}
+          hasOtherReasons={lines.some((l) => !l.eligible && l.reason !== "already_invoiced" && l.reason !== "period_in_future")}
         />
         <StaleRateNotice
           staleCount={staleCount}
@@ -85,9 +100,9 @@ export function RecurringPreviewBody({
           scroll nunca se activaba (contenido recortado). Scroll nativo. */}
       <div className="max-h-[50vh] overflow-y-auto pr-3 mt-3">
         <div className="space-y-4">
-          {groups.map(([customer, groupLines]) => (
+          {groups.map(({ key, customer, lines: groupLines }) => (
             <CustomerGroup
-              key={customer}
+              key={key}
               customer={customer}
               groupLines={groupLines}
               selected={selected}

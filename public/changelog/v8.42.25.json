@@ -1,0 +1,9 @@
+{
+  "description": "La selección de facturas recurrentes se reinicia ante cambios materiales y muestra importes sin mezclar monedas.",
+  "changes": [
+    "Si cambia el cliente, equipo, divisa o importe de un periodo, hay que volver a seleccionarlo antes de generar el borrador.",
+    "Clientes con el mismo nombre se muestran en grupos separados; los importes de MXN y USD no se suman entre sí.",
+    "El botón cuenta periodos seleccionados y el resumen identifica la renta estimada, ya que los extras pactados pueden agregarse al borrador.",
+    "La vista previa avisa cuando faltan periodos por mostrar y no presenta un bloqueo de datos como si todo el mes estuviera facturado."
+  ]
+}
