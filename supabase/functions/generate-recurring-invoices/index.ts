@@ -13,7 +13,10 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
 import { selectTargetItems } from "./selection.ts";
 import { recurringQuoteIssue } from "./quoteDiscountGuard.ts";
-import { mergeLiveInvoiceHistory, type HistoricalInvoice } from "./invoiceHistory.ts";
+import {
+  type HistoricalInvoice,
+  mergeLiveInvoiceHistory,
+} from "./invoiceHistory.ts";
 import {
   fromCents,
   resolveVatRatePercent,
@@ -275,7 +278,9 @@ async function buildPlan(
     // pivote. Incluir ambos caminos evita volver a facturar ese periodo.
     // Filtrar en JS conserva cfdi_status NULL, que SQL considera vigente.
     const invoices = mergeLiveInvoiceHistory(
-      (linked ?? []) as unknown as Array<{ invoices: HistoricalInvoice | null }>,
+      (linked ?? []) as unknown as Array<
+        { invoices: HistoricalInvoice | null }
+      >,
       (direct ?? []) as HistoricalInvoice[],
     );
     const extrasAlreadyBilled = invoices.some((invoice) =>
@@ -653,7 +658,9 @@ async function executePlan(
           .eq("organization_id", i.organizationId)
           .maybeSingle();
         if (quoteErr) throw quoteErr;
-        if (!quote) throw new Error("No se encontró la cotización de la reserva");
+        if (!quote) {
+          throw new Error("No se encontró la cotización de la reserva");
+        }
         extraLines.push(...extractNonRentalLines(quote?.line_items));
       }
 
