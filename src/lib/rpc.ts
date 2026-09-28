@@ -6,7 +6,8 @@ type RpcName =
   | "complete_delivery"
   | "get_cash_flow_recurring_bookings"
   | "get_feedback_reports_by_status"
-  | "get_sale_available_forklifts";
+  | "get_sale_available_forklifts"
+  | "get_dashboard_fleet_counts";
 
 /**
  * Typed wrapper around supabase.rpc that lets callers declare the expected
