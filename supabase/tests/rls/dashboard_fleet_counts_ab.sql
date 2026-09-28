@@ -68,4 +68,46 @@ BEGIN
   END IF;
 END $$;
 
+-- La recolección usa la dirección del cliente, no el destino físico. Debe
+-- borrar la ubicación visible hasta que se registre un nuevo sitio.
+SET LOCAL request.jwt.claims TO
+  '{"sub":"72000000-0000-4000-8000-0000000000a1","role":"authenticated"}';
+INSERT INTO public.deliveries (
+  forklift_id, booking_id, type, status, scheduled_date, completed_at,
+  delivery_number, address, completed_no_evidence_reason, organization_id
+)
+SELECT b.forklift_id, b.id, 'delivery', 'completed', public.today_mty() - 1,
+       now() - interval '2 hours', 'ENT-A-7201', 'Domicilio del cliente',
+       'Entrega de prueba', b.organization_id
+FROM public.bookings b WHERE b.booking_number = 'RES-A-7201';
+
+DO $$
+DECLARE v_location text;
+BEGIN
+  SELECT location INTO v_location FROM public.forklift_current_location
+  WHERE forklift_id = (SELECT id FROM public.forklifts WHERE name = 'A-0001');
+  IF v_location <> 'Domicilio del cliente' THEN
+    RAISE EXCEPTION 'Latest delivery should show registered customer site; got %', v_location;
+  END IF;
+END $$;
+
+INSERT INTO public.deliveries (
+  forklift_id, booking_id, type, status, scheduled_date, completed_at,
+  delivery_number, address, completed_no_evidence_reason, organization_id
+)
+SELECT b.forklift_id, b.id, 'pickup', 'completed', public.today_mty(),
+       now() - interval '1 hour', 'REC-A-7201', 'Domicilio del cliente',
+       'Recolección de prueba', b.organization_id
+FROM public.bookings b WHERE b.booking_number = 'RES-A-7201';
+
+DO $$
+DECLARE v_location text;
+BEGIN
+  SELECT location INTO v_location FROM public.forklift_current_location
+  WHERE forklift_id = (SELECT id FROM public.forklifts WHERE name = 'A-0001');
+  IF v_location IS NOT NULL THEN
+    RAISE EXCEPTION 'Pickup must clear stale customer address; got %', v_location;
+  END IF;
+END $$;
+
 ROLLBACK;

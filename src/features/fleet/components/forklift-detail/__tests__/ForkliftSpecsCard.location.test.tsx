@@ -19,4 +19,9 @@ describe("ubicación en especificaciones", () => {
     expect(screen.getByText("No se pudo cargar la ubicación")).toBeInTheDocument();
     expect(screen.queryByText("Dirección anterior")).not.toBeInTheDocument();
   });
+
+  it("explica que falta confirmar ubicación tras una devolución", () => {
+    render(<ForkliftSpecsCard forklift={forklift} currentLocation={null} />);
+    expect(screen.getByText("Sin ubicación confirmada")).toBeInTheDocument();
+  });
 });

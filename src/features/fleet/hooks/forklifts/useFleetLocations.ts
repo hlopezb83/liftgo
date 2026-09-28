@@ -8,7 +8,7 @@ import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
  * Reemplaza los 3 hooks pesados que /fleet cargaba solo para 2 columnas:
  * `useContracts` (traía `content` completo), `useDeliveries` y
  * `useMaintenancePolicies`. La vista `forklift_current_location` deriva la
- * ubicación (contrato activo → última entrega completada) y la señal de
+ * ubicación (contrato/última entrega, vacía tras devolución) y la señal de
  * póliza en SQL con `security_invoker=true`.
  */
 export interface ForkliftCurrentLocation {
