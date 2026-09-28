@@ -30,7 +30,7 @@ describe("buildPieData", () => {
   it("filtra segmentos con value 0", () => {
     const data = buildPieData({ ...EMPTY_COUNTS, available: 5, rented: 3 });
     expect(data).toHaveLength(2);
-    expect(data.map((d) => d.name)).toEqual(["Disponibles", "Rentados"]);
+    expect(data.map((d) => d.name)).toEqual(["Disponibles", "Comprometidos"]);
   });
 
   it("devuelve [] cuando todos son 0", () => {

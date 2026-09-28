@@ -49,9 +49,12 @@ function UtilizationChartCard({ data }: { data: Row[] }) {
   const chartHeight = Math.max(data.length * BAR_HEIGHT + 24, 160);
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Utilización de Flota</CardTitle>
-        <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-utilizacion.csv", data.map((r) => ({ id: r.id, name: r.name, bookedDays: r.bookedDays, totalDays: r.totalDays, utilization: r.utilization })))}>
+      <CardHeader className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <CardTitle className="text-base">Ocupación reservada por unidad</CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Porcentaje de días del rango con reserva, aunque el equipo aún no haya sido entregado.</p>
+        </div>
+        <Button variant="outline" size="sm" className="shrink-0" onClick={() => exportToCsv("reporte-utilizacion.csv", data.map((r) => ({ id: r.id, name: r.name, bookedDays: r.bookedDays, totalDays: r.totalDays, utilization: r.utilization })))}>
           <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
         </Button>
       </CardHeader>
@@ -85,7 +88,7 @@ const UTILIZATION_COLUMNS: ColumnDef<Row>[] = [
   { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
   { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { kind: "number" }, cell: ({ row }) => row.original.bookedDays },
   { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { kind: "number" }, cell: ({ row }) => row.original.totalDays },
-  { id: "utilization", header: "Utilización", accessorKey: "utilization", meta: { kind: "number" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
+  { id: "utilization", header: "Ocupación %", accessorKey: "utilization", meta: { kind: "number" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
 ];
 
 function toDrilldownBooking(b: {

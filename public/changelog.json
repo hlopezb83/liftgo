@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.42.22",
+    "date": "2026-09-27",
+    "type": "patch",
+    "category": "fix",
+    "title": "Métricas de ocupación con significado claro",
+    "description": "El panel, los reportes y la ficha distinguen equipos comprometidos hoy, días reservados en un rango y ocupación física real.",
+    "changes": [
+      "El panel identifica la flota comprometida hoy y enlaza al listado de equipos; incluye unidades rentadas o con reserva confirmada vigente.",
+      "Los reportes identifican los días reservados dentro del rango elegido y aclaran que no requieren una entrega completada.",
+      "La ficha nombra explícitamente los días fuera y la ocupación física calculada desde la entrega hasta la devolución.",
+      "El gráfico mensual explica cuándo usa fechas previstas de reservas confirmadas."
+    ]
+  },
+  {
     "version": "8.42.21",
     "date": "2026-09-27",
     "type": "patch",

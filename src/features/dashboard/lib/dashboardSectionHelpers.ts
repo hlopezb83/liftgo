@@ -28,7 +28,7 @@ export const EMPTY_COUNTS: FleetCounts = {
 export function buildPieData(counts: FleetCounts) {
   return [
     { name: "Disponibles", value: counts.available, color: STATUS_COLORS.available },
-    { name: "Rentados", value: counts.rented, color: STATUS_COLORS.rented },
+    { name: "Comprometidos", value: counts.rented, color: STATUS_COLORS.rented },
     { name: "Mantenimiento", value: counts.maintenance, color: STATUS_COLORS.maintenance },
     { name: "Vendidos", value: counts.sold, color: STATUS_COLORS.sold },
   ].filter((d) => d.value > 0);
@@ -38,7 +38,7 @@ export function buildStatCards(counts: FleetCounts, activeFleet: number) {
   return [
     { label: "Flota Activa", value: activeFleet, icon: FleetIcon, color: "text-primary" },
     { label: "Disponibles", value: counts.available, icon: SuccessIcon, color: "text-status-available" },
-    { label: "Rentados", value: counts.rented, icon: ClockIcon, color: "text-status-rented" },
+    { label: "Comprometidos", value: counts.rented, icon: ClockIcon, color: "text-status-rented" },
     { label: "Mantenimiento", value: counts.maintenance, icon: MaintenanceIcon, color: "text-status-maintenance" },
     { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
   ];

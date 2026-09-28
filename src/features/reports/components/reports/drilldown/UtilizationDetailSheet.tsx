@@ -43,14 +43,14 @@ export function UtilizationDetailSheet({
         <SheetHeader>
           <SheetTitle>
             {forkliftName ?? "Montacargas"}{" "}
-            <span className="text-muted-foreground font-normal text-sm">— detalle de utilización</span>
+            <span className="text-muted-foreground font-normal text-sm">— detalle de días reservados</span>
           </SheetTitle>
         </SheetHeader>
         <div className="mt-4 space-y-5">
           <div className="grid grid-cols-3 gap-2 text-center">
             <Stat label="Días reservados" value={String(bookedDays)} />
             <Stat label="Días del rango" value={String(totalDays)} />
-            <Stat label="Utilización" value={`${utilization}%`} />
+            <Stat label="Ocupación reservada" value={`${utilization}%`} />
           </div>
           <Separator />
           <div>

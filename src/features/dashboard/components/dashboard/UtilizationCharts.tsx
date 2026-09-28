@@ -59,10 +59,11 @@ export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps
 
   return (
     <ReportChartCard
-      title="Utilización de Flota — Últimos 6 meses (%)"
+      title="Ocupación operativa — últimos 6 meses (%)"
       icon={TrendingUpIcon}
       iconColor="text-primary"
       iconBg="bg-primary/10"
+      footer={<p className="text-xs text-muted-foreground">Incluye reservas confirmadas. Si aún no hay entrega cerrada, cuenta desde la fecha prevista; por ello puede diferir del uso físico en la ficha del equipo.</p>}
       action={
         monthlyUtilization.length >= 2 ? (
           <div className={`flex items-center gap-1.5 text-xs font-medium ${trendLabel.cls}`}>

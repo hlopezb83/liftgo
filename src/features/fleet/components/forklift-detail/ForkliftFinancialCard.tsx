@@ -18,8 +18,8 @@ export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinanci
     { label: "Costos de Mantenimiento", value: formatCurrency(financials.maintenance_cost), color: "text-warning" },
     { label: "Margen Bruto", value: formatCurrency(financials.gross_margin), color: financials.gross_margin >= 0 ? "text-success" : "text-destructive" },
     { label: "ROI", value: `${financials.roi_percent}%`, color: financials.roi_percent >= 0 ? "text-info" : "text-destructive" },
-    { label: "Días Rentado", value: `${financials.days_rented}`, color: "text-foreground" },
-    { label: "Utilización", value: `${financials.utilization_percent}%`, color: "text-info" },
+    { label: "Días fuera", value: `${financials.days_rented}`, color: "text-foreground" },
+    { label: "Ocupación física", value: `${financials.utilization_percent}%`, color: "text-info" },
   ];
 
   return (

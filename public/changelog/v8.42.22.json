@@ -1,0 +1,9 @@
+{
+  "description": "El panel, los reportes y la ficha distinguen equipos comprometidos hoy, días reservados en un rango y ocupación física real.",
+  "changes": [
+    "El panel identifica la flota comprometida hoy y enlaza al listado de equipos; incluye unidades rentadas o con reserva confirmada vigente.",
+    "Los reportes identifican los días reservados dentro del rango elegido y aclaran que no requieren una entrega completada.",
+    "La ficha nombra explícitamente los días fuera y la ocupación física calculada desde la entrega hasta la devolución.",
+    "El gráfico mensual explica cuándo usa fechas previstas de reservas confirmadas."
+  ]
+}

@@ -37,7 +37,7 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
       Rentados: r.rented,
       "Días Reservados": r.bookedDays,
       "Días Totales": r.totalDays,
-      "Utilización %": r.utilization,
+      "Ocupación reservada %": r.utilization,
     })));
   };
 
@@ -55,9 +55,12 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-base">Utilización por Modelo</CardTitle>
-          <Button variant="outline" size="sm" onClick={handleExport}>
+        <CardHeader className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <CardTitle className="text-base">Ocupación reservada por modelo</CardTitle>
+            <p className="mt-1 text-xs text-muted-foreground">Días con reserva dentro del rango, incluso si aún no hubo entrega.</p>
+          </div>
+          <Button variant="outline" size="sm" className="shrink-0" onClick={handleExport}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>

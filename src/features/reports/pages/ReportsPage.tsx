@@ -32,8 +32,8 @@ const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
 };
 
 const REPORT_TYPES = [
-  { value: "utilization", label: "Utilización de Flota" },
-  { value: "utilization-model", label: "Utilización por Modelo" },
+  { value: "utilization", label: "Días reservados por unidad" },
+  { value: "utilization-model", label: "Días reservados por modelo" },
   { value: "revenue", label: "Ingresos" },
   { value: "maintenance", label: "Costos de Mantenimiento" },
   { value: "profitability", label: "Rentabilidad por Modelo" },
