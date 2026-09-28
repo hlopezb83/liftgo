@@ -13,6 +13,7 @@ import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { computeProrate } from "./prorate.ts";
 import { selectTargetItems } from "./selection.ts";
 import { recurringQuoteIssue } from "./quoteDiscountGuard.ts";
+import { mergeLiveInvoiceHistory, type HistoricalInvoice } from "./invoiceHistory.ts";
 import {
   fromCents,
   resolveVatRatePercent,
@@ -195,10 +196,11 @@ async function buildPlan(
   // empresas que comparten el mismo cliente.
   const taxRateByCustomer = new Map<string, number | null>();
   if (customerIds.length > 0) {
-    const { data: custRows } = await supabase
+    const { data: custRows, error: custErr } = await supabase
       .from("organization_customers")
       .select("organization_id, customer_id, tax_rate")
       .in("customer_id", customerIds);
+    if (custErr) throw custErr;
     for (
       const c of (custRows ?? []) as Array<
         {
@@ -254,49 +256,42 @@ async function buildPlan(
     // partidas no-renta. Antes bastaba cualquier factura vigente del pivote:
     // una factura manual sin pivote provocaba doble cobro, y una factura de
     // pura renta hacía que los extras nunca se cobraran.
-    let extrasAlreadyBilled = false;
-    {
-      const { data: linked } = await supabase
-        .from("invoice_bookings")
-        .select(
-          "invoices!inner(billing_period_end, status, cfdi_status, line_items)",
-        )
-        .eq("booking_id", booking.id)
-        .neq("invoices.status", "cancelled")
-        .neq("invoices.cfdi_status", "cancelled");
+    const invoiceFields =
+      "id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status, line_items";
+    const { data: linked, error: linkedErr } = await supabase
+      .from("invoice_bookings")
+      .select(`invoices!inner(${invoiceFields}, organization_id)`)
+      .eq("booking_id", booking.id)
+      .eq("invoices.organization_id", booking.organization_id);
+    if (linkedErr) throw linkedErr;
+    const { data: direct, error: directErr } = await supabase
+      .from("invoices")
+      .select(invoiceFields)
+      .eq("booking_id", booking.id)
+      .eq("organization_id", booking.organization_id);
+    if (directErr) throw directErr;
 
-      const rows = (linked ?? []) as unknown as Array<
-        {
-          invoices: { billing_period_end: string | null; line_items: unknown };
-        }
-      >;
-      extrasAlreadyBilled = rows.some((r) =>
-        hasNonRentalLines(r.invoices?.line_items)
-      );
-
-      if (!extrasAlreadyBilled) {
-        const { data: direct } = await supabase
-          .from("invoices")
-          .select("line_items")
-          .eq("booking_id", booking.id)
-          .neq("status", "cancelled")
-          .neq("cfdi_status", "cancelled");
-        extrasAlreadyBilled = ((direct ?? []) as Array<{ line_items: unknown }>)
-          .some((r) => hasNonRentalLines(r.line_items));
+    // Los registros legacy pueden existir sólo en invoices.booking_id, sin
+    // pivote. Incluir ambos caminos evita volver a facturar ese periodo.
+    // Filtrar en JS conserva cfdi_status NULL, que SQL considera vigente.
+    const invoices = mergeLiveInvoiceHistory(
+      (linked ?? []) as unknown as Array<{ invoices: HistoricalInvoice | null }>,
+      (direct ?? []) as HistoricalInvoice[],
+    );
+    const extrasAlreadyBilled = invoices.some((invoice) =>
+      hasNonRentalLines(invoice.line_items)
+    );
+    if (invoices.length === 0) {
+      effectiveLastBilled = null;
+    } else {
+      const periodEnds = invoices
+        .map((invoice) => invoice.billing_period_end)
+        .filter((value): value is string => !!value)
+        .sort();
+      if (periodEnds.length > 0) {
+        effectiveLastBilled = periodEnds[periodEnds.length - 1];
       }
-
-      if (rows.length === 0) {
-        effectiveLastBilled = null;
-      } else {
-        const periodEnds = rows
-          .map((r) => r.invoices?.billing_period_end)
-          .filter((v): v is string => !!v);
-        if (periodEnds.length > 0) {
-          periodEnds.sort();
-          effectiveLastBilled = periodEnds[periodEnds.length - 1];
-        }
-        // else: sólo legacy → conservar booking.last_billed_date tal cual.
-      }
+      // Facturas legacy sin periodo: conservar booking.last_billed_date.
     }
 
     // Catch-up loop (v7.138.0): iterar mes por mes desde el siguiente periodo
@@ -436,23 +431,11 @@ async function buildPlan(
           ) {
             const prevEndStr = virtualLastBilled;
             const prevStartStr = toIsoDate(currentMonthStart);
-            const { data: prevInvoice } = await supabase
-              .from("invoice_bookings")
-              .select(
-                "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
-              )
-              .eq("booking_id", booking.id)
-              .eq("invoices.billing_period_start", prevStartStr)
-              .eq("invoices.billing_period_end", prevEndStr)
-              .neq("invoices.status", "cancelled")
-              .neq("invoices.cfdi_status", "cancelled")
-              .limit(1)
-              .maybeSingle();
+            const prevInvoice = invoices.find((invoice) =>
+              invoice.billing_period_start === prevStartStr &&
+              invoice.billing_period_end === prevEndStr
+            );
             if (prevInvoice) {
-              const inv = prevInvoice.invoices as unknown as {
-                id: string;
-                invoice_number: string;
-              };
               lines.push({
                 ...baseLine,
                 periodStart: prevStartStr,
@@ -462,8 +445,8 @@ async function buildPlan(
                 }`,
                 eligible: false,
                 reason: "already_invoiced",
-                existingInvoiceId: inv.id,
-                existingInvoiceNumber: inv.invoice_number,
+                existingInvoiceId: prevInvoice.id,
+                existingInvoiceNumber: prevInvoice.invoice_number ?? undefined,
               });
             }
           }
@@ -510,30 +493,18 @@ async function buildPlan(
 
       // Ya facturado en BD → registrar línea informativa y avanzar el cursor
       // virtual para intentar el siguiente periodo en la próxima iteración.
-      const { data: existing } = await supabase
-        .from("invoice_bookings")
-        .select(
-          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
-        )
-        .eq("booking_id", booking.id)
-        .eq("invoices.billing_period_start", startStr)
-        .eq("invoices.billing_period_end", endStr)
-        .neq("invoices.status", "cancelled")
-        .neq("invoices.cfdi_status", "cancelled")
-        .limit(1)
-        .maybeSingle();
+      const existing = invoices.find((invoice) =>
+        invoice.billing_period_start === startStr &&
+        invoice.billing_period_end === endStr
+      );
 
       if (existing) {
-        const inv = existing.invoices as unknown as {
-          id: string;
-          invoice_number: string;
-        };
         lines.push({
           ...baseLine,
           eligible: false,
           reason: "already_invoiced",
-          existingInvoiceId: inv.id,
-          existingInvoiceNumber: inv.invoice_number,
+          existingInvoiceId: existing.id,
+          existingInvoiceNumber: existing.invoice_number ?? undefined,
         });
         virtualLastBilled = endStr;
         firstIteration = false;
@@ -675,11 +646,14 @@ async function executePlan(
           continue;
         }
         seenQuotes.add(i.quoteId);
-        const { data: quote } = await supabase
+        const { data: quote, error: quoteErr } = await supabase
           .from("quotes")
           .select("line_items")
           .eq("id", i.quoteId)
+          .eq("organization_id", i.organizationId)
           .maybeSingle();
+        if (quoteErr) throw quoteErr;
+        if (!quote) throw new Error("No se encontró la cotización de la reserva");
         extraLines.push(...extractNonRentalLines(quote?.line_items));
       }
 
@@ -756,12 +730,7 @@ async function executePlan(
           // Residual (b): sin default "G03"; el uso de CFDI debe venir del
           // cliente (la RPC rechaza el periodo si falta y se reporta el error).
           p_uso_cfdi: customer?.uso_cfdi ?? null,
-          // A1-1: moneda/tipo de cambio de la reserva. NOTA PARA MIGRACIÓN:
-          // el RPC `create_recurring_invoice` todavía NO declara
-          // `p_moneda`/`p_tipo_cambio` — hay que agregarlos con defaults
-          // 'MXN'/1 y usarlos en el INSERT de `invoices` en vez de los
-          // literales fijos 'MXN', 1 actuales. Mientras la migración no se
-          // aplique, Postgres ignorará/rechazará estos parámetros extra.
+          // Moneda y tipo de cambio pactados en la reserva.
           p_moneda: first.currency,
           p_tipo_cambio: first.tipoCambio,
         },
