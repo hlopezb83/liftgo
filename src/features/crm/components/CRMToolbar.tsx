@@ -23,13 +23,14 @@ interface CRMToolbarProps {
   setDensity: (d: "comfortable" | "compact") => void;
   metrics: CRMMetrics | undefined;
   onCreate: () => void;
+  canCreate: boolean;
   filteredCount: number;
   pipelineTotalLabel: string;
 }
 
 export function CRMToolbar({
   filters, update, reset, hasActive, creators,
-  density, setDensity, metrics, onCreate,
+  density, setDensity, metrics, onCreate, canCreate,
   filteredCount, pipelineTotalLabel,
 }: CRMToolbarProps) {
   const isMobile = useIsMobile();
@@ -103,9 +104,9 @@ export function CRMToolbar({
                 </Tooltip>
               </ToggleGroupItem>
             </ToggleGroup>
-            <Button onClick={onCreate} size="sm" className="h-9">
+            {canCreate && <Button onClick={onCreate} size="sm" className="h-9">
               <AddIcon className="h-4 w-4 mr-1" /> Nuevo prospecto
-            </Button>
+            </Button>}
           </>
         }
       />

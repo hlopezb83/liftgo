@@ -4,7 +4,8 @@ import { nowMty } from "@/lib/utils";
 import type { Booking } from "@/features/bookings";
 import { useReturnInspectionDialog } from "../useReturnInspectionDialog";
 
-const mocks = vi.hoisted(() => ({ mutate: vi.fn(), setSearchParams: vi.fn() }));
+const mocks = vi.hoisted(() => ({ mutate: vi.fn(), setSearchParams: vi.fn(), navigate: vi.fn() }));
+vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => mocks.navigate }));
 vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({ user: { email: "auditor@liftgo.com", user_metadata: { full_name: "Auditor" } } }),
 }));
@@ -83,8 +84,9 @@ describe("useReturnInspectionDialog", () => {
       expect.objectContaining({ inspected_at: "2026-09-10T06:00:00.000Z", booking_id: "bk-1" }),
       expect.any(Object),
     );
-    act(() => mocks.mutate.mock.calls[0][1].onSuccess());
+    act(() => mocks.mutate.mock.calls[0][1].onSuccess("ins-1"));
     expect(result.current.dialogOpen).toBe(false);
+    expect(mocks.navigate).toHaveBeenCalledWith("/returns/ins-1");
     const [params, options] = mocks.setSearchParams.mock.calls[0];
     expect(params.toString()).toBe("keep=1");
     expect(options).toEqual({ replace: true });

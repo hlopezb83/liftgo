@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Tables } from "@/integrations/supabase/types";
+import { STATUS_LABELS } from "@/lib/constants";
 
 interface ForkliftSelectorProps {
   value: string;
@@ -23,7 +24,7 @@ export function ForkliftSelector({ value, onValueChange, availableForklifts, dat
         <SelectContent>
           {availableForklifts.map((f) => (
             <SelectItem key={f.id} value={f.id}>
-              {f.manufacturer} {f.model} — {f.name}{showStatus ? ` (${f.status})` : ""}
+              {f.manufacturer} {f.model} — {f.name}{showStatus ? ` (${STATUS_LABELS[f.status] ?? f.status})` : ""}
             </SelectItem>
           ))}
         </SelectContent>

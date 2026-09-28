@@ -12,6 +12,7 @@ describe("CRMKanbanGrid — alta permitida", () => {
       isLoading={false}
       stagesData={ACTIVE_STAGES.map((stage) => ({ ...stage, items: [], total: 0 }))}
       pipelineTotal={0} density="comfortable" quoteMap={new Map()}
+      canWrite
       onDragEnd={vi.fn()} onAdd={onAdd} onCardClick={vi.fn()}
     />);
     const ctas = screen.getAllByRole("button", { name: /Agregar|Clic para agregar/i });
@@ -22,5 +23,15 @@ describe("CRMKanbanGrid — alta permitida", () => {
       expect(screen.getByTestId(`crm-kanban-column-${stage.key}`)).toBeInTheDocument();
     }
     expect(screen.getAllByText("Sin prospectos")).toHaveLength(4);
+  });
+  it("no ofrece acciones de alta al rol de solo lectura", () => {
+    render(<CRMKanbanGrid
+      isLoading={false}
+      stagesData={ACTIVE_STAGES.map((stage) => ({ ...stage, items: [], total: 0 }))}
+      pipelineTotal={0} density="comfortable" quoteMap={new Map()}
+      canWrite={false}
+      onDragEnd={vi.fn()} onAdd={vi.fn()} onCardClick={vi.fn()}
+    />);
+    expect(screen.queryByRole("button", { name: /Agregar|Clic para agregar/i })).not.toBeInTheDocument();
   });
 });

@@ -6,8 +6,6 @@ import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/ic
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
-import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
-import { useBookings } from "@/features/bookings";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -19,6 +17,7 @@ import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
 import { useForklifts } from "../hooks/forklifts/useForklifts";
+import { useOccupiedForkliftIdsToday } from "../hooks/forklifts/useOccupiedForkliftIdsToday";
 import type { Forklift } from "../hooks/forklifts/useForklifts";
 
 const STATUS_OPTIONS = [
@@ -34,24 +33,16 @@ export default function FleetPage() {
   const forklifts = useMemo(() => visibleListRows(forkliftsRaw), [forkliftsRaw]);
   // Ocupación operativa compartida con Panel y Calendario: una reserva
   // confirmada vigente ocupa una unidad available; una completada no lo hace.
-  const { data: fleetBookings } = useBookings();
-  const todayYmd = useServerTodayMty();
-  const rentedIds = useMemo(
-    () =>
-      fleetBookings
-        ? computeFleetAvailability(forklifts, fleetBookings, todayYmd)?.rentedForkliftIds
-        : undefined,
-    [forklifts, fleetBookings, todayYmd],
-  );
-  // `computeFleetAvailability` cuenta como rentada la unidad `available` con
-  // reserva confirmada vigente hoy (mismo criterio que tablero y detalle).
+  const { data: rentedIds, isLoading: occupiedLoading, isError: occupiedError, refetch: refetchOccupied } = useOccupiedForkliftIdsToday();
+  // La RPC cuenta como comprometida una unidad con reserva confirmada vigente
+  // hoy, con el mismo criterio del tablero y sin límite de filas.
 
   // v7.281.1 · memoizado: sin esto el arreglo era nuevo en cada render y la
   // tabla reiniciaba la paginación a la página 1.
   const forkliftsForFilter = useMemo(
     () =>
       (forklifts ?? []).map((f) => {
-        if (!rentedIds || (f.status !== "available" && f.status !== "rented")) return f;
+        if (!rentedIds || f.status !== "available") return f;
         const derived = rentedIds.has(f.id) ? ("rented" as const) : ("available" as const);
         return derived === f.status ? f : { ...f, status: derived };
       }),
@@ -150,10 +141,10 @@ export default function FleetPage() {
       actions={actions}
       notice={notice}
       filters={filters}
-      isLoading={isLoading}
-      isError={isError}
-      onRetry={() => { void refetch(); }}
-      onRefresh={refetch}
+      isLoading={isLoading || occupiedLoading}
+      isError={isError || occupiedError}
+      onRetry={() => { void refetch(); void refetchOccupied(); }}
+      onRefresh={() => { void refetch(); void refetchOccupied(); }}
       table={table}
       onRowClick={(f) => navigate(`/fleet/${f.id}`)}
       hasActiveFilters={hasActive}

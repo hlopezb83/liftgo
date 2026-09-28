@@ -29,8 +29,8 @@ const STATUS_LABELS: Record<string, string> = {
   partial: "Parcial", overdue: "Vencida", cancelled: "Cancelada",
 };
 
-function pickBadge(balance: number, hasOverdue: boolean): { label: string; bg: string; color: string } {
-  if (balance <= 0) return { label: "PAGADO", bg: COLORS.badgeOk.fill, color: COLORS.badgeOk.text };
+function pickBadge(balance: number, hasOverdue: boolean, hasOpenInvoices: boolean): { label: string; bg: string; color: string } {
+  if (balance <= 0 && !hasOpenInvoices) return { label: "PAGADO", bg: COLORS.badgeOk.fill, color: COLORS.badgeOk.text };
   if (hasOverdue) return { label: "VENCIDO", bg: COLORS.badgeBad.fill, color: COLORS.badgeBad.text };
   return { label: "CON SALDO", bg: COLORS.badgeWarn.fill, color: COLORS.badgeWarn.text };
 }
@@ -113,7 +113,7 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
   const openInvoices = summary.invoices.filter((i) => i.status !== "paid" && i.status !== "cancelled");
   const paidInvoices = summary.invoices.filter((i) => i.status === "paid");
   const hasOverdue = openInvoices.some((i) => i.due_date && differenceInDays(today, parseISO(i.due_date)) > 0);
-  const badge = pickBadge(balance, hasOverdue);
+  const badge = pickBadge(balance, hasOverdue, openInvoices.length > 0 || Number(summary.totals.fx_missing_count ?? 0) > 0);
 
   return (
     <Document title={`Estado de cuenta — ${props.customerName}`}>
@@ -142,6 +142,12 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
           )}
           <SummaryCard label="SALDO PENDIENTE (MXN)" value={formatCurrency(balance)} danger={balance > 0} />
         </View>
+
+        {Number(summary.totals.fx_missing_count ?? 0) > 0 && (
+          <Text style={[sharedStyles.cellText, { color: COLORS.badgeWarn.text, marginTop: 8 }]}>
+            Hay {summary.totals.fx_missing_count} factura(s) en divisa sin tipo de cambio. No se incluyen en los totales MXN; consulta el detalle de facturas pendientes.
+          </Text>
+        )}
 
         <InvoiceTable title="FACTURAS PENDIENTES" rows={openInvoices} showDue emptyMsg="Sin facturas pendientes." />
         <InvoiceTable title="FACTURAS PAGADAS" rows={paidInvoices} showDue={false} />

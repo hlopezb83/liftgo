@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Booking } from "@/features/bookings";
 import { useUserRole } from "@/features/users";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { APP_CONFIG } from "@/lib/config";
 import { translateDbError } from "@/lib/errors/dbErrors";
@@ -41,6 +42,7 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
     defaultValues: getDefaultValues(),
   });
   const createInspection = useCreateReturnInspection();
+  const navigate = useNavigateTransition();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const requestedBookingId = searchParams.get("booking_id");
@@ -122,7 +124,7 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
             message: translateDbError(error, "No se pudo completar la devolución").message,
           });
         },
-        onSuccess: () => {
+        onSuccess: (inspectionId) => {
           // R6-FE-02 (N6-DIS-01): GUI-DB-04 cambió la RPC
           // `complete_return_inspection` (20260730135234): CUALQUIER condición
           // de daño (incluido minor_damage) envía la unidad a mantenimiento.
@@ -139,6 +141,7 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
           );
           handleDialogOpenChange(false);
           form.reset(getDefaultValues());
+          if (typeof inspectionId === "string") navigate(`/returns/${inspectionId}`);
         },
       },
     );

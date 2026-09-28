@@ -31,12 +31,18 @@ function compactMoneyMxn(n: number): string {
   return Number.isFinite(n) ? COMPACT_MXN.format(n) : "";
 }
 
+function revenueQueryState(isError: boolean, isLoading: boolean, isFetching: boolean, retry: () => void) {
+  if (isError) return <QueryErrorState entity="el reporte de ingresos" onRetry={retry} isRetrying={isFetching} />;
+  if (isLoading) return <div role="status" className="rounded-lg border p-6 text-sm text-muted-foreground">Cargando ingresos…</div>;
+  return null;
+}
+
 export function RevenueReport({ startDate, endDate }: Props) {
   // FIX-FE-01: agregación server-side (patrón useProfitByModelReport).
   // useInvoices() está capado a LIST_FETCH_LIMIT (501 filas) y el reporte
   // subestimaba ingresos silenciosamente con más de 500 facturas.
   const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
-  const { data: rows = [], isError, isFetching, refetch } = useRevenueByMonthReport(startDate, endDate);
+  const { data: rows = [], isLoading, isError, isFetching, refetch } = useRevenueByMonthReport(startDate, endDate);
   const [selected, setSelected] = useState<Row | null>(null);
   const data: Row[] = rows.map((r) => ({
     key: r.monthKey,
@@ -74,15 +80,8 @@ export function RevenueReport({ startDate, endDate }: Props) {
 
 
   // R22-B: si la consulta falló, no mostramos ceros ni permitimos exportar.
-  if (isError) {
-    return (
-      <QueryErrorState
-        entity="el reporte de ingresos"
-        onRetry={() => { void refetch(); }}
-        isRetrying={isFetching}
-      />
-    );
-  }
+  const queryState = revenueQueryState(isError, isLoading, isFetching, () => { void refetch(); });
+  if (queryState) return queryState;
 
   return (
     <>

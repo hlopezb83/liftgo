@@ -36,10 +36,10 @@ export function ComparisonTable({ comparisonRows, yearTotals }: Props) {
                     {formatCell(row, val)}
                   </TableCell>
                 ))}
-                <TableCell className={`text-right font-mono font-bold ${row.delta >= 0 ? "text-chart-2" : "text-destructive"}`}>
+                <TableCell className={`text-right font-mono font-bold ${(row.isCost ? row.delta <= 0 : row.delta >= 0) ? "text-chart-2" : "text-destructive"}`}>
                   {formatRowDelta(row)}
                 </TableCell>
-                <TableCell className={`text-right font-mono font-bold ${row.deltaPct !== null && row.deltaPct >= 0 ? "text-chart-2" : "text-destructive"}`}>
+                <TableCell className={`text-right font-mono font-bold ${row.deltaPct !== null && (row.isCost ? row.deltaPct <= 0 : row.deltaPct >= 0) ? "text-chart-2" : "text-destructive"}`}>
                   {row.deltaPct !== null ? `${row.deltaPct >= 0 ? "+" : ""}${row.deltaPct.toFixed(1)}%` : "—"}
                 </TableCell>
               </TableRow>

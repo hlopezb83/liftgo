@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/table";
 import { usePortalInvoicePayments } from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
 export interface PortalPayment {
   id: string;
@@ -42,9 +42,10 @@ interface Props {
   rows: PortalInvoiceRow[];
   expanded: Record<string, boolean>;
   onToggle: (id: string) => void;
+  onlyBalance?: boolean;
 }
 
-function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
+function PaymentDetailTable({ payments, currency }: { payments: PortalPayment[]; currency: string }) {
   if (payments.length === 0) {
     return <p className="text-xs text-muted-foreground">Sin pagos aplicados.</p>;
   }
@@ -65,7 +66,7 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
             <TableCell>{p.payment_method ?? "—"}</TableCell>
             <TableCell>{p.reference_number ?? "—"}</TableCell>
             <TableCell className="text-right font-mono tabular-nums">
-              {formatCurrency(Number(p.amount))}
+              {formatCurrencyWithCode(Number(p.amount), currency)}
             </TableCell>
           </TableRow>
         ))}
@@ -76,6 +77,7 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
 
 function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: boolean; onToggle: () => void }) {
   const r = row;
+  const currency = r.moneda || "MXN";
   const paymentsQuery = usePortalInvoicePayments(r.inv.id, isOpen);
   return (
     <>
@@ -101,12 +103,12 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
         </TableCell>
         <TableCell className="hidden md:table-cell">{formatDateMty(r.inv.issued_at)}</TableCell>
         <TableCell>{r.inv.due_date ? formatDateMty(r.inv.due_date) : "—"}</TableCell>
-        <TableCell className="text-right font-mono tabular-nums">{formatCurrency(Number(r.inv.total))}</TableCell>
-        <TableCell className="hidden md:table-cell text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
+        <TableCell className="text-right font-mono tabular-nums">{formatCurrencyWithCode(Number(r.inv.total), currency)}</TableCell>
+        <TableCell className="hidden md:table-cell text-right font-mono tabular-nums text-status-available">{formatCurrencyWithCode(r.paid, currency)}</TableCell>
         <TableCell
           className={`text-right font-mono tabular-nums ${r.balance > 0 ? "text-destructive" : ""}`}
         >
-          {formatCurrency(r.balance)}
+          {formatCurrencyWithCode(r.balance, currency)}
         </TableCell>
         <TableCell><StatusBadge status={r.inv.status} /></TableCell>
         <TableCell className="text-right no-print">
@@ -130,7 +132,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
                 </Button>
               </div>
             ) : (
-              <PaymentDetailTable payments={(paymentsQuery.data ?? []) as PortalPayment[]} />
+              <PaymentDetailTable payments={(paymentsQuery.data ?? []) as PortalPayment[]} currency={currency} />
             )}
           </TableCell>
         </TableRow>
@@ -139,7 +141,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
   );
 }
 
-export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
+export function PortalInvoicesTable({ rows, expanded, onToggle, onlyBalance = false }: Props) {
   return (
     <Table>
       <TableHeader>
@@ -159,7 +161,7 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
         {rows.length === 0 && (
           <TableRow>
             <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
-              Aún no tienes facturas. Tu estado de cuenta se llenará cuando se emita la primera.
+              {onlyBalance ? "No tienes facturas con saldo pendiente." : "Aún no tienes facturas. Tu estado de cuenta se llenará cuando se emita la primera."}
             </TableCell>
           </TableRow>
         )}

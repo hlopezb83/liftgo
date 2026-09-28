@@ -58,23 +58,30 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
     staleTime: 60_000,
     queryFn: async (): Promise<InvoiceWithBalance[]> => {
       // SEC-005 + PERF-001: RPC parametrizada que filtra y pagina en servidor.
-      const { data, error } = await (supabase.rpc.bind(supabase) as unknown as (
+      const invoke = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message?: string } | null }>)(
-        "list_invoices_with_balance",
-        {
+      ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+      const pageSize = limit ?? 1000;
+      const rows: Record<string, unknown>[] = [];
+      let pageOffset = offset ?? 0;
+      // Sin límite explícito, cargar todas las páginas. El RPC limita cada
+      // respuesta a 1.000; una única llamada truncaba totales y CSV.
+      while (true) {
+        const { data, error } = await invoke("list_invoices_with_balance", {
           p_statuses: statuses as string[],
           p_due_from: dueFrom ?? null,
           p_due_to: dueTo ?? null,
           p_with_balance_only: withBalanceOnly,
-          p_limit: limit ?? null,
-          p_offset: offset ?? 0,
-        },
-      );
-      if (error) throw error;
-
-      const rows = (data ?? []) as Record<string, unknown>[];
+          p_limit: pageSize,
+          p_offset: pageOffset,
+        });
+        if (error) throw error;
+        const page = (data ?? []) as Record<string, unknown>[];
+        rows.push(...page);
+        if (limit !== undefined || page.length < pageSize) break;
+        pageOffset += pageSize;
+      }
 
       return rows.map((r) => {
         // H-2: la vista marca `fx_missing` cuando la factura está en divisa y

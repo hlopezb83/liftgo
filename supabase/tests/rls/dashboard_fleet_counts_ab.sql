@@ -53,6 +53,9 @@ BEGIN
      (v_counts->>'rented')::int <> 1 THEN
     RAISE EXCEPTION 'Dashboard A: expected 501 total, 500 available, 1 committed; got %', v_counts;
   END IF;
+  IF (SELECT count(*) FROM public.get_occupied_forklift_ids_today()) <> 1 THEN
+    RAISE EXCEPTION 'Fleet A: expected one occupied unit in its own organization';
+  END IF;
 END $$;
 
 SET LOCAL request.jwt.claims TO
@@ -65,6 +68,9 @@ BEGIN
      (v_counts->>'available')::int <> 1 OR
      (v_counts->>'rented')::int <> 0 THEN
     RAISE EXCEPTION 'Dashboard B: expected own 1 available only; got %', v_counts;
+  END IF;
+  IF EXISTS (SELECT 1 FROM public.get_occupied_forklift_ids_today()) THEN
+    RAISE EXCEPTION 'Fleet B: saw an occupied unit from organization A';
   END IF;
 END $$;
 

@@ -71,6 +71,12 @@ SELECT public.activate_parts_catalog(
   (SELECT catalog_id FROM phase2_parts_fixture), 12, 3, 480, 'Pasillo Norte'
 );
 
+-- Una segunda activación no es un movimiento de inventario ni una edición de
+-- costo: los ceros predeterminados del formulario nunca borran los valores.
+SELECT public.activate_parts_catalog(
+  (SELECT catalog_id FROM phase2_parts_fixture), 0, 0, 0, NULL
+);
+
 DO $$
 DECLARE v_affected integer := 0;
 BEGIN

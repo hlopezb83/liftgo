@@ -10,7 +10,12 @@ import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { useActivateCatalogPart } from "../../hooks/usePartInventoryMutations";
-import { usePartsCatalog, type PartCatalog } from "../../hooks/usePartsInventory";
+import { usePartsCatalog, usePartsInventory, type PartCatalog, type PartInventory } from "../../hooks/usePartsInventory";
+
+function unlinkedParts(catalog: PartCatalog[], inventory: PartInventory[]): PartCatalog[] {
+  const enabledIds = new Set(inventory.map((part) => part.catalog_part_id));
+  return catalog.filter((part) => !enabledIds.has(part.id));
+}
 
 export function ActivatePartDialog({
   open,
@@ -20,6 +25,7 @@ export function ActivatePartDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { data: catalog = [], isLoading, isError, isFetching, refetch } = usePartsCatalog();
+  const { data: inventory = [], isLoading: inventoryLoading, isError: inventoryError, isFetching: inventoryFetching, refetch: refetchInventory } = usePartsInventory();
   const activate = useActivateCatalogPart();
   const [catalogPartId, setCatalogPartId] = useState("");
   const [stock, setStock] = useState("0");
@@ -27,8 +33,9 @@ export function ActivatePartDialog({
   const [cost, setCost] = useState("0");
   const [location, setLocation] = useState("");
   const catalogId = useId();
-  const catalogReady = !isLoading && !isError;
-  const selectedActive = catalogReady && catalog.some((part) => part.id === catalogPartId);
+  const catalogReady = ![isLoading, isError, inventoryLoading, inventoryError].some(Boolean);
+  const availableCatalog = unlinkedParts(catalog, inventory);
+  const selectedActive = catalogReady && availableCatalog.some((part) => part.id === catalogPartId);
   const isDirty = !!catalogPartId || stock !== "0" || minimum !== "0" || cost !== "0" || !!location;
   useUnsavedChangesGuard(open && isDirty && !activate.isPending);
   usePrefillEffect(() => {
@@ -74,9 +81,9 @@ export function ActivatePartDialog({
       isDirty={isDirty}
     >
       <div className="grid gap-4 py-2">
-        <CatalogPicker id={catalogId} catalog={catalog} value={catalogPartId} onChange={setCatalogPartId}
-          loading={isLoading} error={isError} retrying={isFetching} pending={activate.isPending}
-          onRetry={() => { void refetch(); }} />
+        <CatalogPicker id={catalogId} catalog={availableCatalog} value={catalogPartId} onChange={setCatalogPartId}
+          loading={isLoading || inventoryLoading} error={isError || inventoryError} retrying={isFetching || inventoryFetching} pending={activate.isPending}
+          onRetry={() => { void refetch(); void refetchInventory(); }} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Stock inicial" value={stock} onChange={setStock} type="number" />
           <Field label="Stock mínimo" value={minimum} onChange={setMinimum} type="number" />

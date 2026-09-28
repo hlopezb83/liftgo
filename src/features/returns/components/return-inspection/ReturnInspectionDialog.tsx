@@ -1,6 +1,5 @@
 import { useFormState, useWatch, type UseFormReturn } from "react-hook-form";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
-import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import {
   SelectField,
   TextField,
@@ -12,7 +11,6 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { ClipboardCheck } from "@/components/icons";
 import { Form } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
 import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
@@ -129,17 +127,6 @@ export function ReturnInspectionDialog({
             rows={3}
             description="Obligatorio si la condición indica daño (daño menor, daño mayor o necesita reparación)."
           />
-
-          {selectedBooking && (
-            <div className="space-y-1.5">
-              <Label>Fotos de Inspección</Label>
-              <DragDropImageUploader
-                entityType="return_inspection"
-                entityId={selectedBooking.forklift_id}
-                maxFiles={8}
-              />
-            </div>
-          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TextField

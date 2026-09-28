@@ -4,10 +4,11 @@ import { ActivatePartDialog } from "../ActivatePartDialog";
 
 const mocks = vi.hoisted(() => ({
   query: { data: [{ id: "filter-1", sku: "FLT-001", name: "Filtro de aceite" }], isLoading: false, isError: false, isFetching: false, refetch: vi.fn() },
+  inventory: { data: [] as Array<{ catalog_part_id: string }>, isLoading: false, isError: false, isFetching: false, refetch: vi.fn() },
   mutation: { mutate: vi.fn(), isPending: false },
   validation: vi.fn(),
 }));
-vi.mock("../../../hooks/usePartsInventory", () => ({ usePartsCatalog: () => mocks.query }));
+vi.mock("../../../hooks/usePartsInventory", () => ({ usePartsCatalog: () => mocks.query, usePartsInventory: () => mocks.inventory }));
 vi.mock("../../../hooks/usePartInventoryMutations", () => ({ useActivateCatalogPart: () => mocks.mutation }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifyValidation: mocks.validation }));
 vi.mock("@/hooks/useUnsavedChangesGuard", () => ({ useUnsavedChangesGuard: vi.fn() }));
@@ -23,6 +24,10 @@ beforeEach(() => {
   mocks.query.isLoading = false;
   mocks.query.isError = false;
   mocks.query.isFetching = false;
+  mocks.inventory.data = [];
+  mocks.inventory.isLoading = false;
+  mocks.inventory.isError = false;
+  mocks.inventory.isFetching = false;
   mocks.mutation.isPending = false;
 });
 
@@ -119,5 +124,12 @@ describe("ActivatePartDialog", () => {
     fireEvent.change(screen.getByLabelText("Ubicación"), { target: { value: "Pasillo A" } });
     fireEvent.click(screen.getByRole("button", { name: "Habilitar" }));
     expect(mocks.mutation.mutate).toHaveBeenCalledWith({ catalogPartId: "filter-1", stockQuantity: 12, minStockLevel: 3, unitCost: 480.25, location: "Pasillo A" }, expect.any(Object));
+  });
+
+  it("no ofrece un SKU ya habilitado en la empresa", () => {
+    mocks.inventory.data = [{ catalog_part_id: "filter-1" }];
+    render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
+    expect(screen.queryByRole("option", { name: /FLT-001/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
   });
 });

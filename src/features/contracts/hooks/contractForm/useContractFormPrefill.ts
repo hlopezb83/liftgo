@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
-import { useBookings } from "@/features/bookings";
+import { useBooking } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
 import type { Database } from "@/integrations/supabase/types";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
@@ -60,7 +60,7 @@ interface Args {
 export function useContractFormPrefill({
   isEdit, bookingId, form, customers, forklifts, templateApplied, setTemplateApplied,
 }: Args) {
-  const { data: bookings } = useBookings();
+  const { data: booking } = useBooking(bookingId ?? undefined);
   const { data: company } = useCompanySettings();
   const { data: template } = useDefaultContractTemplate();
 
@@ -84,11 +84,9 @@ export function useContractFormPrefill({
 
   // Pre-fill desde booking (crear nuevo desde reserva).
   useEffect(() => {
-    if (isEdit || !bookingId || !bookings || !forklifts) return;
-    const booking = bookings.find((b) => b.id === bookingId);
-    if (!booking) return;
+    if (isEdit || !bookingId || !booking || !forklifts) return;
     applyBookingPrefill(form, booking, forklifts.find((f) => f.id === booking.forklift_id));
-  }, [bookingId, bookings, forklifts, isEdit, form]);
+  }, [bookingId, booking, forklifts, isEdit, form]);
 
 
   // Auto-fill tarifas al elegir equipo (sin booking).

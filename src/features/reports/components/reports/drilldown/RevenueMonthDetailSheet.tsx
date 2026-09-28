@@ -43,9 +43,9 @@ export function RevenueMonthDetailSheet({
       Cliente: i.customer_name || "",
       Emisión: i.issued_at,
       Moneda: i.moneda || "MXN",
-      "Tipo Cambio": i.tipo_cambio ?? 1,
+      "Tipo Cambio": i.moneda && i.moneda !== "MXN" ? (i.tipo_cambio ?? "") : 1,
       Total: i.total,
-      "Total MXN": invoiceTotalMxn(i),
+      "Total MXN": invoiceTotalMxn(i) ?? "",
       Estado: i.status,
     })));
   };
@@ -92,7 +92,9 @@ export function RevenueMonthDetailSheet({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusBadge status={inv.status} />
-                      <span className="font-mono font-bold">{formatCurrency(invoiceTotalMxn(inv))}</span>
+                      <span className="font-mono font-bold" title={invoiceTotalMxn(inv) === null ? "Factura en divisa sin tipo de cambio" : undefined}>
+                        {invoiceTotalMxn(inv) === null ? "Sin T.C." : formatCurrency(invoiceTotalMxn(inv) ?? 0)}
+                      </span>
                     </div>
                   </Button>
                 </li>
