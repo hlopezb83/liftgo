@@ -73,7 +73,7 @@ export default function ReportsPage() {
           <div className="flex gap-4 flex-wrap items-end">
             <div className="space-y-1.5">
               <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="w-[260px] max-w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {REPORT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                 </SelectContent>

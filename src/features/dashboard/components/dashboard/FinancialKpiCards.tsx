@@ -55,7 +55,6 @@ export function FinancialKpiCards({
       color: "text-info",
       bgColor: "bg-info/10",
       href: "/fleet",
-      hint: <span className="text-xs text-muted-foreground">En renta o con reserva confirmada hoy</span>,
     },
     {
       label: "DSO (Días de Cobro)",
