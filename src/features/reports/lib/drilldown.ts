@@ -83,8 +83,11 @@ export interface DrilldownInvoice {
 }
 
 /** Total de la factura normalizado a MXN. */
-export function invoiceTotalMxn(inv: DrilldownInvoice): number {
-  return toMxn(Number(inv.total), inv.moneda ?? "MXN", inv.tipo_cambio);
+export function invoiceTotalMxn(inv: DrilldownInvoice): number | null {
+  const currency = (inv.moneda ?? "MXN").toUpperCase();
+  const rate = Number(inv.tipo_cambio ?? 0);
+  if (currency !== "MXN" && (!Number.isFinite(rate) || rate <= 0)) return null;
+  return toMxn(Number(inv.total), currency, inv.tipo_cambio);
 }
 
 /** Clave de mes "YYYY-MM" de la fecha de emisión. */
@@ -102,7 +105,7 @@ export function invoicesForMonth(
 ): DrilldownInvoice[] {
   return invoices
     .filter((i) => i.status !== "draft" && i.status !== "cancelled" && invoiceMonthKey(i) === monthKey)
-    .sort((a, b) => invoiceTotalMxn(b) - invoiceTotalMxn(a));
+    .sort((a, b) => (invoiceTotalMxn(b) ?? -1) - (invoiceTotalMxn(a) ?? -1));
 }
 
 /**

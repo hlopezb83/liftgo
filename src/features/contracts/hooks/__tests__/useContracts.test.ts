@@ -9,14 +9,9 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
  * y rechazo del contrato impreso ante el cliente.
  */
 
-const rpcCalls: Array<{ name: string; args: unknown }> = [];
 const insertedPayloads: unknown[] = [];
 const updatedPayloads: unknown[] = [];
 
-let nextNumberResp: { data: unknown; error: { message: string } | null } = {
-  data: "CTR-2026-0001",
-  error: null,
-};
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "ctr-1", contract_number: "CTR-2026-0001" },
   error: null,
@@ -28,12 +23,6 @@ let updateResp: { data: unknown; error: { message: string } | null } = {
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
-    rpcResolvers: {
-      next_contract_number: (args) => {
-        rpcCalls.push({ name: "next_contract_number", args });
-        return nextNumberResp;
-      },
-    },
     tableResolvers: {
       contracts: (calls) => {
         const ins = calls.find((c) => c.method === "insert");
@@ -49,16 +38,14 @@ vi.mock("@/integrations/supabase/client", () => ({
 import { useCreateContract, useUpdateContract } from "../useContracts";
 
 beforeEach(() => {
-  rpcCalls.length = 0;
   insertedPayloads.length = 0;
   updatedPayloads.length = 0;
-  nextNumberResp = { data: "CTR-2026-0001", error: null };
   insertResp = { data: { id: "ctr-1", contract_number: "CTR-2026-0001" }, error: null };
   updateResp = { data: { id: "ctr-1" }, error: null };
 });
 
 describe("useCreateContract", () => {
-  it("genera contract_number vía RPC y lo inyecta al insert", async () => {
+  it("delega la numeración al trigger del mismo INSERT", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateContract(), { wrapper: Wrapper });
 
@@ -72,29 +59,12 @@ describe("useCreateContract", () => {
       } as never);
     });
 
-    expect(rpcCalls).toHaveLength(1);
-    expect(rpcCalls[0].name).toBe("next_contract_number");
     expect(insertedPayloads[0]).toMatchObject({
       customer_id: "c-1",
       forklift_id: "f-1",
       monthly_rate: 15_000,
-      contract_number: "CTR-2026-0001",
+      contract_number: "",
     });
-  });
-
-  it("propaga error si el RPC de numeración falla y NO inserta", async () => {
-    nextNumberResp = { data: null, error: { message: "sequence locked" } };
-    const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useCreateContract(), { wrapper: Wrapper });
-
-    await act(async () => {
-      await result.current
-        .mutateAsync({ customer_id: "c-1" } as never)
-        .catch(() => {});
-    });
-
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(insertedPayloads).toHaveLength(0);
   });
 
   it("propaga error si el insert falla", async () => {

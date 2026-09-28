@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { usePageActions } from "@/contexts/pageActions";
 import { useQuotesLite } from "@/features/quotes";
+import { useHasModuleAccess } from "@/features/users";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CRMKanbanGrid } from "../components/CRMKanbanGrid";
 import { CRMPageDialogs } from "../components/CRMPageDialogs";
@@ -23,6 +24,7 @@ export default function CRMPage() {
   const { data: prospects = [], isLoading, isError, isFetching, refetch } = useProspects();
   const { data: quotes = [] } = useQuotesLite();
   const { canCloseDeal, assertCanClose } = useProspectGuard();
+  const canWrite = useHasModuleAccess("CRM / Prospectos", "full");
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
   const moveProspectStage = useMoveProspectStage();
@@ -60,6 +62,7 @@ export default function CRMPage() {
   const pipelineTotal = stagesData.reduce((s, c) => s + c.total, 0);
 
   const openCreate = (stage: string) => {
+    if (!canWrite) return;
     if (stage === "cerrado_ganado" && !assertCanClose("create")) return;
     dialogs.setEditingProspect(null);
     dialogs.setDefaultStage(stage);
@@ -67,15 +70,17 @@ export default function CRMPage() {
     dialogs.setDialogOpen(true);
   };
 
-  usePageActions({ onNew: () => openCreate("nuevo_prospecto"), newLabel: "Nuevo prospecto" });
+  usePageActions({ onNew: canWrite ? () => openCreate("nuevo_prospecto") : undefined, newLabel: canWrite ? "Nuevo prospecto" : undefined });
 
   const openEdit = (p: Prospect) => {
+    if (!canWrite) return;
     dialogs.setEditingProspect(p);
     dialogs.setOverrideStage(undefined);
     dialogs.setDialogOpen(true);
   };
 
   const onDragEnd = (event: DragEndEvent) => {
+    if (!canWrite) return;
     const target = resolveDropTarget(event, stagesData);
 
     if (!target) return;
@@ -128,6 +133,7 @@ export default function CRMPage() {
             setDensity={setDensity}
             metrics={metrics}
             onCreate={() => openCreate("nuevo_prospecto")}
+            canCreate={canWrite}
             filteredCount={filtered.length}
             pipelineTotalLabel={formatCurrency(pipelineTotal)}
           />
@@ -143,6 +149,7 @@ export default function CRMPage() {
                 quoteMap={quoteMap}
                 onDragEnd={onDragEnd}
                 onAdd={openCreate}
+                canWrite={canWrite}
                 onCardClick={dialogs.setDetailProspect}
               />
             </div>

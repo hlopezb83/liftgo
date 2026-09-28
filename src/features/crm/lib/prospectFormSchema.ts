@@ -37,7 +37,7 @@ export function sortQuotesByCompanyMatch<Q extends QuoteLike>(allQuotes: Q[], co
   const lowerCompany = company.toLowerCase();
   const matches = (name: string | null | undefined): boolean => {
     const n = name?.toLowerCase() ?? "";
-    return n.includes(lowerCompany) || lowerCompany.includes(n);
+    return n.length > 0 && (n.includes(lowerCompany) || lowerCompany.includes(n));
   };
   return [...allQuotes].sort(
     (a, b) => Number(matches(b.customer_name)) - Number(matches(a.customer_name)),

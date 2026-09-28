@@ -89,12 +89,11 @@ type NewContract = Omit<Contract, "id" | "contract_number" | "created_at" | "upd
 export function useCreateContract() {
   return useEntityMutation({
     mutationFn: async (contract: NewContract) => {
-      const { data: num, error: numErr } = await supabase.rpc("next_contract_number");
-      if (numErr) throw numErr;
       const { data, error } = await supabase
         .from("contracts")
-        // organization_id lo asigna la base (default/trigger), no el formulario.
-        .insert({ ...contract, contract_number: num as string } as TablesInsert<"contracts">)
+        // El trigger asigna el folio dentro de este mismo INSERT. Si falla la
+        // operación, el incremento del contador también se revierte.
+        .insert({ ...contract, contract_number: "" } as TablesInsert<"contracts">)
         .select()
         .single();
       if (error) {

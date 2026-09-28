@@ -35,10 +35,11 @@ interface Props {
   onDragEnd: (event: DragEndEvent) => void;
   onAdd: (stageKey: string) => void;
   onCardClick: (p: Prospect) => void;
+  canWrite: boolean;
 }
 
 export function CRMKanbanGrid({
-  isLoading, stagesData, pipelineTotal, density, quoteMap, onDragEnd, onAdd, onCardClick,
+  isLoading, stagesData, pipelineTotal, density, quoteMap, onDragEnd, onAdd, onCardClick, canWrite,
 }: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
@@ -93,7 +94,7 @@ export function CRMKanbanGrid({
 
   return (
     <DndContext
-      sensors={sensors}
+      sensors={canWrite ? sensors : []}
       collisionDetection={closestCorners}
       // `MeasuringStrategy.Always` re-mide los droppables durante el drag; sin
       // esto SortableContext vertical cachea alturas al inicio y aparecen gaps
@@ -115,7 +116,7 @@ export function CRMKanbanGrid({
             pipelineTotal={pipelineTotal}
             density={density}
             quoteMap={quoteMap}
-            onAdd={stage.key === "nuevo_prospecto" ? () => onAdd(stage.key) : undefined}
+            onAdd={canWrite && stage.key === "nuevo_prospecto" ? () => onAdd(stage.key) : undefined}
             onCardClick={onCardClick}
           />
         ))}

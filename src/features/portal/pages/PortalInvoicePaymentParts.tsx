@@ -79,8 +79,9 @@ export function ForeignCurrencyNotice({ moneda, balanceLabel }: { moneda: string
   );
 }
 
-export function MxnPaymentSection({ balance, concept, pendingReported, canReport, reportBlock, onReport }: {
+export function MxnPaymentSection({ balance, reportableBalance, concept, pendingReported, canReport, reportBlock, onReport }: {
   balance: number;
+  reportableBalance: number;
   concept: string;
   pendingReported: number;
   canReport: boolean;
@@ -90,7 +91,13 @@ export function MxnPaymentSection({ balance, concept, pendingReported, canReport
 }) {
   return (
     <>
-      <StpTransferCard amount={balance} concept={concept} />
+      {reportableBalance > 0 ? (
+        <StpTransferCard amount={reportableBalance} concept={concept} />
+      ) : (
+        <Card><CardContent className="pt-6 text-sm">
+          El saldo de {formatCurrency(balance)} ya está reportado y en revisión. Espera la confirmación antes de transferir de nuevo.
+        </CardContent></Card>
+      )}
       <div className="flex gap-2">
         {/* `canReport` cubre la condición técnica (datos del cliente aún no
             disponibles); el bloqueo de negocio se explica aparte. */}
@@ -120,6 +127,7 @@ export function PaidCard() {
 
 interface PaymentSectionArgs {
   balance: number;
+  reportableBalance: number;
   concept: string;
   pendingReported: number;
   moneda: string;
@@ -136,6 +144,7 @@ function renderPaymentSection(args: PaymentSectionArgs) {
     return (
       <MxnPaymentSection
         balance={args.balance}
+        reportableBalance={args.reportableBalance}
         concept={args.concept}
         pendingReported={args.pendingReported}
         canReport={args.canReport}
@@ -182,6 +191,7 @@ export function PaymentBody({
 
   const paymentSection = renderPaymentSection({
     balance,
+    reportableBalance,
     concept: `${invoice.invoice_number}`,
     pendingReported,
     moneda,

@@ -149,6 +149,7 @@ export default function PortalStatement() {
         <CardContent className="p-0">
           <PortalInvoicesTable
             rows={rows}
+            onlyBalance={onlyBalance}
             expanded={expanded}
             onToggle={(id) => setExpanded((s) => ({ ...s, [id]: !s[id] }))}
           />

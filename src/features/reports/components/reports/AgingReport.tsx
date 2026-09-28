@@ -36,7 +36,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   const yesterdayYmd = toYMD(subDays(nowMty(), 1));
 
   // Vista unificada: ya viene con balance > 0 y status filtrado.
-  const { data: rawOverdue, isError, isFetching, refetch } = useInvoicesWithBalance({
+  const { data: rawOverdue, isLoading, isError, isFetching, refetch } = useInvoicesWithBalance({
     statuses: ["sent", "partial", "overdue"],
     dueTo: yesterdayYmd,
   });
@@ -87,7 +87,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "days_overdue", desc: true }],
-    paginated: false,
+    paginated: true,
   });
 
 
@@ -96,7 +96,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
       Factura: i.invoice_number,
       Cliente: i.customer_name || "",
       Moneda: i.moneda || "MXN",
-      "Tipo Cambio": i.tipo_cambio ?? 1,
+      "Tipo Cambio": i.moneda && i.moneda !== "MXN" ? (i.tipo_cambio ?? "") : 1,
       Total: i.total,
       Saldo: i.balance,
       "Saldo MXN": i.balance_mxn ?? "",
@@ -118,6 +118,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
       />
     );
   }
+  if (isLoading) return <div role="status" className="rounded-lg border p-6 text-sm text-muted-foreground">Cargando cartera vencida…</div>;
 
   return (
     <div className="space-y-4">
@@ -143,11 +144,11 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
             </p>
           )}
 
-          <DataTableV2
-            table={table}
-            emptyMessage="No hay facturas vencidas"
-            onRowClick={(i) => navigate(`/invoices/${i.id}`)}
-          />
+          {visibleInvoices.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No hay facturas vencidas</p>
+          ) : (
+            <DataTableV2 table={table} onRowClick={(i) => navigate(`/invoices/${i.id}`)} />
+          )}
         </CardContent>
       </Card>
 

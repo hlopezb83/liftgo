@@ -103,5 +103,6 @@ describe("invoicesForMonth", () => {
 
   it("normaliza USD a MXN con tipo de cambio", () => {
     expect(invoiceTotalMxn(invoice({ total: 100, moneda: "USD", tipo_cambio: 18 }))).toBe(1800);
+    expect(invoiceTotalMxn(invoice({ total: 100, moneda: "USD", tipo_cambio: null }))).toBeNull();
   });
 });
