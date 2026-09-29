@@ -1,4 +1,4 @@
-import { RefreshIcon, WarnIcon } from "@/components/icons";
+import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -43,11 +43,30 @@ export interface CalendarToolbarProps {
   setViewMode: (v: "gantt" | "list") => void;
   ganttRange: "month" | "week";
   setGanttRange: (v: "month" | "week") => void;
+  rangeLabel: string;
+  prevLabel: string;
+  nextLabel: string;
+  onPrev: () => void;
+  onNext: () => void;
+  onToday: () => void;
   isRefreshing: boolean;
   onRefresh: () => void;
 }
 
-export function CalendarToolbar({ viewMode, setViewMode, ganttRange, setGanttRange, isRefreshing, onRefresh }: CalendarToolbarProps) {
+export function CalendarToolbar({
+  viewMode,
+  setViewMode,
+  ganttRange,
+  setGanttRange,
+  rangeLabel,
+  prevLabel,
+  nextLabel,
+  onPrev,
+  onNext,
+  onToday,
+  isRefreshing,
+  onRefresh,
+}: CalendarToolbarProps) {
   return (
     <div className="flex items-center flex-wrap gap-2">
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
@@ -57,13 +76,23 @@ export function CalendarToolbar({ viewMode, setViewMode, ganttRange, setGanttRan
           <TabsTrigger value="list" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Lista</TabsTrigger>
         </TabsList>
       </Tabs>
-      {viewMode === "gantt" && (
-        <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
+      <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
           <TabsList className="h-8 touch:h-11">
             <TabsTrigger value="week" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Semana</TabsTrigger>
             <TabsTrigger value="month" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Mes</TabsTrigger>
           </TabsList>
         </Tabs>
+      {viewMode === "list" && (
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={onPrev} aria-label={prevLabel}>
+            <ChevronLeftIcon className="h-4 w-4" />
+          </Button>
+          <span className="min-w-[128px] text-center text-xs font-medium">{rangeLabel}</span>
+          <Button variant="ghost" size="sm" onClick={onToday}>Hoy</Button>
+          <Button variant="ghost" size="icon" onClick={onNext} aria-label={nextLabel}>
+            <ChevronRightIcon className="h-4 w-4" />
+          </Button>
+        </div>
       )}
       <Button
         variant="outline"
