@@ -113,6 +113,7 @@ export const incomeStatement = {
 export const contract: ContractData = {
   id: "ctr-1",
   contract_number: "CTR-0001",
+  booking_id: null,
   customer_id: "c-1",
   forklift_id: "f-1",
   start_date: "2026-01-01",
