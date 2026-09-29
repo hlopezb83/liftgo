@@ -8,6 +8,7 @@ export {
   customerQueries,
   useCustomers,
   useCustomer,
+  useCustomerSelectorSearch,
   useCustomerPortalAccount,
 } from "./customerQueries";
 export type {
