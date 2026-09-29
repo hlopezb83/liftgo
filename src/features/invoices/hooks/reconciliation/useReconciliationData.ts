@@ -2,8 +2,9 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { isFxMissing } from "@/features/cash-flow";
 import { supabase } from "@/integrations/supabase/client";
 import { toMxn } from "@/lib/money";
-import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT, e2eVisibilityFilter } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
+import { fetchAllPages } from "./fetchAllPages";
 
 export interface ReconciliationRow {
   id: string;
@@ -85,35 +86,41 @@ function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
   return { totalStampedLive, countStampedMissingFx, countStamped, countCancelled, countDraft, gaps };
 }
 
+function buildReconciliationPageQuery(filters: ReconciliationFilters) {
+  let q = supabase
+    .from("invoices")
+    .select(
+      "id,invoice_number,issued_at,customer_name,status,cfdi_status,cancellation_status,cfdi_uuid,facturapi_invoice_id,facturapi_env,total,moneda,tipo_cambio",
+    )
+    .or(e2eVisibilityFilter())
+    .gte("issued_at", filters.from)
+    .lte("issued_at", filters.to)
+    .order("invoice_number", { ascending: true })
+    .order("id", { ascending: true });
+
+  if (filters.fiscalState === "stamped") q = q.eq("cfdi_status", "stamped");
+  else if (filters.fiscalState === "cancelled") q = q.eq("cfdi_status", "cancelled");
+  else if (filters.fiscalState === "draft") q = q.eq("status", "draft");
+
+  if (filters.env === "test") q = q.eq("facturapi_env", "test");
+  else if (filters.env === "live") q = q.eq("facturapi_env", "live");
+
+  return q;
+}
+
 function buildReconciliationQuery(filters: ReconciliationFilters) {
   return queryOptions({
     queryKey: invoiceKeys.reconciliation(filters),
     staleTime: 30_000,
     queryFn: async () => {
-      let q = supabase
-        .from("invoices")
-        .select(
-          "id,invoice_number,issued_at,customer_name,status,cfdi_status,cancellation_status,cfdi_uuid,facturapi_invoice_id,facturapi_env,total,moneda,tipo_cambio",
-        )
-        .or(e2eVisibilityFilter())
-        .gte("issued_at", filters.from)
-        .lte("issued_at", filters.to)
-        .order("invoice_number", { ascending: true })
-        // Ronda D·#2: sin límite explícito PostgREST cortaba en 1000 filas y el
-        // total timbrado / detección de huecos de folio quedaba incompleto.
-        .limit(LIST_FETCH_LIMIT);
+      const rows = await fetchAllPages(
+        async (from, to) => {
+          const { data, error } = await buildReconciliationPageQuery(filters).range(from, to);
+          return { data: (data ?? []) as ReconciliationRow[], error };
+        },
+        LIST_PAGE_LIMIT,
+      );
 
-      if (filters.fiscalState === "stamped") q = q.eq("cfdi_status", "stamped");
-      else if (filters.fiscalState === "cancelled") q = q.eq("cfdi_status", "cancelled");
-      else if (filters.fiscalState === "draft") q = q.eq("status", "draft");
-
-      if (filters.env === "test") q = q.eq("facturapi_env", "test");
-      else if (filters.env === "live") q = q.eq("facturapi_env", "live");
-
-      const { data, error } = await q;
-      if (error) throw error;
-
-      const rows = (data ?? []) as ReconciliationRow[];
       return { rows, summary: computeSummary(rows) };
     },
   });
