@@ -30,6 +30,14 @@ const h = vi.hoisted(() => ({
       name: "Unidad vendible",
       serial_number: "V-1",
     },
+    {
+      id: "multi-word-model",
+      status: "available",
+      manufacturer: "Hyster",
+      model: "H50FT 3-Stage Mast",
+      name: "Unidad de mástil triple",
+      serial_number: "H-1",
+    },
   ],
 }));
 
@@ -76,4 +84,23 @@ describe("AssignForkliftsCard", () => {
     expect(candidates).toHaveTextContent("sale-eligible");
     expect(candidates).not.toHaveTextContent("future-reserved");
   });
+
+  it("ofrece equipos cuyo modelo contiene varias palabras", () => {
+    render(
+      <AssignForkliftsCard
+        quoteId="q-sale-multi-word"
+        lineItems={[
+          {
+            description: "Hyster H50FT 3-Stage Mast - Venta de equipo",
+            quantity: 1,
+            unit_price: 100,
+            total: 100,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByTestId("sale-candidates")).toHaveTextContent("multi-word-model");
+  });
+
 });

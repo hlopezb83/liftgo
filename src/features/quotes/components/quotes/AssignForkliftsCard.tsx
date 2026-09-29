@@ -12,6 +12,7 @@ import {
 } from "@/features/fleet";
 import { getSaleLines } from "@/features/quotes/utils/saleLines";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { filterSaleForkliftsForLine } from "../../lib/saleForkliftMatching";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 
 interface Props {
@@ -19,19 +20,7 @@ interface Props {
   lineItems: LineItem[];
 }
 
-/**
- * Parse "MANUFACTURER MODEL - Venta de equipo" description
- * to extract manufacturer and model for filtering forklifts.
- */
-function parseDescription(desc: string): { manufacturer: string; model: string } | null {
-  const clean = desc.replace(/\s*-\s*Venta de equipo$/i, "").trim();
-  if (!clean) return null;
-  const parts = clean.split(/\s+/);
-  if (parts.length < 2) return { manufacturer: "", model: clean };
-  const model = parts[parts.length - 1];
-  const manufacturer = parts.slice(0, -1).join(" ");
-  return { manufacturer, model };
-}
+
 
 export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
   const { data: allForklifts, isLoading: isLoadingForklifts } = useForklifts();
@@ -54,19 +43,14 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
     );
 
   const linesData = getSaleLines(lineItems).map(({ item, index }) => {
-    const parsed = parseDescription(item.description);
     const quantity = item.quantity || 1;
-    // A-04: la RPC canónica ya excluye cualquier unidad comprometida por una
-    // reserva confirmada pendiente (también futura). El filtro local sólo
-    // aplica modelo/línea y asignaciones de esta cotización.
-    const available = (saleAvailableForklifts || []).filter((f) => {
-      if (f.status !== "available") return false;
-      if (assignedForkliftIds.has(f.id)) return false;
-      if (!parsed) return false;
-      const mfgMatch = !parsed.manufacturer || (f.manufacturer || "").toLowerCase() === parsed.manufacturer.toLowerCase();
-      const modelMatch = (f.model || "").toLowerCase() === parsed.model.toLowerCase();
-      return mfgMatch && modelMatch;
-    });
+    // La descripción generada conserva fabricante y modelo completos, aunque el
+    // modelo contenga varias palabras; se compara como una etiqueta normalizada.
+    const available = filterSaleForkliftsForLine(
+      item.description,
+      saleAvailableForklifts || [],
+      assignedForkliftIds,
+    );
     const assigned = (assignments || []).filter((a) => a.line_index === index);
     const assignedForklifts = assigned
       .map((a) => {
