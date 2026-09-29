@@ -95,8 +95,12 @@ export default function CalendarPage() {
     });
   }, [currentBookings, todayTs]);
 
+  // Combina los estados de las consultas para mantener la orquestación legible.
+  const hasQueryError = [bError, currentBookingsError, fError].some(Boolean);
+  const isLoading = [bLoading, currentBookingsLoading, fLoading].some(Boolean);
+
   // R22-C: el calendario necesita reservas Y equipos; reintentar ambos.
-  if (bError || currentBookingsError || fError) {
+  if (hasQueryError) {
     return (
       <PageContainer>
         <PageHeader title="Calendario de Disponibilidad" />
@@ -109,7 +113,7 @@ export default function CalendarPage() {
     );
   }
 
-  if (bLoading || currentBookingsLoading || fLoading) {
+  if (isLoading) {
     return <CalendarLoadingSkeleton />;
   }
 
