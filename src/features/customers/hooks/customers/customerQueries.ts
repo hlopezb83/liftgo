@@ -6,11 +6,11 @@
  */
 import { useQuery } from "@tanstack/react-query";
 import { useOrganizationContext } from "@/contexts/OrganizationContext";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { customerKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
@@ -122,10 +122,7 @@ export function useCustomers() {
   return useQuery(customerQueries.list());
 }
 
-/**
- * Detalle por id — consulta directa por PK.
- * Evita depender de `useCustomers()` (que está limitado y podría no incluir al cliente buscado).
- */
+/** Normaliza texto libre antes de construir filtros PostgREST `.or()`. */
 function sanitizeCustomerSearchTerm(value: string): string {
   return value
     .replace(/[,"'()]/g, "")
@@ -186,16 +183,25 @@ export async function searchCustomersForSelector(search: string): Promise<{
 export function useCustomerSelectorSearch(search: string, enabled: boolean) {
   const organization = useOrganizationContext();
   const organizationId = organization.status === "ready" ? organization.organizationId : undefined;
-  const searchTerm = useDebouncedValue(search.trim(), 250);
-
-  return useQuery({
+  const trimmedSearch = search.trim();
+  const searchTerm = useDebouncedValue(trimmedSearch, 250);
+  const query = useQuery({
     queryKey: [...customerKeys.all, "selector-search", organizationId ?? "unresolved", searchTerm],
     enabled: enabled && !!organizationId && searchTerm.length >= 2,
     staleTime: 30_000,
     queryFn: () => searchCustomersForSelector(searchTerm),
   });
+
+  return {
+    ...query,
+    isSearchPending: enabled && trimmedSearch.length >= 2 && trimmedSearch !== searchTerm,
+  };
 }
 
+/**
+ * Detalle por id — consulta directa por PK.
+ * Evita depender de `useCustomers()` (que está limitado y podría no incluir al cliente buscado).
+ */
 export function useCustomer(id: string | undefined) {
   return useQuery({
     ...customerQueries.detail(id ?? ""),
