@@ -1,12 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import { addDays, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBookingsRange, bookingKeys } from "@/features/bookings";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useServerTodayMty } from "@/features/availability";
+import { BOOKINGS_RANGE_LIMIT, useBookingsRange, bookingKeys } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
@@ -29,14 +32,6 @@ function rangeFns(mode: "month" | "week") {
 export default function CalendarPage() {
   const qc = useQueryClient();
   const [currentDate, setCurrentDate] = useState(nowMty());
-  const fetchFrom = subMonths(currentDate, 1);
-  const fetchTo = addMonths(currentDate, 1);
-  const { data: bookings, isLoading: bLoading, isError: bError, isFetching: bFetching, refetch: bRefetch } = useBookingsRange(fetchFrom, fetchTo);
-  const {
-    forkliftMap, forklifts, isLoading: fLoading,
-    isError: fError, isFetching: fFetching, refetch: fRefetch,
-  } = useForkliftMap();
-
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useState<"gantt" | "list">(isMobile ? "list" : "gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
@@ -45,6 +40,31 @@ export default function CalendarPage() {
   const fns = rangeFns(ganttRange);
   const rangeStart = fns.start(currentDate);
   const rangeEnd = fns.end(currentDate);
+  const todayYmd = useServerTodayMty();
+  const currentBookingsEnd = addDays(parseISO(todayYmd), 3);
+  const {
+    data: rangeBookingsRaw = [],
+    isLoading: bLoading,
+    isError: bError,
+    isFetching: bFetching,
+    refetch: bRefetch,
+  } = useBookingsRange(rangeStart, rangeEnd);
+  const {
+    data: currentBookings = [],
+    isLoading: currentBookingsLoading,
+    isError: currentBookingsError,
+    isFetching: currentBookingsFetching,
+    refetch: currentBookingsRefetch,
+  } = useBookingsRange(todayYmd, currentBookingsEnd);
+  const {
+    forkliftMap, forklifts, isLoading: fLoading,
+    isError: fError, isFetching: fFetching, refetch: fRefetch,
+  } = useForkliftMap();
+
+  const bookingsTruncated = rangeBookingsRaw.length > BOOKINGS_RANGE_LIMIT;
+  const bookings = bookingsTruncated
+    ? rangeBookingsRaw.slice(0, BOOKINGS_RANGE_LIMIT)
+    : rangeBookingsRaw;
 
   // A5-07: los mantenimientos programados (próximo servicio) y las órdenes de
   // trabajo abiertas se pintan como franjas sobre la fila del equipo, para que
@@ -66,31 +86,34 @@ export default function CalendarPage() {
   // cambia el dataset o el día actual.
   const todayTs = nowMty().getTime();
   const endingSoon = useMemo(() => {
-    if (!bookings) return [];
-    return bookings.filter((b) => {
+    return currentBookings.filter((b) => {
       if (b.status !== "confirmed") return false;
       const endTs = Date.parse(b.end_date);
       if (!Number.isFinite(endTs)) return false;
       const daysLeft = differenceInDays(endTs, todayTs);
       return daysLeft >= 0 && daysLeft <= 3;
     });
-  }, [bookings, todayTs]);
+  }, [currentBookings, todayTs]);
+
+  // Combina los estados de las consultas para mantener la orquestación legible.
+  const hasQueryError = [bError, currentBookingsError, fError].some(Boolean);
+  const isLoading = [bLoading, currentBookingsLoading, fLoading].some(Boolean);
 
   // R22-C: el calendario necesita reservas Y equipos; reintentar ambos.
-  if (bError || fError) {
+  if (hasQueryError) {
     return (
       <PageContainer>
         <PageHeader title="Calendario de Disponibilidad" />
         <QueryErrorState
           entity="el calendario"
-          onRetry={() => { void bRefetch(); void fRefetch(); }}
-          isRetrying={bFetching || fFetching}
+          onRetry={() => { void bRefetch(); void currentBookingsRefetch(); void fRefetch(); }}
+          isRetrying={[bFetching, currentBookingsFetching, fFetching].some(Boolean)}
         />
       </PageContainer>
     );
   }
 
-  if (bLoading || fLoading) {
+  if (isLoading) {
     return <CalendarLoadingSkeleton />;
   }
 
@@ -118,14 +141,29 @@ export default function CalendarPage() {
         subtitle="Ver reservas de toda la flota"
       />
       <EndingSoonAlert items={endingSoon} forkliftMap={forkliftMap} />
+      {bookingsTruncated && (
+        <Alert>
+          <WarnIcon className="h-4 w-4" />
+          <AlertDescription>
+            El periodo supera {BOOKINGS_RANGE_LIMIT} reservas. Se muestran solo las primeras {BOOKINGS_RANGE_LIMIT};
+            cambia a Semana o elige otro periodo para revisar los resultados completos.
+          </AlertDescription>
+        </Alert>
+      )}
 
-      <CalendarStatCards forklifts={forklifts} bookings={bookings} />
+      <CalendarStatCards forklifts={forklifts} bookings={currentBookings} />
 
       <CalendarToolbar
         viewMode={viewMode}
         setViewMode={setViewMode}
         ganttRange={ganttRange}
         setGanttRange={setGanttRange}
+        rangeLabel={rangeLabel}
+        prevLabel={fns.prevLabel}
+        nextLabel={fns.nextLabel}
+        onPrev={navigateBack}
+        onNext={navigateForward}
+        onToday={navigateToday}
         isRefreshing={isRefreshing}
         onRefresh={() => { void handleRefresh(); }}
       />
@@ -148,9 +186,14 @@ export default function CalendarPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Equipos y reservas</CardTitle>
+            <CardDescription>Reservas no canceladas en {rangeLabel.toLowerCase()}.</CardDescription>
           </CardHeader>
           <CardContent>
-            <EquipmentListView forklifts={forklifts} bookings={bookings} />
+            <EquipmentListView
+              forklifts={forklifts}
+              bookings={bookings}
+              currentBookings={currentBookings}
+            />
           </CardContent>
         </Card>
       )}

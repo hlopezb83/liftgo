@@ -17,6 +17,7 @@ type Forklift = Tables<"forklifts">;
 interface EquipmentListViewProps {
   forklifts: Forklift[] | undefined;
   bookings: BookingWithForklift[] | undefined;
+  currentBookings: BookingWithForklift[] | undefined;
 }
 
 interface EnrichedBooking {
@@ -43,7 +44,7 @@ function enrichBookings(bookings: BookingWithForklift[] | undefined): Map<string
   return map;
 }
 
-export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProps) {
+export function EquipmentListView({ forklifts, bookings, currentBookings }: EquipmentListViewProps) {
   const bookingsByForklift = useMemo(() => enrichBookings(bookings), [bookings]);
   // M12: día calendario MTY (YYYY-MM-DD) — los timestamps perdían el último
   // día de la renta (end_date a medianoche < ahora) y el badge "Activa".
@@ -54,24 +55,15 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   // El badge usa el estado físico canónico; una reserva vigente se presenta
   // aparte y no convierte por sí sola la unidad en `rented`.
   const rentedIds = useMemo(
-    () => (bookings ? computeFleetAvailability(forklifts, bookings, todayYmd)?.rentedForkliftIds : undefined),
-    [forklifts, bookings, todayYmd],
+    () => (currentBookings ? computeFleetAvailability(forklifts, currentBookings, todayYmd)?.rentedForkliftIds : undefined),
+    [forklifts, currentBookings, todayYmd],
   );
 
   return (
     <div className="space-y-1">
       {forklifts?.map((fl) => {
-        const flBookings = bookingsByForklift.get(fl.id) ?? [];
-        const activeBooking = flBookings.find(
-          (e) =>
-            e.booking.status === BOOKING_STATUS.confirmed &&
-            e.booking.start_date <= todayYmd &&
-            e.booking.end_date >= todayYmd,
-        )?.booking;
-        const upcoming = flBookings
-          .filter((e) => e.booking.start_date > todayYmd && e.booking.status === BOOKING_STATUS.confirmed)
-          .sort((a, b) => a.startTs - b.startTs)
-          .map((e) => e.booking);
+        const periodBookings = (bookingsByForklift.get(fl.id) ?? [])
+          .sort((a, b) => a.startTs - b.startTs);
 
         return (
           <Collapsible key={fl.id}>
@@ -91,21 +83,25 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
                 />
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {activeBooking && <span className="text-primary font-medium">Reserva vigente</span>}
-                {upcoming.length > 0 && <span>{upcoming.length} próxima{upcoming.length !== 1 ? "s" : ""}</span>}
-                {!activeBooking && upcoming.length === 0 && <span>Sin reservas</span>}
+                {periodBookings.length > 0 && (
+                  <span>{periodBookings.length} reserva{periodBookings.length !== 1 ? "s" : ""} en el periodo</span>
+                )}
+                {periodBookings.length === 0 && <span>Sin reservas en el periodo</span>}
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="ml-7 mt-1 mb-2 space-y-1.5">
-                {activeBooking && (
-                  <BookingRow booking={activeBooking} label="Activa" />
-                )}
-                {upcoming.map((b) => (
-                  <BookingRow key={b.id} booking={b} label="Próxima" />
+                {periodBookings.map(({ booking }) => (
+                  <BookingRow
+                    key={booking.id}
+                    booking={booking}
+                    label={bookingListLabel(booking, todayYmd)}
+                  />
                 ))}
-                {!activeBooking && upcoming.length === 0 && (
-                  <p className="text-xs text-muted-foreground py-2 pl-2">Sin reservas activas ni programadas.</p>
+                {periodBookings.length === 0 && (
+                  <p className="text-xs text-muted-foreground py-2 pl-2">
+                    Sin reservas confirmadas ni completadas en este periodo.
+                  </p>
                 )}
               </div>
             </CollapsibleContent>
@@ -116,6 +112,13 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   );
 }
 
+
+function bookingListLabel(booking: BookingWithForklift, todayYmd: string): string {
+  if (booking.status === BOOKING_STATUS.completed) return "Completada";
+  if (booking.start_date <= todayYmd && booking.end_date >= todayYmd) return "Activa";
+  if (booking.start_date > todayYmd) return "Programada";
+  return "Confirmada";
+}
 
 function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
   const duration = rentalDaysInclusive(parseISO(booking.start_date), parseISO(booking.end_date));
