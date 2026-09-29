@@ -99,7 +99,11 @@ function makeDeps(opts: {
 Deno.test("download-cfdi: permite consulta de CFDI a auditor sin otorgar permisos de escritura", async () => {
   const { deps } = makeDeps({ role: "auditor" });
   const res = await handleDownloadCfdi(makeRequest({}), deps);
-  assertEquals(res.status, 400, "el rol pasó autenticación; el payload vacío es lo que se rechaza");
+  assertEquals(
+    res.status,
+    400,
+    "el rol pasó autenticación; el payload vacío es lo que se rechaza",
+  );
 });
 
 Deno.test("download-cfdi: MULTIEMPRESA rechaza factura de otra organización sin descargar ni leer secretos ajenos", async () => {
