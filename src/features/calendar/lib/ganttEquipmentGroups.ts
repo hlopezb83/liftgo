@@ -5,14 +5,14 @@ export type GanttForklift = Pick<
   "id" | "name" | "manufacturer" | "model" | "status"
 >;
 
-export interface GanttForkliftGroups {
-  active: GanttForklift[];
-  available: GanttForklift[];
-  maintenance: GanttForklift[];
-  rented: GanttForklift[];
-  retired: GanttForklift[];
-  sold: GanttForklift[];
-  other: GanttForklift[];
+export interface GanttForkliftGroups<TForklift extends GanttForklift = GanttForklift> {
+  active: TForklift[];
+  available: TForklift[];
+  maintenance: TForklift[];
+  rented: TForklift[];
+  retired: TForklift[];
+  sold: TForklift[];
+  other: TForklift[];
 }
 
 /**
@@ -20,11 +20,11 @@ export interface GanttForkliftGroups {
  * status makes them unavailable. Only explicitly available units belong in the
  * Gantt's "Disponibles" section.
  */
-export function groupForkliftsForGantt(
-  forklifts: GanttForklift[],
+export function groupForkliftsForGantt<TForklift extends GanttForklift>(
+  forklifts: TForklift[],
   forkliftsWithConfirmedBooking: ReadonlySet<string>,
-): GanttForkliftGroups {
-  const groups: GanttForkliftGroups = {
+): GanttForkliftGroups<TForklift> {
+  const groups: GanttForkliftGroups<TForklift> = {
     active: [],
     available: [],
     maintenance: [],

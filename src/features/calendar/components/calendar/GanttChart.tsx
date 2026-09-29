@@ -21,9 +21,9 @@ interface GanttChartProps {
   maintenanceWindows?: MaintenanceWindow[];
 }
 
-type Forklift = GanttForklift;
+type Forklift = Tables<"forklifts">;
 
-function groupByModel(items: Forklift[]): Array<{ key: string; count: number }> {
+function groupByModel(items: GanttForklift[]): Array<{ key: string; count: number }> {
   const map = new Map<string, number>();
   for (const f of items) {
     const key = `${f.manufacturer ?? ""} ${f.model}`.trim() || "Sin modelo";
