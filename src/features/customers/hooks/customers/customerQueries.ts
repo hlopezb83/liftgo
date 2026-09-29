@@ -5,10 +5,12 @@
  * para la empresa actual (`organization_customers`).
  */
 import { useQuery } from "@tanstack/react-query";
+import { useOrganizationContext } from "@/contexts/OrganizationContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { customerKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
@@ -124,6 +126,76 @@ export function useCustomers() {
  * Detalle por id — consulta directa por PK.
  * Evita depender de `useCustomers()` (que está limitado y podría no incluir al cliente buscado).
  */
+function sanitizeCustomerSearchTerm(value: string): string {
+  return value
+    .replace(/[,"'()]/g, "")
+    .replace(/[\\%_]/g, (character) => `\\${character}`);
+}
+
+function customerSelectorSearchBase() {
+  return supabase
+    .from("organization_customers")
+    .select(`status, ${RELATION_COLUMNS}, customers!inner(${CUSTOMER_LIST_COLUMNS})`)
+    .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
+    .is("customers.deleted_at", null)
+    .or(e2eVisibilityFilter(), { referencedTable: "customers" })
+    .not("customers.name", "ilike", "E2E%")
+    .or("email.is.null,email.neq.e2e-ui@test.local", { referencedTable: "customers" });
+}
+
+export async function searchCustomersForSelector(search: string): Promise<{
+  customers: Customer[];
+  isTruncated: boolean;
+}> {
+  const term = sanitizeCustomerSearchTerm(search.trim());
+  if (term.length < 2) return { customers: [], isTruncated: false };
+
+  const pattern = `%${term}%`;
+  const [relationMatches, identityMatches] = await Promise.all([
+    customerSelectorSearchBase()
+      .or(`alias.ilike.${pattern},razon_social.ilike.${pattern},rfc.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern},contact_person.ilike.${pattern}`)
+      .order("alias", { ascending: true })
+      .limit(LIST_FETCH_LIMIT)
+      .returns<CustomerRelationRow[]>(),
+    customerSelectorSearchBase()
+      .or(`name.ilike.${pattern},rfc.ilike.${pattern},email.ilike.${pattern},phone.ilike.${pattern}`, { referencedTable: "customers" })
+      .order("customers(name)")
+      .limit(LIST_FETCH_LIMIT)
+      .returns<CustomerRelationRow[]>(),
+  ]);
+
+  if (relationMatches.error || identityMatches.error) {
+    throw relationMatches.error ?? identityMatches.error;
+  }
+
+  const byId = new Map<string, Customer>();
+  for (const row of [...(relationMatches.data ?? []), ...(identityMatches.data ?? [])]) {
+    if (row.customers) byId.set(row.customers.id, mergeCustomerRelation(row));
+  }
+
+  const sorted = [...byId.values()].sort((a, b) =>
+    (a.name ?? "").localeCompare(b.name ?? "", "es-MX"),
+  );
+  return {
+    customers: sorted.slice(0, LIST_PAGE_LIMIT),
+    isTruncated: sorted.length > LIST_PAGE_LIMIT,
+  };
+}
+
+/** Búsqueda remota por texto: no depende del límite del listado inicial de clientes. */
+export function useCustomerSelectorSearch(search: string, enabled: boolean) {
+  const organization = useOrganizationContext();
+  const organizationId = organization.status === "ready" ? organization.organizationId : undefined;
+  const searchTerm = useDebouncedValue(search.trim(), 250);
+
+  return useQuery({
+    queryKey: [...customerKeys.all, "selector-search", organizationId ?? "unresolved", searchTerm],
+    enabled: enabled && !!organizationId && searchTerm.length >= 2,
+    staleTime: 30_000,
+    queryFn: () => searchCustomersForSelector(searchTerm),
+  });
+}
+
 export function useCustomer(id: string | undefined) {
   return useQuery({
     ...customerQueries.detail(id ?? ""),
