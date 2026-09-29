@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { useForm } from "react-hook-form";
 import {
   CurrencyField, DateField, SelectField, TextField, TextareaField, type SelectOption,
@@ -13,6 +14,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
 import { useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";
@@ -80,7 +82,16 @@ function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
 export function RegisterSupplierPaymentDialog({
   open, onOpenChange, billId, billNumber, balance, currency = "MXN",
 }: Props) {
-  const register = useRegisterSupplierPayment();
+  const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
+  const register = useRegisterSupplierPayment({
+    onBusinessBlock: (block) => {
+      setServerBlock({
+        ...block,
+        reason: "El saldo pendiente cambió antes de que se guardara el pago.",
+        nextStep: "Revisa el saldo actualizado que aparece arriba y confirma el monto antes de volver a intentar.",
+      });
+    },
+  });
   const uploader = useUploadSupplierReceipt();
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
 
@@ -100,6 +111,7 @@ export function RegisterSupplierPaymentDialog({
     setPrevOpen(open);
     setPrevBalance(balance);
     if (open) {
+      if (!prevOpen) setServerBlock(null);
       setReceiptFile(null);
       form.reset(buildDefaults(balance));
     }
@@ -107,6 +119,7 @@ export function RegisterSupplierPaymentDialog({
 
 
   const onSubmit = async (data: SupplierPaymentFormData) => {
+    setServerBlock(null);
     let receipt_url = data.receipt_url || undefined;
     if (receiptFile) {
       const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
@@ -141,6 +154,7 @@ export function RegisterSupplierPaymentDialog({
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          {serverBlock && <BlockedActionNotice block={serverBlock} />}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <CurrencyField control={form.control} name="amount" label="Monto" required />
             <DateField control={form.control} name="payment_date" label="Fecha" required disabledMatcher={{ after: nowMty() }} />
