@@ -18,6 +18,7 @@ describe("findInvoiceFolioGaps", () => {
     const result = findInvoiceFolioGaps([
       { invoice_number: "FAC-0001", status: "sent" },
       { invoice_number: "FAC-0002", status: "cancelled" },
+      { invoice_number: "FAC-0003", status: "sent" },
       { invoice_number: "FAC-0004", status: "paid" },
       { invoice_number: "FAC-0006", status: "sent" },
     ]);
@@ -25,7 +26,7 @@ describe("findInvoiceFolioGaps", () => {
     expect(result).toEqual({ count: 1, preview: ["0005"] });
   });
 
-  it("keeps a compact preview while counting every gap", () => {
+  it("keeps a compact preview while counting every gap", async () => {
     const result = findInvoiceFolioGaps([
       { invoice_number: "FAC-0001", status: "sent" },
       { invoice_number: "FAC-0200", status: "sent" },
