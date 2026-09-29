@@ -1,6 +1,8 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { cashFlowProjectionQueries } from "@/features/cash-flow";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
+import { resolveBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { exportablePayableQueries } from "./useExportablePayables";
 import { supplierBillKeys } from "./useSupplierBills";
 
@@ -21,7 +23,21 @@ export interface RegisterPaymentInput {
   batchId?: string | null;
 }
 
-export function useRegisterSupplierPayment() {
+const paymentInvalidationKeys = (billId: string) => [
+  supplierBillKeys.all,
+  supplierBillKeys.detail(billId),
+  exportablePayableQueries.keys.all,
+  cashFlowProjectionQueries.keys.all,
+  ["accounts_payable_kpis"],
+  ["dashboard-financial-kpis"],
+  ["cash-flow"],
+];
+
+export function useRegisterSupplierPayment(opts?: {
+  onBusinessBlock?: (block: BusinessBlock) => void;
+}) {
+  const queryClient = useQueryClient();
+
   return useEntityMutation({
     mutationFn: async (input: RegisterPaymentInput) =>
       callRpc<string>("register_supplier_payment", {
@@ -37,15 +53,18 @@ export function useRegisterSupplierPayment() {
       }),
     // R-M3: incluir la proyección de flujo de caja para que "POR PAGAR" baje
     // de inmediato tras registrar un pago (antes requería F5).
-    invalidateKeysFn: (_id, vars) => [
-      supplierBillKeys.all,
-      supplierBillKeys.detail(vars.bill_id),
-      exportablePayableQueries.keys.all,
-      cashFlowProjectionQueries.keys.all,
-      ["accounts_payable_kpis"],
-      ["dashboard-financial-kpis"],
-      ["cash-flow"],
-    ],
+    invalidateKeysFn: (_id, vars) => paymentInvalidationKeys(vars.bill_id),
+    onError: (error, vars) => {
+      // Si otro movimiento cambió el saldo entre la consulta y el guardado,
+      // actualiza la ficha y los indicadores antes de que el usuario reintente.
+      if (resolveBusinessBlock(error)?.code !== "payment_exceeds_balance") return;
+      void Promise.all(
+        paymentInvalidationKeys(vars.bill_id).map((queryKey) =>
+          queryClient.invalidateQueries({ queryKey }),
+        ),
+      );
+    },
+    ...(opts?.onBusinessBlock ? { onBusinessBlock: opts.onBusinessBlock } : {}),
     successMsg: "Pago registrado",
     errorTitle: "No se pudo registrar el pago",
   });
