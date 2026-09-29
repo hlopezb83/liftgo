@@ -82,7 +82,7 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
     };
     if (contact) {
       update.mutate(
-        { id: contact.id, supplier_id: supplierId, patch: payload },
+        { id: contact.id, supplier_id: supplierId, values: payload },
         { onSuccess: () => onOpenChange(false) },
       );
     } else {

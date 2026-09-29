@@ -12,8 +12,14 @@ const SUPPLIER_CONTACT_COLUMNS = sel(
 );
 
 export type SupplierContact = Database["public"]["Tables"]["supplier_contacts"]["Row"];
-type Insert = Database["public"]["Tables"]["supplier_contacts"]["Insert"];
-type Update = Database["public"]["Tables"]["supplier_contacts"]["Update"];
+type SupplierContactValues = {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string | null;
+  notes: string | null;
+  is_primary: boolean;
+};
 
 export const SUPPLIER_CONTACT_ROLES = [
   "Principal",
@@ -52,30 +58,21 @@ export function useSupplierContacts(supplierId: string | undefined) {
   });
 }
 
-async function clearPrimary(supplierId: string, exceptId?: string) {
-  const q = supabase
-    .from("supplier_contacts")
-    .update({ is_primary: false })
-    .eq("supplier_id", supplierId)
-    .eq("is_primary", true);
-  if (exceptId) q.neq("id", exceptId);
-  const { error } = await q;
-  if (error) throw error;
-}
-
 export function useCreateSupplierContact() {
   return useEntityMutation({
-    mutationFn: async (input: Insert) => {
-      if (input.is_primary && input.supplier_id) {
-        await clearPrimary(input.supplier_id);
-      }
-      const { data, error } = await supabase
-        .from("supplier_contacts")
-        .insert(input)
-        .select("id")
-        .single();
+    mutationFn: async (input: SupplierContactValues & { supplier_id: string }) => {
+      const { data, error } = await supabase.rpc("save_supplier_contact", {
+        p_supplier_id: input.supplier_id,
+        p_contact_id: null,
+        p_name: input.name,
+        p_email: input.email,
+        p_phone: input.phone,
+        p_role: input.role,
+        p_notes: input.notes,
+        p_is_primary: input.is_primary,
+      });
       if (error) throw error;
-      return data;
+      return { id: data };
     },
     invalidateKeys: [supplierContactKeys.all],
     successMsg: "Contacto agregado",
@@ -85,13 +82,27 @@ export function useCreateSupplierContact() {
 
 export function useUpdateSupplierContact() {
   return useEntityMutation({
-    mutationFn: async ({ id, supplier_id, patch }: { id: string; supplier_id: string; patch: Update }) => {
-      if (patch.is_primary === true) {
-        await clearPrimary(supplier_id, id);
-      }
-      const { error } = await supabase.from("supplier_contacts").update(patch).eq("id", id);
+    mutationFn: async ({
+      id,
+      supplier_id,
+      values,
+    }: {
+      id: string;
+      supplier_id: string;
+      values: SupplierContactValues;
+    }) => {
+      const { data, error } = await supabase.rpc("save_supplier_contact", {
+        p_supplier_id: supplier_id,
+        p_contact_id: id,
+        p_name: values.name,
+        p_email: values.email,
+        p_phone: values.phone,
+        p_role: values.role,
+        p_notes: values.notes,
+        p_is_primary: values.is_primary,
+      });
       if (error) throw error;
-      return id;
+      return data;
     },
     invalidateKeys: [supplierContactKeys.all],
     successMsg: "Contacto actualizado",

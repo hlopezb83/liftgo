@@ -88,7 +88,7 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
     };
     if (account) {
       update.mutate(
-        { id: account.id, supplier_id: supplierId, patch: payload },
+        { id: account.id, supplier_id: supplierId, values: payload },
         { onSuccess: () => onOpenChange(false) },
       );
     } else {
