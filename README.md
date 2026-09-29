@@ -1,92 +1,71 @@
 # LiftGo ERP
 
-ERP interno para gestión de flotas de montacargas, CRM, reservas, facturación
-CFDI 4.0, mantenimiento y portal de clientes. Localizado en español mexicano
-(`es-MX`), timezone `America/Monterrey`, moneda predeterminada MXN.
+ERP para operar renta y venta de montacargas: CRM, clientes, cotizaciones,
+reservas, contratos, flota, entregas, devoluciones, mantenimiento, refacciones y
+facturación CFDI 4.0. La interfaz usa español mexicano, zona horaria
+`America/Monterrey` y MXN como moneda predeterminada.
 
 ## Stack
 
-- **Frontend:** React 19 + TanStack Start / TanStack Router (SSR, rutas por
-  archivo) sobre Vite 8 + TypeScript 6 + Tailwind CSS v4 + shadcn/ui.
-- **Backend:** Lovable Cloud (Supabase gestionado) — Postgres con RLS, Edge
-  Functions Deno, Storage, Auth y Vault.
-- **Lógica de servidor de la app:** server functions (`createServerFn`) en
-  `src/lib/*.functions.ts`, ejecutadas en el Worker SSR.
-- **Estado remoto:** TanStack Query v5 (persister en `localStorage`).
-- **Testing:** Vitest 4 (happy-dom) para unit/integration; Playwright para E2E.
-- **PDF:** `@react-pdf/renderer` (lazy-loaded) — ver `src/lib/pdf/`.
-- **Build y despliegue:** build SSR con Nitro (preset `cloudflare-module`) hacia
-  `dist/client` + `dist/server`; configuración de Worker en `wrangler.jsonc`.
+- React y TanStack Start/Router con Vite, TypeScript y Tailwind CSS.
+- Lovable Cloud para Postgres, Auth, RLS, Storage y Edge Functions (Deno).
+- Server functions de TanStack Start en `src/lib/*.functions.ts`.
+- TanStack Query para estado remoto.
+- Vitest para pruebas unitarias e integración; Playwright para E2E.
+- PDFs con `@react-pdf/renderer`; SSR como Worker mediante Nitro y Wrangler.
 
-## Requisitos
+Consulta las versiones y scripts exactos en `package.json`.
 
-- Node `>=24` (ver `engines` en `package.json`, `.nvmrc`, `.node-version`).
-- **Bun** como gestor de paquetes y runner de scripts.
+## Requisitos y comandos
 
-## Cómo trabajar en este proyecto
-
-Este repositorio se edita principalmente desde
-[Lovable](https://lovable.dev). Los cambios hechos en Lovable se commitean
-automáticamente y quedan disponibles en el editor local.
-
-Para desarrollo local:
+Se requiere Node.js 24 o posterior y Bun.
 
 ```bash
 bun install
-bun run dev            # servidor de desarrollo de Vite/TanStack Start
-bun run build          # build SSR de producción (dist/client + dist/server)
-bun run preview        # sirve el build con `wrangler dev --port 4173`
-bun run typecheck      # tsc --noEmit
-bun run lint           # ESLint
-bun run test           # unit tests (Vitest)
-bun run test:e2e       # Playwright (usa `bun run preview` en el puerto 4173)
-bun run changelog:check  # valida el changelog
+bun run dev
 ```
 
-El script `scripts/gen-version.mjs` corre automáticamente antes de `dev` y
-`build`, generando `public/version.json` a partir del changelog para que la
-UI muestre la versión sin descargar el changelog completo.
+Comprobaciones habituales:
 
-## Directorios clave
+```bash
+bun run lint --max-warnings=0
+bun run typecheck
+bun run arch:check
+bun run test
+bun run build
+bun run migrations:check
+```
 
-- `src/routes/*` — rutas file-based de TanStack Router (`__root.tsx`, layouts
-  `_main` y `_portal`). `src/routeTree.gen.ts` es generado: no editarlo.
-- `src/app-routes/*` — constantes de URL y registro de rutas (loader lazy,
-  módulo y nivel de permiso).
-- `src/router.tsx`, `src/start.ts`, `src/server.ts` — router, middlewares
-  (errores, CSRF, bearer de sesión) y entrada SSR del Worker.
-- `src/features/*` — módulos de negocio (bookings, invoices, crm, etc.).
-- `src/components/*` — componentes UI reutilizables.
-- `src/lib/*.functions.ts` — server functions; `*.server.ts` y `src/lib/server/`
-  son código exclusivo de servidor.
-- `src/styles.css` — Tailwind v4 y tokens de diseño (no hay `tailwind.config.ts`).
-- `supabase/functions/*` — Edge Functions Deno (CFDI, cron, storage).
-- `supabase/migrations/*` y `drizzle/migrations/*` — schema + RLS.
-- `tests/e2e/*` — specs Playwright (ver `tests/e2e/README.md`).
-- `supabase/tests/*` — smokes SQL y suites de RLS (ver `supabase/tests/rls/README.md`).
+E2E requiere cuentas de prueba y un backend aislado. Lee
+[tests/e2e/README.md](tests/e2e/README.md) antes de ejecutarlo. Las pruebas A/B
+de empresa y las pruebas SQL de RLS usan una base local efímera; consulta
+[docs/README.md](docs/README.md).
 
-## Documentación
+## Áreas principales
 
-Solo estos documentos se mantienen al día; todo lo demás (auditorías, planes,
-reportes puntuales) vive en el historial de cambios:
+- `src/features/`: módulos organizados por dominio.
+- `src/lib/`: funciones de servidor y utilidades compartidas.
+- `src/routes/`: rutas file-based de TanStack Router.
+- `drizzle/migrations/`: migraciones nuevas de esquema y RLS.
+- `supabase/migrations/`: historial SQL legado que CI reaplica.
+- `supabase/functions/`: Edge Functions Deno versionadas.
+- `tests/e2e/`, `tests/multi-tenant-ab/` y `supabase/tests/rls/`: suites de prueba.
 
-- `architecture.md` — arquitectura, convenciones y reglas de negocio críticas.
-- `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
-- `docs/migrations.md` — política de migraciones (legado Supabase vs. carril Drizzle).
-- `docs/paginacion-cursor.md` — patrón de listados y cuándo migrar a cursor.
-- `CHANGELOG.md` + `public/changelog/` — historial funcional versión por versión.
+## Multiempresa
+
+El código implementa alcance por organización y permisos de membresía; el logo
+LiftGo es común a todas las organizaciones. La presencia de ese código no
+demuestra el estado actual de Lovable Cloud, el ledger de migraciones, las
+membresías, Storage, llaves fiscales ni la recuperación de respaldos. Consulta
+el [estado multiempresa](docs/multiempresa/onboarding.md) y la
+[política de migraciones](docs/migrations.md) antes de concluir que un
+entorno está listo.
 
 ## Convenciones
 
-- Fechas: `DD/MM/YYYY`, timezone `America/Monterrey` (usar `nowMty()`).
-- Moneda: MXN por defecto (`formatCurrency` / `toMxn`).
-- Cada cambio publicado agrega una entrada a `public/changelog.json` +
-  `public/changelog/v{X.Y.Z}.json`.
-- Consultar `mem://index.md` antes de introducir patrones nuevos —
-  hay helpers canónicos (mutations, form dialogs, edge function shared).
-
-> Nota: la migración a multi-organización está **en curso**. El esquema ya
-> incluye organizaciones y `organization_id` en las tablas operativas; esta
-> revisión documental no certifica el cierre de la migración — cualquier
-> pendiente debe confirmarse contra el código vigente. Ver §6.2 de
-> `architecture.md`.
+- Fechas: `DD/MM/YYYY`; usa las funciones de fecha con zona de Monterrey.
+- MXN es la divisa predeterminada; no sumes importes de distintas monedas.
+- Los cambios publicados actualizan `public/changelog.json` y el detalle de
+  versión correspondiente en `public/changelog/`; `CHANGELOG.md` mantiene el
+  resumen para GitHub.
+- Consulta [docs/README.md](docs/README.md) para encontrar guías vigentes.

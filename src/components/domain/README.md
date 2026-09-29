@@ -1,14 +1,17 @@
-# `src/components/domain/` — componentes de dominio compartido
+# Componentes de dominio compartidos
 
-Componentes UI que encapsulan una convención de **presentación de datos de negocio** consumida por 2+ features. No hablan con Supabase ni contienen lógica de fetching; reciben props tipadas.
+`src/components/domain/` contiene componentes de presentación reutilizados por
+varias features. Reciben props tipadas y no consultan datos ni administran
+estado de servidor. Busca sus imports antes de mover o ampliar una pieza.
 
-Auditado en v6 (P3-7): los componentes listados debajo son legítimamente cross-feature y por eso viven aquí en lugar de `features/<x>/components/`.
+| Componente | Uso |
+| --- | --- |
+| `DetailRow` | Filas de etiquetas y valores en vistas detalle. |
+| `KpiTile` | Presentación de métricas de negocio. |
+| `NotesCard` | Notas en paneles de detalle. |
+| `ReadOnlyLineItemsTable` | Partidas de sólo lectura en documentos. |
+| `ReportChartCard` | Contenedor visual de gráficas. |
+| `TotalsSummary` | Subtotales, descuentos y totales. |
 
-| Componente | Consumido por | Justificación |
-| --- | --- | --- |
-| `DetailRow` / `NotesCard` | invoices, quotes, bookings, contracts, deliveries, returns, damage, fleet | Layout genérico para vistas detalle |
-| `TotalsSummary` | invoices, quotes | Totales moneda + descuentos |
-| `ReadOnlyLineItemsTable` | invoices, quotes | Tabla de partidas en modo lectura (misma estructura contable) |
-| `ReportChartCard` | reports, dashboard | Tarjeta wrapper para charts |
-
-Si un componente aquí termina siendo usado por **una sola** feature, muévelo a `features/<esa>/components/`.
+Si un componente queda con un único consumidor, muévelo al feature dueño.
+Actualiza este inventario cuando cambien los archivos o la responsabilidad.

@@ -1,64 +1,25 @@
-# Storage histórico (multiempresa)
+# Archivo histórico de auditorías de Storage multiempresa
 
-## Estado actual (2026-09-18)
+> **Snapshot, no estado actual.** Las cifras, conteos, referencias de migración,
+> policies y conclusiones inferiores pertenecen a auditorías fechadas de
+> septiembre de 2026. No las uses para decidir cambios actuales en Lovable
+> Cloud ni como confirmación del ledger o del contenido de Storage.
+> Consulta [onboarding multiempresa](./onboarding.md),
+> [gates multiempresa](./gates-segunda-organizacion.md) y
+> [política de migraciones](../migrations.md); verifica el proyecto y registra
+> la evidencia nueva antes de operar.
 
-> Este bloque es el **estado vigente**. Las secciones siguientes son
-> **snapshots históricos fechados** de las auditorías previas y se conservan
-> tal cual para trazabilidad: no describen la situación de hoy.
-
-- Migraciones **0030–0035 aplicadas** a la base conectada por el canal oficial.
-- **Operador raíz asignado** (exactamente 1 operador de plataforma); 5 membresías.
-- **Migración de Storage completada**: 293 referencias actualizadas, 0 pendientes,
-  0 fallos; 17 huérfanos copiados y verificados; **1 resolución manual activa**.
-- **Originales conservados** (632 objetos = 322 originales + copias). El borrado
-  de fuentes sigue **deshabilitado** y sin autorización.
-- **1 sola organización activa**.
-- **Branding global: ninguna organización tiene logo propio (2026-09-18)**. El
-  único logo del sistema es el lockup oficial «LIFT GO MONTACARGAS», asset local
-  versionado del repositorio (`public/brand/liftgo-montacargas.png`). Se usa
-  igual en el shell del ERP, el portal y **todos los documentos generados**
-  (cotización, reserva, contrato, factura, estado de cuenta y demás PDF).
-  - `company_settings.logo_url` quedó **sin uso**: no se lee para renderizar, no
-    se firma por organización y no se descarga ningún host externo. Se retiró de
-    la UI la carga/preview de logos por empresa, y del flujo de branding/PDF la
-    dependencia del campo.
-  - El **valor histórico permanece intacto** en la base: no se borra, no se
-    reescribe y no se mueve nada en Storage. **No requiere migración ni acción
-    de reemplazo**, y no hace falta pedir al propietario que vuelva a subir
-    logos por empresa.
-  - Razón social, RFC y demás **datos fiscales siguen siendo por organización**,
-    con sus pruebas A/B de aislamiento. Las pruebas de logo ahora verifican lo
-    contrario: A y B obtienen **el mismo asset global** en cada tipo de
-    documento, y el valor histórico del campo no altera la marca.
-
-### Marca global de LiftGo (no es dato de tenant)
-
-Toda la marca visible —navegación, sidebar, encabezados de acceso, portal y
-documentos— sale del **asset local del repositorio**, idéntico para cualquier
-empresa: el lockup `public/brand/liftgo-montacargas.png` (vía `BrandLockup`,
-con `object-contain`, ancho automático y colores originales) y, para el sidebar
-colapsado, el emblema compacto `public/favicon.png` (`BrandMark`). Los
-generadores de PDF cargan el mismo asset con `loadGlobalBrandLogo()`; no hay
-fetch a URLs remotas ni firmas por organización. Por diseño el logo **no lleva
-gate ni prueba A/B de aislamiento**: las pruebas exigen igualdad entre tenants.
-
-### Gates obligatorios antes de dar de alta una segunda empresa
-
-1. **Branding: sin gate.** El logo es global (asset local del repositorio) y no
-   depende de la organización, así que no hay nada que aislar ni migrar. Sí se
-   mantiene el gate de aislamiento de los **datos propios** de cada empresa.
-2. **Ensayo A/B aislado** (empresas de prueba) cubriendo datos, Storage y portal.
-3. **CI completo en verde** (RLS, smoke SQL, Deno, tipos, lint, build).
-4. **Recuperación verificada**: respaldo reciente **y restauración ensayada**
-   documentada. Hoy hay respaldo diario, pero **no** hay restore ensayado.
+La marca LiftGo es global y común a todas las organizaciones; logos propios
+por empresa no forman parte del producto. Las referencias inferiores al logo
+organizacional describen código anterior a la decisión de marca compartida.
 
 ---
 
 # Snapshot histórico · Auditoría de solo lectura (2026-09-17, actualizado 2026-09-18)
 
-Fecha del snapshot: 2026-09-17 · Estado **en ese momento**: propuesta documentada, nada ejecutado. Superado por el bloque "Estado actual" de arriba.
+Fecha del snapshot: 2026-09-17 · Estado **en ese momento**: propuesta documentada, nada ejecutado. Snapshot histórico. El estado y los gates actuales viven en `docs/multiempresa/onboarding.md` y `docs/multiempresa/gates-segunda-organizacion.md`.
 
-Fuente: informe `.lovable/plan.md` (commit `43d494d2a96225f86410888e3c71abdbddadaea9`) y verificaciones `SELECT` directas contra producción. Auditoría estrictamente de lectura: sin cambios de código, esquema, datos, policies, buckets ni objetos; sin DDL ni operaciones de Storage.
+Fuente histórica: auditoría de solo lectura del 17/09/2026 y consultas al proyecto revisado en esa fecha. El plan original era un artefacto temporal ya retirado; esta referencia no es una instrucción actual.
 
 ## 1. Buckets y objetos
 

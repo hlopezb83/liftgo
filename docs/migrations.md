@@ -1,67 +1,65 @@
 # Política de migraciones
 
-Documento vigente sobre cómo se gestionan los cambios de esquema y RLS en LiftGo.
-Sustituye cualquier indicación contradictoria en otros documentos.
+Esta guía describe el flujo versionado del repositorio. No es una lectura del
+ledger de Lovable Cloud ni certifica qué migraciones hay aplicadas.
 
-## Dos carriles
+## Carriles de migración
 
 ### `supabase/migrations/` — historial legado
 
-- Es el historial histórico de Supabase: **forward-only e inmutable**.
-- No se edita, no se renombra, no se reordena y no se borra ningún archivo.
-- Sólo se usa para reconstruir la base desde cero en CI.
+Es el historial anterior que CI reaplica para reconstruir una base limpia.
+Trátalo como forward-only: no edites, renombres, reordenes ni borres una
+migración que ya haya sido compartida.
 
-### `drizzle/migrations/` — carril vigente
+### `drizzle/migrations/` — migraciones nuevas
 
-- Fuente de verdad para **nuevas** migraciones de esquema y RLS multiempresa.
-- `meta/_journal.json` debe mantener: índices continuos desde 0, tags en
-  correspondencia 1:1 con los archivos `.sql`, y `when` entero y estrictamente
-  creciente (drizzle-orm omite en silencio cualquier migración con `when`
-  menor o igual al máximo ya aplicado).
-- Verificación local y en CI: `bun run migrations:check`.
+Las nuevas migraciones de esquema y RLS viven en `drizzle/migrations/`, junto
+con `meta/_journal.json`. El journal debe tener índices continuos desde 0, una
+entrada por archivo SQL, tags únicos y valores `when` enteros estrictamente
+crecientes.
 
-## Orden en CI
+Valida el journal con:
 
-El workflow `.github/workflows/rls-db-tests.yml` ejecuta, en este orden:
+```bash
+bun run migrations:check
+```
 
-1. `supabase db reset` — reaplica todo el historial legado desde cero.
-2. `bun run migrations:check` — valida la coherencia del journal de Drizzle.
-3. `drizzle-kit migrate` — aplica el carril vigente sobre esa base efímera.
+El verificador no modifica la base. Revisa archivos y journal; CI lo ejecuta
+en el flujo de pruebas SQL.
 
-## Producción
+## Qué prueba CI
 
-- Las migraciones se aplican **exclusivamente por el canal oficial de migración
-  de Lovable**, nunca con `drizzle-kit migrate` ni con el editor SQL desde un
-  entorno local.
-- Antes de aplicar: preflight de sólo lectura sobre el ledger
-  (`drizzle.__drizzle_migrations`) confirmando el último `created_at` aplicado y
-  que la migración pendiente no está ya registrada.
-- Después de aplicar: verificación de sólo lectura del ledger y de los objetos
-  creados.
-- El registro con id 31 del ledger productivo tiene origen desconocido: **no se
-  borra, no se edita y no se atribuye automáticamente** a ningún archivo.
+El workflow
+`.github/workflows/rls-db-tests.yml` crea una base efímera, reaplica el
+historial legado, valida el journal de Drizzle, aplica las migraciones
+versionadas y ejecuta suites SQL de RLS. Una base limpia demuestra que la
+cadena del repositorio se reconstruye; no prueba que Lovable Cloud tenga el
+mismo ledger.
 
-### Estado observado el 23 de septiembre de 2026
+Consulta [docs/ci.md](./ci.md) y
+[supabase/tests/rls/README.md](../supabase/tests/rls/README.md) para los detalles.
 
-- El migrador oficial ya registró 0058–0065. La última fila comprobada fue
-  `id=67`, `created_at=1790874187000`: corresponde a
-  `0065_customer_relation_edit_isolation.sql`, y su hash coincide con ese archivo.
-- Antes de ese registro, una ejecución SQL directa expresamente autorizada
-  aplicó el contenido que entonces se llamaba
-  `0063_customer_relation_edit_isolation.sql`. Después Lovable reutilizó el
-  número 0063 para la baja de usuarios y eliminó el archivo de aislamiento del
-  repositorio. La migración 0065 reaplicó esa protección de forma idempotente y
-  quedó registrada por el canal oficial. El 0063 actual registra la baja
-  atómica de usuarios y su hash también coincide con su archivo.
-- `0064_ledger_sync_noop_0063.sql` está registrado. El archivo
-  `0066_ledger_sync_noop_0065.sql` sólo contiene `SELECT 1` y queda
-  pendiente de registro: se creó para disparar la aplicación oficial de 0064 y
-  0065. La próxima migración debe usar 0067 y un `when` mayor que
-  1790874188000; el canal oficial registrará 0066 junto con ella.
+## Aplicación en Lovable Cloud
+
+1. Revisa el diff y el resultado de CI sobre
+   el SHA que se propone aplicar.
+2. Haz un preflight de sólo lectura del ledger del proyecto correcto y confirma
+   qué migración es la última y cuáles están pendientes.
+3. Revisa dependencias, objetos existentes, permisos y la verificación posterior.
+4. Aplica por el canal oficial disponible para Lovable Cloud, no desde una base
+   local ni mediante una sesión SQL de desarrollo.
+5. Vuelve a leer el ledger y verifica los objetos y permisos esperados.
+6. Registra fecha, proyecto y SHA; no incluyas claves, tokens o datos personales.
+
+No reutilices IDs, números o timestamps de ledger observados en otra fecha como
+si fueran actuales. Si el ledger no está accesible o no coincide con el orden
+esperado, detén el rollout y resuelve la discrepancia antes de aplicar
+migraciones posteriores.
 
 ## Límite de certeza
 
-Ningún documento, fecha o changelog de este repositorio certifica por sí solo
-que producción esté sincronizada con `drizzle/migrations`. La única evidencia
-válida es una lectura directa del ledger productivo en el momento de la
-consulta.
+El contenido de
+`drizzle/migrations/`, el changelog, un build exitoso o las pruebas de CI no
+certifican el estado productivo. La evidencia de aplicación se obtiene
+consultando el ledger del proyecto Lovable Cloud y registrando esa verificación
+en el momento de la operación.

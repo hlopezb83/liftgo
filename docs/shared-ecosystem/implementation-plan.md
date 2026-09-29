@@ -1,13 +1,11 @@
 # Plan de implementación: ecosistema compartido LiftGo
 
-**Estado al 2026-09-23:** las fases 0–3 están desplegadas en Lovable Cloud
-(`v8.42.1`, migraciones `0046`–`0053`). Org 1 y la segunda organización
-comparten los ocho modelos; el inventario global de refacciones sigue vacío
-porque Org 1 no tiene SKUs aprobados. La segunda organización ya tiene una
-unidad, cliente, cotización, reserva y contrato en borrador para el ensayo
-operativo. Su configuración fiscal sigue vacía, por lo que no se han firmado
-contratos ni emitido CFDI de esa empresa. Las fases 4–7 continúan en el plan;
-el uso del logo global ya está implementado en la interfaz y los PDF.
+**Estado del plan al 29/09/2026:** las fases 0–3 y la marca común LiftGo tienen
+implementación en el repositorio. Que los archivos y migraciones estén en Git
+no demuestra que se hayan aplicado al proyecto Lovable Cloud. Verifica el
+ledger, los catálogos y las asignaciones directamente antes de afirmar el
+estado desplegado. La revisión jurídica del machote y las fases 5–7 son temas
+por validar, no evidencia de configuración en producción.
 
 ## Objetivo
 
@@ -89,8 +87,7 @@ ejecuta y no fija cantidades ni UUID de producción.
 
 ## Fase 1 — Modelos globales de equipo
 
-**Estado:** completada y desplegada en Lovable Cloud. Org 1 y Org 2 tienen los
-8 modelos enlazados al mismo maestro; la entrega inicial fue `v8.38.0`.
+**Estado en el repositorio:** implementación de modelos globales y enlaces locales presente. Verifica en Lovable Cloud qué migraciones y asignaciones están aplicadas antes de describir el estado de cada organización.
 
 1. Publicar funciones de plataforma para crear, actualizar y desactivar modelos.
 2. Construir la pantalla **Catálogo LiftGo de modelos** para operadores de
@@ -110,10 +107,7 @@ ejecuta y no fija cantidades ni UUID de producción.
 
 ## Fase 2 — SKUs globales e inventario local
 
-**Estado:** completada y desplegada en Lovable Cloud mediante la migración
-`0048` y las interfaces global/local. La entrega inicial fue `v8.39.0`. Org 1 tiene
-0 refacciones, por lo que la carga inicial se mantiene vacía hasta contar con
-SKUs reales aprobados.
+**Estado en el repositorio:** el esquema y las interfaces del catálogo global/local están versionados. La carga de SKUs y el inventario por organización deben verificarse en Cloud; no se presupone un conteo actual.
 
 1. Cargar o capturar en Org 1 el maestro inicial de refacciones.
 2. Publicar administración de `parts_catalog` para plataforma.
@@ -131,13 +125,7 @@ SKUs reales aprobados.
 
 ## Fase 3 — Contratos y pagarés versionados
 
-**Estado:** implementación técnica completada y desplegada en `v8.42.1`.
-Las migraciones `0049`–`0053` publican versiones globales, asignación y
-ajustes locales por empresa, y snapshot de cliente, equipo, plantilla,
-términos e identidad fiscal del emisor al firmar. Falta revisión jurídica del
-machote importado desde Org 1 y completar la identidad fiscal de Org 2 antes
-de firmar o generar sus PDF. Un contrato de Org 1 firmado antes de `0053`
-carece de emisor fiscal en su snapshot histórico; no se rellenó retroactivamente.
+**Estado en el repositorio:** el código y las migraciones versionadas definen plantillas globales, asignaciones locales y snapshots de contrato. La aplicación en Cloud, las asignaciones vigentes, la configuración fiscal y los documentos existentes requieren verificación externa. Revisa jurídicamente el machote de Org 1 antes de usarlo como plantilla legal.
 
 1. Revisar legalmente la versión importada desde Org 1.
 2. Publicar el editor de versiones para plataforma.
@@ -156,10 +144,7 @@ carece de emisor fiscal en su snapshot histórico; no se rellenó retroactivamen
 
 ## Fase 4 — Marca y formatos documentales
 
-**Estado:** logo único LiftGo implementado en navegación, portal y generadores
-de PDF. Quedan la administración de otros activos globales mediante
-`brand_assets`, la revisión visual de todos los formatos y la retirada segura
-del campo legado `company_settings.logo_url`.
+**Estado en el repositorio:** el logo único LiftGo se usa en navegación, portal y PDFs. No se deben habilitar logos por organización. Otros activos globales y retirar el campo legado `company_settings.logo_url` son propuestas separadas que requieren revisar consumidores.
 
 1. Mantener `/brand/liftgo-montacargas.png` como logo oficial inicial.
 2. Consumir `brand_assets` sólo para activos administrados por plataforma.
@@ -191,6 +176,8 @@ del campo legado `company_settings.logo_url`.
 4. Pruebas que impidan reconstruir datos sensibles de una organización.
 
 ## Estrategia de despliegue
+
+Estos pasos son criterios de implementación. Para un despliegue real sigue `docs/migrations.md` y registra evidencia nueva del proyecto Lovable Cloud; este plan no acredita una publicación.
 
 Cada fase seguirá este orden:
 

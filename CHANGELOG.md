@@ -1,3 +1,101 @@
+<!-- Mirror of public/changelog.json; keep newest releases at the top. -->
+
+## [8.42.27] - 2026-09-28 · patch · fix
+
+Una selección de reservas desactualizada ya no marca como facturadas las reservas que aún no tienen factura.
+
+- La generación rechaza un grupo cuando sólo algunas reservas tienen factura para ese periodo y pide actualizar la vista previa.
+- Las facturas ya existentes aparecen separadas de las nuevas; los choques de concurrencia se muestran como fallos en lugar de éxitos silenciosos.
+
+## [8.42.26] - 2026-09-27 · patch · fix
+
+La generación de borradores recurrentes consulta el historial completo de cada reserva y se detiene si una lectura falla.
+
+- Las facturas vigentes con estado fiscal vacío y las facturas antiguas sin vínculo intermedio cuentan como periodos ya facturados.
+- Las facturas canceladas no bloquean un periodo ni marcan extras como cobrados.
+- Una falla al leer facturas, impuestos o cotizaciones detiene el borrador afectado en lugar de asumir datos vacíos; las cotizaciones se buscan dentro de su empresa.
+
+## [8.42.25] - 2026-09-27 · patch · fix
+
+La selección de facturas recurrentes se reinicia ante cambios materiales y muestra importes sin mezclar monedas.
+
+- Si cambia el cliente, equipo, divisa o importe de un periodo, hay que volver a seleccionarlo antes de generar el borrador.
+- Clientes con el mismo nombre se muestran en grupos separados; los importes de MXN y USD no se suman entre sí.
+- El botón cuenta periodos seleccionados y el resumen identifica la renta estimada, ya que los extras pactados pueden agregarse al borrador.
+- La vista previa avisa cuando faltan periodos por mostrar y no presenta un bloqueo de datos como si todo el mes estuviera facturado.
+
+## [8.42.24] - 2026-09-27 · patch · fix
+
+Devoluciones, inventario, contratos, flota y reportes reflejan los datos de cada empresa con mayor precisión.
+
+- Las devoluciones usan la fecha local y vinculan las fotos a la inspección; subir archivos con el mismo nombre ya no provoca colisiones.
+- Reactivar refacciones conserva existencias y costos, y el folio del contrato se asigna junto con su guardado.
+- Flota, CRM y cartera muestran resultados completos y respetan los permisos de cada usuario y empresa.
+- El detalle de cartera se acomoda mejor en móvil y sus avisos de tipo de cambio siguen el filtro seleccionado.
+
+## [8.42.23] - 2026-09-27 · patch · fix
+
+El selector de reportes muestra completo el nombre de días reservados y las tarjetas del panel conservan su altura compacta.
+
+- El selector de reportes permite leer completo «Días reservados por unidad/modelo» en escritorio y móvil.
+- El indicador de flota comprometida hoy conserva el enlace a Equipos sin aumentar la altura de toda la fila.
+
+## [8.42.22] - 2026-09-27 · patch · fix
+
+El panel, los reportes y la ficha distinguen equipos comprometidos hoy, días reservados en un rango y ocupación física real.
+
+- El panel identifica la flota comprometida hoy y enlaza al listado de equipos; incluye unidades rentadas o con reserva confirmada vigente.
+- Los reportes identifican los días reservados dentro del rango elegido y aclaran que no requieren una entrega completada.
+- La ficha nombra explícitamente los días fuera y la ocupación física calculada desde la entrega hasta la devolución.
+- El gráfico mensual explica cuándo usa fechas previstas de reservas confirmadas.
+
+## [8.42.21] - 2026-09-27 · patch · fix
+
+La ficha del equipo calcula días de renta con los movimientos completados y refresca las métricas después de cada entrega o devolución.
+
+- Días Rentado empieza con una entrega completada y termina con la devolución registrada; una reserva sin entrega no suma ocupación.
+- La utilización usa fechas de Monterrey, excluye reservas E2E y cuenta una sola vez las fechas superpuestas.
+- Completar una entrega o devolución refresca también las métricas de la ficha.
+- La ficha explica el cálculo y ocupa todo el ancho cuando el rol no puede ver las tarifas.
+
+## [8.42.20] - 2026-09-27 · patch · fix
+
+Flota distingue la dirección registrada de la ubicación física actual y unifica su consulta. Los retornos pendientes mejoran su navegación en tarjetas.
+
+- La ficha y el listado consultan la misma dirección registrada; una ubicación de contrato o último movimiento puede ser histórica.
+- La ficha adapta direcciones largas y conserva la distinción entre un error de consulta y una ubicación ausente.
+- Las tarjetas móviles de flota identifican expresamente la ubicación registrada.
+- Las tarjetas de retornos pendientes ofrecen enlaces separados a la reserva y a registrar devolución, con foco por teclado y permisos existentes.
+
+## [8.42.19] - 2026-09-27 · patch · fix
+
+El alta de refacciones descarta capturas canceladas y distingue errores del catálogo. Flota y devoluciones mejoran su lectura y refresco después de movimientos.
+
+- Habilitar refacción inicia una captura limpia, confirma el descarte y requiere un SKU activo; existencias y mínimo aceptan sólo unidades enteras.
+- El catálogo global distingue carga, ausencia de SKUs y error con reintento; los campos tienen etiquetas accesibles.
+- Flota permite acomodar sus botones en pantallas pequeñas y muestra la ubicación registrada también en tarjetas móviles.
+- Refacciones y devoluciones distinguen filtros sin coincidencias de listas vacías y ofrecen limpiar los filtros.
+- Las tarjetas de refacciones se pueden abrir por teclado; editar inventario identifica las existencias como stock actual.
+- Completar una entrega o devolución actualiza las consultas del panel y las ubicaciones de flota, conservando la validación transaccional existente.
+
+## [8.42.18] - 2026-09-27 · patch · fix
+
+La edición de facturas tolera la moneda pendiente durante la carga, sin interrumpir el formulario ni representar los importes como pesos.
+
+- Una moneda vacía o incompleta muestra un importe no disponible hasta que se carga o selecciona una divisa válida.
+- Los códigos de moneda se normalizan al mostrar importes; el valor y los cálculos del documento se conservan.
+- Se verifica la transición de moneda vacía a USD en partidas y totales.
+
+## [8.42.17] - 2026-09-27 · patch · fix
+
+Los saldos de facturas esperan a que carguen pagos y notas de crédito. Las acciones respetan el acceso de consulta y los importes muestran la moneda del documento.
+
+- Un error al consultar pagos o notas de crédito muestra un aviso con reintento y evita presentar un saldo incompleto.
+- Los usuarios de consulta conservan historiales y descargas, sin acciones para modificar pagos, complementos, notas de crédito, cobranza o reportes de pago.
+- La validación del receptor fiscal se ofrece a administración con acceso completo, conforme a los permisos del servicio.
+- Las partidas, descuentos, totales y resúmenes usan la moneda de la factura; los límites y montos de notas de crédito identifican también su divisa.
+- Los resúmenes financieros y el selector de IVA distribuyen su espacio para facilitar la lectura en pantallas pequeñas.
+
 ## [8.42.16] - 2026-09-26 · patch · bugfix
 
 El historial muestra el detalle de las versiones recientes y la publicación exige un archivo de detalle válido para la nueva versión.
