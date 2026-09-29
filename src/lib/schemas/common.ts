@@ -84,8 +84,22 @@ export const CLABE_REGEX = /^[0-9]{18}$/;
  * Predicado puro para validar una CLABE. Acepta `null`/`undefined`/`""` como
  * válido (uso opcional). Trim implícito para tolerar espacios.
  */
-export const isValidClabe = (v: string | null | undefined): boolean =>
-  !v || CLABE_REGEX.test(v.trim());
+function hasValidClabeCheckDigit(clabe: string): boolean {
+  const weights = [3, 7, 1] as const;
+  const sum = [...clabe.slice(0, 17)].reduce((total, char, index) => {
+    return total + (Number(char) * weights[index % weights.length]) % 10;
+  }, 0);
+  return (10 - (sum % 10)) % 10 === Number(clabe[17]);
+}
+
+export const isValidClabe = (v: string | null | undefined): boolean => {
+  if (!v) return true;
+  const clabe = v.trim();
+  if (!clabe) return true;
+  return CLABE_REGEX.test(clabe)
+    && clabe !== "0".repeat(18)
+    && hasValidClabeCheckDigit(clabe);
+};
 
 /**
  * Campo CLABE opcional para formularios (default `""`, valida 18 dígitos si hay valor).

@@ -31,18 +31,27 @@ function matchesRep(bill: SupplierBillListItem, rep: string): boolean {
 
 const REP_OPTIONS = ["not_required", "pending", "rejected", "received"] as const;
 
-export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
-  const availableMonths = useMemo(() => {
+interface Options {
+  mode?: "client" | "server";
+  availableMonths?: string[];
+  supplierIds?: string[];
+}
+
+export function useAccountsPayableFilters(bills: SupplierBillListItem[], options: Options = {}) {
+  const { mode = "client", availableMonths: serverMonths, supplierIds: serverSupplierIds } = options;
+  const derivedMonths = useMemo(() => {
     const monthsSet = new Set<string>();
     for (const b of bills) monthsSet.add(b.issue_date.slice(0, 7));
     return Array.from(monthsSet).sort().reverse();
   }, [bills]);
+  const availableMonths = serverMonths ?? derivedMonths;
 
-  const supplierOptions = useMemo(() => {
+  const derivedSupplierOptions = useMemo(() => {
     const set = new Set<string>();
     for (const b of bills) if (b.supplier_id) set.add(b.supplier_id);
     return Array.from(set);
   }, [bills]);
+  const supplierOptions = serverSupplierIds ?? derivedSupplierOptions;
 
   // Nota: en modo cliente puro delegamos casi todo el filtrado a
   // useTableFilters. `rep` no encaja en las facetas declarativas porque
@@ -54,6 +63,7 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
     hasActive: hasActiveBase,
     filtered: filteredByFacets,
     filterKey: baseKey,
+    isStale,
   } = useTableFilters<SupplierBillListItem, {
     search: { type: "text"; fields: (keyof SupplierBillListItem)[]; accessors: ((b: SupplierBillListItem) => string)[] };
     status: { type: "enum"; field: "status"; options: string[] };
@@ -64,6 +74,7 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
     rep: { type: "enum"; options: string[] };
   }>({
     items: bills,
+    mode,
     facets: {
       search: {
         type: "text",
@@ -81,8 +92,8 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
 
   // Aplicamos el filtro adicional de REP sobre el resultado del hook.
   const filtered = useMemo(
-    () => filteredByFacets.filter((b) => matchesRep(b, values.rep)),
-    [filteredByFacets, values.rep],
+    () => mode === "server" ? [] : filteredByFacets.filter((b) => matchesRep(b, values.rep)),
+    [mode, filteredByFacets, values.rep],
   );
 
   // API pública compatible con el hook anterior. `set(key, value)` acepta
@@ -112,6 +123,7 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
     set,
     reset,
     hasActive: hasActiveBase,
+    isStale,
     filtered,
     availableMonths,
     filterKey,

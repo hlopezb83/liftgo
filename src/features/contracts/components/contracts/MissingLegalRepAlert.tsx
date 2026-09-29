@@ -16,8 +16,8 @@ export function MissingLegalRepAlert({ customerId, customerName }: Props) {
     <Alert variant="destructive">
       <AlertTitle>Falta el Representante Legal</AlertTitle>
       <AlertDescription>
-        {customerName ? `${customerName} no tiene` : "El cliente no tiene"} capturado su
-        representante legal. El contrato y el pagaré saldrán con la línea en blanco.{" "}
+        {customerName ? `${customerName} es una persona moral y no tiene` : "La persona moral no tiene"} capturado su
+        representante legal. Captúralo antes de generar el contrato y el pagaré.{" "}
         <Link to={`/customers/${customerId}`} className="underline font-medium">
           Capturarlo en la ficha del cliente
         </Link>

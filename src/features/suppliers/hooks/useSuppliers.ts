@@ -38,7 +38,7 @@ export const SUPPLIER_CATEGORIES: Record<string, string> = {
   otro: "Otro",
 };
 
-export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], never>("suppliers", {
+export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], Supplier | null>("suppliers", {
   staleTime: 5 * 60_000,
   list: () => async () => {
     const { data, error } = await supabase
@@ -51,10 +51,28 @@ export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], nev
     if (error) throw error;
     return data ?? [];
   },
+  detail: (id) => async () => {
+    const { data, error } = await supabase
+      .from("suppliers")
+      .select(SUPPLIER_COLUMNS)
+      .eq("id", id)
+      .is("deleted_at", null)
+      .maybeSingle()
+      .returns<Supplier | null>();
+    if (error) throw error;
+    return data;
+  },
 });
 
 export function useSuppliers() {
   return useQuery(suppliersQueries.list());
+}
+
+export function useSupplier(id: string | undefined) {
+  return useQuery({
+    ...suppliersQueries.detail(id ?? ""),
+    enabled: Boolean(id),
+  });
 }
 
 // Nota: `useDeleteSupplier` se retiró por estar sin uso. La eliminación se

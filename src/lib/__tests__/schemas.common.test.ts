@@ -66,16 +66,23 @@ describe("schemas/common — CLABE", () => {
   });
   it("isValidClabe acepta vacío y null como opcional", () => {
     expect(isValidClabe("")).toBe(true);
+    expect(isValidClabe("   ")).toBe(true);
     expect(isValidClabe(null)).toBe(true);
     expect(isValidClabe(undefined)).toBe(true);
   });
   it("isValidClabe tolera espacios", () => {
-    expect(isValidClabe("  012345678901234567  ")).toBe(true);
+    expect(isValidClabe("  002180032240946700  ")).toBe(true);
+  });
+  it("valida el dígito de control con el algoritmo de Banxico", () => {
+    expect(isValidClabe("002180032240946700")).toBe(true);
+    expect(isValidClabe("002180032240946701")).toBe(false);
+    expect(isValidClabe("000000000000000000")).toBe(false);
   });
   it("clabeOptional rechaza no-18-dígitos", () => {
     const schema = clabeOptional();
     expect(schema.safeParse("").success).toBe(true);
-    expect(schema.safeParse("012345678901234567").success).toBe(true);
+    expect(schema.safeParse("002180032240946700").success).toBe(true);
+    expect(schema.safeParse("002180032240946701").success).toBe(false);
     expect(schema.safeParse("123").success).toBe(false);
   });
 });

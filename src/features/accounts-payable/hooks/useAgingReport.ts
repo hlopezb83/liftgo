@@ -3,7 +3,6 @@
 import { isFxMissing } from "@/features/cash-flow";
 import { toYMD } from "@/lib/date/toYMD";
 import { sumMoney, toMxn } from "@/lib/money";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { nowMty } from "@/lib/utils";
 import { useSupplierBills } from "./useSupplierBills";
 
@@ -53,8 +52,8 @@ export function useAgingReport() {
     let fxMissingCount = 0;
     let noDueDateCount = 0;
 
-    // R7-13: mismo universo que los KPIs (sin la fila centinela de paginación).
-    for (const b of visibleListRows(data)) {
+    // El hook pagina el universo completo: los saldos y KPIs no se truncan al llegar a 500.
+    for (const b of data ?? []) {
       // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
       const balance = toMxn(Number(b.balance), b.currency, b.exchange_rate);
       // R12-FE-08 (P2 r11): la antigüedad excluye también borradores.
@@ -107,6 +106,5 @@ export function useAgingReport() {
     return { rows, totals, fxMissingCount, noDueDateCount };
   })();
 
-  // rawBills: lista cruda (limit+1) para ListTruncationNotice en la página (H-10b).
-  return { rows, totals, fxMissingCount, noDueDateCount, rawBills: data, isLoading, isError, refetch };
+  return { rows, totals, fxMissingCount, noDueDateCount, isLoading, isError, refetch };
 }

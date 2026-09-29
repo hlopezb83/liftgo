@@ -1,5 +1,4 @@
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { DownloadIcon, FileClock } from "@/components/icons";
@@ -23,7 +22,7 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
 ];
 
 export default function AgingReportPage() {
-  const { rows, totals, fxMissingCount, noDueDateCount, rawBills, isLoading, isError, refetch } = useAgingReport();
+  const { rows, totals, fxMissingCount, noDueDateCount, isLoading, isError, refetch } = useAgingReport();
 
   const overduePct = totals.total > 0
     ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
@@ -59,9 +58,6 @@ export default function AgingReportPage() {
         }
       />
 
-
-      {/* H-10b: avisar cuando la lista cruda está truncada (limit+1). */}
-      <ListTruncationNotice rows={rawBills} />
 
       {/* M-14c: las facturas en divisa sin tipo de cambio se excluyen de los
           buckets; sin este aviso la cartera se veía menor de lo real. */}
@@ -113,7 +109,7 @@ export default function AgingReportPage() {
       <Card>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-4"><TableSkeleton columnCount={7} rows={5} /></div>
+            <div className="p-4"><TableSkeleton columnCount={8} rows={5} /></div>
           ) : rows.length === 0 ? (
             <EmptyState icon={FileClock} title="Sin saldos pendientes" subtitle="Todas las facturas están pagadas o canceladas." />
           ) : (
@@ -144,6 +140,7 @@ export default function AgingReportPage() {
                   <TableCell className="text-right font-mono">{formatCurrency(totals.d31_60)}</TableCell>
                   <TableCell className="text-right font-mono">{formatCurrency(totals.d61_90)}</TableCell>
                   <TableCell className="text-right font-mono">{formatCurrency(totals.d90_plus)}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrency(totals.no_due)}</TableCell>
                   <TableCell className="text-right font-mono">{formatCurrency(totals.total)}</TableCell>
                 </TableRow>
               </TableBody>

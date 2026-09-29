@@ -3,14 +3,14 @@ import { isValidClabe, maskClabe, CLABE_REGEX } from "@/features/suppliers";
 
 describe("CLABE validation", () => {
   it("acepta 18 dígitos", () => {
-    expect(isValidClabe("012345678901234567")).toBe(true);
-    expect(CLABE_REGEX.test("012345678901234567")).toBe(true);
+    expect(isValidClabe("002180032240946700")).toBe(true);
+    expect(CLABE_REGEX.test("002180032240946700")).toBe(true);
   });
   it("rechaza menos de 18", () => {
     expect(isValidClabe("0123")).toBe(false);
   });
   it("rechaza más de 18", () => {
-    expect(isValidClabe("0123456789012345678")).toBe(false);
+    expect(isValidClabe("0021800322409467001")).toBe(false);
   });
   it("rechaza letras", () => {
     expect(isValidClabe("01234567890123ABCD")).toBe(false);
@@ -24,7 +24,7 @@ describe("CLABE validation", () => {
 
 describe("maskClabe", () => {
   it("enmascara mostrando los últimos 4", () => {
-    expect(maskClabe("012345678901234567")).toBe("••••••••••••••4567");
+    expect(maskClabe("002180032240946700")).toBe("••••••••••••••6700");
   });
   it("renderiza '—' cuando es null", () => {
     expect(maskClabe(null)).toBe("—");

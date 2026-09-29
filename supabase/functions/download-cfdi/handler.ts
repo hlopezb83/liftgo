@@ -61,7 +61,13 @@ interface DownloadAuthFail {
   response: Response;
 }
 
-const ALLOWED_ROLES = ["admin", "administrativo", "ventas", "customer"];
+const ALLOWED_ROLES = [
+  "admin",
+  "administrativo",
+  "ventas",
+  "auditor",
+  "customer",
+];
 
 // Réplica DI de requireRole (_shared/auth.ts): mismo contrato observable
 // (401 sin/con Authorization malformado, 503 fail-closed si falla el lookup

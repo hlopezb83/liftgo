@@ -88,7 +88,12 @@ export default function QuoteForm() {
             render={({ field }) => (
               <FormItem>
                 <FormControl>
-                  <NotesCard value={field.value} onChange={field.onChange} />
+                  <NotesCard
+                    value={field.value}
+                    onChange={field.onChange}
+                    title="Notas para el cliente"
+                    placeholder="Estas notas aparecerán en la cotización que recibe el cliente…"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -12,7 +12,7 @@ type Option = { id: string; name: string };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Ctrl = any;
 
-export function GeneralInfoCard({ control, customers, forklifts }: { control: Ctrl; customers: Option[]; forklifts: Option[] }) {
+export function GeneralInfoCard({ control, customers, forklifts, linkedToBooking = false }: { control: Ctrl; customers: Option[]; forklifts: Option[]; linkedToBooking?: boolean }) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">Información General</CardTitle></CardHeader>
@@ -21,7 +21,7 @@ export function GeneralInfoCard({ control, customers, forklifts }: { control: Ct
           <FormField control={control} name="customer_id" render={({ field }) => (
             <FormItem>
               <FormLabel>Cliente *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select value={field.value} onValueChange={field.onChange} disabled={linkedToBooking}>
                 <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger></FormControl>
                 <SelectContent>
                   {customers.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -33,7 +33,7 @@ export function GeneralInfoCard({ control, customers, forklifts }: { control: Ct
           <FormField control={control} name="forklift_id" render={({ field }) => (
             <FormItem>
               <FormLabel>Equipo *</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select value={field.value} onValueChange={field.onChange} disabled={linkedToBooking}>
                 <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar equipo" /></SelectTrigger></FormControl>
                 <SelectContent>
                   {forklifts.map((f) => <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>)}
@@ -42,6 +42,11 @@ export function GeneralInfoCard({ control, customers, forklifts }: { control: Ct
               <FormMessage />
             </FormItem>
           )} />
+          {linkedToBooking && (
+            <p className="sm:col-span-2 -mt-2 text-xs text-muted-foreground">
+              El cliente y el equipo se mantienen ligados a la reserva seleccionada.
+            </p>
+          )}
           <Controller control={control} name="start_date" render={({ field }) => (
             <DatePickerField
               label="Fecha de Inicio"
@@ -116,6 +121,7 @@ export function UsageConditionsCard({ control }: { control: Ctrl }) {
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                 <SelectContent>
+                  <SelectItem value="Diario">Diario</SelectItem>
                   <SelectItem value="Semanal">Semanal</SelectItem>
                   <SelectItem value="Mensual">Mensual</SelectItem>
                 </SelectContent>

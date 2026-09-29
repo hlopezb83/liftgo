@@ -11,6 +11,84 @@ import { useContractFormState } from "./contractForm/useContractFormState";
 import { findActiveContractForBooking, useContract, useCreateContract, useUpdateContract } from "./useContracts";
 import type { ContractFormValues } from "../lib/contractFormSchema";
 
+type ContractSubmitContext = {
+  id: string | undefined;
+  isEdit: boolean;
+  bookingId: string | null;
+  existing: ReturnType<typeof useContract>["data"];
+  customers: ReturnType<typeof useCustomers>["data"];
+  form: ReturnType<typeof useContractFormState>["form"];
+  createContract: ReturnType<typeof useCreateContract>;
+  updateContract: ReturnType<typeof useUpdateContract>;
+  navigate: ReturnType<typeof useNavigateTransition>;
+};
+
+function findBookingForkliftId<T extends { id: string; forklift_id: string | null }>(
+  bookings: T[] | undefined,
+  bookingId: string | null,
+) {
+  return bookings?.find((booking) => booking.id === bookingId)?.forklift_id ?? null;
+}
+
+function canIncludeContractForklift<T extends { id: string; status: string }>(
+  forklift: T,
+  currentId: string | null,
+  bookingForkliftId: string | null,
+) {
+  return forklift.status === "available" || forklift.id === currentId || forklift.id === bookingForkliftId;
+}
+
+function submitContract(values: ContractFormValues, context: ContractSubmitContext) {
+  const { id, isEdit, bookingId, existing, customers, form, createContract, updateContract, navigate } = context;
+  const customer = customers?.find((row) => row.id === values.customer_id);
+  if (customer?.rfc?.trim().length === 12 && !customer.representante_legal?.trim()) {
+    notifyWarning("Falta el representante legal", {
+      description: "Captura el representante legal en la ficha del cliente antes de generar el contrato.",
+    });
+    return;
+  }
+
+  const payload = buildContractPayload(values, bookingId, existing);
+  if (isEdit && id) {
+    updateContract.mutate({ id, ...payload }, {
+      onSuccess: () => {
+        notifySuccess("Contrato actualizado");
+        form.reset(values); // clears isDirty for the guard
+        navigate(`/contracts/${id}`);
+      },
+    });
+    return;
+  }
+
+  void (async () => {
+    // Hallazgo 7: si la reserva ya tiene un contrato no cancelado, se abre
+    // ese contrato con un aviso claro en vez de crear un duplicado.
+    if (payload.booking_id) {
+      try {
+        const dup = await findActiveContractForBooking(payload.booking_id);
+        if (dup) {
+          notifyWarning("Ya existe un contrato para esta reserva", {
+            description: `Se abrió el contrato ${dup.contract_number} en lugar de crear otro.`,
+          });
+          form.reset(values); // libera el guard de cambios sin guardar
+          navigate(`/contracts/${dup.id}`);
+          return;
+        }
+      } catch {
+        // Si la verificación falla (red), el índice único de la DB respalda
+        // y useCreateContract traduce el 23505 a un mensaje claro.
+      }
+    }
+    createContract.mutate(payload, {
+      onSuccess: (data) => {
+        notifySuccess("Contrato creado");
+        form.reset(values);
+        navigate(`/contracts/${data.id}`);
+      },
+    });
+  })();
+}
+
 export function useContractFormLogic() {
   const { id } = useParams();
   const isEdit = !!id;
@@ -24,14 +102,12 @@ export function useContractFormLogic() {
   // montacargas de esa reserva está en estado `rented` — si lo filtramos, el
   // prefill nunca encuentra el forklift y `terms_text` queda vacío.
   const { data: bookings } = useBookings();
-  const bookingForkliftId = bookingId
-    ? bookings?.find((b) => b.id === bookingId)?.forklift_id ?? null
-    : null;
+  const bookingForkliftId = findBookingForkliftId(bookings, bookingId);
   // R7 Bloque 18a: sólo mostrar montacargas disponibles; si estamos editando y
   // el contrato ya está ligado a uno no disponible, lo incluimos igualmente.
   const currentId = existing?.forklift_id ?? null;
-  const forklifts = (allForklifts ?? []).filter(
-    (f) => f.status === "available" || f.id === currentId || f.id === bookingForkliftId,
+  const forklifts = (allForklifts ?? []).filter((f) =>
+    canIncludeContractForklift(f, currentId, bookingForkliftId),
   );
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
@@ -47,48 +123,16 @@ export function useContractFormLogic() {
 
   useUnsavedChangesGuard(form.formState.isDirty && !isPending);
 
-  const onSubmit = (values: ContractFormValues) => {
-    const payload = buildContractPayload(values, bookingId, existing);
-    if (isEdit && id) {
-      updateContract.mutate({ id, ...payload }, {
-        onSuccess: () => {
-          notifySuccess("Contrato actualizado");
-          form.reset(values); // clears isDirty for the guard
-          navigate(`/contracts/${id}`);
-        },
-      });
-    } else {
-      void (async () => {
-        // Hallazgo 7: si la reserva ya tiene un contrato no cancelado, se abre
-        // ese contrato con un aviso claro en vez de crear un duplicado.
-        if (payload.booking_id) {
-          try {
-            const dup = await findActiveContractForBooking(payload.booking_id);
-            if (dup) {
-              notifyWarning("Ya existe un contrato para esta reserva", {
-                description: `Se abrió el contrato ${dup.contract_number} en lugar de crear otro.`,
-              });
-              form.reset(values); // libera el guard de cambios sin guardar
-              navigate(`/contracts/${dup.id}`);
-              return;
-            }
-          } catch {
-            // Si la verificación falla (red), el índice único de la DB respalda
-            // y useCreateContract traduce el 23505 a un mensaje claro.
-          }
-        }
-        createContract.mutate(payload, {
-          onSuccess: (data) => {
-            notifySuccess("Contrato creado");
-            form.reset(values);
-            navigate(`/contracts/${data.id}`);
-          },
-        });
-      })();
-    }
-  };
+  const onSubmit = (values: ContractFormValues) => submitContract(values, {
+    id, isEdit, bookingId, existing, customers, form,
+    createContract, updateContract, navigate,
+  });
 
   const handleSubmit = form.handleSubmit(onSubmit);
 
-  return { id, isEdit, contractNumber: existing?.contract_number ?? null, form, customers, forklifts, isPending, handleSubmit, navigate };
+  return {
+    id, isEdit, contractNumber: existing?.contract_number ?? null,
+    linkedBookingId: bookingId ?? existing?.booking_id ?? null,
+    form, customers, forklifts, isPending, handleSubmit, navigate,
+  };
 }

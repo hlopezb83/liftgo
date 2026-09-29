@@ -10,6 +10,7 @@ describe("contractFormSchema", () => {
     start_date: "2026-01-01",
     end_date: "2026-06-30",
     contract_city: "Monterrey, N.L.",
+    monthly_rate: "24000",
   };
 
   it("acepta un payload válido con cliente + equipo + rango correcto", () => {
@@ -41,6 +42,15 @@ describe("contractFormSchema", () => {
     if (!parsed.success) {
       expect(parsed.error.issues.some((i) => i.path[0] === "daily_rate")).toBe(true);
     }
+  });
+
+  it("requiere una tarifa positiva para la frecuencia elegida", () => {
+    const monthly = contractFormSchema.safeParse({ ...validBase, monthly_rate: "0" });
+    expect(monthly.success).toBe(false);
+    if (!monthly.success) expect(monthly.error.issues.some((issue) => issue.path[0] === "monthly_rate")).toBe(true);
+
+    const daily = contractFormSchema.safeParse({ ...validBase, payment_frequency: "Diario", daily_rate: "750" });
+    expect(daily.success).toBe(true);
   });
 
   it("rechaza un contrato sin ciudad de firma", () => {

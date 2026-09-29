@@ -30,7 +30,7 @@ interface Props {
 const schema = z.object({
   bank_name: z.string().trim().min(1, "El banco es requerido"),
   account_holder: z.string().trim().min(1, "El titular es requerido"),
-  clabe: clabeOptional("La CLABE debe tener exactamente 18 dígitos"),
+  clabe: clabeOptional("La CLABE debe tener 18 dígitos y un dígito verificador válido"),
   account_number: z.string().default(""),
   currency: z.enum(["MXN", "USD"]).default("MXN"),
   notes: z.string().default(""),

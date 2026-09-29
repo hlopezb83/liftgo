@@ -46,6 +46,14 @@ describe("InvoiceDetailIdentifiers", () => {
     expect(screen.getByText("Serie A · Folio 145")).toBeInTheDocument();
   });
 
+  it("envuelve el UUID en móvil y conserva accesible la acción de copiar", () => {
+    const uuid = "eb3abf2f-d404-49fd-bb6f-d694a36d1056";
+    render(<InvoiceDetailIdentifiers cfdiUuid={uuid} serie="F" folio="958" />);
+    expect(screen.getByTitle(uuid)).toHaveClass("break-all");
+    expect(screen.getByTitle(uuid).parentElement?.parentElement).toHaveClass("flex-col");
+    expect(screen.getByLabelText("Copiar Folio fiscal SAT (UUID)")).toBeInTheDocument();
+  });
+
   it("muestra placeholder en filas sin valor", () => {
     render(
       <InvoiceDetailIdentifiers

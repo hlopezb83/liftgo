@@ -3,7 +3,6 @@ import { useMemo } from "react";
 import { isFxMissing } from "@/features/cash-flow";
 import { toYMD } from "@/lib/date/toYMD";
 import { toMxn } from "@/lib/money";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { nowMty } from "@/lib/utils";
 import { useSupplierBills, type SupplierBillListItem } from "./useSupplierBills";
 
@@ -115,8 +114,7 @@ export function useAccountsPayableKpis() {
       totalPendiente: 0, totalVencido: 0, totalPorVencer: 0, pagadoMesActual: 0,
       totalPorAprobar: 0, countPorAprobar: 0, repPendientes: 0, fxMissingCount: 0,
     };
-    // N8-r3: los KPIs no deben incluir la fila extra del limit+1.
-    for (const b of visibleListRows(data)) accumulateBill(acc, b, ctx);
+    for (const b of data ?? []) accumulateBill(acc, b, ctx);
     return acc;
   }, [data]);
 

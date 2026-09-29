@@ -48,7 +48,7 @@ BEGIN
     (id, supplier_id, bank_name, account_holder, clabe, is_primary, organization_id)
   VALUES ('41000000-0000-4000-8000-0000000000a3',
           '41000000-0000-4000-8000-0000000000a2', 'BBVA México',
-          'Refacciones del Norte SA de CV', '012345678901234567', true, v_org_a);
+          'Refacciones del Norte SA de CV', '012345678901234568', true, v_org_a);
 
   -- Las facturas con approval_status='approved' sólo pueden insertarse bajo el
   -- contexto de RPC de cuentas por pagar.
@@ -175,7 +175,7 @@ BEGIN
     (id, supplier_id, bank_name, account_holder, clabe, is_primary, organization_id)
   VALUES ('41000000-0000-4000-8000-0000000000b3',
           '41000000-0000-4000-8000-0000000000b2', 'Banorte',
-          'Hidráulica Irapuato SA de CV', '098765432109876543', true, v_org_b);
+          'Hidráulica Irapuato SA de CV', '098765432109876542', true, v_org_b);
 
   PERFORM set_config('app.cxp_rpc', 'on', true);
 

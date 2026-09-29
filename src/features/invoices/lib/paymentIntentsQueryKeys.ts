@@ -19,6 +19,7 @@ export interface PortalPaymentIntentRow {
   transfer_date: string;
   tracking_key: string | null;
   status: PaymentIntentStatus;
+  review_notes: string | null;
 }
 
 export interface AdminPaymentIntentRow extends PortalPaymentIntentRow {
@@ -29,7 +30,7 @@ export interface AdminPaymentIntentRow extends PortalPaymentIntentRow {
 }
 
 const PAYMENT_INTENT_PORTAL_COLUMNS = sel(
-  "id, invoice_id, customer_id, amount, transfer_date, tracking_key, status",
+  "id, invoice_id, customer_id, amount, transfer_date, tracking_key, status, review_notes",
 );
 
 const PAYMENT_INTENT_ADMIN_COLUMNS = sel(

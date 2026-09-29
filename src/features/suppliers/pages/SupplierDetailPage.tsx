@@ -22,7 +22,7 @@ import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBan
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
 import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
-import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
+import { useSupplier, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 
@@ -30,12 +30,11 @@ type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
-  const { data: suppliers, isLoading, isError, refetch } = useSuppliers();
+  const { data: supplier, isLoading, isError, refetch } = useSupplier(id);
   const { data: bills } = useSupplierBills();
   const { data: maintenanceLogs } = useMaintenanceLogs();
   const { forkliftMap } = useForkliftMap();
 
-  const supplier = suppliers?.find((s) => s.id === id);
   const [editOpen, setEditOpen] = useState(false);
 
   // FIX B1: el total de gastos sumaba `total` en crudo, mezclando facturas en
@@ -137,7 +136,6 @@ export default function SupplierDetailPage() {
 
       {/* FIX B5: los totales de abajo se calculan sobre listas con tope de
           filas; sin este aviso el usuario creería que ve el total completo. */}
-      <ListTruncationNotice rows={bills} />
       <ListTruncationNotice rows={maintenanceLogs} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

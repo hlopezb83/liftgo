@@ -42,7 +42,22 @@ export const contractFormSchema = z
   .refine(
     (v) => !v.start_date || !v.end_date || v.end_date >= v.start_date,
     { message: "La fecha de fin debe ser posterior o igual a la de inicio", path: ["end_date"] },
-  );
+  )
+  .superRefine((v, ctx) => {
+    const field = v.payment_frequency === "Diario"
+      ? "daily_rate"
+      : v.payment_frequency === "Semanal"
+        ? "weekly_rate"
+        : "monthly_rate";
+    const rate = v[field];
+    if (!Number.isFinite(Number(rate)) || Number(rate) <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Captura una tarifa mayor a cero para la frecuencia seleccionada.",
+        path: [field],
+      });
+    }
+  });
 
 export type ContractFormValues = z.infer<typeof contractFormSchema>;
 

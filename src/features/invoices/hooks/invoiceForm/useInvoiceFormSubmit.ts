@@ -7,6 +7,7 @@ import { toJsonArray } from "@/lib/domain/lineItems";
 import { roundMoney } from "@/lib/money";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
+import { resolveCfdiFormaPago } from "../../lib/cfdiPaymentForm";
 import { useSaveInvoiceWithBookings } from "../invoices/useInvoices";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 
@@ -60,7 +61,7 @@ function buildCfdiPayload(cfdi: CfdiFormValues) {
   return {
     serie: nn(cfdi.serie),
     folio: nn(cfdi.folio),
-    forma_pago: isGlobal ? "01" : nn(cfdi.formaPago),
+    forma_pago: isGlobal ? "01" : resolveCfdiFormaPago(cfdi.metodoPago, cfdi.formaPago),
     metodo_pago: isGlobal ? "PUE" : nn(cfdi.metodoPago),
     uso_cfdi: isGlobal ? "S01" : nn(cfdi.usoCfdi),
     moneda: nn(cfdi.moneda),
