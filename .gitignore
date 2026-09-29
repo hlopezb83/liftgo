@@ -33,10 +33,10 @@ test-results/
 .env.local
 !.env.example
 
-# Lovable: borrador de plan (los planes aprobados en .lovable/plan/ sí se versionan)
+# Lovable: planes de tarea transitorios; la documentación mantenida vive en docs/ y CHANGELOG.md
 .lovable/plan.md
 
-# Lovable: planes archivados (el historial funcional vive en CHANGELOG.md)
+# Los planes temporales de Lovable no se versionan; las decisiones aprobadas se resumen en docs/ y CHANGELOG.md
 .lovable/plan/
 
 # Wrangler (preview local del build SSR)

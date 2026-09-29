@@ -1,5 +1,7 @@
 # Arquitectura — LiftGo ERP
 
+> Revisada el 29 de septiembre de 2026. Describe arquitectura versionada; para evidencia operativa multiempresa consulta `docs/multiempresa/onboarding.md`.
+
 > Documento vivo. Actualízalo cuando cambien decisiones estructurales (rutas, capas, integraciones, modelo de seguridad, reglas de negocio invariantes). Los cambios funcionales se registran en el changelog (ver §12).
 
 ---
@@ -12,7 +14,7 @@ LiftGo es un ERP interno para la operación de una empresa de renta y venta de m
 - **Comercial**: CRM/prospectos, clientes, cotizaciones (renta y venta), contratos.
 - **Finanzas**: facturación CFDI 4.0, pagos, gastos operativos, estado de resultados, MRR, proveedores.
 - **Administración**: gestión de usuarios, permisos por rol, configuración de empresa, bitácora de auditoría, ayuda y changelog.
-- **Feedback interno**: reportes de usuarios (FAB), `/mis-reportes`, leaderboard público y gestión Kanban admin (`mem://features/feedback`).
+- **Feedback interno**: reportes de usuarios (FAB), `/mis-reportes`, leaderboard público y gestión Kanban admin.
 - **Portal de cliente**: vista de solo lectura para clientes finales.
 
 **Audiencia**: desarrolladores y nuevos integrantes del equipo. Contexto de despliegue: aplicación interna, optimizada para escritorio (≈99% del uso), localizada para México (es-MX, zona horaria `America/Monterrey`, MXN).
@@ -231,13 +233,7 @@ Página (orquestador)
 - Componente `<RoleGuard module="..." minAccess="read">` envuelve cada ruta protegida.
 - Cada entrada de `appRoutes` declara `module` opcional (y `minAccess` / `adminOnly` cuando aplica); el archivo de ruta correspondiente en `src/routes/_main/` lo enlaza a `RoleGuard`.
 
-> **Multi-organización (en curso, no terminada)**: el esquema ya incorpora
-> `organizations`, `organization_memberships`, `organization_customers`,
-> `customer_portal_accounts` y la columna `organization_id` en las tablas
-> operativas (migraciones `drizzle/migrations/00NN_multi_org_*`). Hoy opera una
-> sola organización. Esta revisión documental no certifica el cierre de la
-> migración: cualquier pendiente concreto debe confirmarse contra el código
-> vigente antes de dar el aislamiento multiempresa por completo.
+> **Multi-organización:** el repositorio incluye organizaciones, membresías y alcance por empresa en la operación y el portal. Esto describe código y pruebas versionadas; no certifica el ledger, los datos ni la configuración actual de Lovable Cloud. Consulta `docs/multiempresa/onboarding.md` antes de declarar listo un entorno.
 
 **Fase 1 implementada — aislamiento fiscal en Edge Functions (8.8.5).**
 `supabase/functions/_shared/orgContext.ts` centraliza la resolución de
@@ -451,13 +447,13 @@ src/lib/pdf/
 - `theme/tokens.ts` es la **única fuente de tokens visuales**. Cualquier color, tamaño de fuente o margen vive aquí.
 - `placeholderRegistry.ts` sigue siendo la **única fuente de verdad** para tokens de plantillas de contrato (consumido por el editor y por el generador).
 - El builder del PDF se importa de forma **diferida** (`await import()`) desde el botón que dispara la descarga para mantener el bundle inicial liviano.
-- Logo escalado a 24×40 mm máx. para mantener layout (`mem://style/branding/logo`).
+- El logo común de LiftGo conserva su proporción y se usa para todas las organizaciones.
 
 ---
 
 ## 10. Integraciones externas
 
-- **Facturapi (CFDI 4.0)**: timbrado y cancelación de comprobantes. Multi-tenant: cada empresa configura sus API keys (test y live) en `company_settings` / `pac_config`. Edge functions: `stamp-cfdi`, `cancel-cfdi`. PDFs e XML se persisten como adjuntos.
+- **Facturapi (CFDI 4.0)**: timbrado y cancelación. Las credenciales se resuelven por organización desde `billing_secrets`; el fallback legado a `FACTURAPI_TEST_KEY`/`FACTURAPI_LIVE_KEY` está condicionado a que exista una sola organización (`isSoleLegacyOrganization`). No guardes llaves en `company_settings`, el navegador ni el repositorio. Los flujos fiscales validan la organización del documento antes de leer configuración. La auditoría fechada está en `docs/facturapi-audit-2026-09-25.md`.
 - **Lovable AI Gateway**: usado por funciones que requieren modelos LLM (p. ej. `generate-manual`). Sin API key del usuario; consumo manejado por la plataforma.
 - **Parseo de CSF (SAT)**: `parse-csf` extrae RFC, razón social, régimen y código postal de la Constancia de Situación Fiscal para precargar formularios de cliente.
 
@@ -487,16 +483,16 @@ src/lib/pdf/
 
 Documentar aquí cualquier regla que NO sea evidente del código y que, si se viola, rompe el dominio.
 
-- **Renta calculada por meses calendario exactos**, no por bloques de 30 días (`mem://logic/rental-calculation`).
+- **Renta calculada por meses calendario exactos**, no por bloques de 30 días.
 - **Numeración de documentos** generada por RPCs (`generate_*_number`) para evitar colisiones; prefijos en español por tipo.
-- **MRR y ocupación** se computan estrictamente sobre reservas activas confirmadas hoy; la página `/mrr` es la fuente de verdad para los KPIs del dashboard (`mem://logic/kpi-calculation-rules`, `mem://features/mrr-detail-page`).
-- **Estado del montacargas** (`available`, `rented`, `maintenance`, ...) se cambia solo por eventos explícitos (entrega, devolución, mantenimiento), nunca derivado en queries (`mem://logic/forklift-status-persistence`).
-- **Buffer de mantenimiento** de 3 días para reservas activas, aplicado vía exclusión GiST (`mem://logic/booking-constraints`).
-- **Cotizaciones multi-equipo**: ID primario en `forklift_id`, lista completa en `line_items` JSONB; mapeo de unidades vendidas en `quote_assigned_forklifts` (`mem://logic/multi-equipment-rental-storage`, `mem://logic/quote-assignment-mapping`).
-- **Subscripciones recurrentes** leen el `monthly_rate` actual del montacargas al momento de generación (`mem://logic/recurring-billing-pricing`).
-- **Cancelación de reserva**: si no quedan reservas activas para el equipo, su estado vuelve a `available` en la misma transacción (`mem://logic/booking-cancellation`).
-- **Cliente genérico “Público en General”** debe reasignarse antes de convertir una cotización (`mem://logic/quote-conversion-constraints`).
-- **Gastos de software y depreciación** se excluyen de UI de gastos operativos y del P&L (`mem://features/operating-expenses`).
+- **MRR y ocupación** se computan estrictamente sobre reservas activas confirmadas hoy; la página `/mrr` es la fuente de verdad para los KPIs del dashboard.
+- **Estado del montacargas** (`available`, `rented`, `maintenance`, ...) se cambia solo por eventos explícitos (entrega, devolución, mantenimiento), nunca derivado en queries.
+- **Buffer de mantenimiento** de 3 días para reservas activas, aplicado vía exclusión GiST.
+- **Cotizaciones multi-equipo**: ID primario en `forklift_id`, lista completa en `line_items` JSONB; mapeo de unidades vendidas en `quote_assigned_forklifts`.
+- **Subscripciones recurrentes** leen el `monthly_rate` actual del montacargas al momento de generación.
+- **Cancelación de reserva**: si no quedan reservas activas para el equipo, su estado vuelve a `available` en la misma transacción.
+- **Cliente genérico “Público en General”** debe reasignarse antes de convertir una cotización.
+- **Gastos de software y depreciación** se excluyen de UI de gastos operativos y del P&L.
 
 ---
 
@@ -531,18 +527,15 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 - Cobertura RC: `reset-user-password`, `delete-user`, `invite-user`, `invite-customer`, `stamp-cfdi`, `cancel-cfdi`, `toggle-user-status`, `parse-csf`. Las pruebas de administración de usuarios e invitación al portal quedan mientras esas funciones Deno sigan presentes en el repositorio; la lógica vigente que consume la app está en las server functions de §6.3.
 - Importes: `https://deno.land/std@0.224.0/dotenv/load.ts` y `assert/mod.ts`. SUPABASE_URL desde `.env`.
 - Siempre **consumir el body** (`await res.text()`) para evitar leaks de recursos en Deno.
-- CI: job `edge-functions` separado del `quality` en `.github/workflows/ci.yml`.
+- CI: job `deno-functions` separado de `quality` si cambian funciones Deno.
 
 ### 15.3 E2E (Playwright)
 
-- Suite en `tests/e2e/` con `playwright.config.ts` en raíz. Documentación operativa: `tests/e2e/README.md`.
-- `webServer` levanta `bun run preview` (que es `wrangler dev --port 4173`, sirviendo el build SSR de `dist/`) en el puerto 4173 y corre en chromium. Con `E2E_REUSE_BUILD=1` reutiliza el `dist/` ya construido; si no, corre `bun run build && bun run preview`.
-- Auth: project `setup` (`global.setup.ts`) pide la sesión a Supabase por API (`signInWithPassword`), valida que la cuenta sea staff y escribe `tests/e2e/.auth/admin.json`. Si hay credenciales por rol (`E2E_<ROL>_EMAIL/PASSWORD`) también cachea `.auth/<rol>.json`.
-- Project `portal` corre sin `storageState` para validar rutas públicas (`/portal/login`).
-- Cobertura actual: `full-flow`, `smoke-nav`, `roles-matrix`, `fiscal-actions`, filtros (`filters-invoices`, `filters-quotes`, `daterange-picker`), kanbans (`crm-kanban`, `maintenance-kanban`), portal (`portal`, `portal-statement`), y flujos puntuales (`invoice-payment`, `quote-pdf`, `quote-edit-prefill`, `return-inspection`, `customer-create`, `bank-reconciliation`).
-- Comandos: `bun run test:e2e` (CI) y `bun run test:e2e:ui` (debugging local).
-- Datos: cada test corre bajo un `e2e_scope` único (`e2e_seed_scenario` + `e2e_teardown`). Nunca hardcodear IDs.
-- Convención: cada test < 30s. Timeouts vía `TIMEOUTS` de `fixtures/helpers.ts`, nunca números mágicos. Evitar selectores por copy: usar `data-testid` o `role` + `name`.
+- La suite completa vive en `tests/e2e/`, configurada por
+  `playwright.config.ts`. Requisitos y comandos están en `tests/e2e/README.md`.
+- La suite E2E completa corre fuera del job CI general y requiere un backend
+  aislado. CI ejecuta un smoke de arranque separado, sin login ni datos.
+- Las pruebas que crean datos usan scopes y cleanup; no deben tocar producción.
 
 ### 15.4 Pruebas de RLS contra Postgres local
 
@@ -557,7 +550,7 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ### 15.6 Workflows de CI
 
-Workflows vigentes en `.github/workflows/`: `ci.yml` (ESLint, `tsc`, `arch-check`, build, un **smoke de arranque** con `playwright.smoke.config.ts` —no la suite E2E completa—, Vitest en 2 shards + merge de resultados/cobertura, y jobs condicionales por archivos tocados: Deno fmt/lint/tests, lint de migraciones SQL, dependency-review y actionlint), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. `ci.yml` no ejecuta knip. La suite E2E completa (`playwright.config.ts`) corre fuera de `ci.yml`. No hay workflow de Lighthouse.
+Workflows vigentes en `.github/workflows/`: `ci.yml` (ESLint, `tsc`, `arch-check`, build, un **smoke de arranque** con `playwright.smoke.config.ts` —no la suite E2E completa—, Vitest en 4 shards + merge de resultados/cobertura, y jobs condicionales por archivos tocados: Deno fmt/lint/tests, lint de migraciones SQL, dependency-review y actionlint), `codeql.yml`, `gitleaks.yml`, `rls-db-tests.yml` y `prod-smoke.yml`. `ci.yml` no ejecuta knip. La suite E2E completa (`playwright.config.ts`) corre fuera de `ci.yml`. No hay workflow de Lighthouse.
 
 
 
@@ -858,56 +851,28 @@ Todo código nuevo o renombrado debe cumplir §22.1–§22.4 sin excepciones (m�
 
 ---
 
-## 23. Deuda técnica priorizada (post-audit v6.70.x)
+## 23. Deuda y trabajo futuro
 
-Items identificados por la auditoría arquitectónica que **no se ejecutaron** en la Fase A (v6.71.0) por requerir diseño previo. Quedan registrados aquí como deuda explícita; cada uno debe abordarse con su propio PR scoped + RFC corto, **no en un refactor masivo**.
-
-### 23.1 Pipeline CFDI compartido (Edge Functions) — Prioridad ALTA
-
-**Alcance:** `supabase/functions/{download-cfdi, validate-supplier-rep, stamp-payment-complement, stamp-cfdi}` suman ~1,400 LOC con duplicación en auth, fetch a Facturapi, mapping de errores y manejo de PAC.
-
-**Por qué no se hizo ahora:** sin distinguir lo genuinamente común (auth/CORS/error mapping) de lo específico por tipo de comprobante (ingreso vs. pago vs. cancelación), una extracción prematura empeora la legibilidad. Además requiere suite E2E contra Facturapi sandbox antes de tocarlo (un bug acá rompe timbrado en producción).
-
-**Trigger natural:** al agregar un nuevo tipo de CFDI (ej. nómina, traslado) o cambiar de PAC. Diseño esperado: `supabase/functions/_shared/cfdi/{auth.ts, facturapi-client.ts, errors.ts, types.ts}`.
-
-### 23.2 Capa `data-access` por entidad — Prioridad MEDIA
-
-**Alcance:** ~40 hooks en `src/features/*/hooks/` mezclan queries Supabase con lógica de TanStack Query y transformación.
-
-**Por qué no se hizo ahora:** tocar 40 archivos en un solo PR es exactamente el anti-patrón que Power of 10 prohíbe. Sin patrón consensuado (¿clase repository? ¿módulo de funciones puras? ¿generador desde tipos?), la migración inicial se vuelve incoherente.
-
-**Trigger natural:** al añadir una entidad nueva, implementarla con la capa `data-access` y migrar entidades existentes una por release. Diseño esperado: `src/features/<entity>/data/{queries.ts, mutations.ts}` consumido por hooks delgados.
-
-### 23.3 Sidebar de shadcn ya dividido — CERRADO
-
-El primitive vive en `src/components/ui/sidebar/` (`Sidebar.tsx`, `SidebarGroup.tsx`, `SidebarMenu.tsx`, `SidebarMenuSub.tsx`, `SidebarSections.tsx`, `context.tsx`, `variants.ts`, `constants.ts`, `index.ts`). Al estar fuera del archivo único de shadcn, una futura actualización upstream (`shadcn add sidebar`) debe reconciliarse a mano.
-
-
-### 23.4 Política general para esta deuda
-
-- Cada item se aborda **solo con caso de negocio concreto** (no por estética).
-- PR scoped + tests + entrada en changelog.
-- Si un item permanece >12 meses sin trigger natural, reevaluar si sigue siendo deuda real o decisión de diseño aceptada.
+No mantengas aquí un backlog con prioridades mutable: las auditorías fechadas
+pueden quedar obsoletas y el código cambia. Usa `roadmap.md` para el trabajo
+priorizado y `docs/README.md` para localizar snapshots de auditoría. Revalida
+cada hallazgo contra el código actual antes de convertirlo en tarea.
 
 ---
 
 ## 24. Referencias
 
-- `README.md` — instrucciones de desarrollo.
-- `public/changelog.json` — historial funcional consumido por la app.
-- `src/features/changelog/lib/changelog.ts` — fetcher + tipos del changelog.
-- `src/lib/constants.ts` — constantes de dominio (estados, etiquetas, colores).
-- `src/lib/config.ts` — configuración global (IVA, monedas).
-- `src/app-routes/routes-config.tsx` y `src/app-routes/routes.ts` — registro heredado (sidebar/búsqueda) y constantes de URL; los permisos efectivos viven en cada archivo de ruta (`RoleGuard`).
-- `src/routes/` — rutas file-based de TanStack Router; `src/routeTree.gen.ts` es generado.
-- `src/router.tsx`, `src/start.ts`, `src/server.ts` — router, middlewares y entrada SSR.
-- `src/features/users/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
-- `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
-- `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
-- `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
-- `docs/paginacion-cursor.md` — patrón de listados y disparador de migración a cursor.
-- `supabase/functions/` — Edge Functions Deno.
-- `supabase/migrations/` y `drizzle/migrations/` — historial SQL.
-- `vite.config.ts` y `wrangler.jsonc` — build SSR (Nitro/Cloudflare) y despliegue.
-
-- `CHANGELOG.md` y `public/changelog/` — historial de cambios (incluye el detalle de cada auditoría cerrada).
+- `README.md` — requisitos y comandos.
+- `docs/README.md` — índice de documentación.
+- `roadmap.md` — siguientes pasos y estado de evidencia.
+- `docs/ci.md` — workflows y cobertura de CI.
+- `docs/architecture-guardrails.md` — reglas automatizadas.
+- `docs/migrations.md` — migraciones y límites de verificación en Cloud.
+- `docs/multiempresa/onboarding.md` — aislamiento por organización.
+- `docs/functions-inventory.md` — funciones Deno versionadas.
+- `docs/paginacion-incremental.md` — páginas por desplazamiento.
+- `public/changelog.json` — changelog consumido en la app.
+- `src/features/changelog/lib/changelog.ts` — lector y tipos del changelog.
+- `src/routes/`, `src/router.tsx`, `src/start.ts`, `src/server.ts` — rutas y entrada SSR.
+- `drizzle/migrations/` y `supabase/migrations/` — historial SQL versionado.
+- `vite.config.ts` y `wrangler.jsonc` — build SSR y preview.

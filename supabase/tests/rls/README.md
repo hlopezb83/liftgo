@@ -1,27 +1,20 @@
-# RLS Policy Tests — Reales (Fase 2 handoff)
+# Pruebas SQL de RLS
 
-Estos archivos `.sql` prueban políticas RLS **evaluándolas contra la DB real**
-en lugar de mockear el cliente. Reemplazan los `*.rls.test.ts` de Vitest, que
-son 100% mockeados y no ejercitan políticas.
+Las suites de `supabase/tests/rls/` ejercitan policies contra Postgres real.
+Son distintas de las pruebas RLS de Vitest que mockean al cliente y del ensayo
+A/B Playwright de API, Storage y portal en `tests/multi-tenant-ab/`.
 
-## Estado
+## CI
 
-- **Fase 1 (v7.222.0):** archivos versionados; no se ejecutaban en CI por falta
-  de una DB shadow.
-- **Fase 2 (v7.295.0): ACTIVA.** El workflow
-  `.github/workflows/rls-db-tests.yml` (job `rls-db-tests`) levanta un Supabase
-  local efímero con `supabase start`, corre `supabase db reset` (reaplica TODAS
-  las migraciones desde cero, validando que apliquen limpio y en orden), aplica
-  el carril Drizzle y ejecuta estas suites contra esa DB. Los resultados se
-  generan como JUnit (`reports/rls-db-junit.xml`) y se recogen en el propio job.
-  Se dispara sólo cuando cambian migraciones, SQL/RLS, `supabase/config.toml`,
-  `drizzle/migrations/**` o los scripts que estas pruebas consumen (ver
-  `docs/ci.md`); los cambios de `supabase/functions/**` y de `src/**` NO lo
-  disparan. Se salta en PRs desde forks.
-  El arranque excluye gateway (`kong`) y PostgREST: el job habla con la base
-  sólo por `DB_URL`/psql y drizzle-kit, conservando Postgres y `gotrue`.
+El workflow `.github/workflows/rls-db-tests.yml` usa una base local
+efímera, reconstruye el esquema desde migraciones y ejecuta archivos SQL en
+modo estricto. Consulta [docs/ci.md](../../../docs/ci.md) para disparadores y
+[docs/migrations.md](../../../docs/migrations.md) para el orden.
 
-Correr en local (requiere Docker y la CLI de Supabase):
+## Ejecución local
+
+Requiere Docker, Supabase CLI, Python 3 y Postgres local iniciado por Supabase.
+Ejecuta desde la raíz:
 
 ```bash
 supabase start
@@ -30,115 +23,21 @@ python3 scripts/run_sql_suites.py \
   --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres \
   --dir supabase/tests/rls \
   --junit reports/rls-db-junit.xml \
-  --suite-name "RLS DB" --mode strict
+  --suite-name "RLS DB" \
+  --mode strict
 ```
 
-Los smoke SQL de `supabase/tests/*.sql` (c1_c2, r2, r3, r4, r9, r10) corren en
-el mismo job en modo `smoke` (usan `\set ON_ERROR_STOP off` y reportan con
-`RAISE WARNING 'FALLO ...'`). **Son bloqueantes:** el paso no usa
-`continue-on-error`, así que un `FALLO` tumba el job.
+Al terminar, detén la instancia local cuando ya no la necesites. Nunca
+reemplaces la URL local por Lovable Cloud u otra base compartida.
 
-## Gate A/B multiempresa (complementario)
+## Escribir una suite
 
-Estas suites cubren el aislamiento RLS A/B a nivel SQL. Lo que NO cubren —la
-API REST/Storage reales y el portal en navegador con dos organizaciones— vive
-en `.github/workflows/multi-tenant-ab.yml` y `tests/multi-tenant-ab/`, también
-contra un Supabase local efímero. No dupliques aquí esas comprobaciones.
+- Crea un archivo autocontenido con roles, claims y fixtures explícitos.
+- Comprueba accesos permitidos y denegados para cada tenant relevante; incluye
+  lecturas y escrituras cuando aplique.
+- Aísla cada caso en una transacción y revierte sus datos.
+- No dependas de filas, UUID o cuentas de producción.
+- Nombra casos para que el reporte identifique tabla, operación y resultado.
 
-
-
-## Convención por archivo
-
-Cada `.sql` sigue este patrón (transacción abortada al final para no ensuciar):
-
-```sql
-BEGIN;
-
--- 1. Contexto: crear 2 usuarios de roles distintos
-INSERT INTO auth.users (id, email) VALUES (...);
-INSERT INTO public.user_roles (user_id, role) VALUES (...);
-
--- 2. Poblar datos base
-INSERT INTO public.<tabla> (...) VALUES (...);
-
--- 3. Assume rol authenticated + JWT del user A
-SET LOCAL role = 'authenticated';
-SET LOCAL request.jwt.claims TO '{"sub":"<user-A-uuid>","role":"authenticated"}';
-
--- 4. Test: SELECT/INSERT/UPDATE/DELETE — assert count/failure esperado
-DO $$ BEGIN
-  IF (SELECT COUNT(*) FROM public.<tabla>) <> 1 THEN
-    RAISE EXCEPTION 'RLS fuga: user A ve % filas', (SELECT COUNT(*) FROM public.<tabla>);
-  END IF;
-END $$;
-
--- 5. Assume rol authenticated + JWT del user B (attacker)
-SET LOCAL request.jwt.claims TO '{"sub":"<user-B-uuid>","role":"authenticated"}';
-
-DO $$ BEGIN
-  BEGIN
-    INSERT INTO public.<tabla> (user_id, ...) VALUES ('<user-A-uuid>', ...);
-    RAISE EXCEPTION 'RLS fuga: user B pudo insertar como user A';
-  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
-    NULL; -- comportamiento esperado
-  END;
-END $$;
-
-ROLLBACK;
-```
-
-## Tablas cubiertas
-
-| Archivo | Tabla | Escenario |
-|---|---|---|
-| `customer_payment_intents_portal.sql` | `customer_payment_intents` | Cliente A no puede crear intent con `customer_id` de B (portal) |
-| `quotes_portal.sql` | `quotes` | Cliente portal solo ve sus cotizaciones |
-| `supplier_payments.sql` | `supplier_payments` | Solo admin/administrativo puede insertar |
-| `user_roles.sql` | `user_roles` | Escalada de privilegio: usuario no-admin NO puede insertarse `admin` |
-| `parts_inventory.sql` | `parts_inventory` | Lectores (`is_inventory_reader`) vs escritores (`is_parts_writer`); ventas y cliente sin acceso |
-| `return_inspections.sql` | `return_inspections` | Dispatcher/admin escriben, ventas solo lee |
-| `damage_records.sql` | `damage_records` | Mismo patrón que return_inspections |
-| `billing_secrets.sql` | `billing_secrets` | Nadie (ni admin) lee llaves fiscales desde el cliente |
-| `invoices.sql` | `invoices` | Ventas sin acceso; dispatcher solo lectura |
-| `payments_portal.sql` | `payments` | Cliente A no ve pagos del cliente B ni registra pagos |
-| `customers_portal.sql` | `customers` | Cliente ve solo su registro; mecánico sin padrón |
-| `profiles.sql` | `profiles` | No auto-reactivación, no cambio de email, no perfiles ajenos |
-| `notifications.sql` | `notifications` | Solo propias; solo admin/administrativo insertan |
-| `audit_logs.sql` | `audit_logs` | Ventas solo prospects; bitácora inmutable |
-| `role_permissions.sql` | `role_permissions` | Ventas no escala su matriz de permisos |
-| `forklifts.sql` | `forklifts` | Mecánico lee la flota pero no la modifica |
-| `supplier_bills.sql` | `supplier_bills` | Ventas sin CxP; auditor solo lectura |
-| `company_settings.sql` | `company_settings` | Ventas no cambia el RFC emisor; cliente sin acceso |
-| `contracts.sql` | `contracts` | Escritura vía matriz `has_permission`; mecánico sin acceso |
-| `documents.sql` | `documents` | Mecánico solo docs de equipo/mantenimiento |
-| `user_manual.sql` | `user_manual` | Cliente del portal no lee ni escribe el manual interno |
-| `bookings.sql` | `bookings` | Cliente solo sus rentas; ventas read-only; INSERT directo solo admin |
-| `deliveries.sql` | `deliveries` | Logística cerrada: ventas/mecánico/cliente sin acceso |
-| `maintenance_logs.sql` | `maintenance_logs` | Matriz `has_permission('Mantenimiento')`: mecánico full, auditor read, ventas none |
-| `status_logs.sql` | `status_logs` | Ventas escribe pero NO lee; dispatcher no borra la bitácora |
-| `activity_feed.sql` | `activity_feed` | Back-office lee; solo admin escribe; cliente sin acceso |
-| `collection_notes.sql` | `collection_notes` | El cliente nunca lee las notas de cobranza sobre él |
-| `collection_reminders_log.sql` | `collection_reminders_log` | Bitácora inmutable desde el cliente; solo service_role registra |
-| `booking_extensions.sql` | `booking_extensions` | Cliente ve solo extensiones de sus rentas y no se auto-extiende |
-| `quotes_backoffice.sql` | `quotes` | Ventas full; mecánico/auditor read-only; cliente no altera su total |
-| `contract_templates.sql` | `contract_templates` | Ventas no reescribe el clausulado; solo admin/administrativo |
-| `rate_limits.sql` | `rate_limits` | Nadie (ni admin) la toca desde el cliente; solo service_role |
-| `storage_objects_documents.sql` | `storage.objects` (bucket `documents`) | Cliente lee solo su archivo exacto; mecánico solo `forklift/` y `maintenance/`; ventas no borra |
-| `maintenance_parts.sql` | `maintenance_parts` | Auditor read-only; mecánico/admin escriben; cliente y anon sin acceso |
-| `supplier_payment_batches.sql` | `supplier_payment_batches`, `supplier_payment_batch_items` | CLABEs solo para admin/administrativo; auditor y mecánico sin acceso |
-| `folio_functions.sql` | funciones de folio (`next_supplier_bill_number`, `next_contract_number`, `next_quote_number`) | Regresión v7.300.1: staff obtiene folio, portal y anon bloqueados, triggers de folio en SECURITY DEFINER |
-| `shared_parts_catalog_phase2.sql` | `parts_catalog`, `parts_catalog_equipment_models`, `parts_inventory` | Un mismo SKU global se habilita en dos organizaciones con existencias, costo y ubicación locales; la identidad global solo la administra plataforma y se propaga sin mezclar datos locales |
-| `versioned_legal_templates_phase3.sql` | `legal_template_versions`, `organization_legal_template_assignments`, `contracts` | Dos empresas adoptan el mismo machote con overrides privados; la firma congela versión, checksum y contenido sin cruces ni cambios retroactivos |
-| `platform_legal_template_versions_phase3b.sql` | `legal_template_versions`, `organization_legal_template_assignments`, RPC `platform_*_legal_template*` | Sólo plataforma publica versiones inmutables; adopción individual/general conserva overrides, historial y aislamiento A/B |
-| `organization_legal_overrides_phase3c.sql` | `organization_legal_template_assignments`, RPC `update_current_organization_legal_template_overrides` | Admin/Administrativo sólo modifica ciudad, jurisdicción, representante y testigos de su empresa; escritura directa, roles ajenos, anon y cruces A/B quedan bloqueados |
-
-Convención adicional en las suites nuevas: cada una prueba **anon** (`SET LOCAL
-role = 'anon'`), el **cliente del portal**, el **staff según `role_permissions`**
-y, donde aplica, **service_role** (`SET LOCAL role = 'service_role'`, que hace
-bypass de RLS). Para cambiar de rol dentro de la transacción se usa `RESET ROLE;`
-antes del siguiente `SET LOCAL role = ...`.
-
-
-Cada archivo termina en `ROLLBACK;` — es seguro correrlos contra cualquier DB
-transaccional sin dejar residuos.
-
+La lista de suites y tablas cubiertas vive en los archivos SQL para evitar
+mantener un inventario duplicado que se desactualiza.

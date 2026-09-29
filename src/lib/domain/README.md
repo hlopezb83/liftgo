@@ -1,29 +1,29 @@
-# `src/lib/domain/` — constantes y helpers de dominio
+# Helpers de dominio compartido
 
-**Regla:** aquí solo vive lo genuinamente **cross-domain** (usado por 3+
-features distintas).
+`src/lib/domain/` contiene lógica y tipos compartidos que no pertenecen a una
+sola feature. La carpeta está congelada: `scripts/arch-check.sh` rechaza
+archivos nuevos que no estén en su allowlist. Para lógica nueva, empieza en
+`src/features/<feature>/lib/`; amplía la allowlist sólo con decisión
+arquitectónica intencional.
 
-Auditado en v6 (P3-8). Estado actual:
+Archivos actuales en la allowlist:
 
-**Genuinamente cross-domain (mantener aquí):**
-- `invoiceHelpers`, `invoiceTotals`, `lineItems`, `rentalCalculation` — matemática monetaria
-- `invoiceStatus` — estados de factura emitida; usado por invoices, quotes y contracts (Bloque 3C)
-- `roles`, `templateUtils`, `activityTranslations` — utilidades compartidas
-- `errorCatalog`, `satCatalogs` — catálogos globales
-- `bookingRates` (v7.418.0, FIX-2) — resolución canónica de tarifas
-  pactadas vs. catálogo; consumido por `bookings` (extensionBilling) e
-  `invoices` (useInvoiceFormHandlers). Moverlo a un solo feature crearía un
-  cross-feature deep import prohibido por G5.
+- `activityTranslations.ts`
+- `bookingRates.ts`
+- `contractTypes.ts`
+- `customerTypes.ts`
+- `errorCatalog.ts`
+- `firstBillingPeriod.ts`
+- `invoiceHelpers.ts`
+- `invoiceStatus.ts`
+- `invoiceTotals.ts`
+- `lineItems.ts`
+- `nonRentalLines.ts`
+- `rentalCalculation.ts`
+- `roles.ts`
+- `satCatalogs.ts`
+- `stateMachines.ts`
+- `templateUtils.ts`
 
-**Migrados al feature dueño en v7.179.0 (P3-8):**
-- `creditNoteMotives` → `@/features/invoices/lib/creditNoteMotives`
-- `paymentIntentStatus` → `@/features/invoices/lib/paymentIntentStatus`
-- `feedbackMessages` → `@/features/feedback/lib/feedbackMessages`
-
-**Devueltos a `lib/domain` en v7.213.0 (Lote D) para romper `lib → features`:**
-- `contractTypes` — consumido por `lib/pdf/contract` (renderers PDF).
-- `customerTypes` — consumido por `lib/pdf/documents/CustomerStatementDocument`.
-
-Los archivos originales en `features/*/lib` sobreviven como re-export shims
-para no forzar migración de todos los consumers en un solo lote.
-
+La allowlist de `scripts/arch-check.sh` es la fuente de verdad y debe
+mantenerse sincronizada con este inventario.

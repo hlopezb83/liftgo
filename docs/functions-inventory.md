@@ -1,5 +1,8 @@
 # Inventario de funciones de `supabase/functions`
 
+> Inventario del código versionado, revisado el 29/09/2026. No confirma qué funciones están desplegadas en Lovable Cloud ni el estado de sus secretos. Algunos flujos ya usan server functions de TanStack Start; comprueba consumidores antes de cambiar o retirar un endpoint.
+
+
 Clasificación del alcance multiempresa de cada endpoint activo. Regla general:
 estas funciones corren con `service_role`, por lo que **las RLS no las
 protegen**; el alcance por empresa tiene que estar escrito en el código.

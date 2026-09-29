@@ -1,66 +1,37 @@
 # Gates para operar varias organizaciones
 
-Runbook versionado y no destructivo. La segunda organización ya existe en
-Lovable Cloud como entorno de prueba, por autorización del propietario.
-Las secciones de preparación de abajo conservan la evidencia histórica de
-2026-09-21; el estado vigente se resume aquí.
+Runbook para pruebas aisladas. El propietario confirmó que existe una segunda
+organización de prueba en Lovable Cloud; Git no revela su estado actual ni el
+ledger productivo.
 
-**Estado al 2026-09-23:** `v8.42.1` y migraciones hasta `0053` desplegadas.
-CI, RLS y ensayo A/B sobre una base efímera pasaron para la
-[PR #87](https://github.com/hlopezb83/liftgo/pull/87). En producción se creó
-una reserva y un contrato en borrador de la segunda organización, sin cruces
-detectados en las relaciones principales. Esto prueba un flujo de administrador;
-no sustituye el ensayo con varios usuarios internos y de portal.
+## Evidencia actual disponible en Git
 
-**Restore probado: pendiente.** [Lovable Cloud documenta](https://docs.lovable.dev/features/database)
-que el botón de restauración revierte la base del proyecto activo y pierde
-los cambios posteriores. Sus respaldos diarios no incluyen archivos de
-Storage. Por ello no se debe pulsar **Restore to this backup** en el proyecto
-productivo para este ensayo. Hace falta una copia aislada provista por Lovable
-o un procedimiento acordado con soporte que permita demostrar la restauración
-del respaldo diario sin afectar producción; además se debe ensayar la
-recuperación de Storage por separado.
+- En `main`, el commit
+[a21b527](https://github.com/hlopezb83/liftgo/commit/a21b527ffce794bf7fe019fec31b14ac7d5c22b2)
+tiene CI principal y Gitleaks en verde:
+[CI](https://github.com/hlopezb83/liftgo/actions/runs/36614039590) y
+[Gitleaks](https://github.com/hlopezb83/liftgo/actions/runs/36614039561).
+- El ensayo A/B del
+[run 35566123833](https://github.com/hlopezb83/liftgo/actions/runs/35566123833)
+pasó el 21 de septiembre sobre `c4a6b69ccb4fe0561d3660c2603b637336ec631f`.
+No acredita el SHA actual.
+- Git no contiene evidencia de una restauración de base y Storage completada
+en un entorno aislado.
+- Ledger, objetos de Storage, usuarios y secretos se deben revisar en el
+proyecto Lovable Cloud correcto; no se deducen del mayor número de migración
+versionado.
 
-Estado de los gates (última revisión: 2026-09-21):
+## Automatización A/B
 
-| Gate | Estado | Evidencia |
-| --- | --- | --- |
-| CI completo en verde | **Verificado** para el commit `44dacee` (2026-09-20) | Runs [35543605798](https://github.com/hlopezb83/liftgo/actions/runs/35543605798), [35543605857](https://github.com/hlopezb83/liftgo/actions/runs/35543605857), [35543605759](https://github.com/hlopezb83/liftgo/actions/runs/35543605759) |
-| Ensayo A/B real (datos + Storage + portal) | **Verificado** (corrida 9, commit `c4a6b69`, 2026-09-21) | Run [35566123833](https://github.com/hlopezb83/liftgo/actions/runs/35566123833), job `106228183532`, conclusión **success**. Log: «.dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo». Playwright: **16 passed** (29.6s) — seed, datos, Storage y portal aislados. Teardown: «Stopped supabase local development setup.». Artefacto seguro `multitenant-ab-evidence` (id `10624198616`, digest `sha256:26443b6a2ac1f62c1f6c8fb291663d09c3d8c660a8952280ac313991f746ce57`): el workflow sólo sube `reports/multitenant-ab-*` y `playwright-report-multitenant/`, nunca `.dev.vars`. CI complementario en verde: CI principal [35566124245](https://github.com/hlopezb83/liftgo/actions/runs/35566124245) y Gitleaks [35566123931](https://github.com/hlopezb83/liftgo/actions/runs/35566123931), ambos success. Histórico de corridas 1–8 (todas fallidas, superadas): corrida 1 (`55ee6cb`, run 35546306009) falló el seed de B por contexto de organización (corregido en 8.26.1); corrida 2 (`ca77e98`, run 35547021465) falló por organización inicial activa (8.26.2 la suspende por RPC y la restaura); corrida 3 (`887c514`, run 35547626020) falló el seed de roles por duplicado (8.26.3 con upsert); corrida 4 (run 35558699815) falló por invoices sin partidas (8.26.4 inserta una partida canónica cuadrada con el subtotal); corrida 5 (`c3415c9`, run 35560422331) falló 3 pruebas de navegador por login que no esperaba la sesión persistida (reutiliza `loginPortal` + señal de portal autenticado); corrida 6 (`91999fb`, run 35561265562) falló 4 pruebas por falta de `SUPABASE_PUBLISHABLE_KEY` server-side (añadida al `GITHUB_ENV`); corrida 7 (run 35561856480) falló por `getClaims` rechazando el JWT HS256 local (8.26.5 añade fallback `getUser`); corrida 8 (run 35565322198) falló porque `wrangler dev` validaba los JWT contra el ref productivo del `.env` versionado (8.26.7 crea `.dev.vars` efímero con bindings locales). El gate A/B queda **verificado para el commit `c4a6b69`**; un commit posterior exigiría su propio run. |
-| Restore probado | **Pendiente** — requiere evidencia externa | — |
+El workflow
+`.github/workflows/multi-tenant-ab.yml` y las suites en
+`tests/multi-tenant-ab/` están diseñados para un backend local efímero. Cubren
+separación de datos, Storage y portal mediante un guard que impide usar
+producción. Ejecuta el workflow sobre el SHA que se propone liberar y conserva
+el reporte del mismo SHA.
 
-### Automatización del ensayo A/B (verificada en la corrida 9)
-
-El gate A/B tiene un carril reproducible que corre **sólo** contra el
-Supabase local efímero del runner:
-
-- `.github/workflows/multi-tenant-ab.yml` — Postgres + gotrue + kong + postgrest
-  + storage-api, mismo carril de migraciones que RLS DB tests, sin leer ningún
-  secret; destruye el entorno con `if: always()`.
-- `tests/multi-tenant-ab/fixtures/localBackend.ts` — guard fail-closed que
-  endurece `productionGuard`: prohíbe el ref productivo, exige loopback,
-  `E2E_ISOLATED_BACKEND=1` e identificadores `local*`, y rechaza cualquier
-  escape remoto.
-- Suites: `data-isolation.spec.ts` (API/PostgREST), `storage-isolation.spec.ts`
-  (Storage API real: listar, descargar, URL firmada, objeto legado sin prefijo)
-  y `portal-isolation.spec.ts` (portal A/B en navegador, id cruzado sin revelar
-  monto ni nombre, mismo logo global LiftGo).
-- Evidencia: JUnit/JSON/HTML de Playwright y una matriz A/B resumida sin
-  tokens, credenciales ni identificadores reales.
-
-**Gate verificado** en la corrida 9 (commit `c4a6b69`, run `35566123833`,
-conclusión success, 16/16 Playwright). El siguiente gate externo pendiente es
-**restore probado**.
-
-
-**Criterio de cierre vigente:** la segunda organización permanece para pruebas.
-La operación multiempresa general no se declara 100 % lista hasta completar
-el ensayo con varios usuarios, el restore aislado y la recuperación de Storage
-con evidencia fechada. El gate de CI no sustituye esas pruebas.
-
-La segunda organización está creada y las migraciones productivas llegan a
-`0053`. Los párrafos históricos que describen su alta como pendiente quedan
-superados por el estado actual indicado arriba.
+Los siguientes pasos son procedimientos, no
+evidencia de ejecución. Registra conclusiones fechadas con SHA, run y resultado.
 
 ---
 

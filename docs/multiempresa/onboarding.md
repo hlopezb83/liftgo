@@ -1,122 +1,68 @@
-# Multiempresa · Tramo 9 — Alta de empresas, suspensión, clientes y portal por empresa
+# Multiempresa · Onboarding y aislamiento por organización
 
-## Estado actual (revisado 2026-09-19)
+## Estado del repositorio al 29 de septiembre de 2026
 
-> Este bloque es el **estado vigente**. Se distingue explícitamente entre lo
-> **verificable en el repositorio** (código, pruebas y assets versionados) y lo
-> que depende de **evidencia externa** (base de datos, Storage, CI, respaldos):
-> esto último se marca como **requiere verificación** y no debe darse por
-> cierto sin una corrida o consulta que lo respalde. Las secciones posteriores
-> a la línea horizontal son **snapshots históricos fechados** que se conservan
-> tal cual para trazabilidad: no describen la situación de hoy.
+Este bloque resume lo verificable en Git y lo separa del estado externo de
+Lovable Cloud. El contenido posterior al separador es histórico; no uses sus
+cifras como datos actuales de producción.
 
 ### Verificable en el repositorio
 
-- **Branding global: ninguna organización tiene logo propio.** El único logo
-  del sistema es el lockup oficial «LIFT GO MONTACARGAS», asset local
-  versionado (`public/brand/liftgo-montacargas.png`), usado igual en el shell
-  del ERP, el portal y **todos los documentos generados** (cotización, reserva,
-  contrato, factura, estado de cuenta y demás PDF).
-- **`company_settings.logo_url` no tiene uso funcional en el código.** No se lee
-  para renderizar, no se firma por organización y no se descarga ningún host
-  externo. La UI de carga/preview de logos por empresa fue retirada; el campo
-  sólo aparece en tipos generados, comentarios y pruebas de regresión.
-- **Razón social, RFC y demás datos fiscales siguen siendo por organización**,
-  con pruebas A/B de aislamiento. Las pruebas de logo verifican lo contrario:
-  A y B obtienen **el mismo asset global** en cada tipo de documento, y un valor
-  histórico en el campo no altera la marca.
-- El código de onboarding, suspensión, clientes y portal por empresa descrito
-  más abajo está implementado y cubierto por las suites del repositorio.
+- El código incluye membresías y alcance por organización en operación,
+  clientes, portal y funciones de servidor. Las pruebas A/B locales ejercitan
+  separación de datos, Storage y portal.
+- La marca común es LiftGo. Identidad fiscal, folios, tarifas, stock y
+  operación pertenecen a cada empresa.
+- CI principal y Gitleaks pasaron para `main` en
+  `a21b527ffce794bf7fe019fec31b14ac7d5c22b2`: runs
+  [36614039590](https://github.com/hlopezb83/liftgo/actions/runs/36614039590) y
+  [36614039561](https://github.com/hlopezb83/liftgo/actions/runs/36614039561).
+  Es evidencia de ese SHA y esos workflows.
+- El último ensayo A/B versionado pasó en
+  `c4a6b69ccb4fe0561d3660c2603b637336ec631f`, run
+  [35566123833](https://github.com/hlopezb83/liftgo/actions/runs/35566123833).
+  Es evidencia histórica, no del SHA actual.
 
-### Requiere verificación (evidencia externa, no verificable desde el repo)
+### Confirmado por el propietario, fuera de Git
 
-Los puntos siguientes provienen de corridas previas reportadas y **no pueden
-confirmarse leyendo el repositorio**. Antes de apoyarse en ellos hay que
-reconfirmarlos con una consulta o corrida fechada:
+El propietario informó que existe una segunda organización de prueba en Lovable
+Cloud. Esto no permite inferir cuántos tenants activos hay, quiénes son sus
+miembros ni el estado actual de sus datos o configuración.
 
-- Migraciones **0030–0035 aplicadas** a la base conectada — *requiere
-  verificación* contra el ledger de migraciones.
-- **Operador raíz asignado** (1 operador de plataforma) y número de membresías —
-  *requiere verificación*.
-- **Migración de Storage** (293 referencias actualizadas, 17 huérfanos copiados,
-  1 resolución manual) y **originales conservados** con el borrado de fuentes
-  deshabilitado — *requiere verificación*.
-- **1 sola organización activa** — *requiere verificación*.
-- **Estado del respaldo/restore** — *requiere verificación*: a la fecha consta
-  respaldo diario, pero **ninguna restauración ensayada**.
+### Requiere verificación actual en Lovable Cloud
 
-### Verificado con evidencia externa fechada
+Git no acredita el ledger
+aplicado, la configuración de Storage, las membresías y roles cargados, las
+llaves de Facturapi, los respaldos ni una restauración ensayada. Verifica esos
+puntos directamente y con fecha antes de concluir que un entorno está listo.
+No registres secretos ni datos personales.
 
-- **CI completo en verde (2026-09-20)** para el commit `44dacee`
-  (`44daceef5d268ac457399475ca5cfda681981993`). Cubre lint, tipos,
-  build y smoke de arranque, Vitest con cobertura, pruebas Deno offline,
-  pruebas RLS y smoke SQL sobre base efímera, y escaneo de secretos:
-  - CI principal: <https://github.com/hlopezb83/liftgo/actions/runs/35543605798> (success)
-  - RLS DB tests: <https://github.com/hlopezb83/liftgo/actions/runs/35543605857> (success)
-  - Gitleaks: <https://github.com/hlopezb83/liftgo/actions/runs/35543605759> (success)
+Procedimientos: [gates multiempresa](./gates-segunda-organizacion.md) y
+[política de migraciones](../migrations.md).
 
-  Este gate queda **cubierto para ese commit**; cualquier commit posterior
-  necesita su propio run enlazado.
+### Marca global de LiftGo
 
+El asset de marca común es `public/brand/liftgo-montacargas.png`; las
+organizaciones no tienen logos propios. Mantén el mismo logo en el ERP, el
+portal y los documentos apropiados. La razón social y los datos fiscales que
+acompañan a la marca son propios de cada empresa.
 
-### Marca global de LiftGo (no es dato de tenant)
+### Criterio de preparación
 
-Toda la marca visible —navegación, sidebar, encabezados de acceso, portal y
-documentos— sale del **asset local del repositorio**, idéntico para cualquier
-empresa: el lockup `public/brand/liftgo-montacargas.png` (vía `BrandLockup`,
-con `object-contain`, ancho automático y colores originales) y, para el sidebar
-colapsado, el emblema compacto `public/favicon.png` (`BrandMark`). Los
-generadores de PDF cargan el mismo asset con `loadGlobalBrandLogo()`; no hay
-fetch a URLs remotas ni firmas por organización. Por diseño el logo **no lleva
-gate ni prueba A/B de aislamiento**: las pruebas exigen igualdad entre tenants.
-La razón social que acompaña a la marca en el shell y el portal es **texto
-legal de la organización**, no branding configurable.
-
-### Gates obligatorios antes de habilitar una segunda organización
-
-Ninguno puede darse por cumplido sin evidencia fechada y enlazable.
-
-1. **Ensayo A/B aislado** con organizaciones de prueba, cubriendo **datos,
-   Storage y portal** — **verificado el 2026-09-21** para el commit `c4a6b69`
-   (`c4a6b69ccb4fe0561d3660c2603b637336ec631f`): run A/B
-   [35566123833](https://github.com/hlopezb83/liftgo/actions/runs/35566123833)
-   (job `106228183532`, conclusión success, 16/16 Playwright en 29.6s); log
-   «.dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo»;
-   teardown «Stopped supabase local development setup.»; artefacto seguro
-   `multitenant-ab-evidence` (id `10624198616`,
-   digest `sha256:26443b6a2ac1f62c1f6c8fb291663d09c3d8c660a8952280ac313991f746ce57`),
-   el workflow sólo sube reports y `playwright-report-multitenant/`, nunca
-   `.dev.vars`. CI complementario en verde: CI principal
-   [35566124245](https://github.com/hlopezb83/liftgo/actions/runs/35566124245)
-   y Gitleaks [35566123931](https://github.com/hlopezb83/liftgo/actions/runs/35566123931),
-   ambos success. Un commit posterior exige su propio run.
-2. **Restore probado**: no basta el respaldo diario; hace falta una
-   **restauración ensayada y documentada** — *requiere verificación* (a la
-   fecha no consta ninguna). Éste es el siguiente gate externo pendiente.
-3. **CI completo en verde** (lint, tipos, build/smoke, Vitest y cobertura, Deno
-   offline, RLS/smoke SQL y secretos) — **verificado el 2026-09-20** para el
-   commit `44dacee`; ver los tres enlaces en «Verificado con evidencia externa
-   fechada». Un commit distinto exige un run propio.
-
-El procedimiento reproducible para cerrar los gates 1 y 2 vive en
-[gates-segunda-organizacion.md](./gates-segunda-organizacion.md). **Mientras el
-ensayo A/B y el restore no estén aprobados con evidencia fechada, no se habilita
-una segunda organización.**
-
-**Branding: sin gate.** El logo es global y no depende de la organización, así
-que no hay nada que aislar ni migrar; el aislamiento A/B aplica a los **datos
-propios** de cada empresa, incluida su identidad fiscal.
-
-
+El código y CI son requisitos, no una certificación de operación multiempresa.
+Antes de declarar listo un entorno, registra el SHA validado, el ledger
+consultado, un ensayo A/B vigente y una restauración completa en un entorno
+aislado. El plan priorizado está en [roadmap.md](../../roadmap.md).
 
 ---
+
 
 ### Snapshot histórico (previo a 2026-09-18)
 
 Estado en ese momento: implementado en el repositorio (8.19.3), sin producción; las
 migraciones `0030`–`0034` figuraban en el journal y **pendientes de aplicar**, y
 el ledger sólo acreditaba ids 25–30 = archivos `0024`–`0029` (el id 31 extra es
-una anomalía histórica sin identificar). Superado: 0030–0035 ya están aplicadas.
+una anomalía histórica sin identificar). El estado de aplicación requiere una verificación actual del ledger; esta referencia es sólo un snapshot.
 
 > **Tramo 10 (0031)** endurece este tramo tras la auditoría: autoridad de
 > plataforma **explícita** (sin promoción automática de administradores de

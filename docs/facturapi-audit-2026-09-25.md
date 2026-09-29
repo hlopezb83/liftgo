@@ -1,4 +1,6 @@
-# Auditoría final de Facturapi — 25 de septiembre de 2026
+# Auditoría Facturapi — snapshot del 25 de septiembre de 2026
+
+> Revisión puntual del código y las referencias de esa fecha. No certifica la versión actual del SDK, las llaves o modo activo en Lovable Cloud ni el comportamiento de la publicación más reciente. Revalida el repositorio y la configuración sandbox/live antes de cambios fiscales.
 
 Alcance: código del SDK `facturapi@5.1.0`, funciones fiscales, conciliación, cola de reintentos y llamadas desde la UI. Revisión contra [API oficial](https://docs.facturapi.io/api/), [intermitencias 202](https://docs.facturapi.io/docs/guides/invoices/intermitencias/), [errores](https://docs.facturapi.io/docs/getting-started/errors/), [límites de tasa](https://docs.facturapi.io/docs/getting-started/rate-limits/) y [SDK oficial](https://github.com/FacturAPI/facturapi-node).
 
