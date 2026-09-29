@@ -77,11 +77,11 @@ export function CalendarToolbar({
         </TabsList>
       </Tabs>
       <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
-          <TabsList className="h-8 touch:h-11">
-            <TabsTrigger value="week" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Semana</TabsTrigger>
-            <TabsTrigger value="month" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Mes</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <TabsList className="h-8 touch:h-11">
+          <TabsTrigger value="week" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Semana</TabsTrigger>
+          <TabsTrigger value="month" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Mes</TabsTrigger>
+        </TabsList>
+      </Tabs>
       {viewMode === "list" && (
         <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon" onClick={onPrev} aria-label={prevLabel}>
