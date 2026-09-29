@@ -107,7 +107,7 @@ export default function CalendarPage() {
         <QueryErrorState
           entity="el calendario"
           onRetry={() => { void bRefetch(); void currentBookingsRefetch(); void fRefetch(); }}
-          isRetrying={bFetching || currentBookingsFetching || fFetching}
+          isRetrying={[bFetching, currentBookingsFetching, fFetching].some(Boolean)}
         />
       </PageContainer>
     );
