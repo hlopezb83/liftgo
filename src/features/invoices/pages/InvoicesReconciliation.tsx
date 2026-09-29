@@ -106,12 +106,13 @@ export default function InvoicesReconciliation() {
           <WarnIcon className="h-4 w-4" />
           <AlertDescription>
             <p className="font-medium">
-              {summary.missingFolioCount.toLocaleString("es-MX")} folio(s) interno(s) faltante(s) en el rango.
+              {`${summary.missingFolioCount.toLocaleString("es-MX")} folio${summary.missingFolioCount === 1 ? "" : "s"} interno${summary.missingFolioCount === 1 ? "" : "s"} faltante${summary.missingFolioCount === 1 ? "" : "s"} en el rango.`}
             </p>
             {summary.missingFolioPreview.length > 0 && (
               <details className="mt-2">
                 <summary className="cursor-pointer select-none underline underline-offset-4">
-                  Ver {summary.missingFolioPreview.length.toLocaleString("es-MX")} folios
+                  Ver {summary.missingFolioPreview.length.toLocaleString("es-MX")} folio
+                  {summary.missingFolioPreview.length === 1 ? "" : "s"}
                   {summary.missingFolioPreview.length < summary.missingFolioCount
                     ? ` (primeros ${summary.missingFolioPreview.length.toLocaleString("es-MX")})`
                     : ""}
