@@ -10,6 +10,7 @@ import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/u
 import { GanttHeader } from "./GanttHeader";
 import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
+import { groupForkliftsForGantt } from "../../lib/ganttEquipmentGroups";
 
 
 interface GanttChartProps {
@@ -84,21 +85,22 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
     return set;
   })();
 
-  const { active, available, sold } = (() => {
-    const sorted = [...(forklifts ?? [])].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
-    const activeList: Forklift[] = [];
-    const availableList: Forklift[] = [];
-    const soldList: Forklift[] = [];
-    for (const f of sorted) {
-      if (forkliftsWithActivity.has(f.id)) activeList.push(f);
-      else if (f.status === "sold") soldList.push(f);
-      else availableList.push(f);
-    }
-    return { active: activeList, available: availableList, sold: soldList };
-  })();
+  const {
+    active,
+    available,
+    maintenance,
+    rented,
+    retired,
+    sold,
+    other,
+  } = groupForkliftsForGantt(forklifts ?? [], forkliftsWithActivity);
 
   const availableGroups = groupByModel(available);
+  const maintenanceGroups = groupByModel(maintenance);
+  const rentedGroups = groupByModel(rented);
+  const retiredGroups = groupByModel(retired);
   const soldGroups = groupByModel(sold);
+  const otherGroups = groupByModel(other);
 
   // Posición de la línea vertical "hoy"
   const todayIdx = days.findIndex((d) => isToday(d));
@@ -126,8 +128,20 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
         {available.length > 0 && <SectionHeader label="Disponibles" count={available.length} />}
         <ChipCloud groups={availableGroups} />
 
+        {maintenance.length > 0 && <SectionHeader label="En mantenimiento" count={maintenance.length} />}
+        <ChipCloud groups={maintenanceGroups} />
+
+        {rented.length > 0 && <SectionHeader label="En renta (sin reserva en el rango)" count={rented.length} />}
+        <ChipCloud groups={rentedGroups} />
+
+        {retired.length > 0 && <SectionHeader label="Retirados" count={retired.length} />}
+        <ChipCloud groups={retiredGroups} />
+
         {sold.length > 0 && <SectionHeader label="Vendidos" count={sold.length} />}
         <ChipCloud groups={soldGroups} />
+
+        {other.length > 0 && <SectionHeader label="Otros estados" count={other.length} />}
+        <ChipCloud groups={otherGroups} />
 
         {/* Línea vertical de "hoy" sobre toda la grilla (sólo cubre el área de barras de renta activa) */}
         {todayLeftPct !== null && active.length > 0 && (
