@@ -26,7 +26,7 @@ describe("findInvoiceFolioGaps", () => {
     expect(result).toEqual({ count: 1, preview: ["0005"] });
   });
 
-  it("keeps a compact preview while counting every gap", async () => {
+  it("keeps a compact preview while counting every gap", () => {
     const result = findInvoiceFolioGaps([
       { invoice_number: "FAC-0001", status: "sent" },
       { invoice_number: "FAC-0200", status: "sent" },
