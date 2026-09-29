@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import type { PermissionsMap } from "@/features/users";
 import { BookingBillingCard } from "../BookingBillingCard";
 
@@ -33,31 +34,39 @@ const bookingData = {
 };
 const booking = bookingData as never;
 
+function renderCard(targetBooking: never) {
+  return render(
+    <TooltipProvider>
+      <BookingBillingCard booking={targetBooking} />
+    </TooltipProvider>,
+  );
+}
+
 describe("BookingBillingCard — permisos y elegibilidad de recurrencia", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("administrativo (Facturas full) ve habilitado el interruptor para un periodo elegible", () => {
     roleRef.current = "administrativo";
-    render(<BookingBillingCard booking={booking} />);
+    renderCard(booking);
     expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeEnabled();
   });
 
   it("dispatcher (Reservas full) sigue viendo el interruptor", () => {
     roleRef.current = "dispatcher";
-    render(<BookingBillingCard booking={booking} />);
+    renderCard(booking);
     expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeEnabled();
   });
 
   it("ventas (solo lectura) no ve el interruptor", () => {
     roleRef.current = "ventas";
-    render(<BookingBillingCard booking={booking} />);
+    renderCard(booking);
     expect(screen.queryByLabelText("Activar facturación recurrente mensual")).toBeNull();
   });
 
   it("no permite activar recurrencia en una reserva menor a un mes calendario", () => {
     roleRef.current = "administrativo";
     const shortBooking = { ...bookingData, end_date: "2026-10-30" } as never;
-    render(<BookingBillingCard booking={shortBooking} />);
+    renderCard(shortBooking);
 
     expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeDisabled();
     expect(screen.getByText("Para activarla, la reserva debe cubrir al menos un mes calendario.")).toBeInTheDocument();
@@ -70,7 +79,7 @@ describe("BookingBillingCard — permisos y elegibilidad de recurrencia", () => 
       end_date: "2026-10-30",
       recurring_billing: true,
     } as never;
-    render(<BookingBillingCard booking={legacyBooking} />);
+    renderCard(legacyBooking);
 
     expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeEnabled();
   });
