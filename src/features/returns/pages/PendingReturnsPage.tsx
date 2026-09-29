@@ -104,7 +104,7 @@ export default function PendingReturnsPage() {
     <ListPageLayout
       title="Retornos Pendientes"
       subtitle="Equipos entregados cuya reserva venció y esperan devolución"
-      totalCount={pending.length}
+      totalCount={pendingReturns?.length}
       isLoading={isLoading}
       isError={isError}
       onRetry={() => { void refetch(); }}
