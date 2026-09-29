@@ -159,8 +159,11 @@ BEGIN
   END IF;
 
   INSERT INTO public.supplier_payment_batch_items
-    (batch_id, supplier_name, bill_number, reference, amount)
-  VALUES ('f3333333-3333-4333-8333-3333333333b2', 'Proveedor RLS 2', 'FAC-RLS-2', 'REF-RLS-2', 800);
+    (batch_id, supplier_name, clabe, bill_number, reference, amount)
+  VALUES (
+    'f3333333-3333-4333-8333-3333333333b2', 'Proveedor RLS 2',
+    '098765432109876542', 'FAC-RLS-2', 'REF-RLS-2', 800
+  );
   GET DIAGNOSTICS v_rows = ROW_COUNT;
   IF v_rows <> 1 THEN
     RAISE EXCEPTION 'RLS ROTA: administrativo deberia poder agregar partidas al lote';
