@@ -15,7 +15,7 @@ const baseLog = {
   service_type: "Preventivo",
   next_service_date: "2026-10-01",
   performed_at: "2026-09-15T18:30:00.000Z",
-  work_status: "open",
+  work_status: "pending",
 };
 
 describe("useMaintenanceWindows — contrato", () => {
@@ -46,6 +46,20 @@ describe("useMaintenanceWindows — contrato", () => {
         label: "OT abierta: Preventivo",
       },
     ]);
+  });
+
+  it("no convierte una orden recurrente programada en una OT abierta fantasma", () => {
+    mockUseMaintenanceLogs.mockReturnValue({
+      data: [{
+        ...baseLog,
+        id: "log-scheduled",
+        next_service_date: null,
+        performed_at: "2026-10-01",
+        work_status: "scheduled",
+      }],
+    });
+    const { result } = renderHook(() => useMaintenanceWindows());
+    expect(result.current).toEqual([]);
   });
 
   it("las OT completadas no generan franja abierta y el tipo falta usa 'mantenimiento'", () => {
