@@ -36,11 +36,7 @@ interface CustomerSelectorProps {
   hideManualName?: boolean;
   helpText?: string;
   error?: string;
-  /**
-   * V26-07: variante compacta (usada en Nueva cotización). Quita el encabezado
-   * redundante y la etiqueta duplicada del combobox, y reduce el padding.
-   * No cambia comportamiento, validaciones ni el nombre accesible del control.
-   */
+  /** Variante compacta para formularios densos. */
   compact?: boolean;
 }
 
@@ -58,43 +54,20 @@ function buildTriggerLabel(
   return required ? "Seleccionar cliente *" : "Seleccionar cliente (opcional)";
 }
 
-function CustomerCombobox({
-  items,
-  selected,
-  customerId,
-  required,
-  compact,
-  helpText,
-  initialListTruncated,
-  searchTerm,
-  searchActive,
-  loadingRemote,
-  searchError,
-  searchTruncated,
-  open,
-  onOpenChange,
-  onSearchTermChange,
-  onSelect,
-  onClear,
-}: {
-  items: Customer[];
-  selected: Customer | undefined;
-  customerId: string;
-  required?: boolean;
-  compact?: boolean;
-  helpText?: string;
-  initialListTruncated: boolean;
-  searchTerm: string;
-  searchActive: boolean;
-  loadingRemote: boolean;
-  searchError: boolean;
-  searchTruncated: boolean;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onSearchTermChange: (value: string) => void;
-  onSelect: (customer: Customer) => void;
+type CustomerComboboxProps = {
+  items: Customer[]; selected: Customer | undefined; customerId: string;
+  required?: boolean; compact?: boolean; helpText?: string; initialListTruncated: boolean;
+  searchTerm: string; searchActive: boolean; loadingRemote: boolean; searchError: boolean;
+  searchTruncated: boolean; open: boolean; onOpenChange: (open: boolean) => void;
+  onSearchTermChange: (value: string) => void; onSelect: (customer: Customer) => void;
   onClear: (e: React.MouseEvent) => void;
-}) {
+};
+
+function CustomerCombobox({
+  items, selected, customerId, required, compact, helpText, initialListTruncated,
+  searchTerm, searchActive, loadingRemote, searchError, searchTruncated, open,
+  onOpenChange, onSearchTermChange, onSelect, onClear,
+}: CustomerComboboxProps) {
   const triggerLabel = buildTriggerLabel(selected, required);
   const emptyMessage = loadingRemote
     ? "Buscando clientes…"
@@ -216,12 +189,7 @@ function ManualCustomerFields({
   onCustomerNameChange,
   customerContact,
   onCustomerContactChange,
-}: {
-  customerName: string;
-  onCustomerNameChange: (name: string) => void;
-  customerContact?: string;
-  onCustomerContactChange?: (contact: string) => void;
-}) {
+}: { customerName: string; onCustomerNameChange: (name: string) => void; customerContact?: string; onCustomerContactChange?: (contact: string) => void; }) {
   const fieldId = useId();
   return (
     <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
