@@ -226,7 +226,7 @@ export function InvoiceDetailActions({
           </BlockedActionButton>
         </RoleGuard>
       ) : null}
-      <RoleGuard module="Facturas" minAccess="full" fallback={null}>
+      <RoleGuard module="Facturas" minAccess="full" allowedRoles={["admin", "administrativo"]} fallback={null}>
         <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
       </RoleGuard>
       {flags.showPaymentBtn ? (
