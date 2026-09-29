@@ -11,9 +11,9 @@ import {
   useUnassignForklift,
 } from "@/features/fleet";
 import { getSaleLines } from "@/features/quotes/utils/saleLines";
-import { filterSaleForkliftsForLine } from "../../lib/saleForkliftMatching";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
+import { filterSaleForkliftsForLine } from "../../lib/saleForkliftMatching";
 
 interface Props {
   quoteId: string;
