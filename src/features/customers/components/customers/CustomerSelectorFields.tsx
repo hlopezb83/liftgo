@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { CloseIcon as XIcon, ChevronDownIcon, SuccessIcon as CheckIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -220,7 +221,7 @@ export function ManualCustomerFields({
   customerContact?: string;
   onCustomerContactChange?: (contact: string) => void;
 }) {
-  const fieldId = React.useId();
+  const fieldId = useId();
   return (
     <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
       <div className="space-y-1.5">
