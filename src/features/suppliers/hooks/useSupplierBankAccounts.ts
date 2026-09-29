@@ -13,8 +13,15 @@ const SUPPLIER_BANK_ACCOUNT_COLUMNS = sel(
 );
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
-type Insert = Database["public"]["Tables"]["supplier_bank_accounts"]["Insert"];
-type Update = Database["public"]["Tables"]["supplier_bank_accounts"]["Update"];
+type SupplierBankAccountValues = {
+  bank_name: string;
+  account_holder: string;
+  clabe: string | null;
+  account_number: string | null;
+  currency: SupplierBankAccount["currency"];
+  notes: string | null;
+  is_primary: boolean;
+};
 
 // Re-export para preservar los consumidores actuales; la fuente canónica vive
 // en `@/lib/schemas/common`.
@@ -31,10 +38,8 @@ function errorCode(error: unknown): string | undefined {
 }
 
 /**
- * Mensaje de error al crear/actualizar una cuenta bancaria de proveedor.
- * F2: `clearPrimary` + insert/update no son atómicos; una carrera concurrente
- * puede violar el índice único parcial `supplier_bank_accounts_one_primary`
- * (23505). Se traduce a un mensaje claro en vez del error crudo de Postgres.
+ * Mensaje claro ante conflictos inesperados del índice único de cuenta primaria.
+ * La función de base de datos serializa los cambios normales por proveedor.
  */
 export function bankAccountMutationErrorMessage(error: Error): string {
   const message = error.message ?? "";
@@ -78,28 +83,22 @@ export function useSupplierBankAccounts(supplierId: string | undefined) {
   });
 }
 
-async function clearPrimary(supplierId: string, exceptId?: string) {
-  const q = supabase
-    .from("supplier_bank_accounts")
-    .update({ is_primary: false })
-    .eq("supplier_id", supplierId)
-    .eq("is_primary", true);
-  if (exceptId) q.neq("id", exceptId);
-  const { error } = await q;
-  if (error) throw error;
-}
-
 export function useCreateSupplierBankAccount() {
   return useEntityMutation({
-    mutationFn: async (input: Insert) => {
-      if (input.is_primary && input.supplier_id) await clearPrimary(input.supplier_id);
-      const { data, error } = await supabase
-        .from("supplier_bank_accounts")
-        .insert(input)
-        .select("id")
-        .single();
+    mutationFn: async (input: SupplierBankAccountValues & { supplier_id: string }) => {
+      const { data, error } = await supabase.rpc("save_supplier_bank_account", {
+        p_supplier_id: input.supplier_id,
+        p_account_id: null,
+        p_bank_name: input.bank_name,
+        p_account_holder: input.account_holder,
+        p_clabe: input.clabe,
+        p_account_number: input.account_number,
+        p_currency: input.currency,
+        p_notes: input.notes,
+        p_is_primary: input.is_primary,
+      });
       if (error) throw error;
-      return data;
+      return { id: data };
     },
     invalidateKeys: [supplierBankAccountKeys.all],
     successMsg: "Cuenta bancaria agregada",
@@ -110,11 +109,28 @@ export function useCreateSupplierBankAccount() {
 
 export function useUpdateSupplierBankAccount() {
   return useEntityMutation({
-    mutationFn: async ({ id, supplier_id, patch }: { id: string; supplier_id: string; patch: Update }) => {
-      if (patch.is_primary === true) await clearPrimary(supplier_id, id);
-      const { error } = await supabase.from("supplier_bank_accounts").update(patch).eq("id", id);
+    mutationFn: async ({
+      id,
+      supplier_id,
+      values,
+    }: {
+      id: string;
+      supplier_id: string;
+      values: SupplierBankAccountValues;
+    }) => {
+      const { data, error } = await supabase.rpc("save_supplier_bank_account", {
+        p_supplier_id: supplier_id,
+        p_account_id: id,
+        p_bank_name: values.bank_name,
+        p_account_holder: values.account_holder,
+        p_clabe: values.clabe,
+        p_account_number: values.account_number,
+        p_currency: values.currency,
+        p_notes: values.notes,
+        p_is_primary: values.is_primary,
+      });
       if (error) throw error;
-      return id;
+      return data;
     },
     invalidateKeys: [supplierBankAccountKeys.all],
     successMsg: "Cuenta bancaria actualizada",

@@ -7067,6 +7067,33 @@ export type Database = {
               isSetofReturn: true
             }
           }
+      save_supplier_bank_account: {
+        Args: {
+          p_account_holder: string
+          p_account_id: string | null
+          p_account_number: string | null
+          p_bank_name: string
+          p_clabe: string | null
+          p_currency: string
+          p_is_primary: boolean
+          p_notes: string | null
+          p_supplier_id: string
+        }
+        Returns: string
+      }
+      save_supplier_contact: {
+        Args: {
+          p_contact_id: string | null
+          p_email: string | null
+          p_is_primary: boolean
+          p_name: string
+          p_notes: string | null
+          p_phone: string | null
+          p_role: string | null
+          p_supplier_id: string
+        }
+        Returns: string
+      }
       set_contract_deposit_status: {
         Args: {
           p_amount?: number
