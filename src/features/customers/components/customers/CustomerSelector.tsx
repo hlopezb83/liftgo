@@ -1,24 +1,16 @@
-import { useId, useMemo, useState } from "react";
-import { CloseIcon as XIcon, ChevronDownIcon, SuccessIcon as CheckIcon } from "@/components/icons";
-import { Button } from "@/components/ui/button";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { hasReachedListLimit, visibleListRows } from "@/lib/supabase/constants";
 import { cn } from "@/lib/utils";
-
-interface Customer { id: string; name: string; company?: string | null; email?: string | null; }
+import { useCustomer, useCustomerSelectorSearch } from "../../hooks/customers/customerQueries";
+import {
+  CustomerCombobox,
+  ManualCustomerFields,
+  type CustomerSelectorOption,
+} from "./CustomerSelectorFields";
 
 interface CustomerSelectorProps {
-  customers: Customer[] | undefined;
+  customers: CustomerSelectorOption[] | undefined;
   customerId: string;
   customerName: string;
   onCustomerIdChange: (id: string) => void;
@@ -29,163 +21,50 @@ interface CustomerSelectorProps {
   hideManualName?: boolean;
   helpText?: string;
   error?: string;
-  /**
-   * V26-07: variante compacta (usada en Nueva cotización). Quita el encabezado
-   * redundante y la etiqueta duplicada del combobox, y reduce el padding.
-   * No cambia comportamiento, validaciones ni el nombre accesible del control.
-   */
+  /** Variante compacta para formularios densos. */
   compact?: boolean;
 }
 
-/**
- * Tanda 3 P2-9: reemplaza el <Select> Radix (que montaba hasta 500 items al
- * abrir → jank visible) por un combobox `cmdk` con búsqueda incremental.
- * Mantiene la API pública intacta para no tocar los 6+ formularios que lo
- * consumen. `cmdk` virtualiza y filtra en memoria sin re-renderear la
- * pantalla que abre el popover.
- */
-function buildTriggerLabel(
-  selected: Customer | undefined,
-  required: boolean | undefined,
-): string {
-  if (selected) {
-    const suffix = selected.company && selected.company !== selected.name
-      ? ` — ${selected.company}`
-      : "";
-    return `${selected.name}${suffix}`;
-  }
-  return required ? "Seleccionar cliente *" : "Seleccionar cliente (opcional)";
-}
-
-/** Combobox de clientes existentes (búsqueda incremental con cmdk). */
-function CustomerCombobox({
-  items,
-  customerId,
-  required,
-  compact,
-  helpText,
-  onSelect,
-  onClear,
-}: {
-  items: Customer[];
-  customerId: string;
-  required?: boolean;
-  compact?: boolean;
-  helpText?: string;
-  onSelect: (id: string) => void;
-  onClear: (e: React.MouseEvent) => void;
-}) {
+function useSelectorSearchState(customers: CustomerSelectorOption[] | undefined) {
   const [open, setOpen] = useState(false);
-  const selected = useMemo(() => items.find((c) => c.id === customerId), [items, customerId]);
-  const triggerLabel = buildTriggerLabel(selected, required);
+  const [searchTerm, setSearchTerm] = useState("");
+  const initialItems = useMemo(() => visibleListRows(customers), [customers]);
+  const initialListTruncated = hasReachedListLimit(customers);
+  const searchQuery = useCustomerSelectorSearch(searchTerm, open);
+  const searchActive = searchTerm.trim().length >= 2;
+  const loadingRemote = searchActive && (searchQuery.isSearchPending || searchQuery.isFetching);
+  const remoteItems = loadingRemote ? [] : searchQuery.data?.customers ?? [];
+  const items = searchActive ? remoteItems : initialItems;
 
-  return (
-    <div className="space-y-1.5">
-      {compact ? null : <Label>{required ? "Cliente *" : "Cliente Existente"}</Label>}
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            role="combobox"
-            aria-label={`Cliente${required ? " (obligatorio)" : ""}: ${triggerLabel}`}
-            aria-expanded={open}
-            className={cn(
-              "w-full justify-between font-normal",
-              !selected && "text-muted-foreground",
-            )}
-          >
-            <span className="truncate text-left">{triggerLabel}</span>
-            <span className="ml-2 flex shrink-0 items-center gap-1">
-              {selected && !required && (
-                // R17-X: usar <span role="button"> para evitar anidar
-                // dos <button> (el trigger del Popover y este clear).
-                <span
-                  role="button"
-                  tabIndex={-1}
-                  aria-label="Limpiar cliente"
-                  onClick={onClear}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") onClear(e as unknown as React.MouseEvent); }}
-                  className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100 cursor-pointer"
-                >
-                  <XIcon className="h-3.5 w-3.5" />
-                </span>
-              )}
-              <ChevronDownIcon className="h-4 w-4 opacity-50" />
-            </span>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="p-0"
-          align="start"
-          style={{ width: "var(--radix-popover-trigger-width)" }}
-        >
-          <Command
-            filter={(value, search) => {
-              // `value` es el `value` del <CommandItem>: nombre + razón social.
-              if (!search) return 1;
-              return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
-            }}
-          >
-            <CommandInput placeholder="Buscar cliente…" />
-            <CommandList>
-              <CommandEmpty>Sin resultados.</CommandEmpty>
-              <CommandGroup>
-                {items.map((c) => {
-                  const label = `${c.name}${c.company && c.company !== c.name ? ` — ${c.company}` : ""}`;
-                  return (
-                    <CommandItem
-                      key={c.id}
-                      value={label}
-                      onSelect={() => { onSelect(c.id); setOpen(false); }}
-                    >
-                      <CheckIcon
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          customerId === c.id ? "opacity-100" : "opacity-0",
-                        )}
-                      />
-                      <span className="truncate">{label}</span>
-                    </CommandItem>
-                  );
-                })}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-      {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-    </div>
-  );
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) setSearchTerm("");
+  };
+
+  return {
+    open,
+    searchTerm,
+    setSearchTerm,
+    initialItems,
+    initialListTruncated,
+    searchQuery,
+    searchActive,
+    loadingRemote,
+    items,
+    handleOpenChange,
+  };
 }
 
-/** Captura manual de nombre y contacto cuando no se elige un cliente del catálogo. */
-function ManualCustomerFields({
-  customerName,
-  onCustomerNameChange,
-  customerContact,
-  onCustomerContactChange,
-}: {
-  customerName: string;
-  onCustomerNameChange: (name: string) => void;
-  customerContact?: string;
-  onCustomerContactChange?: (contact: string) => void;
-}) {
-  const fieldId = useId();
-  return (
-    <div className={onCustomerContactChange ? "grid grid-cols-1 sm:grid-cols-2 gap-4" : ""}>
-      <div className="space-y-1.5">
-        <Label htmlFor={`${fieldId}-name`}>Nombre del Cliente</Label>
-        <Input id={`${fieldId}-name`} value={customerName} onChange={(e) => onCustomerNameChange(e.target.value)} placeholder="Nombre del cliente" />
-      </div>
-      {onCustomerContactChange && (
-        <div className="space-y-1.5">
-          <Label htmlFor={`${fieldId}-contact`}>Contacto</Label>
-          <Input id={`${fieldId}-contact`} placeholder="Correo o teléfono" value={customerContact || ""} onChange={(e) => onCustomerContactChange(e.target.value)} />
-        </div>
-      )}
-    </div>
-  );
+function useSelectedCustomer(
+  initialItems: CustomerSelectorOption[],
+  searchQuery: ReturnType<typeof useCustomerSelectorSearch>,
+  customerId: string,
+): CustomerSelectorOption | undefined {
+  const selectedFromList = initialItems.find((customer) => customer.id === customerId);
+  const selectedFromSearch = searchQuery.data?.customers.find((customer) => customer.id === customerId);
+  const selectedInMemory = selectedFromList ?? selectedFromSearch;
+  const selectedQuery = useCustomer(selectedInMemory ? undefined : customerId || undefined);
+  return selectedInMemory ?? selectedQuery.data ?? undefined;
 }
 
 export function CustomerSelector({
@@ -202,15 +81,14 @@ export function CustomerSelector({
   error,
   compact,
 }: CustomerSelectorProps) {
-  const items = useMemo(() => customers ?? [], [customers]);
+  const search = useSelectorSearchState(customers);
+  const selected = useSelectedCustomer(search.initialItems, search.searchQuery, customerId);
 
-  const handleSelect = (id: string) => {
-    onCustomerIdChange(id);
-    const c = items.find((x) => x.id === id);
-    if (c) {
-      onCustomerNameChange(c.name);
-      if (onCustomerContactChange && c.email) onCustomerContactChange(c.email);
-    }
+  const handleSelect = (customer: CustomerSelectorOption) => {
+    onCustomerIdChange(customer.id);
+    onCustomerNameChange(customer.name);
+    if (onCustomerContactChange && customer.email) onCustomerContactChange(customer.email);
+    search.setSearchTerm("");
   };
 
   const handleClear = (e: React.MouseEvent) => {
@@ -220,17 +98,25 @@ export function CustomerSelector({
 
   return (
     <Card>
-      {!compact && (
-        <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-      )}
+      {!compact && <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>}
       <CardContent className={cn("space-y-4", compact && "p-4")}>
-        {items.length > 0 && (
+        {(search.initialItems.length > 0 || selected) && (
           <CustomerCombobox
-            items={items}
+            items={search.items}
+            selected={selected}
             customerId={customerId}
             required={required}
             compact={compact}
             helpText={helpText}
+            initialListTruncated={search.initialListTruncated}
+            searchTerm={search.searchTerm}
+            searchActive={search.searchActive}
+            loadingRemote={search.loadingRemote}
+            searchError={search.searchQuery.isError}
+            searchTruncated={search.searchQuery.data?.isTruncated ?? false}
+            open={search.open}
+            onOpenChange={search.handleOpenChange}
+            onSearchTermChange={search.setSearchTerm}
             onSelect={handleSelect}
             onClear={handleClear}
           />
