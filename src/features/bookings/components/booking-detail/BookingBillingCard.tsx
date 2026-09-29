@@ -16,6 +16,54 @@ import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 /** Estados donde ya no tiene sentido cambiar la recurrencia (no habrá más ciclos). */
 const CLOSED_STATUSES = new Set(["cancelled", "completed"]);
 
+interface RecurringBillingRowProps {
+  booking: BookingWithForklift;
+  canToggle: boolean;
+  canEnableRecurring: boolean;
+  isPending: boolean;
+  onToggle: (next: boolean) => void;
+}
+
+function RecurringBillingRow({
+  booking,
+  canToggle,
+  canEnableRecurring,
+  isPending,
+  onToggle,
+}: RecurringBillingRowProps) {
+  const isClosed = CLOSED_STATUSES.has(booking.status);
+  const switchDisabled =
+    isPending || (!booking.recurring_billing && !canEnableRecurring);
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm text-muted-foreground">Facturación recurrente</span>
+        <div className="flex items-center gap-2">
+          {booking.recurring_billing ? (
+            <RecurringBillingBadge booking={booking} />
+          ) : (
+            <span className="text-sm text-muted-foreground">No activa</span>
+          )}
+          {canToggle && (
+            <Switch
+              aria-label="Activar facturación recurrente mensual"
+              checked={!!booking.recurring_billing}
+              disabled={switchDisabled}
+              onCheckedChange={onToggle}
+            />
+          )}
+        </div>
+      </div>
+      {!booking.recurring_billing && !canEnableRecurring && !isClosed && (
+        <p className="text-xs text-muted-foreground">
+          Para activarla, la reserva debe cubrir al menos un mes calendario.
+        </p>
+      )}
+    </>
+  );
+}
+
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {
   const fmt = (d: string) => formatMtyDate(d);
   const { data: role } = useUserRole();
@@ -63,32 +111,13 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <span className="text-sm text-muted-foreground">Facturación recurrente</span>
-          <div className="flex items-center gap-2">
-            {booking.recurring_billing ? (
-              <RecurringBillingBadge booking={booking} />
-            ) : (
-              <span className="text-sm text-muted-foreground">No activa</span>
-            )}
-            {canToggle && (
-              <Switch
-                aria-label="Activar facturación recurrente mensual"
-                checked={!!booking.recurring_billing}
-                disabled={
-                  updateBooking.isPending ||
-                  (!booking.recurring_billing && !canEnableRecurring)
-                }
-                onCheckedChange={handleToggle}
-              />
-            )}
-          </div>
-        </div>
-        {!booking.recurring_billing && !canEnableRecurring && !isClosed && (
-          <p className="text-xs text-muted-foreground">
-            Para activarla, la reserva debe cubrir al menos un mes calendario.
-          </p>
-        )}
+        <RecurringBillingRow
+          booking={booking}
+          canToggle={canToggle}
+          canEnableRecurring={canEnableRecurring}
+          isPending={updateBooking.isPending}
+          onToggle={handleToggle}
+        />
         {isClosed && booking.recurring_billing === false && (
           <p className="text-xs text-muted-foreground">
             La reserva ya está {booking.status === "cancelled" ? "cancelada" : "completada"}; la recurrencia ya no puede activarse.
