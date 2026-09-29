@@ -105,11 +105,11 @@ BEGIN
   INSERT INTO public.supplier_payment_batches (id, organization_id)
   VALUES ('40000000-0000-4000-8000-0000000000af', v_org_a);
   INSERT INTO public.supplier_payment_batch_items
-    (batch_id, bill_id, bill_number, supplier_name, reference, amount, organization_id)
+    (batch_id, bill_id, bill_number, supplier_name, clabe, reference, amount, organization_id)
   VALUES (
     '40000000-0000-4000-8000-0000000000af',
     '40000000-0000-4000-8000-0000000000ae', 'PROV-A-0001',
-    'Llantas Industriales Monterrey', 'REF-A-0001', 5800, v_org_a
+    'Llantas Industriales Monterrey', '012180000000000002', 'REF-A-0001', 5800, v_org_a
   );
 
   -- ── Empresa B ──
@@ -194,11 +194,11 @@ BEGIN
   INSERT INTO public.supplier_payment_batches (id, organization_id)
   VALUES ('40000000-0000-4000-8000-0000000000c0', v_org_b);
   INSERT INTO public.supplier_payment_batch_items
-    (batch_id, bill_id, bill_number, supplier_name, reference, amount, organization_id)
+    (batch_id, bill_id, bill_number, supplier_name, clabe, reference, amount, organization_id)
   VALUES (
     '40000000-0000-4000-8000-0000000000c0',
     '40000000-0000-4000-8000-0000000000bf', 'PROV-B-0001',
-    'Hidráulica Irapuato', 'REF-B-0001', 4640, v_org_b
+    'Hidráulica Irapuato', '098765432109876542', 'REF-B-0001', 4640, v_org_b
   );
 END;
 $$;

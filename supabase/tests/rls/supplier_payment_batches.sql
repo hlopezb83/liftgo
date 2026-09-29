@@ -46,7 +46,7 @@ INSERT INTO public.supplier_payment_batches (id, total_amount, bill_count, curre
 INSERT INTO public.supplier_payment_batch_items
   (id, batch_id, supplier_name, clabe, bill_number, reference, amount) VALUES
   ('f3333333-3333-4333-8333-3333333333e1', 'f3333333-3333-4333-8333-3333333333b1',
-   'Proveedor RLS', '012180000000000001', 'FAC-RLS-1', 'REF-RLS-1', 5000);
+   'Proveedor RLS', '012180000000000002', 'FAC-RLS-1', 'REF-RLS-1', 5000);
 
 -- 1) anon: los datos bancarios jamás salen sin sesión.
 
