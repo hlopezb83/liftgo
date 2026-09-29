@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
+import { MissingInvoiceFoliosAlert } from "../components/reconciliation/MissingInvoiceFoliosAlert";
 import { ReconciliationFilterBar } from "../components/reconciliation/ReconciliationFilterBar";
 import { ReconciliationTable } from "../components/reconciliation/ReconciliationTable";
 import {
@@ -101,33 +102,11 @@ export default function InvoicesReconciliation() {
         </Alert>
       )}
 
-      {summary && summary.missingFolioCount > 0 && (
-        <Alert>
-          <WarnIcon className="h-4 w-4" />
-          <AlertDescription>
-            <p className="font-medium">
-              {`${summary.missingFolioCount.toLocaleString("es-MX")} folio${summary.missingFolioCount === 1 ? "" : "s"} interno${summary.missingFolioCount === 1 ? "" : "s"} faltante${summary.missingFolioCount === 1 ? "" : "s"} en el rango.`}
-            </p>
-            {summary.missingFolioPreview.length > 0 && (
-              <details className="mt-2">
-                <summary className="cursor-pointer select-none underline underline-offset-4">
-                  Ver {summary.missingFolioPreview.length.toLocaleString("es-MX")} folio
-                  {summary.missingFolioPreview.length === 1 ? "" : "s"}
-                  {summary.missingFolioPreview.length < summary.missingFolioCount
-                    ? ` (primeros ${summary.missingFolioPreview.length.toLocaleString("es-MX")})`
-                    : ""}
-                </summary>
-                <p className="mt-1 max-h-36 overflow-y-auto break-words text-xs">
-                  {summary.missingFolioPreview.map((folio) => `FAC-${folio}`).join(", ")}
-                  {summary.missingFolioPreview.length < summary.missingFolioCount ? ", …" : ""}
-                </p>
-              </details>
-            )}
-            <p className="mt-2 text-sm">
-              Puede ser normal si esos folios se emitieron fuera del rango, o indicar folios cancelados/eliminados.
-            </p>
-          </AlertDescription>
-        </Alert>
+      {summary && (
+        <MissingInvoiceFoliosAlert
+          count={summary.missingFolioCount}
+          preview={summary.missingFolioPreview}
+        />
       )}
 
       <Card>
