@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
+import { MissingInvoiceFoliosAlert } from "../components/reconciliation/MissingInvoiceFoliosAlert";
 import { ReconciliationFilterBar } from "../components/reconciliation/ReconciliationFilterBar";
 import { ReconciliationTable } from "../components/reconciliation/ReconciliationTable";
 import {
@@ -101,14 +102,11 @@ export default function InvoicesReconciliation() {
         </Alert>
       )}
 
-      {summary && summary.gaps.length > 0 && (
-        <Alert>
-          <WarnIcon className="h-4 w-4" />
-          <AlertDescription>
-            Folios internos faltantes en el rango: {summary.gaps.map((g) => `FAC-${g}`).join(", ")}.
-            Puede ser normal si esos folios se emitieron fuera del rango, o indicar folios cancelados/eliminados.
-          </AlertDescription>
-        </Alert>
+      {summary && (
+        <MissingInvoiceFoliosAlert
+          count={summary.missingFolioCount}
+          preview={summary.missingFolioPreview}
+        />
       )}
 
       <Card>

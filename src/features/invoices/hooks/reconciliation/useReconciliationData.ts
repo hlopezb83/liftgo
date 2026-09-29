@@ -5,6 +5,7 @@ import { toMxn } from "@/lib/money";
 import { LIST_PAGE_LIMIT, e2eVisibilityFilter } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 import { fetchAllPages } from "./fetchAllPages";
+import { findInvoiceFolioGaps } from "./invoiceFolioGaps";
 
 export interface ReconciliationRow {
   id: string;
@@ -38,7 +39,8 @@ export interface ReconciliationSummary {
   countStamped: number;
   countCancelled: number;
   countDraft: number;
-  gaps: string[];
+  missingFolioCount: number;
+  missingFolioPreview: string[];
 }
 
 function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
@@ -69,21 +71,17 @@ function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
     }
   }
 
-  // Detect folio gaps within the range (only for FAC- style)
-  const nums: number[] = [];
-  for (const r of rows) {
-    const m = r.invoice_number.match(/(\d+)$/);
-    if (m) nums.push(parseInt(m[1], 10));
-  }
-  nums.sort((a, b) => a - b);
-  const gaps: string[] = [];
-  if (nums.length >= 2) {
-    for (let i = nums[0]; i <= nums[nums.length - 1]; i++) {
-      if (!nums.includes(i)) gaps.push(String(i).padStart(4, "0"));
-    }
-  }
+  const { count: missingFolioCount, preview: missingFolioPreview } = findInvoiceFolioGaps(rows);
 
-  return { totalStampedLive, countStampedMissingFx, countStamped, countCancelled, countDraft, gaps };
+  return {
+    totalStampedLive,
+    countStampedMissingFx,
+    countStamped,
+    countCancelled,
+    countDraft,
+    missingFolioCount,
+    missingFolioPreview,
+  };
 }
 
 function buildReconciliationPageQuery(filters: ReconciliationFilters) {
