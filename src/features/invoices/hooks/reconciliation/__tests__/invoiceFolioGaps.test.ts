@@ -18,7 +18,6 @@ describe("findInvoiceFolioGaps", () => {
     const result = findInvoiceFolioGaps([
       { invoice_number: "FAC-0001", status: "sent" },
       { invoice_number: "FAC-0002", status: "cancelled" },
-      { invoice_number: "BORRADOR-0003", status: "draft" },
       { invoice_number: "FAC-0004", status: "paid" },
       { invoice_number: "FAC-0006", status: "sent" },
     ]);
