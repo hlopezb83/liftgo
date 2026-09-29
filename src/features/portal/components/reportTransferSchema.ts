@@ -1,6 +1,17 @@
+import { differenceInCalendarDays, startOfDay } from "date-fns";
 import { z } from "zod";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { positiveAmount } from "@/lib/schemas";
+import { nowMty } from "@/lib/utils";
+
+const TRANSFER_DATE_MAX_AGE_DAYS = 60;
+
+function transferDateError(date: Date): string | null {
+  const dayOffset = differenceInCalendarDays(startOfDay(date), startOfDay(nowMty()));
+  if (dayOffset > 0) return "La fecha de la transferencia no puede ser futura.";
+  if (dayOffset < -TRANSFER_DATE_MAX_AGE_DAYS) return "La fecha de la transferencia no puede tener más de 60 días de antigüedad.";
+  return null;
+}
 
 // Bloque 3.4 (R4): el monto debe ser > 0 y ≤ saldo pendiente. Antes se podía
 // reportar una transferencia mayor al saldo, lo que confundía al admin al
@@ -15,11 +26,9 @@ export const makeSchema = (reportableBalance: number, pendingInReview = 0) => z.
   // una transferencia SPEI se reporta en su momento; fechas absurdas dificultan
   // la conciliación. Mismo patrón de refine que EditPaymentDialog.
   transferDate: z.date({ error: "La fecha es obligatoria" })
-    .refine((d) => d.getTime() <= Date.now() + 24 * 60 * 60 * 1000, {
-      message: "La fecha de la transferencia no puede ser futura.",
-    })
-    .refine((d) => d.getTime() >= Date.now() - 60 * 24 * 60 * 60 * 1000, {
-      message: "La fecha de la transferencia no puede tener más de 60 días de antigüedad.",
+    .superRefine((date, ctx) => {
+      const message = transferDateError(date);
+      if (message) ctx.addIssue({ code: "custom", message });
     }),
   amount: positiveAmount().refine(
     (v) => Number(v) <= Number(reportableBalance.toFixed(2)) + 0.005,

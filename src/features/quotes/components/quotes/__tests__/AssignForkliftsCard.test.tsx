@@ -42,8 +42,8 @@ vi.mock("@/features/fleet", () => ({
 }));
 
 vi.mock("../AssignForkliftsLineRow", () => ({
-  AssignForkliftsLineRow: ({ available }: { available: Array<{ id: string }> }) => (
-    <div data-testid="sale-candidates">{available.map(({ id }) => id).join(",")}</div>
+  AssignForkliftsLineRow: ({ available, description }: { available: Array<{ id: string }>; description: string }) => (
+    <div data-testid="sale-candidates" data-description={description}>{available.map(({ id }) => id).join(",")}</div>
   ),
 }));
 
@@ -54,6 +54,12 @@ describe("AssignForkliftsCard", () => {
         quoteId="q-sale"
         lineItems={[
           {
+            description: "Toyota 8FG renta mensual",
+            quantity: 3,
+            unit_price: 100,
+            total: 300,
+          },
+          {
             description: "Toyota 8FG - Venta de equipo",
             quantity: 1,
             unit_price: 100,
@@ -63,7 +69,10 @@ describe("AssignForkliftsCard", () => {
       />,
     );
 
-    const candidates = screen.getByTestId("sale-candidates");
+    const rows = screen.getAllByTestId("sale-candidates");
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toHaveAttribute("data-description", "Toyota 8FG - Venta de equipo");
+    const candidates = rows[0];
     expect(candidates).toHaveTextContent("sale-eligible");
     expect(candidates).not.toHaveTextContent("future-reserved");
   });

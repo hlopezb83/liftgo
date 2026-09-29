@@ -6,6 +6,7 @@ import { useIsMounted } from "@/hooks/useIsMounted";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/format/dateFormats";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { allowsRecurringBilling } from "../../lib/recurringBillingEligibility";
 import { useCreateBooking } from "../bookings/useBookings";
 import type { BookingFormData } from "../../lib/bookingFormSchema";
 
@@ -40,7 +41,7 @@ export function useBookingFormSubmit() {
         customer_contact: selectedCustomer?.email || data.customer_contact || null,
         customer_id: data.customer_id || null,
         status: "confirmed",
-        recurring_billing: data.recurring_billing,
+        recurring_billing: Boolean(data.recurring_billing && allowsRecurringBilling(from, to)),
       },
       {
         onSuccess: (bookingId: string) => {

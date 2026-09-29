@@ -1,5 +1,6 @@
 import { toStr } from "@/lib/coerce";
 import { parseDateLocal, nowMty } from "@/lib/utils";
+import { resolveCfdiFormaPago } from "../../lib/cfdiPaymentForm";
 import {
   type InvoiceFormValues,
   type CfdiFormValues,
@@ -39,6 +40,7 @@ export type SourceQuote = {
 export type Forklift = { id: string; name: string; manufacturer?: string | null; model: string; serial_number?: string | null };
 export type Assignment = { line_index: number; forklift_id: string };
 
+/** En CFDI PPD el pago se define después; el comprobante debe guardar 99. */
 export function cfdiFromCustomer(customer: Customer): Partial<CfdiFormValues> {
   const patch: Partial<CfdiFormValues> = {
     receptorRfc: toStr(customer.rfc),
@@ -54,7 +56,7 @@ function cfdiFromInvoice(inv: ExistingInvoice): CfdiFormValues {
   return {
     serie: toStr(inv.serie),
     folio: toStr(inv.folio),
-    formaPago: toStr(inv.forma_pago, "03"),
+    formaPago: resolveCfdiFormaPago(inv.metodo_pago, toStr(inv.forma_pago, "03")) ?? "03",
     metodoPago: toStr(inv.metodo_pago, "PUE"),
     usoCfdi: toStr(inv.uso_cfdi, "G03"),
     moneda: toStr(inv.moneda, "MXN"),

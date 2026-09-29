@@ -150,11 +150,17 @@ describe("useAgingReport — M-14", () => {
     expect(result.current.totals.total).toBe(1_800);
   });
 
-  it("H-10b: expone rawBills para el aviso de truncado", () => {
-    const rows = [bill()];
+  it("incluye todos los saldos al superar 500 facturas", () => {
+    const rows = Array.from({ length: 501 }, (_, index) => bill({
+      supplier_id: `supplier-${index}`,
+      due_date: "2026-06-13",
+      balance: 1,
+      suppliers: { id: `supplier-${index}`, name: `Proveedor ${index}` },
+    }));
     useSupplierBillsMock.mockReturnValue({ data: rows, isLoading: false });
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useAgingReport(), { wrapper: Wrapper });
-    expect(result.current.rawBills).toBe(rows);
+    expect(result.current.totals.total).toBe(501);
+    expect(result.current.rows).toHaveLength(501);
   });
 });

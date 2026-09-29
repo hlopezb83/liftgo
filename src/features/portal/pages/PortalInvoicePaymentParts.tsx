@@ -24,6 +24,7 @@ export type Intent = {
   amount: number | string;
   tracking_key: string | null;
   status: string;
+  review_notes?: string | null;
 };
 
 const intentStatusLabel = (status: string) =>
@@ -41,6 +42,7 @@ export function PortalIntentsTable({ intents }: { intents: Intent[] }) {
               <TableHead>Monto</TableHead>
               <TableHead>Rastreo</TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead>Motivo de rechazo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -55,6 +57,9 @@ export function PortalIntentsTable({ intents }: { intents: Intent[] }) {
                   {intent.tracking_key ?? "—"}
                 </TableCell>
                 <TableCell>{intentStatusLabel(intent.status)}</TableCell>
+                <TableCell className="max-w-sm whitespace-normal text-sm text-muted-foreground">
+                  {intent.status === "rejected" ? intent.review_notes || "El equipo no agregó un motivo." : "—"}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

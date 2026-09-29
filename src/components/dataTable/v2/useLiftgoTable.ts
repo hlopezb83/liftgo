@@ -25,12 +25,57 @@ interface Options<T extends RowData> {
   resetKey?: string | number;
   /** Conserva la página al anexar filas sin alterar las ya cargadas. */
   preservePaginationOnAppend?: boolean;
+  /** Estado de paginación controlado para páginas obtenidas en el servidor. */
+  controlledPagination?: PaginationState;
+  onControlledPaginationChange?: (updater: Updater<PaginationState>) => void;
+  /** Conteo remoto. Si se define, TanStack usa paginación manual. */
+  pageCount?: number;
+  /** Estado de orden controlado para listas ordenadas por el servidor. */
+  controlledSorting?: SortingState;
+  onControlledSortingChange?: (updater: Updater<SortingState>) => void;
+  manualSorting?: boolean;
   onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
 }
 
 function canKeepPaginationData(previous: string, current: string, preserveAppend: boolean): boolean {
   return previous === current ||
     (preserveAppend && previous !== "" && current.startsWith(`${previous}|`));
+}
+
+function isPaginationCurrent<T extends RowData>(
+  snapshot: { dataVersion: string; resetKey: string | number | undefined },
+  dataVersion: string,
+  resetKey: string | number | undefined,
+  preserveAppend: boolean,
+): boolean {
+  return canKeepPaginationData(snapshot.dataVersion, dataVersion, preserveAppend) && snapshot.resetKey === resetKey;
+}
+
+function resolveSelectable<T extends RowData>(
+  setting: boolean | ((row: T) => boolean),
+): boolean | ((row: { original: T }) => boolean) {
+  if (typeof setting !== "function") return setting;
+  return (row) => setting(row.original);
+}
+
+function buildTableState<T extends RowData>(args: {
+  sorting: SortingState;
+  rowSelection: RowSelectionState;
+  pagination: PaginationState;
+  controlledPagination?: PaginationState;
+  paginated: boolean;
+  globalFilter?: string;
+}) {
+  const state = { sorting: args.sorting, rowSelection: args.rowSelection } as {
+    sorting: SortingState;
+    rowSelection: RowSelectionState;
+    pagination?: PaginationState;
+    globalFilter?: string;
+  };
+  if (args.controlledPagination) state.pagination = args.controlledPagination;
+  else if (args.paginated) state.pagination = args.pagination;
+  if (args.globalFilter !== undefined) state.globalFilter = args.globalFilter;
+  return state;
 }
 
 /**
@@ -49,6 +94,12 @@ export function useLiftgoTable<T extends RowData>({
   paginated = true,
   resetKey,
   preservePaginationOnAppend = false,
+  controlledPagination,
+  onControlledPaginationChange,
+  pageCount,
+  controlledSorting,
+  onControlledSortingChange,
+  manualSorting = false,
   onSelectionChange,
 }: Options<T>): LiftgoTable<T> {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -66,12 +117,11 @@ export function useLiftgoTable<T extends RowData>({
     resetKey,
     value: { pageIndex: 0, pageSize: initialPageSize } as PaginationState,
   }));
-  const paginationIsCurrent =
-    canKeepPaginationData(paginationSnapshot.dataVersion, dataVersion, preservePaginationOnAppend) &&
-    paginationSnapshot.resetKey === resetKey;
+  const paginationIsCurrent = isPaginationCurrent(paginationSnapshot, dataVersion, resetKey, preservePaginationOnAppend);
   const pagination = paginationIsCurrent
     ? paginationSnapshot.value
     : { ...paginationSnapshot.value, pageIndex: 0 };
+  const effectiveSorting = controlledSorting ?? sorting;
   const handlePaginationChange = (updater: Updater<PaginationState>): void => {
     setPaginationSnapshot((previous) => {
       const current = canKeepPaginationData(previous.dataVersion, dataVersion, preservePaginationOnAppend) &&
@@ -93,13 +143,7 @@ export function useLiftgoTable<T extends RowData>({
     [],
   );
 
-  const resolveSelectable =
-    typeof enableRowSelection === "function"
-      ? (row: { original: T }): boolean => {
-          const fn: (r: T) => boolean = enableRowSelection;
-          return fn(row.original);
-        }
-      : enableRowSelection;
+  const selectable = resolveSelectable(enableRowSelection);
 
   const handleSelectionChange = (updater: Updater<RowSelectionState>): void => {
     setRowSelection((prev) => {
@@ -117,25 +161,45 @@ export function useLiftgoTable<T extends RowData>({
     });
   };
 
+  const handleSortingChange = (updater: Updater<SortingState>): void => {
+    if (onControlledSortingChange) {
+      onControlledSortingChange(updater);
+      return;
+    }
+    setSorting((previous) => typeof updater === "function" ? updater(previous) : updater);
+  };
+
+  const handleServerPaginationChange = (updater: Updater<PaginationState>): void => {
+    if (onControlledPaginationChange) {
+      onControlledPaginationChange(updater);
+      return;
+    }
+    handlePaginationChange(updater);
+  };
+
   const table = useTable<typeof liftgoTableFeatures, T>({
     features: liftgoTableFeatures,
     autoResetPageIndex: false,
     data: tableData,
     columns,
     defaultColumn: { sortFn: sortingFnWithNullsLast, sortUndefined: "last" },
-    state: {
-      sorting,
+    state: buildTableState({
+      sorting: effectiveSorting,
       rowSelection,
-      ...(paginated ? { pagination } : {}),
-      ...(globalFilter !== undefined ? { globalFilter } : {}),
-    },
-    onSortingChange: setSorting,
+      pagination,
+      controlledPagination,
+      paginated,
+      globalFilter,
+    }),
+    onSortingChange: handleSortingChange,
     onRowSelectionChange: handleSelectionChange,
-    onPaginationChange: paginated ? handlePaginationChange : undefined,
-    enableRowSelection: resolveSelectable,
+    onPaginationChange: paginated ? handleServerPaginationChange : undefined,
+    enableRowSelection: selectable,
     enableSorting,
     getRowId,
-    manualPagination: !paginated,
+    manualSorting,
+    manualPagination: !paginated || pageCount !== undefined,
+    ...(pageCount !== undefined ? { pageCount } : {}),
   });
 
   // v9 devuelve una referencia React actualizada con el estado y compatible con el Compiler.

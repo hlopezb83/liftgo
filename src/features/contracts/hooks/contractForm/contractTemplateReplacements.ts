@@ -13,6 +13,16 @@ interface Args {
   form: ContractFormShape;
 }
 
+function rentalRateForTemplate(form: ContractFormShape): string {
+  const rate = form.payment_frequency === "Diario"
+    ? form.daily_rate
+    : form.payment_frequency === "Semanal"
+      ? form.weekly_rate
+      : form.monthly_rate;
+  const amount = Number(rate);
+  return Number.isFinite(amount) && amount > 0 ? String(amount) : "[Monto]";
+}
+
 /**
  * Construye el diccionario de reemplazos para el template de contrato.
  * Separado del hook para mantener complejidad ciclomática baja.
@@ -32,7 +42,7 @@ export function buildTemplateReplacements({ company, customer, forklift, form }:
     TARIFA_HORA_EXTRA: toStr(form.extra_hour_rate, "[Monto]"),
     FECHA_INICIO: toStr(form.start_date, "[Fecha de inicio]"),
     FECHA_FIN: toStr(form.end_date, "[Fecha de término]"),
-    MONTO_RENTA: form.monthly_rate || form.weekly_rate || form.daily_rate || "[Monto]",
+    MONTO_RENTA: rentalRateForTemplate(form),
     FRECUENCIA_PAGO: toStr(form.payment_frequency, "Mensual"),
     INTERES_MORATORIO: toStr(form.late_interest_rate, "5"),
     REPRESENTANTE_LEGAL: toStr(customer.representante_legal),

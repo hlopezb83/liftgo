@@ -1,5 +1,21 @@
 import { describe, it, expect } from "vitest";
 import { cfdiFromCustomer, buildFromQuote, type Customer, type SourceQuote } from "../invoiceFormBuilders";
+import { formaPagoForMetodoChange, resolveCfdiFormaPago } from "../../../lib/cfdiPaymentForm";
+
+describe("resolveFormaPago", () => {
+  it("normaliza PPD a 99 aunque el formulario conserve la forma PUE predeterminada", () => {
+    expect(resolveCfdiFormaPago("PPD", "03")).toBe("99");
+  });
+
+  it("conserva la forma capturada para PUE", () => {
+    expect(resolveCfdiFormaPago("PUE", "03")).toBe("03");
+  });
+
+  it("fija 99 al elegir PPD y restaura 03 al volver a PUE", () => {
+    expect(formaPagoForMetodoChange("PPD", "03")).toBe("99");
+    expect(formaPagoForMetodoChange("PUE", "99")).toBe("03");
+  });
+});
 
 function makeCustomer(over: Partial<Customer> = {}): Customer {
   return {

@@ -12,11 +12,11 @@ import { MissingLegalRepAlert } from "../components/contracts/MissingLegalRepAle
 import { useContractFormLogic } from "../hooks/useContractFormLogic";
 
 export default function ContractForm() {
-  const { isEdit, contractNumber, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
+  const { isEdit, contractNumber, linkedBookingId, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
   const { control } = form;
   const customerId = form.watch("customer_id");
   const selected = customers?.find((c) => c.id === customerId);
-  const showLegalRepAlert = !!selected && !selected.representante_legal;
+  const needsLegalRepresentative = Boolean(selected?.rfc?.trim().length === 12 && !selected.representante_legal?.trim());
 
   return (
     <PageContainer maxWidth="form">
@@ -28,14 +28,20 @@ export default function ContractForm() {
 
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-          <GeneralInfoCard control={control} customers={customers || []} forklifts={forklifts || []} />
-          {showLegalRepAlert && selected && (
+          <GeneralInfoCard control={control} customers={customers || []} forklifts={forklifts || []} linkedToBooking={!!linkedBookingId} />
+          {needsLegalRepresentative && selected && (
             <MissingLegalRepAlert customerId={selected.id} customerName={selected.name} />
           )}
           <RatesCard control={control} />
           <UsageConditionsCard control={control} />
           <TermsAndSignaturesCard control={control} />
-          <FormActions submitLabel={isEdit ? "Guardar cambios" : "Crear contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
+          <FormActions
+            submitLabel={isEdit ? "Guardar cambios" : "Crear contrato"}
+            isPending={isPending}
+            submitDisabled={needsLegalRepresentative}
+            submitDisabledReason={needsLegalRepresentative ? "Captura el representante legal antes de generar el contrato." : undefined}
+            onCancel={() => navigate("/contracts")}
+          />
         </form>
       </Form>
     </PageContainer>

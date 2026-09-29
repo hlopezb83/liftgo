@@ -1,3 +1,4 @@
+import { isAfter, startOfDay } from "date-fns";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { TextField, CurrencyField, DateField } from "@/components/forms/fields";
@@ -79,7 +80,13 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <DateField control={form.control} name="transferDate" label="Fecha" required />
+            <DateField
+              control={form.control}
+              name="transferDate"
+              label="Fecha"
+              required
+              disabledMatcher={(date) => isAfter(startOfDay(date), startOfDay(nowMty()))}
+            />
             <CurrencyField control={form.control} name="amount" label="Monto" required currency="MXN" />
           </div>
           <TextField

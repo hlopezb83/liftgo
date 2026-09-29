@@ -65,19 +65,18 @@ describe("buildTemplateReplacements", () => {
     expect(r.HORAS_MAX).toBe("");
     expect(r.TARIFA_HORA_EXTRA).toBe("");
     expect(r.FECHA_INICIO).toBe("");
-    // "0" es truthy como string → gana sobre el fallback
-    expect(r.MONTO_RENTA).toBe("0");
+    // La tarifa seleccionada en cero se representa como pendiente, nunca como renta gratuita.
+    expect(r.MONTO_RENTA).toBe("[Monto]");
   });
 
-  it("MONTO_RENTA prioriza mensual > semanal > diario", () => {
+  it("MONTO_RENTA usa la tarifa de la frecuencia elegida y nunca imprime cero", () => {
     const f = { ...defaultContractForm, daily_rate: "100", weekly_rate: "600", monthly_rate: "2400" };
     expect(buildTemplateReplacements({ company: null, customer, forklift, form: f }).MONTO_RENTA).toBe("2400");
     const f2 = { ...f, monthly_rate: "0" };
-    // monthly_rate "0" es truthy como string → todavía gana
-    expect(buildTemplateReplacements({ company: null, customer, forklift, form: f2 }).MONTO_RENTA).toBe("0");
-    const f3 = { ...f, monthly_rate: "", weekly_rate: "600", daily_rate: "100" };
+    expect(buildTemplateReplacements({ company: null, customer, forklift, form: f2 }).MONTO_RENTA).toBe("[Monto]");
+    const f3 = { ...f, payment_frequency: "Semanal", monthly_rate: "", weekly_rate: "600", daily_rate: "100" };
     expect(buildTemplateReplacements({ company: null, customer, forklift, form: f3 }).MONTO_RENTA).toBe("600");
-    const f4 = { ...f3, weekly_rate: "" };
+    const f4 = { ...f3, payment_frequency: "Diario", weekly_rate: "", monthly_rate: "0" };
     expect(buildTemplateReplacements({ company: null, customer, forklift, form: f4 }).MONTO_RENTA).toBe("100");
   });
 });

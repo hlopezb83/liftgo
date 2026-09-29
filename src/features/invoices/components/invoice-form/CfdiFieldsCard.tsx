@@ -4,34 +4,43 @@ import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FORMA_PAGO, METODO_PAGO, USO_CFDI, MONEDA } from "@/lib/domain/satCatalogs";
+import { formaPagoForMetodoChange } from "../../lib/cfdiPaymentForm";
 import { GlobalInvoiceFields } from "./GlobalInvoiceFields";
 import { ReceptorFiscalFields } from "./ReceptorFiscalFields";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
 function CfdiCatalogSelects() {
-  const { control } = useFormContext<InvoiceFormValues>();
+  const { control, getValues, setValue } = useFormContext<InvoiceFormValues>();
+  const metodoPago = useWatch({ control, name: "cfdi.metodoPago" });
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <FormField control={control} name="cfdi.formaPago" render={({ field }) => (
         <FormItem>
           <FormLabel>Forma de Pago</FormLabel>
-          <Select value={field.value} onValueChange={field.onChange}>
+          <Select value={field.value} disabled={metodoPago === "PPD"} onValueChange={field.onChange}>
             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
             <SelectContent>
               {FORMA_PAGO.map((f) => <SelectItem key={f.code} value={f.code}>{f.label}</SelectItem>)}
             </SelectContent>
           </Select>
+          {metodoPago === "PPD" && <FormDescription>Para PPD, la forma de pago SAT debe ser 99 · Por definir.</FormDescription>}
           <FormMessage />
         </FormItem>
       )} />
       <FormField control={control} name="cfdi.metodoPago" render={({ field }) => (
         <FormItem>
           <FormLabel>Método de Pago</FormLabel>
-          <Select value={field.value} onValueChange={field.onChange}>
+          <Select value={field.value} onValueChange={(value) => {
+            field.onChange(value);
+            setValue("cfdi.formaPago", formaPagoForMetodoChange(value, getValues("cfdi.formaPago")), {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+          }}>
             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
             <SelectContent>
               {METODO_PAGO.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}

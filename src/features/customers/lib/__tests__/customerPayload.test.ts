@@ -44,12 +44,16 @@ describe("buildCustomerPayload", () => {
 });
 
 describe("buildCustomerPayload · tax_rate (FIX-3)", () => {
-  it("omite tax_rate cuando el campo va vacío", () => {
-    expect("tax_rate" in buildCustomerPayload(base)).toBe(false);
+  it("usa 16 % cuando el campo va vacío, también al editar", () => {
+    expect(buildCustomerPayload(base).tax_rate).toBe(16);
   });
 
   it("envía la tasa capturada como número", () => {
-    const r = buildCustomerPayload({ ...base, tax_rate: "8" }) as { tax_rate?: number };
+    const r = buildCustomerPayload({ ...base, tax_rate: "8" });
     expect(r.tax_rate).toBe(8);
+  });
+
+  it("preserva una tasa explícita de cero para clientes exentos", () => {
+    expect(buildCustomerPayload({ ...base, tax_rate: "0" }).tax_rate).toBe(0);
   });
 });

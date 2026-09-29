@@ -5478,6 +5478,23 @@ export type Database = {
       }
     }
     Functions: {
+      get_accounts_payable_summary: { Args: never; Returns: Json }
+      get_supplier_bills_page: {
+        Args: {
+          p_approval: string
+          p_category: string
+          p_month: string | null
+          p_page: number
+          p_page_size: number
+          p_rep: string
+          p_search: string | null
+          p_sort_by: string
+          p_sort_desc: boolean
+          p_status: string
+          p_supplier_id: string | null
+        }
+        Returns: Json
+      }
       accept_quote_from_portal: {
         Args: { p_ip?: string; p_quote_id: string }
         Returns: {

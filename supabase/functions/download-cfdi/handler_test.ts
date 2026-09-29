@@ -56,6 +56,7 @@ function wrapWithDownload(
 
 function makeDeps(opts: {
   service?: MockConfig;
+  role?: string;
   download?: { data: Blob | null; error: unknown };
   onDownload?: () => void;
   onFacturapiFetch?: () => void;
@@ -66,7 +67,7 @@ function makeDeps(opts: {
     ...(opts.service ?? {}),
     selects: {
       profiles: { data: { is_active: true }, error: null },
-      user_roles: { data: { role: "admin" }, error: null },
+      user_roles: { data: { role: opts.role ?? "admin" }, error: null },
       organization_memberships: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
@@ -94,6 +95,12 @@ function makeDeps(opts: {
   };
   return { deps, serviceState: service };
 }
+
+Deno.test("download-cfdi: permite consulta de CFDI a auditor sin otorgar permisos de escritura", async () => {
+  const { deps } = makeDeps({ role: "auditor" });
+  const res = await handleDownloadCfdi(makeRequest({}), deps);
+  assertEquals(res.status, 400, "el rol pasó autenticación; el payload vacío es lo que se rechaza");
+});
 
 Deno.test("download-cfdi: MULTIEMPRESA rechaza factura de otra organización sin descargar ni leer secretos ajenos", async () => {
   let facturapiCalled = 0;

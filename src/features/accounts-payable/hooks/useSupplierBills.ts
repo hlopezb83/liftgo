@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
 type Row = Database["public"]["Tables"]["supplier_bills"]["Row"];
@@ -66,32 +66,52 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
   summaryMap.set(p.bill_id, cur);
 }
 
-// Tanda 2 P2-7: columnas explícitas (evita `select("*")` sin cota) y límite.
+// Tanda 2 P2-7: columnas explícitas (evita `select("*")`).
 const BILL_LIST_COLUMNS =
   "id, bill_number, supplier_id, cfdi_uuid, folio, serie, issue_date, due_date, subtotal, tax_amount, retention_isr, retention_iva, total, currency, exchange_rate, payment_method_sat, payment_form_sat, cfdi_use, category, description, status, balance, xml_url, pdf_url, cfdi_xml_url, receptor_rfc, tipo_comprobante, coverage_start, coverage_end, notes, created_by, created_at, updated_at, approval_status, approved_by, approved_at, rejected_by, rejected_at, approval_notes, payment_in_progress_at, suppliers(id, name)";
 
 
 async function fetchList(): Promise<SupplierBillListItem[]> {
-  const [billsRes, paymentsRes] = await Promise.all([
-    supabase
-      .from("supplier_bills")
-      .select(BILL_LIST_COLUMNS)
-      .order("issue_date", { ascending: false })
-      .limit(LIST_FETCH_LIMIT),
-    supabase
-      .from("supplier_payments")
-      // G-B3: sin .limit() PostgREST corta en su tope por defecto (1000) sin
-      // avisar y se perdían pagos del resumen REP y del KPI "pagado mes actual".
-      .select("bill_id, rep_required, rep_status, payment_date, amount")
-      .limit(LIST_FETCH_LIMIT),
-  ]);
+  const fetchAllBills = async () => {
+    const rows: SupplierBillListItem[] = [];
+    for (let from = 0; ; from += LIST_PAGE_LIMIT) {
+      const { data, error } = await supabase
+        .from("supplier_bills")
+        .select(BILL_LIST_COLUMNS)
+        .order("issue_date", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, from + LIST_PAGE_LIMIT - 1)
+        .returns<SupplierBillListItem[]>();
+      if (error) throw error;
+      const page = data ?? [];
+      rows.push(...page);
+      if (page.length < LIST_PAGE_LIMIT) return rows;
+    }
+  };
 
-  if (billsRes.error) throw billsRes.error;
-  if (paymentsRes.error) throw paymentsRes.error;
+  const fetchAllPayments = async () => {
+    const rows: PaymentRepRow[] = [];
+    for (let from = 0; ; from += LIST_PAGE_LIMIT) {
+      const { data, error } = await supabase
+        .from("supplier_payments")
+        // Todos los pagos alimentan tanto el resumen REP como los KPIs.
+        .select("id, bill_id, rep_required, rep_status, payment_date, amount")
+        .order("payment_date", { ascending: false })
+        .order("id", { ascending: true })
+        .range(from, from + LIST_PAGE_LIMIT - 1)
+        .returns<Array<PaymentRepRow & { id: string }>>();
+      if (error) throw error;
+      const page = data ?? [];
+      rows.push(...page);
+      if (page.length < LIST_PAGE_LIMIT) return rows;
+    }
+  };
+
+  const [bills, payments] = await Promise.all([fetchAllBills(), fetchAllPayments()]);
 
   const summaryMap = new Map<string, BillRepSummary>();
   const paymentsMap = new Map<string, BillPaymentRow[]>();
-  for (const p of (paymentsRes.data ?? []) as PaymentRepRow[]) {
+  for (const p of payments) {
     accumulatePayment(summaryMap, p);
     const list = paymentsMap.get(p.bill_id);
     const row: BillPaymentRow = { payment_date: p.payment_date, amount: p.amount };
@@ -99,7 +119,6 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
     else paymentsMap.set(p.bill_id, [row]);
   }
 
-  const bills = (billsRes.data ?? []) as unknown as SupplierBillListItem[];
   for (const b of bills) {
     b.rep_summary = summaryMap.get(b.id) ?? emptySummary();
     b.payments = paymentsMap.get(b.id) ?? [];

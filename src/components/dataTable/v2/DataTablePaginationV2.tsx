@@ -6,11 +6,13 @@ import type { RowData } from "@tanstack/react-table";
 interface Props<T extends RowData> {
   table: LiftgoTable<T>;
   hasMoreRows?: boolean;
+  /** Total remoto cuando la tabla sólo contiene la página visible. */
+  rowCount?: number;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
-export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = false }: Props<T>) {
+export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = false, rowCount }: Props<T>) {
   const { pageIndex, pageSize } = table.state.pagination;
   const totalPages = table.getPageCount();
   // Indicador de rango: filas visibles de la página actual sobre el total
@@ -18,9 +20,10 @@ export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = 
   // Con paginación manual desactivada (getPageCount() === -1) se
   // muestran todas las filas, así que el rango cubre el total completo.
   const totalRows = table.getFilteredRowModel().rows.length;
+  const displayedTotal = rowCount ?? totalRows;
   const isPaginated = totalPages !== -1;
-  const rangeStart = totalRows === 0 ? 0 : pageIndex * pageSize + 1;
-  const rangeEnd = isPaginated ? Math.min(totalRows, (pageIndex + 1) * pageSize) : totalRows;
+  const rangeStart = displayedTotal === 0 ? 0 : pageIndex * pageSize + 1;
+  const rangeEnd = isPaginated ? Math.min(displayedTotal, (pageIndex + 1) * pageSize) : totalRows;
   // R13-3: selector de tamaño de página; al cambiar, TanStack re-pagina y el
   // dataVersion (contenido) invalida el memo del compiler por sí solo.
   return (
@@ -46,7 +49,7 @@ export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = 
           </SelectContent>
         </Select>
         <span className="whitespace-nowrap">
-          {rangeStart}–{rangeEnd} de {hasMoreRows ? "al menos " : ""}{totalRows}
+          {rangeStart}–{rangeEnd} de {hasMoreRows ? "al menos " : ""}{displayedTotal}
         </span>
       </div>
       <TablePagination

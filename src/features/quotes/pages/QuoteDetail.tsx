@@ -102,7 +102,7 @@ export default function QuoteDetail() {
         currency={currency}
       />
 
-      {quote.notes && <NotesCard value={quote.notes} readOnly />}
+      {quote.notes && <NotesCard value={quote.notes} title="Notas para el cliente" readOnly />}
 
       {showAssignCard && (
         <AssignForkliftsCard quoteId={quote.id} lineItems={lineItems} />

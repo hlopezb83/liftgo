@@ -42,4 +42,13 @@ describe("ReportTransferDialog — validación de monto (R9-P2-04)", () => {
     expect(schema.safeParse({ ...valid, senderLast4: "12" }).success).toBe(false);
     expect(schema.safeParse({ ...valid, senderLast4: "1234" }).success).toBe(true);
   });
+
+  it("rechaza una transferencia con fecha de mañana", () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const result = schema.safeParse({ ...valid, transferDate: tomorrow });
+    expect(result.success).toBe(false);
+    if (result.success) return;
+    expect(result.error.issues.map((issue) => issue.message).join(" ")).toContain("no puede ser futura");
+  });
 });

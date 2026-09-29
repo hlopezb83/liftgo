@@ -12,9 +12,10 @@ export function buildCustomerPayload(form: CustomerFormData) {
     acc[key] = (form[key] as string | undefined) || null;
     return acc;
   }, {} as Record<NullableField, string | null>);
-  // FIX-3: tasa de IVA del cliente; vacío → se omite (default de la BD).
+  // El formulario define vacío como IVA general del 16 %. En una edición,
+  // omitir la columna conservaría una tasa anterior (por ejemplo 8 %).
   const rawRate = (form.tax_rate ?? "").trim();
-  const taxRate = rawRate === "" ? null : Number(rawRate);
+  const taxRate = rawRate === "" ? 16 : Number(rawRate);
   // razon_social se mantiene sincronizada con name: el cliente ya no la captura
   // por separado, pero la columna en BD sigue alimentando CFDI, PDFs y snapshots.
   return {
@@ -22,8 +23,7 @@ export function buildCustomerPayload(form: CustomerFormData) {
     company: form.name,
     razon_social: form.name,
     ...base,
-    // Vacío → no se envía la columna y la BD conserva/aplica su default.
-    ...(taxRate != null && Number.isFinite(taxRate) ? { tax_rate: taxRate } : {}),
+    tax_rate: Number.isFinite(taxRate) ? taxRate : 16,
   };
 }
 

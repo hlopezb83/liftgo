@@ -44,6 +44,18 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('get_available_forklifts') ILIKE '%booking_is_returned%'
 );
 SELECT pg_temp.expect_true(
+  'N-6 get_available_forklifts excluye fixtures E2E',
+  pg_temp.fndef('get_available_forklifts') ILIKE '%COALESCE(f.is_e2e, false) = false%'
+);
+SELECT pg_temp.expect_true(
+  'N-6 get_available_forklifts respeta RLS como SECURITY INVOKER',
+  NOT (
+    SELECT p.prosecdef
+    FROM pg_proc p
+    WHERE p.oid = 'public.get_available_forklifts(date,date)'::regprocedure
+  )
+);
+SELECT pg_temp.expect_true(
   'N-6 create_booking conserva el guard de cotización aceptada',
   pg_temp.fndef('create_booking') ILIKE '%debe estar aceptada por el cliente%'
 );

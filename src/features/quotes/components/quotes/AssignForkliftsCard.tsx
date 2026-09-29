@@ -10,6 +10,7 @@ import {
   useSaleAvailableForklifts,
   useUnassignForklift,
 } from "@/features/fleet";
+import { getSaleLines } from "@/features/quotes/utils/saleLines";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 
@@ -52,7 +53,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
         .map(([, v]) => v)
     );
 
-  const linesData = lineItems.map((item, index) => {
+  const linesData = getSaleLines(lineItems).map(({ item, index }) => {
     const parsed = parseDescription(item.description);
     const quantity = item.quantity || 1;
     // A-04: la RPC canónica ya excluye cualquier unidad comprometida por una

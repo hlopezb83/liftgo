@@ -10,13 +10,13 @@ import SupplierDetailPage from "../SupplierDetailPage";
  * proveedor podría existir perfectamente, solo falló el fetch).
  */
 
-const useSuppliersMock = vi.fn();
+const useSupplierMock = vi.fn();
 const useSupplierBillsMock = vi.fn();
 const useMaintenanceLogsMock = vi.fn();
 const useForkliftMapMock = vi.fn();
 
 vi.mock("../../hooks/useSuppliers", () => ({
-  useSuppliers: () => useSuppliersMock(),
+  useSupplier: () => useSupplierMock(),
   SUPPLIER_CATEGORIES: {},
 }));
 
@@ -48,7 +48,7 @@ function renderPage() {
 }
 
 beforeEach(() => {
-  useSuppliersMock.mockReset();
+  useSupplierMock.mockReset();
   useSupplierBillsMock.mockReset();
   useMaintenanceLogsMock.mockReset();
   useForkliftMapMock.mockReset();
@@ -59,7 +59,7 @@ beforeEach(() => {
 
 describe("SupplierDetailPage (FE4-02)", () => {
   it("muestra QueryErrorState cuando los proveedores fallan, no el mensaje de 'no encontrado'", async () => {
-    useSuppliersMock.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
+    useSupplierMock.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
 
     renderPage();
 

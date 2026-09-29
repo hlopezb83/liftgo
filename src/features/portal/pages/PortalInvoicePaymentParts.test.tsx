@@ -1,3 +1,4 @@
+import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { computeInvoiceTotals } from "./PortalInvoicePayment.helpers";
 import {
@@ -47,6 +48,20 @@ describe("PortalInvoicePaymentParts", () => {
     const result = computeInvoiceTotals({ total: 100 }, [], []);
     expect(result.moneda).toBe("MXN");
     expect(result.isMxn).toBe(true);
+  });
+
+  it("muestra al cliente el motivo guardado cuando su reporte fue rechazado", () => {
+    render(<PortalIntentsTable intents={[{
+      id: "intent-1",
+      transfer_date: "2026-09-28",
+      amount: 250,
+      tracking_key: "ABC123",
+      status: "rejected",
+      review_notes: "El comprobante no corresponde a esta factura.",
+    }]} />);
+
+    expect(screen.getByText("Motivo de rechazo")).toBeInTheDocument();
+    expect(screen.getByText("El comprobante no corresponde a esta factura.")).toBeInTheDocument();
   });
 
 });

@@ -32,7 +32,7 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
   };
 
   return (
-    <div className="flex items-center justify-between gap-3 py-1.5">
+    <div className="flex flex-col gap-1.5 py-1.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="text-sm text-muted-foreground shrink-0">{label}</span>
         <Tooltip>
@@ -44,9 +44,9 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
           </TooltipContent>
         </Tooltip>
       </div>
-      <div className="flex items-center gap-2 min-w-0">
+      <div className="flex min-w-0 items-start gap-2 sm:items-center">
         <span
-          className={`font-mono text-sm truncate ${isEmpty ? "text-muted-foreground italic" : ""}`}
+          className={`min-w-0 break-all font-mono text-sm ${isEmpty ? "text-muted-foreground italic" : ""}`}
           title={value ?? undefined}
         >
           {value ?? placeholder}

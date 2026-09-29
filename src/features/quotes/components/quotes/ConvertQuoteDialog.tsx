@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -7,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { allowsRecurringBilling } from "@/features/bookings/lib/recurringBillingEligibility";
 import { CustomerSelector, type Customer } from "@/features/customers";
 import type { Tables } from "@/integrations/supabase/types";
 import { ConvertQuoteSummary } from "./ConvertQuoteSummary";
@@ -44,20 +46,31 @@ export function ConvertQuoteDialog({
   open, onOpenChange, quote, durationDays, unitCount, needsCustomer,
   customers, needsAssignment, isPending, onConfirm,
 }: Props) {
-  const canRecur = durationDays >= 30;
+  const canRecur = allowsRecurringBilling(
+    quote.start_date ? parseISO(quote.start_date) : undefined,
+    quote.end_date ? parseISO(quote.end_date) : undefined,
+  );
   // Rentas de largo plazo se convertían sin recurrencia por descuido; ahora la
   // sugerencia viene encendida y el usuario puede apagarla.
   const [recurring, setRecurring] = useState(canRecur);
   const [customerId, setCustomerId] = useState("");
   const [customerName, setCustomerName] = useState("");
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setRecurring(canRecur);
+      setCustomerId("");
+      setCustomerName("");
+    }
+    onOpenChange(nextOpen);
+  };
 
   const blocked = needsCustomer && !customerId;
 
   return (
     <FormDialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       isPending={isPending}
       testId="convert-quote-dialog"
       title="Convertir a reserva"

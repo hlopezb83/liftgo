@@ -16,6 +16,8 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   totalCount?: number;
   /** La tabla aún tiene páginas por cargar; el conteo es un mínimo conocido. */
   hasMoreRows?: boolean;
+  /** Conteo total remoto de una página server-side. */
+  rowCount?: number;
   actions?: ReactNode;
   /** Acciones secundarias junto a la acción primaria y los filtros en móvil. */
   mobileActions?: ReactNode;
@@ -68,6 +70,7 @@ export function ListPageLayout<T extends { id?: string }>({
   subtitle,
   totalCount,
   hasMoreRows = false,
+  rowCount,
   actions,
   mobileActions,
   mobilePrimaryAction,
@@ -146,6 +149,7 @@ export function ListPageLayout<T extends { id?: string }>({
         )}
         <ListPageBody
           hasMoreRows={hasMoreRows}
+          rowCount={rowCount}
           customContent={customContent}
           isLoading={isLoading}
           isError={isError}

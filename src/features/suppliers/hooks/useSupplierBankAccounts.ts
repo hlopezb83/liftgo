@@ -9,7 +9,7 @@ import { supplierBankAccountKeys } from "../lib/queryKeys";
 const sel = (s: string): string => s;
 
 const SUPPLIER_BANK_ACCOUNT_COLUMNS = sel(
-  "id, supplier_id, bank_name, account_number, clabe, is_primary, created_at, updated_at"
+  "id, supplier_id, bank_name, account_holder, account_number, clabe, currency, notes, is_primary, created_at, updated_at"
 );
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];

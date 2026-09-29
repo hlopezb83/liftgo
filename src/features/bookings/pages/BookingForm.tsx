@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SwitchField } from "@/components/forms/fields";
@@ -40,6 +41,11 @@ export default function BookingForm() {
   // para que la oferta de facturación recurrente coincida con cuándo el
   // motor realmente generará al menos una línea "Renta mensual".
   const showRecurring = allowsRecurringBilling(startDate, endDate);
+  useEffect(() => {
+    if (!showRecurring && form.getValues("recurring_billing")) {
+      form.setValue("recurring_billing", false, { shouldDirty: false, shouldValidate: false });
+    }
+  }, [form, showRecurring]);
   const forkliftName = selectedForklift?.name ?? "";
   // GUI-FE-11b (G-ADM-06): advertencia no bloqueante para fechas pasadas.
   const startYmd = toYMD(startDate);
