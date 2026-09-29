@@ -101,12 +101,30 @@ export default function InvoicesReconciliation() {
         </Alert>
       )}
 
-      {summary && summary.gaps.length > 0 && (
+      {summary && summary.missingFolioCount > 0 && (
         <Alert>
           <WarnIcon className="h-4 w-4" />
           <AlertDescription>
-            Folios internos faltantes en el rango: {summary.gaps.map((g) => `FAC-${g}`).join(", ")}.
-            Puede ser normal si esos folios se emitieron fuera del rango, o indicar folios cancelados/eliminados.
+            <p className="font-medium">
+              {summary.missingFolioCount.toLocaleString("es-MX")} folio(s) interno(s) faltante(s) en el rango.
+            </p>
+            {summary.missingFolioPreview.length > 0 && (
+              <details className="mt-2">
+                <summary className="cursor-pointer select-none underline underline-offset-4">
+                  Ver {summary.missingFolioPreview.length.toLocaleString("es-MX")} folios
+                  {summary.missingFolioPreview.length < summary.missingFolioCount
+                    ? ` (primeros ${summary.missingFolioPreview.length.toLocaleString("es-MX")})`
+                    : ""}
+                </summary>
+                <p className="mt-1 max-h-36 overflow-y-auto break-words text-xs">
+                  {summary.missingFolioPreview.map((folio) => `FAC-${folio}`).join(", ")}
+                  {summary.missingFolioPreview.length < summary.missingFolioCount ? ", …" : ""}
+                </p>
+              </details>
+            )}
+            <p className="mt-2 text-sm">
+              Puede ser normal si esos folios se emitieron fuera del rango, o indicar folios cancelados/eliminados.
+            </p>
           </AlertDescription>
         </Alert>
       )}
