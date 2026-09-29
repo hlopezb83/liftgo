@@ -18,7 +18,7 @@ import type { ContractViewModel } from "@/types/rental";
 
 export type ContractData = Pick<ContractViewModel,
   | "id"
-  | "contract_number" | "customer_id" | "forklift_id" | "start_date" | "end_date"
+  | "contract_number" | "booking_id" | "customer_id" | "forklift_id" | "start_date" | "end_date"
   | "daily_rate" | "weekly_rate" | "monthly_rate" | "deposit_amount" | "terms_text"
   | "status" | "signed_at" | "signed_by" | "usage_location" | "max_hours_per_month"
   | "extra_hour_rate" | "payment_frequency" | "late_interest_rate" | "contract_city"
@@ -116,6 +116,34 @@ async function fetchLocalContractCustomer(customerId: string) {
   };
 }
 
+async function fetchBookingForkliftId(bookingId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("forklift_id")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.forklift_id ?? null;
+}
+
+async function fetchContractForklift(contract: ContractData, snapshot: SignedSnapshot | null) {
+  if (snapshot?.forklift) return { data: snapshot.forklift };
+
+  let forkliftId = contract.forklift_id;
+  if (!forkliftId && !snapshot && contract.booking_id) {
+    forkliftId = await fetchBookingForkliftId(contract.booking_id);
+  }
+  if (!forkliftId) return { data: null };
+
+  const { data, error } = await supabase
+    .from("forklifts")
+    .select("manufacturer, model, serial_number, capacity_kg, fuel_type, acquisition_cost")
+    .eq("id", forkliftId)
+    .maybeSingle();
+  if (error) throw error;
+  return { data };
+}
+
 export async function fetchRelatedData(contract: ContractData) {
   // A6R2-3: contrato firmado con snapshot → cliente y unidad desde la copia.
   const snapshot = readSignedSnapshot(contract);
@@ -129,15 +157,7 @@ export async function fetchRelatedData(contract: ContractData) {
       : contract.customer_id
       ? fetchLocalContractCustomer(contract.customer_id)
       : Promise.resolve({ data: null }),
-    snapshot?.forklift
-      ? Promise.resolve({ data: snapshot.forklift })
-      : contract.forklift_id
-      ? supabase
-          .from("forklifts")
-          .select("manufacturer, model, serial_number, capacity_kg, fuel_type, acquisition_cost")
-          .eq("id", contract.forklift_id)
-          .single()
-      : Promise.resolve({ data: null }),
+    fetchContractForklift(contract, snapshot),
   ]);
   return { company: issuerForPdf(contract, issuer.company), customer: customerRes.data, forklift: forkliftRes.data };
 }
