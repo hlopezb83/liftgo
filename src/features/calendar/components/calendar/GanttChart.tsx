@@ -7,7 +7,7 @@ import {
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/useGanttSegments";
-import { groupForkliftsForGantt } from "../../lib/ganttEquipmentGroups";
+import { groupForkliftsForGantt, type GanttForklift } from "../../lib/ganttEquipmentGroups";
 import { GanttHeader } from "./GanttHeader";
 import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
@@ -21,7 +21,7 @@ interface GanttChartProps {
   maintenanceWindows?: MaintenanceWindow[];
 }
 
-type Forklift = Tables<"forklifts">;
+type Forklift = GanttForklift;
 
 function groupByModel(items: Forklift[]): Array<{ key: string; count: number }> {
   const map = new Map<string, number>();
