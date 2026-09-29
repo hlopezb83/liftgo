@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { useState } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
@@ -8,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
 import { useUpdateBooking } from "../../hooks/bookings/useBookingMutations";
+import { allowsRecurringBilling } from "../../lib/recurringBillingEligibility";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
 import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 
@@ -28,6 +30,10 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
       getAccessLevel(perms, role ?? undefined, "Facturas") === "full");
   const isClosed = CLOSED_STATUSES.has(booking.status);
   const canToggle = canEdit && !isClosed;
+  const canEnableRecurring = allowsRecurringBilling(
+    parseISO(booking.start_date),
+    parseISO(booking.end_date),
+  );
 
   const handleToggle = (next: boolean) => {
     if (!next) {
@@ -69,12 +75,20 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
               <Switch
                 aria-label="Activar facturación recurrente mensual"
                 checked={!!booking.recurring_billing}
-                disabled={updateBooking.isPending}
+                disabled={
+                  updateBooking.isPending ||
+                  (!booking.recurring_billing && !canEnableRecurring)
+                }
                 onCheckedChange={handleToggle}
               />
             )}
           </div>
         </div>
+        {!booking.recurring_billing && !canEnableRecurring && !isClosed && (
+          <p className="text-xs text-muted-foreground">
+            Para activarla, la reserva debe cubrir al menos un mes calendario.
+          </p>
+        )}
         {isClosed && booking.recurring_billing === false && (
           <p className="text-xs text-muted-foreground">
             La reserva ya está {booking.status === "cancelled" ? "cancelada" : "completada"}; la recurrencia ya no puede activarse.
