@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.42.30",
+    "date": "2026-09-30",
+    "type": "patch",
+    "category": "fix",
+    "title": "Acciones de Flota compactas en móvil",
+    "description": "Nuevo equipo, exportar y filtros comparten una fila en teléfonos, con la búsqueda debajo.",
+    "changes": [
+      "La acción principal aparece primero; exportar usa un botón compacto con nombre accesible y conserva su bloqueo cuando faltan páginas por cargar."
+    ]
+  },
+  {
     "version": "8.42.29",
     "date": "2026-09-30",
     "type": "patch",
