@@ -1,6 +1,7 @@
 import { HistoryIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateTimeMty } from "@/lib/format/dateFormats";
 
 interface ForkliftStatusHistoryProps {
@@ -18,9 +19,9 @@ export function ForkliftStatusHistory({ logs }: ForkliftStatusHistoryProps) {
               <div key={log.id} className="flex items-center gap-3 text-sm">
                 <div className="w-2 h-2 rounded-full bg-primary shrink-0" />
                 <div className="flex-1">
-                  <span className="font-medium">{log.from_status || "—"}</span>
+                  <span className="font-medium">{log.from_status ? STATUS_LABELS[log.from_status] ?? log.from_status : "—"}</span>
                   <span className="text-muted-foreground mx-1">→</span>
-                  <span className="font-medium">{log.to_status}</span>
+                  <span className="font-medium">{STATUS_LABELS[log.to_status] ?? log.to_status}</span>
                   {log.note && <span className="text-muted-foreground ml-2">— {log.note}</span>}
                 </div>
                 <span className="text-xs text-muted-foreground">{formatDateTimeMty(log.changed_at)}</span>

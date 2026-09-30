@@ -50,6 +50,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
   const bookingQuery = useConfirmedBookingsForDelivery(open);
   const bookings = bookingQuery.data?.pages.flatMap((page) => page.slice(0, 100));
   const selectedBookingId = useWatch({ control: form.control, name: "bookingId" });
+  const alreadyCompleted = useWatch({ control: form.control, name: "alreadyCompleted" });
   const selectedForkliftId = bookings?.find((booking) => booking.id === selectedBookingId)?.forklift_id;
   const { data: selectedForklift } = useForklift(selectedForkliftId);
   const forkliftOptions = selectedForklift && !forklifts?.some((forklift) => forklift.id === selectedForklift.id)
@@ -89,7 +90,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
       },
       {
         onSuccess: () => {
-          notifySuccess("Transporte programado");
+          notifySuccess(values.alreadyCompleted ? "Transporte registrado como completado" : "Transporte programado");
           setOpen(false);
           form.reset(getInitialForm());
         },
@@ -108,7 +109,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
       <FormDialog
       isPending={createDelivery.isPending}
       isDirty={form.formState.isDirty}
-      open={open} onOpenChange={setOpen} title="Programar transporte">
+      open={open} onOpenChange={setOpen} title={alreadyCompleted ? "Registrar transporte realizado" : "Programar transporte"}>
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <DeliveryFormFields
@@ -119,7 +120,7 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
             onLoadMoreBookings={() => { void bookingQuery.fetchNextPage(); }}
           />
           <FormDialogFooter>
-            <FormActions submitLabel="Programar" isPending={createDelivery.isPending} onCancel={() => setOpen(false)} />
+            <FormActions submitLabel={alreadyCompleted ? "Registrar como completado" : "Programar"} isPending={createDelivery.isPending} onCancel={() => setOpen(false)} />
           </FormDialogFooter>
         </form>
       </FormDialog>

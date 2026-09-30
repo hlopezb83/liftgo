@@ -21,6 +21,25 @@ export function ReadOnlyLineItemsTable({ lineItems, currency = "MXN" }: ReadOnly
   return (
     <Card>
       <CardContent className="p-0">
+        <div data-testid="line-items-mobile" className="divide-y sm:hidden">
+          {lineItems.map((item, idx) => (
+            <div key={idx} className="space-y-2 p-4 text-sm">
+              <p className="font-medium break-words">{item.description}</p>
+              <div className="flex justify-between gap-3 text-muted-foreground">
+                <span>Cant. {item.quantity ?? (item as unknown as Record<string, unknown>).qty as number ?? 1}</span>
+                <span>Unit. {formatCurrencyWithCode(Number(item.unit_price), currency)}</span>
+              </div>
+              {hasDiscount && item.discount && item.discount > 0 ? (
+                <p className="text-right text-destructive">Descuento {formatLineDiscount(item, currency)}</p>
+              ) : null}
+              <div className="flex justify-between gap-3 border-t pt-2 font-semibold">
+                <span>{hasDiscount ? "Importe neto" : "Total"}</span>
+                <span className="font-mono text-right">{formatCurrencyWithCode(applyDiscount(item), currency)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="hidden sm:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -50,6 +69,7 @@ export function ReadOnlyLineItemsTable({ lineItems, currency = "MXN" }: ReadOnly
             ))}
           </TableBody>
         </Table>
+        </div>
       </CardContent>
     </Card>
   );

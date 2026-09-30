@@ -30,6 +30,18 @@ const baseSale = {
 };
 
 describe("quoteFormSchema", () => {
+  it("rechaza una vigencia visible anterior al fin de renta y acepta el mismo día", () => {
+    const dateRange = { from: new Date(2099, 9, 5), to: new Date(2099, 9, 11) };
+    const invalid = quoteFormSchema.safeParse({ ...baseRental, dateRange, validUntil: new Date(2099, 9, 7) });
+    expect(invalid.success).toBe(false);
+    if (!invalid.success) {
+      expect(invalid.error.issues).toContainEqual(expect.objectContaining({
+        path: ["validUntil"], message: "La vigencia no puede ser anterior al fin del periodo de renta",
+      }));
+    }
+    expect(quoteFormSchema.safeParse({ ...baseRental, dateRange, validUntil: new Date(2099, 9, 11) }).success).toBe(true);
+  });
+
   it("acepta una cotización de renta válida (mensual)", () => {
     expect(quoteFormSchema.safeParse(baseRental).success).toBe(true);
   });

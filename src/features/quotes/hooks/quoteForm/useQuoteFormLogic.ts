@@ -10,7 +10,7 @@ import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
-import { buildQuotePayload, resolveValidUntil } from "./quoteFormPayload";
+import { buildQuotePayload } from "./quoteFormPayload";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
 import { useQuotePrefillValues } from "./useQuotePrefill";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
@@ -101,9 +101,7 @@ export function useQuoteFormLogic() {
       endDate: values.dateRange?.to,
       lineItems,
       subtotal, taxRate: values.taxRate, taxAmount, total,
-      // R12-FE-07 (P2 r11): la vigencia nunca queda antes del fin del periodo
-      // cotizado (una cotización no puede nacer vencida para su propio rango).
-      validUntil: resolveValidUntil(values.validUntil, values.dateRange?.to),
+      validUntil: values.validUntil ?? null,
       notes: values.notes,
       currency: values.currency,
       tipoCambio: values.tipoCambio,

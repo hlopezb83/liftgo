@@ -87,13 +87,15 @@ export function CustomerSelector({
   const handleSelect = (customer: CustomerSelectorOption) => {
     onCustomerIdChange(customer.id);
     onCustomerNameChange(customer.name);
-    if (onCustomerContactChange && customer.email) onCustomerContactChange(customer.email);
+    onCustomerContactChange?.(customer.email ?? "");
     search.setSearchTerm("");
   };
 
   const handleClear = (e: React.MouseEvent) => {
     e.stopPropagation();
     onCustomerIdChange("");
+    onCustomerNameChange("");
+    onCustomerContactChange?.("");
   };
 
   return (

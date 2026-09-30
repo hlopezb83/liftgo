@@ -16,7 +16,10 @@ vi.mock("../QuotePDFButton", () => ({
 }));
 vi.mock("@/features/users", () => ({
   useUserRole: () => useUserRoleMock(),
-  useHasModuleAccess: () => useUserRoleMock().data !== "auditor",
+  useHasModuleAccess: (module: string) => {
+    const role = useUserRoleMock().data;
+    return module === "Facturas" ? role === "admin" || role === "administrativo" : role !== "auditor";
+  },
 }));
 
 const quote = {
@@ -33,18 +36,19 @@ const acceptedQuote = { ...quote, status: "accepted" } as unknown as Tables<"quo
 function renderActions(
   onSetStatus: (status: string) => void,
   quoteOverride: Tables<"quotes"> = quote,
-  extra: { alreadyConverted?: boolean; linkedBookingId?: string | null } = {},
+  extra: { alreadyConverted?: boolean; linkedBookingId?: string | null; isSale?: boolean; draftInvoiceId?: string | null; canInvoice?: boolean } = {},
 ) {
   render(
     <TestRouter>
       <QuoteDetailActions
         quote={quoteOverride}
-        isSale={false}
+        isSale={extra.isSale ?? false}
         alreadyConverted={extra.alreadyConverted ?? false}
         linkedBookingId={extra.linkedBookingId}
         alreadyInvoiced={false}
         isConverting={false}
-        canInvoice={false}
+        canInvoice={extra.canInvoice ?? false}
+        draftInvoiceId={extra.draftInvoiceId}
         onSetStatus={onSetStatus}
         onConvertClick={vi.fn()}
         onDelete={vi.fn()}
@@ -55,6 +59,36 @@ function renderActions(
 
 beforeEach(() => {
   useUserRoleMock.mockReturnValue({ data: "admin" });
+});
+
+describe("QuoteDetailActions - permisos de Facturas", () => {
+  const sale = { ...acceptedQuote, quote_type: "sale" } as Tables<"quotes">;
+
+  it("muestra Facturar al admin con acceso completo a Facturas", async () => {
+    renderActions(vi.fn(), sale, { isSale: true, canInvoice: true });
+    expect(await screen.findByRole("button", { name: "Facturar" })).toBeInTheDocument();
+  });
+
+  it("oculta Facturar a Ventas aunque pueda editar cotizaciones", () => {
+    useUserRoleMock.mockReturnValue({ data: "ventas" });
+    renderActions(vi.fn(), sale, { isSale: true, canInvoice: true });
+    expect(screen.queryByRole("button", { name: "Facturar" })).not.toBeInTheDocument();
+  });
+
+  it("oculta Continuar factura a Ventas y Auditor cuando existe borrador", () => {
+    for (const role of ["ventas", "auditor"] as AppRole[]) {
+      useUserRoleMock.mockReturnValue({ data: role });
+      const view = render(
+        <TestRouter>
+          <QuoteDetailActions quote={sale} isSale alreadyConverted={false} alreadyInvoiced={false}
+            isConverting={false} canInvoice draftInvoiceId="inv-1" onSetStatus={vi.fn()}
+            onConvertClick={vi.fn()} onDelete={vi.fn()} />
+        </TestRouter>,
+      );
+      expect(screen.queryByRole("button", { name: "Continuar factura" })).not.toBeInTheDocument();
+      view.unmount();
+    }
+  });
 });
 
 describe("QuoteDetailActions (DB3-06)", () => {

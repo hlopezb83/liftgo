@@ -174,6 +174,7 @@ export function QuoteDetailActions({
 }: Props) {
   const navigate = useNavigateTransition();
   const canWrite = useHasModuleAccess("Cotizaciones", "full");
+  const canWriteInvoices = useHasModuleAccess("Facturas", "full");
   const isEditable = isQuoteEditable(quote);
   // BL-R8-19: rechazar pasa por diálogo de motivo (patrón "Perdido" del CRM).
   const [rejectOpen, setRejectOpen] = useState(false);
@@ -196,11 +197,11 @@ export function QuoteDetailActions({
           linkedBookingId={linkedBookingId} isConverting={isConverting} onConvertClick={onConvertClick}
         />
       )}
-      <InvoiceButton
+      {canWriteInvoices && <InvoiceButton
         quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
         draftInvoiceId={draftInvoiceId}
         canInvoice={canInvoice} invoiceBlockedReason={invoiceBlockedReason}
-      />
+      />}
       {canWrite && quote.status === "sent" && (() => {
         // R7 Bloque 7: bloquear "Aceptar" si la cotización ya venció.
         const validUntil = quote.valid_until ? parseDateLocal(quote.valid_until) : null;

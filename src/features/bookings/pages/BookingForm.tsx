@@ -53,10 +53,6 @@ export default function BookingForm() {
 
   const handleCustomerIdChange = (v: string) => {
     form.setValue("customer_id", v);
-    const c = customers?.find((item) => item.id === v);
-    if (!c) return;
-    form.setValue("customer_name", c.name);
-    if (c.email) form.setValue("customer_contact", c.email);
   };
 
   return (
