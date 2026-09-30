@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.42.31",
+    "date": "2026-09-30",
+    "type": "patch",
+    "category": "fix",
+    "title": "Razón social visible en Empresas",
+    "description": "El panel de empresas muestra la razón social junto al nombre interno para evitar confusiones.",
+    "changes": [
+      "Si una empresa no tiene datos fiscales se indica «Sin datos fiscales»."
+    ]
+  },
+  {
     "version": "8.42.30",
     "date": "2026-09-30",
     "type": "patch",

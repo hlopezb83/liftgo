@@ -69,7 +69,27 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
       });
     if (error) rpcError(g, "platform_list_organizations", error);
 
-    return ((data ?? []) as Record<string, unknown>[]).map((row) => ({
+    const rows = (data ?? []) as Record<string, unknown>[];
+    const ids = rows.map((row) => String(row["id"]));
+    const razonByOrg = new Map<string, string>();
+    if (ids.length > 0) {
+      const settings = await (admin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            in: (k: string, v: string[]) => Promise<{ data: unknown }>;
+          };
+        };
+      })
+        .from("company_settings")
+        .select("organization_id, razon_social")
+        .in("organization_id", ids);
+      for (const s of (settings.data ?? []) as Record<string, unknown>[]) {
+        const razon = typeof s["razon_social"] === "string" ? s["razon_social"].trim() : "";
+        if (razon) razonByOrg.set(String(s["organization_id"]), razon);
+      }
+    }
+
+    return rows.map((row) => ({
       id: String(row["id"]),
       name: String(row["name"] ?? ""),
       slug: String(row["slug"] ?? ""),
@@ -78,6 +98,7 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
       internal_members: Number(row["internal_members"] ?? 0),
       portal_accounts: Number(row["portal_accounts"] ?? 0),
       customers: Number(row["customers"] ?? 0),
+      razon_social: razonByOrg.get(String(row["id"])) ?? null,
     }));
   });
 

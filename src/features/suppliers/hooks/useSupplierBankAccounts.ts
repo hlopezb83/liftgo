@@ -96,7 +96,7 @@ export function useCreateSupplierBankAccount() {
         p_currency: input.currency,
         p_notes: input.notes,
         p_is_primary: input.is_primary,
-      });
+      } as never);
       if (error) throw error;
       return { id: data };
     },
@@ -128,7 +128,7 @@ export function useUpdateSupplierBankAccount() {
         p_currency: values.currency,
         p_notes: values.notes,
         p_is_primary: values.is_primary,
-      });
+      } as never);
       if (error) throw error;
       return data;
     },

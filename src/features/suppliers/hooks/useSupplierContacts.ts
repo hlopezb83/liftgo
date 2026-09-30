@@ -70,7 +70,7 @@ export function useCreateSupplierContact() {
         p_role: input.role,
         p_notes: input.notes,
         p_is_primary: input.is_primary,
-      });
+      } as never);
       if (error) throw error;
       return { id: data };
     },
@@ -100,7 +100,7 @@ export function useUpdateSupplierContact() {
         p_role: values.role,
         p_notes: values.notes,
         p_is_primary: values.is_primary,
-      });
+      } as never);
       if (error) throw error;
       return data;
     },

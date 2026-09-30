@@ -1,5 +1,11 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.31] - 2026-09-30 · patch · fix
+
+El panel de empresas muestra la razón social junto al nombre interno.
+
+- Si una empresa no tiene datos fiscales se indica «Sin datos fiscales».
+
 ## [8.42.28] - 2026-09-29 · patch · fix
 
 Las listas grandes siguen siendo navegables y los reportes, contratos y calendarios reflejan mejor los datos reales.
