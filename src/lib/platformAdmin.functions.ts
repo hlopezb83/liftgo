@@ -74,7 +74,7 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
     const razonByOrg = new Map<string, string>();
     if (ids.length > 0) {
       const settings = await g
-        .asUntypedRpc(admin)
+
         .from("company_settings")
         .select("organization_id, razon_social")
         .in("organization_id", ids);
