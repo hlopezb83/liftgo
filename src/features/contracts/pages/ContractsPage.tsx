@@ -1,5 +1,5 @@
+import { useMemo } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ViewIcon, DocumentIcon } from "@/components/icons";
@@ -13,9 +13,9 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { visibleListRows } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { ContractMobileCard } from "../components/contracts/ContractMobileCard";
-import { useContracts, contractQueries } from "../hooks/useContracts";
+import { useContracts, useContractsIncremental, contractQueries } from "../hooks/useContracts";
 import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
 import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 
@@ -30,8 +30,9 @@ type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
   const canWrite = useHasModuleAccess("Contratos", "full");
-  const { data: contractsRaw, isLoading, isError, refetch } = useContracts();
-  const contracts = visibleListRows(contractsRaw);
+  const contractPages = useContractsIncremental();
+  const { isLoading, isError, refetch } = contractPages;
+  const contracts = useMemo(() => contractPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [contractPages.data]);
   const navigate = useNavigateTransition();
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Contract, {
@@ -136,7 +137,7 @@ export default function ContractsPage() {
         </RoleGuard>
       }
       notice={
-        <ListTruncationNotice rows={contractsRaw} />
+        contractPages.hasNextPage ? <p className="text-xs text-muted-foreground">La búsqueda incluye los contratos cargados. Usa «Cargar más» para ampliar la lista.</p> : null
       }
       filters={
         <FiltersToolbar>
@@ -156,6 +157,9 @@ export default function ContractsPage() {
 
       isLoading={isLoading}
       isError={isError}
+      hasMoreRows={contractPages.hasNextPage}
+      loadMore={{ hasMore: contractPages.hasNextPage, isLoading: contractPages.isFetchingNextPage,
+        onClick: () => { void contractPages.fetchNextPage(); }, loaded: contracts.length }}
       onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}

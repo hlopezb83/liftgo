@@ -57,7 +57,13 @@ export function RevenueReport({ startDate, endDate }: Props) {
   // Drilldown: solo las facturas del mes seleccionado (RPC, sin límite de filas).
   // V27-01: el RPC devuelve el mes completo; recortamos al rango activo para
   // que panel, contador y CSV coincidan con el resumen.
-  const { data: monthInvoices = [] } = useRevenueMonthInvoices(selected?.key ?? null);
+  const {
+    data: monthInvoices = [],
+    isLoading: monthLoading,
+    isError: monthError,
+    isFetching: monthFetching,
+    refetch: refetchMonth,
+  } = useRevenueMonthInvoices(selected?.key ?? null);
   const selectedInvoices = useMemo(
     () => invoicesWithinRange(monthInvoices, startDate, endDate),
     [monthInvoices, startDate, endDate],
@@ -93,6 +99,9 @@ export function RevenueReport({ startDate, endDate }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
+          <p className="mb-3 text-xs text-muted-foreground">
+            «Facturado» es el neto después de notas de crédito. «Pagado» suma cobros de las facturas emitidas en cada mes, aunque el cobro ocurra después.
+          </p>
           {fxMissingTotal > 0 && (
             <p className="mb-3 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
               {fxMissingTotal} factura{fxMissingTotal === 1 ? "" : "s"} en divisa sin tipo de cambio
@@ -132,6 +141,10 @@ export function RevenueReport({ startDate, endDate }: Props) {
         invoiced={selected?.invoiced ?? 0}
         paid={selected?.paid ?? 0}
         invoices={selectedInvoices}
+        isLoading={monthLoading}
+        isError={monthError}
+        isRetrying={monthFetching}
+        onRetry={() => { void refetchMonth(); }}
       />
     </>
 

@@ -5,9 +5,10 @@ interface Args {
   weeks: number;
   initialBalance: number;
   safetyBuffer: number;
+  enabled?: boolean;
 }
 
-export function useCashFlowProjection({ weeks, initialBalance, safetyBuffer }: Args) {
+export function useCashFlowProjection({ weeks, initialBalance, safetyBuffer, enabled = true }: Args) {
   const filter: CashFlowProjectionFilter = { weeks, initialBalance, safetyBuffer };
-  return useQuery(cashFlowProjectionQueries.list(filter));
+  return useQuery({ ...cashFlowProjectionQueries.list(filter), enabled });
 }

@@ -4,7 +4,7 @@
  * La identidad de `customers` se combina con la relación comercial visible
  * para la empresa actual (`organization_customers`).
  */
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useOrganizationContext } from "@/contexts/OrganizationContext";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { supabase } from "@/integrations/supabase/client";
@@ -120,6 +120,31 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
 
 export function useCustomers() {
   return useQuery(customerQueries.list());
+}
+
+/** All customer relations stay reachable through explicit server pages. */
+export function useCustomersIncremental() {
+  return useInfiniteQuery({
+    queryKey: [...customerKeys.all, "incremental", e2eVisibilityFilter()],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }): Promise<Customer[]> => {
+      const { data, error } = await supabase
+        .from("organization_customers")
+        .select(`status, ${RELATION_COLUMNS}, customers!inner(${CUSTOMER_LIST_COLUMNS})`)
+        .eq(ACTIVE_RELATION_FILTER.column, ACTIVE_RELATION_FILTER.value)
+        .is("customers.deleted_at", null)
+        .or(e2eVisibilityFilter(), { referencedTable: "customers" })
+        .not("customers.name", "ilike", "E2E%")
+        .or("email.is.null,email.neq.e2e-ui@test.local", { referencedTable: "customers" })
+        .order("customers(name)")
+        .order("customer_id")
+        .range(pageParam * LIST_PAGE_LIMIT, pageParam * LIST_PAGE_LIMIT + LIST_PAGE_LIMIT)
+        .returns<CustomerRelationRow[]>();
+      if (error) throw error;
+      return unwrapRelation(data);
+    },
+    getNextPageParam: (page, _pages, pageIndex) => page.length > LIST_PAGE_LIMIT ? pageIndex + 1 : undefined,
+  });
 }
 
 /** Normaliza texto libre antes de construir filtros PostgREST `.or()`. */

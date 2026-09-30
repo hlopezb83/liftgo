@@ -33,6 +33,7 @@ export interface MaintenanceWindow {
   forklift_id: string;
   date: string;
   label: string;
+  is_open?: boolean;
 }
 
 export interface MaintenanceSegment {
@@ -111,8 +112,8 @@ export function useGanttSegments(
     const segments: MaintenanceSegment[] = [];
     for (const m of items) {
       const day = parseISO(m.date);
-      const winStart = addDays(day, -buffer);
-      const winEnd = addDays(day, buffer);
+      const winStart = m.is_open ? rangeStart : addDays(day, -buffer);
+      const winEnd = m.is_open ? rangeEnd : addDays(day, buffer);
       if (winEnd < rangeStart || winStart > rangeEnd) continue;
       const clampedStart = winStart < rangeStart ? rangeStart : winStart;
       const clampedEnd = winEnd > rangeEnd ? rangeEnd : winEnd;
@@ -122,7 +123,7 @@ export function useGanttSegments(
         id: m.id,
         leftPercent: (startIdx / totalDays) * 100,
         widthPercent: (span / totalDays) * 100,
-        label: buffer > 0 ? `${m.label} (±${buffer} d)` : m.label,
+        label: !m.is_open && buffer > 0 ? `${m.label} (±${buffer} d)` : m.label,
         date: m.date,
       });
     }

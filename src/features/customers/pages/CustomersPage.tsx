@@ -1,6 +1,5 @@
-import { useEffect, useEffectEvent, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { AddIcon, UsersIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
@@ -11,11 +10,12 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { useSearchParams } from "@/lib/router-compat";
-import { visibleListRows } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { CustomerMobileCard } from "../components/customers/CustomerMobileCard";
 import { CustomersActions, CustomersFilters, CustomersSecondaryActions } from "../components/customers/CustomersToolbar";
+import { useCustomersIncremental } from "../hooks/customers/customerQueries";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
 import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";
@@ -23,9 +23,14 @@ import type { CustomerFormData } from "../lib/customerFormSchema";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
+function renderCustomerMobileCard(customer: Customer, open: (id: string) => void) {
+  return <CustomerMobileCard customer={customer} onOpen={open} />;
+}
+
 export default function CustomersPage() {
-  const { data: customersRaw, isLoading, isError, refetch } = useCustomers();
-  const customers = visibleListRows(customersRaw);
+  const customerPages = useCustomersIncremental();
+  const { isLoading, isError, refetch } = customerPages;
+  const customers = useMemo(() => customerPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [customerPages.data]);
   const navigate = useNavigateTransition();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchKey = searchParams.toString();
@@ -91,10 +96,6 @@ export default function CustomersPage() {
     initialSorting: [{ id: "name", desc: false }],
   });
 
-  const renderMobileCard = (c: Customer) => (
-    <CustomerMobileCard customer={c} onOpen={(id) => navigate(`/customers/${id}`)} />
-  );
-
   const openCreate = () => {
     if (!canWrite) return;
     setProspectId(null);
@@ -143,9 +144,9 @@ export default function CustomersPage() {
       <ListPageLayout
         onRefresh={refetch}
         title="Clientes"
-        subtitle={customers ? `${customers.length} clientes` : undefined}
-        actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
-        mobileActions={<CustomersSecondaryActions filtered={filtered} />}
+        subtitle={customerPages.hasNextPage ? `${customers.length}+ clientes cargados` : `${customers.length} clientes`}
+        actions={<CustomersActions filtered={filtered} onCreate={openCreate} exportDisabled={customerPages.hasNextPage} />}
+        mobileActions={<CustomersSecondaryActions filtered={filtered} exportDisabled={customerPages.hasNextPage} />}
         mobilePrimaryAction={
           <RoleGuard module="Clientes" minAccess="full" fallback={null}>
             <Button
@@ -158,7 +159,7 @@ export default function CustomersPage() {
           </RoleGuard>
         }
         notice={
-          <ListTruncationNotice rows={customersRaw} />
+          customerPages.hasNextPage ? <p className="text-xs text-muted-foreground">La búsqueda incluye los clientes cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p> : null
         }
         filters={
           <div className="space-y-3">
@@ -167,6 +168,9 @@ export default function CustomersPage() {
         }
         isLoading={isLoading}
         isError={isError}
+        hasMoreRows={customerPages.hasNextPage}
+        loadMore={{ hasMore: customerPages.hasNextPage, isLoading: customerPages.isFetchingNextPage,
+          onClick: () => { void customerPages.fetchNextPage(); }, loaded: customers.length }}
         onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(c) => navigate(`/customers/${c.id}`)}
@@ -176,7 +180,7 @@ export default function CustomersPage() {
         emptyMessage="No se encontraron clientes"
         emptyActionLabel={canWrite ? "Nuevo cliente" : undefined}
         onEmptyAction={canWrite ? openCreate : undefined}
-        mobileCardRender={renderMobileCard}
+        mobileCardRender={(customer) => renderCustomerMobileCard(customer, (id) => navigate(`/customers/${id}`))}
         mobileKeyExtractor={(c) => c.id}
         skeletonColumns={6}
       />

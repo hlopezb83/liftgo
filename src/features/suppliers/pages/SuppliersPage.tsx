@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon, ChevronRightIcon, SupplierIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -14,9 +13,9 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Link } from "@/lib/router-compat-ui";
-import { visibleListRows } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
-import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
+import { useSuppliersIncremental, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
 
 function renderSupplierActions(showExport: boolean, showCreate: boolean, onExport: () => void, onCreate: () => void) {
@@ -36,8 +35,9 @@ function renderSupplierActions(showExport: boolean, showCreate: boolean, onExpor
 }
 
 export default function SuppliersPage() {
-  const { data: suppliersRaw, isLoading, isError, refetch } = useSuppliers();
-  const suppliers = visibleListRows(suppliersRaw);
+  const supplierPages = useSuppliersIncremental();
+  const { isLoading, isError, refetch } = supplierPages;
+  const suppliers = useMemo(() => supplierPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [supplierPages.data]);
   const navigate = useNavigateTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
@@ -100,7 +100,7 @@ export default function SuppliersPage() {
     getRowId: (s) => s.id,
   });
   const showEmptyCreate = !isLoading && !isError && suppliers.length === 0 && !hasActive;
-  const showExport = suppliers.length > 0;
+  const showExport = suppliers.length > 0 && !supplierPages.hasNextPage;
 
   const openCreate = () => {
     setEditing(null);
@@ -129,9 +129,9 @@ export default function SuppliersPage() {
     <>
       <ListPageLayout
         title="Proveedores"
-        subtitle={suppliers ? `${suppliers.length} proveedores registrados` : undefined}
+        subtitle={supplierPages.hasNextPage ? `${suppliers.length}+ proveedores cargados` : `${suppliers.length} proveedores registrados`}
         notice={
-          <ListTruncationNotice rows={suppliersRaw} />
+          supplierPages.hasNextPage ? <p className="text-xs text-muted-foreground">La búsqueda incluye los proveedores cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p> : null
         }
         actions={renderSupplierActions(showExport, canWrite && !showEmptyCreate, handleExport, openCreate)}
         filters={
@@ -146,6 +146,9 @@ export default function SuppliersPage() {
         }
         isLoading={isLoading}
         isError={isError}
+        hasMoreRows={supplierPages.hasNextPage}
+        loadMore={{ hasMore: supplierPages.hasNextPage, isLoading: supplierPages.isFetchingNextPage,
+          onClick: () => { void supplierPages.fetchNextPage(); }, loaded: suppliers.length }}
         onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(s) => navigate(`/suppliers/${s.id}`)}

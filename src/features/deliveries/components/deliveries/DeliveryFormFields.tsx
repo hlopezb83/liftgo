@@ -4,6 +4,7 @@ import {
   TextField, TextareaField, DateField, SelectField, CheckboxField, type SelectOption,
 } from "@/components/forms/fields";
 import { FormSection } from "@/components/forms/FormSection";
+import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
@@ -29,6 +30,10 @@ interface Props {
   forklifts: Forklift[] | undefined;
   bookings: Booking[] | undefined;
   activeDrivers: Driver[] | undefined;
+  bookingsLoading?: boolean;
+  bookingsError?: boolean;
+  hasMoreBookings?: boolean;
+  onLoadMoreBookings?: () => void;
 }
 
 const TYPE_OPTIONS: SelectOption[] = [
@@ -36,7 +41,10 @@ const TYPE_OPTIONS: SelectOption[] = [
   { value: "pickup", label: "Recolección" },
 ];
 
-export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
+export function DeliveryFormFields({
+  form, forklifts, bookings, activeDrivers,
+  bookingsLoading, bookingsError, hasMoreBookings, onLoadMoreBookings,
+}: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
   const transportType = useWatch({ control: form.control, name: "type" });
@@ -151,6 +159,13 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           required
           placeholder="Seleccionar reserva"
         />
+        {bookingsLoading && <p role="status" className="text-xs text-muted-foreground">Cargando reservas confirmadas…</p>}
+        {bookingsError && <p role="alert" className="text-xs text-destructive">No se pudieron cargar las reservas. Cierra y vuelve a abrir el formulario.</p>}
+        {hasMoreBookings && (
+          <Button type="button" variant="outline" size="sm" onClick={onLoadMoreBookings} disabled={bookingsLoading}>
+            Cargar más reservas
+          </Button>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <DateField control={form.control} name="scheduledDate" label={transportType === "pickup" ? "Fecha de recolección" : "Fecha de entrega"} required />

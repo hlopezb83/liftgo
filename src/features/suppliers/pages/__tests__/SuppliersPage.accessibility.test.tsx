@@ -6,7 +6,8 @@ import type { Supplier } from "../../hooks/useSuppliers";
 
 const supplier = vi.hoisted(() => ({ id: "supplier-8", name: "Servicios de Capacitación Sierra del Acero", category: "otro" }));
 vi.mock("../../hooks/useSuppliers", () => ({
-  useSuppliers: () => ({ data: [supplier], isLoading: false, isError: false, refetch: vi.fn() }),
+  useSuppliersIncremental: () => ({ data: { pages: [[supplier]] }, isLoading: false, isError: false,
+    refetch: vi.fn(), hasNextPage: false, isFetchingNextPage: false, fetchNextPage: vi.fn() }),
   SUPPLIER_CATEGORIES: { otro: "Otro" },
 }));
 vi.mock("@/components/dataTable/v2", () => ({ useLiftgoTable: () => ({}) }));

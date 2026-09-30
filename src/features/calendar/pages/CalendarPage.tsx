@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { addDays, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks, parseISO } from "date-fns";
 import { useMemo, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -9,7 +8,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useServerTodayMty } from "@/features/availability";
-import { BOOKINGS_RANGE_LIMIT, useBookingsRange, bookingKeys } from "@/features/bookings";
+import { BOOKINGS_RANGE_LIMIT, useBookingsRange, type BookingWithForklift } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
@@ -29,8 +28,17 @@ function rangeFns(mode: "month" | "week") {
     : { start: (d: Date) => startOfWeek(d, { weekStartsOn: 1 }), end: (d: Date) => endOfWeek(d, { weekStartsOn: 1 }), prev: subWeeks, next: addWeeks, prevLabel: "Semana anterior", nextLabel: "Semana siguiente" };
 }
 
+function endingSoonBookings(bookings: BookingWithForklift[], todayTs: number) {
+  return bookings.filter((booking) => {
+    if (booking.status !== "confirmed") return false;
+    const endTs = Date.parse(booking.end_date);
+    if (!Number.isFinite(endTs)) return false;
+    const daysLeft = differenceInDays(endTs, todayTs);
+    return daysLeft >= 0 && daysLeft <= 3;
+  });
+}
+
 export default function CalendarPage() {
-  const qc = useQueryClient();
   const [currentDate, setCurrentDate] = useState(nowMty());
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useState<"gantt" | "list">(isMobile ? "list" : "gantt");
@@ -69,7 +77,13 @@ export default function CalendarPage() {
   // A5-07: los mantenimientos programados (próximo servicio) y las órdenes de
   // trabajo abiertas se pintan como franjas sobre la fila del equipo, para que
   // al agendar una renta se vea que la unidad ya está comprometida.
-  const maintenanceWindows = useMaintenanceWindows();
+  const {
+    data: maintenanceWindows = [],
+    isLoading: mLoading,
+    isError: mError,
+    isFetching: mFetching,
+    refetch: mRefetch,
+  } = useMaintenanceWindows(rangeStart, rangeEnd);
 
   const navigateBack = () => setCurrentDate(fns.prev(currentDate, 1));
   const navigateForward = () => setCurrentDate(fns.next(currentDate, 1));
@@ -85,19 +99,11 @@ export default function CalendarPage() {
   // `parseISO` en cada render sobre hasta ~2000 bookings; ahora sólo cuando
   // cambia el dataset o el día actual.
   const todayTs = nowMty().getTime();
-  const endingSoon = useMemo(() => {
-    return currentBookings.filter((b) => {
-      if (b.status !== "confirmed") return false;
-      const endTs = Date.parse(b.end_date);
-      if (!Number.isFinite(endTs)) return false;
-      const daysLeft = differenceInDays(endTs, todayTs);
-      return daysLeft >= 0 && daysLeft <= 3;
-    });
-  }, [currentBookings, todayTs]);
+  const endingSoon = useMemo(() => endingSoonBookings(currentBookings, todayTs), [currentBookings, todayTs]);
 
   // Combina los estados de las consultas para mantener la orquestación legible.
-  const hasQueryError = [bError, currentBookingsError, fError].some(Boolean);
-  const isLoading = [bLoading, currentBookingsLoading, fLoading].some(Boolean);
+  const hasQueryError = [bError, currentBookingsError, fError, mError].some(Boolean);
+  const isLoading = [bLoading, currentBookingsLoading, fLoading, mLoading].some(Boolean);
 
   // R22-C: el calendario necesita reservas Y equipos; reintentar ambos.
   if (hasQueryError) {
@@ -106,8 +112,8 @@ export default function CalendarPage() {
         <PageHeader title="Calendario de Disponibilidad" />
         <QueryErrorState
           entity="el calendario"
-          onRetry={() => { void bRefetch(); void currentBookingsRefetch(); void fRefetch(); }}
-          isRetrying={[bFetching, currentBookingsFetching, fFetching].some(Boolean)}
+          onRetry={() => { void bRefetch(); void currentBookingsRefetch(); void fRefetch(); void mRefetch(); }}
+          isRetrying={[bFetching, currentBookingsFetching, fFetching, mFetching].some(Boolean)}
         />
       </PageContainer>
     );
@@ -121,7 +127,9 @@ export default function CalendarPage() {
     setIsRefreshing(true);
     try {
       await notifyAsync(
-        qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
+        Promise.all([bRefetch(), currentBookingsRefetch(), fRefetch(), mRefetch()]).then((results) => {
+          if (results.some((result) => result.isError)) throw new Error("No se pudo actualizar el calendario");
+        }),
         {
           loading: "Actualizando calendario…",
           success: "Calendario actualizado",

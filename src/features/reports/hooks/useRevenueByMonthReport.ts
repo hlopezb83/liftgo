@@ -56,7 +56,7 @@ export function useRevenueMonthInvoices(monthKey: string | null) {
     queryKey: ["report", "revenue-month-invoices", monthKey],
     enabled: monthKey !== null,
     queryFn: async (): Promise<DrilldownInvoice[]> => {
-      const { data, error } = await supabase.rpc("report_revenue_month_invoices", {
+      const { data, error } = await supabase.rpc("report_revenue_month_invoices_with_credits", {
         _month_key: monthKey ?? "",
       });
       if (error) throw error;

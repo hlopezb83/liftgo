@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { Forklift } from "@/types/rental";
 import { forkliftKeys, statusLogKeys } from "../../lib/queryKeys";
 
@@ -34,6 +34,27 @@ export function useForklifts() {
       return data ?? [];
 
     },
+  });
+}
+
+export function useForkliftsIncremental() {
+  return useInfiniteQuery({
+    queryKey: [...forkliftKeys.all, "incremental"],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }): Promise<Forklift[]> => {
+      const { data, error } = await supabase
+        .from("forklifts")
+        .select(FORKLIFT_COLUMNS)
+        .is("deleted_at", null)
+        .or("is_e2e.is.null,is_e2e.eq.false")
+        .order("name")
+        .order("id")
+        .range(pageParam * LIST_PAGE_LIMIT, pageParam * LIST_PAGE_LIMIT + LIST_PAGE_LIMIT)
+        .returns<Forklift[]>();
+      if (error) throw error;
+      return data ?? [];
+    },
+    getNextPageParam: (page, _pages, index) => page.length > LIST_PAGE_LIMIT ? index + 1 : undefined,
   });
 }
 

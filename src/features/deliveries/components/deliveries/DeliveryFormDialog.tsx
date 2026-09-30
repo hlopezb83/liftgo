@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { PlusCircle } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useBookings } from "@/features/bookings";
-import { useActiveDrivers, useForkliftMap } from "@/features/fleet";
+import { useConfirmedBookingsForDelivery } from "@/features/bookings";
+import { useActiveDrivers, useForklift, useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
 import { toYMD } from "@/lib/format/dateFormats";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -47,7 +47,13 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
     defaultValues: getInitialForm(),
   });
   const { forklifts } = useForkliftMap();
-  const { data: bookings } = useBookings();
+  const bookingQuery = useConfirmedBookingsForDelivery(open);
+  const bookings = bookingQuery.data?.pages.flatMap((page) => page.slice(0, 100));
+  const selectedBookingId = useWatch({ control: form.control, name: "bookingId" });
+  const selectedForkliftId = bookings?.find((booking) => booking.id === selectedBookingId)?.forklift_id;
+  const { data: selectedForklift } = useForklift(selectedForkliftId);
+  const forkliftOptions = selectedForklift && !forklifts?.some((forklift) => forklift.id === selectedForklift.id)
+    ? [...(forklifts ?? []), selectedForklift] : forklifts;
   const { data: activeDrivers } = useActiveDrivers();
   const createDelivery = useCreateDelivery();
 
@@ -105,7 +111,13 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
       open={open} onOpenChange={setOpen} title="Programar transporte">
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
+          <DeliveryFormFields
+            form={form} forklifts={forkliftOptions} bookings={bookings} activeDrivers={activeDrivers}
+            bookingsLoading={bookingQuery.isLoading || bookingQuery.isFetchingNextPage}
+            bookingsError={bookingQuery.isError}
+            hasMoreBookings={bookingQuery.hasNextPage}
+            onLoadMoreBookings={() => { void bookingQuery.fetchNextPage(); }}
+          />
           <FormDialogFooter>
             <FormActions submitLabel="Programar" isPending={createDelivery.isPending} onCancel={() => setOpen(false)} />
           </FormDialogFooter>

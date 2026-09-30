@@ -1,40 +1,24 @@
-import { useMemo } from "react";
-import { useMaintenanceLogs } from "@/features/maintenance";
-import { MAINTENANCE_WORK_STATUSES } from "@/lib/constants";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { isE2eDataVisible } from "@/lib/supabase/constants";
 import type { MaintenanceWindow } from "../components/calendar/GanttCard";
 
-const OPEN_MAINTENANCE_STATUSES = new Set<string>(
-  MAINTENANCE_WORK_STATUSES.filter((status) => status !== "completed"),
-);
-
-/** Franjas de mantenimiento (próximo servicio y OT abiertas) por equipo. */
-export function useMaintenanceWindows(): MaintenanceWindow[] {
-  const { data: maintenanceLogs } = useMaintenanceLogs();
-  return useMemo(
-    () =>
-      (maintenanceLogs ?? []).flatMap((log) => {
-        const windows: MaintenanceWindow[] = [];
-        if (log.next_service_date) {
-          windows.push({
-            id: `${log.id}-next`,
-            forklift_id: log.forklift_id,
-            date: log.next_service_date,
-            label: `Próximo servicio: ${log.service_type ?? "mantenimiento"}`,
-          });
-        }
-        // Las pólizas recurrentes crean registros "scheduled" con performed_at
-        // como fecha prevista. No son OTs activas ni deben activar el buffer
-        // del Gantt; sólo los estados operativos representan trabajo abierto.
-        if (OPEN_MAINTENANCE_STATUSES.has(log.work_status) && log.performed_at) {
-          windows.push({
-            id: `${log.id}-open`,
-            forklift_id: log.forklift_id,
-            date: log.performed_at.slice(0, 10),
-            label: `OT abierta: ${log.service_type ?? "mantenimiento"}`,
-          });
-        }
-        return windows;
-      }),
-    [maintenanceLogs],
-  );
+/** Maintenance blockers for the visible range, queried under the caller's RLS. */
+export function useMaintenanceWindows(rangeStart: Date, rangeEnd: Date) {
+  const start = format(rangeStart, "yyyy-MM-dd");
+  const end = format(rangeEnd, "yyyy-MM-dd");
+  const includeE2e = isE2eDataVisible();
+  return useQuery({
+    queryKey: ["calendar-maintenance-windows", start, end, includeE2e],
+    queryFn: async (): Promise<MaintenanceWindow[]> => {
+      const { data, error } = await supabase.rpc("get_calendar_maintenance_windows", {
+        _start: start,
+        _end: end,
+        _include_e2e: includeE2e,
+      });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 }

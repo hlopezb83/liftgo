@@ -15,7 +15,7 @@ export function useContractDetailLogic() {
   const setStatus = (status: string, extra?: Record<string, unknown>) => {
     if (!id) return;
     updateContract.mutate(
-      { id, status, ...extra },
+      { id, expectedUpdatedAt: contract?.updated_at, status, ...extra },
       { onSuccess: () => notifySuccess(`Contrato marcado como ${CONTRACT_STATUS_LABELS[status] ?? status}`) }
     );
   };

@@ -4,6 +4,7 @@ import {
   clampBookingToRange,
   hasOverlappingBookings,
   invoiceMonthKey,
+  invoiceNetMxn,
   invoiceTotalMxn,
   invoicesForMonth,
   type DrilldownBooking,
@@ -104,5 +105,11 @@ describe("invoicesForMonth", () => {
   it("normaliza USD a MXN con tipo de cambio", () => {
     expect(invoiceTotalMxn(invoice({ total: 100, moneda: "USD", tipo_cambio: 18 }))).toBe(1800);
     expect(invoiceTotalMxn(invoice({ total: 100, moneda: "USD", tipo_cambio: null }))).toBeNull();
+  });
+
+  it("reconcilia bruto y notas de crédito timbradas en MXN", () => {
+    expect(invoiceNetMxn(invoice({ total: 3480, credited_mxn: 580 }))).toBe(2900);
+    expect(invoiceNetMxn(invoice({ total: 1740 }))).toBe(1740);
+    expect(invoiceNetMxn(invoice({ total: 100, moneda: "USD", tipo_cambio: 18, credited_mxn: 180 }))).toBe(1620);
   });
 });

@@ -12,7 +12,7 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
   return [
     {
       id: "bill_number", header: "Folio", accessorKey: "bill_number",
-      cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.bill_number}</Untranslated>,
+      cell: ({ row }) => <Untranslated className="font-mono font-medium whitespace-nowrap">{row.original.bill_number}</Untranslated>,
     },
     {
       id: "supplier", header: "Proveedor",
@@ -82,7 +82,7 @@ export function renderSupplierBillMobileCard(
     <Card onClick={() => onClick(b.id)} className="cursor-pointer">
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between">
-          <Untranslated className="font-mono font-medium">{b.bill_number}</Untranslated>
+          <Untranslated className="font-mono font-medium whitespace-nowrap">{b.bill_number}</Untranslated>
           <StatusBadge status={b.status} label={SUPPLIER_BILL_STATUS_LABELS[b.status]} />
         </div>
         <p className="text-sm">{b.suppliers?.name ? <Untranslated>{b.suppliers.name}</Untranslated> : "—"}</p>

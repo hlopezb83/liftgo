@@ -23,6 +23,10 @@ vi.mock("@/lib/router-compat", () => ({
 }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn() }));
 vi.mock("../../hooks/customers/useCustomersColumns", () => ({ useCustomersColumns: () => [] }));
+vi.mock("../../hooks/customers/customerQueries", () => ({
+  useCustomersIncremental: () => ({ data: { pages: [[]] }, isLoading: false, isError: false,
+    refetch: vi.fn(), hasNextPage: false, isFetchingNextPage: false, fetchNextPage: vi.fn() }),
+}));
 vi.mock("../../hooks/customers/useCustomers", () => ({
   useCustomers: () => ({ data: [], isLoading: false, isError: false, refetch: vi.fn() }),
   useCreateCustomer: () => ({ mutate: state.create, isPending: false }),

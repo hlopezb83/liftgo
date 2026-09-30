@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { useHasModuleAccess } from "@/features/users";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { BankAccountFormDialog } from "../components/BankAccountFormDialog";
 import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 
@@ -23,13 +24,15 @@ export default function BankAccountsPage() {
   const del = useDeleteBankAccount();
   const confirm = useConfirm();
   const isTabletOrBelow = useIsTabletOrBelow();
+  const canWrite = useHasModuleAccess("Cuentas Bancarias", "full");
 
-  const handleNew = () => { setEditing(null); setOpen(true); };
-  const handleEdit = (a: BankAccount) => { setEditing(a); setOpen(true); };
+  const handleNew = () => { if (!canWrite) return; setEditing(null); setOpen(true); };
+  const handleEdit = (a: BankAccount) => { if (!canWrite) return; setEditing(a); setOpen(true); };
   const handleDelete = async (a: BankAccount) => {
+    if (!canWrite) return;
     const ok = await confirm({
       title: "Eliminar cuenta bancaria",
-      description: `¿Eliminar "${a.name}"? Los movimientos conciliados quedarán huérfanos.`,
+      description: `¿Eliminar "${a.name}"? Solo se pueden eliminar cuentas sin importaciones ni movimientos bancarios.`,
       confirmLabel: "Eliminar",
       destructive: true,
     });
@@ -45,7 +48,7 @@ export default function BankAccountsPage() {
           <PageHeader
             title="Cuentas bancarias"
             subtitle="Catálogo de cuentas para conciliación bancaria"
-            action={<Button onClick={handleNew}><AddIcon className="h-4 w-4 mr-2" /> Nueva cuenta</Button>}
+            action={canWrite ? <Button onClick={handleNew}><AddIcon className="h-4 w-4 mr-2" /> Nueva cuenta</Button> : undefined}
           />
           {/* A4-05: error primero, en ambas ramas (móvil y escritorio). */}
           {isError ? (
@@ -57,7 +60,7 @@ export default function BankAccountsPage() {
               <MobileCardList
                 items={rows}
                 keyExtractor={(a) => a.id}
-                emptyMessage="Sin cuentas. Crea la primera para comenzar."
+                emptyMessage={canWrite ? "Sin cuentas. Crea la primera para comenzar." : "Sin cuentas bancarias."}
                 renderCard={(a) => (
                   <Card>
                     <CardContent className="p-4 space-y-2">
@@ -70,12 +73,12 @@ export default function BankAccountsPage() {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-mono text-xs text-muted-foreground">•••• {a.last4 ?? "—"}</span>
-                        <span className="tabular-nums font-medium">{formatCurrency(a.initial_balance)}</span>
+                        <span className="tabular-nums font-medium">{formatCurrencyWithCode(a.initial_balance, a.currency)}</span>
                       </div>
-                      <div className="flex justify-end gap-1 pt-1 border-t">
+                      {canWrite && <div className="flex justify-end gap-1 pt-1 border-t">
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5 mr-1" />Editar</Button>
                         <Button variant="ghost" size="sm" onClick={() => handleDelete(a)}><DeleteIcon className="h-3.5 w-3.5 mr-1" />Eliminar</Button>
-                      </div>
+                      </div>}
                     </CardContent>
                   </Card>
                 )}
@@ -99,18 +102,19 @@ export default function BankAccountsPage() {
                   {isLoading ? (
                     <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">Cargando…</td></tr>
                   ) : rows.length === 0 ? (
-                    <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">Sin cuentas. Crea la primera para comenzar.</td></tr>
+                    <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">{canWrite ? "Sin cuentas. Crea la primera para comenzar." : "Sin cuentas bancarias."}</td></tr>
                   ) : rows.map((a, i) => (
                     <tr key={a.id} className={i % 2 === 1 ? "bg-muted/20" : ""}>
                       <td className="px-3 py-2 font-medium">{a.name}</td>
                       <td className="px-3 py-2">{a.bank}</td>
                       <td className="px-3 py-2 font-mono">{a.last4 ?? "—"}</td>
                       <td className="px-3 py-2">{a.currency}</td>
-                      <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrency(a.initial_balance)}</td>
+                      <td className="px-3 py-2 text-right font-mono tabular-nums">{formatCurrencyWithCode(a.initial_balance, a.currency)}</td>
                       <td className="px-3 py-2">
                         <Badge variant={a.is_active ? "default" : "secondary"}>{a.is_active ? "Activa" : "Inactiva"}</Badge>
                       </td>
                       <td className="px-3 py-2 text-right whitespace-nowrap">
+                        {canWrite && <>
                         {/* Bug 9: botones de solo icono con aria-label + tooltip. */}
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -124,6 +128,7 @@ export default function BankAccountsPage() {
                           </TooltipTrigger>
                           <TooltipContent>Eliminar cuenta</TooltipContent>
                         </Tooltip>
+                        </>}
                       </td>
                     </tr>
                   ))}
@@ -131,7 +136,7 @@ export default function BankAccountsPage() {
               </table>
             </CardContent></Card>
           )}
-          <BankAccountFormDialog open={open} onOpenChange={setOpen} initial={editing} />
+          {canWrite && <BankAccountFormDialog open={open} onOpenChange={setOpen} initial={editing} />}
         </PageContainer>
       </PageTransition>
     </RoleGuard>

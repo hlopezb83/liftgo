@@ -547,6 +547,27 @@
       "when": 1790874199000,
       "tag": "0077_supplier_primary_atomic_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1790874200000,
+      "tag": "0078_bank_account_history_restrict",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1790874201000,
+      "tag": "0079_revenue_month_invoice_credits",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1790874202000,
+      "tag": "0080_calendar_maintenance_windows",
+      "breakpoints": true
     }
   ]
 }

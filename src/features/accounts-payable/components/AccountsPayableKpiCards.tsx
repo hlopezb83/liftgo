@@ -28,7 +28,7 @@ const ITEMS: readonly KpiItem[] = [
 
 export function AccountsPayableKpiCards({ kpis }: Props) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
       {ITEMS.map(({ key, label, icon: Icon, tone, asCount }) => (
         <Card key={key}>
           <CardContent className="flex items-center gap-3 py-4">
@@ -36,7 +36,7 @@ export function AccountsPayableKpiCards({ kpis }: Props) {
               <Icon className={`h-4 w-4 ${tone}`} />
             </div>
             <div className="min-w-0">
-              <p className="text-xs text-muted-foreground truncate">{label}</p>
+              <p className="min-h-8 text-xs leading-4 text-muted-foreground">{label}</p>
               {/* R24-D: montos ≥$1M en compacto ($123.46 M) con el exacto al hover. */}
               <p
                 className={`font-bold tabular-nums ${kpiSizeClass(asCount ? String(kpis[key]) : formatCompactCurrency(kpis[key]))} ${tone}`}

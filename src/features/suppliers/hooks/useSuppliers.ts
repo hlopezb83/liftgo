@@ -1,11 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { getErrorMessage } from "@/lib/errors";
 import { CONSTRAINT_MESSAGES } from "@/lib/errors/pgErrorCatalog";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 
 const sel = (s: string): string => s;
 
@@ -66,6 +66,26 @@ export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], Sup
 
 export function useSuppliers() {
   return useQuery(suppliersQueries.list());
+}
+
+export function useSuppliersIncremental() {
+  return useInfiniteQuery({
+    queryKey: [...suppliersQueries.keys.all, "incremental"],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }): Promise<Supplier[]> => {
+      const { data, error } = await supabase
+        .from("suppliers")
+        .select(SUPPLIER_COLUMNS)
+        .is("deleted_at", null)
+        .order("name")
+        .order("id")
+        .range(pageParam * LIST_PAGE_LIMIT, pageParam * LIST_PAGE_LIMIT + LIST_PAGE_LIMIT)
+        .returns<Supplier[]>();
+      if (error) throw error;
+      return data ?? [];
+    },
+    getNextPageParam: (page, _pages, index) => page.length > LIST_PAGE_LIMIT ? index + 1 : undefined,
+  });
 }
 
 export function useSupplier(id: string | undefined) {

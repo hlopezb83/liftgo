@@ -120,13 +120,14 @@ export default function RolePermissionsPage() {
                           type="button"
                           variant="ghost"
                           size="icon"
+                          aria-label={`${ROLE_LABELS[r]}, ${mod}: ${accessConfig[access].label}${canEdit ? "; cambiar permiso" : ""}`}
                           onClick={() => handleCycle(r, mod)}
                           disabled={!canEdit}
                           className={cn(
                             "h-auto w-auto p-1",
                             !canEdit && "cursor-default opacity-80 disabled:opacity-80"
                           )}
-                          title={canEdit ? "Clic para cambiar" : accessConfig[access].label}
+                          title={`${ROLE_LABELS[r]} · ${mod}: ${accessConfig[access].label}${canEdit ? " · clic para cambiar" : ""}`}
                         >
                           <Icon className={cn("h-4 w-4", color)} />
                         </Button>

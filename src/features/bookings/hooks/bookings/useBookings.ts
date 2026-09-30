@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { toYMD } from "@/lib/date/toYMD";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
@@ -64,6 +65,37 @@ export function useBookings(forkliftId?: string) {
         }
       : listOptions,
   );
+}
+
+/** Server-filtered, incremental list for the delivery booking selector. */
+type ConfirmedDeliveryBooking = Pick<Tables<"bookings">,
+  "id" | "customer_name" | "start_date" | "end_date" | "forklift_id" | "status">;
+
+const DELIVERY_BOOKING_PAGE_SIZE = 100;
+
+async function fetchConfirmedDeliveryBookings(page: number, visibility: string): Promise<ConfirmedDeliveryBooking[]> {
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, customer_name, start_date, end_date, forklift_id, status")
+    .or(visibility)
+    .eq("status", "confirmed")
+    .order("start_date", { ascending: false })
+    .order("id", { ascending: false })
+    .range(page * DELIVERY_BOOKING_PAGE_SIZE, page * DELIVERY_BOOKING_PAGE_SIZE + DELIVERY_BOOKING_PAGE_SIZE)
+    .returns<ConfirmedDeliveryBooking[]>();
+  if (error) throw error;
+  return data ?? [];
+}
+
+export function useConfirmedBookingsForDelivery(enabled: boolean) {
+  const visibility = e2eVisibilityFilter();
+  return useInfiniteQuery({
+    queryKey: [...bookingKeys.all, "delivery-confirmed", visibility],
+    enabled,
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => fetchConfirmedDeliveryBookings(pageParam, visibility),
+    getNextPageParam: (page, _pages, pageIndex) => page.length > DELIVERY_BOOKING_PAGE_SIZE ? pageIndex + 1 : undefined,
+  });
 }
 
 /**
