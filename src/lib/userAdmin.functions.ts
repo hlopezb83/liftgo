@@ -30,7 +30,7 @@ export interface InviteUserResult {
 
 export const inviteUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: InviteUserInput) => data)
+  .validator((data: InviteUserInput) => data)
   .handler(async ({ data, context }): Promise<InviteUserResult> => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
@@ -107,7 +107,7 @@ export const inviteUserFn = createServerFn({ method: "POST" })
 
 export const deleteUserFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { user_id: string }) => data)
+  .validator((data: { user_id: string }) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
@@ -166,7 +166,7 @@ export interface ResetPasswordResult {
 
 export const resetUserPasswordFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { user_id: string }) => data)
+  .validator((data: { user_id: string }) => data)
   .handler(async ({ data, context }): Promise<ResetPasswordResult> => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);
@@ -215,7 +215,7 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
 
 export const toggleUserStatusFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { user_id: string; is_active: boolean }) => data)
+  .validator((data: { user_id: string; is_active: boolean }) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireAdmin(context.supabase, context.userId);

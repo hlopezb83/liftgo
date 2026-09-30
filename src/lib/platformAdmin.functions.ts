@@ -83,7 +83,7 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
 
 export const createOrganizationFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: CreateOrganizationInput) => data)
+  .validator((data: CreateOrganizationInput) => data)
   .handler(async ({ data, context }): Promise<CreateOrganizationResult> => {
     const g = await import("./server/adminGuards.server");
     const { admin, userId: actorId } = await g.requirePlatformOperator(
@@ -191,7 +191,7 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
 
 export const setOrganizationActiveFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: SetOrganizationActiveInput) => data)
+  .validator((data: SetOrganizationActiveInput) => data)
   .handler(async ({ data, context }): Promise<{ success: true }> => {
     const g = await import("./server/adminGuards.server");
     const {

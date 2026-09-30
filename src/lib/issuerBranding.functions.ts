@@ -41,7 +41,7 @@ const inputSchema = z
 
 export const getIssuerBranding = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => inputSchema.parse(data))
+  .validator((data: unknown) => inputSchema.parse(data))
   .handler(async ({ context, data }): Promise<IssuerBrandingPayload> => {
     const document = data?.documentType && data?.documentId
       ? { type: data.documentType, id: data.documentId }

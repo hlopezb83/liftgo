@@ -62,7 +62,7 @@ async function createPortalUser(
 
 export const inviteCustomerFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { customer_id: string; email: string }) => data)
+  .validator((data: { customer_id: string; email: string }) => data)
   .handler(async ({ data, context }): Promise<InviteCustomerResult> => {
     const g = await import("./server/adminGuards.server");
     // El módulo Clientes concede acceso "full" a admin y administrativo.

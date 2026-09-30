@@ -130,7 +130,7 @@ function buildUpdatePayload(
 
 export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { report_id: string; force?: boolean }) => data)
+  .validator((data: { report_id: string; force?: boolean }) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin } = await g.requireRole(context.supabase, context.userId, [
