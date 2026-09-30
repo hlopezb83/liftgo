@@ -73,8 +73,13 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
     const ids = rows.map((row) => String(row["id"]));
     const razonByOrg = new Map<string, string>();
     if (ids.length > 0) {
-      const settings = await g
-
+      const settings = await (admin as unknown as {
+        from: (t: string) => {
+          select: (c: string) => {
+            in: (k: string, v: string[]) => Promise<{ data: unknown }>;
+          };
+        };
+      })
         .from("company_settings")
         .select("organization_id, razon_social")
         .in("organization_id", ids);
