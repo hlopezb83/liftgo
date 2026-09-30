@@ -72,7 +72,7 @@ export function useAccountsPayableBillPage(request: AccountsPayableBillPageReque
         p_page_size: pageSize,
         p_sort_by: sortBy,
         p_sort_desc: sortDesc,
-      });
+      } as never);
       if (error) throw error;
       return parsePage(data);
     },
