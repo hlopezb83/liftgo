@@ -1,0 +1,11 @@
+{
+  "description": "Filtros legibles, búsquedas visibles en móvil y un acomodo más consistente en escritorio.",
+  "changes": [
+    "Cuentas por pagar distribuye la búsqueda y los filtros en una cuadrícula; Flota limita el ancho de la búsqueda.",
+    "Reservas, Cotizaciones, Clientes y Flota mantienen la búsqueda fuera del panel de filtros móvil; la paginación integra Cargar más en un solo pie.",
+    "El tablero de mantenimiento muestra estados de carga, error y vacío; flujo de caja identifica el riesgo con texto además del color.",
+    "El panel financiero adapta sus cuatro indicadores al espacio disponible; CRM mejora la legibilidad y el detalle de equipo conserva la altura natural de las tarifas.",
+    "Cotizaciones mantiene unidos importe y moneda; los filtros de estado explican su selección y Conciliación usa fechas DD/MM/AAAA.",
+    "Cancelar o volver desde un contrato conserva su origen; una cotización no encontrada ofrece regresar a la lista y el portal muestra un solo aviso de conexión."
+  ]
+}

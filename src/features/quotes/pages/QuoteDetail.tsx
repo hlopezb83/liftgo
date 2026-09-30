@@ -1,10 +1,13 @@
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { DocumentIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
 import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
 import { QuoteConversionDialogs } from "../components/quotes/QuoteConversionDialogs";
@@ -17,6 +20,7 @@ import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleA
 
 export default function QuoteDetail() {
   const { id } = useParams();
+  const navigate = useNavigateTransition();
   const logic = useQuoteDetailLogic(id);
 
   const {
@@ -38,7 +42,19 @@ export default function QuoteDetail() {
       </PageContainer>
     );
   }
-  if (!quote) return <PageContainer><p className="text-muted-foreground">Cotización no encontrada</p></PageContainer>;
+  if (!quote) {
+    return (
+      <PageContainer>
+        <EmptyState
+          icon={DocumentIcon}
+          title="Cotización no encontrada"
+          subtitle="La cotización no está disponible en esta empresa."
+          actionLabel="Volver a cotizaciones"
+          onAction={() => navigate("/quotes")}
+        />
+      </PageContainer>
+    );
+  }
 
   const currency = (quote as unknown as { currency?: string }).currency;
   const showAssignCard = isSale && quote.status === "accepted";

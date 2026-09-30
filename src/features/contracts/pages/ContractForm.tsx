@@ -12,7 +12,7 @@ import { MissingLegalRepAlert } from "../components/contracts/MissingLegalRepAle
 import { useContractFormLogic } from "../hooks/useContractFormLogic";
 
 export default function ContractForm() {
-  const { isEdit, contractNumber, linkedBookingId, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
+  const { isEdit, contractNumber, linkedBookingId, returnTo, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
   const { control } = form;
   const customerId = form.watch("customer_id");
   const selected = customers?.find((c) => c.id === customerId);
@@ -23,7 +23,7 @@ export default function ContractForm() {
       <FormPageHeader
         title={isEdit ? "Editar contrato" : "Nuevo contrato"}
         subtitle={isEdit ? contractNumber ?? undefined : undefined}
-        onBack={() => navigate("/contracts")}
+        onBack={() => navigate(returnTo)}
       />
 
       <Form {...form}>
@@ -40,7 +40,7 @@ export default function ContractForm() {
             isPending={isPending}
             submitDisabled={needsLegalRepresentative}
             submitDisabledReason={needsLegalRepresentative ? "Captura el representante legal antes de generar el contrato." : undefined}
-            onCancel={() => navigate("/contracts")}
+            onCancel={() => navigate(returnTo)}
           />
         </form>
       </Form>

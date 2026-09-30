@@ -161,8 +161,8 @@ export default function CustomersPage() {
         notice={
           customerPages.hasNextPage ? <p className="text-xs text-muted-foreground">La búsqueda incluye los clientes cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p> : null
         }
-        filters={
-          <div className="space-y-3">
+        search={
+          <div className="w-full max-w-[45rem]">
             <CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />
           </div>
         }

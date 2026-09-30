@@ -83,19 +83,21 @@ export function FinancialKpiCards({
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
-      {kpis.map((kpi) => (
-        <KpiTile
-          key={kpi.label}
-          label={kpi.label}
-          value={kpi.value}
-          icon={kpi.icon}
-          iconColor={kpi.color}
-          iconBg={kpi.bgColor}
-          href={kpi.href}
-          hint={kpi.hint}
-        />
-      ))}
+    <div className="@container">
+      <div className="grid grid-cols-1 gap-4 @min-[32rem]:grid-cols-2 @min-[64rem]:grid-cols-4">
+        {kpis.map((kpi) => (
+          <KpiTile
+            key={kpi.label}
+            label={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon}
+            iconColor={kpi.color}
+            iconBg={kpi.bgColor}
+            href={kpi.href}
+            hint={kpi.hint}
+          />
+        ))}
+      </div>
     </div>
   );
 }

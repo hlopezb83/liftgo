@@ -2,17 +2,19 @@ import { TablePagination } from "@/components/feedback/TablePagination";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { LiftgoTable } from "./types";
 import type { RowData } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 
 interface Props<T extends RowData> {
   table: LiftgoTable<T>;
   hasMoreRows?: boolean;
   /** Total remoto cuando la tabla sólo contiene la página visible. */
   rowCount?: number;
+  action?: ReactNode;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 
-export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = false, rowCount }: Props<T>) {
+export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = false, rowCount, action }: Props<T>) {
   const { pageIndex, pageSize } = table.state.pagination;
   const totalPages = table.getPageCount();
   // Indicador de rango: filas visibles de la página actual sobre el total
@@ -52,11 +54,14 @@ export function DataTablePaginationV2<T extends RowData>({ table, hasMoreRows = 
           {rangeStart}–{rangeEnd} de {hasMoreRows ? "al menos " : ""}{displayedTotal}
         </span>
       </div>
-      <TablePagination
-        page={pageIndex + 1}
-        totalPages={totalPages}
-        onPageChange={(p: number) => table.setPageIndex(p - 1)}
-      />
+      <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+        <TablePagination
+          page={pageIndex + 1}
+          totalPages={totalPages}
+          onPageChange={(p: number) => table.setPageIndex(p - 1)}
+        />
+        {action}
+      </div>
     </div>
   );
 }

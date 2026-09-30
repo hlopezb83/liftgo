@@ -86,6 +86,7 @@ function StatusTabs<V extends string>({
         onChange={onChange}
         options={options}
         ariaLabel="Filtrar por estado"
+        label="Estado"
         className={className}
       />
     );
@@ -99,6 +100,7 @@ function StatusTabs<V extends string>({
           onChange={onChange}
           options={options}
           ariaLabel="Filtrar por estado"
+          label="Estado"
           className="w-full sm:w-full"
         />
       </div>
@@ -131,6 +133,7 @@ interface StatusSelectProps<V extends string> {
   placeholder?: string;
   className?: string;
   ariaLabel?: string;
+  label?: string;
 }
 
 function StatusSelect<V extends string>({
@@ -140,11 +143,14 @@ function StatusSelect<V extends string>({
   placeholder,
   className,
   ariaLabel,
+  label,
 }: StatusSelectProps<V>) {
   return (
     <Select value={value} onValueChange={(v) => onChange(v as V | "all")}>
       <SelectTrigger aria-label={ariaLabel} className={cn("w-full sm:w-48", className)}>
-        <SelectValue placeholder={placeholder ?? "Todos"} />
+        <SelectValue placeholder={placeholder ?? "Todos"}>
+          {label ? `${label}: ${options.find((opt) => opt.value === value)?.label ?? placeholder ?? "Todos"}` : undefined}
+        </SelectValue>
       </SelectTrigger>
       <SelectContent>
         {options.map((opt) => (

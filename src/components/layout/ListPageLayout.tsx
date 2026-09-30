@@ -1,8 +1,8 @@
 import { ReactNode, useState } from "react";
 import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
-import { FiltersSlot } from "@/components/layout/listPage/FiltersSlot";
 import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
+import { ListPageControls } from "@/components/layout/listPage/ListPageControls";
 import { type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { PullToRefreshIndicator } from "@/components/layout/listPage/PullToRefreshIndicator";
 import { useListPagePullToRefresh } from "@/components/layout/listPage/useListPagePullToRefresh";
@@ -23,6 +23,8 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   mobileActions?: ReactNode;
   /** Sustituye actions en móvil; permanece en el flujo, antes de la lista. */
   mobilePrimaryAction?: ReactNode;
+  /** Búsqueda visible también en móvil, fuera del panel de filtros. */
+  search?: ReactNode;
   filters?: ReactNode;
   /**
    * N-01: aviso persistente (p.ej. truncamiento de lista). Se renderiza entre
@@ -74,6 +76,7 @@ export function ListPageLayout<T extends { id?: string }>({
   actions,
   mobileActions,
   mobilePrimaryAction,
+  search,
   filters,
   notice,
   isLoading,
@@ -103,7 +106,7 @@ export function ListPageLayout<T extends { id?: string }>({
   const { sentinelRef, pullDistance, isRefreshing, ready, indicatorVisible } =
     useListPagePullToRefresh(isMobile, onRefresh);
 
-  const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
+  const effectiveItems = listPageItems(table, customContent);
   const showEmpty = !isLoading && effectiveItems.length === 0;
   const visibleActions = isMobile ? (mobilePrimaryAction ?? actions) : actions;
 
@@ -125,28 +128,16 @@ export function ListPageLayout<T extends { id?: string }>({
           action={isMobile ? undefined : visibleActions}
         />
         {notice}
-        {isMobile ? (
-          (visibleActions || mobileActions || filters) && (
-            <div className="flex flex-wrap items-center gap-2">
-              {visibleActions}
-              {mobileActions}
-              <FiltersSlot
-                filters={filters}
-                inSheet
-                hasActive={hasActiveFilters}
-                open={filtersOpen}
-                onOpenChange={setFiltersOpen}
-              />
-            </div>
-          )
-        ) : (
-          <FiltersSlot
-            filters={filters}
-            inSheet={false}
-            open={filtersOpen}
-            onOpenChange={setFiltersOpen}
-          />
-        )}
+        <ListPageControls
+          isMobile={isMobile}
+          actions={isMobile ? visibleActions : undefined}
+          mobileActions={mobileActions}
+          search={search}
+          filters={filters}
+          hasActiveFilters={hasActiveFilters}
+          filtersOpen={filtersOpen}
+          onFiltersOpenChange={setFiltersOpen}
+        />
         <ListPageBody
           hasMoreRows={hasMoreRows}
           rowCount={rowCount}
@@ -174,6 +165,12 @@ export function ListPageLayout<T extends { id?: string }>({
       </div>
     </PageTransition>
   );
+}
+
+function listPageItems<T extends { id?: string }>(table: LiftgoTable<T> | undefined, customContent: ReactNode): T[] {
+  if (!table) return [];
+  const rows = customContent ? table.getFilteredRowModel().rows : table.getRowModel().rows;
+  return rows.map((row) => row.original);
 }
 
 function buildSubtitle(subtitle: string | undefined, totalCount: number | undefined): string | undefined {

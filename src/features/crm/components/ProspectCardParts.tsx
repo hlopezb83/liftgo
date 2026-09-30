@@ -59,7 +59,7 @@ export function ProspectCardExpanded({ prospect, quoteNumber }: ExpandedProps) {
         </div>
       )}
       {showFooter && (
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t text-3xs text-muted-foreground/70">
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t text-xs text-muted-foreground">
           {prospect.createdByName && (
             <span className="flex items-center gap-1 truncate">
               <UserIcon className="h-3 w-3 shrink-0" />

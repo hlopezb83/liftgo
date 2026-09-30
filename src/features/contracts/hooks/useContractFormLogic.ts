@@ -6,6 +6,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { useParams, useSearchParams } from "@/lib/router-compat";
 import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
+import { contractFormReturnTo } from "../lib/contractFormNavigation";
 import { buildContractPayload } from "../lib/contractPayload";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { useContractFormState } from "./contractForm/useContractFormState";
@@ -138,6 +139,7 @@ export function useContractFormLogic() {
   return {
     id, isEdit, contractNumber: existing?.contract_number ?? null,
     linkedBookingId: bookingId ?? existing?.booking_id ?? null,
+    returnTo: contractFormReturnTo(id, bookingId),
     form, customers, forklifts, isPending, handleSubmit, navigate,
   };
 }

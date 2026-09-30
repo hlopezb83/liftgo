@@ -68,7 +68,7 @@ export function buildQuotesColumns<Q extends {
       header: "Total",
       accessorKey: "total",
       meta: { kind: "money" },
-      cell: ({ row }) => <span className="font-mono">{formatQuoteTotal(row.original)}</span>,
+      cell: ({ row }) => <span className="font-mono whitespace-nowrap">{formatQuoteTotal(row.original)}</span>,
     },
     {
       id: "status",

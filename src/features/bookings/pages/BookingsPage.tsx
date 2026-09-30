@@ -121,14 +121,17 @@ export default function BookingsPage() {
       notice={
         <ListTruncationNotice rows={bookingsRaw} />
       }
+      search={
+        <FiltersToolbar.Search
+          value={values.q}
+          onChange={(v) => set("q", v)}
+          placeholder="Buscar por cliente o folio…"
+          className="w-full sm:min-w-64 sm:max-w-[45rem]"
+        />
+      }
       filters={
         <div className="space-y-3">
           <FiltersToolbar>
-            <FiltersToolbar.Search
-              value={values.q}
-              onChange={(v) => set("q", v)}
-              placeholder="Buscar por cliente…"
-            />
             <FiltersToolbar.StatusTabs<BookingStatus>
               value={values.status as BookingStatus}
               onChange={(v) => set("status", v)}
