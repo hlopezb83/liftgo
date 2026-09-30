@@ -1,17 +1,16 @@
 import { useMemo } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
+import { Forklift as ForkliftIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { RoleGuard } from "@/layouts/RoleGuard";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { FleetExportAction, FleetPageActions, FleetPrimaryAction } from "../components/fleet/FleetPageActions";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
@@ -100,42 +99,25 @@ export default function FleetPage() {
     </div>
   );
 
-  const actions = (
-    <div className="flex flex-wrap gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={forkliftPages.hasNextPage}
-        title={forkliftPages.hasNextPage ? "Carga todas las páginas antes de exportar" : undefined}
-        onClick={() =>
-          exportToCsv(
-            "flota.csv",
-            filtered.map((f: Forklift) => ({
-              Nombre: f.name,
-              Modelo: f.model,
-              "No. de Serie": f.serial_number || "",
-              Combustible: f.fuel_type || "",
-              Estado: f.status,
-            })),
-          )
-        }
-      >
-        <DownloadIcon className="h-4 w-4 mr-1" />
-        Exportar CSV
-      </Button>
-      <RoleGuard module="Flota" minAccess="full" fallback={null}>
-        <Button onClick={() => navigate("/fleet/new")} size="sm">
-          <AddIcon className="h-4 w-4 mr-1" /> Agregar montacargas
-        </Button>
-      </RoleGuard>
-    </div>
+  const openCreate = () => navigate("/fleet/new");
+  const exportFleet = () => exportToCsv(
+    "flota.csv",
+    filtered.map((f: Forklift) => ({
+      Nombre: f.name,
+      Modelo: f.model,
+      "No. de Serie": f.serial_number || "",
+      Combustible: f.fuel_type || "",
+      Estado: f.status,
+    })),
   );
 
   return (
     <ListPageLayout
       title="Equipos"
       subtitle={forkliftPages.hasNextPage ? `${forklifts.length}+ equipos cargados` : `${forklifts.length} montacargas en la flota`}
-      actions={actions}
+      actions={<FleetPageActions onCreate={openCreate} onExport={exportFleet} exportDisabled={forkliftPages.hasNextPage} />}
+      mobilePrimaryAction={<FleetPrimaryAction onCreate={openCreate} compact />}
+      mobileActions={<FleetExportAction onExport={exportFleet} exportDisabled={forkliftPages.hasNextPage} compact />}
       notice={notice}
       search={
         <FiltersToolbar.Search
