@@ -5478,23 +5478,6 @@ export type Database = {
       }
     }
     Functions: {
-      get_accounts_payable_summary: { Args: never; Returns: Json }
-      get_supplier_bills_page: {
-        Args: {
-          p_approval: string
-          p_category: string
-          p_month: string | null
-          p_page: number
-          p_page_size: number
-          p_rep: string
-          p_search: string | null
-          p_sort_by: string
-          p_sort_desc: boolean
-          p_status: string
-          p_supplier_id: string | null
-        }
-        Returns: Json
-      }
       accept_quote_from_portal: {
         Args: { p_ip?: string; p_quote_id: string }
         Returns: {
@@ -5972,6 +5955,7 @@ export type Database = {
         Returns: number
       }
       generate_feedback_number: { Args: never; Returns: string }
+      get_accounts_payable_summary: { Args: never; Returns: Json }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }
         Returns: Json
@@ -6066,17 +6050,17 @@ export type Database = {
           id: string
         }[]
       }
-      get_cash_flow_recurring_bookings: { Args: never; Returns: Json[] }
       get_calendar_maintenance_windows: {
-        Args: { _start: string; _end: string; _include_e2e?: boolean }
+        Args: { _end: string; _include_e2e?: boolean; _start: string }
         Returns: {
-          id: string
-          forklift_id: string
           date: string
-          label: string
+          forklift_id: string
+          id: string
           is_open: boolean
+          label: string
         }[]
       }
+      get_cash_flow_recurring_bookings: { Args: never; Returns: Json[] }
       get_customer_forklifts_brief: {
         Args: never
         Returns: {
@@ -6092,6 +6076,7 @@ export type Database = {
         Returns: Json
       }
       get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
+      get_dashboard_fleet_counts: { Args: never; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
       get_effective_legal_template: {
         Args: { p_document_type?: string }
@@ -6139,6 +6124,12 @@ export type Database = {
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
       get_my_feedback_points_total: { Args: never; Returns: number }
+      get_occupied_forklift_ids_today: {
+        Args: never
+        Returns: {
+          forklift_id: string
+        }[]
+      }
       get_portal_collection_account: {
         Args: never
         Returns: {
@@ -6277,6 +6268,22 @@ export type Database = {
         }
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
+      get_supplier_bills_page: {
+        Args: {
+          p_approval: string
+          p_category: string
+          p_month: string
+          p_page: number
+          p_page_size: number
+          p_rep: string
+          p_search: string
+          p_sort_by: string
+          p_sort_desc: boolean
+          p_status: string
+          p_supplier_id: string
+        }
+        Returns: Json
+      }
       guard_fiscal_period_open: {
         Args: { _date: string; _table_name: string; p_organization_id: string }
         Returns: undefined
@@ -6319,6 +6326,7 @@ export type Database = {
       is_parts_writer: { Args: never; Returns: boolean }
       is_platform_operator: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
+      is_valid_clabe: { Args: { p_clabe: string }; Returns: boolean }
       link_customer_to_organization_by_rfc: {
         Args: {
           p_alias?: string
@@ -7094,26 +7102,26 @@ export type Database = {
       save_supplier_bank_account: {
         Args: {
           p_account_holder: string
-          p_account_id: string | null
-          p_account_number: string | null
+          p_account_id: string
+          p_account_number: string
           p_bank_name: string
-          p_clabe: string | null
+          p_clabe: string
           p_currency: string
           p_is_primary: boolean
-          p_notes: string | null
+          p_notes: string
           p_supplier_id: string
         }
         Returns: string
       }
       save_supplier_contact: {
         Args: {
-          p_contact_id: string | null
-          p_email: string | null
+          p_contact_id: string
+          p_email: string
           p_is_primary: boolean
           p_name: string
-          p_notes: string | null
-          p_phone: string | null
-          p_role: string | null
+          p_notes: string
+          p_phone: string
+          p_role: string
           p_supplier_id: string
         }
         Returns: string
