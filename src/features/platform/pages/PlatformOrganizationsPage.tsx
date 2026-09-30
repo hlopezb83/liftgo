@@ -109,6 +109,7 @@ export default function PlatformOrganizationsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Empresa</TableHead>
+                  <TableHead>Razón social</TableHead>
                   <TableHead>Identificador</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Usuarios</TableHead>
@@ -121,6 +122,11 @@ export default function PlatformOrganizationsPage() {
                 {(organizations ?? []).map((row) => (
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">{row.name}</TableCell>
+                    <TableCell>
+                      {row.razon_social ?? (
+                        <span className="text-muted-foreground">Sin datos fiscales</span>
+                      )}
+                    </TableCell>
                     <TableCell className="font-mono text-xs">
                       {row.slug}
                     </TableCell>

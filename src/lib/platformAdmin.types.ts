@@ -12,6 +12,8 @@ export interface PlatformOrganizationRow {
   internal_members: number;
   portal_accounts: number;
   customers: number;
+  /** Razón social fiscal (company_settings); `null` si no hay datos fiscales. */
+  razon_social: string | null;
 }
 
 export interface PlatformOperatorStatus {
