@@ -67,10 +67,10 @@ export function EquipmentListView({ forklifts, bookings, currentBookings }: Equi
 
         return (
           <Collapsible key={fl.id}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors group text-left">
-              <div className="flex items-center gap-3">
-                <ChevronRightIcon className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
-                <span className="text-sm font-mono font-medium">{fl.name}</span>
+            <CollapsibleTrigger className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between w-full p-3 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors group text-left">
+              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
+                <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
+                <span className="text-sm font-mono font-medium whitespace-nowrap">{fl.name}</span>
                 <span className="text-xs text-muted-foreground">{fl.model}</span>
                 <StatusBadge
                   status={
@@ -82,7 +82,7 @@ export function EquipmentListView({ forklifts, bookings, currentBookings }: Equi
                   }
                 />
               </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="pl-6 sm:pl-0 text-xs text-muted-foreground">
                 {periodBookings.length > 0 && (
                   <span>{periodBookings.length} reserva{periodBookings.length !== 1 ? "s" : ""} en el periodo</span>
                 )}
@@ -123,8 +123,8 @@ function bookingListLabel(booking: BookingWithForklift, todayYmd: string): strin
 function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
   const duration = rentalDaysInclusive(parseISO(booking.start_date), parseISO(booking.end_date));
   return (
-    <div className="flex items-center justify-between p-2 rounded bg-background border text-sm">
-      <div className="flex items-center gap-2">
+    <div className="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between p-2 rounded bg-background border text-sm">
+      <div className="flex min-w-0 flex-wrap items-center gap-2">
         <span className={`text-3xs font-medium px-1.5 py-0.5 rounded ${label === "Activa" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
           {label}
         </span>

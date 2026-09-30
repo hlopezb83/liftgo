@@ -127,7 +127,7 @@ export const quoteFormSchema = z.object({
     });
   }
 
-  checkValidUntil(val.validUntil, val.dateRange?.from, ctx);
+  checkValidUntil(val.validUntil, val.quoteType === "rental" ? val.dateRange?.to : undefined, ctx);
 });
 
 /** Copia las incidencias de una partida al path indexado del arreglo. */
@@ -195,7 +195,7 @@ const atMidnight = (d: Date): number => {
  * de Monterrey, para no rechazar "hoy").
  * R12-FE-07 (P2 r11): tampoco antes del inicio del periodo de renta.
  */
-function checkValidUntil(validUntil: Date | null | undefined, from: Date | undefined, ctx: z.RefinementCtx): void {
+function checkValidUntil(validUntil: Date | null | undefined, rentalEnd: Date | undefined, ctx: z.RefinementCtx): void {
   if (!validUntil) return;
   const vu = atMidnight(validUntil);
   const issue = (message: string) =>
@@ -204,8 +204,8 @@ function checkValidUntil(validUntil: Date | null | undefined, from: Date | undef
     issue("La fecha de vigencia no puede estar en el pasado");
     return;
   }
-  if (from && vu < atMidnight(from)) {
-    issue("La vigencia no puede ser anterior al periodo de renta");
+  if (rentalEnd && vu < atMidnight(rentalEnd)) {
+    issue("La vigencia no puede ser anterior al fin del periodo de renta");
   }
 }
 

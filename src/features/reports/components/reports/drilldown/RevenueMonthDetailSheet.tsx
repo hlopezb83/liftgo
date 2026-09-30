@@ -60,7 +60,7 @@ export function RevenueMonthDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto">
+      <SheetContent className="w-full max-w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <SheetTitle>
             {monthLabel} <span className="text-muted-foreground font-normal text-sm">— facturas del mes</span>
@@ -93,18 +93,18 @@ export function RevenueMonthDetailSheet({
                     type="button"
                     variant="ghost"
                     onClick={() => go(inv.id)}
-                    className="w-full h-auto flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs font-normal"
+                    className="w-full h-auto flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3 text-left rounded-md border p-2 text-xs font-normal"
                   >
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{inv.invoice_number}</p>
-                      <p className="text-muted-foreground truncate">
+                    <div className="min-w-0 w-full sm:w-auto">
+                      <p className="font-medium">{inv.invoice_number}</p>
+                      <p className="text-muted-foreground whitespace-normal break-words">
                         {inv.customer_name || "—"} · {formatDateMty(inv.issued_at)}
                         {inv.moneda && inv.moneda !== "MXN" ? ` · ${inv.moneda}` : ""}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:shrink-0">
                       <StatusBadge status={inv.status} />
-                      <div className="text-right">
+                      <div className="text-right ml-auto">
                         <span className="font-mono font-bold" title={invoiceNetMxn(inv) === null ? "Factura en divisa sin tipo de cambio" : undefined}>
                           {invoiceNetMxn(inv) === null ? "Sin T.C." : formatCurrency(invoiceNetMxn(inv) ?? 0)}
                         </span>

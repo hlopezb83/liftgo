@@ -97,7 +97,7 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
                   <DatePickerField
                     label="Válida Hasta"
                     date={field.value}
-                    onSelect={(d) => field.onChange(d)}
+                    onSelect={(d) => form.setValue("validUntil", d, { shouldDirty: true, shouldValidate: true })}
                     placeholder="Seleccionar fecha"
                   />
                 </FormControl>

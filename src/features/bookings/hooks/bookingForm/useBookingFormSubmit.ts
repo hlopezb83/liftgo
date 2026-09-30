@@ -38,7 +38,7 @@ export function useBookingFormSubmit() {
         start_date: toYMD(from),
         end_date: toYMD(to),
         customer_name: selectedCustomer?.name || data.customer_name || null,
-        customer_contact: selectedCustomer?.email || data.customer_contact || null,
+        customer_contact: data.customer_contact?.trim() || null,
         customer_id: data.customer_id || null,
         status: "confirmed",
         recurring_billing: Boolean(data.recurring_billing && allowsRecurringBilling(from, to)),

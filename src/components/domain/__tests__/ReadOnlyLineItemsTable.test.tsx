@@ -9,9 +9,11 @@ describe("ReadOnlyLineItemsTable — neto de factura", () => {
     render(<ReadOnlyLineItemsTable currency="USD" lineItems={[
       { description: "Renta diaria", quantity: 3, unit_price: 400, total: 1200, discount: 100, discount_type: "$" },
     ]} />);
-    expect(screen.getByText(/(?:US\$|USD\s+)400\.00/)).toBeInTheDocument();
-    expect(screen.getByText(/-(?:US\$|USD\s+)100\.00/)).toBeInTheDocument();
-    expect(screen.getByText(/(?:US\$|USD\s+)1,100\.00/)).toBeInTheDocument();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText(/(?:US\$|USD\s+)400\.00/)).toBeInTheDocument();
+    expect(table.getByText(/-(?:US\$|USD\s+)100\.00/)).toBeInTheDocument();
+    expect(table.getByText(/(?:US\$|USD\s+)1,100\.00/)).toBeInTheDocument();
+    expect(within(screen.getByTestId("line-items-mobile")).getByText(/(?:US\$|USD\s+)1,100\.00/)).toBeInTheDocument();
   });
 
   it("separa descuento y neto en el detalle sin volver a descontar el precio", () => {
@@ -25,7 +27,7 @@ describe("ReadOnlyLineItemsTable — neto de factura", () => {
     expect(row.getByText("$4,250.25")).toBeInTheDocument();
     expect(row.getByText("-$425.03")).toBeInTheDocument();
     expect(row.getByText("$3,825.22")).toBeInTheDocument();
-    expect(screen.getByText("$675.45")).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("$675.45")).toBeInTheDocument();
   });
 
   it("sin descuento mantiene el total normal", () => {
@@ -34,6 +36,6 @@ describe("ReadOnlyLineItemsTable — neto de factura", () => {
     ]} />);
     expect(screen.queryByRole("columnheader", { name: "Descuento" })).not.toBeInTheDocument();
     expect(screen.getByRole("columnheader", { name: "Total" })).toBeInTheDocument();
-    expect(screen.getByText("$200.00")).toBeInTheDocument();
+    expect(within(screen.getByRole("table")).getByText("$200.00")).toBeInTheDocument();
   });
 });
