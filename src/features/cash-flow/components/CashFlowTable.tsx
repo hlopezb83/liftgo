@@ -1,3 +1,4 @@
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
@@ -10,11 +11,7 @@ interface Props {
   onSelect: (bucket: CashFlowBucket) => void;
 }
 
-function lightClass(light: LightColor): string {
-  if (light === "red") return "bg-destructive";
-  if (light === "amber") return "bg-warning";
-  return "bg-success";
-}
+const LIGHT_STATUSES: Record<LightColor, string> = { red: "overdue", amber: "pending", green: "available" };
 
 export function CashFlowTable({ buckets, onSelect }: Props) {
   return (
@@ -27,7 +24,7 @@ export function CashFlowTable({ buckets, onSelect }: Props) {
           <TableHead className="text-right">Salidas</TableHead>
           <TableHead className="text-right">Neto</TableHead>
           <TableHead className="text-right">Acumulado</TableHead>
-          <TableHead className="w-16 text-center">Estado</TableHead>
+          <TableHead className="w-32 text-center">Estado</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -59,7 +56,7 @@ export function CashFlowTable({ buckets, onSelect }: Props) {
               {formatCurrency(b.cumulative)}
             </TableCell>
             <TableCell className="text-center">
-              <span className={cn("inline-block h-3 w-3 rounded-full", lightClass(b.light))} aria-label={LIGHT_LABELS[b.light]} />
+              <StatusBadge status={LIGHT_STATUSES[b.light]} label={LIGHT_LABELS[b.light]} />
             </TableCell>
           </TableRow>
         ))}

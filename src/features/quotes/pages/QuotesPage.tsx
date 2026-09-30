@@ -75,14 +75,17 @@ export default function QuotesPage() {
       notice={
         <ListTruncationNotice rows={quotesRaw} />
       }
+      search={
+        <FiltersToolbar.Search
+          value={values.q}
+          onChange={(v) => set("q", v)}
+          placeholder="Buscar cotizaciones…"
+          className="w-full sm:min-w-64 sm:max-w-[45rem]"
+        />
+      }
       filters={
         <div className="space-y-3">
           <FiltersToolbar>
-            <FiltersToolbar.Search
-              value={values.q}
-              onChange={(v) => set("q", v)}
-              placeholder="Buscar cotizaciones…"
-            />
             <FiltersToolbar.StatusTabs
               value={values.status}
               onChange={(v) => set("status", v as QuoteStatus | "all")}
@@ -137,10 +140,10 @@ export default function QuotesPage() {
                   </div>
                 </div>
                 <p className={`text-sm ${q.customer_name && isPublicoGeneral(q.customer_name) ? "text-muted-foreground italic" : "text-muted-foreground"}`}>{q.customer_name ? <Untranslated>{q.customer_name}</Untranslated> : "Sin cliente"}</p>
-                <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <div className="flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t">
                   <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
                   <div className="flex items-center gap-1">
-                    <span className="text-sm font-semibold tabular-nums">{formatQuoteTotal(q)}</span>
+                    <span className="text-sm font-semibold tabular-nums whitespace-nowrap">{formatQuoteTotal(q)}</span>
                     <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>

@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
 import type { LiftgoTable } from "@/components/dataTable/v2/types";
 import { type LucideIcon } from "@/components/icons";
-import { LoadMoreFooter, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
+import { LoadMoreButton, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { TableContent } from "@/components/layout/listPage/TableContent";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -36,7 +36,11 @@ function shouldUseMobileCards(showMobileCards: boolean, isLoading: boolean, isEr
 }
 
 function shouldShowLoadMore(loadMore: LoadMoreProps | undefined, isError: boolean, isLoading: boolean) {
-  return !!loadMore && !isError && !isLoading && (loadMore.hasMore || (loadMore.loaded ?? 0) > 0);
+  return !!loadMore?.hasMore && !isError && !isLoading;
+}
+
+function shouldUseCustomContent(content: ReactNode, isLoading: boolean, isError: boolean, showEmpty: boolean) {
+  return !!content && !isLoading && !isError && !showEmpty;
 }
 
 /**
@@ -67,7 +71,7 @@ export function ListPageBody<T extends { id?: string }>({
   skeletonColumns,
   loadMore,
 }: Props<T>) {
-  if (customContent) return <>{customContent}</>;
+  if (shouldUseCustomContent(customContent, isLoading, isError, showEmpty)) return <>{customContent}</>;
 
   const hasPagination = items.length > 0 && !!table;
   // A local filter may match no rows on the first server page. Keep the next
@@ -97,14 +101,19 @@ export function ListPageBody<T extends { id?: string }>({
         mobileKeyExtractor={mobileKeyExtractor}
         skeletonColumns={skeletonColumns}
       />
-      {hasPagination && !isError && (
+      {hasPagination && !isError && !isLoading && (
         <div className={mobileCardsReady ? "rounded-lg border bg-card py-3" : undefined}>
-          <DataTablePaginationV2 table={table} hasMoreRows={hasMoreRows} rowCount={rowCount} />
+          <DataTablePaginationV2
+            table={table}
+            hasMoreRows={hasMoreRows}
+            rowCount={rowCount}
+            action={showLoadMore && loadMore ? <LoadMoreButton {...loadMore} /> : undefined}
+          />
         </div>
       )}
-      {showLoadMore && loadMore && (
-        <div className={mobileCardsReady ? "rounded-lg border bg-card" : undefined}>
-          <LoadMoreFooter {...loadMore} />
+      {!hasPagination && showLoadMore && loadMore && (
+        <div className="flex justify-center border-t px-4 py-3">
+          <LoadMoreButton {...loadMore} />
         </div>
       )}
     </>

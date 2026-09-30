@@ -89,11 +89,6 @@ export default function FleetPage() {
   const filters = (
     <div className="space-y-3">
       <FiltersToolbar>
-        <FiltersToolbar.Search
-          value={values.q}
-          onChange={(v) => set("q", v)}
-          placeholder="Buscar por nombre, modelo…"
-        />
         <FiltersToolbar.StatusSelect
           value={values.status as string}
           onChange={(v) => set("status", v)}
@@ -142,6 +137,14 @@ export default function FleetPage() {
       subtitle={forkliftPages.hasNextPage ? `${forklifts.length}+ equipos cargados` : `${forklifts.length} montacargas en la flota`}
       actions={actions}
       notice={notice}
+      search={
+        <FiltersToolbar.Search
+          value={values.q}
+          onChange={(v) => set("q", v)}
+          placeholder="Buscar por nombre, modelo…"
+          className="w-full sm:min-w-64 sm:max-w-[45rem]"
+        />
+      }
       filters={filters}
       isLoading={isLoading || occupiedLoading}
       isError={isError || occupiedError}

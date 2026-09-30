@@ -1,9 +1,11 @@
+import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { toYMD } from "@/lib/date/toYMD";
+import { parseDateLocal } from "@/lib/utils";
 import type { ReconciliationFilters } from "../../hooks/reconciliation/useReconciliationData";
 
 interface Props {
@@ -22,37 +24,27 @@ export function ReconciliationFilterBar({ filters, invalidRange, onChange }: Pro
       <CardHeader className="pb-3">
         <CardTitle className="text-base">Filtros</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <CardContent className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <DatePickerField
+          label="Desde"
+          date={parseDateLocal(filters.from) ?? undefined}
+          onSelect={(date) => onChange((f) => ({ ...f, from: toYMD(date) ?? "" }))}
+        />
+        <DatePickerField
+          label="Hasta"
+          date={parseDateLocal(filters.to) ?? undefined}
+          onSelect={(date) => onChange((f) => ({ ...f, to: toYMD(date) ?? "" }))}
+          error={invalidRange ? "La fecha “Desde” no puede ser posterior a “Hasta”." : undefined}
+        />
         <div className="space-y-1">
-          <Label htmlFor="from">Desde</Label>
-          <Input
-            id="from"
-            type="date"
-            value={filters.from}
-            onChange={(e) => onChange((f) => ({ ...f, from: e.target.value }))}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor="to">Hasta</Label>
-          <Input
-            id="to"
-            type="date"
-            value={filters.to}
-            onChange={(e) => onChange((f) => ({ ...f, to: e.target.value }))}
-          />
-          {invalidRange && (
-            <p className="text-xs text-destructive">La fecha “Desde” no puede ser posterior a “Hasta”.</p>
-          )}
-        </div>
-        <div className="space-y-1">
-          <Label>Estado fiscal</Label>
+          <Label htmlFor="reconciliation-fiscal-state">Estado fiscal</Label>
           <Select
             value={filters.fiscalState}
             onValueChange={(v) =>
               onChange((f) => ({ ...f, fiscalState: v as ReconciliationFilters["fiscalState"] }))
             }
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger id="reconciliation-fiscal-state"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas</SelectItem>
               <SelectItem value="stamped">Timbradas</SelectItem>
@@ -62,12 +54,12 @@ export function ReconciliationFilterBar({ filters, invalidRange, onChange }: Pro
           </Select>
         </div>
         <div className="space-y-1">
-          <Label>Ambiente PAC</Label>
+          <Label htmlFor="reconciliation-env">Ambiente PAC</Label>
           <Select
             value={filters.env}
             onValueChange={(v) => onChange((f) => ({ ...f, env: v as ReconciliationFilters["env"] }))}
           >
-            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectTrigger id="reconciliation-env"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="live">Producción</SelectItem>
