@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { useBooking } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
@@ -69,6 +69,14 @@ export function useContractFormPrefill({
   // `useWatch` sí se suscribe correctamente al store del form.
   const customerId = useWatch({ control: form.control, name: "customer_id" });
   const forkliftId = useWatch({ control: form.control, name: "forklift_id" });
+  const [startDate, endDate, dailyRate, weeklyRate, monthlyRate, frequency,
+    usageLocation, maxHours, extraHourRate, lateInterestRate] = useWatch({
+    control: form.control,
+    name: ["start_date", "end_date", "daily_rate", "weekly_rate", "monthly_rate",
+      "payment_frequency", "usage_location", "max_hours_per_month",
+      "extra_hour_rate", "late_interest_rate"],
+  });
+  const lastGeneratedTerms = useRef<string | null>(null);
 
   // Los valores territoriales pertenecen a la organización activa. Sólo se
   // aplican a contratos nuevos y nunca pisan datos que el usuario ya capturó.
@@ -100,21 +108,31 @@ export function useContractFormPrefill({
     form.setValue("monthly_rate", String(forklift.monthly_rate || 0), opts);
   }, [forkliftId, forklifts, isEdit, bookingId, form]);
 
-  // Auto-fill template al tener cliente + equipo.
+  // Regenerate only while terms are still machine-generated. A manual edit
+  // takes ownership of the text and is never silently overwritten.
   useEffect(() => {
-    if (isEdit || templateApplied || !template?.body_text) return;
+    if (isEdit || !template?.body_text) return;
     if (!customerId || !forkliftId) return;
     const customer = customers?.find((c) => c.id === customerId);
     const forklift = forklifts?.find((f) => f.id === forkliftId);
     if (!customer || !forklift) return;
     const currentForm = form.getValues();
+    if (currentForm.terms_text && currentForm.terms_text !== lastGeneratedTerms.current) return;
     const text = replacePlaceholders(
       template.body_text,
       buildTemplateReplacements({ company, customer, forklift, form: currentForm }),
       "bracket",
     );
-    form.setValue("terms_text", text, { shouldDirty: false });
-    setTemplateApplied(true);
-  }, [isEdit, templateApplied, template, customerId, forkliftId, customers, forklifts, company, form, setTemplateApplied]);
+    if (currentForm.terms_text === text) {
+      lastGeneratedTerms.current = text;
+      if (!templateApplied) setTemplateApplied(true);
+      return;
+    }
+    form.setValue("terms_text", text, { shouldDirty: templateApplied });
+    lastGeneratedTerms.current = text;
+    if (!templateApplied) setTemplateApplied(true);
+  }, [isEdit, templateApplied, template, customerId, forkliftId, customers, forklifts, company, form, setTemplateApplied,
+    startDate, endDate, dailyRate, weeklyRate, monthlyRate, frequency, usageLocation, maxHours, extraHourRate,
+    lateInterestRate]);
 }
 

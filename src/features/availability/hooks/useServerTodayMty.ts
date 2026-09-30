@@ -22,6 +22,7 @@ export function useServerTodayMty(): string {
     // día anterior. 60s mantiene la fecha razonablemente fresca sin presionar
     // la RPC (una llamada por minuto como máximo por sesión activa).
     staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
     retry: 1,
   });
 

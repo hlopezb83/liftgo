@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { ContractViewModel } from "@/types/rental";
 import { contractKeys } from "../lib/queryKeys";
 
@@ -49,6 +49,24 @@ export const contractQueries = defineEntityQueries(
 
 export function useContracts() {
   return useQuery(contractQueries.list());
+}
+
+export function useContractsIncremental() {
+  return useInfiniteQuery({
+    queryKey: [...contractKeys.all, "incremental"],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }): Promise<Awaited<ReturnType<typeof fetchList>>> => {
+      const { data, error } = await supabase
+        .from("contracts")
+        .select("*, customers(name), forklifts(name)")
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(pageParam * LIST_PAGE_LIMIT, pageParam * LIST_PAGE_LIMIT + LIST_PAGE_LIMIT);
+      if (error) throw error;
+      return (data ?? []).map(mapRow);
+    },
+    getNextPageParam: (page, _pages, index) => page.length > LIST_PAGE_LIMIT ? index + 1 : undefined,
+  });
 }
 
 export function useContract(id: string | undefined) {
@@ -115,14 +133,12 @@ export function useCreateContract() {
 
 export function useUpdateContract() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"contracts"> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("contracts")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
+    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: TablesUpdate<"contracts"> & { id: string; expectedUpdatedAt?: string }) => {
+      let query = supabase.from("contracts").update(updates).eq("id", id);
+      if (expectedUpdatedAt) query = query.eq("updated_at", expectedUpdatedAt);
+      const { data, error } = await query.select().maybeSingle();
       if (error) throw error;
+      if (!data) throw new Error("El contrato cambió desde que lo abriste. Actualiza la página antes de guardar.");
       return data;
     },
     invalidateKeys: [contractKeys.all],

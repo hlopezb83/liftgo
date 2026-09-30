@@ -1,4 +1,5 @@
-import { parseISO, isToday } from "date-fns";
+import { parseISO } from "date-fns";
+import { useServerTodayMty } from "@/features/availability";
 import type { BookingWithForklift } from "@/features/bookings";
 import {
   DEFAULT_MAINTENANCE_BUFFER_DAYS,
@@ -6,6 +7,7 @@ import {
 } from "@/features/company-settings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
+import { toYMD } from "@/lib/date/toYMD";
 import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/useGanttSegments";
 import { groupForkliftsForGantt, type GanttForklift } from "../../lib/ganttEquipmentGroups";
 import { GanttHeader } from "./GanttHeader";
@@ -62,6 +64,7 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
 }
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintenanceWindows }: GanttChartProps) {
+  const todayYmd = useServerTodayMty();
   // A5-07: el buffer configurable de mantenimiento (mismo valor que usan las
   // RPC de reservas) define el ancho real de la ventana dibujada.
   const { data: buffer } = useMaintenanceBuffer();
@@ -81,6 +84,9 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
       const bStart = parseISO(b.start_date);
       const bEnd = parseISO(b.end_date);
       if (bEnd >= rangeStart && bStart <= rangeEnd) set.add(b.forklift_id);
+    });
+    forklifts?.forEach((forklift) => {
+      if (getMaintenanceSegments(forklift.id).length > 0) set.add(forklift.id);
     });
     return set;
   })();
@@ -103,7 +109,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
   const otherGroups = groupByModel(other);
 
   // Posición de la línea vertical "hoy"
-  const todayIdx = days.findIndex((d) => isToday(d));
+  const todayIdx = days.findIndex((d) => toYMD(d) === todayYmd);
   const todayLeftPct = todayIdx >= 0 && days.length > 0 ? ((todayIdx + 0.5) / days.length) * 100 : null;
 
   return (
@@ -114,7 +120,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
           <GanttHeader days={days} />
 
 
-        {active.length > 0 && <SectionHeader label="Con renta activa o futura" count={active.length} />}
+        {active.length > 0 && <SectionHeader label="Con reservas o mantenimiento en el periodo" count={active.length} />}
         {active.map((fl) => (
           <GanttRow
             key={fl.id}

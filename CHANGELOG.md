@@ -1,5 +1,15 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.28] - 2026-09-29 · patch · fix
+
+Las listas grandes siguen siendo navegables y los reportes, contratos y calendarios reflejan mejor los datos reales.
+
+- Cuentas bancarias preserva el historial al eliminar y oculta acciones de escritura a roles de lectura; Ingresos concilia facturas brutas, notas de crédito y neto en pantalla y CSV.
+- Clientes, proveedores, flota, contratos y reservas de entrega permiten cargar páginas adicionales sin perder registros antiguos.
+- Calendario muestra bloqueos de mantenimiento con el mismo criterio de disponibilidad y comunica errores de consulta; flujo de caja espera la configuración válida.
+- Los términos de contrato se actualizan mientras no se hayan editado manualmente; la edición detecta cambios concurrentes y los comprobantes fallidos se limpian de Storage.
+- Se aclaran los estados de carga, nombres accesibles, indicadores de cuentas por pagar y la identidad de organización en el menú.
+
 ## [8.42.27] - 2026-09-28 · patch · fix
 
 Una selección de reservas desactualizada ya no marca como facturadas las reservas que aún no tienen factura.

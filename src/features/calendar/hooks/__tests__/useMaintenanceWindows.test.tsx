@@ -1,87 +1,39 @@
-import { renderHook } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { useMaintenanceWindows } from "../useMaintenanceWindows";
 
-const mockUseMaintenanceLogs = vi.fn();
+const rpc = vi.fn();
+vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc: (...args: unknown[]) => rpc(...args) } }));
 
-vi.mock("@/features/maintenance", () => ({
-  useMaintenanceLogs: () => mockUseMaintenanceLogs(),
-}));
+const start = new Date(2026, 8, 1);
+const end = new Date(2026, 8, 30);
+function wrapper({ children }: { children: ReactNode }) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return createElement(QueryClientProvider, { client }, children);
+}
 
-const baseLog = {
-  id: "log-1",
-  forklift_id: "flt-1",
-  service_type: "Preventivo",
-  next_service_date: "2026-10-01",
-  performed_at: "2026-09-15T18:30:00.000Z",
-  work_status: "pending",
-};
+describe("useMaintenanceWindows", () => {
+  beforeEach(() => rpc.mockReset());
 
-describe("useMaintenanceWindows — contrato", () => {
-  beforeEach(() => {
-    mockUseMaintenanceLogs.mockReset();
-  });
-
-  it("sin registros devuelve lista vacía", () => {
-    mockUseMaintenanceLogs.mockReturnValue({ data: undefined });
-    const { result } = renderHook(() => useMaintenanceWindows());
-    expect(result.current).toEqual([]);
-  });
-
-  it("genera franja de próximo servicio y de OT abierta con ids y etiquetas intactos", () => {
-    mockUseMaintenanceLogs.mockReturnValue({ data: [baseLog] });
-    const { result } = renderHook(() => useMaintenanceWindows());
-    expect(result.current).toEqual([
-      {
-        id: "log-1-next",
-        forklift_id: "flt-1",
-        date: "2026-10-01",
-        label: "Próximo servicio: Preventivo",
-      },
-      {
-        id: "log-1-open",
-        forklift_id: "flt-1",
-        date: "2026-09-15",
-        label: "OT abierta: Preventivo",
-      },
-    ]);
-  });
-
-  it("no convierte una orden recurrente programada en una OT abierta fantasma", () => {
-    mockUseMaintenanceLogs.mockReturnValue({
-      data: [{
-        ...baseLog,
-        id: "log-scheduled",
-        next_service_date: null,
-        performed_at: "2026-10-01",
-        work_status: "scheduled",
-      }],
+  it("queries the visible range and returns every blocker without a client cap", async () => {
+    const windows = Array.from({ length: 600 }, (_, index) => ({
+      id: `log-${index}`, forklift_id: `forklift-${index}`, date: "2026-09-01",
+      label: "OT abierta", is_open: true,
+    }));
+    rpc.mockResolvedValue({ data: windows, error: null });
+    const { result } = renderHook(() => useMaintenanceWindows(start, end), { wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(rpc).toHaveBeenCalledWith("get_calendar_maintenance_windows", {
+      _start: "2026-09-01", _end: "2026-09-30", _include_e2e: false,
     });
-    const { result } = renderHook(() => useMaintenanceWindows());
-    expect(result.current).toEqual([]);
+    expect(result.current.data).toHaveLength(600);
   });
 
-  it("las OT completadas no generan franja abierta y el tipo falta usa 'mantenimiento'", () => {
-    mockUseMaintenanceLogs.mockReturnValue({
-      data: [
-        { ...baseLog, id: "log-2", service_type: null, next_service_date: null, work_status: "completed" },
-      ],
-    });
-    const { result } = renderHook(() => useMaintenanceWindows());
-    expect(result.current).toEqual([]);
-
-    mockUseMaintenanceLogs.mockReturnValue({
-      data: [{ ...baseLog, id: "log-3", service_type: null, next_service_date: null }],
-    });
-    const { result: result2 } = renderHook(() => useMaintenanceWindows());
-    expect(result2.current).toEqual([
-      {
-        id: "log-3-open",
-        forklift_id: "flt-1",
-        date: "2026-09-15",
-        label: "OT abierta: mantenimiento",
-      },
-    ]);
+  it("surfaces server errors instead of showing an empty calendar", async () => {
+    rpc.mockResolvedValue({ data: null, error: new Error("unavailable") });
+    const { result } = renderHook(() => useMaintenanceWindows(start, end), { wrapper });
+    await waitFor(() => expect(result.current.isError).toBe(true));
   });
 });

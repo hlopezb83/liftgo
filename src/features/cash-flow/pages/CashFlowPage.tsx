@@ -27,11 +27,52 @@ function ExcludedNotice({ noDueDate, outOfHorizon }: { noDueDate: number; outOfH
   );
 }
 
+function CashFlowBody({
+  buckets, loading, initialBalance, noDueDate, outOfHorizon, onSelect,
+}: {
+  buckets?: CashFlowBucket[];
+  loading: boolean;
+  initialBalance: number;
+  noDueDate: number;
+  outOfHorizon: number;
+  onSelect: (bucket: CashFlowBucket) => void;
+}) {
+  if (loading || !buckets) {
+    return <>
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+      </div>
+      <Card><CardContent className="p-0"><TableSkeleton columnCount={7} rows={8} /></CardContent></Card>
+    </>;
+  }
+
+  return <>
+    <ExcludedNotice noDueDate={noDueDate} outOfHorizon={outOfHorizon} />
+    <CashFlowSummaryCards buckets={buckets} initialBalance={initialBalance} />
+    <Card>
+      <CardContent className="p-0 overflow-x-auto">
+        {buckets.every((b) => b.items.length === 0) ? (
+          <div className="py-12 flex flex-col items-center justify-center text-muted-foreground gap-2">
+            <TrendingUpIcon className="h-8 w-8" />
+            <p className="text-sm">No hay facturas ni cuentas por pagar en el horizonte seleccionado.</p>
+          </div>
+        ) : <CashFlowTable buckets={buckets} onSelect={onSelect} />}
+      </CardContent>
+    </Card>
+  </>;
+}
+
 export default function CashFlowPage() {
   const [weeks, setWeeks] = useState(8);
   const [selected, setSelected] = useState<CashFlowBucket | null>(null);
 
-  const { data: settings } = useCashFlowSettings();
+  const {
+    data: settings,
+    isPending: settingsPending,
+    isError: settingsError,
+    isFetching: settingsFetching,
+    refetch: refetchSettings,
+  } = useCashFlowSettings();
   const initialBalance = settings?.initialBalance ?? 0;
   const safetyBuffer = settings?.safetyBuffer ?? 0;
 
@@ -39,6 +80,7 @@ export default function CashFlowPage() {
     weeks,
     initialBalance,
     safetyBuffer,
+    enabled: !!settings && !settingsError,
   });
   const buckets = projection?.buckets;
   const excludedNoDueDate = projection?.excludedNoDueDate ?? 0;
@@ -52,44 +94,21 @@ export default function CashFlowPage() {
             title="Flujo de caja proyectado"
             subtitle="Entradas esperadas vs salidas por semana, con semáforo de liquidez"
           />
-          <CashFlowSettingsBar weeks={weeks} onChangeWeeks={setWeeks} />
+          {!settingsError && <CashFlowSettingsBar weeks={weeks} onChangeWeeks={setWeeks} />}
 
-          {isError ? (
+          {settingsError ? (
+            <QueryErrorState entity="la configuración de flujo de caja" onRetry={() => { void refetchSettings(); }} isRetrying={settingsFetching} />
+          ) : isError ? (
             <QueryErrorState entity="la proyección de flujo de caja" onRetry={() => refetch()} isRetrying={isFetching} />
-          ) : isLoading || !buckets ? (
-            // Skeleton que anticipa el layout final (5 tarjetas de resumen +
-            // tabla de 7 columnas) en vez de un spinner, para evitar el salto
-            // de contenido al resolver la proyección.
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
-              </div>
-              <Card>
-                <CardContent className="p-0">
-                  <TableSkeleton columnCount={7} rows={8} />
-                </CardContent>
-              </Card>
-            </>
           ) : (
-            <>
-              <ExcludedNotice noDueDate={excludedNoDueDate} outOfHorizon={excludedOutOfHorizon} />
-              <CashFlowSummaryCards buckets={buckets} initialBalance={initialBalance} />
-              <Card>
-                <CardContent className="p-0 overflow-x-auto">
-                  {buckets.every((b) => b.items.length === 0) ? (
-                    <div className="py-12 flex flex-col items-center justify-center text-muted-foreground gap-2">
-                      <TrendingUpIcon className="h-8 w-8" />
-                      <p className="text-sm">No hay facturas ni cuentas por pagar en el horizonte seleccionado.</p>
-                    </div>
-                  ) : (
-                    <CashFlowTable
-                      buckets={buckets}
-                      onSelect={(b) => { setSelected(b); }}
-                    />
-                  )}
-                </CardContent>
-              </Card>
-            </>
+            <CashFlowBody
+              buckets={buckets}
+              loading={settingsPending || isLoading}
+              initialBalance={initialBalance}
+              noDueDate={excludedNoDueDate}
+              outOfHorizon={excludedOutOfHorizon}
+              onSelect={setSelected}
+            />
           )}
 
           <CashFlowWeekDetailSheet

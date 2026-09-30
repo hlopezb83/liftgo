@@ -80,6 +80,7 @@ export interface DrilldownInvoice {
   status: string;
   moneda?: string | null;
   tipo_cambio?: number | string | null;
+  credited_mxn?: number | string | null;
 }
 
 /** Total de la factura normalizado a MXN. */
@@ -88,6 +89,13 @@ export function invoiceTotalMxn(inv: DrilldownInvoice): number | null {
   const rate = Number(inv.tipo_cambio ?? 0);
   if (currency !== "MXN" && (!Number.isFinite(rate) || rate <= 0)) return null;
   return toMxn(Number(inv.total), currency, inv.tipo_cambio);
+}
+
+/** Same net basis as report_revenue_by_month: stamped, non-cancelled credit notes. */
+export function invoiceNetMxn(inv: DrilldownInvoice): number | null {
+  const gross = invoiceTotalMxn(inv);
+  if (gross === null) return null;
+  return gross - Number(inv.credited_mxn ?? 0);
 }
 
 /** Clave de mes "YYYY-MM" de la fecha de emisión. */

@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -12,11 +11,11 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
-import { visibleListRows } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
-import { useForklifts } from "../hooks/forklifts/useForklifts";
+import { useForkliftsIncremental } from "../hooks/forklifts/useForklifts";
 import { useOccupiedForkliftIdsToday } from "../hooks/forklifts/useOccupiedForkliftIdsToday";
 import type { Forklift } from "../hooks/forklifts/useForklifts";
 
@@ -29,8 +28,9 @@ const EMPTY_MAP: Map<string, string> = new Map();
 const EMPTY_SET: Set<string> = new Set();
 
 export default function FleetPage() {
-  const { data: forkliftsRaw, isLoading, isError, refetch } = useForklifts();
-  const forklifts = useMemo(() => visibleListRows(forkliftsRaw), [forkliftsRaw]);
+  const forkliftPages = useForkliftsIncremental();
+  const { isLoading, isError, refetch } = forkliftPages;
+  const forklifts = useMemo(() => forkliftPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [forkliftPages.data]);
   // Ocupación operativa compartida con Panel y Calendario: una reserva
   // confirmada vigente ocupa una unidad available; una completada no lo hace.
   const { data: rentedIds, isLoading: occupiedLoading, isError: occupiedError, refetch: refetchOccupied } = useOccupiedForkliftIdsToday();
@@ -84,7 +84,7 @@ export default function FleetPage() {
     resetKey: filterKey,
   });
 
-  const notice = <ListTruncationNotice rows={forkliftsRaw} />;
+  const notice = forkliftPages.hasNextPage ? <p className="text-xs text-muted-foreground">La búsqueda incluye los equipos cargados. Usa «Cargar más» para ampliar la lista; la exportación estará disponible al cargar todos.</p> : null;
 
   const filters = (
     <div className="space-y-3">
@@ -110,6 +110,8 @@ export default function FleetPage() {
       <Button
         variant="outline"
         size="sm"
+        disabled={forkliftPages.hasNextPage}
+        title={forkliftPages.hasNextPage ? "Carga todas las páginas antes de exportar" : undefined}
         onClick={() =>
           exportToCsv(
             "flota.csv",
@@ -137,12 +139,15 @@ export default function FleetPage() {
   return (
     <ListPageLayout
       title="Equipos"
-      subtitle={forklifts ? `${forklifts.length} montacargas en la flota` : undefined}
+      subtitle={forkliftPages.hasNextPage ? `${forklifts.length}+ equipos cargados` : `${forklifts.length} montacargas en la flota`}
       actions={actions}
       notice={notice}
       filters={filters}
       isLoading={isLoading || occupiedLoading}
       isError={isError || occupiedError}
+      hasMoreRows={forkliftPages.hasNextPage}
+      loadMore={{ hasMore: forkliftPages.hasNextPage, isLoading: forkliftPages.isFetchingNextPage,
+        onClick: () => { void forkliftPages.fetchNextPage(); }, loaded: forklifts.length }}
       onRetry={() => { void refetch(); void refetchOccupied(); }}
       onRefresh={() => { void refetch(); void refetchOccupied(); }}
       table={table}

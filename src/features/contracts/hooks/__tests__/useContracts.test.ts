@@ -11,6 +11,7 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
 
 const insertedPayloads: unknown[] = [];
 const updatedPayloads: unknown[] = [];
+const updateFilters: Array<{ method: string; args: unknown[] }> = [];
 
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "ctr-1", contract_number: "CTR-2026-0001" },
@@ -28,7 +29,11 @@ vi.mock("@/integrations/supabase/client", () => ({
         const ins = calls.find((c) => c.method === "insert");
         if (ins) { insertedPayloads.push(ins.args[0]); return insertResp; }
         const upd = calls.find((c) => c.method === "update");
-        if (upd) { updatedPayloads.push(upd.args[0]); return updateResp; }
+        if (upd) {
+          updatedPayloads.push(upd.args[0]);
+          updateFilters.push(...calls.filter((call) => call.method === "eq"));
+          return updateResp;
+        }
         return { data: null, error: null };
       },
     },
@@ -40,6 +45,7 @@ import { useCreateContract, useUpdateContract } from "../useContracts";
 beforeEach(() => {
   insertedPayloads.length = 0;
   updatedPayloads.length = 0;
+  updateFilters.length = 0;
   insertResp = { data: { id: "ctr-1", contract_number: "CTR-2026-0001" }, error: null };
   updateResp = { data: { id: "ctr-1" }, error: null };
 });
@@ -115,5 +121,21 @@ describe("useUpdateContract", () => {
 
     expect(updatedPayloads[0]).toEqual({ status: "active" });
     expect((updatedPayloads[0] as Record<string, unknown>).id).toBeUndefined();
+  });
+
+  it("rejects a stale edit without overwriting another user's changes", async () => {
+    updateResp = { data: null, error: null };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useUpdateContract(), { wrapper: Wrapper });
+
+    let caught: unknown;
+    await act(async () => {
+      try {
+        await result.current.mutateAsync({ id: "ctr-1", expectedUpdatedAt: "2026-09-29T10:00:00Z", notes: "Nuevo" });
+      } catch (error) { caught = error; }
+    });
+
+    expect(updateFilters).toContainEqual({ method: "eq", args: ["updated_at", "2026-09-29T10:00:00Z"] });
+    expect((caught as Error).message).toContain("El contrato cambió");
   });
 });

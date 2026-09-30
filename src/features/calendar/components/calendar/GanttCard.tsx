@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { GanttChart } from "./GanttChart";
 
-export type MaintenanceWindow = { id: string; forklift_id: string; date: string; label: string };
+export type MaintenanceWindow = { id: string; forklift_id: string; date: string; label: string; is_open?: boolean };
 
 interface GanttCardProps {
   rangeLabel: string;

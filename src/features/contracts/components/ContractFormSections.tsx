@@ -163,6 +163,7 @@ export function TermsAndSignaturesCard({ control }: { control: Ctrl }) {
           <FormItem>
             <FormLabel>Términos y Condiciones</FormLabel>
             <FormControl><Textarea rows={10} placeholder="Se cargará automáticamente al seleccionar cliente y equipo…" {...field} /></FormControl>
+            <p className="text-xs text-muted-foreground">Los términos automáticos siguen los importes y fechas. Si los editas manualmente, revisa el texto antes de guardar.</p>
             <FormMessage />
           </FormItem>
         )} />

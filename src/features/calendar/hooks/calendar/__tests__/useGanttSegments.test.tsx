@@ -72,4 +72,13 @@ describe("useGanttSegments", () => {
     expect(seg).toHaveLength(2);
     expect(seg[0].color).toBe(seg[1].color);
   });
+
+  it("an open work order blocks the entire visible range", () => {
+    const { result } = renderHook(() => useGanttSegments([], RANGE_START, RANGE_END, [
+      { id: "ot-1", forklift_id: forkliftA, date: "2026-06-01", label: "OT abierta", is_open: true },
+    ], 2));
+    expect(result.current.getMaintenanceSegments(forkliftA)).toEqual([expect.objectContaining({
+      leftPercent: 0, widthPercent: 100, label: "OT abierta",
+    })]);
+  });
 });

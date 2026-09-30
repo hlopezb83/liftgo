@@ -10,10 +10,12 @@ import { UploadIcon, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { notifyWarning } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
 import { useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
@@ -121,13 +123,15 @@ export function RegisterSupplierPaymentDialog({
   const onSubmit = async (data: SupplierPaymentFormData) => {
     setServerBlock(null);
     let receipt_url = data.receipt_url || undefined;
+    let uploadedPath: string | undefined;
     if (receiptFile) {
       const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
       // N-9: persistimos el path, no una signed URL de 5 años.
       receipt_url = uploaded.path;
+      uploadedPath = uploaded.path;
     }
-    register.mutate(
-      {
+    try {
+      await register.mutateAsync({
         bill_id: billId,
         amount: data.amount,
         payment_date: toYMD(data.payment_date) ?? "",
@@ -136,9 +140,17 @@ export function RegisterSupplierPaymentDialog({
         reference: data.reference || undefined,
         receipt_url,
         notes: data.notes || undefined,
-      },
-      { onSuccess: () => onOpenChange(false) },
-    );
+      });
+      onOpenChange(false);
+    } catch {
+      // A failed payment must not leave an unreferenced receipt in Storage.
+      if (uploadedPath) {
+        const { error } = await supabase.storage.from("supplier-payment-receipts").remove([uploadedPath]);
+        if (error) notifyWarning("No se pudo limpiar el comprobante", {
+          description: "El pago no se registró. Contacta a soporte para revisar el archivo subido.",
+        });
+      }
+    }
   };
 
   const isPending = register.isPending || uploader.isPending;

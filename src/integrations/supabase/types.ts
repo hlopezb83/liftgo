@@ -6067,6 +6067,16 @@ export type Database = {
         }[]
       }
       get_cash_flow_recurring_bookings: { Args: never; Returns: Json[] }
+      get_calendar_maintenance_windows: {
+        Args: { _start: string; _end: string; _include_e2e?: boolean }
+        Returns: {
+          id: string
+          forklift_id: string
+          date: string
+          label: string
+          is_open: boolean
+        }[]
+      }
       get_customer_forklifts_brief: {
         Args: never
         Returns: {
@@ -6861,6 +6871,20 @@ export type Database = {
       report_revenue_month_invoices: {
         Args: { _month_key: string }
         Returns: {
+          customer_name: string
+          id: string
+          invoice_number: string
+          issued_at: string
+          moneda: string
+          status: string
+          tipo_cambio: number
+          total: number
+        }[]
+      }
+      report_revenue_month_invoices_with_credits: {
+        Args: { _month_key: string }
+        Returns: {
+          credited_mxn: number
           customer_name: string
           id: string
           invoice_number: string

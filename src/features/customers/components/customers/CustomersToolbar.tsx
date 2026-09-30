@@ -10,6 +10,7 @@ import type { Customer } from "../../hooks/customers/useCustomers";
 
 interface Props {
   filtered: Customer[] | undefined;
+  exportDisabled?: boolean;
   search: string;
   onSearchChange: (value: string) => void;
   onCreate: () => void;
@@ -17,10 +18,10 @@ interface Props {
   onClear?: () => void;
 }
 
-export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" | "onCreate">) {
+export function CustomersActions({ filtered, onCreate, exportDisabled }: Pick<Props, "filtered" | "onCreate" | "exportDisabled">) {
   return (
     <div className="flex flex-wrap gap-2">
-      <CustomersSecondaryActions filtered={filtered} />
+      <CustomersSecondaryActions filtered={filtered} exportDisabled={exportDisabled} />
       {/* R7 Bloque 8: Nuevo cliente exige `full` según matriz de permisos. */}
       <RoleGuard module="Clientes" minAccess="full" fallback={null}>
         <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo cliente</Button>
@@ -29,12 +30,14 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
   );
 }
 
-export function CustomersSecondaryActions({ filtered }: Pick<Props, "filtered">) {
+export function CustomersSecondaryActions({ filtered, exportDisabled }: Pick<Props, "filtered" | "exportDisabled">) {
   return (
     <>
       <Button
         variant="outline"
         size="sm"
+        disabled={exportDisabled}
+        title={exportDisabled ? "Carga todas las páginas antes de exportar" : undefined}
         onClick={() =>
           exportToCsv(
             "clientes.csv",

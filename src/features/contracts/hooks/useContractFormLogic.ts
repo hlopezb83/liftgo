@@ -1,6 +1,7 @@
-import { useBookings } from "@/features/bookings";
-import { useCustomers } from "@/features/customers";
-import { useForklifts } from "@/features/fleet";
+import { useMemo } from "react";
+import { useBooking } from "@/features/bookings";
+import { useCustomer, useCustomers } from "@/features/customers";
+import { useForklift, useForklifts } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { useParams, useSearchParams } from "@/lib/router-compat";
@@ -23,19 +24,35 @@ type ContractSubmitContext = {
   navigate: ReturnType<typeof useNavigateTransition>;
 };
 
-function findBookingForkliftId<T extends { id: string; forklift_id: string | null }>(
-  bookings: T[] | undefined,
-  bookingId: string | null,
-) {
-  return bookings?.find((booking) => booking.id === bookingId)?.forklift_id ?? null;
-}
-
 function canIncludeContractForklift<T extends { id: string; status: string }>(
   forklift: T,
   currentId: string | null,
   bookingForkliftId: string | null,
 ) {
   return forklift.status === "available" || forklift.id === currentId || forklift.id === bookingForkliftId;
+}
+
+function appendSelected<T extends { id: string }>(rows: T[] | undefined, selected: T | null | undefined): T[] {
+  const result = [...(rows ?? [])];
+  if (selected && !result.some((row) => row.id === selected.id)) result.push(selected);
+  return result;
+}
+
+function useContractSelections(bookingId: string | null, existing: ReturnType<typeof useContract>["data"]) {
+  const { data: listedCustomers } = useCustomers();
+  const { data: allForklifts } = useForklifts();
+  // A booking can be older than the capped general lists. Fetch its linked
+  // customer and forklift directly by ID so prefill stays complete.
+  const { data: booking } = useBooking(bookingId ?? undefined);
+  const bookingForkliftId = booking?.forklift_id ?? null;
+  const { data: selectedForklift } = useForklift(bookingForkliftId ?? existing?.forklift_id ?? undefined);
+  const { data: selectedCustomer } = useCustomer(booking?.customer_id ?? existing?.customer_id ?? undefined);
+  const customers = useMemo(() => appendSelected(listedCustomers, selectedCustomer), [listedCustomers, selectedCustomer]);
+  const currentId = existing?.forklift_id ?? null;
+  const forklifts = useMemo(() => appendSelected(allForklifts, selectedForklift)
+    .filter((forklift) => canIncludeContractForklift(forklift, currentId, bookingForkliftId)),
+  [allForklifts, selectedForklift, currentId, bookingForkliftId]);
+  return { customers, forklifts };
 }
 
 function submitContract(values: ContractFormValues, context: ContractSubmitContext) {
@@ -50,7 +67,7 @@ function submitContract(values: ContractFormValues, context: ContractSubmitConte
 
   const payload = buildContractPayload(values, bookingId, existing);
   if (isEdit && id) {
-    updateContract.mutate({ id, ...payload }, {
+    updateContract.mutate({ id, expectedUpdatedAt: existing?.updated_at, ...payload }, {
       onSuccess: () => {
         notifySuccess("Contrato actualizado");
         form.reset(values); // clears isDirty for the guard
@@ -96,19 +113,7 @@ export function useContractFormLogic() {
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get("booking_id");
   const { data: existing } = useContract(isEdit ? id : undefined);
-  const { data: customers } = useCustomers();
-  const { data: allForklifts } = useForklifts();
-  // v7.226.0 · E2E-N4: al crear un contrato desde una reserva confirmada, el
-  // montacargas de esa reserva está en estado `rented` — si lo filtramos, el
-  // prefill nunca encuentra el forklift y `terms_text` queda vacío.
-  const { data: bookings } = useBookings();
-  const bookingForkliftId = findBookingForkliftId(bookings, bookingId);
-  // R7 Bloque 18a: sólo mostrar montacargas disponibles; si estamos editando y
-  // el contrato ya está ligado a uno no disponible, lo incluimos igualmente.
-  const currentId = existing?.forklift_id ?? null;
-  const forklifts = (allForklifts ?? []).filter((f) =>
-    canIncludeContractForklift(f, currentId, bookingForkliftId),
-  );
+  const { customers, forklifts } = useContractSelections(bookingId, existing);
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
 

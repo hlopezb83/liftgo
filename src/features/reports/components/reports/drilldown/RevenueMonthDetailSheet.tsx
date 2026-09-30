@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { invoiceTotalMxn, type DrilldownInvoice } from "../../../lib/drilldown";
+import { invoiceNetMxn, invoiceTotalMxn, type DrilldownInvoice } from "../../../lib/drilldown";
 
 interface Props {
   open: boolean;
@@ -16,6 +17,10 @@ interface Props {
   invoiced: number;
   paid: number;
   invoices: DrilldownInvoice[];
+  isLoading: boolean;
+  isError: boolean;
+  isRetrying: boolean;
+  onRetry: () => void;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -29,6 +34,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export function RevenueMonthDetailSheet({
   open, onOpenChange, monthLabel, invoiced, paid, invoices,
+  isLoading, isError, isRetrying, onRetry,
 }: Props) {
   const navigate = useNavigateTransition();
 
@@ -44,8 +50,10 @@ export function RevenueMonthDetailSheet({
       Emisión: i.issued_at,
       Moneda: i.moneda || "MXN",
       "Tipo Cambio": i.moneda && i.moneda !== "MXN" ? (i.tipo_cambio ?? "") : 1,
-      Total: i.total,
-      "Total MXN": invoiceTotalMxn(i) ?? "",
+      "Total bruto": i.total,
+      "Total bruto MXN": invoiceTotalMxn(i) ?? "",
+      "Notas de crédito MXN": Number(i.credited_mxn ?? 0),
+      "Facturado neto MXN": invoiceNetMxn(i) ?? "",
       Estado: i.status,
     })));
   };
@@ -62,16 +70,20 @@ export function RevenueMonthDetailSheet({
           <div className="grid grid-cols-3 gap-2 text-center">
             <Stat label="Facturado" value={formatCurrency(invoiced)} />
             <Stat label="Pagado" value={formatCurrency(paid)} />
-            <Stat label="Facturas" value={String(invoices.length)} />
+            <Stat label="Facturas" value={isLoading || isError ? "—" : String(invoices.length)} />
           </div>
           <Separator />
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold">Detalle ({invoices.length})</h3>
-            <Button variant="outline" size="sm" onClick={handleExport} disabled={invoices.length === 0}>
+            <h3 className="text-sm font-semibold">Detalle {isLoading || isError ? "" : `(${invoices.length})`}</h3>
+            <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading || isError || invoices.length === 0}>
               <DownloadIcon className="h-4 w-4 mr-1" /> Exportar CSV
             </Button>
           </div>
-          {invoices.length === 0 ? (
+          {isError ? (
+            <QueryErrorState entity="el detalle de ingresos" onRetry={onRetry} isRetrying={isRetrying} />
+          ) : isLoading ? (
+            <p role="status" className="text-sm text-muted-foreground">Cargando facturas del mes…</p>
+          ) : invoices.length === 0 ? (
             <p className="text-xs text-muted-foreground italic">Sin facturas en el mes</p>
           ) : (
             <ul className="space-y-1">
@@ -92,9 +104,16 @@ export function RevenueMonthDetailSheet({
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <StatusBadge status={inv.status} />
-                      <span className="font-mono font-bold" title={invoiceTotalMxn(inv) === null ? "Factura en divisa sin tipo de cambio" : undefined}>
-                        {invoiceTotalMxn(inv) === null ? "Sin T.C." : formatCurrency(invoiceTotalMxn(inv) ?? 0)}
-                      </span>
+                      <div className="text-right">
+                        <span className="font-mono font-bold" title={invoiceNetMxn(inv) === null ? "Factura en divisa sin tipo de cambio" : undefined}>
+                          {invoiceNetMxn(inv) === null ? "Sin T.C." : formatCurrency(invoiceNetMxn(inv) ?? 0)}
+                        </span>
+                        {Number(inv.credited_mxn ?? 0) > 0 && (
+                          <p className="text-3xs text-muted-foreground">
+                            Bruto {formatCurrency(invoiceTotalMxn(inv))} − NC {formatCurrency(Number(inv.credited_mxn))}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </Button>
                 </li>

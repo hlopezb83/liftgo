@@ -97,12 +97,13 @@ export default function InvoicesPage() {
 
   const invoicesQuery = useInvoicesInfinite(queryFilters);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
+  const isUpdatingFilters = invoicesQuery.isPlaceholderData;
   const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const canCreate = useHasModuleAccess("Facturas", "full");
-  const showExport = invoiceRows.length > 0 || !!hasNextPage;
+  const showExport = !isUpdatingFilters && (invoiceRows.length > 0 || !!hasNextPage);
   const showHeaderNew = isLoading || isError || hasActive || showExport;
   usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
@@ -111,7 +112,7 @@ export default function InvoicesPage() {
 
   const columns = useInvoiceColumns();
   const table = useLiftgoTable<Invoice>({
-    data: invoiceRows,
+    data: isUpdatingFilters ? [] : invoiceRows,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
@@ -127,8 +128,8 @@ export default function InvoicesPage() {
   const { pageIndex, pageSize } = table.state.pagination;
   const reachedLoadedEnd = (pageIndex + 1) * pageSize >= invoiceRows.length;
   useEffect(() => {
-    if (reachedLoadedEnd && hasNextPage && !isFetchingNextPage && !isError) void fetchNextPage();
-  }, [reachedLoadedEnd, hasNextPage, isFetchingNextPage, isError, fetchNextPage]);
+    if (reachedLoadedEnd && hasNextPage && !isFetchingNextPage && !isError && !isUpdatingFilters) void fetchNextPage();
+  }, [reachedLoadedEnd, hasNextPage, isFetchingNextPage, isError, isUpdatingFilters, fetchNextPage]);
 
   const exportCsv = async () => {
     const rows = await fetchInvoicesForExport(queryFilters);
@@ -171,7 +172,7 @@ export default function InvoicesPage() {
           />
         }
 
-        isLoading={isLoading}
+        isLoading={isLoading || isUpdatingFilters}
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}

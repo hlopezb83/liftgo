@@ -7,9 +7,12 @@ const access = vi.hoisted(() => ({ canWrite: false }));
 vi.mock("@/features/users", () => ({
   useHasModuleAccess: () => access.canWrite,
 }));
-vi.mock("@/features/bookings", () => ({ useBookings: () => ({ data: [] }) }));
+vi.mock("@/features/bookings", () => ({
+  useConfirmedBookingsForDelivery: () => ({ data: { pages: [[]] }, isLoading: false, isFetchingNextPage: false, isError: false, hasNextPage: false, fetchNextPage: vi.fn() }),
+}));
 vi.mock("@/features/fleet", () => ({
   useActiveDrivers: () => ({ data: [] }),
+  useForklift: () => ({ data: null }),
   useForkliftMap: () => ({ forklifts: [] }),
 }));
 vi.mock("../../../hooks/useDeliveries", () => ({
