@@ -392,7 +392,20 @@ export default tseslint.config(
       "react-hooks/rules-of-hooks": "off",
     },
   },
+  {
+    // TanStack Router gestiona el HMR de Route y sus componentes de página.
+    // La regla de React Refresh 0.5 no reconoce createFileRoute(...)(...).
+    files: ["src/routes/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
+  {
+    // API de componentes compuestos: Object.assign(Root, { Search, ... }).
+    // React Refresh 0.5 no reconoce sus miembros como exports del componente.
+    files: ["src/components/filters/FiltersToolbar.tsx"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 );
-
-
-
