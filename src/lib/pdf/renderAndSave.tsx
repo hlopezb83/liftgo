@@ -1,4 +1,4 @@
-import type { DocumentProps } from "@react-pdf/renderer";
+import { Font, pdf, type DocumentProps } from "@react-pdf/renderer";
 import type { ReactElement } from "react";
 
 /**
@@ -10,13 +10,12 @@ import type { ReactElement } from "react";
  *   dividir es el patrón recomendado por la doc oficial para idiomas donde no
  *   se quiere autohyphenation.
  *
- * Se ejecuta lazy la primera vez que se renderiza un PDF para no cargar la
- * librería en el arranque del SPA.
+ * Los builders de PDF se importan sólo al descargar un documento, de modo que
+ * esta dependencia queda fuera del bundle inicial.
  */
 let bootstrapped = false;
-async function bootstrap() {
+function bootstrap() {
   if (bootstrapped) return;
-  const { Font } = await import("@react-pdf/renderer");
   Font.registerHyphenationCallback((word) => [word]);
   bootstrapped = true;
 }
@@ -44,9 +43,8 @@ function saveBlob(blob: Blob, filename: string): void {
  *
  * Consolida el patrón repetido en los 5 builders (`quote/build.tsx`,
  * `contract/build.tsx`, `incomeStatement.tsx`, `customerStatement.tsx`,
- * `features/invoices/lib/pdf/build.tsx`). Importa `@react-pdf/renderer`
- * dinámicamente para preservar el code-splitting: el chunk `react-pdf`
- * (~1.46 MB) queda fuera del bundle inicial.
+ * `features/invoices/lib/pdf/build.tsx`). Cada builder se carga dinámicamente
+ * desde su acción de descarga; el renderer queda fuera del bundle inicial.
  *
  * Uso:
  * ```tsx
@@ -57,7 +55,7 @@ export async function renderAndSave(
   doc: ReactElement<DocumentProps>,
   filename: string,
 ): Promise<void> {
-  const [{ pdf }] = await Promise.all([import("@react-pdf/renderer"), bootstrap()]);
+  bootstrap();
   const blob = await pdf(doc).toBlob();
   saveBlob(blob, filename);
 }

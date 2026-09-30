@@ -30,7 +30,7 @@ export type { ValidateSupplierRepInput };
 
 export const validateSupplierRepFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: ValidateSupplierRepInput) => data)
+  .validator((data: ValidateSupplierRepInput) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
     const { admin: supabase } = await g.requireRole(
