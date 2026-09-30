@@ -215,7 +215,7 @@ jobs:
 
       - name: Merge de reportes + umbrales de cobertura
         env:
-          NODE_OPTIONS: --max-old-space-size=6144 --trace-deprecation
+          NODE_OPTIONS: --max-old-space-size=6144
         run: bunx vitest --merge-reports --coverage
 
       - name: Subir reportes
