@@ -1,5 +1,15 @@
 -- Run only against the ephemeral CI database; preserve all fixtures with rollback.
 BEGIN;
+DO $test$
+BEGIN
+  IF (SELECT count(*) FROM pg_trigger
+      WHERE tgrelid = 'public.payments'::regclass
+        AND tgfoid = 'public.notify_payment_received()'::regprocedure
+        AND NOT tgisinternal AND tgenabled = 'O' AND tgtype = 5) <> 1 THEN
+    RAISE EXCEPTION 'Notificaciones de pagos: debe existir un único trigger AFTER INSERT ROW activo';
+  END IF;
+END;
+$test$;
 INSERT INTO public.organizations (id, name, slug) VALUES
   ('84000000-0000-4000-8000-0000000000a0', 'Avisos Norte', 'notificaciones-0084-a'),
   ('84000000-0000-4000-8000-0000000000b0', 'Avisos Bajío', 'notificaciones-0084-b');

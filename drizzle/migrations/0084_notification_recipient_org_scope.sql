@@ -100,3 +100,9 @@ BEGIN
 END;
 $function$;
 REVOKE ALL ON FUNCTION public.notify_payment_received() FROM PUBLIC, anon, authenticated;
+
+-- Cloud already has this trigger, but the historical migrations omitted it.
+-- Version the same wiring so a fresh database also emits exactly one event.
+CREATE OR REPLACE TRIGGER trg_notify_payment_received
+  AFTER INSERT ON public.payments
+  FOR EACH ROW EXECUTE FUNCTION public.notify_payment_received();

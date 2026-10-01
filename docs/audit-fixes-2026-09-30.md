@@ -37,7 +37,7 @@ Aplicar las migraciones en orden antes de publicar 8.42.32:
 1. `0081_operational_lifecycle_guards`: disponibilidad con mantenimiento, fechas y custodia, integridad de transportes y finalización de entrega con permisos limitados.
 2. `0082_maintenance_cost_integrity`: OT cerradas, fecha de cierre y costo real de daños. `actual_cost_source` distingue un costo manual de uno calculado por Mantenimiento; `actual_cost_recorded_at` indica que fue valorado. Un cero legado sin fuente continúa pendiente de valoración.
 3. `0083_organization_display_identity`: nombre legal para miembros internos activos. No concede lectura de configuración fiscal ni llaves.
-4. `0084_notification_recipient_org_scope`: destinatarios de nuevos avisos por empresa. No borra notificaciones antiguas.
+4. `0084_notification_recipient_org_scope`: destinatarios de nuevos avisos por empresa. Versiona también el trigger de pagos que ya existe en Cloud y faltaba en el historial. No borra notificaciones antiguas.
 
 Las migraciones no corrigen automáticamente montos, fechas ni notificaciones existentes. Las OT que heredaron presupuesto como gasto manual necesitan revisar el gasto real antes de cerrar. Se conservan las filas usadas como evidencia de auditoría. Ninguna de estas operaciones emite facturas ni envía correo.
 
