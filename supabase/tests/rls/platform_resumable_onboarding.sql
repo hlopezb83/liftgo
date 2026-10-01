@@ -124,6 +124,12 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN NULL; END;
   IF EXISTS (SELECT 1 FROM public.organizations WHERE id=v_org AND is_active) THEN RAISE EXCEPTION 'Replay cambió el estado'; END IF;
   PERFORM public.platform_set_organization_active_with_reason(v_actor,v_org,true,'Reactivación explícita');
+  -- La protección del último administrador debe seguir vigente. Sólo un
+  -- segundo administrador permite ensayar una revocación legítima del primero.
+  INSERT INTO public.organization_memberships(organization_id,auth_user_id,member_type)
+  VALUES(v_org,'89000000-0000-4000-8000-000000000002','internal');
+  INSERT INTO public.user_roles(user_id,role) VALUES('89000000-0000-4000-8000-000000000002','admin')
+  ON CONFLICT(user_id) DO UPDATE SET role='admin';
   UPDATE public.user_roles SET role='ventas' WHERE user_id=v_user;
   BEGIN
     PERFORM public.platform_finish_onboarding(v_actor,v_req);
