@@ -23,7 +23,7 @@ Alcance: 23 hallazgos de la cola. Veinte requieren cambios de código en 8.42.32
 | MI04 | P2 | Derivar el detalle de la OT seleccionada del registro actualizado para evitar montos y encabezados obsoletos. |
 | O03 | P3 | Abrir el calendario en el mes de la fecha seleccionada sin impedir navegar a otros meses. |
 | D04 | P3 | Adaptar instrucciones de firma, horómetro y reprogramación al tipo de transporte. |
-| FR04 | P3 | Presentar un único error de fecha en español y conservar la captura inválida hasta corregirla. |
+| FR04 | P3 | Presentar un único error de fecha en español y conservar la captura inválida hasta corregirla, también al cambiar primero a otra fecha válida. El ajuste de integración con el formulario se completa en 8.42.33. |
 | MI05 | P3 | Usar el ancho móvil disponible del panel y permitir que los renglones de mano de obra se acomoden sin ocultar nombre ni acciones. |
 | F06 | P3 | Mostrar la misma identidad legal de empresa en todos los roles mediante una consulta que devuelve solamente el nombre. |
 | F01 | P2 | Ya corregido. Ingresos conciliado: $16,820 + $2,900 + $1,740 = $21,460; la nota de crédito de $580 se descuenta de $3,480. |
@@ -45,4 +45,8 @@ Las pruebas SQL nuevas usan transacciones con rollback y deben ejecutarse exclus
 
 ## Verificación
 
-Se agregaron regresiones de los flujos afectados en Vitest y SQL. La revalidación visual de F01, F04 y F05 corresponde a la versión publicada 8.42.31; los veinte cambios nuevos requieren comprobación después de aplicar las migraciones y publicar 8.42.32. El estado de despliegue y los resultados finales se registran en el informe de entrega y en la PR.
+Se agregaron regresiones de los flujos afectados en Vitest y SQL. La PR #191 aprobó 3,149 pruebas en 492 suites, 98/98 suites RLS, 46/46 smoke SQL y 16/16 del gate A/B. Se aplicaron 0081–0084 en Cloud con hashes verificados y se publicó 8.42.32. Los conteos de registros se conservaron.
+
+La revalidación de F01, F04 y F05 corresponde a 8.42.31. En 8.42.32 se comprobaron con Mecánico la identidad legal, OT cerradas sin edición, costo pendiente de valorar, cierre futuro bloqueado, calendario en el mes seleccionado y el panel de mano de obra a 375 × 812. Chrome confirmó la versión con Admin de la otra empresa.
+
+La secuencia fecha válida → fecha imposible expuso durante esa comprobación un caso adicional de FR04 en el formulario real de Mantenimiento. 8.42.33 conserva el valor actual de RHF y cubre esa secuencia y el vaciado de un campo opcional. Este ajuste de frontend no requiere otra migración. Los checks y la comprobación publicada final se registran en el informe de entrega y en la PR correspondiente.

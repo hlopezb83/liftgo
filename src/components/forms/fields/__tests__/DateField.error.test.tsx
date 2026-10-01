@@ -1,12 +1,17 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useForm } from "react-hook-form";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { DateField } from "../DateField";
 
 const schema = z.object({ date: z.date({ error: "Selecciona una fecha válida" }) });
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date("2026-09-30T18:00:00Z"));
+});
+afterEach(() => vi.useRealTimers());
 function Field() {
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -40,7 +45,7 @@ describe("DateField: error de fecha único", () => {
     expect(screen.getAllByText("Selecciona una fecha válida")).toHaveLength(1);
   });
 
-  it("resuelve la captura rechazada al aplicar el mismo día válido desde el calendario", async () => {
+  it("resuelve la captura rechazada al seleccionar un día válido en el calendario", async () => {
     render(<Field />);
     const input = screen.getByLabelText("Fecha de inspección");
     fireEvent.change(input, { target: { value: "01102026" } });
@@ -48,6 +53,8 @@ describe("DateField: error de fecha único", () => {
     expect(input).toHaveValue("01/10/2026");
     fireEvent.click(screen.getByRole("button", { name: "Abrir calendario de Fecha de inspección" }));
     const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("button", { name: "Aplicar" })).toBeDisabled();
+    fireEvent.click(within(dialog).getByRole("button", { name: /30 de septiembre/i }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Aplicar" }));
     await waitFor(() => expect(screen.getByLabelText("Fecha de inspección")).toHaveValue("30/09/2026"));
     expect(screen.queryByText("Esta fecha no está permitida")).not.toBeInTheDocument();

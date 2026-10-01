@@ -1,5 +1,12 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.33] - 2026-09-30 · patch · fix
+
+Una fecha imposible permanece visible hasta corregirla, incluso después de cambiar antes a otra fecha válida.
+
+- La captura no vuelve silenciosamente a la fecha inicial al salir del campo o validar el formulario.
+- Los campos opcionales pueden quedar vacíos y los errores de fecha se muestran una sola vez en español.
+
 ## [8.42.32] - 2026-09-30 · patch · fix
 
 Los cierres de mantenimiento conservan sus costos; la disponibilidad y los transportes respetan las mismas reglas para cada rol.
