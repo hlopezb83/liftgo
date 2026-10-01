@@ -24,6 +24,10 @@ BEGIN
     ('82000000-0000-4000-8000-00000000fa01', 'MTY-COST-01', 'Toyota 8FG25', v_a);
   INSERT INTO public.mechanics (id, name, organization_id) VALUES
     ('82000000-0000-4000-8000-0000000000a3', 'Luis Treviño Cost Integrity', v_a);
+  INSERT INTO public.parts_inventory
+    (id, name, sku, stock_quantity, min_stock_level, unit_cost, organization_id) VALUES
+    ('82000000-0000-4000-8000-0000000000a9', 'Tope de garantía', 'COST-0082-WARRANTY', 10, 0, 0, v_a),
+    ('82000000-0000-4000-8000-0000000000aa', 'Tope de caucho', 'COST-0082-RUBBER', 10, 0, 20, v_a);
   INSERT INTO public.maintenance_logs
     (id, forklift_id, service_type, work_status, manual_cost, organization_id) VALUES
     ('82000000-0000-4000-8000-0000000000a4', '82000000-0000-4000-8000-00000000fa01', 'repair-zero', 'in_progress', 100, v_a),
@@ -67,7 +71,9 @@ UPDATE public.damage_records SET actual_cost = 0 WHERE id = '82000000-0000-4000-
 
 SET LOCAL request.jwt.claims = '{"sub":"82000000-0000-4000-8000-0000000000a2","role":"authenticated"}';
 DO $mechanic$
-DECLARE v_log uuid; v_labor uuid; v_open_labor uuid; v_blocked boolean;
+DECLARE
+  v_log uuid; v_labor uuid; v_open_labor uuid; v_part uuid; v_transfer_part uuid;
+  v_transfer_labor uuid; v_blocked boolean;
 BEGIN
   v_log := public.start_repair_work_order('82000000-0000-4000-8000-0000000000d1', 'Reparación', NULL, 650);
   PERFORM set_config('test.maintenance_main', v_log::text, true);
@@ -77,6 +83,32 @@ BEGIN
   INSERT INTO public.maintenance_labor (maintenance_log_id, mechanic_id, hours, hourly_rate)
     VALUES (v_log, '82000000-0000-4000-8000-0000000000a3', 2, 325) RETURNING id INTO v_labor;
   PERFORM set_config('test.maintenance_labor', v_labor::text, true);
+  INSERT INTO public.maintenance_parts (maintenance_log_id, part_id, quantity_used, cost_at_time)
+    VALUES (v_log, '82000000-0000-4000-8000-0000000000a9', 1, 0) RETURNING id INTO v_part;
+  PERFORM set_config('test.maintenance_part', v_part::text, true);
+
+  -- Moving lines between open OTs recalculates both totals, not just the destination.
+  INSERT INTO public.maintenance_labor (maintenance_log_id, mechanic_id, hours, hourly_rate)
+    VALUES ('82000000-0000-4000-8000-0000000000a4', '82000000-0000-4000-8000-0000000000a3', 2, 325)
+    RETURNING id INTO v_transfer_labor;
+  UPDATE public.maintenance_labor SET maintenance_log_id = '82000000-0000-4000-8000-0000000000a5'
+    WHERE id = v_transfer_labor;
+  IF (SELECT cost FROM public.maintenance_logs WHERE id = '82000000-0000-4000-8000-0000000000a4') <> 100
+     OR (SELECT cost FROM public.maintenance_logs WHERE id = '82000000-0000-4000-8000-0000000000a5') <> 850 THEN
+    RAISE EXCEPTION 'Traslado de MO no restó 650 del origen y sumó 650 al destino';
+  END IF;
+  DELETE FROM public.maintenance_labor WHERE id = v_transfer_labor;
+  INSERT INTO public.maintenance_parts (maintenance_log_id, part_id, quantity_used, cost_at_time)
+    VALUES ('82000000-0000-4000-8000-0000000000a4', '82000000-0000-4000-8000-0000000000aa', 1, 20)
+    RETURNING id INTO v_transfer_part;
+  UPDATE public.maintenance_parts SET maintenance_log_id = '82000000-0000-4000-8000-0000000000a5'
+    WHERE id = v_transfer_part;
+  IF (SELECT cost FROM public.maintenance_logs WHERE id = '82000000-0000-4000-8000-0000000000a4') <> 100
+     OR (SELECT cost FROM public.maintenance_logs WHERE id = '82000000-0000-4000-8000-0000000000a5') <> 220
+     OR (SELECT stock_quantity FROM public.parts_inventory WHERE id = '82000000-0000-4000-8000-0000000000aa') <> 9 THEN
+    RAISE EXCEPTION 'Traslado de refacción duplicó costo o consumo físico';
+  END IF;
+  DELETE FROM public.maintenance_parts WHERE id = v_transfer_part;
   UPDATE public.damage_records SET status = 'repaired', repaired_at = now()
     WHERE id = '82000000-0000-4000-8000-0000000000d1';
   UPDATE public.maintenance_logs SET work_status = 'completed', performed_at = public.today_mty()
@@ -113,6 +145,10 @@ BEGIN
   BEGIN DELETE FROM public.maintenance_labor WHERE id = v_labor;
   EXCEPTION WHEN check_violation THEN v_blocked := true; END;
   IF NOT v_blocked THEN RAISE EXCEPTION 'H-01: eliminación de MO cerrada permitida'; END IF;
+  v_blocked := false;
+  BEGIN DELETE FROM public.maintenance_parts WHERE id = v_part;
+  EXCEPTION WHEN check_violation THEN v_blocked := true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'H-01: eliminación de refacción cerrada permitida'; END IF;
   v_blocked := false;
   BEGIN PERFORM public.reopen_work_order(v_log, 'Cambiar valoración');
   EXCEPTION WHEN insufficient_privilege THEN v_blocked := true; END;
@@ -160,11 +196,29 @@ BEGIN
   IF NOT v_blocked THEN RAISE EXCEPTION 'Se modificó costo ya facturado'; END IF;
 
   PERFORM public.soft_delete_maintenance_log(v_log);
+  IF (SELECT deleted_at FROM public.maintenance_logs WHERE id = v_log) IS NULL
+     OR NOT EXISTS (SELECT 1 FROM public.maintenance_labor WHERE id = current_setting('test.maintenance_labor')::uuid)
+     OR NOT EXISTS (SELECT 1 FROM public.maintenance_parts WHERE id = current_setting('test.maintenance_part')::uuid)
+     OR (SELECT cost FROM public.maintenance_logs WHERE id = v_log) <> 650
+     OR (SELECT stock_quantity FROM public.parts_inventory WHERE id = '82000000-0000-4000-8000-0000000000a9') <> 9 THEN
+    RAISE EXCEPTION 'Archivo cambió costos, consumo o borró hijos de la OT';
+  END IF;
   PERFORM public.restore_maintenance_log(v_log);
-  IF (SELECT COUNT(*) FROM public.maintenance_labor WHERE maintenance_log_id = v_log) <> 1 THEN
-    RAISE EXCEPTION 'Archivo/restauración perdió MO';
+  IF (SELECT deleted_at FROM public.maintenance_logs WHERE id = v_log) IS NOT NULL
+     OR (SELECT COUNT(*) FROM public.maintenance_labor WHERE maintenance_log_id = v_log) <> 1
+     OR (SELECT COUNT(*) FROM public.maintenance_parts WHERE maintenance_log_id = v_log) <> 1
+     OR (SELECT cost FROM public.maintenance_logs WHERE id = v_log) <> 650 THEN
+    RAISE EXCEPTION 'Archivo/restauración perdió hijos o costos';
   END IF;
   PERFORM public.reopen_work_order(v_log, 'Gasto adicional documentado');
+  IF NOT EXISTS (SELECT 1 FROM public.status_logs
+      WHERE forklift_id = '82000000-0000-4000-8000-00000000fa01'
+        AND organization_id = '82000000-0000-4000-8000-0000000000a0'
+        AND from_status = 'ot:completed' AND to_status = 'ot:in_progress'
+        AND changed_by = '82000000-0000-4000-8000-0000000000a1'
+        AND note LIKE '%' || v_log::text || '%Gasto adicional documentado%') THEN
+    RAISE EXCEPTION 'Reapertura no dejó bitácora válida con OT, motivo, autor y empresa';
+  END IF;
   UPDATE public.maintenance_logs SET manual_cost = 200 WHERE id = v_log;
   UPDATE public.maintenance_logs SET work_status = 'completed', performed_at = public.today_mty() WHERE id = v_log;
   IF (SELECT actual_cost FROM public.damage_records WHERE id = '82000000-0000-4000-8000-0000000000d1') <> 850 THEN

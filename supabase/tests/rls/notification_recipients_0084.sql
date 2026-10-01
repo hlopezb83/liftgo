@@ -11,6 +11,12 @@ INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('84000000-0000-4000-8000-000000000004', 'portal-a@0084.test', now(), now()),
   ('84000000-0000-4000-8000-000000000005', 'inactivo-a@0084.test', now(), now()),
   ('84000000-0000-4000-8000-000000000006', 'sin-empresa@0084.test', now(), now());
+-- Trusted app_metadata is absent here, so handle_new_user does not create profiles.
+INSERT INTO public.profiles (user_id, email, full_name, is_active)
+SELECT id, email, email, true FROM auth.users
+WHERE id IN ('84000000-0000-4000-8000-000000000001', '84000000-0000-4000-8000-000000000002',
+  '84000000-0000-4000-8000-000000000003', '84000000-0000-4000-8000-000000000004',
+  '84000000-0000-4000-8000-000000000005', '84000000-0000-4000-8000-000000000006');
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('84000000-0000-4000-8000-000000000001', 'admin'),
   ('84000000-0000-4000-8000-000000000002', 'administrativo'),
@@ -28,9 +34,10 @@ INSERT INTO public.organization_memberships (organization_id, auth_user_id, memb
 UPDATE public.profiles SET is_active = false
 WHERE user_id = '84000000-0000-4000-8000-000000000005';
 INSERT INTO public.invoices
-  (id, organization_id, invoice_number, customer_name, subtotal, tax_amount, total, status, moneda)
+  (id, organization_id, invoice_number, customer_name, subtotal, tax_amount, total, status, moneda, tipo_cambio, line_items)
 VALUES ('84000000-0000-4000-8000-0000000000f0',
-  '84000000-0000-4000-8000-0000000000a0', 'FAC-0084-A', 'Avisos prueba', 100, 0, 100, 'sent', 'USD');
+  '84000000-0000-4000-8000-0000000000a0', 'FAC-0084-A', 'Avisos prueba', 100, 0, 100, 'sent', 'USD', 20,
+  '[{"description":"Servicio de renta","quantity":1,"unit_price":100,"total":100}]'::jsonb);
 
 SET LOCAL role = authenticated;
 SET LOCAL request.jwt.claims TO '{"sub":"84000000-0000-4000-8000-000000000002","role":"authenticated"}';

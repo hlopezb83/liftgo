@@ -18,9 +18,21 @@ END; $$;
 
 -- FIX-R3-01 (Alta): archivado de OT cerrada con refacciones / mano de obra.
 SELECT pg_temp.expect_true(
-  'R3-01 trigger reject_mutations_on_closed_maintenance reconoce el bypass transaccional',
+  'R3-01 trigger protege ambos padres cerrados y los bloquea al trasladar líneas',
   (SELECT prosrc FROM pg_proc WHERE proname = 'reject_mutations_on_closed_maintenance' LIMIT 1)
-    ILIKE '%app.maintenance_soft_delete%'
+    ILIKE '%OLD.maintenance_log_id%'
+  AND (SELECT prosrc FROM pg_proc WHERE proname = 'reject_mutations_on_closed_maintenance' LIMIT 1)
+    ILIKE '%ORDER BY id FOR UPDATE%'
+  AND (SELECT prosrc FROM pg_proc WHERE proname = 'reject_mutations_on_closed_maintenance' LIMIT 1)
+    ILIKE '%completed%cancelled%'
+);
+
+SELECT pg_temp.expect_true(
+  'R3-01 archivado conserva refacciones y mano de obra sin borrar hijos',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'soft_delete_maintenance_log' LIMIT 1)
+    NOT ILIKE '%DELETE FROM public.maintenance_parts%'
+  AND (SELECT prosrc FROM pg_proc WHERE proname = 'soft_delete_maintenance_log' LIMIT 1)
+    NOT ILIKE '%DELETE FROM public.maintenance_labor%'
 );
 
 SELECT pg_temp.expect_true(

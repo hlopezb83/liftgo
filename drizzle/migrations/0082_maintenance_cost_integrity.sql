@@ -9,6 +9,81 @@ COMMENT ON COLUMN public.damage_records.actual_cost_source IS
   'Internal repair cost provenance. NULL means legacy/unverified; manual preserves an explicit valuation, including zero.';
 --> statement-breakpoint
 
+-- A transfer between open orders changes both totals. The child guard has
+-- already locked both parents in UUID order; retain the same order here.
+CREATE OR REPLACE FUNCTION public.recalc_maintenance_log_cost()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp
+AS $function$
+DECLARE
+  v_old_id uuid; v_new_id uuid; v_log_id uuid;
+  v_parts numeric; v_labor numeric; v_manual numeric;
+BEGIN
+  IF TG_OP <> 'INSERT' THEN v_old_id := OLD.maintenance_log_id; END IF;
+  IF TG_OP <> 'DELETE' THEN v_new_id := NEW.maintenance_log_id; END IF;
+  FOR v_log_id IN
+    SELECT DISTINCT id FROM unnest(ARRAY[v_old_id, v_new_id]) AS parent(id)
+    WHERE id IS NOT NULL ORDER BY id
+  LOOP
+    SELECT COALESCE(manual_cost, 0) INTO v_manual
+      FROM public.maintenance_logs WHERE id = v_log_id FOR UPDATE;
+    IF NOT FOUND THEN CONTINUE; END IF;
+    SELECT COALESCE(SUM(quantity_used * cost_at_time), 0) INTO v_parts
+      FROM public.maintenance_parts WHERE maintenance_log_id = v_log_id;
+    SELECT COALESCE(SUM(total_cost), 0) INTO v_labor
+      FROM public.maintenance_labor WHERE maintenance_log_id = v_log_id;
+    UPDATE public.maintenance_logs SET cost = ROUND(v_manual + v_parts + v_labor, 2)
+      WHERE id = v_log_id;
+  END LOOP;
+  RETURN COALESCE(NEW, OLD);
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.recalc_maintenance_log_cost() FROM PUBLIC, anon, authenticated;
+--> statement-breakpoint
+
+-- Reopen records the OT on the actual fleet status log schema, with its ID in
+-- the note. No generic entity_type/entity_id/reason columns exist on this table.
+CREATE OR REPLACE FUNCTION public.reopen_work_order(p_log_id uuid, p_reason text)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp
+AS $function$
+DECLARE
+  v_uid uuid := auth.uid(); v_org uuid; v_old text; v_forklift uuid;
+  v_previous_flag text := current_setting('app.maintenance_reopen_rpc', true);
+BEGIN
+  IF NOT public.has_role(v_uid, 'admin'::public.app_role) THEN
+    RAISE EXCEPTION 'Solo un administrador puede reabrir una orden de trabajo' USING ERRCODE = '42501';
+  END IF;
+  v_org := public.current_internal_organization_id();
+  IF v_org IS NULL OR NOT public.is_internal_member(v_uid) THEN
+    RAISE EXCEPTION 'Solo un administrador puede reabrir una orden de trabajo' USING ERRCODE = '42501';
+  END IF;
+  IF p_reason IS NULL OR btrim(p_reason) = '' THEN
+    RAISE EXCEPTION 'Se requiere un motivo para reabrir la orden de trabajo' USING ERRCODE = 'check_violation';
+  END IF;
+  SELECT work_status, forklift_id INTO v_old, v_forklift
+    FROM public.maintenance_logs
+    WHERE id = p_log_id AND organization_id = v_org AND deleted_at IS NULL FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'Orden de trabajo no encontrada o archivada' USING ERRCODE = 'P0001';
+  END IF;
+  IF v_old NOT IN ('completed', 'cancelled') THEN
+    RAISE EXCEPTION 'La orden de trabajo no está cerrada' USING ERRCODE = 'check_violation';
+  END IF;
+  PERFORM set_config('app.maintenance_reopen_rpc', 'on', true);
+  UPDATE public.maintenance_logs SET work_status = 'in_progress'
+    WHERE id = p_log_id AND organization_id = v_org;
+  PERFORM set_config('app.maintenance_reopen_rpc', COALESCE(v_previous_flag, 'off'), true);
+  INSERT INTO public.status_logs (forklift_id, from_status, to_status, note, changed_by, organization_id)
+    VALUES (v_forklift, 'ot:' || v_old, 'ot:in_progress',
+      'Orden de trabajo ' || p_log_id::text || ' reabierta: ' || btrim(p_reason), v_uid, v_org);
+EXCEPTION WHEN OTHERS THEN
+  PERFORM set_config('app.maintenance_reopen_rpc', COALESCE(v_previous_flag, 'off'), true);
+  RAISE;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.reopen_work_order(uuid, text) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.reopen_work_order(uuid, text) TO authenticated;
+--> statement-breakpoint
+
 CREATE OR REPLACE FUNCTION public.guard_closed_maintenance_header()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp
 AS $function$
