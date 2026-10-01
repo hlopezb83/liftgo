@@ -1,9 +1,7 @@
 /**
- * Diálogos y acciones de la operación de plataforma (alta de empresa, enlace de
- * acceso del primer administrador y suspensión/reactivación).
+ * Alta de empresa y enlace de acceso del primer administrador.
  *
- * Extraído de `PlatformOrganizationsPage` sin cambios de comportamiento: sólo
- * separa la página en piezas más cortas. La autorización sigue viviendo en
+ * La autorización sigue viviendo en
  * `requirePlatformOperator` y en las funciones `platform_*` de la base.
  */
 import { useState, type FormEvent } from "react";
@@ -19,26 +17,15 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type {
-  CreateOrganizationResult,
-  PlatformOrganizationRow,
-} from "@/lib/platformAdmin.functions";
-import { isStrongAdminPassword } from "@/lib/platformAdmin.helpers";
-import {
-  useCreateOrganization,
-  useSetOrganizationActive,
-} from "../hooks/usePlatformOperator";
-import { AdminPasswordField } from "./AdminPasswordField";
+import type { CreateOrganizationResult } from "@/lib/platformAdmin.functions";
+import { useCreateOrganization } from "../hooks/usePlatformOperator";
 
 const EMPTY_FORM = {
   name: "",
   slug: "",
   admin_email: "",
   admin_full_name: "",
-  admin_password: "",
 };
-
-
 
 function slugify(value: string): string {
   return value
@@ -49,7 +36,6 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 63);
 }
-
 
 export function CreateOrganizationDialog({
   open,
@@ -62,9 +48,7 @@ export function CreateOrganizationDialog({
 }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [slugTouched, setSlugTouched] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const create = useCreateOrganization();
-
 
   const update = (field: keyof typeof EMPTY_FORM) => (value: string) => {
     setForm((prev) => {
@@ -74,36 +58,35 @@ export function CreateOrganizationDialog({
     });
   };
 
-  const rawPassword = form.admin_password.trim();
-  const passwordError =
-    rawPassword && !isStrongAdminPassword(rawPassword)
-      ? "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos"
-      : null;
-
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (passwordError) return;
-    const result = await create.mutateAsync({
-      ...form,
-      admin_password: rawPassword || undefined,
-    });
+    let result: CreateOrganizationResult;
+    try {
+      result = await create.mutateAsync(form);
+    } catch {
+      return;
+    }
     setForm(EMPTY_FORM);
     setSlugTouched(false);
-    setShowPassword(false);
     onOpenChange(false);
     onCreated(result);
   };
 
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!create.isPending) onOpenChange(next);
+      }}
+    >
       <DialogContent>
         <form onSubmit={submit} className="space-y-4">
           <DialogHeader>
             <DialogTitle>Nueva empresa</DialogTitle>
             <DialogDescription>
-              Se crea la empresa y su primer administrador en una sola
-              operación. Si algo falla, no queda ninguna empresa a medias.
+              Se crea la empresa y después se vincula su primer administrador.
+              La empresa permanece sin acceso hasta completar el alta. Si falla,
+              el servidor intenta compensar la operación.
             </DialogDescription>
           </DialogHeader>
 
@@ -158,16 +141,6 @@ export function CreateOrganizationDialog({
               onChange={(e) => update("admin_email")(e.target.value)}
             />
           </div>
-          <AdminPasswordField
-            value={form.admin_password}
-            onChange={update("admin_password")}
-            error={passwordError}
-            visible={showPassword}
-            onToggleVisible={() => setShowPassword((v) => !v)}
-          />
-
-
-
 
           <DialogFooter>
             <Button
@@ -178,10 +151,7 @@ export function CreateOrganizationDialog({
             >
               Cancelar
             </Button>
-            <Button
-              type="submit"
-              disabled={create.isPending || Boolean(passwordError)}
-            >
+            <Button type="submit" disabled={create.isPending}>
               {create.isPending ? "Creando…" : "Crear empresa"}
             </Button>
           </DialogFooter>
@@ -240,73 +210,5 @@ export function CreatedResultDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-export function OrganizationRowActions({
-  row,
-}: {
-  row: PlatformOrganizationRow;
-}) {
-  const toggle = useSetOrganizationActive();
-  const [confirming, setConfirming] = useState(false);
-
-  if (row.is_active) {
-    return (
-      <>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setConfirming(true)}
-          disabled={toggle.isPending}
-        >
-          Suspender
-        </Button>
-        <Dialog open={confirming} onOpenChange={setConfirming}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Suspender {row.name}</DialogTitle>
-              <DialogDescription>
-                Todos sus usuarios internos y cuentas de portal perderán el
-                acceso de inmediato. Los datos se conservan y la empresa puede
-                reactivarse después.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setConfirming(false)}
-                disabled={toggle.isPending}
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={toggle.isPending}
-                onClick={() =>
-                  toggle.mutate(
-                    { organization_id: row.id, active: false },
-                    { onSettled: () => setConfirming(false) },
-                  )
-                }
-              >
-                {toggle.isPending ? "Suspendiendo…" : "Suspender empresa"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </>
-    );
-  }
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      disabled={toggle.isPending}
-      onClick={() => toggle.mutate({ organization_id: row.id, active: true })}
-    >
-      {toggle.isPending ? "Reactivando…" : "Reactivar"}
-    </Button>
   );
 }

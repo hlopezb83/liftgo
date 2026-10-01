@@ -1,5 +1,15 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.37] - 2026-10-01 · patch · feature
+
+El Centro de Plataforma muestra la preparación de cada empresa y registra los cambios administrativos del ecosistema.
+
+- Ficha con administradores, configuración fiscal, catálogos adoptados, versiones de contrato, folios y conteo de cuentas bancarias.
+- Checklist de configuración que distingue requisitos y recomendaciones, sin presentar la captura como validación fiscal o del proveedor.
+- Bitácora global con actor, motivo, campos permitidos y paginación por cursor; los eventos nuevos se guardan junto con la operación.
+- Suspensión y reactivación requieren motivo. Los guardados idénticos no generan eventos nuevos y se conserva la protección de la empresa del operador.
+- Búsqueda, filtros, paginación y tarjetas adaptables en Empresas; el alta utiliza el enlace gestionado para definir la contraseña.
+
 ## [8.42.36] - 2026-10-01 · patch · feature
 
 Los operadores cuentan con acceso, navegación y espacio propios para administrar las empresas y los maestros compartidos.

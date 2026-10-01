@@ -26,7 +26,7 @@ DECLARE
     'billing_secrets', 'invoices', 'payments_portal', 'supplier_payments',
     'supplier_bills', 'profiles', 'user_roles', 'role_permissions',
     'audit_logs', 'contracts', 'customers_portal', 'company_settings',
-    'part_stock_adjustments'
+    'part_stock_adjustments', 'platform_audit_events'
   ];
   v_name text;
   v_relkind "char";

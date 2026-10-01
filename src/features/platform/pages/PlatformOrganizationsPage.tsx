@@ -1,172 +1,154 @@
-/**
- * Operación de plataforma (tramo 9 multiempresa): alta de empresas con su
- * primer administrador y suspensión/reactivación.
- *
- * Visibilidad: sólo operadores de plataforma confirmados por el servidor. La
- * autorización real vive en `requirePlatformOperator` y en las funciones
- * `platform_*` de la base; esta página nunca decide permisos por sí misma.
- */
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { CompanyIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { CreateOrganizationResult } from "@/lib/platformAdmin.functions";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { CreateOrganizationResult } from "@/lib/platformAdmin.types";
 import {
   CreateOrganizationDialog,
   CreatedResultDialog,
-  OrganizationRowActions,
 } from "../components/PlatformOrganizationDialogs";
-import {
-  usePlatformOperatorStatus,
-  usePlatformOrganizations,
-} from "../hooks/usePlatformOperator";
+import { PlatformOrganizationList } from "../components/PlatformOrganizationList";
+import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
+
+const PAGE_SIZE = 20;
+const normalize = (value: string) =>
+  value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 export default function PlatformOrganizationsPage() {
-  const { data: isOperator, isLoading: loadingOperator } =
-    usePlatformOperatorStatus();
-  const {
-    data: organizations,
-    isLoading,
-    isError,
-    refetch,
-  } = usePlatformOrganizations(isOperator === true);
+  const query = usePlatformOrganizations(true);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [page, setPage] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [created, setCreated] = useState<CreateOrganizationResult | null>(null);
-
-  if (loadingOperator) return null;
-
-  if (isOperator !== true) {
+  const needle = normalize(search.trim());
+  const rows = (query.data ?? []).filter((row) => {
+    const statusMatches = !status || row.is_active === (status === "active");
     return (
-      <div className="space-y-6">
-        <PageHeader title="Empresas" subtitle="Operación de plataforma" />
-        <Alert>
-          <AlertTitle>Sección restringida</AlertTitle>
-          <AlertDescription>
-            El alta y la suspensión de empresas sólo están disponibles para
-            operadores de plataforma.
-          </AlertDescription>
-        </Alert>
-      </div>
+      statusMatches &&
+      normalize([row.name, row.razon_social, row.slug].join(" ")).includes(
+        needle,
+      )
     );
+  });
+  const lastPage = Math.max(0, Math.ceil(rows.length / PAGE_SIZE) - 1);
+  const currentPage = Math.min(page, lastPage);
+  const visible = rows.slice(
+    currentPage * PAGE_SIZE,
+    (currentPage + 1) * PAGE_SIZE,
+  );
+  function clearFilters() {
+    setSearch("");
+    setStatus("");
+    setPage(0);
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Empresas"
-        subtitle="Alta de empresas con su primer administrador y suspensión/reactivación"
+        subtitle="Configuración, administradores, habilitación y actividad del ecosistema LiftGo."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
-            <CompanyIcon className="h-4 w-4 mr-2" /> Nueva empresa
+            <CompanyIcon className="mr-2 h-4 w-4" />
+            Nueva empresa
           </Button>
         }
       />
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Empresas registradas</CardTitle>
-          <CardDescription>
-            Cada usuario pertenece a una sola empresa; una empresa suspendida
-            bloquea a todos sus miembros hasta reactivarla.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isError ? (
-            <Alert variant="destructive">
-              <AlertTitle>No se pudo cargar la lista</AlertTitle>
-              <AlertDescription className="flex items-center gap-3">
-                Reintenta en unos segundos.
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => void refetch()}
-                >
-                  Reintentar
-                </Button>
-              </AlertDescription>
-            </Alert>
-          ) : isLoading ? (
-            <p className="text-sm text-muted-foreground">Cargando…</p>
+      <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
+        <div className="space-y-2">
+          <Label htmlFor="platform-company-search">Buscar empresa</Label>
+          <Input
+            id="platform-company-search"
+            placeholder="Nombre, razón social o identificador"
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(0);
+            }}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="platform-company-status">Acceso empresarial</Label>
+          <select
+            id="platform-company-status"
+            className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+            value={status}
+            onChange={(event) => {
+              setStatus(event.target.value);
+              setPage(0);
+            }}
+          >
+            <option value="">Todas las empresas</option>
+            <option value="active">Activas</option>
+            <option value="inactive">Sin acceso</option>
+          </select>
+        </div>
+      </div>
+      {query.isError ? (
+        <QueryErrorState
+          entity="las empresas"
+          onRetry={() => void query.refetch()}
+          isRetrying={query.isFetching}
+        />
+      ) : query.isPending ? (
+        <Skeleton className="h-64 w-full" />
+      ) : (
+        <>
+          {visible.length ? (
+            <PlatformOrganizationList rows={visible} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Empresa</TableHead>
-                  <TableHead>Razón social</TableHead>
-                  <TableHead>Identificador</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Usuarios</TableHead>
-                  <TableHead className="text-right">Portal</TableHead>
-                  <TableHead className="text-right">Clientes</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(organizations ?? []).map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
-                    <TableCell>
-                      {row.razon_social ?? (
-                        <span className="text-muted-foreground">Sin datos fiscales</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {row.slug}
-                    </TableCell>
-                    <TableCell>
-                      {row.is_active ? (
-                        <Badge>Activa</Badge>
-                      ) : (
-                        <Badge variant="secondary">Suspendida</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {row.internal_members}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {row.portal_accounts}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      {row.customers}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <OrganizationRowActions row={row} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {(organizations ?? []).length === 0 && (
-                  <TableRow>
-                    <TableCell
-                      colSpan={7}
-                      className="text-center text-sm text-muted-foreground"
-                    >
-                      No hay empresas registradas.
-                    </TableCell>
-                  </TableRow>
+            <Card>
+              <CardContent className="space-y-3 py-12 text-center">
+                <p className="font-medium">
+                  {query.data?.length
+                    ? "No hay empresas para estos filtros"
+                    : "No hay empresas registradas"}
+                </p>
+                {(search || status) && (
+                  <Button variant="outline" onClick={clearFilters}>
+                    Limpiar filtros
+                  </Button>
                 )}
-              </TableBody>
-            </Table>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-muted-foreground">
+              {rows.length} empresas · Página {currentPage + 1} de{" "}
+              {lastPage + 1}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                disabled={!currentPage}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                disabled={currentPage >= lastPage}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Siguiente
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+      <p className="text-xs text-muted-foreground">
+        La ficha permite revisar la configuración sin entrar al ERP de otra
+        empresa. Sin acceso incluye suspensión o alta pendiente de completar.
+      </p>
       <CreateOrganizationDialog
         open={createOpen}
         onOpenChange={setCreateOpen}

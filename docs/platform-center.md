@@ -10,8 +10,10 @@ propio layout y autorización. Se conserva la marca global LiftGo.
 | --- | --- |
 | `/platform/login` | Inicio de sesión público para operadores; recuperación usa el flujo existente |
 | `/platform` | Inicio con conteos reales de empresas y accesos a administración |
-| `/platform/organizations` | Pantalla existente de alta, suspensión y reactivación de empresas |
+| `/platform/organizations` | Empresas con búsqueda, filtros, paginación y alta con enlace gestionado |
+| `/platform/organizations/$organizationId` | Ficha, checklist y cambio de acceso con motivo |
 | `/platform/catalogs` | Modelos, SKUs y machotes legales globales existentes |
+| `/platform/audit` | Bitácora global, filtros de empresa/ámbito y detalle de cambios |
 | `/?workspace=organization` | Entrada explícita al ERP de la empresa del usuario |
 
 El operador confirmado entra al Centro desde `/`. Los demás usuarios conservan
@@ -63,10 +65,71 @@ Catálogos, navegación móvil y regreso al ERP. Registrar por separado cualquie
 escenario sin sesión disponible; una prueba de componentes no acredita una
 verificación visual publicada.
 
+## Etapa 2 — fichas y trazabilidad administrativa
+
+La ficha muestra identidad fiscal, administradores internos, adopción de modelos
+y SKUs globales, versiones legales asignadas, contadores locales y cantidad de
+cuentas bancarias activas. No devuelve llaves, saldos, números de cuenta, tarifas,
+existencias, cuerpos legales ni permisos nuevos sobre el ERP de otra empresa.
+La disponibilidad de Facturapi comprueba la llave del ambiente seleccionado
+en el servidor; no consulta al proveedor. El checklist comprueba configuración,
+no acredita validación SAT, timbrado, saldos o preparación para producción.
+
+Los contadores se muestran como texto, desde `0001`, sin truncar valores mayores
+a cuatro dígitos ni consumir folios. Los contadores aún no creados se inicializan
+al emitir el primer documento. Facturas y notas fiscales conservan el folio de
+Facturapi. Una versión anterior de contrato puede seguir siendo válida.
+
+La lista pagina veinte empresas en el cliente sobre la consulta existente. La
+bitácora sí pagina en SQL con cursor por ID, veinticinco eventos por página. Un
+filtro inválido no ejecuta una consulta ampliada y un fallo muestra reintento.
+Cambiar filtros reinicia el cursor. El ID se conserva como texto para no perder
+precisión de `bigint` en JavaScript.
+
+### Migración 0088 y alcance de la bitácora
+
+- `platform_audit_events` tiene RLS y FORCE RLS con una policy restrictiva que
+  deniega todo acceso de clientes.
+  Anon y authenticated tampoco tienen grants sobre tabla, secuencia o RPCs
+  privilegiados. Las funciones de servidor y SQL vuelven a comprobar al operador
+  explícito y su perfil activo.
+- Triggers registran altas/cambios/bajas de empresas, modelos, SKUs,
+  compatibilidades, definiciones/versiones legales, asignaciones de plataforma y
+  operadores en la misma transacción que la mutación. Un rollback revierte ambas.
+  Las asignaciones legales de un administrador empresarial permanecen en su
+  ámbito; no se atribuyen automáticamente a plataforma.
+- El actor se toma de la identidad autenticada o del contexto local de la RPC
+  privilegiada, con comprobación vigente. Las columnas `updated_by` anteriores
+  no sirven para atribuir una acción nueva. `request_id` identifica la transacción
+  SQL; no es el requestId de un reporte HTTP.
+- La proyección guarda sólo valores administrativos permitidos y nombres de
+  campos modificados. El contenido legal y la metadata arbitraria se excluyen.
+  Los snapshots no tienen FK para conservar el historial al borrar identidades.
+- UPDATE, DELETE y TRUNCATE de eventos se rechazan por trigger. Esto no limita
+  a quien administra infraestructura y puede modificar el esquema. No hay edición
+  o borrado de eventos desde el Centro.
+- Se recuperan únicamente eventos de empresa identificados como plataforma en
+  la bitácora anterior, con sus fechas y actores. No se inventa historial de
+  catálogos anterior a la migración.
+- La suspensión/reactivación usa una RPC nueva con motivo de 5–500 caracteres,
+  rechaza formatos reconocibles de llaves/tokens y conserva la prohibición de
+  suspender la empresa del actor. Las llamadas idénticas no agregan eventos.
+  La RPC anterior mantiene compatibilidad durante el despliegue con un motivo
+  que identifica la integración anterior.
+
+Aplicar 0088 por el canal oficial Lovable Cloud después de validar CI, consultar
+el ledger actual y comprobar el hash de 0087. Registrar hash y fecha del journal
+en la misma transacción. Verificar ACLs, tabla y RPCs antes de publicar la UI.
+Git por sí solo no acredita que la migración esté aplicada o que la versión esté
+publicada. Las pruebas SQL de esta etapa corren exclusivamente en la base efímera
+de CI y revierten los fixtures.
+
 ## Siguientes etapas
 
-1. Ficha de empresa, checklist de incorporación y bitácora global con actor,
-   motivo y cambios. Las pantallas trasladadas conservan su alcance previo.
+1. Ampliar el alta con idempotencia persistida y reanudación de estados
+   intermedios. La compensación existente no equivale a un trabajo durable.
+   Importación revisada de maestros desde Org 1 con normalización y duplicados;
+   no hay sincronización automática con Org 1.
 2. Administración de operadores con permisos específicos, MFA y recuperación
    segura. Actualmente sólo existe la autoridad explícita global.
 3. Estado de integraciones y fallos por empresa, sin exponer secretos.

@@ -617,6 +617,13 @@
       "when": 1790874202007,
       "tag": "0087_booking_quote_rental_line_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1790885052977,
+      "tag": "0088_platform_center_readmodels_and_audit",
+      "breakpoints": true
     }
   ]
 }

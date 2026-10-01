@@ -43,8 +43,8 @@ export interface CreateOrganizationResult {
   password_set_manually: boolean;
 }
 
-
 export interface SetOrganizationActiveInput {
   organization_id: string;
   active: boolean;
+  reason: string;
 }

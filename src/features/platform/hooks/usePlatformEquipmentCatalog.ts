@@ -16,6 +16,7 @@ import {
 } from "@/lib/platformCatalog.functions";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { platformKeys } from "./usePlatformOperator";
+import { platformReadKeys } from "./usePlatformReadModels";
 
 export function usePlatformEquipmentCatalog(enabled: boolean) {
   return useQuery({
@@ -30,7 +31,10 @@ export function usePlatformEquipmentCatalog(enabled: boolean) {
 export function useSavePlatformEquipmentModel() {
   return useEntityMutation<EquipmentModelCatalogInput, { id: string }>({
     mutationFn: async (input) => savePlatformEquipmentModelFn({ data: input }),
-    invalidateKeys: [[...platformKeys.all, "equipment-model-catalog"]],
+    invalidateKeys: [
+      [...platformKeys.all, "equipment-model-catalog"],
+      platformReadKeys.all,
+    ],
     onSuccess: (_result, input) => {
       notifySuccess(input.id ? "Modelo actualizado" : "Modelo global creado");
     },
@@ -39,9 +43,16 @@ export function useSavePlatformEquipmentModel() {
 }
 
 export function useSetPlatformEquipmentModelActive() {
-  return useEntityMutation<SetEquipmentModelCatalogActiveInput, { success: true }>({
-    mutationFn: async (input) => setPlatformEquipmentModelActiveFn({ data: input }),
-    invalidateKeys: [[...platformKeys.all, "equipment-model-catalog"]],
+  return useEntityMutation<
+    SetEquipmentModelCatalogActiveInput,
+    { success: true }
+  >({
+    mutationFn: async (input) =>
+      setPlatformEquipmentModelActiveFn({ data: input }),
+    invalidateKeys: [
+      [...platformKeys.all, "equipment-model-catalog"],
+      platformReadKeys.all,
+    ],
     onSuccess: (_result, input) => {
       notifySuccess(input.active ? "Modelo reactivado" : "Modelo desactivado");
     },
@@ -62,7 +73,10 @@ export function usePlatformPartsCatalog(enabled: boolean) {
 export function useSavePlatformPartCatalog() {
   return useEntityMutation<PartCatalogInput, { id: string }>({
     mutationFn: async (input) => savePlatformPartCatalogFn({ data: input }),
-    invalidateKeys: [[...platformKeys.all, "parts-catalog"]],
+    invalidateKeys: [
+      [...platformKeys.all, "parts-catalog"],
+      platformReadKeys.all,
+    ],
     onSuccess: (_result, input) => {
       notifySuccess(input.id ? "SKU actualizado" : "SKU global creado");
     },
@@ -72,8 +86,12 @@ export function useSavePlatformPartCatalog() {
 
 export function useSetPlatformPartCatalogActive() {
   return useEntityMutation<SetPartCatalogActiveInput, { success: true }>({
-    mutationFn: async (input) => setPlatformPartCatalogActiveFn({ data: input }),
-    invalidateKeys: [[...platformKeys.all, "parts-catalog"]],
+    mutationFn: async (input) =>
+      setPlatformPartCatalogActiveFn({ data: input }),
+    invalidateKeys: [
+      [...platformKeys.all, "parts-catalog"],
+      platformReadKeys.all,
+    ],
     onSuccess: (_result, input) => {
       notifySuccess(input.active ? "SKU reactivado" : "SKU desactivado");
     },
