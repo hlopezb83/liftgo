@@ -511,8 +511,8 @@ $function$;
 -- Retain the legacy helper signature used by archive/restore RPCs, with the same
 -- scoped reconciliation rules; callers cannot turn a manual hold into availability.
 CREATE OR REPLACE FUNCTION public.damage_restore_forklift_status(p_forklift_id uuid,p_previous text)
-RETURNS text LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public, pg_temp AS $restore$
-DECLARE v_org uuid; v_status text; v_deleted timestamptz;
+RETURNS text LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = public, pg_temp AS $restore$
+DECLARE v_org uuid; v_status text; v_deleted timestamptz; v_automatic boolean;
 BEGIN
   IF auth.uid() IS NOT NULL THEN
     v_org:=public.current_internal_organization_id();
@@ -527,16 +527,23 @@ BEGIN
   END IF;
   SELECT organization_id,status,deleted_at INTO v_org,v_status,v_deleted FROM public.forklifts
     WHERE id=p_forklift_id AND (auth.uid() IS NULL OR organization_id=v_org);
-  IF NOT FOUND THEN RAISE EXCEPTION 'Montacargas inexistente o no autorizado.' USING ERRCODE='42501'; END IF;
+  -- INVOKER/RLS deliberately gives the same neutral result for an absent or hidden unit.
+  IF NOT FOUND THEN RETURN 'available'; END IF;
   IF v_deleted IS NOT NULL OR v_status IN ('sold','retired') THEN RETURN v_status; END IF;
-  IF EXISTS(SELECT 1 FROM public.bookings b JOIN public.deliveries d ON d.booking_id=b.id AND d.organization_id=b.organization_id
-    WHERE b.organization_id=v_org AND b.forklift_id=p_forklift_id AND b.status='confirmed' AND NOT public.booking_is_returned(b.id)
-      AND d.type='delivery' AND d.status='completed') THEN RETURN 'rented'; END IF;
+  IF public.has_open_rental(p_forklift_id) THEN RETURN 'rented'; END IF;
   IF EXISTS(SELECT 1 FROM public.maintenance_logs WHERE organization_id=v_org AND forklift_id=p_forklift_id
-      AND deleted_at IS NULL AND work_status IN ('pending','in_progress','waiting_parts'))
+      AND deleted_at IS NULL AND work_status IN ('pending', 'in_progress', 'waiting_parts'))
     OR EXISTS(SELECT 1 FROM public.damage_records WHERE organization_id=v_org AND forklift_id=p_forklift_id
       AND deleted_at IS NULL AND (status IN ('reported','in_repair') OR repaired_at IS NULL)) THEN RETURN 'maintenance'; END IF;
-  IF v_status='maintenance' AND NOT public.forklift_maintenance_is_automatic(v_org,p_forklift_id) THEN RETURN 'maintenance'; END IF;
+  -- Keep the private provenance helper private; this INVOKER query observes RLS.
+  SELECT COALESCE((SELECT sl.note ~
+    '^(OT .+ (en (progreso|pending|in_progress|waiting_parts)|restaurada en (pending|in_progress|waiting_parts))|(Orden de trabajo|Daño) [0-9a-f-]{36}: actualización operativa|Returned — condition: .+|Migración 0086: corrección de estado derivado de órdenes y daños; se conserva la historia operativa original)
+  RETURN 'available';
+
+    FROM public.status_logs sl WHERE sl.organization_id=v_org AND sl.forklift_id=p_forklift_id AND sl.to_status='maintenance'
+      AND sl.from_status IS DISTINCT FROM sl.to_status
+    ORDER BY sl.changed_at DESC,sl.id DESC LIMIT 1),false) INTO v_automatic;
+  IF v_status='maintenance' AND NOT v_automatic THEN RETURN 'maintenance'; END IF;
   RETURN 'available';
 END $restore$;
 REVOKE ALL ON FUNCTION public.damage_restore_forklift_status(uuid,text) FROM PUBLIC,anon;

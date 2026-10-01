@@ -53,6 +53,7 @@ INSERT INTO public.quotes (
   )),
   '87000000-0000-4000-8000-0000000000a0'
 );
+UPDATE public.quotes SET status = 'sent' WHERE organization_id = NULLIF(current_setting('app.organization_id',true),'')::uuid AND status='draft';
 UPDATE public.quotes SET status = 'accepted'
 WHERE id IN ('87000000-0000-4000-8000-0000000000a4',
              '87000000-0000-4000-8000-0000000000a8');
@@ -85,6 +86,7 @@ INSERT INTO public.quotes (
   )),
   '87000000-0000-4000-8000-0000000000b0'
 );
+UPDATE public.quotes SET status = 'sent' WHERE organization_id = NULLIF(current_setting('app.organization_id',true),'')::uuid AND status='draft';
 UPDATE public.quotes SET status = 'accepted'
 WHERE id = '87000000-0000-4000-8000-0000000000b4';
 

@@ -29,13 +29,21 @@ BEGIN
   INSERT INTO public.forklifts(id,name,model,organization_id,status) VALUES
     ('86000000-0000-4000-8000-00000000fa01','OPS-SOURCE','Toyota 8FG25',v_a,'available'),
     ('86000000-0000-4000-8000-00000000fa02','OPS-TARGET','Toyota 8FG25',v_a,'available'),
-    ('86000000-0000-4000-8000-00000000fa03','OPS-SOLD','Toyota 8FG25',v_a,'sold'),
-    ('86000000-0000-4000-8000-00000000fa04','OPS-RETIRED','Toyota 8FG25',v_a,'retired'),
+    ('86000000-0000-4000-8000-00000000fa03','OPS-SOLD','Toyota 8FG25',v_a,'available'),
+    ('86000000-0000-4000-8000-00000000fa04','OPS-RETIRED','Toyota 8FG25',v_a,'available'),
     ('86000000-0000-4000-8000-00000000fa05','OPS-DAMAGE','Toyota 8FG25',v_a,'available'),
     ('86000000-0000-4000-8000-00000000fa06','OPS-IN-FIELD','Toyota 8FG25',v_a,'available'),
-    ('86000000-0000-4000-8000-00000000fa07','OPS-MANUAL-HOLD','Toyota 8FG25',v_a,'maintenance'),
-    ('86000000-0000-4000-8000-00000000fa08','OPS-LEGACY-OT-SOURCE','Toyota 8FG25',v_a,'maintenance'),
+    ('86000000-0000-4000-8000-00000000fa07','OPS-MANUAL-HOLD','Toyota 8FG25',v_a,'available'),
+    ('86000000-0000-4000-8000-00000000fa08','OPS-LEGACY-OT-SOURCE','Toyota 8FG25',v_a,'available'),
     ('86000000-0000-4000-8000-00000000fa09','OPS-LEGACY-OT-TARGET','Toyota 8FG25',v_a,'available');
+  PERFORM set_config('app.forklift_rpc','on',true);
+  UPDATE public.forklifts SET status=CASE
+    WHEN id='86000000-0000-4000-8000-00000000fa03' THEN 'sold'
+    WHEN id='86000000-0000-4000-8000-00000000fa04' THEN 'retired'
+    ELSE 'maintenance' END
+    WHERE id IN ('86000000-0000-4000-8000-00000000fa03','86000000-0000-4000-8000-00000000fa04',
+      '86000000-0000-4000-8000-00000000fa07','86000000-0000-4000-8000-00000000fa08');
+  PERFORM set_config('app.forklift_rpc','off',true);
   INSERT INTO public.status_logs(forklift_id,from_status,to_status,note,organization_id,changed_at)
     VALUES('86000000-0000-4000-8000-00000000fa07','available','maintenance','Mantenimiento manual: retener para inspección de seguridad',v_a,clock_timestamp());
   -- Emulate the deployed pre-September OT ingress; inserting its parent while
@@ -63,6 +71,26 @@ BEGIN
   INSERT INTO storage.buckets(id,name) VALUES('documents','documents') ON CONFLICT(id) DO NOTHING;
   PERFORM set_config('app.organization_id',v_a::text,true);
 END $setup$;
+
+-- Auth fixtures without app_metadata are deliberately not provisioned by 0061.
+-- Provision active profiles explicitly, as the real internal-user flow does.
+-- This runs only in the ephemeral suite transaction and is rolled back.
+DO $active_profiles$
+DECLARE v_member record; v_previous text := current_setting('app.organization_id', true);
+BEGIN
+  FOR v_member IN
+    SELECT m.organization_id, u.id, u.email
+      FROM public.organization_memberships m JOIN auth.users u ON u.id=m.auth_user_id
+      JOIN public.user_roles ur ON ur.user_id=u.id
+     WHERE m.member_type='internal' AND ur.role <> 'customer'
+       AND NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.user_id=u.id)
+  LOOP
+    PERFORM set_config('app.organization_id',v_member.organization_id::text,true);
+    INSERT INTO public.profiles(user_id,full_name,email,is_active,organization_id)
+      VALUES(v_member.id,v_member.email,v_member.email,true,v_member.organization_id);
+  END LOOP;
+  PERFORM set_config('app.organization_id',COALESCE(v_previous,''),true);
+END $active_profiles$;
 
 SET LOCAL ROLE authenticated;
 SET LOCAL request.jwt.claims='{"sub":"86000000-0000-4000-8000-0000000000a3","role":"authenticated"}';

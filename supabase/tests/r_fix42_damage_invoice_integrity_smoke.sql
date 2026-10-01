@@ -72,17 +72,18 @@ SELECT pg_temp.expect_true(
     SELECT 1 FROM pg_trigger t
     JOIN pg_class c ON c.oid = t.tgrelid
     WHERE c.relname = 'damage_records'
-      AND t.tgname = 'trg_damage_repaired_restore'
+      AND t.tgname = 'trg_sync_forklift_damage'
       AND NOT t.tgisinternal
-      AND pg_get_triggerdef(t.oid) ILIKE '%UPDATE OF status, repaired_at, deleted_at%'
+      AND pg_get_triggerdef(t.oid) ILIKE '%UPDATE OF forklift_id, status, repaired_at, deleted_at%'
   )
 );
 
 SELECT pg_temp.expect_true(
   'restauración serializa por equipo y restablece el bypass',
-  pg_temp.fndef('restore_forklift_on_damage_repaired', 0) LIKE '%FOR UPDATE%'
-  AND pg_temp.fndef('restore_forklift_on_damage_repaired', 0)
-    LIKE '%v_previous_rpc%'
+  pg_temp.fndef('lock_damage_forklifts_and_owner', 0) LIKE '%FOR UPDATE%'
+  AND pg_temp.fndef('sync_forklift_status_on_damage', 0) LIKE '%reconcile_forklift_operations%'
+  AND pg_temp.fndef('reconcile_forklift_operations', 3) LIKE '%v_flag%'
+  AND pg_temp.fndef('reconcile_forklift_operations', 3) LIKE '%EXCEPTION WHEN OTHERS%'
   AND pg_temp.fndef('soft_delete_damage_record', 1)
     LIKE '%v_previous_rpc%'
 );
