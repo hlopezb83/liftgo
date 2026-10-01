@@ -78,8 +78,8 @@ BEGIN
        AND NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.user_id=u.id)
   LOOP
     PERFORM set_config('app.organization_id',v_member.organization_id::text,true);
-    INSERT INTO public.profiles(user_id,full_name,email,is_active,organization_id)
-      VALUES(v_member.id,v_member.email,v_member.email,true,v_member.organization_id);
+    INSERT INTO public.profiles(user_id,full_name,email,is_active)
+      VALUES(v_member.id,v_member.email,v_member.email,true);
   END LOOP;
   PERFORM set_config('app.organization_id',COALESCE(v_previous,''),true);
 END $active_profiles$;
