@@ -15,9 +15,9 @@ export function useCatalogImportCandidates(kind: CatalogImportKind, offset: numb
     queryFn: () => listCatalogImportCandidatesFn({ data: { kind, offset } }),
   });
 }
-export function useCatalogImportPreview(input: CatalogImportPreviewInput) {
+export function useCatalogImportPreview(input: CatalogImportPreviewInput, enabled = true) {
   return useQuery({
-    queryKey: importKeys.preview(input), staleTime: 0, gcTime: 0,
+    queryKey: importKeys.preview(input), enabled, staleTime: 0, gcTime: 0,
     refetchOnWindowFocus: false, refetchOnReconnect: false,
     queryFn: () => getCatalogImportPreviewFn({ data: input }),
   });

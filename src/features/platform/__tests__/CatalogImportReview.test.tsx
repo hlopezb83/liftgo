@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { importPreview } from "./catalogImport.fixture";
-const state = vi.hoisted(() => ({ isPending: false, mutateAsync: vi.fn() }));
-vi.mock("../hooks/usePlatformCatalogImport", () => ({ useImportCatalogCandidate: () => state }));
+const state = vi.hoisted(() => ({ isPending: false, mutateAsync: vi.fn(), preview: vi.fn() }));
+vi.mock("../hooks/usePlatformCatalogImport", () => ({ useImportCatalogCandidate: () => state, useCatalogImportPreview: state.preview }));
 import { CatalogImportComparison } from "../components/catalogImport/CatalogImportComparison";
+import { CatalogImportReviewDialog } from "../components/catalogImport/CatalogImportReviewDialog";
 import { CatalogImportReviewForm } from "../components/catalogImport/CatalogImportReviewForm";
 
 describe("revisión explícita y reintentos de maestros", () => {
@@ -42,5 +43,14 @@ describe("revisión explícita y reintentos de maestros", () => {
     render(<CatalogImportComparison preview={{ ...preview, status: "duplicate", match: { id: preview.source_id, name: "Atlas · Norte 30", is_active: true, data: { ...preview.source, capacity_kg: 3500, mast_height_m: null } } }} />);
     expect(screen.getByText("3000")).toBeVisible(); expect(screen.getByText("3500")).toBeVisible();
     expect(screen.getByText("—")).toBeVisible();
+  });
+  it("explica el origen inválido sin convertir contenido malformado en un error genérico", () => {
+    state.preview.mockReturnValue({ data: undefined, isError: true, isLoading: false });
+    render(<CatalogImportReviewDialog candidate={{ ...importPreview(), status: "invalid", issue: "El machote de origen requiere corregir su contenido antes de incorporarlo." }} onClose={vi.fn()} />);
+    expect(screen.getByRole("status")).toHaveTextContent("corregir su contenido");
+    expect(screen.getByText(/Solicita al administrador de Org 1/)).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Crear maestro global" })).not.toBeInTheDocument();
+    expect(state.preview).toHaveBeenCalledWith(expect.any(Object), false);
+    expect(state.mutateAsync).not.toHaveBeenCalled();
   });
 });

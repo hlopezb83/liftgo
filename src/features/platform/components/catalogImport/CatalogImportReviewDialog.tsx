@@ -9,12 +9,16 @@ import { CatalogImportComparison } from "./CatalogImportComparison";
 import { CatalogImportReviewForm } from "./CatalogImportReviewForm";
 
 export function CatalogImportReviewDialog({ candidate, onClose }: { candidate: CatalogImportSummary; onClose: () => void }) {
-  const query = useCatalogImportPreview({ kind: candidate.kind, source_id: candidate.source_id });
+  const query = useCatalogImportPreview({ kind: candidate.kind, source_id: candidate.source_id }, candidate.status !== "invalid");
   const [pending, setPending] = useState(false);
   const preview = query.data;
   return <FormDialog open onOpenChange={(open) => !open && onClose()} isPending={pending}
     title="Revisar incorporación" description={candidate.title} width="2xl">
-    {query.isError ? <QueryErrorState bare entity="la comparación" onRetry={() => void query.refetch()} />
+    {candidate.status === "invalid" ? <div className="space-y-4">
+      <Badge variant="outline">{CATALOG_IMPORT_STATUS.invalid}</Badge>
+      <p role="status" className="rounded-lg border p-3 text-sm">{candidate.issue ?? "El origen requiere correcciones."}</p>
+      <p className="text-sm text-muted-foreground">Solicita al administrador de Org 1 corregir esta ficha. Después podrás volver a revisarla para incorporarla.</p>
+    </div> : query.isError ? <QueryErrorState bare entity="la comparación" onRetry={() => void query.refetch()} />
       : query.isLoading || !preview ? <p role="status" className="py-10 text-center text-sm text-muted-foreground">Cargando comparación…</p>
       : <div className="space-y-5">
         <Badge variant="outline">{CATALOG_IMPORT_STATUS[preview.status]}</Badge>
