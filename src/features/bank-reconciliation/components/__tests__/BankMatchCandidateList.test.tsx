@@ -1,6 +1,9 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
+
+const { state, refetch } = vi.hoisted(() => ({ state: { isError: false }, refetch: vi.fn() }));
+beforeEach(() => { state.isError = false; refetch.mockReset(); });
 
 vi.mock("../../hooks/useBankMatchCandidates", async () => {
   const actual = await vi.importActual<typeof import("../../hooks/useBankMatchCandidates")>(
@@ -24,6 +27,8 @@ vi.mock("../../hooks/useBankMatchCandidates", async () => {
         },
       ],
       isFetching: false,
+      isError: state.isError,
+      refetch,
     }),
   };
 });
@@ -31,6 +36,17 @@ vi.mock("../../hooks/useBankMatchCandidates", async () => {
 import { BankMatchCandidateList } from "../BankMatchCandidateList";
 
 describe("BankMatchCandidateList", () => {
+  it("shows an inline retry on failure and hides stale candidates and ignore advice", () => {
+    state.isError = true;
+    const { Wrapper } = createQueryWrapper();
+    render(<Wrapper><BankMatchCandidateList lineId="line-1" currency="MXN" search="" onSearchChange={vi.fn()}
+      dateWindow={15} onDateWindowChange={vi.fn()} onSelect={vi.fn()} /></Wrapper>);
+    expect(screen.getByRole("alert")).toHaveTextContent("No se pudo cargar");
+    expect(screen.queryByText(/marca.*ignorado/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("bank-candidate-match")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(refetch).toHaveBeenCalledTimes(1);
+  });
   // F7: onSelect debe propagar el `kind` del candidato (tabla destino real),
   // no inferirlo por el signo de la línea.
   it("propaga id y kind del candidato al hacer click en Emparejar", () => {

@@ -11,6 +11,7 @@ import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { partCategoryLabel } from "../../lib/partCategories";
+import { AdjustPartStockDialog } from "./AdjustPartStockDialog";
 
 interface Props {
   part: PartInventory | null;
@@ -22,6 +23,7 @@ interface Props {
 export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
   const deletePart = useDeletePart();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [adjustOpen, setAdjustOpen] = useState(false);
 
   if (!part) return null;
 
@@ -37,6 +39,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
 
   return (
+    <>
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
@@ -93,7 +96,10 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
           <Separator />
           <RoleGuard module="Refacciones" minAccess="full" fallback={null}>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" className="w-full" onClick={() => setAdjustOpen(true)}>
+                <Layers className="h-4 w-4 mr-1" /> Ajustar existencias
+              </Button>
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(part); onOpenChange(false); }}>
                 <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>
@@ -116,5 +122,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
         </Activity>
       </SheetContent>
     </Sheet>
+    <AdjustPartStockDialog part={part} open={adjustOpen} onOpenChange={setAdjustOpen} />
+    </>
   );
 }

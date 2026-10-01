@@ -6,104 +6,80 @@ interface RowState {
   selected: boolean;
   amount: number;
 }
-
 export interface CurrencyTotal {
   currency: string;
   total: number;
 }
-
 export type SupplierBillRow = ExportablePayable;
-
-/**
- * Misma tolerancia de redondeo que RegisterSupplierPaymentDialog
- * (`amount <= balance + 0.0001`) para no rechazar centavos de floating point.
- */
 const AMOUNT_TOLERANCE = 0.0001;
 
-/**
- * Estado puro de selección múltiple en el diálogo de exportación de pagos.
- * Separa el manejo de `rowState` + totales del flujo de export en sí.
- */
+function reconcileRows(
+  bills: SupplierBillRow[],
+  previous: Record<string, RowState>,
+  firstLoad: boolean,
+): Record<string, RowState> {
+  return Object.fromEntries(bills.map((bill) => {
+    const existing = previous[bill.id];
+    const eligible = bill.has_valid_clabe && !bill.payment_in_progress_at;
+    return [bill.id, {
+      selected: eligible && (existing?.selected ?? firstLoad),
+      amount: existing?.amount ?? bill.balance,
+    }];
+  }));
+}
+
+/** Preserve user choices on refetch; validate them against the latest balances. */
 export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | undefined) {
   const [rowState, setRowState] = useState<Record<string, RowState>>({});
-
   const [prevOpen, setPrevOpen] = useState(open);
-  const [prevBills, setPrevBills] = useState(bills);
-  if (open !== prevOpen || bills !== prevBills) {
+  const billSignature = bills?.map((bill) => JSON.stringify([bill.id, bill.has_valid_clabe, !!bill.payment_in_progress_at])).join("|");
+  const [prevSignature, setPrevSignature] = useState(billSignature);
+  const [initialized, setInitialized] = useState(false);
+
+  if (open !== prevOpen) {
     setPrevOpen(open);
-    setPrevBills(bills);
-    if (open) {
-      const init: Record<string, RowState> = {};
-      for (const b of bills ?? []) {
-        init[b.id] = {
-          selected: b.has_valid_clabe && !b.payment_in_progress_at,
-          amount: b.balance,
-        };
-      }
-      setRowState(init);
-    }
+    setPrevSignature(billSignature);
+    setInitialized(open && bills !== undefined);
+    setRowState(open && bills ? reconcileRows(bills, {}, true) : {});
+  } else if (open && bills !== undefined && (!initialized || billSignature !== prevSignature)) {
+    setPrevSignature(billSignature);
+    setInitialized(true);
+    setRowState(reconcileRows(bills, rowState, !initialized));
   }
 
-  const selected: SupplierBillRow[] = (bills ?? []).filter((b) => rowState[b.id]?.selected);
-  // Total por moneda: sumar montos de MXN y USD en un solo número mezclaría
-  // peras con manzanas (el Excel también se totaliza por moneda).
-  const totalsByCurrency: CurrencyTotal[] = [
-    ...selected
-      .reduce((acc, b) => {
-        const currency = b.currency || "MXN";
-        acc.set(currency, (acc.get(currency) ?? 0) + (rowState[b.id]?.amount ?? 0));
-        return acc;
-      }, new Map<string, number>())
-      .entries(),
-  ]
-    .map(([currency, total]) => ({ currency, total: roundMoney(total) }))
-    .sort((a, b) => a.currency.localeCompare(b.currency));
-  // M-20: además de la CLABE, validar el monto por renglón con el mismo
-  // criterio que RegisterSupplierPaymentDialog: 0 < amount <= balance + tol.
-  const hasInvalid = selected.some((b) => {
-    if (!b.has_valid_clabe) return true;
-    const amount = rowState[b.id]?.amount ?? b.balance;
-    return amount <= 0 || amount > b.balance + AMOUNT_TOLERANCE;
+  const selected = (bills ?? []).filter((bill) => rowState[bill.id]?.selected);
+  const totalsByCurrency: CurrencyTotal[] = [...selected.reduce((totals, bill) => {
+    const currency = bill.currency || "MXN";
+    totals.set(currency, (totals.get(currency) ?? 0) + (rowState[bill.id]?.amount ?? 0));
+    return totals;
+  }, new Map<string, number>())].map(([currency, total]) => ({
+    currency, total: roundMoney(total),
+  })).sort((a, b) => a.currency.localeCompare(b.currency));
+
+  const hasInvalid = selected.some((bill) => {
+    const amount = rowState[bill.id]?.amount ?? bill.balance;
+    return !bill.has_valid_clabe || !Number.isFinite(amount) ||
+      amount <= 0 || amount > bill.balance + AMOUNT_TOLERANCE;
   });
-  const eligible: SupplierBillRow[] = (bills ?? []).filter(
-    (b) => b.has_valid_clabe && !b.payment_in_progress_at,
-  );
+  const eligible = (bills ?? []).filter((bill) => bill.has_valid_clabe && !bill.payment_in_progress_at);
+  const allEligibleSelected = eligible.length > 0 && eligible.every((bill) => rowState[bill.id]?.selected);
 
-  const allEligibleSelected =
-    eligible.length > 0 && eligible.every((b) => rowState[b.id]?.selected);
-
-  const toggleAll = (val: boolean) => {
-    setRowState((prev) => {
-      const next = { ...prev };
-      for (const b of eligible) {
-        next[b.id] = { ...next[b.id], selected: val };
-      }
-      return next;
-    });
-  };
-
-  const setSelected = (id: string, selected: boolean, fallback: number) => {
-    setRowState((p) => ({
-      ...p,
-      [id]: { ...p[id], selected, amount: p[id]?.amount ?? fallback },
-    }));
-  };
-
-  const setAmount = (id: string, amount: number) => {
-    setRowState((p) => ({
-      ...p,
-      [id]: { ...p[id], amount, selected: p[id]?.selected ?? false },
-    }));
-  };
+  const toggleAll = (selected: boolean) => setRowState((previous) => {
+    const next = { ...previous };
+    for (const bill of eligible) next[bill.id] = { ...next[bill.id], selected };
+    return next;
+  });
+  const setSelected = (id: string, selected: boolean, fallback: number) => setRowState((previous) => ({
+    ...previous,
+    [id]: { ...previous[id], selected, amount: previous[id]?.amount ?? fallback },
+  }));
+  const setAmount = (id: string, amount: number) => setRowState((previous) => ({
+    ...previous,
+    [id]: { ...previous[id], amount, selected: previous[id]?.selected ?? false },
+  }));
 
   return {
-    rowState,
-    selected,
-    totalsByCurrency,
-    hasInvalid,
-    allEligibleSelected,
-    toggleAll,
-    setSelected,
-    setAmount,
+    rowState, selected, totalsByCurrency, hasInvalid, allEligibleSelected,
+    toggleAll, setSelected, setAmount,
   };
 }

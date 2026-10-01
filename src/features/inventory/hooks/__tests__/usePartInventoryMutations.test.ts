@@ -20,6 +20,8 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyError: notifyErrorMock,
 const inserts: unknown[] = [];
 const updates: Array<{ patch: unknown; eqArgs: unknown[] }> = [];
 const activationArgs: unknown[] = [];
+const metadataArgs: unknown[] = [];
+const adjustmentArgs: unknown[] = [];
 
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "p-1", sku: "SKU-001" }, error: null,
@@ -35,6 +37,8 @@ vi.mock("@/integrations/supabase/client", () => ({
         activationArgs.push(args);
         return { data: "local-part-id", error: null };
       },
+      update_part_inventory_metadata: (args) => { metadataArgs.push(args); return updateResp; },
+      adjust_part_stock: (args) => { adjustmentArgs.push(args); return updateResp; },
     },
     tableResolvers: {
       parts_inventory: (calls) => {
@@ -53,11 +57,12 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import {
-  useActivateCatalogPart, useCreatePart, useUpdatePart, useDeletePart,
+  useActivateCatalogPart, useCreatePart, useUpdatePart, useDeletePart, useAdjustPartStock,
 } from "../usePartInventoryMutations";
 
 beforeEach(() => {
   inserts.length = 0; updates.length = 0; activationArgs.length = 0;
+  metadataArgs.length = 0; adjustmentArgs.length = 0;
   notifyErrorMock.mockReset();
   insertResp = { data: { id: "p-1", sku: "SKU-001" }, error: null };
   updateResp = { data: { id: "p-1" }, error: null };
@@ -96,7 +101,7 @@ describe("useCreatePart", () => {
     let created: unknown;
     await act(async () => {
       created = await result.current.mutateAsync({
-        sku: "SKU-001", name: "Filtro aceite", quantity_on_hand: 10, unit_cost: 250,
+        sku: "SKU-001", name: "Filtro aceite", stock_quantity: 10, unit_cost: 250,
       } as never);
     });
 
@@ -119,17 +124,35 @@ describe("useCreatePart", () => {
 });
 
 describe("useUpdatePart", () => {
-  it("patch excluye id y filtra por eq('id', ...)", async () => {
+  it("editar ubicación no puede reenviar las existencias antiguas", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useUpdatePart(), { wrapper: Wrapper });
 
     await act(async () => {
-      await result.current.mutateAsync({ id: "p-1", quantity_on_hand: 25 } as never);
+      await result.current.mutateAsync({ id: "p-1", min_stock_level: 2, unit_cost: 250, location: "Rack B1", stock_quantity: 10 } as never);
     });
 
-    expect(updates[0].patch).toEqual({ quantity_on_hand: 25 });
-    expect((updates[0].patch as Record<string, unknown>).id).toBeUndefined();
-    expect(updates[0].eqArgs).toEqual(["id", "p-1"]);
+    expect(metadataArgs[0]).toEqual({ p_part_id: "p-1", p_min_stock_level: 2, p_unit_cost: 250, p_location: "Rack B1" });
+    expect(updates).toHaveLength(0);
+  });
+});
+
+describe("useAdjustPartStock", () => {
+  it("envía conteo esperado y motivo para el ajuste atómico", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAdjustPartStock(), { wrapper: Wrapper });
+    await act(async () => { await result.current.mutateAsync({ id: "p-1", expectedQuantity: 10, newQuantity: 8, reason: "Conteo físico" }); });
+    expect(adjustmentArgs[0]).toEqual({ p_part_id: "p-1", p_expected_stock_quantity: 10, p_new_stock_quantity: 8, p_reason: "Conteo físico" });
+  });
+  it("un conflicto de consumo rechaza el guardado y no invalida datos como éxito", async () => {
+    updateResp = { data: null, error: { message: "Las existencias cambiaron" } };
+    const { Wrapper, queryClient } = createQueryWrapper();
+    queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
+    queryClient.setQueryData(["parts_inventory", "list"], { stock_quantity: 9 });
+    const { result } = renderHook(() => useAdjustPartStock(), { wrapper: Wrapper });
+    await act(async () => { await expect(result.current.mutateAsync({ id: "p-1", expectedQuantity: 10, newQuantity: 11, reason: "Conteo" })).rejects.toMatchObject({ message: "Las existencias cambiaron" }); });
+    expect(queryClient.getQueryState(["parts_inventory", "list"])?.isInvalidated).toBe(false);
+    expect(queryClient.getQueryData(["parts_inventory", "list"])).toEqual({ stock_quantity: 9 });
   });
 });
 

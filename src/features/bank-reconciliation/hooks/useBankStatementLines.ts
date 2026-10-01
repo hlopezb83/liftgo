@@ -60,6 +60,9 @@ type UntypedRpc = (
 export const bankLinesKey = (bankAccountId: string | null) =>
   [...bankLineKeys.all, "account", bankAccountId] as const;
 
+export const bankAccountHasLinesKey = (bankAccountId: string | null) =>
+  [...bankLineKeys.all, "has-lines", bankAccountId] as const;
+
 export function useBankStatementLines(
   bankAccountId: string | null,
   filters: BankStatementLineFilters = {},
@@ -141,15 +144,12 @@ export function useBankReconciliationKpis(bankAccountId: string | null) {
  */
 export function useBankAccountHasLines(
   bankAccountId: string | null | undefined,
+  enabled = true,
 ) {
   return useQuery({
-    queryKey: [
-      ...bankLineKeys.all,
-      "has-lines",
-      bankAccountId ?? null,
-    ] as const,
-    enabled: !!bankAccountId,
-    staleTime: 30_000,
+    queryKey: bankAccountHasLinesKey(bankAccountId ?? null),
+    enabled: enabled && !!bankAccountId,
+    staleTime: 0,
     queryFn: async (): Promise<boolean> => {
       const { count, error } = await supabase
         .from("bank_statement_lines")

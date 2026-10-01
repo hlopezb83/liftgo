@@ -596,6 +596,27 @@
       "when": 1790874202004,
       "tag": "0084_notification_recipient_org_scope",
       "breakpoints": true
+    },
+    {
+      "idx": 85,
+      "version": "7",
+      "when": 1790874202005,
+      "tag": "0085_payment_batch_snapshot_and_bank_currency",
+      "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1790874202006,
+      "tag": "0086_inventory_and_operational_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 87,
+      "version": "7",
+      "when": 1790874202007,
+      "tag": "0087_booking_quote_rental_line_identity",
+      "breakpoints": true
     }
   ]
 }

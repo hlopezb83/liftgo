@@ -63,4 +63,18 @@ describe("useProspectForm — alta y moneda", () => {
     act(() => { payload = result.current.buildPayload(); });
     expect(payload).toMatchObject({ deal_value: 21170, quote_id: null });
   });
+
+  it("coloca un correo inválido debajo de Email y lo limpia al corregir", () => {
+    const { result } = renderHook(() => useProspectForm({ prospect: null, open: true, defaultStage: "nuevo_prospecto" }));
+    act(() => {
+      result.current.setters.setCompany("Logística Álamo");
+      result.current.setters.setEmail("correo-invalido");
+    });
+    act(() => { expect(result.current.buildPayload()).toBeNull(); });
+    expect(result.current.fields.emailError).toMatch(/correo|email|válido/i);
+    expect(result.current.fields.dealValueError).toBeNull();
+    act(() => result.current.setters.setEmail("cliente@example.com"));
+    expect(result.current.fields.emailError).toBeNull();
+    act(() => { expect(result.current.buildPayload()).not.toBeNull(); });
+  });
 });

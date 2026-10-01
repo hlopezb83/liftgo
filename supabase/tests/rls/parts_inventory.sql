@@ -71,6 +71,26 @@ BEGIN
   ON CONFLICT DO NOTHING;
 END $mem$;
 
+-- Auth fixtures without app_metadata are deliberately not provisioned by 0061.
+-- Provision active profiles explicitly, as the real internal-user flow does.
+-- This runs only in the ephemeral suite transaction and is rolled back.
+DO $active_profiles$
+DECLARE v_member record; v_previous text := current_setting('app.organization_id', true);
+BEGIN
+  FOR v_member IN
+    SELECT m.organization_id, u.id, u.email
+      FROM public.organization_memberships m JOIN auth.users u ON u.id=m.auth_user_id
+      JOIN public.user_roles ur ON ur.user_id=u.id
+     WHERE m.member_type='internal' AND ur.role <> 'customer'
+       AND NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.user_id=u.id)
+  LOOP
+    PERFORM set_config('app.organization_id',v_member.organization_id::text,true);
+    INSERT INTO public.profiles(user_id,full_name,email,is_active)
+      VALUES(v_member.id,v_member.email,v_member.email,true);
+  END LOOP;
+  PERFORM set_config('app.organization_id',COALESCE(v_previous,''),true);
+END $active_profiles$;
+
 SET LOCAL role = 'anon';
 SET LOCAL request.jwt.claims TO '{"role":"anon"}';
 
@@ -157,7 +177,7 @@ END $$;
 SET LOCAL request.jwt.claims TO '{"sub":"f1111111-1111-4111-8111-111111111101","role":"authenticated"}';
 
 DO $$
-DECLARE v_rows int;
+DECLARE v_rows int; v_blocked boolean:=false; v_part public.parts_inventory;
 BEGIN
   IF (SELECT COUNT(*) FROM public.parts_inventory) < 1 THEN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia leer parts_inventory';
@@ -170,10 +190,13 @@ BEGIN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia poder dar de alta refacciones';
   END IF;
 
-  UPDATE public.parts_inventory SET stock_quantity = 9
-   WHERE id = 'f1111111-1111-4111-8111-1111111111a1';
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
+  BEGIN
+    UPDATE public.parts_inventory SET stock_quantity = 9
+     WHERE id = 'f1111111-1111-4111-8111-1111111111a1';
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked:=true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'UPDATE directo de stock permitió omitir el motivo/version'; END IF;
+  v_part:=public.adjust_part_stock('f1111111-1111-4111-8111-1111111111a1',10,9,'Conteo físico RLS');
+  IF v_part.stock_quantity <> 9 THEN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia poder ajustar el stock';
   END IF;
   RAISE NOTICE 'OK: mecanico administra parts_inventory';

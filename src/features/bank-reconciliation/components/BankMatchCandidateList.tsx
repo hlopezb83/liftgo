@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,7 +51,7 @@ export function BankMatchCandidateList({
   disabled,
 }: Props) {
   const debouncedSearch = useDebouncedValue(search, 250);
-  const { data: candidates = [], isFetching } = useBankMatchCandidates({
+  const { data: candidates = [], isFetching, isError, isPending, refetch } = useBankMatchCandidates({
     lineId,
     search: debouncedSearch,
     dateWindow,
@@ -83,7 +84,11 @@ export function BankMatchCandidateList({
         </Select>
       </div>
 
-      {isFetching ? (
+      {isError ? (
+        <div role="alert">
+          <QueryErrorState bare entity="los candidatos de conciliación" onRetry={() => { void refetch(); }} isRetrying={isFetching} />
+        </div>
+      ) : isFetching || isPending ? (
         <div className="flex items-center justify-center py-6 text-xs text-muted-foreground">
           <SpinnerIcon className="mr-1 h-3 w-3 animate-spin" /> Buscando candidatos…
         </div>

@@ -3,14 +3,14 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
-import { maintenanceLogKeys } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { damageArchiveBlockReason, useDamagePermissions } from "../../hooks/useDamagePermissions";
-import { damageRecordQueries, useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
+import { useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { useStartRepairWorkOrder } from "../../hooks/useStartRepairWorkOrder";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
+import { damageInvalidationKeys } from "../../lib/damageInvalidationKeys";
 import { DamageActionButtons, DamageBlockReasons } from "./DamageActionButtons";
 
 interface DamageActionsProps {
@@ -36,10 +36,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
     try {
       const handledByRpc = await tryStartRepairWorkOrder(record);
       if (handledByRpc) {
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: damageRecordQueries.keys.all }),
-          queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all }),
-        ]);
+        await Promise.all(damageInvalidationKeys.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
         notifySuccess("Orden de mantenimiento creada");
         return;
       }

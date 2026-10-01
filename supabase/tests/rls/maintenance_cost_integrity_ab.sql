@@ -64,6 +64,26 @@ BEGIN
   PERFORM set_config('app.organization_id', v_a::text, true);
 END $setup$;
 
+-- Auth fixtures without app_metadata are deliberately not provisioned by 0061.
+-- Provision active profiles explicitly, as the real internal-user flow does.
+-- This runs only in the ephemeral suite transaction and is rolled back.
+DO $active_profiles$
+DECLARE v_member record; v_previous text := current_setting('app.organization_id', true);
+BEGIN
+  FOR v_member IN
+    SELECT m.organization_id, u.id, u.email
+      FROM public.organization_memberships m JOIN auth.users u ON u.id=m.auth_user_id
+      JOIN public.user_roles ur ON ur.user_id=u.id
+     WHERE m.member_type='internal' AND ur.role <> 'customer'
+       AND NOT EXISTS (SELECT 1 FROM public.profiles p WHERE p.user_id=u.id)
+  LOOP
+    PERFORM set_config('app.organization_id',v_member.organization_id::text,true);
+    INSERT INTO public.profiles(user_id,full_name,email,is_active)
+      VALUES(v_member.id,v_member.email,v_member.email,true);
+  END LOOP;
+  PERFORM set_config('app.organization_id',COALESCE(v_previous,''),true);
+END $active_profiles$;
+
 SET LOCAL ROLE authenticated;
 SET LOCAL request.jwt.claims = '{"sub":"82000000-0000-4000-8000-0000000000a1","role":"authenticated"}';
 -- An explicitly saved zero is distinguishable from the default historical zero.

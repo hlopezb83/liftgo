@@ -52,7 +52,6 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
 
   const onSubmit = form.handleSubmit((data) => {
     const payload = {
-      stock_quantity: data.stock_quantity,
       min_stock_level: data.min_stock_level,
       unit_cost: data.unit_cost,
       location: data.location || null,
@@ -83,13 +82,11 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
           </FormSection>
           <FormSection title="Inventario y costo">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <NumberField
-                control={form.control}
-                name="stock_quantity"
-                label="Stock Actual"
-                min={0}
-                nullOnEmpty={false}
-              />
+              <div className="space-y-1.5 text-sm">
+                <p className="font-medium">Stock actual</p>
+                <p>{part?.stock_quantity ?? 0} unidades</p>
+                <p className="text-muted-foreground">Para registrar un conteo físico, usa Ajustar existencias en el detalle.</p>
+              </div>
               <NumberField
                 control={form.control}
                 name="min_stock_level"

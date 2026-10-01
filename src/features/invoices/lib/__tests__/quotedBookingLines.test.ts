@@ -99,6 +99,50 @@ describe("descuentos de cotización al facturar reservas", () => {
     expect(() => build([bookings[0]], quote, [bookings[0]])).toThrow(/certeza/);
   });
 
+  it("distingue dos partidas iguales por la identidad persistida de cada reserva", () => {
+    const repeated = { ...quote,
+      rental_meta: [{ ...meta, quantity: 1 }, { ...meta, quantity: 1 }],
+      line_items: [
+        ...generateLineItemsFromModel("Toyota", meta.dailyRate, meta.weeklyRate, meta.monthlyRate,
+          quote.start_date!, quote.end_date!, 1).map((line) => ({ ...line, discount: 5, discount_type: "%" })),
+        ...generateLineItemsFromModel("Toyota", meta.dailyRate, meta.weeklyRate, meta.monthlyRate,
+          quote.start_date!, quote.end_date!, 1).map((line) => ({ ...line, discount: 20, discount_type: "%" })),
+      ],
+    };
+    const mapped = bookings.map((booking, index) => ({ ...booking, quote_rental_line_index: index }));
+    const first = build([mapped[0]], repeated, mapped);
+    const second = build([mapped[1]], repeated, mapped);
+    expect(first.map((line) => line.discount)).not.toEqual(second.map((line) => line.discount));
+    expect(money(computeTotals(first, 0).subtotal).add(computeTotals(second, 0).subtotal).value)
+      .toBe(computeTotals(build(mapped, repeated, mapped), 0).subtotal);
+    expect(() => build(bookings, repeated, bookings)).toThrow(/certeza/);
+    expect(() => build([mapped[0]], repeated, [mapped[0], bookings[1]])).toThrow(/certeza/);
+  });
+
+  it("conserva tarifas y descuentos distintos para dos partidas del mismo modelo", () => {
+    const firstMeta = { ...meta, quantity: 1 };
+    const secondMeta = { ...firstMeta, dailyRate: 850.50, weeklyRate: 4750.25, monthlyRate: 16500.75 };
+    const pricedQuote = { ...quote,
+      rental_meta: [firstMeta, secondMeta],
+      line_items: [firstMeta, secondMeta].flatMap((line, index) =>
+        generateLineItemsFromModel("Toyota", line.dailyRate, line.weeklyRate, line.monthlyRate,
+          quote.start_date!, quote.end_date!, 1)
+          .map((item) => ({ ...item, discount: index === 0 ? 5 : 20, discount_type: "%" }))),
+    };
+    const mapped = [
+      { ...bookings[0], quote_rental_line_index: 0 },
+      { ...bookings[1], ...secondMeta, daily_rate: secondMeta.dailyRate,
+        weekly_rate: secondMeta.weeklyRate, monthly_rate: secondMeta.monthlyRate,
+        quote_rental_line_index: 1 },
+    ];
+    const first = build([mapped[0]], pricedQuote, mapped);
+    const second = build([mapped[1]], pricedQuote, mapped);
+    expect(first.map((item) => item.unit_price)).not.toEqual(second.map((item) => item.unit_price));
+    expect(first.map((item) => item.discount)).not.toEqual(second.map((item) => item.discount));
+    expect(money(computeTotals(first, 0).subtotal).add(computeTotals(second, 0).subtotal).value)
+      .toBe(computeTotals(build(mapped, pricedQuote, mapped), 0).subtotal);
+  });
+
   it("no confunde renta legacy o descuentos sólo en metadatos con tarifas sin descuento", () => {
     expect(() => build(bookings, { ...quote, rental_meta: [], line_items: [
       { description: "Renta montacargas", quantity: 1, unit_price: 1000, total: 1000, discount: 10, discount_type: "%" },

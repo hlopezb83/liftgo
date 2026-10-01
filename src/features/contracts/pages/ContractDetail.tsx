@@ -70,7 +70,7 @@ function ContractDetailFallback({
 
 export default function ContractDetail() {
   const navigate = useNavigateTransition();
-  const { id, contract, isLoading, isError, refetch, setStatus } = useContractDetailLogic();
+  const { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending } = useContractDetailLogic();
 
   if (isLoading || isError || !contract || !id) {
     return (
@@ -98,6 +98,8 @@ export default function ContractDetail() {
             status={contract.status}
             contract={contract}
             onSetStatus={setStatus}
+            onSetSigner={setSigner}
+            signerPending={signerPending}
           />
         }
       />
@@ -143,4 +145,3 @@ export default function ContractDetail() {
     </PageContainer>
   );
 }
-

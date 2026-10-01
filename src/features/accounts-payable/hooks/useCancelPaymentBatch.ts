@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { exportablePayableQueries } from "./useExportablePayables";
@@ -15,6 +16,7 @@ import { supplierBillKeys } from "./useSupplierBills";
  * viven en el RPC `cancel_supplier_payment_batch`; aquí no se duplican.
  */
 export function useCancelPaymentBatch() {
+  const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: async (batchId: string) =>
       callRpc<undefined>("cancel_supplier_payment_batch", { p_batch_id: batchId }),
@@ -25,5 +27,7 @@ export function useCancelPaymentBatch() {
       ["accounts_payable_kpis"],
     ],
     errorTitle: "No se pudo cancelar el lote de pagos",
+    successMsg: "Lote de pagos cancelado",
+    onError: () => { void queryClient.invalidateQueries({ queryKey: PAYMENT_BATCHES_QK }); },
   });
 }

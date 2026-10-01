@@ -625,6 +625,7 @@ export type Database = {
           monthly_rate: number | null
           organization_id: string
           quote_id: string | null
+          quote_rental_line_index: number | null
           recurring_billing: boolean
           return_status: string | null
           site_contact_name: string | null
@@ -653,6 +654,7 @@ export type Database = {
           monthly_rate?: number | null
           organization_id: string
           quote_id?: string | null
+          quote_rental_line_index?: number | null
           recurring_billing?: boolean
           return_status?: string | null
           site_contact_name?: string | null
@@ -681,6 +683,7 @@ export type Database = {
           monthly_rate?: number | null
           organization_id?: string
           quote_id?: string | null
+          quote_rental_line_index?: number | null
           recurring_billing?: boolean
           return_status?: string | null
           site_contact_name?: string | null
@@ -1678,6 +1681,7 @@ export type Database = {
       }
       damage_records: {
         Row: {
+          reported_by: string | null
           actual_cost: number | null
           actual_cost_source: string | null
           actual_cost_recorded_at: string | null
@@ -1700,6 +1704,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          reported_by?: string | null
           actual_cost?: number | null
           actual_cost_source?: string | null
           actual_cost_recorded_at?: string | null
@@ -1722,6 +1727,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          reported_by?: string | null
           actual_cost?: number | null
           actual_cost_source?: string | null
           actual_cost_recorded_at?: string | null
@@ -3657,6 +3663,51 @@ export type Database = {
           },
         ]
       }
+      part_stock_adjustments: {
+        Row: {
+          id: string
+          organization_id: string
+          part_id: string
+          previous_quantity: number
+          new_quantity: number
+          reason: string
+          adjusted_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          organization_id?: string
+          part_id: string
+          previous_quantity: number
+          new_quantity: number
+          reason: string
+          adjusted_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          organization_id?: string
+          part_id?: string
+          previous_quantity?: number
+          new_quantity?: number
+          reason?: string
+          adjusted_by?: string
+          created_at?: string
+        }
+        Relationships: [{
+          foreignKeyName: "part_stock_adjustments_part_id_fkey"
+          columns: ["part_id"]
+          isOneToOne: false
+          referencedRelation: "parts_inventory"
+          referencedColumns: ["id"]
+        }, {
+          foreignKeyName: "part_stock_adjustments_organization_id_fkey"
+          columns: ["organization_id"]
+          isOneToOne: false
+          referencedRelation: "organizations"
+          referencedColumns: ["id"]
+        }]
+      }
       parts_inventory: {
         Row: {
           catalog_part_id: string | null
@@ -4991,6 +5042,8 @@ export type Database = {
       }
       supplier_payment_batches: {
         Row: {
+          cancelled_at: string | null
+          cancelled_by: string | null
           bill_count: number
           created_at: string
           currency: string
@@ -5002,6 +5055,8 @@ export type Database = {
           total_amount: number
         }
         Insert: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           bill_count?: number
           created_at?: string
           currency?: string
@@ -5013,6 +5068,8 @@ export type Database = {
           total_amount?: number
         }
         Update: {
+          cancelled_at?: string | null
+          cancelled_by?: string | null
           bill_count?: number
           created_at?: string
           currency?: string
@@ -5484,6 +5541,43 @@ export type Database = {
       }
     }
     Functions: {
+      adjust_part_stock: {
+        Args: {
+          p_part_id: string
+          p_expected_stock_quantity: number
+          p_new_stock_quantity: number
+          p_reason: string
+        }
+        Returns: Database["public"]["Tables"]["parts_inventory"]["Row"]
+      }
+      update_part_inventory_metadata: {
+        Args: {
+          p_part_id: string
+          p_min_stock_level: number
+          p_unit_cost: number
+          p_location: string | null
+        }
+        Returns: Database["public"]["Tables"]["parts_inventory"]["Row"]
+      }
+      save_manual_damage_report: {
+        Args: {
+          p_forklift_id: string
+          p_description: string
+          p_estimated_cost: number | null
+          p_customer_id?: string | null
+          p_damage_id?: string | null
+          p_expected_updated_at?: string | null
+        }
+        Returns: Database["public"]["Tables"]["damage_records"]["Row"]
+      }
+      get_supplier_payment_batch_snapshot: {
+        Args: { p_batch_id: string }
+        Returns: Json
+      }
+      get_supplier_payment_batches_page: {
+        Args: { p_page_size?: number; p_offset?: number }
+        Returns: Json
+      }
       accept_quote_from_portal: {
         Args: { p_ip?: string; p_quote_id: string }
         Returns: {

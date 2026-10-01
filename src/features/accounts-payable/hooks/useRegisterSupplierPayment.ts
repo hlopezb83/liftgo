@@ -4,6 +4,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { resolveBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { exportablePayableQueries } from "./useExportablePayables";
+import { PAYMENT_BATCHES_QK } from "./usePaymentBatches";
 import { supplierBillKeys } from "./useSupplierBills";
 
 export interface RegisterPaymentInput {
@@ -31,6 +32,7 @@ const paymentInvalidationKeys = (billId: string) => [
   ["accounts_payable_kpis"],
   ["dashboard-financial-kpis"],
   ["cash-flow"],
+  PAYMENT_BATCHES_QK,
 ];
 
 export function useRegisterSupplierPayment(opts?: {

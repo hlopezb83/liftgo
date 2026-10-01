@@ -11,6 +11,7 @@ import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useCreateSupplier, useUpdateSupplier } from "../../hooks/useSuppliers";
+import { applySupplierCsfPatch } from "../../lib/applySupplierCsfPatch";
 import {
   buildSupplierPayload,
   supplierToFormData,
@@ -50,13 +51,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
 
   const handleCsfParsed = (patch: Partial<SupplierFormData>, file: File) => {
     setCsfFile(file);
-    const current = form.getValues();
-    const next: SupplierFormData = { ...current };
-    (Object.keys(patch) as (keyof SupplierFormData)[]).forEach((k) => {
-      const v = patch[k];
-      if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
-    });
-    form.reset(next, { keepDirty: true });
+    applySupplierCsfPatch(form, patch);
   };
 
   const uploadCsfIfAny = async (supplierId: string) => {
@@ -82,12 +77,13 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   };
 
   const isPending = createSupplier.isPending || updateSupplier.isPending;
-  useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
+  const hasUnsavedChanges = form.formState.isDirty || csfFile !== null;
+  useUnsavedChangesGuard(open && hasUnsavedChanges && !isPending);
 
   return (
     <FormDialog
       isPending={createSupplier.isPending || updateSupplier.isPending}
-      isDirty={form.formState.isDirty}
+      isDirty={hasUnsavedChanges}
       open={open}
       onOpenChange={onOpenChange}
       title={supplier ? "Editar proveedor" : "Nuevo proveedor"}

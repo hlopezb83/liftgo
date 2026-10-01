@@ -1,8 +1,9 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { bankImportKeys } from "../../lib/queryKeys";
-import { bankLinesKey } from "../useBankStatementLines";
+import { bankAccountHasLinesKey, bankLinesKey } from "../useBankStatementLines";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 
 export interface ImportArgs {
@@ -111,11 +112,15 @@ export async function importBankStatement(args: ImportArgs): Promise<ImportResul
 }
 
 export function useImportBankStatement() {
+  const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: importBankStatement,
-    invalidateKeysFn: (_res, vars) => [bankImportKeys.all, bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_res, vars) => [
+      bankImportKeys.all, bankLinesKey(vars.bankAccountId), bankAccountHasLinesKey(vars.bankAccountId),
+    ],
     errorTitle: "Error al importar estado de cuenta",
-    onSuccess: (res) => {
+    onSuccess: (res, vars) => {
+      if (res.insertedCount > 0) queryClient.setQueryData(bankAccountHasLinesKey(vars.bankAccountId), true);
       if (res.insertedCount === 0) {
         notifySuccess("Archivo ya importado: no había movimientos nuevos.");
         return;

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { DeliveryIcon, SignIcon, ErrorIcon, EditIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -5,16 +6,20 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
+import { ContractSignerDialog } from "./ContractSignerDialog";
 
 interface ContractDetailActionsProps {
   id: string;
   status: string;
   contract: ContractData;
   onSetStatus: (status: string, extra?: Record<string, unknown>) => void;
+  onSetSigner: (name: string) => Promise<void>;
+  signerPending: boolean;
 }
 
-export function ContractDetailActions({ id, status, contract, onSetStatus }: ContractDetailActionsProps) {
+export function ContractDetailActions({ id, status, contract, onSetStatus, onSetSigner, signerPending }: ContractDetailActionsProps) {
   const navigate = useNavigateTransition();
+  const [signerOpen, setSignerOpen] = useState(false);
   // El backend bloquea editar un contrato firmado (`enforce_signed_contract_lock`).
   // En vez de esconder la acción, se muestra deshabilitada con el motivo.
   const isLocked = status === "signed" || status === "completed";
@@ -48,15 +53,9 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
             <SignIcon className="h-4 w-4 mr-1" />Marcar Firmado
           </Button>
         ) : (
-          // El backend exige `signed_at` y `signed_by` al firmar
-          // (`enforce_signed_contract_lock`): sin firmante la acción se explica.
-          <BlockedActionButton
-            size="sm"
-            block={describeBusinessBlock("contract_missing_signer")}
-            onClick={() => navigate(`/contracts/${id}/edit`)}
-          >
-            <SignIcon className="h-4 w-4 mr-1" />Marcar Firmado
-          </BlockedActionButton>
+          <Button size="sm" onClick={() => setSignerOpen(true)}>
+            <SignIcon className="h-4 w-4 mr-1" />Registrar firmante
+          </Button>
         )
       )}
 
@@ -74,6 +73,8 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
         {writeActions}
       </RoleGuard>
       <ContractPDFButton contract={contract} />
+      <ContractSignerDialog open={signerOpen && status === "sent"} onOpenChange={setSignerOpen}
+        onSave={onSetSigner} pending={signerPending} />
     </>
   );
 }

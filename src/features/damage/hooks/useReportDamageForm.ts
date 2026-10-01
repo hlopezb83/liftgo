@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { useCreateDamageRecord } from "./useDamageRecords";
+import { useSaveManualDamageReport } from "./useDamageRecords";
 
 export interface DamagePreview { file: File; url: string }
 
@@ -36,11 +36,12 @@ export function useReportDamageForm(onClose: () => void) {
     previewsRef.current = previews;
   }, [previews]);
 
-  const createDamage = useCreateDamageRecord();
+  const saveDamage = useSaveManualDamageReport();
   const uploadDoc = useUploadDocument();
   // M-18: id del damage_record ya creado en un intento previo cuya subida de
   // fotos falló. Se limpia en `reset()` (éxito completo o cierre del form).
-  const createdRecordIdRef = useRef<string | null>(null);
+  const savedRecordRef = useRef<{ id: string; updated_at: string } | null>(null);
+  const uploadedFilesRef = useRef(new Set<File>());
 
   const onDrop = (acceptedFiles: File[]) => {
     setPreviews((prev) => {
@@ -69,7 +70,8 @@ export function useReportDamageForm(onClose: () => void) {
     });
     // M-18: al resetear (éxito completo o cierre) se olvida el registro
     // creado — un submit posterior debe crear uno nuevo.
-    createdRecordIdRef.current = null;
+    savedRecordRef.current = null;
+    uploadedFilesRef.current.clear();
     form.reset(DEFAULTS);
   };
 
@@ -83,27 +85,28 @@ export function useReportDamageForm(onClose: () => void) {
   const submitDamage = async (values: ReportDamageValues) => {
     try {
       // M-18: si el registro se creó pero la subida de fotos falló, el
-      // reintento REUTILIZA el id ya creado (solo re-subir fotos) en vez de
-      // insertar un damage_record duplicado.
-      let recordId = createdRecordIdRef.current;
-      if (!recordId) {
-        const newRecord = await createDamage.mutateAsync({
-          forklift_id: values.forkliftId,
-          customer_id: values.customerId || null,
-          description: values.description,
-          estimated_cost: values.estimatedCost ?? 0,
-          status: "reported",
-        });
-        recordId = newRecord.id;
-        createdRecordIdRef.current = recordId;
-      }
+      // reintento guarda las correcciones en el mismo registro antes de
+      // continuar únicamente las fotos cuya subida no terminó.
+      const saved = await saveDamage.mutateAsync({
+        forkliftId: values.forkliftId, customerId: values.customerId,
+        description: values.description, estimatedCost: values.estimatedCost ?? 0,
+        damageId: savedRecordRef.current?.id,
+        expectedUpdatedAt: savedRecordRef.current?.updated_at,
+      });
+      savedRecordRef.current = { id: saved.id, updated_at: saved.updated_at };
 
       if (previews.length > 0) {
-        await Promise.all(
+        const uploads = await Promise.allSettled(
           previews.map(({ file }) =>
-            uploadDoc.mutateAsync({ file, entityType: "damage_record", entityId: recordId }),
+            (async () => {
+              if (uploadedFilesRef.current.has(file)) return;
+              await uploadDoc.mutateAsync({ file, entityType: "damage_record", entityId: saved.id });
+              uploadedFilesRef.current.add(file);
+            })(),
           ),
         );
+        const failure = uploads.find((result) => result.status === "rejected");
+        if (failure?.status === "rejected") throw failure.reason;
       }
 
       notifySuccess("Daño reportado", {
@@ -124,6 +127,6 @@ export function useReportDamageForm(onClose: () => void) {
     form,
     previews, onDrop, removePreview, reset,
     handleSubmit,
-    isProcessing: form.formState.isSubmitting || createDamage.isPending,
+    isProcessing: form.formState.isSubmitting || saveDamage.isPending || uploadDoc.isPending,
   };
 }

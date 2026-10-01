@@ -159,7 +159,8 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('validate_delivery_booking_integrity') LIKE '%repaired_at IS NULL%'
   AND pg_temp.fndef('complete_return_inspection') LIKE '%repaired_at IS NULL%'
   AND pg_temp.fndef('sync_forklift_rental_status') LIKE '%repaired_at IS NULL%'
-  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%repaired_at IS NULL%'
+  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%reconcile_forklift_operations%'
+  AND pg_temp.fndef('reconcile_forklift_operations') LIKE '%repaired_at IS NULL%'
   AND pg_temp.fndef('reconcile_expired_bookings') LIKE '%repaired_at IS NULL%'
 );
 
@@ -209,10 +210,11 @@ SELECT pg_temp.expect_true(
 
 SELECT pg_temp.expect_true(
   'A-09/M-01 sync trata waiting_parts como activo y detecta restore',
-  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%v_restored%'
-  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%OLD.deleted_at IS NOT NULL%'
-  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
-  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%v_forklift_status = ''rented'' AND NOT v_has_open_rental%'
+  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%reconcile_forklift_operations%'
+  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%OLD.forklift_id%'
+  AND pg_temp.fndef('reconcile_forklift_operations') LIKE '%waiting_parts%'
+  AND pg_temp.fndef('reconcile_forklift_operations') LIKE '%booking_is_returned%'
+  AND pg_temp.fndef('reconcile_forklift_operations') LIKE '%d.status=''completed''%'
   AND EXISTS (
     SELECT 1 FROM pg_trigger
      WHERE tgrelid = 'public.maintenance_logs'::regclass

@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { callRpc } from "@/lib/rpc";
 import { partInventoryKeys } from "../lib/queryKeys";
 import type { PartInventory } from "./usePartsInventory";
 
@@ -45,14 +46,27 @@ export function useCreatePart() {
 
 export function useUpdatePart() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: { id: string } & Partial<PartInventory>) => {
-      const { data, error } = await supabase
-        .from("parts_inventory").update(updates).eq("id", id).select().single();
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: async ({ id, min_stock_level, unit_cost, location }: Pick<PartInventory, "id" | "min_stock_level" | "unit_cost" | "location">) =>
+      callRpc<PartInventory>("update_part_inventory_metadata", {
+        p_part_id: id, p_min_stock_level: min_stock_level,
+        p_unit_cost: unit_cost, p_location: location,
+      }),
     invalidateKeys: [partInventoryKeys.all],
     errorTitle: "Error al actualizar refacción",
+  });
+}
+
+export function useAdjustPartStock() {
+  return useEntityMutation({
+    mutationFn: async ({ id, expectedQuantity, newQuantity, reason }: {
+      id: string; expectedQuantity: number; newQuantity: number; reason: string;
+    }) => callRpc<PartInventory>("adjust_part_stock", {
+      p_part_id: id, p_expected_stock_quantity: expectedQuantity,
+      p_new_stock_quantity: newQuantity, p_reason: reason,
+    }),
+    invalidateKeys: [partInventoryKeys.all, ["part_stock_adjustments"]],
+    errorTitle: "No se pudo ajustar el inventario",
+    successMsg: "Existencias ajustadas",
   });
 }
 
