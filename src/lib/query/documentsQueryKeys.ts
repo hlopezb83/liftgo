@@ -4,10 +4,16 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h
 
 function extractStoragePath(fileUrl: string): string | null {
+  const relativePrefix = "documents/";
+  if (fileUrl.startsWith(relativePrefix)) {
+    return fileUrl.slice(relativePrefix.length) || null;
+  }
+  let source = fileUrl;
+  try { source = new URL(fileUrl).pathname; } catch { /* Legacy relative URL. */ }
   const marker = "/documents/";
-  const idx = fileUrl.indexOf(marker);
+  const idx = source.indexOf(marker);
   if (idx === -1) return null;
-  return fileUrl.slice(idx + marker.length);
+  return source.slice(idx + marker.length) || null;
 }
 
 export { extractStoragePath };

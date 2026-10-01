@@ -15,6 +15,12 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { documentsQueries, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
 
+function documentInvalidationKeys(entityType?: string | null) {
+  return [
+    documentsQueries.keys.all,
+    ...(entityType === "damage_record" ? [["damage_photo_counts"] as const] : []),
+  ];
+}
 
 export function useDocuments(entityType: string, entityId: string | undefined) {
   const filter: DocumentsFilter = { entityType, entityId };
@@ -80,7 +86,7 @@ export function useUploadDocument() {
       }
       return data;
     },
-    invalidateKeys: [documentsQueries.keys.all],
+    invalidateKeysFn: (_document, vars) => documentInvalidationKeys(vars.entityType),
     errorTitle: "Error al subir el documento",
   });
 }
@@ -89,11 +95,12 @@ export function useUploadDocument() {
 export function useDeleteDocument() {
   return useEntityMutation({
     mutationFn: async (id: string) => {
-      const { data: doc } = await supabase
+      const { data: doc, error: metadataError } = await supabase
         .from("documents")
-        .select("file_url")
+        .select("file_url, entity_type")
         .eq("id", id)
         .maybeSingle();
+      if (metadataError) throw metadataError;
       const path = doc?.file_url ? extractStoragePath(doc.file_url) : null;
       // FIX-FE-03: borrar primero la fila DB. Antes se borraba el objeto de
       // Storage primero: si el DELETE fallaba, la fila viva quedaba apuntando
@@ -108,8 +115,9 @@ export function useDeleteDocument() {
           console.warn("[useDeleteDocument] Fila eliminada pero el objeto quedó huérfano:", path, storageError);
         }
       }
+      return doc?.entity_type;
     },
-    invalidateKeys: [documentsQueries.keys.all],
+    invalidateKeysFn: (entityType) => documentInvalidationKeys(entityType),
     errorTitle: "Error al eliminar el documento",
   });
 }
