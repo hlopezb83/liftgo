@@ -1,6 +1,6 @@
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
-import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import { FormField, FormItem, FormControl } from "@/components/ui/form";
 import type { Matcher } from "react-day-picker";
 
 interface DateFieldProps<TFieldValues extends FieldValues> {
@@ -28,7 +28,7 @@ export function DateField<TFieldValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field }) => (
+      render={({ field, fieldState }) => (
         <FormItem>
           <FormControl>
             <DatePickerField
@@ -38,9 +38,9 @@ export function DateField<TFieldValues extends FieldValues>({
               placeholder={placeholder}
               required={required}
               disabled={disabledMatcher}
+              error={fieldState.error?.message}
             />
           </FormControl>
-          <FormMessage />
         </FormItem>
       )}
     />

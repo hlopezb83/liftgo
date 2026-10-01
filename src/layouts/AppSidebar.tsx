@@ -1,7 +1,6 @@
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
-import { useCompanySettings } from "@/features/company-settings";
 import { useUserRole } from "@/features/users";
 import { useSidebarOrganizationName } from "@/layouts/hooks/useSidebarOrganizationName";
 import { useVisibleNavGroups } from "@/layouts/hooks/useVisibleNavGroups";
@@ -13,14 +12,13 @@ import { SidebarUserFooter } from "@/layouts/sidebar/SidebarUserFooter";
 export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { data: role } = useUserRole();
-  const { data: company } = useCompanySettings();
   const { data: organizationName } = useSidebarOrganizationName();
   const currentVersion = useCurrentVersion();
   const visibleNavGroups = useVisibleNavGroups();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarBranding razonSocial={company?.razon_social || organizationName} />
+      <SidebarBranding razonSocial={organizationName} />
       <SidebarQuickCreate />
       <SidebarContent className="pb-6">
         {visibleNavGroups.map((group) => (

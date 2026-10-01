@@ -16,8 +16,8 @@ interface Params {
 }
 
 /**
- * R18-A3: al llegar desde "Facturar daño", prefillamos cliente + una partida
- * por el costo estimado.
+ * Al llegar desde "Facturar daño", sugiere el costo interno real registrado.
+ * El usuario revisa el precio al cliente antes de emitir la factura.
  *
  * R19-D: en caché frío `useCustomers` todavía no tiene el catálogo → Radix
  * Select dispara `onValueChange("")` porque el `SelectItem` no existe y borra
@@ -26,9 +26,8 @@ interface Params {
  * R20-1: verificar que el daño no esté ya facturado — una URL artesanal
  * podía re-prellenar y permitir una 2ª factura por el mismo daño.
  *
- * Fix 5.1: el monto se lee de `damage_records.estimated_cost` (BD), nunca de
- * un query param — antes se podía editar `damageAmount` en la URL y prellenar
- * cualquier monto.
+ * El monto y su procedencia se leen de la BD. El presupuesto y los parámetros
+ * de URL no sustituyen una valoración real, incluyendo cero intencional.
  */
 export function useDamagePrefill({
   isEdit, damageId, damageCustomerId, customers, form, handleCustomerSelect,
@@ -42,7 +41,7 @@ export function useDamagePrefill({
     let cancelled = false;
     supabase
       .from("damage_records")
-      .select("status, estimated_cost, actual_cost, repaired_at")
+      .select("status, estimated_cost, actual_cost, actual_cost_source, repaired_at")
       .eq("id", damageId)
       .is("deleted_at", null)
       .maybeSingle()
@@ -62,8 +61,7 @@ export function useDamagePrefill({
           return;
         }
         handleCustomerSelect(damageCustomerId);
-        // N-35: regla chargeableDamageCost — si el daño ya está reparado y
-        // tiene actual_cost, ése manda sobre el estimado.
+        // El costo interno sólo sugiere un precio; no se emite ningún cobro aquí.
         const amt = chargeableDamageCost(damage);
         if (amt != null && Number.isFinite(amt) && amt > 0) {
           form.setValue(
@@ -73,8 +71,10 @@ export function useDamagePrefill({
           );
         } else {
           notifyWarning({
-            title: "Sin costo cobrable registrado",
-            description: "Captura el monto a facturar manualmente.",
+            title: amt === 0 ? "Reparación con costo interno de $0" : "Sin costo real de reparación registrado",
+            description: amt === 0
+              ? "Revisa el precio a cobrar al cliente antes de crear la factura."
+              : "Cierra la orden de trabajo o solicita una valoración antes de facturar este daño.",
           });
         }
       });

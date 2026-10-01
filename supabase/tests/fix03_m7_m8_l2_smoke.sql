@@ -76,6 +76,7 @@ DECLARE
   v_bk   uuid := gen_random_uuid();
   v_bk2  uuid := gen_random_uuid();
   v_del  uuid := gen_random_uuid();
+  v_del2 uuid := gen_random_uuid();
   v_pick uuid := gen_random_uuid();
   v_status text;
   v_status_prev text;
@@ -110,6 +111,10 @@ BEGIN
   -- La entrega debe apuntar al montacargas de su propia reserva (guard vigente).
   INSERT INTO public.bookings (id, forklift_id, customer_id, customer_name, start_date, end_date, status)
   VALUES (v_bk2, v_fk2, v_cust, 'FIX03 Smoke SA de CV', public.today_mty(), public.today_mty() + 10, 'confirmed');
+  -- D-02: a pickup can only complete after the same booking's actual delivery.
+  -- Keep the original assertion: pickup itself does not change fleet status.
+  INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date, driver_name)
+  VALUES (v_del2, v_bk2, v_fk2, 'delivery', 'completed', public.today_mty(), 'FIX03 Operador');
   INSERT INTO public.deliveries (id, booking_id, forklift_id, type, status, scheduled_date, driver_name)
   VALUES (v_pick, v_bk2, v_fk2, 'pickup', 'scheduled', public.today_mty(), 'FIX03 Operador');
   SELECT status INTO v_status_prev FROM public.forklifts WHERE id = v_fk2;

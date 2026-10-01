@@ -1,10 +1,12 @@
+import { useQuery } from "@tanstack/react-query";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDeliveries } from "@/features/deliveries";
+import { deliveryQueries } from "@/features/deliveries";
+import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
@@ -24,10 +26,17 @@ export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigateTransition();
   const { data: booking, isLoading, isError, refetch } = useBooking(id);
-  const { data: deliveries, isLoading: transportsLoading, isError: transportsError, isFetching: transportsFetching, refetch: refetchTransports } = useDeliveries(id);
+  const canReadTransports = useHasModuleAccess("Entregas", "read");
+  const { data: deliveries, isLoading: transportsLoading, isError: transportsError, isFetching: transportsFetching, refetch: refetchTransports } = useQuery({
+    ...deliveryQueries.list({ bookingId: id }),
+    enabled: canReadTransports,
+  });
   const { data: extensions } = useBookingExtensions(id);
 
-  const hourometer = useBookingHourometer(deliveries);
+  const readableDeliveries = canReadTransports ? deliveries : undefined;
+  const hourometer = useBookingHourometer(
+    !transportsLoading && !transportsError ? readableDeliveries : undefined,
+  );
 
   if (isLoading) {
     return (
@@ -77,7 +86,7 @@ export default function BookingDetail() {
         backTo="/bookings"
         actions={<BookingActions
           booking={booking}
-          deliveries={deliveries}
+          deliveries={readableDeliveries}
           transportsLoading={transportsLoading}
           transportsError={transportsError}
         />}
@@ -97,7 +106,7 @@ export default function BookingDetail() {
       </div>
 
       <BookingTransportsCard
-        deliveries={deliveries}
+        deliveries={readableDeliveries}
         isLoading={transportsLoading}
         isError={transportsError}
         isRetrying={transportsFetching}

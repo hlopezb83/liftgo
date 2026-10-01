@@ -105,6 +105,7 @@ export const COMPANY_SETTINGS_INVALIDATION_KEYS = [
   ["cash_flow_settings"] as const,
   ["company_settings"] as const,
   publicBrandingQueries.keys.all,
+  ["sidebar-organization-name"] as const,
 ] as const;
 
 export interface BillingSecretsStatus {

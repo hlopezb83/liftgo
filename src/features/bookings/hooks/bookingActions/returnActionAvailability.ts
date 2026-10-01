@@ -1,8 +1,10 @@
 import type { Tables } from "@/integrations/supabase/types";
 import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
+import { formatMtyDate } from "@/lib/utils";
 
 type BookingDates = Pick<Tables<"bookings">, "start_date" | "end_date" | "return_status">;
-export type DeliveryState = Pick<Tables<"deliveries">, "type" | "status">;
+export type DeliveryState = Pick<Tables<"deliveries">, "type" | "status"> &
+  Partial<Pick<Tables<"deliveries">, "completed_at">>;
 
 interface TransportState {
   deliveries: DeliveryState[] | undefined;
@@ -26,9 +28,6 @@ export function returnActionAvailability(
   if (booking.return_status !== null) {
     return { block: describeBusinessBlock("booking_return_already_recorded"), isEarly };
   }
-  if (booking.start_date > today) {
-    return { block: describeBusinessBlock("booking_return_not_started"), isEarly };
-  }
   if (transports.isLoading) {
     return {
       block: describeBusinessBlock("booking_return_delivery_unverified", {
@@ -48,8 +47,14 @@ export function returnActionAvailability(
     };
   }
   const hasCompletedDelivery = transports.deliveries?.some(
-    (delivery) => delivery.type === "delivery" && delivery.status === "completed",
+    (delivery) => delivery.type === "delivery" && delivery.status === "completed" &&
+      (delivery.completed_at
+        ? Number.isFinite(Date.parse(delivery.completed_at)) && formatMtyDate(delivery.completed_at, "yyyy-MM-dd") <= today
+        : booking.start_date <= today),
   );
+  if (booking.start_date > today && !hasCompletedDelivery) {
+    return { block: describeBusinessBlock("booking_return_not_started"), isEarly };
+  }
   return {
     block: hasCompletedDelivery ? null : describeBusinessBlock("booking_return_delivery_unverified"),
     isEarly,

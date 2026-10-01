@@ -84,7 +84,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
   return (
     <FormDialog
       title={`Reprogramar ${operationLabel}`}
-      description="Ajusta la fecha y los datos de despacho antes de completar la entrega."
+      description={`Ajusta la fecha y los datos de despacho antes de completar la ${operationLabel}.`}
       open={open}
       onOpenChange={onOpenChange}
       isPending={updateDelivery.isPending}
@@ -104,7 +104,7 @@ export function RescheduleDeliveryDialog({ delivery, linkedBooking, open, onOpen
             <DateField control={form.control} name="scheduledDate" label={`Fecha de ${operationLabel}`} required />
             <TextField control={form.control} name="scheduledTime" label="Hora programada" type="time" />
           </div>
-          <TextField control={form.control} name="address" label="Dirección de entrega" />
+          <TextField control={form.control} name="address" label={`Dirección de ${operationLabel}`} />
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField control={form.control} name="driverName" label="Nombre del operador" />
             <TextField control={form.control} name="driverPhone" label="Teléfono del operador" type="tel" />

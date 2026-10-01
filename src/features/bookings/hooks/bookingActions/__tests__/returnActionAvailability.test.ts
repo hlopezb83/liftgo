@@ -16,6 +16,18 @@ describe("returnActionAvailability", () => {
     expect(result.block?.code).toBe("booking_return_not_started");
   });
 
+  it("permite devolver una entrega histórica real anterior al inicio comercial", () => {
+    const historical = { ...ready, deliveries: [{ ...completedDelivery, completed_at: "2026-09-23T18:00:00Z" }] };
+    expect(returnActionAvailability({ ...booking, start_date: "2026-12-01" }, historical, today))
+      .toEqual({ block: null, isEarly: true });
+  });
+
+  it("no acepta un timestamp de entrega futuro como prueba de custodia", () => {
+    const future = { ...ready, deliveries: [{ ...completedDelivery, completed_at: "2026-12-02T18:00:00Z" }] };
+    expect(returnActionAvailability({ ...booking, start_date: "2026-12-01" }, future, today).block?.code)
+      .toBe("booking_return_not_started");
+  });
+
   it("exige una entrega completada, no una recolección ni una entrega programada", () => {
     const result = returnActionAvailability(booking, {
       ...ready,

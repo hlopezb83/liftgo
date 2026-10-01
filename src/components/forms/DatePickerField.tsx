@@ -51,6 +51,8 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const [localDate, setLocalDate] = useState<Date | undefined>(date);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(date ?? nowMty());
+  const [inputRevision, setInputRevision] = useState(0);
   const fieldId = useId();
   const noteId = `${fieldId}-note`;
 
@@ -64,7 +66,10 @@ export function DatePickerField({
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
     setPrevOpen(open);
-    if (open) setLocalDate(date);
+    if (open) {
+      setLocalDate(date);
+      setCalendarMonth(date ?? nowMty());
+    }
   }
 
   // GUI-FE-07: fecha calendario → formatear por componentes locales
@@ -73,6 +78,8 @@ export function DatePickerField({
 
   const handleApply = () => {
     onSelect(normalize(localDate));
+    // Aplicar también corrige una captura inválida si se elige el mismo día.
+    setInputRevision((revision) => revision + 1);
     setOpen(false);
   };
 
@@ -87,6 +94,7 @@ export function DatePickerField({
           <div className="flex-1 space-y-1">
             {/* Captura rápida con teclado numérico (DD/MM/AAAA). */}
             <MaskedDateInput
+              key={inputRevision}
               id={fieldId}
               value={date}
               onChange={(d) => onSelect(normalize(d))}
@@ -96,6 +104,7 @@ export function DatePickerField({
               isDateDisabled={isDateDisabled}
               aria-describedby={noteId}
               className="w-full"
+              errorMessage={error}
             />
           </div>
           <DialogTrigger asChild>
@@ -121,6 +130,8 @@ export function DatePickerField({
             <Calendar
               mode="single"
               selected={localDate}
+              month={calendarMonth}
+              onMonthChange={setCalendarMonth}
               onSelect={(d) => setLocalDate(normalize(d))}
               disabled={disabled}
               captionLayout={captionLayout}
@@ -153,7 +164,6 @@ export function DatePickerField({
         </DialogContent>
       </Dialog>
       <DateHintNote date={date} id={noteId} />
-      {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
 }

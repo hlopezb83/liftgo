@@ -5,6 +5,14 @@ import { initialReturnInspectionForm, returnInspectionSchema } from "./returnIns
 const validInspection = { ...initialReturnInspectionForm, bookingId: "b1", fuelLevel: "1/2" };
 
 describe("returnInspectionSchema", () => {
+  it.each([undefined, "2026-09-30", new Date("invalid")])("explica una fecha inválida en español (%s)", (inspectedAt) => {
+    const result = returnInspectionSchema.safeParse({ ...validInspection, inspectedAt });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const messages = result.error.issues.filter((issue) => issue.path[0] === "inspectedAt").map((issue) => issue.message);
+      expect(messages).toEqual(["Selecciona una fecha de inspección válida"]);
+    }
+  });
   it("permite condición sin daño sin notas ni costo", () => {
     const result = returnInspectionSchema.safeParse({
       ...validInspection,

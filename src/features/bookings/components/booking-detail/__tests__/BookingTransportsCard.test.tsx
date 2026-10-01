@@ -31,10 +31,12 @@ describe("BookingTransportsCard", () => {
     expect(screen.getByText(/Sin hora asignada/)).toBeInTheDocument();
   });
 
-  it("conserva el resumen sin ofrecer una ruta sin permiso", async () => {
+  it("no interpreta la falta de permiso como vacío ni revela filas cacheadas", async () => {
     access.allowed = false;
     render(<TestRouter><BookingTransportsCard {...props} /></TestRouter>);
-    expect(await screen.findByText("ENT-0001")).toBeInTheDocument();
+    expect(await screen.findByText(/Tu rol no tiene acceso a los transportes/)).toBeInTheDocument();
+    expect(screen.queryByText("ENT-0001")).not.toBeInTheDocument();
+    expect(screen.queryByText(/aún no tiene transportes/)).not.toBeInTheDocument();
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 

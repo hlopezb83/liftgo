@@ -1,5 +1,4 @@
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { ROUTES } from "@/app-routes/routes";
 import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { DateField, TextareaField } from "@/components/forms/fields";
@@ -13,13 +12,12 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
 import { useCloseWorkOrder, useOpenDamageForLog } from "../../hooks/maintenance/useWorkOrderClose";
+import { workOrderCloseSchema } from "../../lib/workOrderCloseSchema";
 import { WorkOrderCloseSummary } from "./WorkOrderCloseSummary";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import type { z } from "zod";
 
-const schema = z.object({
-  closed_at: z.date({ error: "Fecha de cierre requerida" }),
-  closing_notes: z.string().default(""),
-});
+const schema = workOrderCloseSchema;
 type FormData = z.infer<typeof schema>;
 
 interface Props {
@@ -97,7 +95,7 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
           </FormSection>
 
           <FormSection title="Cierre">
-            <DateField control={form.control} name="closed_at" label="Fecha de cierre" required />
+            <DateField control={form.control} name="closed_at" label="Fecha de cierre" required disabledMatcher={{ after: nowMty() }} />
             <TextareaField
               control={form.control}
               name="closing_notes"

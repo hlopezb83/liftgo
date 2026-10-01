@@ -19,6 +19,17 @@ const baseProps = {
 };
 
 describe("DamageActionButtons", () => {
+  it("mecánica debe iniciar una OT antes de marcar reparado y no puede archivar", () => {
+    render(<DamageActionButtons status="reported" {...baseProps} canMarkReportedRepaired={false} showArchive={false} />);
+    expect(screen.getByRole("button", { name: /^reparar$/i })).toBeEnabled();
+    expect(screen.queryByRole("button", { name: /marcar reparado/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /archivar/i })).not.toBeInTheDocument();
+  });
+
+  it("mecánica puede completar la reparación cuando existe la OT", () => {
+    render(<DamageActionButtons status="in_repair" {...baseProps} canMarkReportedRepaired={false} showArchive={false} />);
+    expect(screen.getByRole("button", { name: /marcar reparado/i })).toBeEnabled();
+  });
   // F6: reported → repaired ya no es un callejón sin salida (antes solo
   // se ofrecía "Marcar reparado" en in_repair).
   it("muestra 'Marcar reparado' en status reported", () => {

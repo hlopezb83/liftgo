@@ -6,6 +6,8 @@ import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 interface DamageActionButtonsProps {
   status: string;
   canManageDamage: boolean;
+  canMarkReportedRepaired?: boolean;
+  showArchive?: boolean;
   canChargeDamage: boolean;
   canArchive: boolean;
   canCharge: boolean;
@@ -26,10 +28,16 @@ interface DamageActionButtonsProps {
 }
 
 
+function showMarkRepaired(status: string, canMarkReported: boolean, needsRepairCompletion: boolean) {
+  return status === "in_repair" || (status === "reported" && canMarkReported) || needsRepairCompletion;
+}
+
 /** Botonera pura del panel de daños (sin lógica de permisos ni mutaciones). */
 export function DamageActionButtons({
   status,
   canManageDamage,
+  canMarkReportedRepaired = true,
+  showArchive = true,
   canChargeDamage,
   canArchive,
   canCharge,
@@ -58,7 +66,7 @@ export function DamageActionButtons({
       {/* Un daño reportado puede repararse internamente sin OT. Para históricos
           facturados antes del guard, el mismo control sella repaired_at sin
           perder el vínculo de facturación. */}
-      {(status === "in_repair" || status === "reported" || needsRepairCompletion) && (
+      {showMarkRepaired(status, canMarkReportedRepaired, needsRepairCompletion) && (
         <span title={damageBlockReason}>
           <Button variant="ghost" size="sm" onClick={onMarkRepaired} disabled={!canManageDamage || isUpdating}>
             <SuccessIcon className="h-3.5 w-3.5 mr-1" />Marcar reparado
@@ -74,7 +82,7 @@ export function DamageActionButtons({
       )}
       {/* El bloqueo de archivado (daño aún abierto) usa la primitiva compartida;
           el permiso de rol se sigue manejando con `canManageDamage`. */}
-      <BlockedActionButton
+      {showArchive && <BlockedActionButton
         variant="ghost"
         size="sm"
         block={archiveBlock}
@@ -82,7 +90,7 @@ export function DamageActionButtons({
         onClick={onArchive}
       >
         <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
-      </BlockedActionButton>
+      </BlockedActionButton>}
 
     </>
   );

@@ -111,6 +111,7 @@ export default function DeliveryDetail() {
         onPickupClose={() => completion.setPickupPrompt(null)}
         minHours={completion.minHours}
         operatorName={delivery.driver_name}
+        transportType={delivery.type}
       />
       {editOpen && (
         <RescheduleDeliveryDialog

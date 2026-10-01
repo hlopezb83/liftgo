@@ -34,7 +34,7 @@ describe("ReturnInspectionDialog · preparación", () => {
   it("explica la reserva no elegible sin mostrar un formulario que fallaría", () => {
     render(<Harness />);
     expect(screen.getByText("Esta reserva no está disponible para devolución")).toBeInTheDocument();
-    expect(screen.getByText(/tener una entrega completada/)).toBeInTheDocument();
+    expect(screen.getByText(/tener una entrega real completada/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Completar Devolución" })).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Fecha de Inspección/)).not.toBeInTheDocument();
   });

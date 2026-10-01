@@ -33,6 +33,7 @@ export default function MaintenancePage() {
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
   const detail = useDialogState<MaintenanceLog>();
+  const selectedLog = detail.selected ? logs?.find((log) => log.id === detail.selected?.id) ?? null : null;
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
   const formCtl = useMaintenanceForm(forkliftMap);
@@ -132,10 +133,10 @@ export default function MaintenancePage() {
       />
 
       <MaintenanceDetailSheet
-        log={detail.selected}
+        log={selectedLog}
         open={detail.isOpen}
         onOpenChange={detail.onOpenChange}
-        forkliftName={detail.selected ? (forkliftMap.get(detail.selected.forklift_id)?.name || "—") : ""}
+        forkliftName={selectedLog ? (forkliftMap.get(selectedLog.forklift_id)?.name || "—") : ""}
         onEdit={formCtl.openEdit}
       />
 

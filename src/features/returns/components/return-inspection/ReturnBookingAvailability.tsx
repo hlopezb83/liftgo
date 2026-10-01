@@ -28,7 +28,7 @@ export function ReturnBookingAvailability({
             {hasRequestedBooking ? "Esta reserva no está disponible para devolución" : "No hay reservas listas para devolver"}
           </h3>
           <p className="text-sm leading-relaxed text-muted-foreground">
-            La reserva debe estar confirmada, haber iniciado y tener una entrega completada.
+            La reserva debe estar confirmada y tener una entrega real completada.
             Las reservas ya devueltas no aparecen en esta lista.
           </p>
           {!isEarlyReturn && (

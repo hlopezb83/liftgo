@@ -252,7 +252,6 @@ BEGIN
     'public.delete_booking(uuid)'::regprocedure,
     'public.cancel_booking(uuid,text)'::regprocedure,
     'public.extend_booking(uuid,date,text)'::regprocedure,
-    'public.complete_delivery(uuid,text,numeric,text)'::regprocedure,
     'public.booking_is_returned(uuid)'::regprocedure,
     'public.reconcile_expired_bookings()'::regprocedure,
     'public.set_contract_deposit_status(uuid,text,numeric,text)'::regprocedure

@@ -41,7 +41,11 @@ export function BookingTransportsCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {isLoading ? (
+        {!canOpen ? (
+          <p className="text-sm text-muted-foreground">
+            Tu rol no tiene acceso a los transportes. Consulta la programación con Despacho.
+          </p>
+        ) : isLoading ? (
           <div role="status" aria-label="Cargando transportes">
             <Skeleton className="h-20 w-full" />
           </div>

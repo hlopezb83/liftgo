@@ -18,7 +18,7 @@ export const DAMAGE_CONDITIONS = ["minor_damage", "major_damage", "needs_repair"
 export const returnInspectionSchema = z
   .object({
     bookingId: z.string().min(1, "Selecciona una reserva para devolver"),
-    inspectedAt: z.date().refine((d) => d <= nowMty(), "La fecha de inspección no puede ser futura"),
+    inspectedAt: z.date({ error: "Selecciona una fecha de inspección válida" }).refine((d) => d <= nowMty(), "La fecha de inspección no puede ser futura"),
     condition: z.string().min(1),
     damageNotes: z.string(),
     damageCost: nonNegativeNumericString("El costo de daño"),

@@ -4,6 +4,8 @@ import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/busines
 export interface DamagePermissions {
   canManageDamage: boolean;
   canChargeDamage: boolean;
+  canMarkReportedRepaired: boolean;
+  canArchiveDamage: boolean;
   damageBlockReason?: string;
   chargeBlockReason?: string;
 }
@@ -18,10 +20,13 @@ export function useDamagePermissions(): DamagePermissions {
 
   const canManageDamage = !!perms && getAccessLevel(perms, role ?? undefined, "Daños") === "full";
   const canChargeDamage = !!perms && getAccessLevel(perms, role ?? undefined, "Facturas") === "full";
+  const canCompleteWithoutWorkOrder = role === "admin" || role === "administrativo" || role === "dispatcher";
 
   return {
     canManageDamage,
     canChargeDamage,
+    canMarkReportedRepaired: canManageDamage && canCompleteWithoutWorkOrder,
+    canArchiveDamage: canManageDamage && canCompleteWithoutWorkOrder,
     damageBlockReason: canManageDamage
       ? undefined
       : "Tu rol no puede modificar daños (se requiere acceso completo al módulo Daños)",

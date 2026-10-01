@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type ChangeEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent, type ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import {
   caretForSegment,
@@ -29,6 +29,8 @@ export interface MaskedDateInputProps {
    */
   isDateDisabled?: (date: Date) => boolean;
   className?: string;
+  /** Error de dominio del formulario; se presenta una sola vez junto al campo. */
+  errorMessage?: string;
   "aria-describedby"?: string;
   "aria-label"?: string;
 }
@@ -50,21 +52,27 @@ export function MaskedDateInput({
   disabled,
   isDateDisabled,
   className,
+  errorMessage,
   ...aria
 }: MaskedDateInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [digits, setDigits] = useState(() => digitsFromDate(value));
   const [error, setError] = useState<string | null>(null);
+  const errorId = useId();
+  const displayedError = error || errorMessage;
+  const describedBy = [aria["aria-describedby"], displayedError ? errorId : undefined].filter(Boolean).join(" ") || undefined;
 
   // Sincroniza cuando la fecha cambia desde fuera (calendario, reset del form).
   // Excepción: si el usuario está escribiendo (captura parcial o inválida) y el
   // valor externo quedó en `undefined` por nuestro propio aviso, se conserva el
   // texto tecleado y el mensaje de error.
-  const typing = digits.length > 0 && digits.length < 8;
-  const [prevValue, setPrevValue] = useState(value);
-  if (value !== prevValue) {
-    setPrevValue(value);
-    const next = digitsFromDate(value);
+  const typing = digits.length > 0 && (digits.length < 8 || error !== null);
+  // RHF puede clonar Date: la misma fecha no debe borrar una captura inválida.
+  const valueDigits = digitsFromDate(value);
+  const [prevValueDigits, setPrevValueDigits] = useState(valueDigits);
+  if (valueDigits !== prevValueDigits) {
+    setPrevValueDigits(valueDigits);
+    const next = valueDigits;
     if (next !== digits && !(value === undefined && typing)) {
       setDigits(next);
       setError(null);
@@ -165,11 +173,12 @@ export function MaskedDateInput({
         disabled={disabled}
         inputMode="numeric"
         autoComplete="off"
-        aria-invalid={error ? true : undefined}
-        className={cn("font-mono tabular-nums", error && "border-destructive", className)}
         {...aria}
+        aria-describedby={describedBy}
+        aria-invalid={displayedError ? true : undefined}
+        className={cn("font-mono tabular-nums", displayedError && "border-destructive", className)}
       />
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {displayedError ? <p id={errorId} className="text-sm text-destructive">{displayedError}</p> : null}
     </>
   );
 }

@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
-/** Organization names are readable by every member, including mechanics. */
+/** Identidad mínima de la empresa activa, sin consultar sus datos fiscales. */
 export function useSidebarOrganizationName() {
   const organizationId = useVerifiedOrganizationId();
   return useQuery({
@@ -11,13 +11,7 @@ export function useSidebarOrganizationName() {
     staleTime: 5 * 60_000,
     queryFn: async () => {
       if (!organizationId) throw new Error("Organización no verificada");
-      const { data, error } = await supabase
-        .from("organizations")
-        .select("name")
-        .eq("id", organizationId)
-        .single();
-      if (error) throw error;
-      return data.name;
+      return callRpc<string>("get_organization_display_name");
     },
   });
 }

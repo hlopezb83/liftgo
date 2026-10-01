@@ -13,6 +13,7 @@ import { useSearchParams } from "@/lib/router-compat";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import { pickInspectorName, resolveInspectorName } from "../../lib/inspectorIdentity";
+import { earliestReturnDate } from "../../lib/returnDeliveryDate";
 import {
   returnInspectionSchema,
   initialReturnInspectionForm,
@@ -88,8 +89,8 @@ export function useReturnInspectionDialog(activeBookings: Booking[] | undefined,
       });
       return;
     }
-    if (values.inspectedAt < parseDateLocal(booking.start_date)) {
-      form.setError("inspectedAt", { message: "La inspección no puede ser anterior al inicio de la renta." });
+    if (values.inspectedAt < parseDateLocal(earliestReturnDate(booking))) {
+      form.setError("inspectedAt", { message: "La inspección no puede ser anterior a la entrega real del equipo." });
       return;
     }
     // Hallazgo 9: nunca guardar una inspección sin inspector identificado.
