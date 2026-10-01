@@ -229,16 +229,23 @@ BEGIN
 END;
 $cancellation$;
 
-DO $currency$
-DECLARE v_blocked boolean := false;
+DO $currency_before$
 BEGIN
   -- A verified account without history remains editable.
   UPDATE public.bank_accounts SET currency = 'USD' WHERE id = '85000000-0000-4000-8000-0000000000a7';
   UPDATE public.bank_accounts SET currency = 'MXN' WHERE id = '85000000-0000-4000-8000-0000000000a7';
+END $currency_before$;
+
+-- Import rows are created by the server, never through browser table grants.
+RESET ROLE;
   INSERT INTO public.bank_statement_imports(id, bank_account_id, file_name, organization_id)
   VALUES('85000000-0000-4000-8000-0000000000a8', '85000000-0000-4000-8000-0000000000a7', 'suite.csv', '85000000-0000-4000-8000-0000000000a0');
   INSERT INTO public.bank_statement_lines(import_id, bank_account_id, posted_date, description, signed_amount, hash, organization_id)
   VALUES('85000000-0000-4000-8000-0000000000a8', '85000000-0000-4000-8000-0000000000a7', current_date, 'Comisión suite', -185.60, 'finance-currency-suite', '85000000-0000-4000-8000-0000000000a0');
+SET LOCAL role = authenticated;
+DO $currency$
+DECLARE v_blocked boolean := false;
+BEGIN
   BEGIN UPDATE public.bank_accounts SET currency = 'USD' WHERE id = '85000000-0000-4000-8000-0000000000a7';
   EXCEPTION WHEN check_violation THEN v_blocked := true; END;
   IF NOT v_blocked OR (SELECT currency FROM public.bank_accounts WHERE id = '85000000-0000-4000-8000-0000000000a7') <> 'MXN' THEN
