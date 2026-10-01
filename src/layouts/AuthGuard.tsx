@@ -3,6 +3,7 @@ import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { OrganizationGate } from "@/contexts/OrganizationContext";
 import { useRecoveryStatus } from "@/features/auth/hooks/useRecoveryStatus";
+import { platformEntryDestination, usePlatformOperatorStatus } from "@/features/platform";
 import { useUserRole } from "@/features/users";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { useLocation } from "@/lib/router-compat";
@@ -58,12 +59,19 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const location = useLocation();
   const inPortal = location.pathname.startsWith("/portal");
   const recovery = useRecoveryStatus();
+  const platform = usePlatformOperatorStatus();
+  const platformDestination = platformEntryDestination(location.pathname, location.search);
   // R7 Bloque 17b: durante la restauración del caché persistido, muchas queries
   // reportan `isLoading=false` con `data=undefined`, lo que provocaba un flash
   // del portal o del `NoAccess` antes de que TanStack hidratara el rol.
   const isRestoring = useIsRestoring();
 
-  const stillLoading = isRestoring || isLoading || (user && roleLoading);
+  // Un operador puede entrar sin rol empresarial ni membresía. Se resuelve
+  // primero su acceso global; el rol sigue siendo obligatorio para el ERP.
+  const stillLoading = authIsLoading({
+    hasUser: !!user, authLoading: isLoading, roleLoading, isRestoring,
+    destination: platformDestination, platform,
+  });
 
   const [timedOut, setTimedOut] = useState(false);
   // El reset se hace como estado derivado durante el render (patrón soportado
@@ -117,6 +125,35 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     );
   }
 
+  return (
+    <PlatformEntry destination={platformDestination} platform={platform}>
+      <OrganizationWorkspaceGuard role={role} inPortal={inPortal}>{children}</OrganizationWorkspaceGuard>
+    </PlatformEntry>
+  );
+}
+
+type PlatformStatus = Pick<ReturnType<typeof usePlatformOperatorStatus>, "data" | "isPending" | "isError" | "refetch">;
+
+function authIsLoading({ hasUser, authLoading, roleLoading, isRestoring, destination, platform }: {
+  hasUser: boolean; authLoading: boolean; roleLoading: boolean; isRestoring: boolean;
+  destination: string | null; platform: PlatformStatus;
+}): boolean {
+  const resolvingPlatform = hasUser && !!destination;
+  const platformOwnsEntry = resolvingPlatform && (platform.data === true || platform.isError);
+  return authLoading || (resolvingPlatform && platform.isPending) ||
+    (!platformOwnsEntry && (isRestoring || (hasUser && roleLoading)));
+}
+
+function PlatformEntry({ destination, platform, children }: { destination: string | null; platform: PlatformStatus; children: ReactNode }) {
+  if (!destination) return children;
+  if (platform.isError) return <LoadingError onRetry={() => void platform.refetch()} />;
+  if (platform.data === true) return <Navigate to={destination} replace />;
+  return children;
+}
+
+function OrganizationWorkspaceGuard({ role, inPortal, children }: {
+  role: ReturnType<typeof useUserRole>["data"]; inPortal: boolean; children: ReactNode;
+}) {
   // Los clientes viven en /portal/* y los usuarios internos fuera de él.
   // Antes CustomerPortalRoutes renderizaba el portal en cualquier URL para
   // clientes; ahora cada árbol tiene su layout y el guard redirige al correcto.

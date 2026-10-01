@@ -34,10 +34,9 @@ export async function handleSessionExpired(error: unknown): Promise<boolean> {
   if (!isSessionExpiredError(error)) return false;
   if (handling) return true;
   if (typeof window === "undefined") return true;
-  // Ya estamos en la pantalla de acceso: no hace falta expulsar de nuevo.
-  // (AuthGuard muestra AuthPage inline en cualquier ruta sin sesión; /login es
-  // el alias canónico — /auth no existe en el router y caía en 404 tras login.)
-  if (window.location.pathname.startsWith("/login")) return true;
+  // No expulsar de nuevo desde los accesos públicos ni desde recuperación.
+  const { pathname, search } = window.location;
+  if (["/login", "/auth", "/platform/login"].includes(pathname)) return true;
 
   handling = true;
   notifyWarning("Tu sesión expiró", {
@@ -49,7 +48,15 @@ export async function handleSessionExpired(error: unknown): Promise<boolean> {
   } catch {
     // Un signOut fallido no debe impedir la redirección.
   }
-  const back = `${window.location.pathname}${window.location.search}`;
-  window.location.assign(`/login?redirect=${encodeURIComponent(back)}`);
+  window.location.assign(expiredSessionDestination(pathname, search));
   return true;
+}
+
+/** El Centro conserva su acceso independiente incluso al caducar el token. */
+function expiredSessionDestination(pathname: string, search: string): string {
+  if (pathname === "/platform" || pathname.startsWith("/platform/")) {
+    // El login de plataforma valida next contra su lista de rutas internas.
+    return `/platform/login?next=${encodeURIComponent(pathname)}`;
+  }
+  return `/login?redirect=${encodeURIComponent(`${pathname}${search}`)}`;
 }

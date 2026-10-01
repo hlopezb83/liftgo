@@ -2,6 +2,7 @@ import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 
 interface AuthBrandPanelProps {
   tagline: string;
+  description?: string;
 }
 
 /**
@@ -12,7 +13,7 @@ interface AuthBrandPanelProps {
  * empresarial es configurable por empresa y sólo se usa en Configuración y en
  * los documentos fiscales/PDF, con resolver aislado por organización.
  */
-export function AuthBrandPanel({ tagline }: AuthBrandPanelProps) {
+export function AuthBrandPanel({ tagline, description = "Flota, rentas, mantenimiento y facturación en un solo lugar." }: AuthBrandPanelProps) {
   return (
     <aside className="hidden lg:flex flex-col justify-between w-[42%] max-w-xl bg-sidebar text-sidebar-foreground p-12 relative overflow-hidden">
       <div
@@ -33,7 +34,7 @@ export function AuthBrandPanel({ tagline }: AuthBrandPanelProps) {
           {tagline}
         </h2>
         <p className="text-sm text-sidebar-foreground/75 max-w-sm">
-          Flota, rentas, mantenimiento y facturación en un solo lugar.
+          {description}
         </p>
       </div>
       <p className="relative auth-display text-3xs text-sidebar-foreground/60">

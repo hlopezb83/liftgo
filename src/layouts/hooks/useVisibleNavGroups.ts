@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { usePlatformOperatorStatus } from "@/features/platform/hooks/usePlatformOperator";
+import { ORGANIZATION_WORKSPACE, usePlatformOperatorStatus } from "@/features/platform";
 import {
   ROUTE_TO_MODULE,
   type AccessLevel,
@@ -40,9 +40,11 @@ export function useVisibleNavGroups(): NavGroup[] {
         defaultOpen: group.defaultOpen,
         items: group.items.filter(
           (item) =>
-            (!item.platformOperatorOnly || isPlatformOperator === true) &&
-            getItemAccess(perms, role ?? undefined, item.url) !== "none",
-        ),
+            item.platformOperatorOnly ? isPlatformOperator === true :
+              getItemAccess(perms, role ?? undefined, item.url) !== "none",
+        ).map((item) => item.url === "/" && isPlatformOperator === true
+          ? { ...item, destination: ORGANIZATION_WORKSPACE }
+          : item),
       })).filter((group) => group.items.length > 0),
     [perms, role, isPlatformOperator],
   );

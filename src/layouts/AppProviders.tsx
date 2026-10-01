@@ -6,38 +6,31 @@ import { ErrorDetailsDialog } from "@/components/ui/ErrorDetailsDialog";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { OrganizationProvider } from "@/contexts/OrganizationContext";
-import { AuthSnapshotSync } from "@/features/users";
-import { IdentityScopedPersistence } from "@/lib/query/IdentityScopedPersistence";
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
+import { WorkspaceProviders } from "./WorkspaceProviders";
 import type { QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
 /**
- * Multi-organización (tramo 2): la persistencia ya no se monta globalmente.
- * `IdentityScopedPersistence` restaura y guarda la caché por identidad
- * verificada (usuario + organización del servidor) y limpia la anterior antes
- * de renderizar contenido.
+ * El ERP restaura caché por identidad empresarial verificada. El Centro de
+ * Plataforma usa un cliente en memoria por actor, sin contexto de empresa.
  */
 export function AppProviders({ queryClient, children }: { queryClient: QueryClient; children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
-          <OrganizationProvider>
-            <AuthQueryCacheSync />
-            <AuthSnapshotSync />
-            {/* Delay global acordado (300ms): único TooltipProvider de la app.
-                Excepción deliberada: el sidebar mantiene su propio provider con
-                delayDuration={0} para tooltips instantáneos de navegación. */}
-            <TooltipProvider delayDuration={300}>
-              <Sonner />
-              <ErrorDetailsDialog />
-              <IdentityScopedPersistence>
-                <ConfirmProvider>{children}</ConfirmProvider>
-              </IdentityScopedPersistence>
-            </TooltipProvider>
-          </OrganizationProvider>
+          <AuthQueryCacheSync />
+          {/* Delay global acordado (300ms): único TooltipProvider de la app.
+              Excepción deliberada: el sidebar mantiene su propio provider con
+              delayDuration={0} para tooltips instantáneos de navegación. */}
+          <TooltipProvider delayDuration={300}>
+            <Sonner />
+            <ErrorDetailsDialog />
+            <WorkspaceProviders>
+              <ConfirmProvider>{children}</ConfirmProvider>
+            </WorkspaceProviders>
+          </TooltipProvider>
         </AuthProvider>
         {import.meta.env.DEV ? (
           <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />

@@ -1,0 +1,9 @@
+{
+  "description": "Los operadores cuentan con acceso, navegación y espacio propios para administrar las empresas y los maestros compartidos.",
+  "changes": [
+    "Inicio de sesión y panel de plataforma con conteos de empresas y accesos a Empresas y Catálogo LiftGo.",
+    "La autorización global depende de la asignación explícita de operador y su cuenta activa; el ERP conserva sus permisos empresariales.",
+    "La caché y los formularios del Centro se separan por usuario y se limpian al cambiar de sesión o salir.",
+    "Navegación adaptable a móvil, regreso al ERP de la empresa y redirección de los enlaces anteriores."
+  ]
+}

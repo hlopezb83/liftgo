@@ -114,7 +114,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
     <SidebarMenuItem ref={itemRef} className="scroll-mb-6">
       <SidebarMenuButton asChild tooltip={item.title}>
         <NavLink
-          to={item.url}
+          to={item.destination ?? item.url}
           end={item.url === "/" || !isActive}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors touch:min-h-11"
           activeClassName="bg-sidebar-primary/10 border-sidebar-primary text-sidebar-primary font-semibold"

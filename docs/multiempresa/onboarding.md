@@ -85,10 +85,8 @@ una anomalía histórica sin identificar). El estado de aplicación requiere una
 ```text
 navegador ── server function ── requirePlatformOperator ── RPC platform_* (service_role)
                  │                    │                          │
-                 │                    ├ is_active_user            ├ assert_platform_operator(p_actor)
-                 │                    ├ has_role(admin)           │  (vuelve a verificar en la base)
-                 │                    ├ membresía interna activa  │
-                 │                    └ is_platform_operator()    │
+                 │                    └ is_platform_operator()    ├ assert_platform_operator(p_actor)
+                 │                      asignación + perfil activo│  (vuelve a verificar en la base)
                  └ nunca envía organization_id ni decide permisos
 ```
 
@@ -125,10 +123,14 @@ autoridad a sí mismo).
   `platform_list_organizations`: sólo `service_role`; cada una exige
   `assert_platform_operator(p_actor)`. `authenticated` y `anon` no tienen
   EXECUTE (verificado por `multi_org_onboarding.sql`).
-- `requirePlatformOperator` (`adminGuards.server.ts`): cuenta activa, rol
-  `admin`, membresía interna de una empresa activa y `is_platform_operator() = true`
-  con el cliente del propio usuario. Cualquier error de lectura responde 503
+- `requirePlatformOperator` (`adminGuards.server.ts`): exige
+  `is_platform_operator() = true` con el cliente del propio usuario. Ese RPC
+  verifica asignación explícita y perfil activo, independientemente del rol,
+  membresía o estado de una empresa. Cualquier error responde 503
   (fail-closed); sólo después se carga el cliente privilegiado.
+- El [Centro de Plataforma](../platform-center.md) usa `/platform` con su propio
+  guard y caché en memoria por actor. Las operaciones del ERP y del portal
+  siguen exigiendo membresía y empresa activa mediante sus guards originales.
 
 ## Alta de una empresa (`createOrganizationFn`)
 

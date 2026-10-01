@@ -8,8 +8,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const operatorState = vi.hoisted(() => ({ data: undefined as boolean | undefined }));
 
-vi.mock("@/features/platform/hooks/usePlatformOperator", () => ({
+vi.mock("@/features/platform", () => ({
   usePlatformOperatorStatus: () => operatorState,
+  ORGANIZATION_WORKSPACE: "/?workspace=organization",
 }));
 
 vi.mock("@/features/users", async (importOriginal) => {
@@ -36,20 +37,23 @@ describe("useVisibleNavGroups — operación de plataforma", () => {
     operatorState.data = undefined;
   });
 
-  it("oculta /settings/organizations mientras no hay confirmación del servidor", () => {
+  it("oculta /platform mientras no hay confirmación del servidor", () => {
     operatorState.data = undefined;
     const urls = visibleUrls();
     expect(urls).toContain("/settings/operations");
-    expect(urls).not.toContain("/settings/organizations");
+    expect(urls).not.toContain("/platform");
   });
 
-  it("oculta /settings/organizations a un admin que no es operador", () => {
+  it("oculta /platform a un admin que no es operador", () => {
     operatorState.data = false;
-    expect(visibleUrls()).not.toContain("/settings/organizations");
+    expect(visibleUrls()).not.toContain("/platform");
   });
 
-  it("muestra /settings/organizations sólo al operador confirmado", () => {
+  it("muestra el centro sólo al operador y conserva el destino del Panel empresarial", () => {
     operatorState.data = true;
-    expect(visibleUrls()).toContain("/settings/organizations");
+    const { result } = renderHook(() => useVisibleNavGroups());
+    const items = result.current.flatMap((group) => group.items);
+    expect(items.map((item) => item.url)).toContain("/platform");
+    expect(items.find((item) => item.url === "/")?.destination).toBe("/?workspace=organization");
   });
 });

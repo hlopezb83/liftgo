@@ -1,9 +1,7 @@
 /**
  * Operador de plataforma (tramo 9 multiempresa, server-only).
  */
-import { type AuthorizedCaller, type CallerClient, HttpError } from "./httpError";
-import { requireInternalOrganization } from "./organizationScope.server";
-import { requireAdmin } from "./roleAuthorization.server";
+import { type AdminClient, type CallerClient, HttpError } from "./httpError";
 
 /**
  * RPC sin tipado generado: los objetos de la migración 0030
@@ -33,11 +31,9 @@ export const asUntypedRpc = (client: unknown): UntypedRpcClient =>
 export async function requirePlatformOperator(
   caller: CallerClient,
   userId: string,
-): Promise<AuthorizedCaller & { organizationId: string }> {
-  // La cuenta debe estar activa y ser administradora interna de su empresa.
-  const authorized = await requireAdmin(caller, userId);
-  const organizationId = await requireInternalOrganization(caller, userId);
-
+): Promise<{ userId: string; admin: AdminClient }> {
+  // El RPC verifica asignación explícita y perfil activo. La autoridad global
+  // no depende del rol, la membresía ni el estado de una empresa.
   const { data, error } = await asUntypedRpc(caller).rpc("is_platform_operator");
   if (error) {
     console.error("[guards] is_platform_operator falló, fail-closed:", error.message);
@@ -49,5 +45,6 @@ export async function requirePlatformOperator(
   if (data !== true) {
     throw new HttpError(403, "Forbidden: se requiere un operador de plataforma");
   }
-  return { ...authorized, organizationId };
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return { userId, admin: supabaseAdmin as AdminClient };
 }
