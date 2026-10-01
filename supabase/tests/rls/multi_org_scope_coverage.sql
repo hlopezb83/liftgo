@@ -74,7 +74,8 @@ DECLARE
     -- 0088: bitácora administrativa GLOBAL. organization_id es una etiqueta
     -- del objetivo, no la empresa del actor. Sólo RPCs de operador activo;
     -- service_role no recibe UPDATE, DELETE ni TRUNCATE sobre los eventos.
-    'platform_audit_events'
+    'platform_audit_events',
+    'platform_onboarding_requests' -- 0089: solicitudes sólo vía RPC de operador
   ];
   r record;
   v_grants_abiertos integer;
@@ -193,6 +194,11 @@ BEGIN
           IF v_grants_service <> 2 OR has_table_privilege('service_role',
               'public.platform_audit_events','UPDATE,DELETE,TRUNCATE') THEN
             v_fallas := v_fallas || 'platform_audit_events: exige sólo SELECT/INSERT de service_role';
+          END IF;
+        ELSIF r.table_name = 'platform_onboarding_requests' THEN
+          IF v_grants_service <> 1 OR has_table_privilege('service_role',
+              'public.platform_onboarding_requests','INSERT,UPDATE,DELETE,TRUNCATE') THEN
+            v_fallas := v_fallas || 'platform_onboarding_requests: exige sólo SELECT de service_role';
           END IF;
         ELSIF v_grants_service <> 4 THEN
           v_fallas := v_fallas || format(

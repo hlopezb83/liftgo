@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CreateOrganizationResult } from "@/lib/platformAdmin.types";
+import { PendingPlatformOnboarding } from "../components/PendingPlatformOnboarding";
 import {
   CreateOrganizationDialog,
   CreatedResultDialog,
@@ -63,6 +64,7 @@ export default function PlatformOrganizationsPage() {
           </Button>
         }
       />
+      <PendingPlatformOnboarding onCompleted={setCreated} />
       <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
         <div className="space-y-2">
           <Label htmlFor="platform-company-search">Buscar empresa</Label>

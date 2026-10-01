@@ -10,12 +10,9 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import {
-  createOrganizationFn,
   getPlatformOperatorStatusFn,
   listOrganizationsFn,
   setOrganizationActiveFn,
-  type CreateOrganizationInput,
-  type CreateOrganizationResult,
   type PlatformOrganizationRow,
   type SetOrganizationActiveInput,
 } from "@/lib/platformAdmin.functions";
@@ -81,24 +78,10 @@ function translateError(error: Error): string {
   return match ? match[1] : raw;
 }
 
-export function useCreateOrganization() {
-  return useEntityMutation<CreateOrganizationInput, CreateOrganizationResult>({
-    mutationFn: async (input) => createOrganizationFn({ data: input }),
-    invalidateKeys: [platformKeys.all],
-    onSuccess: (result) => {
-      notifySuccess("Empresa creada", {
-        description: `Primer administrador: ${result.admin_email}`,
-      });
-    },
-    errorTitle: "No se pudo crear la empresa",
-    errorMessage: translateError,
-  });
-}
-
 export function useSetOrganizationActive() {
   return useEntityMutation<SetOrganizationActiveInput, { success: true }>({
     mutationFn: async (input) => setOrganizationActiveFn({ data: input }),
-    invalidateKeys: [platformKeys.organizations()],
+    invalidateKeys: [platformKeys.all],
     onSuccess: (_result, vars) => {
       notifySuccess(vars.active ? "Empresa reactivada" : "Empresa suspendida");
     },

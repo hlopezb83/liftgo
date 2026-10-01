@@ -9,19 +9,16 @@
  *  · Las RPC `platform_*` sólo son ejecutables por `service_role`; el
  *    navegador nunca las llama directamente ni envía `organization_id`
  *    como verdad: aquí sólo identifica QUÉ empresa operar, y la base decide.
- *  · El alta es compensable: si falla el usuario o el primer administrador, la
- *    empresa recién creada se descarta (`platform_discard_organization`) y el
- *    usuario Auth se elimina. Nunca queda una empresa sin administrador.
+ *  · El alta guarda una solicitud durable antes de crear Auth. Un reintento
+ *    retoma la identidad reservada sin compensaciones destructivas.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { rpcError } from "./platformAdmin.helpers";
 import {
-  assertEmailAvailable,
-  compensateOnboarding,
-  createFirstAdminAuthUser,
-  rpcError,
-  validateCreateInput,
-} from "./platformAdmin.helpers";
+  platformOnboardingInputSchema,
+  type PlatformOnboardingResult,
+} from "./platformOnboarding.types";
 import { platformOrganizationStatusInputSchema } from "./platformOrganizationStatus.types";
 import type {
   CreateOrganizationInput,
@@ -111,107 +108,39 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
 export const createOrganizationFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((data: CreateOrganizationInput) => data)
-  .handler(async ({ data, context }): Promise<CreateOrganizationResult> => {
+  .handler(async ({ data, context }): Promise<PlatformOnboardingResult> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId: actorId } = await g.requirePlatformOperator(
+    const { admin, userId } = await g.requirePlatformOperator(
       context.supabase,
       context.userId,
     );
+    const input = platformOnboardingInputSchema.safeParse(data);
+    if (!input.success)
+      throw new g.HttpError(400, "Datos de incorporación inválidos");
     await g.enforceRateLimit(
       admin,
       "platform-create-organization",
-      actorId,
+      userId,
       5,
       300,
     );
-    validateCreateInput(g, data);
-
-    const name = data.name.trim();
-    const slug = data.slug.trim().toLowerCase();
-    const email = data.admin_email.trim();
-    const emailLc = email.toLowerCase();
-    const fullName = data.admin_full_name.trim();
-    const manualPassword = data.admin_password?.trim() || "";
-
-    await assertEmailAvailable(g, admin, emailLc);
-
-    // 1) Empresa (la base valida nombre/slug y unicidad).
-    const created = await g
+    const result = await g
       .asUntypedRpc(admin)
-      .rpc("platform_create_organization", {
-        p_actor: actorId,
-        p_name: name,
-        p_slug: slug,
+      .rpc("platform_begin_onboarding", {
+        p_actor: userId,
+        p_request_id: input.data.request_id,
+        p_name: input.data.name,
+        p_slug: input.data.slug,
+        p_admin_email: input.data.admin_email,
+        p_admin_full_name: input.data.admin_full_name,
       });
-    if (created.error)
-      rpcError(g, "platform_create_organization", created.error);
-    const organizationId = String(created.data);
-    if (!g.isUUID(organizationId)) {
-      throw new g.HttpError(
-        500,
-        "No se pudo completar la operación de plataforma",
-      );
-    }
-
-    // 2) Usuario Auth del primer administrador (compensa la empresa si falla).
-    const adminUserId = await createFirstAdminAuthUser(
-      g,
+    if (result.error) rpcError(g, "platform_begin_onboarding", result.error);
+    const onboarding = await import("./server/platformOnboarding.server");
+    return onboarding.runPlatformOnboarding(
       admin,
-      actorId,
-      organizationId,
-      email,
-      fullName,
-      manualPassword || undefined,
+      userId,
+      onboarding.parseOnboardingJob(result.data),
     );
-
-    // 3) Membresía interna + rol admin + perfil activo, atómico en la base.
-    const attached = await g
-      .asUntypedRpc(admin)
-      .rpc("platform_attach_first_admin", {
-        p_actor: actorId,
-        p_organization_id: organizationId,
-        p_user_id: adminUserId,
-      });
-    if (attached.error) {
-      await compensateOnboarding(
-        g,
-        admin,
-        actorId,
-        organizationId,
-        adminUserId,
-      );
-      rpcError(g, "platform_attach_first_admin", attached.error);
-    }
-
-    const { error: profileUpdErr } = await admin
-      .from("profiles")
-      .update({ full_name: fullName, email: emailLc })
-      .eq("user_id", adminUserId);
-    if (profileUpdErr)
-      console.error("[platform-admin] profiles update:", profileUpdErr.message);
-
-    // Con contraseña manual el administrador ya puede entrar: no se genera
-    // enlace de recuperación para no ofrecer dos caminos de acceso a la vez.
-    let recoveryLink: string | null = null;
-    if (!manualPassword) {
-      const { data: linkData, error: linkErr } =
-        await admin.auth.admin.generateLink({
-          type: "recovery",
-          email,
-        });
-      if (linkErr)
-        console.error("[platform-admin] generateLink:", linkErr.message);
-      recoveryLink = linkData?.properties?.action_link ?? null;
-    }
-
-    return {
-      success: true,
-      organization_id: organizationId,
-      admin_user_id: adminUserId,
-      admin_email: email,
-      recovery_link: recoveryLink,
-      password_set_manually: manualPassword.length > 0,
-    };
   });
 
 export const setOrganizationActiveFn = createServerFn({ method: "POST" })

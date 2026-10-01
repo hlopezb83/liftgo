@@ -1,0 +1,8 @@
+{
+  "description": "El Centro de Plataforma conserva las altas interrumpidas para completarlas sin duplicar empresa o administrador.",
+  "changes": [
+    "Las altas pendientes se pueden reanudar desde Empresas, incluso después de cerrar el navegador.",
+    "Los reintentos comprueban la identidad reservada y completan administrador y activación en una sola operación.",
+    "Una empresa con alta pendiente permanece sin acceso; repetir un alta terminada respeta suspensiones y permisos revocados."
+  ]
+}

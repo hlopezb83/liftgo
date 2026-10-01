@@ -39,13 +39,6 @@ export interface AllowEntry {
 
 export const ALLOWLIST: AllowEntry[] = [
   {
-    file: "src/lib/platformAdmin.helpers.ts",
-    table: "organization_memberships",
-    match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,
-    reason:
-      "Compensación del alta de empresa (operador de plataforma) sobre el usuario que acaba de crearse.",
-  },
-  {
     file: "src/lib/customerPortal.link.ts",
     table: "organization_memberships",
     match: /\.delete\(\)\s*\.eq\(\s*"auth_user_id"/,

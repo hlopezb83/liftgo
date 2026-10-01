@@ -624,6 +624,13 @@
       "when": 1790885052977,
       "tag": "0088_platform_center_readmodels_and_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 89,
+      "version": "7",
+      "when": 1790890234134,
+      "tag": "0089_resumable_platform_onboarding",
+      "breakpoints": true
     }
   ]
 }
