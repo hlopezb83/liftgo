@@ -123,8 +123,8 @@ export default function PlatformOrganizationsPage() {
           )}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              {rows.length} empresas · Página {currentPage + 1} de{" "}
-              {lastPage + 1}
+              {rows.length} {rows.length === 1 ? "empresa" : "empresas"} ·
+              Página {currentPage + 1} de {lastPage + 1}
             </p>
             <div className="flex gap-2">
               <Button

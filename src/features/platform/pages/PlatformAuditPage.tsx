@@ -20,6 +20,10 @@ import { PLATFORM_AUDIT_LABELS } from "../lib/platformAuditLabels";
 
 const SELECT_CLASS = "h-10 w-full rounded-md border bg-background px-3 text-sm";
 
+function eventCountLabel(count: number) {
+  return `${count} ${count === 1 ? "evento" : "eventos"}`;
+}
+
 function validFilters(input: PlatformAuditInput, invalidTarget: boolean) {
   return !invalidTarget && platformAuditInputSchema.safeParse(input).success;
 }
@@ -178,7 +182,7 @@ function AuditContent({
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              Página {cursors.length + 1} · {events.length} eventos
+              Página {cursors.length + 1} · {eventCountLabel(events.length)}
             </p>
             <div className="flex gap-2">
               <Button

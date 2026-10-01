@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.42.38",
+    "date": "2026-10-01",
+    "type": "patch",
+    "category": "fix",
+    "title": "Bitácora adaptable en tablet y conteos claros",
+    "description": "La bitácora de plataforma muestra tarjetas en tablet para mantener visible el acceso al detalle.",
+    "changes": [
+      "Los eventos se muestran como tarjetas en tablet y móvil; la tabla se conserva en escritorio.",
+      "Los conteos de Empresas y Bitácora distinguen correctamente una empresa o un evento."
+    ]
+  },
+  {
     "version": "8.42.37",
     "date": "2026-10-01",
     "type": "patch",
