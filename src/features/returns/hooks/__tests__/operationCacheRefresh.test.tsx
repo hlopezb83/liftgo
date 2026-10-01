@@ -44,6 +44,7 @@ describe.each(cases)("Refresco después de $name", ({ useHook, input }) => {
     const { Wrapper, queryClient } = createQueryWrapper();
     queryClient.setDefaultOptions({ queries: { retry: false, gcTime: Infinity } });
     const roots = ["dashboard-stats", "fleet_locations", "forklift-location", "forklift-financials", "bookings", "forklifts", "status_logs"];
+    if ("booking_id" in input) roots.push("damage_records", "damage_photo_counts", "sidebar-badge-counts");
     for (const root of roots) queryClient.setQueryData([root, "list"], "before");
     queryClient.setQueryData(["customers", "list"], "unchanged");
     const { result } = renderHook(() => useHook(), { wrapper: Wrapper });

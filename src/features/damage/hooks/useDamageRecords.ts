@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
@@ -10,6 +9,7 @@ import {
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { damageInvalidationKeys } from "../lib/damageInvalidationKeys";
 // FIX-R3-05: costos de reparación alimentan los reportes.
 
 type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];
@@ -53,7 +53,7 @@ export function useCreateDamageRecord() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
+    invalidateKeys: damageInvalidationKeys,
     errorTitle: "Error al crear registro de daño",
   });
 }
@@ -72,7 +72,7 @@ export function useUpdateDamageRecord() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
+    invalidateKeys: damageInvalidationKeys,
     errorTitle: "Error al actualizar registro de daño",
   });
 }
@@ -85,7 +85,7 @@ export function useArchiveDamageRecord() {
       await callRpc<void>("soft_delete_damage_record", { p_damage_id: id });
       return id;
     },
-    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
+    invalidateKeys: damageInvalidationKeys,
     errorTitle: "Error al archivar registro de daño",
   });
 }
@@ -97,8 +97,23 @@ export function useRestoreDamageRecord() {
       await callRpc<void>("restore_damage_record", { p_damage_id: id });
       return id;
     },
-    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
+    invalidateKeys: damageInvalidationKeys,
     successMsg: "Registro de daño restaurado",
     errorTitle: "No se pudo restaurar el registro de daño",
+  });
+}
+
+export function useSaveManualDamageReport() {
+  return useEntityMutation({
+    mutationFn: async (input: {
+      forkliftId: string; customerId?: string; description: string; estimatedCost: number;
+      damageId?: string; expectedUpdatedAt?: string;
+    }) => callRpc<TablesInsert<"damage_records"> & { id: string; updated_at: string }>("save_manual_damage_report", {
+      p_forklift_id: input.forkliftId, p_customer_id: input.customerId || undefined,
+      p_description: input.description, p_estimated_cost: input.estimatedCost,
+      p_damage_id: input.damageId, p_expected_updated_at: input.expectedUpdatedAt,
+    }),
+    invalidateKeys: damageInvalidationKeys,
+    errorTitle: "No se pudo guardar el reporte de daño",
   });
 }

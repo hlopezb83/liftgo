@@ -60,6 +60,13 @@ const CURRENCY_OPTIONS: SelectOption[] = [
   { value: "USD", label: "USD" },
 ];
 
+function currencyDescription(editing: boolean, isError: boolean, unverified: boolean, locked: boolean) {
+  if (editing && isError) return "No se pudo verificar el historial. La moneda permanece bloqueada.";
+  if (unverified) return "Verificando movimientos importados…";
+  if (locked) return "La moneda no se puede cambiar porque la cuenta tiene movimientos importados. Crea una cuenta nueva si necesitas otra moneda.";
+  return undefined;
+}
+
 export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
   const upsert = useUpsertBankAccount();
   const form = useForm<FormValues>({
@@ -74,10 +81,15 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
 
   // F8: cambiar la moneda de una cuenta con movimientos importados rompe el
   // scoring FX del matching. Bloqueamos el campo en edición cuando hay líneas.
-  const { data: hasImportedLines = false } = useBankAccountHasLines(initial?.id ?? null);
-  const currencyLocked = !!initial && hasImportedLines;
+  const history = useBankAccountHasLines(initial?.id ?? null, open);
+  const currencyUnverified = !!initial && (!history.isSuccess || history.isFetching);
+  const currencyLocked = !!initial && (currencyUnverified || history.data === true);
 
   const onSubmit = form.handleSubmit((values) => {
+    if (initial && values.currency !== initial.currency && currencyLocked) {
+      form.setError("currency", { message: "La moneda no puede cambiar hasta verificar que no hay movimientos importados." });
+      return;
+    }
     upsert.mutate(
       {
         id: initial?.id,
@@ -124,11 +136,7 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
                 label="Moneda"
                 options={CURRENCY_OPTIONS}
                 disabled={currencyLocked}
-                description={
-                  currencyLocked
-                    ? "La moneda no se puede cambiar porque la cuenta tiene movimientos importados. Crea una cuenta nueva si necesitas otra moneda."
-                    : undefined
-                }
+                description={currencyDescription(!!initial, history.isError, currencyUnverified, currencyLocked)}
               />
               <NumberField
                 control={form.control}
@@ -138,6 +146,13 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
                 nullOnEmpty={false}
               />
             </div>
+            {initial && history.isError && (
+              <div role="alert" className="text-sm">
+                <Button type="button" variant="outline" size="sm" onClick={() => { void history.refetch(); }} disabled={history.isFetching}>
+                  Reintentar verificación de moneda
+                </Button>
+              </div>
+            )}
             <SwitchField control={form.control} name="isActive" label="Activa" />
           </FormSection>
           <FormSection title="Interno">

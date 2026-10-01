@@ -1,5 +1,16 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.34] - 2026-10-01 · patch · fix
+
+Los pagos conservan su información bancaria, las existencias detectan cambios concurrentes y las reservas respetan daños abiertos.
+
+- Los layouts bancarios se descargan desde el lote guardado y pueden recuperarse desde el historial. Cancelar conserva el historial y se bloquea cuando hay pagos vinculados.
+- Los importes parciales seleccionados se conservan al actualizar; las consultas fallidas ofrecen reintento y los pagos actualizan saldos y flujo de caja.
+- La moneda bancaria queda protegida después de importar movimientos. Editar una refacción conserva sus existencias; ajustar stock requiere un motivo y un conteo vigente.
+- Reasignar mantenimiento actualiza ambos equipos. Daños abiertos bloquean reservas y entregas; guardar y reintentar fotos conserva los datos corregidos y respeta cada rol.
+- Facturar desde una reserva actualiza moneda y tipo de cambio. Las reservas nuevas conservan su partida cotizada; los casos antiguos ambiguos requieren revisión.
+- Un contrato enviado permite registrar su firmante sin editar importes. CRM muestra el error junto al correo y la importación de CSF protege los cambios sin guardar.
+
 ## [8.42.33] - 2026-09-30 · patch · fix
 
 Una fecha imposible permanece visible hasta corregirla, incluso después de cambiar antes a otra fecha válida.

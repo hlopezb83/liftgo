@@ -157,7 +157,7 @@ END $$;
 SET LOCAL request.jwt.claims TO '{"sub":"f1111111-1111-4111-8111-111111111101","role":"authenticated"}';
 
 DO $$
-DECLARE v_rows int;
+DECLARE v_rows int; v_blocked boolean:=false; v_part public.parts_inventory;
 BEGIN
   IF (SELECT COUNT(*) FROM public.parts_inventory) < 1 THEN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia leer parts_inventory';
@@ -170,10 +170,13 @@ BEGIN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia poder dar de alta refacciones';
   END IF;
 
-  UPDATE public.parts_inventory SET stock_quantity = 9
-   WHERE id = 'f1111111-1111-4111-8111-1111111111a1';
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
+  BEGIN
+    UPDATE public.parts_inventory SET stock_quantity = 9
+     WHERE id = 'f1111111-1111-4111-8111-1111111111a1';
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked:=true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'UPDATE directo de stock permitió omitir el motivo/version'; END IF;
+  v_part:=public.adjust_part_stock('f1111111-1111-4111-8111-1111111111a1',10,9,'Conteo físico RLS');
+  IF v_part.stock_quantity <> 9 THEN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia poder ajustar el stock';
   END IF;
   RAISE NOTICE 'OK: mecanico administra parts_inventory';

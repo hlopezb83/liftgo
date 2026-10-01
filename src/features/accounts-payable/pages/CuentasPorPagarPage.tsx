@@ -10,6 +10,7 @@ import { useToggleDialog } from "@/hooks/useDialogState";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Link } from "@/lib/router-compat-ui";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
+import { PaymentBatchesDialog } from "../components/PaymentBatchesDialog";
 import {
   useSupplierBillColumns,
   renderSupplierBillMobileCard,
@@ -24,6 +25,7 @@ import {
   useAccountsPayableTableState,
   useClampAccountsPayablePage,
 } from "../hooks/useAccountsPayableTableState";
+import { useCanManagePaymentBatches } from "../hooks/useCanManagePaymentBatches";
 import {
   useReleasablePaymentLocksCount,
   useReleaseStalePaymentLocks,
@@ -41,6 +43,7 @@ export default function CuentasPorPagarPage() {
   });
   const createDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
+  const batchesDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const tableState = useAccountsPayableTableState(f.filterKey);
   const { pagination, sorting } = tableState;
@@ -77,6 +80,7 @@ export default function CuentasPorPagarPage() {
   const { data: releasableLocks = 0 } = useReleasablePaymentLocksCount();
 
   const canCreate = useHasModuleAccess("Facturas de Proveedor", "full");
+  const canManageBatches = useCanManagePaymentBatches(canCreate);
   const createActions = buildCreateActions(canCreate, createDialog.openDialog);
   usePageActions({ ...createActions, newLabel: "Nueva factura de proveedor" });
 
@@ -104,8 +108,10 @@ export default function CuentasPorPagarPage() {
         actions={<AccountsPayableActions
           releasableLocks={releasableLocks}
           isReleasing={releaseLocks.isPending}
+          canManageBatches={canManageBatches}
           onCreate={createDialog.openDialog}
           onExport={exportDialog.openDialog}
+          onBatches={batchesDialog.openDialog}
           onRelease={() => releaseLocks.mutate(STALE_LOCK_HOURS)}
         />}
         notice={<FxMissingBillsNotice isError={isError} count={summary.kpis.fxMissingCount} />}
@@ -130,7 +136,7 @@ export default function CuentasPorPagarPage() {
       />
 
       <SupplierBillFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
-      <ExportPaymentsDialog open={exportDialog.open} onOpenChange={exportDialog.setOpen} />
+      <PaymentBatchDialogs canManage={canManageBatches} exportDialog={exportDialog} batchesDialog={batchesDialog} />
       <SupplierBillDetailSheet
         billId={selectedId}
         open={selectedId !== null}
@@ -145,6 +151,18 @@ function buildCreateActions(enabled: boolean, onCreate: () => void) {
   return { onNew: onCreate, emptyActionLabel: "Nueva cuenta", onEmptyAction: onCreate };
 }
 
+function PaymentBatchDialogs({ canManage, exportDialog, batchesDialog }: {
+  canManage: boolean;
+  exportDialog: ReturnType<typeof useToggleDialog>;
+  batchesDialog: ReturnType<typeof useToggleDialog>;
+}) {
+  if (!canManage) return null;
+  return <>
+    <ExportPaymentsDialog open={exportDialog.open} onOpenChange={exportDialog.setOpen} />
+    <PaymentBatchesDialog open={batchesDialog.open} onOpenChange={batchesDialog.setOpen} />
+  </>;
+}
+
 function clampTablePageIndex(pageIndex: number, pageCount: number, totalCount: number | undefined) {
   if (totalCount === undefined) return pageIndex;
   return Math.min(pageIndex, Math.max(0, pageCount - 1));
@@ -153,16 +171,20 @@ function clampTablePageIndex(pageIndex: number, pageCount: number, totalCount: n
 interface AccountsPayableActionsProps {
   releasableLocks: number;
   isReleasing: boolean;
+  canManageBatches: boolean;
   onCreate: () => void;
   onExport: () => void;
+  onBatches: () => void;
   onRelease: () => void;
 }
 
 function AccountsPayableActions({
   releasableLocks,
   isReleasing,
+  canManageBatches,
   onCreate,
   onExport,
+  onBatches,
   onRelease,
 }: AccountsPayableActionsProps) {
   return (
@@ -173,10 +195,15 @@ function AccountsPayableActions({
           <span className="hidden sm:inline">Antigüedad</span>
         </Button>
       </Link>
+      {canManageBatches && <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
       <Button variant="outline" onClick={onExport} aria-label="Exportar pagos">
         <FileSpreadsheet className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar pagos</span>
       </Button>
+      <Button variant="outline" onClick={onBatches} aria-label="Historial de lotes">
+        <FileClock className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Historial de lotes</span>
+      </Button>
+      </RoleGuard>}
       <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
         {/* El RPC decide cuáles bloqueos abandonados pueden liberarse. */}
         {releasableLocks > 0 && (

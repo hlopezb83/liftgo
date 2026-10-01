@@ -138,67 +138,44 @@ BEGIN
   RAISE NOTICE 'OK: auditor sin acceso a lotes de pago';
 END $$;
 
--- 4) Administrativo: opera la tesorería.
+-- 4) Administrativo conserva SELECT; el snapshot sólo se escribe por RPC.
 SET LOCAL request.jwt.claims TO '{"sub":"f3333333-3333-4333-8333-333333333302","role":"authenticated"}';
-
-DO $$
-DECLARE v_rows int;
+DO $administrative$
+DECLARE v_blocked boolean;
 BEGIN
-  IF (SELECT COUNT(*) FROM public.supplier_payment_batches) < 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: administrativo deberia leer supplier_payment_batches';
+  IF (SELECT count(*) FROM public.supplier_payment_batches) < 1
+     OR (SELECT count(*) FROM public.supplier_payment_batch_items) < 1 THEN
+    RAISE EXCEPTION 'RLS ROTA: administrativo perdió lectura de lotes';
   END IF;
-  IF (SELECT COUNT(*) FROM public.supplier_payment_batch_items) < 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: administrativo deberia leer supplier_payment_batch_items';
-  END IF;
+  v_blocked := false;
+  BEGIN INSERT INTO public.supplier_payment_batches(total_amount, bill_count) VALUES(800, 1);
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked := true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'Snapshot breach: direct batch insert allowed'; END IF;
+  v_blocked := false;
+  BEGIN UPDATE public.supplier_payment_batch_items SET amount = 1
+          WHERE batch_id = 'f3333333-3333-4333-8333-3333333333b1';
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked := true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'Snapshot breach: persisted amount editable'; END IF;
+END;
+$administrative$;
 
-  INSERT INTO public.supplier_payment_batches (id, total_amount, bill_count, notes)
-  VALUES ('f3333333-3333-4333-8333-3333333333b2', 800, 1, 'Lote RLS 2');
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: administrativo deberia poder crear lotes';
-  END IF;
-
-  INSERT INTO public.supplier_payment_batch_items
-    (batch_id, supplier_name, clabe, bill_number, reference, amount)
-  VALUES (
-    'f3333333-3333-4333-8333-3333333333b2', 'Proveedor RLS 2',
-    '098765432109876542', 'FAC-RLS-2', 'REF-RLS-2', 800
-  );
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: administrativo deberia poder agregar partidas al lote';
-  END IF;
-
-  UPDATE public.supplier_payment_batches SET notes = 'Lote RLS editado'
-   WHERE id = 'f3333333-3333-4333-8333-3333333333b1';
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: administrativo deberia poder editar lotes';
-  END IF;
-  RAISE NOTICE 'OK: administrativo administra lotes de pago';
-END $$;
-
--- 5) Admin: puede borrar lotes y partidas.
+-- 5) Admin cancela mediante RPC, conservando historial; no borra filas directamente.
 SET LOCAL request.jwt.claims TO '{"sub":"f3333333-3333-4333-8333-333333333301","role":"authenticated"}';
-
-DO $$
-DECLARE v_rows int;
+DO $admin$
+DECLARE v_blocked boolean;
 BEGIN
-  DELETE FROM public.supplier_payment_batch_items
-   WHERE batch_id = 'f3333333-3333-4333-8333-3333333333b2';
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows < 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: admin deberia poder borrar partidas del lote';
-  END IF;
-
-  DELETE FROM public.supplier_payment_batches
-   WHERE id = 'f3333333-3333-4333-8333-3333333333b2';
-  GET DIAGNOSTICS v_rows = ROW_COUNT;
-  IF v_rows <> 1 THEN
-    RAISE EXCEPTION 'RLS ROTA: admin deberia poder borrar lotes';
-  END IF;
-  RAISE NOTICE 'OK: admin borra lotes de pago';
-END $$;
+  v_blocked := false;
+  BEGIN DELETE FROM public.supplier_payment_batch_items
+         WHERE batch_id = 'f3333333-3333-4333-8333-3333333333b1';
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked := true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'Snapshot breach: direct item delete allowed'; END IF;
+  v_blocked := false;
+  BEGIN DELETE FROM public.supplier_payment_batches
+         WHERE id = 'f3333333-3333-4333-8333-3333333333b1';
+  EXCEPTION WHEN insufficient_privilege THEN v_blocked := true; END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'History breach: direct batch delete allowed'; END IF;
+END;
+$admin$;
 
 -- 6) service_role: bypass total de RLS.
 RESET ROLE;

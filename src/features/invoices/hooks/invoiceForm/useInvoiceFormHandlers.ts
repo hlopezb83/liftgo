@@ -128,18 +128,14 @@ function applyPrimaryCustomer(
   if (customer) applyCfdiPatch(form, customer);
 }
 
-/**
- * A1-2: hereda moneda/TC de la reserva primaria cuando no es MXN, evitando
- * facturar en MXN montos pactados en USD (mismo patrón que `buildFromQuote`
- * para cotizaciones en `invoiceFormBuilders.ts`).
- */
-function applyPrimaryCurrency(form: UseFormReturn<InvoiceFormValues>, first: Booking) {
-  if (first.currency !== "USD") return;
-  form.setValue("cfdi.moneda", "USD", { shouldDirty: true });
+/** Replace both fields whenever the primary booking changes; otherwise an
+ * earlier manual USD choice survives a later MXN selection. */
+export function applyPrimaryCurrency(form: UseFormReturn<InvoiceFormValues>, first: Booking) {
+  const currency = first.currency?.trim().toUpperCase() || "MXN";
+  form.setValue("cfdi.moneda", currency, { shouldDirty: true });
   const fx = Number(first.tipo_cambio);
-  if (Number.isFinite(fx) && fx > 0) {
-    form.setValue("cfdi.tipoCambio", fx, { shouldDirty: true });
-  }
+  form.setValue("cfdi.tipoCambio", currency === "MXN" ? 1 : Number.isFinite(fx) && fx > 0 ? fx : 0,
+    { shouldDirty: true });
 }
 
 function collectExtraLinesFromQuotes(

@@ -9,7 +9,7 @@
 --   psql -f supabase/tests/r_fix38_maintenance_archive_releases_forklift_smoke.sql
 -- Todo corre dentro de una transacción con ROLLBACK: no deja datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 
@@ -19,7 +19,7 @@ BEGIN
   IF p_cond THEN
     RAISE NOTICE 'OK  %', p_label;
   ELSE
-    RAISE WARNING 'FALLO  %', p_label;
+    RAISE EXCEPTION 'FALLO  %', p_label;
   END IF;
 END; $$;
 
@@ -35,31 +35,34 @@ $$;
 -- ---------------------------------------------------------------------------
 
 SELECT pg_temp.expect_true(
-  'trg_sync_forklift_on_maintenance escucha también deleted_at',
-  pg_get_triggerdef(t.oid) LIKE '%UPDATE OF work_status, deleted_at%'
+  'trg_sync_forklift_on_maintenance escucha equipo, estado y archivo',
+  pg_get_triggerdef(t.oid) LIKE '%UPDATE OF forklift_id, work_status, deleted_at%'
 ) FROM pg_trigger t
   JOIN pg_class c ON c.oid = t.tgrelid
  WHERE c.relname = 'maintenance_logs'
    AND t.tgname = 'trg_sync_forklift_on_maintenance';
 
 SELECT pg_temp.expect_true(
-  'la función trata el archivado como cancelación',
-  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%v_archived%'
+  'la función reconcilia cada unidad afectada tras el archivo o traslado',
+  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%reconcile_forklift_operations%'
+  AND pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%OLD.forklift_id%'
 );
 
 SELECT pg_temp.expect_true(
   'sigue respetando daños abiertos (reported/in_repair)',
-  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%in_repair%'
+  pg_temp.fndef('reconcile_forklift_operations') LIKE '%in_repair%'
 );
 
 SELECT pg_temp.expect_true(
   'sigue respetando otras OT abiertas (pending/in_progress)',
-  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%v_open_work_orders%'
+  pg_temp.fndef('reconcile_forklift_operations') LIKE '%maintenance_logs%'
+  AND pg_temp.fndef('reconcile_forklift_operations') LIKE '%waiting_parts%'
 );
 
 SELECT pg_temp.expect_true(
-  'sigue respetando rentas confirmadas vigentes',
-  pg_temp.fndef('sync_forklift_status_on_maintenance') LIKE '%has_open_rental%'
+  'sigue respetando entregas reales sin devolución',
+  pg_temp.fndef('reconcile_forklift_operations') LIKE '%d.status=''completed''%'
+  AND pg_temp.fndef('reconcile_forklift_operations') LIKE '%booking_is_returned%'
 );
 
 SELECT pg_temp.expect_true(
@@ -79,8 +82,11 @@ DECLARE
   v_ot   uuid := gen_random_uuid();
   v_ot2  uuid := gen_random_uuid();
   v_st   text;
+  v_org  uuid := gen_random_uuid();
 BEGIN
   PERFORM set_config('app.e2e_seed', 'on', true);
+  INSERT INTO public.organizations(id,name,slug) VALUES(v_org,'Taller smoke de operación','smoke-archive-'||v_org::text);
+  PERFORM set_config('app.organization_id',v_org::text,true);
 
   -- Caso 1: OT en progreso archivada -> unidad liberada.
   INSERT INTO public.forklifts (id, name, model, serial_number, status)
@@ -106,8 +112,6 @@ BEGIN
   UPDATE public.maintenance_logs SET deleted_at = now() WHERE id = v_ot2;
   SELECT status INTO v_st FROM public.forklifts WHERE id = v_fk2;
   PERFORM pg_temp.expect_true('con daño abierto la unidad permanece en mantenimiento', v_st = 'maintenance');
-EXCEPTION WHEN insufficient_privilege THEN
-  RAISE NOTICE 'OMITIDO: el rol actual no puede escribir estas tablas (%).', SQLERRM;
 END $$;
 
 ROLLBACK;

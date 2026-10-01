@@ -71,6 +71,7 @@ export {
   useCreatePart,
   useActivateCatalogPart,
   useUpdatePart,
+  useAdjustPartStock,
   useDeletePart,
   useAddMaintenancePart,
 } from "./usePartInventoryMutations";

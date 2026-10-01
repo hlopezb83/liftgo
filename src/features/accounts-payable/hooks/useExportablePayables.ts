@@ -94,8 +94,8 @@ export const exportablePayableQueries = defineEntityQueries<
   },
 });
 
-export function useExportablePayables() {
-  return useQuery(exportablePayableQueries.list());
+export function useExportablePayables(enabled = true) {
+  return useQuery({ ...exportablePayableQueries.list(), enabled });
 }
 
 interface BankInfo {

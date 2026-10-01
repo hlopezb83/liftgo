@@ -5,6 +5,7 @@ import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } f
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useAuth } from "@/contexts/AuthContext";
 import { useHasModuleAccess, useUserRole } from "@/features/users";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -12,6 +13,7 @@ import { formatMtyDate } from "@/lib/utils";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useRestoreDamageRecord } from "../../hooks/useDamageRecords";
 import { hasRecordedActualCost } from "../../lib/actualDamageCost";
+import { canUploadDamageEvidence } from "../../lib/damageEvidenceAccess";
 import { DamageActions } from "./DamageActions";
 import { DamagePhotosSection } from "./DamagePhotosSection";
 
@@ -24,8 +26,10 @@ interface Props {
 export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
   const canManageDamage = useHasModuleAccess("Daños", "full");
   const { data: role } = useUserRole();
+  const { user } = useAuth();
   const restore = useRestoreDamageRecord();
   if (!record) return null;
+  const canUploadPhotos = canUploadDamageEvidence(record, user?.id, role, canManageDamage);
 
 
 
@@ -68,7 +72,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           </div>
 
           <Separator />
-          <DamagePhotosSection entityType="damage_record" entityId={record.id} title="Fotos de Daño" showUploader={canManageDamage} />
+          <DamagePhotosSection entityType="damage_record" entityId={record.id} title="Fotos de Daño" showUploader={canUploadPhotos} />
 
           <Separator />
           {record.deleted_at ? (

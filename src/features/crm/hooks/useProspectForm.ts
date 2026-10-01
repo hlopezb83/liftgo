@@ -55,6 +55,7 @@ export function useProspectForm({
   const [notes, setNotes] = useState("");
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [dealValueError, setDealValueError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
   // R23-O: error inline de "Empresa" (antes lo reportaba la burbuja nativa del navegador).
   const [companyError, setCompanyError] = useState<string | null>(null);
 
@@ -82,6 +83,7 @@ export function useProspectForm({
       setDealValue(""); setNotes(""); setQuoteId(null);
     }
     setDealValueError(null);
+    setEmailError(null);
     setCompanyError(null);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [prospect, open]);
@@ -129,11 +131,14 @@ export function useProspectForm({
       // R23-O: el error de empresa se muestra bajo su propio campo.
       const companyIssue = parsed.error.issues.find((i) => i.path[0] === "company_name");
       setCompanyError(companyIssue?.message ?? null);
-      const other = parsed.error.issues.find((i) => i.path[0] !== "company_name");
-      setDealValueError(companyIssue ? null : other?.message ?? "Datos inválidos");
+      const emailIssue = parsed.error.issues.find((i) => i.path[0] === "email");
+      const other = parsed.error.issues.find((i) => i.path[0] !== "company_name" && i.path[0] !== "email");
+      setEmailError(emailIssue?.message ?? null);
+      setDealValueError(other?.message ?? null);
       return null;
     }
     setCompanyError(null);
+    setEmailError(null);
     return parsed.data;
   };
 
@@ -146,10 +151,10 @@ export function useProspectForm({
 
   return {
     isDirty,
-    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError, companyError },
+    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError, emailError, companyError },
     setters: {
       setCompany: (v: string) => { setCompany(v); setCompanyError(null); },
-      setContact, setEmail, setPhone,
+      setContact, setEmail: (v: string) => { setEmail(v); setEmailError(null); }, setPhone,
       setDealValue: (v: string) => { setDealValue(v); setDealValueError(null); },
       setNotes,
       handleQuoteChange,

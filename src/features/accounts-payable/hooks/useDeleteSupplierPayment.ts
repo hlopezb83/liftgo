@@ -1,8 +1,11 @@
 import { reconciliationStatusKey } from "@/features/bank-reconciliation";
 import { bankLineKeys } from "@/features/bank-reconciliation";
+import { cashFlowProjectionQueries } from "@/features/cash-flow";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
+import { exportablePayableQueries } from "./useExportablePayables";
+import { PAYMENT_BATCHES_QK } from "./usePaymentBatches";
 import { supplierBillKeys } from "./useSupplierBills";
 
 interface DeleteSupplierPaymentInput {
@@ -36,6 +39,11 @@ export function useDeleteSupplierPayment(opts?: { onBusinessBlock?: (block: Busi
       supplierBillKeys.all,
       supplierBillKeys.detail(vars.billId),
       ["accounts_payable_kpis"],
+      exportablePayableQueries.keys.all,
+      cashFlowProjectionQueries.keys.all,
+      PAYMENT_BATCHES_QK,
+      ["dashboard-financial-kpis"],
+      ["cash-flow"],
       reconciliationStatusKey({ supplierPaymentId: paymentId }),
       bankLineKeys.all,
     ],

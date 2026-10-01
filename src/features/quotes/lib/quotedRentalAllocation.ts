@@ -14,6 +14,8 @@ export interface QuotedRentalBooking {
   daily_rate?: number | null;
   weekly_rate?: number | null;
   monthly_rate?: number | null;
+  /** Server-assigned index into the accepted quote's rental_meta array. */
+  quote_rental_line_index?: number | null;
 }
 
 export interface RentalQuoteSource {
@@ -75,9 +77,14 @@ function validDiscount(line: LineItem): boolean {
 
 function quoteGroups(quote: RentalQuoteSource, siblings: QuotedRentalBooking[], units: QuotedRentalUnit[]): Group[] {
   if (!quote.start_date || !quote.end_date) throw new Error(REVIEW);
+  const mappedCount = siblings.filter((booking) => booking.quote_rental_line_index != null).length;
+  // Historical bookings have no identity. Mixing mapped and unmapped siblings
+  // would give a seemingly precise allocation without complete provenance.
+  if (mappedCount > 0 && mappedCount !== siblings.length) throw new Error(REVIEW);
+  const hasMapping = mappedCount === siblings.length;
   const source = rentalItems(quote.line_items);
   let offset = 0;
-  const groups = readMeta(quote.rental_meta).map((meta) => {
+  const groups = readMeta(quote.rental_meta).map((meta, index) => {
     const expected = generateLineItemsFromModel("Equipo", meta.dailyRate, meta.weeklyRate, meta.monthlyRate,
       quote.start_date as string, quote.end_date as string, meta.quantity);
     const lines = source.slice(offset, offset + expected.length);
@@ -86,7 +93,11 @@ function quoteGroups(quote: RentalQuoteSource, siblings: QuotedRentalBooking[], 
       line.quantity !== lines[i].quantity || line.unit_price !== lines[i].unit_price || line.total !== lines[i].total
       || !validDiscount(lines[i]))) throw new Error(REVIEW);
     if ((meta.discount ?? 0) > 0 && !lines.some((line) => (line.discount ?? 0) > 0)) throw new Error(REVIEW);
-    return { meta, lines, bookings: siblings.filter((booking) => matches(booking, meta, units)).sort((a, b) => a.id.localeCompare(b.id)) };
+    const bookings = siblings.filter((booking) => hasMapping
+      ? booking.quote_rental_line_index === index
+      : matches(booking, meta, units)).sort((a, b) => a.id.localeCompare(b.id));
+    if (hasMapping && bookings.some((booking) => !matches(booking, meta, units))) throw new Error(REVIEW);
+    return { meta, lines, bookings };
   });
   if (offset !== source.length || groups.some((group) => group.bookings.length !== group.meta.quantity)
     || siblings.some((booking) => groups.filter((group) => group.bookings.some((b) => b.id === booking.id)).length !== 1)) {

@@ -384,9 +384,9 @@ BEGIN
   END IF;
 
   PERFORM public.cancel_supplier_payment_batch('40000000-0000-4000-8000-0000000000af');
-  IF EXISTS (
+  IF NOT EXISTS (
     SELECT 1 FROM public.supplier_payment_batches
-    WHERE id = '40000000-0000-4000-8000-0000000000af'
+    WHERE id = '40000000-0000-4000-8000-0000000000af' AND cancelled_at IS NOT NULL
   ) THEN
     v_fallas := v_fallas || 'cancel_supplier_payment_batch: A no pudo cancelar su propio lote';
   END IF;

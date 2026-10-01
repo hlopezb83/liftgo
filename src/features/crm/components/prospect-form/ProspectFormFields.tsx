@@ -41,7 +41,9 @@ export function ProspectFormFields({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={fields.email} onChange={(e) => setters.setEmail(e.target.value)} />
+          <Input id="email" type="email" value={fields.email} onChange={(e) => setters.setEmail(e.target.value)}
+            aria-invalid={fields.emailError ? true : undefined} aria-describedby={fields.emailError ? "prospect-email-error" : undefined} />
+          {fields.emailError && <p id="prospect-email-error" className="text-xs text-destructive">{fields.emailError}</p>}
         </div>
         <div className="space-y-2">
           <Label htmlFor="phone">Teléfono</Label>

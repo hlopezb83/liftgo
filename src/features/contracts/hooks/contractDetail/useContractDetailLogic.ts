@@ -1,7 +1,7 @@
 import { useParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CONTRACT_STATUS_LABELS } from "../../lib/contractStatusLabels";
-import { useContract, useUpdateContract } from "../useContracts";
+import { useContract, useSetSentContractSigner, useUpdateContract } from "../useContracts";
 
 /**
  * Centraliza el id, fetch, mutación y handler de status de la página de detalle
@@ -11,6 +11,7 @@ export function useContractDetailLogic() {
   const { id } = useParams();
   const { data: contract, isLoading, isError, refetch } = useContract(id);
   const updateContract = useUpdateContract();
+  const setSentSigner = useSetSentContractSigner();
 
   const setStatus = (status: string, extra?: Record<string, unknown>) => {
     if (!id) return;
@@ -20,5 +21,11 @@ export function useContractDetailLogic() {
     );
   };
 
-  return { id, contract, isLoading, isError, refetch, setStatus };
+  const setSigner = async (signer: string) => {
+    if (!id || !contract?.updated_at) throw new Error("El contrato aún no está disponible.");
+    await setSentSigner.mutateAsync({ id, expectedUpdatedAt: contract.updated_at, signer });
+    notifySuccess("Firmante registrado");
+  };
+
+  return { id, contract, isLoading, isError, refetch, setStatus, setSigner, signerPending: setSentSigner.isPending };
 }

@@ -40,7 +40,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useCreateContract, useUpdateContract } from "../useContracts";
+import { useCreateContract, useSetSentContractSigner, useUpdateContract } from "../useContracts";
 
 beforeEach(() => {
   insertedPayloads.length = 0;
@@ -137,5 +137,18 @@ describe("useUpdateContract", () => {
 
     expect(updateFilters).toContainEqual({ method: "eq", args: ["updated_at", "2026-09-29T10:00:00Z"] });
     expect((caught as Error).message).toContain("El contrato cambió");
+  });
+});
+
+describe("useSetSentContractSigner", () => {
+  it("guarda sólo el firmante si el contrato sigue enviado y no cambió", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useSetSentContractSigner(), { wrapper: Wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ id: "ctr-1", signer: "  María López  ", expectedUpdatedAt: "2026-10-01T10:00:00Z" });
+    });
+    expect(updatedPayloads[0]).toEqual({ signed_by: "María López" });
+    expect(updateFilters).toContainEqual({ method: "eq", args: ["status", "sent"] });
+    expect(updateFilters).toContainEqual({ method: "eq", args: ["updated_at", "2026-10-01T10:00:00Z"] });
   });
 });

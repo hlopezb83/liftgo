@@ -82,10 +82,11 @@ export function buildPaymentsWorkbook(xlsx: typeof XLSX, rows: PaymentExportRow[
   return wb;
 }
 
-export async function downloadPaymentsXlsx(rows: PaymentExportRow[]): Promise<string> {
+export async function downloadPaymentsXlsx(rows: PaymentExportRow[], batchId?: string): Promise<string> {
   const xlsx = await import("@e965/xlsx");
   const wb = buildPaymentsWorkbook(xlsx, rows);
-  const filename = `pagos-proveedores-${format(nowMty(), "ddMMyyyy-HHmm")}.xlsx`;
+  const suffix = batchId ? `-${batchId.slice(0, 8)}` : "";
+  const filename = `pagos-proveedores-${format(nowMty(), "ddMMyyyy-HHmm")}${suffix}.xlsx`;
   xlsx.writeFile(wb, filename);
   return filename;
 }

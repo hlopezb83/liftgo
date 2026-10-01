@@ -146,6 +146,24 @@ export function useUpdateContract() {
   });
 }
 
+/** A sent contract can receive its missing signer without reopening negotiated terms. */
+export function useSetSentContractSigner() {
+  return useEntityMutation({
+    mutationFn: async ({ id, expectedUpdatedAt, signer }: { id: string; expectedUpdatedAt: string; signer: string }) => {
+      const name = signer.trim();
+      if (!name) throw new Error("Captura el nombre de quien firmará el contrato.");
+      const { data, error } = await supabase.from("contracts")
+        .update({ signed_by: name }).eq("id", id).eq("status", "sent")
+        .eq("updated_at", expectedUpdatedAt).select("id").maybeSingle();
+      if (error) throw error;
+      if (!data) throw new Error("El contrato cambió o ya no está enviado. Actualiza la página antes de guardar.");
+      return data;
+    },
+    invalidateKeys: [contractKeys.all],
+    errorTitle: "Error al guardar el firmante",
+  });
+}
+
 export type DepositStatus = "held" | "applied" | "returned";
 
 /**
