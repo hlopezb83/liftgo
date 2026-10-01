@@ -30,7 +30,7 @@ operadores; las cuentas sin autoridad global conservan la restricción existente
   membresía o empresa activa.
 - Cada RPC privilegiado vuelve a comprobar al actor con
   `assert_platform_operator(p_actor)`. Se mantienen ACL, límites de uso y
-  compensación del alta. La UI no es una barrera de seguridad.
+  alta durable. La UI no es una barrera de seguridad.
 - El ERP y el portal siguen usando sus guards de rol y empresa. El enlace
   «ERP de mi empresa» no permite seleccionar otra empresa ni suplantar usuarios.
 - La protección SQL que impide suspender la empresa del propio operador se
@@ -124,11 +124,49 @@ Git por sí solo no acredita que la migración esté aplicada o que la versión 
 publicada. Las pruebas SQL de esta etapa corren exclusivamente en la base efímera
 de CI y revierten los fixtures.
 
+## Alta durable (8.42.39 / 0089)
+
+- El cliente conserva una UUID y el mismo formulario al reintentar. La base
+  normaliza y reserva empresa inactiva, correo e identidad Auth en una transacción.
+  La misma UUID con otro payload se rechaza; un nuevo intento con correo o slug
+  reservado tampoco crea una segunda empresa.
+- Auth recibe el UUID preasignado y metadata de aplicación del servidor. Al
+  reanudar se consulta ese UUID y se comprueba correo, empresa y solicitud;
+  nunca se adopta una cuenta sólo por correo ni se cambia su contraseña.
+- La finalización bloquea la solicitud y comprueba otra vez la identidad en SQL.
+  Vincula membresía, rol, perfil, activación y cierre en una transacción. El
+  trigger impide activar un alta pendiente mediante la acción de reactivación.
+- Un replay terminado no reactiva una empresa suspendida ni restaura un rol
+  revocado. Una cuenta eliminada de un alta terminada requiere revisión, no
+  se recrea automáticamente.
+- Empresas muestra las altas pendientes con páginas de 20 y acción Reanudar.
+  La solicitud permanece en BD aunque se cierre el navegador o falle Auth.
+  Las empresas pendientes del flujo anterior no se importan automáticamente;
+  requieren revisar sus recursos antes de incorporarlas al nuevo ledger.
+- No se guardan contraseñas ni enlaces. El enlace se genera al completar y
+  queda sólo en la sesión de UI; no se envía correo. Si falla su generación o
+  se pierde la respuesta de una finalización ya confirmada, el administrador
+  puede usar «Olvidé mi contraseña». Una solicitud terminada no aparece en la
+  cola de pendientes.
+- La tabla es infraestructura global con RLS/FORCE deny-all para clientes,
+  sin grants de escritura directa a service_role. Los RPCs verifican al operador
+  activo. La reserva y activación conservan actor y UUID en la bitácora global;
+  no se persiste un historial de cada intento fallido en Auth.
+- Conserva los RPCs SQL anteriores para compatibilidad; el servidor publicado
+  usa exclusivamente el flujo durable y rechaza contraseñas manuales.
+
+Despliegue: validar CI, RLS y A/B; aplicar 0089 con su hash y fecha del journal
+por el canal oficial de Lovable Cloud, en una transacción; verificar ACLs, ledger
+y estado previo de empresas. Publicar después el frontend/servidor. Las pruebas
+con fixtures SQL se ejecutan sólo en la BD efímera de CI y terminan en ROLLBACK.
+
+Referencia técnica del proveedor de Auth usado internamente por Cloud:
+[createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser)
+y [código oficial de Auth, adminUserCreate](https://github.com/supabase/auth/blob/master/internal/api/admin.go).
+
 ## Siguientes etapas
 
-1. Ampliar el alta con idempotencia persistida y reanudación de estados
-   intermedios. La compensación existente no equivale a un trabajo durable.
-   Importación revisada de maestros desde Org 1 con normalización y duplicados;
+1. Importación revisada de maestros desde Org 1 con normalización y duplicados;
    no hay sincronización automática con Org 1.
 2. Administración de operadores con permisos específicos, MFA y recuperación
    segura. Actualmente sólo existe la autoridad explícita global.

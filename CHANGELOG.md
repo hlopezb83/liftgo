@@ -1,5 +1,13 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.39] - 2026-10-01 · patch · feature
+
+El Centro de Plataforma conserva las altas interrumpidas para completarlas sin duplicar empresa o administrador.
+
+- Las altas pendientes se pueden reanudar desde Empresas, incluso después de cerrar el navegador.
+- Los reintentos comprueban la identidad reservada y completan administrador y activación en una sola operación.
+- Una empresa con alta pendiente permanece sin acceso; repetir un alta terminada respeta suspensiones y permisos revocados.
+
 ## [8.42.38] - 2026-10-01 · patch · fix
 
 La bitácora de plataforma muestra tarjetas en tablet para mantener visible el acceso al detalle.

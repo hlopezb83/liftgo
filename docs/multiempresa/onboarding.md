@@ -6,8 +6,8 @@ Las empresas se administran en `/platform/organizations`; el detalle muestra
 configuración y checklist sin revelar secretos ni conceder acceso empresarial.
 Suspender/reactivar requiere motivo y autorización vigente en servidor/SQL.
 El alta usa un enlace gestionado para que el primer administrador defina su
-contraseña. Conserva el proceso en dos tiempos y la compensación existente;
-idempotencia durable y reanudación siguen pendientes. Ver el alcance y despliegue
+contraseña. El proceso durable reserva empresa e identidad antes de Auth;
+los reintentos conservan recursos y las altas pendientes se pueden reanudar. Ver el alcance y despliegue
 de la [etapa 2 del Centro](../platform-center.md).
 
 ## Estado del repositorio al 29 de septiembre de 2026

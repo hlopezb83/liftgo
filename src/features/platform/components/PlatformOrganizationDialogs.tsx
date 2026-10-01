@@ -16,9 +16,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { CreateOrganizationResult } from "@/lib/platformAdmin.functions";
-import { useCreateOrganization } from "../hooks/usePlatformOperator";
+import {
+  platformOnboardingInputSchema,
+  type PlatformOnboardingInput,
+} from "@/lib/platformOnboarding.types";
+import { useCreateOrganization } from "../hooks/usePlatformOnboarding";
+import { PlatformOrganizationFormFields } from "./PlatformOrganizationFormFields";
 
 const EMPTY_FORM = {
   name: "",
@@ -49,6 +53,16 @@ export function CreateOrganizationDialog({
   const [form, setForm] = useState(EMPTY_FORM);
   const [slugTouched, setSlugTouched] = useState(false);
   const create = useCreateOrganization();
+  const [request, setRequest] = useState<PlatformOnboardingInput | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  function close() {
+    setForm(EMPTY_FORM);
+    setSlugTouched(false);
+    setRequest(null);
+    setMessage(null);
+    create.reset();
+    onOpenChange(false);
+  }
 
   const update = (field: keyof typeof EMPTY_FORM) => (value: string) => {
     setForm((prev) => {
@@ -60,23 +74,35 @@ export function CreateOrganizationDialog({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    let result: CreateOrganizationResult;
-    try {
-      result = await create.mutateAsync(form);
-    } catch {
+    if (create.isPending) return;
+    const snapshot = request ?? { ...form, request_id: crypto.randomUUID() };
+    const valid = platformOnboardingInputSchema.safeParse(snapshot);
+    if (!valid.success) {
+      setMessage("Revisa nombre, identificador y correo antes de continuar.");
       return;
     }
-    setForm(EMPTY_FORM);
-    setSlugTouched(false);
-    onOpenChange(false);
-    onCreated(result);
+    setRequest(snapshot);
+    setMessage(null);
+    try {
+      const result = await create.mutateAsync(snapshot);
+      if (!result.success) {
+        setMessage(result.message);
+        return;
+      }
+      close();
+      onCreated(result);
+    } catch {
+      setMessage(
+        "No se confirmó el resultado. Reintenta con estos mismos datos o cierra y revisa las altas pendientes.",
+      );
+    }
   };
 
   return (
     <Dialog
       open={open}
       onOpenChange={(next) => {
-        if (!create.isPending) onOpenChange(next);
+        if (!create.isPending && !next) close();
       }}
     >
       <DialogContent>
@@ -85,74 +111,38 @@ export function CreateOrganizationDialog({
             <DialogTitle>Nueva empresa</DialogTitle>
             <DialogDescription>
               Se crea la empresa y después se vincula su primer administrador.
-              La empresa permanece sin acceso hasta completar el alta. Si falla,
-              el servidor intenta compensar la operación.
+              La empresa permanece sin acceso hasta completar el alta. Si se
+              interrumpe, puedes reanudarla sin volver a crear sus datos.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2">
-            <Label htmlFor="org-name">Nombre de la empresa</Label>
-            <Input
-              id="org-name"
-              required
-              minLength={2}
-              maxLength={120}
-              value={form.name}
-              onChange={(e) => update("name")(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-slug">Identificador (slug)</Label>
-            <Input
-              id="org-slug"
-              required
-              pattern="[a-z0-9][a-z0-9-]{1,62}"
-              value={form.slug}
-              onChange={(e) => {
-                setSlugTouched(true);
-                update("slug")(e.target.value.toLowerCase());
-              }}
-            />
-            <p className="text-xs text-muted-foreground">
-              Minúsculas, dígitos y guiones. No se puede cambiar después.
-            </p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-admin-name">
-              Nombre del primer administrador
-            </Label>
-            <Input
-              id="org-admin-name"
-              required
-              maxLength={200}
-              value={form.admin_full_name}
-              onChange={(e) => update("admin_full_name")(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="org-admin-email">
-              Correo del primer administrador
-            </Label>
-            <Input
-              id="org-admin-email"
-              type="email"
-              required
-              value={form.admin_email}
-              onChange={(e) => update("admin_email")(e.target.value)}
-            />
-          </div>
-
+          {message && (
+            <Alert role="status">
+              <AlertDescription>{message}</AlertDescription>
+            </Alert>
+          )}
+          <PlatformOrganizationFormFields
+            form={form}
+            update={update}
+            onSlugTouched={() => setSlugTouched(true)}
+            disabled={!!request || create.isPending}
+          />
           <DialogFooter>
             <Button
               type="button"
+              aria-label="Cerrar formulario"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={close}
               disabled={create.isPending}
             >
-              Cancelar
+              Cerrar
             </Button>
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? "Creando…" : "Crear empresa"}
+              {create.isPending
+                ? "Verificando…"
+                : request
+                  ? "Reintentar alta"
+                  : "Crear empresa"}
             </Button>
           </DialogFooter>
         </form>
