@@ -238,7 +238,7 @@ DECLARE
   v_batch_id UUID;
 BEGIN
   IF NOT (public.has_role(v_uid,'admin') OR public.has_role(v_uid,'administrativo')) THEN
-    RAISE EXCEPTION 'Forbidden';
+    RAISE EXCEPTION 'Forbidden' USING ERRCODE = '42501';
   END IF;
 
   v_org := public.current_internal_organization_id();
@@ -306,7 +306,7 @@ DECLARE
   v_batch_id UUID;
 BEGIN
   IF NOT (public.has_role(v_uid,'admin') OR public.has_role(v_uid,'administrativo')) THEN
-    RAISE EXCEPTION 'Forbidden';
+    RAISE EXCEPTION 'Forbidden' USING ERRCODE = '42501';
   END IF;
 
   v_org := public.current_internal_organization_id();
