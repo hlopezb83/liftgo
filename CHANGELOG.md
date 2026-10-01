@@ -1,5 +1,22 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.36] - 2026-10-01 · patch · feature
+
+Los operadores cuentan con acceso, navegación y espacio propios para administrar las empresas y los maestros compartidos.
+
+- Inicio de sesión y panel de plataforma con conteos de empresas y accesos a Empresas y Catálogo LiftGo.
+- La autorización global depende de la asignación explícita de operador y su cuenta activa; el ERP conserva sus permisos empresariales.
+- La caché y los formularios del Centro se separan por usuario y se limpian al cambiar de sesión o salir.
+- Navegación adaptable a móvil, regreso al ERP de la empresa y redirección de los enlaces anteriores.
+
+## [8.42.35] - 2026-10-01 · patch · fix
+
+Los formularios guardados cierran sin avisos de descarte pendientes y las fotos de daños aparecen con su contador actualizado.
+
+- Las confirmaciones de descarte se retiran al cerrar el formulario desde un guardado y no reaparecen al abrirlo de nuevo.
+- Subir o eliminar evidencia de daño actualiza el contador de fotos sin recargar la página.
+- Las rutas relativas de documentos generan enlaces firmados válidos; los enlaces históricos conservan su compatibilidad.
+
 ## [8.42.34] - 2026-10-01 · patch · fix
 
 Los pagos conservan su información bancaria, las existencias detectan cambios concurrentes y las reservas respetan daños abiertos.

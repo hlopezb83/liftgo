@@ -28,6 +28,8 @@ de los informes que describen una revisión fechada.
 
 ## Multiempresa y ecosistema LiftGo
 
+- [Centro de Plataforma](./platform-center.md): acceso global, rutas,
+  separación de caché y etapas pendientes.
 - [Estado multiempresa](./multiempresa/onboarding.md): evidencia del código y
   límites de certeza externos.
 - [Gates para varias organizaciones](./multiempresa/gates-segunda-organizacion.md):

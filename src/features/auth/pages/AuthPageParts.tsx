@@ -48,9 +48,11 @@ function RecoveryNotice({
 function AuthCardHeader({
   mode,
   showSessionNotice,
+  platform = false,
 }: {
   mode: AuthMode;
   showSessionNotice: boolean;
+  platform?: boolean;
 }) {
   return (
     <CardHeader className="text-center pt-8 pb-2">
@@ -59,9 +61,9 @@ function AuthCardHeader({
         <span className="sr-only">{GLOBAL_BRAND_NAME}</span>
       </div>
       <CardTitle className="auth-display text-xl font-extrabold">
-        {TITLES[mode].title}
+        {platform && mode === "sign-in" ? "Centro de Plataforma" : TITLES[mode].title}
       </CardTitle>
-      <CardDescription>{TITLES[mode].desc}</CardDescription>
+      <CardDescription>{platform && mode === "sign-in" ? "Acceso exclusivo para operadores de LiftGo" : TITLES[mode].desc}</CardDescription>
       {showSessionNotice && (
         <p className="text-xs text-muted-foreground mt-2">
           Inicia sesión para continuar en esta página.

@@ -47,8 +47,7 @@ export const getPlatformOperatorStatusFn = createServerFn({ method: "GET" })
       .asUntypedRpc(context.supabase)
       .rpc("is_platform_operator");
     if (error) {
-      // Sin la función (migración 0030 no aplicada) o sin permiso: no operador.
-      return { isOperator: false };
+      throw new g.HttpError(503, "No se pudo verificar el acceso a la plataforma. Reintenta.");
     }
     return { isOperator: data === true };
   });
@@ -218,7 +217,6 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
     const {
       admin,
       userId: actorId,
-      organizationId: ownOrganizationId,
     } = await g.requirePlatformOperator(context.supabase, context.userId);
     await g.enforceRateLimit(
       admin,
@@ -234,13 +232,8 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
     if (typeof data.active !== "boolean") {
       throw new g.HttpError(400, "Se requiere el estado deseado");
     }
-    // La base también lo impide; aquí se responde antes y con mensaje claro.
-    if (!data.active && data.organization_id === ownOrganizationId) {
-      throw new g.HttpError(
-        400,
-        "No puedes suspender la empresa a la que perteneces",
-      );
-    }
+    // La RPC conserva la protección de suspensión de la propia empresa,
+    // consultando la membresía del actor sin exigir una empresa activa aquí.
 
     const { error } = await g
       .asUntypedRpc(admin)

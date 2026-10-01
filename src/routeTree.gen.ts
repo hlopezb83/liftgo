@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as MainRouteImport } from './routes/_main'
 import { Route as PortalRouteImport } from './routes/_portal'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as PlatformRouteImport } from './routes/platform'
 import { Route as MainIndexRouteImport } from './routes/_main/index'
 import { Route as MainSplatRouteImport } from './routes/_main/$'
 import { Route as MainAccountsPayableRouteImport } from './routes/_main/accounts-payable'
@@ -39,6 +40,10 @@ import { Route as MainMrrRouteImport } from './routes/_main/mrr'
 import { Route as MainPaymentsRouteImport } from './routes/_main/payments'
 import { Route as MainProspectsRouteImport } from './routes/_main/prospects'
 import { Route as MainReportsRouteImport } from './routes/_main/reports'
+import { Route as PlatformIndexRouteImport } from './routes/platform.index'
+import { Route as PlatformCatalogsRouteImport } from './routes/platform.catalogs'
+import { Route as PlatformOrganizationsRouteImport } from './routes/platform.organizations'
+import { Route as PlatformLoginRouteImport } from './routes/platform_.login'
 import { Route as PortalLoginRouteImport } from './routes/portal.login'
 import { Route as MainBookingsIndexRouteImport } from './routes/_main/bookings.index'
 import { Route as MainBookingsIdRouteImport } from './routes/_main/bookings.$id'
@@ -108,6 +113,11 @@ const PortalRoute = PortalRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlatformRoute = PlatformRouteImport.update({
+  id: '/platform',
+  path: '/platform',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MainIndexRoute = MainIndexRouteImport.update({
@@ -244,6 +254,26 @@ const MainReportsRoute = MainReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
   getParentRoute: () => MainRoute,
+} as any)
+const PlatformIndexRoute = PlatformIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformCatalogsRoute = PlatformCatalogsRouteImport.update({
+  id: '/catalogs',
+  path: '/catalogs',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformOrganizationsRoute = PlatformOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformLoginRoute = PlatformLoginRouteImport.update({
+  id: '/platform_/login',
+  path: '/platform/login',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const PortalLoginRoute = PortalLoginRouteImport.update({
   id: '/portal/login',
@@ -545,6 +575,7 @@ const PortalPortalInvoicesIdPagoRoute =
 export interface FileRoutesByFullPath {
   '/': typeof MainIndexRoute
   '/auth': typeof AuthRoute
+  '/platform': typeof PlatformRouteWithChildren
   '/$': typeof MainSplatRoute
   '/accounts-payable': typeof MainAccountsPayableRoute
   '/activity': typeof MainActivityRoute
@@ -571,7 +602,11 @@ export interface FileRoutesByFullPath {
   '/payments': typeof MainPaymentsRoute
   '/prospects': typeof MainProspectsRoute
   '/reports': typeof MainReportsRoute
+  '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/organizations': typeof PlatformOrganizationsRoute
+  '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
+  '/platform/': typeof PlatformIndexRoute
   '/bookings/$id': typeof MainBookingsIdRoute
   '/bookings/new': typeof MainBookingsNewRoute
   '/conciliacion-bancaria/historial': typeof MainConciliacionBancariaHistorialRoute
@@ -658,7 +693,11 @@ export interface FileRoutesByTo {
   '/payments': typeof MainPaymentsRoute
   '/prospects': typeof MainProspectsRoute
   '/reports': typeof MainReportsRoute
+  '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/organizations': typeof PlatformOrganizationsRoute
+  '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
+  '/platform': typeof PlatformIndexRoute
   '/bookings/$id': typeof MainBookingsIdRoute
   '/bookings/new': typeof MainBookingsNewRoute
   '/conciliacion-bancaria/historial': typeof MainConciliacionBancariaHistorialRoute
@@ -721,6 +760,7 @@ export interface FileRoutesById {
   '/_main': typeof MainRouteWithChildren
   '/_portal': typeof PortalRouteWithChildren
   '/auth': typeof AuthRoute
+  '/platform': typeof PlatformRouteWithChildren
   '/_main/$': typeof MainSplatRoute
   '/_main/accounts-payable': typeof MainAccountsPayableRoute
   '/_main/activity': typeof MainActivityRoute
@@ -747,8 +787,12 @@ export interface FileRoutesById {
   '/_main/payments': typeof MainPaymentsRoute
   '/_main/prospects': typeof MainProspectsRoute
   '/_main/reports': typeof MainReportsRoute
+  '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/organizations': typeof PlatformOrganizationsRoute
+  '/platform_/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/_main/': typeof MainIndexRoute
+  '/platform/': typeof PlatformIndexRoute
   '/_main/bookings/$id': typeof MainBookingsIdRoute
   '/_main/bookings/new': typeof MainBookingsNewRoute
   '/_main/conciliacion-bancaria/historial': typeof MainConciliacionBancariaHistorialRoute
@@ -811,6 +855,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/platform'
     | '/$'
     | '/accounts-payable'
     | '/activity'
@@ -837,7 +882,11 @@ export interface FileRouteTypes {
     | '/payments'
     | '/prospects'
     | '/reports'
+    | '/platform/catalogs'
+    | '/platform/organizations'
+    | '/platform/login'
     | '/portal/login'
+    | '/platform/'
     | '/bookings/$id'
     | '/bookings/new'
     | '/conciliacion-bancaria/historial'
@@ -924,7 +973,11 @@ export interface FileRouteTypes {
     | '/payments'
     | '/prospects'
     | '/reports'
+    | '/platform/catalogs'
+    | '/platform/organizations'
+    | '/platform/login'
     | '/portal/login'
+    | '/platform'
     | '/bookings/$id'
     | '/bookings/new'
     | '/conciliacion-bancaria/historial'
@@ -986,6 +1039,7 @@ export interface FileRouteTypes {
     | '/_main'
     | '/_portal'
     | '/auth'
+    | '/platform'
     | '/_main/$'
     | '/_main/accounts-payable'
     | '/_main/activity'
@@ -1012,8 +1066,12 @@ export interface FileRouteTypes {
     | '/_main/payments'
     | '/_main/prospects'
     | '/_main/reports'
+    | '/platform/catalogs'
+    | '/platform/organizations'
+    | '/platform_/login'
     | '/portal/login'
     | '/_main/'
+    | '/platform/'
     | '/_main/bookings/$id'
     | '/_main/bookings/new'
     | '/_main/conciliacion-bancaria/historial'
@@ -1076,6 +1134,8 @@ export interface RootRouteChildren {
   MainRoute: typeof MainRouteWithChildren
   PortalRoute: typeof PortalRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PlatformRoute: typeof PlatformRouteWithChildren
+  PlatformLoginRoute: typeof PlatformLoginRoute
   PortalLoginRoute: typeof PortalLoginRoute
 }
 
@@ -1100,6 +1160,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/platform': {
+      id: '/platform'
+      path: '/platform'
+      fullPath: '/platform'
+      preLoaderRoute: typeof PlatformRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_main/': {
@@ -1290,6 +1357,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/reports'
       preLoaderRoute: typeof MainReportsRouteImport
       parentRoute: typeof MainRoute
+    }
+    '/platform/': {
+      id: '/platform/'
+      path: '/'
+      fullPath: '/platform/'
+      preLoaderRoute: typeof PlatformIndexRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/catalogs': {
+      id: '/platform/catalogs'
+      path: '/catalogs'
+      fullPath: '/platform/catalogs'
+      preLoaderRoute: typeof PlatformCatalogsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/organizations': {
+      id: '/platform/organizations'
+      path: '/organizations'
+      fullPath: '/platform/organizations'
+      preLoaderRoute: typeof PlatformOrganizationsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform_/login': {
+      id: '/platform_/login'
+      path: '/platform/login'
+      fullPath: '/platform/login'
+      preLoaderRoute: typeof PlatformLoginRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/portal/login': {
       id: '/portal/login'
@@ -1877,10 +1972,28 @@ const PortalRouteChildren: PortalRouteChildren = {
 const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
 
+interface PlatformRouteChildren {
+  PlatformCatalogsRoute: typeof PlatformCatalogsRoute
+  PlatformOrganizationsRoute: typeof PlatformOrganizationsRoute
+  PlatformIndexRoute: typeof PlatformIndexRoute
+}
+
+const PlatformRouteChildren: PlatformRouteChildren = {
+  PlatformCatalogsRoute: PlatformCatalogsRoute,
+  PlatformOrganizationsRoute: PlatformOrganizationsRoute,
+  PlatformIndexRoute: PlatformIndexRoute,
+}
+
+const PlatformRouteWithChildren = PlatformRoute._addFileChildren(
+  PlatformRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   MainRoute: MainRouteWithChildren,
   PortalRoute: PortalRouteWithChildren,
   AuthRoute: AuthRoute,
+  PlatformRoute: PlatformRouteWithChildren,
+  PlatformLoginRoute: PlatformLoginRoute,
   PortalLoginRoute: PortalLoginRoute,
 }
 export const routeTree = rootRouteImport

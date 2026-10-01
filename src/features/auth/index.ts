@@ -1,5 +1,3 @@
-// Barrel público de la feature "auth".
-// Re-exporta la API consumida por otras features.
-// Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./lib/authTypes";
-export * from "./pages/AuthPage";
+export { default as AuthPage } from "./pages/AuthPage";
+export { useRecoveryStatus } from "./hooks/useRecoveryStatus";

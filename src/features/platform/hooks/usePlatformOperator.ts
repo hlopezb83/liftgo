@@ -34,7 +34,10 @@ export function usePlatformOperatorStatus() {
   return useQuery({
     queryKey: platformKeys.operator(user?.id),
     enabled: !!user?.id,
-    staleTime: 5 * 60_000,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    refetchInterval: 60_000,
+    meta: { silent: true },
     queryFn: async () => {
       const result = await getPlatformOperatorStatusFn();
       return result.isOperator === true;

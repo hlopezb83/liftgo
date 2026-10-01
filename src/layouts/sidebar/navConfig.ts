@@ -1,4 +1,4 @@
-import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows, CompanyIcon } from "@/components/icons";
+import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
 import type { ElementType } from "react";
 
 export type SidebarBadgeKey =
@@ -10,6 +10,8 @@ export type SidebarBadgeKey =
 export type NavItem = {
   title: string;
   url: string;
+  /** Destino opcional sin cambiar el path usado para permisos y estado activo. */
+  destination?: string;
   icon: ElementType;
   badgeKey?: SidebarBadgeKey;
   /**
@@ -105,9 +107,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { title: "Usuarios", url: "/users", icon: SecurityIcon },
       { title: "Configuración", url: "/settings/operations", icon: SettingsIcon },
-      // Operación de plataforma: alta/suspensión de empresas (tramo 9).
-      { title: "Empresas", url: "/settings/organizations", icon: CompanyIcon, platformOperatorOnly: true },
-      { title: "Catálogo LiftGo", url: "/settings/catalogs", icon: FleetIcon, platformOperatorOnly: true },
+      { title: "Centro de Plataforma", url: "/platform", icon: SecurityIcon, platformOperatorOnly: true },
     ],
   },
   {

@@ -71,6 +71,10 @@ vi.mock("@/contexts/OrganizationContext", () => ({
 vi.mock("@/features/users", () => ({
   useUserRole: () => ({ data: "admin", isLoading: false }),
 }));
+vi.mock("@/features/platform", () => ({
+  usePlatformOperatorStatus: () => ({ data: false, isPending: false, isError: false }),
+  platformEntryDestination: () => null,
+}));
 vi.mock("@/features/company-settings", () => ({
   usePublicBranding: () => ({ data: null }),
 }));

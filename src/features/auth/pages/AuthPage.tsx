@@ -17,7 +17,7 @@ import { useRecoveryStatus } from "../hooks/useRecoveryStatus";
 import { endRecovery, getRecoveryUserId } from "../recoverySession";
 import { AuthCardHeader, AuthModeLinks, RecoveryNotice } from "./AuthPageParts";
 
-export default function AuthPage() {
+export default function AuthPage({ platform = false, destination = "/platform" }: { platform?: boolean; destination?: string }) {
   const { user, signIn, signOut, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
   const navigate = useNavigateTransition();
@@ -25,9 +25,7 @@ export default function AuthPage() {
   // El guard conserva la ruta protegida cuando se necesita iniciar sesión.
   const showSessionNotice =
     recovery === "idle" &&
-    pathname !== "/" &&
-    pathname !== "/login" &&
-    pathname !== "/auth";
+    !["/", "/login", "/auth", "/platform/login"].includes(pathname);
   const [mode, setMode] = useState<AuthMode>(
     recovery === "idle" ? "sign-in" : "reset",
   );
@@ -43,7 +41,8 @@ export default function AuthPage() {
    * decidiendo el guard de `/` (los clientes acaban en `/portal`).
    */
   function leaveAuthRoute() {
-    if (pathname === "/auth") navigate("/");
+    if (platform) navigate(destination);
+    else if (pathname === "/auth") navigate("/");
   }
 
   // AUTH-REC-01: el modo sigue al estado del flujo (estado derivado en render,
@@ -124,12 +123,16 @@ export default function AuthPage() {
 
   return (
     <main className="auth-brandscape min-h-[100dvh] flex bg-background">
-      <AuthBrandPanel tagline="Levanta el futuro de tu operación." />
+      <AuthBrandPanel
+        tagline={platform ? "Un ecosistema. Una plataforma." : "Levanta el futuro de tu operación."}
+        description={platform ? "Administra las empresas, los catálogos y los documentos compartidos de LiftGo." : undefined}
+      />
       <div className="flex-1 flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md animate-fade-in shadow-lg">
           <AuthCardHeader
             mode={mode}
             showSessionNotice={showSessionNotice}
+            platform={platform}
           />
           <CardContent>
             {recovery === "error" || recovery === "pending" ? (
@@ -172,9 +175,9 @@ export default function AuthPage() {
             <Button
               variant="outline"
               className="w-full touch:min-h-11"
-              onClick={() => navigate("/portal/login")}
+              onClick={() => navigate(platform ? "/" : "/portal/login")}
             >
-              <UsersIcon className="mr-2 h-4 w-4" /> Portal de Clientes
+              <UsersIcon className="mr-2 h-4 w-4" /> {platform ? "Acceso al ERP" : "Portal de Clientes"}
             </Button>
             {currentVersion && (
               <p className="mt-4 text-center text-3xs text-muted-foreground/60 font-mono">
