@@ -111,7 +111,10 @@ BEGIN
       AND ur.role='admin' AND p.is_active AND p.full_name='María Norte') THEN
     RAISE EXCEPTION 'No finalizó atómicamente';
   END IF;
-  IF public.platform_finish_onboarding(v_actor,v_req) IS DISTINCT FROM v_result THEN RAISE EXCEPTION 'Replay no idempotente'; END IF;
+  IF v_result->>'completed_now' <> 'true' THEN RAISE EXCEPTION 'No identificó la finalización nueva'; END IF;
+  IF (public.platform_finish_onboarding(v_actor,v_req) - 'completed_now') IS DISTINCT FROM (v_result - 'completed_now') THEN
+    RAISE EXCEPTION 'Replay no idempotente'; END IF;
+  IF public.platform_finish_onboarding(v_actor,v_req)->>'completed_now' <> 'false' THEN RAISE EXCEPTION 'Replay emite un enlace nuevo'; END IF;
   IF (SELECT count(*) FROM public.organization_memberships WHERE auth_user_id=v_user) <> 1 THEN RAISE EXCEPTION 'Duplicó la membresía'; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.platform_audit_events WHERE organization_id=v_org
     AND request_id=v_req AND actor_id=v_actor AND action='UPDATE') THEN

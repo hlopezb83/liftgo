@@ -1,5 +1,6 @@
 import {
   platformOnboardingJobSchema,
+  platformOnboardingCompletionSchema,
   type PlatformOnboardingJob,
   type PlatformOnboardingResult,
 } from "../platformOnboarding.types";
@@ -117,6 +118,7 @@ export async function runPlatformOnboarding(
   actor: string,
   job: PlatformOnboardingJob,
 ): Promise<PlatformOnboardingResult> {
+  let issueLink = false;
   try {
     await ensureAdminIdentity(admin, job);
     const finished = await Promise.resolve(
@@ -135,8 +137,12 @@ export async function runPlatformOnboarding(
         );
       throw new Error("finalize_unavailable");
     }
-    const complete = parseOnboardingJob(finished.data);
-    if (complete.stage !== "complete") throw new Error("finalize_unavailable");
+    const complete = platformOnboardingCompletionSchema.safeParse(
+      finished.data,
+    );
+    if (!complete.success || complete.data.stage !== "complete")
+      throw new Error("finalize_unavailable");
+    issueLink = complete.data.completed_now;
   } catch (error) {
     if (error instanceof HttpError && error.status === 403) throw error;
     return pendingResult(admin, actor, job, error);
@@ -144,16 +150,17 @@ export async function runPlatformOnboarding(
   // Sólo el operador activo obtiene un enlace. No se persiste ni se envía correo.
   // Su generación falla de forma independiente: nunca revierte un alta terminada.
   let recoveryLink: string | null = null;
-  try {
-    const link = await admin.auth.admin.generateLink({
-      type: "recovery",
-      email: job.admin_email,
-    });
-    if (!link.error && link.data.user?.id === job.admin_user_id)
-      recoveryLink = link.data.properties?.action_link ?? null;
-  } catch {
-    console.error("[platform-onboarding] access_link_unavailable");
-  }
+  if (issueLink)
+    try {
+      const link = await admin.auth.admin.generateLink({
+        type: "recovery",
+        email: job.admin_email,
+      });
+      if (!link.error && link.data.user?.id === job.admin_user_id)
+        recoveryLink = link.data.properties?.action_link ?? null;
+    } catch {
+      console.error("[platform-onboarding] access_link_unavailable");
+    }
   return {
     success: true,
     organization_id: job.organization_id,

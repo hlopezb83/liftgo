@@ -164,22 +164,13 @@ export function CreatedResultDialog({
         <DialogHeader>
           <DialogTitle>Empresa creada</DialogTitle>
           <DialogDescription>
-            {result?.password_set_manually
-              ? `La cuenta de ${result?.admin_email} ya tiene la contraseña que definiste. Compártela por un medio seguro.`
-              : `Comparte el enlace de acceso con ${result?.admin_email}. Es de un solo uso y le permite definir su contraseña.`}
+            Comparte el enlace de acceso con {result?.admin_email}. Es de un
+            solo uso y le permite definir su contraseña.
           </DialogDescription>
         </DialogHeader>
-        {result?.password_set_manually ? (
-          <Alert>
-            <AlertTitle>Acceso listo</AlertTitle>
-            <AlertDescription>
-              El administrador puede entrar con su correo y la contraseña que
-              acabas de asignar. Por seguridad no se muestra aquí; pídele que la
-              cambie después del primer ingreso.
-            </AlertDescription>
-          </Alert>
-        ) : result?.recovery_link ? (
+        {result?.recovery_link ? (
           <Input
+            aria-label="Enlace de acceso del administrador"
             readOnly
             value={result.recovery_link}
             onFocus={(e) => e.currentTarget.select()}

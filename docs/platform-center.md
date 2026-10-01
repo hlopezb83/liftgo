@@ -143,8 +143,9 @@ de CI y revierten los fixtures.
   La solicitud permanece en BD aunque se cierre el navegador o falle Auth.
   Las empresas pendientes del flujo anterior no se importan automáticamente;
   requieren revisar sus recursos antes de incorporarlas al nuevo ledger.
-- No se guardan contraseñas ni enlaces. El enlace se genera al completar y
-  queda sólo en la sesión de UI; no se envía correo. Si falla su generación o
+- No se guardan contraseñas ni enlaces. Sólo el worker que finaliza el alta
+  genera el enlace; los replays no lo regeneran ni invalidan. El enlace queda
+  sólo en la sesión de UI; no se envía correo. Si falla su generación o
   se pierde la respuesta de una finalización ya confirmada, el administrador
   puede usar «Olvidé mi contraseña». Una solicitud terminada no aparece en la
   cola de pendientes.

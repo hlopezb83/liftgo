@@ -24,7 +24,7 @@ const user = {
     platform_onboarding_request_id: job.request_id,
   },
 };
-const complete = { ...job, stage: "complete" };
+const complete = { ...job, stage: "complete", completed_now: true };
 const missing = { data: { user: null }, error: { status: 404 } };
 const found = { data: { user }, error: null };
 const lookup = vi.fn();
@@ -50,23 +50,19 @@ describe("alta durable de plataforma", () => {
     vi.clearAllMocks();
     lookup.mockReset().mockResolvedValue(found);
     create.mockReset().mockResolvedValue(found);
-    rpc
-      .mockReset()
-      .mockImplementation((fn) =>
-        Promise.resolve({
-          data: fn === "platform_finish_onboarding" ? complete : job,
-          error: null,
-        }),
-      );
-    link
-      .mockReset()
-      .mockResolvedValue({
-        data: {
-          user,
-          properties: { action_link: "https://example.com/access" },
-        },
+    rpc.mockReset().mockImplementation((fn) =>
+      Promise.resolve({
+        data: fn === "platform_finish_onboarding" ? complete : job,
         error: null,
-      });
+      }),
+    );
+    link.mockReset().mockResolvedValue({
+      data: {
+        user,
+        properties: { action_link: "https://example.com/access" },
+      },
+      error: null,
+    });
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
   it("crea sólo después de un 404 y utiliza el UUID y metadata reservados", async () => {
@@ -173,6 +169,22 @@ describe("alta durable de plataforma", () => {
       runPlatformOnboarding(admin, actor, job),
     ).rejects.toMatchObject({ status: 403 });
     expect(link).not.toHaveBeenCalled();
+  });
+  it("sólo el worker que finaliza el alta genera enlace; un replay no lo invalida", async () => {
+    rpc
+      .mockResolvedValueOnce({ data: complete, error: null })
+      .mockResolvedValueOnce({
+        data: { ...complete, completed_now: false },
+        error: null,
+      });
+    const first = await runPlatformOnboarding(admin, actor, job);
+    const replay = await runPlatformOnboarding(admin, actor, job);
+    expect(first).toMatchObject({
+      success: true,
+      recovery_link: "https://example.com/access",
+    });
+    expect(replay).toMatchObject({ success: true, recovery_link: null });
+    expect(link).toHaveBeenCalledTimes(1);
   });
   it("el enlace es opcional, no revierte el alta y no se divulga el de otra cuenta", async () => {
     link.mockResolvedValue({

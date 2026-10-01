@@ -109,7 +109,7 @@ $$;
 
 CREATE FUNCTION public.platform_finish_onboarding(p_actor uuid, p_request_id uuid)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-DECLARE v_row public.platform_onboarding_requests%ROWTYPE;
+DECLARE v_row public.platform_onboarding_requests%ROWTYPE; v_completed_now boolean := false;
 BEGIN
   PERFORM public.assert_platform_operator(p_actor);
   SELECT * INTO v_row FROM public.platform_onboarding_requests WHERE request_id = p_request_id FOR UPDATE;
@@ -129,6 +129,7 @@ BEGIN
       WHERE user_id = v_row.admin_user_id;
     IF NOT FOUND THEN RAISE EXCEPTION 'Falta el perfil del administrador' USING ERRCODE = '23514'; END IF;
     UPDATE public.platform_onboarding_requests SET completed_at = now() WHERE request_id = p_request_id;
+    v_completed_now := true;
     PERFORM set_config('app.platform_onboarding_finalize', '', true);
   END IF;
   -- Un replay no reactiva una empresa suspendida ni restaura un rol revocado.
@@ -140,7 +141,7 @@ BEGIN
       AND m.member_type = 'internal' AND ur.role = 'admin' AND p.is_active) THEN
     RAISE EXCEPTION 'El acceso del administrador requiere revisión' USING ERRCODE = '42501';
   END IF;
-  RETURN public.platform_onboarding_view(p_request_id);
+  RETURN public.platform_onboarding_view(p_request_id) || jsonb_build_object('completed_now', v_completed_now);
 END;
 $$;
 

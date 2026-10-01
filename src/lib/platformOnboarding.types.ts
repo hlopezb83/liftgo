@@ -36,6 +36,10 @@ export const platformOnboardingPageSchema = z.object({
   jobs: z.array(platformOnboardingJobSchema),
   total: z.number().int().nonnegative(),
 });
+export const platformOnboardingCompletionSchema =
+  platformOnboardingJobSchema.extend({
+    completed_now: z.boolean(),
+  });
 export type PlatformOnboardingJob = z.infer<typeof platformOnboardingJobSchema>;
 export type PlatformOnboardingInput = z.infer<
   typeof platformOnboardingInputSchema
