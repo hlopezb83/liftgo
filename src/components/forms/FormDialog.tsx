@@ -61,14 +61,20 @@ export function FormDialog({
 }: FormDialogProps) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
+  const [previousOpen, setPreviousOpen] = useState(open);
+  if (open !== previousOpen) {
+    setPreviousOpen(open);
+    setConfirmDiscard(false);
+  }
+
   const requestClose = useCallback(() => {
-    if (isPending) return;
+    if (!open || isPending) return;
     if (isDirty) {
       setConfirmDiscard(true);
       return;
     }
     onOpenChange(false);
-  }, [isPending, isDirty, onOpenChange]);
+  }, [open, isPending, isDirty, onOpenChange]);
 
   // Referencia estable para no re-renderizar todo el árbol del formulario.
   const closeValue = useMemo(() => requestClose, [requestClose]);
@@ -98,7 +104,7 @@ export function FormDialog({
       </Dialog>
 
       <ConfirmDialog
-        open={confirmDiscard}
+        open={open && confirmDiscard}
         onOpenChange={setConfirmDiscard}
         title="¿Descartar cambios?"
         description="Los cambios no guardados se perderán."
@@ -138,4 +144,3 @@ export function FormDialogFooter({ children, className }: { children: ReactNode;
     </DialogFooter>
   );
 }
-

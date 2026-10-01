@@ -1,0 +1,8 @@
+{
+  "description": "Los formularios guardados cierran sin avisos de descarte pendientes y las fotos de daños aparecen con su contador actualizado.",
+  "changes": [
+    "Las confirmaciones de descarte se retiran al cerrar el formulario desde un guardado y no reaparecen al abrirlo de nuevo.",
+    "Subir o eliminar evidencia de daño actualiza el contador de fotos sin recargar la página.",
+    "Las rutas relativas de documentos generan enlaces firmados válidos; los enlaces históricos conservan su compatibilidad."
+  ]
+}

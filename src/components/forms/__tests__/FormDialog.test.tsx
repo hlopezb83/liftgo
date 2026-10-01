@@ -4,12 +4,12 @@ import { FormDialog } from "../FormDialog";
 
 function renderDialog(props: Partial<React.ComponentProps<typeof FormDialog>> = {}) {
   const onOpenChange = vi.fn();
-  render(
+  const view = render(
     <FormDialog open onOpenChange={onOpenChange} title="Nuevo cliente" {...props}>
       <input aria-label="Nombre" defaultValue="Acme" />
     </FormDialog>,
   );
-  return { onOpenChange };
+  return { onOpenChange, ...view };
 }
 
 function pressEscape() {
@@ -53,6 +53,25 @@ describe("FormDialog", () => {
     const { onOpenChange } = renderDialog({ isDirty: true, isPending: true });
     pressEscape();
     expect(onOpenChange).not.toHaveBeenCalled();
+    expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument();
+  });
+
+  it("retira la confirmación pendiente al cerrar desde el guardado y no la reabre", () => {
+    const { onOpenChange, rerender } = renderDialog({ isDirty: true });
+    pressEscape();
+    expect(screen.getByText("¿Descartar cambios?")).toBeInTheDocument();
+
+    const savedDialog = (open: boolean) => (
+      <FormDialog open={open} isDirty onOpenChange={onOpenChange} title="Nuevo cliente">
+        <input aria-label="Nombre" defaultValue="Acme" />
+      </FormDialog>
+    );
+    rerender(savedDialog(false));
+    expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument();
+    expect(onOpenChange).not.toHaveBeenCalled();
+
+    rerender(savedDialog(true));
+    expect(screen.getByLabelText("Nombre")).toBeInTheDocument();
     expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument();
   });
 
