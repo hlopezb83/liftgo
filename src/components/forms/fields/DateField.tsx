@@ -1,4 +1,4 @@
-import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
+import { useFormContext, type FieldPath, type FieldValues, type Control } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormField, FormItem, FormControl } from "@/components/ui/form";
 import type { Matcher } from "react-day-picker";
@@ -24,6 +24,10 @@ export function DateField<TFieldValues extends FieldValues>({
   required,
   disabledMatcher,
 }: DateFieldProps<TFieldValues>) {
+  const form = useFormContext<TFieldValues>();
+  // Controller reutiliza defaultValues cuando el campo queda en undefined.
+  // Leemos el valor actual para conservar vaciados y capturas inválidas.
+  const currentForm = form?.control === control ? form : undefined;
   return (
     <FormField
       control={control}
@@ -33,7 +37,7 @@ export function DateField<TFieldValues extends FieldValues>({
           <FormControl>
             <DatePickerField
               label={label}
-              date={field.value as Date | undefined}
+              date={(currentForm ? currentForm.getValues(name) : field.value) as Date | undefined}
               onSelect={field.onChange}
               placeholder={placeholder}
               required={required}
