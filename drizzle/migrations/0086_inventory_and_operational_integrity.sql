@@ -537,9 +537,7 @@ BEGIN
       AND deleted_at IS NULL AND (status IN ('reported','in_repair') OR repaired_at IS NULL)) THEN RETURN 'maintenance'; END IF;
   -- Keep the private provenance helper private; this INVOKER query observes RLS.
   SELECT COALESCE((SELECT sl.note ~
-    '^(OT .+ (en (progreso|pending|in_progress|waiting_parts)|restaurada en (pending|in_progress|waiting_parts))|(Orden de trabajo|Daño) [0-9a-f-]{36}: actualización operativa|Returned — condition: .+|Migración 0086: corrección de estado derivado de órdenes y daños; se conserva la historia operativa original)
-  RETURN 'available';
-
+    '^(OT .+ (en (progreso|pending|in_progress|waiting_parts)|restaurada en (pending|in_progress|waiting_parts))|(Orden de trabajo|Daño) [0-9a-f-]{36}: actualización operativa|Returned — condition: .+|Migración 0086: corrección de estado derivado de órdenes y daños; se conserva la historia operativa original)$'
     FROM public.status_logs sl WHERE sl.organization_id=v_org AND sl.forklift_id=p_forklift_id AND sl.to_status='maintenance'
       AND sl.from_status IS DISTINCT FROM sl.to_status
     ORDER BY sl.changed_at DESC,sl.id DESC LIMIT 1),false) INTO v_automatic;
