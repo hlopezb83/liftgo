@@ -1,5 +1,12 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.38] - 2026-10-01 · patch · fix
+
+La bitácora de plataforma muestra tarjetas en tablet para mantener visible el acceso al detalle.
+
+- Los eventos se muestran como tarjetas en tablet y móvil; la tabla se conserva en escritorio.
+- Los conteos de Empresas y Bitácora distinguen correctamente una empresa o un evento.
+
 ## [8.42.37] - 2026-10-01 · patch · feature
 
 El Centro de Plataforma muestra la preparación de cada empresa y registra los cambios administrativos del ecosistema.

@@ -37,7 +37,7 @@ export function PlatformAuditEventList({
     );
   return (
     <>
-      <Card className="hidden md:block">
+      <Card className="hidden xl:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -92,7 +92,7 @@ export function PlatformAuditEventList({
           </Table>
         </CardContent>
       </Card>
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 xl:hidden">
         {events.map((event) => (
           <Card key={event.id}>
             <CardContent className="space-y-3 p-4">
