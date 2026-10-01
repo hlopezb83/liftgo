@@ -134,7 +134,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "drizzle-kit": "^0.31.11",
     "drizzle-orm": "^0.45.3",
-    "eslint": "^9.32.0",
+    "eslint": "^10.11.0",
     "eslint-plugin-import-x": "^4.17.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-playwright": "^2.12.0",
