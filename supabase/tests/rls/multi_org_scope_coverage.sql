@@ -54,7 +54,7 @@ DECLARE
     'rate_limits',                   -- contador global solo del servidor; suite rate_limits.sql
     'organization_legal_template_assignments' -- adopción legal privada por empresa (0046)
   ];
-  -- Tablas CON organization_id de INFRAESTRUCTURA SENSIBLE: no son tablas de
+  -- Tablas CON o SIN organization_id de INFRAESTRUCTURA SENSIBLE: no son tablas de
   -- negocio y NO deben ser alcanzables desde la aplicación. En lugar de
   -- org_scope_isolation + trg_organization_write_context (que habilitarían
   -- escritura desde `authenticated`), se exige el contrato inverso y más
@@ -75,7 +75,9 @@ DECLARE
     -- del objetivo, no la empresa del actor. Sólo RPCs de operador activo;
     -- service_role no recibe UPDATE, DELETE ni TRUNCATE sobre los eventos.
     'platform_audit_events',
-    'platform_onboarding_requests' -- 0089: solicitudes sólo vía RPC de operador
+    'platform_onboarding_requests', -- 0089: solicitudes sólo vía RPC de operador
+    'platform_catalog_import_source', -- 0090: origen global fijo, sin acceso cliente
+    'platform_catalog_imports' -- 0090: recibos globales inmutables sólo vía RPC
   ];
   r record;
   v_grants_abiertos integer;
@@ -122,7 +124,7 @@ BEGIN
     -- Sin policies + RLS habilitada = deny-all para roles sin BYPASSRLS
     -- (p. ej. organization_document_counters, sólo vía funciones). No es falla.
 
-    IF r.tiene_org THEN
+    IF r.tiene_org OR r.table_name = ANY (c_infra_deny_all) THEN
       IF r.table_name = ANY (c_relacion) THEN
         -- Relación/infra: policies propias; ninguna debe ser abierta.
         IF EXISTS (
@@ -195,10 +197,11 @@ BEGIN
               'public.platform_audit_events','UPDATE,DELETE,TRUNCATE') THEN
             v_fallas := v_fallas || 'platform_audit_events: exige sólo SELECT/INSERT de service_role';
           END IF;
-        ELSIF r.table_name = 'platform_onboarding_requests' THEN
+        ELSIF r.table_name = ANY (ARRAY['platform_onboarding_requests',
+            'platform_catalog_import_source','platform_catalog_imports']) THEN
           IF v_grants_service <> 1 OR has_table_privilege('service_role',
-              'public.platform_onboarding_requests','INSERT,UPDATE,DELETE,TRUNCATE') THEN
-            v_fallas := v_fallas || 'platform_onboarding_requests: exige sólo SELECT de service_role';
+              'public.' || r.table_name,'INSERT,UPDATE,DELETE,TRUNCATE') THEN
+            v_fallas := v_fallas || format('%s: exige sólo SELECT de service_role',r.table_name);
           END IF;
         ELSIF v_grants_service <> 4 THEN
           v_fallas := v_fallas || format(
