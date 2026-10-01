@@ -60,7 +60,7 @@ export function MaintenanceKanban({ logs, archived = false, canWrite }: Props) {
   }));
 
   const currentLog = selectedLog
-    ? logs.find((l) => l.id === selectedLog.id) || selectedLog
+    ? logs.find((l) => l.id === selectedLog.id) ?? null
     : null;
 
   const activeLog = activeId ? logs.find((l) => l.id === activeId) ?? null : null;

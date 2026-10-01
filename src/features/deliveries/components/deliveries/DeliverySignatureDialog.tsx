@@ -18,7 +18,24 @@ type Props = {
   minHours?: number | null;
   /** Bug 3: operador asignado; si existe, omitir firma no requiere justificar. */
   operatorName?: string | null;
+  transportType?: string;
 };
+
+function transportLabel(type: string) {
+  if (type === "pickup") return "recolección";
+  return type === "return" ? "devolución" : "entrega";
+}
+
+function horometerHint(type: string, minHours: number) {
+  return type === "pickup"
+    ? `Lectura de entrega: ${minHours} h. La recolección no puede ser menor.`
+    : `Última lectura: ${minHours} h. La lectura actual no puede ser menor.`;
+}
+
+function isBelowMinimum(reading: string, minHours: number | null | undefined) {
+  const parsed = Number.parseFloat(reading);
+  return Number.isFinite(parsed) && minHours != null && parsed < minHours;
+}
 
 export function DeliverySignatureDialog({
   open,
@@ -29,9 +46,10 @@ export function DeliverySignatureDialog({
   onComplete,
   minHours,
   operatorName,
+  transportType = "delivery",
 }: Props) {
-  const parsed = hoursReading ? parseFloat(hoursReading) : NaN;
-  const belowMin = Number.isFinite(parsed) && minHours != null && parsed < minHours;
+  const operationLabel = transportLabel(transportType);
+  const belowMin = isBelowMinimum(hoursReading, minHours);
 
   // Bug 3: completar sin firma NI operador exige una justificación breve.
   const [omitting, setOmitting] = useState(false);
@@ -54,7 +72,7 @@ export function DeliverySignatureDialog({
   return (
     <FormDialog open={open} onOpenChange={onOpenChange} isPending={isPending} title="Firma del Cliente" width="lg">
       <p className="text-sm text-muted-foreground">
-        Solicite la firma del cliente para confirmar la entrega.
+        Solicite la firma del cliente para confirmar la {operationLabel}.
       </p>
       <div className="space-y-1.5 mt-3">
         <Label htmlFor="hours-reading">Lectura de Horómetro (horas)</Label>
@@ -71,7 +89,7 @@ export function DeliverySignatureDialog({
         />
         {minHours != null && (
           <p className={`text-xs ${belowMin ? "text-destructive" : "text-muted-foreground"}`}>
-            Entrega: {minHours} h. La recolección no puede ser menor.
+            {horometerHint(transportType, minHours)}
           </p>
         )}
       </div>
@@ -93,7 +111,7 @@ export function DeliverySignatureDialog({
         <div className="mt-3 space-y-2 rounded-md border border-warning/40 bg-warning/10 p-3">
           <p className="text-sm font-medium">Se completará sin firma ni operador</p>
           <p className="text-xs text-muted-foreground">
-            No hay evidencia operativa de esta entrega. Escribe quién la autorizó
+            No hay evidencia operativa de esta {operationLabel}. Escribe quién la autorizó
             o por qué se registra así.
           </p>
           <Label htmlFor="no-evidence-reason" className="sr-only">Justificación</Label>

@@ -15,6 +15,7 @@ import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
+import { earliestReturnDate } from "../../lib/returnDeliveryDate";
 import { DAMAGE_CONDITIONS } from "../../lib/returnInspectionSchema";
 import { ReturnBookingAvailability } from "./ReturnBookingAvailability";
 import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
@@ -97,7 +98,7 @@ export function ReturnInspectionDialog({
             required
             placeholder="Seleccionar reserva lista para devolver"
             options={bookingOptions}
-            description="Reservas iniciadas con entrega completada y devolución pendiente."
+            description="Equipos entregados con reserva confirmada y devolución pendiente."
           />
 
           <DateField
@@ -105,7 +106,7 @@ export function ReturnInspectionDialog({
             name="inspectedAt"
             disabledMatcher={[
               { after: nowMty() },
-              ...(selectedBooking ? [{ before: parseDateLocal(selectedBooking.start_date) }] : []),
+              ...(selectedBooking ? [{ before: parseDateLocal(earliestReturnDate(selectedBooking)) }] : []),
             ]}
             label="Fecha de Inspección"
             required

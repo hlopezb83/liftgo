@@ -29,7 +29,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const { tryStartRepairWorkOrder } = useStartRepairWorkOrder();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
-  const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
+  const { canManageDamage, canChargeDamage, canMarkReportedRepaired, canArchiveDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
   const { canArchive, archiveBlock, archiveBlockReason } = damageArchiveBlockReason(record);
 
   const handleCreateWorkOrder = async () => {
@@ -48,10 +48,9 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       return;
     }
     // Fallback (RPC aún no desplegado): flujo legado de dos mutaciones.
-    // FIX-R2-05 (03-FIX-01 residual): el importe va en manual_cost; el trigger
-    // recalc_maintenance_log_cost pisa `cost` a 0 sin partes/labor.
+    // El estimado es presupuesto, no un gasto adicional a partes y mano de obra.
     createMaintenance.mutate(
-      { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, manual_cost: record.estimated_cost || 0, performed_by: user?.email ?? null },
+      { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, manual_cost: 0, performed_by: user?.email ?? null },
       { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); notifySuccess("Orden de mantenimiento creada"); } }
     );
   };
@@ -60,6 +59,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   // F6: la misma transición aplica desde `reported` (reparación interna sin OT);
   // el handler es agnóstico al status previo — solo sella repaired_at.
   const handleMarkRepaired = () => {
+    if (!canManageDamage || (record.status === "reported" && !canMarkReportedRepaired)) return;
     updateDamage.mutate(
       // Las filas históricas pudieron quedar `invoiced` sin reparación. En ese
       // caso se conserva el estado de cobro y se sella únicamente la reparación.
@@ -98,10 +98,12 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       <DamageActionButtons
         status={record.status}
         canManageDamage={canManageDamage}
+        canMarkReportedRepaired={canMarkReportedRepaired}
+        showArchive={canArchiveDamage}
         canChargeDamage={canChargeDamage}
         canArchive={canArchive}
         canCharge={showCharge}
-        needsRepairCompletion={needsRepairCompletion}
+        needsRepairCompletion={needsRepairCompletion && canMarkReportedRepaired}
         costMissing={cost == null}
         damageBlockReason={damageBlockReason}
         chargeBlockReason={chargeBlockReason}
@@ -119,8 +121,18 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
         showCharge={showCharge}
         damageBlockReason={damageBlockReason}
         chargeBlockReason={chargeBlockReason}
-        archiveBlockReason={archiveBlockReason}
+        archiveBlockReason={canArchiveDamage ? archiveBlockReason : undefined}
       />
+      {canManageDamage && record.status === "reported" && !canMarkReportedRepaired && (
+        <p className="basis-full text-xs text-muted-foreground">
+          Inicia una orden de reparación antes de marcar este daño como reparado.
+        </p>
+      )}
+      {showCharge && cost == null && canChargeDamage && (
+        <p className="basis-full text-xs text-muted-foreground">
+          Falta valorar el costo real de reparación. Completa la orden de trabajo o solicita la valoración a administración antes de cobrar.
+        </p>
+      )}
       <ConfirmDialog
         open={archiveOpen}
         onOpenChange={setArchiveOpen}

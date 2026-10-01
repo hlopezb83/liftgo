@@ -18,15 +18,21 @@ export function useReturnableBookings({ early, bookingId, enabled }: Options) {
     enabled,
     staleTime: 0,
     queryFn: async () => {
+      const now = new Date().toISOString();
       let query = supabase
         .from("bookings")
-        .select("*, deliveries!deliveries_booking_id_fkey!inner(id)")
+        .select("*, deliveries!deliveries_booking_id_fkey!inner(id, type, status, completed_at), actual_delivery:deliveries!deliveries_booking_id_fkey(id)")
         .eq("status", "confirmed")
         .is("return_status", null)
         .eq("deliveries.type", "delivery")
         .eq("deliveries.status", "completed")
-        .lte("start_date", today)
-        .or(e2eVisibilityFilter());
+        .or(`completed_at.is.null,completed_at.lte.${now}`, { referencedTable: "deliveries" })
+        .eq("actual_delivery.type", "delivery")
+        .eq("actual_delivery.status", "completed")
+        .lte("actual_delivery.completed_at", now)
+        // Filter eligibility BEFORE LIMIT. Null historical timestamps remain
+        // eligible after commercial start; only real early delivery bypasses it.
+        .or(`and(or(${e2eVisibilityFilter()}),or(start_date.lte.${today},actual_delivery.not.is.null))`);
       if (!early) query = query.lte("end_date", today);
       if (bookingId) query = query.eq("id", bookingId);
       const { data, error } = await query

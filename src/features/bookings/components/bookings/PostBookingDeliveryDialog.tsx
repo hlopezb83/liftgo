@@ -7,6 +7,7 @@ import { FleetIcon, SuccessIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { deliveryBookingDateError, useCreateDelivery } from "@/features/deliveries";
+import { useHasModuleAccess } from "@/features/users";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -25,6 +26,17 @@ interface PostBookingDeliveryDialogProps {
   onSkip: () => void;
   currentIndex?: number;
   totalCount?: number;
+  allowScheduling?: boolean;
+}
+
+function confirmationTitle(canSchedule: boolean, currentIndex: number, totalCount: number) {
+  if (totalCount <= 1) return "Reserva Creada";
+  return `${canSchedule ? "Entrega" : "Reserva"} ${currentIndex + 1} de ${totalCount}`;
+}
+
+function confirmationDescription(canSchedule: boolean, forkliftName: string) {
+  if (!canSchedule) return "La reserva está creada. Despacho coordinará la entrega.";
+  return `¿Deseas programar la entrega de ${forkliftName || "el equipo"}?`;
 }
 
 const schema = z.object({
@@ -64,9 +76,11 @@ type FormValues = z.infer<typeof schema>;
 
 export function PostBookingDeliveryDialog({
   open, onOpenChange, bookingId, forkliftId, forkliftName, startDate, endDate, customerAddress, onSkip,
-  currentIndex = 0, totalCount = 1,
+  currentIndex = 0, totalCount = 1, allowScheduling = true,
 }: PostBookingDeliveryDialogProps) {
   const createDelivery = useCreateDelivery();
+  const hasDeliveryAccess = useHasModuleAccess("Entregas", "full");
+  const canSchedule = allowScheduling && hasDeliveryAccess;
   const [showForm, setShowForm] = useState(false);
 
   const bookingStart = parseDateLocal(startDate);
@@ -107,6 +121,7 @@ export function PostBookingDeliveryDialog({
   }, [open, customerAddress, defaultDate, form]);
 
   const handleSchedule = form.handleSubmit((values) => {
+    if (!canSchedule || createDelivery.isPending) return;
     const dateError = startDate && endDate
       ? deliveryBookingDateError("delivery", toYMD(values.scheduledDate), {
           start_date: startDate,
@@ -148,16 +163,20 @@ export function PostBookingDeliveryDialog({
       open={open}
       onOpenChange={onOpenChange}
       width="md"
-      title={totalCount > 1 ? `Entrega ${currentIndex + 1} de ${totalCount}` : "Reserva Creada"}
+      title={confirmationTitle(canSchedule, currentIndex, totalCount)}
       description={
         <span className="flex items-start gap-2">
           <SuccessIcon className="h-4 w-4 text-success mt-0.5 shrink-0" />
           {/* GUI-FE-11c (G-ADM-08 residual): fallback si no hay nombre de equipo. */}
-          <span>¿Deseas programar la entrega de {forkliftName || "el equipo"}?</span>
+          <span>{confirmationDescription(canSchedule, forkliftName)}</span>
         </span>
       }
     >
-      {!showForm ? (
+      {!canSchedule ? (
+        <FormDialogFooter>
+          <Button onClick={onSkip}>Continuar</Button>
+        </FormDialogFooter>
+      ) : !showForm ? (
         <FormDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" onClick={() => setShowForm(true)}>
             <FleetIcon className="h-4 w-4 mr-2" /> Programar entrega

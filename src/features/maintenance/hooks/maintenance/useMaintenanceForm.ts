@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import type { Tables } from "@/integrations/supabase/types";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { canModifyMaintenance } from "../../lib/maintenanceAccess";
 import {
   maintenanceFormSchema, initialMaintenanceForm, maintenanceLogToFormValues,
   buildMaintenancePayload, type MaintenanceFormValues,
@@ -30,6 +31,10 @@ export function useMaintenanceForm(forkliftMap: ForkliftMap) {
   const openCreate = () => { form.reset(initialMaintenanceForm); setEditingLogId(null); setDialogOpen(true); };
 
   const openEdit = (log: MaintenanceLog) => {
+    if (!canModifyMaintenance(log, true)) {
+      notifyValidation({ message: "La orden está cerrada o archivada. Un administrador debe reabrirla antes de editar." });
+      return;
+    }
     setEditingLogId(log.id);
     form.reset(maintenanceLogToFormValues(log));
     setDialogOpen(true);

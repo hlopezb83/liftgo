@@ -70,7 +70,7 @@ describe("useReturnInspectionDialog", () => {
     });
     await act(async () => { await result.current.handleSubmit(); });
     expect(mocks.mutate).not.toHaveBeenCalled();
-    expect(result.current.form.getFieldState("inspectedAt").error?.message).toContain("inicio de la renta");
+    expect(result.current.form.getFieldState("inspectedAt").error?.message).toContain("entrega real");
   });
 
   it("conserva el día de Monterrey al enviar y limpia el contexto después del éxito", async () => {

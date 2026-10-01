@@ -1,4 +1,5 @@
 import { PostBookingDeliveryDialog } from "@/features/bookings";
+import { useHasModuleAccess } from "@/features/users";
 import { ConvertQuoteDialog } from "./ConvertQuoteDialog";
 import { EquipmentAssignmentDialog } from "./EquipmentAssignmentDialog";
 import type { useQuoteDetailLogic } from "../../hooks/quoteDetail/useQuoteDetailLogic";
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function QuoteConversionDialogs({ logic }: Props) {
+  const canScheduleDelivery = useHasModuleAccess("Entregas", "full");
   const {
     quote, durationDays, unitCount, customers, forklifts, equipmentModels, rentalMeta,
     isConverting, isModelBasedQuote,
@@ -24,6 +26,8 @@ export function QuoteConversionDialogs({ logic }: Props) {
     <>
       {pendingDeliveries.length > 0 && pendingDeliveries[currentDeliveryIndex] && (
         <PostBookingDeliveryDialog
+          key={pendingDeliveries[currentDeliveryIndex].bookingId}
+          allowScheduling={canScheduleDelivery}
           open
           onOpenChange={(open) => { if (!open) handleDeliveryNext(); }}
           bookingId={pendingDeliveries[currentDeliveryIndex].bookingId}

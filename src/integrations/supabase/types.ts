@@ -1679,6 +1679,8 @@ export type Database = {
       damage_records: {
         Row: {
           actual_cost: number | null
+          actual_cost_source: string | null
+          actual_cost_recorded_at: string | null
           booking_id: string | null
           created_at: string
           customer_id: string | null
@@ -1699,6 +1701,8 @@ export type Database = {
         }
         Insert: {
           actual_cost?: number | null
+          actual_cost_source?: string | null
+          actual_cost_recorded_at?: string | null
           booking_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -1719,6 +1723,8 @@ export type Database = {
         }
         Update: {
           actual_cost?: number | null
+          actual_cost_source?: string | null
+          actual_cost_recorded_at?: string | null
           booking_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -6078,6 +6084,7 @@ export type Database = {
       get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
       get_dashboard_fleet_counts: { Args: never; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
+      get_organization_display_name: { Args: never; Returns: string }
       get_effective_legal_template: {
         Args: { p_document_type?: string }
         Returns: {

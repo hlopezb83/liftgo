@@ -201,7 +201,8 @@ SELECT pg_temp.expect_true(
   'A-09 predicado canónico de OT abierta bloquea reserva, entrega y devolución',
   pg_temp.fndef('create_booking') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
   AND pg_temp.fndef('extend_booking') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
-  AND pg_temp.fndef('get_available_forklifts') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
+  AND pg_temp.fndef('get_available_forklifts') LIKE '%forklift_has_maintenance_block%'
+  AND pg_temp.fndef('forklift_has_maintenance_block') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
   AND pg_temp.fndef('complete_return_inspection') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
   AND pg_temp.fndef('validate_delivery_booking_integrity') LIKE '%''pending'', ''in_progress'', ''waiting_parts''%'
 );

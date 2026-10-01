@@ -20,11 +20,12 @@ interface Props {
   minHours?: number | null;
   /** Bug 3: operador asignado de la entrega (evidencia operativa). */
   operatorName?: string | null;
+  transportType?: string;
 }
 
 export function DeliveryDetailDialogs({
   signatureOpen, isCompleting, setSignatureOpen, hoursReading, setHoursReading, onComplete,
-  pickupPrompt, onPickupClose, minHours, operatorName,
+  pickupPrompt, onPickupClose, minHours, operatorName, transportType,
 }: Props) {
   return (
     <>
@@ -37,6 +38,7 @@ export function DeliveryDetailDialogs({
         onComplete={onComplete}
         minHours={minHours}
         operatorName={operatorName}
+        transportType={transportType}
       />
 
 

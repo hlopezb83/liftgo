@@ -11,7 +11,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMtyDate } from "@/lib/utils";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useRestoreDamageRecord } from "../../hooks/useDamageRecords";
-import { shouldShowActualCost } from "../../lib/showActualCost";
+import { hasRecordedActualCost } from "../../lib/actualDamageCost";
 import { DamageActions } from "./DamageActions";
 import { DamagePhotosSection } from "./DamagePhotosSection";
 
@@ -48,9 +48,11 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
             <DetailRow icon={FleetIcon} label="Montacargas" value={record.forklifts?.name || "—"} />
             <DetailRow icon={UserIcon} label="Cliente" value={record.customers?.name || "—"} />
             <DetailRow icon={CostIcon} label="Costo Estimado" value={formatCurrency(record.estimated_cost ?? 0)} />
-            {shouldShowActualCost(record.actual_cost, record.status) && (
-              <DetailRow icon={CostIcon} label="Costo Real" value={formatCurrency(record.actual_cost ?? 0)} />
-            )}
+            <DetailRow
+              icon={CostIcon}
+              label="Costo real de reparación"
+              value={hasRecordedActualCost(record) ? formatCurrency(record.actual_cost ?? 0) : "Pendiente de valorar"}
+            />
             {/* R7-FE-02 (N7-MOV-05): TZ de negocio (Monterrey), no TZ del navegador,
                 para coincidir con la lista (formatDateMty). */}
             <DetailRow icon={CalendarIcon} label="Fecha" value={formatMtyDate(record.created_at, "dd MMMM yyyy", APP_LOCALE)} />

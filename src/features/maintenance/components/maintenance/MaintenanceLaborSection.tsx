@@ -123,18 +123,18 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
       ) : (
         <div className="border rounded-md divide-y">
           {labor.map((l) => (
-            <div key={l.id} className="flex items-center justify-between px-3 py-2 text-sm gap-3">
+            <div key={l.id} className="flex flex-col px-3 py-2 text-sm gap-2">
               <div className="flex flex-col min-w-0">
-                <span className="font-medium truncate">{l.mechanics?.name ?? "Mecánico"}</span>
-                {l.notes && <span className="text-xs text-muted-foreground truncate">{l.notes}</span>}
+                <span className="font-medium break-words">{l.mechanics?.name ?? "Mecánico"}</span>
+                {l.notes && <span className="text-xs text-muted-foreground break-words">{l.notes}</span>}
               </div>
-              <div className="flex items-center gap-3 text-muted-foreground shrink-0">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-muted-foreground">
                 <span>{Number(l.hours)}h × {formatCurrency(Number(l.hourly_rate))}</span>
                 <span className="font-mono text-foreground">{formatCurrency(Number(l.total_cost ?? 0))}</span>
                 {!readOnly && (
                   <Button
                     variant="ghost" size="icon"
-                    aria-label="Eliminar"
+                    aria-label={`Eliminar mano de obra de ${l.mechanics?.name ?? "mecánico"}`}
                     onClick={() => handleDelete(l.id)}
                     disabled={deleteLabor.isPending}
                   >

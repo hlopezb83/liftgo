@@ -1,0 +1,13 @@
+{
+  "description": "Los cierres de mantenimiento conservan sus costos; la disponibilidad y los transportes respetan las mismas reglas para cada rol.",
+  "changes": [
+    "Las OT cerradas requieren reapertura autorizada para editar costos. Su cierre rechaza fechas futuras y actualiza flota, daños y resúmenes.",
+    "El presupuesto de reparación deja de duplicarse como gasto; el costo real conserva su origen y las valoraciones manuales.",
+    "Despacho completa transportes de su empresa sin obtener edición general de Flota. Se protege la secuencia entrega, recolección y devolución.",
+    "Los bloqueos de mantenimiento se validan en el servidor, incluso para roles que no pueden leer las órdenes.",
+    "Ventas recibe sólo acciones logísticas autorizadas; las reservas distinguen acceso limitado, carga, error y ausencia de transportes.",
+    "Los avisos de cobro llegan sólo al personal activo de la empresa de la factura.",
+    "Calendarios, mensajes de fecha, textos de transporte, costos en detalles y paneles móviles presentan información coherente.",
+    "Todos los roles internos muestran el mismo nombre de empresa sin ampliar acceso a datos fiscales."
+  ]
+}

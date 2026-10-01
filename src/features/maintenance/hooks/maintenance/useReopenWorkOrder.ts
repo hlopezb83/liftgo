@@ -1,7 +1,6 @@
-import { reportKeys } from "@/features/reports";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
-import { maintenanceLogKeys } from "../../lib/queryKeys";
+import { maintenanceInvalidationKeys } from "../../lib/maintenanceInvalidationKeys";
 
 export interface ReopenWorkOrderInput {
   id: string;
@@ -20,7 +19,7 @@ export function useReopenWorkOrder() {
       await callRpc<void>("reopen_work_order", { p_log_id: id, p_reason: reason });
       return id;
     },
-    invalidateKeys: [maintenanceLogKeys.all, reportKeys.all],
+    invalidateKeys: maintenanceInvalidationKeys,
     successMsg: "Orden de trabajo reabierta",
     errorTitle: "No se pudo reabrir la orden de trabajo",
   });

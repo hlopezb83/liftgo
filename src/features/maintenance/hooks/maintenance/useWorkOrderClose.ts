@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { maintenanceLogKeys } from "../../lib/queryKeys";
+import { maintenanceInvalidationKeys } from "../../lib/maintenanceInvalidationKeys";
 
 /** Estados de daño que aún bloquean el cierre "limpio" de la OT. */
 const OPEN_DAMAGE_STATUSES = ["reported", "in_repair"] as const;
@@ -63,7 +63,7 @@ export function useCloseWorkOrder() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [maintenanceLogKeys.all],
+    invalidateKeys: maintenanceInvalidationKeys,
     successMsg: "Orden de trabajo cerrada",
     errorTitle: "No se pudo cerrar la orden de trabajo",
   });

@@ -1,5 +1,16 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.32] - 2026-09-30 · patch · fix
+
+Los cierres de mantenimiento conservan sus costos; la disponibilidad y los transportes respetan las mismas reglas para cada rol.
+
+- Las OT cerradas requieren reapertura autorizada para editar costos; el cierre rechaza fechas futuras y actualiza flota, daños y resúmenes.
+- El presupuesto de reparación deja de duplicarse como gasto; el costo real conserva su origen y las valoraciones manuales.
+- Despacho completa transportes de su empresa sin obtener edición general de Flota; se protege la secuencia de entrega, recolección y devolución.
+- Los bloqueos de mantenimiento se validan en el servidor para todos los roles autorizados.
+- Ventas recibe sólo acciones logísticas autorizadas; los avisos de cobro llegan al personal activo de la empresa de la factura.
+- Se corrigen calendarios, mensajes de fecha, textos de transporte, detalles desactualizados, paneles móviles e identidad de empresa por rol.
+
 ## [8.42.31] - 2026-09-30 · patch · fix
 
 El panel de empresas muestra la razón social junto al nombre interno.

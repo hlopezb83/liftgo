@@ -14,7 +14,7 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useDeleteMaintenanceLog, useRestoreMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
-import { canModifyMaintenance } from "../../lib/maintenanceAccess";
+import { maintenanceActionAccess } from "../../lib/maintenanceAccess";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
@@ -27,6 +27,7 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
   in_progress: { label: "En Progreso", variant: "default" },
   waiting_parts: { label: "Esperando Refacciones", variant: "outline" },
   completed: { label: "Completado", variant: "secondary" },
+  cancelled: { label: "Cancelado", variant: "secondary" },
 };
 
 interface Props {
@@ -52,8 +53,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
   const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
-  const isClosed = log.work_status === "completed";
-  const readOnly = !canModifyMaintenance(log, canWrite);
+  const access = maintenanceActionAccess(log, role, canWrite);
   const isArchived = log.deleted_at !== null;
 
   const handleDelete = () => {
@@ -82,7 +82,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
         <div className="mt-4 space-y-4">
           <Badge variant={status.variant}>{status.label}</Badge>
 
-          {isClosed && (
+          {log.work_status === "completed" && (
             <div className="rounded-md border border-success/30 bg-success/10 px-3 py-2 flex items-center justify-between gap-2">
               <span className="text-sm">OT cerrada el {formatDateMty(log.performed_at)}</span>
               <span className="font-mono text-sm font-semibold">{formatCurrency(log.cost || 0)}</span>
@@ -116,13 +116,13 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           <MaintenancePartsSection
             maintenanceLogId={log.id}
             currentCost={log.cost || 0}
-            readOnly={readOnly}
+            readOnly={access.readOnly}
           />
 
           <Separator />
           <MaintenanceLaborSection
             maintenanceLogId={log.id}
-            readOnly={readOnly}
+            readOnly={access.readOnly}
           />
 
           <Separator />
@@ -147,8 +147,11 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
               <MaintenanceDetailActions
                 log={log}
                 forkliftName={forkliftName}
-                isClosed={isClosed}
-                canArchiveClosed={role === "admin"}
+                isClosed={access.isClosed}
+                canEdit={!access.readOnly}
+                canArchiveClosed={access.canArchiveClosed}
+                canArchive={access.canArchive}
+                canReopen={access.canReopen}
                 deletePending={deleteLog.isPending}
                 closeOpen={closeOpen}
                 onCloseOpenChange={setCloseOpen}
@@ -171,8 +174,11 @@ interface ActionsProps {
   log: MaintenanceLog;
   forkliftName: string;
   isClosed: boolean;
+  canEdit: boolean;
   /** E1: solo admin puede archivar una OT cerrada (el RPC lo valida también). */
   canArchiveClosed: boolean;
+  canArchive: boolean;
+  canReopen: boolean;
   deletePending: boolean;
   closeOpen: boolean;
   onCloseOpenChange: (open: boolean) => void;
@@ -184,7 +190,7 @@ interface ActionsProps {
 }
 
 function MaintenanceDetailActions({
-  log, forkliftName, isClosed, canArchiveClosed, deletePending,
+  log, forkliftName, isClosed, canEdit, canArchiveClosed, canArchive, canReopen, deletePending,
   closeOpen, onCloseOpenChange, confirmOpen, onConfirmOpenChange,
   onEdit, onDelete, onSheetClose,
 }: ActionsProps) {
@@ -192,10 +198,9 @@ function MaintenanceDetailActions({
   // A1 (R5): la RPC `reopen_work_order` existía sin ningún llamador en la app.
   // Solo admin y solo sobre una OT cerrada; el servidor revalida ambas cosas.
   const [reopenOpen, setReopenOpen] = useState(false);
-  const canReopen = isClosed && canArchiveClosed;
   return (
     <>
-      {!isClosed && (
+      {canEdit && (
         <Button className="w-full mb-2" onClick={() => onCloseOpenChange(true)}>
           <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
         </Button>
@@ -218,10 +223,10 @@ function MaintenanceDetailActions({
       />
 
       <div className="flex gap-2">
-        <Button variant="outline" className="flex-1" onClick={onEdit}>
+        {canEdit && <Button variant="outline" className="flex-1" onClick={onEdit}>
           <EditIcon className="h-4 w-4 mr-1" /> Editar
-        </Button>
-        <Button
+        </Button>}
+        {canArchive && <Button
           variant="destructive"
           className="flex-1"
           disabled={archiveBlocked}
@@ -229,7 +234,7 @@ function MaintenanceDetailActions({
           onClick={() => onConfirmOpenChange(true)}
         >
           <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
-        </Button>
+        </Button>}
         <ConfirmDialog
           open={confirmOpen}
           onOpenChange={onConfirmOpenChange}
