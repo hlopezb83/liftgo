@@ -13,6 +13,7 @@ propio layout y autorización. Se conserva la marca global LiftGo.
 | `/platform/organizations` | Empresas con búsqueda, filtros, paginación y alta con enlace gestionado |
 | `/platform/organizations/$organizationId` | Ficha, checklist y cambio de acceso con motivo |
 | `/platform/catalogs` | Modelos, SKUs y machotes legales globales existentes |
+| `/platform/catalogs/import` | Revisión de nuevas incorporaciones desde Org 1 |
 | `/platform/audit` | Bitácora global, filtros de empresa/ámbito y detalle de cambios |
 | `/?workspace=organization` | Entrada explícita al ERP de la empresa del usuario |
 
@@ -167,12 +168,57 @@ y [código oficial de Auth, adminUserCreate](https://github.com/supabase/auth/bl
 
 ## Siguientes etapas
 
-1. Importación revisada de maestros desde Org 1 con normalización y duplicados;
-   no hay sincronización automática con Org 1.
-2. Administración de operadores con permisos específicos, MFA y recuperación
+1. Administración de operadores con permisos específicos, MFA y recuperación
    segura. Actualmente sólo existe la autoridad explícita global.
-3. Estado de integraciones y fallos por empresa, sin exponer secretos.
-4. Métricas del ecosistema con filtros territoriales, monedas comparables y
+2. Estado de integraciones y fallos por empresa, sin exponer secretos.
+3. Métricas del ecosistema con filtros territoriales, monedas comparables y
    exclusión identificable de datos de prueba en métricas comerciales.
-5. Opcionales: suscripciones, subdominio propio y sesiones de soporte con
+4. Opcionales: suscripciones, subdominio propio y sesiones de soporte con
    autorización, duración y auditoría. No se implementa suplantación automática.
+
+## Incorporación revisada (8.42.40 / 0090)
+
+La semilla inicial de 0046 ya promovió modelos y machotes. El nuevo flujo
+revisa incorporaciones posteriores, de una en una. La fuente se fija al aplicar
+0090 a la primera organización creada; suspenderla no selecciona otra empresa.
+No hay cambio de fuente desde la UI ni sincronización automática permanente.
+
+- Lista paginada de 20, por modelos, refacciones o machotes de contrato/pagaré.
+  Muestra nuevos, coincidencias, conflictos, origen incompleto y ya incorporados.
+  Los modelos de E2E se excluyen. No se aceptan IDs de otra empresa de origen.
+- Modelos: fabricante/modelo recortados y comparación sin distinguir mayúsculas;
+  se copian sólo capacidad, altura y combustible. Refacciones: SKU recortado en
+  mayúsculas, nombre/categoría y unidad inicial `pieza`, explicada en la revisión.
+  Ninguna tarifa, costo, existencia, ubicación, alias o dato fiscal se promueve.
+- La comparación legal normaliza campos opcionales y arreglos vacíos. Igual
+  contenido vigente puede reutilizarse; igual nombre con otro contenido,
+  múltiples coincidencias o maestro global inactivo requieren revisión manual.
+  El límite de contenido revisable es 200 KB. No se ejecuta HTML del machote.
+- Reutilizar registra equivalencia/procedencia sin editar el maestro existente.
+  Crear añade el maestro global y su origen; un machote nuevo publica versión 1
+  inmutable. No vincula filas locales, no asigna documentos a empresas y no
+  modifica transacciones ni documentos emitidos. La adopción usa los flujos
+  empresariales y de asignación legal existentes.
+- La UI requiere aceptación y motivo de 5–500 caracteres. Una huella incluye
+  el contenido de origen, la coincidencia global y su estado. Se comprueba de
+  nuevo bajo locks antes de escribir; cambios intermedios devuelven conflicto.
+  Los reintentos conservan UUID y payload. Sólo la misma solicitud ya completada
+  devuelve el mismo recibo; otra solicitud sobre un origen incorporado no crea
+  un segundo maestro ni vuelve a publicar una versión.
+- Reserva de fuente y recibos globales usan RLS/FORCE deny-all para clientes;
+  servicio sólo puede leerlos directamente. RPCs de servicio vuelven a verificar
+  operador activo. Los helpers internos no son ejecutables por clientes/servicio.
+  Recibos append-only registran actor, motivo, origen, destino y huellas;
+  la bitácora correlaciona también creaciones y reutilizaciones sin guardar
+  contenido legal ni información financiera.
+
+Rollout: validar CI, RLS y A/B; preflight real de ledger/0089 y fuente;
+aplicar 0090 por el canal oficial de Lovable Cloud con hash y `when` del journal;
+verificar ACLs, fuente, lista/preview y que no se crearon maestros ni recibos;
+publicar el SHA aprobado. Las mutaciones de prueba usan fixtures SQL efímeros
+y terminan en ROLLBACK; una lista de origen sin nuevos registros no acredita
+que se haya ejecutado una incorporación real por UI.
+
+Los locks por solicitud, origen e identidad complementan índices únicos y locks
+de fila; no prometen que un escritor externo participe del protocolo de locks.
+Referencia: [bloqueos de PostgreSQL](https://www.postgresql.org/docs/current/explicit-locking.html).

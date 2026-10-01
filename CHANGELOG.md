@@ -1,5 +1,13 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.40] - 2026-10-01 · patch · feature
+
+El Centro de Plataforma permite revisar nuevos maestros desde Org 1 antes de compartirlos con las empresas LiftGo.
+
+- La comparación detecta coincidencias y conserva la ficha global cuando se reutiliza un maestro existente.
+- Cada incorporación requiere revisión y motivo; los cambios posteriores a la comparación exigen revisarla de nuevo.
+- La bitácora registra origen y responsable. Tarifas, existencias y adopción de documentos permanecen por empresa.
+
 ## [8.42.39] - 2026-10-01 · patch · feature
 
 El Centro de Plataforma conserva las altas interrumpidas para completarlas sin duplicar empresa o administrador.

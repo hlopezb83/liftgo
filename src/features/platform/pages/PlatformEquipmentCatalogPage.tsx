@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, FleetIcon } from "@/components/icons";
@@ -46,7 +47,8 @@ export default function PlatformEquipmentCatalogPage() {
       <PageHeader
         title="Maestros compartidos LiftGo"
         subtitle="Modelos, refacciones y documentos globales para todas las organizaciones"
-        actions={<Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo modelo</Button>}
+        actions={<div className="flex flex-wrap gap-2"><Button variant="outline" asChild><Link to="/platform/catalogs/import">Incorporar desde Org 1</Link></Button>
+          <Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo modelo</Button></div>}
       />
       <Card>
         <CardHeader>

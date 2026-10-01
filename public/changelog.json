@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.42.40",
+    "date": "2026-10-01",
+    "type": "patch",
+    "category": "feature",
+    "title": "Incorporación revisada de maestros",
+    "description": "El Centro de Plataforma permite revisar nuevos maestros desde Org 1 antes de compartirlos con las empresas LiftGo.",
+    "changes": [
+      "La comparación detecta coincidencias y conserva la ficha global cuando se reutiliza un maestro existente.",
+      "Cada incorporación requiere revisión y motivo; los cambios posteriores a la comparación exigen revisarla de nuevo.",
+      "La bitácora registra origen y responsable. Tarifas, existencias y adopción de documentos permanecen por empresa."
+    ]
+  },
+{
     "version": "8.42.39",
     "date": "2026-10-01",
     "type": "patch",

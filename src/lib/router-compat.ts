@@ -121,8 +121,8 @@ export function useNavigationType(): NavigationType {
   const router = useRouter();
   const [navType, setNavType] = useState<NavigationType>("POP");
   useEffect(() => {
-    return router.history.subscribe((event) => {
-      const t = (event as { action?: { type?: string } }).action?.type;
+    return router.history.subscribe((event: { action?: { type?: string } }) => {
+      const t = event.action?.type;
       if (t === "PUSH" || t === "REPLACE") setNavType(t);
       else setNavType("POP");
     });

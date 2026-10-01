@@ -631,6 +631,13 @@
       "when": 1790890234134,
       "tag": "0089_resumable_platform_onboarding",
       "breakpoints": true
+    },
+    {
+      "idx": 90,
+      "version": "7",
+      "when": 1790897569107,
+      "tag": "0090_reviewed_catalog_imports",
+      "breakpoints": true
     }
   ]
 }

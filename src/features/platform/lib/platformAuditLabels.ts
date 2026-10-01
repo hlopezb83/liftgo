@@ -12,6 +12,7 @@ export const PLATFORM_AUDIT_LABELS: Record<
   legal_template_versions: "Versiones legales",
   organization_legal_template_assignments: "Asignaciones legales",
   platform_operators: "Accesos de plataforma",
+  platform_catalog_imports: "Incorporaciones de maestros",
 };
 export const AUDIT_ACTION_LABELS = {
   INSERT: "Alta",
@@ -43,6 +44,13 @@ export const AUDIT_FIELD_LABELS: Record<string, string> = {
   image_url: "Imagen",
   spec_sheet_url: "Documento técnico",
   updated_by: "Responsable del cambio",
+  kind: "Tipo de maestro",
+  source_organization_id: "Empresa de origen",
+  source_record_id: "Registro de origen",
+  target_catalog_id: "Maestro global",
+  target_version_id: "Versión incorporada",
+  resolution: "Resolución",
+  source_checksum: "Huella del origen",
 };
 
 export function auditTargetName(event: PlatformAuditEvent): string {
