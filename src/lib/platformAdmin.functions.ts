@@ -22,6 +22,7 @@ import {
   rpcError,
   validateCreateInput,
 } from "./platformAdmin.helpers";
+import { platformOrganizationStatusInputSchema } from "./platformOrganizationStatus.types";
 import type {
   CreateOrganizationInput,
   CreateOrganizationResult,
@@ -47,7 +48,10 @@ export const getPlatformOperatorStatusFn = createServerFn({ method: "GET" })
       .asUntypedRpc(context.supabase)
       .rpc("is_platform_operator");
     if (error) {
-      throw new g.HttpError(503, "No se pudo verificar el acceso a la plataforma. Reintenta.");
+      throw new g.HttpError(
+        503,
+        "No se pudo verificar el acceso a la plataforma. Reintenta.",
+      );
     }
     return { isOperator: data === true };
   });
@@ -72,18 +76,21 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
     const ids = rows.map((row) => String(row["id"]));
     const razonByOrg = new Map<string, string>();
     if (ids.length > 0) {
-      const settings = await (admin as unknown as {
-        from: (t: string) => {
-          select: (c: string) => {
-            in: (k: string, v: string[]) => Promise<{ data: unknown }>;
+      const settings = await (
+        admin as unknown as {
+          from: (t: string) => {
+            select: (c: string) => {
+              in: (k: string, v: string[]) => Promise<{ data: unknown }>;
+            };
           };
-        };
-      })
+        }
+      )
         .from("company_settings")
         .select("organization_id, razon_social")
         .in("organization_id", ids);
       for (const s of (settings.data ?? []) as Record<string, unknown>[]) {
-        const razon = typeof s["razon_social"] === "string" ? s["razon_social"].trim() : "";
+        const razon =
+          typeof s["razon_social"] === "string" ? s["razon_social"].trim() : "";
         if (razon) razonByOrg.set(String(s["organization_id"]), razon);
       }
     }
@@ -157,7 +164,6 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
       manualPassword || undefined,
     );
 
-
     // 3) Membresía interna + rol admin + perfil activo, atómico en la base.
     const attached = await g
       .asUntypedRpc(admin)
@@ -206,7 +212,6 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
       recovery_link: recoveryLink,
       password_set_manually: manualPassword.length > 0,
     };
-
   });
 
 export const setOrganizationActiveFn = createServerFn({ method: "POST" })
@@ -214,10 +219,10 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
   .validator((data: SetOrganizationActiveInput) => data)
   .handler(async ({ data, context }): Promise<{ success: true }> => {
     const g = await import("./server/adminGuards.server");
-    const {
-      admin,
-      userId: actorId,
-    } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId: actorId } = await g.requirePlatformOperator(
+      context.supabase,
+      context.userId,
+    );
     await g.enforceRateLimit(
       admin,
       "platform-set-organization-active",
@@ -226,21 +231,22 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
       60,
     );
 
-    if (!g.isUUID(data.organization_id)) {
-      throw new g.HttpError(400, "organization_id must be a valid UUID");
-    }
-    if (typeof data.active !== "boolean") {
-      throw new g.HttpError(400, "Se requiere el estado deseado");
-    }
+    const parsed = platformOrganizationStatusInputSchema.safeParse(data);
+    if (!parsed.success)
+      throw new g.HttpError(
+        400,
+        "Indica una empresa válida, su estado y un motivo operativo de 5 a 500 caracteres, sin llaves ni tokens",
+      );
     // La RPC conserva la protección de suspensión de la propia empresa,
     // consultando la membresía del actor sin exigir una empresa activa aquí.
 
     const { error } = await g
       .asUntypedRpc(admin)
-      .rpc("platform_set_organization_active", {
+      .rpc("platform_set_organization_active_with_reason", {
         p_actor: actorId,
-        p_organization_id: data.organization_id,
-        p_active: data.active,
+        p_organization_id: parsed.data.organization_id,
+        p_active: parsed.data.active,
+        p_reason: parsed.data.reason,
       });
     if (error) rpcError(g, "platform_set_organization_active", error);
     return { success: true };

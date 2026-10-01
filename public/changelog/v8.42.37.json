@@ -1,0 +1,10 @@
+{
+  "description": "El Centro de Plataforma muestra la preparación de cada empresa y registra los cambios administrativos del ecosistema.",
+  "changes": [
+    "Ficha con administradores, configuración fiscal, catálogos adoptados, versiones de contrato, folios y conteo de cuentas bancarias.",
+    "Checklist de configuración que distingue requisitos y recomendaciones, sin presentar la captura como validación fiscal o del proveedor.",
+    "Bitácora global con actor, motivo, campos permitidos y paginación por cursor; los eventos nuevos se guardan junto con la operación.",
+    "Suspensión y reactivación requieren motivo. Los guardados idénticos no generan eventos nuevos y se conserva la protección de la empresa del operador.",
+    "Búsqueda, filtros, paginación y tarjetas adaptables en Empresas; el alta utiliza el enlace gestionado para definir la contraseña."
+  ]
+}

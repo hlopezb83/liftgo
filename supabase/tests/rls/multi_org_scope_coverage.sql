@@ -11,7 +11,8 @@
 -- Las tablas de INFRAESTRUCTURA SENSIBLE (allowlist `c_infra_deny_all`) no se
 -- convierten en tablas de negocio: se les exige un contrato MÁS estricto
 -- (FORCE RLS + deny-all RESTRICTIVE + cero policies permisivas + cero grants a
--- anon/authenticated/PUBLIC + grants completos de service_role).
+-- anon/authenticated/PUBLIC + grants mínimos de service_role; la bitácora
+-- global append-only sólo permite SELECT/INSERT).
 -- Además exige RLS habilitada en TODAS las tablas públicas y que ninguna
 -- policy permisiva de las tablas de relación sea `USING (true)`.
 -- (FORCE ROW LEVEL SECURITY no se exige aquí: 44 tablas históricas no lo
@@ -69,7 +70,11 @@ DECLARE
     -- (service_role, entorno privado) la lee o escribe. Registrar una fila no
     -- autoriza copia: el migrador revalida dueño y empresa activa antes de
     -- copiar y falla cerrado ante discrepancias.
-    'storage_migration_manual_resolutions'
+    'storage_migration_manual_resolutions',
+    -- 0088: bitácora administrativa GLOBAL. organization_id es una etiqueta
+    -- del objetivo, no la empresa del actor. Sólo RPCs de operador activo;
+    -- service_role no recibe UPDATE, DELETE ni TRUNCATE sobre los eventos.
+    'platform_audit_events'
   ];
   r record;
   v_grants_abiertos integer;
@@ -184,7 +189,12 @@ BEGIN
         WHERE g.table_schema = 'public' AND g.table_name = r.table_name
           AND g.grantee = 'service_role'
           AND g.privilege_type IN ('SELECT', 'INSERT', 'UPDATE', 'DELETE');
-        IF v_grants_service <> 4 THEN
+        IF r.table_name = 'platform_audit_events' THEN
+          IF v_grants_service <> 2 OR has_table_privilege('service_role',
+              'public.platform_audit_events','UPDATE,DELETE,TRUNCATE') THEN
+            v_fallas := v_fallas || 'platform_audit_events: exige sólo SELECT/INSERT de service_role';
+          END IF;
+        ELSIF v_grants_service <> 4 THEN
           v_fallas := v_fallas || format(
             '%s: infra deny-all sin los 4 privilegios de service_role (encontrados: %)',
             r.table_name, v_grants_service);

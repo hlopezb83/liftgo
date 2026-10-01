@@ -41,6 +41,7 @@ import { Route as MainPaymentsRouteImport } from './routes/_main/payments'
 import { Route as MainProspectsRouteImport } from './routes/_main/prospects'
 import { Route as MainReportsRouteImport } from './routes/_main/reports'
 import { Route as PlatformIndexRouteImport } from './routes/platform.index'
+import { Route as PlatformAuditRouteImport } from './routes/platform.audit'
 import { Route as PlatformCatalogsRouteImport } from './routes/platform.catalogs'
 import { Route as PlatformOrganizationsRouteImport } from './routes/platform.organizations'
 import { Route as PlatformLoginRouteImport } from './routes/platform_.login'
@@ -88,6 +89,7 @@ import { Route as PortalPortalEstadoCuentaRouteImport } from './routes/_portal/p
 import { Route as PortalPortalLeaderboardRouteImport } from './routes/_portal/portal.leaderboard'
 import { Route as PortalPortalMisReportesRouteImport } from './routes/_portal/portal.mis-reportes'
 import { Route as PortalPortalRentalsRouteImport } from './routes/_portal/portal.rentals'
+import { Route as PlatformOrganizationsOrganizationIdRouteImport } from './routes/platform.organizations_.$organizationId'
 import { Route as MainContractsIdIndexRouteImport } from './routes/_main/contracts.$id.index'
 import { Route as MainContractsIdEditRouteImport } from './routes/_main/contracts.$id.edit'
 import { Route as MainFleetIdIndexRouteImport } from './routes/_main/fleet.$id.index'
@@ -258,6 +260,11 @@ const MainReportsRoute = MainReportsRouteImport.update({
 const PlatformIndexRoute = PlatformIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformAuditRoute = PlatformAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => PlatformRoute,
 } as any)
 const PlatformCatalogsRoute = PlatformCatalogsRouteImport.update({
@@ -503,6 +510,12 @@ const PortalPortalRentalsRoute = PortalPortalRentalsRouteImport.update({
   path: '/portal/rentals',
   getParentRoute: () => PortalRoute,
 } as any)
+const PlatformOrganizationsOrganizationIdRoute =
+  PlatformOrganizationsOrganizationIdRouteImport.update({
+    id: '/organizations_/$organizationId',
+    path: '/organizations/$organizationId',
+    getParentRoute: () => PlatformRoute,
+  } as any)
 const MainContractsIdIndexRoute = MainContractsIdIndexRouteImport.update({
   id: '/contracts/$id/',
   path: '/contracts/$id/',
@@ -602,6 +615,7 @@ export interface FileRoutesByFullPath {
   '/payments': typeof MainPaymentsRoute
   '/prospects': typeof MainProspectsRoute
   '/reports': typeof MainReportsRoute
+  '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/login': typeof PlatformLoginRoute
@@ -635,6 +649,7 @@ export interface FileRoutesByFullPath {
   '/portal/leaderboard': typeof PortalPortalLeaderboardRoute
   '/portal/mis-reportes': typeof PortalPortalMisReportesRoute
   '/portal/rentals': typeof PortalPortalRentalsRoute
+  '/platform/organizations/$organizationId': typeof PlatformOrganizationsOrganizationIdRoute
   '/bookings/': typeof MainBookingsIndexRoute
   '/conciliacion-bancaria/': typeof MainConciliacionBancariaIndexRoute
   '/contracts/': typeof MainContractsIndexRoute
@@ -693,6 +708,7 @@ export interface FileRoutesByTo {
   '/payments': typeof MainPaymentsRoute
   '/prospects': typeof MainProspectsRoute
   '/reports': typeof MainReportsRoute
+  '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/login': typeof PlatformLoginRoute
@@ -726,6 +742,7 @@ export interface FileRoutesByTo {
   '/portal/leaderboard': typeof PortalPortalLeaderboardRoute
   '/portal/mis-reportes': typeof PortalPortalMisReportesRoute
   '/portal/rentals': typeof PortalPortalRentalsRoute
+  '/platform/organizations/$organizationId': typeof PlatformOrganizationsOrganizationIdRoute
   '/bookings': typeof MainBookingsIndexRoute
   '/conciliacion-bancaria': typeof MainConciliacionBancariaIndexRoute
   '/contracts': typeof MainContractsIndexRoute
@@ -787,6 +804,7 @@ export interface FileRoutesById {
   '/_main/payments': typeof MainPaymentsRoute
   '/_main/prospects': typeof MainProspectsRoute
   '/_main/reports': typeof MainReportsRoute
+  '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform_/login': typeof PlatformLoginRoute
@@ -821,6 +839,7 @@ export interface FileRoutesById {
   '/_portal/portal/leaderboard': typeof PortalPortalLeaderboardRoute
   '/_portal/portal/mis-reportes': typeof PortalPortalMisReportesRoute
   '/_portal/portal/rentals': typeof PortalPortalRentalsRoute
+  '/platform/organizations_/$organizationId': typeof PlatformOrganizationsOrganizationIdRoute
   '/_main/bookings/': typeof MainBookingsIndexRoute
   '/_main/conciliacion-bancaria/': typeof MainConciliacionBancariaIndexRoute
   '/_main/contracts/': typeof MainContractsIndexRoute
@@ -882,6 +901,7 @@ export interface FileRouteTypes {
     | '/payments'
     | '/prospects'
     | '/reports'
+    | '/platform/audit'
     | '/platform/catalogs'
     | '/platform/organizations'
     | '/platform/login'
@@ -915,6 +935,7 @@ export interface FileRouteTypes {
     | '/portal/leaderboard'
     | '/portal/mis-reportes'
     | '/portal/rentals'
+    | '/platform/organizations/$organizationId'
     | '/bookings/'
     | '/conciliacion-bancaria/'
     | '/contracts/'
@@ -973,6 +994,7 @@ export interface FileRouteTypes {
     | '/payments'
     | '/prospects'
     | '/reports'
+    | '/platform/audit'
     | '/platform/catalogs'
     | '/platform/organizations'
     | '/platform/login'
@@ -1006,6 +1028,7 @@ export interface FileRouteTypes {
     | '/portal/leaderboard'
     | '/portal/mis-reportes'
     | '/portal/rentals'
+    | '/platform/organizations/$organizationId'
     | '/bookings'
     | '/conciliacion-bancaria'
     | '/contracts'
@@ -1066,6 +1089,7 @@ export interface FileRouteTypes {
     | '/_main/payments'
     | '/_main/prospects'
     | '/_main/reports'
+    | '/platform/audit'
     | '/platform/catalogs'
     | '/platform/organizations'
     | '/platform_/login'
@@ -1100,6 +1124,7 @@ export interface FileRouteTypes {
     | '/_portal/portal/leaderboard'
     | '/_portal/portal/mis-reportes'
     | '/_portal/portal/rentals'
+    | '/platform/organizations_/$organizationId'
     | '/_main/bookings/'
     | '/_main/conciliacion-bancaria/'
     | '/_main/contracts/'
@@ -1363,6 +1388,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/platform/'
       preLoaderRoute: typeof PlatformIndexRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/audit': {
+      id: '/platform/audit'
+      path: '/audit'
+      fullPath: '/platform/audit'
+      preLoaderRoute: typeof PlatformAuditRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/platform/catalogs': {
@@ -1694,6 +1726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalPortalRentalsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/platform/organizations_/$organizationId': {
+      id: '/platform/organizations_/$organizationId'
+      path: '/organizations/$organizationId'
+      fullPath: '/platform/organizations/$organizationId'
+      preLoaderRoute: typeof PlatformOrganizationsOrganizationIdRouteImport
+      parentRoute: typeof PlatformRoute
+    }
     '/_main/contracts/$id/': {
       id: '/_main/contracts/$id/'
       path: '/contracts/$id'
@@ -1973,15 +2012,20 @@ const PortalRouteWithChildren =
   PortalRoute._addFileChildren(PortalRouteChildren)
 
 interface PlatformRouteChildren {
+  PlatformAuditRoute: typeof PlatformAuditRoute
   PlatformCatalogsRoute: typeof PlatformCatalogsRoute
   PlatformOrganizationsRoute: typeof PlatformOrganizationsRoute
   PlatformIndexRoute: typeof PlatformIndexRoute
+  PlatformOrganizationsOrganizationIdRoute: typeof PlatformOrganizationsOrganizationIdRoute
 }
 
 const PlatformRouteChildren: PlatformRouteChildren = {
+  PlatformAuditRoute: PlatformAuditRoute,
   PlatformCatalogsRoute: PlatformCatalogsRoute,
   PlatformOrganizationsRoute: PlatformOrganizationsRoute,
   PlatformIndexRoute: PlatformIndexRoute,
+  PlatformOrganizationsOrganizationIdRoute:
+    PlatformOrganizationsOrganizationIdRoute,
 }
 
 const PlatformRouteWithChildren = PlatformRoute._addFileChildren(

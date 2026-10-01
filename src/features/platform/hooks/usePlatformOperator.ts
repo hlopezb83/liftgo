@@ -6,7 +6,7 @@
  * vuelve a verificar al actor en cada RPC. Este hook sólo decide visibilidad
  * y transporta resultados; nunca es la barrera de autorización.
  */
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import {
@@ -82,12 +82,10 @@ function translateError(error: Error): string {
 }
 
 export function useCreateOrganization() {
-  const qc = useQueryClient();
   return useEntityMutation<CreateOrganizationInput, CreateOrganizationResult>({
     mutationFn: async (input) => createOrganizationFn({ data: input }),
-    invalidateKeys: [platformKeys.organizations()],
+    invalidateKeys: [platformKeys.all],
     onSuccess: (result) => {
-      void qc.invalidateQueries({ queryKey: platformKeys.organizations() });
       notifySuccess("Empresa creada", {
         description: `Primer administrador: ${result.admin_email}`,
       });
