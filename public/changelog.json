@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.42.48",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Comprobación Facturapi compatible con Cloud",
+    "description": "La comprobación de conexión de plataforma funciona en el runtime de Lovable Cloud sin seguir redirecciones.",
+    "changes": [
+      "La petición usa redirect manual y rechaza respuestas 3xx, conservando la llave en el endpoint oficial.",
+      "Los fallos de transporte registran sólo la clase de error y se muestran como conexión no disponible."
+    ]
+  },
+  {
     "version": "8.42.47",
     "date": "2026-10-02",
     "type": "patch",

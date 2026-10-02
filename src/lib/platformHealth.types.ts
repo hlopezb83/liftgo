@@ -7,7 +7,7 @@ export const INTEGRATION_STATUS_LABELS: Record<IntegrationStatus, string> = {
   pending: "Comprobación en curso", connected: "Conexión comprobada", unconfigured: "Configuración incompleta",
   duplicate_key: "Llave compartida entre empresas", auth_error: "Llave no autorizada", rate_limited: "Límite del proveedor",
   invalid_key_mode: "Llave incompatible con el ambiente",
-  unavailable: "Proveedor no disponible", invalid_response: "Respuesta no válida", config_changed: "Configuración modificada",
+  unavailable: "Conexión no disponible", invalid_response: "Respuesta no válida", config_changed: "Configuración modificada",
 };
 export const integrationListInputSchema = z.object({
   search: z.string().trim().max(100).default(""), offset: z.number().int().min(0).max(100000).default(0),
