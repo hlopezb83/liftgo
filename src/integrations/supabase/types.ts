@@ -1681,10 +1681,9 @@ export type Database = {
       }
       damage_records: {
         Row: {
-          reported_by: string | null
           actual_cost: number | null
-          actual_cost_source: string | null
           actual_cost_recorded_at: string | null
+          actual_cost_source: string | null
           booking_id: string | null
           created_at: string
           customer_id: string | null
@@ -1700,14 +1699,14 @@ export type Database = {
           organization_id: string | null
           previous_forklift_status: string | null
           repaired_at: string | null
+          reported_by: string | null
           status: string
           updated_at: string
         }
         Insert: {
-          reported_by?: string | null
           actual_cost?: number | null
-          actual_cost_source?: string | null
           actual_cost_recorded_at?: string | null
+          actual_cost_source?: string | null
           booking_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -1723,14 +1722,14 @@ export type Database = {
           organization_id?: string | null
           previous_forklift_status?: string | null
           repaired_at?: string | null
+          reported_by?: string | null
           status?: string
           updated_at?: string
         }
         Update: {
-          reported_by?: string | null
           actual_cost?: number | null
-          actual_cost_source?: string | null
           actual_cost_recorded_at?: string | null
+          actual_cost_source?: string | null
           booking_id?: string | null
           created_at?: string
           customer_id?: string | null
@@ -1746,6 +1745,7 @@ export type Database = {
           organization_id?: string | null
           previous_forklift_status?: string | null
           repaired_at?: string | null
+          reported_by?: string | null
           status?: string
           updated_at?: string
         }
@@ -3556,6 +3556,54 @@ export type Database = {
         }
         Relationships: []
       }
+      part_stock_adjustments: {
+        Row: {
+          adjusted_by: string
+          created_at: string
+          id: string
+          new_quantity: number
+          organization_id: string
+          part_id: string
+          previous_quantity: number
+          reason: string
+        }
+        Insert: {
+          adjusted_by: string
+          created_at?: string
+          id?: string
+          new_quantity: number
+          organization_id: string
+          part_id: string
+          previous_quantity: number
+          reason: string
+        }
+        Update: {
+          adjusted_by?: string
+          created_at?: string
+          id?: string
+          new_quantity?: number
+          organization_id?: string
+          part_id?: string
+          previous_quantity?: number
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "part_stock_adjustments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "part_stock_adjustments_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_inventory"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parts_catalog: {
         Row: {
           category: string | null
@@ -3662,51 +3710,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      part_stock_adjustments: {
-        Row: {
-          id: string
-          organization_id: string
-          part_id: string
-          previous_quantity: number
-          new_quantity: number
-          reason: string
-          adjusted_by: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          organization_id?: string
-          part_id: string
-          previous_quantity: number
-          new_quantity: number
-          reason: string
-          adjusted_by: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          organization_id?: string
-          part_id?: string
-          previous_quantity?: number
-          new_quantity?: number
-          reason?: string
-          adjusted_by?: string
-          created_at?: string
-        }
-        Relationships: [{
-          foreignKeyName: "part_stock_adjustments_part_id_fkey"
-          columns: ["part_id"]
-          isOneToOne: false
-          referencedRelation: "parts_inventory"
-          referencedColumns: ["id"]
-        }, {
-          foreignKeyName: "part_stock_adjustments_organization_id_fkey"
-          columns: ["organization_id"]
-          isOneToOne: false
-          referencedRelation: "organizations"
-          referencedColumns: ["id"]
-        }]
       }
       parts_inventory: {
         Row: {
@@ -3917,24 +3920,217 @@ export type Database = {
           },
         ]
       }
+      platform_audit_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          changed_fields: string[]
+          id: number
+          legacy_audit_id: string | null
+          new_state: Json | null
+          occurred_at: string
+          old_state: Json | null
+          organization_id: string | null
+          reason: string | null
+          recorded_at: string
+          request_id: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          changed_fields?: string[]
+          id?: never
+          legacy_audit_id?: string | null
+          new_state?: Json | null
+          occurred_at?: string
+          old_state?: Json | null
+          organization_id?: string | null
+          reason?: string | null
+          recorded_at?: string
+          request_id?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          changed_fields?: string[]
+          id?: never
+          legacy_audit_id?: string | null
+          new_state?: Json | null
+          occurred_at?: string
+          old_state?: Json | null
+          organization_id?: string | null
+          reason?: string | null
+          recorded_at?: string
+          request_id?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      platform_catalog_import_source: {
+        Row: {
+          singleton: boolean
+          source_organization_id: string
+        }
+        Insert: {
+          singleton?: boolean
+          source_organization_id: string
+        }
+        Update: {
+          singleton?: boolean
+          source_organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_catalog_import_source_source_organization_id_fkey"
+            columns: ["source_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_catalog_imports: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          name: string
+          reason: string
+          resolution: string
+          review_fingerprint: string
+          source_checksum: string
+          source_organization_id: string
+          source_record_id: string
+          target_catalog_id: string
+          target_version_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id: string
+          kind: string
+          name: string
+          reason: string
+          resolution: string
+          review_fingerprint: string
+          source_checksum: string
+          source_organization_id: string
+          source_record_id: string
+          target_catalog_id: string
+          target_version_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          name?: string
+          reason?: string
+          resolution?: string
+          review_fingerprint?: string
+          source_checksum?: string
+          source_organization_id?: string
+          source_record_id?: string
+          target_catalog_id?: string
+          target_version_id?: string | null
+        }
+        Relationships: []
+      }
+      platform_onboarding_requests: {
+        Row: {
+          admin_email: string
+          admin_full_name: string
+          admin_user_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          name: string
+          organization_id: string
+          request_id: string
+          slug: string
+        }
+        Insert: {
+          admin_email: string
+          admin_full_name: string
+          admin_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by: string
+          name: string
+          organization_id: string
+          request_id: string
+          slug: string
+        }
+        Update: {
+          admin_email?: string
+          admin_full_name?: string
+          admin_user_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          name?: string
+          organization_id?: string
+          request_id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_onboarding_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_operator_guard: {
+        Row: {
+          id: number
+          revision: number
+        }
+        Insert: {
+          id: number
+          revision?: number
+        }
+        Update: {
+          id?: number
+          revision?: number
+        }
+        Relationships: []
+      }
       platform_operators: {
         Row: {
+          access_profile: string
           auth_user_id: string
           granted_at: string
           granted_by: string | null
           notes: string | null
+          permission_revision: number
         }
         Insert: {
+          access_profile?: string
           auth_user_id: string
           granted_at?: string
           granted_by?: string | null
           notes?: string | null
+          permission_revision?: number
         }
         Update: {
+          access_profile?: string
           auth_user_id?: string
           granted_at?: string
           granted_by?: string | null
           notes?: string | null
+          permission_revision?: number
         }
         Relationships: []
       }
@@ -5042,9 +5238,9 @@ export type Database = {
       }
       supplier_payment_batches: {
         Row: {
+          bill_count: number
           cancelled_at: string | null
           cancelled_by: string | null
-          bill_count: number
           created_at: string
           currency: string
           exported_at: string
@@ -5055,9 +5251,9 @@ export type Database = {
           total_amount: number
         }
         Insert: {
+          bill_count?: number
           cancelled_at?: string | null
           cancelled_by?: string | null
-          bill_count?: number
           created_at?: string
           currency?: string
           exported_at?: string
@@ -5068,9 +5264,9 @@ export type Database = {
           total_amount?: number
         }
         Update: {
+          bill_count?: number
           cancelled_at?: string | null
           cancelled_by?: string | null
-          bill_count?: number
           created_at?: string
           currency?: string
           exported_at?: string
@@ -5541,43 +5737,6 @@ export type Database = {
       }
     }
     Functions: {
-      adjust_part_stock: {
-        Args: {
-          p_part_id: string
-          p_expected_stock_quantity: number
-          p_new_stock_quantity: number
-          p_reason: string
-        }
-        Returns: Database["public"]["Tables"]["parts_inventory"]["Row"]
-      }
-      update_part_inventory_metadata: {
-        Args: {
-          p_part_id: string
-          p_min_stock_level: number
-          p_unit_cost: number
-          p_location: string | null
-        }
-        Returns: Database["public"]["Tables"]["parts_inventory"]["Row"]
-      }
-      save_manual_damage_report: {
-        Args: {
-          p_forklift_id: string
-          p_description: string
-          p_estimated_cost: number | null
-          p_customer_id?: string | null
-          p_damage_id?: string | null
-          p_expected_updated_at?: string | null
-        }
-        Returns: Database["public"]["Tables"]["damage_records"]["Row"]
-      }
-      get_supplier_payment_batch_snapshot: {
-        Args: { p_batch_id: string }
-        Returns: Json
-      }
-      get_supplier_payment_batches_page: {
-        Args: { p_page_size?: number; p_offset?: number }
-        Returns: Json
-      }
       accept_quote_from_portal: {
         Args: { p_ip?: string; p_quote_id: string }
         Returns: {
@@ -5640,6 +5799,35 @@ export type Database = {
         }
         Returns: string
       }
+      adjust_part_stock: {
+        Args: {
+          p_expected_stock_quantity: number
+          p_new_stock_quantity: number
+          p_part_id: string
+          p_reason: string
+        }
+        Returns: {
+          catalog_part_id: string | null
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          location: string | null
+          min_stock_level: number
+          name: string
+          organization_id: string | null
+          sku: string | null
+          stock_quantity: number
+          unit_cost: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parts_inventory"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       approve_payment_intent: {
         Args: {
           p_intent_id: string
@@ -5658,6 +5846,10 @@ export type Database = {
       }
       assert_not_last_admin: {
         Args: { _target_user_id: string }
+        Returns: undefined
+      }
+      assert_platform_capability: {
+        Args: { p_actor: string; p_capability: string }
         Returns: undefined
       }
       assert_platform_operator: {
@@ -6036,6 +6228,19 @@ export type Database = {
           unmatched_count: number
         }[]
       }
+      forklift_has_maintenance_block: {
+        Args: {
+          p_end: string
+          p_forklift: string
+          p_org: string
+          p_start: string
+        }
+        Returns: boolean
+      }
+      forklift_maintenance_is_automatic: {
+        Args: { p_forklift: string; p_org: string }
+        Returns: boolean
+      }
       fx_convert_amount: {
         Args: {
           p_amount: number
@@ -6178,7 +6383,6 @@ export type Database = {
       get_customer_summary: { Args: { p_customer_id: string }; Returns: Json }
       get_dashboard_fleet_counts: { Args: never; Returns: Json }
       get_dashboard_stats: { Args: never; Returns: Json }
-      get_organization_display_name: { Args: never; Returns: string }
       get_effective_legal_template: {
         Args: { p_document_type?: string }
         Returns: {
@@ -6231,6 +6435,8 @@ export type Database = {
           forklift_id: string
         }[]
       }
+      get_organization_display_name: { Args: never; Returns: string }
+      get_platform_access: { Args: never; Returns: Json }
       get_portal_collection_account: {
         Args: never
         Returns: {
@@ -6385,6 +6591,14 @@ export type Database = {
         }
         Returns: Json
       }
+      get_supplier_payment_batch_snapshot: {
+        Args: { p_batch_id: string }
+        Returns: Json
+      }
+      get_supplier_payment_batches_page: {
+        Args: { p_offset?: number; p_page_size?: number }
+        Returns: Json
+      }
       guard_fiscal_period_open: {
         Args: { _date: string; _table_name: string; p_organization_id: string }
         Returns: undefined
@@ -6393,6 +6607,10 @@ export type Database = {
       has_open_rental: { Args: { p_forklift_id: string }; Returns: boolean }
       has_permission: {
         Args: { p_level?: string; p_module: string }
+        Returns: boolean
+      }
+      has_platform_capability: {
+        Args: { p_capability: string }
         Returns: boolean
       }
       has_role: {
@@ -6533,6 +6751,14 @@ export type Database = {
           unmatched_count: number
         }[]
       }
+      mechanic_damage_evidence_allowed: {
+        Args: { p_damage_id: string; p_write?: boolean }
+        Returns: boolean
+      }
+      mechanic_damage_storage_allowed: {
+        Args: { p_path: string; p_write?: boolean }
+        Returns: boolean
+      }
       next_booking_number: { Args: never; Returns: string }
       next_booking_number_e2e: { Args: never; Returns: string }
       next_contract_number: { Args: never; Returns: string }
@@ -6563,6 +6789,22 @@ export type Database = {
         }
         Returns: number
       }
+      notify_organization_admins: {
+        Args: {
+          p_entity_id?: string
+          p_entity_type?: string
+          p_link?: string
+          p_message?: string
+          p_organization_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: number
+      }
+      operations_actor_allowed: {
+        Args: { p_level?: string; p_module: string }
+        Returns: boolean
+      }
       organization_scope_matches: {
         Args: { p_organization_id: string }
         Returns: boolean
@@ -6590,6 +6832,26 @@ export type Database = {
       platform_attach_first_admin: {
         Args: { p_actor: string; p_organization_id: string; p_user_id: string }
         Returns: undefined
+      }
+      platform_audit_safe_state: { Args: { p_row: Json }; Returns: Json }
+      platform_begin_onboarding: {
+        Args: {
+          p_actor: string
+          p_admin_email: string
+          p_admin_full_name: string
+          p_name: string
+          p_request_id: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      platform_catalog_import_candidate: {
+        Args: { p_kind: string; p_source_id: string }
+        Returns: Json
+      }
+      platform_catalog_legal_content: {
+        Args: { p_content: Json }
+        Returns: Json
       }
       platform_create_equipment_model_catalog: {
         Args: {
@@ -6628,9 +6890,51 @@ export type Database = {
         Args: { p_actor: string; p_organization_id: string }
         Returns: boolean
       }
+      platform_finish_onboarding: {
+        Args: { p_actor: string; p_request_id: string }
+        Returns: Json
+      }
+      platform_get_catalog_import_preview: {
+        Args: { p_actor: string; p_kind: string; p_source_id: string }
+        Returns: Json
+      }
+      platform_get_onboarding: {
+        Args: { p_actor: string; p_request_id: string }
+        Returns: Json
+      }
+      platform_get_organization_detail: {
+        Args: { p_actor: string; p_organization_id: string }
+        Returns: Json
+      }
       platform_grant_operator: {
         Args: { p_actor: string; p_notes?: string; p_user_id: string }
         Returns: undefined
+      }
+      platform_import_catalog_candidate: {
+        Args: {
+          p_actor: string
+          p_fingerprint: string
+          p_kind: string
+          p_reason: string
+          p_request_id: string
+          p_resolution: string
+          p_source_id: string
+        }
+        Returns: Json
+      }
+      platform_list_audit_events: {
+        Args: {
+          p_actor: string
+          p_before_id?: number
+          p_limit?: number
+          p_organization_id?: string
+          p_target_type?: string
+        }
+        Returns: Json
+      }
+      platform_list_catalog_import_candidates: {
+        Args: { p_actor: string; p_kind: string; p_offset?: number }
+        Returns: Json
       }
       platform_list_equipment_model_catalog: {
         Args: { p_actor: string }
@@ -6730,6 +7034,18 @@ export type Database = {
           updated_at: string
         }[]
       }
+      platform_list_pending_onboarding: {
+        Args: { p_actor: string; p_offset?: number }
+        Returns: Json
+      }
+      platform_onboarding_view: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
+      platform_profile_capabilities: {
+        Args: { p_profile: string }
+        Returns: string[]
+      }
       platform_publish_legal_template_version: {
         Args: {
           p_actor: string
@@ -6754,6 +7070,15 @@ export type Database = {
       }
       platform_set_organization_active: {
         Args: { p_active: boolean; p_actor: string; p_organization_id: string }
+        Returns: undefined
+      }
+      platform_set_organization_active_with_reason: {
+        Args: {
+          p_active: boolean
+          p_actor: string
+          p_organization_id: string
+          p_reason: string
+        }
         Returns: undefined
       }
       platform_set_parts_catalog_active: {
@@ -6832,6 +7157,10 @@ export type Database = {
           closed_bookings: number
           freed_forklifts: number
         }[]
+      }
+      reconcile_forklift_operations: {
+        Args: { p_forklift: string; p_note: string; p_org: string }
+        Returns: undefined
       }
       reconcile_stamping_invoice: {
         Args: {
@@ -7200,6 +7529,45 @@ export type Database = {
               isSetofReturn: true
             }
           }
+      save_manual_damage_report: {
+        Args: {
+          p_customer_id?: string
+          p_damage_id?: string
+          p_description: string
+          p_estimated_cost: number
+          p_expected_updated_at?: string
+          p_forklift_id: string
+        }
+        Returns: {
+          actual_cost: number | null
+          actual_cost_recorded_at: string | null
+          actual_cost_source: string | null
+          booking_id: string | null
+          created_at: string
+          customer_id: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          description: string
+          estimated_cost: number | null
+          forklift_id: string
+          id: string
+          inspection_id: string | null
+          invoice_id: string | null
+          maintenance_log_id: string | null
+          organization_id: string | null
+          previous_forklift_status: string | null
+          repaired_at: string | null
+          reported_by: string | null
+          status: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "damage_records"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       save_supplier_bank_account: {
         Args: {
           p_account_holder: string
@@ -7304,6 +7672,35 @@ export type Database = {
       update_current_organization_legal_template_overrides: {
         Args: { p_definition_id: string; p_local_overrides: Json }
         Returns: Json
+      }
+      update_part_inventory_metadata: {
+        Args: {
+          p_location: string
+          p_min_stock_level: number
+          p_part_id: string
+          p_unit_cost: number
+        }
+        Returns: {
+          catalog_part_id: string | null
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          location: string | null
+          min_stock_level: number
+          name: string
+          organization_id: string | null
+          sku: string | null
+          stock_quantity: number
+          unit_cost: number
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parts_inventory"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       update_user_role_safe: {
         Args: {
