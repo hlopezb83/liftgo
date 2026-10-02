@@ -4045,6 +4045,56 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_integration_checks: {
+        Row: {
+          actor_id: string | null
+          app_version: string | null
+          completed_at: string | null
+          http_status: number | null
+          id: string
+          key_fingerprint: string | null
+          latency_ms: number | null
+          mode: string | null
+          organization_id: string
+          started_at: string
+          status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          app_version?: string | null
+          completed_at?: string | null
+          http_status?: number | null
+          id: string
+          key_fingerprint?: string | null
+          latency_ms?: number | null
+          mode?: string | null
+          organization_id: string
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          actor_id?: string | null
+          app_version?: string | null
+          completed_at?: string | null
+          http_status?: number | null
+          id?: string
+          key_fingerprint?: string | null
+          latency_ms?: number | null
+          mode?: string | null
+          organization_id?: string
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_integration_checks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_onboarding_requests: {
         Row: {
           admin_email: string
@@ -6437,6 +6487,7 @@ export type Database = {
       }
       get_organization_display_name: { Args: never; Returns: string }
       get_platform_access: { Args: never; Returns: Json }
+      get_platform_session: { Args: never; Returns: Json }
       get_portal_collection_account: {
         Args: never
         Returns: {
@@ -6820,6 +6871,10 @@ export type Database = {
         Args: { p_document_type: string; p_minimum?: number }
         Returns: number
       }
+      platform_account_eligible: {
+        Args: { p_user_id: string }
+        Returns: boolean
+      }
       platform_assign_legal_template_version: {
         Args: {
           p_actor: string
@@ -6834,6 +6889,15 @@ export type Database = {
         Returns: undefined
       }
       platform_audit_safe_state: { Args: { p_row: Json }; Returns: Json }
+      platform_begin_integration_check: {
+        Args: {
+          p_actor: string
+          p_org: string
+          p_request: string
+          p_session: string
+        }
+        Returns: Json
+      }
       platform_begin_onboarding: {
         Args: {
           p_actor: string
@@ -6852,6 +6916,18 @@ export type Database = {
       platform_catalog_legal_content: {
         Args: { p_content: Json }
         Returns: Json
+      }
+      platform_complete_integration_check: {
+        Args: {
+          p_actor: string
+          p_http_status: number
+          p_latency: number
+          p_request: string
+          p_session: string
+          p_status: string
+          p_version: string
+        }
+        Returns: string
       }
       platform_create_equipment_model_catalog: {
         Args: {
@@ -6890,12 +6966,29 @@ export type Database = {
         Args: { p_actor: string; p_organization_id: string }
         Returns: boolean
       }
+      platform_facturapi_fingerprint: {
+        Args: { p_key: string; p_mode: string }
+        Returns: string
+      }
       platform_finish_onboarding: {
         Args: { p_actor: string; p_request_id: string }
         Returns: Json
       }
       platform_get_catalog_import_preview: {
         Args: { p_actor: string; p_kind: string; p_source_id: string }
+        Returns: Json
+      }
+      platform_get_integrations: {
+        Args: {
+          p_actor: string
+          p_offset?: number
+          p_search?: string
+          p_session: string
+        }
+        Returns: Json
+      }
+      platform_get_monitoring: {
+        Args: { p_actor: string; p_session: string }
         Returns: Json
       }
       platform_get_onboarding: {
@@ -7002,6 +7095,16 @@ export type Database = {
           version_count: number
         }[]
       }
+      platform_list_operator_accounts: {
+        Args: {
+          p_actor: string
+          p_offset?: number
+          p_scope?: string
+          p_search?: string
+          p_session: string
+        }
+        Returns: Json
+      }
       platform_list_organizations: {
         Args: { p_actor: string }
         Returns: {
@@ -7064,9 +7167,24 @@ export type Database = {
         Args: { p_actor: string; p_user_id: string }
         Returns: undefined
       }
+      platform_session_exists: {
+        Args: { p_actor: string; p_session: string }
+        Returns: boolean
+      }
       platform_set_equipment_model_catalog_active: {
         Args: { p_active: boolean; p_actor: string; p_id: string }
         Returns: undefined
+      }
+      platform_set_operator_profile: {
+        Args: {
+          p_actor: string
+          p_expected_revision: string
+          p_profile: string
+          p_reason: string
+          p_session: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       platform_set_organization_active: {
         Args: { p_active: boolean; p_actor: string; p_organization_id: string }
