@@ -1,11 +1,13 @@
 import { ErrorIcon, RefreshIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { ErrorDiagnostic } from "./ErrorDiagnostic";
 
 interface ErrorStateProps {
   title?: string;
   subtitle?: string;
   retryLabel?: string;
   onRetry?: () => void;
+  error?: unknown;
 }
 
 /**
@@ -17,6 +19,7 @@ export function ErrorState({
   subtitle = "Ocurrió un error al consultar la información. Intenta nuevamente.",
   retryLabel = "Reintentar",
   onRetry,
+  error,
 }: ErrorStateProps) {
   return (
     <div
@@ -34,6 +37,7 @@ export function ErrorState({
           {retryLabel}
         </Button>
       )}
+      <div className="mt-3"><ErrorDiagnostic title={title} error={error ?? subtitle} phase="query" context={{ originalErrorAvailable: error != null }} /></div>
     </div>
   );
 }

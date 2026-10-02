@@ -57,6 +57,11 @@ interface Props {
   refetch: () => void;
 }
 
+function stampDialogData(error: Props["actions"]["stampError"]) {
+  return { message: error?.message ?? "", kind: error?.kind ?? "unknown", customerId: error?.customerId ?? null,
+    receptor: error?.receptor, error: error?.error };
+}
+
 export function InvoiceDetailBody({
   invoice, id, derived, actions, userRole, sourceQuote, sourceBookings, refetch,
 }: Props) {
@@ -173,10 +178,7 @@ export function InvoiceDetailBody({
       <StampErrorDialog
         open={!!actions.stampError}
         onOpenChange={(o) => { if (!o) actions.clearStampError(); }}
-        message={actions.stampError?.message ?? ""}
-        kind={actions.stampError?.kind ?? "unknown"}
-        customerId={actions.stampError?.customerId ?? null}
-        receptor={actions.stampError?.receptor}
+        {...stampDialogData(actions.stampError)}
       />
     </>
   );

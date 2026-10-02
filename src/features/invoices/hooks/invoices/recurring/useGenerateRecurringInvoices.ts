@@ -66,8 +66,10 @@ export function useGenerateRecurringInvoices(options?: { onShowDetails?: () => v
         notifyWarning({
           title: `${failed.length} reserva(s) no se facturaron`,
           description: firstReason,
+          error: failed[0]?.error,
+          context: { failed },
           ...(options?.onShowDetails
-            ? { action: { label: "Ver detalles", onClick: options.onShowDetails } }
+            ? { action: { label: "Ver reservas", onClick: options.onShowDetails } }
             : {}),
         });
       }
@@ -79,6 +81,7 @@ export function useGenerateRecurringInvoices(options?: { onShowDetails?: () => v
           title: `${skipped.length} periodo(s) no facturados por cambio de tarifa`,
           description:
             "La reserva se actualizó después del periodo. Revisa la tarifa y confirma para facturarlos.",
+          context: { skippedStaleRate: skipped },
         });
       }
       return result;

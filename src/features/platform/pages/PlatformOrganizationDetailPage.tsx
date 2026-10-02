@@ -30,7 +30,7 @@ export default function PlatformOrganizationDetailPage() {
     return (
       <div className="space-y-4">
         {back}
-        <QueryErrorState
+        <QueryErrorState error={query.error}
           entity="la ficha de empresa"
           onRetry={() => void query.refetch()}
           isRetrying={query.isFetching}

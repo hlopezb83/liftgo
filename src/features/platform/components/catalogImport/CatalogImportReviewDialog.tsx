@@ -18,7 +18,7 @@ export function CatalogImportReviewDialog({ candidate, onClose }: { candidate: C
       <Badge variant="outline">{CATALOG_IMPORT_STATUS.invalid}</Badge>
       <p role="status" className="rounded-lg border p-3 text-sm">{candidate.issue ?? "El origen requiere correcciones."}</p>
       <p className="text-sm text-muted-foreground">Solicita al administrador de Org 1 corregir esta ficha. Después podrás volver a revisarla para incorporarla.</p>
-    </div> : query.isError ? <QueryErrorState bare entity="la comparación" onRetry={() => void query.refetch()} />
+    </div> : query.isError ? <QueryErrorState error={query.error} bare entity="la comparación" onRetry={() => void query.refetch()} />
       : query.isLoading || !preview ? <p role="status" className="py-10 text-center text-sm text-muted-foreground">Cargando comparación…</p>
       : <div className="space-y-5">
         <Badge variant="outline">{CATALOG_IMPORT_STATUS[preview.status]}</Badge>

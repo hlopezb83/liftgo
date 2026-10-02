@@ -13,8 +13,7 @@ export function WorkspaceProviders({ children }: { children: ReactNode }) {
   }
   return (
     <OrganizationProvider>
-      <AuthSnapshotSync />
-      <IdentityScopedPersistence>{children}</IdentityScopedPersistence>
+      <IdentityScopedPersistence><AuthSnapshotSync />{children}</IdentityScopedPersistence>
     </OrganizationProvider>
   );
 }

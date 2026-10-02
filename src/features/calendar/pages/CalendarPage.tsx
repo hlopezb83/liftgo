@@ -128,7 +128,8 @@ export default function CalendarPage() {
     try {
       await notifyAsync(
         Promise.all([bRefetch(), currentBookingsRefetch(), fRefetch(), mRefetch()]).then((results) => {
-          if (results.some((result) => result.isError)) throw new Error("No se pudo actualizar el calendario");
+          const failed = results.find((result) => result.isError);
+          if (failed) throw failed.error ?? new Error("No se pudo actualizar el calendario");
         }),
         {
           loading: "Actualizando calendario…",

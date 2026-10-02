@@ -1,9 +1,11 @@
- 
+import { createElement } from "react";
 import { toast } from "sonner";
+import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { getErrorMessage } from "@/lib/errors";
-import { openErrorReport } from "@/lib/ui/errorDetailsStore";
+import { closeErrorReport, openErrorReport } from "@/lib/ui/errorDetailsStore";
 import { buildErrorReport } from "@/lib/ui/errorReport";
+import { redactDiagnosticText } from "@/lib/ui/errorReportJson";
 
 /**
  * Plataforma única de feedback al usuario. Toda la app debe pasar por aquí
@@ -57,6 +59,8 @@ interface SimpleOpts {
    * lugar de apilarse (doble clic rápido, reintentos automáticos).
    */
   dedupeKey?: string;
+  error?: unknown;
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -109,6 +113,12 @@ export function dismissNotification(id: string | number): void {
   toast.dismiss(id);
 }
 
+/** Clear diagnostics captured for the previous signed-in identity. */
+export function dismissNotifications(): void {
+  toast.dismiss();
+  closeErrorReport();
+}
+
 // ---------------------------------------------------------------------------
 // notifyError — toast persistente con reporte estructurado
 // ---------------------------------------------------------------------------
@@ -136,16 +146,17 @@ export interface NotifyErrorInput {
    *  (saldo insuficiente, duplicado, recurso no encontrado por el usuario).
    */
   severity?: "critical" | "warning";
+  action?: ActionLike;
 }
 
 function resolveTitle(input: NotifyErrorInput): string {
   if (input.title) return input.title;
+  if (input.message) return input.message;
   if (typeof input.step === "number") {
     const label = STEP_LABELS[input.step] ?? "Paso";
     return `Revisa el Paso ${input.step}: ${label}`;
   }
-  if (input.phase) return `Error: ${input.phase}`;
-  return "Error";
+  return "No se pudo completar la operación";
 }
 
 /**
@@ -156,8 +167,8 @@ function resolveTitle(input: NotifyErrorInput): string {
  * Deduplicación: dos llamadas con el mismo contenido (o el mismo `dedupeKey`)
  * reemplazan el toast anterior en vez de apilar uno nuevo.
  */
-export function notifyError(input: NotifyErrorInput): string | number {
-  const title = resolveTitle(input);
+function errorToast(input: NotifyErrorInput) {
+  const title = redactDiagnosticText(resolveTitle(input));
   const error = input.error ?? input.errors ?? input.message ?? title;
   const report = buildErrorReport({
     error,
@@ -170,19 +181,23 @@ export function notifyError(input: NotifyErrorInput): string | number {
     context: input.context,
   });
 
-  const description = input.description ?? getErrorMessage(error);
+  const detail = redactDiagnosticText(input.description ?? getErrorMessage(error));
+  const description = detail === title ? undefined : detail;
   const isCritical = input.severity !== "warning";
 
-  return toast.error(title, {
+  return { title, options: {
     id: input.dedupeKey ?? toastDedupeId("error", title, description),
     description,
     duration: isCritical ? DURATION.errorCritical : DURATION.errorWarning,
     closeButton: true,
-    action: {
-      label: "Ver detalles",
-      onClick: () => openErrorReport(report),
-    },
-  });
+    action: createElement(ErrorReportActions, { key: report.requestId, report,
+      onDetails: () => openErrorReport(report), extraAction: input.action }),
+  } };
+}
+
+export function notifyError(input: NotifyErrorInput): string | number {
+  const { title, options } = errorToast(input);
+  return input.severity === "warning" ? toast.warning(title, options) : toast.error(title, options);
 }
 
 
@@ -198,16 +213,18 @@ export interface NotifyValidationInput {
 }
 
 /**
- * Toast para validaciones de formulario. Sin "Ver detalles" (no hay error
- * de runtime). Duración corta. Usar cuando el usuario debe corregir un dato
+ * Toast para validaciones de formulario, con diagnóstico JSON. Duración
+ * corta. Usar cuando el usuario debe corregir un dato
  * antes de continuar.
  */
 export function notifyValidation(input: NotifyValidationInput): string | number {
   const title = input.title ?? "Revisa los datos";
-  return toast.warning(title, {
+  const report = buildErrorReport({ error: input.message, title, phase: "validation", errorCode: "VALIDATION_FAILED" });
+  return toast.warning(report.title, {
     id: toastDedupeId("validation", title, input.message),
-    description: input.message,
+    description: redactDiagnosticText(input.message),
     duration: DURATION.validation,
+    action: createElement(ErrorReportActions, { key: report.requestId, report, onDetails: () => openErrorReport(report) }),
   });
 }
 
@@ -249,16 +266,19 @@ export interface NotifySimpleInput {
   description?: string;
   /** Botón opcional dentro del aviso (p. ej. «Ver detalles»). */
   action?: { label: string; onClick: () => void };
+  error?: unknown;
+  context?: Record<string, unknown>;
 }
 export function notifyWarning(input: string | NotifySimpleInput, opts?: SimpleOpts): string | number {
-  if (typeof input === "string") {
-    return toast.warning(input, buildOpts("warning", input, opts, DURATION.warning));
-  }
-  return toast.warning(input.title, {
-    id: toastDedupeId("warning", input.title, input.description),
-    description: input.description,
-    duration: input.action ? Math.max(DURATION.warning, 10000) : DURATION.warning,
-    ...(input.action ? { action: input.action } : {}),
+  const value = typeof input === "string" ? { title: input, ...opts } : input;
+  const report = buildErrorReport({ title: value.title, description: value.description, error: value.error ?? value.description ?? value.title,
+    phase: "warning", context: value.context });
+  return toast.warning(report.title, {
+    ...buildOpts("warning", report.title, value, DURATION.warning),
+    description: value.description ? redactDiagnosticText(value.description) : undefined,
+    duration: opts?.durationMs ?? (value.action ? 10000 : DURATION.warning),
+    action: createElement(ErrorReportActions, { key: report.requestId, report,
+      onDetails: () => openErrorReport(report), extraAction: value.action }),
   });
 }
 
@@ -289,11 +309,12 @@ export interface NotifyAsyncMessages<T> {
 export function notifyAsync<T>(promise: Promise<T>, msgs: NotifyAsyncMessages<T>): Promise<T> {
   toast.promise(promise, {
     loading: msgs.loading,
-    success: msgs.success,
+    success: (data) => ({ message: typeof msgs.success === "function" ? msgs.success(data) : msgs.success, duration: DURATION.success }),
     error: (err) => {
-      if (typeof msgs.error === "function") return msgs.error(err);
-      if (typeof msgs.error === "string") return msgs.error;
-      return getErrorMessage(err);
+      const title = typeof msgs.error === "function" ? msgs.error(err) : msgs.error ?? "No se pudo completar la operación";
+      const result = errorToast({ error: err, title, phase: "async", context: { operation: msgs.loading } });
+      return { message: result.title, description: result.options.description, duration: result.options.duration,
+        closeButton: true, action: result.options.action };
     },
   });
   return promise;

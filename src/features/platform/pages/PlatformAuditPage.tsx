@@ -45,7 +45,7 @@ function AuditResult({
     );
   if (query.isError)
     return (
-      <QueryErrorState
+      <QueryErrorState error={query.error}
         entity="la bitácora global"
         onRetry={() => void query.refetch()}
         isRetrying={query.isFetching}

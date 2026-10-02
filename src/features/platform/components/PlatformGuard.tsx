@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecoveryStatus } from "@/features/auth";
@@ -53,6 +54,7 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
   if (operator.isError) {
     return (
       <AccessState title="No se pudo verificar el acceso" description="Revisa tu conexión e inténtalo de nuevo.">
+        <ErrorDiagnostic error={operator.error} title="No se pudo verificar el acceso de plataforma" phase="platform-access" />
         <Button onClick={() => void operator.refetch()}>Reintentar</Button>
       </AccessState>
     );

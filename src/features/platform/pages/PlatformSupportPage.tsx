@@ -39,7 +39,7 @@ export default function PlatformSupportPage() {
           <option value="">Todas las empresas</option>{companies.data?.map((company) => <option key={company.id} value={company.id}>{company.razon_social || company.name}</option>)}</select>
         {companies.isError && <Button type="button" variant="outline" size="sm" onClick={() => void companies.refetch()}>Reintentar filtro de empresas</Button>}</div>
     </form>
-    {query.isError ? <QueryErrorState entity="los casos de soporte" onRetry={() => void query.refetch()} /> : query.isPending ? <Skeleton className="h-64" /> : <>
+    {query.isError ? <QueryErrorState error={query.error} entity="los casos de soporte" onRetry={() => void query.refetch()} /> : query.isPending ? <Skeleton className="h-64" /> : <>
       <p className="text-xs text-muted-foreground">{query.data.total} casos · Consulta: {healthDate(query.data.observedAt)}</p>
       <ul aria-label="Casos de soporte" className="divide-y rounded-xl border bg-card">{query.data.rows.map((row) => <li key={row.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
         <div className="min-w-0 space-y-2"><p className="text-xs text-muted-foreground">{row.organizationName} · <span className="font-mono">{row.folio}</span></p>

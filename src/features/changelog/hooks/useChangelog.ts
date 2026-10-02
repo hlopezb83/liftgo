@@ -8,6 +8,7 @@ export function useChangelog() {
     ...changelogQueries.list(),
     gcTime: Infinity,
     retry: 2,
+    meta: { silent: true },
   });
   useEffect(() => {
     if (query.error) notifyError({ error: query.error, message: "No se pudo cargar el historial de cambios" });
@@ -25,6 +26,7 @@ export function useChangelogArchive(enabled: boolean) {
     enabled,
     gcTime: Infinity,
     retry: 1,
+    meta: { silent: true },
   });
   useEffect(() => {
     if (query.error) notifyError({ error: query.error, message: "No se pudo cargar el historial completo" });
@@ -54,4 +56,3 @@ export function useCurrentVersion(): string | null {
   // Fallback defensivo si el prebuild no corrió (dev local sin gen-version).
   return null;
 }
-

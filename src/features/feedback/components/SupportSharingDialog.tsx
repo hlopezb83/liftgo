@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { z } from "zod";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -27,7 +28,7 @@ function canShare(busy: boolean, reviewed: boolean, requestValid: boolean) {
 
 function CapturePreview({ path }: { path: string }) {
   const image = useFeedbackScreenshotUrl(path);
-  return image.isError ? <QueryErrorState entity="la captura" onRetry={() => void image.refetch()} /> : image.isPending ? <Skeleton className="h-40" /> :
+  return image.isError ? <QueryErrorState error={image.error} entity="la captura" onRetry={() => void image.refetch()} /> : image.isPending ? <Skeleton className="h-40" /> :
     <img src={image.data ?? undefined} alt="Captura original: revisa su contenido antes de compartir" className="max-h-48 w-full rounded-lg border object-contain" />;
 }
 function SharingForm({ report, sharing, onClose }: { report: FeedbackReport; sharing: ReturnType<typeof useSupportSharing>; onClose: () => void }) {
@@ -59,7 +60,10 @@ function SharingForm({ report, sharing, onClose }: { report: FeedbackReport; sha
     <p className="text-xs text-muted-foreground">Se compartirán estos textos, el módulo, la versión y el requestId indicado durante 90 días. Puedes retirar el diagnóstico. El reporte original y su estado permanecen en tu empresa.</p>
     <div className="flex items-start gap-3"><Checkbox id="share-reviewed" checked={reviewed} onCheckedChange={(value) => setReviewed(value === true)} />
       <Label htmlFor="share-reviewed" className="leading-5">Revisé el diagnóstico y autorizo compartirlo con soporte de LiftGo. No contiene contraseñas, llaves ni datos innecesarios.</Label></div>
-    {(sharing.share.isError || sharing.withdraw.isError) && <p role="alert" className="text-sm text-destructive">No se guardó el cambio. Revisa el contenido y actualiza si el caso cambió.</p>}
+    {(sharing.share.isError || sharing.withdraw.isError) && <div role="alert" className="space-y-2 text-sm">
+      <p className="text-destructive">No se confirmó el cambio. Revisa los detalles y actualiza el caso antes de repetir.</p>
+      <ErrorDiagnostic error={sharing.share.error ?? sharing.withdraw.error} title="No se pudo actualizar el diagnóstico compartido" phase="support-sharing" />
+    </div>}
     <div className="flex flex-wrap justify-end gap-2">
       {record?.shared && <Button type="button" variant="outline" disabled={busy} onClick={() => sharing.withdraw.mutate(record.revision, { onSuccess: onClose })}>Retirar diagnóstico</Button>}
       <Button type="button" variant="outline" disabled={busy} onClick={() => void sharing.query.refetch()}>Actualizar caso</Button>
@@ -71,7 +75,7 @@ export function SupportSharingDialog({ report, onClose }: { report: FeedbackRepo
   const sharing = useSupportSharing(report.id);
   return <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}><DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
     <DialogHeader><DialogTitle>Compartir con soporte de LiftGo</DialogTitle><DialogDescription>{report.folio} · Revisa la información antes de compartirla.</DialogDescription></DialogHeader>
-    {sharing.query.isError ? <QueryErrorState entity="el caso compartido" onRetry={() => void sharing.query.refetch()} /> : sharing.query.isPending ? <Skeleton className="h-60" /> :
+    {sharing.query.isError ? <QueryErrorState error={sharing.query.error} entity="el caso compartido" onRetry={() => void sharing.query.refetch()} /> : sharing.query.isPending ? <Skeleton className="h-60" /> :
       <SharingForm key={sharing.query.data?.revision ?? "0"} report={report} sharing={sharing} onClose={onClose} />}
   </DialogContent></Dialog>;
 }

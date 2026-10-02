@@ -24,7 +24,7 @@ export function PlatformSupportDetail({ caseId, onClose }: { caseId: string; onC
       <SheetHeader><SheetTitle>{record?.folio ?? "Caso de soporte"}</SheetTitle>
         <SheetDescription>{record?.organizationName ?? "Diagnóstico compartido y seguimiento"}</SheetDescription></SheetHeader>
       <div className="mt-6 space-y-6">
-        {query.isError ? <QueryErrorState entity="el caso" onRetry={() => void query.refetch()} /> : query.isPending ? <Skeleton className="h-64" /> : record && data && <>
+        {query.isError ? <QueryErrorState error={query.error} entity="el caso" onRetry={() => void query.refetch()} /> : query.isPending ? <Skeleton className="h-64" /> : record && data && <>
           <div className="flex flex-wrap gap-2"><Badge>{SUPPORT_STATUSES[record.status]}</Badge><Badge variant="outline">Severidad {SUPPORT_SEVERITIES[record.severity]}</Badge></div>
           <Button variant="outline" size="sm" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar caso</Button>
           {record.shared ? <>

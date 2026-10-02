@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -36,9 +37,12 @@ export default function PlatformIntegrationsPage() {
       </form>
       <p className="text-sm text-muted-foreground">Una llave configurada no confirma la conexión. Cada comprobación consulta Facturapi sin emitir documentos; no valida RFC, certificados ni capacidad de timbrado. Se permite una comprobación por minuto y empresa.</p>
     </div>
-    {check.isError && <p role="alert" className="rounded-lg border border-destructive/40 p-4 text-sm">{check.error.message || "No se pudo comprobar. Actualiza antes de repetir."}</p>}
+    {check.isError && <div role="alert" className="space-y-3 rounded-lg border border-destructive/40 p-4 text-sm">
+      <p>{check.error.message || "No se pudo comprobar. Actualiza antes de repetir."}</p>
+      <ErrorDiagnostic error={check.error} title="No se pudo comprobar la integración" phase="integration-check" />
+    </div>}
     {check.isSuccess && <p role="status" className="rounded-lg border bg-muted p-4 text-sm">Resultado: {INTEGRATION_STATUS_LABELS[check.data.status]}.</p>}
-    {query.isError ? <QueryErrorState entity="las integraciones" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />
+    {query.isError ? <QueryErrorState error={query.error} entity="las integraciones" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />
       : query.isPending ? <Skeleton className="h-56 w-full" /> : <>
         <p className="text-xs text-muted-foreground">{query.data.total} empresas · Consulta a la base: {healthDate(query.data.observedAt)}</p>
         <ul aria-label="Integraciones de Facturapi" className="space-y-4">{query.data.rows.map((row) => <PlatformIntegrationCard key={row.id} row={row} observedAt={query.data.observedAt}

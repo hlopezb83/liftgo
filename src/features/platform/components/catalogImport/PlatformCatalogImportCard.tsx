@@ -14,7 +14,7 @@ function CatalogImportCandidates({ kind }: { kind: CatalogImportKind }) {
   const [offset, setOffset] = useState(0);
   const [selected, setSelected] = useState<CatalogImportSummary | null>(null);
   const query = useCatalogImportCandidates(kind, offset);
-  if (query.isError) return <QueryErrorState bare entity="las incorporaciones" onRetry={() => void query.refetch()} />;
+  if (query.isError) return <QueryErrorState error={query.error} bare entity="las incorporaciones" onRetry={() => void query.refetch()} />;
   if (query.isLoading || !query.data) return <p role="status" className="py-10 text-center text-sm text-muted-foreground">Cargando incorporaciones…</p>;
   const { source_organization: source, items, total, pending } = query.data;
   return <div className="space-y-4">

@@ -1,3 +1,10 @@
+## [8.43.1] — 2026-10-02
+
+- Los errores, advertencias y validaciones ofrecen Copiar JSON y Ver detalles; si falla el portapapeles, el diagnóstico sigue disponible para copiarlo manualmente.
+- Los fallos de operaciones largas conservan la causa original y los diagnósticos incluyen la empresa verificada y la versión de la aplicación.
+- Los avisos muestran textos, iconos y acciones alineados, con cierre dentro de la tarjeta, botones de 44 px y etiquetas de accesibilidad en español.
+- Los errores de soporte, integraciones, acceso, pantallas y timbrado también ofrecen diagnóstico; las credenciales se ocultan y los diagnósticos de la sesión anterior se descartan.
+
 ## [8.43.0] — 2026-10-02
 
 - Los usuarios internos pueden revisar y compartir un reporte propio desde Mis reportes; la captura es opcional y el diagnóstico puede retirarse.

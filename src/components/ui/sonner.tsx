@@ -15,15 +15,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position={isMobile ? "top-center" : "bottom-right"}
+      containerAriaLabel="Notificaciones"
+      style={{ "--width": "400px" } as ToasterProps["style"]}
       // R7-FE-09c (N7-POR-06): el toast top-center se solapaba con el header
       // sticky (h-14 = 56px) en móvil; 64px lo coloca justo debajo.
       // BL-R8-10: en móvil sonner usa `mobileOffset` (default 16px) con
       // precedencia sobre `offset` (--mobile-offset-top > --offset-top en el
       // DOM), así que el fix r7 quedó incompleto — hay que fijar ambos.
       offset={isMobile ? 64 : undefined}
-      mobileOffset={isMobile ? 64 : undefined}
+      mobileOffset={{ top: "calc(64px + env(safe-area-inset-top))", left: 16, right: 16, bottom: "calc(24px + env(safe-area-inset-bottom))" }}
       closeButton
       toastOptions={{
+        closeButtonAriaLabel: "Cerrar notificación",
         classNames: {
           toast:
             "group toast group-[.toaster]:bg-background group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg",

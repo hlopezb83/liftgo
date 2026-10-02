@@ -1,59 +1,35 @@
-import { useState } from "react";
-import { useCopyToClipboard } from "usehooks-ts";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
 import { Button } from "@/components/ui/button";
-import { DuplicateIcon, Check } from "@/components/icons";
-import { useErrorReport, closeErrorReport } from "@/lib/ui/errorDetailsStore";
-import { formatReportText } from "@/lib/ui/errorReportFormat";
-import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { closeErrorReport, useErrorReport } from "@/lib/ui/errorDetailsStore";
+import type { ErrorReport } from "@/lib/ui/errorReport";
+import { formatReportJson } from "@/lib/ui/errorReportJson";
 
-/**
- * Diálogo global de detalles de error. Montar una sola vez en el root.
- * Se controla vía `openErrorReport()` desde cualquier toast destructive.
- */
+export function ErrorReportDialog({ open, report, onClose }: { open: boolean; report: ErrorReport | null; onClose: () => void }) {
+  return <Dialog open={open} onOpenChange={(value) => { if (!value) onClose(); }}>
+    <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl">
+      <DialogHeader className="pr-8 text-left">
+        <DialogTitle>Detalles del error</DialogTitle>
+        <DialogDescription>Revisa el diagnóstico y copia el JSON para compartirlo con soporte.</DialogDescription>
+      </DialogHeader>
+      {report && <div className="min-w-0 space-y-4">
+        <div className="space-y-1 rounded-lg border bg-muted/30 p-3">
+          <p className="break-words text-sm font-medium">{report.title}</p>
+          <p className="break-all font-mono text-xs text-muted-foreground">{report.errorCode} · {report.requestId}</p>
+        </div>
+        <Textarea aria-label="Diagnóstico del error en JSON" readOnly value={formatReportJson(report)}
+          className="h-[min(45dvh,24rem)] min-h-40 resize-none whitespace-pre-wrap break-all font-mono text-xs leading-relaxed"
+          onFocus={(event) => event.currentTarget.select()} />
+        <ErrorReportActions key={report.requestId} report={report} />
+      </div>}
+      <DialogFooter><Button type="button" variant="outline" className="min-h-11" onClick={onClose}>Cerrar detalles</Button></DialogFooter>
+    </DialogContent>
+  </Dialog>;
+}
+
+/** Mounted once globally; standalone error screens also use ErrorReportDialog. */
 export function ErrorDetailsDialog() {
   const { open, report } = useErrorReport();
-  const [, copy] = useCopyToClipboard();
-  const [copied, setCopied] = useState(false);
-
-  const text = report ? formatReportText(report) : "";
-
-  const handleCopy = async () => {
-    if (!text) return;
-    const ok = await copy(text);
-    if (ok) {
-      setCopied(true);
-      notifySuccess("Reporte copiado al portapapeles");
-      setTimeout(() => setCopied(false), 2000);
-    } else {
-      notifyWarning("No se pudo copiar. Selecciona el texto manualmente y usa Ctrl+C.");
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) closeErrorReport(); }}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>Detalles del error</DialogTitle>
-        </DialogHeader>
-        {report && (
-          <div className="space-y-3">
-            <div className="text-sm text-muted-foreground">
-              Copia este reporte y compártelo con soporte para que podamos ayudarte más rápido.
-            </div>
-            <pre className="max-h-[50vh] overflow-auto rounded-md border bg-muted/30 p-3 text-xs leading-relaxed whitespace-pre-wrap break-words">
-              {text}
-            </pre>
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => closeErrorReport()}>Cerrar</Button>
-          <Button onClick={handleCopy}>
-            {copied ? <Check className="h-4 w-4 mr-2" /> : <DuplicateIcon className="h-4 w-4 mr-2" />}
-            {copied ? "Copiado" : "Copiar reporte"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+  return <ErrorReportDialog open={open} report={report} onClose={closeErrorReport} />;
 }

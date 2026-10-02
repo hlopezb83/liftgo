@@ -98,7 +98,7 @@ export default function PlatformOrganizationsPage() {
         </div>
       </div>
       {query.isError ? (
-        <QueryErrorState
+        <QueryErrorState error={query.error}
           entity="las empresas"
           onRetry={() => void query.refetch()}
           isRetrying={query.isFetching}

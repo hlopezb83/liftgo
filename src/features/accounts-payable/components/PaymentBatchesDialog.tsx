@@ -41,7 +41,7 @@ export function PaymentBatchesDialog({ open, onOpenChange }: Props) {
       title="Historial de lotes de pago" width="2xl"
       description="Recupera el Excel original del lote o cancela una reserva sin pagos registrados.">
       {query.isError ? (
-        <div role="alert"><QueryErrorState bare entity="el historial de lotes" isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} /></div>
+        <div role="alert"><QueryErrorState error={query.error} bare entity="el historial de lotes" isRetrying={query.isFetching} onRetry={() => { void query.refetch(); }} /></div>
       ) : query.isPending ? (
         <p role="status" className="py-8 text-center text-muted-foreground">Cargando lotes…</p>
       ) : query.data?.items.length === 0 ? (

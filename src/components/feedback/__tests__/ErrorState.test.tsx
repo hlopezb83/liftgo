@@ -3,11 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 import { ErrorState } from "../ErrorState";
 
 describe("ErrorState", () => {
-  it("renderiza título por defecto y no muestra botón sin onRetry", () => {
+  it("ofrece diagnóstico incluso sin acción de reintento", () => {
     render(<ErrorState />);
     expect(screen.getByRole("alert")).toBeInTheDocument();
     expect(screen.getByText(/No pudimos cargar los datos/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Reintentar" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Copiar JSON" })).toBeInTheDocument();
   });
 
   it("dispara onRetry al hacer click en el botón Reintentar", () => {

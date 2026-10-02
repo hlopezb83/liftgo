@@ -55,6 +55,18 @@ function isResponse(value: unknown): value is Response {
   return typeof Response !== "undefined" && value instanceof Response;
 }
 
+function withMetadata(out: ExtractedErrorDetails, value: unknown): ExtractedErrorDetails {
+  if (!isObject(value)) return out;
+  if (!out.name && typeof value.name === "string") out.name = value.name;
+  if (!out.code && typeof value.code === "string") out.code = value.code;
+  if (!out.hint && typeof value.hint === "string") out.hint = value.hint;
+  if (!out.details && typeof value.details === "string") out.details = value.details;
+  const status = value.status ?? value.statusCode;
+  if (!out.status && typeof status === "number") out.status = status;
+  if (!out.status && isResponse(value.context)) out.status = value.context.status;
+  return out;
+}
+
 function detailsFromError(error: Error): ExtractedErrorDetails {
   const out: ExtractedErrorDetails = {
     message: error.message,
@@ -76,7 +88,7 @@ function detailsFromError(error: Error): ExtractedErrorDetails {
     if (pg.details) out.details = pg.details;
     if (typeof pg.status === "number") out.status = pg.status;
   }
-  return out;
+  return withMetadata(withMetadata(out, error), cause);
 }
 
 function detailsFromZod(error: ZodErrorLike): ExtractedErrorDetails {
@@ -100,14 +112,14 @@ export function extractErrorDetails(error: unknown): ExtractedErrorDetails {
   }
   if (error instanceof Error) return detailsFromError(error);
   if (isPostgrestError(error)) {
-    return {
+    return withMetadata({
       message: error.message,
       code: error.code ?? undefined,
       hint: error.hint ?? undefined,
       details: error.details ?? undefined,
-    };
+    }, error);
   }
-  if (isObject(error) && typeof error.message === "string") return { message: error.message };
+  if (isObject(error) && typeof error.message === "string") return withMetadata({ message: error.message }, error);
   return { message: "Error desconocido" };
 }
 
