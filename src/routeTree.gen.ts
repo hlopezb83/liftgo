@@ -48,6 +48,7 @@ import { Route as PlatformMonitoringRouteImport } from './routes/platform.monito
 import { Route as PlatformOperatorsRouteImport } from './routes/platform.operators'
 import { Route as PlatformOrganizationsRouteImport } from './routes/platform.organizations'
 import { Route as PlatformSecurityRouteImport } from './routes/platform.security'
+import { Route as PlatformSupportRouteImport } from './routes/platform.support'
 import { Route as PlatformLoginRouteImport } from './routes/platform_.login'
 import { Route as PortalLoginRouteImport } from './routes/portal.login'
 import { Route as MainBookingsIndexRouteImport } from './routes/_main/bookings.index'
@@ -300,6 +301,11 @@ const PlatformOrganizationsRoute = PlatformOrganizationsRouteImport.update({
 const PlatformSecurityRoute = PlatformSecurityRouteImport.update({
   id: '/security',
   path: '/security',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformSupportRoute = PlatformSupportRouteImport.update({
+  id: '/support',
+  path: '/support',
   getParentRoute: () => PlatformRoute,
 } as any)
 const PlatformLoginRoute = PlatformLoginRouteImport.update({
@@ -652,6 +658,7 @@ export interface FileRoutesByFullPath {
   '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/security': typeof PlatformSecurityRoute
+  '/platform/support': typeof PlatformSupportRoute
   '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/platform/': typeof PlatformIndexRoute
@@ -750,6 +757,7 @@ export interface FileRoutesByTo {
   '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/security': typeof PlatformSecurityRoute
+  '/platform/support': typeof PlatformSupportRoute
   '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/platform': typeof PlatformIndexRoute
@@ -851,6 +859,7 @@ export interface FileRoutesById {
   '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/security': typeof PlatformSecurityRoute
+  '/platform/support': typeof PlatformSupportRoute
   '/platform_/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/_main/': typeof MainIndexRoute
@@ -953,6 +962,7 @@ export interface FileRouteTypes {
     | '/platform/operators'
     | '/platform/organizations'
     | '/platform/security'
+    | '/platform/support'
     | '/platform/login'
     | '/portal/login'
     | '/platform/'
@@ -1051,6 +1061,7 @@ export interface FileRouteTypes {
     | '/platform/operators'
     | '/platform/organizations'
     | '/platform/security'
+    | '/platform/support'
     | '/platform/login'
     | '/portal/login'
     | '/platform'
@@ -1151,6 +1162,7 @@ export interface FileRouteTypes {
     | '/platform/operators'
     | '/platform/organizations'
     | '/platform/security'
+    | '/platform/support'
     | '/platform_/login'
     | '/portal/login'
     | '/_main/'
@@ -1497,6 +1509,13 @@ declare module '@tanstack/react-router' {
       path: '/security'
       fullPath: '/platform/security'
       preLoaderRoute: typeof PlatformSecurityRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/support': {
+      id: '/platform/support'
+      path: '/support'
+      fullPath: '/platform/support'
+      preLoaderRoute: typeof PlatformSupportRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/platform_/login': {
@@ -2114,6 +2133,7 @@ interface PlatformRouteChildren {
   PlatformOperatorsRoute: typeof PlatformOperatorsRoute
   PlatformOrganizationsRoute: typeof PlatformOrganizationsRoute
   PlatformSecurityRoute: typeof PlatformSecurityRoute
+  PlatformSupportRoute: typeof PlatformSupportRoute
   PlatformIndexRoute: typeof PlatformIndexRoute
   PlatformCatalogsImportRoute: typeof PlatformCatalogsImportRoute
   PlatformOrganizationsOrganizationIdRoute: typeof PlatformOrganizationsOrganizationIdRoute
@@ -2127,6 +2147,7 @@ const PlatformRouteChildren: PlatformRouteChildren = {
   PlatformOperatorsRoute: PlatformOperatorsRoute,
   PlatformOrganizationsRoute: PlatformOrganizationsRoute,
   PlatformSecurityRoute: PlatformSecurityRoute,
+  PlatformSupportRoute: PlatformSupportRoute,
   PlatformIndexRoute: PlatformIndexRoute,
   PlatformCatalogsImportRoute: PlatformCatalogsImportRoute,
   PlatformOrganizationsOrganizationIdRoute:

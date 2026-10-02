@@ -19,6 +19,7 @@ propio layout y autorización. Se conserva la marca global LiftGo.
 | `/platform/security` | Sesión propia y recuperación gestionada |
 | `/platform/integrations` | Configuración, comprobación explícita de Facturapi y conteos de cola fiscal |
 | `/platform/monitoring` | Indicadores operativos y fuentes con fecha de consulta |
+| `/platform/support` | Casos compartidos por empresa, responsables, severidad y seguimiento |
 | `/?workspace=organization` | Entrada explícita al ERP de la empresa del usuario |
 
 El operador confirmado entra al Centro desde `/`. Los demás usuarios conservan
@@ -184,6 +185,61 @@ y [código oficial de Auth, adminUserCreate](https://github.com/supabase/auth/bl
    exclusión identificable de datos de prueba en métricas comerciales.
 4. Opcionales: suscripciones, subdominio propio y sesiones de soporte con
    autorización, duración y auditoría. No se implementa suplantación automática.
+
+## Soporte compartido (8.43.0 / 0094)
+
+La bandeja global aprovecha `feedback_reports` como origen. No incorpora
+automáticamente reportes existentes ni abre el ERP de otra empresa. Desde
+«Mis reportes», un usuario interno activo puede revisar y compartir sólo un
+reporte propio de su organización activa. Clientes y compañeros no pueden
+compartir, consultar o retirar el caso del reportante.
+
+- El alta de reportes asigna el folio en un trigger privado, después de resolver
+  la empresa. El navegador no ejecuta el generador ni proporciona números o
+  reportantes ajenos. El contador se revierte si falla el INSERT. Los reportes
+  propios de clientes conservan su flujo empresarial y no acceden a soporte global.
+- El formulario exige revisión explícita. Comparte título y diagnóstico editables,
+  módulo, versión capturada y requestId opcional validado como UUID. No comparte
+  `context_json`, URLs empresariales, DOM, userAgent ni notas administrativas.
+- La captura original queda sin compartir inicialmente. Si el usuario la autoriza,
+  SQL comprueba el prefijo de empresa y reportante. No copia archivos. El servidor
+  entrega un enlace de 60 segundos sólo tras comprobar sesión propia y capacidad
+  `support.read`, y vuelve a comprobar el permiso tras la firma. Un enlace ya
+  entregado puede seguir siendo válido hasta terminar ese minuto.
+- Raíz y Soporte tienen `support.read/manage`; Observador, Empresas, Catálogos y
+  administradores empresariales no reciben esas capacidades. RPCs privilegiadas
+  comprueban otra vez sesión, perfil activo y permisos en SQL. Las tablas privadas
+  tienen RLS/FORCE deny-all; servicio sólo recibe SELECT directo.
+- La bandeja pagina 25 casos y filtra empresa, estado, severidad y búsqueda por
+  nombre, folio, módulo o título. El detalle pagina el historial de 50 eventos
+  con cursor `bigint` conservado como texto. Asignación requiere un operador
+  vigente con `support.manage`. Abrir un caso no llama a IA ni modifica datos.
+- Estado, severidad, responsable y notas son propios de soporte. No cambian los
+  puntos, estado ni contenido del reporte empresarial. El reportante ve el estado
+  y responsable de soporte; las notas de seguimiento permanecen en el Centro.
+- Un caso por reporte e incremento de revisión bajo locks impiden altas
+  duplicadas y guardados que sobrescriban cambios ajenos. Los conflictos preservan
+  el borrador del operador hasta que decide cargar el estado actual. Un cambio
+  idéntico sin nota no añade eventos. Un reintento sin confirmar requiere consultar
+  el estado actual; no se promete replay de payload distinto.
+- Diagnóstico, requestId, referencia de captura y notas tienen retención de 90 días
+  desde su último compartido. Las proyecciones los ocultan al vencer; una tarea
+  diaria a las 03:17 (zona del scheduler) los redacta físicamente. Retirar el
+  diagnóstico los redacta en la misma transacción. Recompartir no recupera notas
+  vencidas. El reporte y archivo original conservan la retención empresarial.
+- Se conserva el rastro administrativo del caso: empresa, folio, estados,
+  severidades, responsables y fechas. El historial guarda nombres/identificadores
+  del actor y responsable al escribir para que una baja no borre la atribución.
+
+Rollout: validar CI, RLS y A/B sobre el SHA del PR; preflight de ledger/0093;
+aplicar 0094 con hash y `when` del journal en una transacción por Lovable Cloud;
+comprobar ACLs, capacidades y tarea de retención antes de publicar. La prueba
+funcional real usa exclusivamente ELOGISTIX/Empresa Prueba. Verificar Chrome y
+navegador interno, consentimiento, seguimiento, retiro y denegación empresarial.
+No acreditar permisos o una captura firmada mediante inspección visual solamente.
+
+Referencia del proveedor de Storage usado internamente por Cloud:
+[enlaces firmados](https://supabase.com/docs/reference/javascript/storage-from-createsignedurl).
 
 ## Incorporación revisada (8.42.40 / 0090)
 

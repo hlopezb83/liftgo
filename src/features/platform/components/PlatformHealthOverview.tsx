@@ -25,7 +25,7 @@ export function PlatformHealthOverview() {
         <p className="text-xs text-muted-foreground">Consulta a la base: {healthDate(data.observedAt)}</p></div>
       <Button variant="outline" size="sm" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar estado</Button>
     </div>
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {cards.map((card) => <div key={card.label} className="flex flex-col rounded-xl border bg-card p-5">
         <p className="text-sm text-muted-foreground">{card.label}</p>
         <p className="mt-auto pt-2 text-3xl font-semibold tabular-nums">{card.value}</p>

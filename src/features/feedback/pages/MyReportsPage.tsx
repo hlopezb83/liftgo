@@ -5,9 +5,11 @@ import { TablePagination } from "@/components/feedback/TablePagination";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
+import { SupportSharingDialog } from "../components/SupportSharingDialog";
 import {
   useMyFeedbackPointsTotal,
   useMyFeedbackReports,
@@ -21,6 +23,7 @@ const PAGE_SIZE = 25;
 
 export default function MyReportsPage() {
   const [page, setPage] = useState(1);
+  const [sharing, setSharing] = useState<Report | null>(null);
   const { data: result, isLoading, isError, refetch } = useMyFeedbackReports(page, PAGE_SIZE);
   const pointsQuery = useMyFeedbackPointsTotal();
   const reports = result?.rows ?? [];
@@ -75,6 +78,11 @@ export default function MyReportsPage() {
       accessorKey: "created_at",
       cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDateMty(row.original.created_at)}</span>,
     },
+    {
+      id: "support",
+      header: "Soporte LiftGo",
+      cell: ({ row }) => row.original.reporter_type === "internal" ? <Button variant="outline" size="sm" onClick={() => setSharing(row.original)}>Compartir / ver caso</Button> : null,
+    },
   ];
 
   const table = useLiftgoTable<Report>({
@@ -118,6 +126,7 @@ export default function MyReportsPage() {
           )}
         </CardContent>
       </Card>
+      {sharing && <SupportSharingDialog key={sharing.id} report={sharing} onClose={() => setSharing(null)} />}
     </PageContainer>
   );
 }
