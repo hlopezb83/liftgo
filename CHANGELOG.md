@@ -1,3 +1,10 @@
+## [8.43.0] — 2026-10-02
+
+- Los usuarios internos pueden revisar y compartir un reporte propio desde Mis reportes; la captura es opcional y el diagnóstico puede retirarse.
+- Raíz y Soporte tienen una bandeja por empresa con filtros, severidad, responsable, seguimiento e historial paginado; los permisos se comprueban también en el servidor y la base.
+- Los diagnósticos compartidos tienen retención de 90 días y enlaces de captura de un minuto; el reporte original conserva su ámbito empresarial.
+- Los guardados detectan cambios simultáneos y preservan el borrador; las tarjetas de monitoreo mantienen alturas uniformes.
+
 ## [8.42.49] — 2026-10-02
 
 - El resolver fiscal rechaza llaves del ambiente opuesto y llaves de cuenta antes de timbrar o cancelar, sin recurrir a otra credencial.

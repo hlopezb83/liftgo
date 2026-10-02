@@ -41,6 +41,7 @@ const NAV = [
   { to: "/platform/operators", label: "Operadores", icon: UsersIcon },
   { to: "/platform/integrations", label: "Integraciones", icon: SettingsIcon },
   { to: "/platform/monitoring", label: "Monitoreo", icon: ActivityIcon },
+  { to: "/platform/support", label: "Soporte", icon: UsersIcon },
   { to: "/platform/security", label: "Mi sesión", icon: SecurityIcon },
 ];
 

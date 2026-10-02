@@ -10,6 +10,7 @@ const DESTINATIONS = [
   "/platform/security",
   "/platform/integrations",
   "/platform/monitoring",
+  "/platform/support",
 ];
 const COMPANY_DETAIL =
   /^\/platform\/organizations\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

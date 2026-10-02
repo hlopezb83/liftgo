@@ -79,6 +79,8 @@ DECLARE
     'platform_catalog_import_source', -- 0090: origen global fijo, sin acceso cliente
     'platform_operator_guard', -- 0091: exclusión mutua de cambios, sólo SELECT servicio
     'platform_integration_checks', -- 0093: historial técnico sin llaves, sólo RPC de servidor
+    'platform_support_cases', -- 0094: diagnóstico explícito, RLS/FORCE deny-all y RPCs
+    'platform_support_events', -- 0094: seguimiento privado; servicio sólo SELECT
     'platform_catalog_imports' -- 0090: recibos globales inmutables sólo vía RPC
   ];
   r record;

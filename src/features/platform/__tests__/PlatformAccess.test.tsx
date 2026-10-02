@@ -65,4 +65,9 @@ describe("permisos y caché de plataforma", () => {
     expect(canAccessPlatformRoute(health, "/platform/integrations")).toBe(true);
     expect(canAccessPlatformRoute(health, "/platform/monitoring")).toBe(true);
   });
+  it("las incidencias requieren lectura de soporte explícita", () => {
+    expect(canAccessPlatformRoute(support, "/platform/support")).toBe(false);
+    expect(canAccessPlatformRoute({ ...support, capabilities: [...support.capabilities, "support.read"] }, "/platform/support")).toBe(true);
+    expect(canAccessPlatformRoute({ ...root, profile: "observer" }, "/platform/support")).toBe(false);
+  });
 });

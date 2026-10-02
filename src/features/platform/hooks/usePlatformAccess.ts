@@ -33,6 +33,7 @@ export function canAccessPlatformRoute(access: PlatformAccess, pathname: string)
   if (pathname === "/platform/operators") return can("operators.read");
   if (pathname === "/platform/integrations") return can("integrations.read");
   if (pathname === "/platform/monitoring") return can("monitoring.read");
+  if (pathname === "/platform/support") return can("support.read");
   if (pathname.startsWith("/platform/organizations/")) return can("organizations.details");
   if (pathname === "/platform/organizations") return can("organizations.read");
   if (pathname.startsWith("/platform/catalogs/import")) return can("catalogs.import") || can("templates.import");
