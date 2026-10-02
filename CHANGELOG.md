@@ -1,5 +1,14 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.46] - 2026-10-02 · patch · improvement
+
+El Centro de Plataforma administra perfiles de cuentas internas existentes y muestra la sesión propia.
+
+- La asignación y revocación de perfiles confirma la contraseña del operador y registra el motivo.
+- Los cambios conservan los roles de empresa, rechazan revisiones obsoletas y mantienen la protección del último operador raíz.
+- Mi sesión comprueba el acceso vigente y permite solicitar recuperación al correo de la propia cuenta.
+
+
 ## [8.42.45] - 2026-10-02 · patch · fix
 
 Los mensajes de facturación recurrente conservan el detalle del proveedor y pasan la validación de calidad.
