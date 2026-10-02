@@ -577,12 +577,26 @@ async function buildPlan(
   return { lines, items, truncated, pendingCount };
 }
 
-function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "object" && error !== null && "message" in error) {
-    return String(error.message);
+export function errorMessage(error: unknown): string {
+  if (typeof error === "string") {
+    return error && error !== "[object Object]" ? error : "Error sin detalle";
   }
-  return String(error);
+  if (error instanceof Error) return error.message || "Error sin detalle";
+  if (typeof error === "object" && error !== null) {
+    const e = error as Record<string, unknown>;
+    const parts: string[] = [];
+    if (e.message !== undefined) parts.push(errorMessage(e.message));
+    if (typeof e.details === "string" && e.details) parts.push(e.details);
+    if (typeof e.hint === "string" && e.hint) parts.push(e.hint);
+    if (typeof e.code === "string" && e.code) parts.push(`(código ${e.code})`);
+    if (parts.length > 0) return parts.join(" · ");
+    try {
+      return JSON.stringify(error).slice(0, 500);
+    } catch {
+      return "Error sin detalle";
+    }
+  }
+  return error == null ? "Error sin detalle" : String(error);
 }
 
 async function executePlan(
@@ -767,7 +781,12 @@ async function executePlan(
       if (row.already_existed === true) alreadyExisting.push(result);
       else created.push(result);
     } catch (err) {
-      failed.push({ bookingIds, error: errorMessage(err) });
+      const message = errorMessage(err);
+      console.error("[generate-recurring-invoices] period failed", {
+        bookingIds,
+        message,
+      });
+      failed.push({ bookingIds, error: message });
     }
   }
 

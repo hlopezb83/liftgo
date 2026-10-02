@@ -1,6 +1,8 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { toast } from "sonner";
 import { notifyWarning } from "@/lib/ui/appFeedback";
+import { formatRecurringFailure } from "../../../lib/formatRecurringFailure";
 import { invoiceKeys } from "../../../lib/queryKeys";
 
 export interface GenerateRecurringResponse {
@@ -40,7 +42,7 @@ export interface GenerateRecurringArgs {
  * Ejecuta la generación real de facturas recurrentes.
  * Si se pasan `bookingIds`, genera SOLO esas; si no, todas las elegibles.
  */
-export function useGenerateRecurringInvoices() {
+export function useGenerateRecurringInvoices(options?: { onShowDetails?: () => void }) {
   return useEntityMutation({
     mutationFn: async (
       args?: GenerateRecurringArgs,
@@ -61,10 +63,13 @@ export function useGenerateRecurringInvoices() {
       // parciales usamos un warning explícito con causa y conteo.
       const failed = result?.failed ?? [];
       if (failed.length > 0) {
-        const firstReason = failed[0]?.error?.slice(0, 140) ?? "sin detalle";
-        notifyWarning({
-          title: `${failed.length} reserva(s) no se facturaron`,
+        const firstReason = formatRecurringFailure(failed[0]?.error).slice(0, 140);
+        toast.warning(`${failed.length} reserva(s) no se facturaron`, {
           description: firstReason,
+          duration: 10000,
+          ...(options?.onShowDetails
+            ? { action: { label: "Ver detalles", onClick: options.onShowDetails } }
+            : {}),
         });
       }
       // R6-F5: fail-closed — avisar los periodos que el edge no facturó por

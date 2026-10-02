@@ -26,7 +26,7 @@ import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 type Invoice = Tables<"invoices">;
 
 function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {
-  const generateRecurring = useGenerateRecurringInvoices();
+  const generateRecurring = useGenerateRecurringInvoices({ onShowDetails: () => setResultOpen(true) });
   const previewRecurring = usePreviewRecurringInvoices();
 
   const openPreview = () => {
