@@ -1,29 +1,40 @@
 [
-{
-  "version": "8.42.42",
-  "date": "2026-10-01",
-  "type": "patch",
-  "category": "fix",
-  "title": "Etiquetas del Centro de Plataforma",
-  "description": "El inicio del Centro de Plataforma muestra correctamente los acentos en catálogos y bitácora.",
-  "changes": [
-    "Las etiquetas de navegación y sus nombres accesibles conservan los acentos en español."
-  ]
-},
-{
-  "version": "8.42.41",
-  "date": "2026-10-01",
-  "type": "patch",
-  "category": "feature",
-  "title": "Permisos específicos de plataforma",
-  "description": "El Centro de Plataforma separa las acciones por perfil y protege la continuidad de su administración.",
-  "changes": [
-    "La navegación y las acciones reflejan los permisos del operador verificados en el servidor.",
-    "Los cambios de permisos retiran formularios y resultados de la autorización anterior.",
-    "El último operador raíz activo no puede ser revocado, degradado ni desactivado."
-  ]
-},
-{
+  {
+    "version": "8.42.43",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "fix",
+    "title": "Inicio estable ante fallos breves de red",
+    "description": "Un fallo momentáneo al revisar el acceso de plataforma ya no borra el panel de inicio.",
+    "changes": [
+      "Si ya había una respuesta válida, se conserva mientras se reintenta en segundo plano."
+    ]
+  },
+  {
+    "version": "8.42.42",
+    "date": "2026-10-01",
+    "type": "patch",
+    "category": "fix",
+    "title": "Etiquetas del Centro de Plataforma",
+    "description": "El inicio del Centro de Plataforma muestra correctamente los acentos en catálogos y bitácora.",
+    "changes": [
+      "Las etiquetas de navegación y sus nombres accesibles conservan los acentos en español."
+    ]
+  },
+  {
+    "version": "8.42.41",
+    "date": "2026-10-01",
+    "type": "patch",
+    "category": "feature",
+    "title": "Permisos específicos de plataforma",
+    "description": "El Centro de Plataforma separa las acciones por perfil y protege la continuidad de su administración.",
+    "changes": [
+      "La navegación y las acciones reflejan los permisos del operador verificados en el servidor.",
+      "Los cambios de permisos retiran formularios y resultados de la autorización anterior.",
+      "El último operador raíz activo no puede ser revocado, degradado ni desactivado."
+    ]
+  },
+  {
     "version": "8.42.40",
     "date": "2026-10-01",
     "type": "patch",
@@ -36,7 +47,7 @@
       "La bitácora registra origen y responsable. Tarifas, existencias y adopción de documentos permanecen por empresa."
     ]
   },
-{
+  {
     "version": "8.42.39",
     "date": "2026-10-01",
     "type": "patch",

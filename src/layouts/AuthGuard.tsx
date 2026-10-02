@@ -139,14 +139,19 @@ function authIsLoading({ hasUser, authLoading, roleLoading, isRestoring, destina
   destination: string | null; platform: PlatformStatus;
 }): boolean {
   const resolvingPlatform = hasUser && !!destination;
-  const platformOwnsEntry = resolvingPlatform && (platform.data === true || platform.isError);
+  const platformOwnsEntry = resolvingPlatform && (platform.data === true || platformCheckFailed(platform));
   return authLoading || (resolvingPlatform && platform.isPending) ||
     (!platformOwnsEntry && (isRestoring || (hasUser && roleLoading)));
 }
 
+/** Sólo bloquea si nunca hubo respuesta; un fallo en segundo plano conserva el último resultado. */
+function platformCheckFailed(platform: PlatformStatus): boolean {
+  return platform.isError && platform.data === undefined;
+}
+
 function PlatformEntry({ destination, platform, children }: { destination: string | null; platform: PlatformStatus; children: ReactNode }) {
   if (!destination) return children;
-  if (platform.isError) return <LoadingError onRetry={() => void platform.refetch()} />;
+  if (platformCheckFailed(platform)) return <LoadingError onRetry={() => void platform.refetch()} />;
   if (platform.data === true) return <Navigate to={destination} replace />;
   return children;
 }
