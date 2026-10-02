@@ -4,21 +4,24 @@ BEGIN;
 SELECT set_config('app.organization_id',(SELECT id::text FROM public.organizations ORDER BY created_at LIMIT 1),true);
 INSERT INTO auth.users(id,email,email_confirmed_at,created_at,updated_at)
 SELECT ('95000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'feedback-folio-ci-'||n||'@example.com',now(),now(),now()
-FROM generate_series(1,3) n;
+FROM generate_series(1,4) n;
 INSERT INTO public.profiles(user_id,full_name,is_active)
-SELECT ('95000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'Folio CI '||n,true FROM generate_series(1,3) n
+SELECT ('95000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'Folio CI '||n,true FROM generate_series(1,4) n
 ON CONFLICT(user_id) DO UPDATE SET is_active=true;
 INSERT INTO public.organizations(id,name,slug,is_active) VALUES
 ('95950000-0000-4000-8000-000000000011','Reportes CI A','feedback-ci-a-0094',true),
-('95950000-0000-4000-8000-000000000012','Reportes CI B','feedback-ci-b-0094',true);
+('95950000-0000-4000-8000-000000000012','Reportes CI B','feedback-ci-b-0094',true),
+('95950000-0000-4000-8000-000000000013','Reportes CI suspendida','feedback-ci-suspended-0094',false);
 INSERT INTO public.organization_memberships(organization_id,auth_user_id,member_type) VALUES
 ('95950000-0000-4000-8000-000000000011','95000000-0000-4000-8000-000000000001','internal'),
 ('95950000-0000-4000-8000-000000000012','95000000-0000-4000-8000-000000000002','internal'),
-('95950000-0000-4000-8000-000000000011','95000000-0000-4000-8000-000000000003','portal');
+('95950000-0000-4000-8000-000000000011','95000000-0000-4000-8000-000000000003','portal'),
+('95950000-0000-4000-8000-000000000013','95000000-0000-4000-8000-000000000004','internal');
 INSERT INTO public.user_roles(user_id,role) VALUES
 ('95000000-0000-4000-8000-000000000001','admin'),
 ('95000000-0000-4000-8000-000000000002','ventas'),
-('95000000-0000-4000-8000-000000000003','customer')
+('95000000-0000-4000-8000-000000000003','customer'),
+('95000000-0000-4000-8000-000000000004','ventas')
 ON CONFLICT(user_id) DO UPDATE SET role=EXCLUDED.role;
 
 SET LOCAL role='authenticated';
@@ -82,9 +85,8 @@ DO $$ BEGIN
 END $$;
 RESET role;
 RESET request.jwt.claims;
-UPDATE public.organizations SET is_active=false WHERE id='95950000-0000-4000-8000-000000000011';
 SET LOCAL role='authenticated';
-SET LOCAL request.jwt.claims='{"sub":"95000000-0000-4000-8000-000000000001","role":"authenticated"}';
+SET LOCAL request.jwt.claims='{"sub":"95000000-0000-4000-8000-000000000004","role":"authenticated"}';
 DO $$ BEGIN
   BEGIN
     INSERT INTO public.feedback_reports(reporter_id,reporter_type,type,module,title,description)
