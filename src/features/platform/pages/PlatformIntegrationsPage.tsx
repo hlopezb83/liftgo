@@ -20,7 +20,7 @@ export default function PlatformIntegrationsPage() {
   const [offset, setOffset] = useState(0);
   const query = useQuery({ queryKey: ["platform", "health", "integrations", search, offset], staleTime: 30_000,
     queryFn: () => listPlatformIntegrationsFn({ data: { search, offset } }) });
-  const check = useMutation({ retry: false, mutationFn: (organizationId: string) => checkPlatformIntegrationFn({
+  const check = useMutation({ retry: false, meta: { silent: true }, mutationFn: (organizationId: string) => checkPlatformIntegrationFn({
     data: { organizationId, requestId: crypto.randomUUID() },
   }), onSettled: () => void cache.invalidateQueries({ queryKey: ["platform", "health"] }) });
   return <>

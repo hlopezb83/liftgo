@@ -27,6 +27,65 @@ const ORG_ID = "33333333-3333-4333-8333-333333333333";
 const OTHER_ORG_ID = "44444444-4444-4444-8444-444444444444";
 const ORIGIN = "http://localhost:8080";
 
+for (const mode of ["test", "live"] as const) {
+  Deno.test(`timbrado rechaza llave del ambiente opuesto y libera claim: ${mode}`, async () => {
+    let providerCalls = 0;
+    const mock = installFacturapiMock({
+      "/invoices": () => {
+        providerCalls++;
+        return facturapiOk({ id: "unexpected", uuid: "unexpected" });
+      },
+    });
+    try {
+      const wrongKey = mode === "test" ? "sk_live_wrong" : "sk_test_wrong";
+      const { deps, serviceState } = makeDeps({
+        service: {
+          selects: {
+            user_roles: { data: [{ role: "admin" }], error: null },
+            invoices: {
+              data: {
+                id: INVOICE_ID,
+                organization_id: ORG_ID,
+                total: 1160,
+                receptor_rfc: RECEPTOR_RFC,
+              },
+              error: null,
+            },
+            company_settings: { data: { facturapi_mode: mode }, error: null },
+            billing_secrets: {
+              data: { [`facturapi_${mode}_key`]: wrongKey },
+              error: null,
+            },
+          },
+          updates: { invoices: { data: null, error: null } },
+        },
+      });
+      const res = await handleStampCfdi(
+        makeRequest({ invoice_id: INVOICE_ID }),
+        deps,
+      );
+      const body = await res.json();
+      assertEquals(res.status, 400);
+      assertEquals(providerCalls, 0);
+      assertEquals(JSON.stringify(body).includes(wrongKey), false);
+      assertEquals(body.cfdi_uuid, undefined);
+      assert(
+        serviceState.updates.some((u) =>
+          u.table === "invoices" && u.patch.cfdi_status === "error"
+        ),
+      );
+      assertEquals(
+        serviceState.updates.some((u) =>
+          u.table === "invoices" && u.patch.cfdi_status === "stamped"
+        ),
+        false,
+      );
+    } finally {
+      mock.restore();
+    }
+  });
+}
+
 function makeRequest(
   body: unknown,
   opts: { auth?: string | null } = {},

@@ -400,6 +400,13 @@ de 200, incluidos 3xx, se clasifica sin seguir `Location` ni reenviar la llave.
 Los fallos de transporte registran sólo una clase de error de una lista cerrada,
 sin mensaje, token, cabecera, URL variable o cuerpo fiscal.
 El preflight rechaza prefijos de llave incompatibles con el ambiente seleccionado.
+El resolver fiscal del ERP aplica el mismo control antes de devolver una llave
+para timbrar, cancelar, descargar o conciliar: exige `sk_test_` o `sk_live_`
+según el ambiente y un valor posterior al prefijo. Una llave incompatible o
+de cuenta (`sk_user_`) devuelve `config_invalid_key_mode` / HTTP 400, sin
+devolver secretos, consultar al proveedor ni activar fallback de entorno.
+El fallback legado de una sola empresa también valida el ambiente. Los folios
+fiscales siguen procediendo de Facturapi.
 «Conexión comprobada» acredita una respuesta válida de ese instante, no RFC,
 certificados, capacidad de timbrar ni disponibilidad permanente del proveedor.
 

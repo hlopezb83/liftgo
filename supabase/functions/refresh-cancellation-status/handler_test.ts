@@ -155,7 +155,7 @@ Deno.test("refresh-cancellation: SAT accepted marca cancelled", async () => {
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -196,7 +196,7 @@ Deno.test("refresh-cancellation: SAT pending NO marca cancelled", async () => {
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -234,7 +234,7 @@ Deno.test("refresh-cancellation: Facturapi PUT falla -> 502", async () => {
   });
   try {
     const { deps } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -295,7 +295,7 @@ Deno.test("refresh-cancellation: credit_note_id resuelve contra tabla credit_not
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -342,7 +342,7 @@ Deno.test("refresh-cancellation: MULTIEMPRESA rechaza factura de otra organizaci
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },

@@ -19,6 +19,63 @@ const USER_ID = "33333333-3333-4333-8333-333333333333";
 const ORG_ID = "44444444-4444-4444-8444-444444444444";
 const OTHER_ORG_ID = "55555555-5555-4555-8555-555555555555";
 
+for (const mode of ["test", "live"] as const) {
+  Deno.test(`cancelación rechaza llave del ambiente opuesto y libera claim: ${mode}`, async () => {
+    let providerCalls = 0;
+    const mock = installFacturapiMock({
+      "/invoices/fapi_wrong": () => {
+        providerCalls++;
+        return facturapiOk({ cancellation_status: "accepted" });
+      },
+    });
+    try {
+      const wrongKey = mode === "test" ? "sk_live_wrong" : "sk_test_wrong";
+      const { deps, serviceState } = makeDeps({
+        service: {
+          selects: {
+            user_roles: { data: [{ role: "admin" }], error: null },
+            invoices: {
+              data: {
+                cfdi_status: "stamped",
+                facturapi_invoice_id: "fapi_wrong",
+                organization_id: ORG_ID,
+              },
+              error: null,
+            },
+            company_settings: { data: { facturapi_mode: mode }, error: null },
+            billing_secrets: {
+              data: { [`facturapi_${mode}_key`]: wrongKey },
+              error: null,
+            },
+          },
+          updates: { invoices: { data: null, error: null } },
+        },
+      });
+      const res = await handleCancelCfdi(
+        makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+        deps,
+      );
+      const body = await res.json();
+      assertEquals(res.status, 400);
+      assertEquals(providerCalls, 0);
+      assertEquals(JSON.stringify(body).includes(wrongKey), false);
+      assert(
+        serviceState.updates.some((u) =>
+          u.table === "invoices" && u.patch.cancellation_status === "none"
+        ),
+      );
+      assertEquals(
+        serviceState.updates.some((u) =>
+          u.table === "invoices" && u.patch.cancellation_status === "accepted"
+        ),
+        false,
+      );
+    } finally {
+      mock.restore();
+    }
+  });
+}
+
 function makeRequest(
   body: unknown,
   opts: { auth?: string | null } = {},
@@ -225,7 +282,7 @@ Deno.test("cancel-cfdi: happy path llama a Facturapi DELETE y acepta", async () 
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -275,7 +332,7 @@ Deno.test("cancel-cfdi: SAT 'pending' devuelve warning y no marca cancelled", as
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -320,7 +377,7 @@ Deno.test("cancel-cfdi: Facturapi 500 devuelve 502", async () => {
   });
   try {
     const { deps } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -394,7 +451,7 @@ Deno.test("cancel-cfdi: C-2 live sin apiKey rechaza cancelación stub", async ()
 
 Deno.test("cancel-cfdi: C-2 live sin facturapi_invoice_id rechaza stub", async () => {
   const { deps, serviceState } = makeDeps({
-    env: { FACTURAPI_LIVE_KEY: "sk_live" },
+    env: { FACTURAPI_LIVE_KEY: "sk_live_fixture" },
     service: {
       selects: {
         user_roles: { data: [{ role: "admin" }], error: null },
@@ -520,7 +577,7 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 500 encola reintento con payload plano",
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -583,7 +640,7 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 400 (negocio) NO encola reintento", asyn
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -670,7 +727,7 @@ Deno.test("cancel-cfdi: MULTIEMPRESA rechaza factura de otra organización (403)
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },

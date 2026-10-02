@@ -1,3 +1,8 @@
+## [8.42.49] — 2026-10-02
+
+- El resolver fiscal rechaza llaves del ambiente opuesto y llaves de cuenta antes de timbrar o cancelar, sin recurrir a otra credencial.
+- Las comprobaciones muestran un solo aviso en la página y las cifras de monitoreo se alinean cuando las etiquetas ocupan dos líneas.
+
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
 ## [8.42.48] - 2026-10-02

@@ -217,7 +217,7 @@ Deno.test("cancel-credit-note: happy path llama a Facturapi DELETE y acepta", as
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -265,7 +265,7 @@ Deno.test("cancel-credit-note: Facturapi 500 devuelve 502", async () => {
   });
   try {
     const { deps } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       fetchImpl: globalThis.fetch,
       service: {
         selects: {
@@ -382,7 +382,7 @@ Deno.test("cancel-credit-note: MULTIEMPRESA rechaza NC de otra organización (40
   });
   try {
     const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
