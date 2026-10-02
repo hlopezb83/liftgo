@@ -2,7 +2,7 @@ name: CI
 
 # CI mínimo y honesto (ver docs/ci.md):
 #   - Dos jobs base que siempre corren: `quality` (estático + build + arranque
-#     real del bundle) y `tests` (Vitest en 4 shards) + `tests-merge`, que une
+#     real del bundle) y `tests` (Vitest en 6 shards) + `tests-merge`, que une
 #     los blobs y aplica los umbrales de cobertura.
 #   - Jobs condicionales que solo corren cuando su área cambió.
 #   - CERO secretos de producción: el build de CI apunta a un backend
@@ -67,6 +67,8 @@ jobs:
             workflows:
               - '.github/workflows/**'
               - '.github/actions/**'
+              - 'scripts/ci_database.py'
+              - 'scripts/tests/test_ci_database.py'
 
 
   # ---------------------------------------------------------------------------
@@ -82,6 +84,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
+        with:
+          save-cache: "true"
 
       - name: ESLint
         run: bun run lint --max-warnings=0
@@ -101,24 +105,10 @@ jobs:
           VITE_SUPABASE_PROJECT_ID: ci-smoke
         run: bun run build
 
-      - name: Resolver versión de Playwright
-        id: pw-version
-        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Cache de navegadores Playwright
-        id: playwright-cache
-        uses: actions/cache@v6
+      - name: Preparar Chromium
+        uses: ./.github/actions/setup-playwright
         with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
-
-      - name: Instalar Chromium
-        run: |
-          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
-            bunx playwright install-deps chromium
-          else
-            bunx playwright install --with-deps chromium
-          fi
+          save-cache: "true"
 
       - name: Smoke de arranque (build real)
         env:
@@ -135,7 +125,7 @@ jobs:
           if-no-files-found: ignore
 
   # ---------------------------------------------------------------------------
-  # BASE 2 — suite completa de Vitest en CUATRO shards + un merge mínimo.
+  # BASE 2 — suite completa de Vitest en SEIS shards + un merge mínimo.
   # Cada shard corre su porción con `--coverage` y emite un reporte "blob" en
   # `.vitest-reports/`; `tests-merge` los une y ahí —y solo ahí— se evalúan los
   # umbrales de cobertura globales y por directorio. Nunca `--changed` ni
@@ -144,24 +134,24 @@ jobs:
   # reparte la suite entre más runners.
   # ---------------------------------------------------------------------------
   tests:
-    name: Pruebas (Vitest shard ${{ matrix.shard }}/4)
+    name: Pruebas (Vitest shard ${{ matrix.shard }}/6)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3, 4]
+        shard: [1, 2, 3, 4, 5, 6]
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
 
-      - name: Vitest (shard ${{ matrix.shard }}/4)
+      - name: Vitest (shard ${{ matrix.shard }}/6)
         env:
           NODE_OPTIONS: --max-old-space-size=6144
           # Acotado a este step: activa reporter blob y desactiva umbrales
           # parciales (cada runner ve solo su porción del código).
           VITEST_SHARD_BLOB: "1"
-        run: bunx vitest run --shard=${{ matrix.shard }}/4 --coverage
+        run: bunx vitest run --shard=${{ matrix.shard }}/6 --coverage
 
       # `.vitest-reports/` es la ruta real del reporter blob en Vitest 4 y
       # empieza por punto: sin `include-hidden-files` el artifact llega vacío.
@@ -176,7 +166,7 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-  # Une los blobs de los cuatro shards y evalúa los umbrales sobre la cobertura
+  # Une los blobs de los seis shards y evalúa los umbrales sobre la cobertura
   # completa. No reejecuta la suite ni promedia porcentajes. Si falta un
   # artifact, `download-artifact` falla y el workflow queda rojo.
   tests-merge:
@@ -210,6 +200,19 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: vitest-blob-4
+          path: .vitest-reports/
+
+
+      - name: Descargar blob shard 5
+        uses: actions/download-artifact@v8
+        with:
+          name: vitest-blob-5
+          path: .vitest-reports/
+
+      - name: Descargar blob shard 6
+        uses: actions/download-artifact@v8
+        with:
+          name: vitest-blob-6
           path: .vitest-reports/
 
 
@@ -353,6 +356,8 @@ jobs:
     if: needs.changes.outputs.workflows == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
+      - name: Probar preparación de BD aislada
+        run: python3 -m unittest discover -s scripts/tests -p test_ci_database.py
       - uses: reviewdog/action-actionlint@2085657ab2c7f48c58edcc767fba576f63bea76b # v1.77.0
         with:
           fail_level: error
