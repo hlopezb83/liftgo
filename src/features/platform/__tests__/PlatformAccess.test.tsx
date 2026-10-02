@@ -52,4 +52,10 @@ describe("permisos y caché de plataforma", () => {
     render(<Probe />);
     expect(screen.getByText("Sin permiso")).toBeInTheDocument();
   });
+  it("cada operador puede ver su sesión pero sólo la capacidad explícita permite administrar operadores", () => {
+    expect(canAccessPlatformRoute(support, "/platform/security")).toBe(true);
+    expect(canAccessPlatformRoute(support, "/platform/operators")).toBe(false);
+    expect(canAccessPlatformRoute({ ...root, capabilities: [...root.capabilities, "operators.read"] }, "/platform/operators")).toBe(true);
+    expect(canAccessPlatformRoute({ isOperator: false, profile: null, revision: null, capabilities: [] }, "/platform/security")).toBe(false);
+  });
 });

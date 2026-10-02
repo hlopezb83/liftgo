@@ -8,6 +8,7 @@ import {
   LogOut,
   Menu,
   SecurityIcon,
+  UsersIcon,
 } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,8 @@ const NAV = [
   { to: "/platform/organizations", label: "Empresas", icon: CompanyIcon },
   { to: "/platform/catalogs", label: "Catálogo LiftGo", icon: FleetIcon },
   { to: "/platform/audit", label: "Bitácora global", icon: HistoryIcon },
+  { to: "/platform/operators", label: "Operadores", icon: UsersIcon },
+  { to: "/platform/security", label: "Mi sesión", icon: SecurityIcon },
 ];
 
 export function PlatformLayout() {
