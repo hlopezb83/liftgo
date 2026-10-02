@@ -89,6 +89,7 @@ import { Route as PortalPortalEstadoCuentaRouteImport } from './routes/_portal/p
 import { Route as PortalPortalLeaderboardRouteImport } from './routes/_portal/portal.leaderboard'
 import { Route as PortalPortalMisReportesRouteImport } from './routes/_portal/portal.mis-reportes'
 import { Route as PortalPortalRentalsRouteImport } from './routes/_portal/portal.rentals'
+import { Route as PlatformCatalogsImportRouteImport } from './routes/platform.catalogs_.import'
 import { Route as PlatformOrganizationsOrganizationIdRouteImport } from './routes/platform.organizations_.$organizationId'
 import { Route as MainContractsIdIndexRouteImport } from './routes/_main/contracts.$id.index'
 import { Route as MainContractsIdEditRouteImport } from './routes/_main/contracts.$id.edit'
@@ -510,6 +511,11 @@ const PortalPortalRentalsRoute = PortalPortalRentalsRouteImport.update({
   path: '/portal/rentals',
   getParentRoute: () => PortalRoute,
 } as any)
+const PlatformCatalogsImportRoute = PlatformCatalogsImportRouteImport.update({
+  id: '/catalogs_/import',
+  path: '/catalogs/import',
+  getParentRoute: () => PlatformRoute,
+} as any)
 const PlatformOrganizationsOrganizationIdRoute =
   PlatformOrganizationsOrganizationIdRouteImport.update({
     id: '/organizations_/$organizationId',
@@ -649,6 +655,7 @@ export interface FileRoutesByFullPath {
   '/portal/leaderboard': typeof PortalPortalLeaderboardRoute
   '/portal/mis-reportes': typeof PortalPortalMisReportesRoute
   '/portal/rentals': typeof PortalPortalRentalsRoute
+  '/platform/catalogs/import': typeof PlatformCatalogsImportRoute
   '/platform/organizations/$organizationId': typeof PlatformOrganizationsOrganizationIdRoute
   '/bookings/': typeof MainBookingsIndexRoute
   '/conciliacion-bancaria/': typeof MainConciliacionBancariaIndexRoute
@@ -742,6 +749,7 @@ export interface FileRoutesByTo {
   '/portal/leaderboard': typeof PortalPortalLeaderboardRoute
   '/portal/mis-reportes': typeof PortalPortalMisReportesRoute
   '/portal/rentals': typeof PortalPortalRentalsRoute
+  '/platform/catalogs/import': typeof PlatformCatalogsImportRoute
   '/platform/organizations/$organizationId': typeof PlatformOrganizationsOrganizationIdRoute
   '/bookings': typeof MainBookingsIndexRoute
   '/conciliacion-bancaria': typeof MainConciliacionBancariaIndexRoute
@@ -839,6 +847,7 @@ export interface FileRoutesById {
   '/_portal/portal/leaderboard': typeof PortalPortalLeaderboardRoute
   '/_portal/portal/mis-reportes': typeof PortalPortalMisReportesRoute
   '/_portal/portal/rentals': typeof PortalPortalRentalsRoute
+  '/platform/catalogs_/import': typeof PlatformCatalogsImportRoute
   '/platform/organizations_/$organizationId': typeof PlatformOrganizationsOrganizationIdRoute
   '/_main/bookings/': typeof MainBookingsIndexRoute
   '/_main/conciliacion-bancaria/': typeof MainConciliacionBancariaIndexRoute
@@ -935,6 +944,7 @@ export interface FileRouteTypes {
     | '/portal/leaderboard'
     | '/portal/mis-reportes'
     | '/portal/rentals'
+    | '/platform/catalogs/import'
     | '/platform/organizations/$organizationId'
     | '/bookings/'
     | '/conciliacion-bancaria/'
@@ -1028,6 +1038,7 @@ export interface FileRouteTypes {
     | '/portal/leaderboard'
     | '/portal/mis-reportes'
     | '/portal/rentals'
+    | '/platform/catalogs/import'
     | '/platform/organizations/$organizationId'
     | '/bookings'
     | '/conciliacion-bancaria'
@@ -1124,6 +1135,7 @@ export interface FileRouteTypes {
     | '/_portal/portal/leaderboard'
     | '/_portal/portal/mis-reportes'
     | '/_portal/portal/rentals'
+    | '/platform/catalogs_/import'
     | '/platform/organizations_/$organizationId'
     | '/_main/bookings/'
     | '/_main/conciliacion-bancaria/'
@@ -1726,6 +1738,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalPortalRentalsRouteImport
       parentRoute: typeof PortalRoute
     }
+    '/platform/catalogs_/import': {
+      id: '/platform/catalogs_/import'
+      path: '/catalogs/import'
+      fullPath: '/platform/catalogs/import'
+      preLoaderRoute: typeof PlatformCatalogsImportRouteImport
+      parentRoute: typeof PlatformRoute
+    }
     '/platform/organizations_/$organizationId': {
       id: '/platform/organizations_/$organizationId'
       path: '/organizations/$organizationId'
@@ -2016,6 +2035,7 @@ interface PlatformRouteChildren {
   PlatformCatalogsRoute: typeof PlatformCatalogsRoute
   PlatformOrganizationsRoute: typeof PlatformOrganizationsRoute
   PlatformIndexRoute: typeof PlatformIndexRoute
+  PlatformCatalogsImportRoute: typeof PlatformCatalogsImportRoute
   PlatformOrganizationsOrganizationIdRoute: typeof PlatformOrganizationsOrganizationIdRoute
 }
 
@@ -2024,6 +2044,7 @@ const PlatformRouteChildren: PlatformRouteChildren = {
   PlatformCatalogsRoute: PlatformCatalogsRoute,
   PlatformOrganizationsRoute: PlatformOrganizationsRoute,
   PlatformIndexRoute: PlatformIndexRoute,
+  PlatformCatalogsImportRoute: PlatformCatalogsImportRoute,
   PlatformOrganizationsOrganizationIdRoute:
     PlatformOrganizationsOrganizationIdRoute,
 }
@@ -2043,13 +2064,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

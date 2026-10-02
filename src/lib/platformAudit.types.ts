@@ -9,6 +9,7 @@ export const PLATFORM_AUDIT_TARGETS = [
   "legal_template_versions",
   "organization_legal_template_assignments",
   "platform_operators",
+  "platform_catalog_imports",
 ] as const;
 const optionalText = z.string().nullable().optional();
 const safeState = z.object({
@@ -30,6 +31,13 @@ const safeState = z.object({
   part_catalog_id: optionalText,
   equipment_model_catalog_id: optionalText,
   auth_user_id: optionalText,
+  kind: optionalText,
+  source_organization_id: optionalText,
+  source_record_id: optionalText,
+  target_catalog_id: optionalText,
+  target_version_id: optionalText,
+  resolution: optionalText,
+  source_checksum: optionalText,
 });
 export const platformAuditEventSchema = z.object({
   id: z.string().regex(/^[1-9]\d*$/),
