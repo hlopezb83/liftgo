@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.42.44",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "fix",
+    "title": "Detalle legible en fallos de facturación recurrente",
+    "description": "Los fallos al generar facturas recurrentes muestran el motivo real en lugar de \"[object Object]\".",
+    "changes": [
+      "El aviso incluye el botón «Ver detalles» que abre el resultado de la generación.",
+      "Cada fallo muestra el mensaje completo, las reservas afectadas y permite copiar el detalle."
+    ]
+  },
+  {
     "version": "8.42.43",
     "date": "2026-10-02",
     "type": "patch",
