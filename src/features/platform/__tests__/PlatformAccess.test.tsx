@@ -58,4 +58,11 @@ describe("permisos y caché de plataforma", () => {
     expect(canAccessPlatformRoute({ ...root, capabilities: [...root.capabilities, "operators.read"] }, "/platform/operators")).toBe(true);
     expect(canAccessPlatformRoute({ isOperator: false, profile: null, revision: null, capabilities: [] }, "/platform/security")).toBe(false);
   });
+  it("integraciones y monitoreo necesitan sus capacidades específicas", () => {
+    expect(canAccessPlatformRoute(support, "/platform/integrations")).toBe(false);
+    expect(canAccessPlatformRoute(support, "/platform/monitoring")).toBe(false);
+    const health = { ...support, capabilities: [...support.capabilities, "integrations.read", "monitoring.read"] } as PlatformAccess;
+    expect(canAccessPlatformRoute(health, "/platform/integrations")).toBe(true);
+    expect(canAccessPlatformRoute(health, "/platform/monitoring")).toBe(true);
+  });
 });

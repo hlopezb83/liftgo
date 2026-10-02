@@ -1,0 +1,8 @@
+{
+  "description": "El Centro de Plataforma muestra la configuración de Facturapi por empresa y permite comprobar la conexión desde el servidor.",
+  "changes": [
+    "Las comprobaciones registran fecha, resultado y latencia sin devolver llaves ni cuerpos fiscales.",
+    "Los permisos separan lectura, comprobación y monitoreo; los resultados dejan de estar vigentes al cambiar la llave o el ambiente.",
+    "Inicio y Monitoreo muestran altas pendientes, configuración fiscal incompleta, reportes y cola fiscal desde registros reales."
+  ]
+}

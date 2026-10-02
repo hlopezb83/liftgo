@@ -9,6 +9,8 @@ import {
   Menu,
   SecurityIcon,
   UsersIcon,
+  ActivityIcon,
+  SettingsIcon,
 } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +39,8 @@ const NAV = [
   { to: "/platform/catalogs", label: "Catálogo LiftGo", icon: FleetIcon },
   { to: "/platform/audit", label: "Bitácora global", icon: HistoryIcon },
   { to: "/platform/operators", label: "Operadores", icon: UsersIcon },
+  { to: "/platform/integrations", label: "Integraciones", icon: SettingsIcon },
+  { to: "/platform/monitoring", label: "Monitoreo", icon: ActivityIcon },
   { to: "/platform/security", label: "Mi sesión", icon: SecurityIcon },
 ];
 
@@ -105,7 +109,7 @@ export function PlatformLayout() {
             </p>
           </div>
         </div>
-        {navigation()}
+        <div className="min-h-0 flex-1 overflow-y-auto">{navigation()}</div>
         <div className="mt-auto space-y-3 border-t border-sidebar-border p-4">
           <p className="break-all text-xs text-sidebar-foreground/75">
             {user?.email}

@@ -43,6 +43,8 @@ import { Route as MainReportsRouteImport } from './routes/_main/reports'
 import { Route as PlatformIndexRouteImport } from './routes/platform.index'
 import { Route as PlatformAuditRouteImport } from './routes/platform.audit'
 import { Route as PlatformCatalogsRouteImport } from './routes/platform.catalogs'
+import { Route as PlatformIntegrationsRouteImport } from './routes/platform.integrations'
+import { Route as PlatformMonitoringRouteImport } from './routes/platform.monitoring'
 import { Route as PlatformOperatorsRouteImport } from './routes/platform.operators'
 import { Route as PlatformOrganizationsRouteImport } from './routes/platform.organizations'
 import { Route as PlatformSecurityRouteImport } from './routes/platform.security'
@@ -273,6 +275,16 @@ const PlatformAuditRoute = PlatformAuditRouteImport.update({
 const PlatformCatalogsRoute = PlatformCatalogsRouteImport.update({
   id: '/catalogs',
   path: '/catalogs',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformIntegrationsRoute = PlatformIntegrationsRouteImport.update({
+  id: '/integrations',
+  path: '/integrations',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformMonitoringRoute = PlatformMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
   getParentRoute: () => PlatformRoute,
 } as any)
 const PlatformOperatorsRoute = PlatformOperatorsRouteImport.update({
@@ -635,6 +647,8 @@ export interface FileRoutesByFullPath {
   '/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/integrations': typeof PlatformIntegrationsRoute
+  '/platform/monitoring': typeof PlatformMonitoringRoute
   '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/security': typeof PlatformSecurityRoute
@@ -731,6 +745,8 @@ export interface FileRoutesByTo {
   '/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/integrations': typeof PlatformIntegrationsRoute
+  '/platform/monitoring': typeof PlatformMonitoringRoute
   '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/security': typeof PlatformSecurityRoute
@@ -830,6 +846,8 @@ export interface FileRoutesById {
   '/_main/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/integrations': typeof PlatformIntegrationsRoute
+  '/platform/monitoring': typeof PlatformMonitoringRoute
   '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
   '/platform/security': typeof PlatformSecurityRoute
@@ -930,6 +948,8 @@ export interface FileRouteTypes {
     | '/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/integrations'
+    | '/platform/monitoring'
     | '/platform/operators'
     | '/platform/organizations'
     | '/platform/security'
@@ -1026,6 +1046,8 @@ export interface FileRouteTypes {
     | '/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/integrations'
+    | '/platform/monitoring'
     | '/platform/operators'
     | '/platform/organizations'
     | '/platform/security'
@@ -1124,6 +1146,8 @@ export interface FileRouteTypes {
     | '/_main/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/integrations'
+    | '/platform/monitoring'
     | '/platform/operators'
     | '/platform/organizations'
     | '/platform/security'
@@ -1438,6 +1462,20 @@ declare module '@tanstack/react-router' {
       path: '/catalogs'
       fullPath: '/platform/catalogs'
       preLoaderRoute: typeof PlatformCatalogsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/integrations': {
+      id: '/platform/integrations'
+      path: '/integrations'
+      fullPath: '/platform/integrations'
+      preLoaderRoute: typeof PlatformIntegrationsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/monitoring': {
+      id: '/platform/monitoring'
+      path: '/monitoring'
+      fullPath: '/platform/monitoring'
+      preLoaderRoute: typeof PlatformMonitoringRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/platform/operators': {
@@ -2071,6 +2109,8 @@ const PortalRouteWithChildren =
 interface PlatformRouteChildren {
   PlatformAuditRoute: typeof PlatformAuditRoute
   PlatformCatalogsRoute: typeof PlatformCatalogsRoute
+  PlatformIntegrationsRoute: typeof PlatformIntegrationsRoute
+  PlatformMonitoringRoute: typeof PlatformMonitoringRoute
   PlatformOperatorsRoute: typeof PlatformOperatorsRoute
   PlatformOrganizationsRoute: typeof PlatformOrganizationsRoute
   PlatformSecurityRoute: typeof PlatformSecurityRoute
@@ -2082,6 +2122,8 @@ interface PlatformRouteChildren {
 const PlatformRouteChildren: PlatformRouteChildren = {
   PlatformAuditRoute: PlatformAuditRoute,
   PlatformCatalogsRoute: PlatformCatalogsRoute,
+  PlatformIntegrationsRoute: PlatformIntegrationsRoute,
+  PlatformMonitoringRoute: PlatformMonitoringRoute,
   PlatformOperatorsRoute: PlatformOperatorsRoute,
   PlatformOrganizationsRoute: PlatformOrganizationsRoute,
   PlatformSecurityRoute: PlatformSecurityRoute,
