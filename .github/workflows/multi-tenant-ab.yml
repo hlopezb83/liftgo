@@ -4,7 +4,7 @@ name: Multi-tenant A/B gate
 #
 # Levanta un Supabase local del runner (Postgres + gotrue + kong + postgrest +
 # storage-api), aplica el MISMO carril de migraciones que RLS DB tests (parche
-# legado local + `db reset` + Drizzle en el orden oficial), siembra dos
+# legado local + start sobre volumen vacío sin seed + Drizzle en el orden oficial), siembra dos
 # organizaciones ficticias y ejecuta la suite Playwright del gate:
 # aislamiento de datos por API, Storage por API real y portal en navegador.
 #
@@ -34,6 +34,14 @@ on:
       - "tests/e2e/fixtures/productionGuard.ts"
       - "playwright.multitenant.config.ts"
       - "scripts/patch_legacy_migrations.py"
+      - "scripts/ci_database.py"
+      - "scripts/tests/test_ci_database.py"
+      - ".github/actions/setup-bun-project/**"
+      - ".github/actions/setup-playwright/**"
+      - "drizzle.config.ts"
+      - "scripts/check-drizzle-journal.ts"
+      - "bun.lock"
+      - "package.json"
       - ".github/workflows/multi-tenant-ab.yml"
   push:
     branches: [main]
@@ -55,6 +63,14 @@ on:
       - "tests/e2e/fixtures/productionGuard.ts"
       - "playwright.multitenant.config.ts"
       - "scripts/patch_legacy_migrations.py"
+      - "scripts/ci_database.py"
+      - "scripts/tests/test_ci_database.py"
+      - ".github/actions/setup-bun-project/**"
+      - ".github/actions/setup-playwright/**"
+      - "drizzle.config.ts"
+      - "scripts/check-drizzle-journal.ts"
+      - "bun.lock"
+      - "package.json"
       - ".github/workflows/multi-tenant-ab.yml"
   workflow_dispatch:
 
@@ -83,12 +99,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Cache Supabase CLI
-        uses: actions/cache@v6
-        with:
-          path: ~/.local/share/supabase-cli
-          key: ${{ runner.os }}-supabase-cli-2.34.0
-
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
@@ -104,6 +114,9 @@ jobs:
 
       # A diferencia de RLS DB tests, este gate SÍ necesita el gateway (kong),
       # PostgREST y storage-api: prueba la API real, no solo psql.
+      - name: Exigir base vacía y deshabilitar seed local
+        run: python3 scripts/ci_database.py prepare
+
       - name: Start Supabase (DB + auth + API + Storage)
         timeout-minutes: 15
         run: |
@@ -123,8 +136,8 @@ jobs:
             exit 1
           fi
 
-      - name: Reset DB (aplica todas las migraciones desde cero)
-        run: supabase db reset --no-seed
+      - name: Verificar migraciones aplicadas
+        run: python3 scripts/ci_database.py verify
 
       - name: Validar journal de migraciones Drizzle
         run: bun run migrations:check
@@ -205,8 +218,8 @@ jobs:
           fi
           echo ".dev.vars OK: 4 bindings presentes, URL loopback, sin ref productivo"
 
-      - name: Instalar navegador Playwright
-        run: bunx playwright install --with-deps chromium
+      - name: Preparar Chromium
+        uses: ./.github/actions/setup-playwright
 
       - name: Ejecutar gate A/B (datos + Storage + portal)
         run: bun run test:multitenant-ab

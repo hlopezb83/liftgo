@@ -1,5 +1,5 @@
 name: Setup Bun project
-description: Checkout, instalar Node, Bun, restaurar cache e instalar deps con frozen lockfile.
+description: Instalar Node, Bun y dependencias congeladas; restaurar caché y guardarla sólo desde un productor.
 
 inputs:
   bun-version:
@@ -10,6 +10,10 @@ inputs:
     description: Versión de Node.js a instalar en el runner.
     required: false
     default: "24"
+  save-cache:
+    description: Guardar la caché si falta; activar en un único productor (quality).
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -26,8 +30,9 @@ runs:
       with:
         bun-version: ${{ inputs.bun-version }}
 
-    - name: Cache bun dependencies
-      uses: actions/cache@v6
+    - name: Restore bun dependencies
+      id: bun-cache
+      uses: actions/cache/restore@v6
       with:
         path: ~/.bun/install/cache
         key: ${{ runner.os }}-node-${{ inputs.node-version }}-bun-${{ inputs.bun-version }}-${{ hashFiles('**/bun.lock', '**/package.json') }}
@@ -38,14 +43,11 @@ runs:
       shell: bash
       run: bun install --frozen-lockfile
 
-    # Cache del pre-bundle de Vite/Vitest (node_modules/.vite). Va DESPUÉS de
-    # `bun install` para que la instalación no borre la carpeta restaurada.
-    - name: Cache Vite dependency pre-bundle
-      uses: actions/cache@v6
+    # Guardar inmediatamente después de instalar evita post-steps de caché
+    # en cada consumidor. El job quality mantiene la caché caliente.
+    - name: Save bun dependencies
+      if: inputs.save-cache == 'true' && steps.bun-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
       with:
-        path: node_modules/.vite
-        # Fase 5.6: sin `github.job` en la key — el pre-bundle es idéntico entre
-        # jobs, y separarlo por job hacía que cada uno partiera de cero.
-        key: ${{ runner.os }}-vite-${{ hashFiles('**/bun.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-vite-
+        path: ~/.bun/install/cache
+        key: ${{ steps.bun-cache.outputs.cache-primary-key }}

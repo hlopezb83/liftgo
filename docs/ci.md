@@ -17,7 +17,7 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 | Job | Corre | Qué protege |
 | --- | --- | --- |
 | `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build y **smoke de arranque** |
-| `tests` (matriz 1/4 … 4/4) | siempre | Suite completa de Vitest, repartida en cuatro shards |
+| `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
 | `supabase-lint` | si cambiaron migraciones | GRANT / RLS / POLICY / `search_path` en las migraciones del diff |
@@ -84,18 +84,18 @@ Cubierto por `src/test/smokeConsoleNoise.test.ts`.
 
 
 
-### Vitest en 4 shards + merge
+### Vitest en 6 shards + merge
 
-`tests` es una matriz de cuatro runners (`fail-fast: false`). Cada uno corre su
-porción con `--shard=N/4 --coverage` y `VITEST_SHARD_BLOB=1` (acotado a ese
+`tests` es una matriz de seis runners (`fail-fast: false`). Cada uno corre su
+porción con `--shard=N/6 --coverage` y `VITEST_SHARD_BLOB=1` (acotado a ese
 step), lo que activa el reporter `blob` y desactiva los umbrales parciales: un
 shard ve solo una porción del código, así que medir cobertura ahí sería falso.
 Nunca se usa `--changed` ni `--passWithNoTests`: PR, push y manual corren igual.
 El paralelismo interno de Vitest dentro de cada runner no se toca.
 
 Cada shard sube `.vitest-reports/` como artifact propio
-(`vitest-blob-1` … `vitest-blob-4`, `include-hidden-files: true`,
-`if-no-files-found: error`, 1 día). `tests-merge` descarga los cuatro por
+(`vitest-blob-1` … `vitest-blob-6`, `include-hidden-files: true`,
+`if-no-files-found: error`, 1 día). `tests-merge` descarga los seis por
 nombre explícito —si falta uno, el job falla— y corre `vitest --merge-reports
 --coverage` **sin** `VITEST_SHARD_BLOB`, de modo que los umbrales globales y
 por directorio se evalúan sobre la cobertura consolidada. No se reejecuta la
@@ -103,7 +103,7 @@ suite ni se promedian porcentajes. El artifact final sigue siendo `reports/`
 (7 días).
 
 Tradeoff: menos espera de reloj a cambio de más tiempo acumulado de runners
-(cuatro instalaciones de dependencias y un job extra de merge). La magnitud real
+(seis instalaciones de dependencias y un job extra de merge). La magnitud real
 se mide comparando corridas de CI, no se estima aquí.
 
 
@@ -159,7 +159,7 @@ la API REST ni el gateway. Por eso `supabase start` levanta únicamente
 de servicios. `gotrue` **no** se excluye: migraciones y suites RLS dependen del
 schema `auth` (`auth.users`, `auth.uid()`).
 
-Justo después del arranque, y **antes** del `db reset`, un paso comprueba que
+Justo después del arranque, y antes de aplicar Drizzle, un paso comprueba que
 existan `auth.users` y `auth.uid()`. Si faltan, el job falla ahí: así un
 arranque incompleto no se confunde con una regresión SQL.
 
@@ -170,8 +170,8 @@ diera mejora material, se revierte esa exclusión.
 
 
 Los smoke SQL **también bloquean**. Eran `continue-on-error` por la sospecha de
-que asumían datos de staging; con la base creada desde las migraciones las 42
-suites pasan, así que un rojo aquí es una regresión real. Con eso sobraban el
+que asumían datos de staging; con la base creada desde las migraciones las suites
+pasan, así que un rojo aquí es una regresión real. Con eso sobraban el
 wrapper `check-selfcontained-smoke.py` y la lista `selfcontained.txt`, ambos
 retirados: una excepción que no excluye nada es solo mantenimiento.
 
@@ -188,9 +188,9 @@ solo se dispara cuando cambia algo que afecta SQL/RLS:
   `scripts/check-drizzle-journal.ts`
 - `.github/workflows/rls-db-tests.yml`
 
-Cuando el workflow se dispara, ninguna suite se reduce: corren las 21 suites
-RLS en modo estricto, los smoke SQL bloqueantes, el reset con todas las
-migraciones y la validación del journal Drizzle.
+Cuando el workflow se dispara, ninguna suite se reduce: corren todas las suites
+RLS en modo estricto, los smoke SQL bloqueantes, el arranque sobre una base vacía
+con todas las migraciones y la validación del journal Drizzle.
 
 ## Seguridad y monitoreo
 
@@ -240,15 +240,10 @@ bun run test:functions          # tests Deno offline
 bun run knip:deep               # exports/tipos sin uso (informativo)
 ```
 
-## Versión y artefactos de release (nota de mantenimiento)
+## Versión y artefactos de release
 
-El trabajo sobre CI **no** publica release. Se retiró la entrada y el archivo
-`public/changelog/v8.2.0.json` que este trabajo había añadido y se restauraron
-los artefactos de release al estado de referencia: `package.json` en `7.420.0`
-y `public/changelog.json` / `public/version.json` en `8.1.0`. Esa discrepancia
-entre `package.version` y el changelog es **previa** y se deja tal cual: no se
-resuelve inventando un release. Los cambios de CI se documentan solo aquí, no
-en el changelog de la app.
+Los cambios de CI se documentan aquí. No añaden una versión ficticia ni cambian
+los artefactos de release de la aplicación.
 
 ## Herramienta de CI (nota de mantenimiento)
 
@@ -256,3 +251,46 @@ GitHub Actions instala Bun 1.4.2 y Node 24 vía `.github/actions/setup-bun-proje
 con `bun install --frozen-lockfile`. El pin exacto de Bun se actualiza mediante un
 lote validado en CI (no Dependabot). Las suites completas, cobertura, build real y
 smoke se ejecutan únicamente en GitHub Actions.
+
+
+## Optimización medida · 2026-10-01
+
+Muestra: los dos últimos CI y RLS aprobados; dos A/B aprobados sin reintento.
+Se comparan duraciones de jobs/steps, no sólo updated_at del workflow (que puede
+incluir colas, checks adicionales y reintentos). Referencias: [CI](https://github.com/hlopezb83/liftgo/actions/runs/36944374652), [RLS](https://github.com/hlopezb83/liftgo/actions/runs/36944374706) y [A/B](https://github.com/hlopezb83/liftgo/actions/runs/36944374794).
+
+| Carril | Antes, muestra | Decisión |
+| --- | --- | --- |
+| Vitest, shard más lento | 160–166 s + merge 45–48 s | Seis shards, suite completa y seis blobs obligatorios |
+| Calidad | 143–165 s | Conservar lint, tipos, arquitectura, build y smoke real |
+| RLS | 261–275 s; pruebas SQL ~10 s | Un runner; quitar reset duplicado de 31–32 s |
+| A/B | 322–329 s; pruebas 29–31 s | Un runner; quitar reset duplicado de 43–49 s y restaurar Chromium |
+
+El arranque de la CLI 2.34.0 sobre un volumen nuevo ya inicializa los schemas y
+aplica el historial. Véase [StartDatabase y SetupLocalDatabase](https://github.com/supabase/cli/blob/v2.34.0/internal/db/start/start.go).
+scripts/ci_database.py exige GitHub Actions y el DB_URL loopback exacto,
+rechaza volúmenes/contenedores previos, deshabilita el seed sólo en el checkout
+del runner y compara todas las versiones aplicadas con los archivos. No restaura
+snapshots ni cachea datos. Drizzle sigue aplicándose desde su journal oficial.
+Los smoke SQL no intentan ejecutarse si falló la preparación o Drizzle.
+
+La caché de Bun ahora se restaura en consumidores; sólo quality guarda una clave
+ausente, inmediatamente después de instalar. Se elimina la caché de Vite de
+475 bytes (sin prebundle útil) y el caché externo de CLI cuya ruta no usa la
+action actual. Chromium se comparte entre quality y A/B por versión de Playwright;
+las dependencias del sistema se instalan en cada runner. No se cachea node_modules
+ni se omite bun install --frozen-lockfile.
+
+No se aumentan shards de RLS o A/B: repetir ~160 s de bootstrap para repartir
+10–30 s de pruebas empeora el costo y aporta poco. Tampoco se paralelizan suites
+SQL sobre una misma BD: comparten locks y fixtures. Los siete workflows actuales
+se conservan; seguridad, monitoreo y restore manual tienen propósitos distintos.
+
+El análisis IA de GitHub es una integración dinámica, no un YAML del repositorio.
+Los errores HTTP 402 corresponden a cuota agotada y no se corrigen quitando
+CodeQL, Gitleaks o dependency-review.
+
+Los tiempos posteriores y minutos acumulados de runners deben contrastarse con
+esta muestra. Seis shards suman dos instalaciones/runners; si no reducen la espera
+por colas o desbalance, se vuelve a cuatro. El número de pruebas y los umbrales
+de cobertura se conservan.

@@ -1,9 +1,8 @@
 name: RLS DB tests
 
 # Fase 2 de supabase/tests/rls/README.md (TESTS-RLS-PHASE2).
-# Levanta un Supabase local efímero, aplica las ~400 migraciones desde cero
-# (esto valida además que apliquen limpio y en orden) y corre las 21 suites
-# RLS SQL con roles/JWT reales, más los smoke SQL de supabase/tests/.
+# Levanta una base local vacía sin seed: start aplica el historial una vez.
+# Verifica cada versión aplicada y corre todas las suites RLS y smoke SQL.
 #
 # Disparadores acotados (ver docs/ci.md): los cambios de supabase/functions/**
 # no levantan Supabase completo —esos los valida deno-functions (deno fmt/lint,
@@ -20,6 +19,12 @@ on:
       - "supabase/config.toml"
       - "drizzle/migrations/**"
       - "scripts/run_sql_suites.py"
+      - "scripts/ci_database.py"
+      - "scripts/tests/test_ci_database.py"
+      - ".github/actions/setup-bun-project/**"
+      - "drizzle.config.ts"
+      - "bun.lock"
+      - "package.json"
       - "scripts/patch_legacy_migrations.py"
       - "scripts/check-drizzle-journal.ts"
       - ".github/workflows/rls-db-tests.yml"
@@ -31,6 +36,12 @@ on:
       - "supabase/config.toml"
       - "drizzle/migrations/**"
       - "scripts/run_sql_suites.py"
+      - "scripts/ci_database.py"
+      - "scripts/tests/test_ci_database.py"
+      - ".github/actions/setup-bun-project/**"
+      - "drizzle.config.ts"
+      - "bun.lock"
+      - "package.json"
       - "scripts/patch_legacy_migrations.py"
       - "scripts/check-drizzle-journal.ts"
       - ".github/workflows/rls-db-tests.yml"
@@ -64,14 +75,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Caché del binario de la CLI: setup-cli lo descarga de GitHub Releases
-      # en cada run; la clave incluye la versión pineada para invalidar al subir.
-      - name: Cache Supabase CLI
-        uses: actions/cache@v6
-        with:
-          path: ~/.local/share/supabase-cli
-          key: ${{ runner.os }}-supabase-cli-2.34.0
-
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
@@ -96,6 +99,9 @@ jobs:
       - name: Parchar migraciones fuera de orden (solo en el runner)
         run: python3 scripts/patch_legacy_migrations.py
 
+      - name: Exigir base vacía y deshabilitar seed local
+        run: python3 scripts/ci_database.py prepare
+
       - name: Start Supabase (DB + auth, sin gateway ni PostgREST)
         continue-on-error: false
         timeout-minutes: 15
@@ -114,8 +120,8 @@ jobs:
           # devolver salida parcial y no debe tumbar el job.
           supabase status || echo "supabase status parcial (servicios excluidos)"
 
-      # Gate temprano: si el schema auth no quedó disponible, fallar ANTES del
-      # db reset (las migraciones y las suites RLS dependen de auth.users y
+      # Gate temprano: si el schema auth no quedó disponible, fallar tras el
+      # arranque (las migraciones y las suites RLS dependen de auth.users y
       # auth.uid()). Así un arranque incompleto se distingue de una regresión SQL.
       - name: Verificar schema auth disponible
         run: |
@@ -149,21 +155,11 @@ jobs:
 
 
 
-      # `db reset` re-crea la DB y reaplica TODAS las migraciones en orden:
-      # si alguna migración no aplica limpio desde cero, el job falla aquí.
-      - name: Reset DB (aplica todas las migraciones desde cero)
-        run: supabase db reset --no-seed
-
+      # start ya aplicó el historial sobre el volumen nuevo. Comparamos las
+      # versiones exactas; un reset adicional repetiría todo el arranque SQL.
       - name: Verificar migraciones aplicadas
-        run: |
-          set -euo pipefail
-          APPLIED=$(psql "$DB_URL" -Atc "select count(*) from supabase_migrations.schema_migrations")
-          FILES=$(find supabase/migrations -name '*.sql' | wc -l | tr -d ' ')
-          echo "Migraciones aplicadas: $APPLIED / archivos: $FILES"
-          if [[ "$APPLIED" -lt "$FILES" ]]; then
-            echo "::error::Se aplicaron $APPLIED migraciones de $FILES archivos"
-            exit 1
-          fi
+        id: database-verified
+        run: python3 scripts/ci_database.py verify
 
       # Drizzle debe aplicar desde su propio journal, no solo desde la lista
       # de archivos. Así el job valida que el mismo carril del rollout encuentra
@@ -175,6 +171,7 @@ jobs:
         run: bun run migrations:check
 
       - name: Aplicar migraciones Drizzle con drizzle-kit
+        id: drizzle
         run: |
           set -euo pipefail
           export LOVABLE_DB_MIGRATION_URL="$DB_URL"
@@ -203,7 +200,7 @@ jobs:
       # una regresión real, no datos ausentes.
       - name: Smoke SQL (supabase/tests/*.sql)
         id: smoke
-        if: always()
+        if: always() && steps.database-verified.outcome == 'success' && steps.drizzle.outcome == 'success'
         run: |
           python3 scripts/run_sql_suites.py \
             --db-url "$DB_URL" \

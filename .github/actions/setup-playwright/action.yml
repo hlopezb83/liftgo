@@ -1,0 +1,42 @@
+name: Setup Playwright Chromium
+description: Restaurar Chromium de la versión instalada e instalar las librerías del sistema.
+
+inputs:
+  save-cache:
+    description: Guardar una caché ausente desde el productor quality.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Resolver versión de Playwright
+      id: pw-version
+      shell: bash
+      run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+    - name: Restaurar Chromium
+      id: browser-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
+
+    - name: Instalar Chromium y dependencias del sistema
+      shell: bash
+      env:
+        BROWSER_CACHE_HIT: ${{ steps.browser-cache.outputs.cache-hit }}
+      run: |
+        set -euo pipefail
+        if [[ "$BROWSER_CACHE_HIT" == "true" ]]; then
+          bunx playwright install-deps chromium
+        else
+          bunx playwright install --with-deps chromium
+        fi
+
+    - name: Guardar Chromium
+      if: inputs.save-cache == 'true' && steps.browser-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ steps.browser-cache.outputs.cache-primary-key }}
