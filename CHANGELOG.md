@@ -1,5 +1,11 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.43] - 2026-10-02 · patch · fix
+
+Un fallo momentáneo al revisar el acceso de plataforma ya no borra el panel de inicio.
+
+- Si ya había una respuesta válida, se conserva mientras se reintenta en segundo plano.
+
 ## [8.42.40] - 2026-10-01 · patch · feature
 
 El Centro de Plataforma permite revisar nuevos maestros desde Org 1 antes de compartirlos con las empresas LiftGo.
