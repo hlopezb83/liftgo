@@ -109,13 +109,14 @@ navegador ── server function ── requirePlatformOperator ── RPC platf
 ### Bootstrap seguro del primer operador
 
 No hay forma de volverse operador desde la aplicación. El primer operador se
-asigna una sola vez con el canal privilegiado (`service_role`), nombrando al
-usuario de forma explícita:
+asigna una sola vez por el dueño de la base en el canal SQL de Lovable Cloud,
+nombrando al usuario de forma explícita. Desde 0091, `service_role` no tiene
+INSERT/UPDATE/DELETE/TRUNCATE directos sobre las asignaciones:
 
 ```sql
 -- Ejecutado por el propietario del proyecto con el canal privilegiado.
-INSERT INTO public.platform_operators (auth_user_id, notes)
-VALUES ('<uuid del usuario>', 'Operador raíz: alta manual autorizada')
+INSERT INTO public.platform_operators (auth_user_id, access_profile, notes)
+VALUES ('<uuid del usuario>', 'root', 'Operador raíz: alta manual autorizada')
 ON CONFLICT (auth_user_id) DO NOTHING;
 ```
 
@@ -123,7 +124,9 @@ A partir de ahí la alta y baja son explícitas y auditables:
 `platform_grant_operator(p_actor, p_user_id, p_notes)` y
 `platform_revoke_operator(p_actor, p_user_id)` (ambas sólo `service_role`,
 ambas exigen `assert_platform_operator(p_actor)`; nadie puede retirarse la
-autoridad a sí mismo).
+autoridad a sí mismo). Desde 0091 esa comprobación legacy exige raíz; los
+perfiles delegados no pueden conceder autoridad global. Triggers serializan
+cambios y protegen al último raíz activo, incluidas desactivaciones y cascadas.
 
 - `is_platform_operator()` (SECURITY DEFINER, `authenticated`): responde sólo
   por el usuario autenticado. La UI lo usa para **mostrar** la sección; nunca es
@@ -131,15 +134,18 @@ autoridad a sí mismo).
 - `platform_create_organization`, `platform_attach_first_admin`,
   `platform_discard_organization`, `platform_set_organization_active`,
   `platform_list_organizations`: sólo `service_role`; cada una exige
-  `assert_platform_operator(p_actor)`. `authenticated` y `anon` no tienen
+  su capacidad específica de 0091; el descarte legacy sigue limitado a raíz.
+  `authenticated` y `anon` no tienen
   EXECUTE (verificado por `multi_org_onboarding.sql`).
 - `requirePlatformOperator` (`adminGuards.server.ts`): exige
-  `is_platform_operator() = true` con el cliente del propio usuario. Ese RPC
+  `has_platform_capability(acción) = true` con el cliente del propio usuario.
+  Ese RPC
   verifica asignación explícita y perfil activo, independientemente del rol,
   membresía o estado de una empresa. Cualquier error responde 503
   (fail-closed); sólo después se carga el cliente privilegiado.
 - El [Centro de Plataforma](../platform-center.md) usa `/platform` con su propio
-  guard y caché en memoria por actor. Las operaciones del ERP y del portal
+  guard y caché en memoria por actor y revisión de permisos. `get_platform_access()`
+  devuelve únicamente el perfil/capacidades propios. Las operaciones del ERP y del portal
   siguen exigiendo membresía y empresa activa mediante sus guards originales.
 
 ## Alta de una empresa (`createOrganizationFn`)
