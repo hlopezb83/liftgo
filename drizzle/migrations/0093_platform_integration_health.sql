@@ -110,7 +110,7 @@ BEGIN
     WHERE cs.organization_id=p_org;
   IF v_mode IS NULL OR v_mode NOT IN ('test','live') OR nullif(btrim(v_key),'') IS NULL THEN
     v_preflight:='unconfigured'; v_key:=NULL;
-  ELSIF left(v_key,8)<>CASE v_mode WHEN 'test' THEN 'sk_test_' ELSE 'sk_live_' END THEN
+  ELSIF left(v_key,8)<>(CASE v_mode WHEN 'test' THEN 'sk_test_' ELSE 'sk_live_' END) THEN
     v_preflight:='invalid_key_mode'; v_key:=NULL;
   ELSIF EXISTS(SELECT 1 FROM public.billing_secrets WHERE organization_id<>p_org
     AND (facturapi_test_key=v_key OR facturapi_live_key=v_key)) THEN
