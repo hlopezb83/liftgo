@@ -25,12 +25,13 @@ operadores; las cuentas sin autoridad global conservan la restricción existente
 ## Autorización
 
 - Ser `admin` de una empresa no concede permisos globales.
-- `requirePlatformOperator` consulta `is_platform_operator()` con el cliente
+- `requirePlatformOperator` consulta `has_platform_capability(acción)` con el cliente
   autenticado antes de cargar el cliente privilegiado. El RPC valida la fila
   explícita de `platform_operators` y `profiles.is_active`; no depende de una
   membresía o empresa activa.
 - Cada RPC privilegiado vuelve a comprobar al actor con
-  `assert_platform_operator(p_actor)`. Se mantienen ACL, límites de uso y
+  `assert_platform_capability(p_actor, acción)`. Los caminos legacy no
+  clasificados exigen raíz. Se mantienen ACL, límites de uso y
   alta durable. La UI no es una barrera de seguridad.
 - El ERP y el portal siguen usando sus guards de rol y empresa. El enlace
   «ERP de mi empresa» no permite seleccionar otra empresa ni suplantar usuarios.
@@ -40,14 +41,14 @@ operadores; las cuentas sin autoridad global conservan la restricción existente
 ## Caché y sesiones
 
 Las rutas `/platform` no montan `OrganizationProvider` ni persistencia de datos
-empresariales. Usan un `QueryClient` en memoria separado por usuario. Cambiar
+empresariales. Usan un `QueryClient` en memoria separado por usuario y revisión de permisos. Cambiar
 cuenta o cerrar sesión desmonta sus formularios, cancela consultas y limpia el
 cliente anterior; las respuestas tardías no se incorporan a la nueva sesión.
 Al entrar se purgan las cachés empresariales persistidas. No se persisten los
 resultados de plataforma. Al volver al ERP se verifica nuevamente la identidad
 empresarial antes de restaurar su caché.
 
-El estado del operador se revalida al enfocar y periódicamente (60 segundos).
+El estado del operador se revalida al enfocar y periódicamente (30 segundos).
 Una denegación o error de verificación oculta el contenido. Cada acción del
 servidor verifica la autorización actual incluso entre esas revalidaciones.
 La carga prolongada muestra reintento después de ocho segundos.
@@ -168,8 +169,10 @@ y [código oficial de Auth, adminUserCreate](https://github.com/supabase/auth/bl
 
 ## Siguientes etapas
 
-1. Administración de operadores con permisos específicos, MFA y recuperación
-   segura. Actualmente sólo existe la autoridad explícita global.
+1. Administración de operadores desde el portal, sesiones, reautenticación con
+   contraseña y recuperación segura. Los permisos específicos ya cuentan con
+   fundamento SQL/servidor/UI en 0091. Por decisión de producto no se usará MFA;
+   no es un requisito de publicación.
 2. Estado de integraciones y fallos por empresa, sin exponer secretos.
 3. Métricas del ecosistema con filtros territoriales, monedas comparables y
    exclusión identificable de datos de prueba en métricas comerciales.
@@ -222,3 +225,43 @@ que se haya ejecutado una incorporación real por UI.
 Los locks por solicitud, origen e identidad complementan índices únicos y locks
 de fila; no prometen que un escritor externo participe del protocolo de locks.
 Referencia: [bloqueos de PostgreSQL](https://www.postgresql.org/docs/current/explicit-locking.html).
+
+## Permisos específicos y último raíz (8.42.41 / 0091)
+
+| Perfil | Autoridad global |
+| --- | --- |
+| Raíz | Todas las acciones clasificadas, incluidas futuras altas de operadores |
+| Gestión de empresas | Listar/ficha, alta reanudable, suspensión y reactivación |
+| Catálogos y documentos | Modelos/SKUs, incorporaciones, publicación y asignación legal |
+| Soporte | Resumen de empresas y consulta de modelos/SKUs, sin ficha privada |
+| Observador | Resúmenes, modelos/SKUs, machotes y bitácora, sin mutaciones |
+
+La matriz fija se define en SQL. El acceso propio devuelve perfil, revisión y
+capacidades mediante un RPC autenticado; no acepta otro actor. Todas las
+acciones privilegiadas vuelven a comprobar la capacidad en SQL. Las políticas
+RLS de maestros también distinguen lectura/escritura y conservan la consulta
+empresarial de datos compartidos activos. El servicio sólo lee directamente
+las asignaciones; los cambios deben pasar por RPCs privilegiados.
+
+El operador explícito existente conserva su autoridad raíz. La migración no
+crea cuentas ni promueve administradores empresariales. La administración de
+perfiles desde UI queda para el siguiente bloque, después de sesiones y
+reautenticación; no se habilita todavía una pantalla de altas de operadores.
+
+Un marcador serializa cambios de asignación, activación de perfiles y borrados
+de identidad. Triggers protegen el último raíz activo en degradación, revocación,
+desactivación y cascadas de Auth. Dos transacciones concurrentes no pueden
+retirar ambos raíces; READ COMMITTED verifica después de esperar y REPEATABLE
+READ falla por serialización ante un snapshot anterior. TRUNCATE se rechaza.
+La revisión aumenta incluso tras revocar y volver a conceder acceso, evitando
+reutilizar una caché anterior. Actor/revisión nueva desmonta formularios,
+cancela consultas y vacía el cliente anterior. Las rutas y controles sin
+permiso no se montan. Ninguna acción depende sólo de esa visibilidad.
+
+Pruebas: denegación de capacidad antes del cliente privilegiado, perfil sin
+ámbito, retiro de borradores/caché, matriz SQL real, escritura directa RLS,
+perfiles inactivos y continuidad del raíz. CI agrega dos sesiones PostgreSQL
+concurrentes en su BD local efímera; ese script rechaza URLs de Cloud. Los
+fixtures antiguos incorporan un respaldo explícito para probar revocación sin
+desactivar la protección. El rollout requiere CI/RLS/A-B verdes, preflight de
+0090, aplicación de 0091 con hash/fecha del journal y publicación del SHA probado.

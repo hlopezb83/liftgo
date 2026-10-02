@@ -77,6 +77,7 @@ DECLARE
     'platform_audit_events',
     'platform_onboarding_requests', -- 0089: solicitudes sólo vía RPC de operador
     'platform_catalog_import_source', -- 0090: origen global fijo, sin acceso cliente
+    'platform_operator_guard', -- 0091: exclusión mutua de cambios, sólo SELECT servicio
     'platform_catalog_imports' -- 0090: recibos globales inmutables sólo vía RPC
   ];
   r record;
@@ -198,7 +199,7 @@ BEGIN
             v_fallas := v_fallas || 'platform_audit_events: exige sólo SELECT/INSERT de service_role';
           END IF;
         ELSIF r.table_name = ANY (ARRAY['platform_onboarding_requests',
-            'platform_catalog_import_source','platform_catalog_imports']) THEN
+            'platform_catalog_import_source','platform_catalog_imports','platform_operator_guard']) THEN
           IF v_grants_service <> 1 OR has_table_privilege('service_role',
               'public.' || r.table_name,'INSERT,UPDATE,DELETE,TRUNCATE') THEN
             v_fallas := v_fallas || format('%s: exige sólo SELECT de service_role',r.table_name);

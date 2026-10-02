@@ -21,10 +21,13 @@ import {
 } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
+import { PLATFORM_PROFILE_LABELS } from "@/lib/platformAccess.types";
 import { useLocation } from "@/lib/router-compat";
 import { Link, Outlet } from "@/lib/router-compat-ui";
 import { setAppVersion } from "@/lib/ui/errorReport";
 import { cn } from "@/lib/utils";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
+import { canAccessPlatformRoute } from "../hooks/usePlatformAccess";
 import { ORGANIZATION_WORKSPACE } from "../lib/platformNavigation";
 
 const NAV = [
@@ -35,6 +38,7 @@ const NAV = [
 ];
 
 export function PlatformLayout() {
+  const { access } = usePlatformCapabilities();
   const { pathname } = useLocation();
   const { user, signOut } = useAuth();
   const version = useCurrentVersion();
@@ -52,7 +56,7 @@ export function PlatformLayout() {
   function navigation() {
     return (
       <nav aria-label="Centro de Plataforma" className="space-y-1 p-3">
-        {NAV.map(({ to, label, icon: Icon }) => {
+        {NAV.filter((item) => access && canAccessPlatformRoute(access, item.to)).map(({ to, label, icon: Icon }) => {
           const active =
             pathname.replace(/\/$/, "") === to ||
             (to !== "/platform" && pathname.startsWith(`${to}/`));
@@ -118,7 +122,7 @@ export function PlatformLayout() {
       </aside>
       <div className="min-w-0 md:pl-64">
         <header className="sticky top-0 z-20 flex min-h-16 flex-wrap items-center justify-between gap-3 border-b bg-background/95 px-4 py-3 backdrop-blur sm:px-6">
-          <div className="flex min-w-0 items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
               <SheetTrigger asChild>
                 <Button
@@ -155,7 +159,7 @@ export function PlatformLayout() {
             <span className="text-sm font-medium">{title}</span>
             <Badge variant="outline" className="gap-1">
               <SecurityIcon className="h-3 w-3" />
-              Global
+              {access?.profile ? PLATFORM_PROFILE_LABELS[access.profile] : "Plataforma"}
             </Badge>
           </div>
           <Button asChild variant="outline" size="sm">

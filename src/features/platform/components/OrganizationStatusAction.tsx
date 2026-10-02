@@ -11,6 +11,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { organizationStatusReasonSchema } from "@/lib/platformOrganizationStatus.types";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { useSetOrganizationActive } from "../hooks/usePlatformOperator";
 
 export function OrganizationStatusAction({
@@ -27,12 +28,14 @@ export function OrganizationStatusAction({
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
   const mutation = useSetOrganizationActive();
+  const { can } = usePlatformCapabilities();
   const label = active ? "Suspender" : "Reactivar";
   function close(next: boolean) {
     if (mutation.isPending) return;
     setOpen(next);
     if (!next) setReason("");
   }
+  if (!can(active ? "organizations.suspend" : "organizations.resume")) return null;
   return (
     <>
       <Button

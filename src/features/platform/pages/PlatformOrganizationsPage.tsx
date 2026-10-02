@@ -14,6 +14,7 @@ import {
   CreatedResultDialog,
 } from "../components/PlatformOrganizationDialogs";
 import { PlatformOrganizationList } from "../components/PlatformOrganizationList";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 
 const PAGE_SIZE = 20;
@@ -24,7 +25,8 @@ const normalize = (value: string) =>
     .toLowerCase();
 
 export default function PlatformOrganizationsPage() {
-  const query = usePlatformOrganizations(true);
+  const { can } = usePlatformCapabilities();
+  const query = usePlatformOrganizations(can("organizations.read"));
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(0);
@@ -58,13 +60,13 @@ export default function PlatformOrganizationsPage() {
         title="Empresas"
         subtitle="Configuración, administradores, habilitación y actividad del ecosistema LiftGo."
         actions={
-          <Button onClick={() => setCreateOpen(true)}>
+          can("organizations.create") && <Button onClick={() => setCreateOpen(true)}>
             <CompanyIcon className="mr-2 h-4 w-4" />
             Nueva empresa
           </Button>
         }
       />
-      <PendingPlatformOnboarding onCompleted={setCreated} />
+      {can("organizations.create") && <PendingPlatformOnboarding onCompleted={setCreated} />}
       <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
         <div className="space-y-2">
           <Label htmlFor="platform-company-search">Buscar empresa</Label>
@@ -151,11 +153,11 @@ export default function PlatformOrganizationsPage() {
         La ficha permite revisar la configuración sin entrar al ERP de otra
         empresa. Sin acceso incluye suspensión o alta pendiente de completar.
       </p>
-      <CreateOrganizationDialog
+      {can("organizations.create") && <CreateOrganizationDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={setCreated}
-      />
+      />}
       <CreatedResultDialog result={created} onClose={() => setCreated(null)} />
     </div>
   );

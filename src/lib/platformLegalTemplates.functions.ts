@@ -68,7 +68,7 @@ export const listPlatformLegalTemplatesFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformLegalTemplateRow[]> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "templates.read");
     const { data, error } = await g.asUntypedRpc(admin).rpc(
       "platform_list_legal_templates",
       { p_actor: userId },
@@ -99,7 +99,7 @@ export const listPlatformLegalTemplateVersionsFn = createServerFn({ method: "GET
   .handler(async ({ data, context }): Promise<PlatformLegalTemplateVersion[]> => {
     const g = await import("./server/adminGuards.server");
     if (!g.isUUID(data.definition_id)) throw new g.HttpError(400, "Plantilla inválida");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "templates.read");
     const result = await g.asUntypedRpc(admin).rpc("platform_list_legal_template_versions", {
       p_actor: userId,
       p_definition_id: data.definition_id,
@@ -123,7 +123,7 @@ export const listPlatformLegalTemplateAssignmentsFn = createServerFn({ method: "
   .handler(async ({ data, context }): Promise<PlatformLegalTemplateAssignment[]> => {
     const g = await import("./server/adminGuards.server");
     if (!g.isUUID(data.definition_id)) throw new g.HttpError(400, "Plantilla inválida");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "templates.assign");
     const result = await g.asUntypedRpc(admin).rpc("platform_list_legal_template_assignments", {
       p_actor: userId,
       p_definition_id: data.definition_id,
@@ -149,7 +149,7 @@ export const publishPlatformLegalTemplateVersionFn = createServerFn({ method: "P
   .handler(async ({ data, context }): Promise<PublishLegalTemplateVersionResult> => {
     const g = await import("./server/adminGuards.server");
     validatePublish(g, data);
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "templates.publish");
     await g.enforceRateLimit(admin, "platform-publish-legal-template", userId, 10, 300);
     const result = await g.asUntypedRpc(admin).rpc("platform_publish_legal_template_version", {
       p_actor: userId,
@@ -176,7 +176,7 @@ export const assignPlatformLegalTemplateVersionFn = createServerFn({ method: "PO
     if (![data.organization_id, data.definition_id, data.version_id].every(g.isUUID)) {
       throw new g.HttpError(400, "Asignación legal inválida");
     }
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "templates.assign");
     await g.enforceRateLimit(admin, "platform-assign-legal-template", userId, 30, 60);
     const { error } = await g.asUntypedRpc(admin).rpc("platform_assign_legal_template_version", {
       p_actor: userId,

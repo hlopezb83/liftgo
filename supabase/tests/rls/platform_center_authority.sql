@@ -23,6 +23,16 @@ DELETE FROM public.user_roles WHERE user_id = 'c1000000-0000-4000-8000-000000000
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('c1000000-0000-4000-8000-000000000002', 'admin')
 ON CONFLICT (user_id) DO UPDATE SET role = 'admin';
+-- Una segunda autoridad explícita permite probar desactivación/revocación
+-- del actor principal sin debilitar el invariante del último raíz (0091).
+INSERT INTO auth.users(id,email,created_at,updated_at) VALUES
+ ('91b00000-0000-4000-8000-000000000001','backup-root-ci@example.com',now(),now());
+INSERT INTO public.profiles(user_id,full_name,is_active) VALUES
+ ('91b00000-0000-4000-8000-000000000001','Raíz de respaldo CI',true)
+ ON CONFLICT(user_id) DO UPDATE SET is_active=true;
+INSERT INTO public.platform_operators(auth_user_id,access_profile) VALUES
+ ('91b00000-0000-4000-8000-000000000001','root');
+
 INSERT INTO public.platform_operators (auth_user_id, notes) VALUES
   ('c1000000-0000-4000-8000-000000000001', 'Fixture explícito de CI');
 

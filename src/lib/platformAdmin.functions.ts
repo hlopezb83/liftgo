@@ -57,10 +57,7 @@ export const listOrganizationsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformOrganizationRow[]> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "organizations.read");
 
     const { data, error } = await g
       .asUntypedRpc(admin)
@@ -110,10 +107,7 @@ export const createOrganizationFn = createServerFn({ method: "POST" })
   .validator((data: CreateOrganizationInput) => data)
   .handler(async ({ data, context }): Promise<PlatformOnboardingResult> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "organizations.create");
     const input = platformOnboardingInputSchema.safeParse(data);
     if (!input.success)
       throw new g.HttpError(400, "Datos de incorporación inválidos");
@@ -148,10 +142,7 @@ export const setOrganizationActiveFn = createServerFn({ method: "POST" })
   .validator((data: SetOrganizationActiveInput) => data)
   .handler(async ({ data, context }): Promise<{ success: true }> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId: actorId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId: actorId } = await g.requirePlatformOperator(context.supabase, context.userId, data?.active === true ? "organizations.resume" : "organizations.suspend");
     await g.enforceRateLimit(
       admin,
       "platform-set-organization-active",

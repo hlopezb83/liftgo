@@ -55,10 +55,7 @@ export const listPlatformEquipmentModelsFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformEquipmentModelRow[]> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "catalogs.read");
     const { data, error } = await g.asUntypedRpc(admin).rpc(
       "platform_list_equipment_model_catalog",
       { p_actor: userId },
@@ -86,10 +83,7 @@ export const savePlatformEquipmentModelFn = createServerFn({ method: "POST" })
   .validator((data: EquipmentModelCatalogInput) => data)
   .handler(async ({ data, context }): Promise<{ id: string }> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "catalogs.write");
     await g.enforceRateLimit(admin, "platform-save-equipment-model", userId, 20, 60);
     validateModel(g, data);
     const rpc = g.asUntypedRpc(admin);
@@ -114,10 +108,7 @@ export const setPlatformEquipmentModelActiveFn = createServerFn({ method: "POST"
   .validator((data: SetEquipmentModelCatalogActiveInput) => data)
   .handler(async ({ data, context }): Promise<{ success: true }> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "catalogs.write");
     if (!g.isUUID(data.id) || typeof data.active !== "boolean") {
       throw new g.HttpError(400, "Datos de modelo inválidos");
     }
@@ -164,10 +155,7 @@ export const listPlatformPartsCatalogFn = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<PlatformPartCatalogRow[]> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "catalogs.read");
     const { data, error } = await g.asUntypedRpc(admin).rpc(
       "platform_list_parts_catalog",
       { p_actor: userId },
@@ -200,10 +188,7 @@ export const savePlatformPartCatalogFn = createServerFn({ method: "POST" })
   .validator((data: PartCatalogInput) => data)
   .handler(async ({ data, context }): Promise<{ id: string }> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "catalogs.write");
     await g.enforceRateLimit(admin, "platform-save-part-catalog", userId, 20, 60);
     validatePart(g, data);
     const rpc = g.asUntypedRpc(admin);
@@ -228,10 +213,7 @@ export const setPlatformPartCatalogActiveFn = createServerFn({ method: "POST" })
   .validator((data: SetPartCatalogActiveInput) => data)
   .handler(async ({ data, context }): Promise<{ success: true }> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "catalogs.write");
     if (!g.isUUID(data.id) || typeof data.active !== "boolean") {
       throw new g.HttpError(400, "Datos de SKU inválidos");
     }

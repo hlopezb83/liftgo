@@ -10,9 +10,11 @@ import { Link } from "@/lib/router-compat-ui";
 import { OrganizationConfigurationCards } from "../components/OrganizationConfigurationCards";
 import { OrganizationReadinessCard } from "../components/OrganizationReadinessCard";
 import { OrganizationStatusAction } from "../components/OrganizationStatusAction";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformOrganizationDetail } from "../hooks/usePlatformReadModels";
 
 export default function PlatformOrganizationDetailPage() {
+  const { can } = usePlatformCapabilities();
   const { organizationId = "" } = useParams<{ organizationId: string }>();
   const query = usePlatformOrganizationDetail(organizationId);
   const detail = query.data;
@@ -83,12 +85,12 @@ export default function PlatformOrganizationDetailPage() {
             {org.slug}
           </span>
         </div>
-        <Button asChild variant="outline" size="sm">
+        {can("audit.read") && <Button asChild variant="outline" size="sm">
           <Link to={`/platform/audit?organization=${org.id}`}>
             <HistoryIcon className="mr-2 h-4 w-4" />
             Ver actividad de plataforma
           </Link>
-        </Button>
+        </Button>}
       </div>
       {!org.is_active && (
         <Alert>

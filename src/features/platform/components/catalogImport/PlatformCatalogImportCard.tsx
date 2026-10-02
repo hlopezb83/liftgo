@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import type { CatalogImportKind, CatalogImportSummary } from "@/lib/platformCatalogImport.types";
+import { usePlatformCapabilities } from "../../hooks/usePlatformAccess";
 import { useCatalogImportCandidates } from "../../hooks/usePlatformCatalogImport";
 import { CATALOG_IMPORT_STATUS } from "../../lib/catalogImportPresentation";
 import { CatalogImportReviewDialog } from "./CatalogImportReviewDialog";
@@ -41,7 +42,8 @@ function CatalogImportCandidates({ kind }: { kind: CatalogImportKind }) {
 }
 
 export function PlatformCatalogImportCard() {
-  const [kind, setKind] = useState<CatalogImportKind>("model");
+  const { can } = usePlatformCapabilities();
+  const [kind, setKind] = useState<CatalogImportKind>(can("catalogs.import") ? "model" : "template");
   return <Card>
     <CardHeader><CardTitle>Incorporar desde Org 1</CardTitle>
       <CardDescription>Revisa nuevas fichas, coincidencias y contenido antes de compartirlos con el ecosistema LiftGo.</CardDescription></CardHeader>
@@ -49,7 +51,7 @@ export function PlatformCatalogImportCard() {
       <div className="max-w-xs space-y-2"><Label htmlFor="catalog-import-kind">Tipo de maestro</Label>
         <select id="catalog-import-kind" value={kind} onChange={(event) => setKind(event.target.value as CatalogImportKind)}
           className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-          <option value="model">Modelos de equipos</option><option value="part">SKUs de refacciones</option><option value="template">Machotes de contrato y pagaré</option>
+          {can("catalogs.import") && <><option value="model">Modelos de equipos</option><option value="part">SKUs de refacciones</option></>}{can("templates.import") && <option value="template">Machotes de contrato y pagaré</option>}
         </select>
       </div>
       <CatalogImportCandidates key={kind} kind={kind} />

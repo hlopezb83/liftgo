@@ -12,10 +12,7 @@ export const getPlatformOrganizationDetailFn = createServerFn({ method: "GET" })
   .validator((data: PlatformOrganizationDetailInput) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "organizations.details");
     const input = platformOrganizationDetailInputSchema.safeParse(data);
     if (!input.success)
       throw new g.HttpError(400, "Identificador de empresa inválido");

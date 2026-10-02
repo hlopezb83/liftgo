@@ -16,10 +16,12 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/lib/router-compat-ui";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 
 export default function PlatformDashboardPage() {
-  const organizations = usePlatformOrganizations(true);
+  const { can } = usePlatformCapabilities();
+  const organizations = usePlatformOrganizations(can("organizations.read"));
   const rows = organizations.data;
   const stats = [
     { label: "Empresas registradas", value: rows?.length },
@@ -38,7 +40,7 @@ export default function PlatformDashboardPage() {
         title="Centro de Plataforma"
         subtitle="Administra el ecosistema LiftGo y sus datos compartidos."
       />
-      {organizations.isError ? (
+      {can("organizations.read") && (organizations.isError ? (
         <QueryErrorState
           entity="las empresas"
           onRetry={() => void organizations.refetch()}
@@ -65,11 +67,12 @@ export default function PlatformDashboardPage() {
             </Card>
           ))}
         </section>
-      )}
+      ))}
       <section
-        aria-label="Administración global"
+        aria-label="AdministraciÃ³n global"
         className="grid gap-4 xl:grid-cols-3"
       >
+        {(can("organizations.read")) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -89,11 +92,13 @@ export default function PlatformDashboardPage() {
             </Button>
           </CardContent>
         </Card>
+        )}
+        {(can("catalogs.read") || can("templates.read")) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FleetIcon className="h-5 w-5" />
-              Catálogo LiftGo
+              CatÃ¡logo LiftGo
             </CardTitle>
             <CardDescription>
               Modelos, SKUs de refacciones y versiones de machotes legales.
@@ -102,17 +107,19 @@ export default function PlatformDashboardPage() {
           <CardContent>
             <Button asChild>
               <Link to="/platform/catalogs">
-                Administrar catálogos
+                Administrar catÃ¡logos
                 <OpenLinkIcon className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardContent>
         </Card>
+        )}
+        {(can("audit.read")) && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HistoryIcon className="h-5 w-5" />
-              Bitácora global
+              BitÃ¡cora global
             </CardTitle>
             <CardDescription>
               Actor, motivo y cambios de empresas y maestros compartidos.
@@ -127,6 +134,7 @@ export default function PlatformDashboardPage() {
             </Button>
           </CardContent>
         </Card>
+        )}
       </section>
       <p className="text-sm text-muted-foreground">
         Los conteos incluyen todas las organizaciones registradas. Las tarifas,

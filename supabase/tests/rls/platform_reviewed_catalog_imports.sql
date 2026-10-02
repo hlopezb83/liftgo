@@ -12,6 +12,16 @@ INSERT INTO public.profiles(user_id,email,full_name,is_active) VALUES
  ('90000000-0000-4000-8000-000000000001','operator.0090@example.com','Operador Norte',true),
  ('90000000-0000-4000-8000-000000000002','admin.0090@example.com','Admin Norte',true)
 ON CONFLICT(user_id) DO UPDATE SET is_active=true,full_name=EXCLUDED.full_name;
+-- Una segunda autoridad explícita permite probar desactivación/revocación
+-- del actor principal sin debilitar el invariante del último raíz (0091).
+INSERT INTO auth.users(id,email,created_at,updated_at) VALUES
+ ('91b00000-0000-4000-8000-000000000001','backup-root-ci@example.com',now(),now());
+INSERT INTO public.profiles(user_id,full_name,is_active) VALUES
+ ('91b00000-0000-4000-8000-000000000001','Raíz de respaldo CI',true)
+ ON CONFLICT(user_id) DO UPDATE SET is_active=true;
+INSERT INTO public.platform_operators(auth_user_id,access_profile) VALUES
+ ('91b00000-0000-4000-8000-000000000001','root');
+
 INSERT INTO public.platform_operators(auth_user_id,notes) VALUES('90000000-0000-4000-8000-000000000001','CI 0090');
 INSERT INTO public.equipment_models(id,organization_id,manufacturer,model,default_capacity_kg,default_daily_rate,default_monthly_rate) VALUES
  ('90000000-0000-4000-8000-000000000010','90000000-0000-4000-8000-0000000000a0','Atlas','Norte 30',3000,987,25000),

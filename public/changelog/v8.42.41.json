@@ -1,0 +1,8 @@
+{
+  "description": "El Centro de Plataforma separa las acciones por perfil y protege la continuidad de su administración.",
+  "changes": [
+    "La navegación y las acciones reflejan los permisos del operador verificados en el servidor.",
+    "Los cambios de permisos retiran formularios y resultados de la autorización anterior.",
+    "El último operador raíz activo no puede ser revocado, degradado ni desactivado."
+  ]
+}

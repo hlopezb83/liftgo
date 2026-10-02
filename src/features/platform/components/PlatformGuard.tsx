@@ -6,12 +6,13 @@ import { Sentry } from "@/lib/observability/sentry";
 import { useLocation } from "@/lib/router-compat";
 import { Link, Navigate } from "@/lib/router-compat-ui";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
-import { usePlatformOperatorStatus } from "../hooks/usePlatformOperator";
+import { canAccessPlatformRoute, usePlatformAccessStatus } from "../hooks/usePlatformAccess";
 import { ORGANIZATION_WORKSPACE, PLATFORM_LOGIN } from "../lib/platformNavigation";
+import { PlatformAccessScope } from "./PlatformAccessScope";
 
 export function PlatformGuard({ children }: { children: ReactNode }) {
   const { user, isLoading, signOut } = useAuth();
-  const operator = usePlatformOperatorStatus();
+  const operator = usePlatformAccessStatus();
   const recovery = useRecoveryStatus();
   const { pathname } = useLocation();
   const loading = isLoading || (!!user && operator.isPending);
@@ -28,7 +29,7 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
   }, [loading]);
 
   useEffect(() => {
-    const role = !operator.isError && operator.data === true ? "platform_operator" : null;
+    const role = !operator.isError && operator.data?.isOperator === true ? "platform_operator" : null;
     setAuthSnapshot({ user: user ? { id: user.id, email: user.email ?? null } : null, organization: null, role });
     Sentry.setUser(user ? { id: user.id } : null);
     Sentry.setTag("role", role ?? "unknown");
@@ -56,7 +57,7 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
       </AccessState>
     );
   }
-  if (operator.data !== true) {
+  if (operator.data?.isOperator !== true) {
     return (
       <AccessState title="Acceso restringido" description="Tu cuenta no tiene permiso de Operador de plataforma.">
         <p className="text-sm text-muted-foreground break-all">{user.email}</p>
@@ -65,7 +66,12 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
       </AccessState>
     );
   }
-  return children;
+  if (!canAccessPlatformRoute(operator.data, pathname)) {
+    return <AccessState title="Acción no autorizada" description="Tu perfil no tiene acceso a esta sección de plataforma.">
+      <Button asChild variant="outline"><Link to="/platform">Ir al inicio de plataforma</Link></Button>
+    </AccessState>;
+  }
+  return <PlatformAccessScope key={`${user.id}:${operator.data.revision}`} access={operator.data}>{children}</PlatformAccessScope>;
 }
 
 function AccessState({ title, description, children }: { title: string; description: string; children?: ReactNode }) {

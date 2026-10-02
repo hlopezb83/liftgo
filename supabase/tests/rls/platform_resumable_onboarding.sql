@@ -6,6 +6,16 @@ INSERT INTO auth.users (id,email,created_at,updated_at) VALUES
 INSERT INTO public.profiles (user_id,full_name,email,is_active) VALUES
   ('89000000-0000-4000-8000-000000000001','Operador 0089','operator.0089@example.com',true),
   ('89000000-0000-4000-8000-000000000002','Admin 0089','nonoperator.0089@example.com',true);
+-- Una segunda autoridad explícita permite probar desactivación/revocación
+-- del actor principal sin debilitar el invariante del último raíz (0091).
+INSERT INTO auth.users(id,email,created_at,updated_at) VALUES
+ ('91b00000-0000-4000-8000-000000000001','backup-root-ci@example.com',now(),now());
+INSERT INTO public.profiles(user_id,full_name,is_active) VALUES
+ ('91b00000-0000-4000-8000-000000000001','Raíz de respaldo CI',true)
+ ON CONFLICT(user_id) DO UPDATE SET is_active=true;
+INSERT INTO public.platform_operators(auth_user_id,access_profile) VALUES
+ ('91b00000-0000-4000-8000-000000000001','root');
+
 INSERT INTO public.platform_operators (auth_user_id,notes)
 VALUES ('89000000-0000-4000-8000-000000000001','Fixture reversible 0089');
 

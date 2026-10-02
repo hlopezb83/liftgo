@@ -17,6 +17,7 @@ export const listPendingOnboardingFn = createServerFn({ method: "GET" })
     const { admin, userId } = await g.requirePlatformOperator(
       context.supabase,
       context.userId,
+      "organizations.create",
     );
     const input = platformOnboardingPageInputSchema.safeParse(data);
     if (!input.success) throw new g.HttpError(400, "Paginación inválida");
@@ -42,10 +43,7 @@ export const resumePlatformOnboardingFn = createServerFn({ method: "POST" })
   .validator((data: { request_id: string }) => data)
   .handler(async ({ data, context }): Promise<PlatformOnboardingResult> => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "organizations.create");
     const input = platformOnboardingRequestSchema.safeParse(data);
     if (!input.success) throw new g.HttpError(400, "Solicitud inválida");
     await g.enforceRateLimit(

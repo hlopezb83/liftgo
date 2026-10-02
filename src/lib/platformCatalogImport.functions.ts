@@ -12,7 +12,7 @@ export const listCatalogImportCandidatesFn = createServerFn({ method: "GET" })
   .validator((data: CatalogImportListInput) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, data?.kind === "template" ? "templates.import" : "catalogs.import");
     const input = catalogImportListInputSchema.safeParse(data);
     if (!input.success) throw new g.HttpError(400, "Tipo o paginación inválidos");
     const result = await g.asUntypedRpc(admin).rpc("platform_list_catalog_import_candidates", {
@@ -29,7 +29,7 @@ export const getCatalogImportPreviewFn = createServerFn({ method: "GET" })
   .validator((data: CatalogImportPreviewInput) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, data?.kind === "template" ? "templates.import" : "catalogs.import");
     const input = catalogImportPreviewInputSchema.safeParse(data);
     if (!input.success) throw new g.HttpError(400, "Origen inválido");
     const result = await g.asUntypedRpc(admin).rpc("platform_get_catalog_import_preview", {
@@ -46,7 +46,7 @@ export const importCatalogCandidateFn = createServerFn({ method: "POST" })
   .validator((data: CatalogImportInput) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId);
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, data?.kind === "template" ? "templates.import" : "catalogs.import");
     const input = catalogImportInputSchema.safeParse(data);
     if (!input.success) throw new g.HttpError(400, "Revisión o motivo inválidos");
     await g.enforceRateLimit(admin, "platform-import-catalog", userId, 20, 60);

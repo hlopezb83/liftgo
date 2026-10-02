@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "@/lib/platformCatalog.functions";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import {
   usePlatformPartsCatalog,
   useSetPlatformPartCatalogActive,
@@ -13,7 +14,8 @@ import {
 import { PlatformPartCatalogDialog } from "./PlatformPartCatalogDialog";
 
 export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipmentModelRow[] }) {
-  const { data, isLoading, isError, refetch } = usePlatformPartsCatalog(true);
+  const { can } = usePlatformCapabilities();
+  const { data, isLoading, isError, refetch } = usePlatformPartsCatalog(can("catalogs.read"));
   const setActive = useSetPlatformPartCatalogActive();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PlatformPartCatalogRow | null>(null);
@@ -33,7 +35,7 @@ export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipment
               La identidad y compatibilidad son compartidas; existencias, costo y ubicación pertenecen a cada empresa.
             </CardDescription>
           </div>
-          <Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo SKU</Button>
+          {can("catalogs.write") && <Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo SKU</Button>}
         </CardHeader>
         <CardContent>
           {isError ? (
@@ -58,7 +60,7 @@ export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipment
                     <TableCell>{row.equipment_model_ids.length} modelos</TableCell>
                     <TableCell>{row.organization_count}</TableCell>
                     <TableCell><Badge variant={row.is_active ? "default" : "secondary"}>{row.is_active ? "Activo" : "Inactivo"}</Badge></TableCell>
-                    <TableCell className="space-x-1 text-right">
+                    <TableCell className="space-x-1 text-right">{can("catalogs.write") && <>
                       <Button variant="ghost" size="icon" aria-label="Editar SKU global" onClick={() => edit(row)}>
                         <EditIcon className="h-4 w-4" />
                       </Button>
@@ -66,7 +68,7 @@ export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipment
                         variant="outline" size="sm" disabled={setActive.isPending}
                         onClick={() => setActive.mutate({ id: row.id, active: !row.is_active })}
                       >{row.is_active ? "Desactivar" : "Reactivar"}</Button>
-                    </TableCell>
+                    </>}</TableCell>
                   </TableRow>
                 ))}
                 {(data ?? []).length === 0 && (
@@ -79,7 +81,7 @@ export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipment
           )}
         </CardContent>
       </Card>
-      {open && (
+      {can("catalogs.write") && open && (
         <PlatformPartCatalogDialog
           open
           onOpenChange={setOpen}

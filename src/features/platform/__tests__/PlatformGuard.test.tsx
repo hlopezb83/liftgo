@@ -1,18 +1,19 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { PlatformAccess } from "@/lib/platformAccess.types";
 import { getAuthSnapshot } from "@/lib/ui/authSnapshot";
 
 const state = vi.hoisted(() => ({
   user: { id: "operator", email: "operator@example.com" } as { id: string; email: string } | null,
   isLoading: false,
   signOut: vi.fn(),
-  operator: { data: true as boolean | undefined, isPending: false, isError: false, refetch: vi.fn() },
+  operator: { data: { isOperator: true, profile: "root", revision: "1", capabilities: ["organizations.read", "organizations.details"] } as PlatformAccess | undefined, isPending: false, isError: false, refetch: vi.fn() },
   recovery: "idle",
   pathname: "/platform/organizations",
 }));
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => state }));
 vi.mock("@/features/auth", () => ({ useRecoveryStatus: () => state.recovery }));
-vi.mock("../hooks/usePlatformOperator", () => ({ usePlatformOperatorStatus: () => state.operator }));
+vi.mock("../hooks/usePlatformAccess", async (original) => ({ ...await original<typeof import("../hooks/usePlatformAccess")>(), usePlatformAccessStatus: () => state.operator }));
 vi.mock("@/lib/observability/sentry", () => ({ Sentry: { setUser: vi.fn(), setTag: vi.fn() } }));
 vi.mock("@/lib/router-compat", () => ({ useLocation: () => ({ pathname: state.pathname }) }));
 vi.mock("@/lib/router-compat-ui", () => ({
@@ -27,7 +28,7 @@ describe("PlatformGuard", () => {
   beforeEach(() => {
     state.user = { id: "operator", email: "operator@example.com" };
     state.isLoading = false;
-    state.operator = { data: true, isPending: false, isError: false, refetch: vi.fn() };
+    state.operator = { data: { isOperator: true, profile: "root", revision: "1", capabilities: ["organizations.read", "organizations.details"] }, isPending: false, isError: false, refetch: vi.fn() };
     state.recovery = "idle";
     state.signOut.mockClear();
   });
@@ -37,7 +38,7 @@ describe("PlatformGuard", () => {
     const view = render(tree());
     expect(screen.getByText("Datos globales protegidos")).toBeInTheDocument();
     expect(getAuthSnapshot().role).toBe("platform_operator");
-    state.operator.data = false;
+    state.operator.data = { isOperator: false, profile: null, revision: null, capabilities: [] };
     view.rerender(tree());
     expect(screen.queryByText("Datos globales protegidos")).not.toBeInTheDocument();
     expect(screen.getByText("Acceso restringido")).toBeInTheDocument();
