@@ -1,0 +1,6 @@
+{
+  "description": "Un fallo momentáneo al revisar el acceso de plataforma ya no borra el panel de inicio.",
+  "changes": [
+    "Si ya había una respuesta válida, se conserva mientras se reintenta en segundo plano."
+  ]
+}

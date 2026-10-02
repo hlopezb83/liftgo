@@ -1,5 +1,12 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.45] - 2026-10-02 · patch · fix
+
+Los mensajes de facturación recurrente conservan el detalle del proveedor y pasan la validación de calidad.
+
+- El formateador separa el tipo de error y la composición de mensaje, detalle, sugerencia y código.
+- Las versiones recientes incluyen sus archivos de detalle y la versión publicada se genera del mismo historial.
+
 ## [8.42.44] - 2026-10-02 · patch · fix
 
 Los fallos al generar facturas recurrentes muestran el motivo real en lugar de "[object Object]".
@@ -11,6 +18,20 @@ Los fallos al generar facturas recurrentes muestran el motivo real en lugar de "
 Un fallo momentáneo al revisar el acceso de plataforma ya no borra el panel de inicio.
 
 - Si ya había una respuesta válida, se conserva mientras se reintenta en segundo plano.
+
+## [8.42.42] - 2026-10-01 · patch · fix
+
+El inicio del Centro de Plataforma muestra correctamente los acentos en catálogos y bitácora.
+
+- Las etiquetas de navegación y sus nombres accesibles conservan los acentos en español.
+
+## [8.42.41] - 2026-10-01 · patch · feature
+
+El Centro de Plataforma separa las acciones por perfil y protege la continuidad de su administración.
+
+- La navegación y las acciones reflejan los permisos del operador verificados en el servidor.
+- Los cambios de permisos retiran formularios y resultados de la autorización anterior.
+- El último operador raíz activo no puede ser revocado, degradado ni desactivado.
 
 ## [8.42.40] - 2026-10-01 · patch · feature
 

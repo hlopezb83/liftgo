@@ -8,20 +8,23 @@ export function formatRecurringFailure(error: unknown): string {
     return trimmed && trimmed !== "[object Object]" ? trimmed : "Error sin detalle";
   }
   if (error instanceof Error) return error.message || "Error sin detalle";
-  if (error && typeof error === "object") {
-    const e = error as Record<string, unknown>;
-    const parts: string[] = [];
-    if (e["message"] !== undefined) parts.push(formatRecurringFailure(e["message"]));
-    for (const key of ["details", "hint"] as const) {
-      if (typeof e[key] === "string" && e[key]) parts.push(String(e[key]));
-    }
-    if (typeof e["code"] === "string" && e["code"]) parts.push(`(código ${e["code"]})`);
-    if (parts.length > 0) return parts.join(" · ");
-    try {
-      return JSON.stringify(error).slice(0, 500);
-    } catch {
-      return "Error sin detalle";
-    }
-  }
+  if (error && typeof error === "object") return formatStructuredFailure(error);
   return error == null ? "Error sin detalle" : String(error);
+}
+
+/** Los campos del proveedor se componen aparte de la clasificación del error. */
+function formatStructuredFailure(error: object): string {
+  const e = error as Record<string, unknown>;
+  const parts: string[] = [];
+  if (e["message"] !== undefined) parts.push(formatRecurringFailure(e["message"]));
+  for (const key of ["details", "hint"] as const) {
+    if (typeof e[key] === "string" && e[key]) parts.push(String(e[key]));
+  }
+  if (typeof e["code"] === "string" && e["code"]) parts.push(`(código ${e["code"]})`);
+  if (parts.length > 0) return parts.join(" · ");
+  try {
+    return JSON.stringify(error).slice(0, 500);
+  } catch {
+    return "Error sin detalle";
+  }
 }

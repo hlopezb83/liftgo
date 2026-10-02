@@ -1,0 +1,7 @@
+{
+  "description": "Los mensajes de facturación recurrente conservan el detalle del proveedor y pasan la validación de calidad.",
+  "changes": [
+    "El formateador separa el tipo de error y la composición de mensaje, detalle, sugerencia y código.",
+    "Las versiones recientes incluyen sus archivos de detalle y la versión publicada se genera del mismo historial."
+  ]
+}

@@ -271,3 +271,50 @@ exacto `127.0.0.1:54322/postgres`, además de los guards de API local. Exige un
 registro de operadores vacío. El teardown conserva el único raíz hasta destruir
 la base; para repetir en local se recrea el backend. No concede escritura directa
 de asignaciones al servicio ni añade un bootstrap accesible desde el ERP.
+
+## Preflight del bloque de sesiones (2 de octubre de 2026)
+
+Decisión de producto: uso interno con usuarios validados. Los controles se
+dimensionan para ese contexto. Se priorizan aislamiento empresarial, permisos
+actuales, continuidad del raíz y recuperación sencilla. La confirmación de
+contraseña se reserva para administrar accesos y permisos de operadores; las
+consultas y operaciones cotidianas mantienen su autorización habitual.
+El bloque de sesiones no cambiará límites globales de Auth del ERP. MFA sigue
+fuera de alcance. Invitaciones y recuperación reutilizan Auth gestionado.
+
+Se comprobó en Lovable Cloud que existen `auth.sessions.id`, `user_id` y
+`not_after`. Ni `authenticated` ni `service_role` tienen SELECT sobre esa tabla;
+el dueño de las migraciones (`postgres`) sí tiene lectura y USAGE de `auth`.
+No se conceden permisos de lectura de sesiones al navegador ni al servicio.
+El siguiente bloque requiere una función SQL con búsqueda fija, autorización
+propia y salida mínima; todavía no se ha desplegado esa comprobación.
+
+Verificar la firma del JWT y la asignación vigente de operador son controles
+distintos de verificar su sesión. Un token ya emitido puede seguir firmado
+después del cierre de sesión. La documentación del proveedor recomienda
+correlacionar su `session_id` con `auth.sessions` para las acciones sensibles.
+La mera existencia de la fila no prueba los límites de inactividad o duración
+configurados; el diseño debe considerar vencimiento y revocación de plataforma.
+Referencia: [sesiones del proveedor Auth](https://supabase.com/docs/guides/auth/sessions).
+
+La consulta de Lovable identificó las tablas y límites de permisos, pero su
+afirmación de que `signOut({scope:"local"})` sólo borra datos del navegador es
+incorrecta. Ese alcance revoca la sesión actual en Auth. En el código vigente,
+`AuthContext` intenta primero el cierre global y recurre al alcance local si
+hay una excepción; ambos pueden fallar ante un problema de red. No se acredita
+revocación remota sólo porque la UI quite datos locales.
+Referencia: [alcances de cierre de sesión](https://supabase.com/docs/guides/auth/signout).
+
+La lista de redirects, remitente, entrega de correos e invitación por correo
+no se pudieron acreditar con las herramientas de lectura disponibles. El alta
+actual genera un enlace de recuperación; no equivale a enviar una invitación.
+Antes de habilitar altas de operadores se requiere comprobar los redirects y
+el recorrido real de invitación/recuperación. No se enviaron correos ni se
+modificaron contraseñas o sesiones reales durante este preflight.
+
+Una reautenticación por contraseña en servidor necesita un cliente Auth sin
+persistencia y crea una sesión temporal: se verifica identidad y se cierra ese
+token con alcance local, sin sustituir ni cerrar globalmente la sesión del
+navegador. La futura prueba de autorización se vinculará a actor, sesión
+original, acción, revisión y vencimiento; nunca a una bandera del cliente.
+MFA continúa fuera del alcance por decisión de producto.
