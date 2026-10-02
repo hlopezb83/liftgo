@@ -122,8 +122,7 @@ jobs:
         run: |
           set -euxo pipefail
           supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor \
-            --debug
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,mailpit,postgres-meta,supavisor
           supabase status
 
       - name: Verificar schema auth disponible

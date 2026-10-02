@@ -274,6 +274,11 @@ del runner y compara todas las versiones aplicadas con los archivos. No restaura
 snapshots ni cachea datos. Drizzle sigue aplicándose desde su journal oficial.
 Los smoke SQL no intentan ejecutarse si falló la preparación o Drizzle.
 
+Se retira --debug del arranque exitoso: una sola corrida RLS emitía 13.2 millones
+de caracteres y 36,147 paquetes PostgreSQL de diagnóstico. La CLI conserva sus
+errores normales y logs de servicios no saludables; RLS mantiene el diagnóstico
+Docker en fallo. Los errores SQL y reportes bloqueantes siguen visibles.
+
 La caché de Bun ahora se restaura en consumidores; sólo quality guarda una clave
 ausente, inmediatamente después de instalar. Se elimina la caché de Vite de
 475 bytes (sin prebundle útil) y el caché externo de CLI cuya ruta no usa la

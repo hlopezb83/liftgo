@@ -111,8 +111,7 @@ jobs:
           supabase --version
           START_TS=$(date +%s)
           supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest \
-            --debug
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,kong,postgrest
           ELAPSED=$(( $(date +%s) - START_TS ))
           echo "Start Supabase: ${ELAPSED}s (referencia run 35543605857: ~200s)"
           echo "### Start Supabase: ${ELAPSED}s (referencia previa ~200s)" >> "$GITHUB_STEP_SUMMARY"
