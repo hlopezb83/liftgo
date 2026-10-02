@@ -1,6 +1,5 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { toast } from "sonner";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 import { formatRecurringFailure } from "../../../lib/formatRecurringFailure";
 import { invoiceKeys } from "../../../lib/queryKeys";
@@ -64,9 +63,9 @@ export function useGenerateRecurringInvoices(options?: { onShowDetails?: () => v
       const failed = result?.failed ?? [];
       if (failed.length > 0) {
         const firstReason = formatRecurringFailure(failed[0]?.error).slice(0, 140);
-        toast.warning(`${failed.length} reserva(s) no se facturaron`, {
+        notifyWarning({
+          title: `${failed.length} reserva(s) no se facturaron`,
           description: firstReason,
-          duration: 10000,
           ...(options?.onShowDetails
             ? { action: { label: "Ver detalles", onClick: options.onShowDetails } }
             : {}),
