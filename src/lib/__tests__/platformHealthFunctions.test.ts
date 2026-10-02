@@ -35,7 +35,7 @@ describe("salud de plataforma: autorización, idempotencia y proyección", () =>
       p_actor: context.userId, p_session: "own-session", p_request: input.requestId, p_status: "connected", p_latency: 25, p_http_status: 200,
     }));
   });
-  it.each(["unconfigured","duplicate_key"])("no contacta al proveedor para %s", async (preflight) => {
+  it.each(["unconfigured","duplicate_key","invalid_key_mode"])("no contacta al proveedor para %s", async (preflight) => {
     state.rpc.mockReset().mockResolvedValueOnce({ data: { started: true, mode: "test", apiKey: null, preflight }, error: null })
       .mockResolvedValue({ data: preflight, error: null });
     state.check.mockResolvedValue({ status: preflight, latencyMs: null, httpStatus: null });

@@ -19,10 +19,10 @@ INSERT INTO public.organizations(id,name,slug,is_active) VALUES
 ('93930000-0000-4000-8000-000000000011','Integración CI A','integration-ci-a-0093',true),
 ('93930000-0000-4000-8000-000000000012','Integración CI B','integration-ci-b-0093',true);
 SELECT set_config('app.organization_id','93930000-0000-4000-8000-000000000011',true);
-INSERT INTO public.company_settings(organization_id,facturapi_mode) VALUES('93930000-0000-4000-8000-000000000011','test');
-INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES('93930000-0000-4000-8000-000000000011','ci-private-A');
+INSERT INTO public.company_settings(organization_id,facturapi_mode,rfc,razon_social,regimen_fiscal,lugar_expedicion) VALUES('93930000-0000-4000-8000-000000000011','test','AAA010101AAA','Empresa CI A','601','64000');
+INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES('93930000-0000-4000-8000-000000000011','sk_test_ci_A');
 SELECT set_config('app.organization_id','93930000-0000-4000-8000-000000000012',true);
-INSERT INTO public.company_settings(organization_id,facturapi_mode) VALUES('93930000-0000-4000-8000-000000000012','test');
+INSERT INTO public.company_settings(organization_id,facturapi_mode,rfc,razon_social,regimen_fiscal,lugar_expedicion) VALUES('93930000-0000-4000-8000-000000000012','test','BBB010101BBB','Empresa CI B','601','64000');
 
 SET LOCAL role='authenticated';
 SET LOCAL request.jwt.claims='{"sub":"93000000-0000-4000-8000-000000000002","session_id":"93930000-0000-4000-8000-000000000002","role":"authenticated"}';
@@ -39,7 +39,7 @@ RESET request.jwt.claims;
 DO $$ DECLARE v jsonb; v_id uuid:='93930000-0000-4000-8000-000000000021'; BEGIN
   v:=public.platform_begin_integration_check('93000000-0000-4000-8000-000000000002',
     '93930000-0000-4000-8000-000000000002','93930000-0000-4000-8000-000000000011',v_id);
-  IF v->>'apiKey'<>'ci-private-A' OR v->>'preflight'<>'ready' THEN RAISE EXCEPTION 'KEY: no seleccionó llave propia'; END IF;
+  IF v->>'apiKey'<>'sk_test_ci_A' OR v->>'preflight'<>'ready' THEN RAISE EXCEPTION 'KEY: no seleccionó llave propia'; END IF;
   v:=public.platform_begin_integration_check('93000000-0000-4000-8000-000000000002',
     '93930000-0000-4000-8000-000000000002','93930000-0000-4000-8000-000000000011',v_id);
   IF (v->>'started')::boolean OR v ? 'apiKey' THEN RAISE EXCEPTION 'IDEMPOTENCY: volvió a entregar llave'; END IF;
@@ -57,7 +57,7 @@ DO $$ DECLARE v jsonb; v_id uuid:='93930000-0000-4000-8000-000000000021'; BEGIN
     RAISE EXCEPTION 'IDEMPOTENCY: sobrescribió resultado terminado'; END IF;
   v:=public.platform_get_integrations('93000000-0000-4000-8000-000000000003',
     '93930000-0000-4000-8000-000000000003','Integración CI');
-  IF v::text LIKE '%ci-private%' OR v::text LIKE '%key_fingerprint%' OR v::text LIKE '%payload%' OR v::text LIKE '%last_error%' THEN
+  IF v::text LIKE '%sk_test_ci%' OR v::text LIKE '%key_fingerprint%' OR v::text LIKE '%payload%' OR v::text LIKE '%last_error%' THEN
     RAISE EXCEPTION 'LEAK: proyección expuso secreto o cuerpo fiscal'; END IF;
   IF v->>'total'<>'2' OR v->'rows'->0->'lastCheck'->>'status'<>'connected' THEN RAISE EXCEPTION 'LIST: proyección incorrecta'; END IF;
   BEGIN PERFORM public.platform_begin_integration_check('93000000-0000-4000-8000-000000000003',
@@ -68,7 +68,7 @@ DO $$ DECLARE v jsonb; v_id uuid:='93930000-0000-4000-8000-000000000021'; BEGIN
 END $$;
 
 SELECT set_config('app.organization_id','93930000-0000-4000-8000-000000000011',true);
-UPDATE public.billing_secrets SET facturapi_test_key='ci-private-rotated' WHERE organization_id='93930000-0000-4000-8000-000000000011';
+UPDATE public.billing_secrets SET facturapi_test_key='sk_test_ci_rotated' WHERE organization_id='93930000-0000-4000-8000-000000000011';
 DO $$ DECLARE v jsonb; BEGIN
   v:=public.platform_get_integrations('93000000-0000-4000-8000-000000000003','93930000-0000-4000-8000-000000000003','Integración CI A');
   IF v->'rows'->0->'lastCheck'<>'null'::jsonb THEN RAISE EXCEPTION 'ROTATION: mostró resultado de llave anterior'; END IF;
@@ -96,7 +96,7 @@ DO $$ DECLARE v jsonb; BEGIN
     '93930000-0000-4000-8000-000000000003')->>'incompleteBilling' IS NULL THEN RAISE EXCEPTION 'MONITOR: contrato incompleto'; END IF;
 END $$;
 SELECT set_config('app.organization_id','93930000-0000-4000-8000-000000000012',true);
-INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES('93930000-0000-4000-8000-000000000012','ci-private-rotated');
+INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES('93930000-0000-4000-8000-000000000012','sk_test_ci_rotated');
 UPDATE public.platform_integration_checks SET started_at=now()-interval '2 minutes';
 DO $$ DECLARE v jsonb; BEGIN
   v:=public.platform_begin_integration_check('93000000-0000-4000-8000-000000000001',
@@ -104,5 +104,12 @@ DO $$ DECLARE v jsonb; BEGIN
   IF v->>'preflight'<>'duplicate_key' OR v->>'apiKey' IS NOT NULL THEN RAISE EXCEPTION 'DUPLICATE: entregó una llave compartida'; END IF;
   PERFORM public.platform_complete_integration_check('93000000-0000-4000-8000-000000000001',
     '93930000-0000-4000-8000-000000000001','93930000-0000-4000-8000-000000000024','duplicate_key',NULL,NULL,'8.42.47');
+END $$;
+UPDATE public.billing_secrets SET facturapi_test_key='sk_live_ci_wrong_mode' WHERE organization_id='93930000-0000-4000-8000-000000000012';
+UPDATE public.platform_integration_checks SET started_at=now()-interval '2 minutes';
+DO $$ DECLARE v jsonb; BEGIN
+  v:=public.platform_begin_integration_check('93000000-0000-4000-8000-000000000001',
+    '93930000-0000-4000-8000-000000000001','93930000-0000-4000-8000-000000000012','93930000-0000-4000-8000-000000000025');
+  IF v->>'preflight'<>'invalid_key_mode' OR v->>'apiKey' IS NOT NULL THEN RAISE EXCEPTION 'MODE: entregó llave live en ambiente test'; END IF;
 END $$;
 ROLLBACK;

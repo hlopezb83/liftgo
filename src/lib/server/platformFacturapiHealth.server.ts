@@ -6,10 +6,10 @@ export interface FacturapiHealthResult {
   httpStatus: number | null;
 }
 export async function checkReservedFacturapiConnection(reservation: {
-  preflight: "ready" | "unconfigured" | "duplicate_key"; apiKey: string | null;
+  preflight: "ready" | "unconfigured" | "duplicate_key" | "invalid_key_mode"; apiKey: string | null;
 }): Promise<FacturapiHealthResult> {
   if (reservation.preflight === "ready" && reservation.apiKey) return checkFacturapiConnection(reservation.apiKey);
-  return { status: reservation.preflight === "duplicate_key" ? "duplicate_key" : "unconfigured", latencyMs: null, httpStatus: null };
+  return { status: reservation.preflight === "ready" ? "unconfigured" : reservation.preflight, latencyMs: null, httpStatus: null };
 }
 function classifyHttp(status: number): FacturapiHealthResult["status"] {
   if (status === 401 || status === 403) return "auth_error";

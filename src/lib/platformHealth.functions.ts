@@ -38,7 +38,7 @@ export const getPlatformMonitoringFn = createServerFn({ method: "GET" })
 const reservationSchema = z.discriminatedUnion("started", [
   z.object({ started: z.literal(false), status: integrationStatusSchema }),
   z.object({ started: z.literal(true), mode: z.string().nullable(), apiKey: z.string().nullable(),
-    preflight: z.enum(["ready", "unconfigured", "duplicate_key"]) }),
+    preflight: z.enum(["ready", "unconfigured", "duplicate_key", "invalid_key_mode"]) }),
 ]);
 export const checkPlatformIntegrationFn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth]).validator((data: IntegrationCheckInput) => data)

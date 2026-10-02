@@ -1,6 +1,6 @@
 -- Estado técnico global: proyecciones mínimas, nunca cuerpos fiscales ni secretos en el navegador.
 CREATE OR REPLACE FUNCTION public.platform_profile_capabilities(p_profile text)
-RETURNS text[] LANGUAGE sql IMMUTABLE SET search_path=public AS $$
+RETURNS text[] LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT CASE p_profile
     WHEN 'root' THEN ARRAY['organizations.read','organizations.details','organizations.create',
       'organizations.suspend','organizations.resume','catalogs.read','catalogs.write','catalogs.import',
@@ -25,7 +25,7 @@ CREATE TABLE public.platform_integration_checks (
   mode text CHECK(mode IN ('test','live')),
   key_fingerprint text,
   status text NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','connected','unconfigured',
-    'duplicate_key','auth_error','rate_limited','unavailable','invalid_response','config_changed')),
+    'duplicate_key','invalid_key_mode','auth_error','rate_limited','unavailable','invalid_response','config_changed')),
   started_at timestamptz NOT NULL DEFAULT clock_timestamp(),
   completed_at timestamptz,
   latency_ms integer CHECK(latency_ms BETWEEN 0 AND 60000),
@@ -38,17 +38,18 @@ ALTER TABLE public.platform_integration_checks FORCE ROW LEVEL SECURITY;
 CREATE POLICY "integration health denies clients" ON public.platform_integration_checks
   AS RESTRICTIVE FOR ALL TO anon,authenticated USING(false) WITH CHECK(false);
 REVOKE ALL ON public.platform_integration_checks FROM PUBLIC,anon,authenticated,service_role;
+GRANT SELECT ON public.platform_integration_checks TO service_role;
 
 -- Privado: la huella permite invalidar comprobaciones tras rotar llave o cambiar ambiente.
 CREATE FUNCTION public.platform_facturapi_fingerprint(p_mode text,p_key text)
-RETURNS text LANGUAGE sql IMMUTABLE SET search_path=public AS $$
+RETURNS text LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT CASE WHEN p_mode IN ('test','live') AND nullif(btrim(p_key),'') IS NOT NULL
     THEN encode(sha256(convert_to(p_mode||':'||p_key,'UTF8')),'hex') END
 $$;
 REVOKE ALL ON FUNCTION public.platform_facturapi_fingerprint(text,text) FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE FUNCTION public.platform_get_integrations(p_actor uuid,p_session uuid,p_search text DEFAULT '',p_offset integer DEFAULT 0)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_result jsonb;
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,'integrations.read');
@@ -84,7 +85,7 @@ GRANT EXECUTE ON FUNCTION public.platform_get_integrations(uuid,uuid,text,intege
 
 -- Reserva durable antes de consultar al proveedor. La llave sólo se entrega a este RPC de servidor.
 CREATE FUNCTION public.platform_begin_integration_check(p_actor uuid,p_session uuid,p_org uuid,p_request uuid)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_mode text; v_key text; v_check public.platform_integration_checks; v_preflight text:='ready';
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,'integrations.check');
@@ -109,6 +110,8 @@ BEGIN
     WHERE cs.organization_id=p_org;
   IF v_mode IS NULL OR v_mode NOT IN ('test','live') OR nullif(btrim(v_key),'') IS NULL THEN
     v_preflight:='unconfigured'; v_key:=NULL;
+  ELSIF left(v_key,8)<>CASE v_mode WHEN 'test' THEN 'sk_test_' ELSE 'sk_live_' END THEN
+    v_preflight:='invalid_key_mode'; v_key:=NULL;
   ELSIF EXISTS(SELECT 1 FROM public.billing_secrets WHERE organization_id<>p_org
     AND (facturapi_test_key=v_key OR facturapi_live_key=v_key)) THEN
     v_preflight:='duplicate_key'; v_key:=NULL;
@@ -124,12 +127,12 @@ GRANT EXECUTE ON FUNCTION public.platform_begin_integration_check(uuid,uuid,uuid
 
 CREATE FUNCTION public.platform_complete_integration_check(p_actor uuid,p_session uuid,p_request uuid,
   p_status text,p_latency integer,p_http_status integer,p_version text)
-RETURNS text LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS text LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_check public.platform_integration_checks; v_mode text; v_key text; v_fingerprint text; v_status text:=p_status;
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,'integrations.check');
   IF NOT public.platform_session_exists(p_actor,p_session) THEN RAISE EXCEPTION 'Sesión inválida' USING ERRCODE='42501'; END IF;
-  IF p_status IS NULL OR p_status NOT IN ('connected','unconfigured','duplicate_key','auth_error','rate_limited','unavailable','invalid_response')
+  IF p_status IS NULL OR p_status NOT IN ('connected','unconfigured','duplicate_key','invalid_key_mode','auth_error','rate_limited','unavailable','invalid_response')
     OR (p_latency IS NOT NULL AND (p_latency<0 OR p_latency>60000))
     OR (p_http_status IS NOT NULL AND (p_http_status<100 OR p_http_status>599))
     OR p_version IS NULL OR p_version !~ '^[0-9]+\.[0-9]+\.[0-9]+$' THEN
@@ -153,7 +156,7 @@ REVOKE ALL ON FUNCTION public.platform_complete_integration_check(uuid,uuid,uuid
 GRANT EXECUTE ON FUNCTION public.platform_complete_integration_check(uuid,uuid,uuid,text,integer,integer,text) TO service_role;
 
 CREATE FUNCTION public.platform_get_monitoring(p_actor uuid,p_session uuid)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,'monitoring.read');
   IF NOT public.platform_session_exists(p_actor,p_session) THEN RAISE EXCEPTION 'Sesión inválida' USING ERRCODE='42501'; END IF;

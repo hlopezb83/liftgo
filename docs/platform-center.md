@@ -395,6 +395,7 @@ SQL reserva la solicitud antes de consultar; una solicitud repetida no devuelve
 otra llave ni llama otra vez al proveedor. Un bloqueo por empresa limita a una
 comprobación por minuto; hay además un límite de cinco por minuto y operador.
 La consulta no usa llaves globales de entorno ni cambia folios Facturapi.
+El preflight rechaza prefijos de llave incompatibles con el ambiente seleccionado.
 «Conexión comprobada» acredita una respuesta válida de ese instante, no RFC,
 certificados, capacidad de timbrar ni disponibilidad permanente del proveedor.
 

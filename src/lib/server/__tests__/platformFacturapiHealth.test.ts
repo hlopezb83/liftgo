@@ -3,7 +3,7 @@ import { checkFacturapiConnection, checkReservedFacturapiConnection } from "../p
 
 describe("comprobación Facturapi de plataforma", () => {
   afterEach(() => vi.unstubAllGlobals());
-  it.each(["unconfigured", "duplicate_key"] as const)("no consulta al proveedor cuando la reserva indica %s", async (preflight) => {
+  it.each(["unconfigured", "duplicate_key", "invalid_key_mode"] as const)("no consulta al proveedor cuando la reserva indica %s", async (preflight) => {
     const fetch = vi.fn(); vi.stubGlobal("fetch", fetch);
     expect(await checkReservedFacturapiConnection({ preflight, apiKey: null })).toEqual({ status: preflight, latencyMs: null, httpStatus: null });
     expect(fetch).not.toHaveBeenCalled();

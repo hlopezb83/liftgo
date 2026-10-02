@@ -1,11 +1,12 @@
 import { z } from "zod";
 
-export const integrationStatusSchema = z.enum(["pending", "connected", "unconfigured", "duplicate_key",
+export const integrationStatusSchema = z.enum(["pending", "connected", "unconfigured", "duplicate_key", "invalid_key_mode",
   "auth_error", "rate_limited", "unavailable", "invalid_response", "config_changed"]);
 export type IntegrationStatus = z.infer<typeof integrationStatusSchema>;
 export const INTEGRATION_STATUS_LABELS: Record<IntegrationStatus, string> = {
   pending: "Comprobación en curso", connected: "Conexión comprobada", unconfigured: "Configuración incompleta",
   duplicate_key: "Llave compartida entre empresas", auth_error: "Llave no autorizada", rate_limited: "Límite del proveedor",
+  invalid_key_mode: "Llave incompatible con el ambiente",
   unavailable: "Proveedor no disponible", invalid_response: "Respuesta no válida", config_changed: "Configuración modificada",
 };
 export const integrationListInputSchema = z.object({
