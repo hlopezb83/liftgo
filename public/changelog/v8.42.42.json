@@ -1,0 +1,6 @@
+{
+  "description": "El inicio del Centro de Plataforma muestra correctamente los acentos en catálogos y bitácora.",
+  "changes": [
+    "Las etiquetas de navegación y sus nombres accesibles conservan los acentos en español."
+  ]
+}

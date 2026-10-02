@@ -1,5 +1,16 @@
 [
 {
+  "version": "8.42.42",
+  "date": "2026-10-01",
+  "type": "patch",
+  "category": "fix",
+  "title": "Etiquetas del Centro de Plataforma",
+  "description": "El inicio del Centro de Plataforma muestra correctamente los acentos en catálogos y bitácora.",
+  "changes": [
+    "Las etiquetas de navegación y sus nombres accesibles conservan los acentos en español."
+  ]
+},
+{
   "version": "8.42.41",
   "date": "2026-10-01",
   "type": "patch",

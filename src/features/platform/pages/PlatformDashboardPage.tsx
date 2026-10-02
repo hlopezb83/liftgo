@@ -69,7 +69,7 @@ export default function PlatformDashboardPage() {
         </section>
       ))}
       <section
-        aria-label="AdministraciÃ³n global"
+        aria-label="Administración global"
         className="grid gap-4 xl:grid-cols-3"
       >
         {(can("organizations.read")) && (
@@ -98,7 +98,7 @@ export default function PlatformDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FleetIcon className="h-5 w-5" />
-              CatÃ¡logo LiftGo
+              Catálogo LiftGo
             </CardTitle>
             <CardDescription>
               Modelos, SKUs de refacciones y versiones de machotes legales.
@@ -107,7 +107,7 @@ export default function PlatformDashboardPage() {
           <CardContent>
             <Button asChild>
               <Link to="/platform/catalogs">
-                Administrar catÃ¡logos
+                Administrar catálogos
                 <OpenLinkIcon className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -119,7 +119,7 @@ export default function PlatformDashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <HistoryIcon className="h-5 w-5" />
-              BitÃ¡cora global
+              Bitácora global
             </CardTitle>
             <CardDescription>
               Actor, motivo y cambios de empresas y maestros compartidos.
