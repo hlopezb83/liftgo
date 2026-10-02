@@ -265,3 +265,9 @@ concurrentes en su BD local efímera; ese script rechaza URLs de Cloud. Los
 fixtures antiguos incorporan un respaldo explícito para probar revocación sin
 desactivar la protección. El rollout requiere CI/RLS/A-B verdes, preflight de
 0090, aplicación de 0091 con hash/fecha del journal y publicación del SHA probado.
+
+El seed A/B asigna su primer raíz por `psql` como dueño del PostgreSQL efímero
+exacto `127.0.0.1:54322/postgres`, además de los guards de API local. Exige un
+registro de operadores vacío. El teardown conserva el único raíz hasta destruir
+la base; para repetir en local se recrea el backend. No concede escritura directa
+de asignaciones al servicio ni añade un bootstrap accesible desde el ERP.
