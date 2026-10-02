@@ -24,7 +24,7 @@ export async function checkFacturapiConnection(apiKey: string): Promise<Facturap
   try {
     const response = await fetch("https://www.facturapi.io/v2/organizations/me", {
       method: "GET", headers: { Authorization: `Bearer ${apiKey}`, Accept: "application/json" },
-      signal: AbortSignal.timeout(8000), redirect: "error", cache: "no-store",
+      signal: AbortSignal.timeout(8000), redirect: "manual", cache: "no-store",
     });
     if (response.status !== 200) {
       await response.body?.cancel();
@@ -38,8 +38,10 @@ export async function checkFacturapiConnection(apiKey: string): Promise<Facturap
     } catch {
       return { status: "invalid_response", latencyMs: latency(), httpStatus: 200 };
     }
-  } catch {
+  } catch (error) {
     // Ni errores crudos ni el cuerpo del proveedor: pueden contener información fiscal o la llave.
+    const kind = error instanceof Error && ["TypeError", "AbortError", "TimeoutError"].includes(error.name) ? error.name : "Error";
+    console.warn("[platform-facturapi-health] connection failed", { kind });
     return { status: "unavailable", latencyMs: latency(), httpStatus: null };
   }
 }

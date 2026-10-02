@@ -1,5 +1,11 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.48] - 2026-10-02
+
+### Correcciones
+- Comprobación de conexión Facturapi compatible con Lovable Cloud; rechaza redirecciones sin reenviar la llave.
+- Diagnóstico de transporte sin secretos ni mensajes crudos.
+
 ## [8.42.47] - 2026-10-02
 
 ### Mejoras
