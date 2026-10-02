@@ -2,6 +2,8 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { SuccessIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/lib/router-compat-ui";
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { formatRecurringFailure } from "../../lib/formatRecurringFailure";
 import type { GenerateRecurringResponse } from "../../hooks/invoices/recurring/useGenerateRecurringInvoices";
 
 interface Props {
@@ -82,23 +84,41 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
                 Fallidas ({failed.length})
               </h4>
               <div className="border rounded-md divide-y">
-                {failed.map((f, idx) => (
-                  <div key={idx} className="px-3 py-2 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-muted-foreground truncate">{f.error}</span>
-                      {!f.error.startsWith("El grupo de reservas cambió:") && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => onRetry(f.bookingIds)}
-                          disabled={isRetrying}
-                        >
-                          Reintentar
-                        </Button>
-                      )}
+                {failed.map((f, idx) => {
+                  const message = formatRecurringFailure(f.error);
+                  return (
+                    <div key={idx} className="px-3 py-2 text-sm space-y-2">
+                      <p className="text-sm text-foreground whitespace-pre-wrap break-words">{message}</p>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs text-muted-foreground font-mono truncate">
+                          Reserva(s): {f.bookingIds.map((id) => id.slice(0, 8)).join(", ")}
+                        </span>
+                        <div className="flex gap-2 shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              void navigator.clipboard?.writeText(`${message}\nReservas: ${f.bookingIds.join(", ")}`);
+                              notifySuccess("Detalle copiado");
+                            }}
+                          >
+                            Copiar detalle
+                          </Button>
+                          {!message.startsWith("El grupo de reservas cambió:") && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => onRetry(f.bookingIds)}
+                              disabled={isRetrying}
+                            >
+                              Reintentar
+                            </Button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

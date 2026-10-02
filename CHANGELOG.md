@@ -1,5 +1,11 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.44] - 2026-10-02 · patch · fix
+
+Los fallos al generar facturas recurrentes muestran el motivo real en lugar de "[object Object]".
+
+- El aviso incluye el botón «Ver detalles» que abre el resultado de la generación.
+- Cada fallo muestra el mensaje completo, las reservas afectadas y permite copiar el detalle.
 ## [8.42.43] - 2026-10-02 · patch · fix
 
 Un fallo momentáneo al revisar el acceso de plataforma ya no borra el panel de inicio.

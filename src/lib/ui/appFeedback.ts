@@ -247,6 +247,8 @@ export function notifyInfo(title: string, opts?: SimpleOpts): string | number {
 export interface NotifySimpleInput {
   title: string;
   description?: string;
+  /** Botón opcional dentro del aviso (p. ej. «Ver detalles»). */
+  action?: { label: string; onClick: () => void };
 }
 export function notifyWarning(input: string | NotifySimpleInput, opts?: SimpleOpts): string | number {
   if (typeof input === "string") {
@@ -255,7 +257,8 @@ export function notifyWarning(input: string | NotifySimpleInput, opts?: SimpleOp
   return toast.warning(input.title, {
     id: toastDedupeId("warning", input.title, input.description),
     description: input.description,
-    duration: DURATION.warning,
+    duration: input.action ? Math.max(DURATION.warning, 10000) : DURATION.warning,
+    ...(input.action ? { action: input.action } : {}),
   });
 }
 
