@@ -1,7 +1,8 @@
 /**
  * Cierre del gate A/B. El entorno es efímero (el job destruye el Supabase
  * local con `if: always()`), pero se borra lo sembrado para que la suite sea
- * repetible en local y no deje objetos de Storage colgados.
+ * no deje objetos de Storage colgados. El último raíz permanece hasta destruir
+ * la BD; para repetir el ensayo se recrea el backend efímero.
  */
 
 import { existsSync, rmSync } from "node:fs";
@@ -42,8 +43,9 @@ export default async function globalTeardown(): Promise<void> {
     });
   }
 
-  await admin.from("platform_operators").delete().eq("auth_user_id", ctx.platformOperatorUserId);
-  await admin.auth.admin.deleteUser(ctx.platformOperatorUserId);
+  // 0091 conserva el único raíz activo hasta destruir la BD efímera. No se
+  // eluden triggers ni se intenta revocarlo con el servicio. Para repetir en
+  // local se recrea el backend, igual que en CI con supabase stop --no-backup.
 
   rmSync(AB_CONTEXT_FILE, { force: true });
 }

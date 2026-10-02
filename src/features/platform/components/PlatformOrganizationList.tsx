@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import type { PlatformOrganizationRow } from "@/lib/platformAdmin.types";
 import { Link } from "@/lib/router-compat-ui";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 
 function CompanyIdentity({ row }: { row: PlatformOrganizationRow }) {
   return (
@@ -27,6 +28,8 @@ function CompanyIdentity({ row }: { row: PlatformOrganizationRow }) {
 }
 
 function CompanyLink({ row }: { row: PlatformOrganizationRow }) {
+  const { can } = usePlatformCapabilities();
+  if (!can("organizations.details")) return null;
   return (
     <Button asChild variant="outline" size="sm">
       <Link

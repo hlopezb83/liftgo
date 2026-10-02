@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.functions";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformLegalTemplates } from "../hooks/usePlatformLegalTemplates";
 import { PlatformLegalTemplateAssignmentsDialog } from "./legalTemplates/PlatformLegalTemplateAssignmentsDialog";
 import { PlatformLegalTemplatePublishDialog } from "./legalTemplates/PlatformLegalTemplatePublishDialog";
@@ -13,7 +14,8 @@ import { PlatformLegalTemplatePublishDialog } from "./legalTemplates/PlatformLeg
 type DialogState = { kind: "publish" | "assign"; template: PlatformLegalTemplateRow } | null;
 
 export function PlatformLegalTemplatesCard() {
-  const { data, isLoading, isError, refetch } = usePlatformLegalTemplates(true);
+  const { can } = usePlatformCapabilities();
+  const { data, isLoading, isError, refetch } = usePlatformLegalTemplates(can("templates.read"));
   const [dialog, setDialog] = useState<DialogState>(null);
 
   return (
@@ -59,12 +61,12 @@ export function PlatformLegalTemplatesCard() {
                     <TableCell>{row.assignment_count}/{row.active_organization_count} empresas</TableCell>
                     <TableCell>{row.version_count} versiones</TableCell>
                     <TableCell className="space-x-2 text-right">
-                      <Button variant="outline" size="sm" onClick={() => setDialog({ kind: "assign", template: row })}>
+                      {can("templates.assign") && <Button variant="outline" size="sm" onClick={() => setDialog({ kind: "assign", template: row })}>
                         <HistoryIcon className="mr-2 h-4 w-4" /> Asignaciones
-                      </Button>
-                      <Button size="sm" onClick={() => setDialog({ kind: "publish", template: row })}>
+                      </Button>}
+                      {can("templates.publish") && <Button size="sm" onClick={() => setDialog({ kind: "publish", template: row })}>
                         Publicar versión
-                      </Button>
+                      </Button>}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -80,14 +82,14 @@ export function PlatformLegalTemplatesCard() {
           )}
         </CardContent>
       </Card>
-      {dialog?.kind === "publish" && (
+      {can("templates.publish") && dialog?.kind === "publish" && (
         <PlatformLegalTemplatePublishDialog
           open
           template={dialog.template}
           onOpenChange={(open) => { if (!open) setDialog(null); }}
         />
       )}
-      {dialog?.kind === "assign" && (
+      {can("templates.assign") && dialog?.kind === "assign" && (
         <PlatformLegalTemplateAssignmentsDialog
           open
           template={dialog.template}

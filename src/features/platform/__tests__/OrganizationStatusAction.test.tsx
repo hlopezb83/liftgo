@@ -6,6 +6,7 @@ const state = vi.hoisted(() => ({ isPending: false, mutate: vi.fn() }));
 vi.mock("../hooks/usePlatformOperator", () => ({
   useSetOrganizationActive: () => state,
 }));
+vi.mock("../hooks/usePlatformAccess", () => ({ usePlatformCapabilities: () => ({ can: () => true }) }));
 import { OrganizationStatusAction } from "../components/OrganizationStatusAction";
 
 describe("cambio de acceso empresarial", () => {

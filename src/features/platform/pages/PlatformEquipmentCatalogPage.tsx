@@ -3,7 +3,6 @@ import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, FleetIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,31 +12,20 @@ import type { PlatformEquipmentModelRow } from "@/lib/platformCatalog.functions"
 import { PlatformEquipmentModelDialog } from "../components/PlatformEquipmentModelDialog";
 import { PlatformLegalTemplatesCard } from "../components/PlatformLegalTemplatesCard";
 import { PlatformPartsCatalogCard } from "../components/PlatformPartsCatalogCard";
+import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import {
   usePlatformEquipmentCatalog,
   useSetPlatformEquipmentModelActive,
 } from "../hooks/usePlatformEquipmentCatalog";
-import { usePlatformOperatorStatus } from "../hooks/usePlatformOperator";
 
 export default function PlatformEquipmentCatalogPage() {
-  const { data: isOperator, isLoading: loadingOperator } = usePlatformOperatorStatus();
-  const { data, isLoading, isError, refetch } = usePlatformEquipmentCatalog(isOperator === true);
+  const { can } = usePlatformCapabilities();
+  const { data, isLoading, isError, refetch } = usePlatformEquipmentCatalog(can("catalogs.read"));
   const setActive = useSetPlatformEquipmentModelActive();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<PlatformEquipmentModelRow | null>(null);
 
-  if (loadingOperator) return null;
-  if (isOperator !== true) {
-    return (
-      <div className="space-y-6">
-        <PageHeader title="Maestros compartidos LiftGo" subtitle="Operación de plataforma" />
-        <Alert>
-          <AlertTitle>Sección restringida</AlertTitle>
-          <AlertDescription>Sólo los operadores de plataforma administran los maestros compartidos.</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+
 
   const create = () => { setEditing(null); setOpen(true); };
   const edit = (row: PlatformEquipmentModelRow) => { setEditing(row); setOpen(true); };
@@ -47,10 +35,10 @@ export default function PlatformEquipmentCatalogPage() {
       <PageHeader
         title="Maestros compartidos LiftGo"
         subtitle="Modelos, refacciones y documentos globales para todas las organizaciones"
-        actions={<div className="flex flex-wrap gap-2"><Button variant="outline" asChild><Link to="/platform/catalogs/import">Incorporar desde Org 1</Link></Button>
-          <Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo modelo</Button></div>}
+        actions={<div className="flex flex-wrap gap-2">{(can("catalogs.import") || can("templates.import")) && <Button variant="outline" asChild><Link to="/platform/catalogs/import">Incorporar desde Org 1</Link></Button>}
+          {can("catalogs.write") && <Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo modelo</Button>}</div>}
       />
-      <Card>
+      {can("catalogs.read") && <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><FleetIcon className="h-5 w-5" /> Modelos globales</CardTitle>
           <CardDescription>Las empresas conservan sus propias tarifas y deciden cuáles modelos habilitar.</CardDescription>
@@ -77,14 +65,14 @@ export default function PlatformEquipmentCatalogPage() {
                     </TableCell>
                     <TableCell>{row.organization_count}</TableCell>
                     <TableCell><Badge variant={row.is_active ? "default" : "secondary"}>{row.is_active ? "Activo" : "Inactivo"}</Badge></TableCell>
-                    <TableCell className="text-right space-x-1">
+                    <TableCell className="text-right space-x-1">{can("catalogs.write") && <>
                       <Button variant="ghost" size="icon" aria-label="Editar modelo global" onClick={() => edit(row)}><EditIcon className="h-4 w-4" /></Button>
                       <Button
                         variant="outline" size="sm"
                         disabled={setActive.isPending}
                         onClick={() => setActive.mutate({ id: row.id, active: !row.is_active })}
                       >{row.is_active ? "Desactivar" : "Reactivar"}</Button>
-                    </TableCell>
+                    </>}</TableCell>
                   </TableRow>
                 ))}
                 {(data ?? []).length === 0 && <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">No hay modelos globales.</TableCell></TableRow>}
@@ -92,10 +80,10 @@ export default function PlatformEquipmentCatalogPage() {
             </Table>
           )}
         </CardContent>
-      </Card>
-      <PlatformPartsCatalogCard models={data ?? []} />
-      <PlatformLegalTemplatesCard />
-      {open && <PlatformEquipmentModelDialog open onOpenChange={setOpen} model={editing} />}
+      </Card>}
+      {can("catalogs.read") && <PlatformPartsCatalogCard models={data ?? []} />}
+      {can("templates.read") && <PlatformLegalTemplatesCard />}
+      {can("catalogs.write") && open && <PlatformEquipmentModelDialog open onOpenChange={setOpen} model={editing} />}
     </div>
   );
 }

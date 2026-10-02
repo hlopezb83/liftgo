@@ -12,10 +12,7 @@ export const listPlatformAuditEventsFn = createServerFn({ method: "GET" })
   .validator((data: PlatformAuditInput) => data)
   .handler(async ({ data, context }) => {
     const g = await import("./server/adminGuards.server");
-    const { admin, userId } = await g.requirePlatformOperator(
-      context.supabase,
-      context.userId,
-    );
+    const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "audit.read");
     const input = platformAuditInputSchema.safeParse(data);
     if (!input.success)
       throw new g.HttpError(400, "Filtros o paginación inválidos");

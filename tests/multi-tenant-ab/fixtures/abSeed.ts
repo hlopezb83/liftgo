@@ -6,6 +6,8 @@
  * comercial, una factura, un documento y un objeto de Storage bajo el prefijo
  * de su propio `organization_id`. Añade además un objeto legado sin prefijo
  * para comprobar que nadie autenticado lo alcanza.
+ * El primer raíz se asigna por psql como dueño de esa BD local; no se concede
+ * INSERT de asignaciones al servicio ni se añade una RPC de bootstrap al ERP.
  *
  * Datos 100% sintéticos y deterministas. Ninguna credencial se versiona: las
  * contraseñas se generan por corrida y viven solo en el estado local del job.
@@ -34,6 +36,7 @@ import {
   storagePathFor,
 } from "./abIdentities";
 import { createLocalAdminClient } from "./localBackend";
+import { bootstrapLocalPlatformOperator } from "./bootstrapPlatformOperator";
 
 export const AB_CONTEXT_FILE = "tests/multi-tenant-ab/.state/ab-context.json";
 
@@ -304,7 +307,7 @@ async function createPlatformOperator(admin: SupabaseClient): Promise<string> {
     email: AB_EMAILS.platformOperator,
     is_active: true,
   }, { onConflict: "user_id" })).error);
-  must("platform_operators", (await admin.from("platform_operators").insert({ auth_user_id: userId })).error);
+  bootstrapLocalPlatformOperator(userId);
   return userId;
 }
 

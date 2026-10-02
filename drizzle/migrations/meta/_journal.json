@@ -638,6 +638,13 @@
       "when": 1790897569107,
       "tag": "0090_reviewed_catalog_imports",
       "breakpoints": true
+    },
+    {
+      "idx": 91,
+      "version": "7",
+      "when": 1790904569507,
+      "tag": "0091_platform_capabilities_and_root",
+      "breakpoints": true
     }
   ]
 }

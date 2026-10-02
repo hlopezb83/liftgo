@@ -69,7 +69,7 @@ describe("lecturas de plataforma del servidor", () => {
       data: { organization_id: ORG_ID, p_actor: ORG_ID },
       context,
     });
-    expect(state.guard).toHaveBeenCalledWith(context.supabase, ACTOR_ID);
+    expect(state.guard).toHaveBeenCalledWith(context.supabase, ACTOR_ID, "organizations.details");
     expect(state.rpc).toHaveBeenCalledWith("platform_get_organization_detail", {
       p_actor: ACTOR_ID,
       p_organization_id: ORG_ID,

@@ -179,6 +179,9 @@ jobs:
       - name: Prepare reports directory
         run: mkdir -p reports
 
+      - name: Protección del último raíz con dos sesiones concurrentes
+        run: python3 scripts/platform_root_concurrency.py
+
       # Las suites RLS hacen SET LOCAL role / request.jwt.claims y terminan en
       # ROLLBACK (ver supabase/tests/rls/README.md). ON_ERROR_STOP=1: cualquier
       # RAISE EXCEPTION de una suite = fuga de RLS detectada.
