@@ -23,14 +23,14 @@ INSERT INTO public.organization_memberships(organization_id,auth_user_id,member_
 INSERT INTO public.user_roles(user_id,role) SELECT ('94000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'ventas' FROM generate_series(3,5) n
 ON CONFLICT(user_id) DO UPDATE SET role=EXCLUDED.role;
 SELECT set_config('app.organization_id','94940000-0000-4000-8000-000000000011',true);
-INSERT INTO public.feedback_reports(id,organization_id,reporter_id,reporter_type,folio,title,description,module,context_json,screenshot_url) VALUES
-('94940000-0000-4000-8000-000000000021','94940000-0000-4000-8000-000000000011','94000000-0000-4000-8000-000000000003','internal','FB-0001','Reporte CI A','Diagnóstico privado original','Flota',
+INSERT INTO public.feedback_reports(id,organization_id,reporter_id,reporter_type,type,folio,title,description,module,context_json,screenshot_url) VALUES
+('94940000-0000-4000-8000-000000000021','94940000-0000-4000-8000-000000000011','94000000-0000-4000-8000-000000000003','internal','bug','FB-0001','Reporte CI A','Diagnóstico privado original','Flota',
 '{"app_version":"8.42.49","route":"/fleet/private?token=unshared","selected_element":{"text":"private-finance"}}',
 '94940000-0000-4000-8000-000000000011/94000000-0000-4000-8000-000000000003/123.png'),
-('94940000-0000-4000-8000-000000000023','94940000-0000-4000-8000-000000000011','94000000-0000-4000-8000-000000000006','customer','FB-0002','Reporte cliente CI','Contenido del cliente','Portal','{}',NULL);
+('94940000-0000-4000-8000-000000000023','94940000-0000-4000-8000-000000000011','94000000-0000-4000-8000-000000000006','customer','bug','FB-0002','Reporte cliente CI','Contenido del cliente','Portal','{}',NULL);
 SELECT set_config('app.organization_id','94940000-0000-4000-8000-000000000012',true);
-INSERT INTO public.feedback_reports(id,organization_id,reporter_id,reporter_type,folio,title,description,module) VALUES
-('94940000-0000-4000-8000-000000000022','94940000-0000-4000-8000-000000000012','94000000-0000-4000-8000-000000000005','internal','FB-0001','Reporte CI B','Diagnóstico original B','Bancos');
+INSERT INTO public.feedback_reports(id,organization_id,reporter_id,reporter_type,type,folio,title,description,module) VALUES
+('94940000-0000-4000-8000-000000000022','94940000-0000-4000-8000-000000000012','94000000-0000-4000-8000-000000000005','internal','bug','FB-0001','Reporte CI B','Diagnóstico original B','Bancos');
 
 DO $$ DECLARE v jsonb; BEGIN
   v:=public.platform_list_support('94000000-0000-4000-8000-000000000001','94940000-0000-4000-8000-000000000001','',
