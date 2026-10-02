@@ -1,4 +1,29 @@
 -- Soporte explícitamente compartido; no amplía lectura del ERP ni Storage empresarial.
+-- El DEFAULT se evaluaba como authenticated, sin permiso de ejecutar el generador.
+-- Asignar después de la guardia organizacional conserva contador y fila en una TX.
+ALTER TABLE public.feedback_reports ALTER COLUMN folio DROP DEFAULT;
+CREATE FUNCTION public.assign_feedback_folio_on_insert()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE v_actor uuid:=auth.uid();
+BEGIN
+  IF v_actor IS NOT NULL THEN
+    IF NEW.reporter_id IS DISTINCT FROM v_actor
+       OR NEW.organization_id IS DISTINCT FROM public.current_organization_id()
+       OR NOT EXISTS(SELECT 1 FROM public.profiles WHERE user_id=v_actor AND is_active) THEN
+      RAISE EXCEPTION 'Sólo puedes crear tus propios reportes en tu empresa activa' USING ERRCODE='42501';
+    END IF;
+    IF NEW.folio IS NOT NULL THEN
+      RAISE EXCEPTION 'El folio del reporte se asigna al guardar' USING ERRCODE='22023';
+    END IF;
+  END IF;
+  IF NEW.folio IS NULL THEN NEW.folio:=public.generate_feedback_number(); END IF;
+  RETURN NEW;
+END $$;
+REVOKE ALL ON FUNCTION public.assign_feedback_folio_on_insert() FROM PUBLIC,anon,authenticated,service_role;
+-- PostgreSQL ejecuta los BEFORE INSERT por nombre: primero trg_organization_write_context.
+CREATE TRIGGER trg_z_feedback_assign_folio BEFORE INSERT ON public.feedback_reports
+FOR EACH ROW EXECUTE FUNCTION public.assign_feedback_folio_on_insert();
+
 CREATE OR REPLACE FUNCTION public.platform_profile_capabilities(p_profile text)
 RETURNS text[] LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT CASE p_profile

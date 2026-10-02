@@ -194,6 +194,10 @@ automáticamente reportes existentes ni abre el ERP de otra empresa. Desde
 reporte propio de su organización activa. Clientes y compañeros no pueden
 compartir, consultar o retirar el caso del reportante.
 
+- El alta de reportes asigna el folio en un trigger privado, después de resolver
+  la empresa. El navegador no ejecuta el generador ni proporciona números o
+  reportantes ajenos. El contador se revierte si falla el INSERT. Los reportes
+  propios de clientes conservan su flujo empresarial y no acceden a soporte global.
 - El formulario exige revisión explícita. Comparte título y diagnóstico editables,
   módulo, versión capturada y requestId opcional validado como UUID. No comparte
   `context_json`, URLs empresariales, DOM, userAgent ni notas administrativas.
