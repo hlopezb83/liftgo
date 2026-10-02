@@ -26,9 +26,9 @@ export function PlatformHealthOverview() {
       <Button variant="outline" size="sm" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar estado</Button>
     </div>
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {cards.map((card) => <div key={card.label} className="rounded-xl border bg-card p-5">
+      {cards.map((card) => <div key={card.label} className="flex flex-col rounded-xl border bg-card p-5">
         <p className="text-sm text-muted-foreground">{card.label}</p>
-        <p className="mt-2 text-3xl font-semibold tabular-nums">{card.value}</p>
+        <p className="mt-auto pt-2 text-3xl font-semibold tabular-nums">{card.value}</p>
       </div>)}
     </div>
     {can("integrations.read") && <Button asChild variant="outline"><Link to="/platform/integrations">Revisar integraciones por empresa</Link></Button>}

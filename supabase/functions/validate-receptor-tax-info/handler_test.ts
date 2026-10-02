@@ -327,7 +327,7 @@ Deno.test("validate-receptor: flujo de una sola empresa sigue funcionando (fallb
         billingSecrets: { facturapi_test_key: null, facturapi_live_key: null },
         organizationsCount: [{ id: ORG_A }],
       },
-      (k) => (k === "FACTURAPI_TEST_KEY" ? "sk_env_legacy" : undefined),
+      (k) => (k === "FACTURAPI_TEST_KEY" ? "sk_test_env_legacy" : undefined),
     ),
   );
   assertEquals(res.status, 200);

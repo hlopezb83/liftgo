@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.42.49",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Ambientes fiscales y avisos de plataforma",
+    "description": "El ERP bloquea llaves fiscales incompatibles con el ambiente y pule los avisos del Centro de Plataforma.",
+    "changes": [
+      "El resolver fiscal rechaza llaves del ambiente opuesto y llaves de cuenta antes de timbrar o cancelar, sin recurrir a otra credencial.",
+      "Las comprobaciones muestran un solo aviso en la página y las cifras de monitoreo se alinean cuando las etiquetas ocupan dos líneas."
+    ]
+  },
+  {
     "version": "8.42.48",
     "date": "2026-10-02",
     "type": "patch",

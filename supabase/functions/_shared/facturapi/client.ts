@@ -73,6 +73,7 @@ export type FacturapiConfigErrorCode =
   | "config_read_error"
   | "config_missing"
   | "config_invalid_mode"
+  | "config_invalid_key_mode"
   | "config_duplicate_key"
   | "organization_required";
 
@@ -100,6 +101,23 @@ export function isFacturapiConfigError(
   err: unknown,
 ): err is FacturapiConfigError {
   return err instanceof FacturapiConfigError;
+}
+
+/** La llave determina el ambiente real del proveedor, no el modo del ERP. */
+function assertFacturapiKeyMode(
+  apiKey: string,
+  mode: FacturapiMode,
+  organizationId: string,
+): void {
+  const prefix = mode === "test" ? "sk_test_" : "sk_live_";
+  if (!apiKey.startsWith(prefix) || apiKey.length <= prefix.length) {
+    throw new FacturapiConfigError(
+      "config_invalid_key_mode",
+      "La llave de Facturapi no corresponde al ambiente de esta empresa. " +
+        "Revisa su configuración fiscal antes de operar.",
+      organizationId,
+    );
+  }
 }
 
 /**
@@ -195,6 +213,7 @@ export async function getFacturapiConfigForOrganization(input: {
 
   const dbKey = resolveFacturapiKey({ mode, dbTestKey, dbLiveKey });
   if (dbKey) {
+    assertFacturapiKeyMode(dbKey, mode, organizationId);
     // Una llave de Facturapi identifica a una sola organización emisora. Si
     // aparece en dos empresas del ERP, usarla mezclaría sus recursos fiscales
     // aunque la factura y el secreto se hayan leído con organization_id.
@@ -245,6 +264,7 @@ export async function getFacturapiConfigForOrganization(input: {
     envTestKey: env("FACTURAPI_TEST_KEY"),
     envLiveKey: env("FACTURAPI_LIVE_KEY"),
   });
+  if (envKey) assertFacturapiKeyMode(envKey, mode, organizationId);
   return {
     mode,
     apiKey: envKey,

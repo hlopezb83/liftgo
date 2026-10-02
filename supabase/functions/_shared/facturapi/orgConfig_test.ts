@@ -73,7 +73,7 @@ function adminFor(
 }
 
 const envKeys = (k: string) =>
-  ({ FACTURAPI_TEST_KEY: "env_test", FACTURAPI_LIVE_KEY: "env_live" })[k];
+  ({ FACTURAPI_TEST_KEY: "sk_test_env", FACTURAPI_LIVE_KEY: "sk_live_env" })[k];
 
 Deno.test("exige organización: sin ella lanza error explícito", async () => {
   await assertRejects(() =>
@@ -98,13 +98,13 @@ Deno.test("cada empresa usa sus propias llaves y su propio modo", async () => {
     billing_secrets: [
       {
         organization_id: ORG_A,
-        facturapi_test_key: "a_test",
-        facturapi_live_key: "a_live",
+        facturapi_test_key: "sk_test_A",
+        facturapi_live_key: "sk_live_A",
       },
       {
         organization_id: ORG_B,
-        facturapi_test_key: "b_test",
-        facturapi_live_key: "b_live",
+        facturapi_test_key: "sk_test_B",
+        facturapi_live_key: "sk_live_B",
       },
     ],
     organizations: [{ id: ORG_A }, { id: ORG_B }],
@@ -116,7 +116,7 @@ Deno.test("cada empresa usa sus propias llaves y su propio modo", async () => {
     organizationId: ORG_A,
   });
   assertEquals(a.mode, "live");
-  assertEquals(a.apiKey, "a_live");
+  assertEquals(a.apiKey, "sk_live_A");
 
   const b = await getFacturapiConfigForOrganization({
     admin,
@@ -124,15 +124,15 @@ Deno.test("cada empresa usa sus propias llaves y su propio modo", async () => {
     organizationId: ORG_B,
   });
   assertEquals(b.mode, "test");
-  assertEquals(b.apiKey, "b_test");
+  assertEquals(b.apiKey, "sk_test_B");
 });
 
 Deno.test("rechaza una llave test compartida por dos empresas", async () => {
   const admin = adminFor({
     company_settings: [{ organization_id: ORG_B, facturapi_mode: "test" }],
     billing_secrets: [
-      { organization_id: ORG_A, facturapi_test_key: "shared_test" },
-      { organization_id: ORG_B, facturapi_test_key: "shared_test" },
+      { organization_id: ORG_A, facturapi_test_key: "sk_test_shared" },
+      { organization_id: ORG_B, facturapi_test_key: "sk_test_shared" },
     ],
     organizations: [{ id: ORG_A }, { id: ORG_B }],
   });
@@ -150,8 +150,8 @@ Deno.test("rechaza una llave live compartida por dos empresas", async () => {
   const admin = adminFor({
     company_settings: [{ organization_id: ORG_A, facturapi_mode: "live" }],
     billing_secrets: [
-      { organization_id: ORG_A, facturapi_live_key: "shared_live" },
-      { organization_id: ORG_B, facturapi_live_key: "shared_live" },
+      { organization_id: ORG_A, facturapi_live_key: "sk_live_shared" },
+      { organization_id: ORG_B, facturapi_live_key: "sk_live_shared" },
     ],
     organizations: [{ id: ORG_A }, { id: ORG_B }],
   });
@@ -173,8 +173,8 @@ Deno.test("empresa sin configuración NO reutiliza llaves de otra ni del entorno
     ],
     billing_secrets: [{
       organization_id: ORG_A,
-      facturapi_test_key: "a_test",
-      facturapi_live_key: "a_live",
+      facturapi_test_key: "sk_test_A",
+      facturapi_live_key: "sk_live_A",
     }],
     organizations: [{ id: ORG_A }, { id: ORG_B }],
   });
@@ -225,8 +225,8 @@ Deno.test("8.8.7: error al leer company_settings ⇒ config_read_error sin llave
     company_settings: [{ organization_id: ORG_A, facturapi_mode: "live" }],
     billing_secrets: [{
       organization_id: ORG_A,
-      facturapi_test_key: "a_test",
-      facturapi_live_key: "a_live",
+      facturapi_test_key: "sk_test_A",
+      facturapi_live_key: "sk_live_A",
     }],
     organizations: [{ id: ORG_A }],
   }, { company_settings: { message: "db down" } });
@@ -294,8 +294,8 @@ Deno.test("8.8.7: modeOverride null se trata como configuración ausente", async
     company_settings: [{ organization_id: ORG_A, facturapi_mode: "live" }],
     billing_secrets: [{
       organization_id: ORG_A,
-      facturapi_test_key: "a_test",
-      facturapi_live_key: "a_live",
+      facturapi_test_key: "sk_test_A",
+      facturapi_live_key: "sk_live_A",
     }],
     organizations: [{ id: ORG_A }],
   });
@@ -321,7 +321,7 @@ Deno.test("fallback legado de entorno sólo con una única organización", async
     env: envKeys,
     organizationId: ORG_A,
   });
-  assertEquals(legacy.apiKey, "env_test");
+  assertEquals(legacy.apiKey, "sk_test_env");
   assertEquals(legacy.fromEnvFallback, true);
 });
 
@@ -339,8 +339,8 @@ Deno.test("modeOverride evita releer company_settings", async () => {
     company_settings: [],
     billing_secrets: [{
       organization_id: ORG_A,
-      facturapi_test_key: "a_test",
-      facturapi_live_key: "a_live",
+      facturapi_test_key: "sk_test_A",
+      facturapi_live_key: "sk_live_A",
     }],
     organizations: [{ id: ORG_A }],
   });
@@ -351,7 +351,7 @@ Deno.test("modeOverride evita releer company_settings", async () => {
     modeOverride: "live",
   });
   assertEquals(cfg.mode, "live");
-  assertEquals(cfg.apiKey, "a_live");
+  assertEquals(cfg.apiKey, "sk_live_A");
 });
 
 // 8.8.8: `organizations` ilegible NO puede confundirse con "hay más de una
