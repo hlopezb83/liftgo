@@ -5,6 +5,7 @@ export const platformCapabilitySchema = z.enum([
   "organizations.suspend", "organizations.resume", "catalogs.read",
   "catalogs.write", "catalogs.import", "templates.read", "templates.publish",
   "templates.assign", "templates.import", "audit.read", "operators.read", "operators.manage",
+  "integrations.read", "integrations.check", "monitoring.read",
 ]);
 export type PlatformCapability = z.infer<typeof platformCapabilitySchema>;
 export const platformAccessSchema = z.object({

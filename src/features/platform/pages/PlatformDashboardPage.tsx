@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/lib/router-compat-ui";
+import { PlatformHealthOverview } from "../components/PlatformHealthOverview";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 
@@ -68,6 +69,7 @@ export default function PlatformDashboardPage() {
           ))}
         </section>
       ))}
+      <PlatformHealthOverview />
       <section
         aria-label="Administración global"
         className="grid gap-4 xl:grid-cols-3"

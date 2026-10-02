@@ -8,6 +8,8 @@ const DESTINATIONS = [
   "/platform/audit",
   "/platform/operators",
   "/platform/security",
+  "/platform/integrations",
+  "/platform/monitoring",
 ];
 const COMPANY_DETAIL =
   /^\/platform\/organizations\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

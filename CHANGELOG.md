@@ -1,5 +1,12 @@
 <!-- Mirror of public/changelog.json; keep newest releases at the top. -->
 
+## [8.42.47] - 2026-10-02
+
+### Mejoras
+- Integraciones por empresa: comprobación de conexión Facturapi desde el servidor, con límites, fecha y latencia.
+- Permisos de lectura, comprobación y monitoreo; resultados invalidados al cambiar llave o ambiente.
+- Inicio y Monitoreo muestran altas pendientes, configuración fiscal incompleta, reportes abiertos y cola fiscal.
+
 ## [8.42.46] - 2026-10-02 · patch · improvement
 
 El Centro de Plataforma administra perfiles de cuentas internas existentes y muestra la sesión propia.

@@ -15,6 +15,10 @@ propio layout y autorización. Se conserva la marca global LiftGo.
 | `/platform/catalogs` | Modelos, SKUs y machotes legales globales existentes |
 | `/platform/catalogs/import` | Revisión de nuevas incorporaciones desde Org 1 |
 | `/platform/audit` | Bitácora global, filtros de empresa/ámbito y detalle de cambios |
+| `/platform/operators` | Perfiles de cuentas internas validadas, motivo y confirmación de contraseña |
+| `/platform/security` | Sesión propia y recuperación gestionada |
+| `/platform/integrations` | Configuración, comprobación explícita de Facturapi y conteos de cola fiscal |
+| `/platform/monitoring` | Indicadores operativos y fuentes con fecha de consulta |
 | `/?workspace=organization` | Entrada explícita al ERP de la empresa del usuario |
 
 El operador confirmado entra al Centro desde `/`. Los demás usuarios conservan
@@ -76,6 +80,8 @@ existencias, cuerpos legales ni permisos nuevos sobre el ERP de otra empresa.
 La disponibilidad de Facturapi comprueba la llave del ambiente seleccionado
 en el servidor; no consulta al proveedor. El checklist comprueba configuración,
 no acredita validación SAT, timbrado, saldos o preparación para producción.
+La comprobación explícita del proveedor se realiza en la pantalla Integraciones,
+implementada con la migración `0093`; la ficha conserva su checklist de configuración.
 
 Los contadores se muestran como texto, desde `0001`, sin truncar valores mayores
 a cuatro dígitos ni consumir folios. Los contadores aún no creados se inicializan
@@ -360,3 +366,48 @@ del ERP. La entrega real de correo y los redirects siguen pendientes de una
 prueba de integración; las pruebas automatizadas no demuestran la entrega.
 El despliegue aplica 0092 antes de publicar frontend/servidor. La migración no
 agrega, revoca ni cambia operadores reales; sus fixtures sólo corren en CI efímero.
+## Integraciones y monitoreo — migración 0093
+
+`/platform/integrations` pagina 25 empresas en el servidor. Muestra ambiente,
+disponibilidad de la llave seleccionada, última comprobación vigente y conteos
+de trabajos fiscales pendientes/en procesamiento y agotados. No devuelve
+llaves, huellas, identificadores fiscales, payloads ni mensajes crudos.
+
+`integrations.read` permite leer; `integrations.check` permite la comprobación
+explícita. Raíz y Soporte pueden comprobar; Observador puede leer.
+`monitoring.read` corresponde a Raíz, Soporte y Observador. Los perfiles
+Empresas y Catálogos mantienen sus permisos. La migración cambia la revisión
+de los perfiles afectados para limpiar sus cachés al revalidar.
+
+Las nuevas funciones exigen una sesión propia activa antes del cliente
+privilegiado y de nuevo en SQL. Sólo `service_role` ejecuta las RPC. La tabla
+privada `platform_integration_checks` registra solicitud, actor, empresa,
+ambiente, resultado, tiempo y versión; no almacena la llave o el cuerpo fiscal.
+La huella privada de la llave permite excluir resultados de una configuración
+anterior. Los cambios de llave/ambiente durante una consulta invalidan el
+resultado. También se vuelve a comprobar exclusividad de la llave al terminar.
+
+La consulta del servidor usa una sola llamada GET a
+[`/v2/organizations/me`](https://docs.facturapi.io/api-es/#tag/organizations),
+documentada para SecretTestKey y SecretLiveKey, sin emitir documentos. Tiene
+timeout de 8 segundos, no sigue redirecciones y no hace reintentos automáticos.
+SQL reserva la solicitud antes de consultar; una solicitud repetida no devuelve
+otra llave ni llama otra vez al proveedor. Un bloqueo por empresa limita a una
+comprobación por minuto; hay además un límite de cinco por minuto y operador.
+La consulta no usa llaves globales de entorno ni cambia folios Facturapi.
+«Conexión comprobada» acredita una respuesta válida de ese instante, no RFC,
+certificados, capacidad de timbrar ni disponibilidad permanente del proveedor.
+
+`/platform/monitoring` e Inicio muestran altas sin completar, empresas activas
+con configuración fiscal incompleta, cola fiscal y reportes abiertos. Los
+conteos proceden de tablas existentes y muestran fecha de consulta. Incluyen
+organizaciones de prueba porque son métricas operativas, no comerciales.
+La latencia corresponde exclusivamente a las comprobaciones explícitas.
+La versión anunciada procede del artefacto del despliegue; no acredita por sí
+sola el SHA publicado. No se inventan datos de respaldos, restauraciones,
+telemetría general, CI ni costos por empresa.
+
+Pendiente del bloque 4: bandeja de soporte con responsable y seguimiento,
+historial detallado de trabajos y reintento autorizado con conciliación, y
+telemetría general con fuente y retención. No existe un botón de reintento
+fiscal ciego en este Centro. Se mantiene la cola segura del ERP.
