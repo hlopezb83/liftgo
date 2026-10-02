@@ -174,7 +174,7 @@ BEGIN
                OR p.roles @> ARRAY['public'::name]);
         IF v_permisivas > 0 THEN
           v_fallas := v_fallas || format(
-            '%s: infra deny-all con % policy(s) PERMISSIVE para anon/authenticated/public',
+            '%s: infra deny-all con %s policy(s) PERMISSIVE para anon/authenticated/public',
             r.table_name, v_permisivas);
         END IF;
 
@@ -186,7 +186,7 @@ BEGIN
           AND g.grantee IN ('anon', 'authenticated', 'PUBLIC');
         IF v_grants_abiertos > 0 THEN
           v_fallas := v_fallas || format(
-            '%s: infra deny-all con % grant(s) directo(s) a anon/authenticated/PUBLIC',
+            '%s: infra deny-all con %s grant(s) directo(s) a anon/authenticated/PUBLIC',
             r.table_name, v_grants_abiertos);
         END IF;
 
@@ -202,14 +202,15 @@ BEGIN
             v_fallas := v_fallas || 'platform_audit_events: exige sólo SELECT/INSERT de service_role';
           END IF;
         ELSIF r.table_name = ANY (ARRAY['platform_onboarding_requests',
-            'platform_catalog_import_source','platform_catalog_imports','platform_operator_guard','platform_integration_checks']) THEN
+            'platform_catalog_import_source','platform_catalog_imports','platform_operator_guard','platform_integration_checks',
+            'platform_support_cases','platform_support_events']) THEN
           IF v_grants_service <> 1 OR has_table_privilege('service_role',
               'public.' || r.table_name,'INSERT,UPDATE,DELETE,TRUNCATE') THEN
             v_fallas := v_fallas || format('%s: exige sólo SELECT de service_role',r.table_name);
           END IF;
         ELSIF v_grants_service <> 4 THEN
           v_fallas := v_fallas || format(
-            '%s: infra deny-all sin los 4 privilegios de service_role (encontrados: %)',
+            '%s: infra deny-all sin los 4 privilegios de service_role (encontrados: %s)',
             r.table_name, v_grants_service);
         END IF;
       ELSE
