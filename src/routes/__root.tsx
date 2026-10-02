@@ -4,6 +4,7 @@ import "@/lib/forms/zodConfig";
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
 import { PageFallback } from "@/app-routes/RouteSkeletons";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { AppProviders } from "@/layouts/AppProviders";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
@@ -131,7 +132,8 @@ function RootErrorComponent({ error, reset }: ErrorComponentProps) {
         <p className="text-sm text-muted-foreground">
           Ocurrió un error inesperado. Puedes reintentar o volver al inicio.
         </p>
-        <div className="flex gap-2">
+        <ErrorDiagnostic error={error} title="Esta página no cargó" phase="route" />
+        <div className="flex flex-wrap gap-2">
           <button
             type="button"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground min-h-11"

@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
-import { notifyValidation } from "@/lib/ui/appFeedback";
+import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
 import { getMissingStampFields } from "../../lib/cfdiPrechecks";
 import { classifyFacturapiError, type FacturapiErrorKind } from "../../lib/facturapiErrors";
@@ -20,6 +20,7 @@ const isBenignStampError = (raw: string) => BENIGN_STAMP_PATTERNS.some((r) => r.
 
 
 export interface StampErrorState {
+  error?: unknown;
   message: string;
   kind: FacturapiErrorKind;
   customerId: string | null;
@@ -66,6 +67,7 @@ export function useStampInvoiceFlow(refetch: () => void) {
           if (isBenignStampError(raw)) return; // toast info ya cubierto
           const classified = classifyFacturapiError(raw);
           setStampError({
+            error: err,
             message: classified.message,
             kind: classified.kind,
             customerId: invoice.customer_id ?? null,
@@ -80,11 +82,11 @@ export function useStampInvoiceFlow(refetch: () => void) {
         onSettled: () => { inFlightRef.current = false; },
       });
 
-    } catch {
+    } catch (error) {
       inFlightRef.current = false;
-      notifyValidation({
+      notifyError({ error,
         title: "No se pudo preparar la factura",
-        message: "No se guardaron los datos fiscales. Reintenta antes de timbrar.",
+        description: "No se confirmó el guardado de los datos fiscales. Actualiza la factura antes de timbrar.",
       });
     }
   };
@@ -97,4 +99,3 @@ export function useStampInvoiceFlow(refetch: () => void) {
     clearStampError: () => setStampError(null),
   };
 }
-

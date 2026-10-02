@@ -36,7 +36,7 @@ export function openErrorReport(report: ErrorReport): void {
 
 export function closeErrorReport(): void {
   if (!state.open) return;
-  state = { open: false, report: state.report };
+  state = { open: false, report: null };
   emit();
 }
 

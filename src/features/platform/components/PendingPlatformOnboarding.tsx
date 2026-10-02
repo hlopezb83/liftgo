@@ -37,7 +37,7 @@ export function PendingPlatformOnboarding({
   if (query.isPending) return <Skeleton className="h-20 w-full" />;
   if (query.isError)
     return (
-      <QueryErrorState
+      <QueryErrorState error={query.error}
         entity="las altas pendientes"
         onRetry={() => void query.refetch()}
         isRetrying={query.isFetching}

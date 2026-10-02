@@ -9,7 +9,7 @@ export function PlatformHealthOverview() {
   const { can } = usePlatformCapabilities();
   const query = usePlatformMonitoring(can("monitoring.read"));
   if (!can("monitoring.read")) return null;
-  if (query.isError) return <QueryErrorState entity="el estado operativo" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />;
+  if (query.isError) return <QueryErrorState error={query.error} entity="el estado operativo" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />;
   if (query.isPending) return <Skeleton className="h-40 w-full" />;
   const data = query.data;
   const cards = [

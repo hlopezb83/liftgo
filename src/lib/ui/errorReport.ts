@@ -1,6 +1,7 @@
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { getAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { extractErrorDetails, deriveErrorCode, type ExtractedErrorDetails } from "@/lib/ui/errorDetailsExtract";
+import { diagnosticSnapshot, redactDiagnosticText } from "@/lib/ui/errorReportJson";
 
 /** Reporte estructurado de error, copiable y enviable a soporte. */
 export interface ErrorReport {
@@ -42,13 +43,14 @@ export interface BuildErrorReportInput {
   context?: Record<string, unknown>;
 }
 
-/** Versión del app leída del primer entry de /changelog.json (best-effort, sin red). */
+/** Build version is available on login, platform and failed-provider screens. */
 let cachedVersion: string | null = null;
 export function setAppVersion(version: string): void {
   cachedVersion = version;
 }
 function getAppVersion(): string {
-  return cachedVersion ?? "unknown";
+  const compiledVersion = import.meta.env.VITE_APP_VERSION;
+  return compiledVersion && compiledVersion !== "unknown" ? compiledVersion : cachedVersion ?? "unknown";
 }
 
 function safeUuid(): string {
@@ -60,7 +62,7 @@ function safeUuid(): string {
 function currentRoute(): string {
   if (typeof window === "undefined") return "";
   const { pathname, search, hash } = window.location;
-  return `${pathname}${search}${hash}`;
+  return redactDiagnosticText(`${pathname}${search}${hash}`);
 }
 
 function currentClient(): ErrorReport["client"] {
@@ -83,8 +85,8 @@ export function buildErrorReport(input: BuildErrorReportInput): ErrorReport {
     requestId: safeUuid(),
     errorCode: code,
     method: input.method,
-    title: input.title,
-    description: input.description,
+    title: redactDiagnosticText(input.title),
+    description: input.description ? redactDiagnosticText(input.description) : undefined,
     phase: input.phase,
     step: input.step,
     version: getAppVersion(),
@@ -99,7 +101,7 @@ export function buildErrorReport(input: BuildErrorReportInput): ErrorReport {
       effectiveRole: snap.role ?? null,
     },
     client: currentClient(),
-    errorDetails: details,
-    context: input.context,
+    errorDetails: diagnosticSnapshot(details) as ExtractedErrorDetails,
+    context: input.context ? diagnosticSnapshot(input.context) as Record<string, unknown> : undefined,
   };
 }

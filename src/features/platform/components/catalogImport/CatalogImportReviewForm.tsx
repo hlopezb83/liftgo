@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
@@ -40,7 +41,8 @@ export function CatalogImportReviewForm({ preview, onDone, onPendingChange }: {
         onCheckedChange={(value) => setReviewed(value === true)} />
       <Label htmlFor="catalog-import-reviewed" className="text-sm leading-relaxed">Revisé la comparación y autorizo esta incorporación al catálogo compartido.</Label>
     </div>
-    {error && <p role="status" className="rounded-lg border p-3 text-sm">No se confirmó el resultado. Reintenta la misma solicitud; si los datos cambiaron, cierra y vuelve a abrir la revisión.</p>}
+    {error && <div className="space-y-2 rounded-lg border p-3 text-sm"><p role="status">No se confirmó el resultado. Reintenta la misma solicitud; si los datos cambiaron, cierra y vuelve a abrir la revisión.</p>
+      <ErrorDiagnostic error={mutation.error} title="No se pudo confirmar la incorporación" phase="catalog-import" /></div>}
     <FormDialogFooter>
       <FormDialogCancelButton onCancel={onDone} disabled={mutation.isPending} />
       <Button onClick={() => void submit()} disabled={!reviewed || reason.trim().length < 5 || mutation.isPending}>

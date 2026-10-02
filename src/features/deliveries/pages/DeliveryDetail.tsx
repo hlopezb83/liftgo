@@ -49,7 +49,7 @@ export default function DeliveryDetail() {
   if (hasLinkedBooking && bookingQuery.isError) {
     return (
       <PageContainer>
-        <QueryErrorState entity="la reserva vinculada" onRetry={() => { void bookingQuery.refetch(); }} />
+        <QueryErrorState error={bookingQuery.error} entity="la reserva vinculada" onRetry={() => { void bookingQuery.refetch(); }} />
       </PageContainer>
     );
   }

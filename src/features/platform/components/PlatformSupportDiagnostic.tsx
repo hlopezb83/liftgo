@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
 import { getPlatformSupportScreenshotFn } from "@/lib/platformSupport.functions";
 import type { SupportCase } from "@/lib/platformSupport.types";
@@ -15,7 +16,8 @@ function SupportCapture({ caseId }: { caseId: string }) {
   }, [data, reset]);
   return <section className="space-y-3" aria-label="Captura compartida">
     <Button variant="outline" disabled={capture.isPending} onClick={() => capture.mutate()}>Abrir captura compartida</Button>
-    {capture.isError && <p role="alert" className="text-sm text-destructive">{capture.error.message}</p>}
+    {capture.isError && <div role="alert" className="space-y-2"><p className="text-sm text-destructive">{capture.error.message}</p>
+      <ErrorDiagnostic error={capture.error} title="No se pudo abrir la captura compartida" phase="support-screenshot" /></div>}
     {data && <><a href={data.url} target="_blank" rel="noopener noreferrer"><img src={data.url} alt="Captura compartida por el reportante" className="max-h-80 w-full rounded-lg border object-contain" /></a>
       <p className="text-xs text-muted-foreground">El enlace vence en un minuto. Puedes solicitar uno nuevo.</p></>}
   </section>;

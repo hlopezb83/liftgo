@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { buildErrorReport } from "../errorReport";
 
 const sonner = vi.hoisted(() => ({
   success: vi.fn(),
@@ -10,7 +11,7 @@ const sonner = vi.hoisted(() => ({
 
 vi.mock("sonner", () => ({ toast: sonner }));
 vi.mock("@/lib/ui/errorDetailsStore", () => ({ openErrorReport: vi.fn() }));
-vi.mock("@/lib/ui/errorReport", () => ({ buildErrorReport: vi.fn(() => ({})) }));
+vi.mock("@/lib/ui/errorReport", () => ({ buildErrorReport: vi.fn((input) => ({ ...input, requestId: "report" })) }));
 
 import {
   notifySuccess,
@@ -65,12 +66,13 @@ describe("appFeedback", () => {
     );
   });
 
-  it("notifyValidation usa toast.warning con duración corta y sin acción", () => {
+  it("notifyValidation usa aviso corto con diagnóstico", () => {
     notifyValidation({ message: "Monto > 0" });
     expect(sonner.warning).toHaveBeenCalledWith(
       "Revisa los datos",
       expect.objectContaining({ description: "Monto > 0", duration: 5000 }),
     );
+    expect(sonner.warning.mock.calls[0][1].action.props.report).toBeDefined();
   });
 
   it("notifyError critical → duración Infinity, con closeButton y acción", () => {
@@ -78,12 +80,12 @@ describe("appFeedback", () => {
     const [, opts] = sonner.error.mock.calls[0];
     expect(opts.duration).toBe(Infinity);
     expect(opts.closeButton).toBe(true);
-    expect(opts.action.label).toBe("Ver detalles");
+    expect(opts.action.props.onDetails).toBeTypeOf("function");
   });
 
   it("notifyError severity=warning → duración finita (6s)", () => {
     notifyError({ error: new Error("dup"), title: "Duplicado", severity: "warning" });
-    const [, opts] = sonner.error.mock.calls[0];
+    const [, opts] = sonner.warning.mock.calls[0];
     expect(opts.duration).toBe(6000);
   });
 
@@ -97,5 +99,22 @@ describe("appFeedback", () => {
     const result = notifyAsync(promise, { loading: "Timbrando…", success: (n) => `OK ${n}` });
     expect(sonner.promise).toHaveBeenCalledTimes(1);
     await expect(result).resolves.toBe(42);
+  });
+
+  it("el fallo async conserva el error original y actualiza el toast en vez de crear otro", async () => {
+    const promise = Promise.resolve(42);
+    notifyAsync(promise, { loading: "Actualizando calendario…", success: "Actualizado", error: "No se pudo actualizar" });
+    const failure = Object.assign(new Error("Sin conexión"), { status: 503 });
+    const result = sonner.promise.mock.calls[0][1].error(failure);
+    expect(result).toMatchObject({ message: "No se pudo actualizar", duration: Infinity, closeButton: true });
+    expect(result).not.toHaveProperty("id");
+    expect(result.action.props.onDetails).toBeTypeOf("function");
+    expect(buildErrorReport).toHaveBeenLastCalledWith(expect.objectContaining({ error: failure }));
+    await promise;
+  });
+
+  it("el texto contextual del llamador se utiliza sin duplicarlo debajo", () => {
+    notifyError({ error: new Error("No se pudo exportar"), message: "No se pudo exportar" });
+    expect(sonner.error).toHaveBeenCalledWith("No se pudo exportar", expect.objectContaining({ description: undefined }));
   });
 });

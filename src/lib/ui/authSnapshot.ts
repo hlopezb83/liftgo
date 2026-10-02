@@ -1,7 +1,7 @@
 /**
  * Snapshot sincrónico de auth para uso fuera de componentes (callbacks de toast,
  * builders de error). Se actualiza vía `setAuthSnapshot` desde un puente React.
- * LiftGo es single-tenant hoy; `organization` queda `null` reservado para futuro.
+ * El ERP usa una empresa verificada; el Centro global no usa empresa.
  */
 interface AuthSnapshotUser {
   id: string;

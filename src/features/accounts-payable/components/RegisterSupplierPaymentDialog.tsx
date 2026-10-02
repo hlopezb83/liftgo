@@ -147,6 +147,7 @@ export function RegisterSupplierPaymentDialog({
       if (uploadedPath) {
         const { error } = await supabase.storage.from("supplier-payment-receipts").remove([uploadedPath]);
         if (error) notifyWarning("No se pudo limpiar el comprobante", {
+          error,
           description: "El pago no se registró. Contacta a soporte para revisar el archivo subido.",
         });
       }

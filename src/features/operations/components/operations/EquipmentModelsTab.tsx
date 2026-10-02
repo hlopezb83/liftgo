@@ -117,7 +117,7 @@ export function EquipmentModelsTab() {
   const pending = activate.isPending || update.isPending;
 
   if (local.isError || catalog.isError) {
-    return <QueryErrorState bare entity="los modelos de equipo" onRetry={() => { void local.refetch(); void catalog.refetch(); }} />;
+    return <QueryErrorState error={local.error} bare entity="los modelos de equipo" onRetry={() => { void local.refetch(); void catalog.refetch(); }} />;
   }
 
   return (

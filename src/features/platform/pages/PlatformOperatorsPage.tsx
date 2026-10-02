@@ -56,7 +56,7 @@ export default function PlatformOperatorsPage() {
         <p className="text-sm text-muted-foreground">Las cuentas disponibles están activas y verificadas. El propio acceso se administra desde otra cuenta de operador raíz.</p>
       </div>
       {saved && <p role="status" className="rounded-lg border bg-muted p-3 text-sm">Acceso de plataforma actualizado.</p>}
-      {query.isError ? <QueryErrorState entity="los operadores" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />
+      {query.isError ? <QueryErrorState error={query.error} entity="los operadores" onRetry={() => void query.refetch()} isRetrying={query.isFetching} />
         : query.isPending ? <Skeleton className="h-48 w-full" /> : <>
           <ul className="divide-y rounded-xl border bg-card" aria-label="Cuentas de plataforma">
             {query.data.rows.map((account) => <li key={account.id} className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">

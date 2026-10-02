@@ -1,6 +1,7 @@
 import { WarnIcon, ResetIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ErrorDiagnostic } from "./ErrorDiagnostic";
 
 interface QueryErrorStateProps {
   /** Qué se estaba cargando: "el tablero", "la proyección de flujo de caja", … */
@@ -9,6 +10,7 @@ interface QueryErrorStateProps {
   isRetrying?: boolean;
   /** Renderiza el mensaje sin envolver en Card (para embeder en layouts propios). */
   bare?: boolean;
+  error?: unknown;
 }
 
 /**
@@ -16,9 +18,9 @@ interface QueryErrorStateProps {
  * NUNCA dejamos que una vista KPI renderice ceros cuando isError=true —
  * un usuario podría tomar decisiones sobre datos falsos.
  */
-export function QueryErrorState({ entity, onRetry, isRetrying = false, bare = false }: QueryErrorStateProps) {
+export function QueryErrorState({ entity, onRetry, isRetrying = false, bare = false, error }: QueryErrorStateProps) {
   const body = (
-    <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
+    <div className="px-4 py-12 flex flex-col items-center justify-center gap-3 text-center">
       <WarnIcon className="h-8 w-8 text-destructive" />
       <div>
         <p className="font-medium">No se pudo cargar {entity}</p>
@@ -30,6 +32,7 @@ export function QueryErrorState({ entity, onRetry, isRetrying = false, bare = fa
         <ResetIcon className={isRetrying ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
         Reintentar
       </Button>
+      <ErrorDiagnostic title={`No se pudo cargar ${entity}`} error={error ?? `No se pudo cargar ${entity}`} phase="query" context={{ originalErrorAvailable: error != null }} />
     </div>
   );
   if (bare) return body;

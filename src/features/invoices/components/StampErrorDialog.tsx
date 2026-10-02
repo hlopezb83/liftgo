@@ -1,4 +1,5 @@
 
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { InfoAlertIcon, DuplicateIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ interface Props {
   kind: FacturapiErrorKind;
   customerId?: string | null;
   receptor?: ReceptorSnapshot;
+  error?: unknown;
 }
 
 interface KindCopy {
@@ -112,7 +114,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
   );
 }
 
-export function StampErrorDialog({ open, onOpenChange, message, kind, customerId, receptor }: Props) {
+export function StampErrorDialog({ open, onOpenChange, message, kind, customerId, receptor, error }: Props) {
   const navigate = useNavigateTransition();
   const copy = getCopy(kind, customerId, message);
   const showReceptor = kind === "receptor_data" && !!receptor;
@@ -133,6 +135,7 @@ export function StampErrorDialog({ open, onOpenChange, message, kind, customerId
       }
     >
       <div className="space-y-3">
+        <ErrorDiagnostic error={error ?? message} title={copy.title} phase="Timbrado CFDI" context={{ kind, receptor }} />
         {copy.hint && <p className="text-sm text-muted-foreground">{copy.hint}</p>}
         {showReceptor && receptor && (
           <div className="space-y-3">

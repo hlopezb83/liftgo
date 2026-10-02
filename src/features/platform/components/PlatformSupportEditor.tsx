@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,7 +38,8 @@ export function PlatformSupportEditor({ record, assignees }: { record: SupportCa
     <div className="space-y-2"><Label htmlFor="support-comment">Nota de seguimiento para soporte</Label>
       <Textarea id="support-comment" value={comment} maxLength={2000} rows={3} onChange={(e) => setComment(e.target.value)} />
       <p className="text-xs text-muted-foreground">Comparte sólo información necesaria para resolver el caso, sin contraseñas ni llaves.</p></div>
-    {save.isError && <p role="alert" className="text-sm text-destructive">{save.error.message}</p>}
+    {save.isError && <div role="alert" className="space-y-2"><p className="text-sm text-destructive">{save.error.message}</p>
+      <ErrorDiagnostic error={save.error} title="No se pudo guardar el seguimiento" phase="support-triage" /></div>}
     {save.isSuccess && <p role="status" className="text-sm">Seguimiento guardado.</p>}
     <Button type="submit" disabled={save.isPending || changed}>{save.isPending ? "Guardando…" : "Guardar seguimiento"}</Button>
   </form>;

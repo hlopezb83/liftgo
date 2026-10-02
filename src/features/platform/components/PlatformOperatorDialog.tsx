@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +23,7 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
   const [reason, setReason] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<unknown>(null);
   const changeAllowed = allowedChange(account, revoke, profile);
   const canSave = !saving && password.length>0 && reason.trim().length>=5 && changeAllowed;
 
@@ -30,7 +31,7 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
     event.preventDefault();
     if (!canSave) return;
     setSaving(true);
-    setError("");
+    setError(null);
     const confirmation = password;
     setPassword("");
     try {
@@ -41,7 +42,7 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
       } });
       onSaved();
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "No se pudo guardar el acceso. Reintenta.");
+      setError(failure);
     } finally { setSaving(false); }
   }
 
@@ -78,7 +79,8 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
             onChange={(event) => setPassword(event.target.value)} required maxLength={1024} disabled={saving} />
           <p className="text-xs text-muted-foreground">Confirma con tu contraseña, no con la de esta cuenta.</p>
         </div>
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error != null && <div role="alert" className="space-y-2"><p className="text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo guardar el acceso. Reintenta."}</p>
+          <ErrorDiagnostic error={error} title="No se pudo guardar el acceso de plataforma" phase="platform-operator" /></div>}
         <FormDialogFooter>
           <Button type="button" variant="outline" onClick={close} disabled={saving}>Cancelar</Button>
           <Button type="submit" variant={revoke ? "destructive" : "default"} disabled={!canSave}>

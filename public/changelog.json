@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.43.1",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "fix",
+    "title": "Diagnósticos JSON y avisos más claros",
+    "description": "Los errores se pueden copiar en JSON y los avisos mantienen acciones claras en escritorio y móvil.",
+    "changes": [
+      "Los errores, advertencias y validaciones ofrecen Copiar JSON y Ver detalles; si falla el portapapeles, el diagnóstico sigue disponible para copiarlo manualmente.",
+      "Los fallos de operaciones largas conservan la causa original y los diagnósticos incluyen la empresa verificada y la versión de la aplicación.",
+      "Los avisos muestran textos, iconos y acciones alineados, con cierre dentro de la tarjeta, botones de 44 px y etiquetas de accesibilidad en español.",
+      "Los errores de soporte, integraciones, acceso, pantallas y timbrado también ofrecen diagnóstico; las credenciales se ocultan y los diagnósticos de la sesión anterior se descartan."
+    ]
+  },
+  {
     "version": "8.43.0",
     "date": "2026-10-02",
     "type": "minor",

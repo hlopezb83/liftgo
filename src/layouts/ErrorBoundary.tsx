@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { WarnIcon, RefreshIcon, HomeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Sentry } from "@/lib/observability/sentry";
@@ -107,7 +108,8 @@ export class ErrorBoundary extends Component<Props, State> {
               </pre>
             </details>
           )}
-          <div className="flex gap-2">
+          {error && <div className="mb-4"><ErrorDiagnostic error={error} title={title} phase="render" /></div>}
+          <div className="flex flex-wrap gap-2">
             <Button onClick={this.handleReload} className="flex-1" variant="default">
               <RefreshIcon className="h-4 w-4 mr-2" />
               Refrescar app
