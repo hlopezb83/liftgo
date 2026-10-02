@@ -645,6 +645,13 @@
       "when": 1790904569507,
       "tag": "0091_platform_capabilities_and_root",
       "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1790970257472,
+      "tag": "0092_platform_operator_sessions_and_access",
+      "breakpoints": true
     }
   ]
 }

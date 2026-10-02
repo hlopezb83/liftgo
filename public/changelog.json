@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.42.46",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "improvement",
+    "title": "Accesos de operadores de plataforma",
+    "description": "El Centro de Plataforma administra perfiles de cuentas internas existentes y muestra la sesión propia.",
+    "changes": [
+      "La asignación y revocación de perfiles confirma la contraseña del operador y registra el motivo.",
+      "Los cambios conservan los roles de empresa, rechazan revisiones obsoletas y mantienen la protección del último operador raíz.",
+      "Mi sesión comprueba el acceso vigente y permite solicitar recuperación al correo de la propia cuenta."
+    ]
+  },
+  {
     "version": "8.42.45",
     "date": "2026-10-02",
     "type": "patch",

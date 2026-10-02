@@ -169,10 +169,10 @@ y [código oficial de Auth, adminUserCreate](https://github.com/supabase/auth/bl
 
 ## Siguientes etapas
 
-1. Administración de operadores desde el portal, sesiones, reautenticación con
-   contraseña y recuperación segura. Los permisos específicos ya cuentan con
-   fundamento SQL/servidor/UI en 0091. Por decisión de producto no se usará MFA;
-   no es un requisito de publicación.
+1. Verificar la entrega real del correo de recuperación y los redirects en
+   Cloud antes de habilitar invitaciones de nuevas cuentas. La administración
+   de perfiles de cuentas existentes y verificadas, sesión propia y confirmación
+   de contraseña se implementan en 8.42.46 / 0092. MFA queda fuera por decisión de producto.
 2. Estado de integraciones y fallos por empresa, sin exponer secretos.
 3. Métricas del ecosistema con filtros territoriales, monedas comparables y
    exclusión identificable de datos de prueba en métricas comerciales.
@@ -315,6 +315,48 @@ modificaron contraseñas o sesiones reales durante este preflight.
 Una reautenticación por contraseña en servidor necesita un cliente Auth sin
 persistencia y crea una sesión temporal: se verifica identidad y se cierra ese
 token con alcance local, sin sustituir ni cerrar globalmente la sesión del
-navegador. La futura prueba de autorización se vinculará a actor, sesión
-original, acción, revisión y vencimiento; nunca a una bandera del cliente.
+navegador. La implementación confirma la contraseña dentro de la misma
+operación de cambio de acceso y comprueba otra vez la sesión y los permisos.
+No crea tickets, tablas de autorizaciones temporales ni banderas del cliente.
 MFA continúa fuera del alcance por decisión de producto.
+
+## Operadores y sesión propia (8.42.46 / 0092)
+
+`/platform/operators` requiere `operators.read`. Permite buscar operadores o
+cuentas internas activas, verificadas y no bloqueadas; muestra perfil y permite
+asignar, cambiar o retirar el acceso con `operators.manage`. No crea usuarios
+Auth ni altera roles o membresías de empresas. Las asignaciones existentes de
+cuentas no disponibles se muestran para permitir su revocación. El acceso
+propio lo administra otro raíz, evitando una revocación accidental.
+
+El servidor confirma la contraseña del actor con Auth, usando un cliente sin
+persistencia; cierra sólo la sesión temporal con alcance local y rechaza si
+falla ese cierre. Aplica cinco intentos por minuto por operador. Después vuelve
+a verificar su sesión original y su capacidad. La contraseña se borra del
+formulario al enviar, no entra en MutationCache, SQL, bitácora ni respuestas.
+Referencias: [signInWithPassword](https://supabase.com/docs/reference/javascript/auth-signinwithpassword)
+y [signOut, alcance local](https://supabase.com/docs/reference/javascript/auth-signout).
+
+SQL comprueba actor, sesión viva, permiso y revisión del destino; serializa los
+cambios con la protección existente de 0091. Rechaza formularios obsoletos y
+conserva al último raíz. Un guardado idéntico no cambia la revisión del destino
+ni agrega eventos. El motivo se registra en la bitácora transaccional.
+
+`get_platform_session` sólo devuelve la sesión propia obtenida de `auth.jwt()`.
+No acepta otro usuario o identificador de sesión. Los helpers privados y las
+RPC administrativas no son ejecutables desde el navegador; no se conceden
+lecturas directas de `auth.sessions` a clientes ni al servicio.
+
+`/platform/security` está disponible para todos los perfiles de plataforma.
+Comprueba la sesión, muestra la cuenta y perfil, ofrece cierre de sesión y
+solicitud de recuperación al correo propio. Reutiliza el flujo de recuperación
+existente: sólo `PASSWORD_RECOVERY` confirmado para el mismo usuario permite
+actualizar la contraseña; los enlaces inválidos o de otra cuenta no aprovechan
+una sesión previa. [Referencia oficial de recuperación](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail).
+
+La existencia de una sesión no acredita los límites opcionales de inactividad
+del proveedor. Esta etapa no configura esos límites ni modifica el uso diario
+del ERP. La entrega real de correo y los redirects siguen pendientes de una
+prueba de integración; las pruebas automatizadas no demuestran la entrega.
+El despliegue aplica 0092 antes de publicar frontend/servidor. La migración no
+agrega, revoca ni cambia operadores reales; sus fixtures sólo corren en CI efímero.

@@ -38,6 +38,8 @@ export const AUDIT_FIELD_LABELS: Record<string, string> = {
   part_catalog_id: "Refacción global",
   equipment_model_catalog_id: "Modelo global",
   auth_user_id: "Usuario",
+  access_profile: "Perfil de plataforma",
+  permission_revision: "Revisión de permisos",
   content: "Contenido legal",
   local_overrides: "Ajustes locales",
   specifications: "Ficha técnica",

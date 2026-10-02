@@ -43,7 +43,9 @@ import { Route as MainReportsRouteImport } from './routes/_main/reports'
 import { Route as PlatformIndexRouteImport } from './routes/platform.index'
 import { Route as PlatformAuditRouteImport } from './routes/platform.audit'
 import { Route as PlatformCatalogsRouteImport } from './routes/platform.catalogs'
+import { Route as PlatformOperatorsRouteImport } from './routes/platform.operators'
 import { Route as PlatformOrganizationsRouteImport } from './routes/platform.organizations'
+import { Route as PlatformSecurityRouteImport } from './routes/platform.security'
 import { Route as PlatformLoginRouteImport } from './routes/platform_.login'
 import { Route as PortalLoginRouteImport } from './routes/portal.login'
 import { Route as MainBookingsIndexRouteImport } from './routes/_main/bookings.index'
@@ -273,9 +275,19 @@ const PlatformCatalogsRoute = PlatformCatalogsRouteImport.update({
   path: '/catalogs',
   getParentRoute: () => PlatformRoute,
 } as any)
+const PlatformOperatorsRoute = PlatformOperatorsRouteImport.update({
+  id: '/operators',
+  path: '/operators',
+  getParentRoute: () => PlatformRoute,
+} as any)
 const PlatformOrganizationsRoute = PlatformOrganizationsRouteImport.update({
   id: '/organizations',
   path: '/organizations',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformSecurityRoute = PlatformSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
   getParentRoute: () => PlatformRoute,
 } as any)
 const PlatformLoginRoute = PlatformLoginRouteImport.update({
@@ -623,7 +635,9 @@ export interface FileRoutesByFullPath {
   '/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
+  '/platform/security': typeof PlatformSecurityRoute
   '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/platform/': typeof PlatformIndexRoute
@@ -717,7 +731,9 @@ export interface FileRoutesByTo {
   '/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
+  '/platform/security': typeof PlatformSecurityRoute
   '/platform/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/platform': typeof PlatformIndexRoute
@@ -814,7 +830,9 @@ export interface FileRoutesById {
   '/_main/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/operators': typeof PlatformOperatorsRoute
   '/platform/organizations': typeof PlatformOrganizationsRoute
+  '/platform/security': typeof PlatformSecurityRoute
   '/platform_/login': typeof PlatformLoginRoute
   '/portal/login': typeof PortalLoginRoute
   '/_main/': typeof MainIndexRoute
@@ -912,7 +930,9 @@ export interface FileRouteTypes {
     | '/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/operators'
     | '/platform/organizations'
+    | '/platform/security'
     | '/platform/login'
     | '/portal/login'
     | '/platform/'
@@ -1006,7 +1026,9 @@ export interface FileRouteTypes {
     | '/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/operators'
     | '/platform/organizations'
+    | '/platform/security'
     | '/platform/login'
     | '/portal/login'
     | '/platform'
@@ -1102,7 +1124,9 @@ export interface FileRouteTypes {
     | '/_main/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/operators'
     | '/platform/organizations'
+    | '/platform/security'
     | '/platform_/login'
     | '/portal/login'
     | '/_main/'
@@ -1416,11 +1440,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlatformCatalogsRouteImport
       parentRoute: typeof PlatformRoute
     }
+    '/platform/operators': {
+      id: '/platform/operators'
+      path: '/operators'
+      fullPath: '/platform/operators'
+      preLoaderRoute: typeof PlatformOperatorsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
     '/platform/organizations': {
       id: '/platform/organizations'
       path: '/organizations'
       fullPath: '/platform/organizations'
       preLoaderRoute: typeof PlatformOrganizationsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/security': {
+      id: '/platform/security'
+      path: '/security'
+      fullPath: '/platform/security'
+      preLoaderRoute: typeof PlatformSecurityRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/platform_/login': {
@@ -2033,7 +2071,9 @@ const PortalRouteWithChildren =
 interface PlatformRouteChildren {
   PlatformAuditRoute: typeof PlatformAuditRoute
   PlatformCatalogsRoute: typeof PlatformCatalogsRoute
+  PlatformOperatorsRoute: typeof PlatformOperatorsRoute
   PlatformOrganizationsRoute: typeof PlatformOrganizationsRoute
+  PlatformSecurityRoute: typeof PlatformSecurityRoute
   PlatformIndexRoute: typeof PlatformIndexRoute
   PlatformCatalogsImportRoute: typeof PlatformCatalogsImportRoute
   PlatformOrganizationsOrganizationIdRoute: typeof PlatformOrganizationsOrganizationIdRoute
@@ -2042,7 +2082,9 @@ interface PlatformRouteChildren {
 const PlatformRouteChildren: PlatformRouteChildren = {
   PlatformAuditRoute: PlatformAuditRoute,
   PlatformCatalogsRoute: PlatformCatalogsRoute,
+  PlatformOperatorsRoute: PlatformOperatorsRoute,
   PlatformOrganizationsRoute: PlatformOrganizationsRoute,
+  PlatformSecurityRoute: PlatformSecurityRoute,
   PlatformIndexRoute: PlatformIndexRoute,
   PlatformCatalogsImportRoute: PlatformCatalogsImportRoute,
   PlatformOrganizationsOrganizationIdRoute:
