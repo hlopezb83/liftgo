@@ -7496,6 +7496,20 @@ export type Database = {
           version_id: string
         }[]
       }
+      platform_list_legal_template_history: {
+        Args: { p_actor: string; p_definition_id: string }
+        Returns: {
+          change_summary: string
+          checksum_sha256: string
+          content: Json
+          created_at: string
+          created_by: string
+          created_by_name: string
+          definition_id: string
+          id: string
+          version: number
+        }[]
+      }
       platform_list_legal_template_versions: {
         Args: { p_actor: string; p_definition_id: string }
         Returns: {
@@ -7599,20 +7613,36 @@ export type Database = {
         Args: { p_profile: string }
         Returns: string[]
       }
-      platform_publish_legal_template_version: {
-        Args: {
-          p_actor: string
-          p_assign_all_active?: boolean
-          p_change_summary: string
-          p_content: Json
-          p_definition_id: string
-        }
-        Returns: {
-          checksum_sha256: string
-          version: number
-          version_id: string
-        }[]
-      }
+      platform_publish_legal_template_version:
+        | {
+            Args: {
+              p_actor: string
+              p_assign_all_active?: boolean
+              p_change_summary: string
+              p_content: Json
+              p_definition_id: string
+            }
+            Returns: {
+              checksum_sha256: string
+              version: number
+              version_id: string
+            }[]
+          }
+        | {
+            Args: {
+              p_actor: string
+              p_assign_all_active?: boolean
+              p_change_summary: string
+              p_content: Json
+              p_definition_id: string
+              p_expected_version_id: string
+            }
+            Returns: {
+              checksum_sha256: string
+              version: number
+              version_id: string
+            }[]
+          }
       platform_revoke_operator: {
         Args: { p_actor: string; p_user_id: string }
         Returns: undefined
@@ -7677,37 +7707,72 @@ export type Database = {
         Args: { p_actor: string; p_case: string; p_session: string }
         Returns: string
       }
-      platform_update_equipment_model_catalog: {
-        Args: {
-          p_actor: string
-          p_capacity_kg?: number
-          p_fuel_type?: string
-          p_id: string
-          p_image_url?: string
-          p_manufacturer: string
-          p_mast_height_m?: number
-          p_model: string
-          p_spec_sheet_url?: string
-          p_specifications?: Json
-        }
-        Returns: undefined
-      }
-      platform_update_parts_catalog: {
-        Args: {
-          p_actor: string
-          p_category?: string
-          p_description?: string
-          p_equipment_model_ids?: string[]
-          p_id: string
-          p_image_url?: string
-          p_manufacturer?: string
-          p_name: string
-          p_oem_numbers?: string[]
-          p_sku: string
-          p_unit_of_measure?: string
-        }
-        Returns: undefined
-      }
+      platform_update_equipment_model_catalog:
+        | {
+            Args: {
+              p_actor: string
+              p_capacity_kg?: number
+              p_expected_updated_at: string
+              p_fuel_type?: string
+              p_id: string
+              p_image_url?: string
+              p_manufacturer: string
+              p_mast_height_m?: number
+              p_model: string
+              p_spec_sheet_url?: string
+              p_specifications?: Json
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_actor: string
+              p_capacity_kg?: number
+              p_fuel_type?: string
+              p_id: string
+              p_image_url?: string
+              p_manufacturer: string
+              p_mast_height_m?: number
+              p_model: string
+              p_spec_sheet_url?: string
+              p_specifications?: Json
+            }
+            Returns: undefined
+          }
+      platform_update_parts_catalog:
+        | {
+            Args: {
+              p_actor: string
+              p_category?: string
+              p_description?: string
+              p_equipment_model_ids?: string[]
+              p_expected_updated_at: string
+              p_id: string
+              p_image_url?: string
+              p_manufacturer?: string
+              p_name: string
+              p_oem_numbers?: string[]
+              p_sku: string
+              p_unit_of_measure?: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_actor: string
+              p_category?: string
+              p_description?: string
+              p_equipment_model_ids?: string[]
+              p_id: string
+              p_image_url?: string
+              p_manufacturer?: string
+              p_name: string
+              p_oem_numbers?: string[]
+              p_sku: string
+              p_unit_of_measure?: string
+            }
+            Returns: undefined
+          }
       platform_update_support: {
         Args: {
           p_actor: string
