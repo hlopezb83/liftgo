@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,11 +16,19 @@ function allowedChange(account: PlatformOperatorRow, revoke: boolean, profile: s
   return revoke ? !!account.profile : account.eligible && profile!==account.profile;
 }
 
+function operatorInitialEdit(account: PlatformOperatorRow) {
+  return { profile: account.profile ?? "observer", revoke: !account.eligible && !!account.profile };
+}
+function operatorEditIsDirty(initial: ReturnType<typeof operatorInitialEdit>, profile: string, revoke: boolean, reason: string, password: string) {
+  return reason !== "" || password !== "" || profile !== initial.profile || revoke !== initial.revoke;
+}
+
 export function PlatformOperatorDialog({ account, onClose, onSaved }: {
   account: PlatformOperatorRow; onClose: () => void; onSaved: () => void;
 }) {
-  const [profile, setProfile] = useState(account.profile ?? "observer");
-  const [revoke, setRevoke] = useState(!account.eligible && !!account.profile);
+  const [initial] = useState(() => operatorInitialEdit(account));
+  const [profile, setProfile] = useState(initial.profile);
+  const [revoke, setRevoke] = useState(initial.revoke);
   const [reason, setReason] = useState("");
   const [password, setPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -49,7 +58,8 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
   function close() { setPassword(""); onClose(); }
   return (
     <FormDialog open onOpenChange={(open) => { if (!open) close(); }} title="Cambiar acceso de plataforma"
-      description={<span className="break-words">{account.name} · {account.email}</span>} isPending={saving}>
+      description={<span className="break-words">{account.name} · {account.email}</span>} isPending={saving}
+      isDirty={operatorEditIsDirty(initial, profile, revoke, reason, password)}>
       <form onSubmit={(event) => void save(event)} className="space-y-5">
         <p className="text-sm text-muted-foreground">El cambio se aplica al Centro de Plataforma. El rol y los datos de su empresa se conservan.</p>
         <div className="space-y-2">
@@ -82,7 +92,7 @@ export function PlatformOperatorDialog({ account, onClose, onSaved }: {
         {error != null && <div role="alert" className="space-y-2"><p className="text-sm text-destructive">{error instanceof Error ? error.message : "No se pudo guardar el acceso. Reintenta."}</p>
           <ErrorDiagnostic error={error} title="No se pudo guardar el acceso de plataforma" phase="platform-operator" /></div>}
         <FormDialogFooter>
-          <Button type="button" variant="outline" onClick={close} disabled={saving}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={close} disabled={saving} />
           <Button type="submit" variant={revoke ? "destructive" : "default"} disabled={!canSave}>
             {saving ? "Guardando…" : revoke ? "Retirar acceso" : "Guardar acceso"}
           </Button>

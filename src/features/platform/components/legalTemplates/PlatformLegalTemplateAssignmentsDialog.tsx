@@ -34,7 +34,12 @@ export function PlatformLegalTemplateAssignmentsDialog({
       organization_id: organizationId,
       definition_id: template.id,
       version_id: versionId,
-    });
+    }, { onSuccess: () => setSelected((current) => {
+      if (current[organizationId] !== versionId) return current;
+      const next = { ...current };
+      delete next[organizationId];
+      return next;
+    }) });
   };
 
   const hasError = assignments.isError || versions.isError;
@@ -48,6 +53,7 @@ export function PlatformLegalTemplateAssignmentsDialog({
       description="Cada empresa puede conservar una versión anterior. Los contratos ya firmados mantienen su copia histórica."
       width="2xl"
       isPending={assign.isPending}
+      isDirty={(assignments.data ?? []).some((row) => selected[row.organization_id] != null && selected[row.organization_id] !== (row.version_id ?? ""))}
     >
       {hasError ? (
         <QueryErrorState
@@ -83,7 +89,7 @@ export function PlatformLegalTemplateAssignmentsDialog({
                       onValueChange={(value) => setSelected((current) => ({ ...current, [row.organization_id]: value }))}
                       disabled={!row.organization_is_active || assign.isPending}
                     >
-                      <SelectTrigger className="w-[190px]"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
+                      <SelectTrigger aria-label={`Versión para ${row.organization_name}`} className="w-[190px]"><SelectValue placeholder="Sin asignar" /></SelectTrigger>
                       <SelectContent>
                         {(versions.data ?? []).map((version) => (
                           <SelectItem key={version.id} value={version.id}>

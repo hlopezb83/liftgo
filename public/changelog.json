@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.43.16",
+    "date": "2026-10-03",
+    "type": "patch",
+    "category": "improvement",
+    "title": "Centro de Plataforma: capturas y revisión claras",
+    "description": "La plataforma protege las capturas, permite consultar versiones legales y facilita revisar los pendientes operativos.",
+    "changes": [
+      "Los formularios y el seguimiento de soporte confirman antes de descartar cambios sin guardar.",
+      "La edición global conserva el borrador cuando otro operador actualiza el contenido y exige revisar la versión guardada.",
+      "Los machotes muestran historial, autor, diferencias y vista previa; la adopción muestra las empresas afectadas.",
+      "Inicio distingue reportes empresariales de soporte de plataforma y enlaza los pendientes con sus filtros.",
+      "El correo de recuperación del operador solicita volver al formulario del Centro de Plataforma."
+    ]
+  },
+  {
     "version": "8.43.15",
     "date": "2026-10-03",
     "type": "patch",

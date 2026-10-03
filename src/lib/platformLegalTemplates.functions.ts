@@ -55,6 +55,7 @@ function validatePublish(
   data: PublishLegalTemplateVersionInput,
 ) {
   if (!g.isUUID(data.definition_id)) throw new g.HttpError(400, "Plantilla inválida");
+  if (data.expected_version_id != null && !g.isUUID(data.expected_version_id)) throw new g.HttpError(400, "Versión base inválida");
   const summary = data.change_summary?.trim();
   if (!summary || summary.length > 500) {
     throw new g.HttpError(400, "El resumen del cambio debe tener entre 1 y 500 caracteres");
@@ -100,11 +101,11 @@ export const listPlatformLegalTemplateVersionsFn = createServerFn({ method: "GET
     const g = await import("./server/adminGuards.server");
     if (!g.isUUID(data.definition_id)) throw new g.HttpError(400, "Plantilla inválida");
     const { admin, userId } = await g.requirePlatformOperator(context.supabase, context.userId, "templates.read");
-    const result = await g.asUntypedRpc(admin).rpc("platform_list_legal_template_versions", {
+    const result = await g.asUntypedRpc(admin).rpc("platform_list_legal_template_history", {
       p_actor: userId,
       p_definition_id: data.definition_id,
     });
-    if (result.error) rpcError(g, "platform_list_legal_template_versions", result.error);
+    if (result.error) rpcError(g, "platform_list_legal_template_history", result.error);
     return ((result.data ?? []) as Record<string, unknown>[]).map((row) => ({
       id: String(row["id"]),
       definition_id: String(row["definition_id"]),
@@ -113,6 +114,7 @@ export const listPlatformLegalTemplateVersionsFn = createServerFn({ method: "GET
       content: asContent(row["content"]),
       change_summary: row["change_summary"] == null ? null : String(row["change_summary"]),
       created_by: row["created_by"] == null ? null : String(row["created_by"]),
+      created_by_name: row["created_by_name"] == null ? null : String(row["created_by_name"]),
       created_at: String(row["created_at"] ?? ""),
     }));
   });
@@ -155,6 +157,7 @@ export const publishPlatformLegalTemplateVersionFn = createServerFn({ method: "P
       p_actor: userId,
       p_definition_id: data.definition_id,
       p_content: data.content,
+      p_expected_version_id: data.expected_version_id ?? null,
       p_change_summary: data.change_summary.trim(),
       p_assign_all_active: data.assign_all_active === true,
     });

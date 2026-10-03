@@ -1,7 +1,9 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getPlatformSupportFn } from "@/lib/platformSupport.functions";
@@ -17,14 +19,22 @@ function supportHeading(record: SupportCase | undefined) {
 }
 export function PlatformSupportDetail({ caseId, onClose }: { caseId: string; onClose: () => void }) {
   const { can } = usePlatformCapabilities();
+  const [editState, setEditState] = useState({ dirty: false, pending: false });
+  const [discard, setDiscard] = useState(false);
+  function close() {
+    if (editState.pending) return;
+    if (editState.dirty) setDiscard(true); else onClose();
+  }
   const query = useInfiniteQuery({ queryKey: ["platform", "support", "detail", caseId], initialPageParam: null as string | null,
     queryFn: ({ pageParam, signal }) => withSupportRequest((requestSignal) => getPlatformSupportFn({ data: { caseId, before: pageParam }, signal: requestSignal }), signal),
     getNextPageParam: (page) => page.nextCursor, staleTime: 0, retry: false, refetchInterval: 30_000 });
   const data = query.data?.pages[0];
   const record = data?.case;
   const heading = supportHeading(record);
-  return <Sheet open onOpenChange={(open) => { if (!open) onClose(); }}>
-    <SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
+  return <><Sheet open onOpenChange={(open) => { if (!open) close(); }}>
+    <SheetContent className="w-full overflow-y-auto sm:max-w-2xl"
+      onEscapeKeyDown={(event) => { if (editState.pending || editState.dirty) { event.preventDefault(); close(); } }}
+      onInteractOutside={(event) => { if (editState.pending || editState.dirty) { event.preventDefault(); close(); } }}>
       <SheetHeader><SheetTitle>{heading.title}</SheetTitle>
         <SheetDescription>{heading.description}</SheetDescription></SheetHeader>
       <div className="mt-6 space-y-6">
@@ -34,7 +44,7 @@ export function PlatformSupportDetail({ caseId, onClose }: { caseId: string; onC
           <Button variant="outline" size="sm" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar caso</Button>
           {record.shared ? <>
             <PlatformSupportDiagnostic record={record} />
-            {can("support.manage") && <PlatformSupportEditor key={record.id} record={record} assignees={data.assignees} onRefresh={async () => {
+            {can("support.manage") && <PlatformSupportEditor key={record.id} record={record} assignees={data.assignees} onEditStateChange={setEditState} onRefresh={async () => {
               const current = await query.refetch({ throwOnError: true });
               const refreshed = current.data?.pages[0]?.case;
               if (!refreshed) throw new Error("No se pudo confirmar el estado actual del caso.");
@@ -46,5 +56,6 @@ export function PlatformSupportDetail({ caseId, onClose }: { caseId: string; onC
         </>}
       </div>
     </SheetContent>
-  </Sheet>;
+  </Sheet><ConfirmDialog open={discard} onOpenChange={setDiscard} title="¿Descartar cambios?"
+    description="El seguimiento no guardado se perderá." confirmLabel="Descartar" cancelLabel="Seguir editando" destructive onConfirm={onClose} /></>;
 }

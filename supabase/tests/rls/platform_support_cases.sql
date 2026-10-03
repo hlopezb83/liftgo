@@ -85,6 +85,8 @@ DO $$ DECLARE v jsonb; v_id uuid:=current_setting('test.support_case')::uuid; BE
   v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','identidad legal',NULL);
   IF v->>'total'<>'1' OR v->'rows'->0->>'organizationName'<>'Identidad legal Soporte A' THEN
     RAISE EXCEPTION 'SEARCH: la razón social visible no encuentra el caso'; END IF;
+  v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','identidad legal',NULL,'open');
+  IF v->>'total'<>'1' THEN RAISE EXCEPTION 'OPEN: perdió búsqueda de razón social en casos abiertos'; END IF;
   v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','Soporte CI A',NULL);
   IF v->>'total'<>'1' THEN RAISE EXCEPTION 'SEARCH: perdió el alias interno de la empresa'; END IF;
   v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','identidad legal','94940000-0000-4000-8000-000000000012');
@@ -167,5 +169,12 @@ UPDATE public.company_settings SET razon_social='   ' WHERE organization_id='949
 DO $$ BEGIN
   IF public.support_case_projection(current_setting('test.support_case')::uuid)->>'organizationName'<>'Soporte CI A' THEN
     RAISE EXCEPTION 'IDENTITY: falta fallback de razón social vacía'; END IF;
+END $$;
+UPDATE public.platform_support_cases SET status='closed' WHERE id=current_setting('test.support_case')::uuid;
+DO $$ DECLARE v jsonb; BEGIN
+  v:=public.platform_list_support('94000000-0000-4000-8000-000000000001','94940000-0000-4000-8000-000000000001','Soporte CI A',NULL,'open');
+  IF v->>'total'<>'0' THEN RAISE EXCEPTION 'OPEN: incluyó un caso cerrado'; END IF;
+  v:=public.platform_list_support('94000000-0000-4000-8000-000000000001','94940000-0000-4000-8000-000000000001','Soporte CI A',NULL,'closed');
+  IF v->>'total'<>'1' THEN RAISE EXCEPTION 'CLOSED: perdió búsqueda de alias en casos cerrados'; END IF;
 END $$;
 ROLLBACK;

@@ -708,6 +708,13 @@
       "when": 1791035610000,
       "tag": "0100_platform_organization_governance",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1791062762896,
+      "tag": "0101_platform_edit_conflicts",
+      "breakpoints": true
     }
   ]
 }

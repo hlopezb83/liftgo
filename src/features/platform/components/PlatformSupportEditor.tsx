@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -5,8 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportCase } from "@/lib/platformSupport.types";
 import { usePlatformSupportEditor } from "../hooks/usePlatformSupportEditor";
 
-export function PlatformSupportEditor({ record, assignees, onRefresh }: { record: SupportCase; assignees: { id: string; name: string | null }[]; onRefresh: () => Promise<SupportCase> }) {
-  const { draft, setDraft, comment, setComment, save, refresh, changed, needsRefresh, pending, blocked, submit, loadCurrent } = usePlatformSupportEditor(record, onRefresh);
+export function PlatformSupportEditor({ record, assignees, onRefresh, onEditStateChange }: {
+  record: SupportCase; assignees: { id: string; name: string | null }[]; onRefresh: () => Promise<SupportCase>;
+  onEditStateChange?: (state: { dirty: boolean; pending: boolean }) => void;
+}) {
+  const { draft, setDraft, comment, setComment, save, refresh, changed, needsRefresh, pending, blocked, submit, loadCurrent, isDirty } = usePlatformSupportEditor(record, onRefresh);
+  useEffect(() => { onEditStateChange?.({ dirty: isDirty, pending }); }, [isDirty, pending, onEditStateChange]);
+  useEffect(() => () => { onEditStateChange?.({ dirty: false, pending: false }); }, [onEditStateChange]);
   return <form className="space-y-4 rounded-xl border bg-muted/30 p-4" onSubmit={(event) => { event.preventDefault(); submit(); }}>
     <h3 className="font-medium">Seguimiento</h3>
     {changed && <div role="status" className="space-y-2 text-sm"><p>El caso cambió. Tu borrador se conserva; carga el estado actual antes de guardar.</p>

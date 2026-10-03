@@ -23,7 +23,7 @@ export default function PlatformSecurityPage() {
     if (!user?.email || sending || !query.isSuccess) return;
     setSending(true); setRecoveryMessage(""); setRecoveryError(null);
     try {
-      const result = await resetPassword(user.email);
+      const result = await resetPassword(user.email, "platform");
       if (result.error) setRecoveryError(result.error);
       setRecoveryMessage(result.error ? "No se pudo enviar el enlace. Reintenta en unos minutos." : "Revisa tu correo para continuar la recuperación.");
     } catch (error) { setRecoveryError(error); setRecoveryMessage("No se pudo enviar el enlace. Reintenta en unos minutos."); }

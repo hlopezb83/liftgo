@@ -37,6 +37,9 @@ function validateModel(
   if (data.id != null && !g.isUUID(data.id)) {
     throw new g.HttpError(400, "Identificador de modelo inválido");
   }
+  if (data.id && (!data.expected_updated_at || !Number.isFinite(Date.parse(data.expected_updated_at)))) {
+    throw new g.HttpError(400, "Actualiza el catálogo antes de editar el modelo");
+  }
 }
 
 const rpcArgs = (actorId: string, data: EquipmentModelCatalogInput) => ({
@@ -90,6 +93,7 @@ export const savePlatformEquipmentModelFn = createServerFn({ method: "POST" })
     if (data.id) {
       const { error } = await rpc.rpc("platform_update_equipment_model_catalog", {
         p_id: data.id,
+        p_expected_updated_at: data.expected_updated_at,
         ...rpcArgs(userId, data),
       });
       if (error) rpcError(g, "platform_update_equipment_model_catalog", error);
@@ -135,6 +139,9 @@ function validatePart(
   }
   if ((data.equipment_model_ids ?? []).some((id) => !g.isUUID(id))) {
     throw new g.HttpError(400, "Modelo compatible inválido");
+  }
+  if (data.id && (!data.expected_updated_at || !Number.isFinite(Date.parse(data.expected_updated_at)))) {
+    throw new g.HttpError(400, "Actualiza el catálogo antes de editar el SKU");
   }
 }
 
@@ -195,6 +202,7 @@ export const savePlatformPartCatalogFn = createServerFn({ method: "POST" })
     if (data.id) {
       const { error } = await rpc.rpc("platform_update_parts_catalog", {
         p_id: data.id,
+        p_expected_updated_at: data.expected_updated_at,
         ...partRpcArgs(userId, data),
       });
       if (error) rpcError(g, "platform_update_parts_catalog", error);

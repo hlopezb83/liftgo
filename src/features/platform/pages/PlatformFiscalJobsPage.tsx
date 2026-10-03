@@ -6,14 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countLabel } from "@/lib/format/countLabel";
 import { listPlatformFiscalJobsFn } from "@/lib/platformFiscalJobs.functions";
-import type { FiscalJobsInput } from "@/lib/platformFiscalJobs.types";
+import { fiscalJobsInputSchema, type FiscalJobsInput } from "@/lib/platformFiscalJobs.types";
+import { useLocation } from "@/lib/router-compat";
 import { PlatformFiscalJobCard } from "../components/PlatformFiscalJobCard";
 import { PlatformFiscalJobDetail } from "../components/PlatformFiscalJobDetail";
 import { PlatformFiscalJobFilters } from "../components/PlatformFiscalJobFilters";
 import { healthDate } from "../hooks/usePlatformHealth";
 
 export default function PlatformFiscalJobsPage() {
-  const [filters, setFilters] = useState<FiscalJobsInput>({ search: "", offset: 0 });
+  const location = useLocation();
+  const [filters, setFilters] = useState<FiscalJobsInput>(() => {
+    const parsed = fiscalJobsInputSchema.safeParse({ status: new URLSearchParams(location.search).get("status") });
+    return parsed.success ? parsed.data : { search: "", offset: 0 };
+  });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const query = useQuery({ queryKey: ["platform", "fiscal-jobs", "list", filters], staleTime: 30_000, retry: false,

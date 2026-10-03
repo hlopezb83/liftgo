@@ -14,7 +14,7 @@ export const fiscalJobSchema = z.object({ id: z.uuid(), organizationId: z.uuid()
 export type FiscalJob = z.infer<typeof fiscalJobSchema>;
 export const fiscalJobsInputSchema = z.object({ search: z.string().trim().max(100).default(""),
   organizationId: z.uuid().nullable().default(null),
-  status: fiscalQueueStatusSchema.or(z.literal("removed")).nullable().default(null),
+  status: fiscalQueueStatusSchema.or(z.enum(["removed", "queued"])).nullable().default(null),
   operation: fiscalOperationSchema.nullable().default(null), offset: z.number().int().min(0).max(100000).default(0) });
 export type FiscalJobsInput = z.input<typeof fiscalJobsInputSchema>;
 export const fiscalJobsSchema = z.object({ rows: z.array(fiscalJobSchema), total: z.number().int().nonnegative(), observedAt: z.string() });
@@ -25,4 +25,4 @@ export const fiscalJobDetailSchema = z.object({ job: fiscalJobSchema, nextCursor
     observedAt: z.string(), changedFields: z.array(z.enum(["status", "attempts", "maxAttempts", "deferrals", "nextRetryAt", "hasError"])), state: fiscalJobStateSchema })) });
 export type FiscalJobDetail = z.infer<typeof fiscalJobDetailSchema>;
 export const FISCAL_OPERATIONS = { stamp: "Timbrar factura", cancel: "Cancelar factura", cancel_nc: "Cancelar nota de crédito", cancel_rep: "Cancelar complemento de pago" } as const;
-export const FISCAL_QUEUE_STATUSES = { pending: "En espera", processing: "En proceso", succeeded: "Finalizado en cola", exhausted: "Requiere revisión", removed: "Retirado de cola" } as const;
+export const FISCAL_QUEUE_STATUSES = { queued: "En cola: espera o proceso", pending: "En espera", processing: "En proceso", succeeded: "Finalizado en cola", exhausted: "Requiere revisión", removed: "Retirado de cola" } as const;

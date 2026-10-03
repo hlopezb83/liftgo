@@ -37,6 +37,7 @@ export interface PlatformLegalTemplateVersion {
   content: LegalTemplateContent;
   change_summary: string | null;
   created_by: string | null;
+  created_by_name?: string | null;
   created_at: string;
 }
 
@@ -55,6 +56,7 @@ export interface PlatformLegalTemplateAssignment {
 
 export interface PublishLegalTemplateVersionInput {
   definition_id: string;
+  expected_version_id?: string | null;
   content: LegalTemplateContent;
   change_summary: string;
   assign_all_active: boolean;

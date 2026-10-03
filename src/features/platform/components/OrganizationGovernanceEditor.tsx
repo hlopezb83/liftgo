@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   organizationGovernanceInputSchema, type OrganizationGovernance, type OrganizationGovernanceFields as GovernanceFieldsValues,
 } from "@/lib/platformOrganizationGovernance.types";
@@ -15,10 +16,11 @@ export function OrganizationGovernanceEditor({
   initial, onClose, reload,
 }: { initial: OrganizationGovernance; onClose: () => void; reload: () => Promise<OrganizationGovernance | undefined> }) {
   const mutation = useSetOrganizationGovernance();
-  const [values, setValues] = useState<GovernanceFieldsValues>({
+  const [baseline] = useState<GovernanceFieldsValues>({
     classification: initial.classification, city: initial.city ?? "", territory: initial.territory ?? "",
     contactName: initial.contactName ?? "", contactEmail: initial.contactEmail ?? "", contactPhone: initial.contactPhone ?? "",
   });
+  const [values, setValues] = useState(baseline);
   const [reason, setReason] = useState("");
   const [revision, setRevision] = useState(initial.revision);
   const [conflict, setConflict] = useState(false);
@@ -49,11 +51,10 @@ export function OrganizationGovernanceEditor({
       if (extractErrorDetails(error).status === 409 || /Los datos cambiaron/.test(error instanceof Error ? error.message : "")) setConflict(true);
     }
   }
-  return <Dialog open onOpenChange={(open) => { if (!open && !mutation.isPending) onClose(); }}>
-    <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
-      <DialogHeader><DialogTitle>Datos de la empresa</DialogTitle>
-        <DialogDescription>Define el territorio, el contacto y la clasificación administrativa.</DialogDescription>
-      </DialogHeader>
+  const isDirty = reason !== "" || JSON.stringify(values) !== JSON.stringify(baseline);
+  return <FormDialog open onOpenChange={(open) => { if (!open) onClose(); }}
+    title="Datos de la empresa" description="Define el territorio, el contacto y la clasificación administrativa."
+    width="2xl" isPending={mutation.isPending} isDirty={isDirty && !mutation.isSuccess}>
       <form onSubmit={(e) => void save(e)} className="space-y-5">
         <OrganizationGovernanceFields values={values} reason={reason} disabled={mutation.isPending} onChange={setValues} onReason={setReason} />
         {conflict && <Alert>
@@ -72,11 +73,10 @@ export function OrganizationGovernanceEditor({
             {reviewError && <p role="alert">{reviewError}</p>}
           </AlertDescription>
         </Alert>}
-        <DialogFooter className="gap-2">
-          <Button type="button" variant="outline" disabled={mutation.isPending} onClick={onClose}>Cancelar</Button>
+        <FormDialogFooter className="gap-2">
+          <FormDialogCancelButton disabled={mutation.isPending} onCancel={onClose} />
           <Button type="submit" disabled={mutation.isPending || conflict}>{mutation.isPending ? "Guardando…" : "Guardar datos"}</Button>
-        </DialogFooter>
+        </FormDialogFooter>
       </form>
-    </DialogContent>
-  </Dialog>;
+  </FormDialog>;
 }

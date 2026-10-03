@@ -59,7 +59,7 @@ export default function PlatformOrganizationsPage() {
           </Button>
         }
       />
-      {can("organizations.create") && <PendingPlatformOnboarding onCompleted={setCreated} />}
+      {can("organizations.create") && <section id="pending-onboarding" className="scroll-mt-24" aria-label="Altas por completar"><PendingPlatformOnboarding onCompleted={setCreated} /></section>}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_200px_200px]">
         <div className="space-y-2">
           <Label htmlFor="platform-company-search">Buscar empresa</Label>

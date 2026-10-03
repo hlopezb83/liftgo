@@ -9,14 +9,19 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { countLabel } from "@/lib/format/countLabel";
 import { listPlatformSupportFn } from "@/lib/platformSupport.functions";
-import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, type SupportListInput } from "@/lib/platformSupport.types";
+import { SUPPORT_SEVERITIES, SUPPORT_STATUSES, supportListInputSchema, type SupportListInput } from "@/lib/platformSupport.types";
+import { useLocation } from "@/lib/router-compat";
 import { withSupportRequest } from "@/lib/supportRequest";
 import { PlatformSupportDetail } from "../components/PlatformSupportDetail";
 import { healthDate } from "../hooks/usePlatformHealth";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
 
 export default function PlatformSupportPage() {
-  const [filters, setFilters] = useState<SupportListInput>({ search: "", offset: 0, status: null, severity: null });
+  const location = useLocation();
+  const [filters, setFilters] = useState<SupportListInput>(() => {
+    const parsed = supportListInputSchema.safeParse({ status: new URLSearchParams(location.search).get("status") });
+    return parsed.success ? parsed.data : { search: "", offset: 0, status: null, severity: null };
+  });
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string | null>(null);
   const companies = usePlatformOrganizations(true);
@@ -31,7 +36,7 @@ export default function PlatformSupportPage() {
       <div className="space-y-2"><Label htmlFor="support-filter-status">Estado</Label>
         <select id="support-filter-status" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={filters.status ?? ""}
           onChange={(e) => setFilters({ ...filters, status: e.target.value as SupportListInput["status"] || null, offset: 0 })}>
-          <option value="">Todos los estados</option>{Object.entries(SUPPORT_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
+          <option value="">Todos los estados</option><option value="open">Abiertos: nuevos, en atención o en espera</option>{Object.entries(SUPPORT_STATUSES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
       <div className="space-y-2"><Label htmlFor="support-filter-severity">Severidad</Label>
         <select id="support-filter-severity" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={filters.severity ?? ""}
           onChange={(e) => setFilters({ ...filters, severity: e.target.value as SupportListInput["severity"] || null, offset: 0 })}>

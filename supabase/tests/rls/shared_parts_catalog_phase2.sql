@@ -157,7 +157,7 @@ $$;
 SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
 SELECT public.platform_update_parts_catalog(
   '48000000-0000-4000-8000-0000000000f0',
-  f.catalog_id, 'FLT-0048-A', 'Filtro hidráulico actualizado',
+  f.catalog_id, (SELECT updated_at FROM public.parts_catalog WHERE id=f.catalog_id), 'FLT-0048-A', 'Filtro hidráulico actualizado',
   'Compatibilidad global', 'LiftGo Parts', ARRAY['OEM-0048'], 'Filtros',
   'pieza', NULL, ARRAY[f.model_id]
 )

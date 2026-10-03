@@ -24,6 +24,7 @@ export interface PlatformEquipmentModelRow {
 
 export interface EquipmentModelCatalogInput {
   id?: string;
+  expected_updated_at?: string;
   manufacturer: string;
   model: string;
   capacity_kg?: number | null;
@@ -58,6 +59,7 @@ export interface PlatformPartCatalogRow {
 
 export interface PartCatalogInput {
   id?: string;
+  expected_updated_at?: string;
   sku: string;
   name: string;
   description?: string | null;

@@ -24,4 +24,4 @@ export type IntegrationRow = z.infer<typeof integrationRowSchema>;
 export const integrationListSchema = z.object({ rows: z.array(integrationRowSchema), total: z.number().int().nonnegative(), observedAt: z.string() });
 export const monitoringSchema = z.object({ observedAt: z.string(), pendingOnboarding: z.number().int().nonnegative(),
   incompleteBilling: z.number().int().nonnegative(), queuedJobs: z.number().int().nonnegative(), exhaustedJobs: z.number().int().nonnegative(),
-  openReports: z.number().int().nonnegative(), lastCheckAt: z.string().nullable() });
+  openReports: z.number().int().nonnegative(), openSupportCases: z.number().int().nonnegative().nullable().default(null), lastCheckAt: z.string().nullable() });

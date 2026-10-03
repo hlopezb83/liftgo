@@ -1,5 +1,7 @@
 type Guards = typeof import("./server/adminGuards.server");
 
+const conflictMessage = (message: string) => message || "Los datos cambiaron. Actualiza la vista antes de guardar.";
+
 /** Traduce el error SQL de las funciones `platform_*` a un HttpError estable. */
 export function rpcError(
   g: Guards,
@@ -8,6 +10,7 @@ export function rpcError(
 ): never {
   const msg = error.message ?? "";
   console.error(`[platform-admin] ${context}:`, error.code ?? "");
+  if (error.code === "40001") throw new g.HttpError(409, conflictMessage(msg));
   if (/Completa el alta pendiente/i.test(msg)) throw new g.HttpError(409, msg);
   if (error.code === "42501" || /Forbidden|operador de plataforma/i.test(msg)) {
     throw new g.HttpError(
