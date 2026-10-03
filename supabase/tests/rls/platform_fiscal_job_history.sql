@@ -58,6 +58,10 @@ DO $$ DECLARE v jsonb; v_count integer; BEGIN
   IF (SELECT count(*) FROM public.platform_fiscal_job_events WHERE job_id='96000000-0000-4000-8000-000000000021')<>v_count THEN
     RAISE EXCEPTION 'TX: persistió un evento revertido'; END IF;
   BEGIN
+    UPDATE public.cfdi_retry_queue SET id='96000000-0000-4000-8000-000000000099' WHERE id='96000000-0000-4000-8000-000000000021';
+    RAISE EXCEPTION 'IDENTITY: cambió ID del trabajo'; EXCEPTION WHEN invalid_parameter_value THEN NULL;
+  END;
+  BEGIN
     UPDATE public.cfdi_retry_queue SET invoice_id='96000000-0000-4000-8000-000000000099' WHERE id='96000000-0000-4000-8000-000000000021';
     RAISE EXCEPTION 'IDENTITY: cambió documento de historial'; EXCEPTION WHEN invalid_parameter_value THEN NULL;
   END;

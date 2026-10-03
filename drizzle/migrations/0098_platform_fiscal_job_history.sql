@@ -59,6 +59,8 @@ DECLARE v_row jsonb:=CASE WHEN TG_OP='DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(N
   v_state jsonb; v_meta public.platform_fiscal_jobs; v_mode text; v_key text; v_name text; v_fields text[];
 BEGIN
   v_state:=public.platform_fiscal_queue_state(v_row);
+  IF TG_OP='UPDATE' AND NEW.id IS DISTINCT FROM OLD.id THEN
+    RAISE EXCEPTION 'El ID del trabajo fiscal es inmutable' USING ERRCODE='22023'; END IF;
   IF TG_OP='UPDATE' AND v_state=public.platform_fiscal_queue_state(to_jsonb(OLD))
     AND NEW.organization_id IS NOT DISTINCT FROM OLD.organization_id
     AND NEW.invoice_id=OLD.invoice_id AND NEW.operation=OLD.operation THEN RETURN NEW; END IF;
