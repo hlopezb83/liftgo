@@ -25,6 +25,18 @@ function fill() {
 }
 describe("ficha concurrente: conservar captura y revisar antes de sobrescribir", () => {
   beforeEach(() => vi.resetAllMocks());
+  it("confirma descartar al cancelar una ficha modificada y conserva el borrador si sigue editando", async () => {
+    const { close, cache } = setup(); fill();
+    fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    await screen.findByRole("alertdialog");
+    expect(close).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Seguir editando" }));
+    expect(screen.getByLabelText("Ciudad")).toHaveValue("Monterrey");
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+    await screen.findByRole("alertdialog");
+    fireEvent.click(screen.getByRole("button", { name: "Descartar" }));
+    expect(close).toHaveBeenCalledTimes(1); expect(m.save).not.toHaveBeenCalled(); cache.clear();
+  });
   it("preserva valores y motivo ante refetch/conflicto y sólo usa la revisión confirmada", async () => {
     m.save.mockRejectedValueOnce(Object.assign(new Error("Los datos cambiaron"), { status: 409 }));
     const { close, reload, view, tree, cache } = setup(); fill();

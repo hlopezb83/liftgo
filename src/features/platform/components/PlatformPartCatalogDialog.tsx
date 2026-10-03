@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { PlatformEquipmentModelRow, PlatformPartCatalogRow } from "@/lib/platformCatalog.functions";
+import { listPlatformPartsCatalogFn, type PlatformEquipmentModelRow, type PlatformPartCatalogRow } from "@/lib/platformCatalog.functions";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { useSavePlatformPartCatalog } from "../hooks/usePlatformEquipmentCatalog";
+import { isPlatformEditConflict } from "../lib/platformEditConflict";
+import { PlatformCurrentFields, PlatformEditConflict } from "./PlatformEditConflict";
 
 type FormState = {
   sku: string;
@@ -39,7 +41,10 @@ export function PlatformPartCatalogDialog({
   models: PlatformEquipmentModelRow[];
 }) {
   const save = useSavePlatformPartCatalog();
-  const [form, setForm] = useState<FormState>(() => part ? {
+  const descriptionId = useId();
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(part?.updated_at);
+  const conflict = isPlatformEditConflict(save.error);
+  const [baseline] = useState<FormState>(() => part ? {
     sku: part.sku,
     name: part.name,
     description: part.description ?? "",
@@ -50,6 +55,7 @@ export function PlatformPartCatalogDialog({
     imageUrl: part.image_url ?? "",
     modelIds: part.equipment_model_ids,
   } : EMPTY);
+  const [form, setForm] = useState(baseline);
   const set = (key: keyof FormState, value: string | string[]) =>
     setForm((current) => ({ ...current, [key]: value }));
   const toggleModel = (id: string, checked: boolean) => set(
@@ -58,12 +64,14 @@ export function PlatformPartCatalogDialog({
   );
 
   const submit = () => {
+    if (save.isPending || conflict) return;
     if (!form.sku.trim() || !form.name.trim() || !form.unitOfMeasure.trim()) {
       notifyValidation({ message: "SKU, nombre y unidad de medida son obligatorios" });
       return;
     }
     save.mutate({
       id: part?.id,
+      expected_updated_at: expectedUpdatedAt,
       sku: form.sku,
       name: form.name,
       description: form.description || null,
@@ -83,8 +91,21 @@ export function PlatformPartCatalogDialog({
       title={part ? "Editar SKU global" : "Nuevo SKU global"}
       description="La identidad técnica será compartida por todas las organizaciones LiftGo."
       isPending={save.isPending}
+      isDirty={JSON.stringify(form) !== JSON.stringify(baseline) && !save.isSuccess}
     >
       <div className="grid gap-4 py-2">
+        {conflict && <PlatformEditConflict loadCurrent={async () => {
+          const current = (await listPlatformPartsCatalogFn()).find((row) => row.id === part?.id);
+          if (!current) throw new Error("El SKU ya no está disponible.");
+          return { token: current.updated_at, preview: <PlatformCurrentFields values={{
+            SKU: current.sku, Nombre: current.name, Descripción: current.description ?? "", Fabricante: current.manufacturer ?? "",
+            OEM: current.oem_numbers.join(", "), Categoría: current.category ?? "", Unidad: current.unit_of_measure,
+            Imagen: current.image_url ?? "", Compatibilidad: current.equipment_model_ids.map((id) => {
+              const model = models.find((item) => item.id === id);
+              return model ? `${model.manufacturer} ${model.model}` : "Modelo no disponible";
+            }).join(", "),
+          }} /> };
+        }} onUseCurrent={(token) => { if (token) { setExpectedUpdatedAt(token); save.reset(); } }} />}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="SKU *" value={form.sku} onChange={(value) => set("sku", value)} />
           <Field label="Nombre *" value={form.name} onChange={(value) => set("name", value)} />
@@ -94,13 +115,13 @@ export function PlatformPartCatalogDialog({
           <Field label="Números OEM (separados por coma)" value={form.oemNumbers} onChange={(value) => set("oemNumbers", value)} />
         </div>
         <div className="space-y-1.5">
-          <Label>Descripción</Label>
-          <Textarea value={form.description} onChange={(event) => set("description", event.target.value)} />
+          <Label htmlFor={descriptionId}>Descripción</Label>
+          <Textarea id={descriptionId} value={form.description} onChange={(event) => set("description", event.target.value)} />
         </div>
         <Field label="URL de imagen" value={form.imageUrl} onChange={(value) => set("imageUrl", value)} />
         <div className="space-y-2">
-          <Label>Modelos compatibles</Label>
-          <div className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto rounded-md border p-3 sm:grid-cols-2">
+          <p className="text-sm font-medium" id={`${descriptionId}-models`}>Modelos compatibles</p>
+          <div role="group" aria-labelledby={`${descriptionId}-models`} className="grid max-h-40 grid-cols-1 gap-2 overflow-y-auto rounded-md border p-3 sm:grid-cols-2">
             {models.map((model) => (
               <label key={model.id} className="flex items-center gap-2 text-sm">
                 <Checkbox
@@ -116,7 +137,7 @@ export function PlatformPartCatalogDialog({
       </div>
       <FormDialogFooter>
         <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={save.isPending} />
-        <Button onClick={submit} disabled={save.isPending}>Guardar</Button>
+        <Button onClick={submit} disabled={save.isPending || conflict}>Guardar</Button>
       </FormDialogFooter>
     </FormDialog>
   );
@@ -127,5 +148,6 @@ function Field({ label, value, onChange }: {
   value: string;
   onChange: (value: string) => void;
 }) {
-  return <div className="space-y-1.5"><Label>{label}</Label><Input value={value} onChange={(event) => onChange(event.target.value)} /></div>;
+  const id = useId();
+  return <div className="space-y-1.5"><Label htmlFor={id}>{label}</Label><Input id={id} value={value} onChange={(event) => onChange(event.target.value)} /></div>;
 }

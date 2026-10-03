@@ -7,6 +7,7 @@ import { withSupportRequest } from "@/lib/supportRequest";
 export function usePlatformSupportEditor(record: SupportCase, onRefresh: () => Promise<SupportCase>) {
   const cache = useQueryClient();
   const [draft, setDraft] = useState(record);
+  const [baseline, setBaseline] = useState(record);
   const [comment, setComment] = useState("");
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const detailKey = ["platform", "support", "detail", record.id];
@@ -15,7 +16,7 @@ export function usePlatformSupportEditor(record: SupportCase, onRefresh: () => P
     onError: () => setNeedsRefresh(true), onSuccess: (result) => {
       cache.setQueryData<InfiniteData<SupportDetail>>(detailKey, (old) => old && ({ ...old,
         pages: old.pages.map((page, index) => index === 0 ? { ...page, case: result } : page) }));
-      setDraft(result); setComment(""); setNeedsRefresh(false);
+      setDraft(result); setBaseline(result); setComment(""); setNeedsRefresh(false);
       void cache.invalidateQueries({ queryKey: ["platform", "support"] });
     } });
   const refresh = useMutation({ mutationFn: onRefresh, retry: false, meta: { silent: true }, onSuccess: () => { setNeedsRefresh(false); save.reset(); } });
@@ -26,6 +27,7 @@ export function usePlatformSupportEditor(record: SupportCase, onRefresh: () => P
     if (blocked) return;
     save.mutate({ caseId: record.id, revision: draft.revision, status: draft.status, severity: draft.severity, assigneeId: draft.assigneeId, comment });
   }
-  function loadCurrent() { setDraft(record); setComment(""); save.reset(); }
-  return { draft, setDraft, comment, setComment, save, refresh, changed, needsRefresh, pending, blocked, submit, loadCurrent };
+  function loadCurrent() { setDraft(record); setBaseline(record); setComment(""); save.reset(); }
+  const isDirty = comment !== "" || draft.status !== baseline.status || draft.severity !== baseline.severity || draft.assigneeId !== baseline.assigneeId;
+  return { draft, setDraft, comment, setComment, save, refresh, changed, needsRefresh, pending, blocked, submit, loadCurrent, isDirty };
 }

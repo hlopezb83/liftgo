@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,10 +61,11 @@ function Field({ label, value, onChange, rows = 6 }: {
   onChange: (value: string) => void;
   rows?: number;
 }) {
+  const id = useId();
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <Textarea value={value} onChange={(event) => onChange(event.target.value)} rows={rows} />
+      <Label htmlFor={id}>{label}</Label>
+      <Textarea id={id} value={value} onChange={(event) => onChange(event.target.value)} rows={rows} />
     </div>
   );
 }

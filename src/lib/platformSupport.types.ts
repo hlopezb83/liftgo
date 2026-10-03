@@ -12,7 +12,7 @@ export const supportCaseSchema = z.object({
 });
 export type SupportCase = z.infer<typeof supportCaseSchema>;
 export const supportListInputSchema = z.object({ search: z.string().trim().max(100).default(""),
-  organizationId: z.uuid().nullable().default(null), status: supportStatusSchema.nullable().default(null),
+  organizationId: z.uuid().nullable().default(null), status: supportStatusSchema.or(z.literal("open")).nullable().default(null),
   severity: supportSeveritySchema.nullable().default(null), offset: z.number().int().min(0).max(100000).default(0) });
 export type SupportListInput = z.input<typeof supportListInputSchema>;
 export const supportListSchema = z.object({ rows: z.array(supportCaseSchema), total: z.number().int().nonnegative(), observedAt: z.string() });

@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
 import { useCurrentVersion } from "@/features/changelog";
 import { PlatformHealthOverview } from "../components/PlatformHealthOverview";
 import { healthDate, usePlatformMonitoring } from "../hooks/usePlatformHealth";
@@ -17,7 +18,11 @@ export default function PlatformMonitoringPage() {
         <div><dt className="text-sm text-muted-foreground">Cola fiscal</dt><dd className="mt-1 text-sm">Trabajos registrados en el ERP. Los reintentos conservan los límites y la conciliación existentes.</dd></div>
         <div><dt className="text-sm text-muted-foreground">Reportes</dt><dd className="mt-1 text-sm">Reportes abiertos enviados por usuarios. No es un conteo automático de todos los errores.</dd></div>
       </dl>
-      <p className="mt-5 border-t pt-4 text-sm text-muted-foreground">La latencia disponible corresponde a las comprobaciones de Facturapi. La telemetría general, los respaldos y las restauraciones todavía no tienen una fuente conectada a este panel.</p>
+      <p className="mt-5 border-t pt-4 text-sm text-muted-foreground">La latencia corresponde a las comprobaciones de Facturapi. Consulta errores y registros en sus herramientas originales; estos enlaces requieren acceso a cada servicio.</p>
+      <div className="mt-4 flex flex-wrap gap-3">
+        <Button asChild variant="outline" className="min-h-11"><a href="https://elogistix.sentry.io/issues/" target="_blank" rel="noopener noreferrer">Abrir errores en Sentry</a></Button>
+        <Button asChild variant="outline" className="min-h-11"><a href="https://lovable.dev/projects/e25ace4a-172e-4082-a037-00473dacf2f2" target="_blank" rel="noopener noreferrer">Abrir Lovable Cloud</a></Button>
+      </div>
     </section>
   </>;
 }

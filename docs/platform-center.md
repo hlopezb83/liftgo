@@ -491,8 +491,15 @@ una sesión previa. [Referencia oficial de recuperación](https://supabase.com/d
 
 La existencia de una sesión no acredita los límites opcionales de inactividad
 del proveedor. Esta etapa no configura esos límites ni modifica el uso diario
-del ERP. La entrega real de correo y los redirects siguen pendientes de una
-prueba de integración; las pruebas automatizadas no demuestran la entrega.
+del ERP. Las pruebas automatizadas no demuestran la entrega de correo; los
+resultados de la comprobación real se registran a continuación.
+La recepción de un correo real en `hlopezb@gmail.com` se confirmó el 3 de octubre
+de 2026. El usuario reportó regreso a Inicio; la corrección de 8.43.16 solicita
+`/platform/login?type=recovery` y conserva el formulario mientras se valida el
+enlace. La comprobación real del nuevo enlace sigue pendiente de publicación.
+El remitente genérico se acepta por decisión de producto hasta disponer de un
+dominio LiftGo; no se activó el dominio de otra marca del workspace.
+
 El despliegue aplica 0092 antes de publicar frontend/servidor. La migración no
 agrega, revoca ni cambia operadores reales; sus fixtures sólo corren en CI efímero.
 ## Integraciones y monitoreo — migración 0093
@@ -548,9 +555,10 @@ La versión anunciada procede del artefacto del despliegue; no acredita por sí
 sola el SHA publicado. No se inventan datos de respaldos, restauraciones,
 telemetría general, CI ni costos por empresa.
 
-Pendiente del bloque 4: historial detallado de trabajos y reintento autorizado con conciliación, y
-telemetría general con fuente y retención. No existe un botón de reintento
-fiscal ciego en este Centro. Se mantiene la cola segura del ERP.
+El historial y la recuperación fiscal con conciliación se implementan en
+0098/0099. Las acciones conservan sus permisos específicos y comprobaciones
+de estado; no existe un reintento fiscal ciego. El monitoreo general se consulta
+en Cloud y Sentry mediante enlaces, sin duplicar sus consolas.
 
 ## Ficha de ciudad, territorio y clasificación (0100)
 
@@ -581,6 +589,48 @@ Después aplicar 0100 con su ledger, verificar ACL/RLS/RPC y publicar el fronten
 de esta ficha. La migración conserva las capacidades canónicas de 0099; no se
 debe usar para activar anticipadamente un reintento fiscal.
 
-Quedan fuera de este bloque las métricas comerciales que excluyan pruebas por
-defecto, las políticas globales con precedencia/preview y el ciclo de adopción,
-retiro y comparación de versiones de los maestros. Se mantienen en el plan.
+## Cierre YAGNI — 8.43.16 / migración 0101
+
+- Los formularios de ficha, modelos, SKUs, operadores y adopción legal confirman
+  el descarte de capturas. Soporte confirma el descarte al cerrar su panel y
+  bloquea el cierre durante una operación. Se reutilizan los componentes existentes.
+- La edición de modelos y SKUs compara `updated_at` dentro del bloqueo SQL;
+  conserva microsegundos y avanza el token incluso en la misma transacción.
+  Publicar un machote compara la UUID de su versión de partida. Un conflicto
+  devuelve 409, conserva el borrador y exige consultar/aceptar explícitamente
+  la base actual. Los clientes anteriores no sobrescriben maestros existentes.
+- El historial legal permite leer autor, fecha, resumen, contenido y diferencias
+  con `templates.read`. Publicar y adoptar siguen exigiendo sus propios permisos.
+  La vista previa deja las variables sin resolver: no representa un contrato
+  firmado ni incorpora datos de una empresa.
+- Inicio enlaza altas pendientes, configuración fiscal y trabajos en cola o
+  agotados. Distingue reportes empresariales de casos abiertos de plataforma;
+  los estados y filtros corresponden a cada origen.
+- Monitoreo enlaza el proyecto Cloud y Sentry. No se incorpora MFA, suplantación,
+  planes SaaS ni un motor genérico de políticas.
+
+Aplicar 0101 después de 0100, con hash y fecha del journal en una sola
+transacción, y verificar ACL/RPC antes de publicar frontend/servidor. No modifica
+filas existentes. Los fixtures de concurrencia y separación A/B se ejecutan
+únicamente en la base efímera de GitHub Actions y terminan con ROLLBACK.
+
+### Comprobaciones operativas pendientes
+
+1. **Recuperación:** solicitar un enlace nuevo en `/platform/security` o en
+   `/platform/login`, abrirlo una sola vez y comprobar «Nueva contraseña».
+   El usuario completa la contraseña; no se comparten enlaces ni credenciales.
+   Un enlace inválido debe ofrecer solicitar otro, nunca usar una sesión previa.
+   Cloud → Users → Auth settings → Advanced ya permite
+   `https://liftgo.lovable.app/**`; no se amplía esa autorización.
+2. **Restauración aislada:** preparar un destino diferente de producción,
+   restaurar BD y archivos, comprobar accesos A/B y abrir una muestra de objetos
+   de cada bucket privado. ELOGISTIX comparte el backend publicado y no es un
+   destino de restauración completa. El workflow `restore-rehearsal-verify.yml`
+   y `scripts/restore-rehearsal/verify.ts` verifican una copia ya restaurada en
+   modo lectura; no realizan la restauración ni prueban por sí solos los bytes
+   de cada archivo. Registrar fecha, origen, destino, resultados y duración sin
+   credenciales. Aún no se proporcionó un destino para ejecutar esta prueba.
+
+La entrega de correo no acredita el cambio de contraseña. El éxito de CI tampoco
+acredita una restauración real de BD y Storage. Mantener ambas comprobaciones
+abiertas hasta disponer de evidencia.

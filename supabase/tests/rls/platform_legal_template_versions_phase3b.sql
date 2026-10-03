@@ -78,6 +78,7 @@ BEGIN
   FROM public.platform_publish_legal_template_version(
     '50000000-0000-4000-8000-000000000001',
     '50000000-0000-4000-8000-0000000000d0',
+    '50000000-0000-4000-8000-0000000000d1'::uuid,
     '{"intro_text":"Versión dos","declarations_landlord":["Declara LiftGo"],"declarations_tenant":["Declara el arrendatario"],"clauses":[{"title":"Primera","body":"Texto actualizado"}],"checklist_sections":[{"title":"Entrega","items":["Revisión visual"]}],"pagare_text":"Pagaré versión dos"}'::jsonb,
     'Actualización controlada de prueba', false
   );
@@ -153,6 +154,7 @@ BEGIN
   FROM public.platform_publish_legal_template_version(
     '50000000-0000-4000-8000-000000000001',
     '50000000-0000-4000-8000-0000000000d0',
+    (SELECT current_version_id FROM public.legal_template_definitions WHERE id='50000000-0000-4000-8000-0000000000d0'),
     '{"intro_text":"Versión tres","declarations_landlord":[],"declarations_tenant":[],"clauses":[{"title":"Primera","body":"Texto definitivo"}],"checklist_sections":[],"pagare_text":"Pagaré versión tres"}'::jsonb,
     'Adopción general de prueba', true
   );

@@ -38,7 +38,7 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
     };
   }, [user, operator.data, operator.isError]);
 
-  if (recovery !== "idle") return <Navigate to="/auth" replace />;
+  if (recovery !== "idle") return <Navigate to={PLATFORM_LOGIN} replace />;
   if (loading && timedOut) {
     return <AccessState title="No se pudo verificar el acceso" description="La carga está tardando más de lo normal. Revisa tu conexión.">
       <Button onClick={() => window.location.reload()}>Reintentar</Button>

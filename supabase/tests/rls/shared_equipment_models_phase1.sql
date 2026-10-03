@@ -211,6 +211,7 @@ SET LOCAL request.jwt.claims TO '{"role":"service_role"}';
 SELECT public.platform_update_equipment_model_catalog(
   '47000000-0000-4000-8000-0000000000f0',
   c.id,
+  c.updated_at,
   c.manufacturer,
   c.model,
   coalesce(c.capacity_kg, 1000) + 1,

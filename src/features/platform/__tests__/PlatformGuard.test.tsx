@@ -66,7 +66,7 @@ describe("PlatformGuard", () => {
   it("la recuperación de contraseña conserva su formulario público", () => {
     state.recovery = "active";
     render(tree());
-    expect(screen.getByText("Destino: /auth")).toBeInTheDocument();
+    expect(screen.getByText("Destino: /platform/login")).toBeInTheDocument();
     expect(screen.queryByText("Datos globales protegidos")).not.toBeInTheDocument();
   });
 

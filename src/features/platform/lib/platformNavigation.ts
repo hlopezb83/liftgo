@@ -5,6 +5,7 @@ const DESTINATIONS = [
   PLATFORM_HOME,
   "/platform/organizations",
   "/platform/catalogs",
+  "/platform/catalogs/import",
   "/platform/audit",
   "/platform/operators",
   "/platform/security",
@@ -12,6 +13,10 @@ const DESTINATIONS = [
   "/platform/fiscal-jobs",
   "/platform/monitoring",
   "/platform/support",
+  "/platform/support?status=open",
+  "/platform/fiscal-jobs?status=queued",
+  "/platform/fiscal-jobs?status=exhausted",
+  "/platform/organizations#pending-onboarding",
 ];
 const COMPANY_DETAIL =
   /^\/platform\/organizations\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

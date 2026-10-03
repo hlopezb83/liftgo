@@ -191,6 +191,7 @@ SET LOCAL role='service_role';
 DO $$ DECLARE v_version record; v_detail jsonb; BEGIN
   SELECT * INTO v_version FROM public.platform_publish_legal_template_version(
     '88000000-0000-4000-8000-000000000001','88000000-0000-4000-8000-0000000000d0',
+    '88000000-0000-4000-8000-0000000000d1'::uuid,
     '{"intro_text":"DO_NOT_LOG_LEGAL_0088","declarations_landlord":[],"declarations_tenant":[],"clauses":[{"title":"Primera","body":"Texto revisado CI"}],"checklist_sections":[],"pagare_text":"CI"}',
     'DO_NOT_LOG_LEGAL_0088',false);
   PERFORM public.platform_assign_legal_template_version('88000000-0000-4000-8000-000000000001',

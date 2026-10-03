@@ -86,7 +86,7 @@ export default function AuthPage({ platform = false, destination = "/platform" }
     // (el toast crítico es persistente y sobrevivía al login exitoso).
     dismissAuthError();
     if (mode === "forgot") {
-      const { error } = await resetPassword(email);
+      const { error } = await resetPassword(email, platform ? "platform" : undefined);
       if (error) notifyAuthError({ error });
       else notifySuccess("Revisa tu correo para restablecer tu contraseña");
       return;

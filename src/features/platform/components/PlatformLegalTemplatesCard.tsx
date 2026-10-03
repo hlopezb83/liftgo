@@ -9,9 +9,10 @@ import type { PlatformLegalTemplateRow } from "@/lib/platformLegalTemplates.func
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformLegalTemplates } from "../hooks/usePlatformLegalTemplates";
 import { PlatformLegalTemplateAssignmentsDialog } from "./legalTemplates/PlatformLegalTemplateAssignmentsDialog";
+import { PlatformLegalTemplateHistoryDialog } from "./legalTemplates/PlatformLegalTemplateHistoryDialog";
 import { PlatformLegalTemplatePublishDialog } from "./legalTemplates/PlatformLegalTemplatePublishDialog";
 
-type DialogState = { kind: "publish" | "assign"; template: PlatformLegalTemplateRow } | null;
+type DialogState = { kind: "publish" | "assign" | "history"; template: PlatformLegalTemplateRow } | null;
 
 export function PlatformLegalTemplatesCard() {
   const { can } = usePlatformCapabilities();
@@ -59,7 +60,8 @@ export function PlatformLegalTemplatesCard() {
                       </div>
                     </TableCell>
                     <TableCell>{row.assignment_count}/{row.active_organization_count} empresas</TableCell>
-                    <TableCell>{row.version_count} versiones</TableCell>
+                    <TableCell><Button variant="ghost" size="sm" aria-label={`Ver historial de ${row.name}`}
+                      onClick={() => setDialog({ kind: "history", template: row })}>{row.version_count} versiones</Button></TableCell>
                     <TableCell className="space-x-2 text-right">
                       {can("templates.assign") && <Button variant="outline" size="sm" onClick={() => setDialog({ kind: "assign", template: row })}>
                         <HistoryIcon className="mr-2 h-4 w-4" /> Asignaciones
@@ -82,6 +84,7 @@ export function PlatformLegalTemplatesCard() {
           )}
         </CardContent>
       </Card>
+      {can("templates.read") && dialog?.kind === "history" && <PlatformLegalTemplateHistoryDialog template={dialog.template} onClose={() => setDialog(null)} />}
       {can("templates.publish") && dialog?.kind === "publish" && (
         <PlatformLegalTemplatePublishDialog
           open
