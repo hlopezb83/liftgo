@@ -36,7 +36,8 @@ CREATE POLICY "fiscal job metadata denies clients" ON public.platform_fiscal_job
 CREATE POLICY "fiscal job history denies clients" ON public.platform_fiscal_job_events
   AS RESTRICTIVE FOR ALL TO anon,authenticated USING(false) WITH CHECK(false);
 REVOKE ALL ON public.platform_fiscal_jobs,public.platform_fiscal_job_events FROM PUBLIC,anon,authenticated,service_role;
-GRANT SELECT ON public.platform_fiscal_jobs,public.platform_fiscal_job_events TO service_role;
+GRANT SELECT ON public.platform_fiscal_jobs TO service_role;
+GRANT SELECT ON public.platform_fiscal_job_events TO service_role;
 REVOKE ALL ON SEQUENCE public.platform_fiscal_job_events_id_seq FROM PUBLIC,anon,authenticated,service_role;
 CREATE TRIGGER platform_fiscal_job_events_immutable BEFORE UPDATE OR DELETE ON public.platform_fiscal_job_events
   FOR EACH ROW EXECUTE FUNCTION public.prevent_platform_audit_mutation();
@@ -44,7 +45,7 @@ CREATE TRIGGER platform_fiscal_job_events_no_truncate BEFORE TRUNCATE ON public.
   FOR EACH STATEMENT EXECUTE FUNCTION public.prevent_platform_audit_mutation();
 
 CREATE FUNCTION public.platform_fiscal_queue_state(p_row jsonb)
-RETURNS jsonb LANGUAGE sql IMMUTABLE SET search_path=public AS $$
+RETURNS jsonb LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT jsonb_build_object('status',p_row->>'status','attempts',(p_row->>'attempts')::integer,
     'maxAttempts',(p_row->>'max_attempts')::integer,'deferrals',(p_row->>'deferrals')::integer,
     'nextRetryAt',p_row->>'next_retry_at','hasError',nullif(btrim(p_row->>'last_error'),'') IS NOT NULL)
@@ -53,7 +54,7 @@ REVOKE ALL ON FUNCTION public.platform_fiscal_queue_state(jsonb) FROM PUBLIC,ano
 
 -- Sólo configuración observada al encolar; no acredita el ambiente de un CFDI existente.
 CREATE FUNCTION public.record_platform_fiscal_job()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_row jsonb:=CASE WHEN TG_OP='DELETE' THEN to_jsonb(OLD) ELSE to_jsonb(NEW) END;
   v_state jsonb; v_meta public.platform_fiscal_jobs; v_mode text; v_key text; v_name text; v_fields text[];
 BEGIN
@@ -97,7 +98,7 @@ CREATE TRIGGER trg_platform_fiscal_history AFTER INSERT OR UPDATE OR DELETE ON p
   FOR EACH ROW EXECUTE FUNCTION public.record_platform_fiscal_job();
 
 CREATE FUNCTION public.record_platform_fiscal_truncate()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   WITH removed AS (UPDATE public.platform_fiscal_jobs SET removed=true,revision=revision+1,
     observed_at=clock_timestamp() WHERE NOT removed RETURNING *)
@@ -119,7 +120,7 @@ INSERT INTO public.platform_fiscal_job_events(job_id,organization_id,revision,ki
 SELECT id,organization_id,revision,'snapshot',state FROM public.platform_fiscal_jobs;
 
 CREATE FUNCTION public.platform_fiscal_job_projection(p_id uuid)
-RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT jsonb_build_object('id',j.id,'organizationId',j.organization_id,
     'organizationName',coalesce(nullif(btrim(cs.razon_social),''),o.name,j.organization_name),
     'documentId',j.document_id,'folio',d.folio,'documentStatus',d.status,
@@ -143,7 +144,7 @@ REVOKE ALL ON FUNCTION public.platform_fiscal_job_projection(uuid) FROM PUBLIC,a
 
 CREATE FUNCTION public.platform_list_fiscal_jobs(p_actor uuid,p_session uuid,p_search text DEFAULT '',
   p_org uuid DEFAULT NULL,p_status text DEFAULT NULL,p_operation text DEFAULT NULL,p_offset integer DEFAULT 0)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_result jsonb;
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,'integrations.read');
@@ -168,7 +169,7 @@ REVOKE ALL ON FUNCTION public.platform_list_fiscal_jobs(uuid,uuid,text,uuid,text
 GRANT EXECUTE ON FUNCTION public.platform_list_fiscal_jobs(uuid,uuid,text,uuid,text,text,integer) TO service_role;
 
 CREATE FUNCTION public.platform_get_fiscal_job(p_actor uuid,p_session uuid,p_job uuid,p_before text DEFAULT NULL)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_result jsonb;
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,'integrations.read');

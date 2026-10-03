@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +27,8 @@ export function PlatformFiscalJobFilters({ filters, search, onSearch, onChange }
       <select id="fiscal-job-company" className={selectClass} value={filters.organizationId ?? ""} disabled={companies.isPending || companies.isError}
         onChange={(event) => onChange({ ...filters, organizationId: event.target.value || null, offset: 0 })}>
         <option value="">Todas las empresas</option>{companies.data?.map((company) => <option key={company.id} value={company.id}>{company.razon_social || company.name}</option>)}</select>
-      {companies.isError && <Button type="button" size="sm" variant="outline" onClick={() => void companies.refetch()}>Reintentar empresas</Button>}</div>
+      </div>
+    {companies.isError && <div className="sm:col-span-2 lg:col-span-4"><QueryErrorState error={companies.error} entity="las empresas del filtro"
+      isRetrying={companies.isFetching} onRetry={() => void companies.refetch()} /></div>}
   </form>;
 }
