@@ -8,6 +8,7 @@ import {
 import { authenticateWithDeps, type CallerLike } from "./authWithDeps.ts";
 import { buildSupabaseMock } from "./test/supabaseClientMock.ts";
 import type { SupabaseLike } from "./types.ts";
+import type { VerifiedEdgeIdentity } from "./edgeDiagnostics.ts";
 
 function req(headers: Record<string, string> = {}) {
   return new Request("http://localhost/fn", { method: "POST", headers });
@@ -56,6 +57,88 @@ function makeDeps(opts: {
     createServiceClient: () => service,
   };
 }
+
+Deno.test("authWithDeps: observador recibe sólo actor y rol aprobado en BD", async () => {
+  const identities: VerifiedEdgeIdentity[] = [];
+  const result = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer t" }),
+    ...makeDeps({
+      claims: {
+        sub: "actor-a",
+        role: "authenticated",
+        email: "private@example.invalid",
+        organization_id: "forged-org",
+      },
+      rolesData: [{ role: "mecanico" }, { role: "administrativo" }],
+    }),
+    allowedRoles: ["admin", "administrativo"],
+    onAuthenticated: (identity) => identities.push(identity),
+  });
+  assertEquals(result.ok, true);
+  assertEquals(identities, [{ userId: "actor-a", role: "administrativo" }]);
+});
+
+Deno.test("authWithDeps: rol denegado o cuenta inactiva no publica identidad", async () => {
+  let calls = 0;
+  for (
+    const options of [
+      { claims: { sub: "actor-a" }, rolesData: [{ role: "mecanico" }] },
+      {
+        claims: { sub: "actor-a" },
+        rolesData: [{ role: "admin" }],
+        profileData: { is_active: false },
+      },
+    ]
+  ) {
+    const result = await authenticateWithDeps({
+      req: req({ Authorization: "Bearer t" }),
+      ...makeDeps(options),
+      allowedRoles: ["admin"],
+      onAuthenticated: () => {
+        calls++;
+      },
+    });
+    assertEquals(result.ok, false);
+  }
+  assertEquals(calls, 0);
+});
+
+Deno.test("authWithDeps: diagnóstico fallido no repite autenticación ni modifica su resultado", async () => {
+  const dependencies = makeDeps({
+    claims: { sub: "actor-a" },
+    rolesData: [{ role: "admin" }],
+  });
+  let claimsCalls = 0;
+  const caller = dependencies.createCallerClient("Bearer t");
+  const getClaims = caller.auth.getClaims;
+  caller.auth.getClaims = (token) => {
+    claimsCalls++;
+    return getClaims(token);
+  };
+  const result = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer t" }),
+    ...dependencies,
+    createCallerClient: () => caller,
+    allowedRoles: ["admin"],
+    onAuthenticated: () => {
+      throw new Error("observer failed");
+    },
+  });
+  assertEquals(result.ok, true);
+  assertEquals(claimsCalls, 1);
+});
+
+Deno.test("authWithDeps: servicio verificado identifica rol pero no actor ficticio", async () => {
+  const identities: VerifiedEdgeIdentity[] = [];
+  const result = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer t" }),
+    ...makeDeps({ claims: { sub: "service-sub", role: "service_role" } }),
+    allowedRoles: ["admin"],
+    onAuthenticated: (identity) => identities.push(identity),
+  });
+  assertEquals(result.ok, true);
+  assertEquals(identities, [{ userId: undefined, role: "service_role" }]);
+});
 
 Deno.test("authWithDeps: sin Authorization → 401", async () => {
   const res = await authenticateWithDeps({

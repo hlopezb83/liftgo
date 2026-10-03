@@ -21,6 +21,11 @@ import {
   type CallerLike,
 } from "../_shared/authWithDeps.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
+import { type CustomerRow, missingFieldErrors } from "./customerFields.ts";
 
 export type { SupabaseLike };
 
@@ -34,16 +39,7 @@ export interface ValidateCustomersDeps {
   fetchImpl: typeof fetch;
   env: (k: string) => string | undefined;
   sleep?: (ms: number) => Promise<void>;
-}
-
-interface CustomerRow {
-  id: string;
-  name: string;
-  relation_updated_at: string;
-  rfc: string | null;
-  razon_social: string | null;
-  regimen_fiscal: string | null;
-  domicilio_fiscal_cp: string | null;
+  diagnostics?: EdgeDiagnostics;
 }
 
 /** Fila cruda de `organization_customers`: datos fiscales por empresa. */
@@ -74,21 +70,6 @@ export interface ValidateCustomersSummary {
   }>;
 }
 
-function missingFieldErrors(c: CustomerRow): TaxIdValidationError[] {
-  const out: TaxIdValidationError[] = [];
-  if (!c.rfc?.trim()) out.push({ path: "rfc", message: "Falta el RFC" });
-  if (!(c.razon_social?.trim() || c.name?.trim())) {
-    out.push({ path: "razon_social", message: "Falta la razón social" });
-  }
-  if (!c.regimen_fiscal?.trim()) {
-    out.push({ path: "regimen_fiscal", message: "Falta el régimen fiscal" });
-  }
-  if (!c.domicilio_fiscal_cp?.trim()) {
-    out.push({ path: "domicilio_fiscal_cp", message: "Falta el C.P. fiscal" });
-  }
-  return out;
-}
-
 export async function handleValidateCustomers(
   req: Request,
   deps: ValidateCustomersDeps,
@@ -99,6 +80,7 @@ export async function handleValidateCustomers(
     jsonResponse(req, body, { status });
   const sleep = deps.sleep ??
     ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
+  const diagnostics = createRequestDiagnostics(deps.diagnostics);
 
   try {
     const auth = await authenticateWithDeps({
@@ -107,6 +89,7 @@ export async function handleValidateCustomers(
       createServiceClient: () => deps.createServiceClient(),
       allowedRoles: ["admin", "administrativo"],
       logTag: "[validate-customers-tax-info]",
+      onAuthenticated: diagnostics.authenticated,
     });
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     const supabase = auth.supabase;
@@ -126,6 +109,7 @@ export async function handleValidateCustomers(
       return json({ error: orgRes.message }, orgRes.status);
     }
     const organizationId = orgRes.organizationId;
+    diagnostics.organization(organizationId);
 
     const body = await req.json().catch(() => null);
     const rawLimit = Number(body?.limit ?? DEFAULT_LIMIT);
@@ -170,9 +154,9 @@ export async function handleValidateCustomers(
       .order("sat_validated_at", { ascending: true, nullsFirst: true })
       .limit(limit);
     if (linksErr) {
+      diagnostics.capture(linksErr, 500);
       console.error(
-        "[validate-customers-tax-info] organization_customers query",
-        linksErr,
+        "[validate-customers-tax-info] organization_customers query failed",
       );
       return json({ error: "No se pudo leer la cartera de clientes" }, 500);
     }
@@ -226,9 +210,11 @@ export async function handleValidateCustomers(
           status = "mismatch";
           errors = outcome.errors;
         } else if (outcome.kind === "timeout") {
+          diagnostics.capture(new Error("PAC validation timed out"), 504);
           status = "error";
           errors = [{ path: "", message: outcome.message, code: "TIMEOUT" }];
         } else {
+          diagnostics.capture(new Error("PAC validation request failed"), 502);
           status = "error";
           errors = [{
             path: "",
@@ -252,7 +238,8 @@ export async function handleValidateCustomers(
         .eq("updated_at", c.relation_updated_at)
         .select("customer_id");
       if (saveError) {
-        console.error("[validate-customers-tax-info] save", saveError);
+        diagnostics.capture(saveError, 500);
+        console.error("[validate-customers-tax-info] save failed");
         return json({ error: "No se pudo guardar la validación fiscal" }, 500);
       }
       if (!Array.isArray(saved) || saved.length !== 1) {
@@ -286,16 +273,16 @@ export async function handleValidateCustomers(
       .neq("rfc", RFC_PUBLICO_GENERAL)
       .eq("sat_validation_status", "not_validated");
     if (countError) {
-      console.error("[validate-customers-tax-info] remaining", countError);
+      diagnostics.capture(countError, 500);
+      console.error("[validate-customers-tax-info] remaining query failed");
       return json({ error: "No se pudo contar la cartera pendiente" }, 500);
     }
     summary.remaining = count ?? 0;
 
     return json(summary, 200);
   } catch (err) {
-    console.error("[validate-customers-tax-info] unhandled", {
-      message: err instanceof Error ? err.message : String(err),
-    });
+    diagnostics.capture(err, 500);
+    console.error("[validate-customers-tax-info] unexpected failure");
     return jsonResponse(req, { error: "Internal server error" }, {
       status: 500,
     });

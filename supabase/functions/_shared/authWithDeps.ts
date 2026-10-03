@@ -5,6 +5,7 @@
 // service_role JWT (consumer de cfdi_retry_queue) y validación de rol para
 // usuarios finales.
 import type { SupabaseLike } from "./types.ts";
+import type { VerifiedEdgeIdentity } from "./edgeDiagnostics.ts";
 
 export interface CallerClaims {
   claims?: Record<string, unknown> | null;
@@ -42,6 +43,8 @@ export interface AuthWithDepsInput {
   allowedRoles: readonly string[];
   /** Prefijo para logs (ej. "[stamp-cfdi]"). */
   logTag?: string;
+  /** Sólo después de comprobar claims/perfil/rol; no cambia la autorización. */
+  onAuthenticated?: (identity: VerifiedEdgeIdentity) => void;
 }
 
 /**
@@ -72,6 +75,7 @@ export async function authenticateWithDeps(
   const userId = (claims.sub as string | undefined) ?? "";
 
   const supabase = createServiceClient();
+  let verifiedRole = "service_role";
 
   if (!isServiceRole) {
     if (!userId) {
@@ -120,14 +124,21 @@ export async function authenticateWithDeps(
     const roles = (rolesRes as { data: unknown }).data as
       | Array<{ role: string }>
       | null;
-    const allowed = (roles ?? []).some((r) =>
+    const allowed = (roles ?? []).find((r) =>
       (allowedRoles as readonly string[]).includes(r.role)
     );
     if (!allowed) {
       if (logTag) console.error(`${logTag} forbidden`, { userId });
       return { ok: false, status: 403, message: "Forbidden" };
     }
+    verifiedRole = allowed.role;
   }
 
+  try {
+    input.onAuthenticated?.({
+      userId: isServiceRole ? undefined : userId,
+      role: verifiedRole,
+    });
+  } catch { /* El observador nunca concede ni deniega acceso. */ }
   return { ok: true, userId, isServiceRole, supabase };
 }

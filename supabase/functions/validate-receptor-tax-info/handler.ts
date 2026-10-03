@@ -14,6 +14,10 @@ import {
   type CallerLike,
 } from "../_shared/authWithDeps.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
+import {
+  createRequestDiagnostics,
+  type EdgeDiagnostics,
+} from "../_shared/edgeDiagnostics.ts";
 
 export type { SupabaseLike };
 
@@ -22,6 +26,7 @@ export interface ValidateReceptorDeps {
   createServiceClient: () => SupabaseLike;
   fetchImpl: typeof fetch;
   env: (k: string) => string | undefined;
+  diagnostics?: EdgeDiagnostics;
 }
 
 interface ValidationResult {
@@ -44,6 +49,7 @@ export async function handleValidateReceptor(
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
   const jsonHeaders = undefined;
+  const diagnostics = createRequestDiagnostics(deps.diagnostics);
 
   try {
     const auth = await authenticateWithDeps({
@@ -52,6 +58,7 @@ export async function handleValidateReceptor(
       createServiceClient: () => deps.createServiceClient(),
       allowedRoles: ["admin", "administrativo"],
       logTag: "[validate-receptor-tax-info]",
+      onAuthenticated: diagnostics.authenticated,
     });
     if (!auth.ok) {
       return json({ error: auth.message }, auth.status, jsonHeaders);
@@ -84,6 +91,7 @@ export async function handleValidateReceptor(
     if (!orgRes.ok) {
       return json({ error: orgRes.message }, orgRes.status, jsonHeaders);
     }
+    diagnostics.organization(orgRes.organizationId);
 
     const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
@@ -148,6 +156,7 @@ export async function handleValidateReceptor(
     const outcome = await validateTaxIdWithPac(sent, apiKey, deps.fetchImpl);
 
     if (outcome.kind === "timeout") {
+      diagnostics.capture(new Error("PAC validation timed out"), 504);
       return json(
         {
           error: "PAC no respondió a tiempo, reintenta",
@@ -160,6 +169,7 @@ export async function handleValidateReceptor(
     }
 
     if (outcome.kind === "http_error") {
+      diagnostics.capture(new Error("PAC validation request failed"), 502);
       return json(
         {
           error: `Facturapi validation error: ${outcome.status}`,
@@ -179,9 +189,8 @@ export async function handleValidateReceptor(
 
     return json(result, 200, jsonHeaders);
   } catch (err) {
-    console.error("[validate-receptor-tax-info] unhandled", {
-      message: err instanceof Error ? err.message : String(err),
-    });
+    diagnostics.capture(err, 500);
+    console.error("[validate-receptor-tax-info] unexpected failure");
     return json({ error: "Internal server error" }, 500, jsonHeaders);
   }
 }
