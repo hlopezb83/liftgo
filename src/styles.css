@@ -517,6 +517,9 @@
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
 }
+.toaster [data-sonner-toast][data-type="success"] { border-left: 4px solid hsl(var(--success)); }
+.toaster [data-sonner-toast][data-type="warning"] { border-left: 4px solid hsl(var(--warning)); }
+.toaster [data-sonner-toast][data-type="error"] { border-left: 4px solid hsl(var(--destructive)); }
 .toaster [data-sonner-toast][data-type="success"] [data-icon] { color: hsl(var(--success)); }
 .toaster [data-sonner-toast][data-type="warning"] [data-icon] { color: hsl(var(--warning-text)); }
 .toaster [data-sonner-toast][data-type="error"] [data-icon] { color: hsl(var(--destructive)); }

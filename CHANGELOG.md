@@ -2,6 +2,7 @@
 
 - El JSON utiliza el nombre ya verificado de la barra lateral cuando no se han consultado los datos fiscales; conserva el ID real de la empresa y no agrega consultas.
 - La prueba de caché confirma que el diagnóstico no toma el nombre de una organización distinta.
+- Los avisos muestran el borde de color de éxito, advertencia, error e información mediante el estado real del toast, también cuando las clases del contenedor no actúan como ancestro.
 
 ## [8.43.1] — 2026-10-02
 

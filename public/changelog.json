@@ -4,11 +4,12 @@
     "date": "2026-10-02",
     "type": "patch",
     "category": "fix",
-    "title": "Empresa identificada en los diagnósticos",
-    "description": "El diagnóstico conserva el nombre de la empresa también en pantallas que sólo cargan su identidad mínima.",
+    "title": "Identidad y acentos visuales en los diagnósticos",
+    "description": "El JSON conserva el nombre verificado de la empresa y los avisos muestran su acento de color según el resultado.",
     "changes": [
       "El JSON utiliza el nombre ya verificado de la barra lateral cuando no se han consultado los datos fiscales; conserva el ID real de la empresa y no agrega consultas.",
-      "La prueba de caché confirma que el diagnóstico no toma el nombre de una organización distinta."
+      "La prueba de caché confirma que el diagnóstico no toma el nombre de una organización distinta.",
+      "Los avisos muestran el borde de color de éxito, advertencia, error e información mediante el estado real del toast, también cuando las clases del contenedor no actúan como ancestro."
     ]
   },
   {
