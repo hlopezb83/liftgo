@@ -1,3 +1,7 @@
+## [8.43.5] — 2026-10-03
+
+- Se corrigió un error de compilación en el envío de feedback: el folio lo asigna la base de datos, por lo que el cliente no lo envía.
+
 ## [8.43.4] — 2026-10-02
 
 - La factura recurrente usa la empresa verificada de sus reservas para generar el folio; ya no aparece el error de contexto de organización (código 23514).

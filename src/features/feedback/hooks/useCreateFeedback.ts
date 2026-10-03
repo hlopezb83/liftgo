@@ -43,8 +43,8 @@ export function useCreateFeedback() {
         screenshotUrl = await uploadScreenshot(user.id, input.screenshot);
       }
 
-      // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.
-      const payload: Omit<TablesInsert<"feedback_reports">, "organization_id"> = {
+      // Multi-organización: organization_id y folio los asigna la base (trigger); el cliente no los envía.
+      const payload: Omit<TablesInsert<"feedback_reports">, "organization_id" | "folio"> = {
         reporter_id: user.id,
         reporter_type: input.reporterType,
         reporter_name: input.reporterName,
