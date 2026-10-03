@@ -1,5 +1,13 @@
 # Monitoreo de LiftGo con Sentry
 
+## Diagnóstico local cuando falla el SDK
+
+`captureOperationalError` contiene los fallos al consultar el cliente, crear el
+scope o capturar el incidente. Los toasts conservan el error original, su JSON
+copiable y la acción de detalles, incluidos los toasts asíncronos. Un intento
+fallido de captura puede reintentarse; la deduplicación se aplica tras capturar.
+Las pruebas ejercitan la copia real al portapapeles con el SDK simulado fallando.
+
 ## Resiliencia desde 8.43.11
 
 - La inicialización del navegador y la conexión con TanStack Router contienen
