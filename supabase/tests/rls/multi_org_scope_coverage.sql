@@ -83,6 +83,7 @@ DECLARE
     'platform_support_events', -- 0094: seguimiento privado; servicio sólo SELECT
     'platform_fiscal_jobs', -- 0098: proyección técnica privada, sólo SELECT servicio
     'platform_fiscal_job_events', -- 0098: historial sin payload ni secretos
+    'platform_organization_governance', -- 0100: ficha privada de plataforma; sólo SELECT servicio
     'platform_fiscal_actions', -- 0099: acciones privadas, RLS/FORCE deny-all, RPC de servidor
     'platform_catalog_imports' -- 0090: recibos globales inmutables sólo vía RPC
   ];
@@ -206,7 +207,7 @@ BEGIN
           END IF;
         ELSIF r.table_name = ANY (ARRAY['platform_onboarding_requests',
             'platform_catalog_import_source','platform_catalog_imports','platform_operator_guard','platform_integration_checks',
-            'platform_support_cases','platform_support_events','platform_fiscal_jobs','platform_fiscal_job_events','platform_fiscal_actions']) THEN
+            'platform_support_cases','platform_support_events','platform_fiscal_jobs','platform_fiscal_job_events','platform_fiscal_actions','platform_organization_governance']) THEN
           IF v_grants_service <> 1 OR has_table_privilege('service_role',
               'public.' || r.table_name,'INSERT,UPDATE,DELETE,TRUNCATE') THEN
             v_fallas := v_fallas || format('%s: exige sólo SELECT de service_role',r.table_name);

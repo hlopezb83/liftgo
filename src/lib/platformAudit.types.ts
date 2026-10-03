@@ -15,6 +15,9 @@ const optionalText = z.string().nullable().optional();
 const safeState = z.object({
   name: optionalText,
   slug: optionalText,
+  classification: optionalText,
+  city: optionalText,
+  territory: optionalText,
   manufacturer: optionalText,
   model: optionalText,
   sku: optionalText,

@@ -551,3 +551,36 @@ telemetría general, CI ni costos por empresa.
 Pendiente del bloque 4: historial detallado de trabajos y reintento autorizado con conciliación, y
 telemetría general con fuente y retención. No existe un botón de reintento
 fiscal ciego en este Centro. Se mantiene la cola segura del ERP.
+
+## Ficha de ciudad, territorio y clasificación (0100)
+
+La ficha administrativa incluye ciudad, territorio, contacto (nombre, correo y
+teléfono) y clasificación explícita: Sin clasificar, Real o Prueba. Las empresas
+anteriores permanecen Sin clasificar hasta que un operador las revise; no se
+deduce el tipo por nombre, UUID o llave fiscal. ELOGISTIX se debe marcar como
+Prueba mediante esta ficha después del despliegue.
+
+- Raíz y Gestión de empresas pueden editar con `organizations.configure`.
+  El servidor y SQL comprueban el permiso y la sesión actual.
+- La lista administrativa incluye empresas reales, de prueba, sin clasificar
+  y suspendidas. Tiene filtro explícito por clasificación y búsqueda por ciudad
+  o territorio. No es una métrica comercial agregada.
+- El contacto sólo se entrega con `organizations.details`. Las proyecciones
+  de lista y auditoría excluyen sus valores; el historial registra los nombres
+  de los campos modificados, el motivo, el operador y la fecha.
+- El guardado serializa por empresa y compara una revisión textual. Ante un
+  conflicto conserva la captura y exige revisar los datos actuales antes de
+  adoptar la revisión nueva. Un guardado idéntico con revisión vigente no crea
+  otra revisión ni otro evento.
+- La ficha no modifica nombre fiscal, RFC, llaves, bancos, costos, precios,
+  inventario, contratos ni permisos de usuarios empresariales.
+
+Despliegue: completar primero el bloque fiscal de 0099 (handlers, worker al
+final, frontend compatible y activación pendiente de `integrations.retry`).
+Después aplicar 0100 con su ledger, verificar ACL/RLS/RPC y publicar el frontend
+de esta ficha. La migración conserva las capacidades canónicas de 0099; no se
+debe usar para activar anticipadamente un reintento fiscal.
+
+Quedan fuera de este bloque las métricas comerciales que excluyan pruebas por
+defecto, las políticas globales con precedencia/preview y el ciclo de adopción,
+retiro y comparación de versiones de los maestros. Se mantienen en el plan.
