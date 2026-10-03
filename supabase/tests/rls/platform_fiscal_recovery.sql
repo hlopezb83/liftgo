@@ -101,49 +101,66 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
   IF v_status<>'retry_scheduled' OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(21)
     AND attempts=5 AND max_attempts=6 AND status='pending' AND last_error='private-original-diagnostic') THEN
     RAISE EXCEPTION 'BUDGET: reinició intentos o perdió diagnóstico'; END IF;
-  IF pg_temp.finish_action(121,'missing')<>'retry_scheduled'
+  v_status:=pg_temp.finish_action(121,'missing');
+  IF v_status<>'retry_scheduled'
     OR (SELECT count(*) FROM public.platform_fiscal_actions WHERE job_id=pg_temp.id(21))<>1 THEN RAISE EXCEPTION 'REPLAY: duplicó resultado'; END IF;
   -- 202/ID sin UUID: guarda ID, nunca crea otro CFDI ni marca stamped sin archivos.
   PERFORM pg_temp.start_action(23,123,'retry');
-  IF pg_temp.finish_action(123,'pending','provider-33')<>'pac_pending'
+  v_status:=pg_temp.finish_action(123,'pending','provider-33');
+  IF v_status<>'pac_pending'
     OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(33) AND cfdi_uuid IS NULL AND cfdi_status='stamping') THEN
     RAISE EXCEPTION '202: inventó UUID o estado stamped'; END IF;
   -- Recuperación con folio Facturapi y transición a conciliación existente.
   PERFORM pg_temp.start_action(24,124,'retry');
-  IF pg_temp.finish_action(124,'valid','provider-34','11111111-1111-4111-8111-111111111111','none','42')<>'recovered'
+  v_status:=pg_temp.finish_action(124,'valid','provider-34','11111111-1111-4111-8111-111111111111','none','42');
+  IF v_status<>'recovered'
     OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(34) AND cfdi_status='stamping'
-      AND folio='42' AND serie='A' AND invoice_number='FAC-0042' AND facturapi_env='test') THEN RAISE EXCEPTION 'RECOVERY: perdió folio o inventó stamped'; END IF;
+      AND folio='42' AND serie='A' AND invoice_number='FAC-0042' AND facturapi_env='test') THEN RAISE EXCEPTION 'RECOVERY: resultado %, número %, folio %, estado %, ambiente %',v_status,
+        (SELECT invoice_number FROM public.invoices WHERE id=pg_temp.id(34)),
+        (SELECT folio FROM public.invoices WHERE id=pg_temp.id(34)),
+        (SELECT cfdi_status FROM public.invoices WHERE id=pg_temp.id(34)),
+        (SELECT facturapi_env FROM public.invoices WHERE id=pg_temp.id(34)); END IF;
   PERFORM pg_temp.start_action(25,125,'retry');
-  IF pg_temp.finish_action(125,'failed','provider-35')<>'provider_failed'
+  v_status:=pg_temp.finish_action(125,'failed','provider-35');
+  IF v_status<>'provider_failed'
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(25))<>'exhausted' THEN RAISE EXCEPTION 'FAILED: reprogramó fallo del PAC'; END IF;
   PERFORM pg_temp.start_action(26,126,'retry');
-  IF pg_temp.finish_action(126,'inconclusive')<>'inconclusive'
+  v_status:=pg_temp.finish_action(126,'inconclusive');
+  IF v_status<>'inconclusive'
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(26))<>'exhausted' THEN RAISE EXCEPTION 'UNKNOWN: reprogramó a ciegas'; END IF;
   PERFORM pg_temp.start_action(27,127,'retry');
   UPDATE public.company_settings SET facturapi_mode='live' WHERE organization_id=pg_temp.id(11);
-  IF pg_temp.finish_action(127,'missing')<>'config_changed' THEN RAISE EXCEPTION 'CONFIG: aplicó una respuesta de ambiente anterior'; END IF;
+  v_status:=pg_temp.finish_action(127,'missing');
+  IF v_status<>'config_changed' THEN RAISE EXCEPTION 'CONFIG: aplicó una respuesta de ambiente anterior'; END IF;
   UPDATE public.company_settings SET facturapi_mode='test' WHERE organization_id=pg_temp.id(11);
   PERFORM pg_temp.start_action(28,128,'retry');
   UPDATE public.invoices SET customer_name='Cambió durante la consulta' WHERE id=pg_temp.id(38);
-  IF pg_temp.finish_action(128,'missing')<>'document_changed' THEN RAISE EXCEPTION 'CONCURRENCY: sobrescribió documento cambiado'; END IF;
+  v_status:=pg_temp.finish_action(128,'missing');
+  IF v_status<>'document_changed' THEN RAISE EXCEPTION 'CONCURRENCY: sobrescribió documento cambiado'; END IF;
   PERFORM pg_temp.start_action(29,129,'retry');
   UPDATE public.cfdi_retry_queue SET status='succeeded' WHERE id=pg_temp.id(29);
-  IF pg_temp.finish_action(129,'missing')<>'document_changed'
+  v_status:=pg_temp.finish_action(129,'missing');
+  IF v_status<>'document_changed'
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(29))<>'succeeded' THEN RAISE EXCEPTION 'CONCURRENCY: sobrescribió otro procesador'; END IF;
   PERFORM pg_temp.start_action(30,130,'retry');
-  IF pg_temp.finish_action(130,'missing')<>'budget_exhausted' THEN RAISE EXCEPTION 'BUDGET: excedió límite'; END IF;
+  v_status:=pg_temp.finish_action(130,'missing');
+  IF v_status<>'budget_exhausted' THEN RAISE EXCEPTION 'BUDGET: excedió límite'; END IF;
   -- Cancelaciones: concilia lo confirmado; no vuelve a solicitar una pendiente.
   PERFORM pg_temp.start_action(31,131,'retry');
-  IF pg_temp.finish_action(131,'cancelled','provider-41','11111111-1111-4111-8111-111111111111','accepted','41')<>'cancelled'
+  v_status:=pg_temp.finish_action(131,'cancelled','provider-41','11111111-1111-4111-8111-111111111111','accepted','41');
+  IF v_status<>'cancelled'
     OR (SELECT status FROM public.invoices WHERE id=pg_temp.id(41))<>'cancelled' THEN RAISE EXCEPTION 'CANCEL: no concilió factura'; END IF;
   PERFORM pg_temp.start_action(32,132,'retry');
-  IF pg_temp.finish_action(132,'valid','provider-42','11111111-1111-4111-8111-111111111111','pending','42')<>'cancellation_pending'
+  v_status:=pg_temp.finish_action(132,'valid','provider-42','11111111-1111-4111-8111-111111111111','pending','42');
+  IF v_status<>'cancellation_pending'
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(32))<>'exhausted' THEN RAISE EXCEPTION 'CANCEL: reenviaría solicitud pendiente'; END IF;
   PERFORM pg_temp.start_action(33,133);
-  IF pg_temp.finish_action(133,'cancelled','provider-43','11111111-1111-4111-8111-111111111111','accepted','43')<>'cancelled'
+  v_status:=pg_temp.finish_action(133,'cancelled','provider-43','11111111-1111-4111-8111-111111111111','accepted','43');
+  IF v_status<>'cancelled'
     OR (SELECT cfdi_status FROM public.credit_notes WHERE id=pg_temp.id(43))<>'cancelled' THEN RAISE EXCEPTION 'NC: no concilió'; END IF;
   PERFORM pg_temp.start_action(34,134);
-  IF pg_temp.finish_action(134,'cancelled','provider-44','11111111-1111-4111-8111-111111111111','accepted','44')<>'cancelled'
+  v_status:=pg_temp.finish_action(134,'cancelled','provider-44','11111111-1111-4111-8111-111111111111','accepted','44');
+  IF v_status<>'cancelled'
     OR (SELECT rep_cfdi_status FROM public.payments WHERE id=pg_temp.id(44))<>'cancelled' THEN RAISE EXCEPTION 'REP: no concilió'; END IF;
   v:=public.platform_list_fiscal_actions(pg_temp.id(2),pg_temp.id(102),pg_temp.id(24));
   IF jsonb_array_length(v)<>1 OR v->0->>'actorName'<>'Operador fiscal CI 1'
@@ -156,7 +173,8 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
     RAISE EXCEPTION 'LEGACY: aceptó configuración sólo observada'; END IF;
   PERFORM pg_temp.start_action(37,137,'retry');
   UPDATE public.billing_secrets SET facturapi_test_key='sk_test_ci_rotated_only' WHERE organization_id=pg_temp.id(11);
-  IF pg_temp.finish_action(137,'missing')<>'config_changed' OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue
+  v_status:=pg_temp.finish_action(137,'missing');
+  IF v_status<>'config_changed' OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue
     WHERE id=pg_temp.id(37) AND attempts=5 AND max_attempts=5 AND status='exhausted') THEN
     RAISE EXCEPTION 'KEY: reprogramó con otra llave'; END IF;
   UPDATE public.billing_secrets SET facturapi_test_key='sk_test_ci_recovery_a_only' WHERE organization_id=pg_temp.id(11);
@@ -184,12 +202,14 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
   -- Un nuevo dueño puede conservar processing y la misma revisión, pero cambia el token.
   PERFORM pg_temp.start_action(41,141,'retry');
   UPDATE public.cfdi_retry_queue SET status='processing' WHERE id=pg_temp.id(41);
-  IF pg_temp.finish_action(141,'missing')<>'document_changed' OR
+  v_status:=pg_temp.finish_action(141,'missing');
+  IF v_status<>'document_changed' OR
     (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(41))<>'processing' THEN
     RAISE EXCEPTION 'TOKEN: completó o liberó el trabajo de otro dueño'; END IF;
   -- CFDI ya cancelado descubierto por external_id: recuperar identidad/folio, sin volver a emitir.
   PERFORM pg_temp.start_action(42,142,'retry');
-  IF pg_temp.finish_action(142,'cancelled','provider-52','11111111-1111-4111-8111-111111111111','accepted','52')<>'cancelled'
+  v_status:=pg_temp.finish_action(142,'cancelled','provider-52','11111111-1111-4111-8111-111111111111','accepted','52');
+  IF v_status<>'cancelled'
     OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(52) AND cfdi_status='cancelled'
       AND status='cancelled' AND facturapi_invoice_id='provider-52' AND facturapi_env='test'
       AND cfdi_uuid='11111111-1111-4111-8111-111111111111' AND invoice_number='FAC-0052' AND folio='52' AND cfdi_xml_pending)
@@ -197,7 +217,8 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
     RAISE EXCEPTION 'CANCELLED RECOVERY: perdió identidad/folio o inventó archivos'; END IF;
   -- Cuatro dígitos son un mínimo: un folio mayor del PAC no se puede truncar.
   PERFORM pg_temp.start_action(43,143,'retry');
-  IF pg_temp.finish_action(143,'valid','provider-53','11111111-1111-4111-8111-111111111111','none','12345')<>'recovered'
+  v_status:=pg_temp.finish_action(143,'valid','provider-53','11111111-1111-4111-8111-111111111111','none','12345');
+  IF v_status<>'recovered'
     OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(53) AND cfdi_status='stamping'
       AND folio='12345' AND invoice_number='FAC-12345' AND serie='A' AND facturapi_env='test') THEN
     RAISE EXCEPTION 'FOLIO: truncó el folio asignado por Facturapi'; END IF;
@@ -205,28 +226,33 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
   UPDATE public.cfdi_retry_queue SET status='pending',max_attempts=6 WHERE id IN
     (pg_temp.id(44),pg_temp.id(45),pg_temp.id(46),pg_temp.id(47),pg_temp.id(48));
   PERFORM pg_temp.start_action(44,144,'retry');
-  IF pg_temp.finish_action(144,'inconclusive')<>'inconclusive' OR NOT EXISTS(
+  v_status:=pg_temp.finish_action(144,'inconclusive');
+  IF v_status<>'inconclusive' OR NOT EXISTS(
     SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(44) AND status='exhausted' AND attempts=5 AND max_attempts=6) THEN
     RAISE EXCEPTION 'UNCERTAIN PENDING: habilitó otro intento sin resolución'; END IF;
   PERFORM pg_temp.start_action(46,146,'retry');
-  IF pg_temp.finish_action(146,'failed','provider-56')<>'provider_failed' OR NOT EXISTS(
+  v_status:=pg_temp.finish_action(146,'failed','provider-56');
+  IF v_status<>'provider_failed' OR NOT EXISTS(
     SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(46) AND status='exhausted' AND attempts=5 AND max_attempts=6) THEN
     RAISE EXCEPTION 'FAILED PENDING: habilitó otro intento con un fallo del PAC'; END IF;
   -- Una cancelación pendiente en el PAC se conserva en el ERP para bloquear otro POST.
   PERFORM pg_temp.start_action(45,145,'retry');
-  IF pg_temp.finish_action(145,'valid','provider-55','ABCDEFAB-1234-4123-8123-ABCDEFABCDEF','pending','55')<>'cancellation_pending'
+  v_status:=pg_temp.finish_action(145,'valid','provider-55','ABCDEFAB-1234-4123-8123-ABCDEFABCDEF','pending','55');
+  IF v_status<>'cancellation_pending'
     OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(55) AND cancellation_status='pending'
       AND cancellation_requested_at IS NOT NULL AND cfdi_status='stamped')
     OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(45) AND status='exhausted' AND attempts=5 AND max_attempts=6) THEN
     RAISE EXCEPTION 'PAC PENDING: permitió reenviar una cancelación confirmada pendiente'; END IF;
   PERFORM pg_temp.start_action(47,147,'retry');
-  IF pg_temp.finish_action(147,'valid','provider-57','11111111-1111-4111-8111-111111111111','pending','57')<>'cancellation_pending'
+  v_status:=pg_temp.finish_action(147,'valid','provider-57','11111111-1111-4111-8111-111111111111','pending','57');
+  IF v_status<>'cancellation_pending'
     OR NOT EXISTS(SELECT 1 FROM public.credit_notes WHERE id=pg_temp.id(57) AND cancellation_status='pending'
       AND cancellation_requested_at IS NOT NULL AND cfdi_status='stamped')
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(47))<>'exhausted' THEN
     RAISE EXCEPTION 'NC PAC PENDING: permitió reenviar la cancelación pendiente'; END IF;
   PERFORM pg_temp.start_action(48,148,'retry');
-  IF pg_temp.finish_action(148,'valid','provider-58','11111111-1111-4111-8111-111111111111','pending','58')<>'cancellation_pending'
+  v_status:=pg_temp.finish_action(148,'valid','provider-58','11111111-1111-4111-8111-111111111111','pending','58');
+  IF v_status<>'cancellation_pending'
     OR NOT EXISTS(SELECT 1 FROM public.payments WHERE id=pg_temp.id(58) AND rep_cancellation_status='pending'
       AND rep_cancellation_requested_at IS NOT NULL AND rep_cfdi_status='stamped')
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(48))<>'exhausted' THEN
@@ -251,9 +277,10 @@ INSERT INTO public.platform_fiscal_actions(id,job_id,organization_id,actor_id,se
 SELECT pg_temp.id(380+n),j.id,j.organization_id,pg_temp.id(1),pg_temp.id(101),'retry','Reprogramación histórica CI',
   1,1,(SELECT updated_at FROM public.cfdi_retry_queue WHERE id=j.id),'{"status":"exhausted"}',public.platform_fiscal_document_snapshot(j),'test',j.key_fingerprint,'retry_scheduled',
   now()-interval '10 minutes',now()-interval '9 minutes' FROM public.platform_fiscal_jobs j CROSS JOIN generate_series(1,5) n WHERE j.id=pg_temp.id(38);
-DO $$ BEGIN
+DO $ DECLARE v_status text; BEGIN
   PERFORM pg_temp.start_action(38,138,'retry');
-  IF pg_temp.finish_action(138,'missing')<>'budget_exhausted' OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue
+  v_status:=pg_temp.finish_action(138,'missing');
+  IF v_status<>'budget_exhausted' OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue
     WHERE id=pg_temp.id(38) AND attempts=5 AND max_attempts=5 AND status='exhausted') THEN
     RAISE EXCEPTION 'MANUAL BUDGET: habilitó una sexta reprogramación'; END IF;
 END $$;
