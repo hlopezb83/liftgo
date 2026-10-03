@@ -43,7 +43,7 @@ REVOKE ALL ON public.platform_organization_governance FROM PUBLIC,anon,authentic
 GRANT SELECT ON public.platform_organization_governance TO service_role;
 
 CREATE FUNCTION public.platform_governance_assert(p_actor uuid,p_session uuid,p_capability text)
-RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS void LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.assert_platform_capability(p_actor,p_capability);
   IF NOT public.platform_session_exists(p_actor,p_session) THEN
@@ -53,7 +53,7 @@ END $$;
 REVOKE ALL ON FUNCTION public.platform_governance_assert(uuid,uuid,text) FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE FUNCTION public.platform_governance_projection(p_organization_id uuid,p_contact boolean)
-RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT jsonb_build_object('organizationId',o.id,'classification',coalesce(g.classification,'unclassified'),
     'city',g.city,'territory',g.territory,'revision',coalesce(g.revision,0)::text,'updatedAt',g.updated_at)
     || CASE WHEN p_contact THEN jsonb_build_object('contactName',g.contact_name,
@@ -64,7 +64,7 @@ $$;
 REVOKE ALL ON FUNCTION public.platform_governance_projection(uuid,boolean) FROM PUBLIC,anon,authenticated,service_role;
 
 CREATE FUNCTION public.platform_list_organization_governance(p_actor uuid,p_session uuid)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_result jsonb;
 BEGIN
   PERFORM public.platform_governance_assert(p_actor,p_session,'organizations.read');
@@ -76,7 +76,7 @@ REVOKE ALL ON FUNCTION public.platform_list_organization_governance(uuid,uuid) F
 GRANT EXECUTE ON FUNCTION public.platform_list_organization_governance(uuid,uuid) TO service_role;
 
 CREATE FUNCTION public.platform_get_organization_governance(p_actor uuid,p_session uuid,p_organization_id uuid)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_result jsonb;
 BEGIN
   PERFORM public.platform_governance_assert(p_actor,p_session,'organizations.details');
@@ -90,7 +90,7 @@ GRANT EXECUTE ON FUNCTION public.platform_get_organization_governance(uuid,uuid,
 CREATE FUNCTION public.platform_set_organization_governance(p_actor uuid,p_session uuid,p_organization_id uuid,
   p_revision text,p_classification text,p_city text,p_territory text,p_contact_name text,p_contact_email text,
   p_contact_phone text,p_reason text)
-RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public AS $$
+RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public AS $$
 DECLARE v_name text; v_before jsonb; v_after jsonb; v_revision bigint; v_fields text[];
 BEGIN
   -- Autoridad estable durante la escritura; una revocación se serializa con este cambio.
