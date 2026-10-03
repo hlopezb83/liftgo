@@ -614,15 +614,29 @@ transacción, y verificar ACL/RPC antes de publicar frontend/servidor. No modifi
 filas existentes. Los fixtures de concurrencia y separación A/B se ejecutan
 únicamente en la base efímera de GitHub Actions y terminan con ROLLBACK.
 
-### Comprobaciones operativas pendientes
+### Estado de validación — 3 de octubre de 2026
 
-1. **Recuperación:** solicitar un enlace nuevo en `/platform/security` o en
+El PR #233 se fusionó con CI, 3635 pruebas, 115 suites RLS, 46 suites SQL y el
+gate A/B aprobados. La 0101 quedó aplicada con su ledger en Cloud y se publicó
+8.43.16. Se verificaron permisos, triggers y conteos sin cambios de maestros ni
+versiones existentes. Se comprobaron Inicio, filtros, descarte de borradores y
+historial/vista previa legal en escritorio y móvil desde el navegador interno.
+
+El usuario confirmó que el correo nuevo solicitado desde 8.43.16 abre
+«Nueva contraseña». Queda validado el recorrido de recuperación; no se cambiaron
+credenciales desde la auditoría. El branding del correo se omite por decisión
+de producto hasta disponer de un dominio LiftGo.
+
+### Comprobaciones operativas
+
+1. **Recuperación — verificada:** para repetir la prueba, solicitar un enlace
+   nuevo en `/platform/security` o en
    `/platform/login`, abrirlo una sola vez y comprobar «Nueva contraseña».
    El usuario completa la contraseña; no se comparten enlaces ni credenciales.
    Un enlace inválido debe ofrecer solicitar otro, nunca usar una sesión previa.
    Cloud → Users → Auth settings → Advanced ya permite
    `https://liftgo.lovable.app/**`; no se amplía esa autorización.
-2. **Restauración aislada:** preparar un destino diferente de producción,
+2. **Restauración aislada — pendiente:** preparar un destino diferente de producción,
    restaurar BD y archivos, comprobar accesos A/B y abrir una muestra de objetos
    de cada bucket privado. ELOGISTIX comparte el backend publicado y no es un
    destino de restauración completa. El workflow `restore-rehearsal-verify.yml`
@@ -631,6 +645,6 @@ filas existentes. Los fixtures de concurrencia y separación A/B se ejecutan
    de cada archivo. Registrar fecha, origen, destino, resultados y duración sin
    credenciales. Aún no se proporcionó un destino para ejecutar esta prueba.
 
-La entrega de correo no acredita el cambio de contraseña. El éxito de CI tampoco
-acredita una restauración real de BD y Storage. Mantener ambas comprobaciones
-abiertas hasta disponer de evidencia.
+La entrega de correo y la llegada al formulario no acreditan por sí solas el
+cambio de contraseña. El éxito de CI tampoco acredita una restauración real de
+BD y Storage. Mantener la restauración abierta hasta disponer de evidencia.
