@@ -28,9 +28,22 @@ import {
   type StampInvoiceState,
 } from "./decisions.ts";
 import type { OrgQueryClient } from "../_shared/orgContext.ts";
+import {
+  assertOwnedQueue,
+  claimQueueLease,
+  markOwnedQueueRow,
+  QueueMutationError,
+} from "./queueLease.ts";
+import {
+  InvoiceRecoveryError,
+  type RecoveryInvoice,
+  saveRecoveredInvoice,
+} from "./recoveredInvoice.ts";
 
 interface QueueRow {
   id: string;
+  organization_id: string;
+  updated_at: string;
   operation: string;
   invoice_id: string;
   attempts: number;
@@ -63,6 +76,7 @@ async function invokeStampFn(
   serviceKey: string,
   projectRef: string,
   payload: Record<string, unknown>,
+  fetchFn: typeof fetch,
 ): Promise<{ ok: boolean; status: number; body: unknown }> {
   const url = `https://${projectRef}.supabase.co/functions/v1/${fnName}`;
   // La cola guarda el id del recurso en `cfdi_retry_queue.invoice_id` (única
@@ -79,7 +93,7 @@ async function invokeStampFn(
     ? "credit_note_id"
     : "invoice_id";
   const bodyToSend = { ...(payload ?? {}), [idKey]: invoiceId };
-  const res = await fetch(url, {
+  const res = await fetchFn(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -87,6 +101,7 @@ async function invokeStampFn(
       "apikey": serviceKey,
     },
     body: JSON.stringify(bodyToSend),
+    signal: AbortSignal.timeout(15_000),
   });
   const text = await res.text();
   let body: unknown = text;
@@ -104,31 +119,6 @@ async function invokeStampFn(
     status: res.status,
     body,
   };
-}
-
-/**
- * NC-1: helper que chequea el `error` devuelto por Postgres. Sin este check,
- * un CHECK constraint violation deja la fila en `pending` para siempre y el
- * consumer no lo sabe (el pipeline se rompe silenciosamente).
- */
-async function markQueueRow(
-  admin: ReturnType<typeof getAdminClient>,
-  id: string,
-  patch: Record<string, unknown>,
-): Promise<boolean> {
-  const { error } = await admin
-    .from("cfdi_retry_queue")
-    .update({ ...patch, updated_at: new Date().toISOString() })
-    .eq("id", id);
-  if (error) {
-    console.error("[process-cfdi-retry-queue] update failed", {
-      row_id: id,
-      patch,
-      error: (error as { message?: string }).message ?? String(error),
-    });
-    return false;
-  }
-  return true;
 }
 
 // FIX R6-02: tope de deferrals consecutivos. Superado, la fila pasa a
@@ -161,6 +151,7 @@ async function isDocCancelled(
   admin: ReturnType<typeof getAdminClient>,
   operation: string,
   docId: string,
+  organizationId: string,
 ): Promise<boolean> {
   const isRep = operation === "cancel_rep";
   const table = isRep
@@ -175,6 +166,7 @@ async function isDocCancelled(
     .from(table)
     .select(select)
     .eq("id", docId)
+    .eq("organization_id", organizationId)
     .maybeSingle() as {
       data: Record<string, unknown> | null;
       error: { message?: string } | null;
@@ -209,6 +201,9 @@ export const RUN_STALE_LIMIT = 5;
 export interface HandleRequestDeps {
   admin?: OrgQueryClient;
   env?: (key: string) => string | undefined;
+  authenticate?: typeof authenticateCronRequest;
+  lookup?: typeof lookupPacInvoice;
+  fetch?: typeof fetch;
 }
 
 export async function handleRequest(
@@ -234,7 +229,7 @@ export async function handleRequest(
   const admin = (deps.admin ?? getAdminClient()) as unknown as ReturnType<
     typeof getAdminClient
   >;
-  const auth = await authenticateCronRequest(req);
+  const auth = await (deps.authenticate ?? authenticateCronRequest)(req);
   if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const nowIso = new Date().toISOString();
@@ -247,7 +242,7 @@ export async function handleRequest(
   const { data: pendingRows, error } = await admin
     .from("cfdi_retry_queue")
     .select(
-      "id, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error",
+      "id, organization_id, updated_at, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error",
     )
     .eq("status", "pending")
     .lte("next_retry_at", nowIso)
@@ -262,7 +257,7 @@ export async function handleRequest(
   const { data: staleRows, error: staleErr } = await admin
     .from("cfdi_retry_queue")
     .select(
-      "id, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error",
+      "id, organization_id, updated_at, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error",
     )
     .eq("status", "processing")
     .lt("updated_at", staleCutoff)
@@ -293,45 +288,28 @@ export async function handleRequest(
       break;
     }
     const fnName = OPERATION_TO_FUNCTION[row.operation];
-    if (!fnName) {
-      // Operación desconocida → terminal.
-      await markQueueRow(admin, row.id, {
-        status: "exhausted",
-        last_error: `Unknown operation: ${row.operation}`,
-      });
-      results.push({ id: row.id, status: "exhausted" });
-      continue;
-    }
-
-    // NC-1: claim optimista → `processing`. Si el update falla o no matchea
-    // (otra corrida ya lo tomó), saltamos la fila para evitar doble consumo.
-    // Filtramos por el status que observamos al leer la fila (pending o
-    // processing huérfano) para reclamar de forma atómica.
-    const claim = await admin
-      .from("cfdi_retry_queue")
-      .update({ status: "processing", updated_at: nowIso })
-      .eq("id", row.id)
-      .eq("status", row.status)
-      .select("id")
-      .maybeSingle();
-    const claimErr = (claim as { error?: unknown }).error;
-    if (claimErr) {
-      console.error("[process-cfdi-retry-queue] claim failed", {
-        row_id: row.id,
-        err: claimErr,
-      });
+    let lease;
+    try {
+      lease = await claimQueueLease(admin, row, nowIso);
+    } catch {
       results.push({ id: row.id, status: "claim_error" });
       continue;
     }
-    // BLOQUE 2.3: sin fila reclamada (otro corredor la ganó, o el status
-    // cambió entre lectura y update) → saltamos para evitar doble consumo.
-    if (!(claim as { data?: unknown }).data) {
+    if (!lease) {
       results.push({ id: row.id, status: "claim_skipped" });
       continue;
     }
 
     const nextAttempts = row.attempts + 1;
     try {
+      if (!fnName) {
+        await markOwnedQueueRow(admin, lease, {
+          status: "exhausted",
+          last_error: `Unknown operation: ${row.operation}`,
+        });
+        results.push({ id: row.id, status: "exhausted" });
+        continue;
+      }
       // Riesgo residual (Baja): antes de RE-TIMBRAR verificar que el intento
       // anterior realmente no timbró. Un 5xx del PAC pudo emitir el CFDI
       // server-side; el claim admite 'error'+uuid NULL y re-timbraría un
@@ -340,9 +318,10 @@ export async function handleRequest(
         const { data: invRowFull, error: invReadErr } = await admin
           .from("invoices")
           .select(
-            "cfdi_status, cfdi_uuid, facturapi_invoice_id, organization_id",
+            "cfdi_status, cfdi_uuid, facturapi_invoice_id, organization_id, updated_at",
           )
           .eq("id", row.invoice_id)
+          .eq("organization_id", row.organization_id)
           .maybeSingle();
         // 8.8.7: un fallo TRANSITORIO al leer la factura (BD no disponible)
         // NO es "factura sin organización". Se difiere con backoff, sin
@@ -362,7 +341,7 @@ export async function handleRequest(
                 String(invReadErr),
             },
           );
-          await markQueueRow(admin, row.id, {
+          await markOwnedQueueRow(admin, lease, {
             status: "pending",
             attempts: row.attempts,
             last_error:
@@ -386,30 +365,27 @@ export async function handleRequest(
         const organizationId = orgOutcome.kind === "ok"
           ? orgOutcome.organizationId
           : null;
-        // Ya timbrada / en reconcile / cancelada → nada que reintentar.
-        // R2 (bajo 6): decisión REAL importada desde decisions.ts (el test
-        // consume la misma función — ya no hay lógica duplicada).
+        if (orgOutcome.kind === "no_organization") {
+          console.error(
+            "[process-cfdi-retry-queue] documento no disponible en la empresa del trabajo",
+            { invoice_id: row.invoice_id },
+          );
+          await markOwnedQueueRow(admin, lease, {
+            status: "exhausted",
+            attempts: nextAttempts,
+            last_error:
+              "Documento no disponible en la empresa del trabajo; no se puede resolver Facturapi.",
+          });
+          results.push({ id: row.id, status: "exhausted" });
+          continue;
+        }
         if (decideStampRetry(st) === "succeeded_noop_state") {
-          await markQueueRow(admin, row.id, {
+          await markOwnedQueueRow(admin, lease, {
             status: "succeeded",
             attempts: nextAttempts,
             last_error: null,
           });
           results.push({ id: row.id, status: "succeeded_noop_state" });
-          continue;
-        }
-        if (orgOutcome.kind === "no_organization") {
-          console.error(
-            "[process-cfdi-retry-queue] invoice sin organization_id; no se puede resolver Facturapi",
-            { invoice_id: row.invoice_id },
-          );
-          await markQueueRow(admin, row.id, {
-            status: "exhausted",
-            attempts: nextAttempts,
-            last_error:
-              "Factura sin organization_id; no se puede resolver la empresa de forma segura.",
-          });
-          results.push({ id: row.id, status: "exhausted" });
           continue;
         }
 
@@ -419,6 +395,7 @@ export async function handleRequest(
         // La organización viene SIEMPRE de la fila de `invoices` leída
         // arriba, nunca del payload de la cola.
         let apiKey: string | null = null;
+        let pacMode: "test" | "live" | undefined;
         try {
           const cfg = await getFacturapiConfigForOrganization({
             admin,
@@ -426,6 +403,7 @@ export async function handleRequest(
             organizationId,
           });
           apiKey = cfg.apiKey;
+          pacMode = cfg.mode;
         } catch (err) {
           console.error(
             "[process-cfdi-retry-queue] config lookup failed",
@@ -436,20 +414,24 @@ export async function handleRequest(
           );
         }
         try {
-          if (apiKey) {
+          if (apiKey && pacMode) {
+            await assertOwnedQueue(admin, lease);
             const pacClient = createFacturapiClient(apiKey);
-            const pac = await lookupPacInvoice(
+            const pac = await (deps.lookup ?? lookupPacInvoice)(
               pacClient,
               row.invoice_id,
               st?.facturapi_invoice_id ?? null,
             );
             if (pac.kind === "hit" || pac.kind === "pending") {
-              await admin.from("invoices").update({
-                facturapi_invoice_id: pac.facturapi_id,
-                ...(pac.kind === "hit" ? { cfdi_uuid: pac.uuid } : {}),
-                cfdi_status: "stamping",
-              }).eq("id", row.invoice_id);
-              await markQueueRow(admin, row.id, {
+              await saveRecoveredInvoice(
+                admin,
+                lease,
+                row.invoice_id,
+                invRowFull as RecoveryInvoice,
+                pac,
+                pacMode,
+              );
+              await markOwnedQueueRow(admin, lease, {
                 status: "succeeded",
                 attempts: nextAttempts,
                 last_error: null,
@@ -463,13 +445,15 @@ export async function handleRequest(
               continue;
             }
             if (pac.kind === "failed") {
-              await admin.from("invoices").update({
-                facturapi_invoice_id: pac.facturapi_id,
-                cfdi_status: "error",
-                cfdi_error_message:
-                  "Facturapi confirmó fallo del timbrado. Revisión manual requerida.",
-              }).eq("id", row.invoice_id);
-              await markQueueRow(admin, row.id, {
+              await saveRecoveredInvoice(
+                admin,
+                lease,
+                row.invoice_id,
+                invRowFull as RecoveryInvoice,
+                pac,
+                pacMode,
+              );
+              await markOwnedQueueRow(admin, lease, {
                 status: "exhausted",
                 attempts: nextAttempts,
                 last_error:
@@ -483,6 +467,10 @@ export async function handleRequest(
             }
           }
         } catch (lookupErr) {
+          if (
+            lookupErr instanceof QueueMutationError ||
+            lookupErr instanceof InvoiceRecoveryError
+          ) throw lookupErr;
           // Lookup no disponible: NO re-timbrar a ciegas. Dejar la fila en
           // pending para el próximo ciclo (backoff normal).
           console.warn(
@@ -497,7 +485,7 @@ export async function handleRequest(
           // subía en cada ciclo sin agotamiento (reintento infinito) y, al
           // configurarse la key, el re-timbrado real moría como 'exhausted'
           // por intentos gastados en deferrals.
-          await markQueueRow(admin, row.id, {
+          await markOwnedQueueRow(admin, lease, {
             status: "pending",
             attempts: row.attempts,
             last_error: "PAC lookup no disponible antes de re-timbrar",
@@ -517,7 +505,7 @@ export async function handleRequest(
           );
           // R4-13: deferral de infraestructura (sin API key no hubo lookup
           // ni re-timbrado) → NO consumir un intento (ver arriba).
-          await markQueueRow(admin, row.id, {
+          await markOwnedQueueRow(admin, lease, {
             status: "pending",
             attempts: row.attempts,
             last_error: "Facturapi key no configurada; re-timbrado diferido",
@@ -529,6 +517,33 @@ export async function handleRequest(
         }
       }
 
+      if (row.operation !== "stamp") {
+        const table = row.operation === "cancel_rep"
+          ? "payments"
+          : row.operation === "cancel_nc"
+          ? "credit_notes"
+          : "invoices";
+        const document = await admin.from(table).select("organization_id")
+          .eq("id", row.invoice_id).eq("organization_id", lease.organizationId)
+          .maybeSingle();
+        if (document.error || !document.data) {
+          await markOwnedQueueRow(admin, lease, {
+            status: document.error ? "pending" : "exhausted",
+            attempts: row.attempts,
+            last_error:
+              "No se pudo verificar el documento fiscal de esta empresa.",
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
+          });
+          results.push({
+            id: row.id,
+            status: document.error
+              ? "deferred_document_read_error"
+              : "document_unavailable",
+          });
+          continue;
+        }
+      }
+      await assertOwnedQueue(admin, lease);
       const invRes = await invokeStampFn(
         fnName,
         row.operation,
@@ -536,10 +551,11 @@ export async function handleRequest(
         serviceKey,
         projectRef,
         row.payload ?? {},
+        deps.fetch ?? fetch,
       );
 
       if (invRes.ok) {
-        await markQueueRow(admin, row.id, {
+        await markOwnedQueueRow(admin, lease, {
           status: "succeeded",
           attempts: nextAttempts,
           last_error: null,
@@ -568,7 +584,8 @@ export async function handleRequest(
           // actualiza cancellation_status; si falla, el próximo ciclo
           // reintenta el deferral.
           try {
-            const refreshRes = await fetch(
+            await assertOwnedQueue(admin, lease);
+            const refreshRes = await (deps.fetch ?? fetch)(
               `https://${projectRef}.supabase.co/functions/v1/refresh-cancellation-status`,
               {
                 method: "POST",
@@ -597,6 +614,7 @@ export async function handleRequest(
               );
             }
           } catch (refreshErr) {
+            if (refreshErr instanceof QueueMutationError) throw refreshErr;
             // FIX R6-23: catch con log (antes catch vacío).
             console.warn(
               "[process-cfdi-retry-queue] refresh-cancellation-status threw",
@@ -610,8 +628,15 @@ export async function handleRequest(
           }
           // FIX R6-03: si el refresh reconcilió la cancelación, la fila es un
           // ÉXITO, no un deferral más ni un exhausted espurio.
-          if (await isDocCancelled(admin, row.operation, row.invoice_id)) {
-            await markQueueRow(admin, row.id, {
+          if (
+            await isDocCancelled(
+              admin,
+              row.operation,
+              row.invoice_id,
+              lease.organizationId,
+            )
+          ) {
+            await markOwnedQueueRow(admin, lease, {
               status: "succeeded",
               attempts: row.attempts,
               last_error: null,
@@ -626,7 +651,7 @@ export async function handleRequest(
           }
           if (deferrals > MAX_DEFERRALS) {
             // FIX R6-02: tope alcanzado → exhausted con diagnóstico.
-            await markQueueRow(admin, row.id, {
+            await markOwnedQueueRow(admin, lease, {
               status: "exhausted",
               attempts: row.attempts,
               deferrals,
@@ -643,7 +668,7 @@ export async function handleRequest(
             });
             continue;
           }
-          await markQueueRow(admin, row.id, {
+          await markOwnedQueueRow(admin, lease, {
             status: "pending",
             attempts: row.attempts,
             deferrals,
@@ -670,7 +695,7 @@ export async function handleRequest(
             nextAttempts,
             row.max_attempts,
           );
-        await markQueueRow(admin, row.id, {
+        await markOwnedQueueRow(admin, lease, {
           status: queueStatus,
           attempts: nextAttempts,
           // FIX R6-02: hubo un intento real → el contador de deferrals se
@@ -689,16 +714,50 @@ export async function handleRequest(
         });
       }
     } catch (err) {
+      if (err instanceof QueueMutationError) {
+        results.push({ id: row.id, status: err.kind });
+        continue;
+      }
+      if (err instanceof InvoiceRecoveryError) {
+        try {
+          await markOwnedQueueRow(admin, lease, {
+            status: "pending",
+            attempts: row.attempts,
+            last_error:
+              "La factura recuperada no se confirmó en BD; revisar antes de volver a timbrar.",
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
+          });
+          results.push({ id: row.id, status: err.kind });
+        } catch (queueError) {
+          results.push({
+            id: row.id,
+            status: queueError instanceof QueueMutationError
+              ? queueError.kind
+              : "queue_write_error",
+          });
+        }
+        continue;
+      }
       const msg = err instanceof Error ? err.message : String(err);
       const queueStatus = decideTerminalStatus(nextAttempts, row.max_attempts);
-      await markQueueRow(admin, row.id, {
-        status: queueStatus,
-        attempts: nextAttempts,
-        last_error: msg.slice(0, 2000),
-        next_retry_at: queueStatus === "exhausted"
-          ? nowIso
-          : nextRetryAt(nextAttempts).toISOString(),
-      });
+      try {
+        await markOwnedQueueRow(admin, lease, {
+          status: queueStatus,
+          attempts: nextAttempts,
+          last_error: msg.slice(0, 2000),
+          next_retry_at: queueStatus === "exhausted"
+            ? nowIso
+            : nextRetryAt(nextAttempts).toISOString(),
+        });
+      } catch (queueError) {
+        results.push({
+          id: row.id,
+          status: queueError instanceof QueueMutationError
+            ? queueError.kind
+            : "queue_write_error",
+        });
+        continue;
+      }
       results.push({
         id: row.id,
         status: queueStatus === "exhausted" ? "exhausted" : "retry",
