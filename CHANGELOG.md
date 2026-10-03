@@ -1,3 +1,8 @@
+## [8.43.4] — 2026-10-02
+
+- La factura recurrente usa la empresa verificada de sus reservas para generar el folio; ya no aparece el error de contexto de organización (código 23514).
+- Nueva prueba de regresión con dos empresas activas.
+
 ## [8.43.3] — 2026-10-02
 
 - Las solicitudes de soporte tienen un límite de espera de 15 segundos; un resultado incierto exige consultar el caso antes de repetir y nunca se reenvía automáticamente.
