@@ -1,6 +1,7 @@
 /**
  * Operador de plataforma (tramo 9 multiempresa, server-only).
  */
+import { setVerifiedServerIdentity } from "@/lib/observability/serverSentry.server";
 import type { PlatformCapability } from "@/lib/platformAccess.types";
 import { type AdminClient, type CallerClient, HttpError } from "./httpError";
 
@@ -53,5 +54,6 @@ export async function requirePlatformOperator(
       : "Forbidden: se requiere un operador de plataforma");
   }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  setVerifiedServerIdentity({ userId, workspace: "platform" });
   return { userId, admin: supabaseAdmin as AdminClient };
 }

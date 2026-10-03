@@ -1,11 +1,18 @@
-// Captures the original Error out-of-band so server.ts can recover the stack
-// when h3 has already swallowed the throw into a generic 500 Response.
+// h3 can turn the original Error into a generic 500. Keep its stack only in
+// the current request; overlapping requests must never consume each other's error.
+import { AsyncLocalStorage } from "node:async_hooks";
 
-let lastCapturedError: { error: unknown; at: number } | undefined;
+interface RequestErrors { lastCapturedError?: { error: unknown; at: number } }
+const requestErrors = new AsyncLocalStorage<RequestErrors>();
 const TTL_MS = 5_000;
 
 function record(error: unknown) {
-  lastCapturedError = { error, at: Date.now() };
+  const scope = requestErrors.getStore();
+  if (scope) scope.lastCapturedError = { error, at: Date.now() };
+}
+
+export function runWithRequestErrorCapture<T>(work: () => T): T {
+  return requestErrors.run({}, work);
 }
 
 // h3's HTTPError serializes to {"status":500,"unhandled":true,"message":"HTTPError"} —
@@ -70,12 +77,13 @@ if (typeof globalThis.addEventListener === "function") {
 }
 
 export function consumeLastCapturedError(): unknown {
-  if (!lastCapturedError) return undefined;
-  if (Date.now() - lastCapturedError.at > TTL_MS) {
-    lastCapturedError = undefined;
+  const scope = requestErrors.getStore();
+  if (!scope?.lastCapturedError) return undefined;
+  if (Date.now() - scope.lastCapturedError.at > TTL_MS) {
+    scope.lastCapturedError = undefined;
     return undefined;
   }
-  const { error } = lastCapturedError;
-  lastCapturedError = undefined;
+  const { error } = scope.lastCapturedError;
+  scope.lastCapturedError = undefined;
   return error;
 }

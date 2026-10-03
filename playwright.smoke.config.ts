@@ -23,6 +23,7 @@ const FAKE_BACKEND = {
   VITE_SUPABASE_URL: "http://127.0.0.1:54321",
   VITE_SUPABASE_PUBLISHABLE_KEY: "smoke-placeholder-key",
   VITE_SUPABASE_PROJECT_ID: "smoke-placeholder",
+  SENTRY_DSN: "http://public@127.0.0.1:54321/1",
 } as const;
 
 const baseURL = process.env.SMOKE_BASE_URL ?? "http://localhost:4173";
@@ -103,7 +104,8 @@ export default defineConfig({
   },
   webServer: {
     // El job de CI ya compiló `dist/`; aquí solo se sirve.
-    command: reuseBuild ? "bun run preview" : "bun run build && bun run preview",
+    command: reuseBuild ? "bun run preview --var SENTRY_DSN:http://public@127.0.0.1:54321/1"
+      : "bun run build && bun run preview --var SENTRY_DSN:http://public@127.0.0.1:54321/1",
     url: baseURL,
     timeout: 180_000,
     // Nunca reutilizar un servidor ajeno: podría estar sirviendo un build

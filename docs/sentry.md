@@ -69,6 +69,36 @@ aprobado en CI no demuestra una subida de mapas en Lovable Cloud. El responsable
 de Sentry debe comprobar un evento del release correcto con stack resuelto y
 que los mapas no se sirvan públicamente.
 
+## Servidor desde 8.43.10
+
+- `@sentry/cloudflare` 11.4.0 instrumenta la entrada SSR de TanStack Start
+  con la API pública `wrapRequestHandler` y AsyncLocalStorage oficial. Nitro
+  ya administra el worker: no agregar un segundo plugin de Cloudflare/Vite.
+- El SDK comparte el cliente entre solicitudes; cada invocación tiene su scope
+  independiente. La recuperación de errores originales de h3 también usa
+  AsyncLocalStorage, en lugar de un último error global.
+- El servidor toma `SENTRY_DSN` de bindings del worker/Nitro o del entorno;
+  conserva el fallback público del navegador. Un DSN explícitamente vacío lo
+  desactiva. En desarrollo y pruebas permanece apagado salvo opt-in deliberado.
+- `waitUntil` se obtiene del contexto del worker, de `request.runtime.cloudflare`
+  o del Request aumentado por Nitro. El runtime fetch-only envía los fallos ya
+  capturados antes de devolver un stream, con presupuesto total de 750 ms.
+  Es un envío de mejor esfuerzo: un transporte detenido no puede bloquear el ERP.
+- Los errores SSR, incluyendo el 500 genérico de h3, y las excepciones de las
+  server functions se capturan sin cambiar sus respuestas ni repetir operaciones.
+  Autenticación y CSRF conservan su orden y sus controles. Los rechazos 4xx y
+  errores esperados de autenticación quedan fuera; los 5xx siguen visibles.
+- Los guards existentes agregan actor, rol y empresa sólo después de verificarlos.
+  Plataforma retira la empresa del scope. No se confía en headers, IDs del input
+  ni tokens decodificados sin verificar. No se agregan consultas de autorización.
+- Se excluyen cuerpos, cabeceras, cookies, filtros de URL y extras arbitrarios,
+  incluyendo la serialización automática de objetos lanzados. Console no se
+  captura como breadcrumbs. Logs, métricas y trazas del servidor están apagados.
+- El smoke usa un DSN de loopback para el servidor y bloquea la red externa en
+  el navegador. Un error del build de prueba nunca debe llegar a la cuenta real.
+- Las Edge Functions Deno de Lovable Cloud, tareas programadas y webhooks aún
+  requieren instrumentación propia. Este cambio cubre el servidor TanStack/Nitro.
+
 ## Verificación y pendientes
 
 - Tests de privacidad incluyen credenciales sintéticas, console, ciclos/getters,
@@ -79,9 +109,11 @@ que los mapas no se sirvan públicamente.
   junto con hidratación e interacción del ERP y portal; bloquea toda red externa.
 - Queda pendiente comprobar recepción en la cuenta Sentry, cuota, retención,
   alertas y subida de mapas del hosting.
-- SSR Cloudflare y funciones de Lovable Cloud todavía no tienen instrumentación
-  Sentry propia. No instalar instrucciones de Node `--import` sobre el worker;
-  su integración requiere un cambio y pruebas específicas por runtime.
+- Las pruebas del SDK real cubren solicitudes concurrentes A/B, la siguiente
+  solicitud anónima, privacidad, deduplicación, plataforma, los tres caminos de
+  `waitUntil`, streaming y transporte fallido o detenido, sin red.
+- Quedan pendientes las Edge Functions Deno y la recepción/mapas/alertas en
+  la cuenta Sentry. No instalar instrucciones de Node `--import` sobre el worker.
 
 ## Fuentes oficiales
 
@@ -90,3 +122,5 @@ que los mapas no se sirvan públicamente.
 - [TanStack Router](https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/)
 - [Privacidad de Replay](https://docs.sentry.io/platforms/javascript/session-replay/privacy/)
 - [Código del SDK](https://github.com/getsentry/sentry-javascript/tree/11.4.0/packages)
+- [Cloudflare Workers](https://docs.sentry.io/platforms/javascript/guides/cloudflare/)
+- [Wrapper público de solicitudes](https://github.com/getsentry/sentry-javascript/blob/11.4.0/packages/cloudflare/src/request.ts)
