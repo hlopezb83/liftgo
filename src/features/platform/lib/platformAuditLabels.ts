@@ -22,6 +22,12 @@ export const AUDIT_ACTION_LABELS = {
 export const AUDIT_FIELD_LABELS: Record<string, string> = {
   name: "Nombre",
   slug: "Identificador",
+  classification: "Clasificación",
+  city: "Ciudad",
+  territory: "Territorio",
+  contactName: "Nombre del contacto",
+  contactEmail: "Correo del contacto",
+  contactPhone: "Teléfono del contacto",
   is_active: "Estado activo",
   manufacturer: "Fabricante",
   model: "Modelo",

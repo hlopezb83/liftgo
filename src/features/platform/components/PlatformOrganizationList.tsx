@@ -12,8 +12,11 @@ import {
 import type { PlatformOrganizationRow } from "@/lib/platformAdmin.types";
 import { Link } from "@/lib/router-compat-ui";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
+import { OrganizationClassificationBadge } from "./OrganizationGovernanceSummary";
+import type { OrganizationWithGovernance } from "../lib/organizationGovernanceList";
 
-function CompanyIdentity({ row }: { row: PlatformOrganizationRow }) {
+
+function CompanyIdentity({ row }: { row: OrganizationWithGovernance }) {
   return (
     <div className="space-y-1">
       <p className="break-words font-medium">{row.name}</p>
@@ -23,6 +26,13 @@ function CompanyIdentity({ row }: { row: PlatformOrganizationRow }) {
       <p className="break-all font-mono text-xs text-muted-foreground">
         {row.slug}
       </p>
+      <div className="flex flex-wrap items-center gap-2 pt-1">
+        <OrganizationClassificationBadge classification={row.governance?.classification} />
+        {[row.governance?.city, row.governance?.territory].filter(Boolean).length > 0 &&
+          <span className="break-words text-xs text-muted-foreground">
+            {[row.governance?.city, row.governance?.territory].filter(Boolean).join(" · ")}
+          </span>}
+      </div>
     </div>
   );
 }
@@ -45,7 +55,7 @@ function CompanyLink({ row }: { row: PlatformOrganizationRow }) {
 export function PlatformOrganizationList({
   rows,
 }: {
-  rows: PlatformOrganizationRow[];
+  rows: OrganizationWithGovernance[];
 }) {
   return (
     <>

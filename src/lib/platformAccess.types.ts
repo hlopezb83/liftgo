@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const platformCapabilitySchema = z.enum([
-  "organizations.read", "organizations.details", "organizations.create",
+  "organizations.read", "organizations.details", "organizations.create", "organizations.configure",
   "organizations.suspend", "organizations.resume", "catalogs.read",
   "catalogs.write", "catalogs.import", "templates.read", "templates.publish",
   "templates.assign", "templates.import", "audit.read", "operators.read", "operators.manage",

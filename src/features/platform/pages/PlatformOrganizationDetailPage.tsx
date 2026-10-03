@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useParams } from "@/lib/router-compat";
 import { Link } from "@/lib/router-compat-ui";
 import { OrganizationConfigurationCards } from "../components/OrganizationConfigurationCards";
+import { OrganizationGovernanceCard } from "../components/OrganizationGovernanceCard";
 import { OrganizationReadinessCard } from "../components/OrganizationReadinessCard";
 import { OrganizationStatusAction } from "../components/OrganizationStatusAction";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
@@ -107,6 +108,7 @@ export default function PlatformOrganizationDetailPage() {
         </p>
       )}
       <OrganizationReadinessCard detail={detail} />
+      <OrganizationGovernanceCard key={org.id} organizationId={org.id} />
       <OrganizationConfigurationCards detail={detail} />
       <p className="text-xs text-muted-foreground">
         Consulta:{" "}

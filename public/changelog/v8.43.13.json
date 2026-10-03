@@ -1,0 +1,8 @@
+{
+  "description": "Plataforma administra ciudad, territorio, contacto y clasificación explícita de cada empresa.",
+  "changes": [
+    "Raíz y Gestión de empresas pueden editar la ficha con motivo e historial; un cambio concurrente conserva la captura y exige revisar la revisión vigente.",
+    "El listado permite buscar ciudad o territorio y filtrar empresas reales, de prueba o sin clasificar. Los datos del contacto se consultan sólo en la ficha autorizada.",
+    "La clasificación administrativa conserva independientes la configuración fiscal, los bancos, los precios y las existencias de cada ERP."
+  ]
+}

@@ -8,49 +8,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CreateOrganizationResult } from "@/lib/platformAdmin.types";
+import { ORGANIZATION_CLASSIFICATION_LABELS, type OrganizationClassification } from "@/lib/platformOrganizationGovernance.types";
 import { PendingPlatformOnboarding } from "../components/PendingPlatformOnboarding";
 import {
   CreateOrganizationDialog,
   CreatedResultDialog,
 } from "../components/PlatformOrganizationDialogs";
 import { PlatformOrganizationList } from "../components/PlatformOrganizationList";
+import { useOrganizationGovernanceList } from "../hooks/useOrganizationGovernance";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { usePlatformOrganizations } from "../hooks/usePlatformOperator";
+import { filterOrganizationRegistry } from "../lib/organizationGovernanceList";
 
 const PAGE_SIZE = 20;
-const normalize = (value: string) =>
-  value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
 
 export default function PlatformOrganizationsPage() {
   const { can } = usePlatformCapabilities();
   const query = usePlatformOrganizations(can("organizations.read"));
+  const governance = useOrganizationGovernanceList(can("organizations.read"));
+  const [classification, setClassification] = useState<OrganizationClassification | "">("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(0);
   const [createOpen, setCreateOpen] = useState(false);
   const [created, setCreated] = useState<CreateOrganizationResult | null>(null);
-  const needle = normalize(search.trim());
-  const rows = (query.data ?? []).filter((row) => {
-    const statusMatches = !status || row.is_active === (status === "active");
-    return (
-      statusMatches &&
-      normalize([row.name, row.razon_social, row.slug].join(" ")).includes(
-        needle,
-      )
-    );
-  });
+  const rows = filterOrganizationRegistry(query.data, governance.data, { search, status, classification });
   const lastPage = Math.max(0, Math.ceil(rows.length / PAGE_SIZE) - 1);
   const currentPage = Math.min(page, lastPage);
   const visible = rows.slice(
     currentPage * PAGE_SIZE,
     (currentPage + 1) * PAGE_SIZE,
   );
+  const hasFilters = [search, status, classification].some(Boolean);
   function clearFilters() {
     setSearch("");
     setStatus("");
+    setClassification("");
     setPage(0);
   }
 
@@ -67,12 +60,12 @@ export default function PlatformOrganizationsPage() {
         }
       />
       {can("organizations.create") && <PendingPlatformOnboarding onCompleted={setCreated} />}
-      <div className="grid gap-4 sm:grid-cols-[1fr_220px]">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_200px_200px]">
         <div className="space-y-2">
           <Label htmlFor="platform-company-search">Buscar empresa</Label>
           <Input
             id="platform-company-search"
-            placeholder="Nombre, razón social o identificador"
+            placeholder="Nombre, razón social, ciudad o territorio"
             value={search}
             onChange={(event) => {
               setSearch(event.target.value);
@@ -84,7 +77,7 @@ export default function PlatformOrganizationsPage() {
           <Label htmlFor="platform-company-status">Acceso empresarial</Label>
           <select
             id="platform-company-status"
-            className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+            className="h-11 w-full rounded-md border bg-background px-3 text-sm"
             value={status}
             onChange={(event) => {
               setStatus(event.target.value);
@@ -96,7 +89,18 @@ export default function PlatformOrganizationsPage() {
             <option value="inactive">Sin acceso</option>
           </select>
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="platform-company-classification">Clasificación</Label>
+          <select id="platform-company-classification" className="h-11 w-full rounded-md border bg-background px-3 text-sm"
+            value={classification} disabled={!governance.data || governance.isError}
+            onChange={(event) => { setClassification(event.target.value as OrganizationClassification | ""); setPage(0); }}>
+            <option value="">Todas las clasificaciones</option>
+            {Object.entries(ORGANIZATION_CLASSIFICATION_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          </select>
+        </div>
       </div>
+      {governance.isError && <QueryErrorState error={governance.error} entity="la clasificación y el territorio"
+        onRetry={() => void governance.refetch()} isRetrying={governance.isFetching} />}
       {query.isError ? (
         <QueryErrorState error={query.error}
           entity="las empresas"
@@ -117,7 +121,7 @@ export default function PlatformOrganizationsPage() {
                     ? "No hay empresas para estos filtros"
                     : "No hay empresas registradas"}
                 </p>
-                {(search || status) && (
+                {hasFilters && (
                   <Button variant="outline" onClick={clearFilters}>
                     Limpiar filtros
                   </Button>
