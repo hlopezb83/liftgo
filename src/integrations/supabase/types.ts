@@ -4045,6 +4045,84 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_fiscal_job_events: {
+        Row: {
+          changed_fields: string[]
+          id: number
+          job_id: string
+          kind: string
+          observed_at: string
+          organization_id: string
+          revision: number
+          state: Json
+        }
+        Insert: {
+          changed_fields?: string[]
+          id?: never
+          job_id: string
+          kind: string
+          observed_at?: string
+          organization_id: string
+          revision: number
+          state: Json
+        }
+        Update: {
+          changed_fields?: string[]
+          id?: never
+          job_id?: string
+          kind?: string
+          observed_at?: string
+          organization_id?: string
+          revision?: number
+          state?: Json
+        }
+        Relationships: []
+      }
+      platform_fiscal_jobs: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          key_fingerprint: string | null
+          mode_at_enqueue: string | null
+          observed_at: string
+          operation: string
+          organization_id: string
+          organization_name: string
+          removed: boolean
+          revision: number
+          state: Json
+        }
+        Insert: {
+          created_at: string
+          document_id: string
+          id: string
+          key_fingerprint?: string | null
+          mode_at_enqueue?: string | null
+          observed_at?: string
+          operation: string
+          organization_id: string
+          organization_name: string
+          removed?: boolean
+          revision?: number
+          state: Json
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          key_fingerprint?: string | null
+          mode_at_enqueue?: string | null
+          observed_at?: string
+          operation?: string
+          organization_id?: string
+          organization_name?: string
+          removed?: boolean
+          revision?: number
+          state?: Json
+        }
+        Relationships: []
+      }
       platform_integration_checks: {
         Row: {
           actor_id: string | null
@@ -7136,8 +7214,19 @@ export type Database = {
         Args: { p_actor: string; p_request_id: string }
         Returns: Json
       }
+      platform_fiscal_job_projection: { Args: { p_id: string }; Returns: Json }
+      platform_fiscal_queue_state: { Args: { p_row: Json }; Returns: Json }
       platform_get_catalog_import_preview: {
         Args: { p_actor: string; p_kind: string; p_source_id: string }
+        Returns: Json
+      }
+      platform_get_fiscal_job: {
+        Args: {
+          p_actor: string
+          p_before?: string
+          p_job: string
+          p_session: string
+        }
         Returns: Json
       }
       platform_get_integrations: {
@@ -7217,6 +7306,18 @@ export type Database = {
           specifications: Json
           updated_at: string
         }[]
+      }
+      platform_list_fiscal_jobs: {
+        Args: {
+          p_actor: string
+          p_offset?: number
+          p_operation?: string
+          p_org?: string
+          p_search?: string
+          p_session: string
+          p_status?: string
+        }
+        Returns: Json
       }
       platform_list_legal_template_assignments: {
         Args: { p_actor: string; p_definition_id: string }
