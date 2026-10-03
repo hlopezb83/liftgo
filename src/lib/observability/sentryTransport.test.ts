@@ -7,7 +7,7 @@ import { captureOperationalError } from "./captureOperationalError";
 type Envelope = Parameters<ReturnType<NonNullable<Sentry.BrowserOptions["transport"]>>["send"]>[0];
 const envelopes: Envelope[] = [];
 const options = (): Sentry.BrowserOptions => ({ ...createClientSentryOptions("production", "https://public@example.com/1"),
-  defaultIntegrations: false, tracesSampleRate: 1,
+  defaultIntegrations: false,
   transport: () => ({ send: async (envelope: Envelope) => { envelopes.push(envelope); return { statusCode: 200 }; }, flush: async () => true }) });
 const events = () => envelopes.flatMap((envelope) => envelope[1].filter((item) => item[0].type === "event").map((item) => item[1]));
 
@@ -68,19 +68,22 @@ describe("SDK real con transporte en memoria, sin red", () => {
     expect(events()).toHaveLength(0);
   });
 
-  it("envía spans stream con filtros propios y no habilita Replay por defecto", async () => {
-    vi.stubEnv("VITE_SENTRY_REPLAY", "");
+  it("captura fallos sin enviar spans ni activar Replay, incluso con un flag antiguo", async () => {
+    vi.stubEnv("VITE_SENTRY_REPLAY", "1");
     const config = options();
     expect(config.replaysSessionSampleRate).toBe(0);
     expect(config.replaysOnErrorSampleRate).toBe(0);
     Sentry.init(config);
     syncSentryIdentity({ userId: "actor-a", organizationId: "org-a", role: "admin", workspace: "organization" });
     Sentry.startSpan({ name: "/customers/9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d", attributes: { "url.full": "/auth#access_token=opaque", "params.id": "private-id" } }, () => {});
+    captureOperationalError(new Error("Fallo de consulta"), { phase: "query", errorCode: "INTERNAL_ERROR" });
     await Sentry.flush(1000);
-    const spans = envelopes.flatMap((envelope) => envelope[1].filter((item) => item[0].type === "span").map((item) => item[1]));
-    expect(spans.length).toBeGreaterThan(0);
-    expect(JSON.stringify(spans)).not.toContain("opaque");
-    expect(JSON.stringify(spans)).not.toContain("private-id");
-    expect(JSON.stringify(spans)).toContain("org-a");
+    const itemTypes = envelopes.flatMap((envelope) => envelope[1].map((item) => item[0].type));
+    for (const type of ["span", "transaction", "replay_event", "replay_recording", "log", "metric"]) expect(itemTypes).not.toContain(type);
+    expect(events()).toHaveLength(1);
+    expect((events()[0] as Sentry.Event).tags?.organization_id).toBe("org-a");
+    expect(Sentry.getReplay()).toBeUndefined();
+    expect(JSON.stringify(envelopes)).not.toContain("opaque");
+    expect(JSON.stringify(envelopes)).not.toContain("private-id");
   });
 });

@@ -1,3 +1,9 @@
+## [8.43.14] — 2026-10-03
+
+- Se retiran las trazas de rendimiento y la grabación de sesiones; se conservan los errores, su versión y el contexto de empresa verificado.
+- La navegación mantiene sus reportes de error y diagnóstico local, incluidos los detalles y JSON copiables.
+- La documentación distingue la captura de errores, los logs nativos de Cloud y los mapas de código opcionales.
+
 ## [8.43.12] — 2026-10-03
 
 - Raíz y Soporte pueden consultar y conciliar un trabajo con motivo e historial de operador; repetir una solicitud incierta conserva su identidad.

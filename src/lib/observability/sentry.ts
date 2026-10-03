@@ -1,8 +1,6 @@
 import * as Sentry from "@sentry/react";
 import { createPrivacyOptions, PUBLIC_SENTRY_DSN, scrubData } from "./privacyOptions";
 
-let tracingInstalled = false;
-
 /** Llamada explícita desde instrument-client.ts, antes de hidratar la aplicación. */
 export function initClientSentry(): void {
   const environment = import.meta.env.MODE;
@@ -13,14 +11,6 @@ export function initClientSentry(): void {
     if (Sentry.getClient()) return;
     Sentry.init(createClientSentryOptions(environment, dsn));
     Sentry.setTag("app", "liftgo-erp");
-    if (environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1") {
-      const load = () => { void import("./replay").then(({ installReplay }) => installReplay()).catch(() => {
-        // Un fallo en Replay no debe romper el ERP ni generar un bucle de errores.
-        try { Sentry.setTag("replay_available", false); } catch { /* Diagnóstico opcional. */ }
-      }); };
-      if (window.requestIdleCallback) window.requestIdleCallback(load, { timeout: 3000 });
-      else setTimeout(load, 2000);
-    }
   } catch { /* El monitoreo no interrumpe la hidratación del ERP. */ }
 }
 
@@ -31,26 +21,16 @@ export function createClientSentryOptions(environment: string, dsn: string): Sen
     release: `liftgo@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
     ...createPrivacyOptions(),
     enhanceFetchErrorMessages: "report-only",
-    tracesSampleRate: environment === "production" ? 0.1 : 0,
+    // Perfil de errores: no instrumentar rendimiento ni grabar sesiones.
+    tracesSampleRate: 0,
     replaysSessionSampleRate: 0,
-    // Opt-in sólo tras verificar privacidad de URL/DOM en la cuenta de Sentry.
-    replaysOnErrorSampleRate: environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1" ? 1 : 0,
+    replaysOnErrorSampleRate: 0,
     ignoreErrors: ["ResizeObserver loop limit exceeded", "ResizeObserver loop completed with undelivered notifications"],
     beforeBreadcrumb(breadcrumb) {
       if (breadcrumb.category === "ui.input" || breadcrumb.category === "ui.click" || breadcrumb.category === "console") return null;
       return scrubData(breadcrumb) as typeof breadcrumb;
     },
   };
-}
-
-/** Se conecta al router real una sola vez; no duplicar browserTracingIntegration. */
-export function attachSentryRouter(router: Parameters<typeof Sentry.tanstackRouterBrowserTracingIntegration>[0]): void {
-  if (typeof window === "undefined" || tracingInstalled) return;
-  try {
-    if (!Sentry.getClient()) return;
-    Sentry.addIntegration(Sentry.tanstackRouterBrowserTracingIntegration(router));
-    tracingInstalled = true;
-  } catch { /* Un intento posterior puede conectar la integración. */ }
 }
 
 export { Sentry };

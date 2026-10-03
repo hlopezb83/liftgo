@@ -1,0 +1,8 @@
+{
+  "description": "El monitoreo conserva los errores y su contexto con menor instrumentación en el navegador.",
+  "changes": [
+    "Se retiran las trazas de rendimiento y la grabación de sesiones; se conservan los errores, su versión y el contexto de empresa verificado.",
+    "La navegación mantiene sus reportes de error y diagnóstico local, incluidos los detalles y JSON copiables.",
+    "La documentación distingue la captura de errores, los logs nativos de Cloud y los mapas de código opcionales."
+  ]
+}

@@ -1,5 +1,4 @@
 import { createRouter } from "@tanstack/react-router";
-import { attachSentryRouter } from "@/lib/observability/sentry";
 import { createAppQueryClient } from "@/lib/query/appQueryClient";
 import { SCROLL_TO_TOP_SELECTORS } from "@/lib/routerScroll";
 import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
@@ -22,6 +21,5 @@ export const getRouter = () => {
     stringifySearch,
   });
 
-  attachSentryRouter(router);
   return router;
 };
