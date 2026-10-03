@@ -337,8 +337,9 @@ BEGIN
     RAISE EXCEPTION 'Filtros inválidos' USING ERRCODE='22023'; END IF;
   WITH matches AS (
     SELECT c.id,c.updated_at FROM public.platform_support_cases c JOIN public.organizations o ON o.id=c.organization_id
+    LEFT JOIN public.company_settings cs ON cs.organization_id=c.organization_id
     WHERE (p_org IS NULL OR c.organization_id=p_org) AND (p_status IS NULL OR c.status=p_status OR (p_status='open' AND c.status IN ('new','in_progress','waiting')))
-      AND (p_severity IS NULL OR c.severity=p_severity) AND (p_search='' OR strpos(lower(o.name||' '||c.folio),lower(p_search))>0
+      AND (p_severity IS NULL OR c.severity=p_severity) AND (p_search='' OR strpos(lower(coalesce(nullif(btrim(cs.razon_social),''),o.name)||' '||o.name||' '||c.folio),lower(p_search))>0
         OR (c.withdrawn_at IS NULL AND c.shared_until>statement_timestamp() AND strpos(lower(coalesce(c.title,'')||' '||coalesce(c.module,'')),lower(p_search))>0))
   ), page AS (SELECT * FROM matches ORDER BY updated_at DESC,id LIMIT 25 OFFSET p_offset)
   SELECT (SELECT count(*) FROM matches),coalesce(jsonb_agg(public.support_case_projection(id)-'description' ORDER BY updated_at DESC,id),'[]')
