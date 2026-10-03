@@ -277,7 +277,7 @@ INSERT INTO public.platform_fiscal_actions(id,job_id,organization_id,actor_id,se
 SELECT pg_temp.id(380+n),j.id,j.organization_id,pg_temp.id(1),pg_temp.id(101),'retry','Reprogramación histórica CI',
   1,1,(SELECT updated_at FROM public.cfdi_retry_queue WHERE id=j.id),'{"status":"exhausted"}',public.platform_fiscal_document_snapshot(j),'test',j.key_fingerprint,'retry_scheduled',
   now()-interval '10 minutes',now()-interval '9 minutes' FROM public.platform_fiscal_jobs j CROSS JOIN generate_series(1,5) n WHERE j.id=pg_temp.id(38);
-DO $ DECLARE v_status text; BEGIN
+DO $$ DECLARE v_status text; BEGIN
   PERFORM pg_temp.start_action(38,138,'retry');
   v_status:=pg_temp.finish_action(138,'missing');
   IF v_status<>'budget_exhausted' OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue
