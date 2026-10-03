@@ -101,6 +101,15 @@ que los mapas no se sirvan públicamente.
 
 ## Verificación y pendientes
 
+Antes de instalar el SDK Deno 11, confirmar Deno >=2.8.3 en el proceso desplegado,
+no en el sandbox de herramientas. `parse-csf` registra al arrancar una línea
+`liftgo.edge.runtime` con Deno/V8/TypeScript y una prueba concurrente de
+AsyncLocalStorage. No lee solicitudes, variables de entorno ni documentos, ni
+envía telemetría a Sentry. La ausencia/falla de la prueba no altera el handler.
+`sentry11RuntimeMinimumMet` acredita sólo el mínimo de versión y aislamiento;
+todavía hay que probar y desplegar el SDK completo. La comprobación queda en
+los logs de Cloud, sin un endpoint de diagnóstico público.
+
 - Tests de privacidad incluyen credenciales sintéticas, console, ciclos/getters,
   fragmentos OAuth, spans, Replay y conservación de rutas de scripts.
 - El transporte en memoria usa el SDK real y valida el envelope saneado,
