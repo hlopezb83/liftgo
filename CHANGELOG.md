@@ -1,3 +1,10 @@
+## [8.43.12] — 2026-10-03
+
+- Raíz y Soporte pueden consultar y conciliar un trabajo con motivo e historial de operador; repetir una solicitud incierta conserva su identidad.
+- Los reintentos conservan la configuración fiscal del intento original. Cambiar una llave o ambiente detiene la operación antes de usar otra empresa de Facturapi.
+- Se conserva el folio de Facturapi al recuperar un CFDI válido o ya cancelado. Un resultado pendiente o incierto no habilita otro timbrado.
+- Reprogramar conserva intentos y solicitud original, con un límite de cinco reprogramaciones adicionales y protección frente a cambios concurrentes.
+
 ## [8.43.11] — 2026-10-03
 
 - El arranque del navegador y la integración de navegación toleran fallos de Sentry sin interrumpir el ERP.

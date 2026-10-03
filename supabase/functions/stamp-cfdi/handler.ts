@@ -11,11 +11,14 @@ import {
   createFacturapiClient,
   createInvoiceWithSignal,
   describeFacturapiError,
-  getFacturapiConfigForOrganization,
   isFacturapiConfigError,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import { classifyPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
+import {
+  FiscalRetryContextError,
+  getRetryAwareFacturapiConfig,
+} from "../_shared/facturapi/retryContext.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import {
   enqueueCfdiRetry,
@@ -240,15 +243,23 @@ export async function handleStampCfdi(
     let apiKey: string | null;
     let mode: string;
     try {
-      const cfg = await getFacturapiConfigForOrganization({
+      const cfg = await getRetryAwareFacturapiConfig({
         admin: supabase,
         env: deps.env,
         organizationId,
         modeOverride: (co.facturapi_mode as string | undefined) ?? null,
+        body,
+        isServiceRole: auth.isServiceRole,
+        documentId: invoice_id,
+        operation: "stamp",
       });
       apiKey = cfg.apiKey;
       mode = cfg.mode;
     } catch (err) {
+      if (err instanceof FiscalRetryContextError) {
+        await releaseClaim(err.message);
+        return json({ error: err.message, code: err.code }, err.status);
+      }
       if (isFacturapiConfigError(err)) {
         console.error("[stamp-cfdi] configuración fiscal no resoluble", {
           invoice_id,
@@ -628,6 +639,7 @@ export async function handleStampCfdi(
       if (isTransientFacturapiError(desc)) {
         await enqueueCfdiRetry(supabase, {
           operation: "stamp",
+          fiscalConfig: { apiKey, mode },
           invoiceId: invoice_id,
           payload: { body },
           errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
