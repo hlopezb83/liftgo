@@ -1,10 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const sdk = vi.hoisted(() => ({
   init: vi.fn(), setTag: vi.fn(), getClient: vi.fn(),
-  addIntegration: vi.fn(), tanstackRouterBrowserTracingIntegration: vi.fn(() => ({ name: "BrowserTracing" })),
 }));
 vi.mock("@sentry/react", () => sdk);
-import { attachSentryRouter, createClientSentryOptions, initClientSentry } from "./sentry";
+import { createClientSentryOptions, initClientSentry } from "./sentry";
 
 beforeEach(() => { vi.clearAllMocks(); sdk.getClient.mockReturnValue(undefined); });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
@@ -17,17 +16,6 @@ describe("arranque explícito del cliente", () => {
     expect(sdk.init).toHaveBeenCalledTimes(1);
   });
 
-  it("un fallo de la integración del router permite continuar y reintentar", async () => {
-    vi.resetModules();
-    const isolated = await import("./sentry");
-    sdk.getClient.mockReturnValue({});
-    sdk.addIntegration.mockImplementationOnce(() => { throw new Error("router integration failed"); });
-    const router = { subscribe: vi.fn() };
-    expect(() => isolated.attachSentryRouter(router)).not.toThrow();
-    isolated.attachSentryRouter(router);
-    expect(sdk.addIntegration).toHaveBeenCalledTimes(2);
-  });
-
   it("no inicializa ni transmite en pruebas/desarrollo o SSR", () => {
     vi.stubEnv("MODE", "test"); initClientSentry();
     vi.stubEnv("MODE", "development"); vi.stubEnv("VITE_SENTRY_FORCE", ""); initClientSentry();
@@ -38,16 +26,14 @@ describe("arranque explícito del cliente", () => {
     vi.stubEnv("MODE", "production"); vi.stubEnv("VITE_SENTRY_DSN", ""); initClientSentry();
     expect(sdk.init).not.toHaveBeenCalled();
   });
-  it("inicializa en producción una sola vez y conecta el router una sola vez", () => {
-    vi.stubEnv("MODE", "production"); vi.stubEnv("VITE_SENTRY_REPLAY", "");
+  it("inicializa en producción una sola vez sin cargar integraciones adicionales", () => {
+    vi.stubEnv("MODE", "production"); vi.stubEnv("VITE_SENTRY_REPLAY", "1");
     sdk.init.mockImplementation(() => sdk.getClient.mockReturnValue({}));
     initClientSentry(); initClientSentry();
-    const router = { subscribe: vi.fn() };
-    attachSentryRouter(router); attachSentryRouter(router);
     expect(sdk.init).toHaveBeenCalledTimes(1);
-    expect(sdk.tanstackRouterBrowserTracingIntegration).toHaveBeenCalledTimes(1);
-    expect(sdk.tanstackRouterBrowserTracingIntegration).toHaveBeenCalledWith(router);
-    expect(sdk.addIntegration).toHaveBeenCalledTimes(1);
+    expect(sdk.init.mock.calls[0][0]).toMatchObject({
+      tracesSampleRate: 0, replaysSessionSampleRate: 0, replaysOnErrorSampleRate: 0,
+    });
   });
   it("elimina breadcrumbs de console e interacción y no oculta fallos de chunks", () => {
     const config = createClientSentryOptions("production", "https://public@example.com/1");

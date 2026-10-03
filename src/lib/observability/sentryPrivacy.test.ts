@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { redactPII, scrubData, scrubEvent, scrubSpan, scrubUrl } from "./scrubPII";
-import { scrubReplayFrame } from "./replay";
 
 const key = "sk_" + "test_" + "AUDIT_NOT_A_REAL_KEY";
 const id = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d";
@@ -60,13 +59,9 @@ describe("canales independientes de privacidad", () => {
     expect(out.attributes).toEqual({ "url.full": "/auth", apiKey: "[REDACTED]", organization_id: "verified-org", status: 500 });
   });
 
-  it("redacta metadatos de Replay y descarta sus eventos de console/input/click", () => {
+  it("redacta fragmentos y claves en metadatos adicionales", () => {
     const out = scrubEvent({ urls: ["/auth#access_token=opaque"], extra: { key } });
     expect(JSON.stringify(out)).not.toContain("opaque");
-    for (const category of ["console", "console.error", "ui.input", "ui.click"]) {
-      expect(scrubReplayFrame({ type: 5, timestamp: 1, data: { tag: "breadcrumb", payload: { type: "default", timestamp: 1, category, data: { arguments: [key] } } } })).toBeNull();
-    }
-    expect(JSON.stringify(scrubReplayFrame({ type: 5, timestamp: 1, data: { tag: "breadcrumb", payload: { type: "navigation", timestamp: 1, category: "navigation", data: { to: "/auth#access_token=opaque" } } } })))
-      .not.toContain("opaque");
+    expect(JSON.stringify(out)).not.toContain(key);
   });
 });

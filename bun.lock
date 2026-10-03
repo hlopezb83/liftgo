@@ -40,7 +40,6 @@
         "@react-pdf/renderer": "^4.6.1",
         "@sentry/cloudflare": "11.4.0",
         "@sentry/react": "11.4.0",
-        "@sentry/replay": "11.4.0",
         "@supabase/supabase-js": "^2.117.2",
         "@tailwindcss/vite": "^4.2.1",
         "@tanstack/query-sync-storage-persister": "^5.104.0",

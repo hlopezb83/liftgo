@@ -10,7 +10,6 @@ interface Identity {
 }
 
 let previous: string | null = null;
-let replayGeneration = 0;
 let identityRevision = 0;
 let activeUserId: string | null = null;
 
@@ -22,12 +21,6 @@ export function syncSentryIdentity(identity: Identity): number {
   const signature = JSON.stringify(identity);
   if (signature !== previous) {
     previous = signature;
-    const generation = ++replayGeneration;
-    // El buffer anterior no debe enviarse con la identidad nueva.
-    const replay = Sentry.getReplay();
-    if (replay) void replay.stop({ flush: false }).then(() => {
-      if (generation === replayGeneration && identity.userId) replay.startBuffering();
-    }).catch(() => { /* el monitoreo nunca bloquea el cambio de empresa/sesión */ });
     for (const scope of [Sentry.getCurrentScope(), Sentry.getIsolationScope()]) {
       scope.clearBreadcrumbs();
       scope.setContext("route", null);

@@ -1,204 +1,142 @@
-# Monitoreo de LiftGo con Sentry
+# Monitoreo sencillo de LiftGo con Sentry
 
-## Diagnóstico local cuando falla el SDK
+## Alcance
 
-`captureOperationalError` contiene los fallos al consultar el cliente, crear el
-scope o capturar el incidente. Los toasts conservan el error original, su JSON
-copiable y la acción de detalles, incluidos los toasts asíncronos. Un intento
-fallido de captura puede reintentarse; la deduplicación se aplica tras capturar.
-Las pruebas ejercitan la copia real al portapapeles con el SDK simulado fallando.
+LiftGo usa Sentry para registrar errores del navegador y del servidor
+TanStack Start/Nitro. El SDK de ambas capas permanece en 11.4.0. Se conserva
+el piloto Deno compatible de `parse-csf`, con SDK 10.76.0.
 
-## Resiliencia desde 8.43.11
+El perfil no instala la integración de rendimiento del router, no envía trazas
+y no activa Replay. La variable antigua `VITE_SENTRY_REPLAY` no tiene efecto.
+Se retiraron el módulo opcional de Replay y su dependencia directa; el SDK puede
+mantener paquetes de Replay como dependencias transitivas, sin activarlos.
 
-- La inicialización del navegador y la conexión con TanStack Router contienen
-  los fallos del diagnóstico; el ERP puede continuar. Sólo una instalación
-  correcta marca la integración como conectada.
-- En SSR, el contexto asíncrono se configura dentro de la misma protección del
-  wrapper. Adjuntar identidad y capturar errores nunca cambia el resultado de
-  los permisos ni reemplaza el error original del negocio.
-- La clasificación lee propiedades de datos propias de `status`, `statusCode`
-  y `message`; no ejecuta accesores. Se mantienen los rechazos esperados y
-  los fallos de disponibilidad, la privacidad y los scopes por solicitud.
-- Las pruebas incluyen fallo de inicialización, reintento del router, fallo de
-  identidad con el SDK real y error con un accesor de estado que lanza.
+Las demás Edge Functions y tareas programadas se investigan con los logs
+nativos de Lovable Cloud. Su instrumentación en Sentry es opcional y debe
+responder a una necesidad concreta; no es un requisito para cerrar este alcance.
+Un fallo interno de un cron sin navegador puede aparecer sólo en esos logs.
 
-## Alcance desde 8.43.8
+## Captura y contexto
 
-- SDK de navegador: `@sentry/react` 11.4.0. Plugin de compilación:
-  `@sentry/bundler-plugins/vite` 11.4.0. Dependencias fijadas en Bun.
-- `src/client.ts` importa primero `instrument-client.ts`, que llama
-  explícitamente a `initClientSentry`, y luego hidrata la aplicación.
-  `package.sideEffects` conserva ese módulo y la configuración global de Zod;
-  el resto del proyecto permite tree shaking.
-- La configuración no inicializa el SDK en SSR, pruebas o desarrollo.
-  `VITE_SENTRY_FORCE=1` permite una prueba local deliberada;
-  `VITE_SENTRY_DSN=` vacío desactiva el cliente.
-- El router real agrega una sola integración de TanStack Router. La sincronización
-  de navegación vive en la raíz común de ERP, plataforma y portal.
-- `release` usa `liftgo@<public/version.json>` tanto en el navegador como en
-  el plugin. No usar un override independiente de release.
+- `src/client.ts` importa `instrument-client.ts` antes de hidratar el ERP.
+  `package.sideEffects` conserva el módulo de inicialización.
+- El cliente se inicializa una sola vez en producción. Pruebas y desarrollo
+  permanecen apagados; `VITE_SENTRY_FORCE=1` permite una prueba local deliberada.
+  Un `VITE_SENTRY_DSN` explícitamente vacío lo desactiva.
+- `release` usa `liftgo@<public/version.json>`. Ruta, flujo y espacio de trabajo
+  se sincronizan en la raíz común de ERP, Plataforma y portal, sin tracing.
+- `notifyError` registra incidentes técnicos mediante el capturador central.
+  Validaciones, conflictos de negocio y warnings conservan su diagnóstico local.
+  Los toasts mantienen error original, JSON copiable y detalles si falla Sentry.
+- No se manda a Sentry el reporte JSON completo, formulario ni respuesta cruda.
+  Los filtros conocidos de ResizeObserver no ocultan fallos de chunks.
 
-## Datos, separación empresarial y volumen
+## Privacidad y separación empresarial
 
-- `dataCollection` desactiva datos de usuario automáticos, cookies, cabeceras,
-  cuerpos, filtros de URL, datos de consultas, variables y entradas/salidas AI.
-  En Sentry 11 `sendDefaultPii` dejó de ser una opción válida.
-- Sólo se agrega el ID del actor, ID de empresa verificada, rol y espacio de
-  trabajo. Nunca agregar nombre empresarial, RFC, email ni claves de Facturapi.
-- El cambio de sesión/empresa limpia breadcrumbs y contexto previo. Los tags
-  de errores y atributos de spans se retiran cuando la identidad deja de existir.
-  Cada sincronización obtiene una revisión: un desmontaje tardío del espacio
-  anterior no puede borrar la identidad nueva. La purga de caché sólo retira
-  el diagnóstico del usuario anterior, conservando el ya verificado del nuevo.
-- `beforeSend` sanea errores; `beforeSendSpan` sanea spans en stream mode.
-  Los filtros de errores no se aplican automáticamente a spans o Replay.
-  Se eliminan query/hash y parámetros de ruta de los spans. Se preserva el
-  origen de los scripts para resolver mapas de código.
-- `notifyError` registra incidentes técnicos. No envía el reporte JSON completo,
-  variables de mutación o respuestas crudas. Validaciones, conflictos de negocio
-  y avisos conservan su diagnóstico local sin convertirse en incidentes.
-- Trazas de producción: 10%. Logs y métricas están descartados en sus callbacks.
-  Se evita propagar cabeceras de trazado a servicios externos.
-- Los fallos de descarga de chunks siguen visibles. Sólo se excluye el ruido
-  conocido de ResizeObserver.
+`dataCollection` desactiva datos automáticos de usuario, cookies, cabeceras,
+cuerpos, filtros de URL, consultas, variables y entradas/salidas AI.
+En SDK 11 no se usa la opción antigua `sendDefaultPii`.
 
-## Replay: desactivado por defecto
+Sólo se agrega ID de actor, empresa verificada, rol y espacio de trabajo.
+No agregar nombre empresarial, RFC, correo ni claves fiscales. Cambiar de usuario
+o empresa limpia breadcrumbs/contexto; cerrar sesión retira la identidad.
+Las revisiones evitan que una limpieza tardía del espacio anterior borre la
+identidad nueva. Plataforma no hereda una empresa del ERP.
 
-`replaysSessionSampleRate` y `replaysOnErrorSampleRate` valen cero por defecto.
-No se descarga el módulo de Replay. El opt-in `VITE_SENTRY_REPLAY=1` sólo debe
-configurarse después de verificar grabaciones reales saneadas y su cuota.
+`beforeSend` sanea errores; console y breadcrumbs de interacción se omiten.
+Logs y métricas se descartan. El filtro de spans se conserva como defensa
+si otro consumidor los genera, aunque el perfil de producción no los envía.
 
-El SDK 11.4 llama `beforeAddRecordingEvent` únicamente para eventos personalizados;
-la URL del evento DOM Meta no pasa por ese callback. El enmascaramiento de texto
-e inputs no demuestra que los enlaces de recuperación, filtros o fragmentos de
-URL estén saneados. Este punto necesita una validación aparte antes de activar.
+## Servidor
 
-El módulo opcional usa importación dinámica, máscara de texto/inputs/atributos,
-bloqueo de medios, cuerpos de red desactivados, sesiones sin persistencia y
-filtros propios. El cambio de identidad descarta el buffer pendiente.
-No afirmar que estas medidas cubren todos los eventos del DOM.
+`@sentry/cloudflare` usa la API pública `wrapRequestHandler` y
+AsyncLocalStorage. Nitro administra el worker; no agregar otro plugin
+de Cloudflare, instrucciones Node `--import` ni un segundo servidor.
 
-## Mapas de código en el hosting
+Cada solicitud tiene un scope independiente. Los guards agregan identidad sólo
+después de verificarla, sin consultas adicionales ni confiar en headers/input.
+Se capturan SSR y server functions sin cambiar sus respuestas, repetir mutaciones
+ni sustituir errores originales. Rechazos esperados 4xx quedan fuera.
 
-Con `SENTRY_AUTH_TOKEN` presente, el build genera mapas ocultos y el plugin
-los sube y elimina los archivos `.map` después de subirlos.
-`SENTRY_ORG` y `SENTRY_PROJECT` seleccionan el destino;
-`SENTRY_RELEASE_COMMIT` permite asociar el commit del repositorio.
-El token es privado y nunca debe tener prefijo `VITE_`.
+El servidor acepta `SENTRY_DSN` del runtime y conserva el fallback público
+del cliente; un DSN vacío lo desactiva. Usa `waitUntil` cuando existe y un
+presupuesto acotado de 750 ms en el runtime fetch-only. La entrega es de mejor
+esfuerzo; un fallo del transporte no debe bloquear la operación.
 
-El CI de PR no necesita ese token ni datos de producción. Por lo tanto un build
-aprobado en CI no demuestra una subida de mapas en Lovable Cloud. El responsable
-de Sentry debe comprobar un evento del release correcto con stack resuelto y
-que los mapas no se sirvan públicamente.
+## Piloto de Cloud
 
-## Servidor desde 8.43.10
+El runtime inspeccionado declara Deno 2.1.4; SDK 11 requiere Deno >=2.8.3.
+`parse-csf` usa `npm:@sentry/deno@10.76.0` y lock formato 4.
+La entrada desplegada registró `liftgo.edge.sentry` con `active:true`.
+OPTIONS sin PDF ni credenciales aprobó HTTP/CORS; esto no demuestra recepción
+de un evento en la cuenta de Sentry.
 
-- `@sentry/cloudflare` 11.4.0 instrumenta la entrada SSR de TanStack Start
-  con la API pública `wrapRequestHandler` y AsyncLocalStorage oficial. Nitro
-  ya administra el worker: no agregar un segundo plugin de Cloudflare/Vite.
-- El SDK comparte el cliente entre solicitudes; cada invocación tiene su scope
-  independiente. La recuperación de errores originales de h3 también usa
-  AsyncLocalStorage, en lugar de un último error global.
-- El servidor toma `SENTRY_DSN` de bindings del worker/Nitro o del entorno;
-  conserva el fallback público del navegador. Un DSN explícitamente vacío lo
-  desactiva. En desarrollo y pruebas permanece apagado salvo opt-in deliberado.
-- `waitUntil` se obtiene del contexto del worker, de `request.runtime.cloudflare`
-  o del Request aumentado por Nitro. El runtime fetch-only envía los fallos ya
-  capturados antes de devolver un stream, con presupuesto total de 750 ms.
-  Es un envío de mejor esfuerzo: un transporte detenido no puede bloquear el ERP.
-- Los errores SSR, incluyendo el 500 genérico de h3, y las excepciones de las
-  server functions se capturan sin cambiar sus respuestas ni repetir operaciones.
-  Autenticación y CSRF conservan su orden y sus controles. Los rechazos 4xx y
-  errores esperados de autenticación quedan fuera; los 5xx siguen visibles.
-- Los guards existentes agregan actor, rol y empresa sólo después de verificarlos.
-  Plataforma retira la empresa del scope. No se confía en headers, IDs del input
-  ni tokens decodificados sin verificar. No se agregan consultas de autorización.
-- Se excluyen cuerpos, cabeceras, cookies, filtros de URL y extras arbitrarios,
-  incluyendo la serialización automática de objetos lanzados. Console no se
-  captura como breadcrumbs. Logs, métricas y trazas del servidor están apagados.
-- El smoke usa un DSN de loopback para el servidor y bloquea la red externa en
-  el navegador. Un error del build de prueba nunca debe llegar a la cuenta real.
-- Las Edge Functions Deno de Lovable Cloud, tareas programadas y webhooks aún
-  requieren instrumentación propia. Este cambio cubre el servidor TanStack/Nitro.
+El piloto conserva permisos, rate limit, PDF, prompt, modelo y respuestas.
+Actor/rol se adjuntan después de Auth. No hay empresa verificada en ese flujo
+y nunca se deriva una del PDF o payload.
 
-## Verificación y pendientes
+El wrapper aísla Requests/jobs, descarta datos fiscales, documentos, prompt,
+mensajes del proveedor y extras. Capturas y cleanup fallidos no repiten trabajo.
+El envío alternativo tiene un presupuesto de 500 ms. Un rechazo esperado 4xx
+no genera incidente; un 500 explícito prevalece sobre un 4xx adjunto.
 
-Antes de instalar el SDK Deno 11, confirmar Deno >=2.8.3 en el proceso desplegado,
-no en el sandbox de herramientas. `parse-csf` registra al arrancar una línea
-`liftgo.edge.runtime` con Deno/V8/TypeScript y una prueba concurrente de
-AsyncLocalStorage. No lee solicitudes, variables de entorno ni documentos, ni
-envía telemetría a Sentry. La ausencia/falla de la prueba no altera el handler.
-`sentry11RuntimeMinimumMet` acredita sólo el mínimo de versión y aislamiento;
-todavía hay que probar y desplegar el SDK completo. La comprobación queda en
-los logs de Cloud, sin un endpoint de diagnóstico público.
+No instalar SDK Deno 11 hasta verificar el runtime desplegado compatible.
+Si falla la importación, restaurar la entrada anterior y desplegarla.
+`SENTRY_ENABLED=0` desactiva capturas tras importar, pero no corrige una
+importación incompatible. No se requieren migraciones de datos.
 
-- Tests de privacidad incluyen credenciales sintéticas, console, ciclos/getters,
-  fragmentos OAuth, spans, Replay y conservación de rutas de scripts.
-- El transporte en memoria usa el SDK real y valida el envelope saneado,
-  deduplicación de incidentes y cambio de empresa/logout, sin red.
-- El smoke del bundle de producción verifica SDK 11.4 activo y Replay apagado,
-  junto con hidratación e interacción del ERP y portal; bloquea toda red externa.
-- Queda pendiente comprobar recepción en la cuenta Sentry, cuota, retención,
-  alertas y subida de mapas del hosting.
-- Las pruebas del SDK real cubren solicitudes concurrentes A/B, la siguiente
-  solicitud anónima, privacidad, deduplicación, plataforma, los tres caminos de
-  `waitUntil`, streaming y transporte fallido o detenido, sin red.
-- Quedan pendientes las Edge Functions Deno y la recepción/mapas/alertas en
-  la cuenta Sentry. No instalar instrucciones de Node `--import` sobre el worker.
+## Cuenta y alerta
+
+La revisión autorizada del 3 de octubre de 2026 confirmó:
+- Recepción de LIFTGO-3, mecanismo `liftgo.server`, SDK 11.4.0 y
+  release `liftgo@8.43.11`, correspondiente al fallo de acceso anterior.
+- Alerta existente activa para prioridad alta y un disparo registrado.
+  Esto acredita la regla, no entrega efectiva del correo al destinatario.
+- Un error aceptado en 14 días, sin límites de cuota ni eventos inválidos.
+- Ningún mapa de código subido en la vista Source Map Uploads.
+
+Conservar una alerta sencilla. Si se necesita avisar de toda incidencia nueva
+o regresión de producción, revisar el filtro de prioridad antes de crear
+otra regla; no duplicar alertas para cada empresa.
+
+## Mapas de código: opcionales
+
+El DSN permite capturar errores sin token de administración.
+`SENTRY_AUTH_TOKEN` se usa únicamente durante el build para subir mapas.
+
+Los project secrets de Cloud son de runtime y no participan en el build.
+Lovable documenta Build secrets sólo para Enterprise: los configura manualmente
+el administrador del workspace y se comparten entre todos sus proyectos.
+
+`vite.config.ts` genera mapas ocultos y activa el plugin sólo si hay token
+de build. Si se habilita, verificar también la salida final Nitro y el orden
+de subida/borrado; CI verde por sí solo no demuestra mapas correctos.
+Un build independiente de GitHub no garantiza correspondencia con el publicado.
+Nunca poner el token privado en una variable `VITE_*` ni en Git.
+
+Con el hosting actual se aceptan stacks compilados en el alcance básico.
+No cambiar de plan sólo por esta mejora. Cuando exista un flujo de build
+compatible, verificar un evento nuevo del release publicado con código fuente
+resuelto y que los mapas no se sirvan públicamente.
+
+## Verificación
+
+Las pruebas usan SDK real con transporte en memoria: incidentes saneados,
+deduplicación, cambios A/B, logout, ausencia de spans/Replay y resiliencia.
+SSR cubre concurrencia, plataforma, identidad anónima, streaming y transporte
+fallido o detenido. Deno prueba compatibilidad con CLI 2.1 y aislamiento.
+
+El smoke de producción usa DSN de loopback, bloquea red externa y comprueba
+SDK activo, Replay apagado, hidratación e interacción del ERP/portal.
+Para acreditar recepción real, usar un error controlado inocuo; no usar
+timbrados, pagos ni documentos como sondas. No afirmar cobertura total de Cloud.
 
 ## Fuentes oficiales
 
-- [Release 11.4.0](https://github.com/getsentry/sentry-javascript/releases/tag/11.4.0)
-- [Migración 10 a 11](https://docs.sentry.io/platforms/javascript/migration/v10-to-v11/)
-- [TanStack Router](https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/)
-- [Privacidad de Replay](https://docs.sentry.io/platforms/javascript/session-replay/privacy/)
-- [Código del SDK](https://github.com/getsentry/sentry-javascript/tree/11.4.0/packages)
-- [Cloudflare Workers](https://docs.sentry.io/platforms/javascript/guides/cloudflare/)
-- [Wrapper público de solicitudes](https://github.com/getsentry/sentry-javascript/blob/11.4.0/packages/cloudflare/src/request.ts)
-
-## Piloto Deno en Lovable Cloud
-
-El runtime observado declara Deno 2.1.4. Sentry 11 requiere Deno >=2.8.3;
-por ello el piloto usa el SDK oficial `@sentry/deno` 10.76.0, fijado en imports,
-y un `deno.lock` de formato 4 compatible con Deno 2.1 y 2.9. El SDK del
-navegador y SSR permanece en 11.4.0. Todos los paquetes npm del lock cumplieron
-24 horas antes de resolver el grafo; Bun conserva su política sin excepciones.
-
-Sólo `parse-csf` activa el wrapper. Su handler conserva permisos, límite de
-uso, tamaño de PDF, prompt, modelo, respuestas y normalización fiscal. Adjunta
-actor/rol después de Auth; no obtiene una empresa del PDF, headers o payload.
-Al no disponer de empresa verificada, el piloto no añade un tag empresarial.
-
-La observación usa la integración pública DenoServe con ALS, sin configurar
-OpenTelemetry. Cada Request y trabajo tiene su contexto. Los jobs de empresa
-usan `withVerifiedEdgeJob` con una identidad obtenida del servidor; aún no se
-instrumentan los otros handlers ni los cron fiscales. Los endpoints retirados
-siguen retirados.
-
-El SDK inicializa una vez. Capturas, contexto, transporte y cleanup fallidos no
-interrumpen ni repiten la operación; prevalecen su respuesta y excepción original.
-Un error del trabajo no se recaptura con la empresa del padre, incluso si falla
-su contexto o captura. Una captura fallida puede reintentarse en su propio scope.
-El envío usa `waitUntil` cuando está disponible, con alternativa acotada a 500 ms.
-
-Antes de enviar se conserva sólo una lista de campos permitidos: IDs verificados,
-rol/función, release y archivo/línea de stack. Se descartan documento, RFC, prompt,
-claves, headers, cuerpos, mensajes del proveedor, extras y breadcrumbs. Logs,
-métricas, trazas y Replay están apagados. Los rechazos esperados 4xx no generan
-incidentes; un 500 explícito prevalece sobre un 4xx adjunto al error.
-
-Las pruebas usan el SDK real con transporte en memoria. El CI descarga primero
-el grafo y ejecuta después sin acceso externo. La prueba del CLI 2.1.4 no acredita
-por sí sola compatibilidad con el host de Cloud ni recepción en la cuenta Sentry.
-
-Para verificar el despliegue del piloto, hacer OPTIONS sin credenciales ni PDF
-con Origin de LiftGo, comprobar HTTP/CORS y el log `liftgo.edge.sentry` con
-`sdk:10.76.0`, `active:true`. Comprobar también el log de runtime. Si no inicia,
-restaurar la entrada anterior de `parse-csf` y desplegarla; ningún dato requiere
-migración. `SENTRY_ENABLED=0` desactiva capturas una vez importado el módulo,
-pero no sustituye ese rollback ante un fallo de importación.
-
-La activación en Cloud y recepción, mapas, cuotas, retención y alertas continúan
-pendientes hasta contar con evidencia del entorno/cuenta. Las otras 18 funciones
-activas requieren instrumentación por familias después del piloto.
-
+- [Opciones del SDK React](https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/)
+- [Mapas con Vite](https://docs.sentry.io/platforms/javascript/guides/react/sourcemaps/uploading/vite/)
+- [Migración SDK 11 y mínimos de runtime](https://github.com/getsentry/sentry-javascript/blob/11.4.0/MIGRATION.md)
+- [Wrapper Cloudflare](https://github.com/getsentry/sentry-javascript/blob/11.4.0/packages/cloudflare/src/request.ts)
+- [Lovable: Secrets](https://docs.lovable.dev/features/secrets)
+- [Lovable: Build secrets](https://docs.lovable.dev/features/build-secrets)
+- [Lovable: Logs](https://docs.lovable.dev/features/logs)
