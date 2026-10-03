@@ -7,6 +7,7 @@ const sonner = vi.hoisted(() => ({
   info: vi.fn(),
   warning: vi.fn(),
   promise: vi.fn(),
+  dismiss: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({ toast: sonner }));
@@ -81,6 +82,8 @@ describe("appFeedback", () => {
     expect(opts.duration).toBe(Infinity);
     expect(opts.closeButton).toBe(true);
     expect(opts.action.props.onDetails).toBeTypeOf("function");
+    opts.action.props.onDetails();
+    expect(sonner.dismiss).toHaveBeenCalledWith(opts.id);
   });
 
   it("notifyError severity=warning → duración finita (6s)", () => {
@@ -109,6 +112,8 @@ describe("appFeedback", () => {
     expect(result).toMatchObject({ message: "No se pudo actualizar", duration: Infinity, closeButton: true });
     expect(result).not.toHaveProperty("id");
     expect(result.action.props.onDetails).toBeTypeOf("function");
+    result.action.props.onDetails();
+    expect(sonner.dismiss).toHaveBeenCalledWith(sonner.promise.mock.calls[0][1].id);
     expect(buildErrorReport).toHaveBeenLastCalledWith(expect.objectContaining({ error: failure }));
     await promise;
   });

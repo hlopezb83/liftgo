@@ -18,7 +18,7 @@ Revisión de 260 llamadas de notificación en 116 archivos de producción. El in
 10. **P2 — Se perdían estados HTTP de objetos/cadenas de error.** Se conservan `status`, `statusCode`, SQLSTATE y estado de la Response en la causa; no se consume su cuerpo desde el renderer.
 11. **P2 — El reporte no era una instantánea segura para serializar.** El contexto se copia al generar el reporte; ciclos, BigInt y propiedades calculadas no rompen JSON. Se ocultan contraseñas, tokens y llaves sin borrar folios ni los identificadores fiscales útiles.
 12. **P3 — Acciones pequeñas y cierre fuera de la tarjeta.** Botones de al menos 44 px, cierre dentro de la tarjeta, separación uniforme, texto con ancho disponible y colores semánticos. La inspección publicada comprobó que el borde izquierdo heredado no se aplicaba; 8.43.2 utiliza el estado real de Sonner para mostrar los cuatro acentos de color.
-13. **P3 — Etiquetas de accesibilidad en inglés y margen móvil incompleto.** Región y cierre en español; posición bajo el encabezado móvil y margen para el área segura.
+13. **P3 — Etiquetas de accesibilidad en inglés y margen móvil incompleto.** Región y cierre en español; posición bajo el encabezado móvil y margen para el área segura. La verificación de 390 px detectó un contenedor más ancho que el espacio útil y un aviso superpuesto al diálogo. 8.43.2 ajusta el contenedor a ambos márgenes y descarta el aviso de origen al abrir sus detalles, conservando el JSON en el diálogo.
 14. **P3 — Historial de cambios duplicaba avisos globales/locales.** El hook que muestra su propio aviso silencia el duplicado global.
 
 ## Contrato de uso

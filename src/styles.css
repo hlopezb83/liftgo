@@ -526,3 +526,7 @@
 .toaster [data-sonner-toast][data-type="info"] { border-left: 4px solid hsl(var(--info)); }
 .toaster [data-sonner-toast][data-type="info"] [data-icon] { color: hsl(var(--info)); }
 @media print { .toaster { display: none !important; } }
+@media (max-width: 600px) {
+  .toaster[data-sonner-toaster] { width: auto; }
+  .toaster[data-sonner-toaster] [data-sonner-toast] { width: 100%; }
+}
