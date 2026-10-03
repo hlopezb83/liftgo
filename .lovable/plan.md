@@ -1,18 +1,19 @@
-# Consultas de solo lectura (sin cambios)
+# Preflight 0099 (solo lectura, 3-oct-2026 ~10:43 UTC)
 
-## 1. Deployment 4d7c7e87 (PR #220, v8.43.10)
-Ya está activo. `https://liftgo.lovable.app/version.json` (sin caché, 06:48 UTC del 3-oct-2026) devuelve 8.43.10 y la cabecera `x-deployment-id` es `psr2.4d7c7e87-a2c5-451e-a81d-b83f7fa6bbfb...`. No hubo fallo de build ni de publicación. Lo visto como 8.43.9 fue propagación entre "ready" y el cambio de tráfico.
+Sin cambios. Datos verificados en la base real del proyecto:
 
-## 2. Versión de Deno / Edge Runtime en Lovable Cloud
-No se puede determinar de forma fiable con la evidencia disponible.
+- HEAD del proyecto: adf9ce04378f3b5724c81581491939714caa5e99 (no incluye el PR #225)
+- Ledger Drizzle (últimas 3, hash = primeros 12 caracteres):
+  - id 101 · when 1790991931103 · 57cd6e7be403
+  - id 100 · when 1790991273930 · 377913168d9c
+  - id 99 · when 1790991167291 · 88a1c3176b7c
+- public.platform_fiscal_jobs: existe; columna config_source: NO existe
+- Triggers BEFORE UPDATE en public.cfdi_retry_queue:
+  - cfdi_retry_queue_set_updated_at: BEFORE UPDATE FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
+  - trg_organization_write_context: BEFORE INSERT OR UPDATE FOR EACH ROW EXECUTE FUNCTION enforce_organization_write_context()
+- Cola cfdi_retry_queue: 0 filas en total (ningún estado ni operación); no hay trabajos processing
+- Facturas en stamping: 0; en stamping sin ID de Facturapi: 0
+- public.platform_fiscal_actions: NO existe
+- RPC platform_begin_fiscal_action y platform_complete_fiscal_action: NO existen
 
-- Logs de las funciones (process-cfdi-retry-queue, reconcile-stamping-invoices, 3-oct-2026): solo "booted (time: Nms)" y "shutdown"; no incluyen versión de Deno ni del Edge Runtime.
-- Consultas de analítica (function_logs, function_edge_logs): sin filas ni campo de versión de runtime.
-- `supabase/functions/deno.json` solo declara `nodeModulesDir` y reglas de lint; no fija versión.
-- Deno 2.6.10 es el binario del sandbox de herramientas, NO el runtime de Cloud. No sirve como evidencia.
-- Soporte de `node:async_hooks` / AsyncLocalStorage en Cloud: no verificado. El proyecto ya lo usa en el SSR (otro runtime), lo cual no aplica a las Edge Functions.
-
-Dato que falta: la versión de Deno/Edge Runtime que reporte el propio runtime desplegado (por ejemplo `Deno.version` y un `AsyncLocalStorage.run` de prueba dentro de una función), o documentación de Lovable/Supabase con la versión vigente. Obtenerlo exigiría código en una función, que quedó descartado.
-
-## Acciones
-Ninguna. No se edita código, datos, secretos ni se publica. No se añadió entrada a roadmap.md porque el modo plan no permite editar otros archivos.
+Límites: el rol de lectura del sandbox no tiene permiso sobre el esquema drizzle; el ledger se leyó con la herramienta de consulta del backend. Los ids del ledger son internos y no equivalen al número de archivo 00xx.
