@@ -11,10 +11,14 @@ interface Identity {
 
 let previous: string | null = null;
 let replayGeneration = 0;
+let identityRevision = 0;
+let activeUserId: string | null = null;
 
 /** Sólo UUIDs de identidad verificada; nunca nombres, RFC, correo ni claves. */
-export function syncSentryIdentity(identity: Identity): void {
-  if (typeof window === "undefined") return;
+export function syncSentryIdentity(identity: Identity): number {
+  if (typeof window === "undefined") return 0;
+  const revision = ++identityRevision;
+  activeUserId = identity.userId;
   const signature = JSON.stringify(identity);
   if (signature !== previous) {
     previous = signature;
@@ -46,10 +50,19 @@ export function syncSentryIdentity(identity: Identity): void {
     workspace: identity.workspace,
     route, flow,
   });
+  return revision;
 }
 
-export function clearSentryIdentity(): void {
+/** Una limpieza tardía sólo puede retirar el contexto que ella misma instaló. */
+export function clearSentryIdentity(expectedRevision?: number): boolean {
+  if (expectedRevision !== undefined && expectedRevision !== identityRevision) return false;
   const path = typeof window !== "undefined" ? window.location.pathname : "";
   const workspace = path.startsWith("/platform") ? "platform" : path.startsWith("/portal") ? "portal" : "organization";
   syncSentryIdentity({ userId: null, organizationId: null, role: null, workspace });
+  return true;
+}
+
+/** La purga de una sesión antigua nunca borra la identidad nueva ya verificada. */
+export function clearSentryIdentityForUser(userId: string | null): boolean {
+  return activeUserId === userId && clearSentryIdentity();
 }

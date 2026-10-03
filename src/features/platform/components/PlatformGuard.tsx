@@ -32,10 +32,9 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
   useEffect(() => {
     const role = !operator.isError && operator.data?.isOperator === true ? "platform_operator" : null;
     setAuthSnapshot({ user: user ? { id: user.id, email: user.email ?? null } : null, organization: null, role });
-    syncSentryIdentity({ userId: user?.id ?? null, organizationId: null, role, workspace: "platform" });
+    const revision = syncSentryIdentity({ userId: user?.id ?? null, organizationId: null, role, workspace: "platform" });
     return () => {
-      setAuthSnapshot({ user: null, organization: null, role: null });
-      clearSentryIdentity();
+      if (clearSentryIdentity(revision)) setAuthSnapshot({ user: null, organization: null, role: null });
     };
   }, [user, operator.data, operator.isError]);
 

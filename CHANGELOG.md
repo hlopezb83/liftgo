@@ -1,3 +1,8 @@
+## [8.43.9] — 2026-10-03
+
+- Se evita que una limpieza tardía de Plataforma borre la empresa y el rol del ERP recién abierto.
+- La purga de caché de la sesión anterior conserva el diagnóstico del nuevo usuario ya verificado; cerrar sesión sigue retirando su identidad.
+
 ## [8.43.8] — 2026-10-03
 
 - Se corrigió el arranque del monitoreo en la aplicación publicada y se actualizó Sentry a 11.4.0.

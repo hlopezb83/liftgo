@@ -14,7 +14,7 @@ const state = vi.hoisted(() => ({
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => state }));
 vi.mock("@/features/auth", () => ({ useRecoveryStatus: () => state.recovery }));
 vi.mock("../hooks/usePlatformAccess", async (original) => ({ ...await original<typeof import("../hooks/usePlatformAccess")>(), usePlatformAccessStatus: () => state.operator }));
-vi.mock("@/lib/observability/identity", () => ({ syncSentryIdentity: vi.fn(), clearSentryIdentity: vi.fn() }));
+vi.mock("@/lib/observability/identity", () => ({ syncSentryIdentity: vi.fn().mockReturnValue(1), clearSentryIdentity: vi.fn().mockReturnValue(true) }));
 vi.mock("@/lib/router-compat", () => ({ useLocation: () => ({ pathname: state.pathname }) }));
 vi.mock("@/lib/router-compat-ui", () => ({
   Navigate: ({ to }: { to: string }) => <p>Destino: {to}</p>,
