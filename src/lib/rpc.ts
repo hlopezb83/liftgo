@@ -24,9 +24,11 @@ export async function callRpc<TResult>(
   fn: RpcName,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   args?: Record<string, any>,
+  options?: { signal?: AbortSignal },
 ): Promise<TResult> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.rpc.bind(supabase) as any)(fn, args ?? {});
+  const request = (supabase.rpc.bind(supabase) as any)(fn, args ?? {});
+  const { data, error } = await (options?.signal ? request.abortSignal(options.signal) : request);
   if (error) throw error;
   return data as TResult;
 }

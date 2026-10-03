@@ -23,6 +23,8 @@ INSERT INTO public.organization_memberships(organization_id,auth_user_id,member_
 INSERT INTO public.user_roles(user_id,role) SELECT ('94000000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid,'ventas' FROM generate_series(3,5) n
 ON CONFLICT(user_id) DO UPDATE SET role=EXCLUDED.role;
 SELECT set_config('app.organization_id','94940000-0000-4000-8000-000000000011',true);
+INSERT INTO public.company_settings(organization_id,razon_social,rfc,regimen_fiscal,lugar_expedicion)
+VALUES('94940000-0000-4000-8000-000000000011','  Identidad legal Soporte A  ','AAA010101AAA','601','64000');
 INSERT INTO public.feedback_reports(id,organization_id,reporter_id,reporter_type,type,folio,title,description,module,context_json,screenshot_url) VALUES
 ('94940000-0000-4000-8000-000000000021','94940000-0000-4000-8000-000000000011','94000000-0000-4000-8000-000000000003','internal','bug','FB-0001','Reporte CI A','Diagnóstico privado original','Flota',
 '{"app_version":"8.42.49","route":"/fleet/private?token=unshared","selected_element":{"text":"private-finance"}}',
@@ -78,6 +80,15 @@ DO $$ DECLARE v jsonb; v_id uuid:=current_setting('test.support_case')::uuid; BE
   IF v::text LIKE '%unshared%' OR v::text LIKE '%private-finance%' OR v::text LIKE '%Diagnóstico privado original%'
     OR v->'case'->>'description'<>'Sólo pasos revisados del guardado' THEN RAISE EXCEPTION 'PROJECTION: diagnóstico excesivo'; END IF;
   IF jsonb_array_length(v->'events')<>1 THEN RAISE EXCEPTION 'NOOP: duplicó seguimiento'; END IF;
+  IF v->'case'->>'organizationName'<>'Identidad legal Soporte A' OR v::text LIKE '%AAA010101AAA%' THEN
+    RAISE EXCEPTION 'IDENTITY: nombre incorrecto o proyección fiscal excesiva'; END IF;
+  v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','identidad legal',NULL);
+  IF v->>'total'<>'1' OR v->'rows'->0->>'organizationName'<>'Identidad legal Soporte A' THEN
+    RAISE EXCEPTION 'SEARCH: la razón social visible no encuentra el caso'; END IF;
+  v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','Soporte CI A',NULL);
+  IF v->>'total'<>'1' THEN RAISE EXCEPTION 'SEARCH: perdió el alias interno de la empresa'; END IF;
+  v:=public.platform_list_support('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002','identidad legal','94940000-0000-4000-8000-000000000012');
+  IF v->>'total'<>'0' THEN RAISE EXCEPTION 'ORG: búsqueda de razón social ignoró empresa'; END IF;
   IF public.platform_support_screenshot('94000000-0000-4000-8000-000000000002','94940000-0000-4000-8000-000000000002',v_id) IS NOT NULL THEN
     RAISE EXCEPTION 'CAPTURE: entregó captura sin consentir'; END IF;
   BEGIN PERFORM public.platform_get_support('94000000-0000-4000-8000-000000000007','94940000-0000-4000-8000-000000000007',v_id);
@@ -151,4 +162,10 @@ DO $$ BEGIN
   BEGIN DELETE FROM public.platform_support_cases; RAISE EXCEPTION 'ACL: servicio pudo borrar casos directamente'; EXCEPTION WHEN insufficient_privilege THEN NULL; END;
 END $$;
 RESET role;
+SELECT set_config('app.organization_id','94940000-0000-4000-8000-000000000011',true);
+UPDATE public.company_settings SET razon_social='   ' WHERE organization_id='94940000-0000-4000-8000-000000000011';
+DO $$ BEGIN
+  IF public.support_case_projection(current_setting('test.support_case')::uuid)->>'organizationName'<>'Soporte CI A' THEN
+    RAISE EXCEPTION 'IDENTITY: falta fallback de razón social vacía'; END IF;
+END $$;
 ROLLBACK;

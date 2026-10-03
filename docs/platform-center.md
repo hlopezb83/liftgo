@@ -241,6 +241,39 @@ No acreditar permisos o una captura firmada mediante inspección visual solament
 Referencia del proveedor de Storage usado internamente por Cloud:
 [enlaces firmados](https://supabase.com/docs/reference/javascript/storage-from-createsignedurl).
 
+### Pulido y resultado incierto (8.43.3 / 0095)
+
+Las solicitudes de soporte tienen una espera de 15 segundos y pasan la señal de
+cancelación al transporte. Vencer la espera libera la UI; no demuestra que el
+servidor haya revertido la escritura. Compartir, retirar o guardar no se repiten
+automáticamente. Tras cualquier resultado no confirmado se exige una consulta
+actual completada antes de volver a enviar. Un error de actualización conserva
+el borrador, incluso cuando ya había datos cargados. Una revisión nueva exige
+cargar explícitamente el estado vigente; el compartido requiere revisar otra
+vez su consentimiento.
+
+Un guardado de seguimiento confirmado actualiza primero el caso en la caché de
+detalle, conserva la paginación y después actualiza las fuentes. Una revisión
+propia más nueva no se presenta como un conflicto; una revisión ajena superior
+sí bloquea el borrador anterior. Los selectores y la nota se bloquean mientras
+el guardado está en curso.
+
+0095 cambia sólo la proyección y la búsqueda de soporte: muestra la razón social
+recortada de la misma empresa, con su nombre interno como alternativa. La
+búsqueda reconoce ambos nombres y conserva el filtro empresarial. No cambia
+filas, revisiones, notas, estados, retención, sesión, permisos ni folios. Nunca
+devuelve otros campos fiscales de `company_settings`. CI comprueba identidad,
+búsqueda, fallback y aislamiento con datos efímeros y ROLLBACK.
+
+Los filtros comparten una fila de escritorio con búsqueda de mayor anchura;
+tablet y móvil usan filas completas. Los conteos distinguen «1 caso» y «1 reporte».
+
+Referencias del transporte:
+[cancelación de consultas](https://tanstack.com/query/latest/docs/framework/react/guides/query-cancellation),
+[AbortSignal](https://supabase.com/docs/reference/javascript/using-modifiers-abortsignal) y
+[reintentos del cliente](https://supabase.com/docs/guides/api/automatic-retries-in-supabase-js).
+Son APIs de las librerías internas de Lovable Cloud; no requieren otro backend.
+
 ## Incorporación revisada (8.42.40 / 0090)
 
 La semilla inicial de 0046 ya promovió modelos y machotes. El nuevo flujo
@@ -475,7 +508,6 @@ La versión anunciada procede del artefacto del despliegue; no acredita por sí
 sola el SHA publicado. No se inventan datos de respaldos, restauraciones,
 telemetría general, CI ni costos por empresa.
 
-Pendiente del bloque 4: bandeja de soporte con responsable y seguimiento,
-historial detallado de trabajos y reintento autorizado con conciliación, y
+Pendiente del bloque 4: historial detallado de trabajos y reintento autorizado con conciliación, y
 telemetría general con fuente y retención. No existe un botón de reintento
 fiscal ciego en este Centro. Se mantiene la cola segura del ERP.
