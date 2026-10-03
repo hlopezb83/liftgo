@@ -4328,6 +4328,53 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_organization_governance: {
+        Row: {
+          city: string | null
+          classification: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          organization_id: string
+          revision: number
+          territory: string | null
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          city?: string | null
+          classification: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          organization_id: string
+          revision?: number
+          territory?: string | null
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          city?: string | null
+          classification?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          organization_id?: string
+          revision?: number
+          territory?: string | null
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_organization_governance_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       platform_support_cases: {
         Row: {
           app_version: string | null
@@ -7349,6 +7396,10 @@ export type Database = {
         Args: { p_actor: string; p_organization_id: string }
         Returns: Json
       }
+      platform_get_organization_governance: {
+        Args: { p_actor: string; p_organization_id: string; p_session: string }
+        Returns: Json
+      }
       platform_get_support: {
         Args: {
           p_actor: string
@@ -7356,6 +7407,14 @@ export type Database = {
           p_case: string
           p_session: string
         }
+        Returns: Json
+      }
+      platform_governance_assert: {
+        Args: { p_actor: string; p_capability: string; p_session: string }
+        Returns: undefined
+      }
+      platform_governance_projection: {
+        Args: { p_contact: boolean; p_organization_id: string }
         Returns: Json
       }
       platform_grant_operator: {
@@ -7480,6 +7539,10 @@ export type Database = {
         }
         Returns: Json
       }
+      platform_list_organization_governance: {
+        Args: { p_actor: string; p_session: string }
+        Returns: Json
+      }
       platform_list_organizations: {
         Args: { p_actor: string }
         Returns: {
@@ -7585,6 +7648,22 @@ export type Database = {
           p_reason: string
         }
         Returns: undefined
+      }
+      platform_set_organization_governance: {
+        Args: {
+          p_actor: string
+          p_city: string
+          p_classification: string
+          p_contact_email: string
+          p_contact_name: string
+          p_contact_phone: string
+          p_organization_id: string
+          p_reason: string
+          p_revision: string
+          p_session: string
+          p_territory: string
+        }
+        Returns: Json
       }
       platform_set_parts_catalog_active: {
         Args: { p_active: boolean; p_actor: string; p_id: string }
