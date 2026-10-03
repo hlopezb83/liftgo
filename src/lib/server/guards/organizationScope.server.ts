@@ -4,6 +4,7 @@
  * El `organization_id` NUNCA llega del navegador: se resuelve con el cliente
  * autenticado del propio usuario sobre `organization_memberships`.
  */
+import { setVerifiedServerIdentity } from "@/lib/observability/serverSentry.server";
 import {
   resolveInternalScope,
   resolveTargetScope,
@@ -29,6 +30,7 @@ export async function requireInternalOrganization(
   if (scope.status === "not_internal") {
     throw new HttpError(403, "Forbidden: sin membresía interna verificada");
   }
+  setVerifiedServerIdentity({ userId, organizationId: scope.organizationId, workspace: "organization" });
   return scope.organizationId;
 }
 

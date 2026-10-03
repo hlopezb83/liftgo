@@ -1,3 +1,10 @@
+## [8.43.10] — 2026-10-03
+
+- Los errores SSR y de funciones del ERP se registran con Sentry 11.4.0 sin cambiar sus respuestas ni permisos.
+- Las solicitudes simultáneas mantienen separados sus errores, actor y empresa verificada; Plataforma conserva su contexto propio.
+- El monitoreo excluye cabeceras, cuerpos, cookies y datos arbitrarios del servidor; los rechazos esperados no generan incidentes.
+- Un fallo del monitoreo no repite operaciones ni bloquea respuestas; el envío se adapta al runtime de Lovable.
+
 ## [8.43.9] — 2026-10-03
 
 - Se evita que una limpieza tardía de Plataforma borre la empresa y el rol del ERP recién abierto.

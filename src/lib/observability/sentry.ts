@@ -1,13 +1,12 @@
 import * as Sentry from "@sentry/react";
-import { scrubData, scrubEvent, scrubSpan } from "./scrubPII";
+import { createPrivacyOptions, PUBLIC_SENTRY_DSN, scrubData } from "./privacyOptions";
 
-const PUBLIC_DSN = "https://e8df6c29317f5f884be32f4b0c50ac05@o4511415732404224.ingest.us.sentry.io/4511770994933760";
 let tracingInstalled = false;
 
 /** Llamada explícita desde instrument-client.ts, antes de hidratar la aplicación. */
 export function initClientSentry(): void {
   const environment = import.meta.env.MODE;
-  const dsn = import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_DSN;
+  const dsn = import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_SENTRY_DSN;
   const enabled = environment === "production" || import.meta.env.VITE_SENTRY_FORCE === "1";
   if (typeof window === "undefined" || !dsn || !enabled || environment === "test" || Sentry.getClient()) return;
   Sentry.init(createClientSentryOptions(environment, dsn));
@@ -27,17 +26,9 @@ export function createClientSentryOptions(environment: string, dsn: string): Sen
     dsn,
     environment,
     release: `liftgo@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
-    dataCollection: {
-      userInfo: false, cookies: false, httpHeaders: false, httpBodies: [],
-      urlQueryParams: false, databaseQueryData: false, queues: false,
-      stackFrameVariables: false, graphQL: { document: false, variables: false },
-      genAI: { inputs: false, outputs: false },
-    },
-    beforeSendLog: () => null,
-    beforeSendMetric: () => null,
+    ...createPrivacyOptions(),
     enhanceFetchErrorMessages: "report-only",
     tracesSampleRate: environment === "production" ? 0.1 : 0,
-    tracePropagationTargets: [],
     replaysSessionSampleRate: 0,
     // Opt-in sólo tras verificar privacidad de URL/DOM en la cuenta de Sentry.
     replaysOnErrorSampleRate: environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1" ? 1 : 0,
@@ -46,8 +37,6 @@ export function createClientSentryOptions(environment: string, dsn: string): Sen
       if (breadcrumb.category === "ui.input" || breadcrumb.category === "ui.click" || breadcrumb.category === "console") return null;
       return scrubData(breadcrumb) as typeof breadcrumb;
     },
-    beforeSend: scrubEvent,
-    beforeSendSpan: scrubSpan,
   };
 }
 

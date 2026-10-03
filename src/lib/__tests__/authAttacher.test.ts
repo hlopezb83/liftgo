@@ -50,12 +50,8 @@ describe("attachSupabaseAuth (transporte de server functions)", () => {
 
 describe("registro global del adjuntador", () => {
   it("startInstance registra el middleware de función una sola vez", async () => {
-    const [{ readFileSync }, { resolve }] = await Promise.all([
-      import("node:fs"),
-      import("node:path"),
-    ]);
-    const src = readFileSync(resolve(process.cwd(), "src/start.ts"), "utf8");
-    expect(src).toMatch(/functionMiddleware:\s*\[attachSupabaseAuth\]/);
-    expect(src.match(/attachSupabaseAuth/g)?.length).toBe(2);
+    const { startInstance } = await import("@/start");
+    const middleware = (await startInstance.getOptions()).functionMiddleware ?? [];
+    expect(middleware.filter((item) => item === attachSupabaseAuth)).toHaveLength(1);
   });
 });

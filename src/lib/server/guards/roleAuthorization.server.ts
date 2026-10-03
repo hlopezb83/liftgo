@@ -5,6 +5,7 @@
  * SECURITY DEFINER), nunca con el cliente privilegiado; éste se carga sólo
  * después de aprobar el guard. Fail-closed ante cualquier error de lectura.
  */
+import { setVerifiedServerIdentity } from "@/lib/observability/serverSentry.server";
 import {
   type AdminClient,
   type AppRole,
@@ -54,6 +55,7 @@ export async function requireRole(
   if (!matched) throw new HttpError(403, "Forbidden: insufficient role");
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  setVerifiedServerIdentity({ userId, role: matched, workspace: "organization" });
   return { userId, role: matched, admin: supabaseAdmin as AdminClient };
 }
 
