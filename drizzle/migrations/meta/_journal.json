@@ -687,6 +687,13 @@
       "when": 1790991273930,
       "tag": "0097_recurring_invoice_org_context",
       "breakpoints": true
+    },
+    {
+      "idx": 98,
+      "version": "7",
+      "when": 1790991931103,
+      "tag": "0098_platform_fiscal_job_history",
+      "breakpoints": true
     }
   ]
 }
