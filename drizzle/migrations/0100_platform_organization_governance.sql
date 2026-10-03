@@ -1,11 +1,11 @@
 -- Ficha administrativa de Plataforma; no cambia datos fiscales, bancos ni operaciones.
 -- Aplicar después de cerrar el despliegue fiscal 0099 y activar su capability pendiente.
-DO $ BEGIN
+DO $$ BEGIN
   IF NOT ('integrations.retry'=ANY(public.platform_profile_capabilities('root')))
     OR NOT ('integrations.retry'=ANY(public.platform_profile_capabilities('support'))) THEN
     RAISE EXCEPTION 'Completa el despliegue fiscal 0099 y su activación antes de aplicar 0100' USING ERRCODE='55000';
   END IF;
-END $;
+END $$;
 CREATE OR REPLACE FUNCTION public.platform_profile_capabilities(p_profile text)
 RETURNS text[] LANGUAGE sql IMMUTABLE SET search_path = public AS $$
   SELECT CASE p_profile
