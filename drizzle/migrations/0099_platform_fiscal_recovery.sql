@@ -222,7 +222,7 @@ BEGIN
   IF j.config_source<>'attempt' OR j.mode_at_enqueue IS NULL OR j.key_fingerprint IS NULL OR j.mode_at_enqueue IS DISTINCT FROM v_mode
     OR (v_doc->>'environment' IS NOT NULL AND v_doc->>'environment'<>v_mode)
     OR j.key_fingerprint IS DISTINCT FROM v_fingerprint OR length(coalesce(v_key,''))<=8
-    OR left(v_key,8)<>CASE v_mode WHEN 'test' THEN 'sk_test_' ELSE 'sk_live_' END
+    OR left(v_key,8)<>(CASE v_mode WHEN 'test' THEN 'sk_test_' ELSE 'sk_live_' END)
     OR EXISTS(SELECT 1 FROM public.billing_secrets WHERE organization_id<>j.organization_id
       AND (facturapi_test_key=v_key OR facturapi_live_key=v_key)) THEN
     RAISE EXCEPTION 'Configuración histórica desconocida o cambiada' USING ERRCODE='22023'; END IF;
