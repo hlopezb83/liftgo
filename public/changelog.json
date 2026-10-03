@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.43.9",
+    "date": "2026-10-03",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Contexto de diagnóstico al cambiar de espacio",
+    "description": "Al pasar entre Plataforma y el ERP se conserva la identidad del espacio actual.",
+    "changes": [
+      "Se evita que una limpieza tardía de Plataforma borre la empresa y el rol del ERP recién abierto.",
+      "La purga de caché de la sesión anterior conserva el diagnóstico del nuevo usuario ya verificado; cerrar sesión sigue retirando su identidad."
+    ]
+  },
+  {
     "version": "8.43.8",
     "date": "2026-10-03",
     "type": "patch",

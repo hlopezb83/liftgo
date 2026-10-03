@@ -1,0 +1,7 @@
+{
+  "description": "Al pasar entre Plataforma y el ERP se conserva la identidad del espacio actual.",
+  "changes": [
+    "Se evita que una limpieza tardía de Plataforma borre la empresa y el rol del ERP recién abierto.",
+    "La purga de caché de la sesión anterior conserva el diagnóstico del nuevo usuario ya verificado; cerrar sesión sigue retirando su identidad."
+  ]
+}

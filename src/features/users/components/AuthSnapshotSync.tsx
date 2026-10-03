@@ -32,10 +32,13 @@ export function AuthSnapshotSync(): null {
     };
     update();
     const unsubscribe = cache.getQueryCache().subscribe(update);
-    syncSentryIdentity({ userId: user?.id ?? null, organizationId: organizationId ?? null,
+    const revision = syncSentryIdentity({ userId: user?.id ?? null, organizationId: organizationId ?? null,
       role: user ? role ?? null : null,
       workspace: typeof window !== "undefined" && window.location.pathname.startsWith("/portal") ? "portal" : "organization" });
-    return () => { unsubscribe(); setAuthSnapshot({ user: null, organization: null, role: null }); clearSentryIdentity(); };
+    return () => {
+      unsubscribe();
+      if (clearSentryIdentity(revision)) setAuthSnapshot({ user: null, organization: null, role: null });
+    };
   }, [user, role, organizationId, cache]);
 
   // Lee la versión actual desde /version.json (~50 bytes vs ~380KB del changelog).

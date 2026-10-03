@@ -5,7 +5,7 @@ const state = vi.hoisted(() => ({ user: { id: "actor-a", email: "admin@example.c
 vi.mock("@/contexts/AuthContext", () => ({ useAuth: () => ({ user: state.user }) }));
 vi.mock("@/contexts/OrganizationContext", () => ({ useVerifiedOrganizationId: () => state.org }));
 vi.mock("@/features/users/hooks/useUserRole", () => ({ useUserRole: () => ({ data: "admin" }) }));
-vi.mock("@/lib/observability/identity", () => ({ syncSentryIdentity: vi.fn(), clearSentryIdentity: vi.fn() }));
+vi.mock("@/lib/observability/identity", () => ({ syncSentryIdentity: vi.fn().mockReturnValue(1), clearSentryIdentity: vi.fn().mockReturnValue(true) }));
 import { AuthSnapshotSync } from "@/features/users/components/AuthSnapshotSync";
 import { companySettingsQueries } from "@/features/company-settings/lib/queryKeys";
 import { getAuthSnapshot } from "../authSnapshot";

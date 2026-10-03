@@ -25,6 +25,9 @@
   trabajo. Nunca agregar nombre empresarial, RFC, email ni claves de Facturapi.
 - El cambio de sesión/empresa limpia breadcrumbs y contexto previo. Los tags
   de errores y atributos de spans se retiran cuando la identidad deja de existir.
+  Cada sincronización obtiene una revisión: un desmontaje tardío del espacio
+  anterior no puede borrar la identidad nueva. La purga de caché sólo retira
+  el diagnóstico del usuario anterior, conservando el ya verificado del nuevo.
 - `beforeSend` sanea errores; `beforeSendSpan` sanea spans en stream mode.
   Los filtros de errores no se aplican automáticamente a spans o Replay.
   Se eliminan query/hash y parámetros de ruta de los spans. Se preserva el
