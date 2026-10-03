@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import {
   organizationGovernanceInputSchema, type OrganizationGovernance, type OrganizationGovernanceFields as GovernanceFieldsValues,
 } from "@/lib/platformOrganizationGovernance.types";
-import { notifyValidation } from "@/lib/ui/appFeedback";
+import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 import { extractErrorDetails } from "@/lib/ui/errorDetailsExtract";
 import { useSetOrganizationGovernance } from "../hooks/useOrganizationGovernance";
 import { OrganizationGovernanceFields } from "./OrganizationGovernanceFields";
@@ -31,7 +31,10 @@ export function OrganizationGovernanceEditor({
       const data = await reload();
       if (!data) throw new Error("missing");
       setLatest(data);
-    } catch { setReviewError("No se pudieron consultar los datos actuales. Tu captura se conserva."); }
+    } catch (error) {
+      notifyError({ error, title: "No se pudo consultar la ficha actual", phase: "query" });
+      setReviewError("No se pudieron consultar los datos actuales. Tu captura se conserva.");
+    }
     finally { setLoadingLatest(false); }
   }
   async function save(e: FormEvent) {

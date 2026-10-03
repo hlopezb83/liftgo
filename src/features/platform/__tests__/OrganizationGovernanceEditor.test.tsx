@@ -57,7 +57,9 @@ describe("ficha concurrente: conservar captura y revisar antes de sobrescribir",
     await screen.findByText(/No se pudieron consultar los datos actuales/);
     expect(screen.getByLabelText("Ciudad")).toHaveValue("Monterrey");
     expect(screen.getByRole("button", { name: "Guardar datos" })).toBeDisabled();
-    expect(m.save).toHaveBeenCalledTimes(1); cache.clear();
+    expect(m.save).toHaveBeenCalledTimes(1);
+    expect(m.error).toHaveBeenCalledWith(expect.objectContaining({ phase: "query", title: "No se pudo consultar la ficha actual" }));
+    cache.clear();
   });
   it("valida el motivo sin enviar RPC y no cierra el diálogo durante el guardado", async () => {
     let finish!: (value: unknown) => void;
