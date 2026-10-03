@@ -17,7 +17,7 @@ INSERT INTO public.organizations(id,name,slug,is_active) VALUES
 ('10100000-0000-4000-8000-000000000011','Governance CI A','governance-ci-a-0100',true),
 ('10100000-0000-4000-8000-000000000012','Governance CI B','governance-ci-b-0100',false);
 
-DO $$ DECLARE v jsonb; v_count bigint; v_role text; v_function regprocedure; BEGIN
+DO $$ DECLARE v jsonb; v_count bigint; v_role text; v_function regprocedure; v_bad text; BEGIN
   FOREACH v_role IN ARRAY ARRAY['anon','authenticated'] LOOP
     IF has_table_privilege(v_role,'public.platform_organization_governance','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN
       RAISE EXCEPTION 'ACL: ficha privada expuesta a %',v_role; END IF;
@@ -43,6 +43,13 @@ DO $$ DECLARE v jsonb; v_count bigint; v_role text; v_function regprocedure; BEG
     OR 'organizations.configure'=ANY(public.platform_profile_capabilities('catalogs'))
     OR 'organizations.configure'=ANY(public.platform_profile_capabilities('observer')) THEN
     RAISE EXCEPTION 'CAP: permiso de edición excesivo'; END IF;
+  FOREACH v_bad IN ARRAY ARRAY['bad','-1','01','9223372036854775808'] LOOP
+    BEGIN
+      PERFORM public.platform_set_organization_governance('10000000-0000-4000-8000-000000000001','10100000-0000-4000-8000-000000000001',
+        '10100000-0000-4000-8000-000000000011',v_bad,'test','','','','','','Revisión invalidada');
+      RAISE EXCEPTION 'VALIDATION: aceptó revisión inválida %',v_bad; EXCEPTION WHEN invalid_parameter_value THEN NULL;
+    END;
+  END LOOP;
   v:=public.platform_get_organization_governance('10000000-0000-4000-8000-000000000002','10100000-0000-4000-8000-000000000002','10100000-0000-4000-8000-000000000011');
   IF v->>'revision'<>'0' OR v->>'classification'<>'unclassified' THEN RAISE EXCEPTION 'DEFAULT: inventó clasificación'; END IF;
   v:=public.platform_set_organization_governance('10000000-0000-4000-8000-000000000002','10100000-0000-4000-8000-000000000002',
