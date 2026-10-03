@@ -4045,69 +4045,6 @@ export type Database = {
         }
         Relationships: []
       }
-      platform_fiscal_actions: {
-        Row: {
-          actor_id: string
-          completed_at: string | null
-          document_snapshot: Json
-          expected_revision: number
-          expires_at: string
-          id: string
-          intent: string
-          job_id: string
-          key_fingerprint: string
-          mode: string
-          organization_id: string
-          previous_state: Json
-          queue_token: string
-          reason: string
-          reserved_revision: number
-          session_id: string
-          started_at: string
-          status: string
-        }
-        Insert: {
-          actor_id: string
-          completed_at?: string | null
-          document_snapshot: Json
-          expected_revision: number
-          expires_at?: string
-          id: string
-          intent: string
-          job_id: string
-          key_fingerprint: string
-          mode: string
-          organization_id: string
-          previous_state: Json
-          queue_token: string
-          reason: string
-          reserved_revision: number
-          session_id: string
-          started_at?: string
-          status?: string
-        }
-        Update: {
-          actor_id?: string
-          completed_at?: string | null
-          document_snapshot?: Json
-          expected_revision?: number
-          expires_at?: string
-          id?: string
-          intent?: string
-          job_id?: string
-          key_fingerprint?: string
-          mode?: string
-          organization_id?: string
-          previous_state?: Json
-          queue_token?: string
-          reason?: string
-          reserved_revision?: number
-          session_id?: string
-          started_at?: string
-          status?: string
-        }
-        Relationships: []
-      }
       platform_fiscal_job_events: {
         Row: {
           changed_fields: string[]
@@ -4143,7 +4080,6 @@ export type Database = {
       }
       platform_fiscal_jobs: {
         Row: {
-          config_source: string
           created_at: string
           document_id: string
           id: string
@@ -4158,7 +4094,6 @@ export type Database = {
           state: Json
         }
         Insert: {
-          config_source?: string
           created_at: string
           document_id: string
           id: string
@@ -4173,7 +4108,6 @@ export type Database = {
           state: Json
         }
         Update: {
-          config_source?: string
           created_at?: string
           document_id?: string
           id?: string
@@ -7195,18 +7129,6 @@ export type Database = {
         Returns: undefined
       }
       platform_audit_safe_state: { Args: { p_row: Json }; Returns: Json }
-      platform_begin_fiscal_action: {
-        Args: {
-          p_actor: string
-          p_intent: string
-          p_job: string
-          p_reason: string
-          p_request: string
-          p_revision: string
-          p_session: string
-        }
-        Returns: Json
-      }
       platform_begin_integration_check: {
         Args: {
           p_actor: string
@@ -7234,20 +7156,6 @@ export type Database = {
       platform_catalog_legal_content: {
         Args: { p_content: Json }
         Returns: Json
-      }
-      platform_complete_fiscal_action: {
-        Args: {
-          p_actor: string
-          p_cancellation?: string
-          p_folio?: string
-          p_outcome: string
-          p_provider_id?: string
-          p_request: string
-          p_series?: string
-          p_session: string
-          p_uuid?: string
-        }
-        Returns: string
       }
       platform_complete_integration_check: {
         Args: {
@@ -7304,13 +7212,6 @@ export type Database = {
       }
       platform_finish_onboarding: {
         Args: { p_actor: string; p_request_id: string }
-        Returns: Json
-      }
-      platform_fiscal_document_snapshot: {
-        Args: {
-          p_job: Database["public"]["Tables"]["platform_fiscal_jobs"]["Row"]
-          p_lock?: boolean
-        }
         Returns: Json
       }
       platform_fiscal_job_projection: { Args: { p_id: string }; Returns: Json }
@@ -7405,10 +7306,6 @@ export type Database = {
           specifications: Json
           updated_at: string
         }[]
-      }
-      platform_list_fiscal_actions: {
-        Args: { p_actor: string; p_job: string; p_session: string }
-        Returns: Json
       }
       platform_list_fiscal_jobs: {
         Args: {

@@ -2,6 +2,7 @@
 // El procesador (cron) se implementará en un cambio posterior; por ahora la cola
 // se llena desde stamp-cfdi / cancel-cfdi cuando Facturapi responde 5xx o red muere.
 import type { SupabaseLike } from "./types.ts";
+import { fiscalConfigFingerprint } from "./facturapi/retryContext.ts";
 
 export type CfdiRetryOperation =
   | "stamp"
@@ -14,6 +15,7 @@ export interface EnqueueCfdiRetryInput {
   invoiceId: string;
   payload: unknown;
   errorMessage?: string | null;
+  fiscalConfig?: { mode: string; apiKey: string };
 }
 
 /**
@@ -37,12 +39,31 @@ export async function enqueueCfdiRetry(
   admin: SupabaseLike,
   input: EnqueueCfdiRetryInput,
 ): Promise<{ id: string | null }> {
+  const payload = input.payload && typeof input.payload === "object" &&
+      !Array.isArray(input.payload)
+    ? { ...input.payload } as Record<string, unknown>
+    : {};
+  // Estas propiedades son del servidor; nunca adoptar las recibidas en el formulario.
+  delete payload.retry_queue;
+  delete payload._fiscal_context;
+  if (
+    input.fiscalConfig &&
+    (input.fiscalConfig.mode === "test" || input.fiscalConfig.mode === "live")
+  ) {
+    payload._fiscal_context = {
+      mode: input.fiscalConfig.mode,
+      fingerprint: await fiscalConfigFingerprint(
+        input.fiscalConfig.mode,
+        input.fiscalConfig.apiKey,
+      ),
+    };
+  }
   const res = await admin
     .from("cfdi_retry_queue")
     .insert({
       operation: input.operation,
       invoice_id: input.invoiceId,
-      payload: input.payload ?? {},
+      payload,
       attempts: 0,
       status: "pending",
       last_error: input.errorMessage?.slice(0, 2000) ?? null,

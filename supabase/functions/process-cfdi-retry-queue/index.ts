@@ -17,9 +17,12 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  getFacturapiConfigForOrganization,
 } from "../_shared/facturapi/client.ts";
 import { lookupPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
+import {
+  FiscalRetryContextError,
+  getRetryAwareFacturapiConfig,
+} from "../_shared/facturapi/retryContext.ts";
 import {
   classifyInvoiceReadOutcome,
   decideStampRetry,
@@ -77,6 +80,7 @@ async function invokeStampFn(
   projectRef: string,
   payload: Record<string, unknown>,
   fetchFn: typeof fetch,
+  retryContext: { id: string; token: string },
 ): Promise<{ ok: boolean; status: number; body: unknown }> {
   const url = `https://${projectRef}.supabase.co/functions/v1/${fnName}`;
   // La cola guarda el id del recurso en `cfdi_retry_queue.invoice_id` (única
@@ -92,7 +96,12 @@ async function invokeStampFn(
     : operation === "cancel_nc"
     ? "credit_note_id"
     : "invoice_id";
-  const bodyToSend = { ...(payload ?? {}), [idKey]: invoiceId };
+  const bodyToSend: Record<string, unknown> = {
+    ...(payload ?? {}),
+    [idKey]: invoiceId,
+    retry_queue: retryContext,
+  };
+  delete bodyToSend._fiscal_context;
   const res = await fetchFn(url, {
     method: "POST",
     headers: {
@@ -397,14 +406,19 @@ export async function handleRequest(
         let apiKey: string | null = null;
         let pacMode: "test" | "live" | undefined;
         try {
-          const cfg = await getFacturapiConfigForOrganization({
+          const cfg = await getRetryAwareFacturapiConfig({
             admin,
             env: envGet,
             organizationId,
+            body: { retry_queue: { id: lease.id, token: lease.updatedAt } },
+            isServiceRole: true,
+            documentId: row.invoice_id,
+            operation: row.operation,
           });
           apiKey = cfg.apiKey;
           pacMode = cfg.mode;
         } catch (err) {
+          if (err instanceof FiscalRetryContextError) throw err;
           console.error(
             "[process-cfdi-retry-queue] config lookup failed",
             {
@@ -542,6 +556,15 @@ export async function handleRequest(
           });
           continue;
         }
+        await getRetryAwareFacturapiConfig({
+          admin,
+          env: envGet,
+          organizationId: lease.organizationId,
+          documentId: row.invoice_id,
+          operation: row.operation,
+          isServiceRole: true,
+          body: { retry_queue: { id: lease.id, token: lease.updatedAt } },
+        });
       }
       await assertOwnedQueue(admin, lease);
       const invRes = await invokeStampFn(
@@ -552,8 +575,21 @@ export async function handleRequest(
         projectRef,
         row.payload ?? {},
         deps.fetch ?? fetch,
+        { id: lease.id, token: lease.updatedAt },
       );
 
+      if (
+        (invRes.body as { code?: string } | null)?.code ===
+          "FISCAL_RETRY_CHANGED"
+      ) {
+        throw new FiscalRetryContextError("changed");
+      }
+      if (
+        (invRes.body as { code?: string } | null)?.code ===
+          "FISCAL_RETRY_UNAVAILABLE"
+      ) {
+        throw new FiscalRetryContextError("unavailable");
+      }
       if (invRes.ok) {
         await markOwnedQueueRow(admin, lease, {
           status: "succeeded",
@@ -599,10 +635,19 @@ export async function handleRequest(
                 signal: AbortSignal.timeout(10_000),
                 body: JSON.stringify(
                   row.operation === "cancel_rep"
-                    ? { payment_id: row.invoice_id }
+                    ? {
+                      payment_id: row.invoice_id,
+                      retry_queue: { id: lease.id, token: lease.updatedAt },
+                    }
                     : row.operation === "cancel_nc"
-                    ? { credit_note_id: row.invoice_id }
-                    : { invoice_id: row.invoice_id },
+                    ? {
+                      credit_note_id: row.invoice_id,
+                      retry_queue: { id: lease.id, token: lease.updatedAt },
+                    }
+                    : {
+                      invoice_id: row.invoice_id,
+                      retry_queue: { id: lease.id, token: lease.updatedAt },
+                    },
                 ),
               },
             );
@@ -714,6 +759,25 @@ export async function handleRequest(
         });
       }
     } catch (err) {
+      if (err instanceof FiscalRetryContextError) {
+        try {
+          await markOwnedQueueRow(admin, lease, {
+            status: err.kind === "unavailable" ? "pending" : "exhausted",
+            attempts: row.attempts,
+            last_error: err.message,
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
+          });
+          results.push({ id: row.id, status: err.code });
+        } catch (queueError) {
+          results.push({
+            id: row.id,
+            status: queueError instanceof QueueMutationError
+              ? queueError.kind
+              : "queue_write_error",
+          });
+        }
+        continue;
+      }
       if (err instanceof QueueMutationError) {
         results.push({ id: row.id, status: err.kind });
         continue;
