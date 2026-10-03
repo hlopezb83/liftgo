@@ -1,3 +1,8 @@
+## [8.43.2] — 2026-10-02
+
+- El JSON utiliza el nombre ya verificado de la barra lateral cuando no se han consultado los datos fiscales; conserva el ID real de la empresa y no agrega consultas.
+- La prueba de caché confirma que el diagnóstico no toma el nombre de una organización distinta.
+
 ## [8.43.1] — 2026-10-02
 
 - Los errores, advertencias y validaciones ofrecen Copiar JSON y Ver detalles; si falla el portapapeles, el diagnóstico sigue disponible para copiarlo manualmente.

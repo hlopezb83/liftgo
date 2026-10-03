@@ -1,4 +1,4 @@
-# Auditoría de toasts y diagnósticos — LiftGo 8.43.1
+# Auditoría de toasts y diagnósticos — LiftGo 8.43.2
 
 ## Alcance
 
@@ -8,7 +8,7 @@ Revisión de 260 llamadas de notificación en 116 archivos de producción. El in
 
 1. **P1 — La copia de errores producía texto plano.** Los avisos ofrecen Copiar JSON y Ver detalles; el diálogo presenta JSON válido y seleccionable.
 2. **P1 — Los errores de operaciones asíncronas carecían de diagnóstico.** Conservan la excepción original y actualizan el mismo toast de carga; una respuesta fallida no deja un spinner huérfano.
-3. **P1 — La empresa quedaba siempre vacía en el diagnóstico.** Se utiliza el ID verificado y el nombre ya cargado en el caché de esa identidad, sin nuevas consultas ni lectura de otra empresa. El Centro global conserva empresa nula.
+3. **P1 — La empresa quedaba siempre vacía en el diagnóstico.** Se utiliza el ID verificado y el nombre ya cargado en el caché de esa identidad, incluida la identidad mínima de la barra lateral. La verificación publicada detectó este último caso en pantallas que no consultan datos fiscales completos; se corrigió en 8.43.2. No se agregan consultas ni se lee el nombre de otra empresa. El Centro global conserva empresa nula.
 4. **P1 — Copiar podía fallar sin salida útil.** No se anuncia éxito antes de confirmar el portapapeles; un rechazo abre el diagnóstico para copia manual. Cambiar de error reinicia la confirmación de copia.
 5. **P1 — Datos de diagnóstico de una sesión anterior podían permanecer visibles.** Cambiar de usuario descarta avisos y el diálogo; cerrar el diálogo libera su reporte.
 6. **P2 — Errores silenciosos sólo mostraban texto.** Soporte, capturas, operadores, comprobaciones, incorporación de catálogos y recuperación conservan su error y ofrecen JSON. Las barreras React y del router funcionan sin los proveedores de la app.

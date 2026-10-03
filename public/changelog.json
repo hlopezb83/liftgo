@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.43.2",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "fix",
+    "title": "Empresa identificada en los diagnósticos",
+    "description": "El diagnóstico conserva el nombre de la empresa también en pantallas que sólo cargan su identidad mínima.",
+    "changes": [
+      "El JSON utiliza el nombre ya verificado de la barra lateral cuando no se han consultado los datos fiscales; conserva el ID real de la empresa y no agrega consultas.",
+      "La prueba de caché confirma que el diagnóstico no toma el nombre de una organización distinta."
+    ]
+  },
+  {
     "version": "8.43.1",
     "date": "2026-10-02",
     "type": "patch",

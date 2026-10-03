@@ -20,12 +20,13 @@ export function AuthSnapshotSync(): null {
 
   useEffect(() => {
     const update = () => {
-      const company = cache.getQueryData(companySettingsQueries.keys.lists());
-      const branding = cache.getQueryData(publicBrandingQueries.keys.lists());
+      const company = cache.getQueryData<{ razon_social?: string | null }>(companySettingsQueries.keys.lists());
+      const branding = cache.getQueryData<{ razon_social?: string | null }>(publicBrandingQueries.keys.lists());
+      const sidebarName = cache.getQueryData<string>(["sidebar-organization-name", organizationId]);
       setAuthSnapshot({
         user: user ? { id: user.id, email: user.email ?? null } : null,
         organization: organizationId ? { id: organizationId,
-          name: (company as { razon_social?: string } | undefined)?.razon_social ?? (branding as { razon_social?: string } | undefined)?.razon_social ?? "" } : null,
+          name: company?.razon_social?.trim() || branding?.razon_social?.trim() || sidebarName?.trim() || "" } : null,
         role: role ?? null,
       });
     };
