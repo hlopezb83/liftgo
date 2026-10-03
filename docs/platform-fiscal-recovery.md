@@ -18,6 +18,8 @@ incierto; no habilita otro timbrado. No hay POST ni cancelación desde esta cons
 - Un ID pendiente se conserva sin UUID y pasa al conciliador existente.
 - Un CFDI válido conserva UUID, folio y serie de Facturapi; permanece en
   `stamping` hasta recuperar sus archivos. No se inventa un timbrado terminado.
+  El número usa al menos cuatro dígitos (`FAC-0042`) y conserva los folios mayores
+  completos (`FAC-12345`); nunca genera un folio fiscal propio ni lo recorta.
 - Un CFDI encontrado ya cancelado conserva también ID, UUID y folio. Un XML
   faltante queda señalado; el flujo existente de descarga puede recuperarlo.
 - Reprogramar exige ausencia observada para una emisión sin ID/UUID, o una

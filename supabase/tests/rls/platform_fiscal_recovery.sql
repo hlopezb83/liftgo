@@ -29,14 +29,14 @@ INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES(pg
 INSERT INTO public.invoices(id,invoice_number,subtotal,tax_amount,total,cfdi_status)
 SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series(31,46) n WHERE n NOT IN (32,43,44);
 INSERT INTO public.invoices(id,invoice_number,subtotal,tax_amount,total,cfdi_status)
-SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series(47,52) n;
+SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series(47,53) n;
 UPDATE public.invoices SET cfdi_status='stamping',facturapi_invoice_id='provider-33',facturapi_env='test' WHERE id=pg_temp.id(33);
 UPDATE public.invoices SET cfdi_status='stamped',facturapi_invoice_id='provider-'||right(id::text,2),
   cfdi_uuid='11111111-1111-4111-8111-111111111111',cancellation_status=CASE WHEN id=pg_temp.id(42) THEN 'pending' ELSE 'none' END
 WHERE id IN (pg_temp.id(41),pg_temp.id(42),pg_temp.id(46));
 INSERT INTO public.credit_notes(id,invoice_id,credit_note_number,motive,reason_text,subtotal,tax_amount,total,
   cfdi_status,facturapi_invoice_id,cfdi_uuid)
-VALUES(pg_temp.id(43),pg_temp.id(46),'NC-CI-0043','01','Comprobante de prueba CI',10,1.6,11.6,'stamped','provider-43','11111111-1111-4111-8111-111111111111');
+VALUES(pg_temp.id(43),pg_temp.id(46),'NC-CI-0043','correction','Comprobante de prueba CI',10,1.6,11.6,'stamped','provider-43','11111111-1111-4111-8111-111111111111');
 INSERT INTO public.payments(id,invoice_id,amount,rep_cfdi_status,rep_facturapi_id,rep_cfdi_uuid)
 VALUES(pg_temp.id(44),pg_temp.id(46),50,'stamped','provider-44','11111111-1111-4111-8111-111111111111');
 INSERT INTO public.cfdi_retry_queue(id,operation,invoice_id,payload,attempts,max_attempts,status,last_error,next_retry_at)
@@ -44,7 +44,7 @@ SELECT pg_temp.id(n),CASE WHEN n=33 THEN 'cancel_nc' WHEN n=34 THEN 'cancel_rep'
   pg_temp.id(n+10),jsonb_build_object('organization_id',pg_temp.id(12),'private','payload','_fiscal_context',
     jsonb_build_object('mode','test','fingerprint',public.platform_facturapi_fingerprint('test','sk_test_ci_recovery_a_only'))),
   CASE WHEN n=30 THEN 20 ELSE 5 END,5,'exhausted','private-original-diagnostic',now()+interval '1 day'
-FROM generate_series(21,42) n;
+FROM generate_series(21,43) n;
 -- Sin contexto del intento, la observación de configuración no permite reprogramar.
 INSERT INTO public.cfdi_retry_queue(id,operation,invoice_id,payload,attempts,max_attempts,status)
 VALUES(pg_temp.id(60),'stamp',pg_temp.id(47),'{}',5,5,'exhausted');
@@ -182,6 +182,12 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
       AND cfdi_uuid='11111111-1111-4111-8111-111111111111' AND invoice_number='FAC-0052' AND folio='52' AND cfdi_xml_pending)
     OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(42))<>'succeeded' THEN
     RAISE EXCEPTION 'CANCELLED RECOVERY: perdió identidad/folio o inventó archivos'; END IF;
+  -- Cuatro dígitos son un mínimo: un folio mayor del PAC no se puede truncar.
+  PERFORM pg_temp.start_action(43,143,'retry');
+  IF pg_temp.finish_action(143,'valid','provider-53','11111111-1111-4111-8111-111111111111','none','12345')<>'recovered'
+    OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(53) AND cfdi_status='stamping'
+      AND folio='12345' AND invoice_number='FAC-12345' AND serie='A' AND facturapi_env='test') THEN
+    RAISE EXCEPTION 'FOLIO: truncó el folio asignado por Facturapi'; END IF;
 END $$;
 -- La llave rota entre la llamada al PAC y el enqueue: se conserva la huella del intento anterior.
 UPDATE public.billing_secrets SET facturapi_test_key='sk_test_ci_rotation_before_enqueue' WHERE organization_id=pg_temp.id(11);

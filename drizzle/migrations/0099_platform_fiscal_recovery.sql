@@ -1,5 +1,57 @@
 -- Consulta de un solo documento antes de reprogramar. Nunca llama al PAC desde SQL.
 -- La configuración observada anteriormente no acredita la llave usada en el PAC.
+-- Cuatro dígitos son el mínimo visual; nunca se recorta el folio que asignó Facturapi.
+CREATE OR REPLACE FUNCTION public.assign_stamped_invoice_number(p_invoice_id uuid, p_serie text, p_folio text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+DECLARE
+  v_uid uuid := (select auth.uid());
+  v_org uuid;
+  v_new_number text;
+  v_rows int;
+BEGIN
+  IF v_uid IS NOT NULL THEN
+    IF NOT (
+      public.has_role(v_uid, 'admin'::app_role) OR public.has_role(v_uid, 'administrativo'::app_role)
+    ) THEN
+      RAISE EXCEPTION 'No autorizado' USING ERRCODE = '42501';
+    END IF;
+
+    v_org := public.current_internal_organization_id();
+    IF v_org IS NULL OR NOT public.is_internal_member(v_uid) THEN
+      RAISE EXCEPTION 'No autorizado' USING ERRCODE = '42501';
+    END IF;
+  END IF;
+
+  IF p_folio IS NULL OR p_folio = '' THEN
+    RAISE EXCEPTION 'folio required';
+  END IF;
+
+  v_new_number := 'FAC-' || lpad(p_folio, greatest(length(p_folio), 4), '0');
+
+  BEGIN
+    UPDATE public.invoices
+       SET invoice_number = v_new_number,
+           serie = COALESCE(p_serie, serie),
+           folio = p_folio
+     WHERE id = p_invoice_id
+       AND (v_org IS NULL OR organization_id = v_org);
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    IF v_rows = 0 THEN
+      RAISE EXCEPTION 'invoice % not found', p_invoice_id;
+    END IF;
+  EXCEPTION WHEN unique_violation THEN
+    RAISE EXCEPTION 'invoice_number % already assigned (concurrent stamp)', v_new_number
+      USING ERRCODE = 'unique_violation';
+  END;
+
+  RETURN v_new_number;
+END;
+$function$;
+
 ALTER TABLE public.platform_fiscal_jobs ADD COLUMN config_source text NOT NULL DEFAULT 'observed'
   CHECK(config_source IN ('observed','attempt'));
 
@@ -98,7 +150,7 @@ RETURNS text[] LANGUAGE sql IMMUTABLE SET search_path = public AS $$
     WHEN 'organizations' THEN ARRAY['organizations.read','organizations.details','organizations.create','organizations.suspend','organizations.resume']
     WHEN 'catalogs' THEN ARRAY['catalogs.read','catalogs.write','catalogs.import','templates.read','templates.publish','templates.assign','templates.import']
     WHEN 'support' THEN ARRAY['organizations.read','catalogs.read','integrations.read','integrations.check','integrations.retry','monitoring.read','support.read','support.manage']
-    WHEN 'observer' THEN ARRAY['organizations.read','catalogs.read','templates.read','audit.read','integrations.read','monitoring.read','support.read']
+    WHEN 'observer' THEN ARRAY['organizations.read','catalogs.read','templates.read','audit.read','integrations.read','monitoring.read']
     ELSE ARRAY[]::text[] END
 $$;
 UPDATE public.platform_operators SET permission_revision=permission_revision+1 WHERE access_profile IN ('root','support');
