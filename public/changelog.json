@@ -1,5 +1,18 @@
 [
   {
+    "version": "8.43.11",
+    "date": "2026-10-03",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Monitoreo sin interrupciones del ERP",
+    "description": "El ERP conserva su arranque y las operaciones autorizadas si falla una función del monitoreo.",
+    "changes": [
+      "El arranque del navegador y la integración de navegación toleran fallos de Sentry sin interrumpir el ERP.",
+      "Los diagnósticos de identidad y errores del servidor no alteran el resultado de una operación autorizada.",
+      "La clasificación de errores del servidor evita ejecutar accesores del objeto recibido; conserva el error original y omite rechazos esperados."
+    ]
+  },
+  {
     "version": "8.43.10",
     "date": "2026-10-03",
     "type": "patch",

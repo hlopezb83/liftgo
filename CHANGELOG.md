@@ -1,3 +1,9 @@
+## [8.43.11] — 2026-10-03
+
+- El arranque del navegador y la integración de navegación toleran fallos de Sentry sin interrumpir el ERP.
+- Los diagnósticos de identidad y errores del servidor no alteran el resultado de una operación autorizada.
+- La clasificación de errores del servidor evita ejecutar accesores del objeto recibido; conserva el error original y omite rechazos esperados.
+
 ## [8.43.10] — 2026-10-03
 
 - Los errores SSR y de funciones del ERP se registran con Sentry 11.4.0 sin cambiar sus respuestas ni permisos.

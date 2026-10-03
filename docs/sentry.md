@@ -1,5 +1,19 @@
 # Monitoreo de LiftGo con Sentry
 
+## Resiliencia desde 8.43.11
+
+- La inicialización del navegador y la conexión con TanStack Router contienen
+  los fallos del diagnóstico; el ERP puede continuar. Sólo una instalación
+  correcta marca la integración como conectada.
+- En SSR, el contexto asíncrono se configura dentro de la misma protección del
+  wrapper. Adjuntar identidad y capturar errores nunca cambia el resultado de
+  los permisos ni reemplaza el error original del negocio.
+- La clasificación lee propiedades de datos propias de `status`, `statusCode`
+  y `message`; no ejecuta accesores. Se mantienen los rechazos esperados y
+  los fallos de disponibilidad, la privacidad y los scopes por solicitud.
+- Las pruebas incluyen fallo de inicialización, reintento del router, fallo de
+  identidad con el SDK real y error con un accesor de estado que lanza.
+
 ## Alcance desde 8.43.8
 
 - SDK de navegador: `@sentry/react` 11.4.0. Plugin de compilación:

@@ -39,10 +39,6 @@ export async function withServerSentry(
   options = createServerSentryOptions(env ?? (request as RuntimeRequest).runtime?.cloudflare?.env),
 ): Promise<Response> {
   if (!options) return handler();
-  if (!contextStrategyInstalled) {
-    setAsyncLocalStorageAsyncContextStrategy();
-    contextStrategyInstalled = true;
-  }
   const nativeContext = getContext(request, ctx);
   const pending: Promise<unknown>[] = [];
   const context = {
@@ -57,6 +53,10 @@ export async function withServerSentry(
   let response: Response | undefined;
   let flushDeadline: number | undefined;
   try {
+    if (!contextStrategyInstalled) {
+      setAsyncLocalStorageAsyncContextStrategy();
+      contextStrategyInstalled = true;
+    }
     return await wrapRequestHandler({ options, request, context }, async () => {
       started = true;
       response = await handler();
@@ -95,36 +95,41 @@ async function settleWithinBudget(pending: Promise<unknown>[], budget = FALLBACK
 
 /** El caller ya pasó el guard. Nunca derivar identidad de headers o del input. */
 export function setVerifiedServerIdentity(identity: { userId: string; organizationId?: string; role?: string; workspace: "organization" | "platform" }): void {
-  if (!getClient()) return;
-  const scope = getIsolationScope();
-  scope.setUser({ id: identity.userId });
-  scope.setTag("workspace", identity.workspace);
-  if (identity.workspace === "platform") {
-    scope.setTag("organization_id", undefined);
-    scope.setTag("role", "platform_operator");
-  } else {
-    if (identity.organizationId) scope.setTag("organization_id", identity.organizationId);
-    if (identity.role) scope.setTag("role", identity.role);
-  }
+  try {
+    if (!getClient()) return;
+    const scope = getIsolationScope();
+    scope.setUser({ id: identity.userId });
+    scope.setTag("workspace", identity.workspace);
+    if (identity.workspace === "platform") {
+      scope.setTag("organization_id", undefined);
+      scope.setTag("role", "platform_operator");
+    } else {
+      if (identity.organizationId) scope.setTag("organization_id", identity.organizationId);
+      if (identity.role) scope.setTag("role", identity.role);
+    }
+  } catch { /* El diagnóstico no cambia el resultado de los permisos. */ }
 }
 
 /** El error completo sólo cruza el filtro del SDK; nunca copiar datos del formulario. */
 export function captureServerError(error: unknown): void {
-  if (!getClient() || isExpectedFailure(error)) return;
-  const scope = getIsolationScope();
-  if (error && typeof error === "object") {
-    let seen = reported.get(scope);
-    if (!seen) { seen = new WeakSet(); reported.set(scope, seen); }
-    if (seen.has(error)) return;
-    seen.add(error);
-  }
-  captureException(error, { mechanism: { handled: true, type: "liftgo.server" } });
+  try {
+    if (!getClient() || isExpectedFailure(error)) return;
+    const scope = getIsolationScope();
+    if (error && typeof error === "object") {
+      let seen = reported.get(scope);
+      if (!seen) { seen = new WeakSet(); reported.set(scope, seen); }
+      if (seen.has(error)) return;
+      seen.add(error);
+    }
+    captureException(error, { mechanism: { handled: true, type: "liftgo.server" } });
+  } catch { /* Conservar el resultado y el error original del negocio. */ }
 }
 
 function isExpectedFailure(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
-  const failure = error as { status?: unknown; statusCode?: unknown; message?: unknown };
-  const status = failure.status ?? failure.statusCode;
-  if (typeof status === "number" && status >= 400 && status < 500) return true;
-  return typeof failure.message === "string" && /^(?:Unauthorized|Forbidden):/.test(failure.message);
+  const status = Object.getOwnPropertyDescriptor(error, "status")?.value
+    ?? Object.getOwnPropertyDescriptor(error, "statusCode")?.value;
+  if (typeof status === "number" && Number.isInteger(status) && status >= 400 && status < 500) return true;
+  const message = Object.getOwnPropertyDescriptor(error, "message")?.value;
+  return typeof message === "string" && /^(?:Unauthorized|Forbidden):/.test(message);
 }
