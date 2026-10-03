@@ -27,4 +27,12 @@ describe("callRpc", () => {
     rpcMock.mockResolvedValue({ data: null, error: { message: "boom" } });
     await expect(callRpc("create_booking")).rejects.toEqual({ message: "boom" });
   });
+  it("conecta la señal de cancelación al request sin alterar sus argumentos", async () => {
+    const signal = new AbortController().signal;
+    const abortSignal = vi.fn().mockResolvedValue({ data: "confirmed", error: null });
+    rpcMock.mockReturnValue({ abortSignal });
+    await expect(callRpc("get_my_support_case", { p_report: "own" }, { signal })).resolves.toBe("confirmed");
+    expect(abortSignal).toHaveBeenCalledWith(signal);
+    expect(rpcMock).toHaveBeenCalledWith("get_my_support_case", { p_report: "own" });
+  });
 });

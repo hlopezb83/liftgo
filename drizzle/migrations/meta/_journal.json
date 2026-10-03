@@ -666,6 +666,13 @@
       "when": 1790978331000,
       "tag": "0094_platform_support_cases",
       "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1790988438092,
+      "tag": "0095_support_display_identity",
+      "breakpoints": true
     }
   ]
 }

@@ -23,6 +23,7 @@ export const supportDetailSchema = z.object({ case: supportCaseSchema,
     status: supportStatusSchema, severity: supportSeveritySchema, assigneeId: z.uuid().nullable(), assigneeName: z.string().nullable(), comment: z.string().nullable(), createdAt: z.string() })),
   nextCursor: revision.nullable(), assignees: z.array(z.object({ id: z.uuid(), name: z.string().nullable() })),
 });
+export type SupportDetail = z.infer<typeof supportDetailSchema>;
 export const supportUpdateSchema = z.object({ caseId: z.uuid(), revision, status: supportStatusSchema,
   severity: supportSeveritySchema, assigneeId: z.uuid().nullable(), comment: z.string().trim().max(2000).default("") });
 export type SupportUpdate = z.input<typeof supportUpdateSchema>;

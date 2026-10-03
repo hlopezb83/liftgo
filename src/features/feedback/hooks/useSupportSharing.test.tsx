@@ -1,0 +1,40 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { SUPPORT_REQUEST_TIMEOUT_MS } from "@/lib/supportRequest";
+const rpc = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/rpc", () => ({ callRpc: rpc }));
+import { useSupportSharing } from "./useSupportSharing";
+const reportId = "94000000-0000-4000-8000-000000000001";
+const input = { revision: "0", title: "Guardado incompleto", description: "Pasos revisados para reproducir", severity: "medium", requestId: null, screenshot: false };
+
+describe("compartido incierto sin reintentos ciegos", () => {
+  beforeEach(() => vi.resetAllMocks());
+  afterEach(() => vi.useRealTimers());
+  it("deja de compartir al vencer la espera y sólo desbloquea tras una consulta confirmada", async () => {
+    rpc.mockResolvedValue(null);
+    const cache = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    const wrapper = ({ children }: { children: ReactNode }) => <QueryClientProvider client={cache}>{children}</QueryClientProvider>;
+    const { result } = renderHook(() => useSupportSharing(reportId), { wrapper });
+    await waitFor(() => expect(result.current.query.isSuccess).toBe(true));
+    vi.useFakeTimers();
+    let signal: AbortSignal | undefined;
+    rpc.mockImplementation((_name, _args, options) => { signal = options.signal; return new Promise(() => {}); });
+    await act(async () => result.current.share.mutate(input));
+    await act(async () => { await vi.advanceTimersByTimeAsync(SUPPORT_REQUEST_TIMEOUT_MS + 1); });
+    expect(result.current.share.isPending).toBe(false);
+    expect(result.current.share.error?.message).toContain("no se confirmó");
+    expect(result.current.needsRefresh).toBe(true);
+    expect(signal?.aborted).toBe(true);
+    expect(rpc.mock.calls.filter(([name]) => name === "share_my_support_report")).toHaveLength(1);
+    rpc.mockRejectedValue(new Error("Sin conexión"));
+    await act(async () => { await result.current.refresh(); await vi.advanceTimersByTimeAsync(1); });
+    expect(result.current.needsRefresh).toBe(true);
+    rpc.mockResolvedValue(null);
+    await act(async () => { await result.current.refresh(); await vi.advanceTimersByTimeAsync(1); });
+    expect(result.current.needsRefresh).toBe(false);
+    expect(result.current.share.isError).toBe(false);
+    cache.clear();
+  });
+});

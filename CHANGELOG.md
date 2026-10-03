@@ -1,3 +1,11 @@
+## [8.43.3] — 2026-10-02
+
+- Las solicitudes de soporte tienen un límite de espera de 15 segundos; un resultado incierto exige consultar el caso antes de repetir y nunca se reenvía automáticamente.
+- Compartir y seguir un caso conserva el borrador ante fallas de actualización; adoptar una revisión nueva requiere una acción explícita.
+- Un guardado propio confirmado actualiza la caché de detalle antes de refrescar y no muestra un falso conflicto; los cambios de otro operador siguen protegidos.
+- La bandeja y el detalle muestran la misma razón social que el selector de empresas; la búsqueda reconoce tanto la razón social como el nombre interno.
+- Los filtros ocupan una fila alineada en escritorio y filas completas en tablet/móvil; los conteos muestran 1 caso y 1 reporte correctamente.
+
 ## [8.43.2] — 2026-10-02
 
 - El JSON utiliza el nombre ya verificado de la barra lateral cuando no se han consultado los datos fiscales; conserva el ID real de la empresa y no agrega consultas.

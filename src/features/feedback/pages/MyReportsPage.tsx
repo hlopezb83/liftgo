@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { countLabel } from "@/lib/format/countLabel";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
 import { SupportSharingDialog } from "../components/SupportSharingDialog";
@@ -107,7 +108,7 @@ export default function MyReportsPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{result?.totalCount ?? 0} reportes</CardTitle>
+          <CardTitle className="text-base">{countLabel(result?.totalCount, "reporte", "reportes")}</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isError ? (
