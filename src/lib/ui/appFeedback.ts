@@ -167,7 +167,7 @@ function resolveTitle(input: NotifyErrorInput): string {
  * Deduplicación: dos llamadas con el mismo contenido (o el mismo `dedupeKey`)
  * reemplazan el toast anterior en vez de apilar uno nuevo.
  */
-function errorToast(input: NotifyErrorInput) {
+function errorToast(input: NotifyErrorInput, toastId?: string | number) {
   const title = redactDiagnosticText(resolveTitle(input));
   const error = input.error ?? input.errors ?? input.message ?? title;
   const report = buildErrorReport({
@@ -184,14 +184,15 @@ function errorToast(input: NotifyErrorInput) {
   const detail = redactDiagnosticText(input.description ?? getErrorMessage(error));
   const description = detail === title ? undefined : detail;
   const isCritical = input.severity !== "warning";
+  const id = toastId ?? input.dedupeKey ?? toastDedupeId("error", title, description);
 
   return { title, options: {
-    id: input.dedupeKey ?? toastDedupeId("error", title, description),
+    id,
     description,
     duration: isCritical ? DURATION.errorCritical : DURATION.errorWarning,
     closeButton: true,
     action: createElement(ErrorReportActions, { key: report.requestId, report,
-      onDetails: () => openErrorReport(report), extraAction: input.action }),
+      onDetails: () => { toast.dismiss(id); openErrorReport(report); }, extraAction: input.action }),
   } };
 }
 
@@ -220,11 +221,12 @@ export interface NotifyValidationInput {
 export function notifyValidation(input: NotifyValidationInput): string | number {
   const title = input.title ?? "Revisa los datos";
   const report = buildErrorReport({ error: input.message, title, phase: "validation", errorCode: "VALIDATION_FAILED" });
+  const id = toastDedupeId("validation", title, input.message);
   return toast.warning(report.title, {
-    id: toastDedupeId("validation", title, input.message),
+    id,
     description: redactDiagnosticText(input.message),
     duration: DURATION.validation,
-    action: createElement(ErrorReportActions, { key: report.requestId, report, onDetails: () => openErrorReport(report) }),
+    action: createElement(ErrorReportActions, { key: report.requestId, report, onDetails: () => { toast.dismiss(id); openErrorReport(report); } }),
   });
 }
 
@@ -273,12 +275,14 @@ export function notifyWarning(input: string | NotifySimpleInput, opts?: SimpleOp
   const value = typeof input === "string" ? { title: input, ...opts } : input;
   const report = buildErrorReport({ title: value.title, description: value.description, error: value.error ?? value.description ?? value.title,
     phase: "warning", context: value.context });
+  const id = opts?.dedupeKey ?? toastDedupeId("warning", report.title, value.description);
   return toast.warning(report.title, {
     ...buildOpts("warning", report.title, value, DURATION.warning),
+    id,
     description: value.description ? redactDiagnosticText(value.description) : undefined,
     duration: opts?.durationMs ?? (value.action ? 10000 : DURATION.warning),
     action: createElement(ErrorReportActions, { key: report.requestId, report,
-      onDetails: () => openErrorReport(report), extraAction: value.action }),
+      onDetails: () => { toast.dismiss(id); openErrorReport(report); }, extraAction: value.action }),
   });
 }
 
@@ -307,12 +311,14 @@ export interface NotifyAsyncMessages<T> {
  * Retorna la misma promesa para que se pueda hacer `await`.
  */
 export function notifyAsync<T>(promise: Promise<T>, msgs: NotifyAsyncMessages<T>): Promise<T> {
+  const id = crypto.randomUUID();
   toast.promise(promise, {
+    id,
     loading: msgs.loading,
     success: (data) => ({ message: typeof msgs.success === "function" ? msgs.success(data) : msgs.success, duration: DURATION.success }),
     error: (err) => {
       const title = typeof msgs.error === "function" ? msgs.error(err) : msgs.error ?? "No se pudo completar la operación";
-      const result = errorToast({ error: err, title, phase: "async", context: { operation: msgs.loading } });
+      const result = errorToast({ error: err, title, phase: "async", context: { operation: msgs.loading } }, id);
       return { message: result.title, description: result.options.description, duration: result.options.duration,
         closeButton: true, action: result.options.action };
     },

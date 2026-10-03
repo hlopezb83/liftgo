@@ -2,6 +2,7 @@ import * as SheetPrimitive from "@radix-ui/react-dialog";
 import { cva, type VariantProps } from "class-variance-authority";
 import { X } from "@/components/icons";
 import type { ComponentPropsWithoutRef, ElementRef, HTMLAttributes, Ref } from "react";
+import { preserveToastInteraction } from "@/components/ui/notification-interaction";
 import { cn } from "@/lib/utils";
 
 const Sheet = SheetPrimitive.Root;
@@ -49,11 +50,12 @@ interface SheetContentProps
   extends ComponentPropsWithoutRef<typeof SheetPrimitive.Content>,
     VariantProps<typeof sheetVariants> {}
 
-const SheetContent = ({ side = "right", className, children, ref, ...props }: SheetContentProps & { ref?: Ref<ElementRef<typeof SheetPrimitive.Content>> }) => {
+const SheetContent = ({ side = "right", className, children, ref, onInteractOutside, ...props }: SheetContentProps & { ref?: Ref<ElementRef<typeof SheetPrimitive.Content>> }) => {
   return (
     <SheetPortal>
       <SheetOverlay />
-      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}>
+      <SheetPrimitive.Content ref={ref} className={cn(sheetVariants({ side }), className)} {...props}
+        onInteractOutside={(event) => preserveToastInteraction(event, onInteractOutside)}>
         {children}
         {/* GUI-FE-10: área táctil ≥44px sin mover el ícono (padding + margen negativo). */}
         {/* R6-FE-09: touch:p-3 daba 40px; min 44×44 en táctil. */}
