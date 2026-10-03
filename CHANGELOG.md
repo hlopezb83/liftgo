@@ -1,3 +1,8 @@
+## [8.43.7] — 2026-10-03
+
+- El botón Reintentar de los errores de consulta ejecuta sólo la consulta, incluso dentro de filtros o formularios.
+- Su área de acción mantiene al menos 44 px, junto a Copiar JSON y Ver detalles.
+
 ## [8.43.6] — 2026-10-03
 
 - Bandeja de trabajos fiscales con filtros por empresa, folio o ID, operación y estado; paginación de 25 trabajos.
