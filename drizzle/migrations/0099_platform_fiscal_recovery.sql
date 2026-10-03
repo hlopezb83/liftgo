@@ -315,7 +315,9 @@ BEGIN
   SELECT * INTO j FROM public.platform_fiscal_jobs WHERE id=a.job_id FOR UPDATE;
   SELECT * INTO a FROM public.platform_fiscal_actions WHERE id=p_request FOR UPDATE;
   IF a.status<>'pending' THEN RETURN a.status; END IF;
-  v_queue:=a.previous_state->>'status';
+  -- Una consulta sin resolución no devuelve a la cola automática un trabajo pendiente.
+  -- Sólo la rama de reprogramación comprobada puede habilitar otro intento.
+  v_queue:=CASE WHEN a.previous_state->>'status'='pending' THEN 'exhausted' ELSE a.previous_state->>'status' END;
   v_doc:=public.platform_fiscal_document_snapshot(j,true);
   SELECT cs.facturapi_mode,CASE cs.facturapi_mode WHEN 'test' THEN bs.facturapi_test_key WHEN 'live' THEN bs.facturapi_live_key END
     INTO v_mode,v_key FROM public.company_settings cs LEFT JOIN public.billing_secrets bs ON bs.organization_id=cs.organization_id
@@ -328,13 +330,17 @@ BEGIN
     OR NOT EXISTS(SELECT 1 FROM public.organizations WHERE id=a.organization_id AND is_active)
     OR EXISTS(SELECT 1 FROM public.billing_secrets WHERE organization_id<>a.organization_id AND (facturapi_test_key=v_key OR facturapi_live_key=v_key)) THEN v_status:='config_changed';
   ELSIF (a.document_snapshot->>'providerId' IS NOT NULL AND p_provider_id IS DISTINCT FROM a.document_snapshot->>'providerId' AND p_outcome<>'inconclusive')
-    OR (a.document_snapshot->>'uuid' IS NOT NULL AND p_uuid IS DISTINCT FROM a.document_snapshot->>'uuid' AND p_outcome NOT IN ('pending','failed','inconclusive')) THEN v_status:='inconclusive';
+    OR (a.document_snapshot->>'uuid' IS NOT NULL AND p_uuid::uuid IS DISTINCT FROM (a.document_snapshot->>'uuid')::uuid
+      AND p_outcome NOT IN ('pending','failed','inconclusive')) THEN v_status:='inconclusive';
   ELSE
     PERFORM set_config('app.organization_id',a.organization_id::text,true);
     IF j.operation='stamp' AND p_outcome IN ('valid','pending') AND coalesce(p_cancellation,'none')<>'accepted' THEN
       IF v_doc->>'status' IN ('pending','error','stamping') AND v_doc->>'uuid' IS NULL THEN
-        UPDATE public.invoices SET facturapi_invoice_id=p_provider_id,cfdi_uuid=p_uuid,cfdi_status='stamping',
-          facturapi_env=a.mode,folio=coalesce(p_folio,folio),serie=coalesce(p_series,serie),cfdi_error_message=NULL,updated_at=clock_timestamp()
+        UPDATE public.invoices SET facturapi_invoice_id=p_provider_id,cfdi_uuid=p_uuid::uuid,cfdi_status='stamping',
+          facturapi_env=a.mode,folio=coalesce(p_folio,folio),serie=coalesce(p_series,serie),cfdi_error_message=NULL,
+          cancellation_status=CASE WHEN p_outcome='valid' THEN coalesce(p_cancellation,cancellation_status) ELSE cancellation_status END,
+          cancellation_requested_at=CASE WHEN p_outcome='valid' AND p_cancellation='pending'
+            THEN coalesce(cancellation_requested_at,clock_timestamp()) ELSE cancellation_requested_at END,updated_at=clock_timestamp()
           WHERE id=j.document_id AND organization_id=j.organization_id;
         IF p_outcome='valid' AND v_doc->>'invoiceNumber' LIKE 'BORRADOR-%' THEN
           PERFORM public.assign_stamped_invoice_number(j.document_id,p_series,p_folio);
@@ -345,7 +351,7 @@ BEGIN
       IF j.operation='stamp' THEN
         -- Un CFDI encontrado ya cancelado conserva su identidad y folio del PAC.
         -- SQL no descarga archivos: el XML faltante sigue visible y se recupera al descargar.
-        UPDATE public.invoices SET facturapi_invoice_id=p_provider_id,cfdi_uuid=p_uuid,facturapi_env=a.mode,
+        UPDATE public.invoices SET facturapi_invoice_id=p_provider_id,cfdi_uuid=p_uuid::uuid,facturapi_env=a.mode,
           folio=p_folio,serie=coalesce(p_series,serie),cancellation_status='accepted',cfdi_status='cancelled',status='cancelled',
           cancelled_at=coalesce(cancelled_at,clock_timestamp()),cfdi_error_message=NULL,
           cfdi_xml_pending=(nullif(cfdi_xml,'') IS NULL AND nullif(cfdi_xml_url,'') IS NULL),updated_at=clock_timestamp()
@@ -364,7 +370,23 @@ BEGIN
           WHERE id=j.document_id AND organization_id=j.organization_id;
       END IF;
       v_status:='cancelled'; v_queue:='succeeded';
-    ELSIF p_outcome='pending' OR p_cancellation='pending' THEN v_status:='cancellation_pending';
+    ELSIF p_outcome='valid' AND p_cancellation='pending' THEN
+      -- Confirmado con ID/UUID: el ERP tampoco debe solicitar otra cancelación.
+      IF j.operation='cancel_rep' THEN
+        UPDATE public.payments SET rep_cancellation_status='pending',
+          rep_cancellation_requested_at=coalesce(rep_cancellation_requested_at,clock_timestamp())
+          WHERE id=j.document_id AND organization_id=j.organization_id;
+      ELSIF j.operation='cancel_nc' THEN
+        UPDATE public.credit_notes SET cancellation_status='pending',
+          cancellation_requested_at=coalesce(cancellation_requested_at,clock_timestamp()),updated_at=clock_timestamp()
+          WHERE id=j.document_id AND organization_id=j.organization_id;
+      ELSE
+        UPDATE public.invoices SET cancellation_status='pending',
+          cancellation_requested_at=coalesce(cancellation_requested_at,clock_timestamp()),updated_at=clock_timestamp()
+          WHERE id=j.document_id AND organization_id=j.organization_id;
+      END IF;
+      v_status:='cancellation_pending';
+    ELSIF p_outcome='pending' THEN v_status:='inconclusive';
     ELSIF p_outcome='failed' THEN v_status:='provider_failed';
     ELSIF a.intent='retry' AND ((j.operation='stamp' AND p_outcome='missing' AND v_doc->>'providerId' IS NULL
       AND v_doc->>'uuid' IS NULL AND v_doc->>'status' IN ('pending','error')) OR

@@ -24,6 +24,9 @@ incierto; no habilita otro timbrado. No hay POST ni cancelación desde esta cons
   faltante queda señalado; el flujo existente de descarga puede recuperarlo.
 - Reprogramar exige ausencia observada para una emisión sin ID/UUID, o una
   cancelación confirmada como disponible. Una cancelación pendiente no se reenvía.
+  Un resultado incierto o fallido pausa los reintentos automáticos del trabajo.
+  Una cancelación pendiente confirmada con ID/UUID se conserva también en el
+  documento, para impedir que el ERP vuelva a solicitarla.
 - Conserva payload, intentos, folio y diagnóstico anterior. Agrega como máximo
   un intento disponible, con límite de cinco reprogramaciones y veinte intentos.
 - Repetir el mismo ID de solicitud no repite el GET. Ante respuesta de transporte

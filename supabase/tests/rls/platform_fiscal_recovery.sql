@@ -34,22 +34,30 @@ SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,'Cliente fiscal CI A',
 INSERT INTO public.invoices(id,invoice_number,customer_name,line_items,subtotal,tax_amount,total,cfdi_status)
 SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,'Cliente fiscal CI A',
   '[{"description":"Renta de montacargas","quantity":1,"unit_price":100,"amount":100}]'::jsonb,
-  100,16,116,'error' FROM generate_series(47,53) n;
+  100,16,116,'error' FROM generate_series(47,56) n;
 UPDATE public.invoices SET cfdi_status='stamping',facturapi_invoice_id='provider-33',facturapi_env='test' WHERE id=pg_temp.id(33);
 UPDATE public.invoices SET status='sent',cfdi_status='stamped',facturapi_invoice_id='provider-'||right(id::text,2),
   cfdi_uuid='11111111-1111-4111-8111-111111111111',cancellation_status=CASE WHEN id=pg_temp.id(42) THEN 'pending' ELSE 'none' END
-WHERE id IN (pg_temp.id(41),pg_temp.id(42),pg_temp.id(46));
+WHERE id IN (pg_temp.id(41),pg_temp.id(42),pg_temp.id(46),pg_temp.id(55));
+UPDATE public.invoices SET cfdi_uuid='abcdefab-1234-4123-8123-abcdefabcdef' WHERE id=pg_temp.id(55);
 INSERT INTO public.credit_notes(id,invoice_id,credit_note_number,motive,reason_text,subtotal,tax_amount,total,
   cfdi_status,facturapi_invoice_id,cfdi_uuid)
 VALUES(pg_temp.id(43),pg_temp.id(46),'NC-CI-0043','correction','Comprobante de prueba CI',10,1.6,11.6,'stamped','provider-43','11111111-1111-4111-8111-111111111111');
 INSERT INTO public.payments(id,invoice_id,amount,rep_cfdi_status,rep_facturapi_id,rep_cfdi_uuid)
 VALUES(pg_temp.id(44),pg_temp.id(46),50,'stamped','provider-44','11111111-1111-4111-8111-111111111111');
+INSERT INTO public.credit_notes(id,invoice_id,credit_note_number,motive,reason_text,line_items,subtotal,tax_amount,total,
+  status,cfdi_status,facturapi_invoice_id,cfdi_uuid)
+VALUES(pg_temp.id(57),pg_temp.id(46),'NC-CI-0057','correction','Ajuste de renta',
+  '[{"description":"Ajuste de renta","quantity":1,"unit_price":10,"amount":10}]',10,1.6,11.6,
+  'stamped','stamped','provider-57','11111111-1111-4111-8111-111111111111');
+INSERT INTO public.payments(id,invoice_id,amount,rep_cfdi_status,rep_facturapi_id,rep_cfdi_uuid)
+VALUES(pg_temp.id(58),pg_temp.id(46),25,'stamped','provider-58','11111111-1111-4111-8111-111111111111');
 INSERT INTO public.cfdi_retry_queue(id,operation,invoice_id,payload,attempts,max_attempts,status,last_error,next_retry_at)
-SELECT pg_temp.id(n),CASE WHEN n=33 THEN 'cancel_nc' WHEN n=34 THEN 'cancel_rep' WHEN n IN (31,32) THEN 'cancel' ELSE 'stamp' END,
+SELECT pg_temp.id(n),CASE WHEN n IN (33,47) THEN 'cancel_nc' WHEN n IN (34,48) THEN 'cancel_rep' WHEN n IN (31,32,45) THEN 'cancel' ELSE 'stamp' END,
   pg_temp.id(n+10),jsonb_build_object('organization_id',pg_temp.id(12),'private','payload','_fiscal_context',
     jsonb_build_object('mode','test','fingerprint',public.platform_facturapi_fingerprint('test','sk_test_ci_recovery_a_only'))),
   CASE WHEN n=30 THEN 20 ELSE 5 END,5,'exhausted','private-original-diagnostic',now()+interval '1 day'
-FROM generate_series(21,43) n;
+FROM generate_series(21,48) n;
 -- Sin contexto del intento, la observación de configuración no permite reprogramar.
 INSERT INTO public.cfdi_retry_queue(id,operation,invoice_id,payload,attempts,max_attempts,status)
 VALUES(pg_temp.id(60),'stamp',pg_temp.id(47),'{}',5,5,'exhausted');
@@ -193,6 +201,36 @@ DO $$ DECLARE v jsonb; v_status text; v_rows integer; v_rejected boolean; BEGIN
     OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(53) AND cfdi_status='stamping'
       AND folio='12345' AND invoice_number='FAC-12345' AND serie='A' AND facturapi_env='test') THEN
     RAISE EXCEPTION 'FOLIO: truncó el folio asignado por Facturapi'; END IF;
+  -- Un resultado incierto o fallido pausa también una cola que antes estaba pendiente.
+  UPDATE public.cfdi_retry_queue SET status='pending',max_attempts=6 WHERE id IN
+    (pg_temp.id(44),pg_temp.id(45),pg_temp.id(46),pg_temp.id(47),pg_temp.id(48));
+  PERFORM pg_temp.start_action(44,144,'retry');
+  IF pg_temp.finish_action(144,'inconclusive')<>'inconclusive' OR NOT EXISTS(
+    SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(44) AND status='exhausted' AND attempts=5 AND max_attempts=6) THEN
+    RAISE EXCEPTION 'UNCERTAIN PENDING: habilitó otro intento sin resolución'; END IF;
+  PERFORM pg_temp.start_action(46,146,'retry');
+  IF pg_temp.finish_action(146,'failed','provider-56')<>'provider_failed' OR NOT EXISTS(
+    SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(46) AND status='exhausted' AND attempts=5 AND max_attempts=6) THEN
+    RAISE EXCEPTION 'FAILED PENDING: habilitó otro intento con un fallo del PAC'; END IF;
+  -- Una cancelación pendiente en el PAC se conserva en el ERP para bloquear otro POST.
+  PERFORM pg_temp.start_action(45,145,'retry');
+  IF pg_temp.finish_action(145,'valid','provider-55','ABCDEFAB-1234-4123-8123-ABCDEFABCDEF','pending','55')<>'cancellation_pending'
+    OR NOT EXISTS(SELECT 1 FROM public.invoices WHERE id=pg_temp.id(55) AND cancellation_status='pending'
+      AND cancellation_requested_at IS NOT NULL AND cfdi_status='stamped')
+    OR NOT EXISTS(SELECT 1 FROM public.cfdi_retry_queue WHERE id=pg_temp.id(45) AND status='exhausted' AND attempts=5 AND max_attempts=6) THEN
+    RAISE EXCEPTION 'PAC PENDING: permitió reenviar una cancelación confirmada pendiente'; END IF;
+  PERFORM pg_temp.start_action(47,147,'retry');
+  IF pg_temp.finish_action(147,'valid','provider-57','11111111-1111-4111-8111-111111111111','pending','57')<>'cancellation_pending'
+    OR NOT EXISTS(SELECT 1 FROM public.credit_notes WHERE id=pg_temp.id(57) AND cancellation_status='pending'
+      AND cancellation_requested_at IS NOT NULL AND cfdi_status='stamped')
+    OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(47))<>'exhausted' THEN
+    RAISE EXCEPTION 'NC PAC PENDING: permitió reenviar la cancelación pendiente'; END IF;
+  PERFORM pg_temp.start_action(48,148,'retry');
+  IF pg_temp.finish_action(148,'valid','provider-58','11111111-1111-4111-8111-111111111111','pending','58')<>'cancellation_pending'
+    OR NOT EXISTS(SELECT 1 FROM public.payments WHERE id=pg_temp.id(58) AND rep_cancellation_status='pending'
+      AND rep_cancellation_requested_at IS NOT NULL AND rep_cfdi_status='stamped')
+    OR (SELECT status FROM public.cfdi_retry_queue WHERE id=pg_temp.id(48))<>'exhausted' THEN
+    RAISE EXCEPTION 'REP PAC PENDING: permitió reenviar la cancelación pendiente'; END IF;
 END $$;
 -- La llave rota entre la llamada al PAC y el enqueue: se conserva la huella del intento anterior.
 UPDATE public.billing_secrets SET facturapi_test_key='sk_test_ci_rotation_before_enqueue' WHERE organization_id=pg_temp.id(11);
