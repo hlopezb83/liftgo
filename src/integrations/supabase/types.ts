@@ -2205,7 +2205,7 @@ export type Database = {
           context_json?: Json
           created_at?: string
           description: string
-          folio?: string
+          folio: string
           id?: string
           module?: string
           organization_id: string
@@ -4184,6 +4184,137 @@ export type Database = {
         }
         Relationships: []
       }
+      platform_support_cases: {
+        Row: {
+          app_version: string | null
+          assignee_id: string | null
+          created_at: string
+          description: string | null
+          folio: string
+          id: string
+          module: string | null
+          organization_id: string
+          report_id: string | null
+          reporter_id: string | null
+          request_id: string | null
+          revision: number
+          screenshot_path: string | null
+          severity: string
+          shared_until: string
+          status: string
+          title: string | null
+          updated_at: string
+          withdrawn_at: string | null
+        }
+        Insert: {
+          app_version?: string | null
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          folio: string
+          id?: string
+          module?: string | null
+          organization_id: string
+          report_id?: string | null
+          reporter_id?: string | null
+          request_id?: string | null
+          revision?: number
+          screenshot_path?: string | null
+          severity: string
+          shared_until?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Update: {
+          app_version?: string | null
+          assignee_id?: string | null
+          created_at?: string
+          description?: string | null
+          folio?: string
+          id?: string
+          module?: string | null
+          organization_id?: string
+          report_id?: string | null
+          reporter_id?: string | null
+          request_id?: string | null
+          revision?: number
+          screenshot_path?: string | null
+          severity?: string
+          shared_until?: string
+          status?: string
+          title?: string | null
+          updated_at?: string
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_support_cases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_support_cases_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: true
+            referencedRelation: "feedback_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_support_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_name: string | null
+          assignee_id: string | null
+          assignee_name: string | null
+          case_id: string
+          comment: string | null
+          created_at: string
+          id: number
+          severity: string
+          status: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_name?: string | null
+          assignee_id?: string | null
+          assignee_name?: string | null
+          case_id: string
+          comment?: string | null
+          created_at?: string
+          id?: never
+          severity: string
+          status: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_name?: string | null
+          assignee_id?: string | null
+          assignee_name?: string | null
+          case_id?: string
+          comment?: string | null
+          created_at?: string
+          id?: never
+          severity?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_support_events_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "platform_support_cases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -5898,6 +6029,36 @@ export type Database = {
         Args: { _target_user_id: string }
         Returns: undefined
       }
+      assert_own_support_report: {
+        Args: { p_report: string }
+        Returns: {
+          admin_notes: string | null
+          context_json: Json
+          created_at: string
+          description: string
+          folio: string
+          id: string
+          module: string
+          organization_id: string
+          points_awarded: number
+          reporter_id: string
+          reporter_name: string | null
+          reporter_type: string
+          resolved_at: string | null
+          screenshot_url: string | null
+          severity: string | null
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "feedback_reports"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       assert_platform_capability: {
         Args: { p_actor: string; p_capability: string }
         Returns: undefined
@@ -6479,6 +6640,7 @@ export type Database = {
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
       get_my_feedback_points_total: { Args: never; Returns: number }
+      get_my_support_case: { Args: { p_report: string }; Returns: Json }
       get_occupied_forklift_ids_today: {
         Args: never
         Returns: {
@@ -6999,6 +7161,15 @@ export type Database = {
         Args: { p_actor: string; p_organization_id: string }
         Returns: Json
       }
+      platform_get_support: {
+        Args: {
+          p_actor: string
+          p_before?: number
+          p_case: string
+          p_session: string
+        }
+        Returns: Json
+      }
       platform_grant_operator: {
         Args: { p_actor: string; p_notes?: string; p_user_id: string }
         Returns: undefined
@@ -7141,6 +7312,18 @@ export type Database = {
         Args: { p_actor: string; p_offset?: number }
         Returns: Json
       }
+      platform_list_support: {
+        Args: {
+          p_actor: string
+          p_offset?: number
+          p_org?: string
+          p_search?: string
+          p_session: string
+          p_severity?: string
+          p_status?: string
+        }
+        Returns: Json
+      }
       platform_onboarding_view: {
         Args: { p_request_id: string }
         Returns: Json
@@ -7203,6 +7386,14 @@ export type Database = {
         Args: { p_active: boolean; p_actor: string; p_id: string }
         Returns: undefined
       }
+      platform_support_assert: {
+        Args: { p_actor: string; p_session: string; p_write?: boolean }
+        Returns: undefined
+      }
+      platform_support_screenshot: {
+        Args: { p_actor: string; p_case: string; p_session: string }
+        Returns: string
+      }
       platform_update_equipment_model_catalog: {
         Args: {
           p_actor: string
@@ -7234,6 +7425,19 @@ export type Database = {
         }
         Returns: undefined
       }
+      platform_update_support: {
+        Args: {
+          p_actor: string
+          p_assignee: string
+          p_case: string
+          p_comment?: string
+          p_revision: string
+          p_session: string
+          p_severity: string
+          p_status: string
+        }
+        Returns: Json
+      }
       prepare_payment_complement: {
         Args: { p_payment_id: string }
         Returns: Json
@@ -7255,6 +7459,7 @@ export type Database = {
       }
       purge_e2e_audit_logs: { Args: never; Returns: number }
       purge_e2e_data: { Args: never; Returns: Json }
+      purge_expired_support_diagnostics: { Args: never; Returns: number }
       purge_old_notifications: { Args: never; Returns: number }
       quote_sale_units_unassigned: {
         Args: { p_quote_id: string }
@@ -7722,6 +7927,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      share_my_support_report: {
+        Args: {
+          p_description: string
+          p_report: string
+          p_request?: string
+          p_revision: string
+          p_screenshot?: boolean
+          p_severity: string
+          p_title: string
+        }
+        Returns: Json
+      }
       soft_delete_customer: {
         Args: { p_customer_id: string }
         Returns: undefined
@@ -7765,6 +7982,7 @@ export type Database = {
         Args: { p: string; p_require_prefix?: boolean }
         Returns: boolean
       }
+      support_case_projection: { Args: { p_id: string }; Returns: Json }
       sync_forklift_rental_status: {
         Args: never
         Returns: {
@@ -7838,6 +8056,10 @@ export type Database = {
       validate_legal_template_content: {
         Args: { p_content: Json }
         Returns: undefined
+      }
+      withdraw_my_support_report: {
+        Args: { p_report: string; p_revision: string }
+        Returns: Json
       }
     }
     Enums: {
