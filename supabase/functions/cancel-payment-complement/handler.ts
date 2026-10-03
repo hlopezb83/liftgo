@@ -8,9 +8,9 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
-  loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
+import { loadRetryAwareFacturapiConfig } from "../_shared/facturapi/retryContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -182,17 +182,23 @@ export async function handleCancelPaymentComplement(
     // posterior chocaría con su propio 'pending'.
     const releaseClaim = releaseClaimRef;
 
-    const cfgOutcome = await loadFacturapiConfigOutcome({
+    const cfgOutcome = await loadRetryAwareFacturapiConfig({
       admin: supabase,
       env: deps.env,
       organizationId,
+      body,
+      isServiceRole: auth.isServiceRole,
+      documentId: payment_id as string,
+      operation: "cancel_rep",
     });
     if (!cfgOutcome.ok) {
       // 8.8.7: configuración fiscal no resoluble ⇒ liberar claim, sin PAC.
       await releaseClaim();
-      return jsonError(req, cfgOutcome.status, cfgOutcome.message);
+      return jsonError(req, cfgOutcome.status, cfgOutcome.message, {
+        code: cfgOutcome.code,
+      });
     }
-    const { apiKey } = cfgOutcome;
+    const { apiKey, mode } = cfgOutcome;
     if (!apiKey) {
       await releaseClaim();
       return jsonError(
@@ -253,6 +259,7 @@ export async function handleCancelPaymentComplement(
       if (isTransientFacturapiError(desc)) {
         await enqueueCfdiRetry(supabase, {
           operation: "cancel_rep",
+          fiscalConfig: { apiKey, mode },
           invoiceId: payment_id as string,
           payload: {
             motive: motiveCode,

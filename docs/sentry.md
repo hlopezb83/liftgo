@@ -1,5 +1,13 @@
 # Monitoreo de LiftGo con Sentry
 
+## Diagnóstico local cuando falla el SDK
+
+`captureOperationalError` contiene los fallos al consultar el cliente, crear el
+scope o capturar el incidente. Los toasts conservan el error original, su JSON
+copiable y la acción de detalles, incluidos los toasts asíncronos. Un intento
+fallido de captura puede reintentarse; la deduplicación se aplica tras capturar.
+Las pruebas ejercitan la copia real al portapapeles con el SDK simulado fallando.
+
 ## Resiliencia desde 8.43.11
 
 - La inicialización del navegador y la conexión con TanStack Router contienen
@@ -147,3 +155,50 @@ los logs de Cloud, sin un endpoint de diagnóstico público.
 - [Código del SDK](https://github.com/getsentry/sentry-javascript/tree/11.4.0/packages)
 - [Cloudflare Workers](https://docs.sentry.io/platforms/javascript/guides/cloudflare/)
 - [Wrapper público de solicitudes](https://github.com/getsentry/sentry-javascript/blob/11.4.0/packages/cloudflare/src/request.ts)
+
+## Piloto Deno en Lovable Cloud
+
+El runtime observado declara Deno 2.1.4. Sentry 11 requiere Deno >=2.8.3;
+por ello el piloto usa el SDK oficial `@sentry/deno` 10.76.0, fijado en imports,
+y un `deno.lock` de formato 4 compatible con Deno 2.1 y 2.9. El SDK del
+navegador y SSR permanece en 11.4.0. Todos los paquetes npm del lock cumplieron
+24 horas antes de resolver el grafo; Bun conserva su política sin excepciones.
+
+Sólo `parse-csf` activa el wrapper. Su handler conserva permisos, límite de
+uso, tamaño de PDF, prompt, modelo, respuestas y normalización fiscal. Adjunta
+actor/rol después de Auth; no obtiene una empresa del PDF, headers o payload.
+Al no disponer de empresa verificada, el piloto no añade un tag empresarial.
+
+La observación usa la integración pública DenoServe con ALS, sin configurar
+OpenTelemetry. Cada Request y trabajo tiene su contexto. Los jobs de empresa
+usan `withVerifiedEdgeJob` con una identidad obtenida del servidor; aún no se
+instrumentan los otros handlers ni los cron fiscales. Los endpoints retirados
+siguen retirados.
+
+El SDK inicializa una vez. Capturas, contexto, transporte y cleanup fallidos no
+interrumpen ni repiten la operación; prevalecen su respuesta y excepción original.
+Un error del trabajo no se recaptura con la empresa del padre, incluso si falla
+su contexto o captura. Una captura fallida puede reintentarse en su propio scope.
+El envío usa `waitUntil` cuando está disponible, con alternativa acotada a 500 ms.
+
+Antes de enviar se conserva sólo una lista de campos permitidos: IDs verificados,
+rol/función, release y archivo/línea de stack. Se descartan documento, RFC, prompt,
+claves, headers, cuerpos, mensajes del proveedor, extras y breadcrumbs. Logs,
+métricas, trazas y Replay están apagados. Los rechazos esperados 4xx no generan
+incidentes; un 500 explícito prevalece sobre un 4xx adjunto al error.
+
+Las pruebas usan el SDK real con transporte en memoria. El CI descarga primero
+el grafo y ejecuta después sin acceso externo. La prueba del CLI 2.1.4 no acredita
+por sí sola compatibilidad con el host de Cloud ni recepción en la cuenta Sentry.
+
+Para verificar el despliegue del piloto, hacer OPTIONS sin credenciales ni PDF
+con Origin de LiftGo, comprobar HTTP/CORS y el log `liftgo.edge.sentry` con
+`sdk:10.76.0`, `active:true`. Comprobar también el log de runtime. Si no inicia,
+restaurar la entrada anterior de `parse-csf` y desplegarla; ningún dato requiere
+migración. `SENTRY_ENABLED=0` desactiva capturas una vez importado el módulo,
+pero no sustituye ese rollback ante un fallo de importación.
+
+La activación en Cloud y recepción, mapas, cuotas, retención y alertas continúan
+pendientes hasta contar con evidencia del entorno/cuenta. Las otras 18 funciones
+activas requieren instrumentación por familias después del piloto.
+

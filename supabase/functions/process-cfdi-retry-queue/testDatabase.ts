@@ -17,6 +17,17 @@ export const VERSION = "2026-01-01T00:00:00.000Z";
 /** Modelo de filtros y RETURNING; no contiene decisiones fiscales del consumidor. */
 export function testDatabase() {
   const tables: Record<string, Row[]> = {
+    platform_fiscal_jobs: [{
+      id: QUEUE_ID,
+      organization_id: ORG_A,
+      document_id: INVOICE_ID,
+      operation: "stamp",
+      mode_at_enqueue: "test",
+      config_source: "attempt",
+      removed: false,
+      key_fingerprint:
+        "cb77d1a4288d32cfafee5bbfa0ec0cef8b09aacc05daf1f7e0d9135bb05743ac",
+    }],
     cfdi_retry_queue: [{
       id: QUEUE_ID,
       organization_id: ORG_A,
@@ -86,6 +97,10 @@ export function testDatabase() {
           q.filters.push((row) => row[key] !== value);
           return builder;
         },
+        in: (key: string, values: unknown[]) => {
+          q.filters.push((row) => values.includes(row[key]));
+          return builder;
+        },
         is: (key: string, value: unknown) => {
           q.filters.push((row) => row[key] === value);
           return builder;
@@ -104,6 +119,10 @@ export function testDatabase() {
           return builder;
         },
         maybeSingle: () => {
+          q.single = true;
+          return Promise.resolve(run(q));
+        },
+        single: () => {
           q.single = true;
           return Promise.resolve(run(q));
         },

@@ -8,6 +8,7 @@ export const fiscalJobStateSchema = z.object({ status: fiscalQueueStatusSchema, 
 export const fiscalJobSchema = z.object({ id: z.uuid(), organizationId: z.uuid(), organizationName: z.string(),
   documentId: z.uuid(), folio: z.string().nullable(), documentStatus: z.string().nullable(), documentAvailable: z.boolean(),
   hasUuid: z.boolean(), hasProviderId: z.boolean(), operation: fiscalOperationSchema, revision: cursor,
+  configurationVerified: z.boolean().default(false),
   modeAtEnqueue: z.enum(["test", "live"]).nullable(), currentMode: z.enum(["test", "live"]).nullable(),
   createdAt: z.string(), observedAt: z.string(), removed: z.boolean(), state: fiscalJobStateSchema });
 export type FiscalJob = z.infer<typeof fiscalJobSchema>;

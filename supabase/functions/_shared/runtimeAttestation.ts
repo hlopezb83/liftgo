@@ -33,7 +33,11 @@ export async function inspectEdgeRuntime(
   } catch {
     // No copiar al log el error de importación o datos del host.
   }
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(version.deno);
+  // Cloud declara su versión compatible dentro de la etiqueta del Edge Runtime.
+  const compatible =
+    /^supabase-edge-runtime-\d+\.\d+\.\d+ \(compatible with Deno v(\d+\.\d+\.\d+)\)$/
+      .exec(version.deno)?.[1];
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(compatible ?? version.deno);
   const [major, minor, patch] = match ? match.slice(1).map(Number) : [0, 0, 0];
   const minimumVersion = major > 2 ||
     (major === 2 && (minor > 8 || (minor === 8 && patch >= 3)));

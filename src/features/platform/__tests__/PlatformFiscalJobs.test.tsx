@@ -3,6 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const api = vi.hoisted(() => ({ detail: vi.fn() }));
 vi.mock("@/lib/platformFiscalJobs.functions", () => ({ getPlatformFiscalJobFn: api.detail }));
+vi.mock("@/lib/platformFiscalActions.functions", () => ({ listPlatformFiscalActionsFn: async () => [] }));
 import { PlatformFiscalJobDetail } from "../components/PlatformFiscalJobDetail";
 import { canAccessPlatformRoute } from "../hooks/usePlatformAccess";
 import { fiscalJobGuidance } from "../lib/fiscalJobPresentation";
