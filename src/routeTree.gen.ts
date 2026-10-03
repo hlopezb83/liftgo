@@ -43,6 +43,7 @@ import { Route as MainReportsRouteImport } from './routes/_main/reports'
 import { Route as PlatformIndexRouteImport } from './routes/platform.index'
 import { Route as PlatformAuditRouteImport } from './routes/platform.audit'
 import { Route as PlatformCatalogsRouteImport } from './routes/platform.catalogs'
+import { Route as PlatformFiscalJobsRouteImport } from './routes/platform.fiscal-jobs'
 import { Route as PlatformIntegrationsRouteImport } from './routes/platform.integrations'
 import { Route as PlatformMonitoringRouteImport } from './routes/platform.monitoring'
 import { Route as PlatformOperatorsRouteImport } from './routes/platform.operators'
@@ -276,6 +277,11 @@ const PlatformAuditRoute = PlatformAuditRouteImport.update({
 const PlatformCatalogsRoute = PlatformCatalogsRouteImport.update({
   id: '/catalogs',
   path: '/catalogs',
+  getParentRoute: () => PlatformRoute,
+} as any)
+const PlatformFiscalJobsRoute = PlatformFiscalJobsRouteImport.update({
+  id: '/fiscal-jobs',
+  path: '/fiscal-jobs',
   getParentRoute: () => PlatformRoute,
 } as any)
 const PlatformIntegrationsRoute = PlatformIntegrationsRouteImport.update({
@@ -653,6 +659,7 @@ export interface FileRoutesByFullPath {
   '/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/fiscal-jobs': typeof PlatformFiscalJobsRoute
   '/platform/integrations': typeof PlatformIntegrationsRoute
   '/platform/monitoring': typeof PlatformMonitoringRoute
   '/platform/operators': typeof PlatformOperatorsRoute
@@ -752,6 +759,7 @@ export interface FileRoutesByTo {
   '/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/fiscal-jobs': typeof PlatformFiscalJobsRoute
   '/platform/integrations': typeof PlatformIntegrationsRoute
   '/platform/monitoring': typeof PlatformMonitoringRoute
   '/platform/operators': typeof PlatformOperatorsRoute
@@ -854,6 +862,7 @@ export interface FileRoutesById {
   '/_main/reports': typeof MainReportsRoute
   '/platform/audit': typeof PlatformAuditRoute
   '/platform/catalogs': typeof PlatformCatalogsRoute
+  '/platform/fiscal-jobs': typeof PlatformFiscalJobsRoute
   '/platform/integrations': typeof PlatformIntegrationsRoute
   '/platform/monitoring': typeof PlatformMonitoringRoute
   '/platform/operators': typeof PlatformOperatorsRoute
@@ -957,6 +966,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/fiscal-jobs'
     | '/platform/integrations'
     | '/platform/monitoring'
     | '/platform/operators'
@@ -1056,6 +1066,7 @@ export interface FileRouteTypes {
     | '/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/fiscal-jobs'
     | '/platform/integrations'
     | '/platform/monitoring'
     | '/platform/operators'
@@ -1157,6 +1168,7 @@ export interface FileRouteTypes {
     | '/_main/reports'
     | '/platform/audit'
     | '/platform/catalogs'
+    | '/platform/fiscal-jobs'
     | '/platform/integrations'
     | '/platform/monitoring'
     | '/platform/operators'
@@ -1474,6 +1486,13 @@ declare module '@tanstack/react-router' {
       path: '/catalogs'
       fullPath: '/platform/catalogs'
       preLoaderRoute: typeof PlatformCatalogsRouteImport
+      parentRoute: typeof PlatformRoute
+    }
+    '/platform/fiscal-jobs': {
+      id: '/platform/fiscal-jobs'
+      path: '/fiscal-jobs'
+      fullPath: '/platform/fiscal-jobs'
+      preLoaderRoute: typeof PlatformFiscalJobsRouteImport
       parentRoute: typeof PlatformRoute
     }
     '/platform/integrations': {
@@ -2128,6 +2147,7 @@ const PortalRouteWithChildren =
 interface PlatformRouteChildren {
   PlatformAuditRoute: typeof PlatformAuditRoute
   PlatformCatalogsRoute: typeof PlatformCatalogsRoute
+  PlatformFiscalJobsRoute: typeof PlatformFiscalJobsRoute
   PlatformIntegrationsRoute: typeof PlatformIntegrationsRoute
   PlatformMonitoringRoute: typeof PlatformMonitoringRoute
   PlatformOperatorsRoute: typeof PlatformOperatorsRoute
@@ -2142,6 +2162,7 @@ interface PlatformRouteChildren {
 const PlatformRouteChildren: PlatformRouteChildren = {
   PlatformAuditRoute: PlatformAuditRoute,
   PlatformCatalogsRoute: PlatformCatalogsRoute,
+  PlatformFiscalJobsRoute: PlatformFiscalJobsRoute,
   PlatformIntegrationsRoute: PlatformIntegrationsRoute,
   PlatformMonitoringRoute: PlatformMonitoringRoute,
   PlatformOperatorsRoute: PlatformOperatorsRoute,

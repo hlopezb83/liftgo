@@ -1,3 +1,11 @@
+## [8.43.6] — 2026-10-03
+
+- Bandeja de trabajos fiscales con filtros por empresa, folio o ID, operación y estado; paginación de 25 trabajos.
+- Historial durable de estados, intentos, aplazamientos y programación, con páginas de 50 transiciones y sin copiar payload, llaves ni diagnósticos privados.
+- Los trabajos existentes reciben una instantánea del estado observado; no se reconstruyen ni inventan intentos anteriores.
+- El detalle distingue estado de cola y estado del documento. Un ID del proveedor sin UUID indica conciliación pendiente, no permite interpretar el trabajo como CFDI confirmado.
+- Acceso técnico mediante la capacidad de integraciones y sesión vigente; el administrador empresarial conserva su aislamiento.
+
 ## [8.43.5] — 2026-10-03
 
 - Se corrigió un error de compilación en el envío de feedback: el folio lo asigna la base de datos, por lo que el cliente no lo envía.

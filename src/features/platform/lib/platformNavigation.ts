@@ -9,6 +9,7 @@ const DESTINATIONS = [
   "/platform/operators",
   "/platform/security",
   "/platform/integrations",
+  "/platform/fiscal-jobs",
   "/platform/monitoring",
   "/platform/support",
 ];

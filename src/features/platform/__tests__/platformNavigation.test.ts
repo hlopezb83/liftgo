@@ -12,6 +12,7 @@ describe("entrada y destinos de plataforma", () => {
     "/platform/catalogs",
     "/platform/audit",
     "/platform/support",
+    "/platform/fiscal-jobs",
     "/platform/organizations/88000000-0000-4000-8000-000000000001",
   ])("conserva el destino permitido %s", (path) => {
     expect(platformReturnDestination(`?next=${encodeURIComponent(path)}`)).toBe(
