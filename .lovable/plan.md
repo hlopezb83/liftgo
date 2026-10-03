@@ -1,19 +1,19 @@
-# Preflight 0099 (solo lectura, 3-oct-2026 ~10:43 UTC)
+# Cierre de Sentry: sourcemaps del build (diagnóstico de solo lectura)
 
-Sin cambios. Datos verificados en la base real del proyecto:
+## Evidencia observada
+- Copia de Lovable: HEAD `da19ca69a28e2d8a5297055de6b73134cf7769a0`, no `c2f662b8…`. La configuración se leyó desde esta copia.
+- `SENTRY_AUTH_TOKEN` existe como secret de ejecución del proyecto (Cloud/Edge). No se mostró su valor.
+- No está en el entorno del proceso de construcción del sandbox: `test -n` dio ausente. Los secrets de ejecución no se inyectan al build; las Build Secrets del workspace sí.
+- Como el token falta, `vite.config.ts` usa `build.sourcemap: false` y no agrega `sentryVitePlugin`. En el build de Lovable no se generan `.map` ni se suben. Esto explica "No source maps uploaded" y que se vean `/_ssr/*.mjs` compilados.
+- No hay logs de subida porque el plugin nunca se activa. No existe `dist/` en el sandbox para revisar.
 
-- HEAD del proyecto: adf9ce04378f3b5724c81581491939714caa5e99 (no incluye el PR #225)
-- Ledger Drizzle (últimas 3, hash = primeros 12 caracteres):
-  - id 101 · when 1790991931103 · 57cd6e7be403
-  - id 100 · when 1790991273930 · 377913168d9c
-  - id 99 · when 1790991167291 · 88a1c3176b7c
-- public.platform_fiscal_jobs: existe; columna config_source: NO existe
-- Triggers BEFORE UPDATE en public.cfdi_retry_queue:
-  - cfdi_retry_queue_set_updated_at: BEFORE UPDATE FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()
-  - trg_organization_write_context: BEFORE INSERT OR UPDATE FOR EACH ROW EXECUTE FUNCTION enforce_organization_write_context()
-- Cola cfdi_retry_queue: 0 filas en total (ningún estado ni operación); no hay trabajos processing
-- Facturas en stamping: 0; en stamping sin ID de Facturapi: 0
-- public.platform_fiscal_actions: NO existe
-- RPC platform_begin_fiscal_action y platform_complete_fiscal_action: NO existen
+## Fases si hubiera token (lectura de la configuración, sin ejecutar)
+- `vite.build.sourcemap` cubre los entornos de Vite (client y SSR de TanStack). El bundle final de Nitro (`dist/server/index.mjs`, preset cloudflare-module) tiene otra configuración de sourcemap. No está verificado que reciba maps sin `nitro.sourcemap: true`.
+- `sentryVitePlugin` sube en `writeBundle` de cada entorno Vite, y después borra los `.map` con `filesToDeleteAfterUpload: ./dist/**/*.map`. Si la salida de Nitro se escribe después, sus maps podrían quedar fuera de esa subida. No está confirmado.
 
-Límites: el rol de lectura del sandbox no tiene permiso sobre el esquema drizzle; el ledger se leyó con la herramienta de consulta del backend. Los ids del ledger son internos y no equivalen al número de archivo 00xx.
+## Siguiente paso propuesto (lo haces tú en Git)
+1. Agrega `SENTRY_AUTH_TOKEN` en Workspace Settings → Build Secrets. Así estará disponible en el build de hosting. La secret de Cloud no lo hace.
+2. Agrega `nitro.sourcemap: true` y valida con un build en CI que existan `dist/server/**/*.map` antes de subirlos. Si el plugin de Vite no los alcanza, haz la subida post-build con `sentry-cli sourcemaps inject/upload dist` y borra los maps al final.
+3. Publica y confirma en Sentry que el siguiente evento se ve con código fuente.
+
+No se cambió código, secrets ni despliegues.
