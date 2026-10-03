@@ -1,5 +1,3 @@
-// ported from main.tsx — Sentry debe cargarse antes que cualquier feature
-import "@/lib/observability/sentry";
 import "@/lib/forms/zodConfig";
 import { createRootRouteWithContext, HeadContent, Outlet, Scripts, useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { lazy, Suspense, useEffect, type ReactNode } from "react";
@@ -8,6 +6,8 @@ import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { AppProviders } from "@/layouts/AppProviders";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { reportLovableError } from "@/lib/lovable-error-reporting";
+import { captureOperationalError } from "@/lib/observability/captureOperationalError";
+import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
 import { isStaleChunkMessage, reloadForStaleChunk } from "@/lib/staleChunkReload";
 import appCss from "../styles.css?url";
 import type { QueryClient } from "@tanstack/react-query";
@@ -105,6 +105,7 @@ function RootComponent() {
   return (
     <ErrorBoundary>
       <AppProviders queryClient={queryClient}>
+        <SentryNavigationSync />
         <Outlet />
       </AppProviders>
     </ErrorBoundary>
@@ -124,6 +125,7 @@ function RootErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    captureOperationalError(error, { phase: "route", errorCode: "INTERNAL_ERROR" });
   }, [error]);
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

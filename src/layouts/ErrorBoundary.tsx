@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { WarnIcon, RefreshIcon, HomeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { Sentry } from "@/lib/observability/sentry";
 import {
   clearStaleChunkReloadGuard,
@@ -47,7 +48,7 @@ export class ErrorBoundary extends Component<Props, State> {
       scope.setTag("scope", this.props.scope ?? "app");
       if (this.props.routeLabel) scope.setTag("routeLabel", this.props.routeLabel);
       scope.setContext("react", { componentStack: info.componentStack });
-      Sentry.captureException(error);
+      captureOperationalError(error, { phase: "render", errorCode: "INTERNAL_ERROR" });
     });
     // M-22: la guarda anti-bucle (timestamp + máx. 2 recargas por ventana de
     // 30 s) vive en `@/lib/staleChunkReload` y decide si recargar o rendirse.

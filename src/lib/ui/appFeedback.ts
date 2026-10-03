@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { getErrorMessage } from "@/lib/errors";
+import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { closeErrorReport, openErrorReport } from "@/lib/ui/errorDetailsStore";
 import { buildErrorReport } from "@/lib/ui/errorReport";
 import { redactDiagnosticText } from "@/lib/ui/errorReportJson";
@@ -180,6 +181,7 @@ function errorToast(input: NotifyErrorInput, toastId?: string | number) {
     errorCode: input.errorCode,
     context: input.context,
   });
+  captureOperationalError(error, { phase: input.phase, errorCode: report.errorCode, severity: input.severity });
 
   const detail = redactDiagnosticText(input.description ?? getErrorMessage(error));
   const description = detail === title ? undefined : detail;

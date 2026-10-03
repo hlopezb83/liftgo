@@ -32,10 +32,9 @@ describe("redactPII", () => {
 });
 
 describe("scrubUrl", () => {
-  it("redacta valores de claves sensibles conservando la clave", () => {
+  it("elimina filtros completos, incluidos identificadores y claves desconocidas", () => {
     const url = scrubUrl("/portal/statement?token=abc.def.ghi&customer=42");
-    expect(url).toContain("token=%5BREDACTED%5D");
-    expect(url).toContain("customer=42");
+    expect(url).toBe("/portal/statement");
   });
 
   it("redacta email embebido en el path", () => {
