@@ -4,6 +4,7 @@
 - La prueba de caché confirma que el diagnóstico no toma el nombre de una organización distinta.
 - Los avisos muestran el borde de color de éxito, advertencia, error e información mediante el estado real del toast, también cuando las clases del contenedor no actúan como ancestro.
 - En móvil, el contenedor respeta ambos márgenes sin generar desplazamiento horizontal; abrir los detalles descarta sólo el aviso de origen para que no cubra el diálogo JSON.
+- Las acciones de los avisos funcionan sobre formularios y paneles modales sin cerrar el formulario ni activar el descarte de su borrador.
 
 ## [8.43.1] — 2026-10-02
 

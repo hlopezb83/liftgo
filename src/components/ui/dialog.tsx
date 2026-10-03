@@ -1,6 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementRef, HTMLAttributes, Ref } from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { CloseIcon } from "@/components/icons";
+import { preserveToastInteraction } from "@/components/ui/notification-interaction";
 
 import { cn } from "@/lib/utils";
 
@@ -26,7 +27,7 @@ const DialogOverlay = ({ className, ref, ...props }: ComponentPropsWithoutRef<ty
 };
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
 
-const DialogContent = ({ className, children, ref, ...props }: ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { ref?: Ref<ElementRef<typeof DialogPrimitive.Content>> }) => {
+const DialogContent = ({ className, children, ref, onInteractOutside, ...props }: ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { ref?: Ref<ElementRef<typeof DialogPrimitive.Content>> }) => {
   return (
     <DialogPortal>
     <DialogOverlay />
@@ -37,6 +38,7 @@ const DialogContent = ({ className, children, ref, ...props }: ComponentPropsWit
         className,
       )}
       {...props}
+      onInteractOutside={(event) => preserveToastInteraction(event, onInteractOutside)}
     >
       {children}
       {/* R6-FE-09: touch:p-3 daba 40px; min 44×44 en táctil. */}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { FormDialog } from "../FormDialog";
 
 function renderDialog(props: Partial<React.ComponentProps<typeof FormDialog>> = {}) {
@@ -20,6 +20,28 @@ function pressEscape() {
 }
 
 describe("FormDialog", () => {
+  it("permite copiar un aviso sin cerrar ni pedir descartar el formulario", async () => {
+    const copy = vi.fn();
+    const onOpenChange = vi.fn();
+    render(<>
+      <div data-sonner-toaster="" aria-live="polite" style={{ pointerEvents: "auto" }}>
+        <button onClick={copy}>Copiar JSON</button>
+      </div>
+      <FormDialog open isDirty onOpenChange={onOpenChange} title="Nuevo cliente">
+        <input aria-label="Nombre" defaultValue="Acme" />
+      </FormDialog>
+    </>);
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    const copyButton = screen.getByRole("button", { name: "Copiar JSON" });
+    fireEvent.pointerDown(copyButton, { pointerType: "mouse" });
+    fireEvent.click(copyButton);
+    expect(copy).toHaveBeenCalledOnce();
+    expect(onOpenChange).not.toHaveBeenCalled();
+    expect(screen.queryByText("¿Descartar cambios?")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Nombre")).toHaveValue("Acme");
+    pressEscape();
+    expect(screen.getByText("¿Descartar cambios?")).toBeInTheDocument();
+  });
   it("cierra directo con Esc cuando no hay cambios", () => {
     const { onOpenChange } = renderDialog();
     pressEscape();

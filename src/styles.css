@@ -451,6 +451,7 @@
 }
 
 /* Shared toast layout: readable copy, aligned actions, and an inset close target. */
+.toaster[data-sonner-toaster] { pointer-events: auto; }
 .toaster [data-sonner-toast][data-styled="true"] {
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr);
