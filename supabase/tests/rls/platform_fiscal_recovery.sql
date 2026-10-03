@@ -20,16 +20,16 @@ SELECT set_config('app.organization_id',pg_temp.id(12)::text,true);
 INSERT INTO public.company_settings(organization_id,razon_social,rfc,regimen_fiscal,lugar_expedicion,facturapi_mode)
 VALUES(pg_temp.id(12),'Fiscal B','BBB010101BBB','601','64000','test');
 INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES(pg_temp.id(12),'sk_test_ci_recovery_b_only');
-INSERT INTO public.invoices(id,invoice_number,subtotal,tax_amount,total,cfdi_status)
-VALUES(pg_temp.id(32),'BORRADOR-CI-B-0032',100,16,116,'error');
+INSERT INTO public.invoices(id,invoice_number,customer_name,subtotal,tax_amount,total,cfdi_status)
+VALUES(pg_temp.id(32),'BORRADOR-CI-B-0032','Cliente fiscal CI B',100,16,116,'error');
 SELECT set_config('app.organization_id',pg_temp.id(11)::text,true);
 INSERT INTO public.company_settings(organization_id,razon_social,rfc,regimen_fiscal,lugar_expedicion,facturapi_mode)
 VALUES(pg_temp.id(11),'Fiscal A','AAA010101AAA','601','64000','test');
 INSERT INTO public.billing_secrets(organization_id,facturapi_test_key) VALUES(pg_temp.id(11),'sk_test_ci_recovery_a_only');
-INSERT INTO public.invoices(id,invoice_number,subtotal,tax_amount,total,cfdi_status)
-SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series(31,46) n WHERE n NOT IN (32,43,44);
-INSERT INTO public.invoices(id,invoice_number,subtotal,tax_amount,total,cfdi_status)
-SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series(47,53) n;
+INSERT INTO public.invoices(id,invoice_number,customer_name,subtotal,tax_amount,total,cfdi_status)
+SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,'Cliente fiscal CI A',100,16,116,'error' FROM generate_series(31,46) n WHERE n NOT IN (32,43,44);
+INSERT INTO public.invoices(id,invoice_number,customer_name,subtotal,tax_amount,total,cfdi_status)
+SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,'Cliente fiscal CI A',100,16,116,'error' FROM generate_series(47,53) n;
 UPDATE public.invoices SET cfdi_status='stamping',facturapi_invoice_id='provider-33',facturapi_env='test' WHERE id=pg_temp.id(33);
 UPDATE public.invoices SET status='sent',cfdi_status='stamped',facturapi_invoice_id='provider-'||right(id::text,2),
   cfdi_uuid='11111111-1111-4111-8111-111111111111',cancellation_status=CASE WHEN id=pg_temp.id(42) THEN 'pending' ELSE 'none' END
