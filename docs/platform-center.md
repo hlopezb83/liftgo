@@ -636,14 +636,32 @@ de producto hasta disponer de un dominio LiftGo.
    Un enlace inválido debe ofrecer solicitar otro, nunca usar una sesión previa.
    Cloud → Users → Auth settings → Advanced ya permite
    `https://liftgo.lovable.app/**`; no se amplía esa autorización.
-2. **Restauración aislada — pendiente:** preparar un destino diferente de producción,
+2. **Restauración aislada — pendiente por falta de destino:** el usuario confirmó
+   el 3 de octubre que no dispone de un entorno separado. Cuando exista uno,
    restaurar BD y archivos, comprobar accesos A/B y abrir una muestra de objetos
    de cada bucket privado. ELOGISTIX comparte el backend publicado y no es un
    destino de restauración completa. El workflow `restore-rehearsal-verify.yml`
    y `scripts/restore-rehearsal/verify.ts` verifican una copia ya restaurada en
    modo lectura; no realizan la restauración ni prueban por sí solos los bytes
    de cada archivo. Registrar fecha, origen, destino, resultados y duración sin
-   credenciales. Aún no se proporcionó un destino para ejecutar esta prueba.
+   credenciales. La prueba no es ejecutable con los recursos disponibles y
+   permanece sin verificar; no se ensaya una restauración completa en producción.
+
+### Respaldos disponibles — comprobación de sólo lectura
+
+El 3 de octubre se consultó Cloud → Database → Backups del proyecto LiftGo:
+había 15 snapshots visibles, del 19 de septiembre al 3 de octubre. El más
+reciente mostraba `2026-10-03 12:51:59 UTC`. No se ejecutó ninguna restauración.
+La existencia de esos snapshots no acredita que se haya restaurado una copia.
+
+Según la [documentación de Database](https://docs.lovable.dev/features/database#backup-and-restore),
+Cloud conserva respaldos diarios de esquema y datos; los archivos de Storage
+no forman parte de ellos. La [exportación del proyecto](https://docs.lovable.dev/features/advanced-settings#export-lovable-cloud-data)
+tampoco incluye los archivos, el código de Edge Functions ni los secretos.
+El siguiente control posible sin otro backend es conservar una exportación de
+BD y descargar los archivos desde Storage por separado, fuera del repositorio.
+Estas copias aún no se han generado como parte de esta comprobación y no
+sustituyen el ensayo de restauración aislada.
 
 La entrega de correo y la llegada al formulario no acreditan por sí solas el
 cambio de contraseña. El éxito de CI tampoco acredita una restauración real de
