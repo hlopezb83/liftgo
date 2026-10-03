@@ -29,6 +29,34 @@ afterEach(() => { envelopes.length = 0; transportFailure = false; vi.unstubAllEn
 afterAll(async () => { for (const client of clients) { await client.flush(1000); client.dispose(); } });
 
 describe("SDK oficial de servidor, con cliente compartido y transporte offline", () => {
+  it("un fallo al adjuntar identidad no interrumpe la operación autorizada", async () => {
+    let identityFailure: ReturnType<typeof vi.spyOn> | undefined;
+    const handler = vi.fn(() => {
+      trackClient();
+      identityFailure = vi.spyOn(Sentry.getIsolationScope(), "setUser").mockImplementation(() => {
+        throw new Error("diagnostic identity failed");
+      });
+      setVerifiedServerIdentity({ userId: "actor-a", organizationId: idA, role: "admin", workspace: "organization" });
+      return new Response("saved", { status: 201 });
+    });
+    try {
+      const response = await withServerSentry(request(), {}, undefined, handler, options());
+      expect(response.status).toBe(201); expect(await response.text()).toBe("saved");
+      expect(handler).toHaveBeenCalledTimes(1);
+    } finally { identityFailure?.mockRestore(); }
+  });
+
+  it("no evalúa accesores del error ni sustituye el resultado por un fallo del diagnóstico", async () => {
+    let statusReads = 0;
+    const error = new Error("original operation failure");
+    Object.defineProperty(error, "status", { get() { statusReads++; throw new Error("status getter failed"); } });
+    const handler = vi.fn(() => { trackClient(); captureServerError(error); return new Response("kept"); });
+    const response = await withServerSentry(request(), {}, undefined, handler, options());
+    expect(await response.text()).toBe("kept"); expect(handler).toHaveBeenCalledTimes(1);
+    expect(statusReads).toBe(0); expect(events()).toHaveLength(1);
+    expect(events()[0].exception?.values?.[0].value).toBe("original operation failure");
+  });
+
   it("aísla dos empresas concurrentes y no conserva identidad en la solicitud siguiente", async () => {
     const bReady = deferred(); const aDone = deferred();
     const a = withServerSentry(request(), {}, undefined, async () => {

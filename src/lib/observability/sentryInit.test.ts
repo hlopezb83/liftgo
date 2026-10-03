@@ -10,6 +10,24 @@ beforeEach(() => { vi.clearAllMocks(); sdk.getClient.mockReturnValue(undefined);
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 
 describe("arranque explícito del cliente", () => {
+  it("un fallo de inicialización no detiene la hidratación del ERP", () => {
+    vi.stubEnv("MODE", "production");
+    sdk.init.mockImplementationOnce(() => { throw new Error("SDK startup failed"); });
+    expect(() => initClientSentry()).not.toThrow();
+    expect(sdk.init).toHaveBeenCalledTimes(1);
+  });
+
+  it("un fallo de la integración del router permite continuar y reintentar", async () => {
+    vi.resetModules();
+    const isolated = await import("./sentry");
+    sdk.getClient.mockReturnValue({});
+    sdk.addIntegration.mockImplementationOnce(() => { throw new Error("router integration failed"); });
+    const router = { subscribe: vi.fn() };
+    expect(() => isolated.attachSentryRouter(router)).not.toThrow();
+    isolated.attachSentryRouter(router);
+    expect(sdk.addIntegration).toHaveBeenCalledTimes(2);
+  });
+
   it("no inicializa ni transmite en pruebas/desarrollo o SSR", () => {
     vi.stubEnv("MODE", "test"); initClientSentry();
     vi.stubEnv("MODE", "development"); vi.stubEnv("VITE_SENTRY_FORCE", ""); initClientSentry();

@@ -8,17 +8,20 @@ export function initClientSentry(): void {
   const environment = import.meta.env.MODE;
   const dsn = import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_SENTRY_DSN;
   const enabled = environment === "production" || import.meta.env.VITE_SENTRY_FORCE === "1";
-  if (typeof window === "undefined" || !dsn || !enabled || environment === "test" || Sentry.getClient()) return;
-  Sentry.init(createClientSentryOptions(environment, dsn));
-  Sentry.setTag("app", "liftgo-erp");
-  if (environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1") {
-    const load = () => { void import("./replay").then(({ installReplay }) => installReplay()).catch(() => {
-      // Un fallo en Replay no debe romper el ERP ni generar un bucle de errores.
-      Sentry.setTag("replay_available", false);
-    }); };
-    if (window.requestIdleCallback) window.requestIdleCallback(load, { timeout: 3000 });
-    else setTimeout(load, 2000);
-  }
+  if (typeof window === "undefined" || !dsn || !enabled || environment === "test") return;
+  try {
+    if (Sentry.getClient()) return;
+    Sentry.init(createClientSentryOptions(environment, dsn));
+    Sentry.setTag("app", "liftgo-erp");
+    if (environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1") {
+      const load = () => { void import("./replay").then(({ installReplay }) => installReplay()).catch(() => {
+        // Un fallo en Replay no debe romper el ERP ni generar un bucle de errores.
+        try { Sentry.setTag("replay_available", false); } catch { /* Diagnóstico opcional. */ }
+      }); };
+      if (window.requestIdleCallback) window.requestIdleCallback(load, { timeout: 3000 });
+      else setTimeout(load, 2000);
+    }
+  } catch { /* El monitoreo no interrumpe la hidratación del ERP. */ }
 }
 
 export function createClientSentryOptions(environment: string, dsn: string): Sentry.BrowserOptions {
@@ -42,9 +45,12 @@ export function createClientSentryOptions(environment: string, dsn: string): Sen
 
 /** Se conecta al router real una sola vez; no duplicar browserTracingIntegration. */
 export function attachSentryRouter(router: Parameters<typeof Sentry.tanstackRouterBrowserTracingIntegration>[0]): void {
-  if (typeof window === "undefined" || !Sentry.getClient() || tracingInstalled) return;
-  Sentry.addIntegration(Sentry.tanstackRouterBrowserTracingIntegration(router));
-  tracingInstalled = true;
+  if (typeof window === "undefined" || tracingInstalled) return;
+  try {
+    if (!Sentry.getClient()) return;
+    Sentry.addIntegration(Sentry.tanstackRouterBrowserTracingIntegration(router));
+    tracingInstalled = true;
+  } catch { /* Un intento posterior puede conectar la integración. */ }
 }
 
 export { Sentry };
