@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.5",
+    "date": "2026-10-03",
+    "type": "patch",
+    "category": "fix",
+    "title": "Corrección de tipos en el envío de feedback",
+    "description": "El formulario de feedback deja de exigir el folio en el tipo de datos; la base de datos lo asigna automáticamente.",
+    "changes": [
+      "Se corrigió un error de compilación: el folio de feedback lo genera la base, por lo que el cliente no lo envía."
+    ]
+  },
+  {
     "version": "8.43.4",
     "date": "2026-10-02",
     "type": "patch",
