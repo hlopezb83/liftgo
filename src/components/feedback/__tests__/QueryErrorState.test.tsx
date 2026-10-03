@@ -21,6 +21,16 @@ describe("QueryErrorState", () => {
     expect(screen.getByRole("button", { name: /reintentar/i })).toBeDisabled();
   });
 
+  it("reintenta una consulta dentro de un formulario sin enviarlo", () => {
+    const onRetry = vi.fn();
+    const onSubmit = vi.fn();
+    render(<form onSubmit={(event) => { event.preventDefault(); onSubmit(); }}><QueryErrorState entity="las empresas" onRetry={onRetry} /></form>);
+    fireEvent.click(screen.getByRole("button", { name: /reintentar/i }));
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Copiar JSON" })).toBeInTheDocument();
+  });
+
   it("renderiza sin Card en modo bare", () => {
     const { container } = render(
       <QueryErrorState entity="el reporte" onRetry={() => {}} bare />,

@@ -1,0 +1,7 @@
+{
+  "description": "Reintentar una consulta no activa el formulario que contiene su diagnóstico.",
+  "changes": [
+    "El botón Reintentar de los errores de consulta ejecuta sólo la consulta, incluso dentro de filtros o formularios.",
+    "Su área de acción mantiene al menos 44 px, junto a Copiar JSON y Ver detalles."
+  ]
+}

@@ -28,7 +28,7 @@ export function QueryErrorState({ entity, onRetry, isRetrying = false, bare = fa
           Revisa tu conexión e inténtalo de nuevo. Los valores en pantalla no son confiables.
         </p>
       </div>
-      <Button variant="outline" size="sm" onClick={onRetry} disabled={isRetrying}>
+      <Button type="button" variant="outline" size="sm" className="min-h-11" onClick={onRetry} disabled={isRetrying}>
         <ResetIcon className={isRetrying ? "mr-2 h-4 w-4 animate-spin" : "mr-2 h-4 w-4"} />
         Reintentar
       </Button>

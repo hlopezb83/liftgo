@@ -1,4 +1,4 @@
-# Auditoría de toasts y diagnósticos — LiftGo 8.43.2
+# Auditoría de toasts y diagnósticos — LiftGo
 
 ## Alcance
 
@@ -26,6 +26,7 @@ Revisión de 260 llamadas de notificación en 116 archivos de producción. El in
 - Usar `notifyError({ error, title, ... })` con la excepción original. `message` sigue soportado como título contextual.
 - Usar `notifyValidation` para datos que el usuario debe corregir; los errores de transporte o servidor siguen siendo errores.
 - Pasar `error` a `QueryErrorState`/`ErrorState` cuando esté disponible. Un componente antiguo que sólo recibe un booleano ofrece un reporte del estado visible y declara `originalErrorAvailable: false`; no inventa una excepción ni un estado HTTP. El aviso global conserva la excepción original de la consulta.
+- El botón Reintentar de `QueryErrorState` sólo repite la consulta y usa `type="button"`, incluso dentro de un formulario; sus acciones conservan un área de al menos 44 px.
 - Los detalles se copian sólo por acción del usuario; no se envían automáticamente al Centro de Plataforma.
 - Sonner mantiene persistentes los fallos críticos; los avisos recuperables mantienen sus duraciones y el usuario puede abrir el diálogo para conservar el JSON.
 - No se modifican tablas, permisos, RLS, credenciales ni dependencias.
