@@ -35,6 +35,7 @@ const AlertDialogContent = ({ className, ref, ...props }: ComponentPropsWithoutR
         className,
       )}
       {...props}
+      data-toast-viewport="dialog"
     />
   </AlertDialogPortal>
   );

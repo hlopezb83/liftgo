@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
 
 // --- Mocks (declarados antes de importar el hook bajo prueba) ---
 
@@ -79,6 +80,7 @@ async function submit(result: { current: ReturnType<typeof useQuoteFormLogic> })
 
 describe("useQuoteFormLogic — submit + guard", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     createMutate.mockReset();
     updateMutate.mockReset();
     // Simular ciclo optimista: mutate ejecuta onSuccess de inmediato.
@@ -92,6 +94,8 @@ describe("useQuoteFormLogic — submit + guard", () => {
     await submit(result);
     expect(createMutate).not.toHaveBeenCalled();
     expect(result.current.form.formState.errors.customerId).toBeTruthy();
+    expect(notifyValidation).toHaveBeenCalledWith({ title: "Revisa los campos marcados", message: "Hay datos incompletos en el formulario" });
+    expect(notifyError).not.toHaveBeenCalled();
   });
 
   it("rechaza renta sin dateRange", async () => {

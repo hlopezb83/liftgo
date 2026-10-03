@@ -1,5 +1,20 @@
 [
   {
+    "version": "8.43.15",
+    "date": "2026-10-03",
+    "type": "patch",
+    "category": "fix",
+    "title": "Avisos claros y formularios visibles",
+    "description": "Se corrigen los avisos al copiar, validar cotizaciones y actualizar el calendario, y su posición sobre diálogos móviles.",
+    "changes": [
+      "Las copias fallidas muestran un aviso recuperable con diagnóstico y alternativa manual; el éxito se confirma al terminar la copia.",
+      "Los campos incompletos de una cotización muestran una validación breve con mensajes junto a los campos.",
+      "Los diálogos móviles reservan espacio para las notificaciones sin tapar su título, campos o acciones.",
+      "El calendario conserva un solo aviso por fallo de consulta y confirma la actualización cuando todas las consultas terminan bien.",
+      "Los botones para copiar identificadores fiscales y datos de transferencia conservan un área táctil de 44 px."
+    ]
+  },
+  {
     "version": "8.43.14",
     "date": "2026-10-03",
     "type": "patch",

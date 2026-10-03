@@ -7,7 +7,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { useParams } from "@/lib/router-compat";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
@@ -134,7 +134,7 @@ export function useQuoteFormLogic() {
   // R14-FE-01 (Fix B): antes el submit rechazado por validación fallaba en
   // silencio (sólo error de campo, a veces fuera de viewport).
   const handleSubmit = form.handleSubmit(onValid, () => {
-    notifyError({ title: "Revisa los campos marcados", error: new Error("Hay datos incompletos en el formulario") });
+    notifyValidation({ title: "Revisa los campos marcados", message: "Hay datos incompletos en el formulario" });
   });
 
 

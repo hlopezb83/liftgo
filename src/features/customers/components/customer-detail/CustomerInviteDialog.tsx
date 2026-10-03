@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { usePublicBranding } from "@/features/company-settings";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import { buildPortalInviteMessage } from "../../lib/portalInviteMessage";
 
 interface Props {
@@ -26,15 +26,6 @@ const schema = z.object({
   email: z.string().trim().email("Correo electrónico inválido"),
 });
 type FormValues = z.input<typeof schema>;
-
-async function copy(text: string, label: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    notifySuccess(`${label} copiado`);
-  } catch {
-    /* el usuario puede seleccionar el texto manualmente */
-  }
-}
 
 export function CustomerInviteDialog({
   open,
@@ -88,10 +79,10 @@ export function CustomerInviteDialog({
             {inviteResult.link}
           </p>
           <FormDialogFooter>
-            <Button variant="outline" type="button" onClick={() => void copy(inviteResult.link, "Enlace")}>
+            <Button variant="outline" type="button" onClick={() => void copyWithFeedback(inviteResult.link, "Enlace")}>
               Copiar enlace
             </Button>
-            <Button type="button" onClick={() => void copy(mensaje, "Mensaje")}>
+            <Button type="button" onClick={() => void copyWithFeedback(mensaje, "Mensaje")}>
               Copiar mensaje
             </Button>
           </FormDialogFooter>

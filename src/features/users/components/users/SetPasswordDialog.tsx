@@ -1,6 +1,7 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import { useSetPasswordForm } from "../../hooks/useSetPasswordForm";
 import type { UserRow } from "../../hooks/useUserManagement";
 
@@ -42,7 +43,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
               <Button
                 type="button"
                 onClick={() => {
-                  void navigator.clipboard.writeText(recoveryLink).catch(() => undefined);
+                  void copyWithFeedback(recoveryLink, "Enlace");
                 }}
               >
                 Copiar enlace

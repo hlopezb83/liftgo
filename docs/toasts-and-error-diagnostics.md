@@ -2,7 +2,17 @@
 
 ## Alcance
 
-Revisión de 260 llamadas de notificación en 116 archivos de producción. El inventario AST confirma que sólo `appFeedback.ts` y el contenedor `sonner.tsx` importan Sonner. Se revisaron también los errores locales de soporte, operadores, recuperación, integraciones y timbrado, las pantallas de consulta y las barreras de errores React/router.
+La auditoría inicial revisó 260 llamadas de notificación en 116 archivos de producción. La revalidación de 8.43.14 inventarió 268 llamadas públicas en 118 archivos. Sólo `appFeedback.ts` y el contenedor `sonner.tsx` importan Sonner. Se revisaron también los errores locales de soporte, operadores, recuperación, integraciones y timbrado, las pantallas de consulta y las barreras de errores React/router.
+
+## Revalidación de 8.43.15
+
+- Las copias de identificadores fiscales, datos del receptor, invitaciones, recuperación y transferencias usan `copyWithFeedback`. Un rechazo conserva la causa original, ofrece JSON y selección manual, y no anuncia éxito. El dato copiado y los enlaces de un solo uso no se añaden al diagnóstico.
+- Un formulario de cotización incompleto usa `notifyValidation`: aviso breve, `VALIDATION_FAILED` y fase `validation`; conserva los mensajes de campo.
+- En móvil, el diálogo reserva espacio debajo de la altura real de los avisos, incluidos los avisos expandidos. El título, el primer campo y las acciones permanecen dentro de su área desplazable; al cerrar el aviso se restaura el tamaño normal. Abrir detalles sigue descartando el toast de origen.
+- En la actualización del calendario, QueryCache conserva la responsabilidad del error de consulta. La barra controla el estado de carga y confirma éxito sólo si todas las consultas terminaron bien. Un rechazo inesperado de la tarea queda manejado.
+- Las acciones de copiar datos fiscales y bancarios conservan un objetivo táctil de al menos 44 px y `type="button"`.
+
+Las regresiones cubren copia rechazada y portapapeles ausente, confirmación posterior a la escritura, JSON sin enlace copiado, cotización inválida, refresco fallido con un solo aviso y reserva/restauración de espacio móvil. La comprobación visual y el CI de la entrega se registran por separado; esta documentación describe el comportamiento implementado.
 
 ## Hallazgos corregidos, por prioridad
 
@@ -25,6 +35,8 @@ Revisión de 260 llamadas de notificación en 116 archivos de producción. El in
 
 - Usar `notifyError({ error, title, ... })` con la excepción original. `message` sigue soportado como título contextual.
 - Usar `notifyValidation` para datos que el usuario debe corregir; los errores de transporte o servidor siguen siendo errores.
+- Usar `copyWithFeedback(valor, etiqueta)` para copiar datos con confirmación y aviso recuperable. No pasar el valor copiado como contexto de error.
+- En operaciones que actualizan consultas, elegir un solo responsable del error. No envolver un refetch con otro toast de error cuando QueryCache ya muestra el diagnóstico.
 - Pasar `error` a `QueryErrorState`/`ErrorState` cuando esté disponible. Un componente antiguo que sólo recibe un booleano ofrece un reporte del estado visible y declara `originalErrorAvailable: false`; no inventa una excepción ni un estado HTTP. El aviso global conserva la excepción original de la consulta.
 - El botón Reintentar de `QueryErrorState` sólo repite la consulta y usa `type="button"`, incluso dentro de un formulario; sus acciones conservan un área de al menos 44 px.
 - Los detalles se copian sólo por acción del usuario; no se envían automáticamente al Centro de Plataforma.
