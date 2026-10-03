@@ -6,7 +6,7 @@ import { useLocation } from "@/lib/router-compat";
 /**
  * Emite un breadcrumb `navigation` y actualiza los tags `flow`/`route` en
  * cada cambio de ruta. Debe montarse una sola vez dentro del `RouterProvider`
- * (típicamente en `MainLayout`) para que cualquier error posterior incluya
+ * (en la raíz compartida de ERP, plataforma y portal) para que cualquier error posterior incluya
  * el camino de navegación que lo causó.
  *
  * PII: `sanitizeRoute` reemplaza UUIDs, IDs numéricos y folios (FAC-0094,
@@ -24,6 +24,9 @@ export function SentryNavigationSync(): null {
 
     Sentry.setTag("flow", flow);
     Sentry.setTag("route", to);
+    const workspace = location.pathname.startsWith("/platform") ? "platform" : location.pathname.startsWith("/portal") ? "portal" : "organization";
+    Sentry.setTag("workspace", workspace);
+    Sentry.setAttributes({ flow, route: to, workspace });
     Sentry.setContext("route", {
       flow,
       route: to,

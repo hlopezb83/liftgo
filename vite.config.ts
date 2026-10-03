@@ -6,13 +6,13 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { sentryVitePlugin } from "@sentry/bundler-plugins/vite";
 import { visualizer } from "rollup-plugin-visualizer";
 
 // Versión resuelta desde public/version.json (generado por scripts/gen-version.mjs
 // en el prebuild). Se usa para (a) inyectar VITE_APP_VERSION al bundle y así
 // etiquetar el `release` en Sentry.init, y (b) nombrar el release al subir
-// sourcemaps con @sentry/vite-plugin. Fallback "unknown" en builds locales.
+// sourcemaps con @sentry/bundler-plugins/vite. Fallback "unknown" en builds locales.
 const APP_VERSION = (() => {
   try {
     const raw = readFileSync(path.resolve(process.cwd(), "public/version.json"), "utf8");
@@ -25,6 +25,7 @@ const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
 
 export default defineConfig({
   tanstackStart: {
+    client: { entry: "client" },
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
@@ -49,6 +50,7 @@ export default defineConfig({
     },
   },
   vite: {
+    build: { sourcemap: process.env.SENTRY_AUTH_TOKEN ? "hidden" : false },
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
     },
@@ -71,9 +73,9 @@ export default defineConfig({
           project: process.env.SENTRY_PROJECT ?? "liftgo",
           authToken: process.env.SENTRY_AUTH_TOKEN,
           release: {
-            name: process.env.SENTRY_RELEASE ?? SENTRY_RELEASE,
+            name: SENTRY_RELEASE,
             setCommits: process.env.SENTRY_RELEASE_COMMIT
-              ? { repo: "elogistix/liftgo", commit: process.env.SENTRY_RELEASE_COMMIT, auto: false }
+              ? { repo: "hlopezb83/liftgo", commit: process.env.SENTRY_RELEASE_COMMIT, auto: false }
               : { auto: true, ignoreMissing: true, ignoreEmpty: true },
           },
           sourcemaps: {

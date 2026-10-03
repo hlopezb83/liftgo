@@ -1,102 +1,61 @@
 import * as Sentry from "@sentry/react";
-import { scrubEvent, scrubUrl, redactPII } from "./scrubPII";
+import { scrubData, scrubEvent, scrubSpan } from "./scrubPII";
 
-// DSN público (safe en el bundle). Env var permite deshabilitar en local/preview.
-const dsn = import.meta.env.VITE_SENTRY_DSN ??
-  "https://e8df6c29317f5f884be32f4b0c50ac05@o4511415732404224.ingest.us.sentry.io/4511770994933760";
+const PUBLIC_DSN = "https://e8df6c29317f5f884be32f4b0c50ac05@o4511415732404224.ingest.us.sentry.io/4511770994933760";
+let tracingInstalled = false;
 
-const env = import.meta.env.MODE;
-// `VITE_APP_VERSION` lo inyecta vite.config.ts (define) leyendo
-// public/version.json. Debe coincidir con `release.name` del plugin de Sentry
-// para que los sourcemaps subidos hagan match con los eventos en runtime.
-const appVersion = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? "unknown";
-const release = `liftgo@${appVersion}`;
-
-// SSR-safe: la instrumentación de navegador (tracing, replay) sólo se
-// inicializa en el cliente; en el servidor este módulo es un no-op.
-if (typeof window !== "undefined" && dsn && env !== "test") {
-  Sentry.init({
-    dsn,
-    environment: env, // "development" | "production"
-    release,
-    // Doble candado de PII: (a) no adjuntar automáticamente IP/cookies/headers
-    // del navegador; (b) scrubEvent en beforeSend redacta lo que sí adjuntemos.
-    sendDefaultPii: false,
-    // Traces sólo en producción y a baja tasa; el ERP es interno.
-    tracesSampleRate: env === "production" ? 0.1 : 0,
-    // Session Replay sólo si hay error, para no consumir cuota.
-    replaysSessionSampleRate: 0,
-    replaysOnErrorSampleRate: env === "production" ? 1.0 : 0,
-    integrations: [
-      Sentry.browserTracingIntegration(),
-      // Replay se carga perezosamente después del primer paint para no
-      // inflar el chunk inicial (~30-35 KB gz). Ver bloque `schedule` abajo.
-    ],
-
-    // Filtra ruido conocido para no gastar cuota en errores no accionables.
-    ignoreErrors: [
-      "ResizeObserver loop limit exceeded",
-      "ResizeObserver loop completed with undelivered notifications",
-      "Failed to fetch dynamically imported module",
-      "Importing a module script failed",
-    ],
-    // Redacta email/RFC/CURP/JWT en `breadcrumb.message` y URLs de navegación
-    // ANTES de que Sentry las adjunte al evento. Los eventos de `ui.input`
-    // se descartan por completo — el label del input podría contener PII y no
-    // aporta información accionable de debug.
-    beforeBreadcrumb(breadcrumb) {
-      if (breadcrumb.category === "ui.input") return null;
-      if (breadcrumb.message) breadcrumb.message = redactPII(breadcrumb.message);
-      const data = breadcrumb.data as Record<string, unknown> | undefined;
-      if (data) {
-        for (const key of ["url", "to", "from"] as const) {
-          const v = data[key];
-          if (typeof v === "string") data[key] = scrubUrl(v);
-        }
-      }
-      return breadcrumb;
-    },
-    beforeSend(event) {
-      // No enviar en localhost salvo que se fuerce con VITE_SENTRY_FORCE=1.
-      if (
-        env !== "production" &&
-        import.meta.env.VITE_SENTRY_FORCE !== "1"
-      ) {
-        return null;
-      }
-      return scrubEvent(event);
-    },
-  });
-
-  // LiftGo es single-tenant hoy — el tag queda listo para que, cuando
-  // introduzcamos multi-tenant, sólo cambie el valor sin tocar consumidores.
-  Sentry.setTag("tenant", "liftgo");
+/** Llamada explícita desde client.ts, antes de importar/hidratar la aplicación. */
+export function initClientSentry(): void {
+  const environment = import.meta.env.MODE;
+  const dsn = import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_DSN;
+  const enabled = environment === "production" || import.meta.env.VITE_SENTRY_FORCE === "1";
+  if (typeof window === "undefined" || !dsn || !enabled || environment === "test" || Sentry.getClient()) return;
+  Sentry.init(createClientSentryOptions(environment, dsn));
   Sentry.setTag("app", "liftgo-erp");
-
-  // Lazy-load de Replay: sólo capturamos onError, así que no hay razón
-  // para bloquear el primer paint. Se difiere a idle o 2s como fallback.
-  if (env === "production") {
-    const win = typeof window !== "undefined" ? window : undefined;
-    const schedule = win?.requestIdleCallback
-      ? (cb: () => void) => win.requestIdleCallback(cb, { timeout: 3000 })
-      : (cb: () => void) => setTimeout(cb, 2000);
-    schedule(() => {
-      void import("@sentry/react").then(({ replayIntegration, addIntegration }) => {
-        addIntegration(
-          replayIntegration({
-            maskAllText: true,
-            maskAllInputs: true,
-            blockAllMedia: true,
-            networkDetailAllowUrls: [],
-            networkCaptureBodies: false,
-            mask: ["[data-sentry-mask]"],
-            block: ["[data-sentry-block]"],
-          }),
-        );
-      });
-    });
+  if (environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1") {
+    const load = () => { void import("./replay").then(({ installReplay }) => installReplay()).catch(() => {
+      // Un fallo en Replay no debe romper el ERP ni generar un bucle de errores.
+      Sentry.setTag("replay_available", false);
+    }); };
+    if (window.requestIdleCallback) window.requestIdleCallback(load, { timeout: 3000 });
+    else setTimeout(load, 2000);
   }
 }
 
-export { Sentry };
+export function createClientSentryOptions(environment: string, dsn: string): Sentry.BrowserOptions {
+  return {
+    dsn,
+    environment,
+    release: `liftgo@${import.meta.env.VITE_APP_VERSION ?? "unknown"}`,
+    dataCollection: {
+      userInfo: false, cookies: false, httpHeaders: false, httpBodies: [],
+      urlQueryParams: false, databaseQueryData: false, queues: false,
+      stackFrameVariables: false, graphQL: { document: false, variables: false },
+      genAI: { inputs: false, outputs: false },
+    },
+    beforeSendLog: () => null,
+    beforeSendMetric: () => null,
+    enhanceFetchErrorMessages: "report-only",
+    tracesSampleRate: environment === "production" ? 0.1 : 0,
+    tracePropagationTargets: [],
+    replaysSessionSampleRate: 0,
+    // Opt-in sólo tras verificar privacidad de URL/DOM en la cuenta de Sentry.
+    replaysOnErrorSampleRate: environment === "production" && import.meta.env.VITE_SENTRY_REPLAY === "1" ? 1 : 0,
+    ignoreErrors: ["ResizeObserver loop limit exceeded", "ResizeObserver loop completed with undelivered notifications"],
+    beforeBreadcrumb(breadcrumb) {
+      if (breadcrumb.category === "ui.input" || breadcrumb.category === "ui.click" || breadcrumb.category === "console") return null;
+      return scrubData(breadcrumb) as typeof breadcrumb;
+    },
+    beforeSend: scrubEvent,
+    beforeSendSpan: scrubSpan,
+  };
+}
 
+/** Se conecta al router real una sola vez; no duplicar browserTracingIntegration. */
+export function attachSentryRouter(router: Parameters<typeof Sentry.tanstackRouterBrowserTracingIntegration>[0]): void {
+  if (typeof window === "undefined" || !Sentry.getClient() || tracingInstalled) return;
+  Sentry.addIntegration(Sentry.tanstackRouterBrowserTracingIntegration(router));
+  tracingInstalled = true;
+}
+
+export { Sentry };

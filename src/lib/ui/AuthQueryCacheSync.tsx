@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { clearSentryIdentity } from "@/lib/observability/identity";
 import { isIdentityQueryKey } from "@/lib/query/identityScope";
 import { dismissNotifications } from "@/lib/ui/appFeedback";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
@@ -23,6 +24,7 @@ export function AuthQueryCacheSync(): null {
     // invalida todo el caché.
     if (prevUserId.current !== undefined && prevUserId.current !== currentUserId) {
       dismissNotifications();
+      clearSentryIdentity();
       setAuthSnapshot({ user: null, organization: null, role: null });
       // Se conserva únicamente la consulta de identidad: limpiarla aquí
       // reiniciaría la verificación de empresa en bucle. El resto de la caché

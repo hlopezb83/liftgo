@@ -1,3 +1,10 @@
+## [8.43.8] — 2026-10-03
+
+- Se corrigió el arranque del monitoreo en la aplicación publicada y se actualizó Sentry a 11.4.0.
+- Los incidentes técnicos se registran por empresa verificada y rol; las validaciones y conflictos esperados conservan su diagnóstico local.
+- Al cambiar de usuario o empresa se limpia el contexto anterior. Se excluyen credenciales, filtros de URL y cuerpos de solicitud del monitoreo.
+- Replay queda desactivado por defecto hasta verificar su privacidad y recepción en Sentry.
+
 ## [8.43.7] — 2026-10-03
 
 - El botón Reintentar de los errores de consulta ejecuta sólo la consulta, incluso dentro de filtros o formularios.

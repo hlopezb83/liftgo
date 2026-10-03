@@ -1,146 +1,94 @@
-// Sanitiza payloads antes de enviarlos a Sentry.
-//
-// Doble red de seguridad: aunque Session Replay ya enmascara texto/inputs y no
-// captura bodies de red, los `exception.value`, `message`, `breadcrumb.message`
-// y `request.url` viajan como strings crudos. En LiftGo esos strings suelen
-// llevar folios (FAC-XXXX), RFC/CURP, correos de cliente y JWTs si un error
-// escapa con la URL completa. Este módulo los redacta antes de `beforeSend` /
-// `beforeBreadcrumb`.
-//
-// Exportado como funciones puras para poder ejercitarlo desde vitest sin
-// inicializar Sentry.
+import { sanitizeRoute } from "./routeContext";
 
 const REDACTED = "[REDACTED]";
-
-// Patrones acotados: la idea NO es hacer NLP, sólo cubrir los identificadores
-// mexicanos que aparecen en logs del ERP + secretos comunes.
-const PII_PATTERNS: ReadonlyArray<{ name: string; re: RegExp }> = [
-  // Email
-  { name: "email", re: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g },
-  // RFC MX persona moral (12) o física (13): 3-4 letras + 6 dígitos + 3 alfanum
-  { name: "rfc", re: /\b[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\b/g },
-  // CURP: 18 alfanuméricos con estructura fija (letra+vocal+letra+letra+6dig+H|M+2let+3let+alfanum+dig)
-  { name: "curp", re: /\b[A-Z][AEIOUX][A-Z]{2}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b/g },
-  // JWT (aa.bb.cc). Suficientemente largo para no chocar con versiones semver.
-  { name: "jwt", re: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g },
-  // Bearer tokens sueltos en mensajes.
-  { name: "bearer", re: /Bearer\s+[A-Za-z0-9._-]+/gi },
-  // Teléfono MX (10 dígitos, opcional +52 y separadores).
-  { name: "phone", re: /(?:\+?52[\s-]?)?(?:\d[\s-]?){10}\d?/g },
+const PATTERNS = [
+  /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+  /\b[A-ZÑ&]{3,4}\d{6}[A-Z0-9]{3}\b/g,
+  /\b[A-Z][AEIOUX][A-Z]{2}\d{6}[HM][A-Z]{5}[A-Z0-9]\d\b/g,
+  /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,
+  /Bearer\s+[^\s"',;]+/gi,
+  /\bsk_(?:test|live|user)_[A-Za-z0-9_-]+/g,
+  /(?<![A-Za-z0-9])(?:\+?52[\s-]?)?(?:\d[\s-]?){9}\d(?![A-Za-z0-9])/g,
 ];
-
-// Params de query que suelen llevar secretos o PII directa. Se redactan valores;
-// las claves quedan visibles para poder correlacionar en Sentry.
-const SENSITIVE_QUERY_KEYS = new Set([
-  "token",
-  "access_token",
-  "refresh_token",
-  "id_token",
-  "apikey",
-  "api_key",
-  "key",
-  "secret",
-  "password",
-  "email",
-  "phone",
-  "rfc",
-  "curp",
-]);
+const SENSITIVE_KEY = /^(?:authorization|proxyauthorization|cookies?|setcookie|xapikey|apikey|key|secret|clientsecret|password|passwd|pwd|token|accesstoken|refreshtoken|idtoken|email|phone|telephone|rfc|curp|querystring|body|requestbody|responsebody|variables|formdata)$/i;
+const URL_KEY = /(?:urls?|uri|href|filename|abs_path|path|pathname)$|^(?:to|from|url\..*|http\.target)$/i;
 
 export function redactPII(input: string | undefined | null): string {
-  if (!input) return "";
-  let out = input;
-  for (const { re } of PII_PATTERNS) {
-    out = out.replace(re, REDACTED);
-  }
-  return out;
+  let out = input ?? "";
+  for (const pattern of PATTERNS) out = out.replace(pattern, REDACTED);
+  return out.replace(/\b((?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|token)["']?\s*[:=]\s*)["']?[^\s&,;"'}]+["']?/gi, `$1${REDACTED}`);
 }
 
+/** Conserva la ruta para diagnóstico, elimina todos los filtros y fragmentos. */
 export function scrubUrl(rawUrl: string | undefined | null): string {
   if (!rawUrl) return "";
   try {
-    // Base dummy para URLs relativas (p.ej. /portal/statement?token=...).
     const url = new URL(rawUrl, "https://redacted.local");
-    let mutated = false;
-    for (const key of Array.from(url.searchParams.keys())) {
-      if (SENSITIVE_QUERY_KEYS.has(key.toLowerCase())) {
-        url.searchParams.set(key, REDACTED);
-        mutated = true;
-      } else {
-        // Valores no sensibles: sólo redactar si contienen PII detectable.
-        const val = url.searchParams.get(key) ?? "";
-        const scrubbed = redactPII(val);
-        if (scrubbed !== val) {
-          url.searchParams.set(key, scrubbed);
-          mutated = true;
-        }
-      }
-    }
-    // También redactar el path (folios/emails embebidos, ej. /clientes/juan@x.com).
-    const scrubbedPath = redactPII(url.pathname);
-    if (scrubbedPath !== url.pathname) {
-      url.pathname = scrubbedPath;
-      mutated = true;
-    }
-    if (!mutated && rawUrl.startsWith("/")) return url.pathname + url.search;
-    return url.pathname + url.search + url.hash;
+    if (url.protocol !== "http:" && url.protocol !== "https:") return REDACTED;
+    let path = url.pathname;
+    try { path = decodeURIComponent(path); } catch { /* ruta malformada: redactar lo legible */ }
+    return redactPII(sanitizeRoute(path));
   } catch {
-    return redactPII(rawUrl);
+    return redactPII(rawUrl.split(/[?#]/, 1)[0]);
   }
 }
 
-// Estructura mínima compatible con Sentry.Event; usamos `unknown` en `user.id`
-// porque Sentry lo tipa como `string | number`. Mantener este módulo sin
-// import type desde @sentry/* facilita el test unitario.
+/** Copia acotada: no ejecuta getters ni serializa objetos cíclicos o cuerpos. */
+export function scrubData(value: unknown, key = "", depth = 0, seen = new WeakSet<object>()): unknown {
+  if (SENSITIVE_KEY.test(key.replace(/[^a-z]/gi, ""))) return REDACTED;
+  if (typeof value === "string") return scrubString(value, key);
+  if (value === null) return null;
+  if (typeof value !== "object") return typeof value === "number" || typeof value === "boolean" ? value : undefined;
+  if (depth >= 8 || seen.has(value)) return REDACTED;
+  seen.add(value);
+  if (Array.isArray(value)) return value.slice(0, 100).map((item) => scrubData(item, key, depth + 1, seen));
+  return scrubObject(value, depth, seen);
+}
+
+function scrubString(value: string, key: string): string {
+  if (/^(?:event_id|trace_id|span_id|parent_span_id|debug_id|organization_id|tenant)$/.test(key)
+    && /^(?:[0-9a-f]{16,32}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i.test(value)) return value;
+  if (!URL_KEY.test(key)) return redactPII(value);
+  const path = scrubUrl(value);
+  // Mantener origen de los scripts para que Sentry pueda resolver sourcemaps.
+  if (key === "filename" || key === "abs_path") {
+    try { const url = new URL(value); return url.origin + path; } catch { /* ruta relativa */ }
+  }
+  return path;
+}
+
+function scrubObject(value: object, depth: number, seen: WeakSet<object>): Record<string, unknown> {
+  const output: Record<string, unknown> = {};
+  for (const [name, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value)).slice(0, 100)) {
+    if (name === "__proto__" || name === "constructor" || name === "prototype") continue;
+    output[name] = "value" in descriptor ? scrubData(descriptor.value, name, depth + 1, seen) : REDACTED;
+  }
+  return output;
+}
+
 interface ScrubbableEvent {
   message?: string;
-  request?: { url?: string; query_string?: unknown; cookies?: unknown; headers?: Record<string, unknown> };
-  exception?: { values?: Array<{ value?: string }> };
+  request?: { url?: string; query_string?: unknown; cookies?: unknown; headers?: Record<string, unknown>; data?: unknown };
+  exception?: { values?: Array<{ value?: string; stacktrace?: unknown }> };
   breadcrumbs?: Array<{ message?: string; data?: Record<string, unknown> }>;
   contexts?: Record<string, Record<string, unknown> | undefined>;
   extra?: Record<string, unknown>;
+  tags?: Record<string, unknown>;
   user?: { id?: unknown; email?: string | null; username?: string | null; ip_address?: string | null } | null;
 }
 
-function scrubRequest(req: NonNullable<ScrubbableEvent["request"]>): void {
-  if (req.url) req.url = scrubUrl(req.url);
-  // Cookies y query_string siempre van al basurero: son PII/tokens por definición.
-  if (req.query_string) req.query_string = REDACTED;
-  if (req.cookies) req.cookies = REDACTED;
-  if (req.headers) {
-    const headers = req.headers as Record<string, unknown>;
-    for (const k of Object.keys(headers)) {
-      if (/^(authorization|cookie|x-api-key)$/i.test(k)) headers[k] = REDACTED;
-    }
-  }
-}
-
-function scrubExceptions(exc: NonNullable<ScrubbableEvent["exception"]>): void {
-  if (!exc.values) return;
-  for (const v of exc.values) {
-    if (v.value) v.value = redactPII(v.value);
-  }
-}
-
-function scrubBreadcrumbs(bc: NonNullable<ScrubbableEvent["breadcrumbs"]>): void {
-  for (const b of bc) {
-    if (b.message) b.message = redactPII(b.message);
-    if (b.data && typeof b.data === "object") {
-      const data = b.data as Record<string, unknown>;
-      if (typeof data.url === "string") data.url = scrubUrl(data.url);
-      if (typeof data.to === "string") data.to = scrubUrl(data.to);
-      if (typeof data.from === "string") data.from = scrubUrl(data.from);
-    }
-  }
-}
-
 export function scrubEvent<T extends Partial<ScrubbableEvent>>(event: T): T {
-  if (event.message) event.message = redactPII(event.message);
-  if (event.request) scrubRequest(event.request);
-  if (event.exception) scrubExceptions(event.exception);
-  if (event.breadcrumbs) scrubBreadcrumbs(event.breadcrumbs);
-  // Nunca mandar email/username/ip aunque un caller haya seteado setUser con
-  // esos campos. Sólo el id sobrevive para correlacionar.
-  if (event.user) event.user = { id: event.user.id };
-  return event;
+  const clean = scrubData(event) as T;
+  if (clean.request?.data !== undefined) clean.request.data = REDACTED;
+  if (event.user) clean.user = { id: typeof event.user.id === "string" || typeof event.user.id === "number" ? event.user.id : undefined };
+  return clean;
+}
+
+/** Sentry 11 envía spans fuera de beforeSend: filtrar cada span en stream mode. */
+export function scrubSpan<T extends { name: string; attributes: Record<string, unknown> }>(span: T): T {
+  const attributes = scrubData(span.attributes) as T["attributes"];
+  for (const key of Object.keys(attributes)) {
+    if (/^(?:params\.|url\.path\.parameter\.|http\.(?:request|response)\.(?:header|body)|db\.query\.parameter)/.test(key)) delete attributes[key];
+  }
+  return { ...span, name: redactPII(sanitizeRoute(span.name)), attributes };
 }

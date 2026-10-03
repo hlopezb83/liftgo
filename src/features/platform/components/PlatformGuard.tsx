@@ -3,7 +3,7 @@ import { ErrorDiagnostic } from "@/components/feedback/ErrorDiagnostic";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRecoveryStatus } from "@/features/auth";
-import { Sentry } from "@/lib/observability/sentry";
+import { clearSentryIdentity, syncSentryIdentity } from "@/lib/observability/identity";
 import { useLocation } from "@/lib/router-compat";
 import { Link, Navigate } from "@/lib/router-compat-ui";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
@@ -32,12 +32,10 @@ export function PlatformGuard({ children }: { children: ReactNode }) {
   useEffect(() => {
     const role = !operator.isError && operator.data?.isOperator === true ? "platform_operator" : null;
     setAuthSnapshot({ user: user ? { id: user.id, email: user.email ?? null } : null, organization: null, role });
-    Sentry.setUser(user ? { id: user.id } : null);
-    Sentry.setTag("role", role ?? "unknown");
+    syncSentryIdentity({ userId: user?.id ?? null, organizationId: null, role, workspace: "platform" });
     return () => {
       setAuthSnapshot({ user: null, organization: null, role: null });
-      Sentry.setUser(null);
-      Sentry.setTag("role", "unknown");
+      clearSentryIdentity();
     };
   }, [user, operator.data, operator.isError]);
 

@@ -13,7 +13,6 @@ import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestorati
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { TopbarUserMenu } from "@/layouts/TopbarUserMenu";
-import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
 import { Outlet } from "@/lib/router-compat-ui";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 
@@ -72,7 +71,6 @@ export default function MainLayout() {
   return (
     <SidebarProvider>
       <PageActionsProvider>
-        <SentryNavigationSync />
         <div className="h-[100dvh] flex w-full">
           <a
             href="#main-content"

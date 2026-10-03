@@ -1,5 +1,19 @@
 [
   {
+    "version": "8.43.8",
+    "date": "2026-10-03",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Monitoreo de errores por empresa",
+    "description": "El monitoreo inicia antes del ERP y distingue empresa, rol y espacio de trabajo con diagnósticos saneados.",
+    "changes": [
+      "Se corrigió el arranque del monitoreo en la aplicación publicada y se actualizó Sentry a 11.4.0.",
+      "Los incidentes técnicos se registran por empresa verificada y rol; las validaciones y conflictos esperados conservan su diagnóstico local.",
+      "Al cambiar de usuario o empresa se limpia el contexto anterior. Se excluyen credenciales, filtros de URL y cuerpos de solicitud del monitoreo.",
+      "Replay queda desactivado por defecto hasta verificar su privacidad y recepción en Sentry."
+    ]
+  },
+  {
     "version": "8.43.7",
     "date": "2026-10-03",
     "type": "patch",

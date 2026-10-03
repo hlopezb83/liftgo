@@ -73,6 +73,21 @@ async function expectBooted(page: Page, route: string): Promise<void> {
     "class",
     /light|dark/,
   );
+  // Regresión: sideEffects:false eliminaba la inicialización del SDK en producción.
+  // Se observa el cliente real; blockExternalRequests evita cualquier envío externo.
+  const sentry = await page.evaluate(() => {
+    type Client = { getOptions(): { release?: string; replaysOnErrorSampleRate?: number } };
+    type Scope = { getClient(): Client | undefined };
+    const carrier = (globalThis as unknown as { __SENTRY__?: Record<string, unknown> }).__SENTRY__;
+    const version = carrier?.version as string | undefined;
+    const state = carrier?.[version ?? ""] as { defaultCurrentScope?: Scope; stack?: Scope } | undefined;
+    const client = state?.stack?.getClient() ?? state?.defaultCurrentScope?.getClient();
+    return { version, active: !!client, release: client?.getOptions().release, replay: client?.getOptions().replaysOnErrorSampleRate };
+  });
+  expect(sentry.active, `Sentry activo tras hidratar ${route}`).toBe(true);
+  expect(sentry.version).toBe("11.4.0");
+  expect(sentry.release).toMatch(/^liftgo@\d+\.\d+\.\d+$/);
+  expect(sentry.replay).toBe(0);
 }
 
 test("acceso de empleados: carga, alterna contraseña y cambia de modo", async ({

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
 import { companySettingsQueries, publicBrandingQueries } from "@/features/company-settings/lib/queryKeys";
-import { Sentry } from "@/lib/observability/sentry";
+import { clearSentryIdentity, syncSentryIdentity } from "@/lib/observability/identity";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { setAppVersion } from "@/lib/ui/errorReport";
 import { useUserRole } from "../hooks/useUserRole";
@@ -32,15 +32,10 @@ export function AuthSnapshotSync(): null {
     };
     update();
     const unsubscribe = cache.getQueryCache().subscribe(update);
-    // Sentry: correlaciona errores con el usuario/rol activo. Sólo id — el
-    // email es PII y además `scrubEvent` lo tumba en beforeSend por defecto.
-    if (user) {
-      Sentry.setUser({ id: user.id });
-      Sentry.setTag("role", role ?? "unknown");
-    } else {
-      Sentry.setUser(null);
-    }
-    return () => { unsubscribe(); setAuthSnapshot({ user: null, organization: null, role: null }); };
+    syncSentryIdentity({ userId: user?.id ?? null, organizationId: organizationId ?? null,
+      role: user ? role ?? null : null,
+      workspace: typeof window !== "undefined" && window.location.pathname.startsWith("/portal") ? "portal" : "organization" });
+    return () => { unsubscribe(); setAuthSnapshot({ user: null, organization: null, role: null }); clearSentryIdentity(); };
   }, [user, role, organizationId, cache]);
 
   // Lee la versión actual desde /version.json (~50 bytes vs ~380KB del changelog).
