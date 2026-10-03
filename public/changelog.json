@@ -1,5 +1,17 @@
 [
   {
+    "version": "8.43.4",
+    "date": "2026-10-02",
+    "type": "patch",
+    "category": "fix",
+    "title": "Facturación recurrente asigna folio con varias empresas",
+    "description": "La generación de facturas recurrentes declara la empresa de la reserva antes de asignar el folio y deja de fallar cuando hay más de una empresa activa.",
+    "changes": [
+      "La factura recurrente usa la empresa verificada de sus reservas para generar el folio; ya no aparece el error de contexto de organización (código 23514).",
+      "Nueva prueba de regresión con dos empresas activas."
+    ]
+  },
+  {
     "version": "8.43.3",
     "date": "2026-10-02",
     "type": "patch",
