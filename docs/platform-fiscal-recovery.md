@@ -56,12 +56,28 @@ lo difiere. Las llamadas normales del ERP conservan sus permisos y validaciones.
 
 1. Aprobar CI, SQL/RLS y A/B del SHA exacto. Las pruebas SQL usan PostgreSQL
    efímero y `ROLLBACK`; las pruebas del SDK usan transporte en memoria.
-2. Confirmar en Cloud el ledger y los estados actuales de cola. Aplicar 0099
-   antes de activar las funciones que consultan `config_source`.
+2. Confirmar en Cloud el ledger, la versión publicada y los estados de cola.
+   Aplicar 0099 antes de activar las funciones que consultan `config_source`.
+   Si el servidor publicado es anterior a 8.43.12, diferir `integrations.retry`
+   en `platform_profile_capabilities` dentro de la misma transacción: conservar
+   todas las otras capacidades e incrementar la revisión de Raíz/Soporte.
+   Registrar esta definición temporal; no reescribir el SQL ni el hash del ledger.
+   La validación antigua rechaza un permiso desconocido y bloquea el portal.
 3. Desplegar `stamp-cfdi`, las tres cancelaciones y
    `refresh-cancellation-status`; después `process-cfdi-retry-queue`.
 4. Publicar la interfaz y verificar lectura/permisos, motivos, resultado
    pendiente y copia JSON. No ejecutar el cron de emisión como prueba de arranque.
+5. Tras verificar funciones y publicación compatible, restaurar la definición
+   exacta de `platform_profile_capabilities` de 0099 e incrementar la revisión
+   de Raíz/Soporte en una transacción. Comprobar el permiso y la interfaz con
+   sesión vigente. Hasta entonces las acciones manuales nuevas permanecen apagadas.
+
+El lector de la respuesta propia de `get_platform_access` conserva sólo las
+capacidades reconocidas por esa versión, para tolerar futuras ampliaciones de la
+BD. No convierte permisos desconocidos en existentes. Perfil, revisión, estado
+operador y formato siguen validados; una respuesta no operadora con permisos o
+un error del RPC falla. El contrato público de acceso permanece estricto, y los
+guards/RPCs vuelven a verificar cada capacidad vigente en la BD.
 
 La protección histórica de este bloque cubre trabajos de `cfdi_retry_queue`.
 No acredita la llave histórica de todos los documentos antiguos ni sustituye
