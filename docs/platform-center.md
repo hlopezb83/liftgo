@@ -18,6 +18,7 @@ propio layout y autorización. Se conserva la marca global LiftGo.
 | `/platform/operators` | Perfiles de cuentas internas validadas, motivo y confirmación de contraseña |
 | `/platform/security` | Sesión propia y recuperación gestionada |
 | `/platform/integrations` | Configuración, comprobación explícita de Facturapi y conteos de cola fiscal |
+| `/platform/fiscal-jobs` | Trabajos fiscales por empresa, documento y operación; historial técnico |
 | `/platform/monitoring` | Indicadores operativos y fuentes con fecha de consulta |
 | `/platform/support` | Casos compartidos por empresa, responsables, severidad y seguimiento |
 | `/?workspace=organization` | Entrada explícita al ERP de la empresa del usuario |
@@ -273,6 +274,45 @@ Referencias del transporte:
 [AbortSignal](https://supabase.com/docs/reference/javascript/using-modifiers-abortsignal) y
 [reintentos del cliente](https://supabase.com/docs/guides/api/automatic-retries-in-supabase-js).
 Son APIs de las librerías internas de Lovable Cloud; no requieren otro backend.
+
+## Historial fiscal (8.43.4 / 0096)
+
+La bandeja pagina 25 trabajos por empresa, estado de cola y operación (timbrado
+de factura o cancelación de factura, nota de crédito y complemento). Búsqueda
+por nombre interno/razón social, folio o ID. El detalle pagina 50 transiciones
+con cursor `bigint` como texto. Requiere `integrations.read` y sesión vigente
+en servidor y SQL; no habilita al administrador empresarial ni concede nuevas
+capacidades. Las tablas técnicas tienen RLS/FORCE deny-all y servicio sólo SELECT.
+
+Los triggers registran estado, intentos, presupuesto, aplazamientos y próxima
+ejecución en la misma transacción que la cola. Cambiar sólo `updated_at` no
+genera un intento. Rollback revierte la transición y su evento. El historial es
+inmutable; conserva identidad y eventos tras retirar un trabajo, también ante
+TRUNCATE. No registra cuerpos, errores crudos, claves, RFC, URLs, importes ni
+UUID de CFDI. Las referencias a documentos se resuelven por ID y empresa exactos.
+El nombre puede actualizarse desde la misma razón social; el snapshot conserva
+una alternativa si la empresa ya no existe.
+
+Los trabajos anteriores reciben una instantánea del estado observado al aplicar
+0096, con configuración histórica desconocida. No se inventan intentos ni se
+atribuye su pasado al ambiente actual. Nuevos trabajos capturan el ambiente y la
+huella de la configuración al encolar; la huella queda privada. Esa configuración
+no acredita por sí sola el ambiente en que un CFDI fue emitido.
+
+«Finalizado en cola» informa del consumidor, no confirma timbrado/cancelación.
+Una cola vacía no prueba que todos los CFDI estén conciliados. ID de Facturapi
+sin UUID conserva el camino de conciliación. Abrir el detalle no llama al
+proveedor ni inicia operaciones fiscales. Este primer tramo construye el historial;
+la reserva de acciones, conciliación por ID/external_id y reprogramación limitada
+con actor/motivo/resultado durable siguen como el siguiente tramo del bloque.
+
+Despliegue: validar CI, RLS y A/B del candidato exacto; aplicar 0096 con su hash
+y `when` en transacción, verificar grants/triggers y publicar después. Las
+pruebas de cola, documentos, historial, rollback y TRUNCATE sólo corren en
+PostgreSQL efímero y cierran con ROLLBACK, nunca en Cloud productivo.
+
+Referencias: [triggers transaccionales de PostgreSQL](https://www.postgresql.org/docs/current/trigger-definition.html)
+y [Facturapi: solicitudes 202 pendientes](https://docs.facturapi.io/docs/guides/invoices/intermitencias/).
 
 ## Incorporación revisada (8.42.40 / 0090)
 

@@ -673,6 +673,13 @@
       "when": 1790988438092,
       "tag": "0095_support_display_identity",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1790991383600,
+      "tag": "0096_platform_fiscal_job_history",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { checkPlatformIntegrationFn, listPlatformIntegrationsFn } from "@/lib/platformHealth.functions";
 import { INTEGRATION_STATUS_LABELS } from "@/lib/platformHealth.types";
+import { Link } from "@/lib/router-compat-ui";
 import { PlatformIntegrationCard } from "../components/PlatformIntegrationCard";
 import { usePlatformCapabilities } from "../hooks/usePlatformAccess";
 import { healthDate } from "../hooks/usePlatformHealth";
@@ -26,7 +27,8 @@ export default function PlatformIntegrationsPage() {
   }), onSettled: () => void cache.invalidateQueries({ queryKey: ["platform", "health"] }) });
   return <>
     <PageHeader title="Integraciones por empresa" subtitle="Facturapi: configuración, conexión y cola fiscal."
-      actions={<Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar listado</Button>} />
+      actions={<><Button asChild variant="outline"><Link to="/platform/fiscal-jobs">Ver trabajos fiscales</Link></Button>
+        <Button variant="outline" disabled={query.isFetching} onClick={() => void query.refetch()}>Actualizar listado</Button></>} />
     <div className="rounded-xl border bg-card p-4 sm:p-6 space-y-4">
       <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={(event) => {
         event.preventDefault(); setSearch(draft.trim()); setOffset(0); check.reset();
