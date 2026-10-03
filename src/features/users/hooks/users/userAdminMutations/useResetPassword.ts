@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import { resetUserPasswordFn } from "@/lib/userAdmin.functions";
 
 export function useResetPassword() {
@@ -18,7 +19,7 @@ export function useResetPassword() {
         action: {
           label: "Copiar enlace",
           onClick: () => {
-            void navigator.clipboard.writeText(link).catch(() => undefined);
+            void copyWithFeedback(link, "Enlace");
           },
         },
       });

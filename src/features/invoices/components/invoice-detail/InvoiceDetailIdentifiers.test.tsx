@@ -1,11 +1,13 @@
 import type { ReactNode } from "react";
 // @vitest-environment jsdom
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { InvoiceDetailIdentifiers } from "./InvoiceDetailIdentifiers";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 vi.mock("@/lib/ui/appFeedback", () => ({
   notifySuccess: vi.fn(),
+  notifyError: vi.fn(),
 }));
 
 vi.mock("@/components/ui/tooltip", () => ({
@@ -17,6 +19,7 @@ vi.mock("@/components/ui/tooltip", () => ({
 
 describe("InvoiceDetailIdentifiers", () => {
   beforeEach(() => {
+    vi.clearAllMocks();
     Object.assign(navigator, {
       clipboard: {
         writeText: vi.fn().mockResolvedValue(undefined),
@@ -44,6 +47,16 @@ describe("InvoiceDetailIdentifiers", () => {
       />,
     );
     expect(screen.getByText("Serie A · Folio 145")).toBeInTheDocument();
+  });
+
+  it("un rechazo al copiar no muestra éxito y conserva el identificador seleccionable", async () => {
+    const cause = new DOMException("Clipboard permission denied", "NotAllowedError");
+    vi.mocked(navigator.clipboard.writeText).mockRejectedValueOnce(cause);
+    render(<InvoiceDetailIdentifiers cfdiUuid="uuid-auditoria" serie="F" folio="1" />);
+    fireEvent.click(screen.getByRole("button", { name: "Copiar Folio fiscal SAT (UUID)" }));
+    await waitFor(() => expect(notifyError).toHaveBeenCalledWith(expect.objectContaining({ error: cause, severity: "warning", phase: "clipboard" })));
+    expect(notifySuccess).not.toHaveBeenCalled();
+    expect(screen.getByTitle("uuid-auditoria")).toBeInTheDocument();
   });
 
   it("envuelve el UUID en móvil y conserva accesible la acción de copiar", () => {

@@ -1,5 +1,6 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import { inviteUserFn } from "@/lib/userAdmin.functions";
 import { userKeys } from "../../../lib/queryKeys";
 
@@ -30,7 +31,7 @@ export function useInviteUser() {
           action: {
             label: "Copiar enlace",
             onClick: () => {
-              void navigator.clipboard.writeText(link).catch(() => undefined);
+              void copyWithFeedback(link, "Enlace");
             },
           },
         });

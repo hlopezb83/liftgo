@@ -1,3 +1,11 @@
+## [8.43.15] — 2026-10-03
+
+- Las copias fallidas muestran un aviso recuperable con diagnóstico y alternativa manual; el éxito se confirma al terminar la copia.
+- Los campos incompletos de una cotización muestran una validación breve con mensajes junto a los campos.
+- Los diálogos móviles reservan espacio para las notificaciones sin tapar su título, campos o acciones.
+- El calendario conserva un solo aviso por fallo de consulta y confirma la actualización cuando todas las consultas terminan bien.
+- Los botones para copiar identificadores fiscales y datos de transferencia conservan un área táctil de 44 px.
+
 ## [8.43.14] — 2026-10-03
 
 - Se retiran las trazas de rendimiento y la grabación de sesiones; se conservan los errores, su versión y el contexto de empresa verificado.

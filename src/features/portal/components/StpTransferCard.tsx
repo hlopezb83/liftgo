@@ -4,24 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
 
 interface Props {
   amount: number;
   concept: string;
-}
-
-function copy(text: string, label: string) {
-  // FIX-FE-12a: sin catch, un rechazo del clipboard (permiso denegado, pestaña
-  // sin foco) dejaba unhandled rejection y el usuario sin feedback.
-  navigator.clipboard.writeText(text)
-    .then(() => notifySuccess(`${label} copiado`))
-    .catch(() => notifyError({
-      title: `No se pudo copiar ${label.toLowerCase()}`,
-      description: "Copia el dato manualmente.",
-      severity: "warning",
-    }));
 }
 
 export function StpTransferCard({ amount, concept }: Props) {
@@ -75,7 +63,7 @@ export function StpTransferCard({ amount, concept }: Props) {
               <div className="flex items-center gap-2">
                 <span className="font-mono text-sm">{r.value}</span>
                 {r.copyable && (
-                  <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(r.value, r.label)} aria-label={`Copiar ${r.label}`}>
+                  <Button type="button" size="icon" variant="ghost" className="h-11 w-11" onClick={() => void copyWithFeedback(r.value, r.label)} aria-label={`Copiar ${r.label}`}>
                     <DuplicateIcon className="h-3.5 w-3.5" />
                   </Button>
                 )}

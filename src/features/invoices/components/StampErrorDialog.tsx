@@ -4,7 +4,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { InfoAlertIcon, DuplicateIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 import type { FacturapiErrorKind } from "../lib/facturapiErrors";
 
 interface ReceptorSnapshot {
@@ -83,12 +83,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
   const canCopy = !!value && value.trim() !== "";
   const handleCopy = async () => {
     if (!canCopy || !value) return;
-    try {
-      await navigator.clipboard.writeText(value);
-      notifySuccess(`${label} copiado`);
-    } catch {
-      // silent
-    }
+    await copyWithFeedback(value, label);
   };
   return (
     <div className="flex items-start justify-between gap-3 py-1.5 border-b last:border-b-0 border-border/50">
@@ -102,7 +97,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
             type="button"
             variant="ghost"
             size="icon"
-            className="h-6 w-6 shrink-0"
+            className="h-11 w-11 shrink-0"
             onClick={handleCopy}
             aria-label={`Copiar ${label}`}
           >

@@ -531,3 +531,16 @@
   .toaster[data-sonner-toaster] { width: auto; }
   .toaster[data-sonner-toaster] [data-sonner-toast] { width: 100%; }
 }
+@media (max-width: 767px) {
+  html[data-mobile-toast-inset] [data-toast-viewport="dialog"][data-state="open"] {
+    top: var(--toast-dialog-top);
+    translate: -50% 0;
+    --tw-translate-y: 0px;
+    max-height: calc(100dvh - var(--toast-dialog-top) - max(12px, env(safe-area-inset-bottom)));
+  }
+  .toaster[data-sonner-toaster] [data-sonner-toast] {
+    max-height: 40dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}

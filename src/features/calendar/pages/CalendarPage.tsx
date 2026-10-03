@@ -13,13 +13,13 @@ import { useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
-import { notifyAsync } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { CalendarLoadingSkeleton, CalendarToolbar, EndingSoonAlert } from "../components/calendar/CalendarPageParts";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
 import { GanttCard } from "../components/calendar/GanttCard";
 import { useMaintenanceWindows } from "../hooks/useMaintenanceWindows";
+import { refreshCalendarQueries } from "../lib/refreshCalendarQueries";
 
 
 function rangeFns(mode: "month" | "week") {
@@ -126,17 +126,7 @@ export default function CalendarPage() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await notifyAsync(
-        Promise.all([bRefetch(), currentBookingsRefetch(), fRefetch(), mRefetch()]).then((results) => {
-          const failed = results.find((result) => result.isError);
-          if (failed) throw failed.error ?? new Error("No se pudo actualizar el calendario");
-        }),
-        {
-          loading: "Actualizando calendario…",
-          success: "Calendario actualizado",
-          error: "No se pudo actualizar el calendario",
-        },
-      );
+      await refreshCalendarQueries([bRefetch, currentBookingsRefetch, fRefetch, mRefetch]);
     } finally {
       setIsRefreshing(false);
     }

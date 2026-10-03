@@ -3,7 +3,7 @@ import { SuccessIcon, DuplicateIcon, InfoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { copyWithFeedback } from "@/lib/ui/copyWithFeedback";
 
 interface Props {
   cfdiUuid: string | null;
@@ -25,9 +25,8 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
 
   const copy = async () => {
     if (!value) return;
-    await navigator.clipboard.writeText(value);
+    if (!await copyWithFeedback(value, label, "Copiado al portapapeles")) return;
     setCopied(true);
-    notifySuccess("Copiado al portapapeles");
     setTimeout(() => setCopied(false), 1500);
   };
 
@@ -52,7 +51,7 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
           {value ?? placeholder}
         </span>
         {!isEmpty && (
-          <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={copy} aria-label={`Copiar ${label}`}>
+          <Button type="button" variant="ghost" size="icon" className="h-11 w-11 shrink-0" onClick={copy} aria-label={`Copiar ${label}`}>
             {copied ? <SuccessIcon className="h-3.5 w-3.5 text-success" /> : <DuplicateIcon className="h-3.5 w-3.5" />}
           </Button>
         )}

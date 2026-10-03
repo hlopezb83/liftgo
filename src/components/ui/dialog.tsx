@@ -38,6 +38,7 @@ const DialogContent = ({ className, children, ref, onInteractOutside, ...props }
         className,
       )}
       {...props}
+      data-toast-viewport="dialog"
       onInteractOutside={(event) => preserveToastInteraction(event, onInteractOutside)}
     >
       {children}
