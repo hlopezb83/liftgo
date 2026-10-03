@@ -16,7 +16,7 @@ const URL_KEY = /(?:urls?|uri|href|filename|abs_path|path|pathname)$|^(?:to|from
 export function redactPII(input: string | undefined | null): string {
   let out = input ?? "";
   for (const pattern of PATTERNS) out = out.replace(pattern, REDACTED);
-  return out.replace(/\b((?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|token)["']?\s*[:=]\s*)["']?[^\s&,;"'}]+["']?/gi, `$1${REDACTED}`);
+  return out.replace(/\b((?:password|passwd|pwd|secret|api[_-]?key|access[_-]?token|refresh[_-]?token|id[_-]?token|token)["']?\s*[:=]\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s&,;"'}]+)/gi, `$1${REDACTED}`);
 }
 
 /** Conserva la ruta para diagnóstico, elimina todos los filtros y fragmentos. */
@@ -85,10 +85,11 @@ export function scrubEvent<T extends Partial<ScrubbableEvent>>(event: T): T {
 }
 
 /** Sentry 11 envía spans fuera de beforeSend: filtrar cada span en stream mode. */
-export function scrubSpan<T extends { name: string; attributes: Record<string, unknown> }>(span: T): T {
+export function scrubSpan<T extends { name: string; attributes: Record<string, unknown>; links?: unknown }>(span: T): T {
   const attributes = scrubData(span.attributes) as T["attributes"];
   for (const key of Object.keys(attributes)) {
     if (/^(?:params\.|url\.path\.parameter\.|http\.(?:request|response)\.(?:header|body)|db\.query\.parameter)/.test(key)) delete attributes[key];
   }
-  return { ...span, name: redactPII(sanitizeRoute(span.name)), attributes };
+  return { ...span, name: redactPII(sanitizeRoute(span.name)), attributes,
+    ...(span.links ? { links: scrubData(span.links) as T["links"] } : {}) };
 }

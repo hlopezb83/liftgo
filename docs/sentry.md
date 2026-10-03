@@ -84,6 +84,6 @@ que los mapas no se sirvan públicamente.
 
 - [Release 11.4.0](https://github.com/getsentry/sentry-javascript/releases/tag/11.4.0)
 - [Migración 10 a 11](https://docs.sentry.io/platforms/javascript/migration/v10-to-v11/)
-- [TanStack Router](https://docs.sentry.io/platforms/javascript/guides/react/tracing/instrumentation/tanstack-router/)
+- [TanStack Router](https://docs.sentry.io/platforms/javascript/guides/react/features/tanstack-router/)
 - [Privacidad de Replay](https://docs.sentry.io/platforms/javascript/session-replay/privacy/)
 - [Código del SDK](https://github.com/getsentry/sentry-javascript/tree/11.4.0/packages)

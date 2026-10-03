@@ -1,11 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { scrubData, scrubEvent, scrubSpan, scrubUrl } from "./scrubPII";
+import { redactPII, scrubData, scrubEvent, scrubSpan, scrubUrl } from "./scrubPII";
 import { scrubReplayFrame } from "./replay";
 
 const key = "sk_" + "test_" + "AUDIT_NOT_A_REAL_KEY";
 const id = "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d";
 
 describe("canales independientes de privacidad", () => {
+  it("elimina contraseñas entre comillas que contienen espacios y claves dentro de links de spans", () => {
+    expect(redactPII('password="private pass phrase" token=opaque')).toBe("password=[REDACTED] token=[REDACTED]");
+    expect(redactPII("secret='private pass phrase'")).toBe("secret=[REDACTED]");
+    expect(JSON.stringify(scrubSpan({ name: "operation", attributes: {}, links: [{ trace_id: "abcdef1234567890abcdef1234567890", attributes: { password: "private pass phrase" } }] })))
+      .not.toContain("private pass phrase");
+  });
   it("no confunde identificadores técnicos con teléfonos al recorrer todo el evento", () => {
     const input = { event_id: "12345678901234567890123456789012",
       contexts: { trace: { trace_id: "abcdef1234567890abcdef1234567890", span_id: "1234567890123456" } },

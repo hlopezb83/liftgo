@@ -4,7 +4,7 @@ import { scrubData, scrubEvent, scrubSpan } from "./scrubPII";
 const PUBLIC_DSN = "https://e8df6c29317f5f884be32f4b0c50ac05@o4511415732404224.ingest.us.sentry.io/4511770994933760";
 let tracingInstalled = false;
 
-/** Llamada explícita desde client.ts, antes de importar/hidratar la aplicación. */
+/** Llamada explícita desde instrument-client.ts, antes de hidratar la aplicación. */
 export function initClientSentry(): void {
   const environment = import.meta.env.MODE;
   const dsn = import.meta.env.VITE_SENTRY_DSN ?? PUBLIC_DSN;
