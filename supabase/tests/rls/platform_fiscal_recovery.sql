@@ -31,7 +31,7 @@ SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series
 INSERT INTO public.invoices(id,invoice_number,subtotal,tax_amount,total,cfdi_status)
 SELECT pg_temp.id(n),'BORRADOR-CI-A-'||n,100,16,116,'error' FROM generate_series(47,53) n;
 UPDATE public.invoices SET cfdi_status='stamping',facturapi_invoice_id='provider-33',facturapi_env='test' WHERE id=pg_temp.id(33);
-UPDATE public.invoices SET cfdi_status='stamped',facturapi_invoice_id='provider-'||right(id::text,2),
+UPDATE public.invoices SET status='sent',cfdi_status='stamped',facturapi_invoice_id='provider-'||right(id::text,2),
   cfdi_uuid='11111111-1111-4111-8111-111111111111',cancellation_status=CASE WHEN id=pg_temp.id(42) THEN 'pending' ELSE 'none' END
 WHERE id IN (pg_temp.id(41),pg_temp.id(42),pg_temp.id(46));
 INSERT INTO public.credit_notes(id,invoice_id,credit_note_number,motive,reason_text,subtotal,tax_amount,total,
