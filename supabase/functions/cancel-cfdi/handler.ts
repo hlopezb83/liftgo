@@ -8,9 +8,9 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
+  loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
-import { loadRetryAwareFacturapiConfig } from "../_shared/facturapi/retryContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -228,23 +228,16 @@ export async function handleCancelCfdi(
 
     claimedRef = true;
 
-    const cfgOutcome = await loadRetryAwareFacturapiConfig({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId,
-      body,
-      isServiceRole: auth.isServiceRole,
-      documentId: invoice_id as string,
-      operation: "cancel",
     });
     if (!cfgOutcome.ok) {
       // 8.8.7: configuración no resoluble ⇒ liberar el claim y responder
       // error explícito; jamás una cancelación stub "aceptada".
       await releaseCancelClaim();
-      return json(
-        { error: cfgOutcome.message, code: cfgOutcome.code },
-        cfgOutcome.status,
-      );
+      return json({ error: cfgOutcome.message }, cfgOutcome.status);
     }
     const { apiKey, mode } = cfgOutcome;
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
@@ -306,7 +299,6 @@ export async function handleCancelCfdi(
         if (isTransientFacturapiError(desc)) {
           await enqueueCfdiRetry(supabase, {
             operation: "cancel",
-            fiscalConfig: { apiKey, mode },
             invoiceId: invoice_id as string,
             payload: {
               motive,

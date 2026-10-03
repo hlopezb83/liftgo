@@ -92,7 +92,6 @@ Deno.test("queue handler: referencia de factura de otra empresa termina antes de
 Deno.test("queue handler: una terminación rechazada no se anuncia como éxito ni se repite", async () => {
   const f = fixture();
   f.tables.cfdi_retry_queue[0].operation = "cancel";
-  f.tables.platform_fiscal_jobs[0].operation = "cancel";
   f.failQuery((query) =>
     query.table === "cfdi_retry_queue" && query.patch?.status === "succeeded"
   );
@@ -111,7 +110,6 @@ Deno.test("queue handler: cancelaciones rechazan el documento de otra empresa an
   ) {
     const f = fixture();
     f.tables.cfdi_retry_queue[0].operation = operation;
-    f.tables.platform_fiscal_jobs[0].operation = operation;
     f.tables[table] = [{ ...f.tables.invoices[0], organization_id: ORG_B }];
     assert.equal((await f.run()).results[0].status, "document_unavailable");
     assert.deepEqual(f.calls(), { lookups: 0, invocations: 0 });

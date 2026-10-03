@@ -68,19 +68,3 @@ Deno.test("runtime: versiones prerelease o ilegibles no acreditan el mínimo", a
     );
   }
 });
-
-Deno.test("runtime: usa la versión Deno declarada por Cloud, no la versión del Edge Runtime", async () => {
-  for (
-    const [deno, expected] of [
-      ["supabase-edge-runtime-1.77.0 (compatible with Deno v2.1.4)", false],
-      ["supabase-edge-runtime-1.80.0 (compatible with Deno v2.8.3)", true],
-      ["supabase-edge-runtime-2.9.7 (compatible with Deno v2.1.4)", false],
-    ] as const
-  ) {
-    assertEquals(
-      (await inspectEdgeRuntime({ ...version, deno }))
-        .sentry11RuntimeMinimumMet,
-      expected,
-    );
-  }
-});

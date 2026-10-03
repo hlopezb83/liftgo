@@ -7,11 +7,11 @@ import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
+  loadFacturapiConfigOutcome,
   retrieveInvoiceWithSignal,
   updateInvoiceStatusWithSignal,
 } from "../_shared/facturapi/client.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
-import { loadRetryAwareFacturapiConfig } from "../_shared/facturapi/retryContext.ts";
 import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
@@ -58,12 +58,12 @@ export async function handleRefreshCancellation(
     // y bloqueaban NCs futuras vía el guard anti-sobre-acreditación (BL-08).
     // N-27: acepta TAMBIÉN payment_id para refrescar la cancelación del REP
     // (complemento de pago) persistida en `payments`.
-    const body = await req.json().catch(() => ({}));
-    const { invoice_id, credit_note_id, payment_id } = body as {
-      invoice_id?: unknown;
-      credit_note_id?: unknown;
-      payment_id?: unknown;
-    };
+    const { invoice_id, credit_note_id, payment_id } =
+      (await req.json().catch(() => ({}))) as {
+        invoice_id?: unknown;
+        credit_note_id?: unknown;
+        payment_id?: unknown;
+      };
     const hasInvoice = isUUID(invoice_id);
     const hasCreditNote = isUUID(credit_note_id);
     const hasPayment = isUUID(payment_id);
@@ -120,24 +120,13 @@ export async function handleRefreshCancellation(
       return json({ error: orgCheck.message }, orgCheck.status);
     }
 
-    const cfgOutcome = await loadRetryAwareFacturapiConfig({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId: orgCheck.organizationId,
-      body,
-      isServiceRole: auth.isServiceRole,
-      documentId: docId,
-      operation: hasPayment
-        ? "cancel_rep"
-        : hasCreditNote
-        ? "cancel_nc"
-        : "cancel",
     });
     if (!cfgOutcome.ok) {
-      return json(
-        { error: cfgOutcome.message, code: cfgOutcome.code },
-        cfgOutcome.status,
-      );
+      return json({ error: cfgOutcome.message }, cfgOutcome.status);
     }
     const { apiKey } = cfgOutcome;
     if (!apiKey) {

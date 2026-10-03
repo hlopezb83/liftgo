@@ -142,15 +142,10 @@ jobs:
         run: bun run migrations:check
 
       - name: Aplicar migraciones Drizzle con drizzle-kit
-        id: drizzle
         run: |
           set -euo pipefail
           export LOVABLE_DB_MIGRATION_URL="$DB_URL"
           bunx drizzle-kit migrate --config=drizzle.config.ts
-
-      - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
-        if: failure() && steps.drizzle.outcome == 'failure'
-        run: bun scripts/ci-drizzle-diagnostics.mjs
 
       # Credenciales SOLO de la CLI local. Se enmascaran para que ningún log
       # ni artifact las exponga.

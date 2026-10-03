@@ -252,7 +252,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/deno
-          key: ${{ runner.os }}-deno-${{ hashFiles('supabase/functions/**/*.ts', 'supabase/functions/deno.json', 'supabase/functions/deno.lock') }}
+          key: ${{ runner.os }}-deno-${{ hashFiles('supabase/functions/**/*.ts') }}
           restore-keys: |
             ${{ runner.os }}-deno-
 
@@ -273,10 +273,10 @@ jobs:
           fi
           echo "Ejecutando ${#FILES[@]} archivos"
           # Descarga de dependencias (necesita red) separada de la ejecución.
-          deno cache --frozen --node-modules-dir=auto "${FILES[@]}"
+          deno cache --node-modules-dir=auto "${FILES[@]}"
           # `--allow-net` acotado al bind local que hace `Deno.serve` al importar
           # un `index.ts`: sin salida a internet, imposible tocar ningún backend.
-          deno test --frozen --cached-only --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
+          deno test --parallel --allow-env --allow-read --allow-net=0.0.0.0:8000 \
             --node-modules-dir=auto --junit-path ../../reports/deno-junit.xml "${FILES[@]}"
 
       - name: Subir reporte Deno

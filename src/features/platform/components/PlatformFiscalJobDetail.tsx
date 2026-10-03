@@ -8,7 +8,6 @@ import { getPlatformFiscalJobFn } from "@/lib/platformFiscalJobs.functions";
 import { FISCAL_OPERATIONS, FISCAL_QUEUE_STATUSES, type FiscalJobDetail } from "@/lib/platformFiscalJobs.types";
 import { healthDate } from "../hooks/usePlatformHealth";
 import { fiscalJobGuidance, fiscalJobMode, fiscalJobStatus } from "../lib/fiscalJobPresentation";
-import { PlatformFiscalJobActions } from "./PlatformFiscalJobActions";
 
 const eventLabels = { snapshot: "Instantánea inicial del trabajo existente", queued: "Trabajo registrado", changed: "Estado de cola actualizado", removed: "Trabajo retirado de cola" } as const;
 function JobHistory({ events }: { events: FiscalJobDetail["events"] }) {
@@ -43,7 +42,6 @@ export function PlatformFiscalJobDetail({ jobId, onClose }: { jobId: string; onC
             <div><dt className="text-muted-foreground">Última transición observada</dt><dd className="mt-1">{healthDate(job.observedAt)}</dd></div>
             <div className="sm:col-span-2"><dt className="text-muted-foreground">ID del trabajo</dt><dd className="mt-1 break-all font-mono text-xs">{job.id}</dd></div>
           </dl>
-          <PlatformFiscalJobActions job={job} />
           <JobHistory events={(query.data?.pages ?? []).flatMap((page) => page.events)} />
           {query.hasNextPage && <Button variant="outline" className="min-h-11" disabled={query.isFetching} onClick={() => void query.fetchNextPage()}>Cargar historial anterior</Button>}
         </>}

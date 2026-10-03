@@ -67,12 +67,7 @@ Deno.test("enqueueCfdiRetry: inserta con payload y devuelve id", async () => {
   const res = await enqueueCfdiRetry(admin, {
     operation: "stamp",
     invoiceId: "11111111-1111-1111-1111-111111111111",
-    payload: {
-      foo: "bar",
-      _fiscal_context: { fingerprint: "forged" },
-      retry_queue: { id: "forged" },
-    },
-    fiscalConfig: { mode: "test", apiKey: "sk_test_synthetic_fixture_only" },
+    payload: { foo: "bar" },
     errorMessage: "boom",
   });
   assertEquals(res.id, "queue-1");
@@ -81,15 +76,6 @@ Deno.test("enqueueCfdiRetry: inserta con payload y devuelve id", async () => {
   assertEquals(inserted[0].status, "pending");
   assertEquals(inserted[0].attempts, 0);
   assertEquals(inserted[0].last_error, "boom");
-  assertEquals(inserted[0].payload, {
-    foo: "bar",
-    _fiscal_context: {
-      mode: "test",
-      fingerprint:
-        "cb77d1a4288d32cfafee5bbfa0ec0cef8b09aacc05daf1f7e0d9135bb05743ac",
-    },
-  });
-  assertEquals(JSON.stringify(inserted).includes("sk_test_"), false);
 });
 
 Deno.test("enqueueCfdiRetry: fallo de insert no rompe (devuelve id null)", async () => {

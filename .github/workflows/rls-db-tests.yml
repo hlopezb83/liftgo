@@ -176,10 +176,6 @@ jobs:
           export LOVABLE_DB_MIGRATION_URL="$DB_URL"
           bunx drizzle-kit migrate --config=drizzle.config.ts
 
-      - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
-        if: failure() && steps.drizzle.outcome == 'failure'
-        run: bun scripts/ci-drizzle-diagnostics.mjs
-
       - name: Prepare reports directory
         run: mkdir -p reports
 

@@ -9,6 +9,7 @@ import {
   cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
+  loadFacturapiConfigOutcome,
 } from "../_shared/facturapi/client.ts";
 import {
   isFacturapiTimeout,
@@ -19,7 +20,6 @@ import {
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
-import { loadRetryAwareFacturapiConfig } from "../_shared/facturapi/retryContext.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import type { StampCfdiDeps } from "../stamp-cfdi/handler.ts";
 
@@ -152,21 +152,15 @@ export async function handleCancelCreditNote(
     claimed = true;
     const releaseClaim = releaseClaimRef;
 
-    const cfgOutcome = await loadRetryAwareFacturapiConfig({
+    const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
       env: deps.env,
       organizationId,
-      body,
-      isServiceRole: auth.isServiceRole,
-      documentId: credit_note_id as string,
-      operation: "cancel_nc",
     });
     if (!cfgOutcome.ok) {
       // 8.8.7: sin configuración resoluble no hay cancelación (ni stub).
       await releaseClaim();
-      return jsonError(req, cfgOutcome.status, cfgOutcome.message, {
-        code: cfgOutcome.code,
-      });
+      return jsonError(req, cfgOutcome.status, cfgOutcome.message);
     }
     const { apiKey, mode } = cfgOutcome;
 
@@ -245,7 +239,6 @@ export async function handleCancelCreditNote(
         if (isTransientFacturapiError(desc)) {
           await enqueueCfdiRetry(supabase as unknown as SupabaseLike, {
             operation: "cancel_nc",
-            fiscalConfig: { apiKey, mode },
             invoiceId: credit_note_id,
             payload: {
               motive,
