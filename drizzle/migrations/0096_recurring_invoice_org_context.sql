@@ -68,6 +68,8 @@ BEGIN
     RAISE EXCEPTION 'Alguna reserva del periodo recurrente no existe.' USING ERRCODE = 'check_violation';
   END IF;
   v_org := v_orgs[1];
+  -- Contexto transaccional para el generador de folios (sólo dura esta transacción).
+  PERFORM set_config('app.organization_id', v_org::text, true);
 
   SELECT b.booking_number INTO v_bad
     FROM unnest(p_booking_ids) AS nb(id)
