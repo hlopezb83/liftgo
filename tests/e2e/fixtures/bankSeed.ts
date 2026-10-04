@@ -74,7 +74,7 @@ async function sweepOrphans(client: SupabaseClient): Promise<void> {
 }
 
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Monterrey" }).format(new Date());
 }
 
 export async function seedBankScenario(page: Page, scope: string): Promise<BankSeedIds> {

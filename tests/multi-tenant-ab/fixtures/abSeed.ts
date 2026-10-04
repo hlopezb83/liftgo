@@ -389,7 +389,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
   for (const role of ["ventas", "administrativo", "mecanico"] as const) {
     const user = await createUser(admin, "ab-gate-" + role + "@example.invalid", A.organizationId);
     must("rol " + role, (await admin.from("user_roles")
-      .upsert({ user_id: user.userId, role }, { onConflict: "user_id" })).error);
+      .upsert({ user_id: user.userId, role: role === "mecanico" ? "mechanic" : role }, { onConflict: "user_id" })).error);
     must("membresía " + role, (await admin.from("organization_memberships")
       .insert({ organization_id: A.organizationId, auth_user_id: user.userId, member_type: "internal" })).error);
     roles[role] = user;

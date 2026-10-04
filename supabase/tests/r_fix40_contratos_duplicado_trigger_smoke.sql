@@ -17,6 +17,8 @@
 
 BEGIN;
 
+\ir fixtures/smoke_context.inc
+
 CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
@@ -48,29 +50,30 @@ DECLARE
   v_hist uuid := gen_random_uuid();
   v_free uuid := gen_random_uuid();
 BEGIN
-  SELECT user_id INTO v_admin FROM public.user_roles WHERE role = 'admin' LIMIT 1;
-  IF v_admin IS NULL THEN
-    v_admin := gen_random_uuid();
-    INSERT INTO auth.users (id) VALUES (v_admin);
-    INSERT INTO public.user_roles (user_id, role) VALUES (v_admin, 'admin');
-  END IF;
+  v_admin := gen_random_uuid();
+  INSERT INTO auth.users (id) VALUES (v_admin);
+  INSERT INTO public.user_roles (user_id, role) VALUES (v_admin, 'admin');
+  INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+  VALUES (current_setting('app.organization_id')::uuid, v_admin, 'internal');
   INSERT INTO fx VALUES ('admin', v_admin), ('hist', v_hist), ('free', v_free);
 
   INSERT INTO public.customers (id, name) VALUES (v_customer, 'SMOKE R40 Cliente');
-  INSERT INTO public.forklifts (id, name, model)
-  VALUES (v_forklift, 'SMOKE R40 Montacargas', 'SMOKE-MODEL');
+  INSERT INTO public.organization_customers (organization_id, customer_id)
+  VALUES (current_setting('app.organization_id')::uuid, v_customer);
+  INSERT INTO public.forklifts (id, name, model, organization_id)
+  VALUES (v_forklift, 'SMOKE R40 Montacargas', 'SMOKE-MODEL', current_setting('app.organization_id')::uuid);
 
-  INSERT INTO public.bookings (id, booking_number, forklift_id, customer_id, start_date, end_date)
+  INSERT INTO public.bookings (id, booking_number, forklift_id, customer_id, start_date, end_date, organization_id)
   VALUES
-    (v_hist, 'SMOKE-R40-BK-HIST', v_forklift, v_customer, current_date, current_date + 5),
-    (v_free, 'SMOKE-R40-BK-FREE', v_forklift, v_customer, current_date + 10, current_date + 15);
+    (v_hist, 'SMOKE-R40-BK-HIST', v_forklift, v_customer, public.today_mty(), public.today_mty() + 5, current_setting('app.organization_id')::uuid),
+    (v_free, 'SMOKE-R40-BK-FREE', v_forklift, v_customer, public.today_mty() + 10, public.today_mty() + 15, current_setting('app.organization_id')::uuid);
 
   -- Duplicados "históricos": dos contratos no cancelados en la MISMA reserva,
   -- creados antes del corte del índice viejo (2026-09-03).
-  INSERT INTO public.contracts (contract_number, booking_id, status, created_at)
+  INSERT INTO public.contracts (contract_number, booking_id, status, created_at, organization_id)
   VALUES
-    ('SMOKE-R40-HIST-A', v_hist, 'draft', timestamptz '2026-01-15 12:00:00+00'),
-    ('SMOKE-R40-HIST-B', v_hist, 'draft', timestamptz '2026-01-16 12:00:00+00');
+    ('SMOKE-R40-HIST-A', v_hist, 'draft', timestamptz '2026-01-15 12:00:00+00', current_setting('app.organization_id')::uuid),
+    ('SMOKE-R40-HIST-B', v_hist, 'draft', timestamptz '2026-01-16 12:00:00+00', current_setting('app.organization_id')::uuid);
 END
 $fx$;
 

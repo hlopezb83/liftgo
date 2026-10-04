@@ -8,11 +8,13 @@
 --      CTR-0002/CTR-0003. Cobertura funcional completa en
 --      r_fix40_contratos_duplicado_trigger_smoke.sql.
 --   psql -f supabase/tests/r_fix39_hallazgos_seguros_contratos_smoke.sql
--- Solo lecturas: no toca datos.
+-- Fixtures sintéticas en una transacción con ROLLBACK: no persiste datos.
 
 \set ON_ERROR_STOP on
 
 BEGIN;
+
+\ir fixtures/smoke_context.inc
 
 CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
@@ -48,23 +50,28 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('get_insurance_alerts') LIKE '%deleted_at IS NULL%'
 );
 
--- H1 (dato real): ejecutar la función como un admin real y comparar TODAS las
--- cifras del widget contra la flota sin E2E. Demuestra que los E2E no afectan
--- ni el conteo sin seguro ni la lista de pólizas por vencer.
-SELECT set_config(
-  'request.jwt.claims',
-  json_build_object(
-    'sub', (SELECT user_id::text FROM public.user_roles WHERE role = 'admin' LIMIT 1),
-    'role', 'authenticated'
-  )::text,
-  true
-);
+-- Fixtures propias: el resultado no depende de un admin ni de la flota del demo.
+INSERT INTO auth.users (id, email) VALUES
+  ('44444439-0000-4000-8000-000000000001', 'insurance.smoke@example.invalid');
+INSERT INTO public.user_roles (user_id, role) VALUES
+  ('44444439-0000-4000-8000-000000000001', 'admin');
+INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+VALUES (current_setting('app.organization_id')::uuid,
+  '44444439-0000-4000-8000-000000000001', 'internal');
+INSERT INTO public.forklifts (name, model, organization_id, insurance_expiry, is_e2e)
+VALUES
+  ('SMOKE Seguro Sin', 'Seguro', current_setting('app.organization_id')::uuid, NULL, false),
+  ('SMOKE Seguro Vence', 'Seguro', current_setting('app.organization_id')::uuid, public.today_mty() + 15, false),
+  ('SMOKE Seguro E2E', 'Seguro', current_setting('app.organization_id')::uuid, NULL, true);
+SELECT set_config('request.jwt.claims',
+  '{"sub":"44444439-0000-4000-8000-000000000001","role":"authenticated"}', true);
 
 SELECT pg_temp.expect_true(
   'H1 no_insurance_count = flota real sin seguro (sin E2E)',
   (public.get_insurance_alerts()->>'no_insurance_count')::int = (
     SELECT count(*)::int FROM public.forklifts
-    WHERE status NOT IN ('sold','retired') AND deleted_at IS NULL
+    WHERE organization_id = current_setting('app.organization_id')::uuid
+      AND status NOT IN ('sold','retired') AND deleted_at IS NULL
       AND COALESCE(is_e2e, false) = false AND insurance_expiry IS NULL
   )
 );
@@ -73,7 +80,8 @@ SELECT pg_temp.expect_true(
   'H1 expiring = pólizas por vencer (<=30 días) de la flota real (sin E2E)',
   jsonb_array_length(public.get_insurance_alerts()->'expiring') = (
     SELECT count(*)::int FROM public.forklifts
-    WHERE status NOT IN ('sold','retired') AND deleted_at IS NULL
+    WHERE organization_id = current_setting('app.organization_id')::uuid
+      AND status NOT IN ('sold','retired') AND deleted_at IS NULL
       AND COALESCE(is_e2e, false) = false
       AND insurance_expiry IS NOT NULL
       AND (insurance_expiry - public.today_mty())::int <= 30
@@ -97,12 +105,6 @@ SELECT pg_temp.expect_true(
     LIKE '%status <> ''cancelled''%'
 );
 
--- H7: los duplicados históricos siguen intactos (ni borrados ni alterados).
-SELECT pg_temp.expect_true(
-  'H7 CTR-0002 y CTR-0003 se conservan con su misma reserva',
-  (SELECT count(*) FROM public.contracts
-   WHERE contract_number IN ('CTR-0002','CTR-0003')
-     AND booking_id IS NOT NULL) = 2
-);
+-- Los duplicados históricos se verifican con fixtures propias en fix40.
 
 ROLLBACK;

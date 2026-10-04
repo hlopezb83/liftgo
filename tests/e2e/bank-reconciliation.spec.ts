@@ -1,5 +1,6 @@
 import { TIMEOUTS, expectNoToastError } from "./fixtures/helpers";
 import { test, expect, type BankSeedIds } from "./fixtures/bankSeed";
+import { clientFromPage } from "./fixtures/seed";
 import type { Page } from "@playwright/test";
 
 /**
@@ -109,7 +110,6 @@ test.describe("Conciliación bancaria", () => {
     await expect(panel).toContainText(bank.exactRef);
 
     const candidate = page.getByTestId("bank-candidate").first();
-    // Si la BD demo no tiene un pago con ese monto/fecha, no hay nada que emparejar.
     await expect(candidate, "El pago propio debe aparecer; un timeout es una regresión").toBeVisible({ timeout: TIMEOUTS.medium });
 
     await expect(candidate).toContainText(/score/i);
@@ -117,6 +117,11 @@ test.describe("Conciliación bancaria", () => {
 
     await candidate.getByTestId("bank-candidate-match").click();
     await expect(row(page, bank.exactRef)).toHaveCount(0, { timeout: TIMEOUTS.medium });
+    const client = await clientFromPage(page);
+    const persisted = await client.from("bank_statement_lines").select("matched_payment_id")
+      .eq("id", bank.exactLineId).single();
+    expect(persisted.error).toBeNull();
+    expect(persisted.data?.matched_payment_id).toBe(bank.paymentId);
 
     await page.getByRole("tab", { name: "Conciliado" }).click();
     await expect(row(page, bank.exactRef)).toBeVisible({ timeout: TIMEOUTS.medium });

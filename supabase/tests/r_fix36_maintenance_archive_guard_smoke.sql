@@ -14,6 +14,8 @@
 
 BEGIN;
 
+\ir fixtures/smoke_context.inc
+
 CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
 BEGIN
@@ -140,15 +142,13 @@ DECLARE
   v_err text;
   v_still_active boolean;
 BEGIN
-  SELECT id INTO v_forklift FROM public.forklifts LIMIT 1;
-  IF v_forklift IS NULL THEN
-    RAISE NOTICE 'SKIP  sin forklifts para la prueba de comportamiento';
-    RETURN;
-  END IF;
+  INSERT INTO public.forklifts (name, model, organization_id)
+  VALUES ('MC Archivo OT', 'Modelo Archivo OT', current_setting('app.organization_id')::uuid)
+  RETURNING id INTO v_forklift;
 
   PERFORM set_config('app.e2e_seed', 'on', true);
-  INSERT INTO public.maintenance_logs (forklift_id, service_type, description, work_status, performed_at)
-  VALUES (v_forklift, 'preventive', 'SMOKE fix36 archivado', 'draft', now()::date)
+  INSERT INTO public.maintenance_logs (forklift_id, service_type, description, work_status, performed_at, organization_id)
+  VALUES (v_forklift, 'preventive', 'SMOKE fix36 archivado', 'draft', public.today_mty(), current_setting('app.organization_id')::uuid)
   RETURNING id INTO v_log;
   PERFORM set_config('app.e2e_seed', 'off', true);
 
