@@ -54,13 +54,14 @@ test("cotización nueva → aceptación UI → conversión UI → factura persis
     p_booking_ids: [booking.data.id],
   });
   expect(invoice.error).toBeNull();
-  expect(invoice.data?.id).toBeTruthy();
-  if (!invoice.data) throw new Error("No se creó la factura");
-  scenario.track("invoices", invoice.data.id);
-  const links = await client.from("invoice_bookings").select("booking_id").eq("invoice_id", invoice.data.id);
+  expect(invoice.data).toHaveLength(1);
+  const row = invoice.data?.[0];
+  if (!row) throw new Error("No se creó la factura");
+  scenario.track("invoices", row.id);
+  const links = await client.from("invoice_bookings").select("booking_id").eq("invoice_id", row.id);
   expect(links.error).toBeNull();
   expect(links.data).toEqual([{ booking_id: booking.data.id }]);
-  await page.goto("/invoices/" + invoice.data.id);
-  await expect(page.getByText(invoice.data.invoice_number).first()).toBeVisible();
+  await page.goto("/invoices/" + row.id);
+  await expect(page.getByText(row.invoice_number).first()).toBeVisible();
   await expectNoToastError(page);
 });

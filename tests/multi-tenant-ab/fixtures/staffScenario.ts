@@ -48,7 +48,8 @@ export const test = base.extend<{ scenario: Scenario }>({
       const bookingIds = (bookings.data ?? []).map((row) => row.id as string);
       if (bookingIds.length) {
         for (const table of ["return_inspections", "deliveries"]) {
-          const removed = await client.from(table).delete().in("booking_id", bookingIds);
+          const removed = await cleanupClient.from(table).delete().in("booking_id", bookingIds)
+            .eq("organization_id", ctx.A.organizationId);
           expect(removed.error, "Limpieza de " + table).toBeNull();
         }
       }

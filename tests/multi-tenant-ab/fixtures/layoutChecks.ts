@@ -8,13 +8,17 @@ export async function expectNoHorizontalOverflow(page: Page): Promise<void> {
 
 export async function expectInsideViewport(page: Page, target: Locator): Promise<void> {
   await expect(target).toBeVisible();
-  const bounds = await target.boundingBox();
   const viewport = page.viewportSize();
-  if (!bounds || !viewport) throw new Error("No se pudo medir la vista");
-  expect(bounds.x).toBeGreaterThanOrEqual(-1);
-  expect(bounds.y).toBeGreaterThanOrEqual(-1);
-  expect(bounds.x + bounds.width).toBeLessThanOrEqual(viewport.width + 1);
-  expect(bounds.y + bounds.height).toBeLessThanOrEqual(viewport.height + 1);
+  if (!viewport) throw new Error("No se pudo medir la vista");
+  // Radix y Sonner entran desde fuera de pantalla. Esperar el layout final,
+  // conservando el límite de 1 px; un desbordamiento persistente sí falla.
+  await expect.poll(async () => {
+    const bounds = await target.boundingBox();
+    if (!bounds) return Infinity;
+    return Math.max(-bounds.x, -bounds.y,
+      bounds.x + bounds.width - viewport.width,
+      bounds.y + bounds.height - viewport.height);
+  }, { message: "El elemento debe caber completamente tras su animación" }).toBeLessThanOrEqual(1);
 }
 
 export async function expectActionUncovered(target: Locator): Promise<void> {

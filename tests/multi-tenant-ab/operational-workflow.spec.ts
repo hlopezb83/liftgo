@@ -28,7 +28,7 @@ test("entrega completada → devolución → reserva cerrada y unidad disponible
   expect(rented.data?.status).toBe("rented");
   const returned = await client.rpc("complete_return_inspection", {
     p_booking_id: ids.booking_id, p_forklift_id: ids.forklift_id,
-    p_condition: "good", p_hours_used: 1, p_inspected_by: "Luis Treviño",
+    p_condition: "good", p_hours_used: 1, p_inspected_by: "Luis Treviño", p_fuel_level: "Full",
   });
   expect(returned.error).toBeNull();
   expect(returned.data).toBeTruthy();
