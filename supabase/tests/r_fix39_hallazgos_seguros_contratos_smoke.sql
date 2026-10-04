@@ -59,11 +59,11 @@ INSERT INTO public.organization_memberships (organization_id, auth_user_id, memb
 VALUES (current_setting('app.organization_id')::uuid,
   '44444439-0000-4000-8000-000000000001', 'internal');
 SELECT set_config('app.e2e_seed', 'on', true);
-INSERT INTO public.forklifts (name, model, organization_id, insurance_expiry, is_e2e)
+INSERT INTO public.forklifts (name, model, organization_id, insurance_expiry, is_e2e, e2e_scope)
 VALUES
-  ('SMOKE Seguro Sin', 'Seguro', current_setting('app.organization_id')::uuid, NULL, false),
-  ('SMOKE Seguro Vence', 'Seguro', current_setting('app.organization_id')::uuid, public.today_mty() + 15, false),
-  ('SMOKE Seguro E2E', 'Seguro', current_setting('app.organization_id')::uuid, NULL, true);
+  ('SMOKE Seguro Sin', 'Seguro', current_setting('app.organization_id')::uuid, NULL, false, NULL),
+  ('SMOKE Seguro Vence', 'Seguro', current_setting('app.organization_id')::uuid, public.today_mty() + 15, false, NULL),
+  ('SMOKE Seguro E2E', 'Seguro', current_setting('app.organization_id')::uuid, NULL, true, 'smoke-insurance');
 SELECT set_config('app.e2e_seed', 'off', true);
 SELECT set_config('request.jwt.claims',
   '{"sub":"44444439-0000-4000-8000-000000000001","role":"authenticated"}', true);
