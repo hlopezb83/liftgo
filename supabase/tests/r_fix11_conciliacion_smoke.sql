@@ -6,7 +6,7 @@
 --   psql -f supabase/tests/r_fix11_conciliacion_smoke.sql
 -- Solo lecturas de catálogo: no toca datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

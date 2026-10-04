@@ -24,7 +24,9 @@ export default async function globalTeardown(): Promise<void> {
     await admin.from("invoices").delete().eq("id", side.invoiceId);
     await admin.from("customer_portal_accounts").delete().eq("organization_id", side.organizationId);
     await admin.from("organization_memberships").delete().eq("organization_id", side.organizationId);
-    for (const userId of [side.internal.userId, side.portal.userId]) {
+    const roles = side.organizationId === ctx.A.organizationId
+      ? Object.values(ctx.roles).map((user) => user.userId) : [];
+    for (const userId of [side.internal.userId, side.portal.userId, ...roles]) {
       await admin.auth.admin.deleteUser(userId);
     }
     await admin.from("organization_customers").delete().eq("organization_id", side.organizationId);

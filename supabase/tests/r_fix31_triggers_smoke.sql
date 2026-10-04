@@ -8,7 +8,7 @@
 --   psql -f supabase/tests/r_fix31_triggers_smoke.sql
 -- Solo lecturas de catálogo: no toca datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

@@ -68,7 +68,8 @@ jobs:
               - '.github/workflows/**'
               - '.github/actions/**'
               - 'scripts/ci_database.py'
-              - 'scripts/tests/test_ci_database.py'
+              - 'scripts/tests/**'
+              - 'scripts/run_sql_suites.py'
 
 
   # ---------------------------------------------------------------------------
@@ -92,6 +93,9 @@ jobs:
 
       - name: Typecheck
         run: bun run typecheck
+
+      - name: Typecheck de pruebas de navegador
+        run: bun run typecheck:browser-tests
 
       - name: Guardrails de arquitectura
         run: bash scripts/arch-check.sh
@@ -356,11 +360,10 @@ jobs:
     if: needs.changes.outputs.workflows == 'true' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v7
-      - name: Probar preparación de BD aislada
-        run: python3 -m unittest discover -s scripts/tests -p test_ci_database.py
+      - name: Probar ejecutores y preparación de BD aislada
+        run: python3 -m unittest discover -s scripts/tests -p 'test_*.py'
       - uses: reviewdog/action-actionlint@2085657ab2c7f48c58edcc767fba576f63bea76b # v1.77.0
         with:
           fail_level: error
           filter_mode: nofilter
           reporter: local
-

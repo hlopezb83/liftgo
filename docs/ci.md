@@ -120,7 +120,7 @@ verificable: importar `_shared/test-helpers.ts` (el cliente HTTP compartido).
   cobertura de CI. Correrlos exige un backend real, y el de la app es
   producción.
 
-## E2E completas: fuera de GitHub Actions
+## E2E heredadas: ejecución manual aislada
 
 Las E2E **escriben** en la base (siembran, activan `allow_e2e_seed` y purgan) y
 el proyecto Supabase de la app es **producción**. No hay workflow para ellas:
@@ -168,6 +168,11 @@ para poder compararla con la referencia previa (run `35543605857`: ~3m20s en
 ese paso, 4m55s de job). Si excluir `kong`/`postgrest` rompiera el arranque o no
 diera mejora material, se revierte esa exclusión.
 
+
+Los smoke y RLS usan ON_ERROR_STOP=1; los errores esperados se capturan dentro
+del bloque SQL. El ejecutor también rechaza errores SQL en la salida y conserva
+la etiqueta FALLO de aserciones legadas. Sus regresiones se prueban antes de
+arrancar la BD.
 
 Los smoke SQL **también bloquean**. Eran `continue-on-error` por la sospecha de
 que asumían datos de staging; con la base creada desde las migraciones las suites
@@ -299,3 +304,41 @@ Los tiempos posteriores y minutos acumulados de runners deben contrastarse con
 esta muestra. Seis shards suman dos instalaciones/runners; si no reducen la espera
 por colas o desbalance, se vuelve a cuatro. El número de pruebas y los umbrales
 de cobertura se conservan.
+
+## Gate de recorridos y layout (auditoría de tests, 2026-10-03)
+
+El workflow multi-tenant-ab reutiliza la BD/API/Auth/Storage local temporal.
+Ahora ejecuta transiciones reales, además de aislamiento: aceptación y conversión
+UI de una cotización nueva, guardado RPC de factura y sus relaciones; entrega y
+devolución por las RPC oficiales; pago parcial y final por UI con persistencia;
+portal de plataforma con raíz autorizado y admin de empresa rechazado.
+La creación inicial de la cotización y la factura del recorrido comercial usa
+la API real; no se presenta como cobertura de sus formularios completos.
+
+La matriz A/B prueba ambos sentidos. Lecturas vacías requieren error=null y
+controles propios positivos; escrituras negativas exigen el contrato esperado
+por permisos. Storage también verifica contenido y existencia para el dueño.
+
+Se crean identidades desechables locales de ventas, administración y mecánica.
+Las regresiones heredadas de roles, precarga y conciliación corren en el proyecto
+legacy-regressions, contra el mismo backend temporal. Ningún caso obligatorio
+se omite por falta de credenciales, cotizaciones o candidatos. Los fixtures
+bancarios crean su propio pago y factura, y verifican limpieza por ID/scope.
+
+Layout se mide con Chromium a 390, 768 y 1440 px: desbordamiento horizontal,
+modal y toast dentro del viewport, y acciones alcanzables sin overlays. Los
+screenshots al fallar son diagnóstico, no baselines visuales pixel a pixel.
+Las pruebas de navegador tienen typecheck propio y reglas Playwright en ESLint.
+Los filtros incluyen consultas de customers usadas por portal, AuthContext,
+caché y módulos consumidos por estos recorridos.
+
+Cobertura consolidada: mínimos globales L48/S47/F38/B42; dominio
+L95/S94/F92/B85; facturación L81/S80/F88/B73; cuentas por pagar
+L85/S84/F94/B74. La base observada fue 49.73% global y 96.79% dominio.
+No se calcula un mínimo global a partir de un shard individual.
+
+En el carril manual heredado, ningún shard ejecuta la purga global. Esperar
+TODOS los procesos y ejecutar una vez E2E_FINAL_CLEANUP=1 bun scripts/cleanup-e2e.ts
+con la configuración del backend aislado. Login, purga o apagado del seed fallidos
+hacen fallar ese paso; no se toma el mayor índice como último en terminar.
+La limpieza por scope sigue activa durante cada prueba.

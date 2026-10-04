@@ -9,7 +9,7 @@
 -- TODO corre dentro de una transacción que SIEMPRE termina en ROLLBACK:
 -- no persiste ningún dato.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

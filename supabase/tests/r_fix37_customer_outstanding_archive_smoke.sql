@@ -9,9 +9,11 @@
 --   psql -f supabase/tests/r_fix37_customer_outstanding_archive_smoke.sql
 -- Todo corre dentro de una transacción con ROLLBACK: no deja datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
+
+\ir fixtures/smoke_context.inc
 
 CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
@@ -137,10 +139,11 @@ BEGIN
 
   -- Factura pagada (status 'paid'): NO bloquea.
   INSERT INTO public.invoices (customer_id, customer_name, invoice_number, subtotal, tax_amount, total, status, line_items)
-  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-B-' || substr(v_cust::text,1,8), 1000, 0, 1000, 'draft', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb)
+  VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-B-' || substr(v_cust::text,1,8), 1000, 0, 1000, 'sent', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb)
   RETURNING id INTO v_inv;
-  -- Tampoco puede nacer pagada: se crea en borrador y se marca pagada.
-  UPDATE public.invoices SET status = 'paid' WHERE id = v_inv;
+  -- El estado pagado debe resultar de un pago real, nunca de un UPDATE artificial.
+  INSERT INTO public.payments (invoice_id, amount, payment_method, payment_date)
+  VALUES (v_inv, 1000, 'transfer', public.today_mty());
   PERFORM pg_temp.expect_true(
     'factura pagada no bloquea el archivado',
     NOT public.customer_has_outstanding_balance(v_cust)
@@ -176,7 +179,8 @@ BEGIN
   );
 
   -- Al liquidar, el saldo cae a cero y deja de bloquear.
-  UPDATE public.invoices SET status = 'paid' WHERE id = v_inv;
+  INSERT INTO public.payments (invoice_id, amount, payment_method, payment_date)
+  VALUES (v_inv, 1160, 'transfer', public.today_mty());
   PERFORM pg_temp.expect_true(
     'al liquidar la factura el saldo deja de bloquear',
     NOT public.customer_has_outstanding_balance(v_cust)

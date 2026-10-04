@@ -1,20 +1,16 @@
+import { randomUUID } from "node:crypto";
 import { test as base, type Page, type TestInfo } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getAuthToken } from "./helpers";
+import { assertLocalEphemeralBackend } from "../../multi-tenant-ab/fixtures/localBackend";
+import { cleanupBankAccount } from "../../multi-tenant-ab/fixtures/localCleanup";
 
 /**
- * Fixture de conciliación bancaria.
- *
- * Las tablas `bank_accounts` / `bank_statement_imports` / `bank_statement_lines`
- * NO tienen columnas `is_e2e` / `e2e_scope`, así que el purgado global
- * (`purge_e2e_data`) no las alcanza. Por eso este fixture limpia SIEMPRE por id
- * al terminar el test, pase o falle, y además barre cuentas huérfanas marcadas
- * con `TMP_E2E_` de corridas anteriores que hayan muerto a medias.
- *
- * Conciliar una línea solo escribe en `bank_statement_lines` (ver
- * `confirm_bank_match`), nunca en `payments`, así que apuntar a un pago real
- * existente es seguro: al borrar las líneas la BD queda exactamente igual.
+ * Conciliación con cuenta, pago y factura propios. Limpieza por ID y scope.
+ * Los registros bancarios no tienen e2e_scope; se borran explícitamente.
  */
+
+assertLocalEphemeralBackend("bank fixture");
 
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY =
@@ -27,14 +23,15 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 const TMP_PREFIX = "TMP_E2E_BANK";
-const ORPHAN_MAX_AGE_MS = 6 * 60 * 60 * 1_000;
 
 export type BankSeedIds = {
   scope: string;
+  paymentId: string;
   accountId: string;
+  organizationId: string;
   accountName: string;
   importId: string;
-  /** Línea con candidato de monto exacto (abono contra un pago real). */
+  /** Línea con candidato de monto exacto (abono contra el pago propio del escenario). */
   exactLineId: string;
   exactAmount: number;
   exactRef: string;
@@ -63,43 +60,13 @@ function buildScope(testInfo: TestInfo): string {
   return `w${worker}-${testInfo.testId.slice(0, 6)}-${rand}`;
 }
 
-/** Borra cuentas temporales huérfanas de corridas previas (y su cascada). */
-async function sweepOrphans(client: SupabaseClient): Promise<void> {
-  const cutoff = new Date(Date.now() - ORPHAN_MAX_AGE_MS).toISOString();
-  const { data } = await client
-    .from("bank_accounts")
-    .select("id")
-    .like("notes", `${TMP_PREFIX}%`)
-    .lt("created_at", cutoff);
-  const ids = (data ?? []).map((a: { id: string }) => a.id);
-  if (ids.length === 0) return;
-  await client.from("bank_statement_lines").delete().in("bank_account_id", ids);
-  await client.from("bank_statement_imports").delete().in("bank_account_id", ids);
-  await client.from("bank_accounts").delete().in("id", ids);
-}
-
-type RealPayment = { amount: number; payment_date: string };
-
-async function pickRealPayment(client: SupabaseClient): Promise<RealPayment | null> {
-  const { data } = await client
-    .from("payments")
-    .select("amount,payment_date,currency")
-    .eq("currency", "MXN")
-    .order("payment_date", { ascending: false })
-    .limit(25);
-  const rows = (data ?? []) as Array<RealPayment & { currency: string }>;
-  const usable = rows.find((p) => Number(p.amount) > 0);
-  return usable ? { amount: Number(usable.amount), payment_date: usable.payment_date } : null;
-}
-
 function today(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Monterrey" }).format(new Date());
 }
 
 export async function seedBankScenario(page: Page, scope: string): Promise<BankSeedIds> {
   await page.goto("/");
   const client = await clientFromPage(page);
-  await sweepOrphans(client);
 
   const accountName = `QA Conciliación ${scope}`;
   const { data: account, error: accErr } = await client
@@ -113,111 +80,125 @@ export async function seedBankScenario(page: Page, scope: string): Promise<BankS
       is_active: true,
       notes: `${TMP_PREFIX}_${scope}`,
     })
-    .select("id")
+    .select("id,organization_id")
     .single();
   if (accErr || !account) throw new Error(`[e2e bankSeed] cuenta: ${accErr?.message}`);
   const accountId = (account as { id: string }).id;
+  const organizationId = account.organization_id as string;
 
-  const { data: imp, error: impErr } = await client
-    .from("bank_statement_imports")
-    .insert({
-      bank_account_id: accountId,
-      file_name: `qa-${scope}.csv`,
-      lines_count: 3,
-      period_start: today(),
-      period_end: today(),
-    })
-    .select("id")
-    .single();
-  if (impErr || !imp) throw new Error(`[e2e bankSeed] importación: ${impErr?.message}`);
-  const importId = (imp as { id: string }).id;
+  try {
+    const exactAmount = 4321.55;
+    const exactDate = today();
+    const exactRef = `E2EX${scope}`.slice(0, 20);
+    const orphanRef = `E2EO${scope}`.slice(0, 20);
+    const chargeRef = `E2EC${scope}`.slice(0, 20);
 
-  const real = await pickRealPayment(client);
-  // Si no hay pagos reales usables, el escenario sigue siendo válido: la línea
-  // simplemente no tendrá candidatos y el test de emparejamiento se salta.
-  const exactAmount = real?.amount ?? 4321.55;
-  const exactDate = real?.payment_date ?? today();
+    const rows = [
+      {
+        posted_date: exactDate,
+        description: `SPEI RECIBIDO QA EXACTO ${scope}`,
+        signed_amount: exactAmount,
+        reference: exactRef,
+        line_seq: 1,
+      },
+      {
+        posted_date: today(),
+        description: `DEPOSITO QA SIN CANDIDATOS ${scope}`,
+        signed_amount: 987654.32,
+        reference: orphanRef,
+        line_seq: 2,
+      },
+      {
+        posted_date: today(),
+        description: `COMISION BANCARIA QA ${scope}`,
+        signed_amount: -1850.5,
+        reference: chargeRef,
+        line_seq: 3,
+      },
+    ];
 
-  const exactRef = `E2EX${scope}`.slice(0, 20);
-  const orphanRef = `E2EO${scope}`.slice(0, 20);
-  const chargeRef = `E2EC${scope}`.slice(0, 20);
+    // La importación real escribe mediante RPC; INSERT directo está revocado.
+    // Se importa antes del pago para empezar con tres movimientos pendientes.
+    const uploadId = randomUUID();
+    const begun = await client.rpc("begin_bank_statement_upload", {
+      p_upload_id: uploadId, p_bank_account_id: accountId, p_file_name: `qa-${scope}.csv`,
+      p_period_start: exactDate, p_period_end: exactDate, p_expected_count: rows.length,
+    });
+    if (begun.error) throw new Error("[bankSeed] iniciar carga: " + begun.error.message);
+    const staged = await client.rpc("stage_bank_statement_chunk", {
+      p_upload_id: uploadId, p_chunk_index: 0, p_lines: rows,
+    });
+    if (staged.error) throw new Error("[bankSeed] preparar carga: " + staged.error.message);
+    const finalized = await client.rpc("finalize_bank_statement_upload", { p_upload_id: uploadId });
+    const imported = finalized.data?.[0];
+    if (finalized.error || !imported?.import_id || imported.inserted_count !== 3) {
+      throw new Error("[bankSeed] finalizar carga: " + (finalized.error?.message ?? "resultado incompleto"));
+    }
+    const importId = imported.import_id as string;
+    const { data: lines, error: lineErr } = await client.from("bank_statement_lines")
+      .select("id,reference,status").eq("import_id", importId);
+    if (lineErr || !lines || lines.length !== 3 || lines.some((line) => line.status !== "unmatched")) {
+      throw new Error("[bankSeed] las tres líneas propias deben iniciar pendientes: " + lineErr?.message);
+    }
+    const byRef = (reference: string): string => {
+      const found = lines.find((line) => line.reference === reference);
+      if (!found) throw new Error("[bankSeed] falta línea " + reference);
+      return found.id as string;
+    };
+    const scenario = await client.rpc("e2e_seed_scenario", { p_scope: scope });
+    if (scenario.error) throw new Error("[bankSeed] escenario propio: " + scenario.error.message);
+    const payment = await client.from("payments").insert({
+      invoice_id: scenario.data.invoice_id, amount: exactAmount, currency: "MXN",
+      exchange_rate: 1, payment_date: exactDate, payment_method: "transfer",
+    }).select("id").single();
+    if (payment.error || !payment.data) throw new Error("[bankSeed] pago propio: " + payment.error?.message);
+    const paymentId = payment.data.id as string;
 
-  const rows = [
-    {
-      import_id: importId,
-      bank_account_id: accountId,
-      posted_date: exactDate,
-      description: `SPEI RECIBIDO QA EXACTO ${scope}`,
-      signed_amount: exactAmount,
-      reference: exactRef,
-      hash: `${scope}-exact`,
-      status: "unmatched" as const,
-    },
-    {
-      import_id: importId,
-      bank_account_id: accountId,
-      posted_date: today(),
-      description: `DEPOSITO QA SIN CANDIDATOS ${scope}`,
-      signed_amount: 987654.32,
-      reference: orphanRef,
-      hash: `${scope}-orphan`,
-      status: "unmatched" as const,
-    },
-    {
-      import_id: importId,
-      bank_account_id: accountId,
-      posted_date: today(),
-      description: `COMISION BANCARIA QA ${scope}`,
-      signed_amount: -1850.5,
-      reference: chargeRef,
-      hash: `${scope}-charge`,
-      status: "unmatched" as const,
-    },
-  ];
-
-  const { data: lines, error: lineErr } = await client
-    .from("bank_statement_lines")
-    .insert(rows)
-    .select("id,hash");
-  if (lineErr || !lines) throw new Error(`[e2e bankSeed] líneas: ${lineErr?.message}`);
-
-  const byHash = (suffix: string): string => {
-    const found = (lines as Array<{ id: string; hash: string }>).find((l) =>
-      l.hash.endsWith(suffix),
-    );
-    if (!found) throw new Error(`[e2e bankSeed] falta línea ${suffix}`);
-    return found.id;
-  };
-
-  return {
-    scope,
-    accountId,
-    accountName,
-    importId,
-    exactLineId: byHash("exact"),
-    exactAmount,
-    exactRef,
-    orphanLineId: byHash("orphan"),
-    orphanRef,
-    chargeLineId: byHash("charge"),
-    chargeRef,
-  };
+    return {
+      scope,
+      paymentId,
+      accountId,
+      organizationId,
+      accountName,
+      importId,
+      exactLineId: byRef(exactRef),
+      exactAmount,
+      exactRef,
+      orphanLineId: byRef(orphanRef),
+      orphanRef,
+      chargeLineId: byRef(chargeRef),
+      chargeRef,
+    };
+  } catch (error) {
+    await cleanupScenario(client, accountId, organizationId, scope);
+    throw error;
+  }
 }
 
-export async function teardownBankScenario(page: Page, accountId: string): Promise<void> {
+async function cleanupScenario(client: SupabaseClient, accountId: string, organizationId: string, scope: string): Promise<void> {
+  const errors: unknown[] = [];
+  try {
+    cleanupBankAccount(organizationId, accountId);
+  } catch (error) {
+    errors.push(error);
+  }
+  const cleanup = await client.rpc("e2e_teardown", { p_scope: scope });
+  if (cleanup.error) errors.push(new Error("[bankSeed] limpieza del escenario: " + cleanup.error.message));
+  if (errors.length) throw new AggregateError(errors, "Limpieza del escenario bancario incompleta");
+}
+
+export async function teardownBankScenario(page: Page, ids: BankSeedIds): Promise<void> {
   const client = await clientFromPage(page);
-  await client.from("bank_statement_lines").delete().eq("bank_account_id", accountId);
-  await client.from("bank_statement_imports").delete().eq("bank_account_id", accountId);
-  const { error } = await client.from("bank_accounts").delete().eq("id", accountId);
-  if (error) throw new Error(`[e2e bankSeed teardown] ${error.message}`);
+  await cleanupScenario(client, ids.accountId, ids.organizationId, ids.scope);
 
   // Verificación dura: nada debe sobrevivir.
-  const { count } = await client
+  const { count, error: countError } = await client
     .from("bank_statement_lines")
     .select("id", { count: "exact", head: true })
-    .eq("bank_account_id", accountId);
-  if ((count ?? 0) > 0) {
-    throw new Error(`[e2e bankSeed teardown] quedaron ${count} líneas de la cuenta ${accountId}`);
+    .eq("bank_account_id", ids.accountId);
+  if (countError || count === null) throw new Error("[bankSeed] no se pudo verificar la limpieza: " + countError?.message);
+  if (count > 0) {
+    throw new Error(`[e2e bankSeed teardown] quedaron ${count} líneas de la cuenta ${ids.accountId}`);
   }
 }
 
@@ -233,7 +214,7 @@ export const test = base.extend<{ bank: BankSeedIds }>({
     }
     let teardownError: unknown;
     try {
-      await teardownBankScenario(page, ids.accountId);
+      await teardownBankScenario(page, ids);
     } catch (err) {
       teardownError = err;
     }

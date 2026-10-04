@@ -1,18 +1,18 @@
 import { test, expect, type Page } from "@playwright/test";
 import { TIMEOUTS } from "./fixtures/helpers";
-import { applyApiSession } from "./fixtures/apiAuth";
+import { applyApiSession, signInViaApi, supabaseEnv } from "./fixtures/apiAuth";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Matriz de roles — valida que cada rol ve/no ve las acciones destructivas
  * según `role_permissions`.
  *
- * Requiere env vars por rol (opcional; se saltan si no están definidos):
+ * Requiere env vars por rol; las credenciales ausentes hacen fallar la suite:
  *   E2E_VENTAS_EMAIL / E2E_VENTAS_PASSWORD
  *   E2E_ADMINISTRATIVO_EMAIL / E2E_ADMINISTRATIVO_PASSWORD
  *   E2E_MECANICO_EMAIL / E2E_MECANICO_PASSWORD
  *
- * TESTS-ARQ2 (v7.220.0 DIFF 15): centinela abajo garantiza que si TODAS las
- * credenciales faltan el archivo NO queda como "0 tests" verdes silenciosos.
+ * La matriz sólo se considera verificada cuando TODOS sus roles se ejecutan.
  */
 type RoleFixture = {
   key: string;
@@ -61,10 +61,18 @@ async function loginAs(page: Page, email: string, password: string) {
   });
 }
 
+async function cleanupRoleInvoice(client: SupabaseClient, id: string | undefined): Promise<void> {
+  if (!id) return;
+  const removed = await client.from("invoices").delete().eq("id", id).select("id");
+  expect(removed.error).toBeNull();
+  expect(removed.data).toEqual([{ id }]);
+}
+
 for (const role of ROLES) {
   test.describe(`Rol ${role.key}`, () => {
-    // eslint-disable-next-line playwright/no-skipped-test -- Skip condicional por credenciales de rol ausentes; permite correr la matriz parcialmente en CI.
-    test.skip(!role.email || !role.password, `Faltan credenciales E2E_${role.key.toUpperCase()}_*`);
+    test.beforeAll(() => {
+      if (!role.email || !role.password) throw new Error("Faltan credenciales obligatorias para " + role.key);
+    });
 
     test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -85,64 +93,49 @@ for (const role of ROLES) {
   });
 }
 
-// TESTS-ARQ2 (v7.220.0 DIFF 15): centinela — si NINGÚN rol tiene credenciales
-// exponemos el hecho como test que se skipea con motivo explícito (visible en
-// el report), en vez de un archivo con 0 tests que pasa en silencio.
-test("centinela: al menos un rol con credenciales configuradas", () => {
-  const any = ROLES.some((r) => r.email && r.password);
-  // eslint-disable-next-line playwright/no-skipped-test -- centinela: skip explícito visible en el report cuando ningún rol tiene credenciales
-  test.skip(!any, "Ningún E2E_<ROL>_EMAIL/PASSWORD configurado — matriz de roles se saltó completa.");
-  expect(any).toBe(true);
+test("todos los roles de la matriz tienen credenciales", () => {
+  expect(ROLES.every((role) => role.email && role.password)).toBe(true);
 });
 
-// v7.223.0 · DIFF 15 residual: denegación a nivel API. La UI puede ocultar
-// botones pero si el mecánico intercepta y POST-ea `/rest/v1/invoices`
-// directamente, RLS debe rechazar (401/403). Guarda contra regresiones donde
-// alguien afloje la policy pensando "el botón está oculto de todos modos".
-test.describe("Rol mecánico — denegación API-level (RLS)", () => {
-  // eslint-disable-next-line playwright/no-skipped-test -- Skip explícito cuando faltan credenciales.
-  test.skip(
-    !process.env.E2E_MECANICO_EMAIL || !process.env.E2E_MECANICO_PASSWORD,
-    "Faltan credenciales E2E_MECANICO_*",
-  );
-  test.use({ storageState: { cookies: [], origins: [] } });
-
-  test("mecánico no puede insertar en /rest/v1/invoices", async ({ page }) => {
-    await loginAs(page, process.env.E2E_MECANICO_EMAIL!, process.env.E2E_MECANICO_PASSWORD!);
-
-    // Ejecutamos el POST desde el contexto del navegador para heredar el
-    // Authorization del cliente Supabase hidratado en `window`.
-    const status = await page.evaluate(async () => {
-      // @ts-expect-error inyectado por el cliente Supabase en runtime
-      const { supabase } = (await import("/src/integrations/supabase/client.ts")) as {
-        supabase: { auth: { getSession: () => Promise<{ data: { session: { access_token: string } | null } }> } };
-      };
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
-      if (!token) return 0;
-
-      const url = `${(window as unknown as { __SUPABASE_URL__?: string }).__SUPABASE_URL__ ?? ""}/rest/v1/invoices`;
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: (window as unknown as { __SUPABASE_ANON__?: string }).__SUPABASE_ANON__ ?? "",
-          Authorization: `Bearer ${token}`,
-          Prefer: "return=minimal",
-        },
-        body: JSON.stringify({
-          customer_id: "00000000-0000-0000-0000-000000000000",
-          invoice_number: "MECANICO-ATTACK",
-          total: 1,
-          subtotal: 1,
-        }),
-      });
-      return res.status;
-    });
-
-    // RLS bloquea con 401/403; PostgREST también puede responder 409/400 si
-    // la fila viola constraints antes de evaluar RLS. Lo importante es que
-    // NUNCA sea 2xx.
-    expect(status, "mecánico NO debe poder insertar facturas").toBeGreaterThanOrEqual(400);
+test("mecánico rechaza un INSERT válido por permisos, no por payload", async () => {
+  const email = process.env.E2E_MECANICO_EMAIL;
+  const password = process.env.E2E_MECANICO_PASSWORD;
+  const adminEmail = process.env.E2E_TEST_EMAIL;
+  const adminPassword = process.env.E2E_TEST_PASSWORD;
+  if (!email || !password || !adminEmail || !adminPassword) throw new Error("Faltan identidades obligatorias");
+  const { url, anonKey } = supabaseEnv();
+  const adminSession = await signInViaApi(adminEmail, adminPassword);
+  const mechanicSession = await signInViaApi(email, password);
+  const client = (token: string) => createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: "Bearer " + token } },
   });
+  const admin = client(adminSession.access_token);
+  const mechanic = client(mechanicSession.access_token);
+  const scope = "roles-" + Date.now();
+  const seed = await admin.rpc("e2e_seed_scenario", { p_scope: scope });
+  expect(seed.error).toBeNull();
+  let positiveId: string | undefined;
+  try {
+    const invoice = await admin.from("invoices").select("organization_id").eq("id", seed.data.invoice_id).single();
+    expect(invoice.error).toBeNull();
+    const membership = await mechanic.from("organization_memberships").select("organization_id").eq("auth_user_id", mechanicSession.user.id).single();
+    expect(membership.error).toBeNull();
+    expect(membership.data?.organization_id).toBe(invoice.data?.organization_id);
+    const payload = { organization_id: invoice.data?.organization_id, customer_id: seed.data.customer_id,
+      invoice_number: "ROLE-" + scope, subtotal: 1, total: 1, status: "draft" };
+    const positive = await admin.from("invoices").insert(payload).select("id").single();
+    expect(positive.error).toBeNull();
+    expect(positive.data?.id).toBeTruthy();
+    positiveId = positive.data?.id as string | undefined;
+    const denied = await mechanic.from("invoices").insert({ ...payload, invoice_number: "DENIED-" + scope });
+    expect(denied.error?.code).toBe("42501");
+    const after = await admin.from("invoices").select("id").eq("invoice_number", "DENIED-" + scope);
+    expect(after.error).toBeNull();
+    expect(after.data).toEqual([]);
+  } finally {
+    await cleanupRoleInvoice(admin, positiveId);
+    const cleanup = await admin.rpc("e2e_teardown", { p_scope: scope });
+    expect(cleanup.error).toBeNull();
+  }
 });

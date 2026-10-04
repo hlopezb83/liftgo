@@ -2,7 +2,7 @@
 -- Ejecutar contra staging:  psql -f supabase/tests/r8_fx_missing_smoke.sql
 -- Solo lecturas: hace ROLLBACK al final.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

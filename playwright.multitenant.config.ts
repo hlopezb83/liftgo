@@ -43,5 +43,13 @@ export default defineConfig({
         timeout: 180_000,
         reuseExistingServer: !process.env.CI,
       },
-  projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
+  projects: [
+    { name: "chromium", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "legacy-regressions",
+      testDir: "./tests/e2e",
+      testMatch: /(?:quote-edit-prefill|bank-reconciliation|roles-matrix)\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"], storageState: "tests/multi-tenant-ab/.state/internal-a.json" },
+    },
+  ],
 });

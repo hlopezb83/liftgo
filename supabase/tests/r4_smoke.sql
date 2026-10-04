@@ -5,7 +5,7 @@
 -- o ejecuta un caso feliz y verifica el efecto colateral esperado.
 -- El script no deja datos: todo corre dentro de una transaccion con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

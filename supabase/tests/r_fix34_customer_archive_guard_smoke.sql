@@ -3,15 +3,17 @@
 --   UPDATE directo sobre customers.deleted_at evada las reglas duras que ya
 --   aplicaba public.soft_delete_customer(): sólo admin/administrativo archivan
 --   y no se puede archivar con reservas activas ('confirmed','in_progress').
---   El saldo pendiente NO es regla de base de datos (sigue siendo UI).
+--   El saldo pendiente también bloquea el archivado (regresión fix37).
 --   Desarchivar y las ediciones normales quedan sin cambios.
 --
 --   psql -f supabase/tests/r_fix34_customer_archive_guard_smoke.sql
 -- Todo corre dentro de una transacción con ROLLBACK: no deja datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
+
+\ir fixtures/smoke_context.inc
 
 CREATE OR REPLACE FUNCTION pg_temp.expect_true(p_label text, p_cond boolean)
 RETURNS void LANGUAGE plpgsql AS $$
@@ -81,9 +83,8 @@ SELECT pg_temp.expect_true(
 );
 
 SELECT pg_temp.expect_true(
-  'el saldo pendiente NO es bloqueo de base de datos',
-  pg_temp.fndef('guard_customer_archive') NOT LIKE '%invoices%'
-  AND pg_temp.fndef('guard_customer_archive') NOT LIKE '%total_paid%'
+  'el saldo pendiente usa el helper canónico',
+  pg_temp.fndef('guard_customer_archive') LIKE '%customer_has_outstanding_balance%'
 );
 
 -- ---------------------------------------------------------------------------
@@ -102,15 +103,27 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('44444444-0000-4000-8000-000000000003', 'ventas')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
+INSERT INTO public.organization_memberships (organization_id, auth_user_id, member_type)
+SELECT current_setting('app.organization_id')::uuid, user_id, 'internal'
+FROM public.user_roles WHERE user_id IN (
+  '44444444-0000-4000-8000-000000000001',
+  '44444444-0000-4000-8000-000000000002',
+  '44444444-0000-4000-8000-000000000003');
+
+INSERT INTO public.forklifts (id, name, model, organization_id)
+VALUES ('44444444-0000-4000-8000-0000000000f1', 'MC Archivo', 'Modelo Archivo',
+  current_setting('app.organization_id')::uuid);
+
 -- Cliente A: sin reservas. Cliente B: con reserva activa.
 INSERT INTO public.customers (id, name) VALUES
   ('44444444-0000-4000-8000-0000000000a1', 'Cliente Archivar OK'),
   ('44444444-0000-4000-8000-0000000000b1', 'Cliente Con Renta');
 
-INSERT INTO public.bookings (id, customer_id, customer_name, start_date, end_date, status)
+INSERT INTO public.bookings (id, customer_id, customer_name, start_date, end_date, status, forklift_id)
 VALUES ('44444444-0000-4000-8000-0000000000b9',
         '44444444-0000-4000-8000-0000000000b1', 'Cliente Con Renta',
-        current_date, current_date + 5, 'confirmed');
+        public.today_mty(), public.today_mty() + 5, 'confirmed',
+        '44444444-0000-4000-8000-0000000000f1');
 
 SET LOCAL role = 'authenticated';
 
@@ -161,8 +174,8 @@ DO $$
 BEGIN
   PERFORM public.soft_delete_customer('44444444-0000-4000-8000-0000000000b1');
   RAISE WARNING 'FALLO  el RPC archivó un cliente con reserva activa';
-EXCEPTION WHEN OTHERS THEN
-  RAISE NOTICE 'OK  el RPC sigue rechazando con reservas activas (%)', SQLERRM;
+EXCEPTION WHEN raise_exception THEN
+  PERFORM pg_temp.expect_true('el RPC rechaza por reserva activa', SQLERRM LIKE '%reservas activas%');
 END $$;
 
 -- 2.5 admin archiva un cliente elegible por UPDATE directo.

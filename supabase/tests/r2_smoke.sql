@@ -2,7 +2,7 @@
 -- Ejecutar manualmente contra staging:  psql -f supabase/tests/r2_smoke.sql
 -- Solo lecturas de catálogo: no modifica datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

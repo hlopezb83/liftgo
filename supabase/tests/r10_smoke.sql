@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/r10_smoke.sql
 -- Solo lecturas: no modifica datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

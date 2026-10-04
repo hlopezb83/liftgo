@@ -20,7 +20,7 @@ on:
       - "drizzle/migrations/**"
       - "scripts/run_sql_suites.py"
       - "scripts/ci_database.py"
-      - "scripts/tests/test_ci_database.py"
+      - "scripts/tests/**"
       - ".github/actions/setup-bun-project/**"
       - "drizzle.config.ts"
       - "bun.lock"
@@ -37,7 +37,7 @@ on:
       - "drizzle/migrations/**"
       - "scripts/run_sql_suites.py"
       - "scripts/ci_database.py"
-      - "scripts/tests/test_ci_database.py"
+      - "scripts/tests/**"
       - ".github/actions/setup-bun-project/**"
       - "drizzle.config.ts"
       - "bun.lock"
@@ -74,6 +74,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v7
+
+      - name: Probar ejecutor SQL antes de arrancar la BD
+        run: python3 -m unittest discover -s scripts/tests -p test_run_sql_suites.py
 
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1

@@ -1,5 +1,6 @@
 import os from "os";
 import { defineConfig, devices } from "@playwright/test";
+import { isShardedRun } from "./tests/e2e/fixtures/cleanupPolicy";
 
 // Núcleos disponibles para el proceso (respeta cgroups en CI).
 const CPUS = typeof os.availableParallelism === "function" ? os.availableParallelism() : os.cpus().length;
@@ -25,20 +26,8 @@ const shardSuffix = process.env.SHARD_INDEX ? `-shard${process.env.SHARD_INDEX}`
 
 export default defineConfig({
   testDir: "./tests/e2e",
-  // Red final contra contaminación E2E: purga todas las filas con is_e2e=true
-  // al terminar la suite, aunque algún teardown por scope se haya saltado.
-  // CRÍTICO con sharding: si shard 1 termina antes que shard 2, purgar global
-  // borraría datos de shard 2 todavía corriendo. Reglas:
-  //   - Sin SHARD_INDEX (local)           → siempre corre
-  //   - SHARD_INDEX === SHARD_TOTAL       → corre (último shard)
-  //   - SHARD_INDEX sin SHARD_TOTAL       → NO corre (sin esto, todos los
-  //     shards intermedios purgaban datos de hermanos vivos — bug previo)
-  //   - SHARD_INDEX !== SHARD_TOTAL       → NO corre
-  globalTeardown: !process.env.SHARD_INDEX
-    ? "./tests/e2e/global.teardown.ts"
-    : process.env.SHARD_TOTAL && process.env.SHARD_INDEX === process.env.SHARD_TOTAL
-      ? "./tests/e2e/global.teardown.ts"
-      : undefined,
+  // Ningún shard purga globalmente. La limpieza final se ejecuta después de todos.
+  globalTeardown: isShardedRun() ? undefined : "./tests/e2e/global.teardown.ts",
   timeout: 30_000,
   expect: { timeout: 5_000 },
   // Each test gets a unique `e2e_scope` from the seed fixture, so workers can run in parallel without

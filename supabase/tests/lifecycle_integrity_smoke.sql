@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/lifecycle_integrity_smoke.sql
 -- Sólo inspecciona catálogo/definiciones y termina con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

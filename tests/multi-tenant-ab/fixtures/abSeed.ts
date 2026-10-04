@@ -59,6 +59,8 @@ export type AbContext = {
   legacyObjectPath: string;
   /** Operador de plataforma sintético usado para activar la empresa B. */
   platformOperatorUserId: string;
+  platformOperator: AbSide["internal"];
+  roles: Record<"ventas" | "administrativo" | "mecanico", AbSide["internal"]>;
   /** Empresas iniciales que el ensayo suspendió y debe restaurar al terminar. */
   initialActiveOrganizationIds: string[];
 };
@@ -288,7 +290,7 @@ async function seedSide(
  * Es la vía oficial para activar una empresa: `platform_set_organization_active`
  * exige un operador verificado. No se toca el guard ni las políticas.
  */
-async function createPlatformOperator(admin: SupabaseClient): Promise<string> {
+async function createPlatformOperator(admin: SupabaseClient): Promise<AbSide["internal"]> {
   const password = disposablePassword();
   const { data, error } = await admin.auth.admin.createUser({
     email: AB_EMAILS.platformOperator,
@@ -308,7 +310,7 @@ async function createPlatformOperator(admin: SupabaseClient): Promise<string> {
     is_active: true,
   }, { onConflict: "user_id" })).error);
   bootstrapLocalPlatformOperator(userId);
-  return userId;
+  return { email: AB_EMAILS.platformOperator, password, userId };
 }
 
 /** Cambia el estado activo de una empresa SIEMPRE por la RPC oficial. */
@@ -333,7 +335,8 @@ export async function seedAbEnvironment(): Promise<AbContext> {
 
   // 1. El operador sintético se crea ANTES que cualquier empresa: es la única
   //    vía oficial para cambiar el estado activo de una organización.
-  const operatorId = await createPlatformOperator(admin);
+  const platformOperator = await createPlatformOperator(admin);
+  const operatorId = platformOperator.userId;
 
   // 2. Las migraciones dejan una organización inicial activa. Con ella activa,
   //    crear A daría DOS activas y el guard de contexto rechazaría las filas
@@ -380,6 +383,17 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     },
     true,
   );
+
+  // Roles locales obligatorios: no dependen de cuentas ni contraseñas externas.
+  const roles = {} as AbContext["roles"];
+  for (const role of ["ventas", "administrativo", "mecanico"] as const) {
+    const user = await createUser(admin, "ab-gate-" + role + "@example.invalid", A.organizationId);
+    must("rol " + role, (await admin.from("user_roles")
+      .upsert({ user_id: user.userId, role: role === "mecanico" ? "mechanic" : role }, { onConflict: "user_id" })).error);
+    must("membresía " + role, (await admin.from("organization_memberships")
+      .insert({ organization_id: A.organizationId, auth_user_id: user.userId, member_type: "internal" })).error);
+    roles[role] = user;
+  }
 
   // 5. B se siembra COMPLETA mientras sigue suspendida (sólo A activa).
   const B = await seedSide(
@@ -428,6 +442,8 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     B,
     legacyObjectPath: AB_LEGACY_OBJECT,
     platformOperatorUserId: operatorId,
+    platformOperator,
+    roles,
     initialActiveOrganizationIds,
   };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });

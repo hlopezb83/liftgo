@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "types": ["vite/client", "node"] },
+  "include": [
+    "tests/multi-tenant-ab/**/*.ts",
+    "tests/e2e/roles-matrix.spec.ts",
+    "tests/e2e/quote-edit-prefill.spec.ts",
+    "tests/e2e/bank-reconciliation.spec.ts",
+    "tests/e2e/global.teardown.ts",
+    "playwright.multitenant.config.ts",
+    "playwright.config.ts",
+    "scripts/cleanup-e2e.ts"
+  ]
+}

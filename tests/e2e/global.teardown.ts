@@ -14,10 +14,14 @@
  */
 import { createClient } from "@supabase/supabase-js";
 import { assertNonProductionBackend } from "./fixtures/productionGuard";
+import { isShardedRun } from "./fixtures/cleanupPolicy";
 
 export default async function globalTeardown(): Promise<void> {
   // Guard fail-closed ANTES del login y del purge: purge_e2e_data es destructivo.
   assertNonProductionBackend("global.teardown");
+  if (isShardedRun() && process.env.E2E_FINAL_CLEANUP !== "1") {
+    throw new Error("[e2e] La limpieza global requiere que TODOS los shards hayan terminado. Usa el paso final separado.");
+  }
   const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
   const SUPABASE_KEY =
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
@@ -26,8 +30,7 @@ export default async function globalTeardown(): Promise<void> {
 
   if (!SUPABASE_URL || !SUPABASE_KEY || !email || !password) {
      
-    console.warn("[e2e] globalTeardown: faltan env vars, se omite purge_e2e_data.");
-    return;
+    throw new Error("[e2e] globalTeardown: faltan variables para limpiar el entorno aislado.");
   }
 
   const client = createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -37,41 +40,26 @@ export default async function globalTeardown(): Promise<void> {
   const { error: authError } = await client.auth.signInWithPassword({ email, password });
   if (authError) {
      
-    console.error("[e2e] globalTeardown: login falló, se omite purge_e2e_data:", authError.message);
-    return;
+    throw new Error("[e2e] globalTeardown: login falló: " + authError.message);
   }
 
   const { data, error } = await client.rpc("purge_e2e_data");
   if (error) {
      
-    console.error("[e2e] globalTeardown: purge_e2e_data falló:", error.message);
+    throw new Error("[e2e] globalTeardown: purge_e2e_data falló: " + error.message);
   } else {
      
     console.log("[e2e] globalTeardown: purge_e2e_data OK", data);
   }
 
-  // R5-07: el interruptor de seeding E2E vuelve a quedar apagado al terminar la
-  // suite; `global.setup.ts` lo enciende explícitamente en cada corrida.
-  //
-  // Con `--shard`, cada shard corre su propio teardown: si un shard termina
-  // antes, apagaría el interruptor mientras el otro sigue sembrando (causa de
-  // "E2E seeding disabled on this environment"). En ese caso NO lo apagamos
-  // aquí; el apagado se hace en un paso final del workflow (o manualmente).
-  const isSharded = process.argv.some((a) => a.startsWith("--shard")) ||
-    !!process.env.PLAYWRIGHT_SHARD || process.env.E2E_KEEP_SEED_FLAG === "1";
-  if (isSharded) {
-     
-    console.log("[e2e] globalTeardown: corrida por shards, se conserva allow_e2e_seed.");
-    return;
-  }
-
+  // Este paso sólo corre sin shards o desde la limpieza final explícita.
   const { error: disableError } = await client
     .from("company_settings")
     .update({ allow_e2e_seed: false })
     .neq("allow_e2e_seed", false);
   if (disableError) {
      
-    console.error("[e2e] globalTeardown: no se pudo apagar allow_e2e_seed:", disableError.message);
+    throw new Error("[e2e] globalTeardown: no se pudo apagar allow_e2e_seed: " + disableError.message);
   } else {
      
     console.log("[e2e] globalTeardown: allow_e2e_seed apagado");

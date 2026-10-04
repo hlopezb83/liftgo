@@ -36,7 +36,8 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
   );
 }
 
-async function clientFromPage(page: Page): Promise<SupabaseClient> {
+export async function clientFromPage(page: Page): Promise<SupabaseClient> {
+  if (!SUPABASE_URL || !SUPABASE_KEY) throw new Error("[e2e] Falta configuración local");
   const token = await getAuthToken(page);
   if (!token) {
     throw new Error("No Supabase auth token found in localStorage. Did global.setup run?");
