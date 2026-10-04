@@ -175,7 +175,12 @@ Referencia técnica del proveedor de Auth usado internamente por Cloud:
 [createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser)
 y [código oficial de Auth, adminUserCreate](https://github.com/supabase/auth/blob/master/internal/api/admin.go).
 
-## Siguientes etapas
+## Referencias de evolución
+
+Esta lista recoge las etapas propuestas después de 0089. Las implementaciones
+y el alcance final del cierre YAGNI se registran en los bloques posteriores;
+las métricas comerciales agregadas, suscripciones y subdominios no son requisitos
+de ese cierre.
 
 1. Verificar la entrega real del correo de recuperación y los redirects en
    Cloud antes de habilitar invitaciones de nuevas cuentas. La administración
@@ -496,7 +501,8 @@ resultados de la comprobación real se registran a continuación.
 La recepción de un correo real en `hlopezb@gmail.com` se confirmó el 3 de octubre
 de 2026. El usuario reportó regreso a Inicio; la corrección de 8.43.16 solicita
 `/platform/login?type=recovery` y conserva el formulario mientras se valida el
-enlace. La comprobación real del nuevo enlace sigue pendiente de publicación.
+enlace. Tras publicar 8.43.16, el usuario confirmó que el correo nuevo abre
+«Nueva contraseña»; el recorrido queda verificado.
 El remitente genérico se acepta por decisión de producto hasta disponer de un
 dominio LiftGo; no se activó el dominio de otra marca del workspace.
 
@@ -636,16 +642,12 @@ de producto hasta disponer de un dominio LiftGo.
    Un enlace inválido debe ofrecer solicitar otro, nunca usar una sesión previa.
    Cloud → Users → Auth settings → Advanced ya permite
    `https://liftgo.lovable.app/**`; no se amplía esa autorización.
-2. **Restauración aislada — pendiente por falta de destino:** el usuario confirmó
-   el 3 de octubre que no dispone de un entorno separado. Cuando exista uno,
-   restaurar BD y archivos, comprobar accesos A/B y abrir una muestra de objetos
-   de cada bucket privado. ELOGISTIX comparte el backend publicado y no es un
-   destino de restauración completa. El workflow `restore-rehearsal-verify.yml`
-   y `scripts/restore-rehearsal/verify.ts` verifican una copia ya restaurada en
-   modo lectura; no realizan la restauración ni prueban por sí solos los bytes
-   de cada archivo. Registrar fecha, origen, destino, resultados y duración sin
-   credenciales. La prueba no es ejecutable con los recursos disponibles y
-   permanece sin verificar; no se ensaya una restauración completa en producción.
+2. **Restauración aislada — excluida por decisión de producto:** el 3 de octubre
+   el usuario decidió omitir por completo el ensayo propio y dejar la operación
+   de restauración a Lovable Cloud. No forma parte del plan YAGNI ni de sus
+   criterios de cierre. No se ejecutó una restauración por esta auditoría.
+   El workflow `restore-rehearsal-verify.yml` y su verificador siguen disponibles
+   como herramientas opcionales; no se ejecutan para este cierre.
 
 ### Respaldos disponibles — comprobación de sólo lectura
 
@@ -658,11 +660,16 @@ Según la [documentación de Database](https://docs.lovable.dev/features/databas
 Cloud conserva respaldos diarios de esquema y datos; los archivos de Storage
 no forman parte de ellos. La [exportación del proyecto](https://docs.lovable.dev/features/advanced-settings#export-lovable-cloud-data)
 tampoco incluye los archivos, el código de Edge Functions ni los secretos.
-El siguiente control posible sin otro backend es conservar una exportación de
-BD y descargar los archivos desde Storage por separado, fuera del repositorio.
-Estas copias aún no se han generado como parte de esta comprobación y no
-sustituyen el ensayo de restauración aislada.
+Se generó y descargó la exportación nativa de BD del 3 de octubre: 5,211,723
+bytes en formato PostgreSQL custom (`PGDMP`), con CRC del ZIP comprobado.
+También se guardaron 40 grupos ZIP de Storage que contienen 91 objetos distintos
+del inventario de 658; se cotejaron rutas y tamaños y se comprobaron los ZIP.
+Es una copia parcial. Los archivos privados y su inventario se conservaron
+localmente, fuera de Git. La descarga masiva se detuvo y no es un requisito
+para el cierre del portal.
 
-La entrega de correo y la llegada al formulario no acreditan por sí solas el
-cambio de contraseña. El éxito de CI tampoco acredita una restauración real de
-BD y Storage. Mantener la restauración abierta hasta disponer de evidencia.
+La entrega de correo y la llegada al formulario acreditan el recorrido de
+recuperación; el cambio de contraseña queda a cargo del usuario. Las copias
+descargadas y CI no se presentan como evidencia de restauración. Con el ensayo
+propio excluido por decisión de producto, el bloque YAGNI está terminado y
+publicado en 8.43.16; no queda un destino aislado como dependencia del cierre.
