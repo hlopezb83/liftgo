@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { TIMEOUTS } from "./fixtures/helpers";
 import { applyApiSession, signInViaApi, supabaseEnv } from "./fixtures/apiAuth";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Matriz de roles — valida que cada rol ve/no ve las acciones destructivas
@@ -61,6 +61,13 @@ async function loginAs(page: Page, email: string, password: string) {
   });
 }
 
+async function cleanupRoleInvoice(client: SupabaseClient, id: string | undefined): Promise<void> {
+  if (!id) return;
+  const removed = await client.from("invoices").delete().eq("id", id).select("id");
+  expect(removed.error).toBeNull();
+  expect(removed.data).toEqual([{ id }]);
+}
+
 for (const role of ROLES) {
   test.describe(`Rol ${role.key}`, () => {
     test.beforeAll(() => {
@@ -108,6 +115,7 @@ test("mecánico rechaza un INSERT válido por permisos, no por payload", async (
   const scope = "roles-" + Date.now();
   const seed = await admin.rpc("e2e_seed_scenario", { p_scope: scope });
   expect(seed.error).toBeNull();
+  let positiveId: string | undefined;
   try {
     const invoice = await admin.from("invoices").select("organization_id").eq("id", seed.data.invoice_id).single();
     expect(invoice.error).toBeNull();
@@ -115,16 +123,18 @@ test("mecánico rechaza un INSERT válido por permisos, no por payload", async (
     expect(membership.error).toBeNull();
     expect(membership.data?.organization_id).toBe(invoice.data?.organization_id);
     const payload = { organization_id: invoice.data?.organization_id, customer_id: seed.data.customer_id,
-      invoice_number: "ROLE-" + scope, subtotal: 1, total: 1, status: "draft", is_e2e: true, e2e_scope: scope };
+      invoice_number: "ROLE-" + scope, subtotal: 1, total: 1, status: "draft" };
     const positive = await admin.from("invoices").insert(payload).select("id").single();
     expect(positive.error).toBeNull();
     expect(positive.data?.id).toBeTruthy();
+    positiveId = positive.data?.id as string | undefined;
     const denied = await mechanic.from("invoices").insert({ ...payload, invoice_number: "DENIED-" + scope });
     expect(denied.error?.code).toBe("42501");
     const after = await admin.from("invoices").select("id").eq("invoice_number", "DENIED-" + scope);
     expect(after.error).toBeNull();
     expect(after.data).toEqual([]);
   } finally {
+    await cleanupRoleInvoice(admin, positiveId);
     const cleanup = await admin.rpc("e2e_teardown", { p_scope: scope });
     expect(cleanup.error).toBeNull();
   }

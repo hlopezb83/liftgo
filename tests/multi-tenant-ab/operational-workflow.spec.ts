@@ -17,9 +17,12 @@ test("entrega completada → devolución → reserva cerrada y unidad disponible
     p_completed_no_evidence_reason: "Ensayo automatizado en backend local temporal; sin entrega física.",
   });
   expect(completed.error).toBeNull();
+  expect(completed.data?.status).toBe("completed");
   const active = await client.from("bookings").select("status").eq("id", ids.booking_id).single();
   expect(active.error).toBeNull();
-  expect(active.data?.status).toBe("active");
+  // La renta operativa sigue confirmed hasta su devolución; la entrega
+  // completada y el estado rented de la unidad acreditan su activación.
+  expect(active.data?.status).toBe("confirmed");
   const rented = await client.from("forklifts").select("status").eq("id", ids.forklift_id).single();
   expect(rented.error).toBeNull();
   expect(rented.data?.status).toBe("rented");

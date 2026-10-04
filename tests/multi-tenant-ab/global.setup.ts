@@ -13,9 +13,12 @@ export default async function globalSetup(): Promise<void> {
   assertLocalEphemeralBackend("global.setup");
   const ctx = await seedAbEnvironment();
   const admin = await createLocalUserClient("staff setup", ctx.A.internal.email, ctx.A.internal.password);
-  const settings = await admin.from("company_settings").update({ allow_e2e_seed: true })
-    .eq("organization_id", ctx.A.organizationId).select("id").single();
-  if (settings.error || !settings.data) throw new Error("[ab-gate] faltan settings locales para los flujos");
+  const settings = await admin.from("company_settings").upsert({
+    organization_id: ctx.A.organizationId, allow_e2e_seed: true,
+    razon_social: ctx.A.organizationName, rfc: "XAXX010101000",
+    regimen_fiscal: "601", lugar_expedicion: "64000", facturapi_mode: "test",
+  }, { onConflict: "organization_id" }).select("id").single();
+  if (settings.error || !settings.data) throw new Error("[ab-gate] settings locales: " + settings.error?.message);
   process.env.E2E_TEST_EMAIL = ctx.A.internal.email;
   process.env.E2E_TEST_PASSWORD = ctx.A.internal.password;
   for (const [role, user] of Object.entries(ctx.roles)) {

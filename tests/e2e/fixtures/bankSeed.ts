@@ -121,7 +121,6 @@ export async function seedBankScenario(page: Page, scope: string): Promise<BankS
   const payment = await client.from("payments").insert({
     invoice_id: invoiceId, amount: exactAmount, currency: "MXN",
     exchange_rate: 1, payment_date: exactDate, payment_method: "transfer",
-    is_e2e: true, e2e_scope: scope,
   }).select("id").single();
   if (payment.error || !payment.data) throw new Error("[bankSeed] pago propio: " + payment.error?.message);
   const paymentId = payment.data.id as string;

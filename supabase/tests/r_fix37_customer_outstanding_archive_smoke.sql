@@ -142,7 +142,7 @@ BEGIN
   VALUES (v_cust, 'SMOKE saldo archivo', 'SMOKE-B-' || substr(v_cust::text,1,8), 1000, 0, 1000, 'sent', '[{"description":"SMOKE","quantity":1,"unit_price":1000,"amount":1000}]'::jsonb)
   RETURNING id INTO v_inv;
   -- El estado pagado debe resultar de un pago real, nunca de un UPDATE artificial.
-  INSERT INTO public.payments (invoice_id, amount, method, payment_date)
+  INSERT INTO public.payments (invoice_id, amount, payment_method, payment_date)
   VALUES (v_inv, 1000, 'transfer', public.today_mty());
   PERFORM pg_temp.expect_true(
     'factura pagada no bloquea el archivado',
@@ -179,7 +179,7 @@ BEGIN
   );
 
   -- Al liquidar, el saldo cae a cero y deja de bloquear.
-  INSERT INTO public.payments (invoice_id, amount, method, payment_date)
+  INSERT INTO public.payments (invoice_id, amount, payment_method, payment_date)
   VALUES (v_inv, 1160, 'transfer', public.today_mty());
   PERFORM pg_temp.expect_true(
     'al liquidar la factura el saldo deja de bloquear',
