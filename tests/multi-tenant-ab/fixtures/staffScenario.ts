@@ -5,6 +5,7 @@ import { applyApiSession } from "../../e2e/fixtures/apiAuth";
 import type { SeedIds } from "../../e2e/fixtures/seed";
 import { readAbContext } from "./abSeed";
 import { createLocalAdminClient, createLocalUserClient } from "./localBackend";
+import { cleanupBookingDependents } from "./localCleanup";
 
 type Scenario = {
   client: SupabaseClient; ids: SeedIds; organizationId: string;
@@ -46,13 +47,7 @@ export const test = base.extend<{ scenario: Scenario }>({
       const bookings = await client.from("bookings").select("id").eq("e2e_scope", scope);
       expect(bookings.error).toBeNull();
       const bookingIds = (bookings.data ?? []).map((row) => row.id as string);
-      if (bookingIds.length) {
-        for (const table of ["return_inspections", "deliveries"]) {
-          const removed = await cleanupClient.from(table).delete().in("booking_id", bookingIds)
-            .eq("organization_id", ctx.A.organizationId);
-          expect(removed.error, "Limpieza de " + table).toBeNull();
-        }
-      }
+      cleanupBookingDependents(ctx.A.organizationId, bookingIds);
       const cleanup = await client.rpc("e2e_teardown", { p_scope: scope });
       expect(cleanup.error, "La limpieza por scope debe completarse").toBeNull();
     }

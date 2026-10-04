@@ -53,3 +53,6 @@ no hardcodees IDs compartidos ni limpies datos fuera de su scope.
 - No generes CFDI real. Si se requiere Facturapi, usa sandbox aislado y confirma
   el modo antes de habilitar el flujo.
 - Revisa los guards si cambian variables o la resolución del backend.
+- Conciliación bancaria requiere PostgreSQL local efímero (`DB_URL` del runner)
+  y `psql`: su limpieza elimina sólo la cuenta y las cargas propias del caso,
+  con contexto de empresa. Nunca cambia permisos ni triggers de producción.

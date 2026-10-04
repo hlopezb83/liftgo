@@ -2,8 +2,7 @@ import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures/staffScenario";
 import { expectNoToastError } from "../e2e/fixtures/helpers";
 
-async function pay(page: Page, amount: number): Promise<void> {
-  await page.getByTestId("invoice-register-payment").click();
+async function submitPayment(page: Page, amount: number): Promise<void> {
   const dialog = page.getByTestId("record-payment-dialog");
   await expect(dialog).toBeVisible();
   await dialog.getByLabel(/monto del pago/i).fill(String(amount));
@@ -19,7 +18,8 @@ test("pago parcial UI → saldo persistido → pago final UI sin sobrepago", asy
   const { client, ids } = scenario;
   await page.goto("/invoices/" + ids.invoice_id);
   await expect(page.getByText(ids.invoice_number).first()).toBeVisible();
-  await pay(page, ids.total / 2);
+  await page.getByTestId("invoice-register-payment").click();
+  await submitPayment(page, ids.total / 2);
   const partial = await client.from("payments").select("amount").eq("invoice_id", ids.invoice_id);
   expect(partial.error).toBeNull();
   expect(partial.data).toHaveLength(1);
@@ -32,8 +32,7 @@ test("pago parcial UI → saldo persistido → pago final UI sin sobrepago", asy
   await page.getByTestId("invoice-register-payment").click();
   const dialog = page.getByTestId("record-payment-dialog");
   await expect(dialog.getByLabel(/monto del pago/i)).toHaveValue(String((ids.total / 2).toFixed(2)));
-  await dialog.getByRole("button", { name: /cancelar/i }).click();
-  await pay(page, ids.total / 2);
+  await submitPayment(page, ids.total / 2);
   const paid = await client.from("invoices").select("status").eq("id", ids.invoice_id).single();
   expect(paid.error).toBeNull();
   expect(paid.data?.status).toBe("paid");
