@@ -9,7 +9,7 @@
 --   psql -f supabase/tests/r_fix32_portal_pagos_smoke.sql
 -- Solo lecturas de catálogo: no toca datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

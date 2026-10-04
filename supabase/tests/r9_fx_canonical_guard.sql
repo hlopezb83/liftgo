@@ -5,7 +5,7 @@
 -- Ejecutar contra staging:  psql -f supabase/tests/r9_fx_canonical_guard.sql
 -- Solo lecturas de catálogo: termina con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

@@ -2,7 +2,7 @@
 --   psql -f supabase/tests/r8_13_14_privilegios_regimen_smoke.sql
 -- Todo corre dentro de una transacción con ROLLBACK: no deja datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

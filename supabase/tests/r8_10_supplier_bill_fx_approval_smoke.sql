@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/r8_10_supplier_bill_fx_approval_smoke.sql
 -- Todo corre dentro de una transacción con ROLLBACK: no deja datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

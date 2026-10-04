@@ -4,7 +4,7 @@
 --   psql -f supabase/tests/r9_03_regimen_fiscal_no_timbradas_smoke.sql
 -- No deja datos: todo corre dentro de una transaccion con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

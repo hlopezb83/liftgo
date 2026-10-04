@@ -110,12 +110,7 @@ test.describe("Conciliación bancaria", () => {
 
     const candidate = page.getByTestId("bank-candidate").first();
     // Si la BD demo no tiene un pago con ese monto/fecha, no hay nada que emparejar.
-    const hasCandidate = await candidate
-      .waitFor({ state: "visible", timeout: TIMEOUTS.medium })
-      .then(() => true)
-      .catch(() => false);
-    // eslint-disable-next-line playwright/no-skipped-test -- Depende de que la BD demo tenga un pago con ese monto/fecha.
-    test.skip(!hasCandidate, "Sin pagos reales que empaten con el monto sembrado");
+    await expect(candidate, "El pago propio debe aparecer; un timeout es una regresión").toBeVisible({ timeout: TIMEOUTS.medium });
 
     await expect(candidate).toContainText(/score/i);
     await expect(candidate).toContainText(/monto exacto|monto aproximado/i);

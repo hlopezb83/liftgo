@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/sprint4_state_machines_smoke.sql
 -- Solo lecturas: inspecciona el cuerpo de los triggers, no modifica datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

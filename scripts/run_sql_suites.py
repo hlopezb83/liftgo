@@ -13,9 +13,9 @@ Modos:
   strict  Cada .sql corre con ON_ERROR_STOP=1. Cualquier error de psql
           (incluida una RAISE EXCEPTION de la suite) marca el test como fallido.
           Es el modo de supabase/tests/rls/*.sql, que terminan en ROLLBACK.
-  smoke   Los smoke de supabase/tests/*.sql usan `\\set ON_ERROR_STOP off` y
-          reportan con RAISE WARNING 'FALLO ...'. Se falla el caso si aparece
-          "FALLO" en la salida o si psql retorna != 0.
+  smoke   También aborta ante errores SQL inesperados. Conserva el detector
+          de RAISE WARNING 'FALLO ...' para las aserciones de suites legadas.
+          Los errores esperados se capturan dentro del bloque SQL del caso.
 """
 
 from __future__ import annotations
@@ -30,17 +30,16 @@ import time
 from xml.sax.saxutils import escape, quoteattr
 
 FALLO_RE = re.compile(r"\bFALLO\b")
+SQL_ERROR_RE = re.compile(r"^(?:psql:[^\n]*:\s*)?(?:ERROR|FATAL|PANIC):", re.MULTILINE)
 
 
 def run_file(db_url: str, path: str, mode: str) -> tuple[bool, str, float]:
-    cmd = ["psql", db_url, "-X", "-q", "-f", path]
-    if mode == "strict":
-        cmd[2:2] = ["-v", "ON_ERROR_STOP=1"]
+    cmd = ["psql", db_url, "-X", "-v", "ON_ERROR_STOP=1", "-q", "-f", path]
     started = time.time()
     proc = subprocess.run(cmd, capture_output=True, text=True)
     elapsed = time.time() - started
     output = (proc.stdout or "") + (proc.stderr or "")
-    ok = proc.returncode == 0
+    ok = proc.returncode == 0 and not SQL_ERROR_RE.search(output)
     if ok and mode == "smoke" and FALLO_RE.search(output):
         ok = False
     return ok, output.strip(), elapsed

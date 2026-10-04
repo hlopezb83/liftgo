@@ -4,7 +4,7 @@
 --   psql -f supabase/tests/r_fix13_devoluciones_smoke.sql
 -- Solo lecturas de catálogo: no toca datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/r_fix09_cxp_smoke.sql
 -- Solo lecturas + un escenario transaccional que se revierte al final.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

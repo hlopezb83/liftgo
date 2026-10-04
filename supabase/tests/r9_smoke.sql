@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/r9_smoke.sql
 -- No deja datos: todo corre dentro de una transaccion con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

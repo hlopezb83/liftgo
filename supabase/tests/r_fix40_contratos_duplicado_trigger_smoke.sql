@@ -13,7 +13,7 @@
 -- ROLLBACK: no persiste ningún dato.
 -- Requiere un rol dueño de las tablas (postgres) para deshabilitar triggers.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

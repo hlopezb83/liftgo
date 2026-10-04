@@ -4,7 +4,7 @@
 -- Cada bloque intenta una operacion PROHIBIDA y espera que el guard responda.
 -- El script no deja datos: todo corre dentro de una transaccion con ROLLBACK.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

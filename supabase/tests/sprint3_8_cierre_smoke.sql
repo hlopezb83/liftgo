@@ -3,7 +3,7 @@
 --   psql -f supabase/tests/sprint3_8_cierre_smoke.sql
 -- Solo lecturas: inspecciona catálogo y cuerpos de funciones, no modifica datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

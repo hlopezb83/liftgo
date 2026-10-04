@@ -374,7 +374,7 @@ export default tseslint.config(
     //  - `no-focused-test`, `no-skipped-test` (warn), `valid-expect`: on
     //  - `no-conditional-in-test`: off (usamos condicionales para tolerar
     //    UI opcional en flujos legacy; migración explícita, no bloqueo).
-    files: ["tests/e2e/**/*.{ts,tsx}"],
+    files: ["tests/e2e/**/*.{ts,tsx}", "tests/multi-tenant-ab/**/*.{ts,tsx}"],
     plugins: { playwright, "react-hooks": reactHooks },
     languageOptions: {
       parser: tseslint.parser,

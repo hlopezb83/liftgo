@@ -4,7 +4,7 @@
 --   psql -f supabase/tests/g_c2_prospect_close_role_smoke.sql
 -- Solo lecturas de catálogo: no toca datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 

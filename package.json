@@ -15,6 +15,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "typecheck:browser-tests": "tsc --noEmit -p tsconfig.browser-tests.json",
     "arch:check": "bash scripts/arch-check.sh",
     "preview": "wrangler dev --port 4173",
     "test": "vitest run",

@@ -72,47 +72,36 @@ export default defineConfig({
       reportsDirectory: "reports/coverage",
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/integrations/supabase/types.ts"],
-      // Umbrales conservadores: la suite todavía cubre poco. Suben gradualmente
-      // por lote para evitar regresiones en la cobertura efectiva ya alcanzada.
-      // Lote 2 (jun-2026): +44 tests nuevos (rentalCalculation, invoiceTotals,
-      // syncInvoiceStatus, 5 PDF Documents). Medido 13.98/12.92/10.08/14.36.
-      // Thresholds suben +2pp vs Lote A.1 manteniendo ~1pp de margen.
-      // TESTS-ARQ2 (v7.220.0 DIFF 5): margen real + blindaje del dominio de
-      // dinero. Global sube +1pp (medido ~14/10/14.4/13, ~0.5pp de margen);
-      // per-directory 60/55 sobre lib/domain e invoice/AP libs para que
-      // regresiones en el core fiscal fallen el build de inmediato.
+      // Base consolidada 2026-10-03: L49.73/S48.41/F39.20/B43.59.
+      // El margen permite cambios pequeños sin perder la protección alcanzada.
       // En modo shard los umbrales NO aplican (cada runner ve solo su porción
       // del código); el job de merge recalcula la cobertura completa y ahí sí
       // se evalúan.
       thresholds: IS_SHARD
         ? undefined
         : {
-            lines: 14,
-            functions: 10,
-            statements: 14,
-            branches: 12.5,
+            lines: 48,
+            functions: 38,
+            statements: 47,
+            branches: 42,
             "src/lib/domain/**": {
-              lines: 60,
-              functions: 60,
-              statements: 60,
-              branches: 55,
+              lines: 95,
+              functions: 92,
+              statements: 94,
+              branches: 85,
             },
-            // v7.224.3: bajamos umbrales tras los refactors de Bloque 21 que
-            // partieron varios helpers de invoices/lib en módulos nuevos sin
-            // tests directos aún. Actuales medidos: L50/F44/S47/B36. Se plantea
-            // recuperar 55/50 en un sprint dedicado a cerrar branches de
-            // cfdiPrechecks + formatStoredCfdiError.
+            // Base invoices: L82.85/S81.48/F89.81/B74.54.
             "src/features/invoices/lib/**": {
-              lines: 50,
-              functions: 44,
-              statements: 47,
-              branches: 36,
+              lines: 81,
+              functions: 88,
+              statements: 80,
+              branches: 73,
             },
             "src/features/accounts-payable/lib/**": {
-              lines: 55,
-              functions: 55,
-              statements: 55,
-              branches: 50,
+              lines: 85,
+              functions: 94,
+              statements: 84,
+              branches: 74,
             },
           },
 
@@ -122,4 +111,3 @@ export default defineConfig({
     alias: { "@": new URL("./src", import.meta.url).pathname },
   },
 });
-

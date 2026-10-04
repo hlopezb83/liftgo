@@ -10,7 +10,7 @@
 --   psql -f supabase/tests/r_fix39_hallazgos_seguros_contratos_smoke.sql
 -- Solo lecturas: no toca datos.
 
-\set ON_ERROR_STOP off
+\set ON_ERROR_STOP on
 
 BEGIN;
 
