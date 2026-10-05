@@ -11,11 +11,11 @@ describe("revisión explícita y reintentos de maestros", () => {
   beforeEach(() => { vi.clearAllMocks(); state.isPending = false; });
   it("exige motivo y aceptación antes de incorporar", () => {
     render(<CatalogImportReviewForm preview={importPreview()} onDone={vi.fn()} onPendingChange={vi.fn()} />);
-    expect(screen.getByRole("button", { name: "Crear maestro global" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Crear registro compartido" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Motivo de incorporación"), { target: { value: "Ficha revisada" } });
-    expect(screen.getByRole("button", { name: "Crear maestro global" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Crear registro compartido" })).toBeDisabled();
     fireEvent.click(screen.getByRole("checkbox"));
-    expect(screen.getByRole("button", { name: "Crear maestro global" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Crear registro compartido" })).toBeEnabled();
     expect(state.mutateAsync).not.toHaveBeenCalled();
   });
   it("conserva exactamente clave, motivo y revisión tras una respuesta perdida", async () => {
@@ -23,7 +23,7 @@ describe("revisión explícita y reintentos de maestros", () => {
     render(<CatalogImportReviewForm preview={importPreview()} onDone={done} onPendingChange={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Motivo de incorporación"), { target: { value: "Ficha revisada para LiftGo" } });
     fireEvent.click(screen.getByRole("checkbox"));
-    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Crear maestro global" })));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Crear registro compartido" })));
     const first = state.mutateAsync.mock.calls[0][0];
     expect(screen.getByLabelText("Motivo de incorporación")).toBeDisabled();
     expect(screen.getByRole("status")).toHaveTextContent("No se confirmó el resultado");
@@ -35,7 +35,7 @@ describe("revisión explícita y reintentos de maestros", () => {
     render(<CatalogImportReviewForm preview={{ ...importPreview(), status: "duplicate" }} onDone={done} onPendingChange={vi.fn()} />);
     fireEvent.change(screen.getByLabelText("Motivo de incorporación"), { target: { value: "Coincidencia revisada" } });
     fireEvent.click(screen.getByRole("checkbox"));
-    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Usar maestro existente" })));
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: "Usar registro existente" })));
     expect(state.mutateAsync.mock.calls[0][0].resolution).toBe("reuse"); expect(done).toHaveBeenCalledOnce();
   });
   it("muestra las diferencias técnicas sin inventar un valor para campos vacíos", () => {
@@ -49,7 +49,7 @@ describe("revisión explícita y reintentos de maestros", () => {
     render(<CatalogImportReviewDialog candidate={{ ...importPreview(), status: "invalid", issue: "El machote de origen requiere corregir su contenido antes de incorporarlo." }} onClose={vi.fn()} />);
     expect(screen.getByRole("status")).toHaveTextContent("corregir su contenido");
     expect(screen.getByText(/Solicita al administrador de Org 1/)).toBeVisible();
-    expect(screen.queryByRole("button", { name: "Crear maestro global" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Crear registro compartido" })).not.toBeInTheDocument();
     expect(state.preview).toHaveBeenCalledWith(expect.any(Object), false);
     expect(state.mutateAsync).not.toHaveBeenCalled();
   });

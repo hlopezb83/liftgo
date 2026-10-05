@@ -34,7 +34,7 @@ export function CatalogImportReviewForm({ preview, onDone, onPendingChange }: {
   return <div className="space-y-4">
     <div className="space-y-2"><Label htmlFor="catalog-import-reason">Motivo de incorporación</Label>
       <Textarea id="catalog-import-reason" value={reason} maxLength={500} rows={3} disabled={locked}
-        onChange={(event) => setReason(event.target.value)} placeholder="Describe por qué este maestro debe formar parte del catálogo LiftGo." />
+        onChange={(event) => setReason(event.target.value)} placeholder="Describe por qué este registro debe formar parte del catálogo LiftGo." />
     </div>
     <div className="flex items-start gap-3 rounded-lg border p-4">
       <Checkbox id="catalog-import-reviewed" checked={reviewed} disabled={locked}
@@ -46,7 +46,7 @@ export function CatalogImportReviewForm({ preview, onDone, onPendingChange }: {
     <FormDialogFooter>
       <FormDialogCancelButton onCancel={onDone} disabled={mutation.isPending} />
       <Button onClick={() => void submit()} disabled={!reviewed || reason.trim().length < 5 || mutation.isPending}>
-        {error ? "Reintentar incorporación" : preview.status === "duplicate" ? "Usar maestro existente" : "Crear maestro global"}
+        {error ? "Reintentar incorporación" : preview.status === "duplicate" ? "Usar registro existente" : "Crear registro compartido"}
       </Button>
     </FormDialogFooter>
   </div>;

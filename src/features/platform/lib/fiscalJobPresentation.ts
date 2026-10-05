@@ -12,7 +12,7 @@ export function fiscalJobGuidance(job: FiscalJob) {
   if (job.operation === "stamp" && (job.hasProviderId || job.hasUuid || job.documentStatus === "stamping")) {
     return "Revisa la conciliación del documento antes de repetir un timbrado. Un ID del proveedor sin UUID puede corresponder a una solicitud aceptada aún pendiente.";
   }
-  if (job.state.status === "exhausted") return "El consumidor detuvo este trabajo. Revisa el documento y el resultado del proveedor antes de reprogramarlo.";
-  if (job.state.status === "succeeded") return "Finalizado en cola describe el consumidor; no confirma por sí solo el timbrado o la cancelación del documento.";
-  return "El consumidor procesará el trabajo según su programación. Abrir el historial no ejecuta operaciones fiscales.";
+  if (job.state.status === "exhausted") return "Se agotaron los intentos de procesamiento. Revisa el documento y el resultado del proveedor antes de reprogramarlo.";
+  if (job.state.status === "succeeded") return "El procesamiento terminó; esto no confirma el timbrado o la cancelación. Consulta el estado del documento.";
+  return "El trabajo se procesará según su programación. Abrir el historial no ejecuta operaciones fiscales.";
 }

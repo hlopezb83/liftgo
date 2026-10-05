@@ -33,6 +33,9 @@ Las regresiones cubren copia rechazada y portapapeles ausente, confirmación pos
 
 ## Contrato de uso
 
+- El aviso principal de un error desconocido usa una explicación en español y pide comprobar el estado antes de repetir cambios. La excepción original se conserva en el JSON; las traducciones conocidas y las descripciones contextuales del llamador siguen teniendo prioridad.
+- «Cancelado» y «Timbrado» sólo describen un resultado fiscal confirmado. Una solicitud pendiente informa su estado sin prometer UUID ni cancelación final.
+
 - Usar `notifyError({ error, title, ... })` con la excepción original. `message` sigue soportado como título contextual.
 - Usar `notifyValidation` para datos que el usuario debe corregir; los errores de transporte o servidor siguen siendo errores.
 - Usar `copyWithFeedback(valor, etiqueta)` para copiar datos con confirmación y aviso recuperable. No pasar el valor copiado como contexto de error.

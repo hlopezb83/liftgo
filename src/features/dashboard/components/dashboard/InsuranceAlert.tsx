@@ -2,6 +2,7 @@ import { ShieldAlert } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { InsuranceAlertsData } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { countLabel } from "@/lib/format/countLabel";
 import { formatDateMty } from "@/lib/format/dateFormats";
 
 interface InsuranceAlertProps {
@@ -43,7 +44,7 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
         ))}
         {noInsuranceCount > 0 && (
           <p className="text-xs text-muted-foreground pt-1 border-t">
-            {noInsuranceCount} equipo(s) sin seguro registrado
+            {countLabel(noInsuranceCount, "equipo", "equipos")} sin seguro registrado
           </p>
         )}
       </CardContent>

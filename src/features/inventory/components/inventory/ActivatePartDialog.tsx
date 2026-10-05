@@ -112,7 +112,7 @@ function CatalogPicker({ id, catalog, value, onChange, loading, error, retrying,
         {catalog.map((part) => <SelectItem key={part.id} value={part.id}>{part.sku} · {part.name}</SelectItem>)}
       </SelectContent>
     </Select>
-    {!loading && catalog.length === 0 && <p className="text-sm text-muted-foreground">El operador de plataforma debe capturar primero el maestro real de SKUs.</p>}
+    {!loading && catalog.length === 0 && <p className="text-sm text-muted-foreground">El operador de plataforma debe agregar refacciones al catálogo compartido para que puedas habilitarlas.</p>}
   </div>;
 }
 

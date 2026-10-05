@@ -32,6 +32,13 @@ const VALID_SAT_STATUSES = [
   "rejected",
   "expired",
 ];
+const CANCELLATION_WARNINGS: Record<string, string> = {
+  pending:
+    "Cancelación solicitada. El complemento sigue vigente mientras se resuelve.",
+  rejected: "La cancelación fue rechazada. Consulta el estado del complemento.",
+  expired:
+    "La solicitud de cancelación venció. Consulta el estado del complemento.",
+};
 
 export async function handleCancelPaymentComplement(
   req: Request,
@@ -304,9 +311,7 @@ export async function handleCancelPaymentComplement(
       success: true,
       cancellation_status: satStatus,
       accepted: isAccepted,
-      warning: !isAccepted
-        ? "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar."
-        : undefined,
+      warning: CANCELLATION_WARNINGS[satStatus],
     });
   } catch (_err) {
     // R4-01: solo liberamos el claim si nunca se contactó al PAC; si ya se

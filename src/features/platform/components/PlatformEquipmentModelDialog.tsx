@@ -90,7 +90,7 @@ export function PlatformEquipmentModelDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={model ? "Editar modelo global" : "Nuevo modelo global"}
-      description="La ficha técnica será compartida por todas las organizaciones LiftGo."
+      description="La ficha técnica será compartida por todas las empresas LiftGo."
       isPending={save.isPending}
       isDirty={JSON.stringify(form) !== JSON.stringify(baseline) && !save.isSuccess}
     >

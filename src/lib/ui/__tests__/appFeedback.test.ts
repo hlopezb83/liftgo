@@ -28,6 +28,16 @@ beforeEach(() => {
 });
 
 describe("appFeedback", () => {
+  it("un error desconocido usa ayuda en español y conserva la causa para copiar JSON", () => {
+    const cause = new Error("Unexpected provider exception: operation uncertain");
+    notifyError({ error: cause, title: "No se pudo guardar" });
+    expect(sonner.error).toHaveBeenCalledWith("No se pudo guardar", expect.objectContaining({
+      description: "No se confirmó la operación. Actualiza los datos para comprobar el estado del cambio.",
+    }));
+    expect(buildErrorReport).toHaveBeenCalledWith(expect.objectContaining({ error: cause }));
+    expect(sonner.error.mock.calls[0][1].action.props.report.error).toBe(cause);
+  });
+
   it("notifySuccess pasa título y duración por defecto", () => {
     notifySuccess("Factura creada");
     expect(sonner.success).toHaveBeenCalledWith(

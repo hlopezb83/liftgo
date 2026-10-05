@@ -63,13 +63,13 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
 /**
  * Muestra los identificadores fiscales de una factura timbrada:
  * - Folio fiscal SAT (UUID)
- * - Serie y Folio del PAC (Facturapi)
+ * - Serie y folio de Facturapi
  */
 export function InvoiceDetailIdentifiers({ cfdiUuid, serie, folio, isStamped }: Props) {
   const stamped = isStamped ?? Boolean(cfdiUuid);
   const serieFolio = serie && folio ? `Serie ${serie} · Folio ${folio}` : null;
   const serieFolioPlaceholder = stamped
-    ? "— no informado por el PAC —"
+    ? "— no informado por Facturapi —"
     : "— pendiente de timbrado —";
 
   return (
@@ -84,8 +84,8 @@ export function InvoiceDetailIdentifiers({ cfdiUuid, serie, folio, isStamped }: 
           value={cfdiUuid}
         />
         <IdRow
-          label="Serie y Folio"
-          tooltip="Serie y número fiscal asignados por el PAC (Facturapi) al timbrar. Útil para cruzar contra su portal. Son distintos del folio interno y del UUID."
+          label="Serie y folio de Facturapi"
+          tooltip="Serie y folio devueltos por Facturapi. El ERP conserva estos valores para identificar el comprobante; son distintos del UUID."
           value={serieFolio}
           placeholder={serieFolioPlaceholder}
         />

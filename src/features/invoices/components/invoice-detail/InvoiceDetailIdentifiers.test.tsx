@@ -107,7 +107,7 @@ describe("InvoiceDetailIdentifiers", () => {
 
     expect(
       screen.getByText(
-        "Serie y número fiscal asignados por el PAC (Facturapi) al timbrar. Útil para cruzar contra su portal. Son distintos del folio interno y del UUID.",
+        "Serie y folio devueltos por Facturapi. El ERP conserva estos valores para identificar el comprobante; son distintos del UUID.",
       ),
     ).toBeInTheDocument();
   });
@@ -139,7 +139,7 @@ describe("InvoiceDetailIdentifiers", () => {
     expect(screen.getAllByText("— pendiente de timbrado —")).toHaveLength(2);
   });
 
-  it("muestra '— no informado por el PAC —' en Serie/Folio cuando ya está timbrada sin serie", () => {
+  it("muestra '— no informado por Facturapi —' en Serie/Folio cuando ya está timbrada sin serie", () => {
     render(
       <InvoiceDetailIdentifiers
         cfdiUuid="sat-uuid-123"
@@ -148,7 +148,7 @@ describe("InvoiceDetailIdentifiers", () => {
         isStamped
       />,
     );
-    expect(screen.getByText("— no informado por el PAC —")).toBeInTheDocument();
+    expect(screen.getByText("— no informado por Facturapi —")).toBeInTheDocument();
     // El UUID sí se muestra, no debe aparecer "pendiente" en esa fila
     expect(screen.queryByText("— pendiente de timbrado —")).not.toBeInTheDocument();
   });

@@ -63,17 +63,17 @@ export const NAV_GROUPS: NavGroup[] = [
   },
   {
     // Renombrado de "Facturación y Finanzas": más corto y directo.
-    label: "Dinero",
+    label: "Finanzas",
     collapsible: true,
     items: [
       { title: "Facturas", url: "/invoices", icon: InvoiceIcon, badgeKey: "intents_pending" },
       // Renombrado de "Conciliación": había DOS "Conciliación" en el mismo
       // grupo (pagos vs bancaria). Ahora son inequívocas.
       { title: "Conciliación CFDI", url: "/invoices/reconciliation", icon: GitCompareArrows },
-      { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUpIcon },
-      { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: BankIcon },
-      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
-      { title: "Estado de Resultados", url: "/income-statement", icon: ChartIcon },
+      { title: "Flujo de caja", url: "/flujo-de-caja", icon: TrendingUpIcon },
+      { title: "Cuentas bancarias", url: "/cuentas-bancarias", icon: BankIcon },
+      { title: "Conciliación bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
+      { title: "Estado de resultados", url: "/income-statement", icon: ChartIcon },
     ],
   },
   {
@@ -81,14 +81,14 @@ export const NAV_GROUPS: NavGroup[] = [
     collapsible: true,
     items: [
       { title: "Proveedores", url: "/suppliers", icon: SupplierIcon },
-      { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
+      { title: "Facturas de proveedor", url: "/cuentas-por-pagar", icon: FileClock },
     ],
   },
   {
     label: "Análisis",
     items: [
       { title: "Reportes", url: "/reports", icon: ChartIcon },
-      { title: "MRR / Métricas", url: "/mrr", icon: TrendingUpIcon },
+      { title: "Métricas de renta", url: "/mrr", icon: TrendingUpIcon },
     ],
   },
   {
@@ -117,10 +117,10 @@ export const NAV_GROUPS: NavGroup[] = [
     defaultOpen: false,
     items: [
       { title: "Ayuda", url: "/help", icon: HelpIcon },
-      { title: "Changelog", url: "/changelog", icon: ScrollText, badgeKey: "changelog_new" },
-      { title: "Mis Reportes", url: "/mis-reportes", icon: MessageSquare },
-      { title: "Tabla de Honor", url: "/leaderboard", icon: TrophyIcon },
-      { title: "Gestión de Feedback", url: "/feedback", icon: Megaphone },
+      { title: "Historial de cambios", url: "/changelog", icon: ScrollText, badgeKey: "changelog_new" },
+      { title: "Mis reportes", url: "/mis-reportes", icon: MessageSquare },
+      { title: "Tabla de honor", url: "/leaderboard", icon: TrophyIcon },
+      { title: "Gestión de reportes", url: "/feedback", icon: Megaphone },
     ],
   },
 ];

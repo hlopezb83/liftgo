@@ -45,13 +45,13 @@ export function PlatformCatalogImportCard() {
   const { can } = usePlatformCapabilities();
   const [kind, setKind] = useState<CatalogImportKind>(can("catalogs.import") ? "model" : "template");
   return <Card>
-    <CardHeader><CardTitle>Incorporar desde Org 1</CardTitle>
+    <CardHeader><CardTitle>Importar desde empresa de origen</CardTitle>
       <CardDescription>Revisa nuevas fichas, coincidencias y contenido antes de compartirlos con el ecosistema LiftGo.</CardDescription></CardHeader>
     <CardContent className="space-y-5">
-      <div className="max-w-xs space-y-2"><Label htmlFor="catalog-import-kind">Tipo de maestro</Label>
+      <div className="max-w-xs space-y-2"><Label htmlFor="catalog-import-kind">Tipo de registro</Label>
         <select id="catalog-import-kind" value={kind} onChange={(event) => setKind(event.target.value as CatalogImportKind)}
           className="h-10 w-full rounded-md border bg-background px-3 text-sm">
-          {can("catalogs.import") && <><option value="model">Modelos de equipos</option><option value="part">SKUs de refacciones</option></>}{can("templates.import") && <option value="template">Machotes de contrato y pagaré</option>}
+          {can("catalogs.import") && <><option value="model">Modelos de equipos</option><option value="part">SKUs de refacciones</option></>}{can("templates.import") && <option value="template">Plantillas de contrato y pagaré</option>}
         </select>
       </div>
       <CatalogImportCandidates key={kind} kind={kind} />

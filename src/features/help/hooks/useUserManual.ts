@@ -103,7 +103,7 @@ export function useUserManual() {
     errorTitle: "Error",
     onSuccess: () => {
       setSelectedVersion(null);
-      notifySuccess("Manual generado", { description: "El manual de usuario se generó exitosamente." });
+      notifySuccess("Manual generado");
     },
   });
 

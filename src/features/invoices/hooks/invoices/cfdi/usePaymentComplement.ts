@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { satStatusLabel } from "@/features/feedback";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyInfo } from "@/lib/ui/appFeedback";
+import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { isPacPending } from "../../../lib/pacPending";
 import { invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
 
@@ -14,11 +15,11 @@ export function useStampPaymentComplement() {
       });
     },
     invalidateKeys: [paymentKeys.all, invoiceKeys.all],
-    successMsg: "Complemento de Pago timbrado",
-    errorTitle: "Error al timbrar REP",
+    successMsg: "Complemento de pago timbrado",
+    errorTitle: "No se pudo timbrar el complemento de pago",
     onError: (error) => {
       if (!isPacPending(error)) return;
-      notifyInfo("Facturapi aceptó el REP. El UUID aparecerá cuando concluya el timbrado.");
+      notifyInfo("Solicitud de timbrado recibida. El complemento sigue pendiente; consulta su estado para confirmar el resultado.");
       void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
       return true;
     },
@@ -28,12 +29,18 @@ export function useStampPaymentComplement() {
 export function useCancelPaymentComplement() {
   return useEntityMutation({
     mutationFn: async ({ paymentId, motive }: { paymentId: string; motive: string }) => {
-      return await invokeEdgeFunction("cancel-payment-complement", {
+      return await invokeEdgeFunction<{ cancellation_status?: string }>("cancel-payment-complement", {
         body: { payment_id: paymentId, motive },
       });
     },
     invalidateKeys: [paymentKeys.all, invoiceKeys.all],
-    successMsg: "REP cancelado",
-    errorTitle: "Error al cancelar REP",
+    errorTitle: "No se pudo cancelar el complemento de pago",
+    onSuccess: (data) => {
+      if (data?.cancellation_status === "accepted") {
+        notifySuccess("Complemento de pago cancelado");
+      } else {
+        notifyInfo(satStatusLabel(data?.cancellation_status));
+      }
+    },
   });
 }

@@ -22,20 +22,22 @@
 export function satStatusLabel(status: string | null | undefined): string {
   switch (status) {
     case "accepted":
-      return "Aceptada por el SAT";
+      return "Cancelación aceptada por el SAT";
     case "rejected":
-      return "Rechazada por el receptor";
+      return "Cancelación rechazada. Consulta el estado del documento.";
     case "expired":
-      return "Expirada (sin respuesta del receptor)";
+      return "La solicitud de cancelación venció. Consulta el estado del documento.";
     case "pending":
-      return "Pendiente de aceptación del SAT";
+      return "Cancelación solicitada. El documento sigue vigente mientras se resuelve.";
+    case "verifying":
     case "in_progress":
-      return "En proceso en el SAT";
+      return "El SAT está validando la cancelación. El documento sigue vigente.";
+    case "none":
+      return "No hay una solicitud de cancelación registrada.";
     case null:
     case undefined:
     case "":
-      return "Sin estado reportado";
     default:
-      return `Estado SAT: ${status}`;
+      return "No se confirmó la cancelación. Consulta el estado del documento.";
   }
 }

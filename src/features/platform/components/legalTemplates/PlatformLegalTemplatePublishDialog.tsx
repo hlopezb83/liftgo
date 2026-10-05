@@ -65,7 +65,7 @@ export function PlatformLegalTemplatePublishDialog({
       <div className="space-y-6 py-2">
         {conflict && <PlatformEditConflict loadCurrent={async () => {
           const current = (await listPlatformLegalTemplatesFn()).find((row) => row.id === template.id);
-          if (!current) throw new Error("El machote ya no está disponible.");
+          if (!current) throw new Error("La plantilla ya no está disponible.");
           setBaseContent(current.content); setBaseVersion(Number(current.current_version ?? 0));
           return { token: current.current_version_id, preview: <LegalTemplatePreview content={current.content} /> };
         }} onUseCurrent={(token) => { setExpectedVersion(token); publish.reset(); }} />}

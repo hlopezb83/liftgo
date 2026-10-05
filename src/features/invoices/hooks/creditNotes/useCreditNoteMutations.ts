@@ -77,7 +77,7 @@ export function useStampCreditNote() {
     errorTitle: "Error al timbrar nota de crédito",
     onError: (error) => {
       if (!isPacPending(error)) return;
-      notifyInfo("Facturapi aceptó la nota de crédito. El UUID aparecerá cuando concluya el timbrado.");
+      notifyInfo("Solicitud de timbrado recibida. La nota de crédito sigue pendiente; consulta su estado para confirmar el resultado.");
       void queryClient.invalidateQueries({ queryKey: creditNoteKeys.all });
       return true;
     },

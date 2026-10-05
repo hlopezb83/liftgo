@@ -42,7 +42,7 @@ export function FinancialKpiCards({
       hint: mrrFxMissingCount > 0
         ? (
           <span className="text-xs text-warning">
-            {mrrFxMissingCount} renta(s) en divisa sin tipo de cambio no se incluyen
+            {mrrFxMissingCount} {mrrFxMissingCount === 1 ? "renta en divisa sin tipo de cambio no se incluye" : "rentas en divisa sin tipo de cambio no se incluyen"}
           </span>
         )
         : undefined,

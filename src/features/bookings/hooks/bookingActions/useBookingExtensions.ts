@@ -149,7 +149,7 @@ export function useCreateBookingExtension() {
       bookingKeys.all,
       forkliftKeys.all,
     ],
-    successMsg: "Reserva extendida exitosamente",
+    successMsg: "Reserva extendida",
     errorTitle: "Error al extender reserva",
   });
 }

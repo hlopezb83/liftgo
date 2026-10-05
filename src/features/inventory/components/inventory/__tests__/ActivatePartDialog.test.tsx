@@ -74,7 +74,7 @@ describe("ActivatePartDialog", () => {
     mocks.query.data = [];
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByRole("combobox")).toBeDisabled();
-    expect(screen.getByText(/maestro real de SKUs/)).toBeInTheDocument();
+    expect(screen.getByText(/agregar refacciones al catálogo compartido/)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
   });
 
@@ -83,7 +83,7 @@ describe("ActivatePartDialog", () => {
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByText("No se pudo cargar el catálogo LiftGo")).toBeInTheDocument();
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
-    expect(screen.queryByText(/maestro real de SKUs/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/agregar refacciones al catálogo compartido/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     expect(mocks.query.refetch).toHaveBeenCalledOnce();
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
@@ -94,7 +94,7 @@ describe("ActivatePartDialog", () => {
     render(<ActivatePartDialog open onOpenChange={vi.fn()} />);
     expect(screen.getByRole("combobox")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Habilitar" })).toBeDisabled();
-    expect(screen.queryByText(/maestro real de SKUs/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/agregar refacciones al catálogo compartido/)).not.toBeInTheDocument();
   });
 
   it.each(["Stock inicial", "Stock mínimo"])("rechaza unidades fraccionarias en %s", (label) => {

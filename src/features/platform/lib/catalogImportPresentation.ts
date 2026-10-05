@@ -1,7 +1,7 @@
 import type { CatalogImportPreview, CatalogImportSummary } from "@/lib/platformCatalogImport.types";
 
 export const CATALOG_IMPORT_STATUS: Record<CatalogImportSummary["status"], string> = {
-  new: "Nuevo maestro", duplicate: "Coincidencia global", conflict: "Requiere revisión",
+  new: "Nuevo registro", duplicate: "Coincidencia global", conflict: "Requiere revisión",
   invalid: "Origen incompleto", imported: "Ya incorporado",
 };
 export function catalogComparisonRows(preview: CatalogImportPreview) {

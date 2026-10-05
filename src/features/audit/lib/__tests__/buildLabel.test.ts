@@ -15,7 +15,7 @@ const empty: LabelProjectionRow = {
 describe("buildLabel — etiquetas de bitácora (R9-P2-05)", () => {
   it("etiqueta user_roles con el nombre legible del rol, no con el hex", () => {
     const label = buildLabel({ ...empty, table_name: "user_roles", new_role: "admin" }, "a3f9b2c1-0000");
-    expect(label).toBe("Rol: Admin");
+    expect(label).toBe("Rol: Administrador");
     expect(label).not.toContain("a3f9b2c1");
   });
 

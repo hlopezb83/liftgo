@@ -24,9 +24,9 @@ export function CatalogImportReviewDialog({ candidate, onClose }: { candidate: C
         <Badge variant="outline">{CATALOG_IMPORT_STATUS[preview.status]}</Badge>
         {preview.issue && <p role="status" className="rounded-lg border p-3 text-sm">{preview.issue}</p>}
         <CatalogImportComparison preview={preview} />
-        <p className="text-sm text-muted-foreground">La incorporación conserva los datos locales de cada empresa. Las empresas habilitan los maestros y adoptan versiones legales por separado.</p>
-        {preview.kind === "part" && preview.status === "new" && <p className="text-sm text-muted-foreground">La unidad inicial será pieza; revisa el maestro global si requiere otra unidad.</p>}
-        {preview.status === "duplicate" && <p className="rounded-lg bg-muted/40 p-3 text-sm">Se registrará la equivalencia con el maestro existente, conservando su ficha global.</p>}
+        <p className="text-sm text-muted-foreground">La incorporación conserva los datos locales de cada empresa. Las empresas habilitan los registros del catálogo y adoptan versiones legales por separado.</p>
+        {preview.kind === "part" && preview.status === "new" && <p className="text-sm text-muted-foreground">La unidad inicial será pieza; revisa el registro compartido si requiere otra unidad.</p>}
+        {preview.status === "duplicate" && <p className="rounded-lg bg-muted/40 p-3 text-sm">Se registrará la equivalencia con el registro existente, conservando su ficha global.</p>}
         {(preview.status === "new" || preview.status === "duplicate") && <CatalogImportReviewForm key={preview.fingerprint}
           preview={preview} onDone={onClose} onPendingChange={setPending} />}
       </div>}

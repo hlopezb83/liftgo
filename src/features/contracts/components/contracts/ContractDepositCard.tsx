@@ -48,11 +48,30 @@ function getDepositFormState({
   );
   return {
     amountValid,
+    defaultAmount: storedAmount,
     hasChanges: status !== current || nextAmount !== currentAmount ||
       notes.trim() !== (depositNotes ?? "").trim(),
     amountToSubmit: status === "held" || amountInput === "" ? null : Number(amountInput),
     notesToSubmit: notes.trim() === "" ? null : notes.trim(),
   };
+}
+
+function DepositAmountField({ status, amount, defaultAmount, value, valid, onChange }: {
+  status: DepositStatus; amount: number; defaultAmount: number; value: string;
+  valid: boolean; onChange: (value: string) => void;
+}) {
+  const labels: Record<DepositStatus, string> = {
+    held: "Importe del depósito (MXN)", applied: "Importe aplicado (MXN)", returned: "Importe devuelto (MXN)",
+  };
+  return <div className="space-y-1">
+    <Label htmlFor="deposit-amount">{labels[status]}</Label>
+    <Input id="deposit-amount" type="number" inputMode="decimal" min={0} max={amount}
+      value={value} placeholder={String(defaultAmount)} onChange={(e) => onChange(e.target.value)}
+      disabled={status === "held"} aria-invalid={!valid} aria-describedby={status === "held" ? undefined : "deposit-amount-help"} />
+    {status !== "held" && <p id="deposit-amount-help" className={valid ? "text-xs text-muted-foreground" : "text-xs text-destructive"} role={valid ? undefined : "alert"}>
+      {valid ? `Si lo dejas vacío, se registrarán ${formatCurrency(defaultAmount)}.` : `Ingresa un importe entre ${formatCurrency(0)} y ${formatCurrency(amount)}.`}
+    </p>}
+  </div>;
 }
 
 /**
@@ -95,7 +114,7 @@ export function ContractDepositCard({
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">Depósito en Garantía</CardTitle></CardHeader>
+      <CardHeader><CardTitle className="text-base">Depósito en garantía</CardTitle></CardHeader>
       <CardContent className="space-y-4 text-sm">
         <div className={cn("grid grid-cols-2 gap-4", summaryColumns)}>
           <div><span className="text-muted-foreground block">Monto</span>{formatCurrency(amount)}</div>
@@ -105,7 +124,7 @@ export function ContractDepositCard({
           )}
           {depositSettledAmount !== null && depositSettledAmount !== undefined && (
             <div>
-              <span className="text-muted-foreground block">Monto liquidado</span>
+              <span className="text-muted-foreground block">{current === "returned" ? "Importe devuelto" : "Importe aplicado"}</span>
               {formatCurrency(Number(depositSettledAmount))}
             </div>
           )}
@@ -125,20 +144,8 @@ export function ContractDepositCard({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1">
-              <Label htmlFor="deposit-amount">Monto (opcional)</Label>
-              <Input
-                id="deposit-amount"
-                type="number"
-                inputMode="decimal"
-                min={0}
-                max={amount}
-                value={settledAmount}
-                placeholder={String(amount)}
-                onChange={(e) => setSettledAmount(e.target.value)}
-                disabled={status === "held"}
-              />
-            </div>
+            <DepositAmountField status={status} amount={amount} defaultAmount={formState.defaultAmount}
+              value={settledAmount} valid={formState.amountValid} onChange={setSettledAmount} />
             <div className="space-y-1">
               <Label htmlFor="deposit-notes">Notas</Label>
               <Textarea
@@ -150,7 +157,7 @@ export function ContractDepositCard({
             </div>
             <div>
               <Button size="sm" onClick={handleSave} disabled={mutation.isPending || !formState.hasChanges || !formState.amountValid}>
-                {mutation.isPending ? "Guardando…" : "Guardar depósito"}
+                {mutation.isPending ? "Guardando…" : "Guardar estado del depósito"}
               </Button>
             </div>
           </div>

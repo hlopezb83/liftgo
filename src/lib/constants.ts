@@ -5,7 +5,7 @@ export const APP_ROLES = Constants.public.Enums.app_role;
 export const STAFF_ROLES = APP_ROLES.filter((r): r is Exclude<AppRole, "customer"> => r !== "customer");
 
 export const ROLE_LABELS: Record<AppRole, string> = {
-  admin: "Admin",
+  admin: "Administrador",
   administrativo: "Administrativo",
   dispatcher: "Despachador",
   mechanic: "Mecánico",

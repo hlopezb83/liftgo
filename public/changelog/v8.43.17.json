@@ -1,0 +1,11 @@
+{
+  "description": "El ERP comunica el resultado real de las operaciones, aclara importes y usa nombres consistentes en el ERP y el Centro de Plataforma.",
+  "changes": [
+    "La cancelación del complemento de pago distingue aceptación, espera, rechazo y vencimiento; un timbrado pendiente no promete UUID.",
+    "El Panel presenta facturación y cobros sin calificar su diferencia como flujo de efectivo, y explica los periodos de cobranza.",
+    "CRM muestra cada error en su campo; los depósitos explican el importe que se registra al dejarlo vacío.",
+    "Los errores desconocidos ofrecen una explicación en español y conservan la causa original en el JSON de diagnóstico.",
+    "Los textos de usuarios distinguen el administrador de empresa del operador de plataforma; serie y folio de Facturapi se diferencian del UUID.",
+    "Navegación, catálogos, notificaciones y etiquetas de accesibilidad usan vocabulario consistente, plurales naturales y mayúsculas de oración."
+  ]
+}

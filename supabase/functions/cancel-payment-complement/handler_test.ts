@@ -21,6 +21,78 @@ const ORG_ID = "44444444-4444-4444-8444-444444444444";
 const OTHER_ORG_ID = "55555555-5555-4555-8555-555555555555";
 const USER_ID = "22222222-2222-4222-8222-222222222222";
 
+for (
+  const [status, expectedWarning] of [
+    ["accepted", undefined],
+    [
+      "pending",
+      "Cancelación solicitada. El complemento sigue vigente mientras se resuelve.",
+    ],
+    [
+      "rejected",
+      "La cancelación fue rechazada. Consulta el estado del complemento.",
+    ],
+    [
+      "expired",
+      "La solicitud de cancelación venció. Consulta el estado del complemento.",
+    ],
+  ] as const
+) {
+  Deno.test(`handler: el aviso corresponde al estado SAT ${status}`, async () => {
+    const mock = installFacturapiMock({
+      "/invoices/fapi_copy": () =>
+        new Response(
+          JSON.stringify({
+            status: status === "accepted" ? "canceled" : "valid",
+            cancellation_status: status,
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+    });
+    try {
+      const { deps, serviceState } = makeDeps({
+        env: { FACTURAPI_TEST_KEY: "sk_test_mock" },
+        service: {
+          selects: {
+            user_roles: { data: [{ role: "admin" }], error: null },
+            payments: {
+              data: {
+                organization_id: ORG_ID,
+                rep_cfdi_status: "stamped",
+                rep_facturapi_id: "fapi_copy",
+              },
+              error: null,
+            },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
+            billing_secrets: { data: null, error: null },
+          },
+          updates: { payments: { data: null, error: null } },
+        },
+      });
+      const res = await handleCancelPaymentComplement(
+        makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
+        deps,
+      );
+      const body = await res.json();
+      assertEquals(res.status, 200);
+      assertEquals(body.cancellation_status, status);
+      assertEquals(body.accepted, status === "accepted");
+      assertEquals(body.warning, expectedWarning);
+      assertEquals(
+        serviceState.updates.some((u) =>
+          u.patch.rep_cfdi_status === "cancelled"
+        ),
+        status === "accepted",
+      );
+    } finally {
+      mock.restore();
+    }
+  });
+}
+
 function makeRequest(
   body: unknown,
   opts: { auth?: string | null } = {},

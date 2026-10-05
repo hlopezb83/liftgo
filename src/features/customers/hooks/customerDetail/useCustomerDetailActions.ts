@@ -68,7 +68,7 @@ export function useCustomerDetailActions({ id, expectedUpdatedAt, setInviteOpen,
     if (!id) return;
     if (activeBookingsCount > 0) {
       notifyValidation({
-        message: `El cliente tiene ${activeBookingsCount} renta(s) activa(s). Cancélalas o complétalas antes de archivar.`,
+        message: `El cliente tiene ${activeBookingsCount} ${activeBookingsCount === 1 ? "renta activa. Cancélala o complétala" : "rentas activas. Cancélalas o complétalas"} antes de archivar.`,
       });
       return;
     }

@@ -30,9 +30,9 @@ describe("consentimiento de diagnóstico y captura", () => {
   it("no deja enviar un requestId inválido incluso después de aceptar", () => {
     render(<SupportSharingDialog report={report} onClose={vi.fn()} />);
     fireEvent.click(screen.getByLabelText(/Revisé el diagnóstico/));
-    fireEvent.change(screen.getByLabelText("requestId (opcional)"), { target: { value: "incorrecto" } });
+    fireEvent.change(screen.getByLabelText("ID del error (opcional)"), { target: { value: "incorrecto" } });
     expect(screen.getByRole("button", { name: "Compartir diagnóstico" })).toBeDisabled();
-    expect(screen.getByRole("alert")).toHaveTextContent("UUID"); expect(state.share).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent("ID del error"); expect(state.share).not.toHaveBeenCalled();
   });
   it("no envía un formulario programáticamente mientras falta actualizar el resultado", () => {
     state.needsRefresh = true;

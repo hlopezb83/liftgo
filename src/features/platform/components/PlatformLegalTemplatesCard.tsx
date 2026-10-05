@@ -24,10 +24,10 @@ export function PlatformLegalTemplatesCard() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DocumentIcon className="h-5 w-5" /> Machotes legales globales
+            <DocumentIcon className="h-5 w-5" /> Plantillas legales compartidas
           </CardTitle>
           <CardDescription>
-            Plataforma publica versiones inmutables y controla qué versión adopta cada empresa LiftGo.
+            Publica una nueva versión y elige qué empresas la usan. Las versiones anteriores se conservan.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -51,7 +51,7 @@ export function PlatformLegalTemplatesCard() {
                   <TableRow key={row.id}>
                     <TableCell>
                       <div className="font-medium">{row.name}</div>
-                      <div className="text-xs text-muted-foreground">{row.document_type}</div>
+                      <div className="text-xs text-muted-foreground">{row.document_type === "rental_contract" ? "Contrato de renta" : row.document_type === "promissory_note" ? "Pagaré" : "Documento legal"}</div>
                     </TableCell>
                     <TableCell>
                       <div><Badge>Versión {row.current_version ?? "—"}</Badge></div>
@@ -75,7 +75,7 @@ export function PlatformLegalTemplatesCard() {
                 {(data ?? []).length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="py-10 text-center text-muted-foreground">
-                      No hay machotes legales globales.
+                      Aún no hay plantillas legales compartidas.
                     </TableCell>
                   </TableRow>
                 )}

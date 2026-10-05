@@ -97,7 +97,7 @@ export default function FeedbackManagementPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Gestión de Feedback"
+        title="Gestión de reportes"
         subtitle="Reportes de bugs y mejoras enviados por los usuarios."
       />
 

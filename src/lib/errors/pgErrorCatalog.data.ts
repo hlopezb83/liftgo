@@ -218,9 +218,12 @@ export const PRIORITY_TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntr
 ];
 
 export const TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntry }> = [
+  { pattern: /Cannot delete your own account/i, entry: { message: "No puedes eliminar tu propia cuenta desde esta pantalla.", severity: "warning" } },
+  { pattern: /Failed to delete user/i, entry: { message: "No se pudo eliminar el usuario. Actualiza la lista para comprobar su estado." } },
+  { pattern: /User not found/i, entry: { message: "No se encontró el usuario. Actualiza la lista.", severity: "warning" } },
   { pattern: /stale_write/i, entry: { title: "Cambios no guardados", message: "Este registro fue modificado en otra pestaña o por otro usuario. Recarga los datos para ver los cambios más recientes.", severity: "warning" } },
-  { pattern: /LAST_ADMIN_CANNOT_BE_DEMOTED/i, entry: { message: "No puedes cambiar el rol del último administrador. Promueve a otro usuario primero.", severity: "warning" } },
-  { pattern: /LAST_ADMIN_CANNOT_BE_DELETED/i, entry: { message: "No puedes eliminar al último administrador del sistema.", severity: "warning" } },
+  { pattern: /LAST_ADMIN_CANNOT_BE_DEMOTED/i, entry: { message: "No puedes cambiar el rol del último administrador de esta empresa. Asigna otro administrador primero.", severity: "warning" } },
+  { pattern: /LAST_ADMIN_CANNOT_BE_DELETED/i, entry: { message: "No puedes eliminar al último administrador de esta empresa. Asigna otro administrador primero.", severity: "warning" } },
   // M-7: ver PRIORITY_TEXT_PATTERNS (el trigger llega con 23514).
 
   // L-1: la BD bloquea sacar una factura de borrador sin cliente asignado.

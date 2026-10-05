@@ -50,7 +50,7 @@ export function useStampCfdi() {
     },
     onError: (error, invoiceId) => {
       if (isPacPending(error)) {
-        notifyInfo("Facturapi aceptó el CFDI. El UUID aparecerá cuando concluya el timbrado.");
+        notifyInfo("Solicitud de timbrado recibida. La factura sigue pendiente; consulta su estado para confirmar el resultado.");
         void queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
         return true;
       }
@@ -70,7 +70,7 @@ export function useStampCfdi() {
         ? " (modo prueba)"
         : data.invoice_number && data.invoice_number.startsWith("FAC-")
         ? ` — folio asignado: ${data.invoice_number}`
-        : " exitosamente";
+        : "";
       notifySuccess(`CFDI timbrado${suffix} — UUID: ${data.cfdi_uuid}`);
     },
   });
