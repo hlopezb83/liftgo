@@ -108,7 +108,7 @@ export function ConvertQuoteDialog({
               <div className="space-y-0.5">
                 <Label htmlFor="convert-recurring" className="text-sm">Facturación recurrente mensual</Label>
                 <p className="text-xs text-muted-foreground">
-                  Genera automáticamente una factura por cada mes calendario del periodo rentado.
+                  Permite generar borradores por cada mes calendario del periodo de renta desde Facturas.
                   Puedes desactivarla después desde la reserva.
                 </p>
               </div>

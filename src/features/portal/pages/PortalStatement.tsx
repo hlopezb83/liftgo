@@ -125,7 +125,7 @@ export default function PortalStatement() {
 
       {totals.fxMissingCount > 0 && (
         <p className="text-xs text-muted-foreground">
-          Los totales no incluyen {totals.fxMissingCount} factura(s) en moneda extranjera sin tipo de cambio registrado.
+          Los totales no incluyen {totals.fxMissingCount} {totals.fxMissingCount === 1 ? "factura" : "facturas"} en moneda extranjera sin tipo de cambio registrado.
         </p>
       )}
 

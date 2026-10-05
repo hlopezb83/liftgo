@@ -51,9 +51,9 @@ function computeTrend(data: MonthlyUtilizationItem[]): { points: TrendPoint[]; d
 export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps) {
   const { points, delta } = computeTrend(monthlyUtilization);
   const trendLabel = delta > 1
-    ? { icon: TrendingUpIcon, text: `Subiendo ${Math.abs(delta)}%`, cls: "text-status-available" }
+    ? { icon: TrendingUpIcon, text: `Subiendo ${Math.abs(delta)} p.p.`, cls: "text-status-available" }
     : delta < -1
-    ? { icon: TrendingDownIcon, text: `Bajando ${Math.abs(delta)}%`, cls: "text-destructive" }
+    ? { icon: TrendingDownIcon, text: `Bajando ${Math.abs(delta)} p.p.`, cls: "text-destructive" }
     : { icon: RemoveIcon, text: "Estable", cls: "text-muted-foreground" };
   const TrendIcon = trendLabel.icon;
 
@@ -63,7 +63,7 @@ export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps
       icon={TrendingUpIcon}
       iconColor="text-primary"
       iconBg="bg-primary/10"
-      footer={<p className="text-xs text-muted-foreground">Incluye reservas confirmadas. Si aún no hay entrega cerrada, cuenta desde la fecha prevista; por ello puede diferir del uso físico en la ficha del equipo.</p>}
+      footer={<p className="text-xs text-muted-foreground">Incluye reservas confirmadas. Si aún no hay entrega cerrada, cuenta desde la fecha prevista; por ello puede diferir del uso físico en la ficha del equipo. La variación de la tendencia se expresa en puntos porcentuales (p.p.).</p>}
       action={
         monthlyUtilization.length >= 2 ? (
           <div className={`flex items-center gap-1.5 text-xs font-medium ${trendLabel.cls}`}>
@@ -88,7 +88,7 @@ export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps
         <EmptyState
           icon={ChartIcon}
           title="Sin datos de utilización"
-          subtitle="Se poblará automáticamente al confirmar reservas en los próximos meses."
+          subtitle="Este gráfico usa las reservas confirmadas del periodo mostrado."
         />
       )}
     </ReportChartCard>

@@ -145,7 +145,7 @@ export function EquipmentModelsTab() {
       ) : <DataTableV2 table={table} isLoading={local.isLoading} emptyMessage="No hay modelos de equipo configurados" />}
 
       <RoleGuard module="Configuración" minAccess="full" fallback={null}>
-      <FormDialog open={open} onOpenChange={setOpen} isPending={pending} title={editId ? "Configuración local del modelo" : "Habilitar modelo global"} description="Las tarifas y el alias sólo aplican a esta organización.">
+      <FormDialog open={open} onOpenChange={setOpen} isPending={pending} title={editId ? "Configuración local del modelo" : "Habilitar modelo compartido"} description="Las tarifas y el alias sólo aplican a esta empresa.">
         <div className="grid gap-4 py-2">
           {!editId && <div className="space-y-1.5"><Label>Modelo LiftGo *</Label><Select value={form.catalogId} onValueChange={(value) => set("catalogId", value)}><SelectTrigger><SelectValue placeholder="Selecciona un modelo" /></SelectTrigger><SelectContent>{(catalog.data ?? []).map((item) => <SelectItem key={item.id} value={item.id}>{item.manufacturer} {item.model}</SelectItem>)}</SelectContent></Select></div>}
           {editId && <div className="rounded-md border bg-muted/40 p-3 text-sm"><span className="font-medium">{models.find((model) => model.id === editId)?.manufacturer} {models.find((model) => model.id === editId)?.model}</span><p className="text-muted-foreground">La ficha técnica se administra en el Catálogo LiftGo.</p></div>}

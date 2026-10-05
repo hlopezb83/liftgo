@@ -47,13 +47,13 @@ export function DriversTab() {
     if (err) { notifyValidation({ message: err.message }); return; }
     const payload = { name: form.name.trim(), phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
-      if (err.message?.includes("drivers_name_unique")) notifyError({ error: err, message: "Ya existe un operador con este nombre", severity: "warning" });
-      else notifyError({ error: err, message: "Error al guardar operador" });
+      if (err.message?.includes("drivers_name_unique")) notifyError({ error: err, message: "Ya existe un conductor con este nombre", severity: "warning" });
+      else notifyError({ error: err, message: "Error al guardar conductor" });
     };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); }, onError });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Conductor actualizado"); setOpen(false); }, onError });
     } else {
-      create.mutate(payload, { onSuccess: () => { notifySuccess("Agregado"); setOpen(false); }, onError });
+      create.mutate(payload, { onSuccess: () => { notifySuccess("Conductor agregado"); setOpen(false); }, onError });
     }
   };
 
@@ -75,7 +75,7 @@ export function DriversTab() {
         <DriverRowActions
           driver={row.original}
           onEdit={() => openEdit(row.original)}
-          onDelete={() => canWrite && del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+          onDelete={() => canWrite && del.mutate(row.original.id, { onSuccess: () => notifySuccess("Conductor eliminado") })}
         />
       ),
     },
@@ -93,17 +93,17 @@ export function DriversTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        {canWrite && <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Operador</Button>}
+        {canWrite && <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar conductor</Button>}
       </div>
       {isError ? (
-        <QueryErrorState bare entity="los operadores" onRetry={() => { void refetch(); }} />
+        <QueryErrorState bare entity="los conductores" onRetry={() => { void refetch(); }} />
       ) : isLoading ? (
         <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
       ) : isMobile ? (
         <MobileCardList
           items={drivers ?? []}
           keyExtractor={(d) => d.id}
-          emptyMessage="No hay operadores registrados"
+          emptyMessage="No hay conductores registrados"
           renderCard={(d) => (
             <Card>
               <CardContent className="p-3 space-y-1">
@@ -114,7 +114,7 @@ export function DriversTab() {
                     <DriverRowActions
                       driver={d}
                       onEdit={() => openEdit(d)}
-                      onDelete={() => canWrite && del.mutate(d.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                      onDelete={() => canWrite && del.mutate(d.id, { onSuccess: () => notifySuccess("Conductor eliminado") })}
                     />
                   </div>
                 </div>
@@ -129,16 +129,16 @@ export function DriversTab() {
           )}
         />
       ) : (
-        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
+        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay conductores registrados" />
       )}
       <FormDialog
-      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
+      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} conductor`} description="Administrar datos del conductor para programación de entregas.">
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} required /></div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5"><Label>Teléfono</Label><Input placeholder="+52 55 1234 5678" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
-                <div className="space-y-1.5"><Label>Correo</Label><Input type="email" placeholder="operador@correo.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Correo</Label><Input type="email" placeholder="conductor@correo.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
               </div>
               <div className="space-y-1.5"><Label>Número de Licencia</Label><Input placeholder="LIC-12345" value={form.license_number} onChange={(e) => set("license_number", e.target.value)} /></div>
               <div className="flex items-center gap-2">
@@ -163,8 +163,8 @@ function DriverRowActions({ driver, onEdit, onDelete }: { driver: Driver; onEdit
   if (!canWrite) return null;
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon" aria-label="Editar operador" title="Editar operador" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" aria-label="Eliminar operador" title="Eliminar operador" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
+      <Button variant="ghost" size="icon" aria-label="Editar conductor" title="Editar conductor" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" aria-label="Eliminar conductor" title="Eliminar conductor" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

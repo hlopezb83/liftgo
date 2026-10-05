@@ -66,10 +66,10 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
       open={open}
       onOpenChange={onOpenChange}
       width="md"
-      title="Marcar como Ganado"
+      title="Marcar como ganado"
       description={
         <>
-          Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Se moverá fuera del pipeline activo.
+          El prospecto <span className="font-medium">{prospect.companyName}</span> pasará al historial de cierres ganados.
         </>
       }
     >
@@ -99,7 +99,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
               <TrophyIcon className="h-4 w-4 mr-1" />
-              Confirmar Ganado
+              Confirmar ganado
             </Button>
           </FormDialogFooter>
         </form>

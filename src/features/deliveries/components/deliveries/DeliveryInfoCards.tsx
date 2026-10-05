@@ -74,7 +74,7 @@ export function DeliveryLogisticsCard({ address, driverName, driverPhone, transp
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoRow label="Dirección" value={address || "—"} />
-        <InfoRow label="Operador" value={driverName || "—"} />
+        <InfoRow label="Conductor" value={driverName || "—"} />
         <InfoRow label="Teléfono" value={driverPhone || "—"} />
         {(transportCost ?? 0) > 0 && (
           <InfoRow label="Costo de flete" value={formatCurrency(Number(transportCost))} />

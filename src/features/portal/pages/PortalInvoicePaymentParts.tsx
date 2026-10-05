@@ -124,7 +124,7 @@ export function PaidCard() {
   return (
     <Card>
       <CardContent className="pt-6">
-        <p className="text-sm">Esta factura ya está pagada. ¡Gracias!</p>
+        <p className="text-sm">Esta factura no tiene saldo pendiente.</p>
       </CardContent>
     </Card>
   );

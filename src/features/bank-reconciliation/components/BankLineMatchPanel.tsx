@@ -127,7 +127,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
         <div className="rounded-md border border-warning/30 bg-warning/10 p-3">
           <p className="text-sm font-medium">Pago sugerido automáticamente</p>
           <p className="mb-2 text-xs text-muted-foreground">
-            Score: {line.match_score ?? "—"}
+            Puntaje de coincidencia: {line.match_score ?? "—"}
           </p>
           <Button
             size="sm"
@@ -141,7 +141,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
               )
             }
           >
-            Confirmar emparejamiento
+            Confirmar conciliación
           </Button>
         </div>
       )}

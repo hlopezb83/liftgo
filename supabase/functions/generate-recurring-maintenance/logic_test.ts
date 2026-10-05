@@ -48,6 +48,7 @@ function makeClient(opts: {
   insert?: (month: string) => PostgrestErrorLike | null;
   /** R9-05: ¿existe ya el log único de ese mes? */
   logExists?: (month: string) => boolean;
+  checkError?: PostgrestErrorLike;
   /** R9-05: resultado del rollback compare-and-set. */
   rollback?: () => {
     data: Record<string, unknown>[] | null;
@@ -89,7 +90,7 @@ function makeClient(opts: {
               rec.checks.push(month);
               return Promise.resolve({
                 data: opts.logExists?.(month) ? [{ id: "log" }] : [],
-                error: null,
+                error: opts.checkError ?? null,
               });
             },
           };
@@ -150,6 +151,8 @@ Deno.test("R8-01: duplicado 23505 cuenta como mes ya generado y el catch-up sigu
   assertEquals(rec.rollbacks.length, 0);
   assertStrictEquals(res.generated, 1);
   assertStrictEquals(res.skipped, 2);
+  assertStrictEquals(res.failedPolicies, 0);
+  assertStrictEquals(res.pendingRemaining, 0);
 });
 
 Deno.test("R8-07: el rollback es compare-and-set sobre el mes reclamado", async () => {
@@ -175,6 +178,8 @@ Deno.test("R8-07: el rollback es compare-and-set sobre el mes reclamado", async 
     ["id", "p1"],
     ["last_generated_month", "2026-02"],
   ]);
+  assertStrictEquals(res.failedPolicies, 1);
+  assertStrictEquals(res.pendingRemaining, 2);
 });
 
 Deno.test("R8-08: un claim fallido corta el catch-up (no deja huecos)", async () => {
@@ -195,6 +200,8 @@ Deno.test("R8-08: un claim fallido corta el catch-up (no deja huecos)", async ()
   assertEquals(rec.inserts, []);
   assertStrictEquals(res.generated, 0);
   assertStrictEquals(res.skipped, 0);
+  assertStrictEquals(res.failedPolicies, 1);
+  assertStrictEquals(res.pendingRemaining, 3);
 });
 
 Deno.test("R9-05 A: claim tomado por otra corrida CON log existente → éxito idempotente", async () => {
@@ -216,6 +223,7 @@ Deno.test("R9-05 A: claim tomado por otra corrida CON log existente → éxito i
   assertEquals(rec.inserts, ["2026-02"]);
   assertStrictEquals(res.skipped, 1);
   assertStrictEquals(res.generated, 1);
+  assertStrictEquals(res.failedPolicies, 0);
 });
 
 Deno.test("R9-05 B: claim tomado SIN log existente → corta la póliza y avisa", async () => {
@@ -242,6 +250,8 @@ Deno.test("R9-05 B: claim tomado SIN log existente → corta la póliza y avisa"
     res.details.some((d) => d.includes("requiere revisión manual")),
     true,
   );
+  assertStrictEquals(res.failedPolicies, 1);
+  assertStrictEquals(res.pendingRemaining, 2);
 });
 
 Deno.test("R9-05: el error del rollback CAS ya no se ignora", async () => {
@@ -263,6 +273,7 @@ Deno.test("R9-05: el error del rollback CAS ya no se ignora", async () => {
     res.details.some((d) => d.includes("Rollback fallido")),
     true,
   );
+  assertStrictEquals(res.failedPolicies, 1);
 });
 
 Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () => {
@@ -283,9 +294,37 @@ Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () =
     res.details.some((d) => d.includes("Rollback desplazado")),
     true,
   );
+  assertStrictEquals(res.failedPolicies, 1);
 });
 
 // R9-17: recuperación limitada a 12 meses por corrida, continuable.
+Deno.test("resumen parcial: una póliza fallida no oculta la generación de la siguiente", async () => {
+  const { client } = makeClient({
+    claim: (month) =>
+      month === "2026-01"
+        ? { data: null, error: { message: "claim failed" } }
+        : { data: true, error: null },
+  });
+  const res = await generateForPolicies(client, [
+    policy({ id: "fallida", last_generated_month: "2025-12" }),
+    policy({ id: "siguiente" }),
+  ], "2026-03");
+  assertEquals(res.generated, 1);
+  assertEquals(res.failedPolicies, 1);
+  assertEquals(res.pendingRemaining, 3);
+});
+
+Deno.test("error al verificar un log se cuenta como póliza por revisar", async () => {
+  const { client, rec } = makeClient({
+    claim: () => ({ data: false, error: null }),
+    checkError: { message: "read failed" },
+  });
+  const res = await generateForPolicies(client, [policy()], "2026-03");
+  assertEquals(res.failedPolicies, 1);
+  assertEquals(res.pendingRemaining, 1);
+  assertEquals(rec.inserts, []);
+});
+
 Deno.test("R9-17: más de 12 pendientes → genera exactamente 12 y reporta remanente", async () => {
   const { client, rec } = makeClient({});
   const res = await generateForPolicies(
@@ -300,9 +339,10 @@ Deno.test("R9-17: más de 12 pendientes → genera exactamente 12 y reporta rema
   assertStrictEquals(rec.claims[11], "2025-12");
   assertStrictEquals(res.pendingRemaining, 3);
   assertStrictEquals(
-    res.details.some((d) => d.includes("quedan 3 período(s) pendiente(s)")),
+    res.details.some((d) => d.includes("quedan 3 periodos pendientes")),
     true,
   );
+  assertStrictEquals(res.failedPolicies, 0);
 });
 
 Deno.test("R9-17: la siguiente corrida continúa en el mes 13 sin duplicados", async () => {

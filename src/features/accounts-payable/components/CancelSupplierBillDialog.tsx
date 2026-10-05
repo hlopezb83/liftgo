@@ -52,8 +52,8 @@ export function CancelSupplierBillDialog({
       isPending={cancel.isPending}
       open={open}
       onOpenChange={onOpenChange}
-      title={`Cancelar factura ${billNumber}`}
-      description="Esta acción marcará la factura como cancelada. Solo se permite cuando no tiene pagos aplicados."
+      title={`Cancelar registro de factura ${billNumber}`}
+      description="Cancela el registro de esta factura en el ERP. No cancela el CFDI ante el SAT. Solo se permite cuando no tiene pagos aplicados."
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -66,7 +66,7 @@ export function CancelSupplierBillDialog({
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancel.isPending} label="Volver" />
             <Button type="submit" variant="destructive" disabled={cancel.isPending}>
-              {cancel.isPending ? "Cancelando…" : "Cancelar factura"}
+              {cancel.isPending ? "Cancelando…" : "Cancelar registro"}
             </Button>
           </FormDialogFooter>
         </form>

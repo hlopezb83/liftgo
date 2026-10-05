@@ -95,7 +95,7 @@ export function useDeleteBankImport() {
       if (error) throw error;
     },
     invalidateKeys: [bankImportKeys.all, bankLineKeys.all],
-    successMsg: "Import eliminado",
-    errorTitle: "Error al eliminar import",
+    successMsg: "Importación eliminada",
+    errorTitle: "No se pudo eliminar la importación bancaria",
   });
 }

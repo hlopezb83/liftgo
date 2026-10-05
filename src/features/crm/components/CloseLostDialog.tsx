@@ -69,10 +69,10 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
       open={open}
       onOpenChange={onOpenChange}
       width="md"
-      title="Marcar como Perdido"
+      title="Marcar como perdido"
       description={
         <>
-          Cerrar deal con <span className="font-medium">{prospect.companyName}</span>. Saldrá del pipeline activo.
+          El prospecto <span className="font-medium">{prospect.companyName}</span> pasará al historial de cierres perdidos.
         </>
       }
     >
@@ -103,7 +103,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" variant="destructive" disabled={isPending}>
               <ErrorIcon className="h-4 w-4 mr-1" />
-              Confirmar Perdido
+              Confirmar perdido
             </Button>
           </FormDialogFooter>
         </form>

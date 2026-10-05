@@ -4,8 +4,8 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
 
 /**
- * useRevertAuditLog — operación destructiva: borra registro de auditoría y
- * revierte cambios. Restringida a admin por RLS. Si falla silenciosamente,
+ * useRevertAuditLog — revierte cambios y conserva el historial de auditoría.
+ * Restringida a admin por RLS. Si falla silenciosamente,
  * el operador cree que revirtió y no lo hizo.
  */
 
@@ -63,7 +63,7 @@ describe("useRevertAuditLog", () => {
       { name: "revert_audit_log", args: { p_audit_log_id: "log-1" } },
     ]);
     expect(toastSuccess).toHaveBeenCalledWith(
-      "Acción revertida y registro eliminado correctamente",
+      "Acción revertida. La reversión quedó registrada en la bitácora",
     );
   });
 

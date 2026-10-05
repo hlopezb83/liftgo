@@ -22,10 +22,10 @@ export default function CRMClosedPage() {
     <PageTransition>
       <PageContainer>
         <PageHeader
-          title="Histórico de Deals Cerrados"
-          subtitle={`Win rate 30d: ${s.metrics.winRate30d}% · Ganados mes: ${s.metrics.wonCountMTD} (${formatCurrency(s.metrics.wonTotalMTD)}) · Perdidos mes: ${s.metrics.lostCountMTD}`}
+          title="Historial de prospectos cerrados"
+          subtitle={`Cierres ganados (30 días): ${s.metrics.winRate30d}% · Ganados este mes: ${s.metrics.wonCountMTD} (${formatCurrency(s.metrics.wonTotalMTD)}) · Perdidos este mes: ${s.metrics.lostCountMTD}`}
           backHref="/crm"
-          backLabel="Pipeline"
+          backLabel="Etapas de venta"
           actions={
             <div className="relative w-64">
               <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -41,7 +41,7 @@ export default function CRMClosedPage() {
 
         {/* FIX B3: sin esto, un fallo de carga se veía como historial vacío. */}
         {s.isError ? (
-          <QueryErrorState entity="el histórico de deals cerrados" onRetry={s.refetch} />
+          <QueryErrorState entity="el historial de prospectos cerrados" onRetry={s.refetch} />
         ) : (
           <Tabs defaultValue="won">
             <TabsList>

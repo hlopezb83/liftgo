@@ -105,8 +105,8 @@ beforeEach(() => {
 });
 
 describe.each([
-  { Component: DriversTab, mock: useDriversMock, label: "Agregar Operador", edit: "Editar operador", row: { id: "d1", name: "Operador visible", is_active: true } },
-  { Component: MechanicsTab, mock: useMechanicsMock, label: "Agregar Mecánico", edit: "Editar mecánico", row: { id: "m1", name: "Mecánico visible", is_active: true } },
+  { Component: DriversTab, mock: useDriversMock, label: "Agregar conductor", edit: "Editar conductor", row: { id: "d1", name: "Operador visible", is_active: true } },
+  { Component: MechanicsTab, mock: useMechanicsMock, label: "Agregar mecánico", edit: "Editar mecánico", row: { id: "m1", name: "Mecánico visible", is_active: true } },
   { Component: EquipmentModelsTab, mock: useEquipmentModelsMock, label: "Habilitar modelo", edit: "Editar tarifas y alias", row: { id: "e1", manufacturer: "Toyota", model: "8FG", default_fuel_type: "gas" } },
 ])("$label: permisos de configuración", ({ Component, mock, label, edit, row }) => {
   it.each([true, false])("con read conserva datos y oculta escritura (mobile=%s)", (mobile) => {

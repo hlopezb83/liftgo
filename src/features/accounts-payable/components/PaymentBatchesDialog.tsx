@@ -89,7 +89,7 @@ function PaymentBatchCard({ batch, disabled, onDownload, onCancel }: {
       </div>
       {batch.notes && <p className="break-words text-sm text-muted-foreground">{batch.notes}</p>}
       {cancelled ? (
-        <p className="text-sm text-muted-foreground">Cancelado el {cancellationDate}. El layout de este lote no debe usarse para pagar.</p>
+        <p className="text-sm text-muted-foreground">Cancelado el {cancellationDate}. El archivo de este lote no debe usarse para pagar.</p>
       ) : (
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" disabled={disabled} onClick={onDownload}><DownloadIcon className="mr-2 h-4 w-4" />Descargar original</Button>

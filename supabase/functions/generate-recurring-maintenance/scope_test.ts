@@ -240,7 +240,9 @@ Deno.test("póliza y unidad de empresas distintas: se omite sin escribir", async
   );
   assertEquals(inserts.length, 0);
   assertEquals(res.generated, 0);
-  assertEquals(res.skipped, 1);
+  assertEquals(res.skipped, 0);
+  assertEquals(res.failedPolicies, 1);
+  assertEquals(res.pendingRemaining, 1);
 });
 
 Deno.test("póliza sin empresa: se omite sin escribir", () => {
@@ -266,7 +268,9 @@ Deno.test("unidad con organization_id NULL: se omite sin escribir (falla cerrada
   );
   assertEquals(inserts.length, 0);
   assertEquals(res.generated, 0);
-  assertEquals(res.skipped, 1);
+  assertEquals(res.skipped, 0);
+  assertEquals(res.failedPolicies, 1);
+  assertEquals(res.pendingRemaining, 1);
   const issue = policyOrganizationIssue(
     policy({
       forklifts: { name: "MC-N", status: "rented", organization_id: null },
@@ -286,7 +290,9 @@ Deno.test("póliza sin unidad ligada (forklifts null): se omite sin escribir", a
   );
   assertEquals(inserts.length, 0);
   assertEquals(res.generated, 0);
-  assertEquals(res.skipped, 1);
+  assertEquals(res.skipped, 0);
+  assertEquals(res.failedPolicies, 1);
+  assertEquals(res.pendingRemaining, 1);
   const issue = policyOrganizationIssue(policy({ forklifts: null }), null);
   assertEquals(issue, "la unidad no tiene empresa asignada");
 });

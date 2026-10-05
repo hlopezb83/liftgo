@@ -46,7 +46,7 @@ export function SupplierBillPaymentActions({
           block={cancelBlock(bill)}
           onClick={onCancelClick}
         >
-          <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar
+          <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar registro
         </BlockedActionButton>
       </div>
 

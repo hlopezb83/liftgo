@@ -75,7 +75,7 @@ export function FinancialKpiCards({
       hint: overdueFxMissingCount > 0
         ? (
           <span className="text-xs text-warning">
-            {overdueFxMissingCount} factura(s) en divisa sin tipo de cambio no se incluyen
+            {overdueFxMissingCount} {overdueFxMissingCount === 1 ? "factura" : "facturas"} en divisa sin tipo de cambio no se incluyen
           </span>
         )
         : undefined,

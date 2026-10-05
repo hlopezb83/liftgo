@@ -37,7 +37,7 @@ export function useRevertAuditLog() {
     },
     invalidateKeys: [auditKeys.all],
     invalidateKeysFn: (tableName) => [[tableName]],
-    successMsg: "Acción revertida y registro eliminado correctamente",
+    successMsg: "Acción revertida. La reversión quedó registrada en la bitácora",
     errorTitle: "Error al revertir la acción",
   });
 }

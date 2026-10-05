@@ -48,7 +48,7 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
 
         {result.errors.length > 0 && (
           <p className="text-xs text-warning">
-            {result.errors.length} movimiento(s) se ignorarán por datos inválidos. Primero: {result.errors[0]}
+            {result.errors.length} {result.errors.length === 1 ? "movimiento se ignorará" : "movimientos se ignorarán"} por datos inválidos. Primero: {result.errors[0]}
           </p>
         )}
 

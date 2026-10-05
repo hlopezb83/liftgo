@@ -117,6 +117,7 @@ Deno.serve(async (req) => {
       // R9-17: períodos que siguen pendientes tras el tope de 12 meses por
       // póliza (o tras un corte por error). La próxima corrida los retoma.
       pending_remaining: run.pendingRemaining,
+      failed_policies: run.failedPolicies,
       month: currentMonth,
       details,
     });

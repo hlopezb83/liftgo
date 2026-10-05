@@ -47,9 +47,9 @@ export function MechanicsTab() {
       else notifyError({ error: err, message: "Error al guardar mecánico" });
     };
     if (editId) {
-      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); }, onError });
+      update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Mecánico actualizado"); setOpen(false); }, onError });
     } else {
-      create.mutate(payload, { onSuccess: () => { notifySuccess("Agregado"); setOpen(false); }, onError });
+      create.mutate(payload, { onSuccess: () => { notifySuccess("Mecánico agregado"); setOpen(false); }, onError });
     }
   };
 
@@ -67,7 +67,7 @@ export function MechanicsTab() {
         <MechanicRowActions
           mechanic={row.original}
           onEdit={() => openEdit(row.original)}
-          onDelete={() => canWrite && del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+          onDelete={() => canWrite && del.mutate(row.original.id, { onSuccess: () => notifySuccess("Mecánico eliminado") })}
         />
       ),
     },
@@ -85,7 +85,7 @@ export function MechanicsTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        {canWrite && <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Mecánico</Button>}
+        {canWrite && <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar mecánico</Button>}
       </div>
       {isError ? (
         <QueryErrorState bare entity="los mecánicos" onRetry={() => { void refetch(); }} />
@@ -106,7 +106,7 @@ export function MechanicsTab() {
                     <MechanicRowActions
                       mechanic={m}
                       onEdit={() => openEdit(m)}
-                      onDelete={() => canWrite && del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                      onDelete={() => canWrite && del.mutate(m.id, { onSuccess: () => notifySuccess("Mecánico eliminado") })}
                     />
                   </div>
                 </div>
@@ -124,7 +124,7 @@ export function MechanicsTab() {
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
       )}
       <FormDialog
-      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
+      isPending={create.isPending || update.isPending} open={open && canWrite} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

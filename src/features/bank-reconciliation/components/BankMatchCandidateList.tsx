@@ -119,13 +119,13 @@ export function BankMatchCandidateList({
                       scoreTone(c.score),
                     )}
                   >
-                    Score {c.score}
+                    Puntaje {c.score}
                   </span>
                   <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
                     {c.exact_amount ? "Monto exacto" : "Monto aproximado"}
                   </Badge>
                   <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
-                    {c.day_diff === 0 ? "Mismo día" : `${c.day_diff} d de diferencia`}
+                    {c.day_diff === 0 ? "Mismo día" : `${c.day_diff} ${c.day_diff === 1 ? "día" : "días"} de diferencia`}
                   </Badge>
                   {c.reference_hit && (
                     <Badge variant="outline" className="px-1.5 py-0 text-[10px]">
@@ -147,7 +147,7 @@ export function BankMatchCandidateList({
                 data-testid="bank-candidate-match"
                 onClick={() => onSelect(c.id, c.kind)}
               >
-                Emparejar
+                Conciliar
               </Button>
             </li>
           ))}

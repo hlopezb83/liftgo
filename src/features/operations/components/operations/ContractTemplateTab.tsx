@@ -24,7 +24,7 @@ export function ContractTemplateTab() {
     return <QueryErrorState bare entity="la plantilla legal LiftGo" onRetry={() => { void refetch(); }} />;
   }
   if (!template) {
-    return <p className="p-4 text-muted-foreground">Tu organización no tiene una versión legal asignada.</p>;
+    return <p className="p-4 text-muted-foreground">Tu empresa no tiene una versión legal asignada.</p>;
   }
 
   return (
@@ -33,7 +33,7 @@ export function ContractTemplateTab() {
         <CardContent className="flex gap-3 pt-4 text-sm">
           <InfoIcon className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
-            Esta plantilla es el machote legal compartido de LiftGo. Sólo plataforma publica
+            Esta es la plantilla legal compartida de LiftGo. Sólo los operadores de plataforma publican
             nuevas versiones. Cada empresa administra únicamente sus datos locales permitidos.
           </p>
         </CardContent>

@@ -98,7 +98,7 @@ test.describe("Conciliación bancaria", () => {
     await expectNoToastError(page);
   });
 
-  test("el panel muestra candidatos y permite emparejar por monto exacto", async ({
+  test("el panel muestra candidatos y permite conciliar por monto exacto", async ({
     page,
     bank,
   }) => {
@@ -112,7 +112,7 @@ test.describe("Conciliación bancaria", () => {
     const candidate = page.getByTestId("bank-candidate").first();
     await expect(candidate, "El pago propio debe aparecer; un timeout es una regresión").toBeVisible({ timeout: TIMEOUTS.medium });
 
-    await expect(candidate).toContainText(/score/i);
+    await expect(candidate).toContainText(/puntaje\s+\d+/i);
     await expect(candidate).toContainText(/monto exacto|monto aproximado/i);
 
     await candidate.getByTestId("bank-candidate-match").click();

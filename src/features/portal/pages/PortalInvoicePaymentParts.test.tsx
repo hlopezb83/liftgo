@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { computeInvoiceTotals } from "./PortalInvoicePayment.helpers";
 import {
   ForeignCurrencyNotice,
@@ -9,7 +9,12 @@ import {
   PaymentBody,
   PaymentQueryError,
   PortalIntentsTable,
+  type PaymentBodyProps,
 } from "./PortalInvoicePaymentParts";
+
+vi.mock("@/components/layout/PageHeader", () => ({
+  PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
+}));
 
 describe("PortalInvoicePaymentParts", () => {
   it("conserva las piezas extraídas que compone la página", () => {
@@ -48,6 +53,17 @@ describe("PortalInvoicePaymentParts", () => {
     const result = computeInvoiceTotals({ total: 100 }, [], []);
     expect(result.moneda).toBe("MXN");
     expect(result.isMxn).toBe(true);
+  });
+
+  it("una factura cubierta por nota de crédito no se presenta como dinero cobrado", () => {
+    render(<PaymentBody
+      invoice={{ id: "invoice-credit", invoice_number: "FAC-0001", status: "sent",
+        total: 1500, credited_amount: 1500, moneda: "MXN" } as PaymentBodyProps["invoice"]}
+      invoicePayments={[]} intents={[]} customer={null} dlgOpen={false} setDlgOpen={vi.fn()}
+    />);
+    expect(screen.getByText("Esta factura no tiene saldo pendiente.")).toBeInTheDocument();
+    expect(screen.queryByText(/ya está pagada/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /reportar/i })).not.toBeInTheDocument();
   });
 
   it("muestra al cliente el motivo guardado cuando su reporte fue rechazado", () => {

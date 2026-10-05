@@ -98,8 +98,8 @@ export function useCancelSupplierBill() {
       return id;
     },
     invalidateKeys: [supplierBillKeys.all],
-    successMsg: "Factura cancelada",
-    errorTitle: "No se pudo cancelar la factura",
+    successMsg: "Registro de factura de proveedor cancelado",
+    errorTitle: "No se pudo cancelar el registro de factura",
   });
 }
 

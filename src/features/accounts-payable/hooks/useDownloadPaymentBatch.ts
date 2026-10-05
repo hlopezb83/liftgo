@@ -14,7 +14,7 @@ export async function downloadPaymentBatch(batchId: string): Promise<string> {
 export function useDownloadPaymentBatch() {
   return useEntityMutation({
     mutationFn: downloadPaymentBatch,
-    successMsg: "Layout del lote descargado",
+    successMsg: "Archivo del lote descargado",
     errorTitle: "No se pudo descargar el lote",
     errorMessage: "El lote sigue guardado. Reintenta la descarga desde el historial.",
   });

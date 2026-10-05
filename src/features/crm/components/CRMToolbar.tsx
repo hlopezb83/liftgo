@@ -79,7 +79,7 @@ export function CRMToolbar({
   return (
     <div className="px-4 sm:px-6 py-3 border-b bg-card space-y-3">
       <PageHeader
-        title="Pipeline CRM"
+        title="Etapas de venta"
         subtitle={`${filteredCount} prospecto${filteredCount === 1 ? "" : "s"} · ${pipelineTotalLabel}`}
         actions={
           <>

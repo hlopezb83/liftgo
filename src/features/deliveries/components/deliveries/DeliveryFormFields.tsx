@@ -193,7 +193,7 @@ export function DeliveryFormFields({
           <TextareaField
             control={form.control}
             name="noEvidenceReason"
-            label="Justificación (sin operador ni firma)"
+            label="Justificación (sin conductor ni firma)"
             rows={2}
             placeholder="Ej: Autorizó el supervisor Juan Pérez por teléfono"
             description="El transporte quedará completado sin evidencia operativa; registra quién lo autorizó."
@@ -225,17 +225,17 @@ function DeliveryOperatorFields({ form, activeDrivers }: Pick<Props, "form" | "a
       <SelectField
         control={form.control}
         name="driverName"
-        label="Operador"
+        label="Conductor"
         options={driverOptions}
         onValueChange={selectDriver}
         disabled={noDrivers}
-        placeholder={noDrivers ? "Sin operadores activos" : "Seleccionar operador"}
-        description={noDrivers ? "No hay operadores activos registrados." : undefined}
+        placeholder={noDrivers ? "Sin conductores activos" : "Seleccionar conductor"}
+        description={noDrivers ? "No hay conductores activos registrados." : undefined}
       />
       <TextField
         control={form.control}
         name="driverPhone"
-        label="Teléfono del Operador"
+        label="Teléfono del conductor"
         type="tel"
         placeholder="+52 55 1234 5678"
       />
