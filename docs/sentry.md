@@ -67,7 +67,9 @@ esfuerzo; un fallo del transporte no debe bloquear la operación.
 
 El runtime inspeccionado declara Deno 2.1.4; SDK 11 requiere Deno >=2.8.3.
 `parse-csf` usa el alias `@sentry/deno`, declarado como
-`npm:@sentry/deno@10.76.0` en `supabase/functions/deno.json`, y lock formato 4.
+`npm:@sentry/deno@10.76.0` en `supabase/functions/deno.json`; `deno.lock` fija
+las versiones resueltas. La compatibilidad del empaquetador con el formato del
+lock se documenta en [CI](./ci.md#dependencias-de-funciones-cloud).
 Dependabot revisa el manifiesto semanalmente y excluye SDK Deno >=11 hasta
 comprobar un runtime Cloud compatible; véase [CI](./ci.md#dependencias-de-funciones-cloud).
 La entrada desplegada registró `liftgo.edge.sentry` con `active:true`.
