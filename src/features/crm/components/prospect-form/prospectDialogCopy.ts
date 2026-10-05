@@ -6,5 +6,5 @@ export function prospectDialogTitle(prospect?: Prospect | null): string {
 
 export function prospectDialogDescription(prospect?: Prospect | null, overrideStage?: string): string {
   if (overrideStage && prospect) return "Confirma los datos antes de mover el prospecto de etapa.";
-  return prospect ? "Actualiza la información del prospecto." : "Los prospectos comienzan en Nuevo Prospecto. Después puedes avanzar su etapa en el pipeline.";
+  return prospect ? "Actualiza la información del prospecto." : "Registra los datos del prospecto. Después puedes avanzar por las etapas de venta.";
 }
