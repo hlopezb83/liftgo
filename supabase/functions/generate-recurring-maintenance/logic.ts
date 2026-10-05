@@ -174,7 +174,10 @@ export async function generateForPolicies(
     const orgIssue = policyOrganizationIssue(policy, scopeOrganizationId);
     if (orgIssue) {
       failedPolicies += 1;
-      pendingRemaining += remainingMonthsCount(policy.last_generated_month, currentMonth);
+      pendingRemaining += remainingMonthsCount(
+        policy.last_generated_month,
+        currentMonth,
+      );
       details.push(
         `⊘ ${
           policy.forklifts?.name ?? policy.id
@@ -317,9 +320,11 @@ export async function generateForPolicies(
     if (remaining > 0) {
       pendingRemaining += remaining;
       details.push(
-        `⏳ ${
-          policy.forklifts?.name ?? policy.id
-        } — ${remaining === 1 ? "queda" : "quedan"} ${remaining} ${remaining === 1 ? "periodo pendiente" : "periodos pendientes"}; ` +
+        `⏳ ${policy.forklifts?.name ?? policy.id} — ${
+          remaining === 1 ? "queda" : "quedan"
+        } ${remaining} ${
+          remaining === 1 ? "periodo pendiente" : "periodos pendientes"
+        }; ` +
           `la siguiente corrida continúa desde ${
             lastOkMonth ? nextMonth(lastOkMonth) : currentMonth
           }`,

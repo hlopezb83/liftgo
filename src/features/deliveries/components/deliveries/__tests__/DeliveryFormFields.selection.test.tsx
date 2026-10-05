@@ -68,33 +68,33 @@ describe("DeliveryFormFields · selecciones relacionadas", () => {
     expect(screen.getByRole("combobox", { name: "Reserva Vinculada" })).toHaveTextContent("Hyva");
   });
 
-  it("reemplaza el teléfono al elegir otro operador", async () => {
+  it("reemplaza el teléfono al elegir otro conductor", async () => {
     render(<Harness />);
-    await choose("Operador", "Diego Salinas");
-    expect(screen.getByLabelText("Teléfono del Operador")).toHaveValue("8180000001");
-    await choose("Operador", "Marcos Rivera");
-    expect(screen.getByLabelText("Teléfono del Operador")).toHaveValue("8180000002");
-    expect(screen.getByLabelText("Teléfono del Operador")).toHaveAttribute("type", "tel");
+    await choose("Conductor", "Diego Salinas");
+    expect(screen.getByLabelText("Teléfono del conductor")).toHaveValue("8180000001");
+    await choose("Conductor", "Marcos Rivera");
+    expect(screen.getByLabelText("Teléfono del conductor")).toHaveValue("8180000002");
+    expect(screen.getByLabelText("Teléfono del conductor")).toHaveAttribute("type", "tel");
   });
 
-  it.each([null, ""])("no conserva el teléfono anterior si el nuevo operador tiene %s", async (phone) => {
+  it.each([null, ""])("no conserva el teléfono anterior si el nuevo conductor tiene %s", async (phone) => {
     render(<Harness activeDrivers={drivers.map((d) => d.id === "d3" ? { ...d, phone } : d)} />);
-    await choose("Operador", "Diego Salinas");
-    await choose("Operador", "Luis Treviño");
-    expect(screen.getByLabelText("Teléfono del Operador")).toHaveValue("");
+    await choose("Conductor", "Diego Salinas");
+    await choose("Conductor", "Luis Treviño");
+    expect(screen.getByLabelText("Teléfono del conductor")).toHaveValue("");
   });
 
   it("conserva una corrección manual cuando se actualiza el catálogo", async () => {
     const { rerender } = render(<Harness />);
-    await choose("Operador", "Diego Salinas");
-    fireEvent.change(screen.getByLabelText("Teléfono del Operador"), { target: { value: "8180000099" } });
+    await choose("Conductor", "Diego Salinas");
+    fireEvent.change(screen.getByLabelText("Teléfono del conductor"), { target: { value: "8180000099" } });
     rerender(<Harness activeDrivers={drivers.map((d) => ({ ...d }))} />);
-    expect(screen.getByLabelText("Teléfono del Operador")).toHaveValue("8180000099");
+    expect(screen.getByLabelText("Teléfono del conductor")).toHaveValue("8180000099");
   });
 
-  it("explica la ausencia de operadores en lugar de abrir una lista vacía", () => {
+  it("explica la ausencia de conductores en lugar de abrir una lista vacía", () => {
     render(<Harness activeDrivers={[]} />);
-    expect(screen.getByRole("combobox", { name: "Operador" })).toBeDisabled();
-    expect(screen.getByText("No hay operadores activos registrados.")).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "Conductor" })).toBeDisabled();
+    expect(screen.getByText("No hay conductores activos registrados.")).toBeInTheDocument();
   });
 });

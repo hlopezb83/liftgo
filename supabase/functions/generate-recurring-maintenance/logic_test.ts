@@ -300,9 +300,10 @@ Deno.test("R9-05: rollback desplazado por concurrencia emite señal", async () =
 // R9-17: recuperación limitada a 12 meses por corrida, continuable.
 Deno.test("resumen parcial: una póliza fallida no oculta la generación de la siguiente", async () => {
   const { client } = makeClient({
-    claim: (month) => month === "2026-01"
-      ? { data: null, error: { message: "claim failed" } }
-      : { data: true, error: null },
+    claim: (month) =>
+      month === "2026-01"
+        ? { data: null, error: { message: "claim failed" } }
+        : { data: true, error: null },
   });
   const res = await generateForPolicies(client, [
     policy({ id: "fallida", last_generated_month: "2025-12" }),

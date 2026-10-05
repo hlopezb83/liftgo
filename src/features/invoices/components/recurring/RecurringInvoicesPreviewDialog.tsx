@@ -109,7 +109,7 @@ export function RecurringInvoicesPreviewDialog({
           Revisa los periodos de renta y selecciona los borradores que quieres generar.
           <span className="mt-1 block text-xs text-muted-foreground">
             Se crean <b>borradores sin timbrar</b> con una referencia interna LiftGo (FAC-XXXX). Al timbrar,{" "}
-            <b>Facturapi asigna la serie y el folio</b> y el ERP lo conserva. El UUID SAT se obtiene al completar el timbrado.
+            el ERP conserva <b>la serie y el folio devueltos por Facturapi</b>. El UUID SAT se obtiene al completar el timbrado.
           </span>
         </>
       }
