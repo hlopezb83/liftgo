@@ -4,6 +4,29 @@ Principio: **cada corrida automática debe poder fallar por una razón real y
 accionable**. Si un check no puede fallar por algo que importe, se elimina; si
 puede escribir en producción, no corre solo.
 
+## Dependabot: revisión semanal
+
+`.github/dependabot.yml` revisa Bun y GitHub Actions los lunes a las 06:00,
+zona `America/Monterrey`. Bun mantiene como máximo dos PR de versiones abiertos
+entre todos sus grupos; Actions mantiene uno. Las alertas y actualizaciones de
+seguridad están habilitadas en GitHub y no esperan esta revisión semanal.
+
+Los grupos de versiones menores y parches reúnen seis familias: React y sus
+tipos; TanStack Query con persistencia y Devtools; Router/Start; Sentry;
+Tailwind con sus plugins; y Vitest con cobertura. Table y Virtual no pertenecen
+al grupo Query. Las versiones mayores se revisan en PR individuales.
+
+Las demás dependencias se separan en `maintenance-tools` y
+`maintenance-frontend`. Se usan patrones por nombre porque compilación y UI
+no coinciden siempre con `dependencies` y `devDependencies`. Dependabot asigna
+cada paquete al primer grupo coincidente: primero familias, después herramientas
+y al final frontend. Al añadir una herramienta, incluir su patrón para evitar
+que caiga en frontend.
+
+Agrupar reúne actualizaciones disponibles; no obliga a que todos los paquetes
+cambien ni tengan la misma versión. CI comprueba la compatibilidad del conjunto.
+La configuración no habilita fusiones automáticas ni cambia versiones instaladas.
+
 ## En cada PR y push a `main` — `ci.yml`
 
 Dos jobs base + condicionales. Sin `schedule`. Las corridas obsoletas de la

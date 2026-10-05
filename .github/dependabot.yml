@@ -1,6 +1,6 @@
 version: 2
 updates:
-  # Frontend: ecosistema "bun".
+  # Aplicación y herramientas: ecosistema "bun".
   #
   # v7.297.2 — antes era "npm". Dependabot npm actualiza package.json pero NO
   # regenera `bun.lock`, así que `bun install --frozen-lockfile` (en
@@ -25,13 +25,60 @@ updates:
       prefix: "chore"
       include: "scope"
     groups:
-      # Un solo PR para desarrollo y otro para producción: menos ruido y menos
-      # corridas de CI que un PR por paquete.
-      dev-dependencies:
-        dependency-type: "development"
+      # La primera regla coincidente gana. Las familias van antes del
+      # mantenimiento para reunir paquetes de dependencies y devDependencies.
+      react:
+        patterns: ["react", "react-dom", "@types/react", "@types/react-dom"]
         update-types: ["minor", "patch"]
-      prod-dependencies:
-        dependency-type: "production"
+      tanstack-query:
+        patterns:
+          - "@tanstack/react-query"
+          - "@tanstack/react-query-devtools"
+          - "@tanstack/react-query-persist-client"
+          - "@tanstack/query-sync-storage-persister"
+        update-types: ["minor", "patch"]
+      tanstack-router-start:
+        patterns: ["@tanstack/react-router", "@tanstack/react-start"]
+        update-types: ["minor", "patch"]
+      sentry:
+        patterns: ["@sentry/*"]
+        update-types: ["minor", "patch"]
+      tailwind:
+        patterns: ["tailwindcss", "@tailwindcss/*"]
+        update-types: ["minor", "patch"]
+      vitest:
+        patterns: ["vitest", "@vitest/*"]
+        update-types: ["minor", "patch"]
+      # Clasificación por función: Vite y sus plugins también pueden estar
+      # en dependencies. Al añadir herramientas, ampliar estos patrones.
+      maintenance-tools:
+        patterns:
+          - "@babel/*"
+          - "@eslint/*"
+          - "@lovable.dev/*"
+          - "@playwright/*"
+          - "@rolldown/*"
+          - "@testing-library/*"
+          - "@types/*"
+          - "@vitejs/*"
+          - "babel-plugin-*"
+          - "drizzle-*"
+          - "eslint*"
+          - "globals"
+          - "happy-dom"
+          - "jsdom"
+          - "knip"
+          - "nitro"
+          - "postgres"
+          - "prettier"
+          - "rollup-plugin-*"
+          - "typescript"
+          - "typescript-eslint"
+          - "vite*"
+          - "wrangler"
+        update-types: ["minor", "patch"]
+      maintenance-frontend:
+        patterns: ["*"]
         update-types: ["minor", "patch"]
     # v7.302.4 — ignorar TypeScript 7.x hasta que typescript-eslint lo soporte.
     ignore:
