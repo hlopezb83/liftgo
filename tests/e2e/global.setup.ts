@@ -1,9 +1,8 @@
-import { mkdirSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
 import { test as setup, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { TIMEOUTS } from "./fixtures/helpers";
 import { assertNonProductionBackend } from "./fixtures/productionGuard";
+import { writeSessionCache } from "./fixtures/sessionCache";
 import {
   assertIsStaffUser,
   buildStorageState,
@@ -72,8 +71,7 @@ setup("authenticate as admin", async ({ page, baseURL }) => {
 
 
 
-  mkdirSync(dirname(STORAGE_PATH), { recursive: true });
-  writeFileSync(STORAGE_PATH, JSON.stringify(buildStorageState(session, url), null, 2));
+  writeSessionCache(STORAGE_PATH, JSON.stringify(buildStorageState(session, url), null, 2));
 
   // Verificación end-to-end de que la sesión inyectada sirve en el navegador.
   await page.goto("/", { waitUntil: "domcontentloaded" });

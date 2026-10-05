@@ -402,7 +402,7 @@ async function handleRequest(req: Request): Promise<Response> {
         // R12-B2 / TESTS-ARQ2 DIFF 2: la decisión (recover vs retry vs revert)
         // vive en `decisions.ts`; aquí solo materializamos la consulta al PAC y
         // aplicamos la acción resuelta.
-        let pac: PacLookup = { kind: "lookup_failed" };
+        let pac: PacLookup;
         try {
           pac = await lookupPacInvoice(
             client,
@@ -656,7 +656,7 @@ async function handleRequest(req: Request): Promise<Response> {
 
       // R12-B2 (payments): sin ids persistidos, lookup al PAC por external_id.
       if (!facturapiId || !repUuid) {
-        let pac: PacLookup = { kind: "lookup_failed" };
+        let pac: PacLookup;
         try {
           pac = await lookupPacInvoice(client, paymentId, facturapiId);
         } catch (err) {
@@ -920,7 +920,7 @@ async function handleRequest(req: Request): Promise<Response> {
       let ncUuid = nc.cfdi_uuid as string | null;
 
       if (!facturapiId || !ncUuid) {
-        let pac: PacLookup = { kind: "lookup_failed" };
+        let pac: PacLookup;
         try {
           pac = await lookupPacInvoice(client, ncId, facturapiId);
         } catch (err) {

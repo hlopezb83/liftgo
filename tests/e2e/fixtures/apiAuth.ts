@@ -1,5 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
+import { readFileSync } from "node:fs";
 import { createClient, type Session } from "@supabase/supabase-js";
 import type { Page } from "@playwright/test";
 import {
@@ -7,6 +6,7 @@ import {
   assertUrlNotProduction,
   resolveEnvValue,
 } from "./productionGuard";
+import { writeSessionCache } from "./sessionCache";
 
 
 /**
@@ -115,23 +115,20 @@ export async function ensureRoleStorageState(
   baseURL: string,
 ): Promise<string> {
   const path = `tests/e2e/.auth/${roleKey}.json`;
-  if (existsSync(path)) {
-    try {
-      const cached = JSON.parse(readFileSync(path, "utf8")) as StorageState;
-      const raw = cached.origins[0]?.localStorage.find((e) => e.name.startsWith("sb-"))?.value;
-      const session = raw ? (JSON.parse(raw) as Session) : null;
-      // Margen de 5 min para no usar un token que caduque a mitad del test.
-      if (session?.expires_at && session.expires_at * 1000 - Date.now() > 5 * 60_000) {
-        return path;
-      }
-    } catch {
-      // cache corrupto → re-autenticamos
+  try {
+    const cached = JSON.parse(readFileSync(path, "utf8")) as StorageState;
+    const raw = cached.origins[0]?.localStorage.find((e) => e.name.startsWith("sb-"))?.value;
+    const session = raw ? (JSON.parse(raw) as Session) : null;
+    // Margen de 5 min para no usar un token que caduque a mitad del test.
+    if (session?.expires_at && session.expires_at * 1000 - Date.now() > 5 * 60_000) {
+      return path;
     }
+  } catch {
+    // Caché ausente o corrupto → re-autenticamos.
   }
 
   const session = await signInViaApi(email, password);
-  mkdirSync(dirname(path), { recursive: true });
-  writeFileSync(path, JSON.stringify(buildStorageState(session, baseURL), null, 2));
+  writeSessionCache(path, JSON.stringify(buildStorageState(session, baseURL), null, 2));
   return path;
 }
 
