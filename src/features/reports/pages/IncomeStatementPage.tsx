@@ -39,7 +39,7 @@ export default function IncomeStatementPage() {
     <PageTransition>
       <PageContainer>
         <PageHeader
-          title="Estado de Resultados"
+          title="Estado de resultados"
           subtitle="Análisis financiero detallado con depreciación de equipos"
           actions={
             <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-3 py-1.5">

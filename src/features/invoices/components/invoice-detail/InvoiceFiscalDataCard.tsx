@@ -48,7 +48,7 @@ export function InvoiceFiscalDataCard({ invoice, extraActions }: InvoiceFiscalDa
           <FiscalFieldsGrid invoice={invoice} />
         ) : (
           <p className="text-xs text-muted-foreground">
-            Sin datos fiscales adicionales. Usa "Validar contra SAT" para verificar el snapshot del receptor.
+            Sin datos fiscales adicionales. Usa "Validar contra SAT" para verificar el los datos del receptor guardados en esta factura.
           </p>
         )}
       </CardContent>

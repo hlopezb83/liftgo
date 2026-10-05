@@ -82,7 +82,7 @@ export default function PlatformDashboardPage() {
               Empresas
             </CardTitle>
             <CardDescription>
-              Alta de organizaciones, administrador inicial y estado de acceso.
+              Alta de empresas, administrador inicial y estado de acceso.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,7 +103,7 @@ export default function PlatformDashboardPage() {
               Catálogo LiftGo
             </CardTitle>
             <CardDescription>
-              Modelos, SKUs de refacciones y versiones de machotes legales.
+              Modelos, SKUs de refacciones y versiones de plantillas legales.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -124,7 +124,7 @@ export default function PlatformDashboardPage() {
               Bitácora global
             </CardTitle>
             <CardDescription>
-              Actor, motivo y cambios de empresas y maestros compartidos.
+              Quién realizó el cambio, su motivo y los cambios de empresas y catálogos compartidos.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -139,7 +139,7 @@ export default function PlatformDashboardPage() {
         )}
       </section>
       <p className="text-sm text-muted-foreground">
-        Los conteos incluyen todas las organizaciones registradas. Las tarifas,
+        Los conteos incluyen todas las empresas registradas. Las tarifas,
         existencias y datos fiscales se administran en el ERP de cada empresa.
       </p>
     </div>

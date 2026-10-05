@@ -119,10 +119,10 @@ export const deleteUserFn = createServerFn({ method: "POST" })
 
     const userId = data.user_id;
     if (!g.isUUID(userId)) {
-      throw new g.HttpError(400, "user_id must be a valid UUID");
+      throw new g.HttpError(400, "El identificador del usuario no es válido. Actualiza la lista.");
     }
     if (userId === context.userId) {
-      throw new g.HttpError(400, "Cannot delete your own account");
+      throw new g.HttpError(400, "No puedes eliminar tu propia cuenta desde esta pantalla.");
     }
     // Tramo 5: autorizar el objetivo ANTES de cualquier lectura privilegiada.
     await g.assertTargetInOrganization(admin, userId, organizationId);
@@ -136,11 +136,11 @@ export const deleteUserFn = createServerFn({ method: "POST" })
       if (msg.includes("LAST_ADMIN_CANNOT_BE_DELETED")) {
         throw new g.HttpError(
           400,
-          "LAST_ADMIN_CANNOT_BE_DELETED: no puedes eliminar al último administrador del sistema.",
+          "LAST_ADMIN_CANNOT_BE_DELETED: No puedes eliminar al último administrador de esta empresa. Asigna otro administrador primero.",
         );
       }
       console.error("assert_not_last_admin failed:", assertErr);
-      throw new g.HttpError(500, "Failed to validate admin invariant");
+      throw new g.HttpError(500, "No se pudo comprobar si hay otro administrador en esta empresa. Actualiza los datos antes de continuar.");
     }
 
     // Baja atómica con contexto de empresa: auditoría, cascadas y SET NULL
@@ -152,7 +152,7 @@ export const deleteUserFn = createServerFn({ method: "POST" })
     });
     if (deleteErr) {
       console.error("discard_internal_user failed:", deleteErr);
-      throw new g.HttpError(400, "Failed to delete user");
+      throw new g.HttpError(400, "No se pudo eliminar el usuario. Actualiza la lista para comprobar su estado.");
     }
 
     return { success: true };
@@ -182,7 +182,7 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
     const { data: userData, error: getUserErr } = await admin.auth.admin
       .getUserById(userId);
     if (getUserErr || !userData?.user?.email) {
-      throw new g.HttpError(404, "User not found");
+      throw new g.HttpError(404, "No se encontró el usuario. Actualiza la lista.");
     }
 
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
@@ -227,7 +227,7 @@ export const toggleUserStatusFn = createServerFn({ method: "POST" })
 
     const { user_id: userId, is_active: isActive } = data;
     if (!g.isUUID(userId)) {
-      throw new g.HttpError(400, "user_id must be a valid UUID");
+      throw new g.HttpError(400, "El identificador del usuario no es válido. Actualiza la lista.");
     }
     if (userId === context.userId) {
       throw new g.HttpError(400, "No puedes desactivar tu propia cuenta");

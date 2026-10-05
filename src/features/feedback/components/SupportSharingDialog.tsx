@@ -72,10 +72,10 @@ function SharingForm({ report, sharing, onClose }: { report: FeedbackReport; sha
     <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><Label htmlFor="share-severity">Severidad</Label>
       <select id="share-severity" className="h-10 w-full rounded-md border bg-background px-3 text-sm" value={severity} onChange={(e) => setDraft({ ...draft, severity: e.target.value })}>
         {Object.entries(SUPPORT_SEVERITIES).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></div>
-      <div className="space-y-2"><Label htmlFor="share-request">requestId (opcional)</Label><Input id="share-request" maxLength={36} value={requestId} onChange={(e) => setDraft({ ...draft, requestId: e.target.value })} aria-invalid={!requestValid} /></div></div>
-    {!requestValid && <p role="alert" className="text-sm text-destructive">El requestId debe ser una UUID del reporte de error.</p>}
+      <div className="space-y-2"><Label htmlFor="share-request">ID del error (opcional)</Label><Input id="share-request" maxLength={36} value={requestId} onChange={(e) => setDraft({ ...draft, requestId: e.target.value })} aria-invalid={!requestValid} /></div></div>
+    {!requestValid && <p role="alert" className="text-sm text-destructive">El ID del error debe tener el formato del reporte original. Cópialo desde sus detalles.</p>}
     {report.screenshot_url && <SharingCapture path={report.screenshot_url} checked={screenshot} onChange={(checked) => setDraft({ ...draft, screenshot: checked })} />}
-    <p className="text-xs text-muted-foreground">Se compartirán estos textos, el módulo, la versión y el requestId indicado durante 90 días. Puedes retirar el diagnóstico. El reporte original y su estado permanecen en tu empresa.</p>
+    <p className="text-xs text-muted-foreground">Se compartirán estos textos, el módulo, la versión y el ID del error indicado durante 90 días. Puedes retirar el diagnóstico. El reporte original y su estado permanecen en tu empresa.</p>
     <div className="flex items-start gap-3"><Checkbox id="share-reviewed" checked={reviewed} onCheckedChange={(value) => setReviewed(value === true)} />
       <Label htmlFor="share-reviewed" className="leading-5">Revisé el diagnóstico y autorizo compartirlo con soporte de LiftGo. No contiene contraseñas, llaves ni datos innecesarios.</Label></div>
     {(sharing.share.isError || sharing.withdraw.isError) && <div role="alert" className="space-y-2 text-sm">

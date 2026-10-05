@@ -89,7 +89,7 @@ export function PlatformPartCatalogDialog({
       open={open}
       onOpenChange={onOpenChange}
       title={part ? "Editar SKU global" : "Nuevo SKU global"}
-      description="La identidad técnica será compartida por todas las organizaciones LiftGo."
+      description="La identidad técnica será compartida por todas las empresas LiftGo."
       isPending={save.isPending}
       isDirty={JSON.stringify(form) !== JSON.stringify(baseline) && !save.isSuccess}
     >

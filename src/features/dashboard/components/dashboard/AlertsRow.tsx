@@ -86,7 +86,7 @@ export function AlertsRow({
                 const palette = ["bg-warning/60", "bg-warning", "bg-destructive/70", "bg-destructive"];
                 return (
                   <div className="space-y-1.5">
-                    <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted" role="img" aria-label="Distribución de aging">
+                    <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted" role="img" aria-label="Antigüedad de saldos">
                       {agingBuckets.map((b, i) => {
                         const pct = total > 0 ? (b.total / total) * 100 : 0;
                         if (pct === 0) return null;
@@ -101,7 +101,7 @@ export function AlertsRow({
                             className={`${palette[i] ?? "bg-destructive"} relative transition-opacity hover:opacity-80 before:absolute before:-inset-y-[18px] before:inset-x-0 before:content-['']`}
                             style={{ width: `${pct}%` }}
                             title={`${b.range}d: ${formatCurrency(b.total)}`}
-                            aria-label={`Aging ${b.range} días: ${formatCurrency(b.total)}`}
+                            aria-label={`Antigüedad de saldos de ${b.range} días: ${formatCurrency(b.total)}`}
                           />
                         );
                       })}
@@ -169,7 +169,7 @@ export function AlertsRow({
               onClick={() => navigate("/returns/pending")}
               className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning-text"
             >
-              Ver todos los retornos pendientes →
+              Ver todas las devoluciones pendientes →
             </Button>
           }
         >

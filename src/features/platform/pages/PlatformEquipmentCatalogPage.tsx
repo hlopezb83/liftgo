@@ -33,9 +33,9 @@ export default function PlatformEquipmentCatalogPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Maestros compartidos LiftGo"
-        subtitle="Modelos, refacciones y documentos globales para todas las organizaciones"
-        actions={<div className="flex flex-wrap gap-2">{(can("catalogs.import") || can("templates.import")) && <Button variant="outline" asChild><Link to="/platform/catalogs/import">Incorporar desde Org 1</Link></Button>}
+        title="Catálogo compartido LiftGo"
+        subtitle="Modelos, refacciones y documentos compartidos entre todas las empresas"
+        actions={<div className="flex flex-wrap gap-2">{(can("catalogs.import") || can("templates.import")) && <Button variant="outline" asChild><Link to="/platform/catalogs/import">Importar desde empresa de origen</Link></Button>}
           {can("catalogs.write") && <Button onClick={create}><AddIcon className="mr-2 h-4 w-4" /> Nuevo modelo</Button>}</div>}
       />
       {can("catalogs.read") && <Card>

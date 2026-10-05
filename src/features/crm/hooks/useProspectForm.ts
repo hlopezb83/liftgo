@@ -58,6 +58,10 @@ export function useProspectForm({
   const [emailError, setEmailError] = useState<string | null>(null);
   // R23-O: error inline de "Empresa" (antes lo reportaba la burbuja nativa del navegador).
   const [companyError, setCompanyError] = useState<string | null>(null);
+  const [contactError, setContactError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const { data: allQuotes = [] } = useQuotes();
 
@@ -85,10 +89,15 @@ export function useProspectForm({
     setDealValueError(null);
     setEmailError(null);
     setCompanyError(null);
+    setContactError(null);
+    setPhoneError(null);
+    setNotesError(null);
+    setFormError(null);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [prospect, open]);
 
   const handleQuoteChange = (value: string) => {
+    setFormError(null);
     const selectedId = value === "none" ? null : value;
     setQuoteId(selectedId);
     if (selectedId) {
@@ -128,17 +137,23 @@ export function useProspectForm({
       quote_id: quoteId,
     });
     if (!parsed.success) {
-      // R23-O: el error de empresa se muestra bajo su propio campo.
-      const companyIssue = parsed.error.issues.find((i) => i.path[0] === "company_name");
-      setCompanyError(companyIssue?.message ?? null);
-      const emailIssue = parsed.error.issues.find((i) => i.path[0] === "email");
-      const other = parsed.error.issues.find((i) => i.path[0] !== "company_name" && i.path[0] !== "email");
-      setEmailError(emailIssue?.message ?? null);
-      setDealValueError(other?.message ?? null);
+      const errorFor = (field: string) => parsed.error.issues.find((i) => i.path[0] === field)?.message ?? null;
+      setCompanyError(errorFor("company_name"));
+      setEmailError(errorFor("email"));
+      setDealValueError(errorFor("deal_value"));
+      setContactError(errorFor("contact_person"));
+      setPhoneError(errorFor("phone"));
+      setNotesError(errorFor("notes"));
+      setFormError(errorFor("stage") ?? errorFor("quote_id"));
       return null;
     }
     setCompanyError(null);
     setEmailError(null);
+    setDealValueError(null);
+    setContactError(null);
+    setPhoneError(null);
+    setNotesError(null);
+    setFormError(null);
     return parsed.data;
   };
 
@@ -151,12 +166,14 @@ export function useProspectForm({
 
   return {
     isDirty,
-    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError, emailError, companyError },
+    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError, emailError, companyError, contactError, phoneError, notesError, formError },
     setters: {
       setCompany: (v: string) => { setCompany(v); setCompanyError(null); },
-      setContact, setEmail: (v: string) => { setEmail(v); setEmailError(null); }, setPhone,
+      setContact: (v: string) => { setContact(v); setContactError(null); },
+      setEmail: (v: string) => { setEmail(v); setEmailError(null); },
+      setPhone: (v: string) => { setPhone(v); setPhoneError(null); },
       setDealValue: (v: string) => { setDealValue(v); setDealValueError(null); },
-      setNotes,
+      setNotes: (v: string) => { setNotes(v); setNotesError(null); },
       handleQuoteChange,
     },
     matchingQuotes,

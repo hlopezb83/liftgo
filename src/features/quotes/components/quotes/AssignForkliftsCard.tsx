@@ -93,7 +93,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
             <Alert variant="default" className="border-warning/30 bg-warning/10">
               <WarnIcon className="h-4 w-4 text-warning" />
               <AlertDescription className="text-warning">
-                Faltan {totalRequired - totalAssigned} equipo(s) por asignar para poder facturar esta cotización.
+                {totalRequired - totalAssigned === 1 ? "Falta 1 equipo" : `Faltan ${totalRequired - totalAssigned} equipos`} por asignar para poder facturar esta cotización.
               </AlertDescription>
             </Alert>
           );

@@ -21,6 +21,24 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe("useProspectForm — alta y moneda", () => {
+  it.each([
+    { setter: "setNotes", field: "notesError", size: 2001, message: "Las notas admiten hasta 2,000 caracteres." },
+    { setter: "setContact", field: "contactError", size: 151, message: "El nombre del contacto admite hasta 150 caracteres." },
+    { setter: "setPhone", field: "phoneError", size: 31, message: "El teléfono admite hasta 30 caracteres." },
+  ] as const)("ubica el error de $field y lo limpia al corregir", ({ setter, field, size, message }) => {
+    const { result } = renderHook(() => useProspectForm({ prospect: null, open: true, defaultStage: "nuevo_prospecto" }));
+    act(() => {
+      result.current.setters.setCompany("Logística Álamo");
+      result.current.setters[setter]("x".repeat(size));
+    });
+    act(() => { expect(result.current.buildPayload()).toBeNull(); });
+    expect(result.current.fields[field]).toBe(message);
+    expect(result.current.fields.dealValueError).toBeNull();
+    act(() => result.current.setters[setter]("Dato corregido"));
+    expect(result.current.fields[field]).toBeNull();
+    act(() => { expect(result.current.buildPayload()).not.toBeNull(); });
+  });
+
   it.each(["cotizacion_enviada", "negociacion", "cerrado_ganado"])(
     "una nueva alta desde %s siempre nace en Nuevo Prospecto", (defaultStage) => {
       const { result } = renderHook(() => useProspectForm({ prospect: null, open: true, defaultStage, overrideStage: defaultStage }));

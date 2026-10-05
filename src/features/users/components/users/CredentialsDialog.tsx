@@ -13,7 +13,7 @@ export function CredentialsDialog({ email, onClose }: CredentialsDialogProps) {
       open={!!email}
       onOpenChange={(v) => !v && onClose()}
       title="Usuario Creado"
-      description="La cuenta ha sido creada exitosamente."
+      description="Usuario creado. Guarda las credenciales para compartirlas con el usuario."
     >
       <div className="flex items-start gap-3 rounded-md border p-4 text-sm">
         <EmailIcon className="h-5 w-5 mt-0.5 shrink-0 text-primary" />

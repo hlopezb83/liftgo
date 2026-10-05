@@ -94,7 +94,7 @@ export function CollectionForecast({
             <div className="p-2 rounded-lg bg-success/10">
               <TrendingUpIcon className="h-4 w-4 text-success" />
             </div>
-            <h3 className="text-sm font-semibold">Pronóstico de Cobranza</h3>
+            <h3 className="text-sm font-semibold">Cobranza por vencimiento</h3>
           </div>
           <Link
             to="/invoices?status=overdue"
@@ -106,7 +106,7 @@ export function CollectionForecast({
 
         <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr] gap-4 items-start">
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
-            <p className="text-xs text-muted-foreground mb-1">Vencido hoy</p>
+            <p className="text-xs text-muted-foreground mb-1">Saldo vencido</p>
             <p className="text-2xl font-bold tabular-nums text-destructive leading-tight">
               {formatCurrency(forecast.overdueTotal)}
             </p>
@@ -124,7 +124,7 @@ export function CollectionForecast({
             </p>
             <p className="text-base font-semibold tabular-nums text-foreground/80">{formatCurrency(forecast.expected7)}</p>
             <p className="text-3xs text-muted-foreground mt-0.5">
-              Vencidas + {forecast.upcoming7Count} por vencer
+              Saldo vencido + {forecast.upcoming7Count} por vencer
             </p>
           </div>
           <div>
@@ -134,10 +134,13 @@ export function CollectionForecast({
             <p className="text-base font-semibold tabular-nums text-foreground/80">
               {formatCurrency(forecast.expected30)}
             </p>
-            <p className="text-3xs text-muted-foreground mt-0.5">Cobranza esperada total</p>
+            <p className="text-3xs text-muted-foreground mt-0.5">Saldo vencido + vencimientos a 30 días</p>
           </div>
         </div>
 
+        <p className="mt-3 text-3xs text-muted-foreground">
+          Los periodos incluyen el saldo vencido y se superponen. No confirman la fecha de cobro.
+        </p>
         {forecast.fxMissingCount > 0 && (
           <p className="mt-3 text-3xs text-muted-foreground">
             {forecast.fxMissingCount} factura{forecast.fxMissingCount === 1 ? "" : "s"} en divisa sin tipo de

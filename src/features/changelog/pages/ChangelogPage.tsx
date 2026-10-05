@@ -97,7 +97,7 @@ export default function ChangelogPage() {
   return (
     <PageContainer maxWidth="form">
       <PageHeader
-        title="Historial de Cambios"
+        title="Historial de cambios"
         subtitle={`Versión actual: v${getCurrentVersion(changelog)} · ${changelog.length} entradas${archive ? "" : " recientes"}`}
       />
 

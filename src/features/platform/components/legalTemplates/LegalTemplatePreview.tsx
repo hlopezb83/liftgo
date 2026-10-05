@@ -5,7 +5,7 @@ export function LegalTemplatePreview({ content }: { content: LegalTemplateConten
   return <div className="space-y-5">{legalTemplateSections(content).filter((section) => section.text).map((section) =>
     <section key={section.label} className="space-y-2"><h3 className="font-medium">{section.label}</h3>
       <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{section.text}</p></section>)}
-    <p className="border-t pt-3 text-xs text-muted-foreground">Vista del machote. Los datos de la empresa, cliente y operación se completan al generar el documento.</p>
+    <p className="border-t pt-3 text-xs text-muted-foreground">Vista de la plantilla. Los datos de la empresa, cliente y operación se completan al generar el documento.</p>
   </div>;
 }
 

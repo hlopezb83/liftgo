@@ -54,7 +54,7 @@ export function useSetPlatformEquipmentModelActive() {
       platformReadKeys.all,
     ],
     onSuccess: (_result, input) => {
-      notifySuccess(input.active ? "Modelo reactivado" : "Modelo desactivado");
+      notifySuccess(input.active ? "Modelo reactivado en el catálogo LiftGo" : "Modelo desactivado en el catálogo LiftGo");
     },
     errorTitle: "No se pudo cambiar el estado del modelo",
   });
@@ -93,7 +93,7 @@ export function useSetPlatformPartCatalogActive() {
       platformReadKeys.all,
     ],
     onSuccess: (_result, input) => {
-      notifySuccess(input.active ? "SKU reactivado" : "SKU desactivado");
+      notifySuccess(input.active ? "SKU reactivado en el catálogo LiftGo" : "SKU desactivado en el catálogo LiftGo");
     },
     errorTitle: "No se pudo cambiar el estado del SKU",
   });

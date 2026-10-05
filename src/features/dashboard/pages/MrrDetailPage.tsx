@@ -34,7 +34,7 @@ export default function MrrDetailPage() {
   return (
     <PageContainer>
       <PageHeader
-        title="Ingreso Mensual Recurrente"
+        title="Ingreso mensual recurrente (MRR)"
         subtitle="Detalle de montacargas actualmente rentados"
         backHref="/"
         backLabel="Panel"
@@ -96,7 +96,7 @@ function MrrTableSection({ items, totalMrr, isLoading, isTabletOrBelow, table }:
         <EmptyState
           icon={FleetIcon}
           title="Sin montacargas rentados"
-          subtitle="Actualmente no hay equipos con status 'rentado'."
+          subtitle="Actualmente no hay equipos rentados."
         />
       </div>
     );

@@ -12,17 +12,17 @@ export const STAGES_REQUIRING_DEAL_VALUE = [
 // v7.217.0 (C9): Zod schema en la frontera del formulario. Valida email real,
 // longitudes y forma del payload antes de llegar al mutation.
 export const prospectPayloadSchema = z.object({
-  company_name: z.string().trim().min(1, "El nombre de la empresa es requerido").max(200),
-  contact_person: z.string().trim().max(150).default(""),
+  company_name: z.string().trim().min(1, "Ingresa el nombre de la empresa.").max(200, "El nombre de la empresa admite hasta 200 caracteres."),
+  contact_person: z.string().trim().max(150, "El nombre del contacto admite hasta 150 caracteres.").default(""),
   email: optionalEmail(),
-  phone: z.string().trim().max(30).default(""),
-  deal_value: z.number().min(0, "El valor del trato debe ser positivo"),
-  notes: z.string().max(2000).default(""),
+  phone: z.string().trim().max(30, "El teléfono admite hasta 30 caracteres.").default(""),
+  deal_value: z.number().min(0, "El valor del trato debe ser cero o mayor."),
+  notes: z.string().max(2000, "Las notas admiten hasta 2,000 caracteres.").default(""),
   stage: z.string().refine(
     (s) => s in STAGE_LABELS,
-    "Etapa inválida: usa una de las etapas del pipeline",
+    "La etapa de venta no es válida. Actualiza los datos para continuar.",
   ),
-  quote_id: z.string().uuid().nullable(),
+  quote_id: z.string().uuid("La cotización seleccionada no es válida. Elige otra cotización.").nullable(),
 });
 
 export type ProspectFormPayload = z.infer<typeof prospectPayloadSchema>;

@@ -54,7 +54,7 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
               <TableRow>
                 <TableHead>Nombre</TableHead>
                 <TableHead>Rol</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead>Correo electrónico</TableHead>
                 <TableHead>Teléfono</TableHead>
                 <TableHead className="w-24 text-right">Acciones</TableHead>
               </TableRow>

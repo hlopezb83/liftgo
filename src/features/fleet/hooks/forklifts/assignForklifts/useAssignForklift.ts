@@ -40,7 +40,7 @@ export function useAssignForklift() {
       }
     },
     invalidateKeys: [quoteAssignedForkliftKeys.all, forkliftKeys.all, statusLogKeys.all],
-    successMsg: "Equipos asignados correctamente",
+    successMsg: "Equipos asignados",
     errorTitle: "Error al asignar montacargas",
   });
 }

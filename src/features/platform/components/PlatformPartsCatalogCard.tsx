@@ -73,7 +73,7 @@ export function PlatformPartsCatalogCard({ models }: { models: PlatformEquipment
                 ))}
                 {(data ?? []).length === 0 && (
                   <TableRow><TableCell colSpan={6} className="py-10 text-center text-muted-foreground">
-                    No hay SKUs globales. Captura el primer maestro real de LiftGo.
+                    Aún no hay refacciones en el catálogo compartido.{can("catalogs.write") && " Agrega un SKU para empezar."}
                   </TableCell></TableRow>
                 )}
               </TableBody>

@@ -2,7 +2,7 @@ import { createElement } from "react";
 import { toast } from "sonner";
 import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
-import { getErrorMessage } from "@/lib/errors";
+import { translatePgError } from "@/lib/errors/pgErrorCatalog";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { closeErrorReport, openErrorReport } from "@/lib/ui/errorDetailsStore";
 import { buildErrorReport } from "@/lib/ui/errorReport";
@@ -183,7 +183,11 @@ function errorToast(input: NotifyErrorInput, toastId?: string | number) {
   });
   captureOperationalError(error, { phase: input.phase, errorCode: report.errorCode, severity: input.severity });
 
-  const detail = redactDiagnosticText(input.description ?? getErrorMessage(error));
+  const translation = translatePgError(error, title);
+  const fallback = translation.matched || translation.message === title
+    ? translation.message
+    : "No se confirmó la operación. Actualiza los datos para comprobar el estado del cambio.";
+  const detail = redactDiagnosticText(input.description ?? fallback);
   const description = detail === title ? undefined : detail;
   const isCritical = input.severity !== "warning";
   const id = toastId ?? input.dedupeKey ?? toastDedupeId("error", title, description);

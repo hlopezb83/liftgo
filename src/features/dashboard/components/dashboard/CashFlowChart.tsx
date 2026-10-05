@@ -23,8 +23,7 @@ interface TooltipPayloadEntry {
 function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: TooltipPayloadEntry[] }) {
   if (!active || !payload?.length) return null;
   const item = payload[0].payload;
-  const net = item.invoiced - item.paid;
-  const isPositive = net >= 0;
+  const difference = item.invoiced - item.paid;
   return (
     <div className="rounded-lg border bg-card p-3 shadow-md text-xs space-y-1.5 min-w-[180px]">
       <p className="font-semibold text-sm mb-1">{item.month}</p>
@@ -33,17 +32,17 @@ function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: Tool
         <span className="font-mono">{formatCurrency(item.invoiced)}</span>
       </div>
       <div className="flex justify-between gap-4">
-        <span className="text-muted-foreground">Pagado:</span>
+        <span className="text-muted-foreground">Cobrado:</span>
         <span className="font-mono">{formatCurrency(item.paid)}</span>
       </div>
       <div className="border-t pt-1.5 mt-1.5 flex justify-between gap-4">
-        <span className="font-medium">Neto:</span>
-        <span className={`font-mono font-semibold ${isPositive ? "text-status-available" : "text-destructive"}`}>
-          {formatCurrency(net)}
+        <span className="font-medium">Facturado − cobrado:</span>
+        <span className="font-mono font-semibold">
+          {formatCurrency(difference)}
         </span>
       </div>
-      <p className={`text-2xs text-right ${isPositive ? "text-status-available" : "text-destructive"}`}>
-        {isPositive ? "Flujo positivo" : "Flujo negativo"}
+      <p className="max-w-64 text-2xs text-muted-foreground">
+        Los cobros pueden corresponder a facturas de otros meses.
       </p>
     </div>
   );
@@ -53,7 +52,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   const hasData = data.length > 0;
   return (
     <ReportChartCard
-      title="Flujo de Efectivo"
+      title="Facturación y cobros"
       icon={ExpenseIcon}
       iconColor="text-status-rented"
       iconBg="bg-status-rented/10"
@@ -61,7 +60,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
         hasData ? (
           <div className="flex justify-center gap-6">
             <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-rented" />Facturado</div>
-            <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-available" />Pagado</div>
+            <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-available" />Cobrado</div>
           </div>
         ) : undefined
       }
@@ -74,7 +73,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
             <YAxis tick={chartTick} tickFormatter={(v) => formatCompactMxn(Number(v))} width={64} />
             <Tooltip content={<CashFlowTooltip />} />
             <Bar dataKey="invoiced" name="Facturado" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="paid" name="Pagado" fill="hsl(var(--status-available))" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="paid" name="Cobrado" fill="hsl(var(--status-available))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       ) : (

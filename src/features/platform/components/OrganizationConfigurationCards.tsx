@@ -132,7 +132,7 @@ function CatalogsCard({ detail }: { detail: PlatformOrganizationDetail }) {
       <CardHeader>
         <CardTitle>Catálogos y documentos</CardTitle>
         <CardDescription>
-          Adopción de maestros globales, sin tarifas ni existencias
+          Habilitación de registros del catálogo compartido, sin tarifas ni existencias
           empresariales.
         </CardDescription>
       </CardHeader>
@@ -178,7 +178,7 @@ function CatalogsCard({ detail }: { detail: PlatformOrganizationDetail }) {
           </ul>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Sin machotes globales asignados.
+            Sin plantillas legales compartidas asignadas.
           </p>
         )}
       </CardContent>
