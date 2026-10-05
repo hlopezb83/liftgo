@@ -37,7 +37,7 @@ export default function BankStatementImportsHistoryPage() {
     <PageContainer>
       <div className="flex items-center justify-between gap-3">
         <PageHeader
-          title="Historial de imports bancarios"
+          title="Historial de estados de cuenta importados"
           subtitle="Estados de cuenta cargados y porcentaje de conciliación por archivo"
         />
         <Button variant="outline" size="sm" onClick={() => navigate("/conciliacion-bancaria")}>
@@ -47,7 +47,7 @@ export default function BankStatementImportsHistoryPage() {
 
       {/* A4-05: error primero; el aviso usa la lista CRUDA (limit+1). */}
       {isError ? (
-        <QueryErrorState entity="el historial de imports" onRetry={() => { void refetch(); }} />
+        <QueryErrorState entity="el historial de importaciones" onRetry={() => { void refetch(); }} />
       ) : (
       <>
       <ListTruncationNotice rows={imports} />
@@ -56,7 +56,7 @@ export default function BankStatementImportsHistoryPage() {
           <DataTableV2
             table={table}
             isLoading={isLoading}
-            emptyMessage="Sin imports registrados"
+            emptyMessage="Sin estados de cuenta importados"
           />
         </CardContent>
       </Card>
@@ -66,7 +66,7 @@ export default function BankStatementImportsHistoryPage() {
       <ConfirmDialog
         open={!!confirmId}
         onOpenChange={(o) => { if (!o) setConfirmId(null); }}
-        title="¿Eliminar import bancario?"
+        title="¿Eliminar esta importación bancaria?"
         description="Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer."
         confirmLabel="Eliminar"
         destructive

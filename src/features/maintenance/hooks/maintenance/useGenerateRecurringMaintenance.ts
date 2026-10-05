@@ -1,22 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
+import { maintenanceGenerationFeedback, type GenerateMaintenanceResponse } from "../../lib/maintenanceGenerationFeedback";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
-
-interface GenerateMaintenanceResponse {
-  generated: number;
-  skipped: number;
-  omitted_by_status?: number;
-  month: string;
-  details?: string[];
-}
 
 /**
  * Disparador del Edge Function `generate-recurring-maintenance`.
- * Crea registros de mantenimiento del mes para todas las pólizas activas.
+ * Programa los periodos pendientes de las pólizas elegibles, con resumen parcial.
  */
-export function useGenerateRecurringMaintenance() {
+export function useGenerateRecurringMaintenance(onResult?: (result: GenerateMaintenanceResponse) => void) {
   const queryClient = useQueryClient();
 
   return useEntityMutation<void, GenerateMaintenanceResponse>({
@@ -26,19 +19,26 @@ export function useGenerateRecurringMaintenance() {
       );
     },
     onSuccess: (result) => {
-      if (result.generated > 0) {
-        notifySuccess(
-          `${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`,
-        );
-        void queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all });
-      } else if ((result.omitted_by_status ?? 0) > 0) {
-        notifyInfo(
-          `No se generó ningún registro: ${result.omitted_by_status} póliza(s) activa(s) pertenecen a unidades no rentadas este mes`,
-        );
+      onResult?.(result);
+      const feedback = maintenanceGenerationFeedback(result);
+      const action = onResult ? { label: "Ver resultado", onClick: () => onResult(result) } : undefined;
+      if (feedback.kind === "warning") {
+        notifyWarning({
+          title: feedback.title,
+          description: feedback.description,
+          action,
+          error: { message: feedback.title, details: result.details },
+          context: { ...result },
+        });
+      } else if (feedback.kind === "success") {
+        notifySuccess(feedback.title, { description: feedback.description, action });
       } else {
-        notifyInfo("No hay pólizas pendientes de generar para este mes");
+        notifyInfo(feedback.title, { description: feedback.description, action });
+      }
+      if (result.generated > 0) {
+        void queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all });
       }
     },
-    errorTitle: "Error al generar mantenimiento recurrente",
+    errorTitle: "No se pudo generar el mantenimiento mensual",
   });
 }

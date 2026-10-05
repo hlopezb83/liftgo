@@ -47,11 +47,11 @@ export function MaintenancePageActions({
           size="sm"
           onClick={onGenerateRecurring}
           disabled={isGenerating}
-          aria-label="Generar recurrente"
+          aria-label="Generar mantenimiento mensual"
           className="touch:min-w-11"
         >
           <RefreshIcon className={`h-4 w-4 sm:mr-1 ${isGenerating ? "animate-spin" : ""}`} />
-          <span className="hidden sm:inline">Generar Recurrente</span>
+          <span className="hidden sm:inline">Generar mensual</span>
         </Button>
       </RoleGuard>
       {canCreate && (

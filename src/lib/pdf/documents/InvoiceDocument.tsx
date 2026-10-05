@@ -33,6 +33,7 @@ export interface InvoiceDocumentProps {
 }
 
 const STATUS_LABELS: Record<string, string> = {
+  draft: "BORRADOR SIN TIMBRAR",
   paid: "PAGADA",
   cancelled: "CANCELADA",
 };
@@ -56,13 +57,13 @@ function SatBadge({ uuid }: { uuid: string }) {
   );
 }
 
-function DetailRow(props: InvoiceDocumentProps) {
+function DetailRow(props: InvoiceDocumentProps & { isDraft: boolean }) {
   const pago = [props.formaPago, props.metodoPago].filter(Boolean).join(" • ");
   return (
     <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 10, alignItems: "center" }}>
       <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
         <Text style={sharedStyles.cellText}>
-          <Text style={sharedStyles.bold}>Emitida: </Text>{fmtDate(props.issuedAt)}
+          <Text style={sharedStyles.bold}>{props.isDraft ? "Fecha: " : "Emitida: "}</Text>{fmtDate(props.issuedAt)}
         </Text>
         <Text style={sharedStyles.cellText}>
           <Text style={sharedStyles.bold}>Vence: </Text>{fmtDate(props.dueDate)}
@@ -71,7 +72,7 @@ function DetailRow(props: InvoiceDocumentProps) {
           sharedStyles.badge,
           { backgroundColor: statusFill(props.status), color: COLORS.white },
         ]}>
-          {statusLabel(props.status)}
+          {statusLabel(props.isDraft ? "draft" : props.status === "draft" ? "pending" : props.status)}
         </Text>
       </View>
       {pago && <Text style={[sharedStyles.cellText, { color: COLORS.gray500 }]}>{pago}</Text>}
@@ -103,11 +104,17 @@ function CfdiBox({ uuid }: { uuid: string }) {
 
 export function InvoiceDocument(props: InvoiceDocumentProps) {
   const isStamped = props.cfdiStatus === "stamped" && !!props.cfdiUuid;
+  const isDraft = props.status === "draft" && !isStamped;
   return (
     <Document title={props.invoiceLabel} author={props.company?.razon_social ?? "LiftGo"}>
       <Page size="A4" style={sharedStyles.page}>
         <AccentBar />
-        <Header logoBase64={props.logoBase64} kicker="FACTURA" documentNumber={props.invoiceLabel} />
+        <Header logoBase64={props.logoBase64} kicker={isDraft ? "BORRADOR DE FACTURA" : "FACTURA"} documentNumber={props.invoiceLabel} />
+        {isDraft && (
+          <Text style={{ fontSize: FONT_SIZES.sm, color: COLORS.gray500, marginBottom: 10 }}>
+            Documento preliminar. No es un CFDI timbrado.
+          </Text>
+        )}
         {isStamped && props.cfdiUuid && <SatBadge uuid={props.cfdiUuid} />}
         <InfoCards
           company={props.company}
@@ -116,7 +123,7 @@ export function InvoiceDocument(props: InvoiceDocumentProps) {
           customerCp={props.customerCp}
           isSale
         />
-        <DetailRow {...props} />
+        <DetailRow {...props} isDraft={isDraft} />
         <LineItemsTable items={props.lineItems} currency={props.currency} />
         <TotalsBox
           subtotal={props.subtotal}

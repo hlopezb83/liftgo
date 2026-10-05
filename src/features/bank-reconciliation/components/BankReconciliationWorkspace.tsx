@@ -136,7 +136,7 @@ export function BankReconciliationWorkspace({
               ) : (
                 <EmptyState
                   title="Selecciona un movimiento"
-                  subtitle="Elige una fila para ver sus candidatos de emparejamiento. Usa J / K para moverte entre movimientos."
+                  subtitle="Elige una fila para ver sus pagos candidatos para conciliar. Usa J / K para moverte entre movimientos."
                 />
               )}
             </CardContent>

@@ -47,7 +47,7 @@ export function useCreateDriver() {
       return data;
     },
     invalidateKeys: [driverKeys.all],
-    errorTitle: "Error al crear chofer",
+    errorTitle: "Error al crear conductor",
   });
 }
 
@@ -59,7 +59,7 @@ export function useUpdateDriver() {
       return data;
     },
     invalidateKeys: [driverKeys.all],
-    errorTitle: "Error al actualizar chofer",
+    errorTitle: "Error al actualizar conductor",
   });
 }
 
@@ -70,6 +70,6 @@ export function useDeleteDriver() {
       if (error) throw error;
     },
     invalidateKeys: [driverKeys.all],
-    errorTitle: "Error al eliminar chofer",
+    errorTitle: "Error al eliminar conductor",
   });
 }

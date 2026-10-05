@@ -23,7 +23,7 @@ export function MaintenanceBufferCard() {
     return (
       <QueryErrorState
         bare
-        entity="el buffer de mantenimiento"
+        entity="el margen de mantenimiento"
         onRetry={() => {
           void refetch();
         }}
@@ -42,7 +42,7 @@ export function MaintenanceBufferCard() {
   return (
     <Card className="max-w-xl">
       <CardHeader>
-        <CardTitle className="text-base">Buffer de Mantenimiento</CardTitle>
+        <CardTitle className="text-base">Margen de mantenimiento</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
@@ -52,7 +52,7 @@ export function MaintenanceBufferCard() {
         </p>
 
         <div className="space-y-1.5">
-          <Label htmlFor="maintenance-buffer">Días de buffer (0 a 30)</Label>
+          <Label htmlFor="maintenance-buffer">Días de margen (0 a 30)</Label>
           <Input
             id="maintenance-buffer"
             type="number"
@@ -64,7 +64,7 @@ export function MaintenanceBufferCard() {
             onChange={(e) => setValue(e.target.value)}
           />
           <p className="text-xs text-muted-foreground">
-            Valor actual: <strong className="font-mono">{current}</strong> día(s)
+            Valor actual: <strong className="font-mono">{current}</strong> {current === 1 ? "día" : "días"}
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export function MaintenanceBufferCard() {
             )
           }
         >
-          {update.isPending ? "Guardando…" : "Guardar buffer"}
+          {update.isPending ? "Guardando…" : "Guardar margen"}
         </Button>
       </CardContent>
     </Card>

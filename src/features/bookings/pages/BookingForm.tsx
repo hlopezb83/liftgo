@@ -61,15 +61,15 @@ export default function BookingForm() {
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="space-y-6">
           <Card>
-            <CardHeader><CardTitle className="text-base">Detalles de la Reserva</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="text-base">Detalles de la reserva</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <DateRangePickerField
-                label="Fechas de Reserva"
+                label="Fechas de reserva"
                 dateRange={dateRange}
                 onSelect={(range) => form.setValue("date_range", { from: range?.from, to: range?.to }, { shouldValidate: true })}
                 required
                 error={dateRangeError}
-                helperText="La fecha fin es inclusiva; el equipo queda ocupado ese día. Para una renta consecutiva el mismo día que otra termina, inicia al día siguiente."
+                helperText="La fecha final cuenta como día de renta. La siguiente reserva puede iniciar a partir del día siguiente."
               />
               {startInPast && !dateRangeError && (
                 <p className="text-xs text-warning" role="alert">
@@ -88,8 +88,8 @@ export default function BookingForm() {
                 <SwitchField
                   control={form.control}
                   name="recurring_billing"
-                  label="Habilitar Facturación Recurrente"
-                  description="Generar facturas mensuales automáticamente para esta reserva"
+                  label="Incluir en facturación mensual"
+                  description="Esta reserva aparecerá en la generación mensual de borradores. Revisa y genera los periodos desde Facturas."
                 />
               )}
             </CardContent>

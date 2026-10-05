@@ -24,14 +24,14 @@ interface Extension {
 
 interface Props {
   extensions: Extension[];
-  /** Las reservas con facturación recurrente ya cobran los días extra en la mensualidad. */
+  /** Los días adicionales se incluyen al generar el borrador mensual de la reserva. */
   recurringBilling?: boolean | null;
 }
 
 function billingBadgeLabel(isBilled: boolean, isPendingIssue: boolean, days: number): string {
   if (isBilled) return "Facturada";
   if (isPendingIssue) return "Pendiente de emisión";
-  return `${days} día(s) por facturar`;
+  return `${days} ${days === 1 ? "día" : "días"} por facturar`;
 }
 
 export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
@@ -50,8 +50,8 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
       <CardContent className="space-y-2">
         {recurringBilling && (
           <p className="text-xs text-muted-foreground">
-            Esta reserva tiene facturación recurrente: los días extra se cobran automáticamente
-            en la mensualidad correspondiente.
+            Los días adicionales de esta reserva se incluyen al generar el borrador
+            del periodo mensual correspondiente.
           </p>
         )}
         {extensions.map((ext) => {

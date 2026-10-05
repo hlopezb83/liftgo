@@ -1,5 +1,22 @@
 [
   {
+    "version": "8.43.19",
+    "date": "2026-10-05",
+    "type": "patch",
+    "category": "improvement",
+    "title": "Mensajes claros en facturación, mantenimiento y operaciones",
+    "description": "Los avisos describen el resultado real de las operaciones y usan vocabulario consistente en español.",
+    "changes": [
+      "Facturación mensual: las reservas explican la generación manual de borradores y sus días adicionales.",
+      "Mantenimiento mensual: muestra registros programados, pólizas por revisar, periodos pendientes y detalle por unidad.",
+      "El PDF de borrador se identifica como documento preliminar sin timbrar.",
+      "Cancelar facturas de proveedor aclara que afecta su registro en el ERP; revertir una acción conserva la bitácora.",
+      "El portal muestra saldo cubierto sin afirmar un cobro cuando hay notas de crédito.",
+      "CRM, conciliación bancaria y configuración usan prospectos, etapas de venta, conductores y textos con plurales naturales.",
+      "La variación de ocupación se expresa en puntos porcentuales y la ayuda de reservas aclara sus fechas."
+    ]
+  },
+  {
     "version": "8.43.18",
     "date": "2026-10-04",
     "type": "patch",

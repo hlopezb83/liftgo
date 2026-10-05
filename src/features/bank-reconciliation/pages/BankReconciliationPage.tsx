@@ -62,7 +62,7 @@ export default function BankReconciliationPage() {
         <PageContainer>
           <PageHeader
             title="Conciliación bancaria"
-            subtitle="Sube tu estado de cuenta y empareja con los pagos del sistema"
+            subtitle="Sube tu estado de cuenta y concilia los movimientos con los pagos del ERP"
             action={
               <Button asChild variant="outline" size="sm">
                 <Link to="/cuentas-bancarias"><SettingsIcon className="h-4 w-4 mr-2" /> Cuentas bancarias</Link>

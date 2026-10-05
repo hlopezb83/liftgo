@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
+import { countLabel } from "@/lib/format/countLabel";
 import { formatCompactCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
 import { PortalUpcomingDues } from "../components/PortalUpcomingDues";
@@ -92,7 +93,7 @@ export default function PortalDashboard() {
           icon={ExpenseIcon}
           iconColor={outstanding > 0 ? "text-destructive" : "text-success"}
           hint={fxMissingCount > 0
-            ? `No incluye ${fxMissingCount} factura(s) en moneda extranjera sin tipo de cambio registrado.`
+            ? `No incluye ${countLabel(fxMissingCount, "factura", "facturas")} en moneda extranjera sin tipo de cambio registrado.`
             : undefined}
         />
         <KpiTile

@@ -14,6 +14,7 @@ import { visibleListRows } from "@/lib/supabase/constants";
 import { MaintenanceDetailSheet } from "../components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFiltersBar } from "../components/maintenance/MaintenanceFiltersBar";
 import { MaintenanceFormDialog } from "../components/maintenance/MaintenanceFormDialog";
+import { MaintenanceGenerationResultDialog } from "../components/maintenance/MaintenanceGenerationResultDialog";
 import { MaintenanceKanban } from "../components/maintenance/MaintenanceKanban";
 import { MaintenancePageActions } from "../components/maintenance/MaintenancePageActions";
 import { MaintenanceMobileCard } from "../components/maintenance/MaintenanceRow";
@@ -23,6 +24,7 @@ import { useMaintenanceLogs, type MaintenanceLog } from "../hooks/maintenance/us
 import { useActiveMechanics } from "../hooks/maintenance/useMechanics";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 import { maintenanceColumns } from "./maintenanceColumns";
+import type { GenerateMaintenanceResponse } from "../lib/maintenanceGenerationFeedback";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
@@ -31,7 +33,8 @@ export default function MaintenancePage() {
   const { data: logsRaw, isLoading, isError, refetch } = useMaintenanceLogs(undefined, showArchived);
   const logs = visibleListRows(logsRaw);
   const { data: activeMechanics } = useActiveMechanics();
-  const generateRecurring = useGenerateRecurringMaintenance();
+  const [generationResult, setGenerationResult] = useState<GenerateMaintenanceResponse | null>(null);
+  const generateRecurring = useGenerateRecurringMaintenance(setGenerationResult);
   const detail = useDialogState<MaintenanceLog>();
   const selectedLog = detail.selected ? logs?.find((log) => log.id === detail.selected?.id) ?? null : null;
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
@@ -150,6 +153,8 @@ export default function MaintenancePage() {
         forklifts={forklifts}
         mechanics={activeMechanics}
       />
+
+      <MaintenanceGenerationResultDialog result={generationResult} onClose={() => setGenerationResult(null)} />
 
       {formCtl.availablePrompt && (
         <MarkAvailableDialog

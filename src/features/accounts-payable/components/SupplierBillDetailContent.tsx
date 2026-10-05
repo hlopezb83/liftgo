@@ -218,7 +218,7 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
         open={dialogs.deleteDialog}
         onOpenChange={dialogs.setDeleteDialog}
         title={`Eliminar factura ${bill.bill_number}`}
-        description="Esta acción es irreversible y elimina el registro físico de la factura. No se permite si ya fue aprobada o tiene pagos. Considera Cancelar en esos casos."
+        description="Esta acción es irreversible y elimina el registro físico de la factura. No se permite si ya fue aprobada o tiene pagos. Si no tiene pagos, puedes cancelar el registro en el ERP."
         confirmLabel="Eliminar definitivamente"
         destructive
         onConfirm={onDelete}

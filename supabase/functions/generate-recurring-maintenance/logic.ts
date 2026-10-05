@@ -120,6 +120,8 @@ export function remainingMonthsCount(
 export interface GenerationResult {
   generated: number;
   skipped: number;
+  /** Pólizas interrumpidas por un error o una inconsistencia que requiere revisión. */
+  failedPolicies: number;
   details: string[];
   /**
    * R9-17: total de meses que quedaron pendientes al terminar la corrida
@@ -164,13 +166,15 @@ export async function generateForPolicies(
 ): Promise<GenerationResult> {
   let generated = 0;
   let skipped = 0;
+  let failedPolicies = 0;
   let pendingRemaining = 0;
   const details: string[] = [];
 
   for (const policy of candidates) {
     const orgIssue = policyOrganizationIssue(policy, scopeOrganizationId);
     if (orgIssue) {
-      skipped += 1;
+      failedPolicies += 1;
+      pendingRemaining += remainingMonthsCount(policy.last_generated_month, currentMonth);
       details.push(
         `⊘ ${
           policy.forklifts?.name ?? policy.id
@@ -189,6 +193,7 @@ export async function generateForPolicies(
       );
 
       if (claimErr) {
+        failedPolicies += 1;
         // R8-08: NO continuar a meses posteriores. Saltarse este mes y
         // reclamar el siguiente movería `last_generated_month` hacia adelante
         // dejando un hueco que ningún catch-up posterior podría llenar.
@@ -210,6 +215,7 @@ export async function generateForPolicies(
           .limit(1);
 
         if (checkErr) {
+          failedPolicies += 1;
           details.push(
             `Error al verificar log de ${policy.id} (${month}): ${checkErr.message}`,
           );
@@ -220,6 +226,7 @@ export async function generateForPolicies(
           skipped += 1;
           continue;
         }
+        failedPolicies += 1;
         details.push(
           `⚠ ${
             policy.forklifts?.name ?? policy.id
@@ -265,6 +272,7 @@ export async function generateForPolicies(
       }
 
       if (insertErr) {
+        failedPolicies += 1;
         // R8-07: rollback compare-and-set. Sólo retrocedemos si
         // `last_generated_month` sigue siendo el mes que ESTA corrida reclamó;
         // si otra corrida ya avanzó, no la movemos hacia atrás.
@@ -311,7 +319,7 @@ export async function generateForPolicies(
       details.push(
         `⏳ ${
           policy.forklifts?.name ?? policy.id
-        } — quedan ${remaining} período(s) pendiente(s); ` +
+        } — ${remaining === 1 ? "queda" : "quedan"} ${remaining} ${remaining === 1 ? "periodo pendiente" : "periodos pendientes"}; ` +
           `la siguiente corrida continúa desde ${
             lastOkMonth ? nextMonth(lastOkMonth) : currentMonth
           }`,
@@ -319,5 +327,5 @@ export async function generateForPolicies(
     }
   }
 
-  return { generated, skipped, details, pendingRemaining };
+  return { generated, skipped, failedPolicies, details, pendingRemaining };
 }

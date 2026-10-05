@@ -106,10 +106,10 @@ export function RecurringInvoicesPreviewDialog({
       title={periodTitle(data?.period ?? null)}
       description={
         <>
-          Revisa las facturas recurrentes que se generarán. Marca las que quieras incluir.
+          Revisa los periodos de renta y selecciona los borradores que quieres generar.
           <span className="mt-1 block text-xs text-muted-foreground">
-            Nota: se crean como <b>borradores</b> con folio interno LiftGo (FAC-XXXX). El{" "}
-            <b>UUID SAT</b> y el <b>ID Facturapi</b> se asignan al timbrar cada una, y pueden no coincidir con el orden del folio interno si timbras fuera de secuencia.
+            Se crean <b>borradores sin timbrar</b> con una referencia interna LiftGo (FAC-XXXX). Al timbrar,{" "}
+            <b>Facturapi asigna la serie y el folio</b> y el ERP lo conserva. El UUID SAT se obtiene al completar el timbrado.
           </span>
         </>
       }
