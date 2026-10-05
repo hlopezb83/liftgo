@@ -1,0 +1,6 @@
+{
+  "description": "El formulario de prospectos explica su recorrido con el mismo vocabulario que sus campos.",
+  "changes": [
+    "La ayuda de Nuevo prospecto usa etapas de venta y evita depender del nombre de una etapa configurada."
+  ]
+}

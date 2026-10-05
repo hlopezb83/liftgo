@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.18",
+    "date": "2026-10-04",
+    "type": "patch",
+    "category": "improvement",
+    "title": "CRM: ayuda clara para las etapas de venta",
+    "description": "El formulario de prospectos explica su recorrido con el mismo vocabulario que sus campos.",
+    "changes": [
+      "La ayuda de Nuevo prospecto usa etapas de venta y evita depender del nombre de una etapa configurada."
+    ]
+  },
+  {
     "version": "8.43.17",
     "date": "2026-10-04",
     "type": "patch",
