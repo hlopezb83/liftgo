@@ -168,5 +168,12 @@
     "https://esm.sh/zod@4.4.3/denonext/v4/locales.mjs": "495190bd178b2165eca4df2b7d04a8f15a4fede105c90b3f0492f6d00184a8f3",
     "https://esm.sh/zod@4.4.3/denonext/v4/locales/en.mjs": "d2b8f154ef20abbad679c9f33898ead2519c536b9e2e840c183fcda8de08bccb",
     "https://esm.sh/zod@4.4.3/denonext/zod.mjs": "00707061a40606b5062ee8eaada685bc08bf6d2c17d3ac8b059192f83f87eb41"
+  },
+  "workspace": {
+    "dependencies": [
+      "jsr:@std/assert@1",
+      "npm:@sentry/deno@10.76.0",
+      "npm:facturapi@5.1.0"
+    ]
   }
 }

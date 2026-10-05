@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useVerifiedOrganizationId } from "@/contexts/OrganizationContext";
-import { companySettingsQueries, publicBrandingQueries } from "@/features/company-settings/lib/queryKeys";
+import { companySettingsQueries, publicBrandingQueries } from "@/features/company-settings";
 import { clearSentryIdentity, syncSentryIdentity } from "@/lib/observability/identity";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { setAppVersion } from "@/lib/ui/errorReport";

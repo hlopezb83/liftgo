@@ -1,4 +1,4 @@
-import type { DenoOptions, ErrorEvent } from "npm:@sentry/deno@10.76.0";
+import type { DenoOptions, ErrorEvent } from "@sentry/deno";
 import { createEdgeObserver } from "./edgeSentry.ts";
 
 /** Sólo pruebas: ningún fetch/telemetría real, aun cuando el handler falle. */

@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { allowsRecurringBilling } from "@/features/bookings/lib/recurringBillingEligibility";
+import { allowsRecurringBilling } from "@/features/bookings";
 import { CustomerSelector, type Customer } from "@/features/customers";
 import type { Tables } from "@/integrations/supabase/types";
 import { ConvertQuoteSummary } from "./ConvertQuoteSummary";

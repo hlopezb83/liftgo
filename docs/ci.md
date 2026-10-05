@@ -6,9 +6,9 @@ puede escribir en producción, no corre solo.
 
 ## Dependabot: revisión semanal
 
-`.github/dependabot.yml` revisa Bun y GitHub Actions los lunes a las 06:00,
+`.github/dependabot.yml` revisa Bun, Deno y GitHub Actions los lunes a las 06:00,
 zona `America/Monterrey`. Bun mantiene como máximo dos PR de versiones abiertos
-entre todos sus grupos; Actions mantiene uno. Las alertas y actualizaciones de
+entre todos sus grupos; Deno y Actions mantienen uno cada uno. Las alertas y actualizaciones de
 seguridad están habilitadas en GitHub y no esperan esta revisión semanal.
 
 Los grupos de versiones menores y parches reúnen seis familias: React y sus
@@ -26,6 +26,37 @@ que caiga en frontend.
 Agrupar reúne actualizaciones disponibles; no obliga a que todos los paquetes
 cambien ni tengan la misma versión. CI comprueba la compatibilidad del conjunto.
 La configuración no habilita fusiones automáticas ni cambia versiones instaladas.
+
+### Dependencias de funciones Cloud
+
+Dependabot Deno lee `supabase/functions/deno.json` y regenera `deno.lock`.
+El manifiesto declara Facturapi, Sentry Deno y `@std/assert`; el código y sus
+pruebas usan esos aliases, por lo que cambiar una versión en el manifiesto sí
+afecta al grafo ejecutado. No mantener versiones literales duplicadas en `.ts`.
+Las versiones menores y parches comparten el grupo `deno-maintenance`.
+
+Los imports HTTPS de `esm.sh` y `deno.land` siguen con revisión manual:
+el [updater oficial Deno](https://github.com/dependabot/dependabot-core/tree/main/deno)
+admite fuentes `npm:` y `jsr:`, pero todavía no HTTPS. Declarar una copia de una
+versión sin usarla en el código no proporciona cobertura real.
+
+Lovable Cloud resolvió los aliases del manifiesto global desde `_shared` en una
+prueba temporal de `parse-csf` el 2026-10-05. OPTIONS respondió 200 y confirmó
+constructor Facturapi disponible y Sentry 10.76.0. La prueba se retiró y la
+función original se volvió a desplegar. Esta elección corresponde al empaquetado
+comprobado de Cloud; volver a validarla si cambia el sistema de despliegue.
+
+El lock actual conserva formato 4 y todas las versiones existentes. Una edición
+del manifiesto seguida de `deno install --frozen=false` con CLI 2.9.7 regenera
+formato 5. El 2026-10-05 se comprobó también ese formato en el empaquetador de
+Cloud: `parse-csf` arrancó y OPTIONS confirmó ambos imports desde `_shared`.
+Después se restauraron los archivos y el despliegue originales. El formato del
+lock admitido por el empaquetador y la compatibilidad de los SDK con el runtime
+de ejecución son comprobaciones distintas; no cambiar sólo el número del lock.
+Sentry Deno >=11 queda ignorado hasta comprobar un runtime Cloud >=2.8.3.
+El SDK del frontend tiene su propio ciclo y no comparte esta restricción.
+Este bloque configura actualizaciones de versión; los controles de seguridad
+se verifican por separado.
 
 ## En cada PR y push a `main` — `ci.yml`
 

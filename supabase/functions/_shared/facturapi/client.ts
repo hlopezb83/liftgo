@@ -8,7 +8,7 @@
 // - Mantenido oficialmente por Facturapi (v5.1.0).
 //
 // deno-lint-ignore-file no-explicit-any
-import * as FacturapiPkg from "npm:facturapi@5.1.0";
+import * as FacturapiPkg from "facturapi";
 
 // El SDK se publica como módulo dual ESM/CJS. La interop de Deno expone la
 // clase como `default.default` (CJS) o `default` (ESM), así que resolvemos

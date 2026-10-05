@@ -85,6 +85,31 @@ updates:
       - dependency-name: "typescript"
         versions: [">= 7"]
 
+  # Funciones Cloud: versiones declaradas y usadas desde deno.json.
+  # Los imports HTTPS siguen fuera de la cobertura de Dependabot Deno.
+  - package-ecosystem: "deno"
+    directory: "/supabase/functions"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "America/Monterrey"
+    open-pull-requests-limit: 1
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    groups:
+      deno-maintenance:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    # Cloud declara compatibilidad con Deno 2.1.4; Sentry 11 exige >=2.8.3.
+    # Reconsiderar tras verificar un runtime desplegado compatible.
+    ignore:
+      - dependency-name: "@sentry/deno"
+        versions: [">= 11"]
+
   # GitHub Actions: un único PR agrupado por semana.
   - package-ecosystem: "github-actions"
     directory: "/"
