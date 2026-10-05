@@ -593,7 +593,6 @@ async function loadOrphanOwnerIndex(
     for (let i = 0; i < values.length; i += OWNER_LOOKUP_CHUNK) {
       const chunk = values.slice(i, i + OWNER_LOOKUP_CHUNK);
       const chunkRows: Array<Record<string, unknown>> = [];
-      let exhausted = false;
       for (let offset = 0;; offset += OWNER_LOOKUP_PAGE) {
         const base = admin
           .from("supplier_bills")
@@ -610,14 +609,12 @@ async function loadOrphanOwnerIndex(
         const page = (data ?? []) as Array<Record<string, unknown>>;
         chunkRows.push(...page);
         if (page.length < OWNER_LOOKUP_PAGE) {
-          exhausted = true;
           break;
         }
         if (chunkRows.length > chunk.length * OWNER_LOOKUP_MAX_ROWS_PER_KEY) {
           return; // truncación/duplicación anómala: fail-closed
         }
       }
-      if (!exhausted) return;
       for (const row of chunkRows) {
         rows.push({
           id: row.id,

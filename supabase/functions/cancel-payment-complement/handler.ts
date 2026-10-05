@@ -216,7 +216,7 @@ export async function handleCancelPaymentComplement(
     }
 
     const client = createFacturapiClient(apiKey);
-    let satStatus = "accepted";
+    let satStatus: string;
     pacAttempted = true;
     try {
       const params: Record<string, string> = { motive: motiveCode };

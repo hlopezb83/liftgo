@@ -56,7 +56,7 @@ async function clientFromPage(page: Page): Promise<SupabaseClient> {
 
 function buildScope(testInfo: TestInfo): string {
   const worker = testInfo.workerIndex ?? 0;
-  const rand = Math.random().toString(36).slice(2, 8);
+  const rand = randomUUID().replaceAll("-", "").slice(0, 12);
   return `w${worker}-${testInfo.testId.slice(0, 6)}-${rand}`;
 }
 

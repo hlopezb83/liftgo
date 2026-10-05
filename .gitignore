@@ -46,5 +46,9 @@ test-results/
 tests/multi-tenant-ab/.state/
 playwright-report-multitenant/
 
+# Sesiones E2E generadas (access/refresh tokens y escrituras temporales)
+/tests/e2e/.auth/*
+!/tests/e2e/.auth/.gitkeep
+
 # Bindings locales de Wrangler (credenciales efímeras CI/local)
 .dev.vars*
