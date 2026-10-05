@@ -2,7 +2,7 @@
   "nodeModulesDir": "auto",
   "imports": {
     "@sentry/deno": "npm:@sentry/deno@10.76.0",
-    "@std/assert": "jsr:@std/assert@1",
+    "@std/assert": "jsr:@std/assert@1.0.19",
     "facturapi": "npm:facturapi@5.1.0"
   },
   "lint": {
