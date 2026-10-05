@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import * as Sentry from "npm:@sentry/deno@10.76.0";
+import * as Sentry from "@sentry/deno";
 import { runObservedWork } from "./edgeSentryWork.ts";
 import { scrubEdgeEvent, verifiedId } from "./edgeSentryPrivacy.ts";
 import { edgeException, expectedEdgeFailure } from "./edgeSentryError.ts";

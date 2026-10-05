@@ -1,5 +1,5 @@
 import { strict as assert } from "node:assert";
-import * as Sentry from "npm:@sentry/deno@10.76.0";
+import * as Sentry from "@sentry/deno";
 import {
   ACTOR_A,
   ACTOR_B,

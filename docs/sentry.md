@@ -66,7 +66,10 @@ esfuerzo; un fallo del transporte no debe bloquear la operación.
 ## Piloto de Cloud
 
 El runtime inspeccionado declara Deno 2.1.4; SDK 11 requiere Deno >=2.8.3.
-`parse-csf` usa `npm:@sentry/deno@10.76.0` y lock formato 4.
+`parse-csf` usa el alias `@sentry/deno`, declarado como
+`npm:@sentry/deno@10.76.0` en `supabase/functions/deno.json`, y lock formato 4.
+Dependabot revisa el manifiesto semanalmente y excluye SDK Deno >=11 hasta
+comprobar un runtime Cloud compatible; véase [CI](./ci.md#dependencias-de-funciones-cloud).
 La entrada desplegada registró `liftgo.edge.sentry` con `active:true`.
 OPTIONS sin PDF ni credenciales aprobó HTTP/CORS; esto no demuestra recepción
 de un evento en la cuenta de Sentry.

@@ -1,4 +1,4 @@
-import type { ErrorEvent, StackFrame } from "npm:@sentry/deno@10.76.0";
+import type { ErrorEvent, StackFrame } from "@sentry/deno";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const ERROR_TYPES = new Set([
