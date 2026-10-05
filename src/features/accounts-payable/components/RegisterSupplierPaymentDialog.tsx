@@ -10,7 +10,6 @@ import { UploadIcon, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -18,7 +17,7 @@ import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
-import { useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
+import { removeSupplierReceipt, useUploadSupplierReceipt } from "../hooks/useUploadSupplierReceipt";
 import { PAYMENT_METHODS } from "../lib/supplierBillConstants";
 import { supplierPaymentSchema, type SupplierPaymentFormData } from "../lib/supplierPaymentSchema";
 
@@ -145,7 +144,7 @@ export function RegisterSupplierPaymentDialog({
     } catch {
       // A failed payment must not leave an unreferenced receipt in Storage.
       if (uploadedPath) {
-        const { error } = await supabase.storage.from("supplier-payment-receipts").remove([uploadedPath]);
+        const { error } = await removeSupplierReceipt(uploadedPath);
         if (error) notifyWarning("No se pudo limpiar el comprobante", {
           error,
           description: "El pago no se registró. Contacta a soporte para revisar el archivo subido.",

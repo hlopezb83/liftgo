@@ -10,6 +10,10 @@ export interface UploadedReceipt {
   path: string;
 }
 
+export function removeSupplierReceipt(path: string) {
+  return supabase.storage.from(BUCKET).remove([path]);
+}
+
 export function useUploadSupplierReceipt() {
   return useEntityMutation({
     mutationFn: async ({ file, billId }: { file: File; billId: string }): Promise<UploadedReceipt> => {
