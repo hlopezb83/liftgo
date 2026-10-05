@@ -46,12 +46,17 @@ constructor Facturapi disponible y Sentry 10.76.0. La prueba se retiró y la
 función original se volvió a desplegar. Esta elección corresponde al empaquetado
 comprobado de Cloud; volver a validarla si cambia el sistema de despliegue.
 
-Conservar el lock en formato 4 compatible con el runtime observado Deno 2.1.4.
-La simulación de `deno install --frozen=false` con CLI 2.9.7 conservó ese formato
-y las versiones actuales. Si un PR genera otro formato, validar su compatibilidad
-antes de fusionarlo; no cambiar sólo el número de versión del archivo.
+El lock actual conserva formato 4 y todas las versiones existentes. Una edición
+del manifiesto seguida de `deno install --frozen=false` con CLI 2.9.7 regenera
+formato 5. El 2026-10-05 se comprobó también ese formato en el empaquetador de
+Cloud: `parse-csf` arrancó y OPTIONS confirmó ambos imports desde `_shared`.
+Después se restauraron los archivos y el despliegue originales. El formato del
+lock admitido por el empaquetador y la compatibilidad de los SDK con el runtime
+de ejecución son comprobaciones distintas; no cambiar sólo el número del lock.
 Sentry Deno >=11 queda ignorado hasta comprobar un runtime Cloud >=2.8.3.
 El SDK del frontend tiene su propio ciclo y no comparte esta restricción.
+Este bloque configura actualizaciones de versión; los controles de seguridad
+se verifican por separado.
 
 ## En cada PR y push a `main` — `ci.yml`
 
