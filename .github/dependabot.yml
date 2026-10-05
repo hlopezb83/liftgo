@@ -8,13 +8,13 @@ updates:
   # El ecosistema "bun" sí entiende el lockfile de texto `bun.lock`
   # (lockfileVersion 1) y lo regenera en el mismo commit del PR.
   #
-  # Cadencia MENSUAL y agrupada: semanal con 5 PRs abiertos generaba más
-  # revisiones y más corridas de CI que valor. Las vulnerabilidades reales no
-  # esperan a la cadencia — Dependabot abre security updates aparte.
+  # Cadencia semanal, agrupada y con límites bajos para reducir revisiones
+  # y corridas de CI. Las actualizaciones de seguridad se habilitan en GitHub
+  # Settings y no esperan al calendario de actualizaciones de versión.
   - package-ecosystem: "bun"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
       day: "monday"
       time: "06:00"
       timezone: "America/Monterrey"
@@ -38,11 +38,11 @@ updates:
       - dependency-name: "typescript"
         versions: [">= 7"]
 
-  # GitHub Actions: un único PR agrupado al mes.
+  # GitHub Actions: un único PR agrupado por semana.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
+      interval: "weekly"
       day: "monday"
       time: "06:00"
       timezone: "America/Monterrey"
