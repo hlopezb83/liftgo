@@ -10,7 +10,7 @@ const QUOTE_ASSIGNED_FORKLIFT_COLUMNS = sel("id, quote_id, forklift_id, line_ind
 
 type QuoteAssignedForklift = Tables<"quote_assigned_forklifts">;
 
-export const quoteAssignmentsQueries = defineEntityQueries<
+const quoteAssignmentsQueries = defineEntityQueries<
   typeof quoteAssignedForkliftKeys.all[number],
   QuoteAssignedForklift[],
   never

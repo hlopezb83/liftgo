@@ -24,7 +24,6 @@ type Storage = "url" | "session" | "memory";
 type Mode = "client" | "server";
 
 export type { Facet } from "./facetTypes";
-export { parseDateRange } from "./normalizeValue";
 
 export interface UseTableFiltersOptions<T, F extends Record<string, Facet<T>>> {
   facets: F;

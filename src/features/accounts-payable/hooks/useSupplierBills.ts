@@ -8,7 +8,7 @@ import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 type Row = Database["public"]["Tables"]["supplier_bills"]["Row"];
 type SupplierPayment = Database["public"]["Tables"]["supplier_payments"]["Row"];
 
-export interface BillRepSummary {
+interface BillRepSummary {
   pending: number;
   received: number;
   rejected: number;
@@ -17,7 +17,7 @@ export interface BillRepSummary {
 }
 
 /** Pago aplicado a una factura de proveedor (para KPIs por fecha de pago). */
-export interface BillPaymentRow {
+interface BillPaymentRow {
   payment_date: string;
   amount: number;
 }
@@ -34,7 +34,6 @@ export interface SupplierBillDetail extends Row {
   suppliers: { id: string; name: string; rfc: string | null } | null;
   payments: SupplierPayment[];
 }
-
 
 type PaymentRepRow = {
   bill_id: string;
@@ -69,7 +68,6 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
 // Tanda 2 P2-7: columnas explícitas (evita `select("*")`).
 const BILL_LIST_COLUMNS =
   "id, bill_number, supplier_id, cfdi_uuid, folio, serie, issue_date, due_date, subtotal, tax_amount, retention_isr, retention_iva, total, currency, exchange_rate, payment_method_sat, payment_form_sat, cfdi_use, category, description, status, balance, xml_url, pdf_url, cfdi_xml_url, receptor_rfc, tipo_comprobante, coverage_start, coverage_end, notes, created_by, created_at, updated_at, approval_status, approved_by, approved_at, rejected_by, rejected_at, approval_notes, payment_in_progress_at, suppliers(id, name)";
-
 
 async function fetchList(): Promise<SupplierBillListItem[]> {
   const fetchAllBills = async () => {
@@ -152,8 +150,6 @@ export const supplierBillQueries = defineEntityQueries<
 });
 
 export const supplierBillKeys = supplierBillQueries.keys;
-/** @deprecated usar `supplierBillKeys.all` (alias mantenido por retro-compatibilidad). */
-export const SUPPLIER_BILLS_QK = supplierBillKeys.all;
 
 export function useSupplierBills() {
   return useQuery(supplierBillQueries.list());

@@ -1,7 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
 import { lazy, type ComponentType } from "react";
-
-export { PageFallback } from "@/app-routes/RouteSkeletons";
 
 // -----------------------------------------------------------------------------
 // Ruta canónica: `path`, `loader` (import dinámico), `module` para permisos.
@@ -11,7 +8,7 @@ export { PageFallback } from "@/app-routes/RouteSkeletons";
 
 type Loader = () => Promise<{ default: ComponentType }>;
 /** Nivel mínimo de permiso para acceder a la ruta. Default: "read". */
-export type RouteAccess = "read" | "full";
+type RouteAccess = "read" | "full";
 
 interface RawRoute {
   path: string;

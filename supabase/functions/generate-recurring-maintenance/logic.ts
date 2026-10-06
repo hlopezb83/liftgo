@@ -72,12 +72,12 @@ export interface MaintenanceClientLike {
 }
 
 /** Blindaje ante datos corruptos / pólizas muy antiguas. */
-export const MAX_CATCHUP_MONTHS = 12;
+const MAX_CATCHUP_MONTHS = 12;
 
 /** Código Postgres de violación de índice único. */
-export const UNIQUE_VIOLATION = "23505";
+const UNIQUE_VIOLATION = "23505";
 
-export function nextMonth(yyyyMm: string): string {
+function nextMonth(yyyyMm: string): string {
   const [y, m] = yyyyMm.split("-").map(Number);
   const d = new Date(Date.UTC(y, m, 1));
   return `${d.getUTCFullYear()}-${
@@ -104,7 +104,7 @@ export function pendingMonthsFor(
  * R9-17: cuántos meses siguen pendientes después de `lastOkMonth` (sin tope).
  * Sirve sólo para INFORMAR el remanente; no crea cola ni cambia el cursor.
  */
-export function remainingMonthsCount(
+function remainingMonthsCount(
   lastOkMonth: string | null,
   currentMonth: string,
 ): number {

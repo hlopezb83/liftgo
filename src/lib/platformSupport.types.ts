@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const supportStatusSchema = z.enum(["new", "in_progress", "waiting", "resolved", "closed"]);
-export const supportSeveritySchema = z.enum(["critical", "high", "medium", "low"]);
+const supportStatusSchema = z.enum(["new", "in_progress", "waiting", "resolved", "closed"]);
+const supportSeveritySchema = z.enum(["critical", "high", "medium", "low"]);
 const revision = z.string().regex(/^[1-9]\d*$/).max(18);
 export const supportCaseSchema = z.object({
   id: z.uuid(), organizationId: z.uuid(), organizationName: z.string(), folio: z.string(), revision,

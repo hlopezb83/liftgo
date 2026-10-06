@@ -21,7 +21,6 @@ import {
 } from "../../lib/returnInspectionSchema";
 import { useCreateReturnInspection } from "../useReturnInspections";
 
-export { returnInspectionSchema, initialReturnInspectionForm } from "../../lib/returnInspectionSchema";
 export type { ReturnInspectionFormValues } from "../../lib/returnInspectionSchema";
 
 export function useReturnInspectionDialog(activeBookings: Booking[] | undefined, canWrite: boolean) {

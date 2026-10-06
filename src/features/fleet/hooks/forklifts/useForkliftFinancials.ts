@@ -29,7 +29,7 @@ const FINANCIAL_VIEWER_ROLES: ReadonlySet<AppRole> = new Set([
   "admin", "administrativo", "auditor", "dispatcher",
 ]);
 
-export const forkliftFinancialsQueries = defineEntityQueries<"forklift-financials", never, ForkliftFinancials>(
+const forkliftFinancialsQueries = defineEntityQueries<"forklift-financials", never, ForkliftFinancials>(
   "forklift-financials",
   {
     list: () => () => {

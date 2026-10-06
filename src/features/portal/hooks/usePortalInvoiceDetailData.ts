@@ -42,7 +42,7 @@ type InvoiceLike = {
  * con floats crudos y sin conversión de moneda. `payments` se conserva sólo
  * para el historial de pagos; su suma ya no determina el saldo mostrado.
  */
-export function deriveInvoiceTotals(invoice: InvoiceLike | undefined, payments: PortalPaymentRow[]) {
+function deriveInvoiceTotals(invoice: InvoiceLike | undefined, payments: PortalPaymentRow[]) {
   const totalPaid = invoice?.paid_amount != null
     ? Number(invoice.paid_amount)
     : sumMoney(payments.map((p) => Number(p.amount)));

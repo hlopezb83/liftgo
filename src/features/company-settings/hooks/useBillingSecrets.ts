@@ -3,10 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import {
   billingSecretsQueries,
-  type BillingSecretsStatus,
-} from "../lib/queryKeys";
 
-export type { BillingSecretsStatus };
+} from "../lib/queryKeys";
 
 export function useBillingSecrets() {
   return useQuery(billingSecretsQueries.list());

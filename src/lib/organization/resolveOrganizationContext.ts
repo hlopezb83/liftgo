@@ -13,9 +13,9 @@
  * (server function con `requireSupabaseAuth`) para poder probarse sin red.
  */
 
-export type OrganizationMemberType = "internal" | "portal";
+type OrganizationMemberType = "internal" | "portal";
 
-export interface OrganizationContextReady {
+interface OrganizationContextReady {
   status: "ready";
   organizationId: string;
   memberType: OrganizationMemberType;
@@ -23,7 +23,7 @@ export interface OrganizationContextReady {
   customerId: string | null;
 }
 
-export interface OrganizationContextMissing {
+interface OrganizationContextMissing {
   status: "no_membership";
   /** Motivo estable para la UI y las pruebas; nunca expone datos de otra empresa. */
   reason:

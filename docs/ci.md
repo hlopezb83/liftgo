@@ -98,7 +98,9 @@ tiene que correr CI.
 
 
 Knip **no corre en CI**: no puede fallar por una regresión funcional y su
-señal (archivos y dependencias sin uso) se revisa en local con `bun run knip`.
+señal (archivos, dependencias, exports y tipos sin uso) se revisa en local con
+`bun run knip`. La configuración y sus excepciones se explican en
+[architecture-guardrails.md](./architecture-guardrails.md#revisión-de-código-sin-uso-con-knip).
 
 ### Smoke de arranque
 
@@ -300,11 +302,12 @@ Validación extendida a mano: `bun run changelog:check`.
 
 ```bash
 bun run lint --max-warnings=0 && bun run typecheck && bun run arch:check
-bun run knip                    # archivos/dependencias sin uso (no corre en CI)
+bun run knip                    # archivos, dependencias, exports y tipos sin uso (local)
 bun run test:coverage
 bun run build && bun run test:e2e:smoke
 bun run test:functions          # tests Deno offline
-bun run knip:deep               # exports/tipos sin uso (informativo)
+bun run knip:deep               # incluye exports de entradas (informativo)
+bun run test:ci-tools           # restricciones del diagnóstico PostgreSQL (offline)
 ```
 
 ## Versión y artefactos de release

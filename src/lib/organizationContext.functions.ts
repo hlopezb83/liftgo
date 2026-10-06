@@ -12,8 +12,6 @@ import {
   type OrganizationContextResult,
 } from "@/lib/organization/resolveOrganizationContext";
 
-export type { OrganizationContextResult };
-
 export interface OrganizationContextPayload {
   context: OrganizationContextResult | null;
   /** Código de error de verificación; el cliente lo trata como estado de error. */

@@ -72,7 +72,7 @@ export function extractChain(source: string, fromIndex: number): string {
 }
 
 /** ¿El receptor inmediatamente anterior al `.from(` es el cliente privilegiado? */
-export function receiverBefore(
+function receiverBefore(
   source: string,
   dotIndex: number,
 ): string | null {
@@ -105,7 +105,7 @@ const UNTRUSTED_ROOTS =
 const TRUSTED_ORG_VALUE =
   /^(?:[A-Za-z_$][\w$]*\.)?(?:organizationId|orgId|ownOrganizationId|targetOrganizationId|callerOrganizationId)$/;
 
-export function isTrustedOrgValue(expr: string): boolean {
+function isTrustedOrgValue(expr: string): boolean {
   const e = expr.trim().replace(/[,\s)]+$/, "");
   if (!e) return false;
   if (UNTRUSTED_ROOTS.test(e)) return false;
@@ -113,7 +113,7 @@ export function isTrustedOrgValue(expr: string): boolean {
 }
 
 /** Filtros de empresa en la propia cadena (select/update/delete). */
-export function filterScopeOrigin(
+function filterScopeOrigin(
   chain: string,
 ): "trusted" | "untrusted" | "none" {
   let sawAny = false;
@@ -151,7 +151,7 @@ export function filterScopeOrigin(
 }
 
 /** Valor de `organization_id` asignado en el payload de insert/upsert. */
-export function payloadScopeOrigin(
+function payloadScopeOrigin(
   chain: string,
 ): "trusted" | "untrusted" | "none" {
   const re = /\borganization_id\s*:\s*([^,\n}]+)/g;
@@ -164,7 +164,7 @@ export function payloadScopeOrigin(
   return sawAny ? "trusted" : "none";
 }
 
-export function isWrite(chain: string): boolean {
+function isWrite(chain: string): boolean {
   return /\.(insert|upsert)\(/.test(chain);
 }
 

@@ -31,7 +31,7 @@ export interface CashFlowBucket {
 const DATE_FMT = "yyyy-MM-dd";
 
 /** Lunes de la semana (es-MX) para una fecha. */
-export function mondayOf(d: Date): Date {
+function mondayOf(d: Date): Date {
   return startOfWeek(d, { weekStartsOn: 1, locale: APP_LOCALE });
 }
 
@@ -73,7 +73,7 @@ export function buildWeekBuckets(today: Date, weeks: number): CashFlowBucket[] {
   return buckets;
 }
 
-export function findBucketIndex(buckets: CashFlowBucket[], dueDate: string, todayYmd: string): number {
+function findBucketIndex(buckets: CashFlowBucket[], dueDate: string, todayYmd: string): number {
   if (dueDate < todayYmd) return 0;
   for (let i = 1; i < buckets.length; i++) {
     const b = buckets[i];
@@ -82,7 +82,7 @@ export function findBucketIndex(buckets: CashFlowBucket[], dueDate: string, toda
   return -1; // fuera del horizonte
 }
 
-export function applySemaforo(buckets: CashFlowBucket[], initial: number, safetyBuffer: number): void {
+function applySemaforo(buckets: CashFlowBucket[], initial: number, safetyBuffer: number): void {
   let acc = initial;
   for (const b of buckets) {
     b.net = b.inflow - b.outflow;

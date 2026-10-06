@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { feedbackScreenshotUrlKeys } from "../lib/queryKeys";
 
-export const feedbackScreenshotUrlQueries = defineEntityQueries<
+const feedbackScreenshotUrlQueries = defineEntityQueries<
   typeof feedbackScreenshotUrlKeys.all[number],
   string | null,
   never

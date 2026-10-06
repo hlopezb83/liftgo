@@ -40,7 +40,7 @@ export type BusinessBlockCode =
   | "booking_return_already_recorded";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
-export type BusinessBlockTone = "info" | "warning";
+type BusinessBlockTone = "info" | "warning";
 
 export interface BusinessBlock {
   code: BusinessBlockCode;

@@ -38,7 +38,7 @@ export const SUPPLIER_CATEGORIES: Record<string, string> = {
   otro: "Otro",
 };
 
-export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], Supplier | null>("suppliers", {
+const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], Supplier | null>("suppliers", {
   staleTime: 5 * 60_000,
   list: () => async () => {
     const { data, error } = await supabase
@@ -103,7 +103,7 @@ export function useSupplier(id: string | undefined) {
  * que el choque puede venir de un proveedor de otra empresa que el usuario no
  * puede ver. El catálogo central de errores da el mensaje seguro y accionable.
  */
-export function translateSupplierError(err: Error): string {
+function translateSupplierError(err: Error): string {
   const msg = err.message || "";
   if (msg.includes("suppliers_rfc_unique_idx") || (msg.includes("duplicate key") && msg.toLowerCase().includes("rfc"))) {
     return CONSTRAINT_MESSAGES.suppliers_rfc_unique_idx.message;

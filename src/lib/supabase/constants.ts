@@ -26,7 +26,7 @@ export const EXCLUDE_E2E_FILTER = "is_e2e.is.null,is_e2e.eq.false";
 const INCLUDE_E2E_FILTER = "is_e2e.is.null,is_e2e.eq.false,is_e2e.eq.true";
 
 /** Bandera en localStorage que activa la visibilidad de datos E2E en la UI. */
-export const E2E_VISIBILITY_KEY = "liftgo:e2e-visible";
+const E2E_VISIBILITY_KEY = "liftgo:e2e-visible";
 
 /**
  * Las suites de Playwright siembran filas con `is_e2e = true`; si la UI las
@@ -46,7 +46,6 @@ export function isE2eDataVisible(): boolean {
 export function e2eVisibilityFilter(): string {
   return isE2eDataVisible() ? INCLUDE_E2E_FILTER : EXCLUDE_E2E_FILTER;
 }
-
 
 /**
  * True si una lista está realmente truncada. Requiere que el hook haya

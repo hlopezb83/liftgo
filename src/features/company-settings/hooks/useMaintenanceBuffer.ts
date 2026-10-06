@@ -13,7 +13,7 @@ import { useCompanySettings } from "./useCompanySettings";
 
 export const DEFAULT_MAINTENANCE_BUFFER_DAYS = 3;
 
-export interface MaintenanceBufferSetting {
+interface MaintenanceBufferSetting {
   id: string | null;
   days: number;
 }

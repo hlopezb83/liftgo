@@ -18,7 +18,6 @@ export interface ParsedBankLine {
   occurrence: number;
 }
 
-
 export interface ParseResult {
   lines: ParsedBankLine[];
   errors: string[];
@@ -138,7 +137,6 @@ export function parseAmount(value: string): number | null {
   return neg ? -Math.abs(num) : num;
 }
 
-
 /**
  * Hash SHA-256 (Web Crypto) truncado a 20 hex chars (80 bits) — suficiente
  * para evitar colisiones prácticas incluso con decenas de miles de
@@ -150,7 +148,7 @@ export function parseAmount(value: string): number | null {
  * `ignoreDuplicates`. SHA-256 es criptográficamente robusto contra
  * colisiones y async por naturaleza (Web Crypto no expone versión síncrona).
  */
-export async function hashLine(parts: string[]): Promise<string> {
+async function hashLine(parts: string[]): Promise<string> {
   const data = new TextEncoder().encode(parts.join("|"));
   const digest = await crypto.subtle.digest("SHA-256", data);
   const hex = Array.from(new Uint8Array(digest))
@@ -201,7 +199,6 @@ export function assignOccurrences(lines: ParsedBankLine[]): ParsedBankLine[] {
     return { ...l, occurrence: next };
   });
 }
-
 
 /** cargo/abono separados -> abono - |cargo|. */
 export function signedFromChargeCredit(charge: number | null, credit: number | null): number {

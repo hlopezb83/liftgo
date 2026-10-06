@@ -59,7 +59,6 @@ export function emptyRecurringSelection(): RecurringSelectionState {
   };
 }
 
-
 /** Una reserva es seleccionable si es elegible y, si trae aviso de tarifa
  *  modificada, sólo cuando el operador confirmó explícitamente. */
 export function isLineSelectable(line: RecurringPreviewLine, allowStaleRate: boolean): boolean {
@@ -94,7 +93,7 @@ function lineSignature(line: RecurringPreviewLine): string {
 }
 
 /** Firma por línea (reserva + periodo). */
-export function buildSignatures(lines: readonly RecurringPreviewLine[]): Record<string, string> {
+function buildSignatures(lines: readonly RecurringPreviewLine[]): Record<string, string> {
   const out: Record<string, string> = {};
   for (const line of lines) out[recurringLineKey(line)] = lineSignature(line);
   return out;
@@ -188,7 +187,6 @@ export function reconcileRecurringSelection(
 
   return { selected, deselected, known, signatures, history, intentSelected };
 }
-
 
 /** Alterna una reserva registrando la intención explícita del usuario. */
 export function toggleRecurringSelection(

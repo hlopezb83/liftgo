@@ -41,7 +41,7 @@ function errorCode(error: unknown): string | undefined {
  * Mensaje claro ante conflictos inesperados del índice único de cuenta primaria.
  * La función de base de datos serializa los cambios normales por proveedor.
  */
-export function bankAccountMutationErrorMessage(error: Error): string {
+function bankAccountMutationErrorMessage(error: Error): string {
   const message = error.message ?? "";
   if (errorCode(error) === "23505" && new RegExp(PRIMARY_UNIQUE_INDEX, "i").test(message)) {
     return "Ya existe una cuenta primaria para este proveedor. Actualiza la lista y desmarca la primaria actual antes de continuar.";
@@ -56,7 +56,7 @@ export function maskClabe(clabe: string | null): string {
   return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
 }
 
-export const supplierBankAccountQueries = defineEntityQueries<
+const supplierBankAccountQueries = defineEntityQueries<
   "supplier_bank_accounts",
   SupplierBankAccount[],
   never

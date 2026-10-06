@@ -17,7 +17,7 @@ import type {
 import type { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import type { Payment } from "../../hooks/usePayments";
 
-export function CnBadge({ cn }: { cn: CreditNote }) {
+function CnBadge({ cn }: { cn: CreditNote }) {
   if (cn.cfdi_status === "stamped") {
     if (cn.cancellation_status === "pending") {
       return <Badge variant="outline" className="border-warning/30 text-warning">Cancel. pendiente</Badge>;
@@ -81,7 +81,7 @@ export function CreditNoteNotices({
   );
 }
 
-export interface CreditNoteActionsProps {
+interface CreditNoteActionsProps {
   cn: CreditNote;
   stampMutation: ReturnType<typeof useStampCreditNote>;
   deleteMutation: ReturnType<typeof useDeleteCreditNote>;
@@ -90,7 +90,7 @@ export interface CreditNoteActionsProps {
   setCancelTarget: (cn: CreditNote | null) => void;
 }
 
-export function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget }: CreditNoteActionsProps) {
+function CreditNoteActions({ cn, stampMutation, deleteMutation, refreshCancelMutation, confirm, setCancelTarget }: CreditNoteActionsProps) {
   const canWrite = useHasModuleAccess("Facturas", "full");
   return (
     <div className="flex items-center justify-end gap-1">

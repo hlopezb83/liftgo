@@ -1,10 +1,12 @@
 {
-  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "$schema": "https://unpkg.com/knip@6/schema-jsonc.json",
   "entry": [
     // TanStack Start: entradas reales del build SSR (router/start/server).
     "src/router.tsx",
     "src/start.ts",
     "src/server.ts",
+    // Limpieza manual documentada; nunca se ejecuta durante el análisis.
+    "scripts/cleanup-e2e.ts",
     // Edge functions desplegadas en Supabase: son entrypoints propios,
     // no las importa src/ (cron, webhooks y llamadas invoke las referencian).
     "supabase/functions/**/index.ts",
@@ -23,6 +25,8 @@
   ],
 
   "ignoreDependencies": [
+    // drizzle-kit carga el ORM en tiempo de ejecución para `migrate` (CI RLS/A-B).
+    "drizzle-orm",
     "lovable-tagger",
     "tailwindcss-animate",
     "tw-animate-css",

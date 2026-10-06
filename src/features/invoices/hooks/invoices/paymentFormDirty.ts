@@ -9,7 +9,7 @@ import { toYMD } from "@/lib/format/dateFormats";
 import { nowMty } from "@/lib/utils";
 import { satCodeForMethod } from "../../lib/paymentMethods";
 
-export const DEFAULT_PAYMENT_METHOD = "transfer";
+const DEFAULT_PAYMENT_METHOD = "transfer";
 
 export interface PaymentFormSnapshot {
   amount: string;

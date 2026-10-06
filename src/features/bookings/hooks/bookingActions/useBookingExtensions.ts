@@ -73,7 +73,7 @@ export function useBookingExtension(extensionId?: string) {
 }
 
 /** Estados de factura que ya cuentan como emitida (no borrador, no cancelada). */
-export function isIssuedInvoiceStatus(status: string | null | undefined): boolean {
+function isIssuedInvoiceStatus(status: string | null | undefined): boolean {
   return !!status && status !== "draft" && status !== "cancelled";
 }
 
@@ -119,7 +119,6 @@ export function useLinkExtensionInvoice() {
     errorTitle: "Error al ligar la extensión con la factura",
   });
 }
-
 
 /**
  * Extiende una reserva vía RPC atómica `extend_booking`.

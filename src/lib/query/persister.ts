@@ -14,7 +14,7 @@
  * usuario u otra empresa.
  */
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { isForeignPersistedCacheKey, persistedCacheKey, PERSIST_KEY_PREFIX } from "./identityScope";
+import { isForeignPersistedCacheKey, persistedCacheKey } from "./identityScope";
 import type { Query } from "@tanstack/react-query";
 
 // Claves globales (sin identidad) de versiones anteriores: se eliminan siempre.
@@ -44,7 +44,7 @@ export function purgeForeignPersistedCaches(storage: Storage, scope: string | nu
   }
 }
 
-export { PERSIST_KEY_PREFIX, persistedCacheKey };
+export {  persistedCacheKey };
 
 /**
  * Prefijos de queryKey que se persisten en disco.

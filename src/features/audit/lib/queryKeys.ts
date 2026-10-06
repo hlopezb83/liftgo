@@ -9,11 +9,9 @@ export {
   auditKeys,
   readAuditLogFilters,
   buildLabel,
-  normalizeJson,
 } from "./auditQueryContracts";
 export type {
   AuditLog,
-  AuditSource,
   AuditOrigin,
   AuditLogFilters,
   LabelProjectionRow,

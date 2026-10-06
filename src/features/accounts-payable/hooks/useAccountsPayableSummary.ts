@@ -4,7 +4,7 @@ import type { Json } from "@/integrations/supabase/types";
 import { supplierBillKeys } from "./useSupplierBills";
 import type { AccountsPayableKpis } from "./useAccountsPayableKpis";
 
-export interface AccountsPayableSummary {
+interface AccountsPayableSummary {
   kpis: AccountsPayableKpis;
   availableMonths: string[];
 }

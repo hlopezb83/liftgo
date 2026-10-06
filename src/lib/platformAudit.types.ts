@@ -63,7 +63,6 @@ export const platformAuditPageSchema = z.object({
   has_more: z.boolean(),
 });
 export type PlatformAuditEvent = z.infer<typeof platformAuditEventSchema>;
-export type PlatformAuditPage = z.infer<typeof platformAuditPageSchema>;
 export const platformAuditInputSchema = z.object({
   organization_id: z.uuid().optional(),
   target_type: z.enum(PLATFORM_AUDIT_TARGETS).optional(),

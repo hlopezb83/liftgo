@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 
-export interface InvoiceWithBalance {
+interface InvoiceWithBalance {
   id: string;
   invoice_number: string;
   customer_name: string | null;
@@ -28,7 +28,6 @@ export interface InvoiceWithBalance {
   moneda: string | null;
   tipo_cambio: number | null;
 }
-
 
 interface Filter {
   /** Estados a incluir. Default: ['sent','partial','overdue']. */

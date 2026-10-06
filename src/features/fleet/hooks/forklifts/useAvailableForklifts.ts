@@ -8,7 +8,7 @@ import type { DateRange } from "react-day-picker";
 
 type Forklift = Tables<"forklifts">;
 
-export const availableForkliftsQueries = defineEntityQueries<typeof forkliftKeys.all[number], Forklift[], never>(
+const availableForkliftsQueries = defineEntityQueries<typeof forkliftKeys.all[number], Forklift[], never>(
   "forklifts",
   {
     list: (filter) => async () => {

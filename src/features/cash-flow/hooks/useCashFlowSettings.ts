@@ -4,8 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { CashFlowSettings } from "../lib/queryKeys";
 
-export type { CashFlowSettings };
-
 /**
  * Tanda 3 P3-10.1: derivamos de `useCompanySettings()` en vez de mantener
  * una query paralela contra la misma fila singleton de `company_settings`.
@@ -22,7 +20,6 @@ export function useCashFlowSettings() {
   }, [q.data, q.isSuccess]);
   return { ...q, data } as typeof q & { data: CashFlowSettings | undefined };
 }
-
 
 export function useUpdateCashFlowSettings() {
   return useEntityMutation<

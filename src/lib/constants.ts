@@ -1,7 +1,7 @@
 import { Constants } from "@/integrations/supabase/types";
 import type { AppRole } from "@/lib/domain/roles";
 
-export const APP_ROLES = Constants.public.Enums.app_role;
+const APP_ROLES = Constants.public.Enums.app_role;
 export const STAFF_ROLES = APP_ROLES.filter((r): r is Exclude<AppRole, "customer"> => r !== "customer");
 
 export const ROLE_LABELS: Record<AppRole, string> = {

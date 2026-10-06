@@ -16,7 +16,7 @@ import { formatMtyDate, nowMty } from "@/lib/utils";
 
 export const APP_LOCALE = es;
 
-export const DATE_PATTERNS = {
+const DATE_PATTERNS = {
   dateShort: "dd/MM/yyyy",
   dateTime: "dd/MM/yyyy HH:mm",
   dateLong: "dd 'de' MMMM 'de' yyyy",
@@ -30,7 +30,6 @@ export const formatDateMty = (value: Date | string | null | undefined): string =
 
 export const formatDateTimeMty = (value: Date | string | null | undefined): string =>
   formatMtyDate(value, DATE_PATTERNS.dateTime);
-
 
 export const formatDayMonthMty = (value: Date | string | null | undefined): string =>
   formatMtyDate(value, DATE_PATTERNS.dayMonthShort);

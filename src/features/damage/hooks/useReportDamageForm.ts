@@ -8,7 +8,7 @@ import { useSaveManualDamageReport } from "./useDamageRecords";
 
 export interface DamagePreview { file: File; url: string }
 
-export const reportDamageSchema = z.object({
+const reportDamageSchema = z.object({
   forkliftId: z.string().min(1, "Selecciona un montacargas"),
   customerId: z.string().default(""),
   description: z.string().trim().min(1, "Describe el daño"),
@@ -54,7 +54,6 @@ export function useReportDamageForm(onClose: () => void) {
       return [...prev, ...added];
     });
   };
-
 
   const removePreview = (index: number) => {
     setPreviews((prev) => {

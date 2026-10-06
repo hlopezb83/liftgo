@@ -2,7 +2,7 @@
 export const BLOCKED_PRODUCTION_REF = "zxefrzfaynnfwazqhwxp";
 export const DATABASE_URL_ENV = "RESTORE_REHEARSAL_DATABASE_URL";
 export const EXPECTED_REF_ENV = "RESTORE_REHEARSAL_EXPECTED_REF";
-export const MASKED_DSN = "postgresql://***:***@***/***";
+const MASKED_DSN = "postgresql://***:***@***/***";
 const REF_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]{2,63}$/;
 
 export function maskSecrets(text: string, secrets: readonly string[] = []): string {

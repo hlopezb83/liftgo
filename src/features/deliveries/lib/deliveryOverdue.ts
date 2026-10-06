@@ -23,7 +23,7 @@ export function deliveryOverdueDays(delivery: DeliveryLike): number {
   return days > 0 ? days : 0;
 }
 
-export function isDeliveryOverdue(delivery: DeliveryLike): boolean {
+function isDeliveryOverdue(delivery: DeliveryLike): boolean {
   return deliveryOverdueDays(delivery) > 0;
 }
 

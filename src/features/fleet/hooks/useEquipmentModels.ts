@@ -33,7 +33,7 @@ type LocalEquipmentModelInput = {
   default_monthly_rate?: number;
 };
 
-export const equipmentModelQueries = defineEntityQueries<"equipment_models", EquipmentModel[], never>(
+const equipmentModelQueries = defineEntityQueries<"equipment_models", EquipmentModel[], never>(
   "equipment_models",
   {
     staleTime: 5 * 60_000,

@@ -12,7 +12,7 @@ const PART_COLUMNS = sel("id, catalog_part_id, name, sku, category, stock_quanti
 export type PartInventory = Tables<"parts_inventory">;
 export type PartCatalog = Tables<"parts_catalog">;
 
-export const partsInventoryQueries = defineEntityQueries<"parts_inventory", PartInventory[], never>(
+const partsInventoryQueries = defineEntityQueries<"parts_inventory", PartInventory[], never>(
   "parts_inventory",
   {
     list: () => async () => {
@@ -68,8 +68,6 @@ export function useMaintenanceParts(maintenanceLogId?: string) {
 }
 
 export {
-  useCreatePart,
-  useActivateCatalogPart,
   useUpdatePart,
   useAdjustPartStock,
   useDeletePart,

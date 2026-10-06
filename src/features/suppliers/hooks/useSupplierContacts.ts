@@ -31,7 +31,7 @@ export const SUPPLIER_CONTACT_ROLES = [
   "Otro",
 ] as const;
 
-export const supplierContactQueries = defineEntityQueries<
+const supplierContactQueries = defineEntityQueries<
   "supplier_contacts",
   SupplierContact[],
   never

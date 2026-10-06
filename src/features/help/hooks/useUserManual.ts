@@ -7,13 +7,13 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { userManualKeys, userManualVersionKeys } from "../lib/queryKeys";
 
-export interface ManualSection {
+interface ManualSection {
   title: string;
   icon: string;
   content: string;
 }
 
-export interface UserManual {
+interface UserManual {
   id: string;
   version: string;
   content: ManualSection[];
@@ -21,7 +21,7 @@ export interface UserManual {
   updated_at: string;
 }
 
-export const userManualVersionQueries = defineEntityQueries<
+const userManualVersionQueries = defineEntityQueries<
   typeof userManualVersionKeys.all[number],
   { id: string; version: string; generated_at: string }[],
   never
@@ -36,7 +36,7 @@ export const userManualVersionQueries = defineEntityQueries<
   },
 });
 
-export const userManualQueries = defineEntityQueries<
+const userManualQueries = defineEntityQueries<
   typeof userManualKeys.all[number],
   UserManual | null,
   never

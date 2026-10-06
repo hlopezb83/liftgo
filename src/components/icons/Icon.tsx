@@ -9,7 +9,7 @@ import type { LucideIcon } from "lucide-react";
  *   lg → 24  (empty states, hero secundario)
  *   xl → 32  (empty states principales)
  */
-export type IconSize = "xs" | "sm" | "md" | "lg" | "xl";
+type IconSize = "xs" | "sm" | "md" | "lg" | "xl";
 
 const SIZE_CLASS: Record<IconSize, string> = {
   xs: "h-3 w-3",

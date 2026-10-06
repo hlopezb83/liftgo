@@ -30,7 +30,5 @@ export { SwitchField } from "./SwitchField";
 export { NumberField } from "./NumberField";
 export { CurrencyField } from "./CurrencyField";
 export { DateField } from "./DateField";
-export { DateRangeField } from "./DateRangeField";
-export { CustomerField } from "./CustomerField";
+
 export { SupplierField } from "./SupplierField";
-export { ForkliftField } from "./ForkliftField";

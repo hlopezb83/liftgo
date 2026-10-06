@@ -12,7 +12,7 @@ import {
   useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog,
 } from "./useMaintenanceLogs";
 
-export { maintenanceFormSchema, type MaintenanceFormValues };
+export {  type MaintenanceFormValues };
 
 type ForkliftMap = Map<string, Tables<"forklifts">>;
 interface AvailablePrompt { forkliftId: string; forkliftName: string }

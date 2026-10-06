@@ -7,7 +7,7 @@ import { normalizeCfdiErrorText } from "./formatStoredCfdiError";
  * Todo esto termina en el `ErrorDetailsDialog` para que soporte administrativo
  * lo pegue en un ticket sin pedirle capturas al usuario.
  */
-export interface CfdiErrorContext {
+interface CfdiErrorContext {
   /** Folio del documento (FAC-0001, NC-0007…). */
   folio?: string | null;
   /** RFC del receptor tal como se envió al PAC. */

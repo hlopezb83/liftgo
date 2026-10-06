@@ -7,8 +7,6 @@ export const LOST_REASONS = [
   { value: "otro", label: "Otro" },
 ] as const;
 
-export type LostReason = (typeof LOST_REASONS)[number]["value"];
-
 export const LOST_REASON_LABELS: Record<string, string> = Object.fromEntries(
   LOST_REASONS.map((r) => [r.value, r.label])
 );

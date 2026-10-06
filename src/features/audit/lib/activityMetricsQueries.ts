@@ -22,12 +22,12 @@ export interface ActivityMetricsRpcPayload {
 // del queryFn. Se normaliza como `readActivityFeedFilter` (dashboard): sólo
 // se acepta un Date válido o un string parseable a fecha válida; si no, cae
 // a "ahora".
-export function parseRangeDate(raw: unknown): Date {
+function parseRangeDate(raw: unknown): Date {
   const d = raw instanceof Date ? raw : typeof raw === "string" ? new Date(raw) : null;
   return d && !Number.isNaN(d.getTime()) ? d : new Date();
 }
 
-export function readActivityRange(filter: Readonly<Record<string, unknown>> | undefined): ActivityRange {
+function readActivityRange(filter: Readonly<Record<string, unknown>> | undefined): ActivityRange {
   return {
     from: parseRangeDate(filter?.from),
     to: parseRangeDate(filter?.to),

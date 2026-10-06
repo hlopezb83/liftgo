@@ -8,9 +8,6 @@ export * from "./hooks/usePayments";
 export * from "./lib/queryKeys";
 export { downloadCfdiBlob } from "./lib/downloadCfdiBlob";
 export {
-  useAdminPaymentIntents,
   usePortalPaymentIntents,
   useCreatePaymentIntent,
-  useReviewPaymentIntent,
-  type PaymentIntentInput,
 } from "./hooks/paymentIntents";

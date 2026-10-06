@@ -5,7 +5,7 @@ import {
 import type { OrganizationGovernanceInput } from "@/lib/platformOrganizationGovernance.types";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 
-export const organizationGovernanceKeys = {
+const organizationGovernanceKeys = {
   list: ["platform", "organization-governance"] as const,
   detail: (id: string) => ["platform", "organization-governance", id] as const,
 };

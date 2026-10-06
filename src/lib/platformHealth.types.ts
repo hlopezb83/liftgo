@@ -17,7 +17,7 @@ export const integrationCheckInputSchema = z.object({ organizationId: z.string()
 export type IntegrationCheckInput = z.infer<typeof integrationCheckInputSchema>;
 const checkSchema = z.object({ status: integrationStatusSchema, startedAt: z.string(), completedAt: z.string().nullable(),
   latencyMs: z.number().int().nonnegative().nullable(), httpStatus: z.number().int().nullable(), version: z.string().nullable() });
-export const integrationRowSchema = z.object({ id: z.string().uuid(), name: z.string(), active: z.boolean(),
+const integrationRowSchema = z.object({ id: z.string().uuid(), name: z.string(), active: z.boolean(),
   mode: z.enum(["test", "live"]).nullable(), keyConfigured: z.boolean(), lastCheck: checkSchema.nullable(),
   queuedJobs: z.number().int().nonnegative(), exhaustedJobs: z.number().int().nonnegative() });
 export type IntegrationRow = z.infer<typeof integrationRowSchema>;

@@ -87,7 +87,7 @@ function compareSemver(a: string, b: string): number {
   return comparePre(sb.pre, sa.pre);
 }
 
-export function sortEntries<T extends { date: string; version: string }>(entries: T[]): T[] {
+function sortEntries<T extends { date: string; version: string }>(entries: T[]): T[] {
   return [...entries].sort((a, b) => {
     if (a.date !== b.date) return a.date < b.date ? 1 : -1;
     return compareSemver(a.version, b.version);
@@ -120,7 +120,6 @@ export async function fetchChangelogIndex(): Promise<ChangelogIndexEntry[]> {
 export async function fetchChangelogArchive(): Promise<ChangelogIndexEntry[]> {
   return fetchIndexFrom("/changelog.json");
 }
-
 
 export async function fetchChangelogDetail(version: string): Promise<ChangelogDetail> {
   const res = await fetch(`/changelog/v${version}.json`, { cache: "default" });

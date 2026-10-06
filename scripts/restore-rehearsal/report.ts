@@ -1,8 +1,8 @@
 import { findSensitiveLeak } from "./masking";
 import type { TimingResult } from "./timing";
 
-export const REPORT_SCHEMA = "liftgo.restore-rehearsal";
-export const REPORT_SCHEMA_VERSION = 1;
+const REPORT_SCHEMA = "liftgo.restore-rehearsal";
+const REPORT_SCHEMA_VERSION = 1;
 export const MASKED_TARGET = "isolated-restore-target";
 
 export interface TableCount { table: string; rows: number }

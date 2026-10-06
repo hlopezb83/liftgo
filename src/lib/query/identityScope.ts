@@ -22,7 +22,7 @@ export function buildIdentityScope(identity: VerifiedIdentity | null): string | 
 }
 
 /** Clave de almacenamiento persistido para una identidad verificada. */
-export const PERSIST_KEY_PREFIX = "liftgo:rq-cache:v4";
+const PERSIST_KEY_PREFIX = "liftgo:rq-cache:v4";
 
 export function persistedCacheKey(scope: string): string {
   return `${PERSIST_KEY_PREFIX}:${scope}`;
@@ -39,7 +39,7 @@ export function isForeignPersistedCacheKey(storageKey: string, scope: string | n
  * con los datos de la sesión anterior, porque volver a limpiarla al refetchear
  * dejaría la aplicación en un ciclo de verificación.
  */
-export const IDENTITY_QUERY_ROOT = "organization-context";
+const IDENTITY_QUERY_ROOT = "organization-context";
 
 export function isIdentityQueryKey(queryKey: readonly unknown[]): boolean {
   return queryKey[0] === IDENTITY_QUERY_ROOT;

@@ -37,7 +37,7 @@ export async function openStorageFile(
  *    generó el enlace);
  *  - cualquier otra URL se rechaza (fail-closed) en lugar de abrirse.
  */
-export function parseStorageUrl(
+function parseStorageUrl(
   url: string,
 ): { bucket: string; path: string } | null {
   let parsed: URL;

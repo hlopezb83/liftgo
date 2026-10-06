@@ -14,7 +14,7 @@ import { z } from "zod";
  *   03 → No se llevó a cabo la operación
  *   04 → Operación nominativa relacionada en factura global
  */
-export const UUID_RE =
+const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const cancelCfdiSchema = z

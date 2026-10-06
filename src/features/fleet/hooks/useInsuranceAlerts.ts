@@ -3,7 +3,7 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 import { insuranceAlertsKeys } from "../lib/queryKeys";
 
-export interface InsuranceExpiringItem {
+interface InsuranceExpiringItem {
   id: string;
   name: string;
   insurance_expiry: string;
@@ -16,7 +16,7 @@ export interface InsuranceAlertsData {
   no_insurance_count: number;
 }
 
-export const insuranceAlertsQueries = defineEntityQueries<"insurance-alerts", InsuranceAlertsData, never>(
+const insuranceAlertsQueries = defineEntityQueries<"insurance-alerts", InsuranceAlertsData, never>(
   insuranceAlertsKeys.all[0],
   {
     list: () => () => callRpc<InsuranceAlertsData>("get_insurance_alerts"),

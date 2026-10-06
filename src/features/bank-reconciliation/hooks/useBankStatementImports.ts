@@ -12,8 +12,7 @@ import { bankImportKeys, bankLineKeys } from "../lib/queryKeys";
  */
 const IMPORT_LINES_STATS_LIMIT = LIST_FETCH_LIMIT * LIST_FETCH_LIMIT;
 
-
-export interface BankStatementImportRow {
+interface BankStatementImportRow {
   id: string;
   bank_account_id: string;
   file_name: string;
@@ -28,7 +27,7 @@ export interface BankStatementImportRow {
   total_count: number;
 }
 
-export const bankImportQueries = defineEntityQueries<
+const bankImportQueries = defineEntityQueries<
   "bank_statement_imports",
   BankStatementImportRow[],
   never

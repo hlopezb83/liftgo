@@ -59,8 +59,7 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/activity": "Auditoría",
 };
 
-
-export const rolePermissionKeys = createEntityKeys("role_permissions");
+const rolePermissionKeys = createEntityKeys("role_permissions");
 
 export function useRolePermissions() {
   const { user } = useAuth();

@@ -19,7 +19,7 @@ export interface MaintenancePolicy {
   forklift_status?: string;
 }
 
-export const maintenancePolicyQueries = defineEntityQueries<"maintenance_policies", MaintenancePolicy[], never>(
+const maintenancePolicyQueries = defineEntityQueries<"maintenance_policies", MaintenancePolicy[], never>(
   "maintenance_policies",
   {
     list: () => async () => {

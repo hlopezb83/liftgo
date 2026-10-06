@@ -4,7 +4,7 @@ import { finder } from "@medv/finder";
  * Calcula un selector CSS único usando @medv/finder.
  * Genera selectores cortos, estables y verificadamente únicos en el DOM.
  */
-export function computeCssPath(el: Element): string {
+function computeCssPath(el: Element): string {
   try {
     return finder(el, {
       className: (name) =>

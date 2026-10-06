@@ -10,7 +10,7 @@ export type MaintenanceLabor = Tables<"maintenance_labor"> & {
   mechanics?: { id: string; name: string } | null;
 };
 
-export const maintenanceLaborKeys = createEntityKeys("maintenance_labor");
+const maintenanceLaborKeys = createEntityKeys("maintenance_labor");
 
 export function useMaintenanceLabor(maintenanceLogId: string | null | undefined) {
   return useQuery({

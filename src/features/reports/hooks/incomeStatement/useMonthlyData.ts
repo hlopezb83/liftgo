@@ -51,8 +51,7 @@ interface RpcResult {
   fx_missing?: { invoices?: number; supplier_bills?: number };
 }
 
-
-export const incomeStatementQueries = defineEntityQueries<
+const incomeStatementQueries = defineEntityQueries<
   typeof incomeStatementKeys.all[number],
   RpcResult,
   never

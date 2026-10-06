@@ -12,7 +12,7 @@ export type SqlClient = {
   unsafe: (query: string, params?: any[]) => Promise<any[]>;
 };
 
-export const OPERATIONAL_TABLES = [
+const OPERATIONAL_TABLES = [
   "organizations",
   "organization_memberships",
   "customers",
@@ -27,7 +27,7 @@ export const OPERATIONAL_TABLES = [
   "user_roles",
 ] as const;
 
-export const STORAGE_REFERENCE_SPECS = [
+const STORAGE_REFERENCE_SPECS = [
   { table: "documents", column: "file_url", bucket: "documents" },
   { table: "feedback_reports", column: "screenshot_url", bucket: "feedback-screenshots" },
   { table: "customer_payment_intents", column: "proof_url", bucket: "payment-proofs" },

@@ -4,14 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { portalQueries, type PortalQuoteListRow } from "../lib/queryKeys";
 
-export function usePortalQuotes() {
-  const { user } = useAuth();
-  return useQuery({
-    ...portalQueries.quotes.list(),
-    enabled: !!user,
-  });
-}
-
 export function usePortalQuotesPage(page: number, pageSize = 25) {
   const { user } = useAuth();
   const safePage = Math.max(1, page);

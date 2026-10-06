@@ -4,6 +4,4 @@
  */
 export type {
   CustomerSummary,
-  CustomerSummaryBooking,
-  CustomerSummaryInvoice,
 } from "@/lib/domain/customerTypes";
