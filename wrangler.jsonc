@@ -2,8 +2,8 @@
   "name": "liftgo",
   "compatibility_date": "2026-09-07",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "./dist/server/index.mjs",
-  "assets": { "directory": "./dist/client" },
+  // Nitro genera main y assets en dist/server/wrangler.json tras el build.
+  // Wrangler usa esa salida mediante .wrangler/deploy/config.json.
   // `wrangler dev` re-empaqueta el worker con esbuild y por defecto activa
   // keep_names, que inserta llamadas al helper `__name(fn, "…")` DENTRO del
   // cuerpo de las funciones. next-themes serializa su script anti-parpadeo con
