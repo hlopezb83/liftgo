@@ -258,11 +258,17 @@ con todas las migraciones y la validación del journal Drizzle.
 | Workflow | Cuándo | Nota |
 | --- | --- | --- |
 | `gitleaks.yml` | PR, push, manual | Sin cron: un secreto solo entra por push o PR. Permiso `contents: read`; `GITLEAKS_ENABLE_COMMENTS` fijado a `"false"` (su default es `true` y pediría `pull-requests: write`), reporte en el resumen |
-| `codeql.yml` | Semanal (lunes 12:00 UTC), manual | Fuera del camino crítico del PR |
+| `codeql.yml` | Semanal (lunes 12:00 UTC), manual | JavaScript/TypeScript, GitHub Actions y Python en tres jobs paralelos; fuera del camino crítico del PR |
 | `prod-smoke.yml` | Cada hora (minuto 17), manual | Dos peticiones de **lectura**; abre issue en fallo |
 
 El minuto 17 evita la congestión del minuto 0 en GitHub Actions, que retrasaba
 o saltaba corridas.
+
+CodeQL analiza los workflows y los scripts Python sin ejecutar los scripts ni
+instalar las dependencias de la aplicación. El job existente de JavaScript/
+TypeScript conserva su identidad; el job `analyze-tooling` usa una matriz para
+Actions y Python con `fail-fast: false`, de modo que un fallo no cancela el otro
+análisis. Cada lenguaje publica una categoría estable `/language:<lenguaje>`.
 
 ## Changelog y versión
 
