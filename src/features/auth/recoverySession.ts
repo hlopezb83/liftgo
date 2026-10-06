@@ -126,8 +126,8 @@ export function resetRecoveryForTests(): void {
  * ni el detalle textual del proveedor.
  */
 export function detectRecoveryFromHref(href: string): RecoveryStatus {
-  let hash = "";
-  let query = "";
+  let hash: string;
+  let query: string;
   try {
     const url = new URL(href, "http://localhost");
     hash = url.hash.replace(/^#/, "");

@@ -18,6 +18,7 @@ export function useClassifyFeedback() {
         if (/ya tiene clasificaci/i.test(msg)) {
           throw new Error(
             "Este reporte ya tiene clasificación AI. Usa «Reclasificar» para sobrescribirla.",
+            { cause: error },
           );
         }
         throw error;
