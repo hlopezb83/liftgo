@@ -109,6 +109,12 @@ real con `wrangler dev` (el mismo empaquetado que se publica). Es el único
 check que detecta fallos de empaquetado, como el `__name is not defined` que
 rompía toda la app.
 
+Nitro genera `dist/server/wrangler.json`, incluida la entrada `main` y el binding
+`ASSETS`, y registra esa salida en `.wrangler/deploy/config.json`. El archivo raíz
+`wrangler.jsonc` conserva el nombre, la fecha de compatibilidad y `keep_names`,
+sin duplicar las rutas que Nitro reemplaza. `bun run preview` requiere un build
+previo; el smoke comprueba esta configuración real.
+
 No se limita a cargar: **interactúa**. En `/` (acceso de empleados) alterna
 mostrar/ocultar contraseña y cambia el formulario a "restablecer contraseña" y
 de vuelta; en `/portal/login` hace lo equivalente. Eso ejercita hidratación,
@@ -407,3 +413,31 @@ TODOS los procesos y ejecutar una vez E2E_FINAL_CLEANUP=1 bun scripts/cleanup-e2
 con la configuración del backend aislado. Login, purga o apagado del seed fallidos
 hacen fallar ese paso; no se toma el mayor índice como último en terminar.
 La limpieza por scope sigue activa durante cada prueba.
+
+## Advertencias de empaquetado
+
+Revisión del 5 de octubre de 2026, con Vite 8.3.2, Rolldown 1.2.11,
+Nitro 3.0.260603-beta, React PDF 4.6.1 y Wrangler 4.147.0:
+
+- `Some chunks are larger than 500 kB`: el renderer de PDF ronda 1.2 MB sin
+  comprimir y se importa sólo al descargar documentos. Mantener la carga
+  diferida; dividir ese motor únicamente para ocultar el aviso no reduce sus
+  bytes totales ni prueba una mejora de rendimiento.
+- `IMPORT_IS_UNDEFINED` en `@react-pdf/font`: su ruta para archivos del sistema
+  llama a `fontkit.open`, que la distribución browser no exporta. LiftGo usa
+  las fuentes estándar Helvetica y no registra archivos locales. Si se añaden
+  fuentes, usar URLs o datos compatibles con el navegador y probar un PDF real.
+- `MODULE_LEVEL_DIRECTIVE`, `inlineDynamicImports` y el nombre de grupo sin
+  `debugName` provienen del empaquetado SSR de dependencias/Nitro. Conservar
+  los diagnósticos y validar el arranque; no editar `node_modules`, agregar
+  filtros generales ni modificar el orden de ejecución sólo para silenciarlos.
+- El reporte de stdout/stderr `EPIPE` de Wrangler está cerrado por
+  [Cloudflare #15323](https://github.com/cloudflare/workers-sdk/pull/15323).
+  La versión 4.147.0 ya registra sus handlers en el CLI. Esto no garantiza
+  que todos los errores de procesos o red sean equivalentes: ante un nuevo
+  fallo, conservar el log, distinguir Wrangler de workerd y comprobar que
+  el servidor realmente siga atendiendo peticiones.
+
+Las advertencias anteriores no sustituyen la validación de errores de página,
+hidratación, descargas o rendimiento. El límite de chunks y los demás avisos
+se mantienen activos.
