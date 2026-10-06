@@ -5,7 +5,7 @@ import type { ColumnAlign, ColumnKind } from "./types";
  * Los callers pasan `meta: { kind: "money" }` y DataTableV2 aplica
  * alineación + font-mono/tabular-nums automáticamente.
  */
-export const KIND_DEFAULTS: Record<
+const KIND_DEFAULTS: Record<
   ColumnKind,
   { align: ColumnAlign; className: string }
 > = {

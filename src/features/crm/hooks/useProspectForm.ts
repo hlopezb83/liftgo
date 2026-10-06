@@ -10,7 +10,6 @@ import {
 import { quoteDealValueMxn } from "../lib/quoteDealValue";
 import type { Prospect } from "./useProspects";
 
-export { STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
 export { STAGE_LABELS } from "../lib/constants";
 export type { ProspectFormPayload } from "../lib/prospectFormSchema";
 

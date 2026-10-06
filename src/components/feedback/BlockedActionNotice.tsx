@@ -5,7 +5,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import type { ReactNode } from "react";
 
-export interface BlockedActionLink {
+interface BlockedActionLink {
   label: string;
   /** Ruta interna (usar constantes de `ROUTES`). */
   to: string;

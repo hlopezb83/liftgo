@@ -8,7 +8,7 @@ const BOOKING_COLORS = [
   "hsl(var(--gantt-5))", "hsl(var(--gantt-6))", "hsl(var(--gantt-7))", "hsl(var(--gantt-8))",
 ];
 
-export function hashColor(name: string): string {
+function hashColor(name: string): string {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
   return BOOKING_COLORS[Math.abs(h) % BOOKING_COLORS.length];
@@ -129,7 +129,6 @@ export function useGanttSegments(
     }
     return segments;
   };
-
 
   const customerColorMap = (() => {
     const map = new Map<string, string>();

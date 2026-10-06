@@ -7,7 +7,7 @@ import { loadMapping } from "./mappingStorage";
 import type { ParseResult } from "../../lib/bankParseUtils";
 
 /** Un XML siempre abre con `<`, aun cuando el perfil o la extensión digan otra cosa. */
-export const isXmlContent = (content: string) => content.trimStart().startsWith("<");
+const isXmlContent = (content: string) => content.trimStart().startsWith("<");
 
 export function shouldUseXml(text: string, profile: StatementProfile, fileName: string): boolean {
   return isXmlContent(text)

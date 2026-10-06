@@ -27,7 +27,7 @@ const PAYMENT_COLUMNS = sel(
   "e2e_scope, is_e2e",
 );
 
-export const paymentQueries = defineEntityQueries<"payments", Payment[], never>("payments", {
+const paymentQueries = defineEntityQueries<"payments", Payment[], never>("payments", {
   list: (filter) => async () => {
     const invoiceId = filter?.invoiceId as string | undefined;
     let q = supabase

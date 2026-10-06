@@ -4,7 +4,7 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { mapProspectRow } from "../lib/prospectMapper";
 import type { Prospect, ProspectRow } from "../lib/prospectTypes";
 
-export type { Prospect, ProspectRow } from "../lib/prospectTypes";
+export type { Prospect } from "../lib/prospectTypes";
 
 export type ProspectInsert = Omit<
   ProspectRow,
@@ -31,7 +31,7 @@ const PROSPECT_COLUMNS =
   "id, company_name, contact_person, email, phone, deal_value, stage, stage_order, notes, quote_id, customer_id, created_by, created_at, updated_at, closed_at, lost_reason, final_amount" as const;
 const PROSPECT_PAGE_SIZE = 500;
 
-export const prospectQueries = defineEntityQueries<"prospects", Prospect[], never>("prospects", {
+const prospectQueries = defineEntityQueries<"prospects", Prospect[], never>("prospects", {
   list: () => async () => {
     const rows: ProspectRow[] = [];
     for (let offset = 0; ; offset += PROSPECT_PAGE_SIZE) {

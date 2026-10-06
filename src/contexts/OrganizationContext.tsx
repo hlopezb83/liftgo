@@ -13,7 +13,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { OrganizationContextResult } from "@/lib/organization/resolveOrganizationContext";
 import { getOrganizationContext } from "@/lib/organizationContext.functions";
 
-
 export type OrganizationContextState =
   | { status: "signed-out" }
   | { status: "loading" }
@@ -28,7 +27,7 @@ export type OrganizationContextState =
 
 const OrgContext = createContext<OrganizationContextState>({ status: "loading" });
 
-export const organizationContextKey = (userId?: string) =>
+const organizationContextKey = (userId?: string) =>
   ["organization-context", userId] as const;
 
 function toState(

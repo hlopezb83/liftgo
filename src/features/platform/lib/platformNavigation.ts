@@ -1,4 +1,4 @@
-export const PLATFORM_HOME = "/platform";
+const PLATFORM_HOME = "/platform";
 export const PLATFORM_LOGIN = "/platform/login";
 export const ORGANIZATION_WORKSPACE = "/?workspace=organization";
 const DESTINATIONS = [

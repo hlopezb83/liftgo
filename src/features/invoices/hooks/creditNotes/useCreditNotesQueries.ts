@@ -12,7 +12,7 @@ const CREDIT_NOTE_COLUMNS =
   "cancellation_status, cancellation_motive, cancellation_reason, cancelled_at, substitution_uuid, " +
   "line_items, subtotal, tax_rate, tax_amount, total, issued_at, created_by, created_at, updated_at";
 
-export const creditNoteQueries = defineEntityQueries<"credit_notes", CreditNote[], never>(
+const creditNoteQueries = defineEntityQueries<"credit_notes", CreditNote[], never>(
   "credit_notes",
   {
     list: (filter) => async () => {

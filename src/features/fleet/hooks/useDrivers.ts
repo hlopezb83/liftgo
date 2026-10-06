@@ -20,7 +20,7 @@ type DriverInput = {
   notes?: string | null;
 };
 
-export const driverQueries = defineEntityQueries<"drivers", Driver[], never>("drivers", {
+const driverQueries = defineEntityQueries<"drivers", Driver[], never>("drivers", {
   staleTime: 5 * 60_000,
   list: (filter) => async () => {
     const base = supabase.from("drivers").select(DRIVER_COLUMNS);

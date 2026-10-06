@@ -165,7 +165,7 @@ function customerSelectorSearchBase() {
     .or("email.is.null,email.neq.e2e-ui@test.local", { referencedTable: "customers" });
 }
 
-export async function searchCustomersForSelector(search: string): Promise<{
+async function searchCustomersForSelector(search: string): Promise<{
   customers: Customer[];
   isTruncated: boolean;
 }> {
@@ -235,7 +235,7 @@ export function useCustomer(id: string | undefined) {
   });
 }
 
-export type CustomerPortalAccountStatus = "active" | "suspended" | "revoked";
+type CustomerPortalAccountStatus = "active" | "suspended" | "revoked";
 
 export interface CustomerPortalAccountSummary {
   status: CustomerPortalAccountStatus;

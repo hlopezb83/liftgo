@@ -9,10 +9,6 @@ export * from "./hooks/bookings/useBookingMutations";
 export * from "./hooks/bookings/useBookings";
 export {
   computeHourometer,
-  pickLatestReading,
-  useBookingHourometer,
-  type DeliveryReading,
-  type HourometerData,
 } from "./hooks/bookingDetail/useBookingHourometer";
 // v7.218.0 · ARQ2-A5: exponer queryKeys y helper de días al público.
 export * from "./lib/queryKeys";

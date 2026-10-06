@@ -33,7 +33,7 @@ const DURATION = {
 /**
  * Etiquetas amigables para pasos numerados de formularios multi-step.
  */
-export const STEP_LABELS: Record<number, string> = {
+const STEP_LABELS: Record<number, string> = {
   1: "Información general",
   2: "Cliente",
   3: "Equipos",
@@ -69,7 +69,7 @@ interface SimpleOpts {
  * clic no genere dos toasts idénticos. Hash tipo FNV-1a, suficiente para
  * distinguir mensajes sin colisiones prácticas.
  */
-export function toastDedupeId(kind: string, title: string, description?: string): string {
+function toastDedupeId(kind: string, title: string, description?: string): string {
   const text = `${kind}|${title}|${description ?? ""}`;
   let hash = 0x811c9dc5;
   for (let i = 0; i < text.length; i += 1) {
@@ -107,11 +107,6 @@ export function dismissAuthError(): void {
     toast.dismiss(activeAuthErrorToastId);
     activeAuthErrorToastId = null;
   }
-}
-
-/** Descarta un toast activo por id (p. ej. limpiar un error ya obsoleto). */
-export function dismissNotification(id: string | number): void {
-  toast.dismiss(id);
 }
 
 /** Clear diagnostics captured for the previous signed-in identity. */
@@ -207,7 +202,6 @@ export function notifyError(input: NotifyErrorInput): string | number {
   return input.severity === "warning" ? toast.warning(title, options) : toast.error(title, options);
 }
 
-
 // ---------------------------------------------------------------------------
 // notifyValidation — toast warning corto para validaciones de formulario
 // ---------------------------------------------------------------------------
@@ -248,7 +242,6 @@ function buildOpts(kind: string, title: string, opts?: SimpleOpts, fallbackDurat
     duration: opts?.durationMs ?? fallbackDuration,
   };
 }
-
 
 /**
  * Toast de éxito. Acepta la firma de sonner (`title, opts?`) para que el
@@ -291,7 +284,6 @@ export function notifyWarning(input: string | NotifySimpleInput, opts?: SimpleOp
       onDetails: () => { toast.dismiss(id); openErrorReport(report); }, extraAction: value.action }),
   });
 }
-
 
 // ---------------------------------------------------------------------------
 // notifyAsync — toast con estado loading/success/error para operaciones largas

@@ -46,7 +46,7 @@ const saleLineBase = z.object({
 });
 
 // Estrictos — se usan sólo en superRefine para el bloque activo.
-export const rentalLineSchema = rentalLineBase.extend({
+const rentalLineSchema = rentalLineBase.extend({
   // R13-FE-01: una partida legacy válida puede no tener modelo todavía.
   modelId: z.string(),
   quantity: positiveInt,
@@ -64,7 +64,7 @@ export const rentalLineSchema = rentalLineBase.extend({
   { message: "El descuento no puede superar 100%", path: ["discount"] },
 );
 
-export const saleLineSchema = saleLineBase.extend({
+const saleLineSchema = saleLineBase.extend({
   modelId: nonEmptyId,
   quantity: positiveInt,
   unitPrice: positive,
@@ -181,8 +181,6 @@ function refineDateRange(range: { from?: Date; to?: Date } | undefined, ctx: z.R
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "La fecha final debe ser posterior a la inicial" });
   }
 }
-
-
 
 const atMidnight = (d: Date): number => {
   const x = new Date(d);

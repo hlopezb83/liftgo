@@ -5,7 +5,6 @@ export {
   usePortalCollectionAccount,
 } from "./usePortalCollectionAccount";
 export {
-  usePortalQuotes,
   usePortalQuotesPage,
   usePortalQuote,
   useAcceptPortalQuote,
@@ -14,6 +13,4 @@ export {
 export {
   usePortalPaymentIntents,
   useCreatePaymentIntent,
-  useAdminPaymentIntents,
-  useReviewPaymentIntent,
 } from "./usePaymentIntents";

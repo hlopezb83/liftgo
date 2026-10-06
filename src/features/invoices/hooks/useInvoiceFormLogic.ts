@@ -19,7 +19,7 @@ import {
   invoiceFormSchema,
   buildEmptyInvoiceValues,
   type InvoiceFormValues,
-  type LineItemValues,
+
 } from "../lib/invoiceFormSchema";
 import { quotedBillingPeriodError } from "../lib/quotedBookingLines";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
@@ -31,7 +31,7 @@ import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoice
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
 
-export type { InvoiceFormValues, LineItemValues };
+export type { InvoiceFormValues };
 
 export interface SaleAssignmentGuard {
   shouldBlock: boolean;

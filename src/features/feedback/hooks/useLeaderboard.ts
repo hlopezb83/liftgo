@@ -14,7 +14,7 @@ export interface LeaderboardRow {
   total_points: number;
 }
 
-export const leaderboardQueries = defineEntityQueries<
+const leaderboardQueries = defineEntityQueries<
   typeof feedbackLeaderboardKeys.all[number],
   LeaderboardRow[],
   never

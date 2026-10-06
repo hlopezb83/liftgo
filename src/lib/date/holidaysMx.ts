@@ -43,7 +43,7 @@ function addDays(date: Date, days: number): Date {
 const key = (d: Date) => `${d.getMonth() + 1}-${d.getDate()}`;
 
 /** Mapa "M-D" → etiqueta de los días inhábiles del año. */
-export function mxHolidaysForYear(year: number): Map<string, string> {
+function mxHolidaysForYear(year: number): Map<string, string> {
   const easter = easterSunday(year);
   const entries: [Date, string][] = [
     [new Date(year, 0, 1), "Año Nuevo"],

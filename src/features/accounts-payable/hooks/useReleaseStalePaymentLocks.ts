@@ -9,7 +9,7 @@ import { supplierBillKeys } from "./useSupplierBills";
 /** Antigüedad mínima (horas) que debe tener un bloqueo para considerarse estancado. */
 export const STALE_LOCK_HOURS = 24;
 
-export const RELEASABLE_LOCKS_QK = ["releasable_payment_locks", STALE_LOCK_HOURS] as const;
+const RELEASABLE_LOCKS_QK = ["releasable_payment_locks", STALE_LOCK_HOURS] as const;
 
 /**
  * R7-12: conteo real de bloqueos liberables según el RPC (mismas precondiciones

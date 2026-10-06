@@ -31,7 +31,7 @@ export interface ReconciliationFilters {
   env: "all" | "test" | "live";
 }
 
-export interface ReconciliationSummary {
+interface ReconciliationSummary {
   /** Total timbrado (producción) normalizado a MXN. */
   totalStampedLive: number;
   /** Facturas timbradas foráneas sin tipo de cambio válido — EXCLUIDAS del total. */

@@ -33,7 +33,7 @@ async function fetchDetail(id: string) {
   return data;
 }
 
-export const returnInspectionQueries = defineEntityQueries<
+const returnInspectionQueries = defineEntityQueries<
   "return_inspections",
   ReturnInspectionWithJoins[],
   ReturnInspectionWithJoins
@@ -45,7 +45,7 @@ export const returnInspectionQueries = defineEntityQueries<
   detail: (id) => () => fetchDetail(id),
 });
 
-export const returnInspectionKeys = returnInspectionQueries.keys;
+const returnInspectionKeys = returnInspectionQueries.keys;
 
 export function useReturnInspection(id?: string) {
   return useQuery({

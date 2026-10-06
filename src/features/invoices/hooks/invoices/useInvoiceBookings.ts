@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { invoiceBookingKeys } from "../../lib/queryKeys";
 
-export type InvoiceBookingRow = {
+type InvoiceBookingRow = {
   invoice_id: string;
   booking_id: string;
   line_index: number;

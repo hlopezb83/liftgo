@@ -3,7 +3,7 @@
  * valores legacy tipo slug ("refaccion", "aceite"). Mostrarlos crudos rompe la
  * localización es-MX, así que se traducen en un único diccionario.
  */
-export const PART_CATEGORY_LABELS: Record<string, string> = {
+const PART_CATEGORY_LABELS: Record<string, string> = {
   filtros: "Filtros",
   filtro: "Filtros",
   llantas: "Llantas",

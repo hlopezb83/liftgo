@@ -1,16 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import type {
-  CustomerSummary,
-  CustomerSummaryBooking,
-  CustomerSummaryInvoice,
-} from "@/features/customers/lib/customerTypes";
+import type { CustomerSummary } from "@/features/customers/lib/customerTypes";
 import { callRpc } from "@/lib/rpc";
 import { customerKeys } from "../../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/features/customers/lib/customerTypes`.
-export type { CustomerSummary, CustomerSummaryBooking, CustomerSummaryInvoice };
-
+export type { CustomerSummary };
 
 export function useCustomerSummary(customerId: string | undefined) {
   return useQuery({

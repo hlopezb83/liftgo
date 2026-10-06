@@ -3,7 +3,7 @@ import { callRpc } from "@/lib/rpc";
 import { downloadPaymentsXlsx } from "../lib/buildPaymentsXlsx";
 import { paymentBatchExportRows, paymentBatchSnapshotSchema } from "../lib/paymentBatchSnapshot";
 
-export async function downloadPaymentBatch(batchId: string): Promise<string> {
+async function downloadPaymentBatch(batchId: string): Promise<string> {
   const snapshot = paymentBatchSnapshotSchema.parse(
     await callRpc<unknown>("get_supplier_payment_batch_snapshot", { p_batch_id: batchId }),
   );

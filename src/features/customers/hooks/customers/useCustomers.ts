@@ -8,13 +8,10 @@ export {
   customerQueries,
   useCustomers,
   useCustomer,
-  useCustomerSelectorSearch,
   useCustomerPortalAccount,
 } from "./customerQueries";
 export type {
   Customer,
-  CustomerPortalAccountStatus,
-  CustomerPortalAccountSummary,
 } from "./customerQueries";
 
 export {

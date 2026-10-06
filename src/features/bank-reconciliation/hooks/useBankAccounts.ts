@@ -15,7 +15,7 @@ export interface BankAccount {
   notes: string | null;
 }
 
-export const bankAccountQueries = defineEntityQueries<"bank_accounts", BankAccount[], never>(
+const bankAccountQueries = defineEntityQueries<"bank_accounts", BankAccount[], never>(
   "bank_accounts",
   {
     staleTime: 60_000,

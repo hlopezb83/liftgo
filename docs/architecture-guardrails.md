@@ -47,6 +47,30 @@ bun run typecheck
 bun run arch:check
 ```
 
+## Revisión de código sin uso con Knip
+
+`knip.jsonc` usa el esquema de Knip 6 y reconoce las entradas de TanStack
+Start, las funciones de Cloud, Playwright y los ejecutores de CI. El script
+manual `scripts/cleanup-e2e.ts` también es una entrada: se conserva porque
+forma parte del procedimiento de limpieza documentado en `docs/ci.md`.
+El análisis no ejecuta esa limpieza ni llama a funciones de Cloud.
+
+- `bun run knip` revisa archivos, dependencias, exportaciones y tipos.
+- `bun run knip:deep` incluye además las exportaciones de las entradas;
+  sus resultados requieren verificar los contratos del framework y de los
+  ejecutores antes de retirar una exportación.
+- Los componentes base de UI, los helpers compartidos de Cloud y los tipos
+  generados conservan las exclusiones explícitas de la configuración.
+- `drizzle-orm` se conserva: `drizzle-kit migrate` lo carga internamente en
+  las pruebas RLS y A/B, aunque el esquema declarativo esté vacío.
+- `@tanstack/start-storage-context` es una dependencia directa de desarrollo
+  para la prueba del transporte real de funciones de servidor. Su versión
+  debe coincidir con la que usan los paquetes de Start en el lockfile.
+
+Cuando un símbolo sólo se usa en su archivo, debe ser interno. Las APIs entre
+features siguen expuestas mediante sus barrels públicos. Verifica los imports,
+las cargas dinámicas y las pruebas antes de eliminar código sin consumidores.
+
 ## Cómo cambiar un guardrail
 
 Cambia la regla y su escaneo

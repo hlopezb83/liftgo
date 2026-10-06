@@ -9,7 +9,7 @@ import { GLOBAL_BRAND_LOCKUP_PATH } from "@/lib/branding/globalBrandLogo";
  * Descarga una imagen desde una URL y la convierte a data URL base64.
  * Devuelve null si la imagen no se puede cargar (CORS, URL inválida, etc.).
  */
-export async function loadImageAsBase64(url: string): Promise<string | null> {
+async function loadImageAsBase64(url: string): Promise<string | null> {
   try {
     // Sin credenciales ni referer: el asset de marca es local y público.
     const response = await fetch(url, {

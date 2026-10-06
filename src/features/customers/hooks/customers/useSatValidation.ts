@@ -14,7 +14,7 @@ import { customerKeys } from "../../lib/queryKeys";
 
 export type SatValidationStatus = "not_validated" | "valid" | "mismatch" | "error";
 
-export interface SatValidationError {
+interface SatValidationError {
   path?: string;
   message?: string;
   code?: string;
@@ -66,7 +66,7 @@ export interface ValidateCustomersSummary {
 const RFC_PUBLICO_GENERAL = "XAXX010101000";
 export const SAT_VALIDATION_PAGE_SIZE = 25;
 
-export const satValidationKey = [...customerKeys.all, "sat-validation"] as const;
+const satValidationKey = [...customerKeys.all, "sat-validation"] as const;
 
 async function countWithStatus(status: SatValidationStatus): Promise<number> {
   const { count, error } = await supabase

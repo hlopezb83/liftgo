@@ -20,7 +20,7 @@ type MechanicInput = {
   notes?: string | null;
 };
 
-export const mechanicQueries = defineEntityQueries<"mechanics", Mechanic[], never>("mechanics", {
+const mechanicQueries = defineEntityQueries<"mechanics", Mechanic[], never>("mechanics", {
   staleTime: 5 * 60_000,
   list: (filter) => async () => {
     const base = supabase.from("mechanics").select(MECHANIC_COLUMNS);

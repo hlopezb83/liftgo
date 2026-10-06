@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const catalogImportKindSchema = z.enum(["model", "part", "template"]);
-export const catalogImportStatusSchema = z.enum(["new", "duplicate", "conflict", "invalid", "imported"]);
+const catalogImportKindSchema = z.enum(["model", "part", "template"]);
+const catalogImportStatusSchema = z.enum(["new", "duplicate", "conflict", "invalid", "imported"]);
 const fingerprint = z.string().regex(/^[0-9a-f]{64}$/);
 export const catalogImportListInputSchema = z.strictObject({
   kind: catalogImportKindSchema,
@@ -24,7 +24,7 @@ const summaryFields = {
   status: catalogImportStatusSchema,
   issue: z.string().nullable(),
 };
-export const catalogImportSummarySchema = z.object(summaryFields);
+const catalogImportSummarySchema = z.object(summaryFields);
 export const catalogImportPageSchema = z.object({
   source_organization: z.object({ id: z.uuid(), name: z.string(), is_active: z.boolean() }).nullable(),
   total: z.number().int().nonnegative(),
@@ -58,7 +58,6 @@ export const catalogImportResultSchema = z.object({
 });
 export type CatalogImportKind = z.infer<typeof catalogImportKindSchema>;
 export type CatalogImportSummary = z.infer<typeof catalogImportSummarySchema>;
-export type CatalogImportPage = z.infer<typeof catalogImportPageSchema>;
 export type CatalogImportPreview = z.infer<typeof catalogImportPreviewSchema>;
 export type CatalogImportInput = z.infer<typeof catalogImportInputSchema>;
 export type CatalogImportResult = z.infer<typeof catalogImportResultSchema>;

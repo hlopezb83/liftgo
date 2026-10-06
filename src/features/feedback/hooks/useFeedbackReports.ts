@@ -19,7 +19,7 @@ const FEEDBACK_STATUS_HISTORY_COLUMNS = sel(
 
 export type FeedbackReport = Tables<"feedback_reports">;
 
-export interface FeedbackReportPage {
+interface FeedbackReportPage {
   rows: FeedbackReport[];
   totalCount: number;
 }

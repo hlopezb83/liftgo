@@ -12,7 +12,7 @@ export const EMPTY_RENTAL_LINE: RentalLineValues = {
   modelId: "", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 0, discount: 0, discountType: "%",
 };
 
-export function defaultQuoteFormValues(): QuoteFormValues {
+function defaultQuoteFormValues(): QuoteFormValues {
   return {
     quoteType: "rental",
     customerId: "",
@@ -53,5 +53,4 @@ export function useQuoteForm(values?: QuoteFormValues) {
     mode: "onSubmit",
   });
 }
-
 

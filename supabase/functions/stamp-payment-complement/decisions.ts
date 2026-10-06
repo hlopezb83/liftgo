@@ -35,7 +35,7 @@ const isValidFxRate = (v: unknown): boolean => {
  *  - Dos monedas extranjeras distintas → no hay fórmula inequívoca con los
  *    datos actuales: falla cerrada en vez de timbrar un valor incorrecto.
  */
-export function resolveRepExchange(
+function resolveRepExchange(
   input: RepExchangeInput,
 ): RepExchangeResolution {
   const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();

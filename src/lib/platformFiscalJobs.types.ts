@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-export const fiscalOperationSchema = z.enum(["stamp", "cancel", "cancel_nc", "cancel_rep"]);
-export const fiscalQueueStatusSchema = z.enum(["pending", "processing", "succeeded", "exhausted"]);
+const fiscalOperationSchema = z.enum(["stamp", "cancel", "cancel_nc", "cancel_rep"]);
+const fiscalQueueStatusSchema = z.enum(["pending", "processing", "succeeded", "exhausted"]);
 const cursor = z.string().regex(/^[1-9]\d{0,18}$/).refine((value) => /^[1-9]\d{0,18}$/.test(value) && BigInt(value) <= 9223372036854775807n);
-export const fiscalJobStateSchema = z.object({ status: fiscalQueueStatusSchema, attempts: z.number().int(),
+const fiscalJobStateSchema = z.object({ status: fiscalQueueStatusSchema, attempts: z.number().int(),
   maxAttempts: z.number().int(), deferrals: z.number().int(), nextRetryAt: z.string(), hasError: z.boolean() });
-export const fiscalJobSchema = z.object({ id: z.uuid(), organizationId: z.uuid(), organizationName: z.string(),
+const fiscalJobSchema = z.object({ id: z.uuid(), organizationId: z.uuid(), organizationName: z.string(),
   documentId: z.uuid(), folio: z.string().nullable(), documentStatus: z.string().nullable(), documentAvailable: z.boolean(),
   hasUuid: z.boolean(), hasProviderId: z.boolean(), operation: fiscalOperationSchema, revision: cursor,
   configurationVerified: z.boolean().default(false),

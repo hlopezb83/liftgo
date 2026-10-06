@@ -38,7 +38,7 @@ updates:
           - "@tanstack/query-sync-storage-persister"
         update-types: ["minor", "patch"]
       tanstack-router-start:
-        patterns: ["@tanstack/react-router", "@tanstack/react-start"]
+        patterns: ["@tanstack/react-router", "@tanstack/react-start", "@tanstack/start-storage-context"]
         update-types: ["minor", "patch"]
       sentry:
         patterns: ["@sentry/*"]

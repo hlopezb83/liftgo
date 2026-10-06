@@ -1,7 +1,7 @@
 import { FleetIcon, SuccessIcon, ClockIcon, MaintenanceIcon, ShoppingCart } from "@/components/icons";
 import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 
-export const STATUS_COLORS = {
+const STATUS_COLORS = {
   available: "hsl(var(--status-available))",
   rented: "hsl(var(--status-rented))",
   maintenance: "hsl(var(--status-maintenance))",
@@ -9,7 +9,7 @@ export const STATUS_COLORS = {
   sold: "hsl(var(--status-sold))",
 };
 
-export const INVOICE_STATUS_COLORS: Record<string, string> = {
+const INVOICE_STATUS_COLORS: Record<string, string> = {
   draft: "hsl(var(--status-draft))",
   sent: "hsl(var(--status-rented))",
   overdue: "hsl(var(--status-overdue))",
@@ -122,9 +122,6 @@ export function financialSectionState(flags: {
   if (flags.isLoading) return "loading";
   return "ready";
 }
-
-
-
 
 export function buildAlertsProps<B, I, C>(
   stats: { overdue_bookings?: B[] } | undefined,

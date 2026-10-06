@@ -61,7 +61,7 @@ export function subscribeRecovery(cb: () => void): () => void {
  * inválido, con o sin sesión ajena abierta) el flujo termina en `error`,
  * nunca en un `pending` infinito ni en `active`.
  */
-export function markRecoveryPending(): void {
+function markRecoveryPending(): void {
   if (status !== "idle") return;
   set("pending");
   clearPendingTimer();

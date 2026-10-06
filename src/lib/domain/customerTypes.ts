@@ -3,7 +3,7 @@
  * `lib/pdf` y otras capas de infraestructura los consuman sin
  * acoplarse a hooks de `features/`.
  */
-export interface CustomerSummaryBooking {
+interface CustomerSummaryBooking {
   id: string;
   booking_number: string;
   start_date: string;
@@ -12,7 +12,7 @@ export interface CustomerSummaryBooking {
   forklift: { name: string | null; model: string | null } | null;
 }
 
-export interface CustomerSummaryInvoice {
+interface CustomerSummaryInvoice {
   id: string;
   invoice_number: string;
   issued_at: string;

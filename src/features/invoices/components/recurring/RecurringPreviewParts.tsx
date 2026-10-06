@@ -46,7 +46,7 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
   quote_source_missing: "No se pudo verificar la cotización de origen",
 };
 
-export function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
+function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
   const isAlreadyInvoiced = line.reason === "already_invoiced" && line.existingInvoiceId;
   return (
     <Badge variant="secondary" className="gap-1">
@@ -128,7 +128,7 @@ export function StaleRateNotice({
   );
 }
 
-export function LineRow({
+function LineRow({
   line,
   selected,
   onToggle,

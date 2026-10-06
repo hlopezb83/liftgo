@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const organizationClassificationSchema = z.enum(["unclassified", "live", "test"]);
+const organizationClassificationSchema = z.enum(["unclassified", "live", "test"]);
 export type OrganizationClassification = z.infer<typeof organizationClassificationSchema>;
 export const ORGANIZATION_CLASSIFICATION_LABELS = {
   unclassified: "Sin clasificar", live: "Real", test: "Prueba",
@@ -8,7 +8,7 @@ export const ORGANIZATION_CLASSIFICATION_LABELS = {
 const revision = z.string().regex(/^(0|[1-9]\d{0,18})$/).refine((v) => /^(0|[1-9]\d{0,18})$/.test(v) && BigInt(v) <= 9223372036854775807n);
 const text = (max: number) => z.string().trim().max(max);
 const email = text(254).refine((v) => !v || z.email().safeParse(v).success, "Indica un correo válido");
-export const organizationGovernanceFieldsSchema = z.object({
+const organizationGovernanceFieldsSchema = z.object({
   classification: organizationClassificationSchema,
   city: text(100), territory: text(120),
   contactName: text(120), contactEmail: email,

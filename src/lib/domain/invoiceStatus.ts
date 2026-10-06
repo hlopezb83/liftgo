@@ -4,8 +4,6 @@
  */
 export const ISSUED_INVOICE_STATUSES = ["sent", "partial", "overdue", "paid"] as const;
 
-export type IssuedInvoiceStatus = (typeof ISSUED_INVOICE_STATUSES)[number];
-
 const ISSUED = new Set<string>(ISSUED_INVOICE_STATUSES);
 
 export function isIssuedInvoiceStatus(status: string | null | undefined): boolean {

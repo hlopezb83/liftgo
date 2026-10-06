@@ -25,7 +25,7 @@ export interface CompanyData {
 }
 
 /** Error explícito: nunca se cae a la configuración de otra organización. */
-export class IssuerUnavailableError extends Error {
+class IssuerUnavailableError extends Error {
   readonly reason: string;
   constructor(reason: string, message: string) {
     super(message);

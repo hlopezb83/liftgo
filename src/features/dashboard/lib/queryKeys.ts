@@ -14,13 +14,11 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { operationSummaryKeys } from "@/lib/query/operationSummaryKeys";
 import { callRpc } from "@/lib/rpc";
 
-
-
 // ---------------------------------------------------------------------------
 // MRR detail
 // ---------------------------------------------------------------------------
 
-export interface MrrItem {
+interface MrrItem {
   forklift_id: string;
   forklift_name: string;
   model: string;

@@ -28,6 +28,7 @@
     "test:e2e:smoke": "playwright test --config playwright.smoke.config.ts",
     "test:multitenant-ab": "playwright test --config playwright.multitenant.config.ts",
     "test:functions": "bash scripts/deno-tests-offline.sh",
+    "test:ci-tools": "node --test scripts/tests/ci-drizzle-diagnostics.test.mjs",
     "changelog:check": "bun scripts/validate-changelog.ts",
     "migrations:check": "bun scripts/check-drizzle-journal.ts",
     "restore:verify": "bun scripts/restore-rehearsal/verify.ts",
@@ -118,6 +119,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@tanstack/start-storage-context": "1.167.36",
     "@babel/core": "^8.0.6",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "2.25.2",

@@ -12,7 +12,7 @@ const SALE_CANDIDATE_PAGE_SIZE = 200;
  * keeps the result complete even when the API has a maximum response size;
  * the sale transition trigger still protects the later write from races.
  */
-export async function fetchSaleAvailableForklifts(): Promise<Forklift[]> {
+async function fetchSaleAvailableForklifts(): Promise<Forklift[]> {
   const byId = new Map<string, Forklift>();
   let offset = 0;
 

@@ -2,7 +2,7 @@ import { ReactNode, useRef, useState, TouchEvent, MouseEvent } from "react";
 import { type LucideIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
-export interface SwipeAction {
+interface SwipeAction {
   label: string;
   icon: LucideIcon;
   /** Color de fondo del botón. Usa tokens semánticos (ej: "bg-destructive"). */

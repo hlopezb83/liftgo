@@ -35,7 +35,7 @@ export type PivotRow = {
  *  El índice ordinal de la pivote no identifica una partida. Sin una
  *  atribución comprobable se devuelve null para pedir revisión.
  */
-export function attributedSubtotal(
+function attributedSubtotal(
   invoice: PivotInvoice,
   lineIndex: number | null | undefined,
   bookingsInInvoice: number,

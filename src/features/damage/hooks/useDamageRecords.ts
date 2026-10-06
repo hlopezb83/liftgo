@@ -30,7 +30,7 @@ async function fetchDamageList(archived = false) {
   return data ?? [];
 }
 
-export const damageRecordQueries = defineEntityQueries<"damage_records", DamageListRow[], never>(
+const damageRecordQueries = defineEntityQueries<"damage_records", DamageListRow[], never>(
   "damage_records",
   {
     list: (filter) => () => fetchDamageList(filter?.archived === true),

@@ -15,7 +15,7 @@ const COMPANY_SETTINGS_COLUMNS = sel(
  * pedimos 2 y tratamos la duplicidad como error explícito, para que nunca se
  * muestren datos fiscales elegidos arbitrariamente.
  */
-export class AmbiguousCompanySettingsError extends Error {
+class AmbiguousCompanySettingsError extends Error {
   constructor() {
     super(
       "Tu empresa tiene datos fiscales duplicados; corrígelos antes de continuar.",
@@ -52,7 +52,7 @@ export interface CxpApprovalThreshold {
   threshold: number;
 }
 
-export const cxpApprovalThresholdQueries = defineEntityQueries(
+const cxpApprovalThresholdQueries = defineEntityQueries(
   "cxp_approval_threshold",
   {
     list: () => async (): Promise<CxpApprovalThreshold> => {

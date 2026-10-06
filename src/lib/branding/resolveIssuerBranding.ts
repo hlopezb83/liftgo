@@ -29,14 +29,14 @@ export const ISSUER_DOCUMENT_TABLES = {
   booking: "bookings",
 } as const;
 
-export type IssuerDocumentType = keyof typeof ISSUER_DOCUMENT_TABLES;
+type IssuerDocumentType = keyof typeof ISSUER_DOCUMENT_TABLES;
 
 export interface IssuerDocumentRef {
   type: IssuerDocumentType;
   id: string;
 }
 
-export interface IssuerBranding {
+interface IssuerBranding {
   organizationId: string;
   razon_social: string;
   rfc: string;

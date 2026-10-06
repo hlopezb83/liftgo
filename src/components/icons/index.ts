@@ -57,7 +57,6 @@ export {
   Minus as RemoveIcon,
   Undo2 as UndoIcon,
   RotateCcw as ResetIcon,
-
   // Estado / feedback (dedupe: Check/CheckCircle/CheckCircle2 → SuccessIcon)
   CheckCircle2 as SuccessIcon,
   AlertTriangle as WarnIcon,
@@ -65,7 +64,6 @@ export {
   AlertCircle as InfoAlertIcon,
   Info as InfoIcon,
   Loader2 as SpinnerIcon,
-
   // Navegación
   ChevronRight as ChevronRightIcon,
   ChevronDown as ChevronDownIcon,
@@ -74,7 +72,6 @@ export {
   ArrowLeft as BackIcon,
   X as CloseIcon,
   Home as HomeIcon,
-
   // Dominio LiftGo
   Truck as FleetIcon,
   Wrench as MaintenanceIcon,

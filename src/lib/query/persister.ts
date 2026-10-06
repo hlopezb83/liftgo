@@ -44,7 +44,7 @@ export function purgeForeignPersistedCaches(storage: Storage, scope: string | nu
   }
 }
 
-export { PERSIST_KEY_PREFIX, persistedCacheKey };
+export {  persistedCacheKey };
 
 /**
  * Prefijos de queryKey que se persisten en disco.

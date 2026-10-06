@@ -7,7 +7,7 @@ import { damagePhotoCountsKeys } from "../lib/queryKeys";
  * Returns a map of damage_record id -> photo count, derived from the
  * documents table (entity_type = 'damage_record', mime_type image/*).
  */
-export const damagePhotoCountsQueries = defineEntityQueries<
+const damagePhotoCountsQueries = defineEntityQueries<
   typeof damagePhotoCountsKeys.all[number],
   Record<string, number>,
   never

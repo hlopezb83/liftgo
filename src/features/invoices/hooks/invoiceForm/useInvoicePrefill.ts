@@ -1,14 +1,11 @@
 import { useEffect, useEffectEvent } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
-  buildFromInvoice, buildFromQuote, cfdiFromCustomer,
+  buildFromInvoice, buildFromQuote,
   type Customer, type ExistingInvoice, type SourceQuote, type Forklift, type Assignment,
 } from "./invoiceFormBuilders";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
-
-export { cfdiFromCustomer };
-
 interface Props {
   existing: ExistingInvoice | null | undefined;
   sourceQuote: SourceQuote | null | undefined;
@@ -42,7 +39,6 @@ export function useInvoicePrefill({
   useEffect(() => {
     hydrate();
   }, [existing?.booking_id, bookingIdsKey]);
-
 
   usePrefillEffect(() => {
     if (!sourceQuote || isEdit) return;

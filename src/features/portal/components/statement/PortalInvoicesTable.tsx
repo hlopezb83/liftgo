@@ -13,7 +13,7 @@ import { usePortalInvoicePayments } from "@/features/customers";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
-export interface PortalPayment {
+interface PortalPayment {
   id: string;
   invoice_id: string | null;
   payment_date: string;

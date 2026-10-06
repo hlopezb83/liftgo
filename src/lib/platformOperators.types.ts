@@ -13,7 +13,7 @@ export const platformOperatorsInputSchema = z.object({
   offset: z.number().int().min(0).max(100_000).default(0),
 });
 export type PlatformOperatorsInput = z.input<typeof platformOperatorsInputSchema>;
-export const platformOperatorRowSchema = z.object({
+const platformOperatorRowSchema = z.object({
   id: z.string().uuid(), name: z.string(), email: z.string(),
   profile: platformProfileSchema.nullable(),
   revision: z.string().regex(/^[1-9]\d*$/).nullable(),

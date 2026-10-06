@@ -58,7 +58,6 @@ function buildPartyVars(contract: ContractData, company: CompanyInfo | null, cus
   return { ...buildLessorVars(company), ...buildLesseeVars(contract, customer) };
 }
 
-
 function buildUsageVars(contract: ContractData) {
   return {
     ubicacion: contract.usage_location || "[Dirección]",
@@ -94,7 +93,7 @@ function buildEquipmentVars(forklift: ForkliftInfo | null) {
  * Fecha de firma del contrato: la registrada al firmar; si no existe, la fecha
  * de inicio de vigencia. Nunca "hoy" al momento de descargar el PDF.
  */
-export function contractSigningDate(contract: ContractData): string | null {
+function contractSigningDate(contract: ContractData): string | null {
   return contract.signed_at || contract.start_date || null;
 }
 
@@ -141,7 +140,7 @@ export function buildPlaceholderVars(
 }
 
 /** Tasa moratoria mínima del pagaré cuando el contrato no captura una. */
-export const PAGARE_DEFAULT_LATE_INTEREST = "5";
+const PAGARE_DEFAULT_LATE_INTEREST = "5";
 
 /**
  * v7.305.1: variables específicas del Anexo B (pagaré).

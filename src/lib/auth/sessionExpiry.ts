@@ -22,7 +22,7 @@ interface MaybePgError {
   message?: unknown;
 }
 
-export function isSessionExpiredError(error: unknown): boolean {
+function isSessionExpiredError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const e = error as MaybePgError;
   if (typeof e.code === "string" && EXPIRED_CODES.has(e.code)) return true;

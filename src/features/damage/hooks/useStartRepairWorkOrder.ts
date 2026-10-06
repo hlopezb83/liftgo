@@ -8,7 +8,7 @@ import type { DamageRecordWithJoins } from "@/types/rental";
  * Devuelve `false` si la función aún no existe en este entorno para que el
  * caller use el flujo legado; lanza cualquier otro error real.
  */
-export async function tryStartRepairWorkOrderRpc(
+async function tryStartRepairWorkOrderRpc(
   record: DamageRecordWithJoins,
 ): Promise<boolean> {
   const { error } = await supabase.rpc("start_repair_work_order", {

@@ -34,7 +34,7 @@ export function isRepBacked(payment: RepPaymentLike): boolean {
  * monedas difieren y no hay tipo de cambio disponible — el llamador debe
  * EXCLUIR el tope y avisar (fail-closed), nunca asumir 1:1.
  */
-export function paymentAmountInInvoiceCurrency(
+function paymentAmountInInvoiceCurrency(
   payment: RepPaymentLike,
   invoiceMoneda: string | null | undefined,
   invoiceTipoCambio: number | string | null | undefined,
@@ -76,7 +76,6 @@ export function sumRepBackedPaymentsInInvoiceCurrency(
 export function sumRepBackedPayments(payments: readonly RepPaymentLike[]): number {
   return sumMoney(payments.filter(isRepBacked).map((p) => Number(p.amount) || 0));
 }
-
 
 /** Pagos con REP vigente (los que hay que cancelar antes de acreditar de más). */
 export function repBackedPayments<T extends RepPaymentLike>(payments: readonly T[]): T[] {

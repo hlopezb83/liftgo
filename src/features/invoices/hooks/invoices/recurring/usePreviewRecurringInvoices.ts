@@ -1,7 +1,7 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 
-export type PreviewReason =
+type PreviewReason =
   | "already_invoiced"
   | "no_customer"
   | "no_monthly_rate"

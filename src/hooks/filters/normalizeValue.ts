@@ -3,8 +3,8 @@
 
 import type { Facet, EnumFacet } from "./facetTypes";
 
-export const YMD_RE = /^\d{4}-\d{2}-\d{2}$/;
-export const YM_RE = /^\d{4}-\d{2}$/;
+const YMD_RE = /^\d{4}-\d{2}-\d{2}$/;
+const YM_RE = /^\d{4}-\d{2}$/;
 
 const DEFAULT_VALUE = "all";
 const TEXT_DEFAULT = "";

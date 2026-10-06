@@ -27,7 +27,7 @@ const SYNONYMS: Record<XmlFieldKey, string[]> = {
 };
 
 /** Normaliza: sin namespace, sin acentos, sin separadores, minúsculas. */
-export function normalizeKey(raw: string): string {
+function normalizeKey(raw: string): string {
   const parts = raw.split(":");
   const local = parts[parts.length - 1] ?? raw;
   return local

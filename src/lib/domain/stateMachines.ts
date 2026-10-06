@@ -59,8 +59,8 @@ export const CONTRACT_STATUSES: readonly ContractStatus[] = [
 ] as const;
 
 /** Estados aceptados en el INSERT (v_initial del trigger). */
-export const INVOICE_INITIAL_STATUSES: readonly InvoiceStatus[] = ["draft", "sent"];
-export const DELIVERY_INITIAL_STATUSES: readonly DeliveryStatus[] = [
+const INVOICE_INITIAL_STATUSES: readonly InvoiceStatus[] = ["draft", "sent"];
+const DELIVERY_INITIAL_STATUSES: readonly DeliveryStatus[] = [
   "scheduled",
   "pending",
   // DeliveryFormDialog registra entregas "ya hechas".
@@ -88,7 +88,7 @@ export const DELIVERY_TRANSITIONS: Record<DeliveryStatus, readonly DeliveryStatu
  * contracts: `signed`, `active`, `completed` y `cancelled` están bloqueados por
  * el trigger. Desde draft/sent el flujo es libre (la UI decide).
  */
-export const CONTRACT_LOCKED_STATUSES: readonly ContractStatus[] = [
+const CONTRACT_LOCKED_STATUSES: readonly ContractStatus[] = [
   "signed",
   "active",
   "completed",
@@ -104,7 +104,6 @@ export const CONTRACT_TRANSITIONS: Record<ContractStatus, readonly ContractStatu
   completed: [],
   cancelled: [],
 };
-
 
 /** Campos que un contrato firmado/activo/cancelado ya no puede editar. */
 export const CONTRACT_FROZEN_FIELDS = [
