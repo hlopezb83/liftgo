@@ -577,7 +577,7 @@ async function buildPlan(
   return { lines, items, truncated, pendingCount };
 }
 
-export function errorMessage(error: unknown): string {
+function errorMessage(error: unknown): string {
   if (typeof error === "string") {
     return error && error !== "[object Object]" ? error : "Error sin detalle";
   }

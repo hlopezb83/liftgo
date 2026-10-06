@@ -4,7 +4,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
-import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
 import {
   binaryToBytes,
   binaryToText,
@@ -24,11 +24,7 @@ import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
-import {
-  computeStampVariance,
-  roundMoney,
-  STAMP_VARIANCE_WARNING as STAMP_VARIANCE_TOLERANCE,
-} from "../_shared/money.ts";
+import { computeStampVariance, roundMoney } from "../_shared/money.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
@@ -39,12 +35,9 @@ import {
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 import { checkStampFx } from "../_shared/fxGate.ts";
 
-// Re-exports públicos preservados (tests + consumidores).
-export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
-export type { QueryBuilderLike, SupabaseLike };
-
-// Mantenido por compatibilidad con consumidores existentes.
-export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
+// Re-exports usados por las pruebas y por cancel-payment-complement.
+export { computeStampVariance };
+export type { SupabaseLike };
 
 export interface StampCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;

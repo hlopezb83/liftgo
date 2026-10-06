@@ -97,16 +97,16 @@ export function extractPagoNodes(
   return out;
 }
 
-export interface RepAuthOk {
+interface RepAuthOk {
   ok: true;
   userId: string;
   adminClient: SupabaseLike;
 }
-export interface RepAuthFail {
+interface RepAuthFail {
   ok: false;
   response: Response;
 }
-export type RepAuth = RepAuthOk | RepAuthFail;
+type RepAuth = RepAuthOk | RepAuthFail;
 
 export interface ValidateSupplierRepDeps {
   authenticate: (req: Request, roles: string[]) => Promise<RepAuth>;

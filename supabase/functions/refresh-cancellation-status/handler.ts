@@ -17,7 +17,6 @@ import {
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 
-export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_SAT_STATUSES = [
   "accepted",
   "pending",

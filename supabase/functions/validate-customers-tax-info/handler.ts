@@ -56,7 +56,7 @@ interface OrganizationCustomerLink {
   updated_at: string;
 }
 
-export interface ValidateCustomersSummary {
+interface ValidateCustomersSummary {
   processed: number;
   valid: number;
   mismatch: number;

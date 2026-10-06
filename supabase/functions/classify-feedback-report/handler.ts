@@ -18,7 +18,7 @@ import { AiGatewayError } from "../_shared/ai.ts";
 import type { AiChatOptions, AiChatResult } from "../_shared/ai.ts";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
-export const MODULES = [
+const MODULES = [
   "Dashboard",
   "Calendario",
   "CRM",
@@ -62,16 +62,16 @@ const ClassificationSchema = z.object({
   reasoning: z.string().min(5).max(400),
 });
 
-export interface ClassifyAuthOk {
+interface ClassifyAuthOk {
   ok: true;
   userId: string;
   adminClient: SupabaseLike;
 }
-export interface ClassifyAuthFail {
+interface ClassifyAuthFail {
   ok: false;
   response: Response;
 }
-export type ClassifyAuth = ClassifyAuthOk | ClassifyAuthFail;
+type ClassifyAuth = ClassifyAuthOk | ClassifyAuthFail;
 
 export interface ClassifyDeps {
   authenticate: (req: Request, roles: string[]) => Promise<ClassifyAuth>;
