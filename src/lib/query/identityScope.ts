@@ -22,7 +22,7 @@ export function buildIdentityScope(identity: VerifiedIdentity | null): string | 
 }
 
 /** Clave de almacenamiento persistido para una identidad verificada. */
-const PERSIST_KEY_PREFIX = "liftgo:rq-cache:v4";
+export const PERSIST_KEY_PREFIX = "liftgo:rq-cache:v4";
 
 export function persistedCacheKey(scope: string): string {
   return `${PERSIST_KEY_PREFIX}:${scope}`;

@@ -14,7 +14,7 @@
  * usuario u otra empresa.
  */
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { isForeignPersistedCacheKey, persistedCacheKey } from "./identityScope";
+import { isForeignPersistedCacheKey, persistedCacheKey, PERSIST_KEY_PREFIX } from "./identityScope";
 import type { Query } from "@tanstack/react-query";
 
 // Claves globales (sin identidad) de versiones anteriores: se eliminan siempre.
