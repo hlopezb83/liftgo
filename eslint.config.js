@@ -13,6 +13,8 @@ export default tseslint.config(
   {
     ignores: [
       "dist",
+      // Artefactos de pruebas y cobertura; no son código del proyecto.
+      "reports/**",
       // Salidas del build SSR de TanStack Start / nitro.
       ".output",
       ".vinxi",
