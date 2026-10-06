@@ -28,11 +28,11 @@ const CANONICAL_ALIASES = [
   "ChartIcon", "TrendingUpIcon", "TrendingDownIcon", "TargetIcon",
   "TrophyIcon", "ActivityIcon", "StarIcon", "HelpIcon", "KeyIcon",
   "FilterIcon", "OpenLinkIcon",
-] as const;
+] as const satisfies readonly (keyof typeof Icons)[];
 
 describe("icons registry", () => {
   it.each(CANONICAL_ALIASES)("exporta el alias canónico %s", (name) => {
-    const icon = (Icons as Record<string, unknown>)[name];
+    const icon = Icons[name];
     expect(icon, `alias ${name} no está exportado desde @/components/icons`).toBeDefined();
     expect(typeof icon === "function" || typeof icon === "object").toBe(true);
   });

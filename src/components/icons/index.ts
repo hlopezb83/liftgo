@@ -96,6 +96,7 @@ export {
   Phone as PhoneIcon,
   MapPin as LocationIcon,
   Landmark as BankIcon,
+  Handshake as DealIcon,
   Stamp as StampIcon,
   FileSignature as SignIcon,
   Send as DeliveryIcon,
