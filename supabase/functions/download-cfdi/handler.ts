@@ -357,7 +357,7 @@ async function loadFacturapiKey(
   }
 }
 
-export interface PortalAccess {
+interface PortalAccess {
   organizationId: string;
   customerId: string;
 }

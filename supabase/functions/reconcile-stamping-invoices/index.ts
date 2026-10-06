@@ -56,8 +56,8 @@ interface StuckRow extends PureStuckRow {
 // MON-02: presupuesto de reloj por corrida y lotes más chicos. Sin ellos una
 // corrida con muchas llamadas al PAC excedía el runtime (504) o moría a media
 // ejecución (502). El cron corre cada 5 min y retoma lo que falte.
-export const RUN_BUDGET_MS = 50_000;
-export const RUN_ROW_LIMIT = 10;
+const RUN_BUDGET_MS = 50_000;
+const RUN_ROW_LIMIT = 10;
 
 /**
  * Tramo 8.1: recuperación idempotente del folio REP de un pago ya timbrado.

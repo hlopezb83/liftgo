@@ -71,6 +71,25 @@ Cuando un símbolo sólo se usa en su archivo, debe ser interno. Las APIs entre
 features siguen expuestas mediante sus barrels públicos. Verifica los imports,
 las cargas dinámicas y las pruebas antes de eliminar código sin consumidores.
 
+### Exportaciones de entradas revisadas
+
+La revisión del 5 de octubre de 2026 retiró las constantes `FACTURAPI_BASE`
+que quedaron sin uso al adoptar el cliente compartido del SDK. También hizo
+internos los límites de ejecución, el catálogo de módulos y los tipos que
+sólo usan sus propios handlers. Los cuerpos de las funciones no cambian.
+
+El análisis profundo conserva nueve observaciones justificadas:
+
+- Los tres `default` de Vite y Playwright son contratos de sus ejecutores.
+- `extractAttr`, `extractAllAttr` y `extractPagoNodes` siguen expuestos por el
+  handler y la entrada de `validate-supplier-rep`: forman parte de la interfaz
+  de compatibilidad del endpoint XML heredado. No se retira esa interfaz sólo
+  por no tener imports actuales en el ERP.
+
+No se añadieron exclusiones para ocultar estas exportaciones. El reporte
+principal permanece en cero; el profundo es informativo y no cuenta estas
+nueve observaciones como bugs de negocio pendientes.
+
 ## Cómo cambiar un guardrail
 
 Cambia la regla y su escaneo

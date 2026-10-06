@@ -38,7 +38,6 @@ export interface StampCreditNoteDeps {
   env: (k: string) => string | undefined;
 }
 
-export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const BUCKET = "cfdi-files";
 
 export async function handleStampCreditNote(

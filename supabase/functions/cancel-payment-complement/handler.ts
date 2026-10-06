@@ -23,7 +23,6 @@ import {
 export type { SupabaseLike };
 export type CancelRepDeps = StampCfdiDeps;
 
-export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 // M-7: mismos estados SAT que cancel-cfdi/handler.ts.
 const VALID_SAT_STATUSES = [

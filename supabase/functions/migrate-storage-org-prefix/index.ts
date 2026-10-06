@@ -1254,7 +1254,7 @@ async function processObject(
 }
 
 /** Estados NO terminales de un objeto referenciado. */
-export const REFERENCED_PENDING_STATUSES = [
+const REFERENCED_PENDING_STATUSES = [
   "planned",
   "copied",
   "failed",

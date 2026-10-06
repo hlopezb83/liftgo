@@ -200,9 +200,9 @@ async function isDocCancelled(
 
 // MON-02: presupuesto de tiempo y lotes más chicos por corrida (el cron
 // corre cada 5 min, así que el trabajo restante se procesa enseguida).
-export const RUN_BUDGET_MS = 50_000;
-export const RUN_PENDING_LIMIT = 10;
-export const RUN_STALE_LIMIT = 5;
+const RUN_BUDGET_MS = 50_000;
+const RUN_PENDING_LIMIT = 10;
+const RUN_STALE_LIMIT = 5;
 
 // Deps inyectables SOLO para tests (nunca cambian el comportamiento por
 // defecto en producción): permiten simular `admin`/`env` sin abrir un
