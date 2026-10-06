@@ -118,7 +118,7 @@ export async function runPlatformOnboarding(
   actor: string,
   job: PlatformOnboardingJob,
 ): Promise<PlatformOnboardingResult> {
-  let issueLink = false;
+  let issueLink: boolean;
   try {
     await ensureAdminIdentity(admin, job);
     const finished = await Promise.resolve(

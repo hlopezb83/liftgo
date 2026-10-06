@@ -181,7 +181,7 @@ export const classifyFeedbackReportFn = createServerFn({ method: "POST" })
     const prompt = buildClassificationPrompt(report, ctx);
 
     const ai = await import("./server/ai.server");
-    let rawContent = "";
+    let rawContent: string;
     try {
       const { text } = await ai.aiChatCompletion({
         model: MODEL,
