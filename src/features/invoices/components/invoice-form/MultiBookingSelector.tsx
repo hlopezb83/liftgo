@@ -87,7 +87,7 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange, issueDat
                   return (
                     <CommandItem
                       key={b.id}
-                      value={`${b.forklifts?.name ?? ""} ${b.customer_name ?? ""}`}
+                      value={`${b.booking_number ?? ""} ${b.forklifts?.name ?? ""} ${b.customer_name ?? ""} ${b.id}`}
                       disabled={!!reason}
                       onSelect={() => toggle(b.id)}
                       className={cn("flex items-start gap-2", reason && "opacity-60")}
@@ -95,6 +95,7 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange, issueDat
                       <SuccessIcon className={cn("h-4 w-4 mt-1", isSelected ? "opacity-100" : "opacity-0")} />
                       <div className="flex flex-col">
                         <span className="font-medium">
+                          {b.booking_number ? <span className="font-mono">{b.booking_number} · </span> : null}
                           {b.forklifts?.name} — {b.customer_name || "Sin cliente"}
                         </span>
                         <span className="text-xs text-muted-foreground">
@@ -120,7 +121,7 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange, issueDat
           {selected.map((b) => (
             <Badge key={b.id} variant="secondary" className="gap-1 pr-1">
               <CalendarIcon className="h-3 w-3" />
-              <span>{b.forklifts?.name} · {formatDateRange(b.start_date, b.end_date)}</span>
+              <span>{b.booking_number ? `${b.booking_number} · ` : ""}{b.forklifts?.name} · {formatDateRange(b.start_date, b.end_date)}</span>
               <button
                 type="button"
                 onClick={() => remove(b.id)}

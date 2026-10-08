@@ -1,3 +1,7 @@
+## [8.43.21] — 2026-10-08
+
+- Al generar una factura desde reserva, el selector muestra y permite buscar el número de reserva (RSV-XXXX).
+
 ## [8.43.20] — 2026-10-08
 
 - Los avisos de error muestran el motivo que da el sistema (por ejemplo, «El REP no está timbrado») en lugar de un texto genérico.
