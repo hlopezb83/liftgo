@@ -122,7 +122,7 @@
     "@tanstack/start-storage-context": "1.167.36",
     "@babel/core": "^8.0.6",
     "@eslint/js": "^10.0.1",
-    "@lovable.dev/vite-tanstack-config": "2.25.2",
+    "@lovable.dev/vite-tanstack-config": "2.25.3",
     "@playwright/test": "^1.62.1",
     "@rolldown/plugin-babel": "^0.2.4",
     "@tailwindcss/postcss": "^4",
