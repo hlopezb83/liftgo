@@ -1,3 +1,7 @@
+## [8.43.20] — 2026-10-08
+
+- Los avisos de error muestran el motivo que da el sistema (por ejemplo, «El REP no está timbrado») en lugar de un texto genérico.
+
 ## [8.43.15] — 2026-10-03
 
 - Las copias fallidas muestran un aviso recuperable con diagnóstico y alternativa manual; el éxito se confirma al terminar la copia.
