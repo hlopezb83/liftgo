@@ -179,7 +179,10 @@ function errorToast(input: NotifyErrorInput, toastId?: string | number) {
   captureOperationalError(error, { phase: input.phase, errorCode: report.errorCode, severity: input.severity });
 
   const translation = translatePgError(error, title);
-  const fallback = translation.matched || translation.message === title
+  // Los errores de negocio de Edge/server functions llegan como texto en español
+  // ya redactado para el usuario: se muestran tal cual en lugar del genérico.
+  const userFacing = /[áéíóúñ¿¡]|\b(el|la|los|las|no|del|una?)\b/i.test(translation.message);
+  const fallback = translation.matched || translation.message === title || userFacing
     ? translation.message
     : "No se confirmó la operación. Actualiza los datos para comprobar el estado del cambio.";
   const detail = redactDiagnosticText(input.description ?? fallback);

@@ -28,6 +28,13 @@ beforeEach(() => {
 });
 
 describe("appFeedback", () => {
+  it("muestra el motivo de negocio en español de una función", () => {
+    notifyError({ error: new Error("El REP no está timbrado"), title: "No se pudo cancelar" });
+    expect(sonner.error).toHaveBeenCalledWith("No se pudo cancelar", expect.objectContaining({
+      description: "El REP no está timbrado",
+    }));
+  });
+
   it("un error desconocido usa ayuda en español y conserva la causa para copiar JSON", () => {
     const cause = new Error("Unexpected provider exception: operation uncertain");
     notifyError({ error: cause, title: "No se pudo guardar" });

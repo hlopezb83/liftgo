@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.20",
+    "date": "2026-10-08",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "El motivo real del error vuelve a mostrarse en los avisos",
+    "description": "Los avisos de error muestran el motivo que da el sistema (por ejemplo, «El REP no está timbrado») en lugar de un texto genérico.",
+    "changes": [
+      "Los motivos de negocio en español se ven directamente en el aviso; los errores técnicos desconocidos conservan la ayuda genérica y el JSON de diagnóstico."
+    ]
+  },
+  {
     "version": "8.43.19",
     "date": "2026-10-05",
     "type": "patch",
