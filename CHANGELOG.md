@@ -1,3 +1,7 @@
+## [8.44.0] — 2026-10-13
+
+- Los administradores pueden corregir la fecha de una entrega completada, anular una entrega que no ocurrió y anular una devolución errónea (la reserva vuelve a quedar activa). Todo pide motivo y queda en la bitácora.
+
 ## [8.43.25] — 2026-10-13
 
 - Si la reserva tiene facturas, contratos, entregas, inspecciones o daños, el aviso explica por qué no se elimina y qué hacer.
