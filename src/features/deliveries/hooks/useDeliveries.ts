@@ -110,6 +110,39 @@ export function useCompleteDelivery() {
   });
 }
 
+const correctionKeys = [
+  deliveryKeys.all, ["bookings"] as const, ["forklifts"] as const, ["status_logs"] as const,
+  ["return_inspections"] as const, operationSummaryKeys.dashboardStats.all,
+  operationSummaryKeys.fleetLocations.all, operationSummaryKeys.forkliftLocation.all,
+];
+
+/** Solo admin: corrige la fecha real de una entrega completada (auditado). */
+export function useCorrectDeliveryDate() {
+  return useEntityMutation({
+    mutationFn: async ({ id, date, reason }: { id: string; date: string; reason: string }) => {
+      // Mediodía de Monterrey para que el día no se recorra por zona horaria.
+      const completedAt = new Date(`${date}T12:00:00-06:00`).toISOString();
+      return callRpc<string>("correct_delivery_completed_at", {
+        p_delivery_id: id, p_completed_at: completedAt, p_reason: reason,
+      });
+    },
+    invalidateKeys: correctionKeys,
+    successMsg: "Fecha de entrega corregida",
+    errorTitle: "Error al corregir la fecha",
+  });
+}
+
+/** Solo admin: anula una entrega completada capturada por error (auditado). */
+export function useVoidDelivery() {
+  return useEntityMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) =>
+      callRpc<string>("void_completed_delivery", { p_delivery_id: id, p_reason: reason }),
+    invalidateKeys: correctionKeys,
+    successMsg: "Entrega anulada",
+    errorTitle: "Error al anular la entrega",
+  });
+}
+
 export function useDeleteDelivery() {
   return useEntityMutation({
     mutationFn: async (id: string) => {
