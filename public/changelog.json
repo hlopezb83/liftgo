@@ -1,5 +1,14 @@
 [
   {
+    "version": "8.44.2",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Búsqueda global encuentra entregas y devoluciones",
+    "description": "El buscador general ahora encuentra entregas (ENT-XXXX) y devoluciones (DEV-XXXX) por su folio.",
+    "changes": []
+  },
+  {
     "version": "8.44.1",
     "date": "2026-10-13",
     "type": "patch",

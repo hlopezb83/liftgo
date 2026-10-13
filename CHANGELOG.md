@@ -1,3 +1,7 @@
+## [8.44.2] — 2026-10-13
+
+- El buscador general encuentra entregas (ENT-XXXX) y devoluciones (DEV-XXXX) por su folio.
+
 ## [8.44.1] — 2026-10-13
 
 - Al anular una devolución ya no aparece un error breve ni un aviso doble.
