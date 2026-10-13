@@ -21,6 +21,25 @@ import {
  */
 let started = false;
 
+/** Ventana en la que un inicio por recuperación se considera "este enlace". */
+const RECOVERY_TOKEN_MAX_AGE_S = 15 * 60;
+
+/** Lee sólo el claim `amr` (sin registrar ni guardar el token). */
+export function isFreshRecoveryToken(token: string | null | undefined, nowMs = Date.now()): boolean {
+  if (!token) return false;
+  try {
+    const part = token.split(".")[1];
+    if (!part) return false;
+    const json = atob(part.replace(/-/g, "+").replace(/_/g, "/"));
+    const amr = (JSON.parse(json) as { amr?: Array<{ method?: string; timestamp?: number }> }).amr;
+    if (!Array.isArray(amr)) return false;
+    const nowS = nowMs / 1000;
+    return amr.some((m) => m?.method === "recovery" && typeof m.timestamp === "number" && nowS - m.timestamp <= RECOVERY_TOKEN_MAX_AGE_S);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * AUTH-REC-02 — enlaces de correo en formato `?code=…`.
  *
@@ -68,6 +87,18 @@ export function startRecoveryCapture(): void {
     // `INITIAL_SESSION` sin sesión puede llegar tarde durante el arranque del
     // SDK; no debe invalidar una recuperación ya confirmada.
     if (event === "INITIAL_SESSION" && !session) return;
+    // AUTH-REC-03: el SDK puede procesar el enlace (#access_token) y emitir
+    // `PASSWORD_RECOVERY` antes de esta suscripción; entonces sólo llega
+    // INITIAL_SESSION/SIGNED_IN. Se confirma únicamente si el token nuevo
+    // declara un inicio por recuperación reciente (no una sesión previa).
+    if (
+      (event === "INITIAL_SESSION" || event === "SIGNED_IN") &&
+      getRecoveryStatus() === "pending" &&
+      isFreshRecoveryToken(session?.access_token)
+    ) {
+      markRecoveryActive(session?.user?.id);
+      return;
+    }
     // Cambio de usuario o cierre de sesión: el flujo activo deja de valer.
     // Un refresco de token del mismo usuario lo mantiene intacto.
     syncRecoverySessionUser(session?.user?.id ?? null);
