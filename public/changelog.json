@@ -1,5 +1,14 @@
 [
   {
+    "version": "8.44.4",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Las notas de la factura aparecen en el PDF de Facturapi",
+    "description": "Al timbrar, las notas capturadas en la factura se imprimen en el PDF de Facturapi.",
+    "changes": []
+  },
+  {
     "version": "8.44.3",
     "date": "2026-10-13",
     "type": "patch",

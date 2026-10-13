@@ -1,3 +1,7 @@
+## [8.44.4] — 2026-10-13
+
+- Las notas capturadas en la factura ahora se imprimen en el PDF de Facturapi al timbrar.
+
 ## [8.44.3] — 2026-10-13
 
 - La factura de una reserva con renta pactada cobra los días sueltos prorrateados desde la tarifa acordada, no con la tarifa diaria del catálogo.

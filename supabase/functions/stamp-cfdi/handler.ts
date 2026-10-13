@@ -1,6 +1,7 @@
 // Pure handler for stamp-cfdi, deps-injected for testability.
 // The Deno.serve entry in index.ts wires real createClient + fetch + env.
 import { handleCors } from "../_shared/cors.ts";
+import { buildNotesSection } from "../_shared/facturapi/notesSection.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
@@ -530,6 +531,9 @@ export async function handleStampCfdi(
       external_id: invoice_id as string,
       idempotency_key: invoice_id as string,
     };
+    // 8.44.4: las notas de la factura se imprimen en el PDF de Facturapi.
+    const notesSection = buildNotesSection(inv.notes);
+    if (notesSection) payload.pdf_custom_section = notesSection;
 
     if (isGlobal) {
       const PERIODICITY_MAP: Record<string, string> = {
