@@ -1,3 +1,7 @@
+## [8.43.23] — 2026-10-13
+
+- Abrir un enlace válido para restablecer la contraseña ya no muestra por error «enlace inválido o expirado».
+
 ## [8.43.22] — 2026-10-13
 
 - Si el correo o la contraseña no coinciden, el aviso de inicio de sesión lo dice en español en lugar de un texto genérico.
