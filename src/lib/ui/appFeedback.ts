@@ -96,6 +96,10 @@ let authErrorAttempt = 0;
 export function notifyAuthError(input: NotifyErrorInput): void {
   authErrorAttempt += 1;
   activeAuthErrorToastId = notifyError({
+    title: "No pudimos iniciar sesión",
+    description: getAuthErrorMessage(input.error),
+    errorCode: "VALIDATION_ERROR",
+    severity: "warning",
     ...input,
     dedupeKey: `${AUTH_SIGNIN_ERROR_PREFIX}-${authErrorAttempt}`,
   });
