@@ -58,6 +58,27 @@ export function useReturnInspections(forkliftId?: string) {
   return useQuery(returnInspectionQueries.list({ forkliftId: forkliftId ?? null }));
 }
 
+/** Solo admin: anula una devolución capturada por error y reabre la reserva. */
+export function useVoidReturnInspection() {
+  return useEntityMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
+      const { data, error } = await supabase.rpc("void_return_inspection", {
+        p_inspection_id: id, p_reason: reason,
+      });
+      if (error) throw error;
+      return data;
+    },
+    invalidateKeys: [
+      returnInspectionKeys.all, ["bookings"], ["forklifts"], ["status_logs"], ["deliveries"],
+      ["sidebar-badge-counts"], ["fleet"],
+      operationSummaryKeys.dashboardStats.all, operationSummaryKeys.fleetLocations.all,
+      operationSummaryKeys.forkliftLocation.all,
+    ],
+    successMsg: "Devolución anulada; la reserva quedó activa de nuevo",
+    errorTitle: "Error al anular la devolución",
+  });
+}
+
 export function useCreateReturnInspection() {
   return useEntityMutation({
     // Multi-organización: organization_id lo resuelve la base, el cliente no lo envía.

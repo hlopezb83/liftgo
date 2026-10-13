@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.44.0",
+    "date": "2026-10-13",
+    "type": "minor",
+    "category": "feature",
+    "title": "Corregir entregas y devoluciones capturadas por error",
+    "description": "Los administradores pueden corregir la fecha real de una entrega completada, anular una entrega que no ocurrió y anular una devolución errónea para reabrir la reserva.",
+    "changes": [
+      "Cada corrección pide motivo y queda en la bitácora."
+    ]
+  },
+  {
     "version": "8.43.25",
     "date": "2026-10-13",
     "type": "patch",

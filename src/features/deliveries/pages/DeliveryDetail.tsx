@@ -13,7 +13,10 @@ import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailBody } from "../components/deliveries/DeliveryDetailBody";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import { RescheduleDeliveryDialog } from "../components/deliveries/RescheduleDeliveryDialog";
-import { useDeleteDelivery } from "../hooks/useDeliveries";
+import { AdminCorrectionDialog } from "@/components/domain/AdminCorrectionDialog";
+import { Button } from "@/components/ui/button";
+import { todayKeyMty } from "@/lib/format/dateFormats";
+import { useCorrectDeliveryDate, useDeleteDelivery, useVoidDelivery } from "../hooks/useDeliveries";
 import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
 import { useDeliveryDetailData } from "../hooks/useDeliveryDetailData";
 import { buildDeliverySubtitle, canDeleteDeliveryFor, computeHoursUsed } from "../lib/deliveryDetailHelpers";
@@ -24,8 +27,12 @@ export default function DeliveryDetail() {
   const { deliveryQuery, bookingQuery, hasLinkedBooking, linkedBooking, siblingDeliveries, forklift } = useDeliveryDetailData(id);
   const { data: delivery, isLoading, isError, refetch } = deliveryQuery;
   const deleteDelivery = useDeleteDelivery();
+  const correctDate = useCorrectDeliveryDate();
+  const voidDelivery = useVoidDelivery();
   const { data: role } = useUserRole();
   const [editOpen, setEditOpen] = useState(false);
+  const [correctOpen, setCorrectOpen] = useState(false);
+  const [voidOpen, setVoidOpen] = useState(false);
 
   const completion = useDeliveryCompletion(delivery, siblingDeliveries, linkedBooking, forklift);
 
@@ -81,13 +88,21 @@ export default function DeliveryDetail() {
           badges={<StatusBadge status={delivery.status} />}
           backTo="/deliveries"
           actions={
-            <DeliveryActions
-              status={delivery.status}
-              canDelete={canDeleteDeliveryFor(delivery.status, role)}
-              onEdit={() => setEditOpen(true)}
-              onComplete={() => completion.setSignatureOpen(true)}
-              onDelete={handleDelete}
-            />
+            <div className="flex flex-wrap gap-2">
+              {role === "admin" && delivery.status === "completed" && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setCorrectOpen(true)}>Corregir fecha</Button>
+                  <Button variant="outline" size="sm" className="text-destructive" onClick={() => setVoidOpen(true)}>Anular</Button>
+                </>
+              )}
+              <DeliveryActions
+                status={delivery.status}
+                canDelete={canDeleteDeliveryFor(delivery.status, role)}
+                onEdit={() => setEditOpen(true)}
+                onComplete={() => completion.setSignatureOpen(true)}
+                onDelete={handleDelete}
+              />
+            </div>
           }
         />
 
@@ -119,6 +134,38 @@ export default function DeliveryDetail() {
           linkedBooking={linkedBooking}
           open={editOpen}
           onOpenChange={setEditOpen}
+        />
+      )}
+      {correctOpen && (
+        <AdminCorrectionDialog
+          open={correctOpen}
+          onOpenChange={setCorrectOpen}
+          title={`Corregir fecha de ${delivery.delivery_number}`}
+          description="Cambia la fecha real en que se entregó el equipo. La reserva debe estar activa (si ya tiene devolución, anúlala primero)."
+          confirmLabel="Guardar fecha"
+          dateLabel="Fecha real de entrega"
+          initialDate={delivery.scheduled_date}
+          maxDate={todayKeyMty()}
+          isPending={correctDate.isPending}
+          onConfirm={({ reason, date }) => correctDate.mutate(
+            { id: delivery.id, date: date ?? "", reason },
+            { onSuccess: () => setCorrectOpen(false) },
+          )}
+        />
+      )}
+      {voidOpen && (
+        <AdminCorrectionDialog
+          open={voidOpen}
+          onOpenChange={setVoidOpen}
+          destructive
+          title={`Anular ${delivery.delivery_number}`}
+          description="Úsalo solo si esta entrega nunca ocurrió. Quedará cancelada en el historial y, si el montacargas no tiene otra renta entregada, regresará a disponible."
+          confirmLabel="Anular entrega"
+          isPending={voidDelivery.isPending}
+          onConfirm={({ reason }) => voidDelivery.mutate(
+            { id: delivery.id, reason },
+            { onSuccess: () => setVoidOpen(false) },
+          )}
         />
       )}
     </>

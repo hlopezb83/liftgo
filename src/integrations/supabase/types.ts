@@ -6200,6 +6200,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      admin_correction_guard: { Args: never; Returns: string }
       approve_payment_intent: {
         Args: {
           p_intent_id: string
@@ -6464,6 +6465,14 @@ export type Database = {
           booking_id: string
           forklift_id: string
         }[]
+      }
+      correct_delivery_completed_at: {
+        Args: {
+          p_completed_at: string
+          p_delivery_id: string
+          p_reason: string
+        }
+        Returns: string
       }
       correct_return_inspection: {
         Args: {
@@ -8404,6 +8413,14 @@ export type Database = {
       validate_legal_template_content: {
         Args: { p_content: Json }
         Returns: undefined
+      }
+      void_completed_delivery: {
+        Args: { p_delivery_id: string; p_reason: string }
+        Returns: string
+      }
+      void_return_inspection: {
+        Args: { p_inspection_id: string; p_reason: string }
+        Returns: string
       }
       withdraw_my_support_report: {
         Args: { p_report: string; p_revision: string }
