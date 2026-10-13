@@ -1,3 +1,7 @@
+## [8.44.3] — 2026-10-13
+
+- La factura de una reserva con renta pactada cobra los días sueltos prorrateados desde la tarifa acordada, no con la tarifa diaria del catálogo.
+
 ## [8.44.2] — 2026-10-13
 
 - El buscador general encuentra entregas (ENT-XXXX) y devoluciones (DEV-XXXX) por su folio.
