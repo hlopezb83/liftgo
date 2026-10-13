@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.23",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "El enlace para restablecer contraseña ya no se da por vencido",
+    "description": "Al abrir un enlace válido, la pantalla de nueva contraseña ya no muestra «enlace inválido o expirado» por error.",
+    "changes": [
+      "Se reconoce un enlace de recuperación válido aunque la app termine de cargar después de procesarlo."
+    ]
+  },
+  {
     "version": "8.43.22",
     "date": "2026-10-13",
     "type": "patch",
