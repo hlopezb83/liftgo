@@ -29,3 +29,14 @@ describe("guard de eliminación de reserva", () => {
     expect(text).not.toMatch(/P0001|trigger|delete_booking|rpc/i);
   });
 });
+
+describe("guard de eliminación: documentos ligados", () => {
+  it("mapea el rechazo por documentos ligados", () => {
+    const block = resolveBusinessBlock(Object.assign(new Error("x"), {
+      code: "P0001",
+      message: "La reserva tiene documentos ligados (facturas, contratos, entregas, inspecciones o daños); no se puede eliminar.",
+    }));
+    expect(block?.code).toBe("booking_has_linked_documents");
+    expect(block?.nextStep).toMatch(/cancela/i);
+  });
+});
