@@ -1,0 +1,4 @@
+{
+  "description": "Al anular una devolución ya no aparece un error breve ni un aviso doble; solo la confirmación.",
+  "changes": []
+}
