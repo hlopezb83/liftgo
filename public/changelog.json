@@ -1,5 +1,14 @@
 [
   {
+    "version": "8.44.1",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Sin error al anular una devolución",
+    "description": "Al anular una devolución ya no aparece un error breve ni un aviso doble; solo la confirmación.",
+    "changes": []
+  },
+  {
     "version": "8.44.0",
     "date": "2026-10-13",
     "type": "minor",

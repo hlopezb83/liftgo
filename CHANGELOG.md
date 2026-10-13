@@ -1,3 +1,7 @@
+## [8.44.1] — 2026-10-13
+
+- Al anular una devolución ya no aparece un error breve ni un aviso doble.
+
 ## [8.44.0] — 2026-10-13
 
 - Los administradores pueden corregir la fecha de una entrega completada, anular una entrega que no ocurrió y anular una devolución errónea (la reserva vuelve a quedar activa). Todo pide motivo y queda en la bitácora.
