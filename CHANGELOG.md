@@ -1,3 +1,7 @@
+## [8.43.25] — 2026-10-13
+
+- Si la reserva tiene facturas, contratos, entregas, inspecciones o daños, el aviso explica por qué no se elimina y qué hacer.
+
 ## [8.43.24] — 2026-10-13
 
 - Al restablecer la contraseña, el aviso explica si es muy común o igual a la anterior.

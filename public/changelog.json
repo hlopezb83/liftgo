@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.25",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Aviso claro al eliminar una reserva con documentos",
+    "description": "Si la reserva tiene facturas, contratos, entregas, inspecciones o daños, el aviso explica por qué no se elimina y qué hacer.",
+    "changes": [
+      "El bloqueo se muestra como advertencia con siguiente paso, no como error técnico."
+    ]
+  },
+  {
     "version": "8.43.24",
     "date": "2026-10-13",
     "type": "patch",
