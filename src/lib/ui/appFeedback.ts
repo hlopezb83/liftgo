@@ -2,6 +2,7 @@ import { createElement } from "react";
 import { toast } from "sonner";
 import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
+import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
 import { translatePgError } from "@/lib/errors/pgErrorCatalog";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { closeErrorReport, openErrorReport } from "@/lib/ui/errorDetailsStore";
@@ -98,7 +99,7 @@ export function notifyAuthError(input: NotifyErrorInput): void {
   activeAuthErrorToastId = notifyError({
     title: "No pudimos iniciar sesión",
     description: getAuthErrorMessage(input.error),
-    errorCode: "VALIDATION_ERROR",
+    errorCode: "VALIDATION_FAILED",
     severity: "warning",
     ...input,
     dedupeKey: `${AUTH_SIGNIN_ERROR_PREFIX}-${authErrorAttempt}`,
