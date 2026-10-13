@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.24",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Aviso claro cuando la contraseña nueva es débil",
+    "description": "Al restablecer la contraseña, el aviso explica si es muy común o igual a la anterior.",
+    "changes": [
+      "Los avisos de recuperación tienen su propio título y motivo en español."
+    ]
+  },
+  {
     "version": "8.43.23",
     "date": "2026-10-13",
     "type": "patch",

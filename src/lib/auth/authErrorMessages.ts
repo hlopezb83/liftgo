@@ -7,6 +7,8 @@ const AUTH_ERROR_MAP: ReadonlyArray<readonly [RegExp, string]> = [
   [/email not confirmed/i, "Tu correo aún no ha sido confirmado. Revisa tu bandeja de entrada."],
   [/user not found/i, "No encontramos una cuenta con ese correo."],
   [/email rate limit exceeded|too many requests|rate limit/i, "Demasiados intentos. Espera unos minutos e inténtalo de nuevo."],
+  [/known to be weak|weak_password|easy to guess|pwned/i, "Esa contraseña es muy común o apareció en filtraciones. Elige una más larga y única (por ejemplo, una frase con números)."],
+  [/should be different from the old password|same_password/i, "La contraseña nueva debe ser distinta a la anterior."],
   [/password should be at least/i, "La contraseña es demasiado corta."],
   [/invalid email/i, "El correo electrónico no es válido."],
   [/network|fetch failed|failed to fetch/i, "No pudimos conectar con el servidor. Revisa tu conexión."],

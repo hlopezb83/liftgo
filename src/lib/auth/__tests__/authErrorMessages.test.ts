@@ -50,6 +50,11 @@ describe("getAuthErrorMessage", () => {
     );
   });
 
+  it("traduce contraseña débil o repetida", () => {
+    expect(getAuthErrorMessage(new Error("Password is known to be weak and easy to guess, please choose a different one."))).toMatch(/muy común/);
+    expect(getAuthErrorMessage(new Error("New password should be different from the old password."))).toBe("La contraseña nueva debe ser distinta a la anterior.");
+  });
+
   it("acepta valores que no son Error", () => {
     expect(getAuthErrorMessage("Invalid login credentials")).toBe(
       "Correo o contraseña incorrectos.",
