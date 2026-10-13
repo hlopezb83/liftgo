@@ -88,13 +88,13 @@ export async function searchEntities(
     supabase
       .from("deliveries")
       .select("id, delivery_number, type, address")
-      .ilike("delivery_number", like)
+      .or(`delivery_number.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
       .from("return_inspections")
       .select("id, inspection_number, bookings(customer_name)")
-      .ilike("inspection_number", like)
+      .or(`inspection_number.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(5),
   ]);
