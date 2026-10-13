@@ -87,7 +87,7 @@ export default function AuthPage({ platform = false, destination = "/platform" }
     dismissAuthError();
     if (mode === "forgot") {
       const { error } = await resetPassword(email, platform ? "platform" : undefined);
-      if (error) notifyAuthError({ error });
+      if (error) notifyAuthError({ error, title: "No pudimos enviar el enlace" });
       else notifySuccess("Revisa tu correo para restablecer tu contraseña");
       return;
     }
@@ -95,7 +95,7 @@ export default function AuthPage({ platform = false, destination = "/platform" }
       if (!canSubmitReset) return;
       const { error } = await updatePassword(password);
       if (error) {
-        notifyAuthError({ error });
+        notifyAuthError({ error, title: "No pudimos guardar la contraseña" });
         return;
       }
       notifySuccess("Contraseña actualizada");

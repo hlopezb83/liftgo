@@ -1,3 +1,7 @@
+## [8.43.24] — 2026-10-13
+
+- Al restablecer la contraseña, el aviso explica si es muy común o igual a la anterior.
+
 ## [8.43.23] — 2026-10-13
 
 - Abrir un enlace válido para restablecer la contraseña ya no muestra por error «enlace inválido o expirado».

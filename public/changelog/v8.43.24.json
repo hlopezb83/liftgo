@@ -1,0 +1,6 @@
+{
+  "description": "Al restablecer la contraseña, el aviso explica si es muy común o igual a la anterior.",
+  "changes": [
+    "Los avisos de recuperación tienen su propio título y motivo en español."
+  ]
+}
