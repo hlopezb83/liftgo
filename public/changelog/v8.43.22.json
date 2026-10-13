@@ -1,0 +1,6 @@
+{
+  "description": "Si el correo o la contraseña no coinciden, el aviso lo dice en español en lugar de un texto genérico.",
+  "changes": [
+    "Los avisos de inicio de sesión y recuperación muestran el motivo (contraseña incorrecta, demasiados intentos, etc.)."
+  ]
+}

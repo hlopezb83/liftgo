@@ -1,3 +1,7 @@
+## [8.43.22] — 2026-10-13
+
+- Si el correo o la contraseña no coinciden, el aviso de inicio de sesión lo dice en español en lugar de un texto genérico.
+
 ## [8.43.21] — 2026-10-08
 
 - Al generar una factura desde reserva, el selector muestra y permite buscar el número de reserva (RSV-XXXX).

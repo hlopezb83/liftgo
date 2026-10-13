@@ -1,5 +1,16 @@
 [
   {
+    "version": "8.43.22",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "Aviso claro al fallar el inicio de sesión",
+    "description": "Si el correo o la contraseña no coinciden, el aviso lo dice en español en lugar de un texto genérico.",
+    "changes": [
+      "Los avisos de inicio de sesión y recuperación muestran el motivo (contraseña incorrecta, demasiados intentos, etc.)."
+    ]
+  },
+  {
     "version": "8.43.21",
     "date": "2026-10-08",
     "type": "patch",
