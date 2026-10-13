@@ -1,0 +1,6 @@
+{
+  "description": "El selector de reservas muestra y permite buscar el folio RSV-XXXX.",
+  "changes": [
+    "El folio de reserva se ve en cada opción y en las reservas seleccionadas."
+  ]
+}
