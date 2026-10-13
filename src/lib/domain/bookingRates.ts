@@ -26,6 +26,20 @@ export function resolveBookingRates(
   forkliftRates: RateSet | null | undefined,
   bookingRates?: RateSet | null,
 ): ResolvedRates {
+  // 8.44.3: si la reserva trae AL MENOS una tarifa pactada (> 0), esas tarifas
+  // son el contrato completo: las que vienen en 0 NO caen al catálogo. El
+  // cálculo de renta prorratea el remanente desde la mensual/semanal pactada
+  // (p. ej. $15,000/mes → $500/día), igual que la cotización. Sólo una reserva
+  // sin ninguna tarifa pactada usa las tarifas del montacargas.
+  const hasPacted = [bookingRates?.daily_rate, bookingRates?.weekly_rate, bookingRates?.monthly_rate]
+    .some((r) => (Number(r) || 0) > 0);
+  if (hasPacted) {
+    return {
+      daily: Math.max(0, Number(bookingRates?.daily_rate) || 0),
+      weekly: Math.max(0, Number(bookingRates?.weekly_rate) || 0),
+      monthly: Math.max(0, Number(bookingRates?.monthly_rate) || 0),
+    };
+  }
   const pick = (booked: unknown, master: unknown): number => {
     const b = Number(booked) || 0;
     if (b > 0) return b;

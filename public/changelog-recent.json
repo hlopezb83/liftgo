@@ -1,5 +1,14 @@
 [
   {
+    "version": "8.44.3",
+    "date": "2026-10-13",
+    "type": "patch",
+    "category": "bugfix",
+    "title": "La factura respeta la tarifa diaria de la cotización",
+    "description": "Si la reserva tiene una renta pactada (por ejemplo $15,000 al mes), los días sueltos se cobran prorrateados ($500/día) y ya no con la tarifa diaria del catálogo del montacargas.",
+    "changes": []
+  },
+  {
     "version": "8.44.2",
     "date": "2026-10-13",
     "type": "patch",
