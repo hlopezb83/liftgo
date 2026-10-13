@@ -42,7 +42,7 @@ const ITEMS: Item[] = [
 ];
 
 const SECTION_LABELS: Record<string, string> = {
-  invoices: "Facturas", customers: "Clientes", bookings: "Reservas",
+  invoices: "Facturas", customers: "Clientes", bookings: "Reservas", deliveries: "Entregas", returns: "Devoluciones",
 };
 
 /**
@@ -97,7 +97,7 @@ export function GlobalSearch() {
 
   const entityQuery = useEntitySearch(debouncedInput, open);
   const entities = entityQuery.data;
-  const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length > 0);
+  const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
   const go = (url: string) => {
     setOpen(false);
@@ -175,6 +175,29 @@ export function GlobalSearch() {
               {entities.bookings.map((e) => (
                 <CommandItem key={e.id} value={`rsv ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
                   <BookOpen className="mr-2 h-4 w-4" />
+                  <span className="font-mono text-xs">{e.label}</span>
+                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {hasEntities && entities.deliveries.length > 0 && (
+            <CommandGroup heading="Entregas">
+              {entities.deliveries.map((e) => (
+                <CommandItem key={e.id} value={`ent ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
+                  <DeliveryIcon className="mr-2 h-4 w-4" />
+                  <span className="font-mono text-xs">{e.label}</span>
+                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {hasEntities && entities.returns.length > 0 && (
+            <CommandGroup heading="Devoluciones">
+              {entities.returns.map((e) => (
+                <CommandItem key={e.id} value={`dev ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
+                  <DeliveryIcon className="mr-2 h-4 w-4" />
                   <span className="font-mono text-xs">{e.label}</span>
                   {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
                 </CommandItem>
