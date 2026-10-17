@@ -147,62 +147,8 @@ export function GlobalSearch() {
 
           <SearchPartialErrors errors={entities?.errors} />
 
-
-          {hasEntities && entities.invoices.length > 0 && (
-            <CommandGroup heading="Facturas">
-              {entities.invoices.map((e) => (
-                <CommandItem key={e.id} value={`fac ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <InvoiceIcon className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {hasEntities && entities.customers.length > 0 && (
-            <CommandGroup heading="Clientes">
-              {entities.customers.map((e) => (
-                <CommandItem key={e.id} value={`cli ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <UsersIcon className="mr-2 h-4 w-4" />
-                  <span>{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs font-mono">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {hasEntities && entities.bookings.length > 0 && (
-            <CommandGroup heading="Reservas">
-              {entities.bookings.map((e) => (
-                <CommandItem key={e.id} value={`rsv ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-
-          {hasEntities && entities.deliveries.length > 0 && (
-            <CommandGroup heading="Entregas">
-              {entities.deliveries.map((e) => (
-                <CommandItem key={e.id} value={`ent ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <DeliveryIcon className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {hasEntities && entities.returns.length > 0 && (
-            <CommandGroup heading="Devoluciones">
-              {entities.returns.map((e) => (
-                <CommandItem key={e.id} value={`dev ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <DeliveryIcon className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+          {hasEntities && (
+            <EntitySearchResults entities={entities} isPending={isPending} onSelect={go} />
           )}
 
           {groups.map(([group, items]) => (
