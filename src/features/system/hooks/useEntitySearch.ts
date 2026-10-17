@@ -112,45 +112,65 @@ export async function searchEntities(
   if (retRes.error) errors.returns = retRes.error.message;
   return {
     ...(Object.keys(errors).length > 0 ? { errors } : {}),
-    invoices: (invRes.data ?? []).map((i) => ({
-      id: i.id,
-      label: i.invoice_number ?? "—",
-      sub: i.customer_name ?? undefined,
-      url: `/invoices/${i.id}`,
-    })),
-    customers: (custRes.data ?? []).flatMap((row) => {
-      const rel = (row as { customers?: CustomerRow | CustomerRow[] | null }).customers;
-      const c = Array.isArray(rel) ? rel[0] : rel;
-      if (!c) return [];
-      return [{
-        id: c.id,
-        label: c.name ?? "—",
-        sub: c.rfc ?? undefined,
-        url: `/customers/${c.id}`,
-      }];
-    }),
-    bookings: (bookRes.data ?? []).map((b) => ({
-      id: b.id,
-      label: b.booking_number ?? "—",
-      sub: b.customer_name ?? undefined,
-      url: `/bookings/${b.id}`,
-    })),
-    deliveries: (delRes.data ?? []).map((d) => ({
-      id: d.id,
-      label: d.delivery_number ?? "—",
-      sub: d.type === "pickup" ? "Recolección" : d.type === "delivery" ? "Entrega" : (d.address ?? undefined),
-      url: `/deliveries/${d.id}`,
-    })),
-    returns: (retRes.data ?? []).map((r) => {
-      const rel = (r as { bookings?: { customer_name: string | null } | null }).bookings;
-      return {
-        id: r.id,
-        label: r.inspection_number ?? "—",
-        sub: rel?.customer_name ?? undefined,
-        url: `/returns/${r.id}`,
-      };
-    }),
+    invoices: mapInvoices(invRes.data),
+    customers: mapCustomers(custRes.data),
+    bookings: mapBookings(bookRes.data),
+    deliveries: mapDeliveries(delRes.data),
+    returns: mapReturns(retRes.data),
   };
+}
+
+function mapInvoices(rows: Array<{ id: string; invoice_number: string | null; customer_name: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((i) => ({
+    id: i.id,
+    label: i.invoice_number ?? "—",
+    sub: i.customer_name ?? undefined,
+    url: `/invoices/${i.id}`,
+  }));
+}
+
+function mapCustomers(rows: unknown[] | null): EntityHit[] {
+  return (rows ?? []).flatMap((row) => {
+    const rel = (row as { customers?: CustomerRow | CustomerRow[] | null }).customers;
+    const c = Array.isArray(rel) ? rel[0] : rel;
+    if (!c) return [];
+    return [{
+      id: c.id,
+      label: c.name ?? "—",
+      sub: c.rfc ?? undefined,
+      url: `/customers/${c.id}`,
+    }];
+  });
+}
+
+function mapBookings(rows: Array<{ id: string; booking_number: string | null; customer_name: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((b) => ({
+    id: b.id,
+    label: b.booking_number ?? "—",
+    sub: b.customer_name ?? undefined,
+    url: `/bookings/${b.id}`,
+  }));
+}
+
+function mapDeliveries(rows: Array<{ id: string; delivery_number: string | null; type: string | null; address: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((d) => ({
+    id: d.id,
+    label: d.delivery_number ?? "—",
+    sub: d.type === "pickup" ? "Recolección" : d.type === "delivery" ? "Entrega" : (d.address ?? undefined),
+    url: `/deliveries/${d.id}`,
+  }));
+}
+
+function mapReturns(rows: Array<{ id: string; inspection_number: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((r) => {
+    const rel = (r as { bookings?: { customer_name: string | null } | null }).bookings;
+    return {
+      id: r.id,
+      label: r.inspection_number ?? "—",
+      sub: rel?.customer_name ?? undefined,
+      url: `/returns/${r.id}`,
+    };
+  });
 }
 
 export function useEntitySearch(query: string, enabled: boolean) {

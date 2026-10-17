@@ -59,6 +59,44 @@ function SearchPartialErrors({ errors }: { errors?: Record<string, string> }) {
   );
 }
 
+type EntityHit = { id: string; label: string; sub?: string; url: string };
+type EntityGroup = { heading: string; prefix: string; hits: EntityHit[]; mono: boolean };
+
+/** Grupos de entidades encontradas (facturas, clientes, reservas, entregas, devoluciones). */
+function EntitySearchResults({
+  entities, isPending, onSelect,
+}: {
+  entities: { invoices: EntityHit[]; customers: EntityHit[]; bookings: EntityHit[]; deliveries: EntityHit[]; returns: EntityHit[] };
+  isPending: boolean;
+  onSelect: (url: string) => void;
+}) {
+  const sections: EntityGroup[] = [
+    { heading: "Facturas", prefix: "fac", hits: entities.invoices, mono: true },
+    { heading: "Clientes", prefix: "cli", hits: entities.customers, mono: false },
+    { heading: "Reservas", prefix: "rsv", hits: entities.bookings, mono: true },
+    { heading: "Entregas", prefix: "ent", hits: entities.deliveries, mono: true },
+    { heading: "Devoluciones", prefix: "dev", hits: entities.returns, mono: true },
+  ];
+  return (
+    <>
+      {sections.filter((s) => s.hits.length > 0).map((s) => (
+        <CommandGroup key={s.prefix} heading={s.heading}>
+          {s.hits.map((e) => (
+            <CommandItem key={e.id} value={`${s.prefix} ${e.label} ${e.sub ?? ""}`} onSelect={() => onSelect(e.url)} disabled={isPending}>
+              {s.prefix === "fac" ? <InvoiceIcon className="mr-2 h-4 w-4" />
+                : s.prefix === "cli" ? <UsersIcon className="mr-2 h-4 w-4" />
+                : s.prefix === "rsv" ? <BookOpen className="mr-2 h-4 w-4" />
+                : <DeliveryIcon className="mr-2 h-4 w-4" />}
+              <span className={s.mono ? "font-mono text-xs" : undefined}>{e.label}</span>
+              {e.sub ? <span className={`ml-2 text-muted-foreground text-xs truncate${s.prefix === "cli" ? " font-mono" : ""}`}>{e.sub}</span> : null}
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      ))}
+    </>
+  );
+}
+
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -147,62 +185,8 @@ export function GlobalSearch() {
 
           <SearchPartialErrors errors={entities?.errors} />
 
-
-          {hasEntities && entities.invoices.length > 0 && (
-            <CommandGroup heading="Facturas">
-              {entities.invoices.map((e) => (
-                <CommandItem key={e.id} value={`fac ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <InvoiceIcon className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {hasEntities && entities.customers.length > 0 && (
-            <CommandGroup heading="Clientes">
-              {entities.customers.map((e) => (
-                <CommandItem key={e.id} value={`cli ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <UsersIcon className="mr-2 h-4 w-4" />
-                  <span>{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs font-mono">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {hasEntities && entities.bookings.length > 0 && (
-            <CommandGroup heading="Reservas">
-              {entities.bookings.map((e) => (
-                <CommandItem key={e.id} value={`rsv ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <BookOpen className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-
-          {hasEntities && entities.deliveries.length > 0 && (
-            <CommandGroup heading="Entregas">
-              {entities.deliveries.map((e) => (
-                <CommandItem key={e.id} value={`ent ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <DeliveryIcon className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          )}
-          {hasEntities && entities.returns.length > 0 && (
-            <CommandGroup heading="Devoluciones">
-              {entities.returns.map((e) => (
-                <CommandItem key={e.id} value={`dev ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
-                  <DeliveryIcon className="mr-2 h-4 w-4" />
-                  <span className="font-mono text-xs">{e.label}</span>
-                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
-                </CommandItem>
-              ))}
-            </CommandGroup>
+          {hasEntities && (
+            <EntitySearchResults entities={entities} isPending={isPending} onSelect={go} />
           )}
 
           {groups.map(([group, items]) => (

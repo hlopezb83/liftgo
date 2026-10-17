@@ -1,3 +1,7 @@
+## [8.44.5] — 2026-10-13
+
+- Limpieza de calidad: se eliminaron las 16 advertencias de lint del CI (orden de importaciones y funciones demasiado largas) y se corrigieron los mocks de la prueba del detalle de entrega. Sin cambios de comportamiento.
+
 ## [8.44.4] — 2026-10-13
 
 - Las notas capturadas en la factura ahora se imprimen en el PDF de Facturapi al timbrar.
