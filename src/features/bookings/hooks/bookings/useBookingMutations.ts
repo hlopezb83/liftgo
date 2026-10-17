@@ -3,8 +3,8 @@ import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { businessBlockSummary } from "@/lib/rules/businessBlocks";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifyWarning } from "@/lib/ui/appFeedback";
 import { bookingKeys } from "../../lib/queryKeys";
 

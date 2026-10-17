@@ -1,23 +1,23 @@
+import { useState } from "react";
+import { AdminCorrectionDialog } from "@/components/domain/AdminCorrectionDialog";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHasModuleAccess } from "@/features/users";
+import { useUserRole } from "@/features/users";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
 import { BookingCard } from "../components/return-inspection/BookingCard";
 import { DamagesCard } from "../components/return-inspection/DamagesCard";
 import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
 import { InspectionCard } from "../components/return-inspection/InspectionCard";
 import { UsageFuelCard } from "../components/return-inspection/UsageFuelCard";
-import { useState } from "react";
-import { AdminCorrectionDialog } from "@/components/domain/AdminCorrectionDialog";
-import { Button } from "@/components/ui/button";
-import { useUserRole } from "@/features/users";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useReturnInspection, useVoidReturnInspection } from "../hooks/useReturnInspections";
 
 export default function ReturnInspectionDetail() {

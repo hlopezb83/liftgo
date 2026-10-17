@@ -1,8 +1,8 @@
 import { createElement } from "react";
 import { toast } from "sonner";
 import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
-import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
+import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { translatePgError } from "@/lib/errors/pgErrorCatalog";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { closeErrorReport, openErrorReport } from "@/lib/ui/errorDetailsStore";
