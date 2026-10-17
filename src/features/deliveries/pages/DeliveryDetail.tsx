@@ -15,7 +15,7 @@ import { DeliveryAdminCorrections } from "../components/deliveries/DeliveryAdmin
 import { DeliveryDetailBody } from "../components/deliveries/DeliveryDetailBody";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import { RescheduleDeliveryDialog } from "../components/deliveries/RescheduleDeliveryDialog";
-import { useCorrectDeliveryDate, useDeleteDelivery, useVoidDelivery } from "../hooks/useDeliveries";
+import { useDeleteDelivery } from "../hooks/useDeliveries";
 import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
 import { useDeliveryDetailData } from "../hooks/useDeliveryDetailData";
 import { buildDeliverySubtitle, canDeleteDeliveryFor, computeHoursUsed } from "../lib/deliveryDetailHelpers";
