@@ -93,7 +93,7 @@ describe("InvoicesPage smoke tests", () => {
     renderPage();
     expect(await screen.findByRole("searchbox", { name: "Buscar facturas…" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
-    expect(screen.getAllByRole("searchbox")).toHaveLength(1);
+    expect(screen.getAllByRole("searchbox", { hidden: true })).toHaveLength(1);
     expect(screen.getByRole("dialog").querySelector('input[type="search"]')).toBeNull();
     expect(screen.getByRole("combobox", { name: "Filtrar por estado CFDI" })).toBeVisible();
   });

@@ -2,9 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { ViewIcon, InvoiceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";

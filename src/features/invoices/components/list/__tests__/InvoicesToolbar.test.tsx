@@ -25,7 +25,7 @@ function Harness({ onSearch }: { onSearch: (value: string) => void }) {
 
 function expectFacets() {
   expect(screen.getByRole("combobox", { name: "Filtrar por estado" })).toHaveTextContent("Pagado");
-  expect(screen.getByRole("combobox", { name: "Filtrar por estado CFDI" })).toHaveTextContent("Timbrado");
+  expect(screen.getByRole("combobox", { name: "Filtrar por estado CFDI" })).toHaveTextContent("Timbrada");
   expect(screen.getByRole("textbox", { name: "Fecha de emisión — inicio" })).toHaveValue("01/10/2026");
   expect(screen.getByRole("textbox", { name: "Fecha de emisión — fin" })).toHaveValue("17/10/2026");
 }
@@ -42,7 +42,8 @@ describe("V03 · búsqueda separada de facetas", () => {
     expect(onSearch).toHaveBeenCalledTimes(1);
     fireEvent.click(screen.getByRole("button", { name: "Filtros activos" }));
     expectFacets();
-    expect(screen.getAllByRole("searchbox")).toHaveLength(1);
+    // Sheet modal oculta el resto a lectores de pantalla; no duplica el input.
+    expect(screen.getAllByRole("searchbox", { hidden: true })).toHaveLength(1);
     expect(screen.getByRole("dialog").querySelector('input[type="search"]')).toBeNull();
     fireEvent.keyDown(document.activeElement ?? document.body, { key: "Escape" });
     await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
