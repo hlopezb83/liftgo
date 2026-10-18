@@ -158,6 +158,7 @@ export function InvoiceDetailBody({
         allowRepMutations={visibility.allowRepMutations}
         creditedAmount={creditedAmount}
         currency={currency}
+        exchangeRate={invoice.tipo_cambio}
       />
       <PaymentIntentsSection invoiceId={id} />
       <InvoiceCreditNotesCard invoice={invoice} />

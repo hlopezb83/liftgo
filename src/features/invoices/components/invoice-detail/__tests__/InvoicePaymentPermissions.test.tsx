@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
 import { InvoicePaymentSummary } from "../InvoicePaymentSummary";
 
-const mocks = vi.hoisted(() => ({ canWrite: false, stamp: vi.fn(), refresh: vi.fn() }));
+const mocks = vi.hoisted(() => ({ canWrite: false, stamp: vi.fn(), refresh: vi.fn(), editDialogProps: vi.fn() }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => mocks.canWrite }));
 vi.mock("@/features/bank-reconciliation", () => ({ ReconciliationBadge: () => null }));
 vi.mock("../../../hooks/invoices/cfdi/usePaymentComplement", () => ({
@@ -13,7 +13,10 @@ vi.mock("../../../hooks/invoices/cfdi/usePaymentComplement", () => ({
 vi.mock("../../../hooks/invoices/cfdi/useRefreshCancellationStatus", () => ({
   useRefreshRepCancellationStatus: () => ({ mutate: mocks.refresh, isPending: false }),
 }));
-vi.mock("../EditPaymentDialog", () => ({ EditPaymentDialog: () => <div role="dialog">Editar pago abierto</div> }));
+vi.mock("../EditPaymentDialog", () => ({ EditPaymentDialog: (props: Record<string, unknown>) => {
+  mocks.editDialogProps(props);
+  return <div role="dialog">Editar pago abierto</div>;
+} }));
 vi.mock("../CancelRepDialog", () => ({ CancelRepDialog: ({ open }: { open: boolean }) => open ? <div role="dialog">Cancelar REP abierto</div> : null }));
 
 const payments = [
@@ -22,7 +25,7 @@ const payments = [
   { id: "p-cancel", amount: 50, currency: "USD", payment_date: "2026-09-25", payment_method: "transfer",
     rep_cfdi_status: "stamped", rep_cancellation_status: "pending" },
 ] as unknown as Tables<"payments">[];
-const props = { payments, totalPaid: 350, creditedAmount: 200, balance: 842, ppdStamped: true, currency: "USD" };
+const props = { payments, totalPaid: 350, creditedAmount: 200, balance: 842, ppdStamped: true, currency: "USD", exchangeRate: 17.5 };
 
 function renderSummary(allowRepMutations = true) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -59,6 +62,9 @@ describe("Historial de pagos — permisos y moneda", () => {
     expect(edit.filter((button) => button.hasAttribute("disabled"))).toHaveLength(2);
     fireEvent.click(edit[0]);
     expect(screen.getByRole("dialog")).toHaveTextContent("Editar pago abierto");
+    expect(mocks.editDialogProps).toHaveBeenCalledWith(expect.objectContaining({
+      invoiceCurrency: "USD", invoiceExchangeRate: 17.5, balance: 842,
+    }));
   });
 
   it("al perder permiso desaparece un editor ya abierto", () => {

@@ -15,6 +15,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { roundMoney } from "@/lib/money";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
@@ -49,13 +50,16 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   payment: Payment;
-  /** Saldo pendiente de la factura (ya incluye este pago). Usado para el tope BL-11. */
+  /** Saldo pendiente en moneda de factura (ya incluye este pago). */
   balance: number;
+  invoiceCurrency?: string | null;
+  invoiceExchangeRate?: number | string | null;
 }
 
-export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Props) {
+export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoiceCurrency, invoiceExchangeRate }: Props) {
   const updatePayment = useUpdatePayment();
   const isRepStamped = (payment.rep_cfdi_status as string | null) === "stamped";
+  const paymentCurrency = (payment.currency ?? invoiceCurrency ?? "MXN").toUpperCase();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -82,10 +86,14 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Prop
   const onSubmit = (values: FormValues) => {
     // BL-11: rechazar sobrepagos al editar. El techo es el saldo actual (que ya
     // incluye este pago) más el monto original del pago editado.
-    const validation = validateEditPaymentAmount(values.amount, balance, payment.amount, isRepStamped);
+    const validation = validateEditPaymentAmount(values.amount, balance, payment.amount, isRepStamped, {
+      invoiceCurrency, invoiceExchangeRate, paymentCurrency, paymentExchangeRate: payment.exchange_rate,
+    });
     if (!validation.ok) {
       notifyValidation({
-        message: `El monto excede el saldo pendiente más el pago original ($${validation.maxAllowed.toFixed(2)}). Ajusta la cantidad.`,
+        message: "reason" in validation
+          ? "No se puede validar el monto sin un tipo de cambio válido del pago y la factura. Revisa los tipos de cambio."
+          : `El monto excede el saldo pendiente más el pago original (${formatCurrencyWithCode(validation.maxAllowed, paymentCurrency)} ${paymentCurrency}). Ajusta la cantidad.`,
       });
       return;
     }
@@ -122,7 +130,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Prop
           {isRepStamped ? (
             <BlockedActionNotice block={describeBusinessBlock("payment_rep_stamped_locked")} />
           ) : null}
-          <CurrencyField control={form.control} name="amount" label="Monto" required disabled={isRepStamped} />
+          <CurrencyField control={form.control} name="amount" label="Monto" currency={paymentCurrency as "MXN" | "USD"} required disabled={isRepStamped} />
           <DateField
             control={form.control}
             name="date"
