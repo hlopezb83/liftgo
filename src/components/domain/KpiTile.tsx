@@ -47,15 +47,28 @@ const BG_BY_COLOR: Record<string, string> = {
   "text-muted-foreground": "bg-muted",
 };
 
+/**
+ * V05: la escala depende de `valueSize` y de la LONGITUD del valor, no de si
+ * llegó como string o number — `123` y `"123"` deben verse igual. Se mide con
+ * `String(value)` solo para contar caracteres; el render conserva el valor
+ * original (signos, decimales y moneda intactos). Un ReactNode no se convierte
+ * a string: recibe el tamaño base de su escala. Nunca se baja de `text-sm`.
+ */
 function resolveValueClass(value: ReactNode, valueSize: "sm" | "lg"): string {
-  if (valueSize === "lg") return "text-2xl font-bold tabular-nums";
-  const isString = typeof value === "string";
-  // R22-K: el número principal nunca se trunca; se reduce el tamaño según su
-  // longitud (kpiSizeClass) para que quepa completo en la card.
-  return cn(
-    isString ? cn(kpiSizeClass(value), "sm:text-base") : "text-lg sm:text-2xl",
-    "font-bold tabular-nums",
-  );
+  const isPrimitive = typeof value === "string" || typeof value === "number";
+  const length = isPrimitive ? String(value).length : 0;
+  let size: string;
+  if (valueSize === "lg") {
+    if (!isPrimitive || length <= 10) size = "text-2xl";
+    else if (length <= 12) size = "text-xl";
+    else if (length <= 14) size = "text-lg";
+    else size = "text-base";
+  } else {
+    if (!isPrimitive || length <= 10) size = "text-lg";
+    else if (length <= 12) size = "text-base";
+    else size = "text-sm";
+  }
+  return cn(size, "font-bold tabular-nums");
 }
 
 function KpiInteractiveWrapper({
