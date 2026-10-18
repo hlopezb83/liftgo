@@ -1,3 +1,7 @@
+## [8.44.8] — 2026-10-18
+
+- Calendario conserva fecha, vista y rango al abrir una reserva y volver durante una carga; la navegación al Panel no agrega filtros de calendario al destino.
+
 ## [8.44.7] — 2026-10-18
 
 - Se conserva el origen al volver desde facturas y reservas del calendario, incluidos filtros, fecha, vista y rango; los controles mantienen el foco durante la carga.

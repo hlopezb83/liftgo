@@ -1,0 +1,12 @@
+{
+  "version": "8.44.8",
+  "date": "2026-10-18",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Calendario conserva el origen al volver de una reserva",
+  "description": "Volver recupera la fecha, vista y rango consultados en Calendario, incluso cuando el detalle tarda en cargar.",
+  "changes": [
+    "La reserva conserva el contexto de Calendario durante su apertura y al volver.",
+    "Navegar al Panel desde Calendario deja limpia la dirección del destino."
+  ]
+}

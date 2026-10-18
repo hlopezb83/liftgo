@@ -1,0 +1,214 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-calendar-followup
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx (3 tests | 3 failed) 2593ms
+     ├ù keeps the November booking origin while its route loads (mobile=false) 1287ms
+     ├ù keeps the November booking origin while its route loads (mobile=true) 1179ms
+     ├ù does not write calendar parameters to the Panel route while it loads 124ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=false)
+AssertionError: expected '?date=2026-10-18&view=gantt&range=monΓÇª' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ ?date=2026-10-18&view=gantt&range=month
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:100:52
+     98|       expect(screen.getByRole("heading", { name: "Calendario de DisponΓÇª
+     99|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    100|       expect.soft(router.state.location.searchStr).toBe("");
+       |                                                    ^
+    101|       expect.soft(router.state.location.state).toMatchObject({ calendaΓÇª
+    102|     } finally {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=false)
+AssertionError: expected { ΓÇª(4) } to match object { Object (calendarReturnTo) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarReturnTo": "/calendar?date=2026-11-18&view=gantt&range=month",
++   "__TSR_index": 1,
++   "__TSR_key": "089ee",
++   "__hashScrollIntoViewOptions": true,
++   "key": "089ee",
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:101:48
+     99|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    100|       expect.soft(router.state.location.searchStr).toBe("");
+    101|       expect.soft(router.state.location.state).toMatchObject({ calendaΓÇª
+       |                                                ^
+    102|     } finally {
+    103|       await act(async () => release());
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=false)
+AssertionError: expected '?date=2026-10-18&view=gantt&range=monΓÇª' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ ?date=2026-10-18&view=gantt&range=month
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:106:50
+    104|     }
+    105|     await screen.findByRole("heading", { name: "RSV-0014" });
+    106|     expect.soft(router.state.location.searchStr).toBe("");
+       |                                                  ^
+    107|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    108|     await waitFor(() => expect(screen.getByTestId("live-url")).toHaveTΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=false)
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=true)
+Error: expect(element).toHaveTextContent()
+
+Expected element to have text content:
+  /calendar?date=2026-11-18&view=gantt&range=month
+Received:
+  /bookings?status=completed
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <output
+        data-testid="live-url"
+      >
+        /bookings
+        ?status=completed
+      </output>
+      <button>
+        Abrir Panel
+      </button>
+      <h1>
+        Reservas destino
+      </h1>
+    </div>
+  </body>
+</html>...
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:108:64
+    106|     expect.soft(router.state.location.searchStr).toBe("");
+    107|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    108|     await waitFor(() => expect(screen.getByTestId("live-url")).toHaveTΓÇª
+       |                                                                ^
+    109|     expect(screen.getByRole("tab", { name: "Gantt" })).toHaveAttributeΓÇª
+    110|     expect(screen.getByRole("tab", { name: "Mes" })).toHaveAttribute("ΓÇª
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=true)
+AssertionError: expected '?date=2026-10-18&view=list&range=month' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ ?date=2026-10-18&view=list&range=month
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:100:52
+     98|       expect(screen.getByRole("heading", { name: "Calendario de DisponΓÇª
+     99|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    100|       expect.soft(router.state.location.searchStr).toBe("");
+       |                                                    ^
+    101|       expect.soft(router.state.location.state).toMatchObject({ calendaΓÇª
+    102|     } finally {
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=true)
+AssertionError: expected { ΓÇª(4) } to match object { Object (calendarReturnTo) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarReturnTo": "/calendar?date=2026-11-18&view=gantt&range=month",
++   "__TSR_index": 1,
++   "__TSR_key": "d2u6s",
++   "__hashScrollIntoViewOptions": true,
++   "key": "d2u6s",
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:101:48
+     99|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    100|       expect.soft(router.state.location.searchStr).toBe("");
+    101|       expect.soft(router.state.location.state).toMatchObject({ calendaΓÇª
+       |                                                ^
+    102|     } finally {
+    103|       await act(async () => release());
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=true)
+AssertionError: expected '?date=2026-10-18&view=list&range=month' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ ?date=2026-10-18&view=list&range=month
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:106:50
+    104|     }
+    105|     await screen.findByRole("heading", { name: "RSV-0014" });
+    106|     expect.soft(router.state.location.searchStr).toBe("");
+       |                                                  ^
+    107|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    108|     await waitFor(() => expect(screen.getByTestId("live-url")).toHaveTΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > does not write calendar parameters to the Panel route while it loads
+AssertionError: expected '?date=2026-10-18&view=gantt&range=monΓÇª' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ ?date=2026-10-18&view=gantt&range=month
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:122:52
+    120|       await waitFor(() => expect(pendingLoader).toHaveBeenCalled());
+    121|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    122|       expect.soft(router.state.location.searchStr).toBe("");
+       |                                                    ^
+    123|     } finally {
+    124|       await act(async () => release());
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/10]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > does not write calendar parameters to the Panel route while it loads
+AssertionError: expected '/?date=2026-10-18&view=gantt&range=moΓÇª' to be '/' // Object.is equality
+
+Expected: "/"
+Received: "/?date=2026-10-18&view=gantt&range=month"
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:127:40
+    125|     }
+    126|     await screen.findByRole("heading", { name: "Panel destino" });
+    127|     expect(router.state.location.href).toBe("/");
+       |                                        ^
+    128|   });
+    129| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/10]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  17:04:51
+   Duration  8.95s (transform 726ms, setup 393ms, import 5.04s, tests 2.59s, environment 684ms)
+

@@ -1,0 +1,2 @@
+Command: ESLint CalendarPage.pending-navigation.test.tsx
+Exit code: 0

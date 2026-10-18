@@ -83,7 +83,7 @@ export function useParams<T extends Record<string, string | undefined> = Record<
 
 // ---------- useSearchParams (react-router-dom compat) ----------
 
-export function useSearchParams(): [URLSearchParams, (init: URLSearchParams | Record<string, string> | ((prev: URLSearchParams) => URLSearchParams), opts?: { replace?: boolean }) => void] {
+export function useSearchParams(): [URLSearchParams, (init: URLSearchParams | Record<string, string> | ((prev: URLSearchParams) => URLSearchParams), opts?: { replace?: boolean; expectedPathname?: string }) => void] {
   const loc = tsLocation();
   const nav = tsNavigate();
   const router = useRouter();
@@ -91,12 +91,15 @@ export function useSearchParams(): [URLSearchParams, (init: URLSearchParams | Re
   const setParams = useCallback(
     (
       init: URLSearchParams | Record<string, string> | ((prev: URLSearchParams) => URLSearchParams),
-      opts?: { replace?: boolean },
+      opts?: { replace?: boolean; expectedPathname?: string },
     ) => {
       // Functional updaters read the router's live location, not the render
       // snapshot — react-router passes call-time params, and chained updates
       // within one tick must see each other's writes.
       const live = router.state.location;
+      // A screen may remain mounted while a sibling loader is pending. Its
+      // queued query updates must not navigate or overwrite the new screen.
+      if (opts?.expectedPathname !== undefined && live.pathname !== opts.expectedPathname) return;
       const current = new URLSearchParams(live.searchStr ?? "");
       const next =
         typeof init === "function"
