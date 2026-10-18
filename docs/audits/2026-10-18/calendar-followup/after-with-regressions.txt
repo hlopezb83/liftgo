@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-calendar-followup
+
+ Γ£ô src/lib/__tests__/routerCompatLocation.test.tsx (15 tests) 1023ms
+ Γ£ô src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx (3 tests) 709ms
+     Γ£ô keeps the November booking origin while its route loads (mobile=false)  336ms
+ Γ£ô src/features/calendar/pages/__tests__/CalendarPage.navigation.test.tsx (5 tests) 430ms
+ Γ£ô src/features/bookings/pages/__tests__/BookingDetail.test.tsx (6 tests) 284ms
+
+ Test Files  4 passed (4)
+      Tests  29 passed (29)
+   Start at  17:07:04
+   Duration  11.98s (transform 977ms, setup 1.19s, import 13.34s, tests 2.45s, environment 2.18s)
+

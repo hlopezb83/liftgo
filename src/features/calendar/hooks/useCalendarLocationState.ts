@@ -2,7 +2,7 @@ import { isValid, parseISO } from "date-fns";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { readSessionParams, writeSessionParams } from "@/hooks/filters/sessionStorage";
 import { toYMD } from "@/lib/date/toYMD";
-import { useSearchParams } from "@/lib/router-compat";
+import { useLocation, useSearchParams } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
 
 type ViewMode = "gantt" | "list";
@@ -18,6 +18,7 @@ function readDate(value: string | null, fallback: Date): Date {
 /** The URL owns the visible period. Session state only supplies a bare reentry. */
 export function useCalendarLocationState(isMobile: boolean) {
   const [params, setParams] = useSearchParams();
+  const { pathname } = useLocation();
   const [fallbackDate] = useState(nowMty);
   const [savedParams] = useState(() => readSessionParams(CALENDAR_PATH));
   const state = useMemo(() => {
@@ -33,6 +34,7 @@ export function useCalendarLocationState(isMobile: boolean) {
   const date = toYMD(state.currentDate);
   const { viewMode, ganttRange } = state;
   useEffect(() => {
+    if (pathname !== CALENDAR_PATH) return;
     const saved = new URLSearchParams({ date, view: viewMode, range: ganttRange });
     writeSessionParams(CALENDAR_PATH, saved);
     if (params.get("date") === date && params.get("view") === viewMode && params.get("range") === ganttRange) return;
@@ -40,18 +42,19 @@ export function useCalendarLocationState(isMobile: boolean) {
       const next = new URLSearchParams(current);
       saved.forEach((value, key) => next.set(key, value));
       return next;
-    }, { replace: true });
-  }, [date, viewMode, ganttRange, params, setParams]);
+    }, { replace: true, expectedPathname: CALENDAR_PATH });
+  }, [date, viewMode, ganttRange, params, setParams, pathname]);
 
   const update = useCallback((patch: { date?: string; view?: ViewMode; range?: CalendarRange }) => {
+    if (pathname !== CALENDAR_PATH) return;
     setParams((current) => {
       const next = new URLSearchParams(current);
       next.set("date", patch.date ?? date);
       next.set("view", patch.view ?? viewMode);
       next.set("range", patch.range ?? ganttRange);
       return next;
-    }, { replace: true });
-  }, [setParams, date, viewMode, ganttRange]);
+    }, { replace: true, expectedPathname: CALENDAR_PATH });
+  }, [setParams, date, viewMode, ganttRange, pathname]);
 
   return {
     ...state,
