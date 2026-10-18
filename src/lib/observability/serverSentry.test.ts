@@ -106,6 +106,25 @@ describe("SDK oficial de servidor, con cliente compartido y transporte offline",
     expect(events()).toHaveLength(1); expect(events()[0].exception?.values?.[0].value).toBe("verification unavailable");
   });
 
+  it("conserva 403 técnicos estructurados y omite autorización esperada, sin datos del proveedor", async () => {
+    await withServerSentry(request(), {}, undefined, () => {
+      for (const resource of ["table supplier_bills", "column discount of relation supplier_bills", "function recalc_supplier_bill"]) {
+        captureServerError({ status: 403, code: "42501", message: `permission denied for ${resource} password=private-secret`, details: "private-business-row", body: { token: "opaque" } });
+      }
+      captureServerError({ code: "42501", message: "permission denied for table supplier_bills audit@example.com", hint: "token=opaque" });
+      captureServerError({ status: 403, code: "42501", message: 'new row violates row-level security policy for table "supplier_bills"' });
+      captureServerError({ status: 403, message: "Forbidden: role mechanic cannot update suppliers" });
+      captureServerError({ status: 403, message: "permission denied for table supplier_bills" });
+      captureServerError({ status: 401, code: "42501", message: "permission denied for table supplier_bills" });
+      return new Response("ok");
+    }, options());
+    expect(events()).toHaveLength(4);
+    expect(events().map((event) => event.exception?.values?.[0].value)).toEqual([
+      "Database privilege denied for table", "Database privilege denied for column", "Database privilege denied for function", "Database privilege denied for table",
+    ]);
+    for (const secret of ["private-secret", "audit@example.com", "opaque", "private-business-row"]) expect(JSON.stringify(events())).not.toContain(secret);
+  });
+
   it("el espacio de plataforma retira la empresa y usa sólo el actor verificado", async () => {
     await withServerSentry(request(), {}, undefined, () => {
       setVerifiedServerIdentity({ userId: "actor", organizationId: idA, role: "admin", workspace: "organization" });

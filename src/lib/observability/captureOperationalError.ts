@@ -1,16 +1,20 @@
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { extractErrorDetails } from "@/lib/ui/errorDetailsExtract";
+import { databasePrivilegeIncident, databasePrivilegeTarget } from "./databasePrivilegeFailure";
 import { redactPII } from "./scrubPII";
 import { Sentry } from "./sentry";
 
 interface ErrorContext { phase?: string; errorCode?: ErrorCode; severity?: "critical" | "warning" }
 const ACTIONABLE = new Set<ErrorCode>(["INTERNAL_ERROR", "NETWORK_ERROR", "DB_PERMISSION_DENIED", "CFDI_FACTURAPI_ERROR", "UNKNOWN"]);
 const seen = new WeakSet<object>();
-const EXPECTED_STATUS = new Set([401, 403, 404, 409, 422, 429]);
+const EXPECTED_STATUS = new Set([401, 404, 409, 422, 429]);
 
 function operationalIncident(error: unknown) {
   const detail = extractErrorDetails(error);
-  if (detail.validationErrors?.length || EXPECTED_STATUS.has(detail.status ?? 0)) return;
+  const privilegeTarget = databasePrivilegeTarget(detail);
+  if (detail.validationErrors?.length || EXPECTED_STATUS.has(detail.status ?? 0)
+    || (detail.status === 403 && !privilegeTarget)) return;
+  if (privilegeTarget) return { incident: databasePrivilegeIncident(privilegeTarget), status: detail.status, code: "42501" };
   // No pasar objetos del backend, variables de mutación ni cuerpos HTTP al SDK.
   const incident = new Error(redactPII(detail.message));
   incident.name = detail.name ?? "OperationalError";
