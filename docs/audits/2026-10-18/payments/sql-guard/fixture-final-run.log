@@ -1,0 +1,360 @@
+DO
+CREATE SCHEMA
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 21
+INSERT 0 8
+GRANT
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE VIEW
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+SET
+              set_config              
+--------------------------------------
+ 10000000-0000-0000-0000-000000000001
+(1 row)
+
+              set_config              
+--------------------------------------
+ 10000000-0000-0000-0000-000000000002
+(1 row)
+
+  caller_role  | login_role |            synthetic_uid             
+---------------+------------+--------------------------------------
+ authenticated | postgres   | 10000000-0000-0000-0000-000000000001
+(1 row)
+
+ fixture_insert 
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:65: NOTICE:  PASS N7_default1_first: SQLSTATE 00000, accepted
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:66: NOTICE:  PASS N7_default1_second: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:68: NOTICE:  PASS N7_rate17_5_first: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:69: NOTICE:  PASS N7_rate17_5_second: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:71: NOTICE:  PASS N7_rate18_first: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:72: NOTICE:  PASS N7_rate18_second: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:74: NOTICE:  PASS N7_rate0_fallback_first: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:75: NOTICE:  PASS N7_rate0_fallback_second: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:77: NOTICE:  PASS N7_null_rate_illegal: SQLSTATE 23502, null value in column "exchange_rate" of relation "payments" violates not-null constraint
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:80: NOTICE:  PASS N7_small_invoice_first: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:81: NOTICE:  PASS N7_small_invoice_second: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:85: NOTICE:  PASS N8_create_original_default1: SQLSTATE 23514, Sobrepago rechazado: la suma de pagos (175.00) excede el saldo facturable (100.00) despues de notas de credito
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:86: NOTICE:  PASS N8_create_original_rate17_5: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:87: NOTICE:  PASS N8_create_original_rate18: SQLSTATE 00000, accepted
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:88: NOTICE:  PASS N8_create_original_null_illegal: SQLSTATE 23502, null value in column "exchange_rate" of relation "payments" violates not-null constraint
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:92: NOTICE:  PASS N8_edit350_legacy_default1: SQLSTATE 23514, Sobrepago rechazado: la suma de pagos (350.00) excede el saldo facturable (100.00) despues de notas de credito
+ fixture_update 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:93: NOTICE:  PASS N8_edit350_rate17_5: SQLSTATE 00000, accepted
+ fixture_update 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:94: NOTICE:  PASS N8_edit350_rate18: SQLSTATE 00000, accepted
+ fixture_update 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:100: NOTICE:  PASS N8_edit1800_rate18: SQLSTATE 00000, accepted
+ fixture_update 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:104: NOTICE:  PASS N8_exact1750_rate17_5: SQLSTATE 00000, accepted
+ fixture_update 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:105: NOTICE:  PASS N8_extra002_rate17_5: SQLSTATE 23514, Sobrepago rechazado: la suma de pagos (100.00) excede el saldo facturable (100.00) despues de notas de credito
+ fixture_update 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:106: NOTICE:  PASS N8_extra026_rate17_5: SQLSTATE 23514, Sobrepago rechazado: la suma de pagos (100.01) excede el saldo facturable (100.00) despues de notas de credito
+ fixture_update 
+----------------
+ 
+(1 row)
+
+ fixture_observe 
+-----------------
+ 
+(1 row)
+
+ fixture_update 
+----------------
+ 
+(1 row)
+
+ fixture_update 
+----------------
+ 
+(1 row)
+
+ fixture_try 
+-------------
+ 
+(1 row)
+
+ fixture_try 
+-------------
+ 
+(1 row)
+
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+ fixture_insert 
+----------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:108: NOTICE:  PASS N8_USD_cent_on_MXN_invoice: SQLSTATE 23514, Sobrepago rechazado: la suma de pagos (17.68) excede el saldo facturable (17.50) despues de notas de credito
+ fixture_insert 
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:111: NOTICE:  PASS REP_stamped_amount_change: SQLSTATE 23514, No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+----------------
+ 
+(1 row)
+
+RESET
+             case_id             | expected_state | actual_state |                                                                    message                                                                    
+---------------------------------+----------------+--------------+-----------------------------------------------------------------------------------------------------------------------------------------------
+ N7_default1_first               | 00000          | 00000        | accepted
+ N7_default1_second              | 00000          | 00000        | accepted
+ N7_null_rate_illegal            | 23502          | 23502        | null value in column "exchange_rate" of relation "payments" violates not-null constraint
+ N7_rate0_fallback_first         | 00000          | 00000        | accepted
+ N7_rate0_fallback_second        | 00000          | 00000        | accepted
+ N7_rate17_5_first               | 00000          | 00000        | accepted
+ N7_rate17_5_second              | 00000          | 00000        | accepted
+ N7_rate18_first                 | 00000          | 00000        | accepted
+ N7_rate18_second                | 00000          | 00000        | accepted
+ N7_small_invoice_first          | 00000          | 00000        | accepted
+ N7_small_invoice_second         | 00000          | 00000        | accepted
+ N8_USD_cent_on_MXN_invoice      | 23514          | 23514        | Sobrepago rechazado: la suma de pagos (17.68) excede el saldo facturable (17.50) despues de notas de credito
+ N8_create_original_default1     | 23514          | 23514        | Sobrepago rechazado: la suma de pagos (175.00) excede el saldo facturable (100.00) despues de notas de credito
+ N8_create_original_null_illegal | 23502          | 23502        | null value in column "exchange_rate" of relation "payments" violates not-null constraint
+ N8_create_original_rate17_5     | 00000          | 00000        | accepted
+ N8_create_original_rate18       | 00000          | 00000        | accepted
+ N8_edit1800_rate18              | 00000          | 00000        | accepted
+ N8_edit350_legacy_default1      | 23514          | 23514        | Sobrepago rechazado: la suma de pagos (350.00) excede el saldo facturable (100.00) despues de notas de credito
+ N8_edit350_rate17_5             | 00000          | 00000        | accepted
+ N8_edit350_rate18               | 00000          | 00000        | accepted
+ N8_exact1750_rate17_5           | 00000          | 00000        | accepted
+ N8_extra002_rate17_5            | 23514          | 23514        | Sobrepago rechazado: la suma de pagos (100.00) excede el saldo facturable (100.00) despues de notas de credito
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:112: NOTICE:  PASS REP_stamped_notes_allowed: SQLSTATE 00000, accepted
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:113: NOTICE:  PASS REP_stamped_delete_blocked: SQLSTATE 23514, No se puede eliminar un pago con REP timbrado. Cancele el complemento primero.
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:114: NOTICE:  PASS draft_guard_preserved: SQLSTATE 23514, No se pueden registrar pagos en facturas en borrador. Envia la factura primero.
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:115: NOTICE:  PASS cancelled_guard_preserved: SQLSTATE 23514, No se pueden registrar pagos en facturas canceladas
+psql:docs/audits/2026-10-18/payments/sql-guard/cases.sql:116: NOTICE:  PASS PUE_stamped_partial_preserved: SQLSTATE 23514, Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: 100.00)
+ N8_extra026_rate17_5            | 23514          | 23514        | Sobrepago rechazado: la suma de pagos (100.01) excede el saldo facturable (100.00) despues de notas de credito
+ PUE_stamped_partial_preserved   | 23514          | 23514        | Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: 100.00)
+ REP_stamped_amount_change       | 23514          | 23514        | No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+ REP_stamped_delete_blocked      | 23514          | 23514        | No se puede eliminar un pago con REP timbrado. Cancele el complemento primero.
+ REP_stamped_notes_allowed       | 00000          | 00000        | accepted
+ cancelled_guard_preserved       | 23514          | 23514        | No se pueden registrar pagos en facturas canceladas
+ draft_guard_preserved           | 23514          | 23514        | No se pueden registrar pagos en facturas en borrador. Envia la factura primero.
+(29 rows)
+
+             case_id             |                                                                                                                                                                                                                                                               observation                                                                                                                                                                                                                                                                
+---------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ N7_default1_two_payments        | {"invoice": {"id": "20000000-0000-0000-0000-000000000101", "total": 100, "moneda": "USD", "status": "partial", "balance": 99.88, "paid_amount": 0.12, "tipo_cambio": 17.5, "invoice_number": "SYNTH-101", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 1, "rep_cfdi_status": "none"}, {"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 1, "rep_cfdi_status": "none"}], "guard_raw_paid": 2.00000000000000000000}
+ N7_rate0_two_payments           | {"invoice": {"id": "20000000-0000-0000-0000-000000000104", "total": 100, "moneda": "USD", "status": "partial", "balance": 99.88, "paid_amount": 0.12, "tipo_cambio": 17.5, "invoice_number": "SYNTH-104", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 0, "rep_cfdi_status": "none"}, {"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 0, "rep_cfdi_status": "none"}], "guard_raw_paid": 0.11428571428571428572}
+ N7_rate17_5_two_payments        | {"invoice": {"id": "20000000-0000-0000-0000-000000000102", "total": 100, "moneda": "USD", "status": "partial", "balance": 99.88, "paid_amount": 0.12, "tipo_cambio": 17.5, "invoice_number": "SYNTH-102", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 17.5, "rep_cfdi_status": "none"}, {"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 17.5, "rep_cfdi_status": "none"}], "guard_raw_paid": 0.11428571428571428572}
+ N7_rate18_two_payments          | {"invoice": {"id": "20000000-0000-0000-0000-000000000103", "total": 100, "moneda": "USD", "status": "partial", "balance": 99.88, "paid_amount": 0.12, "tipo_cambio": 17.5, "invoice_number": "SYNTH-103", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 18, "rep_cfdi_status": "none"}, {"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 18, "rep_cfdi_status": "none"}], "guard_raw_paid": 0.11111111111111111112}
+ N7_rounding_status_boundary     | {"invoice": {"id": "20000000-0000-0000-0000-000000000120", "total": 0.12, "moneda": "USD", "status": "partial", "balance": 0.00, "paid_amount": 0.12, "tipo_cambio": 17.5, "invoice_number": "SYNTH-120", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 17.5, "rep_cfdi_status": "none"}, {"amount": 1.00, "currency": "MXN", "amount_mxn": 1.00, "exchange_rate": 17.5, "rep_cfdi_status": "none"}], "guard_raw_paid": 0.11428571428571428572}
+ N8_exact_maximum_after          | {"invoice": {"id": "20000000-0000-0000-0000-000000000221", "total": 100, "moneda": "USD", "status": "paid", "balance": 0.00, "paid_amount": 100.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-221", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1750.00, "currency": "MXN", "amount_mxn": 1750.00, "exchange_rate": 17.5, "rep_cfdi_status": "none"}], "guard_raw_paid": 100.0000000000000000}
+ N8_legacy_default1_after        | {"invoice": {"id": "20000000-0000-0000-0000-000000000201", "total": 100, "moneda": "USD", "status": "sent", "balance": 90.00, "paid_amount": 10.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-201", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 175, "currency": "MXN", "amount_mxn": null, "exchange_rate": 1, "rep_cfdi_status": "none"}], "guard_raw_paid": 175.0000000000000000}
+ N8_legacy_default1_before       | {"invoice": {"id": "20000000-0000-0000-0000-000000000201", "total": 100, "moneda": "USD", "status": "sent", "balance": 90.00, "paid_amount": 10.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-201", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 175, "currency": "MXN", "amount_mxn": null, "exchange_rate": 1, "rep_cfdi_status": "none"}], "guard_raw_paid": 175.0000000000000000}
+ N8_rate17_5_after               | {"invoice": {"id": "20000000-0000-0000-0000-000000000202", "total": 100, "moneda": "USD", "status": "partial", "balance": 80.00, "paid_amount": 20.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-202", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 350.00, "currency": "MXN", "amount_mxn": 350.00, "exchange_rate": 17.5, "rep_cfdi_status": "none"}], "guard_raw_paid": 20.0000000000000000}
+ N8_rate17_5_before              | {"invoice": {"id": "20000000-0000-0000-0000-000000000202", "total": 100, "moneda": "USD", "status": "sent", "balance": 90.00, "paid_amount": 10.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-202", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 175, "currency": "MXN", "amount_mxn": null, "exchange_rate": 17.5, "rep_cfdi_status": "none"}], "guard_raw_paid": 10.0000000000000000}
+ N8_rate18_after                 | {"invoice": {"id": "20000000-0000-0000-0000-000000000203", "total": 100, "moneda": "USD", "status": "partial", "balance": 80.00, "paid_amount": 20.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-203", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 350.00, "currency": "MXN", "amount_mxn": 350.00, "exchange_rate": 18, "rep_cfdi_status": "none"}], "guard_raw_paid": 19.4444444444444444}
+ N8_rate18_before                | {"invoice": {"id": "20000000-0000-0000-0000-000000000203", "total": 100, "moneda": "USD", "status": "sent", "balance": 90.00, "paid_amount": 10.00, "tipo_cambio": 17.5, "invoice_number": "SYNTH-203", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 175, "currency": "MXN", "amount_mxn": null, "exchange_rate": 18, "rep_cfdi_status": "none"}], "guard_raw_paid": 9.7222222222222222}
+ N8_rate18_canonical_overpayment | {"invoice": {"id": "20000000-0000-0000-0000-000000000203", "total": 100, "moneda": "USD", "status": "paid", "balance": 0, "paid_amount": 102.86, "tipo_cambio": 17.5, "invoice_number": "SYNTH-203", "credited_amount": 0, "payments_fx_missing": 0}, "payments": [{"amount": 1800.00, "currency": "MXN", "amount_mxn": 1800.00, "exchange_rate": 18, "rep_cfdi_status": "none"}], "guard_raw_paid": 100.0000000000000000}
+(13 rows)
+
+ assertions_passed | all_expected 
+-------------------+--------------
+                29 | t
+(1 row)
+
+EXIT_CODE=0

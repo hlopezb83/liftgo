@@ -1,0 +1,33 @@
+2026-10-18 16:38:21.882 CST [31648] LOG:  starting PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+2026-10-18 16:38:21.884 CST [31648] LOG:  listening on IPv4 address "127.0.0.1", port 55439
+2026-10-18 16:38:21.950 CST [18684] LOG:  database system was shut down at 2026-10-18 16:37:35 CST
+2026-10-18 16:38:21.997 CST [31648] LOG:  database system is ready to accept connections
+2026-10-18 16:42:17.751 CST [5784] ERROR:  function public.fx_is_missing(text, numeric) does not exist at character 374
+2026-10-18 16:42:17.751 CST [5784] HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+2026-10-18 16:42:17.751 CST [5784] STATEMENT:  CREATE OR REPLACE FUNCTION public.fx_convert_amount(p_amount numeric, p_from text, p_to text, p_from_rate numeric, p_to_rate numeric)
+	 RETURNS numeric
+	 LANGUAGE sql
+	 IMMUTABLE
+	 SET search_path TO 'public'
+	AS $function$
+	  SELECT CASE
+	    WHEN p_amount IS NULL THEN NULL
+	    WHEN upper(COALESCE(p_from, 'MXN')) = upper(COALESCE(p_to, 'MXN')) THEN round(p_amount, 2)
+	    WHEN public.fx_is_missing(p_from, p_from_rate) OR public.fx_is_missing(p_to, p_to_rate) THEN NULL
+	    ELSE round(
+	      p_amount
+	      * CASE WHEN upper(COALESCE(p_from, 'MXN')) = 'MXN' THEN 1 ELSE p_from_rate END
+	      / CASE WHEN upper(COALESCE(p_to, 'MXN')) = 'MXN' THEN 1 ELSE p_to_rate END
+	    , 2)
+	  END;
+	$function$
+	 ;
+2026-10-18 16:42:46.840 CST [22648] LOG:  checkpoint starting: immediate force wait
+2026-10-18 16:42:46.866 CST [22648] LOG:  checkpoint complete: wrote 60 buffers (0.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.006 s, sync=0.016 s, total=0.027 s; sync files=21, longest=0.004 s, average=0.001 s; distance=4973 kB, estimate=4973 kB; lsn=0/1A4D9D0, redo lsn=0/1A4D978
+2026-10-18 16:44:23.769 CST [31648] LOG:  received fast shutdown request
+2026-10-18 16:44:23.771 CST [31648] LOG:  aborting any active transactions
+2026-10-18 16:44:23.777 CST [31648] LOG:  background worker "logical replication launcher" (PID 15672) exited with exit code 1
+2026-10-18 16:44:23.778 CST [22648] LOG:  shutting down
+2026-10-18 16:44:23.778 CST [22648] LOG:  checkpoint starting: shutdown immediate
+2026-10-18 16:44:23.977 CST [22648] LOG:  checkpoint complete: wrote 1007 buffers (6.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.024 s, sync=0.171 s, total=0.200 s; sync files=327, longest=0.002 s, average=0.001 s; distance=4779 kB, estimate=4954 kB; lsn=0/1EF8758, redo lsn=0/1EF8758
+2026-10-18 16:44:24.032 CST [31648] LOG:  database system is shut down

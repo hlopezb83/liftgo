@@ -1,0 +1,179 @@
+{
+  "project_id": "e25ace4a-172e-4082-a037-00473dacf2f2",
+  "operation": "SELECT catalog definitions only via existing connector; no business rows or credentials",
+  "result": {
+    "rows": [
+      {
+        "metadata": {
+          "columns": [
+            {
+              "default": "'MXN'::text",
+              "name": "moneda",
+              "nullable": "YES",
+              "table": "invoices",
+              "type": "text",
+              "udt": "text"
+            },
+            {
+              "default": "'draft'::text",
+              "name": "status",
+              "nullable": "NO",
+              "table": "invoices",
+              "type": "text",
+              "udt": "text"
+            },
+            {
+              "default": "1",
+              "name": "tipo_cambio",
+              "nullable": "YES",
+              "table": "invoices",
+              "type": "numeric",
+              "udt": "numeric"
+            },
+            {
+              "default": "0",
+              "name": "total",
+              "nullable": "NO",
+              "table": "invoices",
+              "type": "numeric",
+              "udt": "numeric"
+            },
+            {
+              "default": null,
+              "name": "amount",
+              "nullable": "NO",
+              "table": "payments",
+              "type": "numeric",
+              "udt": "numeric"
+            },
+            {
+              "default": "'MXN'::text",
+              "name": "currency",
+              "nullable": "NO",
+              "table": "payments",
+              "type": "text",
+              "udt": "text"
+            },
+            {
+              "default": "1",
+              "name": "exchange_rate",
+              "nullable": "NO",
+              "table": "payments",
+              "type": "numeric",
+              "udt": "numeric"
+            },
+            {
+              "default": "'none'::text",
+              "name": "rep_cfdi_status",
+              "nullable": "NO",
+              "table": "payments",
+              "type": "text",
+              "udt": "text"
+            },
+            {
+              "default": null,
+              "name": "rep_cfdi_uuid",
+              "nullable": "YES",
+              "table": "payments",
+              "type": "uuid",
+              "udt": "uuid"
+            }
+          ],
+          "database_name": "postgres",
+          "functions": [
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.enforce_payment_matches_invoice_currency()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  inv_currency text;\n  inv_tc numeric;\n  pay_currency text;\nBEGIN\n  SELECT COALESCE(moneda, 'MXN'), tipo_cambio\n    INTO inv_currency, inv_tc\n  FROM public.invoices\n  WHERE id = NEW.invoice_id;\n\n  IF inv_currency IS NULL THEN\n    RETURN NEW;\n  END IF;\n\n  pay_currency := COALESCE(NEW.currency, 'MXN');\n\n  IF pay_currency <> inv_currency THEN\n    -- R5-01 / R6-16: cruce permitido solo si hay conversion disponible.\n    IF COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0)) IS NULL THEN\n      RAISE EXCEPTION\n        'Pago en % no coincide con la divisa de la factura (%) y no hay tipo de cambio para la conversión.',\n        pay_currency, inv_currency\n        USING ERRCODE = 'check_violation';\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n",
+              "name": "enforce_payment_matches_invoice_currency"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.enforce_payment_within_invoice_total()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  inv_total NUMERIC;\n  inv_status TEXT;\n  inv_metodo TEXT;\n  inv_cfdi TEXT;\n  inv_moneda TEXT;\n  inv_tc NUMERIC;\n  total_paid NUMERIC;\n  new_amount NUMERIC;\n  credited NUMERIC;\n  payable NUMERIC;\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtext('invoice_payment:' || NEW.invoice_id::text));\n  SELECT total, status, moneda, tipo_cambio, metodo_pago, cfdi_status\n    INTO inv_total, inv_status, inv_moneda, inv_tc, inv_metodo, inv_cfdi\n  FROM public.invoices\n  WHERE id = NEW.invoice_id\n  FOR UPDATE;\n\n  IF inv_total IS NULL THEN\n    RAISE EXCEPTION 'Invoice % not found for payment', NEW.invoice_id\n      USING ERRCODE = 'foreign_key_violation';\n  END IF;\n\n  IF inv_status = 'cancelled' THEN\n    RAISE EXCEPTION 'No se pueden registrar pagos en facturas canceladas'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  IF inv_status = 'draft' THEN\n    RAISE EXCEPTION 'No se pueden registrar pagos en facturas en borrador. Envia la factura primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  inv_moneda := upper(COALESCE(inv_moneda, 'MXN'));\n\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, inv_moneda)) = inv_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(inv_tc, 0)), 0)\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(inv_tc, 0))\n      END), 0) INTO total_paid\n  FROM public.payments p\n  WHERE p.invoice_id = NEW.invoice_id\n    AND (TG_OP = 'INSERT' OR p.id <> NEW.id);\n\n  new_amount := CASE\n    WHEN upper(COALESCE(NEW.currency, inv_moneda)) = inv_moneda THEN NEW.amount\n    WHEN upper(COALESCE(NEW.currency, 'MXN')) = 'MXN'\n      THEN NEW.amount / NULLIF(COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0)), 0)\n    ELSE NEW.amount * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0))\n  END;\n  IF new_amount IS NULL THEN\n    RAISE EXCEPTION\n      'No se puede verificar el sobrepago: falta tipo de cambio para convertir el pago (%) a la moneda de la factura (%)',\n      upper(COALESCE(NEW.currency, 'MXN')), inv_moneda\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  SELECT COALESCE(SUM(total), 0) INTO credited\n  FROM public.credit_notes\n  WHERE invoice_id = NEW.invoice_id\n    AND cfdi_status = 'stamped'\n    AND status <> 'cancelled'\n    AND cancellation_status IS DISTINCT FROM 'accepted';\n\n  total_paid := total_paid + new_amount;\n  payable := inv_total - credited;\n\n  IF total_paid > payable THEN\n    RAISE EXCEPTION\n      'Sobrepago rechazado: la suma de pagos (%) excede el saldo facturable (%) despues de notas de credito',\n      round(total_paid, 2), round(payable, 2)\n      USING ERRCODE = 'check_violation',\n            HINT = 'Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.';\n  END IF;\n\n  IF upper(COALESCE(inv_metodo, '')) = 'PUE'\n     AND COALESCE(inv_cfdi, '') = 'stamped'\n     AND round(total_paid, 2) < round(payable, 2) - 0.01 THEN\n    RAISE EXCEPTION\n      'Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: %)',\n      round(payable, 2)\n      USING ERRCODE = 'check_violation',\n            HINT = 'Registra el pago por el saldo total o retimbra la factura como PPD.';\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n",
+              "name": "enforce_payment_within_invoice_total"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.fx_convert_amount(p_amount numeric, p_from text, p_to text, p_from_rate numeric, p_to_rate numeric)\n RETURNS numeric\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\n  SELECT CASE\n    WHEN p_amount IS NULL THEN NULL\n    WHEN upper(COALESCE(p_from, 'MXN')) = upper(COALESCE(p_to, 'MXN')) THEN round(p_amount, 2)\n    WHEN public.fx_is_missing(p_from, p_from_rate) OR public.fx_is_missing(p_to, p_to_rate) THEN NULL\n    ELSE round(\n      p_amount\n      * CASE WHEN upper(COALESCE(p_from, 'MXN')) = 'MXN' THEN 1 ELSE p_from_rate END\n      / CASE WHEN upper(COALESCE(p_to, 'MXN')) = 'MXN' THEN 1 ELSE p_to_rate END\n    , 2)\n  END;\n$function$\n",
+              "name": "fx_convert_amount"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.fx_is_missing(p_currency text, p_rate numeric)\n RETURNS boolean\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\n  SELECT upper(COALESCE(p_currency, 'MXN')) <> 'MXN'\n     AND (p_rate IS NULL OR p_rate <= 0 OR p_rate = 1);\n$function$\n",
+              "name": "fx_is_missing"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.prevent_payment_mutation_when_rep_stamped()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF OLD.rep_cfdi_status = 'stamped' AND (\n    NEW.amount IS DISTINCT FROM OLD.amount\n    OR NEW.payment_date IS DISTINCT FROM OLD.payment_date\n    OR NEW.currency IS DISTINCT FROM OLD.currency\n    OR NEW.exchange_rate IS DISTINCT FROM OLD.exchange_rate\n    OR NEW.payment_form_sat IS DISTINCT FROM OLD.payment_form_sat\n    OR NEW.installment_number IS DISTINCT FROM OLD.installment_number\n    OR NEW.prior_balance IS DISTINCT FROM OLD.prior_balance\n    OR NEW.invoice_id IS DISTINCT FROM OLD.invoice_id\n  ) THEN\n    RAISE EXCEPTION 'No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n",
+              "name": "prevent_payment_mutation_when_rep_stamped"
+            }
+          ],
+          "observed_at": "2026-10-18T22:37:39.28484+00:00",
+          "payment_triggers": [
+            {
+              "definition": "CREATE TRIGGER audit_payments AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION audit_trigger_fn()",
+              "function": "audit_trigger_fn",
+              "name": "audit_payments"
+            },
+            {
+              "definition": "CREATE TRIGGER sync_invoice_status_from_payments_trg AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION sync_invoice_status_from_payments()",
+              "function": "sync_invoice_status_from_payments",
+              "name": "sync_invoice_status_from_payments_trg"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_enforce_payment_within_invoice_total BEFORE INSERT OR UPDATE OF amount, invoice_id ON public.payments FOR EACH ROW EXECUTE FUNCTION enforce_payment_within_invoice_total()",
+              "function": "enforce_payment_within_invoice_total",
+              "name": "trg_enforce_payment_within_invoice_total"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_guard_is_e2e BEFORE INSERT OR UPDATE OF is_e2e, e2e_scope ON public.payments FOR EACH ROW EXECUTE FUNCTION guard_is_e2e_flag()",
+              "function": "guard_is_e2e_flag",
+              "name": "trg_guard_is_e2e"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_notify_payment_received AFTER INSERT ON public.payments FOR EACH ROW EXECUTE FUNCTION notify_payment_received()",
+              "function": "notify_payment_received",
+              "name": "trg_notify_payment_received"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION enforce_organization_write_context()",
+              "function": "enforce_organization_write_context",
+              "name": "trg_organization_write_context"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_payments_amount_mxn BEFORE INSERT OR UPDATE OF amount, exchange_rate, invoice_id ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_payment_amount_mxn()",
+              "function": "trg_payment_amount_mxn",
+              "name": "trg_payments_amount_mxn"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_payments_currency_matches_invoice BEFORE INSERT OR UPDATE OF currency, invoice_id, exchange_rate, amount ON public.payments FOR EACH ROW EXECUTE FUNCTION enforce_payment_matches_invoice_currency()",
+              "function": "enforce_payment_matches_invoice_currency",
+              "name": "trg_payments_currency_matches_invoice"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_payments_fiscal_period_open BEFORE INSERT OR UPDATE OF payment_date ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_guard_payment_fiscal_period()",
+              "function": "trg_guard_payment_fiscal_period",
+              "name": "trg_payments_fiscal_period_open"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_payments_payment_date_window BEFORE INSERT OR UPDATE OF payment_date, invoice_id ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_payment_date_window()",
+              "function": "trg_payment_date_window",
+              "name": "trg_payments_payment_date_window"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_prevent_payment_delete_stamped BEFORE DELETE ON public.payments FOR EACH ROW EXECUTE FUNCTION prevent_payment_delete_when_rep_stamped()",
+              "function": "prevent_payment_delete_when_rep_stamped",
+              "name": "trg_prevent_payment_delete_stamped"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_prevent_payment_mutation_stamped BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION prevent_payment_mutation_when_rep_stamped()",
+              "function": "prevent_payment_mutation_when_rep_stamped",
+              "name": "trg_prevent_payment_mutation_stamped"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_round_payment_amount BEFORE INSERT OR UPDATE OF amount ON public.payments FOR EACH ROW EXECUTE FUNCTION round_payment_amount()",
+              "function": "round_payment_amount",
+              "name": "trg_round_payment_amount"
+            }
+          ],
+          "reader_role": "postgres",
+          "view_definition": " WITH pay AS (\n         SELECT p.invoice_id,\n            sum(fx_convert_amount(p.amount, COALESCE(p.currency, ip.moneda, 'MXN'::text), COALESCE(ip.moneda, 'MXN'::text), NULLIF(p.exchange_rate, 0::numeric), NULLIF(ip.tipo_cambio, 0::numeric))) AS paid,\n            count(*) FILTER (WHERE fx_convert_amount(p.amount, COALESCE(p.currency, ip.moneda, 'MXN'::text), COALESCE(ip.moneda, 'MXN'::text), NULLIF(p.exchange_rate, 0::numeric), NULLIF(ip.tipo_cambio, 0::numeric)) IS NULL)::integer AS fx_missing_payments\n           FROM payments p\n             JOIN invoices ip ON ip.id = p.invoice_id\n          GROUP BY p.invoice_id\n        ), cn AS (\n         SELECT credit_notes.invoice_id,\n            sum(credit_notes.total) AS credited\n           FROM credit_notes\n          WHERE credit_notes.cancellation_status <> 'accepted'::text AND credit_notes.status <> 'cancelled'::text AND credit_notes.cfdi_status = 'stamped'::text\n          GROUP BY credit_notes.invoice_id\n        )\n SELECT i.id,\n    i.invoice_number,\n    i.booking_id,\n    i.customer_id,\n    i.customer_name,\n    i.line_items,\n    i.subtotal,\n    i.tax_rate,\n    i.tax_amount,\n    i.total,\n    i.status,\n    i.issued_at,\n    i.due_date,\n    i.paid_at,\n    i.notes,\n    i.created_at,\n    i.updated_at,\n    i.serie,\n    i.folio,\n    i.forma_pago,\n    i.metodo_pago,\n    i.uso_cfdi,\n    i.moneda,\n    i.tipo_cambio,\n    i.receptor_rfc,\n    i.receptor_razon_social,\n    i.receptor_regimen_fiscal,\n    i.receptor_domicilio_fiscal_cp,\n    i.cfdi_uuid,\n    i.cfdi_xml,\n    i.cfdi_status,\n    i.cancelled_at,\n    i.cancellation_reason,\n    i.quote_id,\n    i.facturapi_invoice_id,\n    i.billing_period_start,\n    i.billing_period_end,\n    i.cfdi_xml_url,\n    i.cfdi_pdf_url,\n    i.cfdi_error_message,\n    i.cancellation_status,\n    i.cancellation_motive,\n    i.substitution_uuid,\n    i.is_e2e,\n    i.e2e_scope,\n    i.global_periodicity,\n    i.global_months,\n    i.global_year,\n    i.acuse_pdf_url,\n    i.acuse_xml_url,\n    i.facturapi_env,\n    COALESCE(pay.paid, 0::numeric) AS paid_amount,\n    COALESCE(cn.credited, 0::numeric) AS credited_amount,\n    GREATEST(i.total - COALESCE(pay.paid, 0::numeric) - COALESCE(cn.credited, 0::numeric), 0::numeric) AS balance,\n    fx_to_mxn(i.total, i.moneda, i.tipo_cambio) AS total_mxn,\n    fx_to_mxn(GREATEST(i.total - COALESCE(pay.paid, 0::numeric) - COALESCE(cn.credited, 0::numeric), 0::numeric), i.moneda, i.tipo_cambio) AS balance_mxn,\n    fx_is_missing(i.moneda, i.tipo_cambio) AS fx_missing,\n    COALESCE(pay.fx_missing_payments, 0) AS payments_fx_missing\n   FROM invoices i\n     LEFT JOIN pay ON pay.invoice_id = i.id\n     LEFT JOIN cn ON cn.invoice_id = i.id;"
+        }
+      }
+    ]
+  }
+}

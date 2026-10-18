@@ -1,0 +1,10 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+
+ Test Files  1 passed (1)
+      Tests  19 passed (19)
+   Start at  16:44:03
+   Duration  406ms (transform 83ms, setup 0ms, import 121ms, tests 7ms, environment 0ms)
+
+EXIT_CODE=0

@@ -1,0 +1,23 @@
+CREATE ROLE
+CREATE SCHEMA
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+INSERT 0 21
+INSERT 0 8
+GRANT
+GRANT
+CREATE FUNCTION
+CREATE FUNCTION
+psql:docs/audits/2026-10-18/payments/sql-guard/extracted-functions.sql:158: ERROR:  function public.fx_is_missing(text, numeric) does not exist
+LINE 10:     WHEN public.fx_is_missing(p_from, p_from_rate) OR public...
+                  ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+EXIT_CODE=3

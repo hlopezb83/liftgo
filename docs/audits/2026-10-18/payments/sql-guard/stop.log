@@ -1,0 +1,5 @@
+waiting for server to shut down.... done
+server stopped
+STOP_EXIT_CODE=0
+pg_ctl: no server running
+STATUS_EXIT_CODE=3
