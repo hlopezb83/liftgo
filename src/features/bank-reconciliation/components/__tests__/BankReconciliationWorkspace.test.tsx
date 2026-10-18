@@ -121,15 +121,48 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
     expect(view.props.onStatusChange).toHaveBeenCalledWith('suggested');
     fireEvent.click(row('uno')); view.rerenderWorkspace({ search: 'dos', lines: [lines[1]] });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(screen.getByRole('region', { name: 'Movimientos bancarios' })).toHaveFocus());
   });
-  it('virtualiza más de 100 sin desmontar tabla ni perder selección', async () => {
+  it.each(['refresh', 'lista vacía'])('restaura al listado vigente cuando desaparece la fila por %s', async (cause) => {
+    const view = mount();
+    const region = screen.getByRole('region', { name: 'Movimientos bancarios' });
+    const removedRow = row('uno');
+    removedRow.focus(); fireEvent.click(removedRow);
+    await waitFor(() => expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement));
+    const focus = vi.spyOn(region, 'focus');
+    const staleFocus = vi.spyOn(removedRow, 'focus');
+    view.rerenderWorkspace({ lines: cause === 'refresh' ? lines.slice(1) : [] });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(region).toHaveFocus());
+    expect(region).toHaveAttribute('tabindex', '-1');
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(removedRow.isConnected).toBe(false);
+    expect(staleFocus).not.toHaveBeenCalled();
+  });
+  it('J navega fuera de la ventana virtual y al cerrar enfoca el listado sin perder selección ni scroll', async () => {
     const many = Array.from({ length: 120 }, (_, i) => ({ ...lines[0], id: `line-${i}`, description: `Línea ${i}` }));
     mount({ lines: many, virtualized: true }); const table = screen.getByTestId('bank-lines-table');
     await waitFor(() => expect(document.querySelectorAll('[data-bank-line-id]').length).toBeGreaterThan(0));
     expect(document.querySelectorAll('[data-bank-line-id]').length).toBeLessThan(120);
     const first = row('line-0'); fireEvent.click(within(first).getByRole('checkbox'));
     fireEvent.click(first); await closeAndFocus('line-0');
+    const body = table.querySelector('tbody');
+    if (!body) throw new Error('Missing virtual body');
+    const scrollTop = body.scrollTop;
+    const region = screen.getByRole('region', { name: 'Movimientos bancarios' });
+    const focus = vi.spyOn(region, 'focus');
+    // Abrir con clic: Enter de VirtualBody es un comportamiento previo ajeno a esta corrección.
+    fireEvent.click(first);
+    for (let i = 0; i < 40; i++) fireEvent.keyDown(screen.getByRole('dialog'), { key: 'j' });
+    expect(within(screen.getByRole('dialog')).getByText('Línea 40')).toBeInTheDocument();
+    expect(document.querySelector('[data-bank-line-id="line-40"]')).toBeNull();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(region).toHaveFocus());
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+    expect(body.scrollTop).toBe(scrollTop);
     expect(screen.getByTestId('bank-lines-table')).toBe(table);
     expect(within(first).getByRole('checkbox')).toBeChecked();
+    expect(screen.getByTestId('bank-bulk-count')).toHaveTextContent('1 seleccionados');
   });
 });

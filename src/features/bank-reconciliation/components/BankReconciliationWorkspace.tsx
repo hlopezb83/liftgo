@@ -51,10 +51,13 @@ export function BankReconciliationWorkspace({
     const marker = Array.from(tableRef.current?.querySelectorAll<HTMLElement>("[data-bank-line-id]") ?? [])
       .find((node) => node.dataset.bankLineId === focusLineId.current);
     const row = marker?.closest("tr");
-    if (!row?.isConnected || row.getClientRects().length === 0) return;
+    // La fila vigente puede estar fuera de la ventana virtual o haber desaparecido.
+    // Resolver ambos destinos al desmontar, sin mover el scroll ni usar nodos antiguos.
+    const target = row?.isConnected && row.getClientRects().length > 0 ? row : tableRef.current;
+    if (!target?.isConnected || target.getClientRects().length === 0) return;
     event.preventDefault();
-    row.tabIndex = 0;
-    row.focus({ preventScroll: true });
+    if (target === row) target.tabIndex = 0;
+    target.focus({ preventScroll: true });
   }, []);
 
   // Si la línea activa deja de ser visible (cambio de pestaña/búsqueda), `activeLine`
@@ -122,7 +125,7 @@ export function BankReconciliationWorkspace({
         />
       </FiltersToolbar>
 
-      <div ref={tableRef} className="min-w-0 w-full">{table}</div>
+      <div ref={tableRef} role="region" aria-label="Movimientos bancarios" tabIndex={-1} className="min-w-0 w-full">{table}</div>
       <Sheet open={!!activeLine} onOpenChange={(open) => { if (!open) setActiveId(null); }}>
         <SheetContent className="overflow-y-auto sm:max-w-xl" onCloseAutoFocus={restoreRowFocus} aria-describedby={undefined}>
           <SheetHeader>
