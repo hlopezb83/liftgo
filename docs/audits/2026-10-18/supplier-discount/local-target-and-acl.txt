@@ -1,0 +1,17 @@
+ current_database  | inet_server_addr | inet_server_port |                                 version                                 
+-------------------+------------------+------------------+-------------------------------------------------------------------------
+ liftgo_k1_fixture | 127.0.0.1        |            55438 | PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+(1 row)
+
+ global_update | discount_update | approval_update 
+---------------+-----------------+-----------------
+ f             | t               | f
+(1 row)
+
+            policyname            | permissive  |  cmd   |                                                qual                                                |                                             with_check                                             
+----------------------------------+-------------+--------+----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------
+ Bills: admin/administrativo full | PERMISSIVE  | ALL    | (has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'administrativo'::app_role))      | (has_role(auth.uid(), 'admin'::app_role) OR has_role(auth.uid(), 'administrativo'::app_role))
+ Bills: auditor read              | PERMISSIVE  | SELECT | has_role(auth.uid(), 'auditor'::app_role)                                                          | 
+ org_scope_isolation              | RESTRICTIVE | ALL    | ( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches) | ( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches)
+(3 rows)
+

@@ -1,0 +1,22 @@
+BEGIN
+SET
+SET
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:14: NOTICE:  PASS admin updates discount + total under authenticated
+SET
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:23: NOTICE:  PASS administrativo updates discount + total under authenticated
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 3 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 4 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 5 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 6 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 7 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 8 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 9 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:34: NOTICE:  PASS actor 10 blocked (ventas/auditor/mechanic/dispatcher/customer/inactive/no membership/admin B)
+DO
+SET
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:53: NOTICE:  PASS admin A cannot update company B
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:53: NOTICE:  PASS direct approval blocked; column ACL only, no global UPDATE
+ROLLBACK
