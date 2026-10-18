@@ -117,11 +117,12 @@ export default function ForkliftDetail() {
         <ForkliftRatesCard forklift={forklift} />
       </div>
 
+      <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
+
       {forklift.notes && (
         <NotesCard value={forklift.notes} readOnly />
       )}
 
-      <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
       <RoleGuard module="Flota" minAccess="full" fallback={null}>
         <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
       </RoleGuard>
