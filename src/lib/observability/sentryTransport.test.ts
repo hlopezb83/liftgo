@@ -45,14 +45,14 @@ describe("SDK real con transporte en memoria, sin red", () => {
     syncSentryIdentity({ userId: "actor-a", organizationId: "org-a", role: "admin", workspace: "organization" });
     Sentry.addBreadcrumb({ message: "old-company-operation" });
     syncSentryIdentity({ userId: "actor-b", organizationId: "org-b", role: "sales", workspace: "organization" });
-    Sentry.captureMessage("new-company-operation");
+    Sentry.captureMessage("new-company-operation", "error");
     await Sentry.flush(1000);
     const event = events()[0] as Sentry.Event;
     expect(event.tags?.organization_id).toBe("org-b");
     expect(event.contexts?.route?.route).toBe("/");
     expect(JSON.stringify(event)).not.toContain("old-company-operation");
     clearSentryIdentity();
-    Sentry.captureMessage("signed-out");
+    Sentry.captureMessage("signed-out", "error");
     await Sentry.flush(1000);
     const signedOut = events()[1] as Sentry.Event;
     expect(signedOut.user?.id).toBeUndefined();
