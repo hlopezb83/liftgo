@@ -34,10 +34,6 @@ export function BankReconciliationWorkspace({
   const [activeId, setActiveId] = useState<string | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const focusLineId = useRef<string | null>(null);
-  // Resolver la fila vigente al cerrar, no la que abrió originalmente el inspector.
-  useEffect(() => {
-    if (activeLine) focusLineId.current = activeLine.id;
-  });
 
   // `lines` ya corresponde al filtro y página ejecutados en el servidor.
   const visible = lines;
@@ -46,6 +42,20 @@ export function BankReconciliationWorkspace({
     () => visible.find((l) => l.id === activeId) ?? null,
     [visible, activeId],
   );
+  // Conservar el último destino mientras Radix desmonta el inspector.
+  useEffect(() => {
+    if (activeLine) focusLineId.current = activeLine.id;
+  }, [activeLine]);
+
+  const restoreRowFocus = useCallback((event: Event) => {
+    const marker = Array.from(tableRef.current?.querySelectorAll<HTMLElement>("[data-bank-line-id]") ?? [])
+      .find((node) => node.dataset.bankLineId === focusLineId.current);
+    const row = marker?.closest("tr");
+    if (!row?.isConnected || row.getClientRects().length === 0) return;
+    event.preventDefault();
+    row.tabIndex = 0;
+    row.focus({ preventScroll: true });
+  }, []);
 
   // Si la línea activa deja de ser visible (cambio de pestaña/búsqueda), `activeLine`
   // queda en null por derivación: no hace falta sincronizar estado con un efecto.
@@ -61,7 +71,7 @@ export function BankReconciliationWorkspace({
     [visible, activeId],
   );
 
-  // Atajos de teclado: J/K (o flechas) navegan; C confirma la sugerencia activa.
+  // Atajos de teclado: J/K (o flechas) navegan sin interceptar escritura.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -112,39 +122,19 @@ export function BankReconciliationWorkspace({
         />
       </FiltersToolbar>
 
-      {isMobile ? (
-        <>
-          {table}
-          <Sheet open={!!activeLine} onOpenChange={(o) => { if (!o) setActiveId(null); }}>
-            <SheetContent className="overflow-y-auto sm:max-w-xl">
-              <SheetHeader>
-                <SheetTitle>Conciliar movimiento</SheetTitle>
-              </SheetHeader>
-              {activeLine && (
-                <div className="mt-4">
-                  <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} />
-                </div>
-              )}
-            </SheetContent>
-          </Sheet>
-        </>
-      ) : (
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="min-w-0">{table}</div>
-          <Card className="h-fit lg:sticky lg:top-4" data-testid="bank-match-panel-slot">
-            <CardContent className="py-4">
-              {activeLine ? (
-                <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} />
-              ) : (
-                <EmptyState
-                  title="Selecciona un movimiento"
-                  subtitle="Elige una fila para ver sus pagos candidatos para conciliar. Usa J / K para moverte entre movimientos."
-                />
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+      <div ref={tableRef} className="min-w-0 w-full">{table}</div>
+      <Sheet open={!!activeLine} onOpenChange={(open) => { if (!open) setActiveId(null); }}>
+        <SheetContent className="overflow-y-auto sm:max-w-xl" onCloseAutoFocus={restoreRowFocus} aria-describedby={undefined}>
+          <SheetHeader>
+            <SheetTitle>Conciliar movimiento</SheetTitle>
+          </SheetHeader>
+          {activeLine && (
+            <div className="mt-4">
+              <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} />
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
