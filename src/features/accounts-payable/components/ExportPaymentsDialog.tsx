@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useExportPaymentsForm } from "../hooks/useExportPaymentsForm";
 import { PaymentsExportSummary } from "./PaymentsExportSummary";
 import { PaymentsExportTable } from "./PaymentsExportTable";
+import type { ComponentProps } from "react";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCloseAutoFocus?: ComponentProps<typeof FormDialog>["onCloseAutoFocus"];
 }
 
-export function ExportPaymentsDialog({ open, onOpenChange }: Props) {
+export function ExportPaymentsDialog({ open, onOpenChange, onCloseAutoFocus }: Props) {
   const form = useExportPaymentsForm(open, () => onOpenChange(false));
 
   return (
@@ -20,6 +22,7 @@ export function ExportPaymentsDialog({ open, onOpenChange }: Props) {
       isPending={form.isSubmitting}
       open={open}
       onOpenChange={onOpenChange}
+      onCloseAutoFocus={onCloseAutoFocus}
       title="Exportar pagos a Excel"
       width="2xl"
       className="sm:max-w-5xl"

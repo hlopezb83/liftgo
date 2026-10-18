@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { Link } from "@/lib/router-compat-ui";
+import type { Ref } from "react";
 
 interface AccountsPayableActionsProps {
+  moreActionsRef?: Ref<HTMLButtonElement>;
   releasableLocks: number;
   isReleasing: boolean;
   canManageBatches: boolean;
@@ -14,7 +16,7 @@ interface AccountsPayableActionsProps {
   onRelease: () => void;
 }
 
-export function AccountsPayableActions({ releasableLocks, isReleasing, canManageBatches, onCreate, onExport, onBatches, onRelease }: AccountsPayableActionsProps) {
+export function AccountsPayableActions({ moreActionsRef, releasableLocks, isReleasing, canManageBatches, onCreate, onExport, onBatches, onRelease }: AccountsPayableActionsProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
@@ -22,7 +24,7 @@ export function AccountsPayableActions({ releasableLocks, isReleasing, canManage
       </RoleGuard>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">Más acciones<ChevronDownIcon className="ml-1 h-4 w-4" /></Button>
+          <Button ref={moreActionsRef} variant="outline">Más acciones<ChevronDownIcon className="ml-1 h-4 w-4" /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
