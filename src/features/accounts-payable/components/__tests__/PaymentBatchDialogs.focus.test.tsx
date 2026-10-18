@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen, waitFor, within } from "@testing-librar
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestRouter } from "@/test/router";
 import { useToggleDialog } from "@/hooks/useDialogState";
+import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { AccountsPayableActions } from "../AccountsPayableActions";
 import { PaymentBatchDialogs, restorePaymentActionsFocus } from "../PaymentBatchDialogs";
 
@@ -50,7 +51,7 @@ function Harness({ ref }: { ref: Ref<HarnessControl> }) {
 
 async function setup() {
   const control = createRef<HarnessControl>();
-  render(<TestRouter><Harness ref={control} /></TestRouter>);
+  render(<TestRouter><ConfirmProvider><Harness ref={control} /></ConfirmProvider></TestRouter>);
   await screen.findByRole("button", { name: "Más acciones" });
   // happy-dom no tiene layout; se simula sólo la geometría del destino persistente.
   const markVisible = () => {
