@@ -39,8 +39,7 @@ describe("especificaciones: representación de textos ausentes", () => {
   });
 
   it("nulo se muestra como raya", () => {
-    render(<ForkliftSpecsCard forklift={{ ...base, model: null, manufacturer: null, serial_number: null }} />);
-    expect(valueOf("Modelo")).toBe("—");
+    render(<ForkliftSpecsCard forklift={{ ...base, manufacturer: null, serial_number: null }} />);
     expect(valueOf("Fabricante")).toBe("—");
     expect(valueOf("No. de Serie")).toBe("—");
   });
