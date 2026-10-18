@@ -41,7 +41,7 @@ function mount(extra: Partial<React.ComponentProps<typeof BankReconciliationWork
 }
 async function closeAndFocus(id: string, key = true) {
   if (key) fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
-  else fireEvent.click(screen.getByRole('button', { name: 'Cerrar', exact: true }));
+  else fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }));
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   await waitFor(() => expect(row(id)).toHaveFocus());
 }
@@ -115,7 +115,7 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
     const view = mount(); fireEvent.click(row('uno')); await closeAndFocus('uno');
     fireEvent.change(screen.getByPlaceholderText('Descripción, referencia o monto…'), { target: { value: 'dos' } });
     await waitFor(() => expect(view.props.onSearchChange).toHaveBeenCalledWith('dos'));
-    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Sugerido', exact: true }), { button: 0, ctrlKey: false });
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Sugerido' }), { button: 0, ctrlKey: false });
     expect(view.props.onStatusChange).toHaveBeenCalledWith('suggested');
     fireEvent.click(row('uno')); view.rerenderWorkspace({ search: 'dos', lines: [lines[1]] });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
