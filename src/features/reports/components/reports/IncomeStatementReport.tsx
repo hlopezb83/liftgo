@@ -144,17 +144,21 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
       </div>
 
 
+      {/* V04: a 1024px cinco columnas truncaban los valores — se reparten en
+          3 columnas en lg y 5 solo desde xl. La etiqueta reserva siempre la
+          altura de 2 líneas para alinear los valores entre tarjetas, y el
+          valor ya no se trunca: rompe en emergencia sin ellipsis. */}
       {!isComparison && (
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {kpis.map((kpi) => (
-            <Card key={kpi.label}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`p-2 rounded-lg bg-muted ${kpi.color}`}>
+            <Card key={kpi.label} className="h-full">
+              <CardContent className="p-4 flex items-start gap-3">
+                <div className={`p-2 rounded-lg bg-muted shrink-0 ${kpi.color}`}>
                   <kpi.icon className="h-5 w-5" />
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm text-muted-foreground line-clamp-2 leading-tight" title={kpi.label}>{kpi.label}</p>
-                  <p className="text-lg font-bold truncate">{kpi.value}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-muted-foreground line-clamp-2 leading-tight min-h-[2.5em]" title={kpi.label}>{kpi.label}</p>
+                  <p className="text-lg font-bold tabular-nums [overflow-wrap:anywhere]" title={kpi.value}>{kpi.value}</p>
                 </div>
               </CardContent>
             </Card>

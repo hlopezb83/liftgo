@@ -1,5 +1,14 @@
 # Roadmap operativo y estado de evidencia
 
+## V04–V05: presentación KPI (Resultados, Conciliación, KpiTile)
+
+- [x] Base `553448234aa75001d64788cfd6380089f0ffae10` confirmada; checkout interno `edit/*`.
+- [x] V04 Resultados: grid 2/3/5 columnas (5 sólo desde xl), etiqueta con zona reservada de 2 líneas, valor sin `truncate` con ruptura de emergencia y `tabular-nums`; contenido, colores y condición `!isComparison` intactos.
+- [x] V04 Conciliación CFDI: zona reservada de etiqueta para alinear valores; sin cambios de datos ni copy.
+- [x] V05 KpiTile: escala por `valueSize`+longitud (sm: ≤10 text-lg, 11-12 text-base, 13+ text-sm; lg: ≤10 text-2xl, 11-12 text-xl, 13-14 text-lg, 15+ text-base); `123` y `"123"` iguales; ReactNode no se convierte; helper global `kpiSizeClass` sin tocar.
+- [x] Pruebas: 12/12 nuevas de KpiTile (límites 10/11/12/13/14/15, 0/negativos/porcentajes/importes largos/ReactNode, etiquetas 1/2 líneas, href/onClick/foco) + 4/4 regresión kpiSizeClass + 101/101 dashboard/portal + 496/496 facturas/reportes. ESLint de 4 archivos limpio; `tsc --noEmit` sin errores; arch-check OK.
+- [ ] Coordinador: build productivo y QA real a 375/640/1024/1440 y texto 200% pendientes; jsdom no demuestra geometría. Sin publicación, versionado ni changelog.
+
 ## V02: regreso de foco desde Historial y Exportar
 
 - [x] Base `d949eded179bdd8c9adf29b13af16ec453fb4db5` y referencia `fix/ui-v02-history-focus-20261018` coinciden; checkout interno `edit/*`.
