@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
+import { useLocation } from "@/lib/router-compat";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import BookingDetail from "../BookingDetail";
 
@@ -41,11 +43,20 @@ function createTestQueryClient() {
   return new QueryClient({ defaultOptions: { queries: { retry: false } } });
 }
 
-function renderPage() {
+function BookingWithOrigin({ origin }: { origin?: string }) {
+  const location = useLocation();
+  const navigate = useNavigateTransition();
+  return <>
+    <output data-testid="booking-url">{location.pathname}{location.search}</output>
+    {location.pathname === "/" ? <button onClick={() => navigate("/bookings/bk-1", { state: { calendarReturnTo: origin } })}>Abrir desde origen</button> : <BookingDetail />}
+  </>;
+}
+
+function renderPage(origin?: string) {
   return render(
     <QueryClientProvider client={createTestQueryClient()}>
-      <TestRouter initialEntries={["/bookings/bk-1"]} path="/bookings/$id">
-        <BookingDetail />
+      <TestRouter initialEntries={[origin ? "/" : "/bookings/bk-1"]} path="/bookings/$id">
+        <BookingWithOrigin origin={origin} />
       </TestRouter>
     </QueryClientProvider>,
   );
@@ -61,6 +72,25 @@ beforeEach(() => {
 });
 
 describe("BookingDetail (FE4-02)", () => {
+  it("N5: Volver returns to the exact calendar date, view and range", async () => {
+    useBookingMock.mockReturnValue({
+      data: { id: "bk-1", booking_number: "RSV-0001", status: "confirmed", customer_name: "Cliente", start_date: "2026-11-05", end_date: "2026-11-07" },
+      isLoading: false, isError: false, refetch: vi.fn(),
+    });
+    renderPage("/calendar?date=2026-11-12&view=gantt&range=week");
+    fireEvent.click(await screen.findByRole("button", { name: "Abrir desde origen" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Volver" }));
+    await waitFor(() => expect(screen.getByTestId("booking-url")).toHaveTextContent("/calendar?date=2026-11-12&view=gantt&range=week"));
+  });
+
+  it.each(["https://example.com/calendar", "//example.com/calendar", "/calendar-elsewhere?date=2026-11-12"])("N5: ignores an invalid origin %s", async (origin) => {
+    useBookingMock.mockReturnValue({ data: undefined, isLoading: false, isError: false, refetch: vi.fn() });
+    renderPage(origin);
+    fireEvent.click(await screen.findByRole("button", { name: "Abrir desde origen" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Volver" }));
+    await waitFor(() => expect(screen.getByTestId("booking-url")).toHaveTextContent("/bookings"));
+  });
+
   it("muestra QueryErrorState cuando la reserva falla, no el mensaje de 'no encontrada'", async () => {
     useBookingMock.mockReturnValue({ data: undefined, isLoading: false, isError: true, refetch: vi.fn() });
 

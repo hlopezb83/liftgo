@@ -1,0 +1,223 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-navigation
+
+ Γ¥» src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx (4 tests | 1 failed) 359ms
+     ├ù persists the full origin URL filters for detail return navigation 120ms
+     Γ£ô reads search/status/date range from URL 76ms
+     Γ£ô clearAll wipes all filters and marks hasActive=false 79ms
+     Γ£ô filterKey stays stable across renders when inputs don't change 79ms
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests | 2 failed) 137ms
+     ├ù returns to the exact list origin /invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31 87ms
+     ├ù returns to the exact list origin /invoices 13ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: null 8ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: {"invoiceListBackTo":"https://example.com/invoices"} 8ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: {"invoiceListBackTo":"/invoices/other"} 8ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: {"invoiceListBackTo":123} 6ms
+ Γ¥» src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx (2 tests | 1 failed) 1234ms
+     ├ù keeps the filtered list origin in the detail history entry 1192ms
+     Γ£ô ofrece enlace al detalle y conserva importe, moneda y fechas 33ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 4 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx > InvoiceMobileCard > keeps the filtered list origin in the detail history entry
+AssertionError: expected undefined to be '/invoices?q=cliente&status=sent&cfdi=ΓÇª' // Object.is equality
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <a
+        aria-current="page"
+        aria-label="Ver factura FAC-0001 de Constructora Regia"
+        class="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active"
+        data-status="active"
+        href="/invoices/inv-1"
+      >
+        <div
+          class="rounded-lg border bg-card text-card-foreground shadow-sm active:scale-[0.98] transition-transform"
+        >
+          <div
+            class="p-4"
+          >
+            <div
+              class="flex items-center justify-between mb-1"
+            >
+              <span
+                class="notranslate font-mono font-semibold text-sm"
+                translate="no"
+              >
+                FAC-0001
+              </span>
+              <div
+                class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-primary/80 gap-1.5 whitespace-nowrap font-medium text-foreground bg-info/10 border-info/20 [--dot:hsl(var(--info))]"
+              >
+                <span
+                  aria-hidden="true"
+                  class="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--dot)]"
+                />
+                Sin pagar
+              </div>
+            </div>
+            <p
+              class="text-sm text-muted-foreground"
+            >
+              <span
+                class="notranslate"
+                translate="no"
+              >
+                Constructora Regia
+              </span>
+            </p>
+            <div
+              class="flex items-center justify-between mt-3 pt-3 border-t"
+            >
+              <div
+                class="text-xs text-muted-foreground"
+              >
+                <span>
+                  01/09/2026
+                </span>
+                <span>
+                   ΓåÆ 
+                  30/09/2026
+                </span>
+              </div>
+              <div
+                class="flex items-center gap-1"
+              >
+                <span
+                  class="text-sm font-semibold tabular-nums"
+                >
+                  $20,300.00
+                </span>
+                <span
+                  class="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded"
+                >
+                  USD
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-right h-4 w-4 text-muted-foreground"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m9 18 6-6-6-6"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <output
+        data-testid="location"
+      >
+        {"pathname":"/invoices/inv-1","state":{"__hashScrollIntoViewOptions":true,"key":"za8igg","__TSR_key":"za8igg","__TSR_index":1}}
+      </output>
+    </div>
+  </body>
+</html>
+
+- Expected:
+"/invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31"
+
++ Received:
+undefined
+
+ Γ¥» src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx:24:48
+     22|       const location = JSON.parse(screen.getByTestId("location").textCΓÇª
+     23|       expect(location.pathname).toBe("/invoices/inv-1");
+     24|       expect(location.state.invoiceListBackTo).toBe(origin);
+       |                                                ^
+     25|     });
+     26|   });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/4]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx > InvoiceDetailBody return navigation > returns to the exact list origin /invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31
+AssertionError: expected "vi.fn()" to be called with arguments: [ Array(1) ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "/invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31",
++   "/invoices?q=changed-in-another-tab",
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx:45:28
+     43|     render(<InvoiceDetailBody {...props} />);
+     44|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+     45|     expect(mocks.navigate).toHaveBeenCalledWith(origin);
+       |                            ^
+     46|   });
+     47|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/4]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx > InvoiceDetailBody return navigation > returns to the exact list origin /invoices
+AssertionError: expected "vi.fn()" to be called with arguments: [ '/invoices' ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "/invoices",
++   "/invoices?q=changed-in-another-tab",
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx:45:28
+     43|     render(<InvoiceDetailBody {...props} />);
+     44|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+     45|     expect(mocks.navigate).toHaveBeenCalledWith(origin);
+       |                            ^
+     46|   });
+     47|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/4]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx > useInvoicesFilters > persists the full origin URL filters for detail return navigation
+AssertionError: expected null to be 'q=cliente&status=sent&cfdi=stamped&frΓÇª' // Object.is equality
+
+- Expected:
+"q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31"
+
++ Received:
+null
+
+ Γ¥» src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx:20:69
+     18|     });
+     19|     await waitFor(() => expect(result.current).not.toBeNull());
+     20|     expect(window.sessionStorage.getItem("list-filters:/invoices")).toΓÇª
+       |                                                                     ^
+     21|     act(() => result.current.clearAll());
+     22|     await waitFor(() => expect(window.sessionStorage.getItem("list-filΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/4]ΓÄ»
+
+
+ Test Files  3 failed (3)
+      Tests  4 failed | 8 passed (12)
+   Start at  16:05:00
+   Duration  26.67s (transform 1.20s, setup 3.16s, import 27.37s, tests 1.73s, environment 5.30s)
+

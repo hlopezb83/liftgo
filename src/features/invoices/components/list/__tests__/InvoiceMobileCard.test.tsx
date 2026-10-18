@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useLocation } from "@/lib/router-compat";
 import { TestRouter } from "@/test/router";
 import { describe, expect, it } from "vitest";
 import { InvoiceMobileCard, type InvoiceCardItem } from "../InvoiceMobileCard";
@@ -9,6 +10,21 @@ const invoice: InvoiceCardItem = {
 };
 
 describe("InvoiceMobileCard", () => {
+  it("keeps the filtered list origin in the detail history entry", async () => {
+    const origin = "/invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31";
+    function Probe() {
+      const location = useLocation();
+      return <output data-testid="location">{JSON.stringify({ pathname: location.pathname, state: location.state })}</output>;
+    }
+    render(<TestRouter initialEntries={[origin]}><InvoiceMobileCard inv={invoice} /><Probe /></TestRouter>);
+    fireEvent.click(await screen.findByRole("link", { name: "Ver factura FAC-0001 de Constructora Regia" }));
+    await waitFor(() => {
+      const location = JSON.parse(screen.getByTestId("location").textContent ?? "{}");
+      expect(location.pathname).toBe("/invoices/inv-1");
+      expect(location.state.invoiceListBackTo).toBe(origin);
+    });
+  });
+
   it("ofrece enlace al detalle y conserva importe, moneda y fechas", async () => {
     render(<TestRouter><InvoiceMobileCard inv={invoice} /></TestRouter>);
     const link = await screen.findByRole("link", { name: "Ver factura FAC-0001 de Constructora Regia" });

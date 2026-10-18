@@ -180,6 +180,16 @@ describe("V09 · acciones de reserva", () => {
     const { container } = setup("completed");
     expect(container).toBeEmptyDOMElement();
   });
+  it.each(["completed", "cancelled", "unknown"])("%s admin: blocks status changes without transitions", async (status) => {
+    setup(status);
+    const menu = await openMenu();
+    const change = within(menu).getByRole("menuitem", { name: /Cambiar estatus/ });
+    expect(change).toHaveAttribute("aria-disabled", "true");
+    expect(change).toHaveTextContent("No hay cambios de estatus disponibles para esta reserva");
+    fireEvent.click(change);
+    expect(setStatusDialogOpen).not.toHaveBeenCalled();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
 
   it("completada admin: menú sólo con Cambiar estatus y Eliminar habilitado", async () => {
     setup("completed");

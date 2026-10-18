@@ -1,6 +1,4 @@
 import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -108,30 +106,12 @@ export function CalendarToolbar({
   );
 }
 
-/**
- * Skeleton que anticipa el layout real: KPIs de flota (4 tiles), la toolbar de
- * vistas/rango y la tarjeta del Gantt/lista, para evitar el salto de contenido
- * al hidratar. Misma convención que TableSkeleton: role="status" + sr-only.
- */
-export function CalendarLoadingSkeleton() {
+/** Loading affects only range content, so date and view controls retain focus. */
+export function CalendarRangeLoadingSkeleton() {
   return (
-    <PageContainer>
-      <PageHeader title="Calendario de Disponibilidad" />
-      <div className="space-y-6" role="status">
-        <span className="sr-only">Cargando calendario…</span>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-        </div>
-        <div className="flex items-center flex-wrap gap-2">
-          <Skeleton className="h-8 w-32" />
-          <Skeleton className="h-8 w-36" />
-          <Skeleton className="h-8 w-24 ml-auto" />
-        </div>
-        <div className="rounded-xl border bg-card p-6 space-y-4">
-          <Skeleton className="h-5 w-48" />
-          <Skeleton className="h-80 w-full" />
-        </div>
-      </div>
-    </PageContainer>
+    <div role="status" aria-label="Cargando calendario">
+      <span className="sr-only">Cargando calendario.</span>
+      <Skeleton className="h-80 w-full" />
+    </div>
   );
 }

@@ -1,0 +1,354 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-navigation
+
+ Γ¥» src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx (4 tests | 1 failed) 385ms
+     ├ù persists the full origin URL filters for detail return navigation 115ms
+     Γ£ô reads search/status/date range from URL 95ms
+     Γ£ô clearAll wipes all filters and marks hasActive=false 93ms
+     Γ£ô filterKey stays stable across renders when inputs don't change 76ms
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests | 2 failed) 389ms
+     ├ù returns to the exact list origin /invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31 215ms
+     ├ù returns to the exact list origin /invoices 29ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: null 56ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: {"invoiceListBackTo":"https://example.com/invoices"} 12ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: {"invoiceListBackTo":"/invoices/other"} 59ms
+     Γ£ô uses saved invoice filters when the origin is missing or invalid: {"invoiceListBackTo":123} 12ms
+ Γ¥» src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx (16 tests | 3 failed) 4418ms
+     Γ£ô confirmada admin: Crear contrato y Extender visibles; resto dentro de M├ís  978ms
+     Γ£ô devoluci├│n navega con early=1 cuando aplica  469ms
+     Γ£ô bloqueos de devoluci├│n y eliminaci├│n siguen enfocables con motivo y no ejecutan 208ms
+     Γ£ô rol de consulta: sin contrato/extender/admin; cancelar bloqueado con motivo 280ms
+     Γ£ô cancelaci├│n en curso: aria-disabled y no abre di├ílogo  323ms
+     Γ£ô eliminaci├│n en curso (admin, completada): aria-disabled y no abre confirmaci├│n 164ms
+     Γ£ô men├║ confirmed acotado al alto disponible con scroll y ancho al viewport 164ms
+     Γ£ô men├║ completed acotado al alto disponible con scroll y ancho al viewport 119ms
+     Γ£ô Escape en men├║ sin selecci├│n vuelve al disparador sin acciones 233ms
+     Γ£ô Cancelar reserva abre di├ílogo fuera del men├║ y Escape regresa el foco a M├ís  387ms
+     Γ£ô Cambiar estatus abre di├ílogo y Escape devuelve foco a M├ís  492ms
+     Γ£ô completada/cancelada sin admin: ninguna acci├│n 3ms
+     ├ù completed admin: blocks status changes without transitions 150ms
+     ├ù cancelled admin: blocks status changes without transitions 161ms
+     ├ù unknown admin: blocks status changes without transitions 76ms
+     Γ£ô completada admin: men├║ s├│lo con Cambiar estatus y Eliminar habilitado 201ms
+ Γ¥» src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx (2 tests | 1 failed) 1287ms
+     ├ù keeps the filtered list origin in the detail history entry 1232ms
+     Γ£ô ofrece enlace al detalle y conserva importe, moneda y fechas 51ms
+ Γ¥» src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx (1 test | 1 failed) 1278ms
+     ├ù keeps the exact list URL in the desktop detail history entry 1272ms
+ Γ¥» src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx (3 tests | 2 failed) 200ms
+     Γ£ô restores the saved filters for a pathname fallback 126ms
+     ├ù preserves an explicit URL without adding cached filters 41ms
+     ├ù preserves an explicitly unfiltered origin over newer session filters 27ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 10 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx > DetailPageHeader return navigation > preserves an explicit URL without adding cached filters
+AssertionError: expected "vi.fn()" to be called with arguments: [ Array(1) ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "/calendar?date=2026-11-01&view=gantt&range=month",
++   "/calendar?date=2026-11-01&view=gantt&range=month?q=obsolete",
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx:23:22
+     21|     render(<DetailPageHeader title="Reserva" backTo={backTo} />);
+     22|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+     23|     expect(navigate).toHaveBeenCalledWith(backTo);
+       |                      ^
+     24|   });
+     25|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/10]ΓÄ»
+
+ FAIL  src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx > DetailPageHeader return navigation > preserves an explicitly unfiltered origin over newer session filters
+AssertionError: expected "vi.fn()" to be called with arguments: [ '/invoices' ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "/invoices",
++   "/invoices?q=other-tab",
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx:30:22
+     28|     render(<DetailPageHeader title="Factura" backTo="/invoices" restorΓÇª
+     29|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+     30|     expect(navigate).toHaveBeenCalledWith("/invoices");
+       |                      ^
+     31|   });
+     32| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/10]ΓÄ»
+
+ FAIL  src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx > InvoicesPage detail navigation > keeps the exact list URL in the desktop detail history entry
+AssertionError: expected undefined to be '/invoices?q=cliente&status=sent&cfdi=ΓÇª' // Object.is equality
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <button>
+        Open desktop invoice
+      </button>
+      <output
+        data-testid="location"
+      >
+        {"pathname":"/invoices/inv-1","state":{"__hashScrollIntoViewOptions":true,"key":"2z036i","__TSR_key":"2z036i","__TSR_index":1}}
+      </output>
+    </div>
+  </body>
+</html>...
+
+- Expected:
+"/invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31"
+
++ Received:
+undefined
+
+ Γ¥» src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx:38:48
+     36|       const location = JSON.parse(screen.getByTestId("location").textCΓÇª
+     37|       expect(location.pathname).toBe("/invoices/inv-1");
+     38|       expect(location.state.invoiceListBackTo).toBe(origin);
+       |                                                ^
+     39|     });
+     40|   });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/10]ΓÄ»
+
+ FAIL  src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx > V09 ┬╖ acciones de reserva > completed admin: blocks status changes without transitions
+ FAIL  src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx > V09 ┬╖ acciones de reserva > cancelled admin: blocks status changes without transitions
+ FAIL  src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx > V09 ┬╖ acciones de reserva > unknown admin: blocks status changes without transitions
+Error: expect(element).toHaveAttribute("aria-disabled", "true") // element.getAttribute("aria-disabled") === "true"
+
+Expected the element to have attribute:
+  aria-disabled="true"
+Received:
+  null
+ Γ¥» src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx:187:20
+    185|     const menu = await openMenu();
+    186|     const change = within(menu).getByRole("menuitem", { name: /CambiarΓÇª
+    187|     expect(change).toHaveAttribute("aria-disabled", "true");
+       |                    ^
+    188|     expect(change).toHaveTextContent("No hay cambios de estatus disponΓÇª
+    189|     fireEvent.click(change);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/10]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx > InvoiceDetailBody return navigation > returns to the exact list origin /invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31
+AssertionError: expected "vi.fn()" to be called with arguments: [ Array(1) ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "/invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31",
++   "/invoices?q=changed-in-another-tab",
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx:45:28
+     43|     render(<InvoiceDetailBody {...props} />);
+     44|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+     45|     expect(mocks.navigate).toHaveBeenCalledWith(origin);
+       |                            ^
+     46|   });
+     47|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/10]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx > InvoiceDetailBody return navigation > returns to the exact list origin /invoices
+AssertionError: expected "vi.fn()" to be called with arguments: [ '/invoices' ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+-   "/invoices",
++   "/invoices?q=changed-in-another-tab",
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx:45:28
+     43|     render(<InvoiceDetailBody {...props} />);
+     44|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+     45|     expect(mocks.navigate).toHaveBeenCalledWith(origin);
+       |                            ^
+     46|   });
+     47|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/10]ΓÄ»
+
+ FAIL  src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx > InvoiceMobileCard > keeps the filtered list origin in the detail history entry
+AssertionError: expected undefined to be '/invoices?q=cliente&status=sent&cfdi=ΓÇª' // Object.is equality
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <a
+        aria-current="page"
+        aria-label="Ver factura FAC-0001 de Constructora Regia"
+        class="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 active"
+        data-status="active"
+        href="/invoices/inv-1"
+      >
+        <div
+          class="rounded-lg border bg-card text-card-foreground shadow-sm active:scale-[0.98] transition-transform"
+        >
+          <div
+            class="p-4"
+          >
+            <div
+              class="flex items-center justify-between mb-1"
+            >
+              <span
+                class="notranslate font-mono font-semibold text-sm"
+                translate="no"
+              >
+                FAC-0001
+              </span>
+              <div
+                class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-primary/80 gap-1.5 whitespace-nowrap font-medium text-foreground bg-info/10 border-info/20 [--dot:hsl(var(--info))]"
+              >
+                <span
+                  aria-hidden="true"
+                  class="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--dot)]"
+                />
+                Sin pagar
+              </div>
+            </div>
+            <p
+              class="text-sm text-muted-foreground"
+            >
+              <span
+                class="notranslate"
+                translate="no"
+              >
+                Constructora Regia
+              </span>
+            </p>
+            <div
+              class="flex items-center justify-between mt-3 pt-3 border-t"
+            >
+              <div
+                class="text-xs text-muted-foreground"
+              >
+                <span>
+                  01/09/2026
+                </span>
+                <span>
+                   ΓåÆ 
+                  30/09/2026
+                </span>
+              </div>
+              <div
+                class="flex items-center gap-1"
+              >
+                <span
+                  class="text-sm font-semibold tabular-nums"
+                >
+                  $20,300.00
+                </span>
+                <span
+                  class="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded"
+                >
+                  USD
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-right h-4 w-4 text-muted-foreground"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m9 18 6-6-6-6"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+      <output
+        data-testid="location"
+      >
+        {"pathname":"/invoices/inv-1","state":{"__hashScrollIntoViewOptions":true,"key":"fzpgi","__TSR_key":"fzpgi","__TSR_index":1}}
+      </output>
+    </div>
+  </body>
+</html>
+
+- Expected:
+"/invoices?q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31"
+
++ Received:
+undefined
+
+ Γ¥» src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx:24:48
+     22|       const location = JSON.parse(screen.getByTestId("location").textCΓÇª
+     23|       expect(location.pathname).toBe("/invoices/inv-1");
+     24|       expect(location.state.invoiceListBackTo).toBe(origin);
+       |                                                ^
+     25|     });
+     26|   });
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/10]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx > useInvoicesFilters > persists the full origin URL filters for detail return navigation
+AssertionError: expected null to be 'q=cliente&status=sent&cfdi=stamped&frΓÇª' // Object.is equality
+
+- Expected:
+"q=cliente&status=sent&cfdi=stamped&from=2026-10-01&to=2026-10-31"
+
++ Received:
+null
+
+ Γ¥» src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx:20:69
+     18|     });
+     19|     await waitFor(() => expect(result.current).not.toBeNull());
+     20|     expect(window.sessionStorage.getItem("list-filters:/invoices")).toΓÇª
+       |                                                                     ^
+     21|     act(() => result.current.clearAll());
+     22|     await waitFor(() => expect(window.sessionStorage.getItem("list-filΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/10]ΓÄ»
+
+
+ Test Files  6 failed (6)
+      Tests  10 failed | 22 passed (32)
+   Start at  16:05:52
+   Duration  77.50s (transform 8.25s, setup 12.65s, import 95.57s, tests 7.96s, environment 19.92s)
+

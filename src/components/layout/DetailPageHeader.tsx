@@ -9,6 +9,8 @@ interface DetailPageHeaderProps {
   subtitle?: string;
   badges?: ReactNode;
   backTo: string;
+  /** Disable cached filters when backTo is the exact captured origin. */
+  restoreListFilters?: boolean;
   actions?: ReactNode;
   /** Acción primaria, se muestra primero en la barra de acciones. */
   primaryAction?: ReactNode;
@@ -19,10 +21,14 @@ interface DetailPageHeaderProps {
  * propio renglón, igual que en `FormPageHeader`, para que detalle y edición se
  * lean como la misma familia y el título quede alineado con las tarjetas.
  */
-export function DetailPageHeader({ title, subtitle, badges, backTo, actions, primaryAction }: DetailPageHeaderProps) {
+export function DetailPageHeader({ title, subtitle, badges, backTo, actions, primaryAction, restoreListFilters = true }: DetailPageHeaderProps) {
   const navigate = useNavigateTransition();
 
   const handleBack = () => {
+    if (!restoreListFilters || /[?#]/.test(backTo)) {
+      navigate(backTo);
+      return;
+    }
     // F4: reutiliza el guard try/catch centralizado en sessionStorage.ts.
     const savedParams = readSessionParams(backTo).toString();
     navigate(savedParams ? `${backTo}?${savedParams}` : backTo);

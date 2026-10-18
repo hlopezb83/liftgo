@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-navigation
+
+ Γ£ô src/features/bookings/pages/__tests__/BookingDetail.test.tsx (6 tests) 968ms
+     Γ£ô N5: Volver returns to the exact calendar date, view and range  383ms
+ Γ£ô src/features/calendar/pages/__tests__/CalendarPage.navigation.test.tsx (5 tests) 999ms
+     Γ£ô opening a November Gantt booking carries the exact calendar origin and restores it on remount  303ms
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  16:07:37
+   Duration  17.36s (transform 3.02s, setup 2.98s, import 23.50s, tests 1.97s, environment 3.72s)
+

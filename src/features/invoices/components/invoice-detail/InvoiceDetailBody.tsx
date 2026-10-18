@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { useQuote } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { useLocation } from "@/lib/router-compat";
 import { StampErrorDialog } from "../StampErrorDialog";
 import { InvoiceCreditNotesCard } from "./InvoiceCreditNotesCard";
 import { InvoiceDetailActions } from "./InvoiceDetailActions";
@@ -66,6 +67,9 @@ function stampDialogData(error: Props["actions"]["stampError"]) {
 export function InvoiceDetailBody({
   invoice, id, derived, actions, userRole, sourceQuote, sourceBookings, refetch,
 }: Props) {
+  const location = useLocation();
+  const origin = (location.state as { invoiceListBackTo?: unknown } | null)?.invoiceListBackTo;
+  const backTo = typeof origin === "string" && /^\/invoices(?:[?#]|$)/.test(origin) ? origin : undefined;
   const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance,
     unconvertiblePayments, showCfdiError, showCollectionNotes, visibility, ppdStamped } = derived;
   const currency = invoice.moneda ?? "MXN";
@@ -74,7 +78,8 @@ export function InvoiceDetailBody({
     <>
       <DetailPageHeader
         title={invoice.invoice_number}
-        backTo="/invoices"
+        backTo={backTo ?? "/invoices"}
+        restoreListFilters={!backTo}
         badges={
           <InvoiceDetailBadges
             invoiceStatus={invoice.status}

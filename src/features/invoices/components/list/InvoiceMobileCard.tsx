@@ -5,15 +5,18 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useLocation } from "@/lib/router-compat";
 import { Link } from "@/lib/router-compat-ui";
 
 export type InvoiceCardItem = Pick<Tables<"invoices">, "id" | "invoice_number" | "customer_name" | "status" | "issued_at" | "due_date" | "total" | "moneda">;
 
 export function InvoiceMobileCard({ inv }: { inv: InvoiceCardItem }) {
+  const location = useLocation();
   const moneda = inv.moneda ?? "MXN";
   return (
     <Link
       to={`/invoices/${inv.id}`}
+      state={{ invoiceListBackTo: `${location.pathname}${location.search}${location.hash}` }}
       aria-label={`Ver factura ${inv.invoice_number}${inv.customer_name ? ` de ${inv.customer_name}` : ""}`}
       className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
     >

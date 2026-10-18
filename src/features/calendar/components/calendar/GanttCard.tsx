@@ -2,11 +2,14 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { CalendarRangeLoadingSkeleton } from "./CalendarPageParts";
 import { GanttChart } from "./GanttChart";
 
 export type MaintenanceWindow = { id: string; forklift_id: string; date: string; label: string; is_open?: boolean };
 
 interface GanttCardProps {
+  isLoading?: boolean;
+  hasQueryError?: boolean;
   rangeLabel: string;
   prevLabel: string;
   nextLabel: string;
@@ -24,6 +27,7 @@ interface GanttCardProps {
 export function GanttCard({
   rangeLabel, prevLabel, nextLabel, onPrev, onNext, onToday,
   forklifts, bookings, rangeStart, rangeEnd, maintenanceWindows,
+  isLoading = false, hasQueryError = false,
 }: GanttCardProps) {
   return (
     <Card>
@@ -59,13 +63,13 @@ export function GanttCard({
         </div>
       </CardHeader>
       <CardContent>
-        <GanttChart
+        {isLoading ? <CalendarRangeLoadingSkeleton /> : !hasQueryError && <GanttChart
           forklifts={forklifts}
           bookings={bookings}
           rangeStart={rangeStart}
           rangeEnd={rangeEnd}
           maintenanceWindows={maintenanceWindows}
-        />
+        />}
       </CardContent>
     </Card>
   );

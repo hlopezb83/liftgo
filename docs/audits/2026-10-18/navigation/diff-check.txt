@@ -1,0 +1,4 @@
+Command: git diff --check
+warning: in the working copy of 'src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'src/features/calendar/components/calendar/CalendarPageParts.tsx', LF will be replaced by CRLF the next time Git touches it
+Exit code: 0
