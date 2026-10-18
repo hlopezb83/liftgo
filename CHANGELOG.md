@@ -1,3 +1,43 @@
+## [8.44.5] — 2026-10-17
+
+- Limpieza de calidad: se eliminaron las 16 advertencias de lint del CI (orden de importaciones y funciones demasiado largas) y se corrigieron los mocks de la prueba del detalle de entrega. Sin cambios de comportamiento.
+
+## [8.44.4] — 2026-10-13
+
+- Las notas capturadas en la factura ahora se imprimen en el PDF de Facturapi al timbrar.
+
+## [8.44.3] — 2026-10-13
+
+- La factura de una reserva con renta pactada cobra los días sueltos prorrateados desde la tarifa acordada, no con la tarifa diaria del catálogo.
+
+## [8.44.2] — 2026-10-13
+
+- El buscador general encuentra entregas (ENT-XXXX) y devoluciones (DEV-XXXX) por su folio.
+
+## [8.44.1] — 2026-10-13
+
+- Al anular una devolución ya no aparece un error breve ni un aviso doble.
+
+## [8.44.0] — 2026-10-13
+
+- Los administradores pueden corregir la fecha de una entrega completada, anular una entrega que no ocurrió y anular una devolución errónea (la reserva vuelve a quedar activa). Todo pide motivo y queda en la bitácora.
+
+## [8.43.25] — 2026-10-13
+
+- Si la reserva tiene facturas, contratos, entregas, inspecciones o daños, el aviso explica por qué no se elimina y qué hacer.
+
+## [8.43.24] — 2026-10-13
+
+- Al restablecer la contraseña, el aviso explica si es muy común o igual a la anterior.
+
+## [8.43.23] — 2026-10-13
+
+- Abrir un enlace válido para restablecer la contraseña ya no muestra por error «enlace inválido o expirado».
+
+## [8.43.22] — 2026-10-13
+
+- Si el correo o la contraseña no coinciden, el aviso de inicio de sesión lo dice en español en lugar de un texto genérico.
+
 ## [8.43.21] — 2026-10-08
 
 - Al generar una factura desde reserva, el selector muestra y permite buscar el número de reserva (RSV-XXXX).

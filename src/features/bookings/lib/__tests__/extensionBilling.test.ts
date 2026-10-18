@@ -26,7 +26,8 @@ describe("resolveExtensionRates", () => {
       { daily_rate: 500, weekly_rate: 2800, monthly_rate: 9000 },
       { monthly_rate: 8000 },
     );
-    expect(r).toEqual({ daily: 500, weekly: 2800, monthly: 8000 });
+    // 8.44.3: con una tarifa pactada no se mezclan tarifas del catálogo.
+    expect(r).toEqual({ daily: 0, weekly: 0, monthly: 8000 });
   });
 
   it("F1: las tarifas pactadas diaria y semanal también pisan a la maestra", () => {
@@ -43,12 +44,12 @@ describe("resolveExtensionRates", () => {
     expect(resolveExtensionRates({ monthly_rate: 9000 }).monthly).toBe(9000);
   });
 
-  it("cae al catálogo por tarifa cuando la pactada diaria/semanal es 0 o nula", () => {
+  it("no cae al catálogo en diaria/semanal si hay una mensual pactada (se prorratea)", () => {
     const r = resolveExtensionRates(
       { daily_rate: 500, weekly_rate: 2800, monthly_rate: 9000 },
       { daily_rate: 0, weekly_rate: null, monthly_rate: 8000 },
     );
-    expect(r).toEqual({ daily: 500, weekly: 2800, monthly: 8000 });
+    expect(r).toEqual({ daily: 0, weekly: 0, monthly: 8000 });
   });
 });
 

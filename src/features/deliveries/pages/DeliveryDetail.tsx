@@ -4,12 +4,14 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
+import { DeliveryAdminCorrections } from "../components/deliveries/DeliveryAdminCorrections";
 import { DeliveryDetailBody } from "../components/deliveries/DeliveryDetailBody";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import { RescheduleDeliveryDialog } from "../components/deliveries/RescheduleDeliveryDialog";
@@ -26,6 +28,8 @@ export default function DeliveryDetail() {
   const deleteDelivery = useDeleteDelivery();
   const { data: role } = useUserRole();
   const [editOpen, setEditOpen] = useState(false);
+  const [correctOpen, setCorrectOpen] = useState(false);
+  const [voidOpen, setVoidOpen] = useState(false);
 
   const completion = useDeliveryCompletion(delivery, siblingDeliveries, linkedBooking, forklift);
 
@@ -81,13 +85,21 @@ export default function DeliveryDetail() {
           badges={<StatusBadge status={delivery.status} />}
           backTo="/deliveries"
           actions={
-            <DeliveryActions
-              status={delivery.status}
-              canDelete={canDeleteDeliveryFor(delivery.status, role)}
-              onEdit={() => setEditOpen(true)}
-              onComplete={() => completion.setSignatureOpen(true)}
-              onDelete={handleDelete}
-            />
+            <div className="flex flex-wrap gap-2">
+              {role === "admin" && delivery.status === "completed" && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => setCorrectOpen(true)}>Corregir fecha</Button>
+                  <Button variant="outline" size="sm" className="text-destructive" onClick={() => setVoidOpen(true)}>Anular</Button>
+                </>
+              )}
+              <DeliveryActions
+                status={delivery.status}
+                canDelete={canDeleteDeliveryFor(delivery.status, role)}
+                onEdit={() => setEditOpen(true)}
+                onComplete={() => completion.setSignatureOpen(true)}
+                onDelete={handleDelete}
+              />
+            </div>
           }
         />
 
@@ -121,6 +133,13 @@ export default function DeliveryDetail() {
           onOpenChange={setEditOpen}
         />
       )}
+      <DeliveryAdminCorrections
+        delivery={delivery}
+        correctOpen={correctOpen}
+        setCorrectOpen={setCorrectOpen}
+        voidOpen={voidOpen}
+        setVoidOpen={setVoidOpen}
+      />
     </>
   );
 }
