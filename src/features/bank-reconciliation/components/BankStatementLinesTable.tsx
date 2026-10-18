@@ -35,7 +35,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
     accessorKey: "posted_date",
     meta: { kind: "date" },
     cell: ({ row }) => (
-      <span className="whitespace-nowrap">{formatDateMty(row.original.posted_date)}</span>
+      <span data-bank-line-id={row.original.id} className="whitespace-nowrap">{formatDateMty(row.original.posted_date)}</span>
     ),
   },
   {
@@ -43,7 +43,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
     header: "Descripción",
     accessorKey: "description",
     cell: ({ row }) => (
-      <span className="block max-w-md truncate">{row.original.description || "—"}</span>
+      <span className="block max-w-64 truncate" title={row.original.description || undefined}>{row.original.description || "—"}</span>
     ),
   },
   {
@@ -51,7 +51,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
     header: "Referencia",
     accessorKey: "reference",
     cell: ({ row }) => (
-      <span className="font-mono text-xs">{row.original.reference ?? "—"}</span>
+      <span className="block max-w-36 truncate font-mono text-xs" title={row.original.reference ?? undefined}>{row.original.reference ?? "—"}</span>
     ),
   },
   {
@@ -62,7 +62,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
     cell: ({ row }) => (
       <span
         className={cn(
-          "font-mono tabular-nums",
+          "whitespace-nowrap font-mono tabular-nums",
           row.original.signed_amount < 0 ? "text-destructive" : "text-success",
         )}
       >
@@ -106,7 +106,14 @@ export function BankStatementLinesTable({
 
   return (
     <Card data-testid="bank-lines-table">
-      <CardContent className="overflow-x-auto p-0">
+      <CardContent className="overflow-x-auto p-0" onKeyDownCapture={(event) => {
+        // No dejar que Enter/Espacio de un checkbox active también la fila.
+        if (event.target instanceof HTMLElement && event.target.closest('[role="checkbox"]') && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (event.key === " ") event.target.click();
+        }
+      }}>
         <DataTableV2
           table={table}
           isLoading={isLoading}

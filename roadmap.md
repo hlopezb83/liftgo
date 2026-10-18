@@ -1,5 +1,13 @@
 # Roadmap operativo y estado de evidencia
 
+## V06: inspector bancario (18 de octubre de 2026)
+
+- [x] Base `694b2bd9b77010f0d608407af86a46f46c4a620f` y referencias local/remota `fix/ui-v06-bank-inspector-20261018` confirmadas; checkout interno `edit/*`. `public/version.json` ya modificado al inicio, no tocar.
+- [x] Tabla única a ancho completo, inspector Sheet independiente del viewport y retorno de foco a fila vigente al cerrar; descripción/referencia acotadas con texto íntegro en title. Panel, candidatos, hooks y mutaciones intactos.
+- [x] Vitest focal 13/13 en tres archivos: Workspace/Radix/tabla/panel/candidatos reales con hooks ficticios, clic/Enter, J/K/flechas, escritura, Escape/X/ciclos, filtros, selección/barra/razón/orden/scroll/resize y virtualización real de 120 líneas; cero llamadas mutantes. ESLint en tres archivos y diff sin errores.
+- [x] Chromium aislado con componentes reales y hooks ficticios fuera del proyecto: listado 1046px a 1366 y 1120px a 1440, mismo ancho del workspace; Fecha/Importe/Estado dentro del encuadre inicial. A 375 listado 343px con scroll horizontal interno, sin overflow de página; inspector visible, candidatos, navegación y cierre tras resize regresan a fila vigente, cero mutaciones/errores. Capturas y medidas `/tmp/browser/v06/`; no equivale a QA autenticada/publicada.
+- [ ] Coordinador: build productivo y ambos typechecks/CI pendientes; ejecución manual no permitida. Log automático `build OK` del 2026-10-18T10:32:58Z, no certifica build productivo ni CI. No se ejecutó e2e bancario ni se cambió datos, versiones/changelog o publicación. SDK, permisos y lógica intactos.
+
 ## KPI móvil: etiquetas completas (18 de octubre de 2026)
 
 - [x] Base `2d38f5eaa153db042749b1da845fe56a5ee31f66` confirmada; checkout interno `edit/*`, correspondiente a la referencia seleccionada por el coordinador.
