@@ -132,3 +132,19 @@ describe("KpiTile · estructura e interacción", () => {
     expect(onClick).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("KpiTile · valores largos sin recorte (V05 fix)", () => {
+  it("el valor tiene ruptura de emergencia y conserva el texto íntegro", () => {
+    const long = "$-1,234,567,890.12 MXN";
+    render(<KpiTile label="Total" value={long} valueSize="lg" />);
+    const value = screen.getByText(long);
+    expect(value.className).toContain("[overflow-wrap:anywhere]");
+    expect(value.className).not.toContain("truncate");
+    expect(value.textContent).toBe(long);
+  });
+
+  it("el contenido de la tarjeta no usa overflow-hidden que recorte valores", () => {
+    const { container } = render(<KpiTile label="A" value="$999,999,999,999.99" />);
+    expect(container.querySelector(".overflow-hidden")).toBeNull();
+  });
+});

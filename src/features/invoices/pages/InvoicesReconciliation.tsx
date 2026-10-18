@@ -87,7 +87,7 @@ export default function InvoicesReconciliation() {
         {kpis.map((k) => (
           <Card key={k.label} className="h-full">
             <CardContent className="py-3">
-              <p className="text-xs text-muted-foreground leading-tight line-clamp-2 min-h-[2.5em]" title={k.label}>{k.label}</p>
+              <p className="text-xs text-muted-foreground leading-tight min-h-[2.5em] [overflow-wrap:anywhere]">{k.label}</p>
               <p className="text-lg font-semibold tabular-nums [overflow-wrap:anywhere]">{k.value}</p>
             </CardContent>
           </Card>
