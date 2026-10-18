@@ -114,7 +114,7 @@ export function KpiTile({
       >
         {/* V26-06: contenido alineado arriba para que título y valor queden a
             la misma altura entre tarjetas con etiquetas de 1 y 2 líneas. */}
-        <CardContent className="p-4 h-full flex items-start gap-2 sm:gap-3 overflow-hidden">
+        <CardContent className="p-4 h-full flex items-start gap-2 sm:gap-3">
           {Icon ? (
             <div className={cn("p-2 sm:p-2.5 rounded-xl shrink-0", bg)}>
               <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />
@@ -131,7 +131,10 @@ export function KpiTile({
             <p className="text-3xs sm:text-xs text-muted-foreground leading-tight line-clamp-2 min-h-[2.5em]" title={label}>
               {label}
             </p>
-            <p className={valueClass} title={isPrimitive ? String(value) : undefined}>
+            {/* V05: ruptura de emergencia para que importes largos nunca se
+                recorten; el texto original (signo, moneda, decimales) se
+                conserva íntegro, sin ellipsis. */}
+            <p className={cn(valueClass, "[overflow-wrap:anywhere]")} title={isPrimitive ? String(value) : undefined}>
               {value}
             </p>
             {hint ? <div className="mt-0.5">{hint}</div> : null}
