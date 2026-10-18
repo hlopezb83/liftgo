@@ -1,0 +1,114 @@
+{
+  "project_id": "e25ace4a-172e-4082-a037-00473dacf2f2",
+  "operation": "SELECT catalog metadata only via existing Lovable connector",
+  "result": {
+    "rows": [
+      {
+        "metadata": {
+          "access_helpers": [
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.current_organization_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  SELECT CASE\n    WHEN count(*) = 1 THEN (array_agg(m.organization_id))[1]\n    ELSE NULL\n  END\n  FROM public.organization_memberships m\n  WHERE m.auth_user_id = (SELECT auth.uid())\n$function$\n",
+              "name": "current_organization_id"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.has_role(_user_id uuid, _role app_role)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  SELECT public.is_active_user(_user_id)\n     AND EXISTS (\n       SELECT 1 FROM public.user_roles\n       WHERE user_id = _user_id AND role = _role\n     )\n$function$\n",
+              "name": "has_role"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.is_active_user(_user_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  SELECT COALESCE(\n    (SELECT p.is_active FROM public.profiles p WHERE p.user_id = _user_id),\n    true\n  );\n$function$\n",
+              "name": "is_active_user"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.is_admin_or_administrativo()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  SELECT EXISTS (\n    SELECT 1 FROM public.user_roles ur\n    WHERE ur.user_id = (select auth.uid())\n      AND ur.role = ANY (ARRAY['admin', 'administrativo']::public.app_role[])\n  )\n$function$\n",
+              "name": "is_admin_or_administrativo"
+            },
+            {
+              "definition": "CREATE OR REPLACE FUNCTION public.organization_scope_matches(p_organization_id uuid)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  SELECT p_organization_id IS NOT NULL\n     AND EXISTS (\n       SELECT 1 FROM public.organizations o\n       WHERE o.id = p_organization_id AND o.is_active\n     )\n     AND (\n       p_organization_id = public.current_organization_id()\n       OR (\n         -- Sólo procesos SIN sesión (sin auth.uid()) conservan la\n         -- compatibilidad temporal, y únicamente con UNA empresa activa.\n         (SELECT auth.uid()) IS NULL\n         AND public.current_organization_id() IS NULL\n         AND (SELECT count(*) = 1 FROM public.organizations WHERE is_active)\n       )\n     )\n$function$\n",
+              "name": "organization_scope_matches"
+            }
+          ],
+          "database_name": "postgres",
+          "observed_at": "2026-10-18T22:16:35.004119+00:00",
+          "reader_role": "postgres",
+          "triggers": [
+            {
+              "definition": "CREATE TRIGGER audit_supplier_bills AFTER INSERT OR DELETE OR UPDATE ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION audit_trigger_fn()",
+              "function": "audit_trigger_fn",
+              "name": "audit_supplier_bills"
+            },
+            {
+              "definition": "CREATE TRIGGER supplier_bills_auto_due_date BEFORE INSERT ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION set_supplier_bill_due_date()",
+              "function": "set_supplier_bill_due_date",
+              "name": "supplier_bills_auto_due_date"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_guard_supplier_bill_approval BEFORE UPDATE OF approval_status, approved_by, approved_at, approval_notes ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION guard_supplier_bill_approval()",
+              "function": "guard_supplier_bill_approval",
+              "name": "trg_guard_supplier_bill_approval"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_guard_supplier_bill_balance BEFORE UPDATE OF balance ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION guard_supplier_bill_balance()",
+              "function": "guard_supplier_bill_balance",
+              "name": "trg_guard_supplier_bill_balance"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_lock_paid_supplier_bill BEFORE UPDATE ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION lock_paid_supplier_bill_with_payments()",
+              "function": "lock_paid_supplier_bill_with_payments",
+              "name": "trg_lock_paid_supplier_bill"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_log_supplier_bill_approval_requested AFTER INSERT ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION log_supplier_bill_approval_requested()",
+              "function": "log_supplier_bill_approval_requested",
+              "name": "trg_log_supplier_bill_approval_requested"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION enforce_organization_write_context()",
+              "function": "enforce_organization_write_context",
+              "name": "trg_organization_write_context"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_sb_init_balance BEFORE INSERT ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION trg_supplier_bill_init_balance()",
+              "function": "trg_supplier_bill_init_balance",
+              "name": "trg_sb_init_balance"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_set_supplier_bill_approval_status BEFORE INSERT OR UPDATE OF total, currency, exchange_rate ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION set_supplier_bill_approval_status()",
+              "function": "set_supplier_bill_approval_status",
+              "name": "trg_set_supplier_bill_approval_status"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_set_supplier_bill_number BEFORE INSERT ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION set_supplier_bill_number()",
+              "function": "set_supplier_bill_number",
+              "name": "trg_set_supplier_bill_number"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_supplier_bill_recalc_on_total BEFORE UPDATE OF total ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION recalc_supplier_bill_balance_on_total_change()",
+              "function": "recalc_supplier_bill_balance_on_total_change",
+              "name": "trg_supplier_bill_recalc_on_total"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_supplier_bill_status_consistency BEFORE UPDATE OF status ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION enforce_supplier_bill_status_consistency()",
+              "function": "enforce_supplier_bill_status_consistency",
+              "name": "trg_supplier_bill_status_consistency"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_supplier_bill_total_covers_paid BEFORE UPDATE OF total ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION enforce_supplier_bill_total_covers_paid()",
+              "function": "enforce_supplier_bill_total_covers_paid",
+              "name": "trg_supplier_bill_total_covers_paid"
+            },
+            {
+              "definition": "CREATE TRIGGER trg_validate_transition BEFORE INSERT OR UPDATE OF status ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION validate_transition()",
+              "function": "validate_transition",
+              "name": "trg_validate_transition"
+            },
+            {
+              "definition": "CREATE TRIGGER update_supplier_bills_updated_at BEFORE UPDATE ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION update_updated_at_column()",
+              "function": "update_updated_at_column",
+              "name": "update_supplier_bills_updated_at"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

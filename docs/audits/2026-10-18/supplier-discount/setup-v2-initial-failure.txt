@@ -1,0 +1,39 @@
+DO
+DO
+DO
+CREATE SCHEMA
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+GRANT
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+GRANT
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+psql:docs/audits/2026-10-18/supplier-discount/local-fixture.generated.sql:65: NOTICE:  constraint "supplier_bills_discount_non_negative_chk" of relation "supplier_bills" does not exist, skipping
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+ALTER TABLE
+CREATE FUNCTION
+psql:docs/audits/2026-10-18/supplier-discount/local-fixture.generated.sql:115: ERROR:  function public.is_active_user(uuid) does not exist
+LINE 7:   SELECT public.is_active_user(_user_id)
+                 ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.

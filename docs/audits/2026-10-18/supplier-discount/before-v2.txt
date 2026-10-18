@@ -1,0 +1,10 @@
+BEGIN
+SET
+SET
+SET
+SET
+SET
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:27: ERROR:  permission denied for table supplier_bills
+CONTEXT:  SQL statement "UPDATE public.supplier_bills SET discount=10,total=90,description='Synthetic discount edit' WHERE id='00000000-0000-4000-8000-000000000201'"
+PL/pgSQL function inline_code_block line 8 at SQL statement
+ExitCode: 3

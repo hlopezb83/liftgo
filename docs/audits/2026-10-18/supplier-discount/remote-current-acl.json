@@ -1,0 +1,118 @@
+{
+  "project_id": "e25ace4a-172e-4082-a037-00473dacf2f2",
+  "operation": "SELECT metadata only via existing Lovable connector",
+  "project_latest_commit_sha": "ec177edf865671a9e9952f5cccd56a9db687f0bd",
+  "database_status": {
+    "enabled": true,
+    "stack": "supabase"
+  },
+  "result": {
+    "rows": [
+      {
+        "metadata": {
+          "authenticated_acl": {
+            "approval_notes_update": false,
+            "approval_status_update": false,
+            "approved_at_update": false,
+            "approved_by_update": false,
+            "discount_update": false,
+            "global_update": false,
+            "total_update": true
+          },
+          "constraints": [
+            {
+              "definition": "FOREIGN KEY (approved_by) REFERENCES auth.users(id) ON DELETE SET NULL",
+              "name": "supplier_bills_approved_by_fkey"
+            },
+            {
+              "definition": "CHECK ((((coverage_start IS NULL) AND (coverage_end IS NULL)) OR ((coverage_start IS NOT NULL) AND (coverage_end IS NOT NULL) AND (coverage_end >= coverage_start))))",
+              "name": "supplier_bills_coverage_range_chk"
+            },
+            {
+              "definition": "FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL",
+              "name": "supplier_bills_created_by_fkey"
+            },
+            {
+              "definition": "CHECK ((currency = ANY (ARRAY['MXN'::text, 'USD'::text])))",
+              "name": "supplier_bills_currency_check"
+            },
+            {
+              "definition": "CHECK ((discount >= (0)::numeric))",
+              "name": "supplier_bills_discount_non_negative_chk"
+            },
+            {
+              "definition": "UNIQUE (organization_id, bill_number)",
+              "name": "supplier_bills_organization_bill_number_key"
+            },
+            {
+              "definition": "FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE RESTRICT",
+              "name": "supplier_bills_organization_id_fkey"
+            },
+            {
+              "definition": "CHECK (((payment_method_sat = ANY (ARRAY['PUE'::text, 'PPD'::text])) OR (payment_method_sat IS NULL)))",
+              "name": "supplier_bills_payment_method_sat_check"
+            },
+            {
+              "definition": "PRIMARY KEY (id)",
+              "name": "supplier_bills_pkey"
+            },
+            {
+              "definition": "FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT",
+              "name": "supplier_bills_supplier_id_fkey"
+            },
+            {
+              "definition": "CHECK (((tipo_comprobante IS NULL) OR (tipo_comprobante = ANY (ARRAY['I'::text, 'E'::text, 'N'::text, 'P'::text, 'T'::text]))))",
+              "name": "supplier_bills_tipo_comprobante_check"
+            },
+            {
+              "definition": "CHECK ((total >= (0)::numeric))",
+              "name": "supplier_bills_total_check"
+            }
+          ],
+          "database_name": "postgres",
+          "observed_at": "2026-10-18T22:16:06.039637+00:00",
+          "policies": [
+            {
+              "check": "( SELECT is_admin_or_administrativo() AS is_admin_or_administrativo)",
+              "command": "ALL",
+              "name": "Bills: admin/administrativo full",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "( SELECT is_admin_or_administrativo() AS is_admin_or_administrativo)"
+            },
+            {
+              "check": null,
+              "command": "SELECT",
+              "name": "Bills: auditor read",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "has_role(( SELECT auth.uid() AS uid), 'auditor'::app_role)"
+            },
+            {
+              "check": "( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches)",
+              "command": "ALL",
+              "name": "org_scope_isolation",
+              "permissive": "RESTRICTIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches)"
+            }
+          ],
+          "reader_role": "postgres",
+          "server_address": "2600:1f13:838:6e17:aa50:775:13d3:1e0b/128",
+          "server_port": 5432,
+          "supplier_bills_rls": {
+            "enabled": true,
+            "forced": true,
+            "owner": "postgres"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+BEGIN
+SET
+SET
+SET
+SET
+SET
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:27: NOTICE:  PASS admin 0 -> positive: persisted discount=10 total=90 balance=90
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:27: NOTICE:  PASS admin positive -> 0: persisted discount=0 total=100 balance=100
+DO
+SET
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:41: NOTICE:  PASS administrativo persists discount=20 total=80 balance=80
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:41: NOTICE:  PASS description edit includes unchanged discount and total; values remain 20/80/80
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 3 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 4 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 5 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 6 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 7 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 9 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:54: NOTICE:  PASS actor 10 blocked (ventas/auditor/mechanic/dispatcher/customer/no membership/admin B)
+SET
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:88: NOTICE:  PASS denied role updates leave stored discount/total/balance unchanged
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:88: NOTICE:  PASS admin A cannot update company B
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:88: NOTICE:  PASS direct approval blocked; column ACL only, no global UPDATE
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:88: NOTICE:  PASS negative discount rejected by supplier_bills_discount_non_negative_chk; stored values unchanged
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:108: NOTICE:  PASS real approval guard rejects discount + changed total; persisted values unchanged
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:108: NOTICE:  PASS approved description edit with unchanged discount + total persists
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:147: NOTICE:  PASS bill 00000000-0000-4000-8000-000000000204 with payments rejects discount + changed total; stored amounts unchanged
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:147: NOTICE:  PASS bill 00000000-0000-4000-8000-000000000205 with payments rejects discount + changed total; stored amounts unchanged
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:147: NOTICE:  PASS real recalc seeded partial total=100 paid=20 balance=80 and paid total=100 paid=100 balance=0; edits preserve them
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:147: NOTICE:  PASS description edit with unchanged discount + total preserves balance with payments
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:147: NOTICE:  PASS real paid-status lock prevents leaving paid with payments
+SAVEPOINT
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:165: NOTICE:  LIMIT observed: SQL permits discount=110 > subtotal=100 with total=0; frontend validation is separate
+DO
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:165: NOTICE:  LIMIT observed: discount-only edits persist on approved/partial/paid bills; guards do not enforce discount arithmetic
+ROLLBACK
+SET
+DO
+ROLLBACK
+psql:docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql:176: NOTICE:  LIMIT observed: inactive profile with admin role and membership can update under captured is_admin_or_administrativo policy
+ExitCode: 0

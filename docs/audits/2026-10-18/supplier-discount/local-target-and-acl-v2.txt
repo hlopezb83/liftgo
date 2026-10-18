@@ -1,0 +1,62 @@
+   current_database   | inet_server_addr | inet_server_port | current_user |                                 version                                 
+----------------------+------------------+------------------+--------------+-------------------------------------------------------------------------
+ liftgo_k1_fixture_v2 | 127.0.0.1        |            55438 | postgres     | PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+(1 row)
+
+ rls_enabled | rls_forced | global_update | discount_update | total_update | approval_update 
+-------------+------------+---------------+-----------------+--------------+-----------------
+ t           | t          | f             | t               | t            | f
+(1 row)
+
+            policyname            | permissive  |  cmd   |                                                qual                                                |                                             with_check                                             
+----------------------------------+-------------+--------+----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------
+ Bills: admin/administrativo full | PERMISSIVE  | ALL    | ( SELECT is_admin_or_administrativo() AS is_admin_or_administrativo)                               | ( SELECT is_admin_or_administrativo() AS is_admin_or_administrativo)
+ Bills: auditor read              | PERMISSIVE  | SELECT | has_role(( SELECT auth.uid() AS uid), 'auditor'::app_role)                                         | 
+ org_scope_isolation              | RESTRICTIVE | ALL    | ( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches) | ( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches)
+(3 rows)
+
+                   conname                   |                                                                         pg_get_constraintdef                                                                          
+---------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ supplier_bills_approved_by_fkey             | FOREIGN KEY (approved_by) REFERENCES auth.users(id) ON DELETE SET NULL
+ supplier_bills_coverage_range_chk           | CHECK ((((coverage_start IS NULL) AND (coverage_end IS NULL)) OR ((coverage_start IS NOT NULL) AND (coverage_end IS NOT NULL) AND (coverage_end >= coverage_start))))
+ supplier_bills_created_by_fkey              | FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL
+ supplier_bills_currency_check               | CHECK ((currency = ANY (ARRAY['MXN'::text, 'USD'::text])))
+ supplier_bills_discount_non_negative_chk    | CHECK ((discount >= (0)::numeric))
+ supplier_bills_organization_bill_number_key | UNIQUE (organization_id, bill_number)
+ supplier_bills_organization_id_fkey         | FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE RESTRICT
+ supplier_bills_payment_method_sat_check     | CHECK (((payment_method_sat = ANY (ARRAY['PUE'::text, 'PPD'::text])) OR (payment_method_sat IS NULL)))
+ supplier_bills_pkey                         | PRIMARY KEY (id)
+ supplier_bills_supplier_id_fkey             | FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE RESTRICT
+ supplier_bills_tipo_comprobante_check       | CHECK (((tipo_comprobante IS NULL) OR (tipo_comprobante = ANY (ARRAY['I'::text, 'E'::text, 'N'::text, 'P'::text, 'T'::text]))))
+ supplier_bills_total_check                  | CHECK ((total >= (0)::numeric))
+(12 rows)
+
+                tgname                 |                                                                                                pg_get_triggerdef                                                                                                 
+---------------------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ trg_guard_supplier_bill_approval      | CREATE TRIGGER trg_guard_supplier_bill_approval BEFORE UPDATE OF approval_status, approved_by, approved_at, approval_notes ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION guard_supplier_bill_approval()
+ trg_guard_supplier_bill_balance       | CREATE TRIGGER trg_guard_supplier_bill_balance BEFORE UPDATE OF balance ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION guard_supplier_bill_balance()
+ trg_lock_paid_supplier_bill           | CREATE TRIGGER trg_lock_paid_supplier_bill BEFORE UPDATE ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION lock_paid_supplier_bill_with_payments()
+ trg_organization_write_context        | CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION enforce_organization_write_context()
+ trg_sb_init_balance                   | CREATE TRIGGER trg_sb_init_balance BEFORE INSERT ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION trg_supplier_bill_init_balance()
+ trg_set_supplier_bill_approval_status | CREATE TRIGGER trg_set_supplier_bill_approval_status BEFORE INSERT OR UPDATE OF total, currency, exchange_rate ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION set_supplier_bill_approval_status()
+ trg_supplier_bill_recalc_on_total     | CREATE TRIGGER trg_supplier_bill_recalc_on_total BEFORE UPDATE OF total ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION recalc_supplier_bill_balance_on_total_change()
+ trg_supplier_bill_status_consistency  | CREATE TRIGGER trg_supplier_bill_status_consistency BEFORE UPDATE OF status ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION enforce_supplier_bill_status_consistency()
+ trg_supplier_bill_total_covers_paid   | CREATE TRIGGER trg_supplier_bill_total_covers_paid BEFORE UPDATE OF total ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION enforce_supplier_bill_total_covers_paid()
+ trg_validate_transition               | CREATE TRIGGER trg_validate_transition BEFORE INSERT OR UPDATE OF status ON public.supplier_bills FOR EACH ROW EXECUTE FUNCTION validate_transition()
+(10 rows)
+
+    bill_number     | subtotal | discount | total  | balance | status  | approval_status 
+--------------------+----------+----------+--------+---------+---------+-----------------
+ SYNTHETIC-A        |   100.00 |     0.00 | 100.00 |  100.00 | pending | not_required
+ SYNTHETIC-APPROVED |   200.00 |     0.00 | 200.00 |  200.00 | pending | approved
+ SYNTHETIC-B        |   100.00 |     0.00 | 100.00 |  100.00 | pending | not_required
+ SYNTHETIC-PAID     |   100.00 |     0.00 | 100.00 |    0.00 | paid    | not_required
+ SYNTHETIC-PARTIAL  |   100.00 |     0.00 | 100.00 |   80.00 | partial | not_required
+(5 rows)
+
+               bill_id                | synthetic_paid 
+--------------------------------------+----------------
+ 00000000-0000-4000-8000-000000000204 |          20.00
+ 00000000-0000-4000-8000-000000000205 |         100.00
+(2 rows)
+
