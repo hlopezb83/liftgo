@@ -115,7 +115,7 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
     const view = mount(); fireEvent.click(row('uno')); await closeAndFocus('uno');
     fireEvent.change(screen.getByPlaceholderText('Descripción, referencia o monto…'), { target: { value: 'dos' } });
     await waitFor(() => expect(view.props.onSearchChange).toHaveBeenCalledWith('dos'));
-    fireEvent.click(screen.getByRole('tab', { name: 'Sugerido', exact: false }));
+    fireEvent.mouseDown(screen.getByRole('tab', { name: 'Sugerido', exact: true }), { button: 0, ctrlKey: false });
     expect(view.props.onStatusChange).toHaveBeenCalledWith('suggested');
     fireEvent.click(row('uno')); view.rerenderWorkspace({ search: 'dos', lines: [lines[1]] });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
