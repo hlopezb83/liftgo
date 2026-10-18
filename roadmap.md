@@ -4,7 +4,8 @@
 
 - [x] Base `d949eded179bdd8c9adf29b13af16ec453fb4db5` y referencia `fix/ui-v02-history-focus-20261018` coinciden; checkout interno `edit/*`.
 - [x] Restauración opt-in al desmontar el diálogo hacia el botón actual Más acciones, sólo conectado, habilitado y visible; sin temporizadores ni cambios de permisos/negocio/estilo.
-- [ ] Ejecutar integración Radix/FormDialog y regresiones focales, lint y comprobar señales disponibles.
+- [x] 37/37 pruebas focales en cinco archivos: Radix/FormDialog reales, Escape/Cerrar/X, ciclos, ref remontado, destino ausente/no disponible, bloqueo ocupado y cancelación de exportación sin operación; lint sin errores, diff sin errores de espacios.
+- [x] Chromium autenticado, sólo lectura: Historial abierto por teclado, foco dentro y restauración a Más acciones tras Escape/Cerrar/X; captura en `/tmp/browser/v02-history-focus/closed.png`. No equivale a QA publicada ni a validación real de resize/exportación (cubiertos por integración).
 - [ ] Coordinador: build productivo y typechecks en CI; no se ejecutan manualmente en este entorno. QA publicada pendiente; sin publicar, versionar ni migrar.
 
 ## V02–V03: acciones de proveedor y filtros de facturas

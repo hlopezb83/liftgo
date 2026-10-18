@@ -7,8 +7,8 @@ import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { AccountsPayableActions } from "../components/AccountsPayableActions";
-import { PaymentBatchDialogs } from "../components/PaymentBatchDialogs";
 import { restorePaymentActionsFocus } from "../components/paymentActionsFocus";
+import { PaymentBatchDialogs } from "../components/PaymentBatchDialogs";
 import {
   useSupplierBillColumns,
   renderSupplierBillMobileCard,
