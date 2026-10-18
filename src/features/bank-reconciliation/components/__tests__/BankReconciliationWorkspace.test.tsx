@@ -51,6 +51,11 @@ beforeEach(() => {
     candidate_date: '2026-10-18', amount: 15000, score: 100, exact_amount: true, day_diff: 0,
     reference_hit: true }], isFetching: false, isError: false, isPending: false });
   vi.spyOn(HTMLElement.prototype, 'getClientRects').mockReturnValue([{ width: 100, height: 44 }] as unknown as DOMRectList);
+  // jsdom no tiene layout: tamaño aislado sólo para el observador virtual real.
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
+    return this.tagName === 'TBODY' ? 600 : 44;
+  });
+  vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(1000);
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); expect(mocks.mutate).not.toHaveBeenCalled(); });
 describe('V06 inspector con tabla real y Radix, datos aislados', () => {
@@ -109,7 +114,9 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
   it('cambio de búsqueda/estado cierra como antes y conserva callbacks', async () => {
     const view = mount(); fireEvent.click(row('uno')); await closeAndFocus('uno');
     fireEvent.change(screen.getByPlaceholderText('Descripción, referencia o monto…'), { target: { value: 'dos' } });
-    expect(view.props.onSearchChange).toHaveBeenCalledWith('dos');
+    await waitFor(() => expect(view.props.onSearchChange).toHaveBeenCalledWith('dos'));
+    fireEvent.click(screen.getByRole('tab', { name: 'Sugeridos', exact: false }));
+    expect(view.props.onStatusChange).toHaveBeenCalledWith('suggested');
     fireEvent.click(row('uno')); view.rerenderWorkspace({ search: 'dos', lines: [lines[1]] });
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
