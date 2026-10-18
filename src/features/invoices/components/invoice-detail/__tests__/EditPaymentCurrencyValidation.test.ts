@@ -15,14 +15,14 @@ describe("edit payment currency validation", () => {
   });
 
   it("N8: reports the maximum in the payment currency, MXN 1750", () => {
-    expect(validateEditPaymentAmount(1750.02, 90, 175, false, mxnPaymentOnUsdInvoice))
+    expect(validateEditPaymentAmount(1751, 90, 175, false, mxnPaymentOnUsdInvoice))
       .toEqual({ ok: false, maxAllowed: 1750 });
   });
 
   it("converts the original payment at invoice precision before computing the maximum", () => {
     // The original MXN 1 contributed USD 0.06, leaving USD 99.94.
     expect(validateEditPaymentAmount(1750, 99.94, 1, false, mxnPaymentOnUsdInvoice)).toEqual({ ok: true });
-    expect(validateEditPaymentAmount(1750.02, 99.94, 1, false, mxnPaymentOnUsdInvoice))
+    expect(validateEditPaymentAmount(1751, 99.94, 1, false, mxnPaymentOnUsdInvoice))
       .toEqual({ ok: false, maxAllowed: 1750 });
   });
 

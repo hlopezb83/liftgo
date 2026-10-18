@@ -1,7 +1,7 @@
 # N7 / N8 — evidencia de pagos
 
 - Base auditada: `ec177edf865671a9e9952f5cccd56a9db687f0bd`.
-- Commit de corrección: `6f0b96d287d8b4d50a5fae8c50e97bf04ee4a8d3`.
+- Commit de corrección inicial: `6f0b96d287d8b4d50a5fae8c50e97bf04ee4a8d3`. El ajuste posterior de frontera de centavos N8 queda documentado al final y sustituye la comparación inicial en moneda de pago.
 - Rama: `fix/audit-payments-20261018`.
 - Entorno: ASUS / Windows PowerShell, Node `v24.19.0`, Vitest `4.1.11`.
 - Todas las cantidades y facturas de estas regresiones son **sintéticas**. No se consultaron ni modificaron pagos publicados. Los tests del diálogo simulan `useUpdatePayment`; no prueban aceptación de escrituras por PostgreSQL.
@@ -84,3 +84,33 @@ La salida se capturó con `2>&1 | Tee-Object -FilePath <archivo.log>` y se anex�
 - No se modificó ni ejecutó SQL, migraciones o permisos. Tampoco se usó Chrome ni se realizaron transacciones reales.
 - La corrección alinea detalle/edición con la vista de saldo, pero no prueba paridad completa con el trigger servidor. La última definición fuente de `public.enforce_payment_within_invoice_total()` está en `supabase/migrations/20260826222741_fa65f23f-d7de-4354-8ddc-862482b5a4fa.sql:189`; el cálculo de pagos existentes/nuevo en `:223` y `:234` usa CASE con aritmética sin `fx_convert_amount` ni redondeo de cada pago. Para MXN → divisa da precedencia a `payment.exchange_rate` sobre el TC de factura. Los parches `20260831001251_1b9bffec-28a0-43c4-ab0a-00a2e27afad9.sql:6` y `20260831001949_add04009-b717-447d-ad1f-0eb7b0b5b875.sql:5` agregan bloqueo/borrador/PUE; no sustituyen esa conversión. Se conserva esta guarda servidor y se informa al padre para revisión coordinada. No se probó su definición desplegada ni su aceptación de los casos sintéticos.
 - La creación de junction local `node_modules` falló inicialmente por `Access is denied`; la misma acción con `require_escalated` fue aprobada y terminó con salida 0. El primer intento con destino relativo falló porque PowerShell exige destino absoluto. Son problemas del entorno resueltos, no denegaciones pendientes ni resultados funcionales.
+
+## N8 — ajuste posterior de frontera de centavos
+
+La revisión adicional se ejecutó sobre `39ead72e587e6e9a61b1a922f406315e0840de73`. Detectó que la corrección inicial todavía aplicaba la tolerancia en moneda de pago. El estado final convierte **original y candidato nuevo a moneda de factura**, redondeando cada pago con `convertCurrencyAmount`, y compara allí contra saldo + contribución original, con la tolerancia existente de 0.01 en moneda de factura. La conversión inversa del máximo sólo se usa para el mensaje. Guarda REP y servidor sin cambios. Archivo: `src/features/invoices/components/invoice-detail/validateEditPaymentAmount.ts:25`, `:39`, `:46`.
+
+Los tres casos sintéticos nuevos en `EditPaymentCurrencyRounding.test.ts` fallaron antes y pasaron después:
+
+- Factura MXN 17.50, saldo 0, original USD 1 / TC 17.5: editar USD 1.01 convierte a MXN 17.68 y se rechaza. Antes se aceptaba por tolerancia USD 0.01.
+- Factura USD 100, saldo 0, original MXN 1750 / TC de factura 17.5: editar MXN 1750.02 convierte a USD 100.00 y pasa. Antes se rechazaba por exceso MXN 0.02.
+- Tolerancia en factura USD: MXN 1750.26 convierte a USD 100.01 y pasa; MXN 1750.27 convierte a USD 100.02 y se rechaza. También se cubre la frontera inversa en factura MXN. Dos asserts de exceso anteriores ahora usan MXN 1751, pues MXN 1750.02 no cambia los centavos de USD.
+
+Evidencia ejecutada: `n8-cents-before-vitest.log` (3/3 fallan, salida 1), `n8-cents-after-vitest.log` (3/3 pasan, salida 0), `n8-cents-final-vitest.log` (23/23 pasan en cinco archivos, salida 0), `n8-cents-lint.log` (salida 0 sin avisos). No se repitieron tipos/build globales ni se ejecutó SQL.
+
+Comando exacto antes / después (con el mismo prefijo TEMP/TMP indicado arriba):
+
+```powershell
+node node_modules/vitest/vitest.mjs run src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts --maxWorkers=2
+```
+
+Comando exacto de regresiones finales del ajuste:
+
+```powershell
+node node_modules/vitest/vitest.mjs run src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx src/features/invoices/lib/__tests__/paymentCurrency.test.ts --maxWorkers=2
+```
+
+Comando exacto de lint del ajuste:
+
+```powershell
+node node_modules/eslint/bin/eslint.js src/features/invoices/components/invoice-detail/validateEditPaymentAmount.ts src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts
+```

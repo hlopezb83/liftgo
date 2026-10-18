@@ -1,0 +1,16 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+ Γ£ô src/features/invoices/lib/__tests__/paymentCurrency.test.ts (5 tests) 7ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts (3 tests) 6ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts (5 tests) 6ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts (6 tests) 7ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests) 878ms
+     Γ£ô N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175  382ms
+
+ Test Files  5 passed (5)
+      Tests  23 passed (23)
+   Start at  16:21:24
+   Duration  13.03s (transform 1.74s, setup 4.82s, import 9.57s, tests 904ms, environment 6.91s)
+
+EXIT_CODE=0

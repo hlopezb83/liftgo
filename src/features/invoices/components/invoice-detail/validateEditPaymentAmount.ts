@@ -15,8 +15,9 @@ type ValidationResult = { ok: true }
 /**
  * M3-01: valida el tope BL-11 al editar un pago — el monto nuevo no puede
  * exceder el saldo actual (en moneda de factura) más la contribución original
- * del pago en esa misma moneda. El máximo se convierte a moneda de pago para
- * compararlo con el nuevo importe y mostrarlo, con tolerancia de 0.01.
+ * del pago en esa misma moneda. Convierte también el nuevo importe a moneda
+ * de factura y aplica allí la tolerancia de 0.01. El máximo sólo se convierte
+ * a moneda de pago para mostrarlo en el mensaje.
  * Con REP timbrado el servidor
  * rechaza cambios de monto/fecha; el cliente no debe ni intentar validarlos
  * (se ignoran, siempre pasa).
@@ -35,13 +36,20 @@ export function validateEditPaymentAmount(
     originalAmount, paymentCurrency, invoiceCurrency,
     context.paymentExchangeRate, context.invoiceExchangeRate,
   );
-  if (originalInInvoiceCurrency === null) return { ok: false, reason: "missing_exchange_rate" };
-  const maxAllowed = convertCurrencyAmount(
-    roundMoney(balance + originalInInvoiceCurrency), invoiceCurrency, paymentCurrency,
-    context.invoiceExchangeRate, context.paymentExchangeRate,
+  const newInInvoiceCurrency = convertCurrencyAmount(
+    newAmount, paymentCurrency, invoiceCurrency,
+    context.paymentExchangeRate, context.invoiceExchangeRate,
   );
-  if (maxAllowed === null) return { ok: false, reason: "missing_exchange_rate" };
-  if (roundMoney(roundMoney(newAmount) - maxAllowed) > 0.01) {
+  if (originalInInvoiceCurrency === null || newInInvoiceCurrency === null) {
+    return { ok: false, reason: "missing_exchange_rate" };
+  }
+  const maxInInvoiceCurrency = roundMoney(balance + originalInInvoiceCurrency);
+  if (roundMoney(newInInvoiceCurrency - maxInInvoiceCurrency) > 0.01) {
+    const maxAllowed = convertCurrencyAmount(
+      maxInInvoiceCurrency, invoiceCurrency, paymentCurrency,
+      context.invoiceExchangeRate, context.paymentExchangeRate,
+    );
+    if (maxAllowed === null) return { ok: false, reason: "missing_exchange_rate" };
     return { ok: false, maxAllowed };
   }
   return { ok: true };
