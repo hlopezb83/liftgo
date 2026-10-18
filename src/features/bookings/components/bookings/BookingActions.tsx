@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, type ReactNode } from "react";
-import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon, MoreIcon } from "@/components/icons";
+import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon, ChevronDownIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -222,7 +222,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
   const moreTrigger = (
     <DropdownMenuTrigger asChild>
       <Button ref={moreRef} variant="outline" size="sm" className={TOUCH}>
-        <MoreIcon className="h-4 w-4 mr-1" />Más acciones
+        Más acciones<ChevronDownIcon className="ml-1 h-4 w-4" />
       </Button>
     </DropdownMenuTrigger>
   );
