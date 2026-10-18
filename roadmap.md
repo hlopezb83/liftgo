@@ -1,5 +1,16 @@
 # Roadmap operativo y estado de evidencia
 
+## V01: contraste focal de acceso y alertas
+
+- [x] Confirmar base `567b397e9271139216ed90e2d77d5d66144d30b1` y referencias de `fix/ui-v01-contrast-20261018`.
+- [x] Ajustar sólo primary/ring de `.auth-brandscape` y texto/icono de Alert warning.
+- [x] Pruebas focales: 20/20 en cuatro archivos; diff sin errores de espacios.
+- [x] Chromium: acceso empleado/plataforma y recuperación, normal/hover/foco con tema claro y .dark heredado; CTA 6.85:1, hover compuesto 5.40:1, anillo 6.85:1 sobre blanco y 6.40:1 sobre fondo auth. Geometría y PortalLogin comparados con captura previa, sin cambios; móvil sin desbordamiento y sin errores de página.
+- [x] Alert real en host aislado del navegador: texto e icono 5.63:1 sobre fondo claro y 10.98:1 en oscuro. No equivale a QA autenticada de Resultados.
+- [ ] Coordinador: build/typechecks manuales no permitidos en este entorno; sólo log automático `build OK` del 2026-10-18T02:49:19Z, no certifica build productivo ni CI. QA autenticada de Resultados pendiente (sesión no inyectada); sin publicación ni fusión.
+
+Límite fuera de V01: la captura con .dark heredado conserva el problema previo de encabezados/etiquetas claros sobre tarjeta blanca; no se alteran foreground/card-foreground, ya que la autorización permite sólo primary/ring locales.
+
 ## PR261: corrección focal Sentry 11.7.0
 
 - [x] Confirmar HEAD y referencias de PR261 antes de editar.
