@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { dependencies } from "../../package.json";
 import { classifyConsoleError, normalizeUrl } from "./consoleNoise";
 
 /**
@@ -85,7 +86,7 @@ async function expectBooted(page: Page, route: string): Promise<void> {
     return { version, active: !!client, release: client?.getOptions().release, replay: client?.getOptions().replaysOnErrorSampleRate };
   });
   expect(sentry.active, `Sentry activo tras hidratar ${route}`).toBe(true);
-  expect(sentry.version).toBe("11.4.0");
+  expect(sentry.version).toBe(dependencies["@sentry/react"]);
   expect(sentry.release).toMatch(/^liftgo@\d+\.\d+\.\d+$/);
   expect(sentry.replay).toBe(0);
 }

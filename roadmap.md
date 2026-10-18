@@ -1,5 +1,12 @@
 # Roadmap operativo y estado de evidencia
 
+## PR261: corrección focal Sentry 11.7.0
+
+- [x] Confirmar HEAD y referencias de PR261 antes de editar.
+- [x] Comparar versiones reales del SDK contra las declaradas, conservando las aserciones de privacidad e identidad.
+- [x] Actualizar documentación vigente sin alterar evidencia histórica, Deno ni changelog.
+- [ ] Ejecutar pruebas focales y verificar arranque local; informar límites de build y Gate A/B.
+
 Revisado el 29 de septiembre de 2026 contra el repositorio `main`.
 
 ## Estado comprobable
