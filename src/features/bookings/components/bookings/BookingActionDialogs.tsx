@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
+import type { ComponentProps } from "react";
 
 interface StatusChangeDialogProps {
   open: boolean;
@@ -17,13 +18,14 @@ interface StatusChangeDialogProps {
   newStatus: string;
   setNewStatus: (s: string) => void;
   onConfirm: () => void;
+  onCloseAutoFocus?: ComponentProps<typeof FormDialog>["onCloseAutoFocus"];
 }
 
 export function BookingStatusChangeDialog({
-  open, onOpenChange, currentStatus, newStatus, setNewStatus, onConfirm,
+  open, onOpenChange, currentStatus, newStatus, setNewStatus, onConfirm, onCloseAutoFocus,
 }: StatusChangeDialogProps) {
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title="Cambiar Estatus de Reserva">
+    <FormDialog open={open} onOpenChange={onOpenChange} title="Cambiar Estatus de Reserva" onCloseAutoFocus={onCloseAutoFocus}>
       <div className="space-y-4">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Estatus actual</p>
