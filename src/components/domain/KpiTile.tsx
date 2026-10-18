@@ -1,7 +1,6 @@
 import { type ElementType, type ReactNode } from "react";
 import { ArrowRight } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
-import { kpiSizeClass } from "@/lib/format/formatCurrency";
 import { Link } from "@/lib/router-compat-ui";
 import { cn } from "@/lib/utils";
 
