@@ -10,11 +10,13 @@ interface Props {
   hasActiveFilters: boolean;
   filtersOpen: boolean;
   onFiltersOpenChange: (open: boolean) => void;
+  stacked?: boolean;
 }
 
 export function ListPageControls({
   isMobile, actions, mobileActions, search, filters,
   hasActiveFilters, filtersOpen, onFiltersOpenChange,
+  stacked = false,
 }: Props) {
   const filterControl = (
     <FiltersSlot
@@ -28,7 +30,7 @@ export function ListPageControls({
 
   if (!isMobile) {
     if (!search) return filterControl;
-    return <div className="flex flex-wrap items-center gap-3">{search}{filterControl}</div>;
+    return <div className={stacked ? "space-y-3" : "flex flex-wrap items-center gap-3"}>{search}{filterControl}</div>;
   }
   if (!actions && !mobileActions && !search && !filters) return null;
   return (

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { ViewIcon, InvoiceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Untranslated } from "@/components/ui/Untranslated";
@@ -157,6 +158,8 @@ export default function InvoicesPage() {
             showNew={showHeaderNew}
           />
         }
+        stackedControls
+        search={<FiltersToolbar.Search value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64 sm:flex-none" />}
         filters={
           <InvoicesFiltersBar
             statusFilter={statusFilter}
@@ -165,8 +168,6 @@ export default function InvoicesPage() {
             setCfdiFilter={setCfdiFilter}
             dateRange={dateRange}
             setDateRange={setDateRange}
-            search={search}
-            setSearch={setSearch}
             hasActive={hasActive}
             onClear={clearAll}
           />

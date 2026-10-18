@@ -25,6 +25,8 @@ interface ListPageLayoutProps<T extends { id?: string }> {
   mobilePrimaryAction?: ReactNode;
   /** Búsqueda visible también en móvil, fuera del panel de filtros. */
   search?: ReactNode;
+  /** Separa búsqueda y facetas en escritorio; opt-in por listado. */
+  stackedControls?: boolean;
   filters?: ReactNode;
   /**
    * N-01: aviso persistente (p.ej. truncamiento de lista). Se renderiza entre
@@ -77,6 +79,7 @@ export function ListPageLayout<T extends { id?: string }>({
   mobileActions,
   mobilePrimaryAction,
   search,
+  stackedControls = false,
   filters,
   notice,
   isLoading,
@@ -133,6 +136,7 @@ export function ListPageLayout<T extends { id?: string }>({
           actions={isMobile ? visibleActions : undefined}
           mobileActions={mobileActions}
           search={search}
+          stacked={stackedControls}
           filters={filters}
           hasActiveFilters={hasActiveFilters}
           filtersOpen={filtersOpen}
