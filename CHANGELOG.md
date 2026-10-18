@@ -1,3 +1,9 @@
+## [8.44.7] — 2026-10-18
+
+- Se conserva el origen al volver desde facturas y reservas del calendario, incluidos filtros, fecha, vista y rango; los controles mantienen el foco durante la carga.
+- Los reportes muestran márgenes no aplicables sin cambiar importes; los pagos unifican redondeo por pago y validan ediciones en una moneda común.
+- El detalle de equipo retira datos financieros al perder acceso y el monitoreo conserva fallos técnicos, desconocidos y fatales con saneamiento.
+
 ## [8.44.6] — 2026-10-18
 
 - El portal permite reintentar tras una excepción de conexión; una sesión rechazada vuelve al acceso conservando el destino. No cambia permisos ni datos.

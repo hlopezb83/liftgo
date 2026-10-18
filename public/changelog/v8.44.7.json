@@ -1,0 +1,11 @@
+{
+  "description": "El regreso a facturas y calendario conserva el contexto; los reportes distinguen márgenes no aplicables y los pagos validan importes en la moneda correcta.",
+  "changes": [
+    "Facturas conserva búsqueda y filtros al volver; Calendario conserva fecha, vista y rango, junto con el foco al cargar otro periodo.",
+    "Las reservas completadas dejan de ofrecer cambios de estado sin transiciones disponibles.",
+    "Resultados muestra No aplica cuando los ingresos netos no son positivos y limita el aviso de depreciación a Devengado.",
+    "Cada pago convertido se redondea antes de sumar; la edición valida el saldo y el pago original con sus monedas y tipos de cambio.",
+    "El detalle de equipo retira el resumen financiero al perder acceso, incluso si había datos en caché o una respuesta pendiente.",
+    "El monitoreo conserva fallos técnicos, códigos desconocidos y errores fatales con datos saneados."
+  ]
+}
