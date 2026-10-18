@@ -1,5 +1,12 @@
 # Roadmap operativo y estado de evidencia
 
+## V02: regreso de foco desde Historial y Exportar
+
+- [x] Base `d949eded179bdd8c9adf29b13af16ec453fb4db5` y referencia `fix/ui-v02-history-focus-20261018` coinciden; checkout interno `edit/*`.
+- [x] Restauración opt-in al desmontar el diálogo hacia el botón actual Más acciones, sólo conectado, habilitado y visible; sin temporizadores ni cambios de permisos/negocio/estilo.
+- [ ] Ejecutar integración Radix/FormDialog y regresiones focales, lint y comprobar señales disponibles.
+- [ ] Coordinador: build productivo y typechecks en CI; no se ejecutan manualmente en este entorno. QA publicada pendiente; sin publicar, versionar ni migrar.
+
 ## V02–V03: acciones de proveedor y filtros de facturas
 
 - [x] Confirmar base `58f7b4a79a206724530c30616076951f99e6cca6` y referencias de `fix/ui-v02-v03-headers-filters-20261018` (checkout interno `edit/*`).

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { FileClock } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -7,8 +7,7 @@ import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { AccountsPayableActions } from "../components/AccountsPayableActions";
-import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
-import { PaymentBatchesDialog } from "../components/PaymentBatchesDialog";
+import { PaymentBatchDialogs, restorePaymentActionsFocus } from "../components/PaymentBatchDialogs";
 import {
   useSupplierBillColumns,
   renderSupplierBillMobileCard,
@@ -42,6 +41,7 @@ export default function CuentasPorPagarPage() {
   const createDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
   const batchesDialog = useToggleDialog();
+  const moreActionsRef = useRef<HTMLButtonElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const tableState = useAccountsPayableTableState(f.filterKey);
   const { pagination, sorting } = tableState;
@@ -104,6 +104,7 @@ export default function CuentasPorPagarPage() {
         totalCount={pageQuery.data?.totalCount}
         rowCount={pageQuery.data?.totalCount}
         actions={<AccountsPayableActions
+          moreActionsRef={moreActionsRef}
           releasableLocks={releasableLocks}
           isReleasing={releaseLocks.isPending}
           canManageBatches={canManageBatches}
@@ -134,7 +135,8 @@ export default function CuentasPorPagarPage() {
       />
 
       <SupplierBillFormDialog open={createDialog.open} onOpenChange={createDialog.setOpen} />
-      <PaymentBatchDialogs canManage={canManageBatches} exportDialog={exportDialog} batchesDialog={batchesDialog} />
+      <PaymentBatchDialogs canManage={canManageBatches} exportDialog={exportDialog} batchesDialog={batchesDialog}
+        onCloseAutoFocus={(event) => restorePaymentActionsFocus(event, moreActionsRef.current)} />
       <SupplierBillDetailSheet
         billId={selectedId}
         open={selectedId !== null}
@@ -147,18 +149,6 @@ export default function CuentasPorPagarPage() {
 function buildCreateActions(enabled: boolean, onCreate: () => void) {
   if (!enabled) return { onNew: undefined, emptyActionLabel: undefined, onEmptyAction: undefined };
   return { onNew: onCreate, emptyActionLabel: "Nueva cuenta", onEmptyAction: onCreate };
-}
-
-function PaymentBatchDialogs({ canManage, exportDialog, batchesDialog }: {
-  canManage: boolean;
-  exportDialog: ReturnType<typeof useToggleDialog>;
-  batchesDialog: ReturnType<typeof useToggleDialog>;
-}) {
-  if (!canManage) return null;
-  return <>
-    <ExportPaymentsDialog open={exportDialog.open} onOpenChange={exportDialog.setOpen} />
-    <PaymentBatchesDialog open={batchesDialog.open} onOpenChange={batchesDialog.setOpen} />
-  </>;
 }
 
 function clampTablePageIndex(pageIndex: number, pageCount: number, totalCount: number | undefined) {
