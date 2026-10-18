@@ -1,0 +1,6 @@
+
+Algorithm : SHA256
+Hash      : 9261E8B61C0F699AE57B336A36982A4ACF4868E2984712302AC92D0222E91271
+Path      : <user>\Documents\Codex\2026-10-18\task-2\audit-payment-policy-tests\docs\audits\2026-10-18\payment-server-policy\policy-tests\candidate-02.sql
+
+

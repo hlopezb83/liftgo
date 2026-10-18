@@ -1,0 +1,34 @@
+{
+  "scope": "Synthetic loopback fixtures only; original raw .log files kept locally",
+  "policy": {
+    "before": {
+      "total": 106,
+      "failed": 44,
+      "passed": 62
+    },
+    "after": {
+      "total": 106,
+      "failed": 0,
+      "passed": 106
+    }
+  },
+  "clientCorpus": {
+    "before": {
+      "passed": 43,
+      "failed": 10,
+      "total": 53
+    },
+    "after": {
+      "passed": 53,
+      "failed": 0,
+      "total": 53
+    }
+  },
+  "cluster": {
+    "port": 55440,
+    "stopExit": 0,
+    "statusExit": 3,
+    "status": "no server running"
+  },
+  "candidate_sha256": "9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271"
+}

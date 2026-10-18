@@ -1,0 +1,82 @@
+import {writeFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+const lines=[String.raw`\set ON_ERROR_STOP on
+SET ROLE authenticated;
+SELECT set_config('fixture.user_id','10000000-0000-0000-0000-000000000001',false);
+SELECT set_config('fixture.organization_id','10000000-0000-0000-0000-000000000002',false);
+SELECT set_config('app.e2e_seed','off',false),set_config('app.e2e_teardown','off',false);
+DELETE FROM fixture_attempts;
+DELETE FROM fixture_observations;`];
+const q=x=>"'"+String(x).replaceAll("'","''")+"'";
+const pay=n=>`fixture_payment(${n})`,inv=n=>`fixture_invoice(${n})`;
+const insert=(n,amount=10,extra='')=>`INSERT INTO payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id${extra?','+extra.split('=')[0]:''}) VALUES(${inv(n)},${amount},'USD',1,'2026-09-01',fixture_org(2)${extra?','+extra.substring(extra.indexOf('=')+1):''})`;
+const observe=n=>`SELECT jsonb_build_object('invoice',(SELECT to_jsonb(i) FROM invoices i WHERE id=${inv(n)}),'payments',(SELECT jsonb_agg(to_jsonb(p) ORDER BY p.id) FROM payments p WHERE invoice_id=${inv(n)}))`;
+const checkPayment=(n,amount,currency='USD')=>`SELECT count(*)=1 AND min(amount)=${amount} AND min(currency)='${currency}' FROM payments WHERE invoice_id=${inv(n)}`;
+const test=(id,stmt,state='00000',message='',check='SELECT true',n=240)=>lines.push(`SELECT guard_expect(${[id,stmt,state,message,check,observe(n)].map(q).join(',')});`);
+// Each REP case isolates the watched field with a valid low-value payment and destination.
+const repFields={amount:'176',payment_date:"'2026-09-02'",currency:"'mxn'",exchange_rate:'18',payment_form_sat:"'03'",installment_number:'1',prior_balance:'90',invoice_id:inv(510)};
+for(const [field,value] of Object.entries(repFields))test(`rep-${field}`,`UPDATE payments SET ${field}=${value} WHERE id=${pay(240)}`,'23514','campos fiscales.*REP timbrado');
+test('rep-old-stamped-bypass',`UPDATE payments SET rep_cfdi_status='none',amount=176 WHERE id=${pay(240)}`,'23514','campos fiscales.*REP timbrado');
+test('rep-subcent-raw-delta',`UPDATE payments SET amount=.015 WHERE id=${pay(550)}`,'23514','campos fiscales.*REP timbrado','SELECT true',550);
+test('rep-delete',`DELETE FROM payments WHERE id=${pay(240)}`,'23514','eliminar.*REP timbrado');
+test('rep-notes',`UPDATE payments SET notes='Allowed notes' WHERE id=${pay(240)}`,'00000','',`SELECT notes='Allowed notes' AND amount=175 AND rep_cfdi_status='stamped' FROM payments WHERE id=${pay(240)}`);
+test('rep-reference',`UPDATE payments SET reference_number='Allowed reference' WHERE id=${pay(240)}`,'00000','',`SELECT reference_number='Allowed reference' AND amount=175 AND rep_cfdi_status='stamped' FROM payments WHERE id=${pay(240)}`);
+test('rep-fiscal-noop',`UPDATE payments SET amount=amount,currency=currency,payment_date=payment_date,exchange_rate=exchange_rate,payment_form_sat=payment_form_sat,installment_number=installment_number,prior_balance=prior_balance,invoice_id=invoice_id WHERE id=${pay(240)}`,'00000','',`SELECT amount=175 AND rep_cfdi_status='stamped' FROM payments WHERE id=${pay(240)}`);
+lines.push("SELECT set_config('app.payment_sync','on',false),set_config('app.e2e_seed','on',false);");
+test('rep-caller-flags-no-bypass',`UPDATE payments SET amount=176 WHERE id=${pay(240)}`,'23514','campos fiscales.*REP timbrado');
+lines.push("SELECT set_config('app.payment_sync','off',false),set_config('app.e2e_seed','off',false);");
+test('unsealed-update',`UPDATE payments SET amount=350 WHERE id=${pay(202)}`,'00000','',`SELECT amount=350 FROM payments WHERE id=${pay(202)}`,202);
+test('unsealed-delete',`DELETE FROM payments WHERE id=${pay(202)}`,'00000','',`SELECT count(*)=0 FROM payments WHERE id=${pay(202)}`,202);
+for(const [n,status] of [[401,'draft'],[402,'cancelled']]){
+ test(`${status}-insert`,insert(n),'23514',status==='draft'?'borrador':'canceladas','SELECT true',n);
+ test(`${status}-update`,`UPDATE payments SET amount=350 WHERE id=${pay(n)}`,'23514',status==='draft'?'borrador':'canceladas','SELECT true',n);
+}
+test('pue-stamped-partial-insert',insert(403,10),'23514','Pago parcial rechazado','SELECT true',403);
+test('pue-stamped-partial-update',`UPDATE payments SET amount=350 WHERE id=${pay(403)}`,'23514','Pago parcial rechazado','SELECT true',403);
+test('pue-stamped-full',insert(511,100),'00000','',checkPayment(511,100)+' AND (SELECT status=\'paid\' FROM invoices WHERE id='+inv(511)+')',511);
+test('pue-stamped-short',insert(511,99.98),'23514','Pago parcial rechazado','SELECT true',511);
+test('pue-stamped-overpay',insert(511,101),'23514','Sobrepago rechazado','SELECT true',511);
+test('pue-pending-partial',insert(512,10),'00000','',checkPayment(512,10),512);
+test('ppd-stamped-partial',insert(513,10),'00000','',checkPayment(513,10),513);
+test('nc-active-exact',insert(520,80),'00000','',checkPayment(520,80)+` AND (SELECT status='paid' FROM invoices WHERE id=${inv(520)})`,520);
+test('nc-active-over',insert(520,81),'23514','Sobrepago rechazado','SELECT true',520);
+for(const [n,name] of [[521,'cancelled'],[522,'accepted'],[523,'pending-cfdi']])test(`nc-${name}-ignored`,insert(n,100),'00000','',checkPayment(n,100)+` AND (SELECT status='paid' FROM invoices WHERE id=${inv(n)})`,n);
+for(const [n,name] of [[524,'pending'],[525,'rejected'],[526,'expired']]){
+ test(`nc-cancellation-${name}-still-counts`,insert(n,81),'23514','Sobrepago rechazado','SELECT true',n);
+ test(`nc-cancellation-${name}-exact`,insert(n,80),'00000','',checkPayment(n,80),n);
+}
+for(const [n,state] of [[527,'paid'],[528,'sent']])test(`sync-nc-${state}`,`SELECT sync_invoice_status(${inv(n)})`,'00000','',`SELECT status='${state}' AND ${state==='paid'?'paid_at IS NOT NULL':'paid_at IS NULL'} FROM invoices WHERE id=${inv(n)}`,n);
+test('nc-other-invoice-ignored',insert(533,100),'00000','',checkPayment(533,100),533);
+test('guard-foreign-org-nc-excluded',insert(529,100),'00000','',checkPayment(529,100),529);
+test('guard-foreign-org-payment-excluded',insert(539,100),'00000','',`SELECT count(*)=2 AND sum(amount) FILTER(WHERE organization_id=fixture_org(2))=100 FROM payments WHERE invoice_id=${inv(539)}`,539);
+test('guard-null-org-payment-counted',insert(540,95),'23514','Sobrepago rechazado','SELECT true',540);
+test('guard-own-org-payment-counted',insert(541,95),'23514','Sobrepago rechazado','SELECT true',541);
+for(const [n,state] of [[539,'sent'],[540,'partial'],[541,'partial'],[542,'sent']])test(`sync-org-${n}`,`SELECT sync_invoice_status(${inv(n)})`,'00000','',`SELECT status='${state}' AND paid_at IS NULL FROM invoices WHERE id=${inv(n)}`,n);
+test('sync-foreign-invoice-rejected',`SELECT sync_invoice_status(${inv(530)})`,'42501','not_authorized','SELECT true',530);
+lines.push("SELECT set_config('fixture.organization_id','',false);");
+test('sync-missing-org-rejected',`SELECT sync_invoice_status(${inv(533)})`,'42501','not_authorized','SELECT true',533);
+lines.push("SELECT set_config('fixture.organization_id','10000000-0000-0000-0000-000000000002',false);");
+test('guard-new-null-org-allowed',`INSERT INTO payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES(${inv(534)},10,'USD',1,'2026-09-01',NULL)`,'00000','',`SELECT count(*)=1 AND min(amount)=10 AND bool_and(organization_id IS NULL) FROM payments WHERE invoice_id=${inv(534)}`,534);
+test('guard-round-before-fx',`INSERT INTO payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES(${inv(532)},.015,'USD',17.5,'2026-09-01',fixture_org(2))`,'00000','',`SELECT count(*)=1 AND min(amount)=.02 AND min(amount_mxn)=.35 FROM payments WHERE invoice_id=${inv(532)}`,532);
+// Trigger wiring: currency-only must revalidate, canonical invoice TC ignores legacy rate changes.
+test('guard-currency-only-overpay',`UPDATE payments SET currency='USD' WHERE id=${pay(202)}`,'23514','Sobrepago rechazado','SELECT true',202);
+test('guard-exchange-rate-only-canonical',`UPDATE payments SET exchange_rate=1 WHERE id=${pay(202)}`,'00000','',`SELECT amount=175 AND exchange_rate=1 FROM payments WHERE id=${pay(202)}`,202);
+const insertNC=(n,amount)=>`INSERT INTO credit_notes(invoice_id,total,status,cfdi_status,cancellation_status,organization_id) VALUES(${inv(n)},${amount},'draft','pending','none',fixture_org(2))`;
+test('rep-cap-per-payment-cents-covered',insertNC(545,.01),'P0001','excede el maximo acreditable','SELECT true',545);
+test('rep-cap-per-payment-cents-over',insertNC(546,.89),'P0001','excede el maximo acreditable','SELECT true',546);
+test('rep-cap-per-payment-cents-exact',insertNC(546,.88),'00000','',`SELECT count(*)=1 AND min(total)=.88 FROM credit_notes WHERE invoice_id=${inv(546)}`,546);
+test('rep-cap-cancelled-ignored',insertNC(547,1),'00000','',`SELECT count(*)=1 AND min(total)=1 FROM credit_notes WHERE invoice_id=${inv(547)}`,547);
+test('rep-cap-unsealed-ignored',insertNC(548,1),'00000','',`SELECT count(*)=1 AND min(total)=1 FROM credit_notes WHERE invoice_id=${inv(548)}`,548);
+test('legacy-nan-notes',`UPDATE payments SET notes='Repair notes allowed' WHERE id=${pay(551)}`,'00000','',`SELECT notes='Repair notes allowed' AND amount='NaN'::numeric AND (SELECT status='sent' FROM invoices WHERE id=${inv(551)}) FROM payments WHERE id=${pay(551)}`,551);
+test('legacy-nan-delete',`DELETE FROM payments WHERE id=${pay(551)}`,'00000','',`SELECT count(*)=0 AND (SELECT status='sent' FROM invoices WHERE id=${inv(551)}) FROM payments WHERE invoice_id=${inv(551)}`,551);
+test('legacy-nan-repair',`UPDATE payments SET amount=10 WHERE id=${pay(551)}`,'00000','',`SELECT amount=10 FROM payments WHERE id=${pay(551)}`,551);
+test('legacy-nan-monetary-rejected',insert(551,1),'23514','','SELECT true',551);
+test('new-nan-rejected',insert(533,"'NaN'::numeric"),'23514','','SELECT true',533);
+test('legacy-nan-idempotent-notes',`UPDATE payments SET amount=amount,currency=currency,exchange_rate=exchange_rate,invoice_id=invoice_id,notes='Idempotent NaN notes' WHERE id=${pay(551)}`,'00000','',`SELECT amount='NaN'::numeric AND notes='Idempotent NaN notes' AND amount_mxn=123 FROM payments WHERE id=${pay(551)}`,551);
+test('rep-bad-fx-idempotent-notes',`UPDATE payments SET amount=amount,currency=currency,exchange_rate=exchange_rate,invoice_id=invoice_id,notes='Idempotent REP notes' WHERE id=${pay(552)}`,'00000','',`SELECT amount=175 AND currency='MXN' AND exchange_rate=0 AND invoice_id=${inv(552)} AND rep_cfdi_status='stamped' AND notes='Idempotent REP notes' AND amount_mxn=999 FROM payments WHERE id=${pay(552)}`,552);
+test('sync-n7-real-invoice-integrity',`UPDATE payments SET notes='Sync canonical cents' WHERE id=${pay(5311)}`,'00000','',`SELECT status='paid' AND paid_at='2026-09-01' AND (SELECT paid_amount=.12 AND balance=0 FROM fixture_invoice_balance WHERE id=${inv(531)}) FROM invoices WHERE id=${inv(531)}`,531);
+lines.push(`RESET ROLE;
+SELECT case_id,expected_state,actual_state,passed,persistence_unchanged,affected,message FROM fixture_attempts ORDER BY case_id;
+SELECT count(*) AS total,count(*) FILTER(WHERE passed) AS passed,count(*) FILTER(WHERE NOT passed) AS failed FROM fixture_attempts;`);
+writeFileSync(resolve('docs/audits/2026-10-18/payment-server-policy/guard-tests/cases.sql'),lines.join('\n')+'\n');
+console.log(`Generated ${lines.filter(x=>x.startsWith('SELECT guard_expect(')).length} isolated guard cases.`);

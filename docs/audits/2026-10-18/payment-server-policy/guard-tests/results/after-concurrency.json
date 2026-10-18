@@ -1,0 +1,131 @@
+{
+  "phase": "after",
+  "target": {
+    "database": "liftgo_payment_guard_policy_fixture",
+    "host": "127.0.0.1/32",
+    "port": 55441
+  },
+  "matrix_candidate": {
+    "path": "<user>\\Documents\\Codex\\2026-10-18\\task-2\\audit-payment-server-fix\\drizzle\\migrations\\0103_canonical_payment_invoice_currency.sql",
+    "sha256": "9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271"
+  },
+  "guard_definition_sha256": "2d6319450a1939c3c3593f0dcbb4b2b2d32bb95c66f0ba92cecbc61e624f54ea",
+  "total": 4,
+  "passed": 4,
+  "cases": [
+    {
+      "name": "insert-insert",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          26076
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 26076,
+      "second_pid": 35092,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (120.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 1,
+        "total": "60.00",
+        "amounts": [
+          "60.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    },
+    {
+      "name": "update-update",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          26076
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 26076,
+      "second_pid": 35092,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (110.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 2,
+        "total": "90.00",
+        "amounts": [
+          "40",
+          "50.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    },
+    {
+      "name": "insert-update",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          26076
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 26076,
+      "second_pid": 35092,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (110.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 2,
+        "total": "90.00",
+        "amounts": [
+          "40",
+          "50.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    },
+    {
+      "name": "update-insert",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          26076
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 26076,
+      "second_pid": 35092,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (110.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 1,
+        "total": "60.00",
+        "amounts": [
+          "60.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    }
+  ]
+}

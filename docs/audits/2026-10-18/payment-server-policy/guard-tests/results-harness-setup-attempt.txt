@@ -1,0 +1,23 @@
+{"phase":"before","target":{"database":"liftgo_payment_guard_policy_fixture","host":"127.0.0.1/32","port":55441,"version":"PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit"},"candidate":null}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+PostgresError: permission denied for table fixture_attempts
+    at ErrorResponse (file:///<user>/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/postgres/src/connection.js:815:30)
+    at handle (file:///<user>/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/postgres/src/connection.js:489:6)
+    at Socket.data (file:///<user>/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/postgres/src/connection.js:324:9)
+    at Socket.emit (node:events:509:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at TCP.onStreamRead (node:internal/stream_base_commons:189:23) {
+  severity_local: 'ERROR',
+  severity: 'ERROR',
+  code: '42501',
+  file: 'aclchk.c',
+  line: '2845',
+  routine: 'aclcheck_error'
+}
+
+Node.js v24.19.0

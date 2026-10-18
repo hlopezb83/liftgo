@@ -5,7 +5,7 @@ describe("edit payment cents are validated in invoice currency", () => {
   it("does not treat one USD cent as one MXN cent of tolerance", () => {
     const fx = { invoiceCurrency: "MXN", paymentCurrency: "USD", paymentExchangeRate: 17.5 };
     // Synthetic MXN 17.50 invoice: original USD 1 paid MXN 17.50 in full.
-    // USD 1.01 converts to MXN 17.68, beyond the MXN 0.01 tolerance.
+    // USD 1.01 converts to MXN 17.68, beyond the invoice balance.
     expect(validateEditPaymentAmount(1.01, 0, 1, false, fx))
       .toEqual({ ok: false, maxAllowed: 1 });
   });
@@ -16,9 +16,10 @@ describe("edit payment cents are validated in invoice currency", () => {
     expect(validateEditPaymentAmount(1750.02, 0, 1750, false, fx)).toEqual({ ok: true });
   });
 
-  it("applies the existing one-cent tolerance in invoice currency in either direction", () => {
+  it("rejects an extra invoice cent in either conversion direction", () => {
     const usdInvoice = { invoiceCurrency: "USD", invoiceExchangeRate: 17.5, paymentCurrency: "MXN" };
-    expect(validateEditPaymentAmount(1750.26, 0, 1750, false, usdInvoice)).toEqual({ ok: true });
+    expect(validateEditPaymentAmount(1750.26, 0, 1750, false, usdInvoice))
+      .toEqual({ ok: false, maxAllowed: 1750 });
     expect(validateEditPaymentAmount(1750.27, 0, 1750, false, usdInvoice))
       .toEqual({ ok: false, maxAllowed: 1750 });
 

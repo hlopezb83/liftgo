@@ -1,0 +1,47 @@
+{
+  "worktree_sha": "89967ae5768cf23d18d65c975d2cc0ac13031cb4",
+  "reused_evidence_worktree_sha": "a47f24808a4fddf18548841bf5ba471350f23d56",
+  "source": "<user>\\Documents\\Codex\\2026-10-18\\task-2\\audit-payment-server-evidence\\docs\\audits\\2026-10-18\\payments\\sql-guard",
+  "files": [
+    {
+      "file": "fixture-schema.sql",
+      "sha256": "fb0a78a4119b6f7b458399281e7c31d8895993ed0be6fcb7cd6c061f3651d998"
+    },
+    {
+      "file": "extracted-functions.sql",
+      "sha256": "40a82465f3c1aa0a1161d5cec5ccfe4b363e4fd9a48dffb44b0f8b00aced21d2"
+    },
+    {
+      "file": "projected-balance-view.sql",
+      "sha256": "00fe5b013012d67fa6243a6c8f42e79d24c07db98ba0fbff6b8642f6ac199653"
+    },
+    {
+      "file": "installed-triggers.sql",
+      "sha256": "d57db1f22143601fb53aa0f77c6c5fc355e47181f5143d267cb76efab487385c"
+    }
+  ],
+  "preflight": {
+    "sha256": "499c9ef2ce2d49cdb7dd0769ee681f6d1d4ad48eba50c4d4f4eac917e6ca778d",
+    "observed_at": "2026-10-18T22:59:54.131347+00:00",
+    "dependency_observed_at": "2026-10-18T23:00:24.870517+00:00",
+    "scope": "Original capture private; public function definitions only"
+  },
+  "derived_function_snapshot": {
+    "sha256": "c96996cb41cfa161d0a1987a30e5fc849afcb8f06e5d5ff01c0608125cbbe6dc",
+    "observed_at": "2026-10-18 23:06:49.797455+00",
+    "scope": "Original capture private; public function definition only"
+  },
+  "local_target": {
+    "host": "127.0.0.1",
+    "port": 55441,
+    "database": "liftgo_payment_guard_policy_fixture",
+    "cluster": ".local-pg/data-guard-policy"
+  },
+  "limitations": [
+    "Synthetic auth/internal-organization stubs; no product RLS/ACL proof",
+    "Four payment side-effect/context triggers omitted by PR275 fixture",
+    "Only real invoice status-integrity and credit-note max triggers are restored; other invoice/credit-note triggers and full Supabase schema omitted",
+    "Projected view joins of malformed cross-organization children are outside scope"
+  ],
+  "private_captures_withheld": true
+}

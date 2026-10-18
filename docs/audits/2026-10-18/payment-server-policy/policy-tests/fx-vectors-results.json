@@ -1,0 +1,442 @@
+{
+    "port": 55440,
+    "count": 48,
+    "address": "127.0.0.1",
+    "fixture": "synthetic direct conversion vectors, not production; no writes",
+    "vectors": [
+        {
+            "id": "foreign_foreign_50",
+            "amount": "50",
+            "to_rate": "17.5",
+            "canonical": 57.14,
+            "from_rate": "20",
+            "to_currency": "uSd",
+            "from_currency": "eUr"
+        },
+        {
+            "id": "foreign_foreign_cent",
+            "amount": "0.01",
+            "to_rate": "17.5",
+            "canonical": 0.01,
+            "from_rate": "20",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "foreign_foreign_negative_50",
+            "amount": "-50",
+            "to_rate": "17.5",
+            "canonical": -57.14,
+            "from_rate": "20",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "foreign_foreign_negative_cent",
+            "amount": "-0.01",
+            "to_rate": "17.5",
+            "canonical": -0.01,
+            "from_rate": "20",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "foreign_foreign_negative_one",
+            "amount": "-1",
+            "to_rate": "17.5",
+            "canonical": -1.14,
+            "from_rate": "20",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "foreign_foreign_one",
+            "amount": "1",
+            "to_rate": "17.5",
+            "canonical": 1.14,
+            "from_rate": "20",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "foreign_foreign_other_rates",
+            "amount": "1.23",
+            "to_rate": "20",
+            "canonical": 1.11,
+            "from_rate": "18",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "missing_source_null",
+            "amount": "1",
+            "to_rate": "1",
+            "canonical": null,
+            "from_rate": null,
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "missing_source_one",
+            "amount": "1",
+            "to_rate": "1",
+            "canonical": null,
+            "from_rate": "1",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "missing_source_zero",
+            "amount": "1",
+            "to_rate": "1",
+            "canonical": null,
+            "from_rate": "0",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "missing_target_null",
+            "amount": "1",
+            "to_rate": null,
+            "canonical": null,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "missing_target_one",
+            "amount": "1",
+            "to_rate": "1",
+            "canonical": null,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "missing_target_zero",
+            "amount": "1",
+            "to_rate": "0",
+            "canonical": null,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_ignores_foreign_rate",
+            "amount": "1",
+            "to_rate": "17.5",
+            "canonical": 0.06,
+            "from_rate": "18",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_ignores_null_rate",
+            "amount": "1",
+            "to_rate": "17.5",
+            "canonical": 0.06,
+            "from_rate": null,
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_ignores_zero_rate",
+            "amount": "1",
+            "to_rate": "17.5",
+            "canonical": 0.06,
+            "from_rate": "0",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_usd_max_accepted",
+            "amount": "1750.08",
+            "to_rate": "17.5",
+            "canonical": 100.00,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_usd_max_rejected",
+            "amount": "1750.09",
+            "to_rate": "17.5",
+            "canonical": 100.01,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_usd_negative_cent",
+            "amount": "-1",
+            "to_rate": "17.5",
+            "canonical": -0.06,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_usd_negative_half",
+            "amount": "-0.0875",
+            "to_rate": "17.5",
+            "canonical": -0.01,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_usd_positive_cent",
+            "amount": "1",
+            "to_rate": "17.5",
+            "canonical": 0.06,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "mxn_usd_positive_half",
+            "amount": "0.0875",
+            "to_rate": "17.5",
+            "canonical": 0.01,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "same_currency_ignores_missing",
+            "amount": "12.34",
+            "to_rate": "0",
+            "canonical": 12.34,
+            "from_rate": null,
+            "to_currency": "eur",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "same_negative_1005",
+            "amount": "-1.005",
+            "to_rate": "0",
+            "canonical": -1.01,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "USD"
+        },
+        {
+            "id": "same_negative_carry",
+            "amount": "-999.995",
+            "to_rate": "18",
+            "canonical": -1000.00,
+            "from_rate": "0",
+            "to_currency": "MXN",
+            "from_currency": "mXn"
+        },
+        {
+            "id": "same_negative_half",
+            "amount": "-0.005",
+            "to_rate": "1",
+            "canonical": -0.01,
+            "from_rate": "0",
+            "to_currency": "uSd",
+            "from_currency": "USD"
+        },
+        {
+            "id": "same_positive_1005",
+            "amount": "1.005",
+            "to_rate": null,
+            "canonical": 1.01,
+            "from_rate": null,
+            "to_currency": "USD",
+            "from_currency": "USD"
+        },
+        {
+            "id": "same_positive_carry",
+            "amount": "999.995",
+            "to_rate": null,
+            "canonical": 1000.00,
+            "from_rate": null,
+            "to_currency": "mXn",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "same_positive_half",
+            "amount": "0.005",
+            "to_rate": null,
+            "canonical": 0.01,
+            "from_rate": null,
+            "to_currency": "USD",
+            "from_currency": "uSd"
+        },
+        {
+            "id": "scientific_foreign_foreign",
+            "amount": "5e1",
+            "to_rate": "1.75e1",
+            "canonical": 57.14,
+            "from_rate": "2e1",
+            "to_currency": "USD",
+            "from_currency": "EUR"
+        },
+        {
+            "id": "scientific_large_amount",
+            "amount": "1e6",
+            "to_rate": "1e0",
+            "canonical": 18000000.00,
+            "from_rate": "1.8e1",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "scientific_same_currency_half",
+            "amount": "5e-3",
+            "to_rate": null,
+            "canonical": 0.01,
+            "from_rate": null,
+            "to_currency": "usd",
+            "from_currency": "USD"
+        },
+        {
+            "id": "scientific_source_half",
+            "amount": "1e-2",
+            "to_rate": "1e0",
+            "canonical": 0.18,
+            "from_rate": "1.75e1",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "scientific_source_negative_half",
+            "amount": "-1e-2",
+            "to_rate": "1e0",
+            "canonical": -0.18,
+            "from_rate": "1.75e1",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "scientific_target_boundary",
+            "amount": "43750.09",
+            "to_rate": "1.7500001e1",
+            "canonical": 2500.00,
+            "from_rate": "1e0",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "six_decimal_boundary",
+            "amount": "43750.09",
+            "to_rate": "17.500001",
+            "canonical": 2500.00,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "six_decimal_negative_boundary",
+            "amount": "-43750.09",
+            "to_rate": "17.500001",
+            "canonical": -2500.00,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "six_decimal_negative_original",
+            "amount": "-175",
+            "to_rate": "17.500001",
+            "canonical": -10.00,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "six_decimal_next_cent",
+            "amount": "43750.10",
+            "to_rate": "17.500001",
+            "canonical": 2500.01,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "six_decimal_one_cent",
+            "amount": "1",
+            "to_rate": "17.500001",
+            "canonical": 0.06,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "six_decimal_original",
+            "amount": "175",
+            "to_rate": "17.500001",
+            "canonical": 10.00,
+            "from_rate": "1",
+            "to_currency": "USD",
+            "from_currency": "MXN"
+        },
+        {
+            "id": "usd_mxn_negative_half",
+            "amount": "-0.01",
+            "to_rate": "1",
+            "canonical": -0.18,
+            "from_rate": "17.5",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "usd_mxn_negative_one",
+            "amount": "-1",
+            "to_rate": "1",
+            "canonical": -17.50,
+            "from_rate": "17.5",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "usd_mxn_negative_raw_subcent",
+            "amount": "-0.015",
+            "to_rate": "1",
+            "canonical": -0.26,
+            "from_rate": "17.5",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "usd_mxn_one",
+            "amount": "1",
+            "to_rate": "1",
+            "canonical": 17.50,
+            "from_rate": "17.5",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "usd_mxn_positive_half",
+            "amount": "0.01",
+            "to_rate": "1",
+            "canonical": 0.18,
+            "from_rate": "17.5",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "usd_mxn_rate1999",
+            "amount": "123.45",
+            "to_rate": "0",
+            "canonical": 2467.77,
+            "from_rate": "19.99",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        },
+        {
+            "id": "usd_mxn_raw_subcent",
+            "amount": "0.015",
+            "to_rate": "1",
+            "canonical": 0.26,
+            "from_rate": "17.5",
+            "to_currency": "MXN",
+            "from_currency": "USD"
+        }
+    ],
+    "database": "liftgo_payment_policy_fixture",
+    "function_md5": "93eeb3ac6428a0f1e17e4ca3cb8e013c"
+}

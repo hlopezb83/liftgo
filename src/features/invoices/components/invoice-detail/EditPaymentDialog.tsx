@@ -17,12 +17,12 @@ import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { roundMoney } from "@/lib/money";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { positiveAmount } from "@/lib/schemas";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
+import { roundCurrencyAmount } from "../../lib/paymentCurrency";
 import { validateEditPaymentAmount } from "./validateEditPaymentAmount";
 
 const METHODS = [
@@ -84,6 +84,11 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
   }, [open, payment, form]);
 
   const onSubmit = (values: FormValues) => {
+    const amount = isRepStamped ? payment.amount : roundCurrencyAmount(values.amount);
+    if (amount === null) {
+      notifyValidation({ message: "Ingresa un monto válido." });
+      return;
+    }
     // BL-11: rechazar sobrepagos al editar. El techo es el saldo actual (que ya
     // incluye este pago) más el monto original del pago editado.
     const validation = validateEditPaymentAmount(values.amount, balance, payment.amount, isRepStamped, {
@@ -93,7 +98,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
       notifyValidation({
         message: "reason" in validation
           ? "No se puede validar el monto sin un tipo de cambio válido del pago y la factura. Revisa los tipos de cambio."
-          : `El monto excede el saldo pendiente más el pago original (${formatCurrencyWithCode(validation.maxAllowed, paymentCurrency)} ${paymentCurrency}). Ajusta la cantidad.`,
+          : `El monto convertido excede el saldo disponible. Referencia en moneda de pago: ${formatCurrencyWithCode(validation.maxAllowed, paymentCurrency)} ${paymentCurrency}. Ajusta la cantidad.`,
       });
       return;
     }
@@ -104,7 +109,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
         invoice_id: payment.invoice_id,
         // Con REP timbrado el servidor rechaza cambios de monto/fecha; se envían
         // los valores originales para no dar pie a un intento inválido.
-        amount: isRepStamped ? payment.amount : roundMoney(values.amount),
+        amount,
         payment_date: isRepStamped ? payment.payment_date : (toYMD(values.date) ?? ""),
         payment_method: values.method,
         reference_number: values.reference.trim() || null,

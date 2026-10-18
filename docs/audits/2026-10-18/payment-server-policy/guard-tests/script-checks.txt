@@ -1,0 +1,6 @@
+PASS node --check build-cases.mjs
+PASS node --check concurrency.mjs
+PASS node --check prepare.mjs
+PASS node --check run.mjs
+PASS git diff --check
+Application lint/typecheck/build not rerun in this docs-only subtask; coordinated by root.

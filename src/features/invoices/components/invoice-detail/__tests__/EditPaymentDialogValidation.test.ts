@@ -13,8 +13,8 @@ describe("validateEditPaymentAmount", () => {
     expect(validateEditPaymentAmount(1400, 1000, 400, false)).toEqual({ ok: true });
   });
 
-  it("monto dentro de tolerancia (0.005) → ok", () => {
-    expect(validateEditPaymentAmount(1400.005, 1000, 400, false)).toEqual({ ok: true });
+  it("redondear el origen a un centavo adicional no permite sobrepago", () => {
+    expect(validateEditPaymentAmount(1400.005, 1000, 400, false)).toEqual({ ok: false, maxAllowed: 1400 });
   });
 
   it("monto excede el tope → ok:false con maxAllowed", () => {

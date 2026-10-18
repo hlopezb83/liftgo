@@ -1,0 +1,2 @@
+# Preserve captured bytes and source snapshot SHA-256 across checkout platforms.
+* -text

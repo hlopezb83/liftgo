@@ -1,0 +1,10 @@
+file:///<user>/Documents/Codex/2026-10-18/task-2/audit-payment-guard-cases/docs/audits/2026-10-18/payment-server-policy/guard-tests/concurrency.mjs:22
+const assert=(ok,message)=>{if(!ok)throw Error(message);};
+                                         ^
+
+Error: insert-insert: unexpected persisted rows {"count":1,"total":"60.00","amounts":["60.00"]}
+    at assert (file:///<user>/Documents/Codex/2026-10-18/task-2/audit-payment-guard-cases/docs/audits/2026-10-18/payment-server-policy/guard-tests/concurrency.mjs:22:42)
+    at file:///<user>/Documents/Codex/2026-10-18/task-2/audit-payment-guard-cases/docs/audits/2026-10-18/payment-server-policy/guard-tests/concurrency.mjs:51:4
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+
+Node.js v24.19.0

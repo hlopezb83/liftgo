@@ -1,0 +1,1966 @@
+{
+    "port": 55440,
+    "summary": {
+        "total": 106,
+        "failed": 44,
+        "passed": 62
+    },
+    "version": "PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit",
+    "database": "liftgo_payment_policy_fixture",
+    "expectations": [
+        {
+            "kind": "statement",
+            "name": "MXN_null_rate_remains_not_null_violation",
+            "actual": {
+                "hint": "",
+                "detail": "Failing row contains (30ac3482-e2e8-4624-aea2-42fd71396f10, 40000000-0000-0000-0000-000000000411, 1.00, MXN, null, 2026-09-01, null, null, null, 2026-10-18 17:17:33.708364-06, null, null, null, none, null, 1.00, 10000000-0000-0000-0000-000000000002).",
+                "message": "null value in column \"exchange_rate\" of relation \"payments\" violates not-null constraint",
+                "affected": null,
+                "sqlstate": "23502",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000411'::uuid,1,'MXN',NULL,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23502",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_default1_canonical_cents",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_default1_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000101'::uuid,1,'MXN',DEFAULT,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_default1_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000101'::uuid,1,'MXN',DEFAULT,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_default1_first",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1.00) excede el saldo facturable (0.12) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000111'::uuid,1,'MXN',DEFAULT,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_default1_second",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1.00) excede el saldo facturable (0.12) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000111'::uuid,1,'MXN',DEFAULT,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_paid_default1_status",
+            "actual": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 0.12,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0.12,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_rate0_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000114'::uuid,1,'MXN',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_rate0_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000114'::uuid,1,'MXN',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_paid_rate0_status",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 0.00,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0.12,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_rate17_5_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000112'::uuid,1,'MXN',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_rate17_5_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000112'::uuid,1,'MXN',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_paid_rate17_5_status",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 0.00,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0.12,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_rate18_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000113'::uuid,1,'MXN',18,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_paid_rate18_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000113'::uuid,1,'MXN',18,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_paid_rate18_status",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 0.00,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0.12,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_rate0_canonical_cents",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_rate0_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000104'::uuid,1,'MXN',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_rate0_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000104'::uuid,1,'MXN',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_rate17_5_canonical_cents",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_rate17_5_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000102'::uuid,1,'MXN',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_rate17_5_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000102'::uuid,1,'MXN',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N7_rate18_canonical_cents",
+            "actual": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 0.12,
+                "status": "partial",
+                "balance": 99.88,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_rate18_first",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000103'::uuid,1,'MXN',18,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N7_rate18_second",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000103'::uuid,1,'MXN',18,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_default1_after",
+            "actual": {
+                "paid": 10.00,
+                "status": "sent",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_default1_before",
+            "actual": {
+                "paid": 10.00,
+                "status": "sent",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "sent",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_default1_create_original",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (175.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000211'::uuid,175,'MXN',DEFAULT,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_default1_created_original",
+            "actual": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 10,
+                "status": "partial",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_default1_edit350",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (350.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=350 WHERE id='50000000-0000-0000-0000-000000000201'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate0_after",
+            "actual": {
+                "paid": 20.00,
+                "status": "partial",
+                "balance": 80.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate0_before",
+            "actual": {
+                "paid": 10.00,
+                "status": "sent",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "sent",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_rate0_create_original",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000214'::uuid,175,'MXN',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate0_created_original",
+            "actual": {
+                "paid": 10.00,
+                "status": "partial",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "partial",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_rate0_edit350",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=350 WHERE id='50000000-0000-0000-0000-000000000204'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate17_5_after",
+            "actual": {
+                "paid": 20.00,
+                "status": "partial",
+                "balance": 80.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate17_5_before",
+            "actual": {
+                "paid": 10.00,
+                "status": "sent",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "sent",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_rate17_5_create_original",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000212'::uuid,175,'MXN',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate17_5_created_original",
+            "actual": {
+                "paid": 10.00,
+                "status": "partial",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "partial",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_rate17_5_edit350",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=350 WHERE id='50000000-0000-0000-0000-000000000202'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate18_after",
+            "actual": {
+                "paid": 20.00,
+                "status": "partial",
+                "balance": 80.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate18_before",
+            "actual": {
+                "paid": 10.00,
+                "status": "sent",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "sent",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_rate18_create_original",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000213'::uuid,175,'MXN',18,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "N8_rate18_created_original",
+            "actual": {
+                "paid": 10.00,
+                "status": "partial",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 10,
+                "status": "partial",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "N8_rate18_edit350",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=350 WHERE id='50000000-0000-0000-0000-000000000203'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "existing_missing_FX_blocks_new_payment",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000501'::uuid,1,'MXN',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "existing_missing_FX_rollback",
+            "actual": {
+                "paid": 0.06,
+                "status": "partial",
+                "balance": 99.94,
+                "fx_missing": 1
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "foreign_to_foreign_divides_target_rate",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1000.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000408'::uuid,50,'eUr',20,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "foreign_to_foreign_value",
+            "actual": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 57.14,
+                "status": "partial",
+                "balance": 42.86,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "invoice_integrity_blocks_paid_with_missing_FX",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.invoices SET status='paid' WHERE id='40000000-0000-0000-0000-000000000502'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate0_1750",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750 WHERE id='50000000-0000-0000-0000-000000000304'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate0_1750_02",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.02 WHERE id='50000000-0000-0000-0000-000000000304'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate0_1750_08",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.08 WHERE id='50000000-0000-0000-0000-000000000304'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate0_1750_09_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.01) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.09 WHERE id='50000000-0000-0000-0000-000000000304'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate0_1750_26_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.01) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.26 WHERE id='50000000-0000-0000-0000-000000000304'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate0_1800_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (102.86) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1800 WHERE id='50000000-0000-0000-0000-000000000304'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "max_rate0_canonical_final",
+            "actual": {
+                "paid": 100.00,
+                "status": "paid",
+                "balance": 0.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 100,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate17_5_1750",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750 WHERE id='50000000-0000-0000-0000-000000000302'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate17_5_1750_02",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.02 WHERE id='50000000-0000-0000-0000-000000000302'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate17_5_1750_08",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.08 WHERE id='50000000-0000-0000-0000-000000000302'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate17_5_1750_09_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.01) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.09 WHERE id='50000000-0000-0000-0000-000000000302'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate17_5_1750_26_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (100.01) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.26 WHERE id='50000000-0000-0000-0000-000000000302'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate17_5_1800_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (102.86) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1800 WHERE id='50000000-0000-0000-0000-000000000302'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "max_rate17_5_canonical_final",
+            "actual": {
+                "paid": 100.00,
+                "status": "paid",
+                "balance": 0.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 100,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate18_1750",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750 WHERE id='50000000-0000-0000-0000-000000000303'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate18_1750_02",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750.02 WHERE id='50000000-0000-0000-0000-000000000303'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate18_1750_08",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750.08 WHERE id='50000000-0000-0000-0000-000000000303'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate18_1750_09_rejected",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750.09 WHERE id='50000000-0000-0000-0000-000000000303'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate18_1750_26_rejected",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1750.26 WHERE id='50000000-0000-0000-0000-000000000303'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate18_1800_rejected",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "UPDATE public.payments SET amount=1800 WHERE id='50000000-0000-0000-0000-000000000303'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "max_rate18_canonical_final",
+            "actual": {
+                "paid": 102.86,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 100,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate1_1750",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1750.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750 WHERE id='50000000-0000-0000-0000-000000000301'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate1_1750_02",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1750.02) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.02 WHERE id='50000000-0000-0000-0000-000000000301'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate1_1750_08",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1750.08) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.08 WHERE id='50000000-0000-0000-0000-000000000301'::uuid"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate1_1750_09_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1750.09) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.09 WHERE id='50000000-0000-0000-0000-000000000301'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate1_1750_26_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1750.26) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1750.26 WHERE id='50000000-0000-0000-0000-000000000301'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "max_rate1_1800_rejected",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (1800.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "UPDATE public.payments SET amount=1800 WHERE id='50000000-0000-0000-0000-000000000301'::uuid"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "max_rate1_canonical_final",
+            "actual": {
+                "paid": 10.00,
+                "status": "sent",
+                "balance": 90.00,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 100,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "missing_USD_source_rate_one",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000403'::uuid,20,'USD',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "missing_USD_source_rate_one_rollback",
+            "actual": {
+                "paid": 0,
+                "status": "partial",
+                "balance": 100,
+                "fx_missing": 1
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "missing_USD_source_rate_zero",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000404'::uuid,20,'USD',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "missing_foreign_source_rate_one",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000409'::uuid,20,'EUR',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "missing_foreign_source_rate_zero",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000410'::uuid,1,'EUR',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "missing_invoice_rate_null",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000401'::uuid,1,'MXN',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "missing_invoice_rate_null_rollback",
+            "actual": {
+                "paid": 0,
+                "status": "partial",
+                "balance": 100,
+                "fx_missing": 1
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "missing_invoice_rate_one",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000402'::uuid,1,'MXN',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "missing_invoice_rate_one_rollback",
+            "actual": {
+                "paid": 0,
+                "status": "partial",
+                "balance": 100,
+                "fx_missing": 1
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "mixed_case_cross_currency",
+            "actual": {
+                "hint": "Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.",
+                "detail": "",
+                "message": "Sobrepago rechazado: la suma de pagos (175.00) excede el saldo facturable (100.00) despues de notas de credito",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000407'::uuid,175,'mXn',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "mixed_case_cross_currency_value",
+            "actual": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 10,
+                "status": "partial",
+                "balance": 90,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "mixed_case_same_currency_without_rates",
+            "actual": {
+                "hint": "",
+                "detail": "",
+                "message": "Pago en USD no coincide con la divisa de la factura (uSd) y no hay tipo de cambio para la conversión.",
+                "affected": null,
+                "sqlstate": "23514",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000406'::uuid,20,'USD',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "mixed_case_same_currency_without_rates_value",
+            "actual": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "no_premature_paid_at_one_cent_short",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000603'::uuid,99.99,'USD',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "no_premature_paid_at_one_cent_short_value",
+            "actual": {
+                "paid": 99.99,
+                "status": "partial",
+                "balance": 0.01,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 99.99,
+                "status": "partial",
+                "balance": 0.01,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "normalize_source_cents_before_FX",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000601'::uuid,0.015,'USD',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "normalize_source_cents_before_FX_value",
+            "actual": {
+                "paid": 0.35,
+                "status": "paid",
+                "balance": 0.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 0.35,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "normalize_source_cents_rejects_raw_only_fit",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000602'::uuid,0.015,'USD',17.5,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": false,
+            "expected": {
+                "sqlstate": "23514",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "normalize_source_cents_rejects_rollback",
+            "actual": {
+                "paid": 0.35,
+                "status": "paid",
+                "balance": 0,
+                "fx_missing": 0
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 0.30,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "source normalization",
+            "name": "normalize_source_cents_stored_amounts",
+            "actual": {
+                "amount": 0.02,
+                "amount_mxn": 0.26
+            },
+            "passed": false,
+            "expected": {
+                "amount": 0.02,
+                "amount_mxn": 0.35
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "plain_MXN_sanity",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000413'::uuid,20,'MXN',1,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "plain_MXN_sanity_value",
+            "actual": {
+                "paid": 20.00,
+                "status": "partial",
+                "balance": 80.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "same_currency_rate_zero_sanity",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000414'::uuid,20,'USD',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "same_currency_rate_zero_sanity_value",
+            "actual": {
+                "paid": 20.00,
+                "status": "partial",
+                "balance": 80.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "same_currency_without_rates",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "INSERT INTO public.payments(invoice_id,amount,currency,exchange_rate,payment_date,organization_id) VALUES('40000000-0000-0000-0000-000000000405'::uuid,20,'USD',0,'2026-09-01','10000000-0000-0000-0000-000000000002'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "same_currency_without_rates_value",
+            "actual": {
+                "paid": 20.00,
+                "status": "partial",
+                "balance": 80.00,
+                "fx_missing": 0
+            },
+            "passed": true,
+            "expected": {
+                "paid": 20,
+                "status": "partial",
+                "balance": 80,
+                "fx_missing": 0
+            }
+        },
+        {
+            "kind": "view/status",
+            "name": "sync_missing_FX_does_not_fabricate_paid",
+            "actual": {
+                "paid": 0,
+                "status": "paid",
+                "balance": 100,
+                "fx_missing": 1
+            },
+            "passed": false,
+            "expected": {
+                "paid": 0,
+                "status": "sent",
+                "balance": 100,
+                "fx_missing": 1
+            }
+        },
+        {
+            "kind": "statement",
+            "name": "sync_missing_FX_does_not_raise",
+            "actual": {
+                "hint": null,
+                "detail": null,
+                "message": "accepted",
+                "affected": 1,
+                "sqlstate": "00000",
+                "statement": "SELECT public.sync_invoice_status('40000000-0000-0000-0000-000000000502'::uuid)"
+            },
+            "passed": true,
+            "expected": {
+                "sqlstate": "00000",
+                "affected_if_success": 1
+            }
+        }
+    ],
+    "baseline_functions": [
+        {
+            "md5": "d6c22f53008a409570dd5216012ee5b0",
+            "name": "enforce_credit_note_max()",
+            "definition": "CREATE OR REPLACE FUNCTION public.enforce_credit_note_max()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_invoice_total numeric;\n  v_already_credited numeric;\n  v_rep_backed numeric;\n  v_max_creditable numeric;\n  v_inv_moneda text;\n  v_inv_tc numeric;\nBEGIN\n  IF NEW.status = 'cancelled' THEN RETURN NEW; END IF;\n\n  SELECT total, upper(COALESCE(moneda, 'MXN')), tipo_cambio\n    INTO v_invoice_total, v_inv_moneda, v_inv_tc\n    FROM invoices WHERE id = NEW.invoice_id FOR UPDATE;\n  IF v_invoice_total IS NULL THEN RAISE EXCEPTION 'Factura no encontrada'; END IF;\n\n  SELECT COALESCE(SUM(total), 0) INTO v_already_credited\n    FROM credit_notes\n   WHERE invoice_id = NEW.invoice_id\n     AND status <> 'cancelled'\n     AND cancellation_status <> 'accepted'\n     AND id <> NEW.id;\n\n  -- Fail-closed: sin tipo de cambio no se puede calcular el tope.\n  IF EXISTS (\n    SELECT 1 FROM payments p\n     WHERE p.invoice_id = NEW.invoice_id\n       AND p.rep_cfdi_status = 'stamped'\n       AND p.rep_cancelled_at IS NULL\n       AND upper(COALESCE(p.currency, v_inv_moneda)) <> v_inv_moneda\n       AND COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_inv_tc, 0)) IS NULL\n  ) THEN\n    RAISE EXCEPTION 'Hay pagos con REP timbrado en moneda distinta sin tipo de cambio; captura el tipo de cambio antes de emitir la nota de credito.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  -- H-5 (opción A refinada): sólo topan los pagos con REP timbrado y vigente.\n  -- FIX-1 (ronda 2): convertidos a la moneda de la factura.\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, v_inv_moneda)) = v_inv_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, v_inv_moneda)) = 'MXN'\n          THEN p.amount / COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_inv_tc, 0))\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_inv_tc, 0))\n      END\n    ), 0) INTO v_rep_backed\n    FROM payments p\n   WHERE p.invoice_id = NEW.invoice_id\n     AND p.rep_cfdi_status = 'stamped'\n     AND p.rep_cancelled_at IS NULL;\n\n  v_rep_backed := round(COALESCE(v_rep_backed, 0), 2);\n  v_max_creditable := round(v_invoice_total - v_rep_backed, 2);\n\n  IF round(v_already_credited + NEW.total, 2) > v_invoice_total THEN\n    RAISE EXCEPTION 'La suma de notas de credito (% + % = %) excede el total de la factura (%). Cancela o reduce alguna NC existente.',\n      v_already_credited, NEW.total, v_already_credited + NEW.total, v_invoice_total USING ERRCODE = 'P0001';\n  END IF;\n\n  IF v_rep_backed > 0 AND round(v_already_credited + NEW.total, 2) > v_max_creditable THEN\n    RAISE EXCEPTION 'La nota de credito (% + % = %) excede el maximo acreditable (%): el total de la factura es % y % ya estan declarados en complementos de pago (REP) timbrados. Cancela los REP ante el SAT antes de emitir esta NC.',\n      v_already_credited, NEW.total, round(v_already_credited + NEW.total, 2), v_max_creditable,\n      v_invoice_total, v_rep_backed USING ERRCODE = 'P0001';\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "7f5a96df4487fb7c4c78d1a009dca2ed",
+            "name": "enforce_payment_matches_invoice_currency()",
+            "definition": "CREATE OR REPLACE FUNCTION public.enforce_payment_matches_invoice_currency()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  inv_currency text;\n  inv_tc numeric;\n  pay_currency text;\nBEGIN\n  SELECT COALESCE(moneda, 'MXN'), tipo_cambio\n    INTO inv_currency, inv_tc\n  FROM public.invoices\n  WHERE id = NEW.invoice_id;\n\n  IF inv_currency IS NULL THEN\n    RETURN NEW;\n  END IF;\n\n  pay_currency := COALESCE(NEW.currency, 'MXN');\n\n  IF pay_currency <> inv_currency THEN\n    -- R5-01 / R6-16: cruce permitido solo si hay conversion disponible.\n    IF COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0)) IS NULL THEN\n      RAISE EXCEPTION\n        'Pago en % no coincide con la divisa de la factura (%) y no hay tipo de cambio para la conversión.',\n        pay_currency, inv_currency\n        USING ERRCODE = 'check_violation';\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "936e626a72bd021db19c46841cfa00af",
+            "name": "enforce_payment_within_invoice_total()",
+            "definition": "CREATE OR REPLACE FUNCTION public.enforce_payment_within_invoice_total()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  inv_total NUMERIC;\n  inv_status TEXT;\n  inv_metodo TEXT;\n  inv_cfdi TEXT;\n  inv_moneda TEXT;\n  inv_tc NUMERIC;\n  total_paid NUMERIC;\n  new_amount NUMERIC;\n  credited NUMERIC;\n  payable NUMERIC;\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtext('invoice_payment:' || NEW.invoice_id::text));\n  SELECT total, status, moneda, tipo_cambio, metodo_pago, cfdi_status\n    INTO inv_total, inv_status, inv_moneda, inv_tc, inv_metodo, inv_cfdi\n  FROM public.invoices\n  WHERE id = NEW.invoice_id\n  FOR UPDATE;\n\n  IF inv_total IS NULL THEN\n    RAISE EXCEPTION 'Invoice % not found for payment', NEW.invoice_id\n      USING ERRCODE = 'foreign_key_violation';\n  END IF;\n\n  IF inv_status = 'cancelled' THEN\n    RAISE EXCEPTION 'No se pueden registrar pagos en facturas canceladas'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  IF inv_status = 'draft' THEN\n    RAISE EXCEPTION 'No se pueden registrar pagos en facturas en borrador. Envia la factura primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  inv_moneda := upper(COALESCE(inv_moneda, 'MXN'));\n\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, inv_moneda)) = inv_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(inv_tc, 0)), 0)\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(inv_tc, 0))\n      END), 0) INTO total_paid\n  FROM public.payments p\n  WHERE p.invoice_id = NEW.invoice_id\n    AND (TG_OP = 'INSERT' OR p.id <> NEW.id);\n\n  new_amount := CASE\n    WHEN upper(COALESCE(NEW.currency, inv_moneda)) = inv_moneda THEN NEW.amount\n    WHEN upper(COALESCE(NEW.currency, 'MXN')) = 'MXN'\n      THEN NEW.amount / NULLIF(COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0)), 0)\n    ELSE NEW.amount * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0))\n  END;\n  IF new_amount IS NULL THEN\n    RAISE EXCEPTION\n      'No se puede verificar el sobrepago: falta tipo de cambio para convertir el pago (%) a la moneda de la factura (%)',\n      upper(COALESCE(NEW.currency, 'MXN')), inv_moneda\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  SELECT COALESCE(SUM(total), 0) INTO credited\n  FROM public.credit_notes\n  WHERE invoice_id = NEW.invoice_id\n    AND cfdi_status = 'stamped'\n    AND status <> 'cancelled'\n    AND cancellation_status IS DISTINCT FROM 'accepted';\n\n  total_paid := total_paid + new_amount;\n  payable := inv_total - credited;\n\n  IF total_paid > payable THEN\n    RAISE EXCEPTION\n      'Sobrepago rechazado: la suma de pagos (%) excede el saldo facturable (%) despues de notas de credito',\n      round(total_paid, 2), round(payable, 2)\n      USING ERRCODE = 'check_violation',\n            HINT = 'Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.';\n  END IF;\n\n  IF upper(COALESCE(inv_metodo, '')) = 'PUE'\n     AND COALESCE(inv_cfdi, '') = 'stamped'\n     AND round(total_paid, 2) < round(payable, 2) - 0.01 THEN\n    RAISE EXCEPTION\n      'Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: %)',\n      round(payable, 2)\n      USING ERRCODE = 'check_violation',\n            HINT = 'Registra el pago por el saldo total o retimbra la factura como PPD.';\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "93eeb3ac6428a0f1e17e4ca3cb8e013c",
+            "name": "fx_convert_amount(numeric,text,text,numeric,numeric)",
+            "definition": "CREATE OR REPLACE FUNCTION public.fx_convert_amount(p_amount numeric, p_from text, p_to text, p_from_rate numeric, p_to_rate numeric)\n RETURNS numeric\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\n  SELECT CASE\n    WHEN p_amount IS NULL THEN NULL\n    WHEN upper(COALESCE(p_from, 'MXN')) = upper(COALESCE(p_to, 'MXN')) THEN round(p_amount, 2)\n    WHEN public.fx_is_missing(p_from, p_from_rate) OR public.fx_is_missing(p_to, p_to_rate) THEN NULL\n    ELSE round(\n      p_amount\n      * CASE WHEN upper(COALESCE(p_from, 'MXN')) = 'MXN' THEN 1 ELSE p_from_rate END\n      / CASE WHEN upper(COALESCE(p_to, 'MXN')) = 'MXN' THEN 1 ELSE p_to_rate END\n    , 2)\n  END;\n$function$\n"
+        },
+        {
+            "md5": "05a87eb3c2398d2c83b5380309715783",
+            "name": "fx_is_missing(text,numeric)",
+            "definition": "CREATE OR REPLACE FUNCTION public.fx_is_missing(p_currency text, p_rate numeric)\n RETURNS boolean\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\n  SELECT upper(COALESCE(p_currency, 'MXN')) <> 'MXN'\n     AND (p_rate IS NULL OR p_rate <= 0 OR p_rate = 1);\n$function$\n"
+        },
+        {
+            "md5": "22f36bdf6a1892cd6037fae30db55e90",
+            "name": "guard_invoice_status_integrity()",
+            "definition": "CREATE OR REPLACE FUNCTION public.guard_invoice_status_integrity()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_jwt_role text;\n  v_invoice_currency text;\n  v_paid numeric := 0;\n  v_credited numeric := 0;\n  v_remaining numeric := 0;\nBEGIN\n  IF current_setting('app.e2e_seed', true) = 'on'\n     OR current_setting('app.e2e_teardown', true) = 'on' THEN\n    RETURN NEW;\n  END IF;\n\n  IF NEW.status = 'paid' THEN\n    v_invoice_currency := upper(COALESCE(NEW.moneda, 'MXN'));\n\n    IF EXISTS (\n      SELECT 1\n      FROM public.payments p\n      WHERE p.invoice_id = NEW.id\n        AND upper(COALESCE(p.currency, v_invoice_currency)) <> v_invoice_currency\n        AND COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(NEW.tipo_cambio, 0)) IS NULL\n    ) THEN\n      RAISE EXCEPTION\n        'No se puede marcar la factura como pagada: hay pagos en otra moneda sin tipo de cambio.'\n        USING ERRCODE = 'check_violation';\n    END IF;\n\n    SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, v_invoice_currency)) = v_invoice_currency\n          THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(\n            COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(NEW.tipo_cambio, 0)),\n            0\n          )\n        ELSE p.amount * COALESCE(\n          NULLIF(p.exchange_rate, 0),\n          NULLIF(NEW.tipo_cambio, 0)\n        )\n      END\n    ), 0)\n    INTO v_paid\n    FROM public.payments p\n    WHERE p.invoice_id = NEW.id;\n\n    SELECT COALESCE(SUM(cn.total), 0)\n    INTO v_credited\n    FROM public.credit_notes cn\n    WHERE cn.invoice_id = NEW.id\n      AND cn.cfdi_status = 'stamped'\n      AND cn.status <> 'cancelled'\n      AND cn.cancellation_status IS DISTINCT FROM 'accepted';\n\n    v_remaining := GREATEST(\n      COALESCE(NEW.total, 0) - COALESCE(v_paid, 0) - COALESCE(v_credited, 0),\n      0\n    );\n\n    IF v_remaining > 0.005 THEN\n      RAISE EXCEPTION\n        'No se puede marcar la factura como pagada: saldo pendiente % (total %, pagos %, notas de crédito %). Registra el pago restante.',\n        round(v_remaining, 2), round(NEW.total, 2), round(v_paid, 2), round(v_credited, 2)\n        USING ERRCODE = 'check_violation';\n    END IF;\n  END IF;\n\n  IF TG_OP = 'INSERT' OR NEW.status IS NOT DISTINCT FROM OLD.status THEN\n    RETURN NEW;\n  END IF;\n\n  BEGIN\n    v_jwt_role := auth.jwt() ->> 'role';\n  EXCEPTION WHEN OTHERS THEN\n    v_jwt_role := NULL;\n  END;\n  IF v_jwt_role = 'service_role' OR v_jwt_role IS NULL THEN\n    RETURN NEW;\n  END IF;\n\n  IF NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM 'cancelled' THEN\n    IF current_setting('app.sat_flow', true) IS DISTINCT FROM 'on' THEN\n      NEW.cancelled_at := COALESCE(NEW.cancelled_at, now());\n      IF NEW.cancellation_reason IS NULL OR btrim(NEW.cancellation_reason) = '' THEN\n        RAISE EXCEPTION\n          'Cancelar una factura requiere un motivo (cancellation_reason). Las facturas timbradas se cancelan por el flujo SAT.'\n          USING ERRCODE = 'check_violation';\n      END IF;\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "1349ce0177b46a17e3eb4252790783a4",
+            "name": "prevent_payment_delete_when_rep_stamped()",
+            "definition": "CREATE OR REPLACE FUNCTION public.prevent_payment_delete_when_rep_stamped()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF OLD.rep_cfdi_status = 'stamped' THEN\n    RAISE EXCEPTION 'No se puede eliminar un pago con REP timbrado. Cancele el complemento primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n  RETURN OLD;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "105db69e07f634e9d4ce42d2e4d16970",
+            "name": "prevent_payment_mutation_when_rep_stamped()",
+            "definition": "CREATE OR REPLACE FUNCTION public.prevent_payment_mutation_when_rep_stamped()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF OLD.rep_cfdi_status = 'stamped' AND (\n    NEW.amount IS DISTINCT FROM OLD.amount\n    OR NEW.payment_date IS DISTINCT FROM OLD.payment_date\n    OR NEW.currency IS DISTINCT FROM OLD.currency\n    OR NEW.exchange_rate IS DISTINCT FROM OLD.exchange_rate\n    OR NEW.payment_form_sat IS DISTINCT FROM OLD.payment_form_sat\n    OR NEW.installment_number IS DISTINCT FROM OLD.installment_number\n    OR NEW.prior_balance IS DISTINCT FROM OLD.prior_balance\n    OR NEW.invoice_id IS DISTINCT FROM OLD.invoice_id\n  ) THEN\n    RAISE EXCEPTION 'No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "43867b46fa83b160f7f177fa433c1ff0",
+            "name": "sync_invoice_status(uuid)",
+            "definition": "CREATE OR REPLACE FUNCTION public.sync_invoice_status(p_invoice_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_uid uuid := (select auth.uid());\n  v_org uuid;\n  v_invoice_id uuid;\n  v_invoice_org uuid;\n  v_total numeric(14,2);\n  v_status text;\n  v_paid numeric(14,2);\n  v_credited numeric(14,2);\n  v_latest_date date;\n  v_due date;\n  v_target text;\n  v_moneda text;\n  v_tc numeric;\nBEGIN\n  v_invoice_id := p_invoice_id;\n  IF v_invoice_id IS NULL THEN\n    RETURN;\n  END IF;\n\n  IF v_uid IS NOT NULL AND public.is_internal_member(v_uid) THEN\n    v_org := public.current_internal_organization_id();\n    IF v_org IS NULL THEN\n      RAISE EXCEPTION 'not_authorized' USING ERRCODE = '42501';\n    END IF;\n  END IF;\n\n  SELECT total, status, due_date, moneda, tipo_cambio, organization_id\n    INTO v_total, v_status, v_due, v_moneda, v_tc, v_invoice_org\n  FROM public.invoices WHERE id = v_invoice_id\n  FOR UPDATE;\n  IF v_total IS NULL THEN\n    RETURN;\n  END IF;\n\n  -- Llamada directa desde una sesión interna: sólo su propia organización.\n  IF v_org IS NOT NULL AND v_invoice_org IS DISTINCT FROM v_org THEN\n    RAISE EXCEPTION 'not_authorized' USING ERRCODE = '42501';\n  END IF;\n\n  IF v_status IN ('cancelled', 'draft') THEN\n    RETURN;\n  END IF;\n\n  v_moneda := upper(COALESCE(v_moneda, 'MXN'));\n\n  -- R4-15: pagos convertidos a la moneda de la factura (ver FIX R4-03).\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, v_moneda)) = v_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_tc, 0)), 0)\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_tc, 0))\n      END), 0), MAX(p.payment_date)\n    INTO v_paid, v_latest_date\n  FROM public.payments p\n  WHERE p.invoice_id = v_invoice_id\n    AND COALESCE(p.organization_id, v_invoice_org) = v_invoice_org;\n\n  -- N-21 / R4-15: criterio canónico de NC (mismo que la vista y la UI).\n  SELECT COALESCE(SUM(total), 0) INTO v_credited\n  FROM public.credit_notes\n  WHERE invoice_id = v_invoice_id\n    AND COALESCE(organization_id, v_invoice_org) = v_invoice_org\n    AND cfdi_status = 'stamped'\n    AND status <> 'cancelled'\n    AND cancellation_status IS DISTINCT FROM 'accepted';\n\n  PERFORM set_config('app.payment_sync', 'on', true);\n\n  IF v_paid >= v_total - v_credited - 0.005 AND v_paid > 0 THEN\n    IF v_status <> 'paid' THEN\n      UPDATE public.invoices SET status = 'paid', paid_at = COALESCE(v_latest_date, public.today_mty())\n        WHERE id = v_invoice_id;\n    END IF;\n  -- R4-16: cubierta al 100% por NC timbrada(s) => 'paid'.\n  ELSIF v_paid = 0 AND v_credited >= v_total - 0.005 THEN\n    IF v_status <> 'paid' THEN\n      UPDATE public.invoices SET status = 'paid', paid_at = COALESCE(v_latest_date, public.today_mty())\n        WHERE id = v_invoice_id;\n    END IF;\n  ELSIF v_paid = 0 AND v_credited > 0 THEN\n    IF v_status = 'paid' THEN\n      -- R5-15: la factura deja de estar pagada (NC parcial sin pagos).\n      v_target := CASE\n        WHEN v_due IS NOT NULL AND v_due < public.today_mty() THEN 'overdue'\n        ELSE 'sent'\n      END;\n      UPDATE public.invoices SET status = v_target, paid_at = NULL\n        WHERE id = v_invoice_id;\n    ELSIF v_status <> 'partial' THEN\n      -- R5-15: NC parcial sin pagos y no estaba 'paid' => 'partial'.\n      UPDATE public.invoices SET status = 'partial', paid_at = NULL\n        WHERE id = v_invoice_id;\n    END IF;\n  ELSIF (v_paid + v_credited) > 0 THEN\n    IF v_status <> 'partial' THEN\n      UPDATE public.invoices SET status = 'partial', paid_at = NULL\n        WHERE id = v_invoice_id;\n    END IF;\n  ELSE\n    v_target := CASE\n      WHEN v_due IS NOT NULL AND v_due < public.today_mty() THEN 'overdue'\n      ELSE 'sent'\n    END;\n    IF v_status <> v_target THEN\n      UPDATE public.invoices SET status = v_target, paid_at = NULL\n        WHERE id = v_invoice_id;\n    END IF;\n  END IF;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "58d767c28ba000ef3b04bee15c89094e",
+            "name": "trg_payment_amount_mxn()",
+            "definition": "CREATE OR REPLACE FUNCTION public.trg_payment_amount_mxn()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_moneda text;\n  v_tipo_cambio numeric;\n  v_pay_currency text;\nBEGIN\n  SELECT i.moneda, i.tipo_cambio INTO v_moneda, v_tipo_cambio\n  FROM public.invoices i\n  WHERE i.id = NEW.invoice_id;\n  v_moneda := upper(COALESCE(v_moneda, 'MXN'));\n  v_pay_currency := upper(COALESCE(NEW.currency, v_moneda));\n\n  IF v_pay_currency = 'MXN' THEN\n    NEW.amount_mxn := ROUND(COALESCE(NEW.amount, 0), 2);\n  ELSIF v_pay_currency <> v_moneda THEN\n    -- R6-07: cruce permitido si hay tipo de cambio disponible (R5-01).\n    IF COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)) IS NULL THEN\n      RAISE EXCEPTION\n        'Pago en % no coincide con la moneda de la factura (%) y no hay tipo de cambio para convertirlo',\n        v_pay_currency, v_moneda\n        USING ERRCODE = 'check_violation';\n    END IF;\n    NEW.amount_mxn := ROUND(\n      NEW.amount * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)),\n      2\n    );\n  ELSE\n    NEW.amount_mxn := ROUND(\n      COALESCE(NEW.amount, 0) * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)),\n      2\n    );\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n"
+        }
+    ],
+    "installed_triggers": [
+        {
+            "name": "trg_guard_invoice_status_integrity",
+            "table": "invoices",
+            "definition": "CREATE TRIGGER trg_guard_invoice_status_integrity BEFORE INSERT OR UPDATE OF status, total, moneda, tipo_cambio ON public.invoices FOR EACH ROW EXECUTE FUNCTION guard_invoice_status_integrity()"
+        },
+        {
+            "name": "sync_invoice_status_from_payments_trg",
+            "table": "payments",
+            "definition": "CREATE TRIGGER sync_invoice_status_from_payments_trg AFTER INSERT OR DELETE OR UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION sync_invoice_status_from_payments()"
+        },
+        {
+            "name": "trg_enforce_payment_within_invoice_total",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_enforce_payment_within_invoice_total BEFORE INSERT OR UPDATE OF amount, invoice_id ON public.payments FOR EACH ROW EXECUTE FUNCTION enforce_payment_within_invoice_total()"
+        },
+        {
+            "name": "trg_payments_amount_mxn",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_payments_amount_mxn BEFORE INSERT OR UPDATE OF amount, exchange_rate, invoice_id ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_payment_amount_mxn()"
+        },
+        {
+            "name": "trg_payments_currency_matches_invoice",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_payments_currency_matches_invoice BEFORE INSERT OR UPDATE OF currency, invoice_id, exchange_rate, amount ON public.payments FOR EACH ROW EXECUTE FUNCTION enforce_payment_matches_invoice_currency()"
+        },
+        {
+            "name": "trg_payments_fiscal_period_open",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_payments_fiscal_period_open BEFORE INSERT OR UPDATE OF payment_date ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_guard_payment_fiscal_period()"
+        },
+        {
+            "name": "trg_payments_payment_date_window",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_payments_payment_date_window BEFORE INSERT OR UPDATE OF payment_date, invoice_id ON public.payments FOR EACH ROW EXECUTE FUNCTION trg_payment_date_window()"
+        },
+        {
+            "name": "trg_prevent_payment_delete_stamped",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_prevent_payment_delete_stamped BEFORE DELETE ON public.payments FOR EACH ROW EXECUTE FUNCTION prevent_payment_delete_when_rep_stamped()"
+        },
+        {
+            "name": "trg_prevent_payment_mutation_stamped",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_prevent_payment_mutation_stamped BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION prevent_payment_mutation_when_rep_stamped()"
+        },
+        {
+            "name": "trg_round_payment_amount",
+            "table": "payments",
+            "definition": "CREATE TRIGGER trg_round_payment_amount BEFORE INSERT OR UPDATE OF amount ON public.payments FOR EACH ROW EXECUTE FUNCTION round_payment_amount()"
+        }
+    ],
+    "installed_functions": [
+        {
+            "md5": "d6c22f53008a409570dd5216012ee5b0",
+            "name": "enforce_credit_note_max()",
+            "definition": "CREATE OR REPLACE FUNCTION public.enforce_credit_note_max()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_invoice_total numeric;\n  v_already_credited numeric;\n  v_rep_backed numeric;\n  v_max_creditable numeric;\n  v_inv_moneda text;\n  v_inv_tc numeric;\nBEGIN\n  IF NEW.status = 'cancelled' THEN RETURN NEW; END IF;\n\n  SELECT total, upper(COALESCE(moneda, 'MXN')), tipo_cambio\n    INTO v_invoice_total, v_inv_moneda, v_inv_tc\n    FROM invoices WHERE id = NEW.invoice_id FOR UPDATE;\n  IF v_invoice_total IS NULL THEN RAISE EXCEPTION 'Factura no encontrada'; END IF;\n\n  SELECT COALESCE(SUM(total), 0) INTO v_already_credited\n    FROM credit_notes\n   WHERE invoice_id = NEW.invoice_id\n     AND status <> 'cancelled'\n     AND cancellation_status <> 'accepted'\n     AND id <> NEW.id;\n\n  -- Fail-closed: sin tipo de cambio no se puede calcular el tope.\n  IF EXISTS (\n    SELECT 1 FROM payments p\n     WHERE p.invoice_id = NEW.invoice_id\n       AND p.rep_cfdi_status = 'stamped'\n       AND p.rep_cancelled_at IS NULL\n       AND upper(COALESCE(p.currency, v_inv_moneda)) <> v_inv_moneda\n       AND COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_inv_tc, 0)) IS NULL\n  ) THEN\n    RAISE EXCEPTION 'Hay pagos con REP timbrado en moneda distinta sin tipo de cambio; captura el tipo de cambio antes de emitir la nota de credito.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  -- H-5 (opción A refinada): sólo topan los pagos con REP timbrado y vigente.\n  -- FIX-1 (ronda 2): convertidos a la moneda de la factura.\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, v_inv_moneda)) = v_inv_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, v_inv_moneda)) = 'MXN'\n          THEN p.amount / COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_inv_tc, 0))\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_inv_tc, 0))\n      END\n    ), 0) INTO v_rep_backed\n    FROM payments p\n   WHERE p.invoice_id = NEW.invoice_id\n     AND p.rep_cfdi_status = 'stamped'\n     AND p.rep_cancelled_at IS NULL;\n\n  v_rep_backed := round(COALESCE(v_rep_backed, 0), 2);\n  v_max_creditable := round(v_invoice_total - v_rep_backed, 2);\n\n  IF round(v_already_credited + NEW.total, 2) > v_invoice_total THEN\n    RAISE EXCEPTION 'La suma de notas de credito (% + % = %) excede el total de la factura (%). Cancela o reduce alguna NC existente.',\n      v_already_credited, NEW.total, v_already_credited + NEW.total, v_invoice_total USING ERRCODE = 'P0001';\n  END IF;\n\n  IF v_rep_backed > 0 AND round(v_already_credited + NEW.total, 2) > v_max_creditable THEN\n    RAISE EXCEPTION 'La nota de credito (% + % = %) excede el maximo acreditable (%): el total de la factura es % y % ya estan declarados en complementos de pago (REP) timbrados. Cancela los REP ante el SAT antes de emitir esta NC.',\n      v_already_credited, NEW.total, round(v_already_credited + NEW.total, 2), v_max_creditable,\n      v_invoice_total, v_rep_backed USING ERRCODE = 'P0001';\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "7f5a96df4487fb7c4c78d1a009dca2ed",
+            "name": "enforce_payment_matches_invoice_currency()",
+            "definition": "CREATE OR REPLACE FUNCTION public.enforce_payment_matches_invoice_currency()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  inv_currency text;\n  inv_tc numeric;\n  pay_currency text;\nBEGIN\n  SELECT COALESCE(moneda, 'MXN'), tipo_cambio\n    INTO inv_currency, inv_tc\n  FROM public.invoices\n  WHERE id = NEW.invoice_id;\n\n  IF inv_currency IS NULL THEN\n    RETURN NEW;\n  END IF;\n\n  pay_currency := COALESCE(NEW.currency, 'MXN');\n\n  IF pay_currency <> inv_currency THEN\n    -- R5-01 / R6-16: cruce permitido solo si hay conversion disponible.\n    IF COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0)) IS NULL THEN\n      RAISE EXCEPTION\n        'Pago en % no coincide con la divisa de la factura (%) y no hay tipo de cambio para la conversión.',\n        pay_currency, inv_currency\n        USING ERRCODE = 'check_violation';\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "936e626a72bd021db19c46841cfa00af",
+            "name": "enforce_payment_within_invoice_total()",
+            "definition": "CREATE OR REPLACE FUNCTION public.enforce_payment_within_invoice_total()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  inv_total NUMERIC;\n  inv_status TEXT;\n  inv_metodo TEXT;\n  inv_cfdi TEXT;\n  inv_moneda TEXT;\n  inv_tc NUMERIC;\n  total_paid NUMERIC;\n  new_amount NUMERIC;\n  credited NUMERIC;\n  payable NUMERIC;\nBEGIN\n  PERFORM pg_advisory_xact_lock(hashtext('invoice_payment:' || NEW.invoice_id::text));\n  SELECT total, status, moneda, tipo_cambio, metodo_pago, cfdi_status\n    INTO inv_total, inv_status, inv_moneda, inv_tc, inv_metodo, inv_cfdi\n  FROM public.invoices\n  WHERE id = NEW.invoice_id\n  FOR UPDATE;\n\n  IF inv_total IS NULL THEN\n    RAISE EXCEPTION 'Invoice % not found for payment', NEW.invoice_id\n      USING ERRCODE = 'foreign_key_violation';\n  END IF;\n\n  IF inv_status = 'cancelled' THEN\n    RAISE EXCEPTION 'No se pueden registrar pagos en facturas canceladas'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  IF inv_status = 'draft' THEN\n    RAISE EXCEPTION 'No se pueden registrar pagos en facturas en borrador. Envia la factura primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  inv_moneda := upper(COALESCE(inv_moneda, 'MXN'));\n\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, inv_moneda)) = inv_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(inv_tc, 0)), 0)\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(inv_tc, 0))\n      END), 0) INTO total_paid\n  FROM public.payments p\n  WHERE p.invoice_id = NEW.invoice_id\n    AND (TG_OP = 'INSERT' OR p.id <> NEW.id);\n\n  new_amount := CASE\n    WHEN upper(COALESCE(NEW.currency, inv_moneda)) = inv_moneda THEN NEW.amount\n    WHEN upper(COALESCE(NEW.currency, 'MXN')) = 'MXN'\n      THEN NEW.amount / NULLIF(COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0)), 0)\n    ELSE NEW.amount * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(inv_tc, 0))\n  END;\n  IF new_amount IS NULL THEN\n    RAISE EXCEPTION\n      'No se puede verificar el sobrepago: falta tipo de cambio para convertir el pago (%) a la moneda de la factura (%)',\n      upper(COALESCE(NEW.currency, 'MXN')), inv_moneda\n      USING ERRCODE = 'check_violation';\n  END IF;\n\n  SELECT COALESCE(SUM(total), 0) INTO credited\n  FROM public.credit_notes\n  WHERE invoice_id = NEW.invoice_id\n    AND cfdi_status = 'stamped'\n    AND status <> 'cancelled'\n    AND cancellation_status IS DISTINCT FROM 'accepted';\n\n  total_paid := total_paid + new_amount;\n  payable := inv_total - credited;\n\n  IF total_paid > payable THEN\n    RAISE EXCEPTION\n      'Sobrepago rechazado: la suma de pagos (%) excede el saldo facturable (%) despues de notas de credito',\n      round(total_paid, 2), round(payable, 2)\n      USING ERRCODE = 'check_violation',\n            HINT = 'Reduce el monto del pago o cancela pagos previos antes de registrar uno nuevo.';\n  END IF;\n\n  IF upper(COALESCE(inv_metodo, '')) = 'PUE'\n     AND COALESCE(inv_cfdi, '') = 'stamped'\n     AND round(total_paid, 2) < round(payable, 2) - 0.01 THEN\n    RAISE EXCEPTION\n      'Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: %)',\n      round(payable, 2)\n      USING ERRCODE = 'check_violation',\n            HINT = 'Registra el pago por el saldo total o retimbra la factura como PPD.';\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "93eeb3ac6428a0f1e17e4ca3cb8e013c",
+            "name": "fx_convert_amount(numeric,text,text,numeric,numeric)",
+            "definition": "CREATE OR REPLACE FUNCTION public.fx_convert_amount(p_amount numeric, p_from text, p_to text, p_from_rate numeric, p_to_rate numeric)\n RETURNS numeric\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\n  SELECT CASE\n    WHEN p_amount IS NULL THEN NULL\n    WHEN upper(COALESCE(p_from, 'MXN')) = upper(COALESCE(p_to, 'MXN')) THEN round(p_amount, 2)\n    WHEN public.fx_is_missing(p_from, p_from_rate) OR public.fx_is_missing(p_to, p_to_rate) THEN NULL\n    ELSE round(\n      p_amount\n      * CASE WHEN upper(COALESCE(p_from, 'MXN')) = 'MXN' THEN 1 ELSE p_from_rate END\n      / CASE WHEN upper(COALESCE(p_to, 'MXN')) = 'MXN' THEN 1 ELSE p_to_rate END\n    , 2)\n  END;\n$function$\n"
+        },
+        {
+            "md5": "05a87eb3c2398d2c83b5380309715783",
+            "name": "fx_is_missing(text,numeric)",
+            "definition": "CREATE OR REPLACE FUNCTION public.fx_is_missing(p_currency text, p_rate numeric)\n RETURNS boolean\n LANGUAGE sql\n IMMUTABLE\n SET search_path TO 'public'\nAS $function$\n  SELECT upper(COALESCE(p_currency, 'MXN')) <> 'MXN'\n     AND (p_rate IS NULL OR p_rate <= 0 OR p_rate = 1);\n$function$\n"
+        },
+        {
+            "md5": "22f36bdf6a1892cd6037fae30db55e90",
+            "name": "guard_invoice_status_integrity()",
+            "definition": "CREATE OR REPLACE FUNCTION public.guard_invoice_status_integrity()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_jwt_role text;\n  v_invoice_currency text;\n  v_paid numeric := 0;\n  v_credited numeric := 0;\n  v_remaining numeric := 0;\nBEGIN\n  IF current_setting('app.e2e_seed', true) = 'on'\n     OR current_setting('app.e2e_teardown', true) = 'on' THEN\n    RETURN NEW;\n  END IF;\n\n  IF NEW.status = 'paid' THEN\n    v_invoice_currency := upper(COALESCE(NEW.moneda, 'MXN'));\n\n    IF EXISTS (\n      SELECT 1\n      FROM public.payments p\n      WHERE p.invoice_id = NEW.id\n        AND upper(COALESCE(p.currency, v_invoice_currency)) <> v_invoice_currency\n        AND COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(NEW.tipo_cambio, 0)) IS NULL\n    ) THEN\n      RAISE EXCEPTION\n        'No se puede marcar la factura como pagada: hay pagos en otra moneda sin tipo de cambio.'\n        USING ERRCODE = 'check_violation';\n    END IF;\n\n    SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, v_invoice_currency)) = v_invoice_currency\n          THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(\n            COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(NEW.tipo_cambio, 0)),\n            0\n          )\n        ELSE p.amount * COALESCE(\n          NULLIF(p.exchange_rate, 0),\n          NULLIF(NEW.tipo_cambio, 0)\n        )\n      END\n    ), 0)\n    INTO v_paid\n    FROM public.payments p\n    WHERE p.invoice_id = NEW.id;\n\n    SELECT COALESCE(SUM(cn.total), 0)\n    INTO v_credited\n    FROM public.credit_notes cn\n    WHERE cn.invoice_id = NEW.id\n      AND cn.cfdi_status = 'stamped'\n      AND cn.status <> 'cancelled'\n      AND cn.cancellation_status IS DISTINCT FROM 'accepted';\n\n    v_remaining := GREATEST(\n      COALESCE(NEW.total, 0) - COALESCE(v_paid, 0) - COALESCE(v_credited, 0),\n      0\n    );\n\n    IF v_remaining > 0.005 THEN\n      RAISE EXCEPTION\n        'No se puede marcar la factura como pagada: saldo pendiente % (total %, pagos %, notas de crédito %). Registra el pago restante.',\n        round(v_remaining, 2), round(NEW.total, 2), round(v_paid, 2), round(v_credited, 2)\n        USING ERRCODE = 'check_violation';\n    END IF;\n  END IF;\n\n  IF TG_OP = 'INSERT' OR NEW.status IS NOT DISTINCT FROM OLD.status THEN\n    RETURN NEW;\n  END IF;\n\n  BEGIN\n    v_jwt_role := auth.jwt() ->> 'role';\n  EXCEPTION WHEN OTHERS THEN\n    v_jwt_role := NULL;\n  END;\n  IF v_jwt_role = 'service_role' OR v_jwt_role IS NULL THEN\n    RETURN NEW;\n  END IF;\n\n  IF NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM 'cancelled' THEN\n    IF current_setting('app.sat_flow', true) IS DISTINCT FROM 'on' THEN\n      NEW.cancelled_at := COALESCE(NEW.cancelled_at, now());\n      IF NEW.cancellation_reason IS NULL OR btrim(NEW.cancellation_reason) = '' THEN\n        RAISE EXCEPTION\n          'Cancelar una factura requiere un motivo (cancellation_reason). Las facturas timbradas se cancelan por el flujo SAT.'\n          USING ERRCODE = 'check_violation';\n      END IF;\n    END IF;\n  END IF;\n\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "1349ce0177b46a17e3eb4252790783a4",
+            "name": "prevent_payment_delete_when_rep_stamped()",
+            "definition": "CREATE OR REPLACE FUNCTION public.prevent_payment_delete_when_rep_stamped()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF OLD.rep_cfdi_status = 'stamped' THEN\n    RAISE EXCEPTION 'No se puede eliminar un pago con REP timbrado. Cancele el complemento primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n  RETURN OLD;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "105db69e07f634e9d4ce42d2e4d16970",
+            "name": "prevent_payment_mutation_when_rep_stamped()",
+            "definition": "CREATE OR REPLACE FUNCTION public.prevent_payment_mutation_when_rep_stamped()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nBEGIN\n  IF OLD.rep_cfdi_status = 'stamped' AND (\n    NEW.amount IS DISTINCT FROM OLD.amount\n    OR NEW.payment_date IS DISTINCT FROM OLD.payment_date\n    OR NEW.currency IS DISTINCT FROM OLD.currency\n    OR NEW.exchange_rate IS DISTINCT FROM OLD.exchange_rate\n    OR NEW.payment_form_sat IS DISTINCT FROM OLD.payment_form_sat\n    OR NEW.installment_number IS DISTINCT FROM OLD.installment_number\n    OR NEW.prior_balance IS DISTINCT FROM OLD.prior_balance\n    OR NEW.invoice_id IS DISTINCT FROM OLD.invoice_id\n  ) THEN\n    RAISE EXCEPTION 'No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.'\n      USING ERRCODE = 'check_violation';\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "43867b46fa83b160f7f177fa433c1ff0",
+            "name": "sync_invoice_status(uuid)",
+            "definition": "CREATE OR REPLACE FUNCTION public.sync_invoice_status(p_invoice_id uuid)\n RETURNS void\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_uid uuid := (select auth.uid());\n  v_org uuid;\n  v_invoice_id uuid;\n  v_invoice_org uuid;\n  v_total numeric(14,2);\n  v_status text;\n  v_paid numeric(14,2);\n  v_credited numeric(14,2);\n  v_latest_date date;\n  v_due date;\n  v_target text;\n  v_moneda text;\n  v_tc numeric;\nBEGIN\n  v_invoice_id := p_invoice_id;\n  IF v_invoice_id IS NULL THEN\n    RETURN;\n  END IF;\n\n  IF v_uid IS NOT NULL AND public.is_internal_member(v_uid) THEN\n    v_org := public.current_internal_organization_id();\n    IF v_org IS NULL THEN\n      RAISE EXCEPTION 'not_authorized' USING ERRCODE = '42501';\n    END IF;\n  END IF;\n\n  SELECT total, status, due_date, moneda, tipo_cambio, organization_id\n    INTO v_total, v_status, v_due, v_moneda, v_tc, v_invoice_org\n  FROM public.invoices WHERE id = v_invoice_id\n  FOR UPDATE;\n  IF v_total IS NULL THEN\n    RETURN;\n  END IF;\n\n  -- Llamada directa desde una sesión interna: sólo su propia organización.\n  IF v_org IS NOT NULL AND v_invoice_org IS DISTINCT FROM v_org THEN\n    RAISE EXCEPTION 'not_authorized' USING ERRCODE = '42501';\n  END IF;\n\n  IF v_status IN ('cancelled', 'draft') THEN\n    RETURN;\n  END IF;\n\n  v_moneda := upper(COALESCE(v_moneda, 'MXN'));\n\n  -- R4-15: pagos convertidos a la moneda de la factura (ver FIX R4-03).\n  SELECT COALESCE(SUM(\n      CASE\n        WHEN upper(COALESCE(p.currency, v_moneda)) = v_moneda THEN p.amount\n        WHEN upper(COALESCE(p.currency, 'MXN')) = 'MXN'\n          THEN p.amount / NULLIF(COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_tc, 0)), 0)\n        ELSE p.amount * COALESCE(NULLIF(p.exchange_rate, 0), NULLIF(v_tc, 0))\n      END), 0), MAX(p.payment_date)\n    INTO v_paid, v_latest_date\n  FROM public.payments p\n  WHERE p.invoice_id = v_invoice_id\n    AND COALESCE(p.organization_id, v_invoice_org) = v_invoice_org;\n\n  -- N-21 / R4-15: criterio canónico de NC (mismo que la vista y la UI).\n  SELECT COALESCE(SUM(total), 0) INTO v_credited\n  FROM public.credit_notes\n  WHERE invoice_id = v_invoice_id\n    AND COALESCE(organization_id, v_invoice_org) = v_invoice_org\n    AND cfdi_status = 'stamped'\n    AND status <> 'cancelled'\n    AND cancellation_status IS DISTINCT FROM 'accepted';\n\n  PERFORM set_config('app.payment_sync', 'on', true);\n\n  IF v_paid >= v_total - v_credited - 0.005 AND v_paid > 0 THEN\n    IF v_status <> 'paid' THEN\n      UPDATE public.invoices SET status = 'paid', paid_at = COALESCE(v_latest_date, public.today_mty())\n        WHERE id = v_invoice_id;\n    END IF;\n  -- R4-16: cubierta al 100% por NC timbrada(s) => 'paid'.\n  ELSIF v_paid = 0 AND v_credited >= v_total - 0.005 THEN\n    IF v_status <> 'paid' THEN\n      UPDATE public.invoices SET status = 'paid', paid_at = COALESCE(v_latest_date, public.today_mty())\n        WHERE id = v_invoice_id;\n    END IF;\n  ELSIF v_paid = 0 AND v_credited > 0 THEN\n    IF v_status = 'paid' THEN\n      -- R5-15: la factura deja de estar pagada (NC parcial sin pagos).\n      v_target := CASE\n        WHEN v_due IS NOT NULL AND v_due < public.today_mty() THEN 'overdue'\n        ELSE 'sent'\n      END;\n      UPDATE public.invoices SET status = v_target, paid_at = NULL\n        WHERE id = v_invoice_id;\n    ELSIF v_status <> 'partial' THEN\n      -- R5-15: NC parcial sin pagos y no estaba 'paid' => 'partial'.\n      UPDATE public.invoices SET status = 'partial', paid_at = NULL\n        WHERE id = v_invoice_id;\n    END IF;\n  ELSIF (v_paid + v_credited) > 0 THEN\n    IF v_status <> 'partial' THEN\n      UPDATE public.invoices SET status = 'partial', paid_at = NULL\n        WHERE id = v_invoice_id;\n    END IF;\n  ELSE\n    v_target := CASE\n      WHEN v_due IS NOT NULL AND v_due < public.today_mty() THEN 'overdue'\n      ELSE 'sent'\n    END;\n    IF v_status <> v_target THEN\n      UPDATE public.invoices SET status = v_target, paid_at = NULL\n        WHERE id = v_invoice_id;\n    END IF;\n  END IF;\nEND;\n$function$\n"
+        },
+        {
+            "md5": "58d767c28ba000ef3b04bee15c89094e",
+            "name": "trg_payment_amount_mxn()",
+            "definition": "CREATE OR REPLACE FUNCTION public.trg_payment_amount_mxn()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_moneda text;\n  v_tipo_cambio numeric;\n  v_pay_currency text;\nBEGIN\n  SELECT i.moneda, i.tipo_cambio INTO v_moneda, v_tipo_cambio\n  FROM public.invoices i\n  WHERE i.id = NEW.invoice_id;\n  v_moneda := upper(COALESCE(v_moneda, 'MXN'));\n  v_pay_currency := upper(COALESCE(NEW.currency, v_moneda));\n\n  IF v_pay_currency = 'MXN' THEN\n    NEW.amount_mxn := ROUND(COALESCE(NEW.amount, 0), 2);\n  ELSIF v_pay_currency <> v_moneda THEN\n    -- R6-07: cruce permitido si hay tipo de cambio disponible (R5-01).\n    IF COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)) IS NULL THEN\n      RAISE EXCEPTION\n        'Pago en % no coincide con la moneda de la factura (%) y no hay tipo de cambio para convertirlo',\n        v_pay_currency, v_moneda\n        USING ERRCODE = 'check_violation';\n    END IF;\n    NEW.amount_mxn := ROUND(\n      NEW.amount * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)),\n      2\n    );\n  ELSE\n    NEW.amount_mxn := ROUND(\n      COALESCE(NEW.amount, 0) * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)),\n      2\n    );\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n"
+        }
+    ]
+}

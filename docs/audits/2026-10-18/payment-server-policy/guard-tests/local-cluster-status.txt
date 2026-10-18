@@ -1,0 +1,8 @@
+Target: <user>\Documents\Codex\2026-10-18\task-2\audit-payment-guard-cases\.local-pg\data-guard-policy
+Host/port/database verified by both matrices: 127.0.0.1:55441/liftgo_payment_guard_policy_fixture
+Stop requested UTC: 2026-10-18T23:12:14.6460312Z
+waiting for server to shut down.... done
+server stopped
+stop_exit_code=0
+pg_ctl: no server running
+status_exit_code=3

@@ -1,0 +1,35 @@
+{
+  "view_catalog_sha256": "9E9C0562C82A75E81247552EDFBCD7B5A720381C710869BE36F6111ED040EB08",
+  "derived_catalog_sha256": "108256DE58595B93CA630473936AF5B13636E9D3C2E3533F967319CA0EFB5955",
+  "omitted_payment_triggers": [
+    "audit_payments",
+    "trg_guard_is_e2e",
+    "trg_notify_payment_received",
+    "trg_organization_write_context"
+  ],
+  "source_kind": "Sanitized function definitions and necessary trigger wiring; private metadata excluded",
+  "catalog_sha256": "AE3152E280DB4E264D0715EA93BC32FA7C026A9B87FC6EFDCE4F6A5DBFB1CE0E",
+  "repository_sha": "89967ae5768cf23d18d65c975d2cc0ac13031cb4",
+  "repository_sources": [
+    {
+      "path": "drizzle/migrations/0016_multi_org_phase6_numbering_fiscal_scope.sql",
+      "sha256": "2820B0341C6C9A73EE85DCD5DC4F1EE638AE69FF35B22BF7BF4B7E820824C0DE"
+    },
+    {
+      "path": "supabase/migrations/20260729210413_2c933283-5d2b-402d-9f2e-c72814a48147.sql",
+      "sha256": "5F96925D52A6DEC4E112D388965A2F47C080E2A04A099ADF3485049D574B42EA"
+    },
+    {
+      "path": "supabase/migrations/20260731235443_7b2ca674-f6e0-4b98-95b9-1039fa28abfb.sql",
+      "sha256": "CF21B18514862B6CB91298107DA03C3BE4AD70DC328D0790C5C126CA3672CA3F"
+    },
+    {
+      "path": "supabase/migrations/20260825221855_f022c962-9282-439a-a4c8-4d4dc799d9f1.sql",
+      "sha256": "E773250600B05C37FA2D86EA7DEA3B01EDDCC9462466B5155DE04E554CE6C09B"
+    },
+    {
+      "path": "supabase/migrations/20260901181755_c5d18503-1938-4abb-a1d1-3bf9e8ac896d.sql",
+      "sha256": "6E0DF904D6C1094A9F16472C52F92AC360B7CB05929A1AAE21780630EA692977"
+    }
+  ]
+}

@@ -1,3 +1,7 @@
+## [8.44.9] — 2026-10-18
+
+- Pagos convierte y redondea por pago, valida un máximo estricto y sincroniza el estado de factura con la misma política, conservando los candados REP. Requiere la migración aprobada antes de activar el cliente.
+
 ## [8.44.8] — 2026-10-18
 
 - Calendario conserva fecha, vista y rango al abrir una reserva y volver durante una carga; la navegación al Panel no agrega filtros de calendario al destino.

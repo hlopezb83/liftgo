@@ -1,0 +1,128 @@
+{
+  "phase": "before",
+  "target": {
+    "database": "liftgo_payment_guard_policy_fixture",
+    "host": "127.0.0.1/32",
+    "port": 55441
+  },
+  "matrix_candidate": null,
+  "guard_definition_sha256": "dad9f870c189edf1cf6685ac986ca2a25e27eacac2ef9d592c24515599c9cba2",
+  "total": 4,
+  "passed": 4,
+  "cases": [
+    {
+      "name": "insert-insert",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          38356
+        ],
+        "wait_event_type": null,
+        "wait_event": null
+      },
+      "first_pid": 38356,
+      "second_pid": 25380,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (120.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 1,
+        "total": "60.00",
+        "amounts": [
+          "60.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    },
+    {
+      "name": "update-update",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          38356
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 38356,
+      "second_pid": 25380,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (110.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 2,
+        "total": "90.00",
+        "amounts": [
+          "40",
+          "50.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    },
+    {
+      "name": "insert-update",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          38356
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 38356,
+      "second_pid": 25380,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (110.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 2,
+        "total": "90.00",
+        "amounts": [
+          "40",
+          "50.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    },
+    {
+      "name": "update-insert",
+      "passed": true,
+      "blocking": {
+        "pids": [
+          38356
+        ],
+        "wait_event_type": "Lock",
+        "wait_event": "advisory"
+      },
+      "first_pid": 38356,
+      "second_pid": 25380,
+      "second": {
+        "state": "23514",
+        "message": "Sobrepago rechazado: la suma de pagos (110.00) excede el saldo facturable (100.00) despues de notas de credito"
+      },
+      "stored": {
+        "count": 1,
+        "total": "60.00",
+        "amounts": [
+          "60.00"
+        ]
+      },
+      "status": {
+        "status": "partial",
+        "paid_at": null
+      }
+    }
+  ]
+}
