@@ -1,4 +1,4 @@
-import type { ReactNode, MouseEvent as ReactMouseEvent } from "react";
+import type { ComponentProps, ReactNode, MouseEvent as ReactMouseEvent } from "react";
 import { SpinnerIcon } from "@/components/icons";
 import {
   AlertDialog,
@@ -24,6 +24,8 @@ interface ConfirmDialogProps {
   loading?: boolean;
   hideConfirm?: boolean;
   onConfirm?: () => void;
+  /** Opt-in: destino de foco al cerrar (p. ej. cuando se abrió desde un menú desmontable). */
+  onCloseAutoFocus?: ComponentProps<typeof AlertDialogContent>["onCloseAutoFocus"];
 }
 
 /**
@@ -42,6 +44,7 @@ export function ConfirmDialog({
   loading = false,
   hideConfirm = false,
   onConfirm,
+  onCloseAutoFocus,
 }: ConfirmDialogProps) {
   const handleConfirm = (event: ReactMouseEvent<HTMLButtonElement>) => {
     if (loading || !onConfirm) {
@@ -53,7 +56,7 @@ export function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent onCloseAutoFocus={onCloseAutoFocus}>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           {descriptionNode ? (
