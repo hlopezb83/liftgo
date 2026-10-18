@@ -1,0 +1,6 @@
+{
+  "description": "El portal permite reintentar después de una excepción de conexión; una sesión rechazada por el servidor vuelve al acceso conservando el destino.",
+  "changes": [
+    "No modifica permisos de proveedores ni datos; las causas originales de los incidentes siguen en revisión."
+  ]
+}

@@ -1,3 +1,7 @@
+## [8.44.6] — 2026-10-18
+
+- El portal permite reintentar tras una excepción de conexión; una sesión rechazada vuelve al acceso conservando el destino. No cambia permisos ni datos.
+
 ## [8.44.5] — 2026-10-17
 
 - Limpieza de calidad: se eliminaron las 16 advertencias de lint del CI (orden de importaciones y funciones demasiado largas) y se corrigieron los mocks de la prueba del detalle de entrega. Sin cambios de comportamiento.
