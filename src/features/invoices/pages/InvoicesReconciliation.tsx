@@ -81,12 +81,14 @@ export default function InvoicesReconciliation() {
         />
       ) : (
       <>
+      {/* V04: la etiqueta reserva la altura de 2 líneas para que los valores
+          arranquen a la misma altura entre tarjetas (desfase de 16px). */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpis.map((k) => (
-          <Card key={k.label}>
+          <Card key={k.label} className="h-full">
             <CardContent className="py-3">
-              <p className="text-xs text-muted-foreground">{k.label}</p>
-              <p className="text-lg font-semibold tabular-nums">{k.value}</p>
+              <p className="text-xs text-muted-foreground leading-tight min-h-[2.5em] [overflow-wrap:anywhere]">{k.label}</p>
+              <p className="text-lg font-semibold tabular-nums [overflow-wrap:anywhere]">{k.value}</p>
             </CardContent>
           </Card>
         ))}
