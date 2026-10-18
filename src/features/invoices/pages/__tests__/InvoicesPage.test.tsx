@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { TestRouter } from "@/test/router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as hooks from "../../hooks/invoices/useInvoices";
@@ -26,6 +27,8 @@ const mockInvoices = [
     due_date: "2026-02-20",
   },
 ];
+
+vi.mock("@/hooks/use-mobile", () => ({ useIsMobile: vi.fn(() => false), useIsTabletOrBelow: vi.fn(() => false) }));
 
 function buildInfiniteReturn(rows: typeof mockInvoices) {
   return {
@@ -79,7 +82,20 @@ function renderPage() {
 
 describe("InvoicesPage smoke tests", () => {
   beforeEach(() => {
+    vi.mocked(useIsMobile).mockReturnValue(false);
+    vi.mocked(useIsTabletOrBelow).mockReturnValue(false);
     vi.mocked(hooks.useInvoicesInfinite).mockReturnValue(buildInfiniteReturn(mockInvoices));
+  });
+
+  it("V03: mantiene una sola búsqueda fuera del panel móvil", async () => {
+    vi.mocked(useIsMobile).mockReturnValue(true);
+    vi.mocked(useIsTabletOrBelow).mockReturnValue(true);
+    renderPage();
+    expect(await screen.findByRole("searchbox", { name: "Buscar facturas…" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Filtros" }));
+    expect(screen.getAllByRole("searchbox")).toHaveLength(1);
+    expect(screen.getByRole("dialog").querySelector('input[type="search"]')).toBeNull();
+    expect(screen.getByRole("combobox", { name: "Filtrar por estado CFDI" })).toBeVisible();
   });
 
   it("renders all invoices with correct statuses", async () => {
