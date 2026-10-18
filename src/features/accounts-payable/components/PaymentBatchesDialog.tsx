@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ComponentProps, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -14,9 +14,10 @@ import { PAYMENT_BATCH_PAGE_SIZE, usePaymentBatches, type PaymentBatchSummary } 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCloseAutoFocus?: ComponentProps<typeof FormDialog>["onCloseAutoFocus"];
 }
 
-export function PaymentBatchesDialog({ open, onOpenChange }: Props) {
+export function PaymentBatchesDialog({ open, onOpenChange, onCloseAutoFocus }: Props) {
   const [page, setPage] = useState(0);
   const query = usePaymentBatches(open, page);
   const cancel = useCancelPaymentBatch();
@@ -37,7 +38,7 @@ export function PaymentBatchesDialog({ open, onOpenChange }: Props) {
   };
 
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} isPending={isBusy}
+    <FormDialog open={open} onOpenChange={onOpenChange} isPending={isBusy} onCloseAutoFocus={onCloseAutoFocus}
       title="Historial de lotes de pago" width="2xl"
       description="Recupera el Excel original del lote o cancela una reserva sin pagos registrados.">
       {query.isError ? (

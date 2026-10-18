@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useMemo, useState } from "react";
+import { type ComponentProps, ReactNode, useCallback, useMemo, useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
   Dialog,
@@ -45,6 +45,8 @@ interface FormDialogProps {
   /** Oleada 2 (B-2): si `true`, cerrar (Esc/click fuera/botón X) pide
    *  confirmación al usuario antes de descartar cambios. */
   isDirty?: boolean;
+  /** Restauración opcional para diálogos controlados sin DialogTrigger. */
+  onCloseAutoFocus?: ComponentProps<typeof DialogContent>["onCloseAutoFocus"];
 }
 
 export function FormDialog({
@@ -58,6 +60,7 @@ export function FormDialog({
   className,
   isPending = false,
   isDirty = false,
+  onCloseAutoFocus,
 }: FormDialogProps) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
@@ -85,6 +88,7 @@ export function FormDialog({
         <DialogContent
           className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto pt-0 pb-0", className)}
           data-testid={testId}
+          onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
           onInteractOutside={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
         >
