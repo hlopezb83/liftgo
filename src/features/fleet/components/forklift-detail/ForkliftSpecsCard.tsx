@@ -29,9 +29,9 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
       help: locationHelp(currentLocation, locationError) },
   ];
   const insurance = [
-    { label: "Aseguradora", value: forklift.insurance_provider?.trim() ? forklift.insurance_provider : null },
-    { label: "No. Póliza", value: forklift.insurance_policy_number?.trim() ? forklift.insurance_policy_number : null },
-    { label: "Vigencia Seguro", value: forklift.insurance_expiry?.trim() ? forklift.insurance_expiry : null },
+    { label: "Aseguradora", value: registeredText(forklift.insurance_provider) },
+    { label: "No. Póliza", value: registeredText(forklift.insurance_policy_number) },
+    { label: "Vigencia Seguro", value: registeredText(forklift.insurance_expiry) },
     ...(canSeeCosts ? [{ label: "Costo Póliza", value: forklift.insurance_cost == null ? null : formatCurrency(Number(forklift.insurance_cost)) }] : []),
   ];
   const hasInsuranceData = insurance.some((field) => field.value != null);
@@ -68,6 +68,10 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
       </CardContent>
     </Card>
   );
+}
+
+function registeredText(value: string | null | undefined) {
+  return value?.trim() ? value : null;
 }
 
 function locationHelp(location?: string | null, error?: boolean) {

@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -14,18 +14,16 @@ beforeEach(() => { access.canSeeCosts = true; });
 afterEach(cleanup);
 
 describe("seguro según información visible", () => {
-  it("vacío: empieza cerrado y permite ver los cuatro campos sin afirmar falta de seguro", () => {
+  it("vacío: empieza cerrado con summary nativo y cuatro campos sin afirmar falta de seguro", () => {
     const { container } = render(<ForkliftSpecsCard forklift={base} />);
     const disclosure = container.querySelector("details");
     expect(disclosure).not.toHaveAttribute("open");
     const summary = screen.getByText("Seguro: sin datos registrados");
     expect(summary.tagName).toBe("SUMMARY");
     expect(within(summary).getByText("Ver campos")).toBeInTheDocument();
-    // Activación nativa de details (happy-dom no implementa el toggle del navegador).
-    fireEvent.click(summary);
-    disclosure?.setAttribute("open", "");
-    expect(screen.getByText("Aseguradora")).toBeVisible();
-    expect(screen.getByText("Costo Póliza")).toBeVisible();
+    // El toggle por teclado/clic y la visibilidad se verifican en Chromium aislado.
+    expect(screen.getByText("Aseguradora")).toBeInTheDocument();
+    expect(screen.getByText("Costo Póliza")).toBeInTheDocument();
     expect(screen.queryByText("Sin seguro")).not.toBeInTheDocument();
   });
 
@@ -51,7 +49,7 @@ describe("seguro según información visible", () => {
     const { container } = render(<ForkliftSpecsCard forklift={equipment} />);
     const disclosure = container.querySelector("details");
     expect(disclosure).toHaveAttribute("open");
-    expect(screen.getByText(equipment.insurance_provider)).toHaveClass("whitespace-pre-wrap", "[overflow-wrap:anywhere]");
+    expect(screen.getByText((_, element) => element?.textContent === equipment.insurance_provider)).toHaveClass("whitespace-pre-wrap", "[overflow-wrap:anywhere]");
     expect(screen.getByText(equipment.insurance_policy_number)).toHaveClass("[overflow-wrap:anywhere]");
     expect(screen.getByText(formatCurrency(equipment.insurance_cost))).toBeInTheDocument();
     expect(equipment.insurance_cost).toBe(123456789.12);
