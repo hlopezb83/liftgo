@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as Sentry from "@sentry/react";
+import { dependencies } from "../../../package.json";
 import { createClientSentryOptions } from "./sentry";
 import { clearSentryIdentity, syncSentryIdentity } from "./identity";
 import { captureOperationalError } from "./captureOperationalError";
@@ -33,7 +34,7 @@ describe("SDK real con transporte en memoria, sin red", () => {
     await Sentry.flush(1000);
     expect(events()).toHaveLength(1);
     const event = events()[0] as Sentry.Event;
-    expect(event.sdk?.version).toBe("11.4.0");
+    expect(event.sdk?.version).toBe(dependencies["@sentry/react"]);
     expect(event.tags).toMatchObject({ organization_id: "org-a", role: "admin", phase: "mutation" });
     expect(event.user).toEqual({ id: "actor-a" });
     for (const privateValue of ["arbitrary-secret", "audit@example.com", "AUDIT_NOT_A_REAL_KEY"]) expect(JSON.stringify(event)).not.toContain(privateValue);
