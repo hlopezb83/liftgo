@@ -1,5 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
-import { dependencies } from "../../package.json";
+import { dependencies } from "../../package.json" with { type: "json" };
 import { classifyConsoleError, normalizeUrl } from "./consoleNoise";
 
 /**

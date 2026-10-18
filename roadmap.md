@@ -5,7 +5,8 @@
 - [x] Confirmar HEAD y referencias de PR261 antes de editar.
 - [x] Comparar versiones reales del SDK contra las declaradas, conservando las aserciones de privacidad e identidad.
 - [x] Actualizar documentación vigente sin alterar evidencia histórica, Deno ni changelog.
-- [ ] Ejecutar pruebas focales y verificar arranque local; informar límites de build y Gate A/B.
+- [x] Ejecutar pruebas focales: 51 casos; arranque local HTTP 200, interacción y recarga sin errores de página.
+- [ ] Coordinador: confirmar build, smoke productivo y Gate A/B en CI del SHA final; el entorno no permite build/typechecks manuales.
 
 Revisado el 29 de septiembre de 2026 contra el repositorio `main`.
 
