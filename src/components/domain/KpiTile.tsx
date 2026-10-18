@@ -121,14 +121,12 @@ export function KpiTile({
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
-            {/* Hallazgo 4: nombres largos ("Ingreso Mensual Recurrente", "DSO
-                (Días de Cobro)") se truncaban en desktop — se permite wrap de
-                hasta 2 líneas y se conserva el title accesible por si aún se
-                recortara en pantallas muy angostas. */}
+            {/* Las etiquetas largas se muestran completas, sin límite de
+                líneas, con ruptura de emergencia y title íntegro. */}
             {/* V26-06: se reserva la altura de 2 líneas (2 × leading-tight)
                 para que el valor arranque a la misma altura en todas las
                 tarjetas, sin truncar ni ocultar títulos largos. */}
-            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight line-clamp-2 min-h-[2.5em]" title={label}>
+            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight [overflow-wrap:anywhere] min-h-[2.5em]" title={label}>
               {label}
             </p>
             {/* V05: ruptura de emergencia para que importes largos nunca se

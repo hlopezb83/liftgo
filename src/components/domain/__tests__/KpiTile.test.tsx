@@ -101,7 +101,8 @@ describe("KpiTile · estructura e interacción", () => {
     const { container } = render(<KpiTile label={long} value="$1,000" />);
     const label = screen.getByText(long);
     expect(label.className).toContain("min-h-[2.5em]");
-    expect(label.className).toContain("line-clamp-2");
+    expect(label.className).not.toContain("line-clamp");
+    expect(label.className).toContain("[overflow-wrap:anywhere]");
     expect(label.getAttribute("title")).toBe(long);
     expect(container.querySelector("p.tabular-nums")).toBeTruthy();
   });

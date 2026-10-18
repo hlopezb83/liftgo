@@ -1,5 +1,12 @@
 # Roadmap operativo y estado de evidencia
 
+## KPI móvil: etiquetas completas (18 de octubre de 2026)
+
+- [x] Base `2d38f5eaa153db042749b1da845fe56a5ee31f66` confirmada; checkout interno `edit/*`, correspondiente a la referencia seleccionada por el coordinador.
+- [x] Sólo Resultados: grid 1/2/3/5 columnas y etiquetas sin clamp; KpiTile: sólo etiqueta sin clamp y ruptura de emergencia. Valores, cálculos, interacción y otros grids intactos.
+- [ ] Ejecutar pruebas focales de etiquetas/valores/comparativo y regresión reportes/dashboard, lint y QA aislada a 375/640/1024/1440 y texto 200%.
+- [ ] Coordinador: build productivo y typechecks en CI; ejecución manual no permitida por el entorno. No equivale a QA autenticada/publicada; sin datos, versiones, changelog ni publicación.
+
 ## V04–V05: presentación KPI (Resultados, Conciliación, KpiTile)
 
 - [x] Base `553448234aa75001d64788cfd6380089f0ffae10` confirmada; checkout interno `edit/*`.
