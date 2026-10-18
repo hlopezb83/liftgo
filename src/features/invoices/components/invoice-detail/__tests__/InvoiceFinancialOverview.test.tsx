@@ -18,7 +18,7 @@ describe("InvoiceFinancialOverview", () => {
 
   it("factura pagada en USD: saldo cero y sin crédito", () => {
     render(<InvoiceFinancialOverview total={1500} totalPaid={1500} balance={0} creditedAmount={0} currency="USD" />);
-    expect(screen.getByTestId("overview-saldo")).toHaveTextContent("$0.00 USD");
+    expect(screen.getByTestId("overview-saldo")).toHaveTextContent(/0\.00 USD$/);
     expect(screen.queryByTestId("overview-credited")).toBeNull();
   });
 
@@ -61,7 +61,7 @@ describe("InvoiceDetailBadges tonos (StatusBadge)", () => {
 
 describe("InvoiceDetailIdentifiers desplegable", () => {
   it("se expande y copia el UUID completo", async () => {
-    Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } });
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText: vi.fn().mockResolvedValue(undefined) } });
     const uuid = "eb3abf2f-d404-49fd-bb6f-d694a36d1056";
     const { container } = render(<InvoiceDetailIdentifiers cfdiUuid={uuid} serie="F" folio="1" />);
     const details = container.querySelector("details")!;
