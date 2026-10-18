@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { type Ref, useImperativeHandle, useRef, useState, createRef } from "react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestRouter } from "@/test/router";
 import { useToggleDialog } from "@/hooks/useDialogState";
@@ -31,7 +31,11 @@ vi.mock("../../hooks/useExportablePayables", () => ({
   useExportablePayables: () => ({ data: [], isPending: false, isFetching: false, isError: false }),
 }));
 
-function Harness({ header = "desktop", showTarget = true }: { header?: string; showTarget?: boolean }) {
+type HeaderState = { header?: string; showTarget?: boolean };
+type HarnessControl = { update: (next: HeaderState) => void };
+function Harness({ ref }: { ref: Ref<HarnessControl> }) {
+  const [{ header = "desktop", showTarget = true }, setHeader] = useState<HeaderState>({});
+  useImperativeHandle(ref, () => ({ update: (next) => setHeader({ ...next }) }), []);
   const targetRef = useRef<HTMLButtonElement>(null);
   const exportDialog = useToggleDialog();
   const batchesDialog = useToggleDialog();
@@ -44,8 +48,10 @@ function Harness({ header = "desktop", showTarget = true }: { header?: string; s
   </>;
 }
 
-function setup() {
-  const view = render(<TestRouter><Harness /></TestRouter>);
+async function setup() {
+  const control = createRef<HarnessControl>();
+  render(<TestRouter><Harness ref={control} /></TestRouter>);
+  await screen.findByRole("button", { name: "Más acciones" });
   // happy-dom no tiene layout; se simula sólo la geometría del destino persistente.
   const markVisible = () => {
     const target = screen.getByRole("button", { name: "Más acciones", hidden: true });
@@ -53,8 +59,8 @@ function setup() {
     return target;
   };
   const target = markVisible();
-  const update = (props: Parameters<typeof Harness>[0] = {}) => {
-    view.rerender(<TestRouter><Harness {...props} /></TestRouter>);
+  const update = (props: HeaderState = {}) => {
+    act(() => control.current?.update(props));
     return props.showTarget === false ? null : markVisible();
   };
   return { target, update };
@@ -93,7 +99,7 @@ beforeEach(() => {
 
 describe("V02 · foco de acciones y diálogos reales", () => {
   it.each(["Escape", "footer", "X"])("Historial cerrado con %s devuelve foco tras desmontar", async (method) => {
-    const { target } = setup();
+    const { target } = await setup();
     const focus = vi.spyOn(target, "focus");
     const dialog = await openDialog(target);
     focus.mockClear();
@@ -109,7 +115,7 @@ describe("V02 · foco de acciones y diálogos reales", () => {
   });
 
   it("conserva foco en ciclos repetidos de apertura y cierre", async () => {
-    const { target } = setup();
+    const { target } = await setup();
     for (let cycle = 0; cycle < 3; cycle++) {
       await openDialog(target);
       escape();
@@ -118,7 +124,7 @@ describe("V02 · foco de acciones y diálogos reales", () => {
   });
 
   it("resuelve el ref actual al remontar el encabezado desktop/móvil", async () => {
-    const { target, update } = setup();
+    const { target, update } = await setup();
     await openDialog(target);
     const mobile = update({ header: "mobile" });
     expect(target.isConnected).toBe(false);
@@ -134,7 +140,7 @@ describe("V02 · foco de acciones y diálogos reales", () => {
   });
 
   it("sin destino conectado cierra sin intentar enfocar el botón desmontado", async () => {
-    const { target, update } = setup();
+    const { target, update } = await setup();
     await openDialog(target);
     update({ showTarget: false });
     const focus = vi.spyOn(target, "focus");
@@ -144,7 +150,7 @@ describe("V02 · foco de acciones y diálogos reales", () => {
   });
 
   it("isBusy bloquea Escape, Cerrar y X sin restauración prematura", async () => {
-    const { target, update } = setup();
+    const { target, update } = await setup();
     const dialog = await openDialog(target);
     state.busy = true;
     update();
@@ -161,7 +167,7 @@ describe("V02 · foco de acciones y diálogos reales", () => {
   });
 
   it.each(["Cancelar", "Escape"])("Exportar cerrado con %s no ejecuta operaciones y restaura foco", async (method) => {
-    const { target } = setup();
+    const { target } = await setup();
     const dialog = await openDialog(target, "Exportar pagos", "Exportar pagos a Excel");
     if (method === "Escape") escape();
     else fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar" }));
@@ -172,7 +178,7 @@ describe("V02 · foco de acciones y diálogos reales", () => {
   });
 
   it("Escape en el menú sin selección mantiene el foco predeterminado", async () => {
-    const { target } = setup();
+    const { target } = await setup();
     await openMenu(target);
     escape();
     await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
