@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 // @vitest-environment jsdom
-import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
+import { render as rtlRender, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { InvoiceDetailIdentifiers } from "./InvoiceDetailIdentifiers";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -16,6 +16,14 @@ vi.mock("@/components/ui/tooltip", () => ({
   TooltipTrigger: ({ children }: { children: ReactNode }) => <>{children}</>,
   TooltipContent: ({ children }: { children: ReactNode }) => <div>{children}</div>,
 }));
+
+/** V07/V10: los identificadores viven en un <details>; se abre antes de consultar. */
+function render(ui: ReactElement) {
+  const r = rtlRender(ui);
+  fireEvent.click(screen.getByText("Identificadores"));
+  expect(r.container.querySelector("details")?.open).toBe(true);
+  return r;
+}
 
 describe("InvoiceDetailIdentifiers", () => {
   beforeEach(() => {

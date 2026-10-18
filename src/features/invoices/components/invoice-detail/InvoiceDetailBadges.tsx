@@ -1,13 +1,17 @@
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Badge } from "@/components/ui/badge";
 
 type Tone = "neutral" | "info" | "success" | "warning" | "destructive";
 
-const toneClass: Record<Tone, string> = {
-  neutral: "bg-muted text-muted-foreground border-transparent",
-  info: "bg-status-rented text-info-foreground border-transparent",
-  success: "bg-status-available text-success-foreground border-transparent",
-  warning: "bg-status-warning text-foreground border-transparent dark:text-background",
-  destructive: "bg-destructive text-destructive-foreground border-transparent",
+// V07/V10: mismo lenguaje visual que StatusBadge (punto + texto en foreground).
+// Sólo se elige la clave de estilo por tono; etiqueta y precedencias siguen
+// resueltas por resolveFiscalBadge.
+const toneStatus: Record<Tone, string> = {
+  neutral: "draft",
+  info: "sent",
+  success: "paid",
+  warning: "pending",
+  destructive: "error",
 };
 
 interface Props {
@@ -60,11 +64,17 @@ export function InvoiceDetailBadges({
   const fiscal = resolveFiscalBadge(invoiceStatus, cfdiStatus, cancellationStatus);
   return (
     <>
-      <Badge className={toneClass[fiscal.tone]}>{fiscal.label}</Badge>
+      <span data-tone={fiscal.tone}><StatusBadge
+          status={fiscal.label === "Cancelada" ? "cancelled" : toneStatus[fiscal.tone]}
+          label={fiscal.label}
+        /></span>
       {cfdiXmlPending && (
-        <Badge className={toneClass.warning}>XML por recuperar</Badge>
+        <span data-tone="warning"><StatusBadge status={toneStatus.warning} label="XML por recuperar" /></span>
       )}
-      {showSandboxChip && <Badge className={toneClass.warning}>Sandbox</Badge>}
+      {/* Sandbox es entorno, no estado: insignia neutral separada, sin punto. */}
+      {showSandboxChip && (
+        <Badge variant="outline" data-testid="sandbox-chip" className="font-medium text-muted-foreground">Sandbox</Badge>
+      )}
     </>
   );
 }
