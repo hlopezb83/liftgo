@@ -41,15 +41,20 @@ export default function PortalLogin() {
     e.preventDefault();
     setLoading(true);
 
-    if (mode === "forgot") {
-      const { error } = await resetPassword(email);
-      if (error) notifyError({ error, title: getAuthErrorMessage(error) });
-      else notifySuccess("Revisa tu correo para el enlace de restablecimiento");
-    } else {
-      const { error } = await signIn(email, password);
-      if (error) notifyError({ error, title: getAuthErrorMessage(error) });
+    try {
+      if (mode === "forgot") {
+        const { error } = await resetPassword(email);
+        if (error) notifyError({ error, title: getAuthErrorMessage(error) });
+        else notifySuccess("Revisa tu correo para el enlace de restablecimiento");
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) notifyError({ error, title: getAuthErrorMessage(error) });
+      }
+    } catch (error) {
+      notifyError({ error, title: getAuthErrorMessage(error) });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (

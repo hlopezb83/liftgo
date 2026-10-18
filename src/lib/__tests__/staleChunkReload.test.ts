@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { clearStaleChunkReloadGuard, reloadForStaleChunk } from "@/lib/staleChunkReload";
+import { clearStaleChunkReloadGuard, isStaleChunkMessage, reloadForStaleChunk } from "@/lib/staleChunkReload";
 
 const KEY = "vite-preload-reload";
 
@@ -46,5 +46,16 @@ describe("staleChunkReload (M-22)", () => {
   it("ignora estado corrupto en sessionStorage", () => {
     sessionStorage.setItem(KEY, "no-json");
     expect(reloadForStaleChunk()).toBe(true);
+  });
+  it("reconoce el fallo reportado de módulo default y mantiene el límite de recargas", () => {
+    const message = "Cannot read properties of undefined (reading 'default')";
+    expect(isStaleChunkMessage(message)).toBe(true);
+    if (isStaleChunkMessage(message)) {
+      expect(reloadForStaleChunk()).toBe(true);
+      expect(reloadForStaleChunk()).toBe(true);
+      expect(reloadForStaleChunk()).toBe(false);
+    }
+    expect(reload).toHaveBeenCalledTimes(2);
+    expect(isStaleChunkMessage("Cannot read properties of undefined (reading 'total')")).toBe(false);
   });
 });

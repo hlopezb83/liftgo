@@ -27,4 +27,26 @@ describe("sesión vencida por ámbito", () => {
     expect(sdk.signOut).not.toHaveBeenCalled();
     expect(assign).not.toHaveBeenCalled();
   });
+  it.each([
+    "Unauthorized: Invalid token",
+    "Unauthorized: No authorization header provided",
+    "Unauthorized: No token provided",
+    "Unauthorized: No user ID found in token",
+  ])("recupera una sesión rechazada por el servidor: %s", async (message) => {
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { pathname: "/quotes/quote-1", search: "", assign } });
+    const { handleSessionExpired } = await import("../sessionExpiry");
+    await expect(handleSessionExpired(new Error(message))).resolves.toBe(true);
+    await expect(handleSessionExpired(new Error(message))).resolves.toBe(true);
+    expect(sdk.signOut).toHaveBeenCalledOnce();
+    expect(assign).toHaveBeenCalledExactlyOnceWith("/login?redirect=%2Fquotes%2Fquote-1");
+  });
+  it.each(["permission denied for table supplier_bills", "Failed to fetch", "Unauthorized: Only Bearer tokens are supported"])("no expulsa por otro fallo: %s", async (message) => {
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { pathname: "/quotes/quote-1", search: "", assign } });
+    const { handleSessionExpired } = await import("../sessionExpiry");
+    await expect(handleSessionExpired(new Error(message))).resolves.toBe(false);
+    expect(sdk.signOut).not.toHaveBeenCalled();
+    expect(assign).not.toHaveBeenCalled();
+  });
 });

@@ -13,6 +13,7 @@ import { notifyWarning } from "@/lib/ui/appFeedback";
 
 const EXPIRED_CODES = new Set(["PGRST301", "PGRST303"]);
 const EXPIRED_MESSAGE_RE = /\b(jwt expired|invalid jwt|token is expired|refresh token not found)\b/i;
+const REJECTED_SERVER_SESSION_RE = /^Unauthorized: (Invalid token|No authorization header provided|No token provided|No user ID found in token)$/;
 
 let handling = false;
 
@@ -27,7 +28,9 @@ function isSessionExpiredError(error: unknown): boolean {
   const e = error as MaybePgError;
   if (typeof e.code === "string" && EXPIRED_CODES.has(e.code)) return true;
   if (e.status === 401) return true;
-  return typeof e.message === "string" && EXPIRED_MESSAGE_RE.test(e.message);
+  return typeof e.message === "string" && (
+    EXPIRED_MESSAGE_RE.test(e.message) || REJECTED_SERVER_SESSION_RE.test(e.message)
+  );
 }
 
 export async function handleSessionExpired(error: unknown): Promise<boolean> {
