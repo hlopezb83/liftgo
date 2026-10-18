@@ -14,7 +14,7 @@ vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => v
 
 const payment = {
   id: "synthetic-payment", invoice_id: "synthetic-invoice", amount: 175,
-  currency: "MXN", exchange_rate: null, payment_date: "2026-09-01",
+  currency: "MXN", exchange_rate: 1, payment_date: "2026-09-01",
   payment_method: "transfer", rep_cfdi_status: "none",
 } as Payment;
 
