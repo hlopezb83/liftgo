@@ -1,0 +1,16 @@
+BEGIN
+SELECT 2
+CREATE FUNCTION
+SET
+SET
+SET
+SET
+SET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:68: NOTICE:  PASS raw authenticated UPDATE discount remains 42501; no table-level UPDATE
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:68: ERROR:  function public.update_supplier_bill_details(unknown, jsonb) does not exist
+LINE 1: result:=public.update_supplier_bill_details('00000000-0000-4...
+                ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+QUERY:  result:=public.update_supplier_bill_details('00000000-0000-4000-8000-000000000201','{"discount":10,"total":90}'::jsonb)
+CONTEXT:  PL/pgSQL function inline_code_block line 13 at assignment
+ExitCode: 3

@@ -1,0 +1,32 @@
+{
+  "head": "4a5ec92578d8e8eca87af7b610c900d6aabec34d",
+  "original_sources_restored": true,
+  "checks": [
+    {
+      "path": "src/features/accounts-payable/hooks/useSupplierBillMutations.ts",
+      "before_sha256": "c59db568e4fb89ff6f92c8faa1ef7a0a78f91f93a56a6fedc1ce4d899a4b1515",
+      "restored_sha256": "c59db568e4fb89ff6f92c8faa1ef7a0a78f91f93a56a6fedc1ce4d899a4b1515",
+      "exact_restore": true
+    },
+    {
+      "path": "src/lib/rpc.ts",
+      "before_sha256": "17bfbd0122faa0c2894beabd6df5f335c7c73b648c0b62ddd6a53ec0361bf3b2",
+      "restored_sha256": "17bfbd0122faa0c2894beabd6df5f335c7c73b648c0b62ddd6a53ec0361bf3b2",
+      "exact_restore": true
+    },
+    {
+      "path": "src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx",
+      "before_sha256": null,
+      "restored_sha256": null,
+      "exact_restore": true
+    }
+  ],
+  "src_diff_empty": true,
+  "src_status_empty": true,
+  "src_status": "",
+  "patch_apply_check_exit": 0,
+  "patch_apply_check_stderr": "",
+  "test_command": "node node_modules/vitest/vitest.mjs run src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx --pool=forks --maxWorkers=1",
+  "before_exit": 1,
+  "after_exit": 1
+}

@@ -1,0 +1,6 @@
+PASS payment first -> RPC waits, then rejects any payment: actual pg_blocking_pids confirms waiting; waiter rejects SQLSTATE 23514 after commit
+PASS payment-first persistence: discount=0 total=100 paid=10 balance=90 status=partial
+PASS RPC first -> payment guard waits, then rejects overpayment: actual pg_blocking_pids confirms waiting; waiter rejects SQLSTATE 23514 after commit
+PASS RPC-first persistence: discount=10 total=90 balance=90; rejected payment absent
+PASS cleanup: synthetic main bill restored through RPC; test payment removed
+ExitCode: 0

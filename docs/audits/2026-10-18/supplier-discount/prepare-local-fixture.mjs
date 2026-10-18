@@ -8,6 +8,7 @@ const directory = "docs/audits/2026-10-18/supplier-discount";
 const aclSnapshot = JSON.parse(read(`${directory}/remote-current-acl.json`)).result.rows[0].metadata;
 const guardsSnapshot = JSON.parse(read(`${directory}/remote-current-guards.json`)).result.rows[0].metadata;
 const businessSnapshot = JSON.parse(read(`${directory}/remote-current-business-guards.json`)).result.rows;
+const internalSnapshot = JSON.parse(read(`${directory}/remote-current-internal-org-helper.json`)).result.rows[0];
 function extractFunction(path, name) {
   const source = read(path);
   const start = source.indexOf(`CREATE OR REPLACE FUNCTION public.${name}(`);
@@ -26,6 +27,12 @@ function extractTable(path, name) {
   if (start < 0 || end < 0) throw new Error(`Missing table ${name}`);
   return source.slice(start, end + 3);
 }
+const sourceInternal=extractFunction("drizzle/migrations/0031_multi_org_audit_hardening.sql","current_internal_organization_id");
+const normalizedBody=(definition)=>/\bAS\s+(\$\w*\$)([\s\S]*?)\1/i.exec(definition)?.[2].replace(/\s+/g," ").trim();
+if(normalizedBody(sourceInternal)!==normalizedBody(internalSnapshot.definition)) throw new Error("Captured internal-organization helper differs from versioned function body");
+const enumMatch=/      expense_category:\r?\n((?:        \| "[^"\r\n]+"\r?\n)+)/.exec(read("src/integrations/supabase/types.ts"));
+if(!enumMatch) throw new Error("Missing versioned expense_category labels");
+const expenseCategories=[...enumMatch[1].matchAll(/"([^"\r\n]+)"/g)].map((entry)=>`'${entry[1].replaceAll("'","''")}'`);
 const identifier = (value) => `"${value.replaceAll('"', '""')}"`;
 const policies = aclSnapshot.policies.map((policy) => `CREATE POLICY ${identifier(policy.name)}
  ON public.supplier_bills AS ${policy.permissive} FOR ${policy.command} TO ${policy.roles.map(identifier).join(", ")}
@@ -51,10 +58,21 @@ const paymentPoliciesEnd = initial.indexOf("-- ---------- Numbering:", paymentPo
 const baseConstraints = new Set(["supplier_bills_created_by_fkey", "supplier_bills_currency_check", "supplier_bills_discount_non_negative_chk", "supplier_bills_payment_method_sat_check", "supplier_bills_pkey", "supplier_bills_supplier_id_fkey", "supplier_bills_total_check"]);
 const extraConstraints = aclSnapshot.constraints.filter((constraint) => !baseConstraints.has(constraint.name))
   .map((constraint) => `ALTER TABLE public.supplier_bills ADD CONSTRAINT ${identifier(constraint.name)} ${constraint.definition};`).join("\n");
-const roleNames = ["admin", "administrativo", "ventas", "auditor", "mechanic", "dispatcher", "customer", "admin", "admin", "admin"];
+const roleNames = ["admin", "administrativo", "ventas", "auditor", "mechanic", "dispatcher", "customer", "admin", "admin", "admin", "admin", "admin", "admin"];
 const uid = (number) => `00000000-0000-4000-8000-${String(number).padStart(12, "0")}`;
 const users = roleNames.map((role, index) => `('${uid(index + 1)}', '${role}')`).join(",\n");
-const memberships = roleNames.flatMap((_, index) => index === 8 ? [] : [`('${uid(index + 1)}', '${uid(index === 9 ? 102 : 101)}', 'internal')`]).join(",\n");
+const memberships = roleNames.flatMap((_, index) => index === 8 ? [] : [`('${uid(index + 1)}', '${uid(index === 9 ? 102 : index === 11 ? 103 : 101)}', '${index === 10 ? "customer" : "internal"}')`]).join(",\n");
+// Install after seeds, including the deliberately inconsistent legacy row 208.
+// These are real versioned payment guards, not a reconstruction of register RPCs.
+const paymentGuards = `${extractFunction("supabase/migrations/20260729170108_3b6c209e-70bc-4ec0-b3d6-a1f50c89f2d1.sql", "enforce_supplier_payment_balance")}
+CREATE TRIGGER trg_enforce_supplier_payment_balance
+ BEFORE INSERT OR UPDATE OF amount, bill_id ON public.supplier_payments
+ FOR EACH ROW EXECUTE FUNCTION public.enforce_supplier_payment_balance();
+${extractFunction(initialPath, "trg_supplier_payment_recalc")}
+CREATE TRIGGER trg_sp_recalc_aiud
+ AFTER INSERT OR UPDATE OR DELETE ON public.supplier_payments
+ FOR EACH ROW EXECUTE FUNCTION public.trg_supplier_payment_recalc();
+`;
 const sql = `-- Generated from audited source; run ONLY in a fresh local fixture database.
 DO $$ BEGIN CREATE ROLE anon NOLOGIN; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE ROLE authenticated NOLOGIN; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -65,11 +83,12 @@ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(
 GRANT USAGE ON SCHEMA auth, public TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO authenticated;
 CREATE TYPE public.app_role AS ENUM ('admin','administrativo','ventas','auditor','mechanic','dispatcher','customer');
-CREATE TYPE public.expense_category AS ENUM ('other');
+-- Enum labels from the audited generated Database type; not a placeholder enum.
+CREATE TYPE public.expense_category AS ENUM (${expenseCategories.join(",")});
 CREATE TYPE public.supplier_bill_status AS ENUM ('draft','pending','partial','paid','overdue','cancelled');
 CREATE TYPE public.supplier_bill_approval_status AS ENUM ('not_required','pending','approved','rejected');
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
-CREATE TABLE public.suppliers (id uuid PRIMARY KEY);
+CREATE TABLE public.suppliers (id uuid PRIMARY KEY, organization_id uuid, deleted_at timestamptz);
 CREATE TABLE public.profiles (user_id uuid PRIMARY KEY, is_active boolean NOT NULL);
 CREATE TABLE public.user_roles (user_id uuid PRIMARY KEY, role public.app_role);
 CREATE TABLE public.organizations (id uuid PRIMARY KEY, is_active boolean NOT NULL);
@@ -91,6 +110,8 @@ ${extraConstraints}
 ${extractTable(initialPath, "supplier_payments")}
 ALTER TABLE public.supplier_payments ADD COLUMN organization_id uuid;
 ${definitions.map((entry) => `-- Captured catalog definition: ${entry.name}\n${entry.definition.trim()};`).join("\n")}
+-- Captured internal helper, body verified against Drizzle 0031.
+${internalSnapshot.definition.trim()};
 ${extractFunction("supabase/migrations/20260731235443_7b2ca674-f6e0-4b98-95b9-1039fa28abfb.sql", "today_mty")}
 ${extractFunction("supabase/migrations/20260901080020_f395aa5e-1e0c-4dd0-a311-4ff8b1b5ed60.sql", "fx_is_missing")}
 ${extractFunction("supabase/migrations/20260814044428_963e504b-79a0-4ec0-a30b-c5143ad9eed2.sql", "trg_supplier_bill_init_balance")}
@@ -109,10 +130,11 @@ ${triggers.map((trigger) => `${trigger.definition};`).join("\n")}
 ${acl.slice(grantStart)}
 INSERT INTO public.user_roles VALUES ${users};
 INSERT INTO auth.users SELECT user_id FROM public.user_roles;
-INSERT INTO public.profiles SELECT user_id, user_id <> '${uid(8)}'::uuid FROM public.user_roles;
-INSERT INTO public.organizations VALUES ('${uid(101)}',true),('${uid(102)}',true);
+INSERT INTO public.profiles SELECT user_id, user_id <> '${uid(8)}'::uuid FROM public.user_roles WHERE user_id <> '${uid(13)}'::uuid;
+INSERT INTO public.organizations VALUES ('${uid(101)}',true),('${uid(102)}',true),('${uid(103)}',false);
 INSERT INTO public.organization_memberships VALUES ${memberships};
 INSERT INTO public.company_settings VALUES ('${uid(101)}',1000),('${uid(102)}',2000);
+INSERT INTO public.suppliers VALUES ('${uid(301)}','${uid(101)}',null),('${uid(302)}','${uid(102)}',null),('${uid(303)}','${uid(101)}',now());
 -- Synthetic seed only: postgres owns this disposable DB, not an application user.
 SELECT set_config('request.jwt.claims','{"role":"service_role"}',false);
 INSERT INTO public.supplier_bills(id,bill_number,total,subtotal,organization_id,approval_status)
@@ -120,13 +142,21 @@ INSERT INTO public.supplier_bills(id,bill_number,total,subtotal,organization_id,
  ('${uid(202)}','SYNTHETIC-B',100,100,'${uid(102)}','not_required'),
  ('${uid(203)}','SYNTHETIC-APPROVED',200,200,'${uid(101)}','approved'),
  ('${uid(204)}','SYNTHETIC-PARTIAL',100,100,'${uid(101)}','not_required'),
- ('${uid(205)}','SYNTHETIC-PAID',100,100,'${uid(101)}','not_required');
+ ('${uid(205)}','SYNTHETIC-PAID',100,100,'${uid(101)}','not_required'),
+ ('${uid(206)}','SYNTHETIC-CANCELLED',100,100,'${uid(101)}','not_required'),
+ ('${uid(207)}','SYNTHETIC-INACTIVE-ORG',100,100,'${uid(103)}','not_required'),
+ ('${uid(208)}','SYNTHETIC-PENDING-WITH-PAYMENT',100,100,'${uid(101)}','not_required');
+UPDATE public.supplier_bills SET status='cancelled' WHERE id='${uid(206)}';
 INSERT INTO public.supplier_payments(bill_id,amount,organization_id)
- VALUES ('${uid(204)}',20,'${uid(101)}'),('${uid(205)}',100,'${uid(101)}');
+ VALUES ('${uid(204)}',20,'${uid(101)}'),('${uid(205)}',100,'${uid(101)}'),('${uid(208)}',20,'${uid(101)}');
 SELECT public.recalc_supplier_bill('${uid(204)}');
 SELECT public.recalc_supplier_bill('${uid(205)}');
+-- Deliberately leave 208 pending: an inconsistent synthetic legacy row proves
+-- that the RPC checks ANY payment independently from the status lock.
 SELECT set_config('app.cxp_recalc','off',false),set_config('request.jwt.claims','{}',false),set_config('app.organization_id','',false);
+${paymentGuards}
 `;
 const target = `${directory}/local-fixture.generated.sql`;
-writeFileSync(target, sql);
+writeFileSync(target, `${sql.trimEnd()}\n`);
+writeFileSync(`${directory}/payment-guards.generated.sql`, `${paymentGuards.trimEnd()}\n`);
 console.log(`Wrote ${target}; partial fixture: real DDL, ${definitions.length} captured functions, ${triggers.length} captured triggers, current bill policies/constraints. No database connection.`);

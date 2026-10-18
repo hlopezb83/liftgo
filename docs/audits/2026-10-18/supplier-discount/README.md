@@ -1,88 +1,94 @@
-# K1 — propuesta de permiso de descuento, todavía no cerrada
+# K1 v3 — RPC acotada propuesta; no aplicada a publicación
 
-Base auditada: `ec177edf865671a9e9952f5cccd56a9db687f0bd`. Primera evidencia: `f10c35a2b60d6fde812cdafbebe00af79ea1c795`; la ampliación v2 corresponde al commit que contiene este documento.
+Base auditada: `ec177edf865671a9e9952f5cccd56a9db687f0bd`. Historial: v1 `f10c35a2b60d6fde812cdafbebe00af79ea1c795`; v2 `4a5ec92578d8e8eca87af7b610c900d6aabec34d`; v3 es el commit que contiene esta propuesta y evidencia.
 
-**La v1 queda supersedida como evidencia de fidelidad a la política actual.** Usaba `has_role(admin) OR has_role(administrativo)` y afirmaba bloqueo de un perfil inactivo. Los metadatos actuales muestran que la policy utiliza `is_admin_or_administrativo()`, cuyo cuerpo no consulta `is_active_user`. La v2 reproduce ese helper y comprueba que un perfil sintético inactivo con rol admin y membresía válida **sí puede editar**. Se retira la conclusión contraria de v1. Sus logs originales se conservan sin alterar en `historical-v1/`; su generador y SQL originales siguen en el commit `f10c35a2b`.
+**El GRANT aislado está bloqueado y supersedido.** Se conserva literalmente en `historical-v2/proposed-discount-grant.sql`, junto al README, generador, SQL y logs v2. La v1 permanece en `historical-v1/` y su commit original. Ningún archivo de propuesta vive en directorios de migraciones automáticas. K1 sigue pendiente de revisión/aprobación y publicación coordinada.
 
-**Consideración de seguridad antes de aprobar el SQL:** el GRANT habilita también actualizaciones de sólo `discount`. Los triggers actuales de aprobación/monto no vigilan ese campo: en el fixture fiel a esas definiciones, `discount` aislado puede cambiar en facturas aprobadas, parciales o pagadas sin cambiar `total`, `balance` ni estado. SQL tampoco impone `discount <= subtotal` ni la relación aritmética entre descuento y total. No se añaden guardas nuevas en esta propuesta ni se presenta K1 como cerrado.
+La v2 demostró tres límites del GRANT aislado: descuento mayor al subtotal, edición de sólo descuento en aprobadas/parciales/pagadas y edición por perfil inactivo con rol admin/membresía. La v1 afirmaba bloqueo de inactivos usando otra policy; esa conclusión fue retirada en v2 y no se reutiliza. La v3 evita abrir UPDATE de descuento y valida ese nuevo canal mediante una RPC explícita. **No afirma cerrar las deficiencias preexistentes de todas las rutas de escritura.**
 
-## Propuesta sin cambios
+## Entregables revisables
 
-El formulario siempre incluye `discount` al editar y la mutación transmite el patch. La ACL histórica de `20260729204701_a3db1c09-d144-4423-8e0b-4d9ed5a8909f.sql:150–158` omite esa columna, añadida después por `20260811185738_a6781c40-01f6-4e66-8861-407aa6eba1fc.sql`. Los metadatos actuales confirman `discount_update=false`, `total_update=true`, UPDATE global y columnas de aprobación false.
-
-`proposed-discount-grant.sql` permanece exactamente igual, fuera de los directorios de migraciones automáticas:
-
-```sql
-GRANT UPDATE (discount) ON public.supplier_bills TO authenticated;
-```
-
-No se elimina `discount` del formulario ni se modifica el patch: omitir sólo valores idénticos sería una mitigación parcial; quitarlo mientras cambia el total produciría inconsistencias. No se conceden UPDATE global ni columnas de aprobación. El único GRANT ejecutado fue sobre la base sintética local.
-
-## Destinos y fuentes
-
-- Pruebas v2: PostgreSQL 17.9 **local**, `127.0.0.1:55438`, base `liftgo_k1_fixture_v2`, cluster `.local-pg/data-local`, propietario sintético/local `postgres`. Es una base nueva, separada del fixture v1 `liftgo_k1_fixture`. Servidor detenido al terminar: `local-stop-v2.txt`.
-- Lecturas remotas realizadas **por el coordinador** mediante el conector existente: proyecto Lovable **Lift GO**, ID `e25ace4a-172e-4082-a037-00473dacf2f2`, SHA asociado `ec177edf...`, backend habilitado Supabase, base `postgres`; observaciones del 18/10/2026 a las 22:16 UTC. Son SELECT de catálogo, sin datos de negocio, credenciales ni cambios. Se conservan en `remote-current-acl.json`, `remote-current-guards.json`, `remote-current-business-guards.json`.
-- Esa asociación de metadatos no se deduce del `.env` ni prueba por sí sola qué publicación está usando el navegador. Antes de una aplicación publicada, el coordinador debe confirmar el carril y destino de despliegue y obtener aprobación específica.
-- Este subtrabajo no abrió conexiones remotas, operó Chrome, publicó ramas ni ejecutó migraciones o permisos en bases reales.
-
-## Fidelidad y límites del fixture v2
-
-`prepare-local-fixture.mjs` no conecta a ninguna base: genera `local-fixture.generated.sql`. Usa DDL real del repositorio y las definiciones exactas capturadas del catálogo para **5 helpers, 9 funciones de protección y 10 triggers de supplier_bills**, además de las 3 policies actuales y sus 12 constraints. Reproduce ENABLE/FORCE RLS. Incluye el CHECK real `supplier_bills_discount_non_negative_chk` y helpers de empresa/rol observados, sin insertar una comprobación de perfil activo que la policy actual no contiene.
-
-Las funciones auxiliares `today_mty`, `fx_is_missing`, inicialización de balance y `recalc_supplier_bill` se extraen sin reescribir del SQL versionado. Los seeds de aprobado/pagos se preparan sólo como dueño de la base sintética, con contexto de servicio local; las pruebas posteriores usan **SET LOCAL ROLE authenticated**, claims sintéticos y `app.cxp_rpc`, `app.cxp_recalc`, `app.audit_revert` explícitamente `off`. Se verifican valores mediante SELECT después de UPDATE, no sólo ROW_COUNT.
-
-Referencias de los guards versionados que coinciden con las capturas:
-
-| Función / activación | Fuente |
+| Archivo | Contenido |
 | --- | --- |
-| Helper admin/administrativo sin `is_active_user` | `20260811213504_b2fd5e74-952c-4863-8a8e-2c87072af28f.sql:46–58` |
-| `discount >= 0` | `20260811185738_a6781c40-01f6-4e66-8861-407aa6eba1fc.sql:1–8` |
-| Umbral por empresa, retorno si monto equivalente, bloqueo por pagos y aprobación | `drizzle/migrations/0018_multi_org_phase6_supplier_approval_scope.sql:9–110` |
-| Trigger de aprobación: INSERT o UPDATE OF total/currency/exchange_rate, sin discount | `20260831053713_aec36e84-961b-4007-b757-c6033149babe.sql:326–328` |
-| Guard de columnas de aprobación | `20260901175006_344ca933-f8f1-4405-85a0-a5ad98e07ca4.sql:153–170` |
-| Salida de paid con pagos; bypass de recálculo | `20260826022332_a8aa9c45-6eef-4133-ab3c-646fce2e594d.sql:57–81` |
-| Total cubre pagos y balance al cambiar total | `20260729170257_3e7029d2-015d-4b0a-a888-25ebbd0ec401.sql:152–169`; `20260719162221_ea2dab4e-59f3-4c67-9fbd-725e2ba7f496.sql:5–22` |
+| `proposed-supplier-bill-details-rpc.sql` | Propuesta transaccional `update_supplier_bill_details(uuid,jsonb) RETURNS uuid`, sin permiso UPDATE(discount). SHA-256 `899180d976f87186ca33c63159fcfb4c11b1870f1ddae379d5cfb67aad0102ba`. |
+| `proposed-client.patch` | Cambio de transporte de la mutación a `callRpc`, registro del nombre de RPC y prueba nueva; **no aplicado al código activo**. SHA-256 `00448bf60916efb9ec4dc79291176c2f0a119b7038c152a437d88fa7200b0cf8`. |
+| `rpc-acl-regression.sql` | Matriz SQL con rol authenticated/anon y SELECT de valores persistidos; misma prueba antes y después. |
+| `rpc-concurrency.mjs` | Dos órdenes concurrentes con bloqueo real verificado mediante `pg_blocking_pids`, valores persistidos y limpieza. |
+| `prepare-local-fixture.mjs`, `local-fixture.generated.sql`, `payment-guards.generated.sql` | Generación reproducible del subconjunto local a partir de SQL auditado y snapshots de catálogo. |
+| `client-proposal/` | Prueba/harness copiables, logs rojo/verde y hashes de restauración exacta de las fuentes. |
+| `local-target-and-acl-v3.txt`, `local-stop-v3.txt`, `local-status-v3.txt` | Destino local, ACL/configuración final de RPC, datos sintéticos restaurados y cluster detenido. |
 
-**Fidelidad parcial, no reconstrucción completa de Supabase.** Se omiten 5 triggers del snapshot de bills: auditoría, vencimiento automático, log de solicitud de aprobación, numeración y updated_at. Las tablas auxiliares de identidad/configuración conservan sólo las columnas necesarias. Las policies de lectura de `supplier_payments` provienen del esquema histórico versionado y de aislamiento de empresa; no se verificó todo su catálogo actual ni se prueban pagos como usuario inactivo. Los pagos son seeds locales: no se ejecuta ni se valida el flujo completo de registro/REP/batches. Las ramas de otras entidades dentro de `validate_transition` no se ejercitan. No se verifican PostgREST, JWT reales ni revocación de sesiones. Los resultados caracterizan este subconjunto y las definiciones capturadas; no son transacciones ni pruebas de explotación sobre datos publicados.
+## Frontera de la RPC propuesta
 
-## Resultado ejecutado: mismo SQL antes y después
+La allowlist de 18 campos coincide con el único caller actual de `useUpdateSupplierBill`, `useSupplierBillForm.ts:185–210`: `supplier_id`, `category`, `description`, `issue_date`, `due_date`, `coverage_start`, `coverage_end`, `currency`, `exchange_rate`, `subtotal`, `discount`, `tax_amount`, `retention_iva`, `retention_isr`, `total`, `cfdi_uuid`, `payment_method_sat`, `cfdi_xml_url`. Se rechazan claves desconocidas y todas las claves de identidad interna, estado, balance y aprobación. No hay SQL dinámico.
 
-| Estado | Resultado | Archivo |
+- `SECURITY DEFINER` con búsqueda fija `pg_catalog, public, pg_temp`; autorización por `auth.uid()`, claim authenticated, perfil **existente y activo**, rol admin/administrativo y membresía interna única en empresa activa. No se usa `current_user` para autorizar al llamador. El perfil explícito cierra en esta RPC el fallback activo de `is_active_user` cuando falta el perfil.
+- `SELECT ... FOR UPDATE` de factura con `id` **y** organización explícitos; UPDATE estático con el mismo scope. Un cambio de proveedor exige proveedor activo de esa empresa y `FOR SHARE` sobre su fila. El definer no depende de RLS para acotar estas filas.
+- Los tres GUC `app.cxp_rpc`, `app.cxp_recalc`, `app.audit_revert` quedan `off` durante la función mediante configuración de función; se restauran al regresar. Un claim de servicio no permite entrar por este canal. Las constraints/triggers existentes siguen ejecutándose; una prueba verifica el CHECK de cobertura por nombre y otra el umbral real de aprobación pese a flags heredados `on`.
+- Se comparan cambios reales de **todos** los componentes monetarios, incluidos descuento/retenciones/moneda/TC, aunque el total quede igual. Se bloquean cambios monetarios o de identidad fiscal/proveedor en aprobadas, `paid`, `partial`, `cancelled` o con **cualquier** fila de pago. Identidad protegida: proveedor, CFDI UUID, fecha de emisión, método SAT y URL XML. Descripción y otros metadatos permitidos con importes/identidad idénticos conservan todos los demás campos, incluso en esos estados.
+- Ante cambio monetario se exige descuento no negativo y no mayor al subtotal, componentes no negativos/finitos, moneda/TC válidos, y `total = round(subtotal-discount+tax_amount-retention_iva-retention_isr,2) >= 0`. Cambiar descuento exige total explícito. El contrato acepta JSON number, importes con máximo 2 decimales y TC con máximo 6; rechaza strings, NaN, null y precisión adicional en vez de redondear silenciosamente los inputs. Una edición exclusivamente de metadatos no intenta reparar importes legados idénticos.
+- Se revoca ejecución a PUBLIC/anon/service_role y se concede EXECUTE a authenticated. **UPDATE(discount) permanece false**; UPDATE global y columnas de aprobación permanecen false. El propietario mantiene sus privilegios implícitos normales.
+
+El puente cliente propuesto sustituye el UPDATE directo por `callRpc<string>("update_supplier_bill_details", {p_bill_id:id,p_patch:patch})`, sin fallback y con la misma invalidación/feedback. Añade el nombre a `RpcName` en `src/lib/rpc.ts`; no regenera tipos de Supabase ni afirma tipado SQL completo de los argumentos. Debe coordinarse con la RPC aprobada y la regeneración/verificación de tipos. El código activo fue restaurado byte por byte y **sigue usando el UPDATE anterior**; no se agregaron commits a PR274 ni a main.
+
+## Evidencia realmente ejecutada
+
+| Ejecución | Resultado | Evidencia |
 | --- | --- | --- |
-| ACL sin permiso de discount, igual al permiso observado | psql exit **3** en el primer UPDATE authenticated/admin: permission denied | `before-v2.txt` |
-| Sólo propuesta aplicada al fixture | psql exit **0**, **22 PASS + 3 LIMIT**, final ROLLBACK | `after-v2.txt` |
-| Snapshot local después del ROLLBACK | RLS enabled/forced true, discount true, total true, global/aprobación false; seeds intactos | `local-target-and-acl-v2.txt` |
-| Generador | `node --check` exit 0; generación ejecutada | `prepare-local-fixture.mjs` |
+| SQL antes, sin RPC | psql exit **3**, SQLSTATE **42883** por función inexistente; antes de ese punto comprueba UPDATE directo discount denegado 42501 | `before-v3.txt` |
+| Mismo SQL después, sólo RPC aplicada localmente | exit **0**, **95 mensajes PASS**, ROLLBACK final | `after-v3.txt` |
+| Concurrencia local | exit **0**, **5 PASS**: ambos órdenes de bloqueo/rechazo, persistencias y limpieza | `concurrency-v3.txt` |
+| Cliente antes, fuente original | exit **1**, 2 fallos y 1 control aprobado | `client-proposal/before.txt` |
+| Cliente con patch temporal | exit **0**, 3/3 aprobadas | `client-proposal/after.txt` |
+| Restauración/applicabilidad | fuentes con hashes originales, test temporal eliminado, diff/status de src vacíos, git apply --check exit 0 | `client-proposal/restoration.json`, `verification.txt` |
+| Preparación/verificación | generación, `node --check` y `git diff --check` sin error; servidor detenido | SQL generado y logs de estado |
 
-Los 22 PASS verifican: admin 0→10→0 y total/balance 100→90→100; administrativo 20/80/80; descripción con descuento/total idénticos; siete actores denegados (ventas, auditor, mechanic, dispatcher, customer, sin membresía y admin B sobre A); persistencia intacta tras intentos denegados; admin A bloqueado sobre B; aprobación directa sin privilegios; descuento negativo rechazado **por nombre del CHECK real**; cambio efectivo de descuento+total bloqueado en aprobadas y con pagos; descripción permitida conservando importes; balance parcial 80 con pago 20 y pagada 0 con pago 100; candado de salida de paid con pagos. Las excepciones de negocio comprueban también el mensaje real para evitar atribuir un rechazo a otro guard.
+**El rojo SQL no significa 95 pruebas fallando antes:** la ejecución se detiene al no existir la RPC. La evidencia v2 de denegación ACL está archivada; v3 comprueba además esa denegación directa antes y después de instalar la RPC local. Las pruebas del cliente usan mocks y no se presentan como reproducción de permisos o datos publicados.
 
-Los **3 LIMIT son observaciones que deben revisarse antes de aprobar**, no protecciones:
+La matriz SQL prueba admin/administrativo 0→positivo→0, payload de los 18 campos, metadata con importes idénticos, roles no autorizados, empresas ajenas/suspendidas, inactivo, sin membresía, portal con rol admin, perfil ausente, sin auth.uid, claim de servicio, proveedor ajeno/archivado, 15 claves protegidas/desconocidas, JSON/tipos/null/precisión, aritmética, descuento aislado y compensado en cinco escenarios con candado, GUC de bypass, constraints/triggers reales y ACL final. Cada rechazo compara la fila **visible** bajo RLS; para filas ocultas de empresa B y empresa suspendida se añade comparación privilegiada del dueño de prueba antes del ROLLBACK. Los positivos verifican SELECT de valores, no sólo ROW_COUNT; metadata verifica también que la descripción **sí cambió**.
 
-1. Descuento 110 con subtotal 100 y total no negativo 0 persiste en SQL. El esquema de formulario sí tiene una validación `discount > subtotal` (`useSupplierBillForm.ts:54`), revisada estáticamente; no se ejecutaron pruebas nuevas de frontend en este subtrabajo.
-2. Editar sólo discount persiste en aprobada/parcial/pagada. Enviar total idéntico también entra en el retorno temprano del guard de aprobación; no se afirma que todo cambio de TC quede bloqueado, porque ese guard compara montos convertidos y `fx_is_missing`.
-3. Perfil inactivo con rol admin y membresía válida puede editar bajo el helper actual. Esto corrige la afirmación de v1, sin ampliar el alcance con cambios de permisos o cuentas.
+Concurrencia: pago primero mantiene el bloqueo de factura, la RPC espera y después rechaza; persiste pago 10, total 100, descuento 0 y balance 90. RPC primero reduce total a 90, el guard de pago espera y después rechaza pago 95; no se inserta ese pago y persisten descuento 10, total/balance 90. Se observan `pg_blocking_pids` y SQLSTATE 23514; cleanup restaura la factura por RPC y retira sólo el pago sintético. El writer de pago es un actor local privilegiado que ejecuta los BEFORE/AFTER triggers versionados; **no es una prueba completa del endpoint register_supplier_payment, REP o batches**.
 
-## Comandos reproducibles (PowerShell, desde este worktree)
+## Destino y fidelidad
+
+Único destino modificado: PostgreSQL **17.9 local**, `127.0.0.1:55438`, DB `liftgo_k1_fixture_v3`, cluster `.local-pg/data-local`, propietario local postgres. Se crearon datos/roles sintéticos; no cuentas ni transacciones reales. Snapshot final: discount/global/aprobación false, total true preexistente; RPC SECURITY DEFINER con configuración de tres flags off y EXECUTE para authenticated. Servidor detenido y `pg_ctl status` devuelve **3: no server running**.
+
+El coordinador hizo lecturas **SELECT de catálogo** por el conector existente del proyecto Lovable Lift GO, ID `e25ace4a-172e-4082-a037-00473dacf2f2`, SHA asociado `ec177edf...`, backend Supabase habilitado, DB `postgres`. Se conservan los tres `remote-current-{acl,guards,business-guards}.json` y `remote-current-internal-org-helper.json` (última observación 18/10/2026 22:47:56 UTC). No se deduce un destino de publicación a partir del .env. Este subtrabajo no abrió conexión remota ni modificó esos metadatos.
+
+Fixture parcial: 6 helpers de acceso capturados (incluido el interno, cuyo cuerpo se compara con Drizzle0031), 9 funciones de protección y 10 triggers de bills del catálogo; DDL real, 3 policies y 12 constraints actuales, FORCE RLS. Los labels de expense_category proceden del tipo Database auditado, sustituyendo el placeholder `other` de v1/v2. Se extraen también auxiliares y los guards BEFORE/AFTER de pagos versionados. Se omiten auditoría, numeración, vencimiento automático, log de solicitud y updated_at, y se simplifican tablas auxiliares/policies de pagos. No reconstruye Supabase entero, JWT reales ni todas las rutas de registro. El seed `pending` con pago se deja deliberadamente inconsistente para probar el candado de **cualquier** pago independientemente del status; no reproduce un dato publicado.
+
+## Límites y pendientes
+
+1. Esta RPC protege el canal nuevo de edición; las ACL históricas aún permiten UPDATE directo de **otros** campos monetarios y de metadatos. No se revocan ni endurecen globalmente aquí. Tampoco se afirma corregir acceso raw de inactivos a otros campos. Una garantía global requeriría revisión separada de todos los writers/ACL/triggers.
+2. La política nueva de precisión (2/6 decimales) y los candados adicionales de identidad fiscal requieren revisión de producto/datos antes de publicar; el cliente propuesto conserva el payload actual, cuyo formato real debe validarse con el carril de despliegue.
+3. Los helpers/tablas, ownership y privilegios reales deben verificarse otra vez al preparar la migración forward-only aprobada. Las lecturas de catálogo no son una transacción publicada ni QA de publicación.
+4. No se ejecutaron tsc/build global ni navegador para estos artefactos; la prueba del puente es temporal y el SQL se ejecutó sólo local. No se aplicó el patch al app ni se creó/aplicó migración publicada. Revisión independiente, aprobación específica, coordinación RPC+cliente/tipos, pruebas completas del entorno autorizado y QA siguen pendientes.
+
+## Comandos reproducibles
+
+Desde este worktree (sin crear DB v3 sobre otra existente):
 
 ```powershell
-$auditPgBin = 'C:\Users\torta\Documents\Codex\tooling\postgres-17.9\extract\pgsql\bin'
+$auditPgBin='C:\Users\torta\Documents\Codex\tooling\postgres-17.9\extract\pgsql\bin'
 node --check docs/audits/2026-10-18/supplier-discount/prepare-local-fixture.mjs
 node docs/audits/2026-10-18/supplier-discount/prepare-local-fixture.mjs
 & "$auditPgBin\pg_ctl.exe" -D .local-pg/data-local -l .local-pg/server.txt -o '-h 127.0.0.1 -p 55438' -w start
-& "$auditPgBin\createdb.exe" -h 127.0.0.1 -p 55438 -U postgres liftgo_k1_fixture_v2
-& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v2 -v ON_ERROR_STOP=1 -f docs/audits/2026-10-18/supplier-discount/local-fixture.generated.sql
-& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v2 -f docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql
-# expected exit 3; only this disposable local database receives the proposal:
-& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v2 -v ON_ERROR_STOP=1 -f docs/audits/2026-10-18/supplier-discount/proposed-discount-grant.sql
-& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v2 -f docs/audits/2026-10-18/supplier-discount/discount-acl-regression.sql
-# expected exit 0, 22 PASS and 3 LIMIT:
-& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v2 -v ON_ERROR_STOP=1 -f docs/audits/2026-10-18/supplier-discount/local-v2-verification.sql
+& "$auditPgBin\createdb.exe" -h 127.0.0.1 -p 55438 -U postgres liftgo_k1_fixture_v3
+& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v3 -v ON_ERROR_STOP=1 -f docs/audits/2026-10-18/supplier-discount/local-fixture.generated.sql
+& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v3 -f docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql
+# expected exit 3: missing RPC, raw discount already denied
+& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v3 -v ON_ERROR_STOP=1 -f docs/audits/2026-10-18/supplier-discount/proposed-supplier-bill-details-rpc.sql
+& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v3 -f docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql
+# expected exit 0, 95 PASS
+node docs/audits/2026-10-18/supplier-discount/rpc-concurrency.mjs
+& "$auditPgBin\psql.exe" -h 127.0.0.1 -p 55438 -U postgres -d liftgo_k1_fixture_v3 -v ON_ERROR_STOP=1 -f docs/audits/2026-10-18/supplier-discount/local-v3-verification.sql
 & "$auditPgBin\pg_ctl.exe" -D .local-pg/data-local -m fast -w stop
+& "$auditPgBin\pg_ctl.exe" -D .local-pg/data-local status
+# expected status exit 3: no server running
+node docs/audits/2026-10-18/supplier-discount/client-proposal/run-temporary-proposal.mjs
+git diff --exit-code -- src
+git apply --check docs/audits/2026-10-18/supplier-discount/proposed-client.patch
 git diff --check
 ```
 
-Los logs se capturaron con `2>&1 | Tee-Object -FilePath <archivo indicado>`; before/after incluyen `ExitCode`. La primera preparación v2 falló por orden de dependencias (`has_role` antes de `is_active_user`); se conserva `setup-v2-initial-failure.txt`. Se corrigió el orden, se recreó **sólo** esa nueva base local y la preparación terminó exit 0 (`setup-v2.txt`). Los comandos locales requirieron escalación aprobada; no hubo rechazo de auto-review.
-
-## Pendiente, no ejecutado
-
-Revisar los tres límites con el coordinador y decidir si el GRANT aislado cumple la frontera deseada; confirmar destino/carril de publicación; aprobación específica del usuario; convertir la propuesta revisada a migración forward-only; reconstrucción completa de Supabase y pruebas de roles/empresas/estados en ese entorno autorizado; aplicación y QA coordinados. No se ejecutaron build/lint/tipos de aplicación en este cambio exclusivamente de fixture y evidencia; la validación integrada del código corresponde al coordinador.
+Salida capturada mediante `2>&1 | Tee-Object -FilePath <log indicado>`, con ExitCode en before/after/concurrencia. Se reconstruyó sólo el fixture v3 local al incorporar el helper capturado y el enum real, y se repitió la matriz/concurrencia finales. Las ejecuciones locales necesitaron escalación aprobada; no hubo rechazo de auto-review. Los intentos de preparación del puente con 0 pruebas se conservan en `client-proposal/` y no cuentan como rojo. Ver allí los comandos exactos de Vitest y la restauración en finally.

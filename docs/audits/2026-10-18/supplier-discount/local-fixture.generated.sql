@@ -8,11 +8,12 @@ CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(
 GRANT USAGE ON SCHEMA auth, public TO authenticated;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA auth TO authenticated;
 CREATE TYPE public.app_role AS ENUM ('admin','administrativo','ventas','auditor','mechanic','dispatcher','customer');
-CREATE TYPE public.expense_category AS ENUM ('other');
+-- Enum labels from the audited generated Database type; not a placeholder enum.
+CREATE TYPE public.expense_category AS ENUM ('renta','nomina','software','depreciacion','otro','costo_venta','caja_chica','publicidad','mantenimiento','refacciones','combustible','transporte_logistica','seguros_equipo','servicios_publicos','honorarios','papeleria','capacitacion','comisiones_ventas','viajes_representacion','intereses','comisiones_bancarias');
 CREATE TYPE public.supplier_bill_status AS ENUM ('draft','pending','partial','paid','overdue','cancelled');
 CREATE TYPE public.supplier_bill_approval_status AS ENUM ('not_required','pending','approved','rejected');
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
-CREATE TABLE public.suppliers (id uuid PRIMARY KEY);
+CREATE TABLE public.suppliers (id uuid PRIMARY KEY, organization_id uuid, deleted_at timestamptz);
 CREATE TABLE public.profiles (user_id uuid PRIMARY KEY, is_active boolean NOT NULL);
 CREATE TABLE public.user_roles (user_id uuid PRIMARY KEY, role public.app_role);
 CREATE TABLE public.organizations (id uuid PRIMARY KEY, is_active boolean NOT NULL);
@@ -629,6 +630,25 @@ BEGIN
   RETURN NEW;
 END;
 $function$;
+-- Captured internal helper, body verified against Drizzle 0031.
+CREATE OR REPLACE FUNCTION public.current_internal_organization_id()
+ RETURNS uuid
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  SELECT CASE WHEN count(*) = 1 THEN (array_agg(m.organization_id))[1] END
+  FROM public.organization_memberships m
+  JOIN public.organizations o
+    ON o.id = m.organization_id AND o.is_active
+  WHERE m.auth_user_id = (SELECT auth.uid())
+    AND m.member_type = 'internal'
+    AND NOT EXISTS (
+      SELECT 1 FROM public.organization_memberships m2
+      WHERE m2.auth_user_id = (SELECT auth.uid())
+        AND m2.member_type <> 'internal'
+    )
+$function$;
 CREATE OR REPLACE FUNCTION public.today_mty()
 RETURNS date
 LANGUAGE sql
@@ -762,10 +782,13 @@ INSERT INTO public.user_roles VALUES ('00000000-0000-4000-8000-000000000001', 'a
 ('00000000-0000-4000-8000-000000000007', 'customer'),
 ('00000000-0000-4000-8000-000000000008', 'admin'),
 ('00000000-0000-4000-8000-000000000009', 'admin'),
-('00000000-0000-4000-8000-000000000010', 'admin');
+('00000000-0000-4000-8000-000000000010', 'admin'),
+('00000000-0000-4000-8000-000000000011', 'admin'),
+('00000000-0000-4000-8000-000000000012', 'admin'),
+('00000000-0000-4000-8000-000000000013', 'admin');
 INSERT INTO auth.users SELECT user_id FROM public.user_roles;
-INSERT INTO public.profiles SELECT user_id, user_id <> '00000000-0000-4000-8000-000000000008'::uuid FROM public.user_roles;
-INSERT INTO public.organizations VALUES ('00000000-0000-4000-8000-000000000101',true),('00000000-0000-4000-8000-000000000102',true);
+INSERT INTO public.profiles SELECT user_id, user_id <> '00000000-0000-4000-8000-000000000008'::uuid FROM public.user_roles WHERE user_id <> '00000000-0000-4000-8000-000000000013'::uuid;
+INSERT INTO public.organizations VALUES ('00000000-0000-4000-8000-000000000101',true),('00000000-0000-4000-8000-000000000102',true),('00000000-0000-4000-8000-000000000103',false);
 INSERT INTO public.organization_memberships VALUES ('00000000-0000-4000-8000-000000000001', '00000000-0000-4000-8000-000000000101', 'internal'),
 ('00000000-0000-4000-8000-000000000002', '00000000-0000-4000-8000-000000000101', 'internal'),
 ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-000000000101', 'internal'),
@@ -774,8 +797,12 @@ INSERT INTO public.organization_memberships VALUES ('00000000-0000-4000-8000-000
 ('00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-000000000101', 'internal'),
 ('00000000-0000-4000-8000-000000000007', '00000000-0000-4000-8000-000000000101', 'internal'),
 ('00000000-0000-4000-8000-000000000008', '00000000-0000-4000-8000-000000000101', 'internal'),
-('00000000-0000-4000-8000-000000000010', '00000000-0000-4000-8000-000000000102', 'internal');
+('00000000-0000-4000-8000-000000000010', '00000000-0000-4000-8000-000000000102', 'internal'),
+('00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000101', 'customer'),
+('00000000-0000-4000-8000-000000000012', '00000000-0000-4000-8000-000000000103', 'internal'),
+('00000000-0000-4000-8000-000000000013', '00000000-0000-4000-8000-000000000101', 'internal');
 INSERT INTO public.company_settings VALUES ('00000000-0000-4000-8000-000000000101',1000),('00000000-0000-4000-8000-000000000102',2000);
+INSERT INTO public.suppliers VALUES ('00000000-0000-4000-8000-000000000301','00000000-0000-4000-8000-000000000101',null),('00000000-0000-4000-8000-000000000302','00000000-0000-4000-8000-000000000102',null),('00000000-0000-4000-8000-000000000303','00000000-0000-4000-8000-000000000101',now());
 -- Synthetic seed only: postgres owns this disposable DB, not an application user.
 SELECT set_config('request.jwt.claims','{"role":"service_role"}',false);
 INSERT INTO public.supplier_bills(id,bill_number,total,subtotal,organization_id,approval_status)
@@ -783,9 +810,67 @@ INSERT INTO public.supplier_bills(id,bill_number,total,subtotal,organization_id,
  ('00000000-0000-4000-8000-000000000202','SYNTHETIC-B',100,100,'00000000-0000-4000-8000-000000000102','not_required'),
  ('00000000-0000-4000-8000-000000000203','SYNTHETIC-APPROVED',200,200,'00000000-0000-4000-8000-000000000101','approved'),
  ('00000000-0000-4000-8000-000000000204','SYNTHETIC-PARTIAL',100,100,'00000000-0000-4000-8000-000000000101','not_required'),
- ('00000000-0000-4000-8000-000000000205','SYNTHETIC-PAID',100,100,'00000000-0000-4000-8000-000000000101','not_required');
+ ('00000000-0000-4000-8000-000000000205','SYNTHETIC-PAID',100,100,'00000000-0000-4000-8000-000000000101','not_required'),
+ ('00000000-0000-4000-8000-000000000206','SYNTHETIC-CANCELLED',100,100,'00000000-0000-4000-8000-000000000101','not_required'),
+ ('00000000-0000-4000-8000-000000000207','SYNTHETIC-INACTIVE-ORG',100,100,'00000000-0000-4000-8000-000000000103','not_required'),
+ ('00000000-0000-4000-8000-000000000208','SYNTHETIC-PENDING-WITH-PAYMENT',100,100,'00000000-0000-4000-8000-000000000101','not_required');
+UPDATE public.supplier_bills SET status='cancelled' WHERE id='00000000-0000-4000-8000-000000000206';
 INSERT INTO public.supplier_payments(bill_id,amount,organization_id)
- VALUES ('00000000-0000-4000-8000-000000000204',20,'00000000-0000-4000-8000-000000000101'),('00000000-0000-4000-8000-000000000205',100,'00000000-0000-4000-8000-000000000101');
+ VALUES ('00000000-0000-4000-8000-000000000204',20,'00000000-0000-4000-8000-000000000101'),('00000000-0000-4000-8000-000000000205',100,'00000000-0000-4000-8000-000000000101'),('00000000-0000-4000-8000-000000000208',20,'00000000-0000-4000-8000-000000000101');
 SELECT public.recalc_supplier_bill('00000000-0000-4000-8000-000000000204');
 SELECT public.recalc_supplier_bill('00000000-0000-4000-8000-000000000205');
+-- Deliberately leave 208 pending: an inconsistent synthetic legacy row proves
+-- that the RPC checks ANY payment independently from the status lock.
 SELECT set_config('app.cxp_recalc','off',false),set_config('request.jwt.claims','{}',false),set_config('app.organization_id','',false);
+CREATE OR REPLACE FUNCTION public.enforce_supplier_payment_balance()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+DECLARE
+  v_bill_total numeric(14,2);
+  v_status public.supplier_bill_status;
+  v_approval public.supplier_bill_approval_status;
+  v_paid_after numeric(14,2);
+BEGIN
+  PERFORM pg_advisory_xact_lock(hashtext('supplier_payment:' || NEW.bill_id::text));
+  SELECT total, status, approval_status INTO v_bill_total, v_status, v_approval
+    FROM public.supplier_bills WHERE id = NEW.bill_id FOR UPDATE;
+  IF v_bill_total IS NULL THEN RAISE EXCEPTION 'Factura de proveedor no encontrada'; END IF;
+  IF v_status IN ('cancelled','draft') THEN
+    RAISE EXCEPTION 'No se pueden registrar pagos en bills en estado %', v_status USING ERRCODE = 'check_violation';
+  END IF;
+  IF v_approval IN ('pending','rejected') THEN
+    RAISE EXCEPTION 'No se pueden registrar pagos: la bill tiene aprobacion %. Completa el flujo de aprobacion primero.', v_approval
+      USING ERRCODE = 'check_violation';
+  END IF;
+  SELECT COALESCE(SUM(amount), 0) INTO v_paid_after FROM public.supplier_payments WHERE bill_id = NEW.bill_id;
+  IF TG_OP = 'INSERT' THEN v_paid_after := v_paid_after + NEW.amount;
+  ELSIF TG_OP = 'UPDATE' THEN v_paid_after := v_paid_after - OLD.amount + NEW.amount; END IF;
+  IF round(v_paid_after, 2) > v_bill_total THEN
+    RAISE EXCEPTION 'El pago excede el saldo pendiente de la bill (total: %, pagado tras esta operacion: %)', v_bill_total, v_paid_after
+      USING ERRCODE = 'check_violation';
+  END IF;
+  RETURN NEW;
+END; $$;
+CREATE TRIGGER trg_enforce_supplier_payment_balance
+ BEFORE INSERT OR UPDATE OF amount, bill_id ON public.supplier_payments
+ FOR EACH ROW EXECUTE FUNCTION public.enforce_supplier_payment_balance();
+CREATE OR REPLACE FUNCTION public.trg_supplier_payment_recalc()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    PERFORM public.recalc_supplier_bill(OLD.bill_id);
+    RETURN OLD;
+  ELSE
+    PERFORM public.recalc_supplier_bill(NEW.bill_id);
+    IF TG_OP = 'UPDATE' AND OLD.bill_id <> NEW.bill_id THEN
+      PERFORM public.recalc_supplier_bill(OLD.bill_id);
+    END IF;
+    RETURN NEW;
+  END IF;
+END $$;
+CREATE TRIGGER trg_sp_recalc_aiud
+ AFTER INSERT OR UPDATE OR DELETE ON public.supplier_payments
+ FOR EACH ROW EXECUTE FUNCTION public.trg_supplier_payment_recalc();

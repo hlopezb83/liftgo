@@ -1,0 +1,16 @@
+Command: node --check docs/audits/2026-10-18/supplier-discount/client-proposal/run-temporary-proposal.mjs
+ExitCode: 0
+Command: git diff --exit-code -- src
+
+ExitCode: 0
+Command: git status --short -- src
+
+ExitCode: 0
+Command: git diff --exit-code ec177edf865671a9e9952f5cccd56a9db687f0bd -- src/features/accounts-payable/hooks/useSupplierBillMutations.ts src/lib/rpc.ts
+
+ExitCode: 0
+Command: git apply --check docs/audits/2026-10-18/supplier-discount/proposed-client.patch
+
+ExitCode: 0
+Command: Get-FileHash -LiteralPath docs/audits/2026-10-18/supplier-discount/proposed-client.patch -Algorithm SHA256
+00448BF60916EFB9EC4DC79291176C2F0A119B7038C152A437D88FA7200B0CF8

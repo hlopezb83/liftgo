@@ -1,0 +1,64 @@
+   current_database   | inet_server_addr | inet_server_port | current_user |                                 version                                 
+----------------------+------------------+------------------+--------------+-------------------------------------------------------------------------
+ liftgo_k1_fixture_v3 | 127.0.0.1        |            55438 | postgres     | PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit
+(1 row)
+
+ rls_enabled | rls_forced | global_update | discount_update | preexisting_total_update | approval_update 
+-------------+------------+---------------+-----------------+--------------------------+-----------------
+ t           | t          | f             | f               | t                        | f
+(1 row)
+
+           proname            | prosecdef |  owner   |                                              proconfig                                              |                     proacl                     | authenticated_execute | anon_execute | service_execute |  local_function_definition_md5   
+------------------------------+-----------+----------+-----------------------------------------------------------------------------------------------------+------------------------------------------------+-----------------------+--------------+-----------------+----------------------------------
+ update_supplier_bill_details | t         | postgres | {"search_path=pg_catalog, public, pg_temp",app.cxp_rpc=off,app.cxp_recalc=off,app.audit_revert=off} | {postgres=X/postgres,authenticated=X/postgres} | t                     | f            | f               | 5b40711ed0af5af7823a3ec27c190b45
+(1 row)
+
+            policyname            | permissive  |  cmd   |                                                qual                                                |                                             with_check                                             
+----------------------------------+-------------+--------+----------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------------------------
+ Bills: admin/administrativo full | PERMISSIVE  | ALL    | ( SELECT is_admin_or_administrativo() AS is_admin_or_administrativo)                               | ( SELECT is_admin_or_administrativo() AS is_admin_or_administrativo)
+ Bills: auditor read              | PERMISSIVE  | SELECT | has_role(( SELECT auth.uid() AS uid), 'auditor'::app_role)                                         | 
+ org_scope_isolation              | RESTRICTIVE | ALL    | ( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches) | ( SELECT organization_scope_matches(supplier_bills.organization_id) AS organization_scope_matches)
+(3 rows)
+
+                             pg_get_functiondef                             
+----------------------------------------------------------------------------
+ CREATE OR REPLACE FUNCTION public.current_internal_organization_id()      +
+  RETURNS uuid                                                             +
+  LANGUAGE sql                                                             +
+  STABLE SECURITY DEFINER                                                  +
+  SET search_path TO 'public'                                              +
+ AS $function$                                                             +
+   SELECT CASE WHEN count(*) = 1 THEN (array_agg(m.organization_id))[1] END+
+   FROM public.organization_memberships m                                  +
+   JOIN public.organizations o                                             +
+     ON o.id = m.organization_id AND o.is_active                           +
+   WHERE m.auth_user_id = (SELECT auth.uid())                              +
+     AND m.member_type = 'internal'                                        +
+     AND NOT EXISTS (                                                      +
+       SELECT 1 FROM public.organization_memberships m2                    +
+       WHERE m2.auth_user_id = (SELECT auth.uid())                         +
+         AND m2.member_type <> 'internal'                                  +
+     )                                                                     +
+ $function$                                                                +
+ 
+(1 row)
+
+          bill_number           | subtotal | discount | total  | balance |  status   | approval_status 
+--------------------------------+----------+----------+--------+---------+-----------+-----------------
+ SYNTHETIC-A                    |   100.00 |     0.00 | 100.00 |  100.00 | pending   | not_required
+ SYNTHETIC-APPROVED             |   200.00 |     0.00 | 200.00 |  200.00 | pending   | approved
+ SYNTHETIC-B                    |   100.00 |     0.00 | 100.00 |  100.00 | pending   | not_required
+ SYNTHETIC-CANCELLED            |   100.00 |     0.00 | 100.00 |  100.00 | cancelled | not_required
+ SYNTHETIC-INACTIVE-ORG         |   100.00 |     0.00 | 100.00 |  100.00 | pending   | not_required
+ SYNTHETIC-PAID                 |   100.00 |     0.00 | 100.00 |    0.00 | paid      | not_required
+ SYNTHETIC-PARTIAL              |   100.00 |     0.00 | 100.00 |   80.00 | partial   | not_required
+ SYNTHETIC-PENDING-WITH-PAYMENT |   100.00 |     0.00 | 100.00 |  100.00 | pending   | not_required
+(8 rows)
+
+               bill_id                | synthetic_paid 
+--------------------------------------+----------------
+ 00000000-0000-4000-8000-000000000204 |          20.00
+ 00000000-0000-4000-8000-000000000205 |         100.00
+ 00000000-0000-4000-8000-000000000208 |          20.00
+(3 rows)
+

@@ -1,0 +1,23 @@
+WorkingDirectory: C:\Users\torta\Documents\Codex\2026-10-18\task-2\audit-supplier-discount\
+HEAD: 4a5ec92578d8e8eca87af7b610c900d6aabec34d
+Command: node node_modules/vitest/vitest.mjs run src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx --pool=forks --maxWorkers=1
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-supplier-discount
+
+ ❯ src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx (0 test)
+
+ Test Files  1 failed (1)
+      Tests  no tests
+   Start at  22:46:01
+   Duration  1.31s (transform 0ms, setup 0ms, import 0ms, tests 0ms, environment 947ms)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx [ src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx ]
+Error: EPERM: operation not permitted, rename 'C:\Users\torta\AppData\Local\Packages\sandbox.{3e64b8c6-db13-4c03-80ff-d85997a15ad8}\AC\Temp\nntVRvjZn31xd4eW9fCVA\client\.tmp-1792363562857-ctr4m4tb7db' -> 'C:\Users\torta\AppData\Local\Packages\sandbox.{3e64b8c6-db13-4c03-80ff-d85997a15ad8}\AC\Temp\nntVRvjZn31xd4eW9fCVA\client\ebaea3400bdfb5a1f1c5eccb8034280cd365fe1b'
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ExitCode: 1
+Signal: none

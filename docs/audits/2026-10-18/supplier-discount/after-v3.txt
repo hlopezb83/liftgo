@@ -1,0 +1,266 @@
+BEGIN
+SELECT 2
+CREATE FUNCTION
+SET
+SET
+SET
+SET
+SET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:68: NOTICE:  PASS raw authenticated UPDATE discount remains 42501; no table-level UPDATE
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:68: NOTICE:  PASS admin RPC 0 -> positive persists discount=10 total=90 balance=90
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:68: NOTICE:  PASS admin RPC positive -> 0 persists discount=0 total=100 balance=100
+DO
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:68: NOTICE:  PASS all 18 allowlisted form fields accepted; supplier scoped to company A
+SET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:90: NOTICE:  PASS administrativo RPC 0 -> positive persists 20/80/80
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:90: NOTICE:  PASS metadata plus unchanged discount/total preserves every other persisted field
+DO
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:90: NOTICE:  PASS administrativo RPC positive -> 0 persists 0/100/100
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 3 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 4 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 5 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 6 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 7 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 8 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 9 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 10 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 11 SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 12 SQLSTATE 42501, persisted visible row unchanged
+DO
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:98: NOTICE:  PASS rejected actor 13 SQLSTATE 42501, persisted visible row unchanged
+SET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:100: NOTICE:  PASS rejected own suspended company SQLSTATE 42501, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+SET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:102: NOTICE:  PASS rejected missing auth.uid SQLSTATE 42501, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+SET
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:104: NOTICE:  PASS rejected spoofed service role claim SQLSTATE 42501, persisted visible row unchanged
+SET
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:106: NOTICE:  PASS rejected company A -> B bill SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:107: NOTICE:  PASS rejected missing bill SQLSTATE 42501, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:108: NOTICE:  PASS rejected cross-company supplier SQLSTATE 42501, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:109: NOTICE:  PASS rejected archived supplier SQLSTATE 42501, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key approval_status SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key approved_by SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key approved_at SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key approval_notes SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key status SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key balance SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key id SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key organization_id SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key bill_number SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key created_by SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key created_at SQLSTATE 22023, persisted visible row unchanged
+DO
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key updated_at SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key rejected_by SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key rejected_at SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:116: NOTICE:  PASS rejected protected/unknown key unknown_field SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:117: NOTICE:  PASS rejected SQL null patch SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:118: NOTICE:  PASS rejected JSON null patch SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:119: NOTICE:  PASS rejected array patch SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:120: NOTICE:  PASS rejected scalar patch SQLSTATE 22023, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:121: NOTICE:  PASS rejected empty patch SQLSTATE 22023, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:122: NOTICE:  PASS rejected NaN string SQLSTATE 22023, persisted visible row unchanged
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:123: NOTICE:  PASS rejected null amount SQLSTATE 22023, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:124: NOTICE:  PASS rejected object description SQLSTATE 22023, persisted visible row unchanged
+ expect_rpc_rejected 
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:125: NOTICE:  PASS rejected invalid date SQLSTATE 22023, persisted visible row unchanged
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:126: NOTICE:  PASS rejected negative discount SQLSTATE 23514, persisted visible row unchanged
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:127: NOTICE:  PASS rejected negative before rounding SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:128: NOTICE:  PASS rejected discount above subtotal SQLSTATE 23514, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:129: NOTICE:  PASS rejected inconsistent total SQLSTATE 23514, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:130: NOTICE:  PASS rejected negative total SQLSTATE 23514, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:131: NOTICE:  PASS rejected retentions above base SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:132: NOTICE:  PASS rejected discount without total SQLSTATE 22023, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:133: NOTICE:  PASS rejected third decimal amount SQLSTATE 22023, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:134: NOTICE:  PASS rejected USD missing FX SQLSTATE 23514, persisted visible row unchanged
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:135: NOTICE:  PASS rejected coverage existing CHECK SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked discount-only 00000000-0000-4000-8000-000000000203 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked changed total 00000000-0000-4000-8000-000000000203 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked compensated discount 00000000-0000-4000-8000-000000000203 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked supplier identity 00000000-0000-4000-8000-000000000203 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked CFDI identity 00000000-0000-4000-8000-000000000203 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS metadata edit on locked bill 00000000-0000-4000-8000-000000000203 preserves every other persisted field
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked discount-only 00000000-0000-4000-8000-000000000204 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked changed total 00000000-0000-4000-8000-000000000204 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked compensated discount 00000000-0000-4000-8000-000000000204 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked supplier identity 00000000-0000-4000-8000-000000000204 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked CFDI identity 00000000-0000-4000-8000-000000000204 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS metadata edit on locked bill 00000000-0000-4000-8000-000000000204 preserves every other persisted field
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked discount-only 00000000-0000-4000-8000-000000000205 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked changed total 00000000-0000-4000-8000-000000000205 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked compensated discount 00000000-0000-4000-8000-000000000205 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked supplier identity 00000000-0000-4000-8000-000000000205 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked CFDI identity 00000000-0000-4000-8000-000000000205 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS metadata edit on locked bill 00000000-0000-4000-8000-000000000205 preserves every other persisted field
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked discount-only 00000000-0000-4000-8000-000000000206 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked changed total 00000000-0000-4000-8000-000000000206 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked compensated discount 00000000-0000-4000-8000-000000000206 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked supplier identity 00000000-0000-4000-8000-000000000206 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked CFDI identity 00000000-0000-4000-8000-000000000206 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS metadata edit on locked bill 00000000-0000-4000-8000-000000000206 preserves every other persisted field
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked discount-only 00000000-0000-4000-8000-000000000208 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked changed total 00000000-0000-4000-8000-000000000208 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked compensated discount 00000000-0000-4000-8000-000000000208 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked supplier identity 00000000-0000-4000-8000-000000000208 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS rejected locked CFDI identity 00000000-0000-4000-8000-000000000208 SQLSTATE 23514, persisted visible row unchanged
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:155: NOTICE:  PASS metadata edit on locked bill 00000000-0000-4000-8000-000000000208 preserves every other persisted field
+DO
+SAVEPOINT
+SET
+SET
+SET
+ expect_rpc_rejected 
+---------------------
+ 
+(1 row)
+
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:160: NOTICE:  PASS rejected GUC bypass locked paid SQLSTATE 23514, persisted visible row unchanged
+ expect_rpc_rejected 
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:161: NOTICE:  PASS rejected GUC bypass inconsistent arithmetic SQLSTATE 23514, persisted visible row unchanged
+---------------------
+ 
+(1 row)
+
+DO
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:172: NOTICE:  PASS poisoned caller GUCs cannot skip real approval trigger; function restores caller settings
+ROLLBACK
+DO
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:190: NOTICE:  PASS final ACL: authenticated RPC execute only; raw discount remains denied, no PUBLIC/anon/service execute
+SET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:200: NOTICE:  PASS anon cannot execute RPC
+DO
+RESET
+psql:docs/audits/2026-10-18/supplier-discount/rpc-acl-regression.sql:209: NOTICE:  PASS privileged test-owner read verifies company B and suspended-company rows unchanged
+DO
+ROLLBACK
+ExitCode: 0

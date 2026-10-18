@@ -1,0 +1,15 @@
+{
+  "project_id": "e25ace4a-172e-4082-a037-00473dacf2f2",
+  "operation": "SELECT pg_proc catalog metadata only via existing Lovable connector",
+  "result": {
+    "rows": [
+      {
+        "definition": "CREATE OR REPLACE FUNCTION public.current_internal_organization_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO 'public'\nAS $function$\n  SELECT CASE WHEN count(*) = 1 THEN (array_agg(m.organization_id))[1] END\n  FROM public.organization_memberships m\n  JOIN public.organizations o\n    ON o.id = m.organization_id AND o.is_active\n  WHERE m.auth_user_id = (SELECT auth.uid())\n    AND m.member_type = 'internal'\n    AND NOT EXISTS (\n      SELECT 1 FROM public.organization_memberships m2\n      WHERE m2.auth_user_id = (SELECT auth.uid())\n        AND m2.member_type <> 'internal'\n    )\n$function$\n",
+        "identity_arguments": "",
+        "name": "current_internal_organization_id",
+        "observed_at": "2026-10-18 22:47:56.410296+00",
+        "schema": "public"
+      }
+    ]
+  }
+}
