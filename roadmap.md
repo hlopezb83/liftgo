@@ -149,3 +149,4 @@ un ensayo histórico. Incluye el SHA probado, CI vigente, ledger de Lovable
 Cloud, ensayo A/B, resultados de operación entre usuarios y evidencia de
 recuperación aislada. Confirma los datos de producción directamente en Lovable
 Cloud en el momento de la decisión.
+- V09 acciones móviles de reserva: implementado (Crear contrato/Extender visibles, resto en «Más acciones» con grupo de riesgo; foco vuelve a Más). Pruebas de componente 10/10. QA GUI 320/375/390 pendiente.
