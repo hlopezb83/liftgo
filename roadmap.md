@@ -1,5 +1,14 @@
 # Roadmap operativo y estado de evidencia
 
+## V08: detalle de equipo (18 de octubre de 2026)
+
+- [x] Base `ed289dbfe4b530e35a9ef3945f523e45c2f9f9ff` y referencias local/remota `fix/ui-v08-equipment-layout-20261018` confirmadas; checkout interno `edit/*`, limpio al inicio.
+- [x] Seguro nativo desplegable según campos visibles (cero válido), omisión de adquisición no autorizada y resumen financiero antes de Notas, fuera del grid; métricas, tarifas y controles intactos.
+- [x] Vitest focal 22/22 en cuatro archivos: seguro vacío/parcial/completo/cero/costos ocultos/cambio de visibilidad, ubicación, orden del resumen y gates independientes. ESLint en cuatro archivos sin errores/advertencias; diff-check limpio. `public/version.json` idéntico a base.
+- [ ] GUI geométrica a 375/1440 pendiente: Chromium aislado con tarjetas reales y datos ficticios verificó a 375 apertura/cierre por Enter/Espacio/clic, estado inicial y costo cero. El host temporal no aplicó utilidades Tailwind correctamente (sin espacios ni ruptura efectiva), por lo que sus medidas no validan el layout de la aplicación y 1440 no se completó. No equivale a QA autenticada/publicada. Capturas válidas no disponibles; scripts en `/tmp/browser/v08/`.
+- [ ] Coordinador: build productivo y typechecks/CI pendientes; no se ejecutan manualmente por restricción del entorno ni prebuild que regenere versión. Logs automáticos `build OK` no sustituyen esas comprobaciones. Sin lecturas/mutaciones ERP, versión/changelog ni publicación.
+- Riesgo previo documentado antes de implementar: `useForkliftFinancials` usa clave por equipo sin rol y `enabled: false` no elimina datos ya cacheados; `ForkliftDetail` sigue pasándolos a la tarjeta. `useUserRole` también conserva rol en caché. Un cambio de rol en caliente podría mantener información anterior. V08 no modifica este comportamiento ni unifica los dos gates; requiere revisión separada de permisos/caché.
+
 ## V06: inspector bancario (18 de octubre de 2026)
 
 - [x] P2 PR268: referencias local/remota `fix/ui-v06-bank-inspector-20261018` en `da1b747150340809b3f35ff00c5f19dd83d7e1a5` confirmadas antes de editar. Cierre resuelve fila montada visible o región accesible del listado vigente; sin BODY, nodos antiguos, temporizadores ni cambios de scroll/API compartida.
