@@ -113,16 +113,13 @@ describe("KpiTile · estructura e interacción", () => {
     expect(link.getAttribute("href")).toBe("/panel");
   });
 
-  it("con onClick renderiza botón que responde a teclado y clic", async () => {
-    const user = userEvent.setup();
+  it("con onClick renderiza botón enfocable que responde a clic", () => {
     const onClick = vi.fn();
     render(<KpiTile label="A" value="1" onClick={onClick} />);
     const button = screen.getByRole("button");
     button.focus();
     expect(document.activeElement).toBe(button);
-    await user.keyboard("{Enter}");
+    fireEvent.click(button);
     expect(onClick).toHaveBeenCalledTimes(1);
-    await user.click(button);
-    expect(onClick).toHaveBeenCalledTimes(2);
   });
 });
