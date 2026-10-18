@@ -1,4 +1,3 @@
-import type { ComponentProps } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useExportPaymentsForm } from "../hooks/useExportPaymentsForm";
 import { PaymentsExportSummary } from "./PaymentsExportSummary";
 import { PaymentsExportTable } from "./PaymentsExportTable";
+import type { ComponentProps } from "react";
 
 interface Props {
   open: boolean;

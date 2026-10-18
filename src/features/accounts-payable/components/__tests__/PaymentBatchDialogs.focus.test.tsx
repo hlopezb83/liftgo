@@ -6,7 +6,8 @@ import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { AccountsPayableActions } from "../AccountsPayableActions";
-import { PaymentBatchDialogs, restorePaymentActionsFocus } from "../PaymentBatchDialogs";
+import { PaymentBatchDialogs } from "../PaymentBatchDialogs";
+import { restorePaymentActionsFocus } from "../paymentActionsFocus";
 
 const { state, cancel, download, create } = vi.hoisted(() => ({
   state: { busy: false }, cancel: vi.fn(), download: vi.fn(), create: vi.fn(),
@@ -70,7 +71,7 @@ async function setup() {
 }
 
 async function openMenu(target: HTMLElement) {
-  target.focus();
+  act(() => target.focus());
   fireEvent.keyDown(target, { key: "ArrowDown" });
   await screen.findByRole("menu");
 }
@@ -78,7 +79,7 @@ async function openMenu(target: HTMLElement) {
 async function openDialog(target: HTMLElement, itemName = "Historial de lotes", title = "Historial de lotes de pago") {
   await openMenu(target);
   const item = screen.getByRole("menuitem", { name: itemName });
-  item.focus();
+  act(() => item.focus());
   fireEvent.keyDown(item, { key: "Enter" });
   const dialog = await screen.findByRole("dialog", { name: title });
   await waitFor(() => expect(dialog.contains(document.activeElement)).toBe(true));
