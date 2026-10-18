@@ -12,6 +12,7 @@ import { InvoiceDetailActions } from "./InvoiceDetailActions";
 import { InvoiceDetailBadges } from "./InvoiceDetailBadges";
 import { InvoiceDetailDialogs } from "./InvoiceDetailDialogs";
 import { InvoiceDetailIdentifiers } from "./InvoiceDetailIdentifiers";
+import { InvoiceFinancialOverview } from "./InvoiceFinancialOverview";
 import { InvoiceFiscalDataCard } from "./InvoiceFiscalDataCard";
 import { InvoiceHistoryCard } from "./InvoiceHistoryCard";
 import { InvoicePaymentSummary } from "./InvoicePaymentSummary";
@@ -112,11 +113,12 @@ export function InvoiceDetailBody({
         </Alert>
       )}
 
-      <InvoiceDetailIdentifiers
-        cfdiUuid={invoice.cfdi_uuid}
-        serie={invoice.serie}
-        folio={invoice.folio}
-        isStamped={Boolean(invoice.cfdi_uuid) || invoice.cfdi_status === "stamped"}
+      <InvoiceFinancialOverview
+        total={total}
+        totalPaid={totalPaid}
+        balance={balance}
+        creditedAmount={creditedAmount}
+        currency={currency}
       />
 
       <InvoiceSummaryCards
@@ -128,6 +130,13 @@ export function InvoiceDetailBody({
         cfdiUuid={invoice.cfdi_uuid}
         cfdiErrorMessage={invoice.cfdi_error_message}
         showCfdiError={showCfdiError}
+      />
+
+      <InvoiceDetailIdentifiers
+        cfdiUuid={invoice.cfdi_uuid}
+        serie={invoice.serie}
+        folio={invoice.folio}
+        isStamped={Boolean(invoice.cfdi_uuid) || invoice.cfdi_status === "stamped"}
       />
 
       <InvoiceSourceLinks sourceQuote={sourceQuote} sourceBookings={sourceBookings} />
