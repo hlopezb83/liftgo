@@ -52,8 +52,6 @@ interface FiltersProps {
   setCfdiFilter: (v: string) => void;
   dateRange: DateRange | undefined;
   setDateRange: (r: DateRange | undefined) => void;
-  search: string;
-  setSearch: (v: string) => void;
   hasActive: boolean;
   onClear: () => void;
 }
@@ -70,20 +68,12 @@ export function InvoicesFiltersBar({
   setCfdiFilter,
   dateRange,
   setDateRange,
-  search,
-  setSearch,
   hasActive,
   onClear,
 }: FiltersProps) {
   return (
     <div className="space-y-3">
-      <FiltersToolbar>
-        <FiltersToolbar.Search
-          value={search}
-          onChange={setSearch}
-          placeholder="Buscar facturas…"
-          className="w-full sm:w-64 sm:flex-none"
-        />
+      <FiltersToolbar className="sm:items-end">
         <FiltersToolbar.StatusTabs
           value={statusFilter}
           onChange={setStatusFilter}

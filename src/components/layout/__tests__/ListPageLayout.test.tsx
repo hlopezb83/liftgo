@@ -81,6 +81,17 @@ describe("ListPageLayout — UX-M6 EmptyState honesto", () => {
 });
 
 describe("ListPageLayout — acciones móviles", () => {
+  it("otro listado sin opt-in conserva búsqueda y filtros operativos en escritorio", async () => {
+    const onSearch = vi.fn();
+    const onFilter = vi.fn();
+    renderLayout({ title: "Clientes", search: <input aria-label="Buscar clientes" onChange={onSearch} />, filters: <button onClick={onFilter}>Clientes activos</button> });
+    fireEvent.change(await screen.findByRole("textbox", { name: "Buscar clientes" }), { target: { value: "Matrimar" } });
+    fireEvent.click(screen.getByRole("button", { name: "Clientes activos" }));
+    expect(onSearch).toHaveBeenCalledTimes(1);
+    expect(onFilter).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Filtros" })).toBeNull();
+  });
+
   it("mantiene acciones secundarias y filtros junto al botón principal móvil", async () => {
     vi.mocked(useIsMobile).mockReturnValue(true);
     renderLayout({

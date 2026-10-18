@@ -1,14 +1,12 @@
 import { useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { AddIcon, FileClock, ChartIcon, FileSpreadsheet, KeyIcon } from "@/components/icons";
+import { FileClock } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { Link } from "@/lib/router-compat-ui";
+import { AccountsPayableActions } from "../components/AccountsPayableActions";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 import { PaymentBatchesDialog } from "../components/PaymentBatchesDialog";
 import {
@@ -166,63 +164,6 @@ function PaymentBatchDialogs({ canManage, exportDialog, batchesDialog }: {
 function clampTablePageIndex(pageIndex: number, pageCount: number, totalCount: number | undefined) {
   if (totalCount === undefined) return pageIndex;
   return Math.min(pageIndex, Math.max(0, pageCount - 1));
-}
-
-interface AccountsPayableActionsProps {
-  releasableLocks: number;
-  isReleasing: boolean;
-  canManageBatches: boolean;
-  onCreate: () => void;
-  onExport: () => void;
-  onBatches: () => void;
-  onRelease: () => void;
-}
-
-function AccountsPayableActions({
-  releasableLocks,
-  isReleasing,
-  canManageBatches,
-  onCreate,
-  onExport,
-  onBatches,
-  onRelease,
-}: AccountsPayableActionsProps) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      <Link to="/cuentas-por-pagar/antiguedad">
-        <Button variant="outline" aria-label="Antigüedad">
-          <ChartIcon className="h-4 w-4 sm:mr-1" />
-          <span className="hidden sm:inline">Antigüedad</span>
-        </Button>
-      </Link>
-      {canManageBatches && <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
-      <Button variant="outline" onClick={onExport} aria-label="Exportar pagos">
-        <FileSpreadsheet className="h-4 w-4 sm:mr-1" />
-        <span className="hidden sm:inline">Exportar pagos</span>
-      </Button>
-      <Button variant="outline" onClick={onBatches} aria-label="Historial de lotes">
-        <FileClock className="h-4 w-4 sm:mr-1" /><span className="hidden sm:inline">Historial de lotes</span>
-      </Button>
-      </RoleGuard>}
-      <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
-        {/* El RPC decide cuáles bloqueos abandonados pueden liberarse. */}
-        {releasableLocks > 0 && (
-          <Button
-            variant="outline"
-            onClick={onRelease}
-            disabled={isReleasing}
-            aria-label="Liberar bloqueos de pago"
-          >
-            <KeyIcon className="h-4 w-4 sm:mr-1" />
-            <span className="hidden sm:inline">Liberar bloqueos ({releasableLocks})</span>
-          </Button>
-        )}
-        <Button onClick={onCreate}>
-          <AddIcon className="h-4 w-4 mr-1" />Nueva factura
-        </Button>
-      </RoleGuard>
-    </div>
-  );
 }
 
 function FxMissingBillsNotice({ isError, count }: { isError: boolean; count: number }) {
