@@ -1,0 +1,4 @@
+Command: node node_modules/typescript/bin/tsc --noEmit
+Status: INTERRUMPIDO; sin resultado de tipos.
+Motivo: coordinación con el integrador para evitar compilaciones globales paralelas; el integrador ejecutará typecheck tras integrar.
+El tsc de la base ejecutado por el padre pasó (no es verificación de esta corrección).

@@ -1,0 +1,27 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-reports
+
+ Γ£ô src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx (5 tests) 321ms
+ Γ£ô src/lib/pdf/documents/__tests__/documents.smoke.test.tsx (9 tests) 780ms
+ Γ£ô src/features/reports/lib/__tests__/drilldown.test.ts (9 tests) 31ms
+ Γ£ô src/features/reports/components/reports/incomeStatement/__tests__/incomeStatementHelpers.test.ts (10 tests) 18ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/statementRowFactories.test.ts (7 tests) 13ms
+ Γ£ô src/features/reports/components/reports/incomeStatement/__tests__/incomeStatementHelpersExtra.test.ts (10 tests) 16ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/computeDerivedTotals.test.ts (5 tests) 8ms
+ Γ£ô src/features/reports/hooks/__tests__/useProfitByModelReport.test.ts (3 tests) 353ms
+ Γ£ô src/lib/pdf/documents/__tests__/InvoiceDocument.status.test.tsx (4 tests) 151ms
+ Γ£ô src/features/reports/components/reports/utilizationByModel/__tests__/utilizationHelpers.test.ts (4 tests) 15ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts (7 tests) 19ms
+ Γ£ô src/features/reports/hooks/__tests__/reportInvalidation.test.ts (2 tests) 208ms
+ Γ£ô src/lib/pdf/documents/__tests__/contractTerms.test.tsx (7 tests) 689ms
+ Γ£ô src/features/reports/lib/__tests__/invoicesWithinRange.test.ts (6 tests) 17ms
+ Γ£ô src/lib/pdf/documents/__tests__/InvoiceDocument.discounts.test.tsx (1 test) 96ms
+ Γ£ô src/lib/pdf/documents/__tests__/IncomeStatementDocument.margins.test.tsx (2 tests) 65ms
+ Γ£ô src/features/reports/lib/__tests__/agingCuttoffLabel.test.ts (3 tests) 16ms
+
+ Test Files  17 passed (17)
+      Tests  94 passed (94)
+   Start at  16:07:04
+   Duration  124.57s (transform 4.29s, setup 28.76s, import 150.81s, tests 2.82s, environment 45.81s)
+
+Exit code: 0

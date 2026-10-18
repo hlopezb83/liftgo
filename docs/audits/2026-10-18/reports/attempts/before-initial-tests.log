@@ -1,0 +1,237 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-reports
+
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts (7 tests | 6 failed) 25ms
+     ├ù revenue 0: no aplica sin modificar importes 13ms
+     ├ù revenue -200: no aplica sin modificar importes 2ms
+     Γ£ô un margen real de cero con ingresos positivos sigue siendo 0% 1ms
+     ├ù tabla y CSV mensual conservan No aplica en lugar de 0% 3ms
+     ├ù comparativo null / 25 no calcula variaci├│n artificial 1ms
+     ├ù comparativo 25 / null no calcula variaci├│n artificial 0ms
+     ├ù comparativo null / null no calcula variaci├│n artificial 0ms
+ Γ¥» src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx (5 tests | 2 failed) 121ms
+     Γ£ô conserva los cinco importes exactos del reporte 74ms
+     Γ£ô el comparativo sigue sin mostrar KPI 3ms
+     ├ù N2: muestra un margen no aplicable con estilo neutral 11ms
+     Γ£ô N3: advierte sobre depreciaci├│n faltante en Devengado 14ms
+     ├ù N3: Efectivo omite la advertencia de depreciaci├│n y conserva la de costo de venta 16ms
+ Γ¥» src/lib/pdf/documents/__tests__/IncomeStatementDocument.margins.test.tsx (2 tests | 2 failed) 45ms
+     ├ù muestra No aplica en mes y total sin lanzar 35ms
+     ├ù conserva margen v├ílido y no inventa variaci├│n cuando un a├▒o no aplica 5ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 10 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/lib/pdf/documents/__tests__/IncomeStatementDocument.margins.test.tsx > N2: texto de m├írgenes en el componente PDF (renderer simulado) > muestra No aplica en mes y total sin lanzar
+TypeError: Cannot read properties of null (reading 'toFixed')
+ Γ¥» fmtVal src/lib/pdf/documents/IncomeStatementDocument.tsx:38:25
+     36|
+     37| function fmtVal(val: number, isPct?: boolean): string {
+     38|   return isPct ? `${val.toFixed(1)}%` : formatCurrency(val);
+       |                         ^
+     39| }
+     40|
+ Γ¥» src/lib/pdf/documents/IncomeStatementDocument.tsx:90:15
+ Γ¥» StatementValues src/lib/pdf/documents/IncomeStatementDocument.tsx:83:19
+ Γ¥» Object.react_stack_bottom_frame ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:28571:20
+ Γ¥» renderWithHooks ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:8030:22
+ Γ¥» updateFunctionComponent ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:10569:19
+ Γ¥» beginWork ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:12205:18
+ Γ¥» runWithFiberInDEV ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ Γ¥» performUnitOfWork ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:19176:22
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/10]ΓÄ»
+
+ FAIL  src/lib/pdf/documents/__tests__/IncomeStatementDocument.margins.test.tsx > N2: texto de m├írgenes en el componente PDF (renderer simulado) > conserva margen v├ílido y no inventa variaci├│n cuando un a├▒o no aplica
+TypeError: Cannot read properties of null (reading 'toFixed')
+ Γ¥» fmtVal src/lib/pdf/documents/IncomeStatementDocument.tsx:38:25
+     36|
+     37| function fmtVal(val: number, isPct?: boolean): string {
+     38|   return isPct ? `${val.toFixed(1)}%` : formatCurrency(val);
+       |                         ^
+     39| }
+     40|
+ Γ¥» src/lib/pdf/documents/IncomeStatementDocument.tsx:111:15
+ Γ¥» ComparisonValues src/lib/pdf/documents/IncomeStatementDocument.tsx:104:23
+ Γ¥» Object.react_stack_bottom_frame ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:28571:20
+ Γ¥» renderWithHooks ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:8030:22
+ Γ¥» updateFunctionComponent ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:10569:19
+ Γ¥» beginWork ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:12205:18
+ Γ¥» runWithFiberInDEV ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ Γ¥» performUnitOfWork ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:19176:22
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/10]ΓÄ»
+
+ FAIL  src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx > IncomeStatementReport ┬╖ KPI completos > N2: muestra un margen no aplicable con estilo neutral
+TypeError: Cannot read properties of null (reading 'toFixed')
+ Γ¥» IncomeStatementReport src/features/reports/components/reports/IncomeStatementReport.tsx:73:53
+     71|     { label: "Depreciaci├│n total", value: formatCurrency(totalDepreciaΓÇª
+     72|     { label: "Utilidad Neta", value: formatCurrency(totals.netProfit),ΓÇª
+     73|     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icoΓÇª
+       |                                                     ^
+     74|   ];
+     75|
+ Γ¥» Object.react_stack_bottom_frame ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:28571:20
+ Γ¥» renderWithHooks ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:8030:22
+ Γ¥» updateFunctionComponent ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:10569:19
+ Γ¥» beginWork ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:12205:18
+ Γ¥» runWithFiberInDEV ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:1048:13
+ Γ¥» performUnitOfWork ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:19176:22
+ Γ¥» workLoopSync ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:19004:41
+ Γ¥» renderRootSync ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:18985:11
+ Γ¥» performWorkOnRoot ../liftgo/node_modules/react-dom/cjs/react-dom-client.development.js:18094:35
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/10]ΓÄ»
+
+ FAIL  src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx > IncomeStatementReport ┬╖ KPI completos > N3: Efectivo omite la advertencia de depreciaci├│n y conserva la de costo de venta
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <h5
+  class="mb-1 font-medium leading-none tracking-tight"
+>
+  Equipos sin costo de adquisici├│n
+</h5> instead
+ Γ¥» src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx:98:72
+     96|     reportData.soldWithoutCost = [{ id: "sold-no-cost", name: "Equipo ΓÇª
+     97|     renderReport("cash");
+     98|     expect(screen.queryByText("Equipos sin costo de adquisici├│n")).notΓÇª
+       |                                                                        ^
+     99|     expect(screen.queryByText("Equipo rentado sin costo")).not.toBeInTΓÇª
+    100|     expect(screen.getByText("Equipos vendidos sin costo de adquisici├│nΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/10]ΓÄ»
+
+ FAIL  src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts > N2: m├írgenes con ingresos no positivos > revenue 0: no aplica sin modificar importes
+AssertionError: expected { grossProfit: -50, ΓÇª(6) } to deeply equal { grossProfit: -50, ΓÇª(6) }
+
+- Expected
++ Received
+
+  {
+-   "grossMargin": null,
++   "grossMargin": 0,
+    "grossProfit": -50,
+-   "margin": null,
+-   "marginBeforeDepreciation": null,
++   "margin": 0,
++   "marginBeforeDepreciation": 0,
+    "netProfit": -180,
+    "profitBeforeDepreciation": -80,
+    "totalExpenses": 80,
+  }
+
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts:12:20
+     10|       cogsForkliftSales: 20, expenses: { ...emptyExpenses(), combustibΓÇª
+     11|     });
+     12|     expect(totals).toEqual({
+       |                    ^
+     13|       grossProfit: revenue - 50, grossMargin: null,
+     14|       totalExpenses: 80, profitBeforeDepreciation: revenue - 80,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/10]ΓÄ»
+
+ FAIL  src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts > N2: m├írgenes con ingresos no positivos > revenue -200: no aplica sin modificar importes
+AssertionError: expected { grossProfit: -250, ΓÇª(6) } to deeply equal { grossProfit: -250, ΓÇª(6) }
+
+- Expected
++ Received
+
+  {
+-   "grossMargin": null,
++   "grossMargin": 0,
+    "grossProfit": -250,
+-   "margin": null,
+-   "marginBeforeDepreciation": null,
++   "margin": 0,
++   "marginBeforeDepreciation": 0,
+    "netProfit": -380,
+    "profitBeforeDepreciation": -280,
+    "totalExpenses": 80,
+  }
+
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts:12:20
+     10|       cogsForkliftSales: 20, expenses: { ...emptyExpenses(), combustibΓÇª
+     11|     });
+     12|     expect(totals).toEqual({
+       |                    ^
+     13|       grossProfit: revenue - 50, grossMargin: null,
+     14|       totalExpenses: 80, profitBeforeDepreciation: revenue - 80,
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/10]ΓÄ»
+
+ FAIL  src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts > N2: m├írgenes con ingresos no positivos > tabla y CSV mensual conservan No aplica en lugar de 0%
+TypeError: Cannot read properties of null (reading 'toFixed')
+ Γ¥» formatCell src/features/reports/components/reports/incomeStatement/incomeStatementHelpers.ts:8:28
+      6|
+      7| export const formatCell = (row: StatementRow | ComparisonRow, value: nΓÇª
+      8|   row.isPercent ? `${value.toFixed(1)}%` : formatCurrency(value);
+       |                            ^
+      9|
+     10| export function formatRowDelta(row: ComparisonRow): string {
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts:31:12
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/10]ΓÄ»
+
+ FAIL  src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts > N2: m├írgenes con ingresos no positivos > comparativo null / 25 no calcula variaci├│n artificial
+AssertionError: expected 25 to be null
+
+- Expected:
+null
+
++ Received:
+25
+
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts:47:30
+     45|     };
+     46|     expect(comparison.yearValues).toEqual([prev, last]);
+     47|     expect(comparison.delta).toBeNull();
+       |                              ^
+     48|     expect(comparison.deltaPct).toBeNull();
+     49|     expect(formatRowDelta(comparison)).toBe("No aplica");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/10]ΓÄ»
+
+ FAIL  src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts > N2: m├írgenes con ingresos no positivos > comparativo 25 / null no calcula variaci├│n artificial
+AssertionError: expected -25 to be null
+
+- Expected:
+null
+
++ Received:
+-25
+
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts:47:30
+     45|     };
+     46|     expect(comparison.yearValues).toEqual([prev, last]);
+     47|     expect(comparison.delta).toBeNull();
+       |                              ^
+     48|     expect(comparison.deltaPct).toBeNull();
+     49|     expect(formatRowDelta(comparison)).toBe("No aplica");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/10]ΓÄ»
+
+ FAIL  src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts > N2: m├írgenes con ingresos no positivos > comparativo null / null no calcula variaci├│n artificial
+AssertionError: expected +0 to be null
+
+- Expected:
+null
+
++ Received:
+0
+
+ Γ¥» src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts:47:30
+     45|     };
+     46|     expect(comparison.yearValues).toEqual([prev, last]);
+     47|     expect(comparison.delta).toBeNull();
+       |                              ^
+     48|     expect(comparison.deltaPct).toBeNull();
+     49|     expect(formatRowDelta(comparison)).toBe("No aplica");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/10]ΓÄ»
+
+
+ Test Files  3 failed (3)
+      Tests  10 failed | 4 passed (14)
+   Start at  16:03:52
+   Duration  14.51s (transform 1.10s, setup 2.21s, import 17.19s, tests 191ms, environment 3.20s)
+
+Exit code: 1
