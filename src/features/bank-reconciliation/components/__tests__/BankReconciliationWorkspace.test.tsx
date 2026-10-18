@@ -109,6 +109,8 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
   it('checkbox por teclado no abre inspector', () => {
     mount(); const checkbox = within(row('uno')).getByRole('checkbox');
     fireEvent.keyDown(checkbox, { key: 'Enter' }); fireEvent.keyDown(checkbox, { key: ' ' });
+    expect(checkbox).toBeChecked();
+    expect(screen.getByTestId('bank-bulk-count')).toHaveTextContent('1 seleccionados');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
   it('cambio de búsqueda/estado cierra como antes y conserva callbacks', async () => {

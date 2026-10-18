@@ -109,7 +109,9 @@ export function BankStatementLinesTable({
       <CardContent className="overflow-x-auto p-0" onKeyDownCapture={(event) => {
         // No dejar que Enter/Espacio de un checkbox active también la fila.
         if (event.target instanceof HTMLElement && event.target.closest('[role="checkbox"]') && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
           event.stopPropagation();
+          if (event.key === " ") event.target.click();
         }
       }}>
         <DataTableV2
