@@ -1,5 +1,11 @@
 # Roadmap operativo y estado de evidencia
 
+## V06: inspector bancario (18 de octubre de 2026)
+
+- [x] Base `694b2bd9b77010f0d608407af86a46f46c4a620f` y referencias local/remota `fix/ui-v06-bank-inspector-20261018` confirmadas; checkout interno `edit/*`. `public/version.json` ya modificado al inicio, no tocar.
+- [ ] Tabla única a ancho completo, inspector Sheet en todos los tamaños y retorno de foco a fila vigente; conservar filtros, selección y scroll.
+- [ ] Pruebas focales y lint; QA aislada 1366/1440/375 si disponible. Build/typechecks manuales no permitidos por el entorno; CI y QA autenticada/publicada no confirmados. No ejecutar e2e bancario, mutaciones, publicación ni versionado.
+
 ## KPI móvil: etiquetas completas (18 de octubre de 2026)
 
 - [x] Base `2d38f5eaa153db042749b1da845fe56a5ee31f66` confirmada; checkout interno `edit/*`, correspondiente a la referencia seleccionada por el coordinador.

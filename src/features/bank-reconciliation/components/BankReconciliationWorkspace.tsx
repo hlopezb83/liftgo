@@ -1,9 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { EmptyState } from "@/components/feedback/EmptyState";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { BANK_LINE_STATUS_LABELS, type BankLineStatus } from "../lib/bankReconciliationConstants";
 import { BankLineMatchPanel } from "./BankLineMatchPanel";
 import { BankStatementLinesTable } from "./BankStatementLinesTable";
@@ -34,8 +31,13 @@ export function BankReconciliationWorkspace({
   lines, bankAccountId, currency, isLoading, virtualized,
   status, search, onStatusChange, onSearchChange,
 }: Props) {
-  const isMobile = useIsMobile();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
+  const focusLineId = useRef<string | null>(null);
+  // Resolver la fila vigente al cerrar, no la que abrió originalmente el inspector.
+  useEffect(() => {
+    if (activeLine) focusLineId.current = activeLine.id;
+  });
 
   // `lines` ya corresponde al filtro y página ejecutados en el servidor.
   const visible = lines;
