@@ -28,12 +28,13 @@ export function createPrivacyOptions() {
     beforeSendLog: () => null,
     beforeSendMetric: () => null,
     tracePropagationTargets: [],
-    beforeSend: scrubEvent,
+    beforeSend: errorsOnly,
     beforeSendSpan: scrubSpan,
   };
 }
 
-export function scrubServerEvent<T extends Parameters<typeof scrubEvent>[0]>(event: T): T {
+export function scrubServerEvent<T extends Parameters<typeof scrubEvent>[0]>(event: T): T | null {
+  if (!isActionableEvent(event as never)) return null;
   const clean = scrubEvent(event);
   // Un objeto lanzado puede convertirse en extra.__serialized__. No enviar filas
   // ni payloads arbitrarios del servidor, aunque sus nombres de campo sean nuevos.
