@@ -1,0 +1,19 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+stderr | src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx > EditPaymentDialog currency wiring > keeps stamped REP amount disabled and submits original fiscal fields
+Warning: useRouter must be used inside a <RouterProvider> component!
+Warning: useRouter must be used inside a <RouterProvider> component!
+
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests) 2540ms
+     Γ£ô N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175  1045ms
+     Γ£ô N8: blocks excess with maximum and currency in the validation message  584ms
+     Γ£ô does not submit when FX needed for validation is missing  545ms
+     Γ£ô keeps stamped REP amount disabled and submits original fiscal fields  361ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  16:06:45
+   Duration  25.33s (transform 3.16s, setup 1.79s, import 18.09s, tests 2.54s, environment 2.11s)
+
+EXIT_CODE=0

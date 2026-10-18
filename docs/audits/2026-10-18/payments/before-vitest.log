@@ -1,0 +1,204 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrency.test.ts (5 tests | 3 failed) 16ms
+     ├ù N7: rounds each MXN payment to invoice cents before summing (synthetic USD 100 / FX 17.5) 11ms
+     Γ£ô rounds a foreign-to-foreign conversion once in the invoice currency 1ms
+     ├ù uses invoice currency for legacy payments without a currency, as the balance view does 1ms
+     ├ù same-currency payments do not require FX, but cross-currency rates of 1 are missing 1ms
+     Γ£ô counts missing FX without silently changing the subtotal of convertible payments 0ms
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts (6 tests | 5 failed) 19ms
+     ├ù N8: permits MXN 350 with USD 90 remaining and original MXN 175 (synthetic USD 100 / FX 17.5) 10ms
+     ├ù N8: reports the maximum in the payment currency, MXN 1750 2ms
+     ├ù converts the original payment at invoice precision before computing the maximum 1ms
+     ├ù also validates a USD payment on an MXN invoice 1ms
+     ├ù blocks validation if a cross-currency rate is missing 1ms
+     Γ£ô preserves REP stamped bypass even when conversion is unavailable 0ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts (5 tests) 5ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 8 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/lib/__tests__/paymentCurrency.test.ts > invoice payment currency policy > N7: rounds each MXN payment to invoice cents before summing (synthetic USD 100 / FX 17.5)
+AssertionError: expected { totalPaid: 0.11, unconvertible: +0 } to deeply equal { totalPaid: 0.12, unconvertible: +0 }
+
+- Expected
++ Received
+
+  {
+-   "totalPaid": 0.12,
++   "totalPaid": 0.11,
+    "unconvertible": 0,
+  }
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrency.test.ts:12:20
+     10|     );
+     11|     // SQL fx_convert_amount: round(1 / 17.5, 2) + round(1 / 17.5, 2).
+     12|     expect(result).toEqual({ totalPaid: 0.12, unconvertible: 0 });
+       |                    ^
+     13|     expect(100 - result.totalPaid).toBe(99.88);
+     14|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/8]ΓÄ»
+
+ FAIL  src/features/invoices/lib/__tests__/paymentCurrency.test.ts > invoice payment currency policy > uses invoice currency for legacy payments without a currency, as the balance view does
+AssertionError: expected { totalPaid: 0.57, unconvertible: +0 } to deeply equal { totalPaid: 10, unconvertible: +0 }
+
+- Expected
++ Received
+
+  {
+-   "totalPaid": 10,
++   "totalPaid": 0.57,
+    "unconvertible": 0,
+  }
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrency.test.ts:26:8
+     24|   it("uses invoice currency for legacy payments without a currency, asΓÇª
+     25|     expect(sumPaymentsInInvoiceCurrency([{ amount: 10, currency: null ΓÇª
+     26|       .toEqual({ totalPaid: 10, unconvertible: 0 });
+       |        ^
+     27|   });
+     28|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/8]ΓÄ»
+
+ FAIL  src/features/invoices/lib/__tests__/paymentCurrency.test.ts > invoice payment currency policy > same-currency payments do not require FX, but cross-currency rates of 1 are missing
+AssertionError: expected { totalPaid: 10, unconvertible: +0 } to deeply equal { totalPaid: +0, unconvertible: 1 }
+
+- Expected
++ Received
+
+  {
+-   "totalPaid": 0,
+-   "unconvertible": 1,
++   "totalPaid": 10,
++   "unconvertible": 0,
+  }
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrency.test.ts:33:8
+     31|       .toEqual({ totalPaid: 10, unconvertible: 0 });
+     32|     expect(sumPaymentsInInvoiceCurrency([{ amount: 10, currency: "USD"ΓÇª
+     33|       .toEqual({ totalPaid: 0, unconvertible: 1 });
+       |        ^
+     34|   });
+     35|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/8]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts > edit payment currency validation > N8: permits MXN 350 with USD 90 remaining and original MXN 175 (synthetic USD 100 / FX 17.5)
+AssertionError: expected { ok: false, maxAllowed: 265 } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "maxAllowed": 265,
++   "ok": false,
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts:13:84
+     11| describe("edit payment currency validation", () => {
+     12|   it("N8: permits MXN 350 with USD 90 remaining and original MXN 175 (ΓÇª
+     13|     expect(validateEditPaymentAmount(350, 90, 175, false, mxnPaymentOnΓÇª
+       |                                                                                    ^
+     14|     expect(validateEditPaymentAmount(1750, 90, 175, false, mxnPaymentOΓÇª
+     15|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/8]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts > edit payment currency validation > N8: reports the maximum in the payment currency, MXN 1750
+AssertionError: expected { ok: false, maxAllowed: 265 } to deeply equal { ok: false, maxAllowed: 1750 }
+
+- Expected
++ Received
+
+  {
+-   "maxAllowed": 1750,
++   "maxAllowed": 265,
+    "ok": false,
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts:19:8
+     17|   it("N8: reports the maximum in the payment currency, MXN 1750", () =ΓÇª
+     18|     expect(validateEditPaymentAmount(1750.02, 90, 175, false, mxnPaymeΓÇª
+     19|       .toEqual({ ok: false, maxAllowed: 1750 });
+       |        ^
+     20|   });
+     21|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/8]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts > edit payment currency validation > converts the original payment at invoice precision before computing the maximum
+AssertionError: expected { ok: false, maxAllowed: 100.94 } to deeply equal { ok: true }
+
+- Expected
++ Received
+
+  {
+-   "ok": true,
++   "maxAllowed": 100.94,
++   "ok": false,
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts:24:86
+     22|   it("converts the original payment at invoice precision before computΓÇª
+     23|     // The original MXN 1 contributed USD 0.06, leaving USD 99.94.
+     24|     expect(validateEditPaymentAmount(1750, 99.94, 1, false, mxnPaymentΓÇª
+       |                                                                                      ^
+     25|     expect(validateEditPaymentAmount(1750.02, 99.94, 1, false, mxnPaymΓÇª
+     26|       .toEqual({ ok: false, maxAllowed: 1750 });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/8]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts > edit payment currency validation > also validates a USD payment on an MXN invoice
+AssertionError: expected { ok: true } to deeply equal { ok: false, maxAllowed: 100 }
+
+- Expected
++ Received
+
+  {
+-   "maxAllowed": 100,
+-   "ok": false,
++   "ok": true,
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts:32:65
+     30|     const fx = { invoiceCurrency: "MXN", paymentCurrency: "USD", paymeΓÇª
+     31|     expect(validateEditPaymentAmount(100, 1575, 10, false, fx)).toEquaΓÇª
+     32|     expect(validateEditPaymentAmount(101, 1575, 10, false, fx)).toEquaΓÇª
+       |                                                                 ^
+     33|   });
+     34|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/8]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts > edit payment currency validation > blocks validation if a cross-currency rate is missing
+AssertionError: expected { ok: false, maxAllowed: 265 } to deeply equal { ok: false, ΓÇª(1) }
+
+- Expected
++ Received
+
+  {
++   "maxAllowed": 265,
+    "ok": false,
+-   "reason": "missing_exchange_rate",
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts:37:8
+     35|   it("blocks validation if a cross-currency rate is missing", () => {
+     36|     expect(validateEditPaymentAmount(350, 90, 175, false, { ...mxnPaymΓÇª
+     37|       .toEqual({ ok: false, reason: "missing_exchange_rate" });
+       |        ^
+     38|   });
+     39|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/8]ΓÄ»
+
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  8 failed | 8 passed (16)
+   Start at  16:03:50
+   Duration  4.14s (transform 135ms, setup 1.95s, import 147ms, tests 40ms, environment 2.90s)
+
+EXIT_CODE=1

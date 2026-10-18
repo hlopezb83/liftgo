@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+ Γ£ô src/lib/money/money.test.ts (17 tests) 16ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx (5 tests) 916ms
+
+ Test Files  2 passed (2)
+      Tests  22 passed (22)
+   Start at  16:08:39
+   Duration  22.56s (transform 2.46s, setup 3.61s, import 15.95s, tests 932ms, environment 5.61s)
+
+EXIT_CODE=0
