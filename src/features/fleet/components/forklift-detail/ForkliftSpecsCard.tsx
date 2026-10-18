@@ -17,13 +17,13 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
   // sensibles; el resto de las especificaciones sigue visible para todos.
   const canSeeCosts = useCanSeeFinancialCosts();
   const specs = [
-    { label: "Modelo", value: forklift.model },
-    { label: "Fabricante", value: forklift.manufacturer },
+    { label: "Modelo", value: registeredText(forklift.model) },
+    { label: "Fabricante", value: registeredText(forklift.manufacturer) },
     { label: "Año", value: forklift.year },
     { label: "Capacidad", value: forklift.capacity_kg ? `${forklift.capacity_kg} kg` : null },
     { label: "Altura del Mástil", value: forklift.mast_height_m ? `${forklift.mast_height_m} m` : null },
     { label: "Tipo de Combustible", value: forklift.fuel_type ? (FUEL_TYPE_LABELS[forklift.fuel_type] || forklift.fuel_type) : null },
-    { label: "No. de Serie", value: forklift.serial_number },
+    { label: "No. de Serie", value: registeredText(forklift.serial_number) },
     ...(canSeeCosts ? [{ label: "Costo de Adquisición", value: forklift.acquisition_cost == null ? null : formatCurrency(Number(forklift.acquisition_cost)) }] : []),
     { label: "Ubicación registrada", value: locationError ? "No se pudo cargar la ubicación" : (currentLocation || "Sin ubicación confirmada"),
       help: locationHelp(currentLocation, locationError) },
@@ -70,6 +70,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
   );
 }
 
+/** Cadenas vacías o de sólo espacios se muestran como raya; los números 0 no pasan por aquí. */
 function registeredText(value: string | null | undefined) {
   return value?.trim() ? value : null;
 }
