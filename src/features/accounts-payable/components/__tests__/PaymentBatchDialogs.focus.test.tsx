@@ -2,6 +2,7 @@ import { type Ref, useImperativeHandle, useRef, useState, createRef } from "reac
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TestRouter } from "@/test/router";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { AccountsPayableActions } from "../AccountsPayableActions";
@@ -51,7 +52,8 @@ function Harness({ ref }: { ref: Ref<HarnessControl> }) {
 
 async function setup() {
   const control = createRef<HarnessControl>();
-  render(<TestRouter><ConfirmProvider><Harness ref={control} /></ConfirmProvider></TestRouter>);
+  const { Wrapper } = createQueryWrapper();
+  render(<Wrapper><TestRouter><ConfirmProvider><Harness ref={control} /></ConfirmProvider></TestRouter></Wrapper>);
   await screen.findByRole("button", { name: "Más acciones" });
   // happy-dom no tiene layout; se simula sólo la geometría del destino persistente.
   const markVisible = () => {
