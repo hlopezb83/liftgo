@@ -112,13 +112,13 @@ describe("KpiTile · estructura e interacción", () => {
     expect(label.className).toContain("min-h-[2.5em]");
   });
 
-  it("con href renderiza enlace navegable", () => {
+  it("con href renderiza enlace navegable", async () => {
     render(
       <TestRouter>
         <KpiTile label="A" value="1" href="/panel" />
       </TestRouter>,
     );
-    const link = screen.getByRole("link");
+    const link = await screen.findByRole("link");
     expect(link.getAttribute("href")).toBe("/panel");
   });
 
