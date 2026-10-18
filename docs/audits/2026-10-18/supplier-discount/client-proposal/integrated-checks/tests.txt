@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-k1-client-review
+
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx (3 tests) 37ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:53:25
+   Duration  2.55s (transform 220ms, setup 591ms, import 363ms, tests 37ms, environment 1.19s)
+
+
+ExitCode=0

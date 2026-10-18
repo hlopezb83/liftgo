@@ -41,7 +41,7 @@ El puente cliente propuesto sustituye el UPDATE directo por `callRpc<string>("up
 | Cliente antes, fuente original | exit **1**, 2 fallos y 1 control aprobado | `client-proposal/before.txt` |
 | Cliente con patch temporal | exit **0**, 3/3 aprobadas | `client-proposal/after.txt` |
 | Restauración/applicabilidad | fuentes con hashes originales, test temporal eliminado, diff/status de src vacíos, git apply --check exit 0 | `client-proposal/restoration.json`, `verification.txt` |
-| Preparación/verificación | generación, `node --check` y `git diff --check` sin error; servidor detenido | SQL generado y logs de estado |
+| Preparación/verificación | generación y `node --check` sin error; diff documental sin espacios finales fuera de logs crudos/artefacto patch; servidor detenido | SQL generado, `client-proposal/integrated-checks/README.md` y logs de estado |
 
 **El rojo SQL no significa 95 pruebas fallando antes:** la ejecución se detiene al no existir la RPC. La evidencia v2 de denegación ACL está archivada; v3 comprueba además esa denegación directa antes y después de instalar la RPC local. Las pruebas del cliente usan mocks y no se presentan como reproducción de permisos o datos publicados.
 
@@ -62,7 +62,7 @@ Fixture parcial: 6 helpers de acceso capturados (incluido el interno, cuyo cuerp
 1. Esta RPC protege el canal nuevo de edición; las ACL históricas aún permiten UPDATE directo de **otros** campos monetarios y de metadatos. No se revocan ni endurecen globalmente aquí. Tampoco se afirma corregir acceso raw de inactivos a otros campos. Una garantía global requeriría revisión separada de todos los writers/ACL/triggers.
 2. La política nueva de precisión (2/6 decimales) y los candados adicionales de identidad fiscal requieren revisión de producto/datos antes de publicar; el cliente propuesto conserva el payload actual, cuyo formato real debe validarse con el carril de despliegue.
 3. Los helpers/tablas, ownership y privilegios reales deben verificarse otra vez al preparar la migración forward-only aprobada. Las lecturas de catálogo no son una transacción publicada ni QA de publicación.
-4. No se ejecutaron tsc/build global ni navegador para estos artefactos; la prueba del puente es temporal y el SQL se ejecutó sólo local. No se aplicó el patch al app ni se creó/aplicó migración publicada. Revisión independiente, aprobación específica, coordinación RPC+cliente/tipos, pruebas completas del entorno autorizado y QA siguen pendientes.
+4. El subtrabajo original del puente no ejecutó tipos/build global ni navegador. El coordinador comprobó después el patch temporal sobre main fusionado: ESLint de sus tres archivos sin advertencias, TypeScript global y 3/3 pruebas, todos exit 0; fuentes restauradas y hashes originales comprobados. Véase `client-proposal/integrated-checks/README.md`. No se repitió build ni se publicó el patch o la RPC. Revisión/aprobación específica, coordinación RPC+cliente/tipos, pruebas completas del entorno autorizado y QA siguen pendientes.
 
 ## Comandos reproducibles
 
@@ -88,7 +88,7 @@ node docs/audits/2026-10-18/supplier-discount/rpc-concurrency.mjs
 node docs/audits/2026-10-18/supplier-discount/client-proposal/run-temporary-proposal.mjs
 git diff --exit-code -- src
 git apply --check docs/audits/2026-10-18/supplier-discount/proposed-client.patch
-git diff --check
+git diff --check origin/main...HEAD -- . ':!*.txt' ':!*.patch'
 ```
 
 Salida capturada mediante `2>&1 | Tee-Object -FilePath <log indicado>`, con ExitCode en before/after/concurrencia. Se reconstruyó sólo el fixture v3 local al incorporar el helper capturado y el enum real, y se repitió la matriz/concurrencia finales. Las ejecuciones locales necesitaron escalación aprobada; no hubo rechazo de auto-review. Los intentos de preparación del puente con 0 pruebas se conservan en `client-proposal/` y no cuentan como rojo. Ver allí los comandos exactos de Vitest y la restauración en finally.
