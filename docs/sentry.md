@@ -3,7 +3,7 @@
 ## Alcance
 
 LiftGo usa Sentry para registrar errores del navegador y del servidor
-TanStack Start/Nitro. El SDK de ambas capas permanece en 11.4.0. Se conserva
+TanStack Start/Nitro. El SDK de ambas capas está fijado en 11.7.0. Se conserva
 el piloto Deno compatible de `parse-csf`, con SDK 10.76.0.
 
 El perfil no instala la integración de rendimiento del router, no envía trazas
@@ -140,8 +140,8 @@ timbrados, pagos ni documentos como sondas. No afirmar cobertura total de Cloud.
 
 - [Opciones del SDK React](https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/)
 - [Mapas con Vite](https://docs.sentry.io/platforms/javascript/guides/react/sourcemaps/uploading/vite/)
-- [Migración SDK 11 y mínimos de runtime](https://github.com/getsentry/sentry-javascript/blob/11.4.0/MIGRATION.md)
-- [Wrapper Cloudflare](https://github.com/getsentry/sentry-javascript/blob/11.4.0/packages/cloudflare/src/request.ts)
+- [Migración SDK 11 y mínimos de runtime](https://github.com/getsentry/sentry-javascript/blob/11.7.0/MIGRATION.md)
+- [Wrapper Cloudflare](https://github.com/getsentry/sentry-javascript/blob/11.7.0/packages/cloudflare/src/request.ts)
 - [Lovable: Secrets](https://docs.lovable.dev/features/secrets)
 - [Lovable: Build secrets](https://docs.lovable.dev/features/build-secrets)
 - [Lovable: Logs](https://docs.lovable.dev/features/logs)

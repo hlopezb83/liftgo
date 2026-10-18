@@ -1,5 +1,6 @@
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import * as Sentry from "@sentry/cloudflare";
+import { dependencies } from "../../../package.json";
 import { captureServerError, createServerSentryOptions, setVerifiedServerIdentity, withServerSentry } from "./serverSentry.server";
 import { createPrivacyOptions, scrubServerEvent } from "./privacyOptions";
 
@@ -88,7 +89,7 @@ describe("SDK oficial de servidor, con cliente compartido y transporte offline",
       captureServerError(error); captureServerError(error); return new Response("ok");
     }, options());
     expect(events()).toHaveLength(1); const event = events()[0];
-    expect(event.sdk?.version).toBe("11.4.0"); expect(event.release).toBe("liftgo@server-test");
+    expect(event.sdk?.version).toBe(dependencies["@sentry/cloudflare"]); expect(event.release).toBe("liftgo@server-test");
     expect(event.exception?.values?.[0].stacktrace?.frames?.length).toBeGreaterThan(0);
     expect(event.request?.url).toBe("/customers/:id"); expect(event.request?.headers).toBeUndefined();
     for (const privateValue of ["private-auth", "private-cookie", "private-query", "private-fragment", "private pass phrase", "audit@example.com", "private-customer", "private-arbitrary-row"])
