@@ -729,6 +729,13 @@
       "when": 1792365194570,
       "tag": "0103_canonical_payment_invoice_currency",
       "breakpoints": true
+    },
+    {
+      "idx": 104,
+      "version": "7",
+      "when": 1792367216254,
+      "tag": "0104_supplier_bill_details_rpc",
+      "breakpoints": true
     }
   ]
 }

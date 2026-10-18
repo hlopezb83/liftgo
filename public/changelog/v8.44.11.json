@@ -1,0 +1,12 @@
+{
+  "version": "8.44.11",
+  "date": "2026-10-18",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Edición de facturas de proveedor con validación del servidor",
+  "description": "La edición conserva importes sin cambios y usa una operación del servidor limitada a la factura y empresa autorizadas.",
+  "changes": [
+    "Editar sólo la descripción conserva el total almacenado.",
+    "Los cambios de descuento se validan junto con importes, aprobaciones y pagos de la factura."
+  ]
+}

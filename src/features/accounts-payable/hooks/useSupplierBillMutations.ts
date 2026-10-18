@@ -48,12 +48,10 @@ export function useUpdateSupplierBill() {
     mutationFn: async ({ id, patch }) => {
       // BL-21: el balance lo recalcula el trigger trg_supplier_bill_recalc_on_total
       // en el servidor a partir de los pagos existentes. No enviar balance desde el cliente.
-      const { error } = await supabase
-        .from("supplier_bills")
-        .update(patch)
-        .eq("id", id);
-      if (error) throw error;
-      return id;
+      return callRpc<string>("update_supplier_bill_details", {
+        p_bill_id: id,
+        p_patch: patch,
+      });
     },
     invalidateKeys: [supplierBillKeys.all],
     successMsg: "Factura actualizada",

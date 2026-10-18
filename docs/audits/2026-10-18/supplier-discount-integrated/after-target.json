@@ -1,0 +1,7 @@
+{
+  "data_directory": "<worktree>/.local-pg/data-precision",
+  "port": 55442,
+  "address": "127.0.0.1",
+  "database": "liftgo_k1_precision_after_final",
+  "synthetic": true
+}

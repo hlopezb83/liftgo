@@ -1,0 +1,39 @@
+{
+  "base": "e51f16d71d4180671fa3c4147fc514da2f37ac34",
+  "migration": "0104_supplier_bill_details_rpc",
+  "sqlLfSha256": "eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1",
+  "sql": {
+    "before": {
+      "passed": 10,
+      "total": 30
+    },
+    "after": {
+      "passed": 30,
+      "total": 30
+    },
+    "profiles": {
+      "hypothetical-bare-numeric": 13,
+      "versioned-typmods": 17
+    }
+  },
+  "client": {
+    "legacyBeforePassed": 4,
+    "legacyAfterPassed": 7,
+    "legacyTotal": 7,
+    "regressionPassed": 33,
+    "testFiles": 5
+  },
+  "notPerformed": [
+    "published SQL",
+    "hosting deploy",
+    "merge",
+    "real accounts or payments"
+  ],
+  "checks": {
+    "lintExit": 0,
+    "typecheckExit": 0,
+    "buildExit": 0,
+    "journalExit": 0,
+    "changelogExit": 0
+  }
+}
