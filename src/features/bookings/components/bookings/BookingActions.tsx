@@ -1,15 +1,17 @@
-import { useState } from "react";
-import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
-import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon } from "@/components/icons";
+import { useCallback, useRef, useState, type ReactNode } from "react";
+import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon, MoreIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { getAccessLevel, useRolePermissions, useUserRole, type AppRole, type PermissionsMap } from "@/features/users";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
-import { formatDateRange } from "@/lib/utils";
+import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
+import { cn, formatDateRange } from "@/lib/utils";
 import { returnActionAvailability, type DeliveryState } from "../../hooks/bookingActions/returnActionAvailability";
 import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
 import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
@@ -39,14 +41,15 @@ interface CancelBookingDialogProps {
   onOpenChange: (open: boolean) => void;
   onReasonChange: (reason: string) => void;
   onConfirm: () => void;
+  onCloseAutoFocus?: (event: Event) => void;
 }
 
 function CancelBookingDialog({
-  booking, open, reason, isPending, onOpenChange, onReasonChange, onConfirm,
+  booking, open, reason, isPending, onOpenChange, onReasonChange, onConfirm, onCloseAutoFocus,
 }: CancelBookingDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
           <DialogDescription>
@@ -71,6 +74,52 @@ function CancelBookingDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/** Altura táctil cómoda (44px) en móvil; compacta desde `sm`. */
+const TOUCH = "min-h-11 sm:min-h-9";
+
+interface MenuActionProps {
+  icon: ReactNode;
+  label: string;
+  /** Motivo visible cuando la acción está bloqueada: el ítem sigue enfocable. */
+  blockedReason?: string;
+  /** Deshabilitado temporal (mutación en curso). */
+  pending?: boolean;
+  destructive?: boolean;
+  hint?: string;
+  onSelect: () => void;
+}
+
+/**
+ * Ítem de menú que no usa `disabled` de Radix cuando hay bloqueo de negocio:
+ * así sigue alcanzable con teclado/tap y el motivo queda legible en el ítem.
+ */
+function MenuAction({ icon, label, blockedReason, pending, destructive, hint, onSelect }: MenuActionProps) {
+  const blocked = Boolean(blockedReason);
+  return (
+    <DropdownMenuItem
+      disabled={pending}
+      aria-disabled={blocked || undefined}
+      data-blocked={blocked || undefined}
+      className={cn(
+        TOUCH, "items-start gap-2 whitespace-normal",
+        destructive && !blocked && "text-destructive focus:text-destructive",
+        blocked && "cursor-help",
+      )}
+      onSelect={(event) => {
+        if (blocked) { event.preventDefault(); return; }
+        onSelect();
+      }}
+    >
+      <span className={cn("mt-0.5 shrink-0", blocked && "opacity-50")}>{icon}</span>
+      <span className="flex min-w-0 flex-col">
+        <span className={cn(blocked && "opacity-60")}>{label}</span>
+        {hint && !blocked && <span className="text-xs text-muted-foreground">{hint}</span>}
+        {blocked && <span className="text-xs text-muted-foreground">{blockedReason}</span>}
+      </span>
+    </DropdownMenuItem>
   );
 }
 
@@ -104,6 +153,16 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
     ? undefined
     : "Tu rol solo puede consultar reservas; pide a un administrador cancelarla";
 
+  // El menú desmonta su ítem al abrir un diálogo; el foco vuelve al disparador
+  // persistente "Más acciones" (sólo si sigue conectado y visible).
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const focusMore = useCallback((event: Event) => {
+    const target = moreRef.current;
+    if (!target || !target.isConnected || target.disabled || target.getClientRects().length === 0) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+  }, []);
+
   const statusChangeDialog = (
     <BookingStatusChangeDialog
       open={statusDialogOpen}
@@ -112,6 +171,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
       newStatus={newStatus}
       setNewStatus={setNewStatus}
       onConfirm={handleStatusChange}
+      onCloseAutoFocus={focusMore}
     />
   );
 
@@ -125,82 +185,109 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
       destructive
       loading={deleteBookingPending}
       onConfirm={handleDelete}
+      onCloseAutoFocus={focusMore}
     />
   );
 
   // La RPC `delete_booking` sólo acepta reservas canceladas/completadas; con
-  // la reserva confirmada el botón queda visible pero bloqueado y explicado,
+  // la reserva confirmada la acción queda visible pero bloqueada y explicada,
   // en vez de fallar con un reporte de error tras el clic.
   const deleteBlock = !["cancelled", "completed"].includes(booking.status)
     ? describeBusinessBlock("booking_not_final_for_delete")
     : null;
 
-  const deleteButton = (
+  const openStatusDialog = () => { setNewStatus(""); setStatusDialogOpen(true); };
+  const isConfirmed = booking.status === "confirmed";
+
+  const adminRiskItems = (
     <>
-      <BlockedActionButton
-        variant="destructive"
-        size="sm"
-        block={deleteBlock}
-        disabled={deleteBookingPending}
-        onClick={() => setDeleteOpen(true)}
-      >
-        <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
-      </BlockedActionButton>
-      {deleteDialog}
+      <MenuAction
+        icon={<RefreshIcon className="h-4 w-4" />}
+        label="Cambiar estatus…"
+        hint={isConfirmed ? "En reserva confirmada sólo permite cancelar" : undefined}
+        destructive={isConfirmed}
+        onSelect={openStatusDialog}
+      />
+      <MenuAction
+        icon={<DeleteIcon className="h-4 w-4" />}
+        label="Eliminar"
+        destructive
+        blockedReason={deleteBlock ? businessBlockSummary(deleteBlock) : undefined}
+        pending={deleteBookingPending}
+        onSelect={() => setDeleteOpen(true)}
+      />
     </>
   );
 
-  if (booking.status !== "confirmed") {
+  const moreTrigger = (
+    <DropdownMenuTrigger asChild>
+      <Button ref={moreRef} variant="outline" size="sm" className={TOUCH}>
+        <MoreIcon className="h-4 w-4 mr-1" />Más acciones
+      </Button>
+    </DropdownMenuTrigger>
+  );
+
+  if (!isConfirmed) {
     if (!isAdmin) return null;
     return (
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
-          <RefreshIcon className="h-4 w-4 mr-1" />Cambiar Estatus
-        </Button>
-        {deleteButton}
+      <div className="flex flex-wrap gap-2">
+        <DropdownMenu>
+          {moreTrigger}
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones de riesgo</DropdownMenuLabel>
+            {adminRiskItems}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {deleteDialog}
         {statusChangeDialog}
       </div>
     );
   }
 
+  const returnLabel = returnAction.isEarly ? "Devolución Anticipada" : "Registrar devolución";
+
   return (
     <div className="flex flex-wrap gap-2">
       {canCreateContract && (
-        <Button size="sm" onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
+        <Button size="sm" className={TOUCH} onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
           <DocumentIcon className="h-4 w-4 mr-1" />Crear contrato
         </Button>
       )}
-      {canManageBooking && <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
+      {canManageBooking && <Button variant="outline" size="sm" className={TOUCH} onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender
       </Button>}
-      {canCompleteReturn && <BlockedActionButton
-        block={returnAction.block}
-        variant="outline"
-        size="sm"
-        onClick={() => navigate(`/returns?booking_id=${booking.id}${returnAction.isEarly ? "&early=1" : ""}`)}
-      >
-        <UndoIcon className="h-4 w-4 mr-1" />
-        {returnAction.isEarly ? "Devolución Anticipada" : "Registrar devolución"}
-      </BlockedActionButton>}
 
+      <DropdownMenu>
+        {moreTrigger}
+        <DropdownMenuContent align="end" className="w-64">
+          {canCompleteReturn && (
+            <>
+              <MenuAction
+                icon={<UndoIcon className="h-4 w-4" />}
+                label={returnLabel}
+                blockedReason={returnAction.block ? businessBlockSummary(returnAction.block) : undefined}
+                onSelect={() => navigate(`/returns?booking_id=${booking.id}${returnAction.isEarly ? "&early=1" : ""}`)}
+              />
+              <DropdownMenuSeparator />
+            </>
+          )}
+          <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones de riesgo</DropdownMenuLabel>
+          {isAdmin && adminRiskItems}
+          <MenuAction
+            icon={<ErrorIcon className="h-4 w-4" />}
+            label="Cancelar reserva"
+            destructive
+            blockedReason={cancelBlockReason}
+            pending={cancelBookingPending}
+            onSelect={() => setCancelOpen(true)}
+          />
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-      {isAdmin && (
-        <>
-          <Button variant="outline" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
-            <RefreshIcon className="h-4 w-4 mr-1" />Cambiar Estatus
-          </Button>
-          {deleteButton}
-        </>
-      )}
-
-      <span title={cancelBlockReason}>
-        <Button variant="destructive" size="sm" disabled={!canManageBooking || cancelBookingPending} onClick={() => setCancelOpen(true)}>
-          <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
-        </Button>
-      </span>
       {cancelBlockReason && (
         <p className="basis-full text-xs text-muted-foreground">{cancelBlockReason}</p>
       )}
+      {isAdmin && deleteDialog}
       <CancelBookingDialog
         booking={booking}
         open={cancelOpen}
@@ -212,6 +299,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
           setCancelOpen(false);
           setCancelReason("");
         })}
+        onCloseAutoFocus={focusMore}
       />
 
       {canManageBooking && <BookingExtendDialog
