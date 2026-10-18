@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
 interface Props {
   total: number;
@@ -7,6 +6,14 @@ interface Props {
   balance: number;
   creditedAmount: number;
   currency: string;
+}
+
+function formatWithCode(amount: number, code: string): string {
+  if (!/^[A-Z]{3}$/.test(code) || !Number.isFinite(amount)) return "—";
+  return new Intl.NumberFormat("es-MX", {
+    style: "currency", currency: code, currencyDisplay: "code",
+    minimumFractionDigits: 2, maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 /**
@@ -31,14 +38,14 @@ export function InvoiceFinancialOverview({ total, totalPaid, balance, creditedAm
                 data-testid={`overview-${it.label.toLowerCase()}`}
                 className={`tabular-nums [overflow-wrap:anywhere] ${it.strong ? "text-2xl font-bold" : "text-xl font-semibold"}`}
               >
-                {formatCurrencyWithCode(it.value, code)} <span className="text-sm font-medium text-muted-foreground">{code}</span>
+                {formatWithCode(it.value, code)}
               </dd>
             </div>
           ))}
         </dl>
         {creditedAmount > 0 && (
           <p className="mt-3 text-sm text-muted-foreground tabular-nums" data-testid="overview-credited">
-            Notas de crédito aplicadas: {formatCurrencyWithCode(creditedAmount, code)} {code}
+            Notas de crédito aplicadas: {formatWithCode(creditedAmount, code)}
           </p>
         )}
       </CardContent>

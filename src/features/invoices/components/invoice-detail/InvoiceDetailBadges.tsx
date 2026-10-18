@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 
 type Tone = "neutral" | "info" | "success" | "warning" | "destructive";
 
@@ -63,11 +64,17 @@ export function InvoiceDetailBadges({
   const fiscal = resolveFiscalBadge(invoiceStatus, cfdiStatus, cancellationStatus);
   return (
     <>
-      <span data-tone={fiscal.tone}><StatusBadge status={toneStatus[fiscal.tone]} label={fiscal.label} /></span>
+      <span data-tone={fiscal.tone}><StatusBadge
+          status={fiscal.label === "Cancelada" ? "cancelled" : toneStatus[fiscal.tone]}
+          label={fiscal.label}
+        /></span>
       {cfdiXmlPending && (
         <span data-tone="warning"><StatusBadge status={toneStatus.warning} label="XML por recuperar" /></span>
       )}
-      {showSandboxChip && <span data-tone="warning"><StatusBadge status={toneStatus.warning} label="Sandbox" /></span>}
+      {/* Sandbox es entorno, no estado: insignia neutral separada, sin punto. */}
+      {showSandboxChip && (
+        <Badge variant="outline" data-testid="sandbox-chip" className="font-medium text-muted-foreground">Sandbox</Badge>
+      )}
     </>
   );
 }
