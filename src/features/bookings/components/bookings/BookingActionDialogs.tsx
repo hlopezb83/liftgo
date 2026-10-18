@@ -5,10 +5,15 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { formatDateRange } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
+import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 import type { ComponentProps } from "react";
 
 interface StatusChangeDialogProps {
@@ -102,5 +107,49 @@ export function BookingExtendDialog({
         </FormDialogFooter>
       </div>
     </FormDialog>
+  );
+}
+
+interface CancelBookingDialogProps {
+  booking: BookingWithForklift;
+  open: boolean;
+  reason: string;
+  isPending: boolean;
+  onOpenChange: (open: boolean) => void;
+  onReasonChange: (reason: string) => void;
+  onConfirm: () => void;
+  onCloseAutoFocus?: (event: Event) => void;
+}
+
+export function CancelBookingDialog({
+  booking, open, reason, isPending, onOpenChange, onReasonChange, onConfirm, onCloseAutoFocus,
+}: CancelBookingDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
+        <DialogHeader>
+          <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
+          <DialogDescription>
+            Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
+          <Textarea
+            id="cancel-reason"
+            value={reason}
+            onChange={(event) => onReasonChange(event.target.value)}
+            placeholder="Ej. cliente reprogramó, cambio de equipo, error de captura…"
+            rows={3}
+            maxLength={500}
+          />
+          <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>Volver</Button>
+          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>Cancelar Reserva</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -1,21 +1,18 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode, type RefObject } from "react";
 import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon, ChevronDownIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { getAccessLevel, useRolePermissions, useUserRole, type AppRole, type PermissionsMap } from "@/features/users";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
-import { cn, formatDateRange } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { returnActionAvailability, type DeliveryState } from "../../hooks/bookingActions/returnActionAvailability";
 import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
 import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
-import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";
+import { BookingStatusChangeDialog, BookingExtendDialog, CancelBookingDialog } from "./BookingActionDialogs";
 
 interface BookingActionsProps {
   booking: BookingWithForklift;
@@ -31,50 +28,6 @@ function resolveActionAccess(perms: PermissionsMap | undefined, role: AppRole | 
     canManageBooking: hasFullAccess("Reservas"),
     canCompleteReturn: hasFullAccess("Entregas"),
   };
-}
-
-interface CancelBookingDialogProps {
-  booking: BookingWithForklift;
-  open: boolean;
-  reason: string;
-  isPending: boolean;
-  onOpenChange: (open: boolean) => void;
-  onReasonChange: (reason: string) => void;
-  onConfirm: () => void;
-  onCloseAutoFocus?: (event: Event) => void;
-}
-
-function CancelBookingDialog({
-  booking, open, reason, isPending, onOpenChange, onReasonChange, onConfirm, onCloseAutoFocus,
-}: CancelBookingDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
-        <DialogHeader>
-          <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
-          <DialogDescription>
-            Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
-          <Textarea
-            id="cancel-reason"
-            value={reason}
-            onChange={(event) => onReasonChange(event.target.value)}
-            placeholder="Ej. cliente reprogramó, cambio de equipo, error de captura…"
-            rows={3}
-            maxLength={500}
-          />
-          <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>Volver</Button>
-          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>Cancelar Reserva</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 /** Altura táctil cómoda (44px) en móvil; compacta desde `sm`. */
@@ -127,17 +80,94 @@ function MenuAction({ icon, label, blockedReason, pending, destructive, hint, on
   );
 }
 
+/** El menú desmonta su ítem al abrir un diálogo; el foco vuelve al disparador
+ * persistente "Más acciones" (sólo si sigue conectado y visible). */
+function useMoreFocus() {
+  const moreRef = useRef<HTMLButtonElement>(null);
+  const focusMore = useCallback((event: Event) => {
+    const target = moreRef.current;
+    if (!target || !target.isConnected || target.disabled || target.getClientRects().length === 0) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+  }, []);
+  return { moreRef, focusMore };
+}
+
+function MoreTrigger({ triggerRef }: { triggerRef: RefObject<HTMLButtonElement | null> }) {
+  return (
+    <DropdownMenuTrigger asChild>
+      <Button ref={triggerRef} variant="outline" size="sm" className={TOUCH}>
+        Más acciones<ChevronDownIcon className="ml-1 h-4 w-4" />
+      </Button>
+    </DropdownMenuTrigger>
+  );
+}
+
+function RiskLabel() {
+  return <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones de riesgo</DropdownMenuLabel>;
+}
+
+// La RPC `delete_booking` sólo acepta reservas canceladas/completadas; con
+// la reserva confirmada la acción queda visible pero bloqueada y explicada,
+// en vez de fallar con un reporte de error tras el clic.
+function deleteBlockReason(status: string) {
+  if (["cancelled", "completed"].includes(status)) return undefined;
+  return businessBlockSummary(describeBusinessBlock("booking_not_final_for_delete"));
+}
+
+interface AdminRiskItemsProps {
+  status: string;
+  deletePending: boolean;
+  onStatus: () => void;
+  onDelete: () => void;
+}
+
+function AdminRiskItems({ status, deletePending, onStatus, onDelete }: AdminRiskItemsProps) {
+  const isConfirmed = status === "confirmed";
+  return (
+    <>
+      <MenuAction
+        icon={<RefreshIcon className="h-4 w-4" />}
+        label="Cambiar estatus…"
+        hint={isConfirmed ? "En reserva confirmada sólo permite cancelar" : undefined}
+        destructive={isConfirmed}
+        onSelect={onStatus}
+      />
+      <MenuAction
+        icon={<DeleteIcon className="h-4 w-4" />}
+        label="Eliminar"
+        destructive
+        blockedReason={deleteBlockReason(status)}
+        pending={deletePending}
+        onSelect={onDelete}
+      />
+    </>
+  );
+}
+
+interface ReturnMenuItemProps {
+  booking: BookingWithForklift;
+  action: ReturnType<typeof returnActionAvailability>;
+  navigate: (to: string) => void;
+}
+
+function ReturnMenuItem({ booking, action, navigate }: ReturnMenuItemProps) {
+  return (
+    <>
+      <MenuAction
+        icon={<UndoIcon className="h-4 w-4" />}
+        label={action.isEarly ? "Devolución Anticipada" : "Registrar devolución"}
+        blockedReason={action.block ? businessBlockSummary(action.block) : undefined}
+        onSelect={() => navigate(`/returns?booking_id=${booking.id}${action.isEarly ? "&early=1" : ""}`)}
+      />
+      <DropdownMenuSeparator />
+    </>
+  );
+}
+
 export function BookingActions({ booking, deliveries, transportsLoading, transportsError }: BookingActionsProps) {
-  const {
-    isAdmin, navigate,
-    extendOpen, setExtendOpen,
-    statusDialogOpen, setStatusDialogOpen,
-    newStatus, setNewStatus,
-    newEndDate, setNewEndDate,
-    extendPreview,
-    handleDelete, handleCancel, handleStatusChange, handleExtend,
-    deleteBookingPending, cancelBookingPending, extendBookingPending,
-  } = useBookingActionsLogic(booking);
+  const logic = useBookingActionsLogic(booking);
+  const { isAdmin, navigate, setStatusDialogOpen, setNewStatus } = logic;
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
@@ -156,25 +186,16 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
   const cancelBlockReason = canManageBooking
     ? undefined
     : "Tu rol solo puede consultar reservas; pide a un administrador cancelarla";
-
-  // El menú desmonta su ítem al abrir un diálogo; el foco vuelve al disparador
-  // persistente "Más acciones" (sólo si sigue conectado y visible).
-  const moreRef = useRef<HTMLButtonElement>(null);
-  const focusMore = useCallback((event: Event) => {
-    const target = moreRef.current;
-    if (!target || !target.isConnected || target.disabled || target.getClientRects().length === 0) return;
-    event.preventDefault();
-    target.focus({ preventScroll: true });
-  }, []);
+  const { moreRef, focusMore } = useMoreFocus();
 
   const statusChangeDialog = (
     <BookingStatusChangeDialog
-      open={statusDialogOpen}
+      open={logic.statusDialogOpen}
       onOpenChange={setStatusDialogOpen}
       currentStatus={booking.status}
-      newStatus={newStatus}
+      newStatus={logic.newStatus}
       setNewStatus={setNewStatus}
-      onConfirm={handleStatusChange}
+      onConfirm={logic.handleStatusChange}
       onCloseAutoFocus={focusMore}
     />
   );
@@ -187,58 +208,29 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
       description={`Se eliminará permanentemente la reserva de ${booking.customer_name || "este cliente"}. Esta acción no se puede deshacer.`}
       confirmLabel="Eliminar"
       destructive
-      loading={deleteBookingPending}
-      onConfirm={handleDelete}
+      loading={logic.deleteBookingPending}
+      onConfirm={logic.handleDelete}
       onCloseAutoFocus={focusMore}
     />
   );
 
-  // La RPC `delete_booking` sólo acepta reservas canceladas/completadas; con
-  // la reserva confirmada la acción queda visible pero bloqueada y explicada,
-  // en vez de fallar con un reporte de error tras el clic.
-  const deleteBlock = !["cancelled", "completed"].includes(booking.status)
-    ? describeBusinessBlock("booking_not_final_for_delete")
-    : null;
-
-  const openStatusDialog = () => { setNewStatus(""); setStatusDialogOpen(true); };
-  const isConfirmed = booking.status === "confirmed";
-
   const adminRiskItems = (
-    <>
-      <MenuAction
-        icon={<RefreshIcon className="h-4 w-4" />}
-        label="Cambiar estatus…"
-        hint={isConfirmed ? "En reserva confirmada sólo permite cancelar" : undefined}
-        destructive={isConfirmed}
-        onSelect={openStatusDialog}
-      />
-      <MenuAction
-        icon={<DeleteIcon className="h-4 w-4" />}
-        label="Eliminar"
-        destructive
-        blockedReason={deleteBlock ? businessBlockSummary(deleteBlock) : undefined}
-        pending={deleteBookingPending}
-        onSelect={() => setDeleteOpen(true)}
-      />
-    </>
+    <AdminRiskItems
+      status={booking.status}
+      deletePending={logic.deleteBookingPending}
+      onStatus={() => { setNewStatus(""); setStatusDialogOpen(true); }}
+      onDelete={() => setDeleteOpen(true)}
+    />
   );
 
-  const moreTrigger = (
-    <DropdownMenuTrigger asChild>
-      <Button ref={moreRef} variant="outline" size="sm" className={TOUCH}>
-        Más acciones<ChevronDownIcon className="ml-1 h-4 w-4" />
-      </Button>
-    </DropdownMenuTrigger>
-  );
-
-  if (!isConfirmed) {
+  if (booking.status !== "confirmed") {
     if (!isAdmin) return null;
     return (
       <div className="flex flex-wrap gap-2">
         <DropdownMenu>
-          {moreTrigger}
+          <MoreTrigger triggerRef={moreRef} />
           <DropdownMenuContent align="end" className={MENU_CONTENT}>
-            <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones de riesgo</DropdownMenuLabel>
+            <RiskLabel />
             {adminRiskItems}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -248,8 +240,6 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
     );
   }
 
-  const returnLabel = returnAction.isEarly ? "Devolución Anticipada" : "Registrar devolución";
-
   return (
     <div className="flex flex-wrap gap-2">
       {canCreateContract && (
@@ -257,32 +247,22 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
           <DocumentIcon className="h-4 w-4 mr-1" />Crear contrato
         </Button>
       )}
-      {canManageBooking && <Button variant="outline" size="sm" className={TOUCH} onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
+      {canManageBooking && <Button variant="outline" size="sm" className={TOUCH} onClick={() => { logic.setNewEndDate(undefined); logic.setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender
       </Button>}
 
       <DropdownMenu>
-        {moreTrigger}
+        <MoreTrigger triggerRef={moreRef} />
         <DropdownMenuContent align="end" className={MENU_CONTENT}>
-          {canCompleteReturn && (
-            <>
-              <MenuAction
-                icon={<UndoIcon className="h-4 w-4" />}
-                label={returnLabel}
-                blockedReason={returnAction.block ? businessBlockSummary(returnAction.block) : undefined}
-                onSelect={() => navigate(`/returns?booking_id=${booking.id}${returnAction.isEarly ? "&early=1" : ""}`)}
-              />
-              <DropdownMenuSeparator />
-            </>
-          )}
-          <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones de riesgo</DropdownMenuLabel>
+          {canCompleteReturn && <ReturnMenuItem booking={booking} action={returnAction} navigate={navigate} />}
+          <RiskLabel />
           {isAdmin && adminRiskItems}
           <MenuAction
             icon={<ErrorIcon className="h-4 w-4" />}
             label="Cancelar reserva"
             destructive
             blockedReason={cancelBlockReason}
-            pending={cancelBookingPending}
+            pending={logic.cancelBookingPending}
             onSelect={() => setCancelOpen(true)}
           />
         </DropdownMenuContent>
@@ -296,10 +276,10 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
         booking={booking}
         open={cancelOpen}
         reason={cancelReason}
-        isPending={cancelBookingPending}
+        isPending={logic.cancelBookingPending}
         onOpenChange={(nextOpen) => { setCancelOpen(nextOpen); if (!nextOpen) setCancelReason(""); }}
         onReasonChange={setCancelReason}
-        onConfirm={() => handleCancel(cancelReason.trim() || undefined, () => {
+        onConfirm={() => logic.handleCancel(cancelReason.trim() || undefined, () => {
           setCancelOpen(false);
           setCancelReason("");
         })}
@@ -307,14 +287,14 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
       />
 
       {canManageBooking && <BookingExtendDialog
-        open={extendOpen}
-        onOpenChange={setExtendOpen}
+        open={logic.extendOpen}
+        onOpenChange={logic.setExtendOpen}
         currentEndDate={booking.end_date}
-        newEndDate={newEndDate}
-        setNewEndDate={setNewEndDate}
-        extendPreview={extendPreview}
-        isPending={extendBookingPending}
-        onExtend={() => handleExtend(() => setExtendOpen(false))}
+        newEndDate={logic.newEndDate}
+        setNewEndDate={logic.setNewEndDate}
+        extendPreview={logic.extendPreview}
+        isPending={logic.extendBookingPending}
+        onExtend={() => logic.handleExtend(() => logic.setExtendOpen(false))}
       />}
 
       {statusChangeDialog}
