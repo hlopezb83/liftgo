@@ -1,5 +1,13 @@
 # Roadmap operativo y estado de evidencia
 
+## V02–V03: acciones de proveedor y filtros de facturas
+
+- [x] Confirmar base `58f7b4a79a206724530c30616076951f99e6cca6` y referencias de `fix/ui-v02-v03-headers-filters-20261018` (checkout interno `edit/*`).
+- [ ] Agrupar acciones secundarias de proveedor conservando permisos, rutas y callbacks.
+- [ ] Separar búsqueda visible de las facetas de facturas; alineación local, sin alterar filtros ni paginación.
+- [ ] Ejecutar pruebas focales y lint; registrar límites de build/tipos.
+- [ ] Coordinador: QA real a 1366/1440/375 y CI del SHA final; sin publicación, fusión ni cambios de versión/changelog.
+
 ## V01: contraste focal de acceso y alertas
 
 - [x] Confirmar base `567b397e9271139216ed90e2d77d5d66144d30b1` y referencias de `fix/ui-v01-contrast-20261018`.
