@@ -2,20 +2,17 @@ import { useCallback, useRef, useState, type ReactNode, type RefObject } from "r
 import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon, ChevronDownIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { getAccessLevel, useRolePermissions, useUserRole, type AppRole, type PermissionsMap } from "@/features/users";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
-import { cn, formatDateRange } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { returnActionAvailability, type DeliveryState } from "../../hooks/bookingActions/returnActionAvailability";
 import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
 import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
-import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";
+import { BookingStatusChangeDialog, BookingExtendDialog, CancelBookingDialog } from "./BookingActionDialogs";
 
 interface BookingActionsProps {
   booking: BookingWithForklift;
@@ -31,50 +28,6 @@ function resolveActionAccess(perms: PermissionsMap | undefined, role: AppRole | 
     canManageBooking: hasFullAccess("Reservas"),
     canCompleteReturn: hasFullAccess("Entregas"),
   };
-}
-
-interface CancelBookingDialogProps {
-  booking: BookingWithForklift;
-  open: boolean;
-  reason: string;
-  isPending: boolean;
-  onOpenChange: (open: boolean) => void;
-  onReasonChange: (reason: string) => void;
-  onConfirm: () => void;
-  onCloseAutoFocus?: (event: Event) => void;
-}
-
-function CancelBookingDialog({
-  booking, open, reason, isPending, onOpenChange, onReasonChange, onConfirm, onCloseAutoFocus,
-}: CancelBookingDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md" onCloseAutoFocus={onCloseAutoFocus}>
-        <DialogHeader>
-          <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
-          <DialogDescription>
-            Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2">
-          <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
-          <Textarea
-            id="cancel-reason"
-            value={reason}
-            onChange={(event) => onReasonChange(event.target.value)}
-            placeholder="Ej. cliente reprogramó, cambio de equipo, error de captura…"
-            rows={3}
-            maxLength={500}
-          />
-          <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" disabled={isPending} onClick={() => onOpenChange(false)}>Volver</Button>
-          <Button variant="destructive" disabled={isPending} onClick={onConfirm}>Cancelar Reserva</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }
 
 /** Altura táctil cómoda (44px) en móvil; compacta desde `sm`. */
