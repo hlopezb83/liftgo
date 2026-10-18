@@ -1,0 +1,63 @@
+
+ RUN  v4.1.11 <workspace>
+
+N5_DOUBLE_ACTIVATION_SNAPSHOT {"phase":"source","url":"/calendar?date=2026-11-18&view=gantt&range=month"}
+N5_DOUBLE_ACTIVATION_SNAPSHOT {"phase":"first-activation-pending","url":"/bookings/bk-november","origin":"/calendar?date=2026-11-18&view=gantt&range=month"}
+N5_DOUBLE_ACTIVATION_SNAPSHOT {"phase":"second-activation-pending","url":"/bookings/bk-november","origin":"/bookings/bk-november"}
+N5_DOUBLE_ACTIVATION_SNAPSHOT {"phase":"detail-settled","url":"/bookings/bk-november","origin":"/bookings/bk-november"}
+N5_DOUBLE_ACTIVATION_SNAPSHOT {"phase":"returned","url":"/bookings"}
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.double-activation.test.tsx (1 test | 1 failed) 348ms
+     ├ù keeps the November origin if the same outgoing Gantt event is activated twice 345ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.double-activation.test.tsx > N5 repeated activation during a pending booking route > keeps the November origin if the same outgoing Gantt event is activated twice
+AssertionError: expected { ΓÇª(3) } to match object { url: '/bookings/bk-november', ΓÇª(1) }
+(1 matching property omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "origin": "/calendar?date=2026-11-18&view=gantt&range=month",
++   "origin": "/bookings/bk-november",
+    "url": "/bookings/bk-november",
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.double-activation.test.tsx:127:57
+    125|       fireEvent.click(screen.getByRole("button", { name: "Abrir reservΓÇª
+    126|       await act(async () => {});
+    127|       expect.soft(capture("second-activation-pending")).toMatchObject(ΓÇª
+       |                                                         ^
+    128|     } finally {
+    129|       await act(async () => release());
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.double-activation.test.tsx > N5 repeated activation during a pending booking route > keeps the November origin if the same outgoing Gantt event is activated twice
+AssertionError: expected { phase: 'returned', ΓÇª(2) } to match object { Object (url) }
+(2 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "url": "/calendar?date=2026-11-18&view=gantt&range=month",
++   "url": "/bookings",
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.double-activation.test.tsx:135:33
+    133|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    134|     await act(async () => {});
+    135|     expect(capture("returned")).toMatchObject({ url: sourceUrl });
+       |                                 ^
+    136|   });
+    137| });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  17:49:45
+   Duration  8.02s (transform 979ms, setup 296ms, import 6.71s, tests 348ms, environment 441ms)
