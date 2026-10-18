@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 
 type Tone = "neutral" | "info" | "success" | "warning" | "destructive";
 
