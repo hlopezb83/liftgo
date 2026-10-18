@@ -1,4 +1,3 @@
-import type { ComponentProps } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -10,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
+import type { ComponentProps } from "react";
 
 interface StatusChangeDialogProps {
   open: boolean;
