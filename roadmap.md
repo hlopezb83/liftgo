@@ -1,5 +1,12 @@
 # Roadmap operativo y estado de evidencia
 
+## V01: contraste focal de acceso y alertas
+
+- [x] Confirmar base `567b397e9271139216ed90e2d77d5d66144d30b1` y referencias de `fix/ui-v01-contrast-20261018`.
+- [x] Ajustar sólo primary/ring de `.auth-brandscape` y texto/icono de Alert warning.
+- [ ] Ejecutar pruebas focales, medir colores efectivos y capturar acceso claro/oscuro sin alterar geometría ni portal.
+- [ ] Coordinador: build/typechecks y QA autenticada de Resultados; sin publicación ni fusión.
+
 ## PR261: corrección focal Sentry 11.7.0
 
 - [x] Confirmar HEAD y referencias de PR261 antes de editar.

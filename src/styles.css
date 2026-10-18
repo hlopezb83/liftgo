@@ -330,9 +330,9 @@
 .auth-brandscape {
   --background: 23 56% 97%;      /* #FCF7F4 */
   --card: 0 0% 100%;
-  --primary: 39 62% 45%;         /* #B8862B — botón "COTIZAR" del sitio */
+  --primary: 38 48% 30%;         /* V01: texto blanco ≥4.5:1, incluso en hover/90. */
   --primary-foreground: 0 0% 100%;
-  --ring: 39 62% 45%;
+  --ring: 38 48% 30%;            /* Foco ≥3:1 sobre blanco y fondo de acceso, también con .dark. */
   --sidebar-background: 217 70% 14%;   /* #0B1F3E */
   --sidebar-foreground: 210 20% 85%;
   --sidebar-primary: 29 39% 61%;       /* #C39B76 */
