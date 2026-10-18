@@ -91,7 +91,7 @@ const EXPECTED_URL_PREFIX = `${FAKE_ENV.TSS_SERVER_FN_BASE}${FUNCTION_ID}`;
 function buildCallFn() {
   const builder = createServerFn({ method: "POST" })
     .middleware([requireSupabaseAuth])
-    .inputValidator((data: { note: string }) => data);
+    .validator((data: { note: string }) => data);
   return (builder.handler as unknown as (...args: unknown[]) => (opts: { data: { note: string } }) => Promise<unknown>)(
     createClientRpc(FUNCTION_ID),
     business,
