@@ -118,10 +118,32 @@ describe("V09 · acciones de reserva", () => {
     expect(cancel).toHaveTextContent(/solo puede consultar/);
   });
 
-  it("cancelación en curso deshabilita el ítem", async () => {
+  it("cancelación en curso: aria-disabled y no abre diálogo", async () => {
     state.cancelPending = true;
     setup();
-    expect(within(await openMenu()).getByRole("menuitem", { name: /Cancelar reserva/ })).toHaveAttribute("data-disabled");
+    const item = within(await openMenu()).getByRole("menuitem", { name: /Cancelar reserva/ });
+    expect(item).toHaveAttribute("data-disabled");
+    expect(item).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(item);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(handleCancel).not.toHaveBeenCalled();
+  });
+
+  it("eliminación en curso (admin, completada): aria-disabled y no abre confirmación", async () => {
+    state.deletePending = true;
+    setup("completed");
+    const item = within(await openMenu()).getByRole("menuitem", { name: /Eliminar/ });
+    expect(item).toHaveAttribute("aria-disabled", "true");
+    fireEvent.click(item);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+
+  it.each(["confirmed", "completed"])("menú %s acotado al alto disponible con scroll y ancho al viewport", async (status) => {
+    setup(status);
+    const menu = await openMenu();
+    for (const cls of ["max-h-[var(--radix-dropdown-menu-content-available-height)]", "overflow-y-auto", "max-w-[calc(100vw-1rem)]"]) {
+      expect(menu.className).toContain(cls);
+    }
   });
 
   it("Escape en menú sin selección vuelve al disparador sin acciones", async () => {

@@ -80,6 +80,10 @@ function CancelBookingDialog({
 /** Altura táctil cómoda (44px) en móvil; compacta desde `sm`. */
 const TOUCH = "min-h-11 sm:min-h-9";
 
+/** Menú acotado al espacio que reporta Radix: scroll vertical en pantallas bajas o con zoom. */
+const MENU_CONTENT =
+  "w-64 max-w-[calc(100vw-1rem)] max-h-[var(--radix-dropdown-menu-content-available-height)] overflow-y-auto";
+
 interface MenuActionProps {
   icon: ReactNode;
   label: string;
@@ -101,7 +105,7 @@ function MenuAction({ icon, label, blockedReason, pending, destructive, hint, on
   return (
     <DropdownMenuItem
       disabled={pending}
-      aria-disabled={blocked || undefined}
+      aria-disabled={blocked || pending || undefined}
       data-blocked={blocked || undefined}
       className={cn(
         TOUCH, "items-start gap-2 whitespace-normal",
@@ -109,7 +113,7 @@ function MenuAction({ icon, label, blockedReason, pending, destructive, hint, on
         blocked && "cursor-help",
       )}
       onSelect={(event) => {
-        if (blocked) { event.preventDefault(); return; }
+        if (blocked || pending) { event.preventDefault(); return; }
         onSelect();
       }}
     >
@@ -233,7 +237,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
       <div className="flex flex-wrap gap-2">
         <DropdownMenu>
           {moreTrigger}
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent align="end" className={MENU_CONTENT}>
             <DropdownMenuLabel className="text-xs text-muted-foreground">Acciones de riesgo</DropdownMenuLabel>
             {adminRiskItems}
           </DropdownMenuContent>
@@ -259,7 +263,7 @@ export function BookingActions({ booking, deliveries, transportsLoading, transpo
 
       <DropdownMenu>
         {moreTrigger}
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent align="end" className={MENU_CONTENT}>
           {canCompleteReturn && (
             <>
               <MenuAction
