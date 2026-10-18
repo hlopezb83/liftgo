@@ -1,0 +1,20 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-privacy
+
+ Γ£ô src/lib/observability/captureOperationalError.test.ts (9 tests) 21ms
+ Γ£ô src/lib/observability/sentryTransport.test.ts (4 tests) 167ms
+ Γ£ô src/lib/observability/errorsOnlyFilter.test.ts (9 tests) 13ms
+ Γ£ô src/lib/observability/sentryPrivacy.test.ts (8 tests) 9ms
+ Γ£ô src/lib/observability/serverSentry.test.ts (14 tests) 999ms
+     Γ£ô un transporte que nunca termina tiene un presupuesto total acotado  765ms
+ Γ£ô src/lib/ui/__tests__/appFeedbackTelemetry.test.tsx (5 tests) 232ms
+ Γ£ô src/lib/observability/scrubPII.test.ts (8 tests) 13ms
+ Γ£ô src/lib/observability/sentryWorkspaceIdentity.test.tsx (2 tests) 70ms
+ Γ£ô src/lib/observability/sentryInit.test.ts (5 tests) 13ms
+ Γ£ô src/lib/observability/routeContext.test.ts (8 tests) 8ms
+
+ Test Files  10 passed (10)
+      Tests  72 passed (72)
+   Start at  16:09:56
+   Duration  30.90s (transform 2.12s, setup 10.76s, import 24.42s, tests 1.55s, environment 17.89s)
+

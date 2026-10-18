@@ -1,0 +1,154 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-financial-access
+
+ Γ¥» src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx (4 tests | 3 failed) 266ms
+     ├ù hides the cached result immediately and purges every financial detail after admin -> mechanic 94ms
+     ├ù does not restore data when an old request resolves after the role is revoked 16ms
+     ├ù fails closed while the role is unresolved, then fetches fresh data after access is restored 73ms
+     Γ£ô keeps the existing summary authorization independent of financial-cost permissions 80ms
+ Γ¥» src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx (5 tests | 1 failed) 166ms
+     ├ù oculta resumen e historial al perder autorizaci├│n aunque reciba datos cacheados 91ms
+     Γ£ô resumen despu├⌐s de Specs/Tarifas y antes de Notas, fuera del grid 31ms
+     Γ£ô un rol sin costos conserva resumen autorizado por el gate independiente 16ms
+     Γ£ô sin resultados financieros no a├▒ade resumen ni modifica notas 12ms
+     Γ£ô sin notas conserva el resumen 13ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 4 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx > ubicaci├│n del resumen financiero (componentes de tarjetas reales) > oculta resumen e historial al perder autorizaci├│n aunque reciba datos cacheados
+Error: expect(element).not.toBeInTheDocument()
+
+expected document not to contain element, found <h3
+  class="font-semibold tracking-tight text-base flex items-center gap-2"
+>
+  <svg
+    aria-hidden="true"
+    class="lucide lucide-chart-column lucide-bar-chart-3 h-4 w-4"
+    fill="none"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M3 3v16a2 2 0 0 0 2 2h16"
+    />
+    <path
+      d="M18 17V9"
+    />
+    <path
+      d="M13 17V5"
+    />
+    <path
+      d="M8 17v-3"
+    />
+  </svg>
+   Resumen Financiero
+</h3> instead
+ Γ¥» src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx:45:58
+     43|     rerender(<ForkliftDetail />);
+     44|
+     45|     expect(screen.queryByText("Resumen Financiero")).not.toBeInTheDocuΓÇª
+       |                                                          ^
+     46|     expect(screen.queryByText("$55,000.00")).not.toBeInTheDocument();
+     47|     expect(screen.queryByLabelText("Historial de hor├│metro")).not.toBeΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/4]ΓÄ»
+
+ FAIL  src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx > K2: financial access changes on the same QueryClient and identity > hides the cached result immediately and purges every financial detail after admin -> mechanic
+AssertionError: expected { revenue: 100, ΓÇª(8) } to be undefined
+
+- Expected:
+undefined
+
++ Received:
+{
+  "acquisition_cost": 1000,
+  "days_rented": 3,
+  "days_since_acquired": 10,
+  "gross_margin": 90,
+  "hourometer_history": [],
+  "maintenance_cost": 10,
+  "revenue": 100,
+  "roi_percent": 9,
+  "utilization_percent": 30,
+}
+
+ Γ¥» src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx:47:33
+     45|     rerender();
+     46|
+     47|     expect(result.current.data).toBeUndefined();
+       |                                 ^
+     48|     expect(queryClient.getQueryData(key)).toBeUndefined();
+     49|     expect(queryClient.getQueryData(["forklift-financials", "detail", ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/4]ΓÄ»
+
+ FAIL  src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx > K2: financial access changes on the same QueryClient and identity > does not restore data when an old request resolves after the role is revoked
+AssertionError: expected { revenue: 100, ΓÇª(8) } to be undefined
+
+- Expected:
+undefined
+
++ Received:
+{
+  "acquisition_cost": 1000,
+  "days_rented": 3,
+  "days_since_acquired": 10,
+  "gross_margin": 90,
+  "hourometer_history": [],
+  "maintenance_cost": 10,
+  "revenue": 100,
+  "roi_percent": 9,
+  "utilization_percent": 30,
+}
+
+ Γ¥» src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx:67:33
+     65|     await waitFor(() => expect(queryClient.isFetching()).toBe(0));
+     66|
+     67|     expect(result.current.data).toBeUndefined();
+       |                                 ^
+     68|     expect(queryClient.getQueryData(key)).toBeUndefined();
+     69|     expect(state.rpc).toHaveBeenCalledTimes(1);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/4]ΓÄ»
+
+ FAIL  src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx > K2: financial access changes on the same QueryClient and identity > fails closed while the role is unresolved, then fetches fresh data after access is restored
+AssertionError: expected { revenue: 100, ΓÇª(8) } to be undefined
+
+- Expected:
+undefined
+
++ Received:
+{
+  "acquisition_cost": 1000,
+  "days_rented": 3,
+  "days_since_acquired": 10,
+  "gross_margin": 90,
+  "hourometer_history": [],
+  "maintenance_cost": 10,
+  "revenue": 100,
+  "roi_percent": 9,
+  "utilization_percent": 30,
+}
+
+ Γ¥» src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx:78:33
+     76|     state.role = null;
+     77|     rerender();
+     78|     expect(result.current.data).toBeUndefined();
+       |                                 ^
+     79|     expect(queryClient.getQueryData(key)).toBeUndefined();
+     80|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/4]ΓÄ»
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 5 passed (9)
+   Start at  16:03:49
+   Duration  6.79s (transform 646ms, setup 981ms, import 5.59s, tests 431ms, environment 1.00s)
+

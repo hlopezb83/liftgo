@@ -7,7 +7,7 @@ import { Link as TSLink, Navigate as TSNavigate, Outlet as TSOutlet } from "@tan
 import { forwardRef, type ComponentProps, type ReactNode } from "react";
 import { parseTo } from "./router-compat-url";
 
-type LinkProps = Omit<ComponentProps<typeof TSLink>, "to"> & {
+type LinkProps = Omit<ComponentProps<typeof TSLink>, "to" | "state"> & {
   to: string;
   replace?: boolean;
   state?: unknown;

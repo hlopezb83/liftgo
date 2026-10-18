@@ -10,7 +10,7 @@ import { todayKeyMty } from "@/lib/format/dateFormats";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { cn } from "@/lib/utils";
 import { returnActionAvailability, type DeliveryState } from "../../hooks/bookingActions/returnActionAvailability";
-import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
+import { getValidTransitions, useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
 import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
 import { BookingStatusChangeDialog, BookingExtendDialog, CancelBookingDialog } from "./BookingActionDialogs";
 
@@ -124,6 +124,9 @@ interface AdminRiskItemsProps {
 
 function AdminRiskItems({ status, deletePending, onStatus, onDelete }: AdminRiskItemsProps) {
   const isConfirmed = status === "confirmed";
+  const statusBlockReason = getValidTransitions(status).length === 0
+    ? "No hay cambios de estatus disponibles para esta reserva"
+    : undefined;
   return (
     <>
       <MenuAction
@@ -131,6 +134,7 @@ function AdminRiskItems({ status, deletePending, onStatus, onDelete }: AdminRisk
         label="Cambiar estatus…"
         hint={isConfirmed ? "En reserva confirmada sólo permite cancelar" : undefined}
         destructive={isConfirmed}
+        blockedReason={statusBlockReason}
         onSelect={onStatus}
       />
       <MenuAction

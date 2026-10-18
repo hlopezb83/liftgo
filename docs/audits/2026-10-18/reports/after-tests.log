@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-reports
+
+ Γ£ô src/lib/pdf/documents/__tests__/IncomeStatementDocument.margins.test.tsx (2 tests) 56ms
+ Γ£ô src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx (5 tests) 105ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts (7 tests) 10ms
+
+ Test Files  3 passed (3)
+      Tests  14 passed (14)
+   Start at  16:10:17
+   Duration  18.96s (transform 1.27s, setup 2.91s, import 22.18s, tests 171ms, environment 5.15s)
+
+Exit code: 0

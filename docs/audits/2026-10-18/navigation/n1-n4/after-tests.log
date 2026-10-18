@@ -1,0 +1,19 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-navigation
+
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests) 131ms
+ Γ£ô src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx (16 tests) 3715ms
+     Γ£ô confirmada admin: Crear contrato y Extender visibles; resto dentro de M├ís  450ms
+     Γ£ô devoluci├│n navega con early=1 cuando aplica  431ms
+     Γ£ô Cancelar reserva abre di├ílogo fuera del men├║ y Escape regresa el foco a M├ís  316ms
+     Γ£ô Cambiar estatus abre di├ílogo y Escape devuelve foco a M├ís  549ms
+ Γ£ô src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx (1 test) 201ms
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx (4 tests) 503ms
+ Γ£ô src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx (2 tests) 310ms
+ Γ£ô src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx (3 tests) 116ms
+
+ Test Files  6 passed (6)
+      Tests  32 passed (32)
+   Start at  16:08:02
+   Duration  52.43s (transform 4.95s, setup 9.91s, import 65.50s, tests 4.98s, environment 13.15s)
+

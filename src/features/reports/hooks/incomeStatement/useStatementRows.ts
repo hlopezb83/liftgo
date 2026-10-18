@@ -17,10 +17,10 @@ interface Totals {
   depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
-  grossProfit: number; grossMargin: number;
+  grossProfit: number; grossMargin: number | null;
   totalExpenses: number;
-  profitBeforeDepreciation: number; marginBeforeDepreciation: number;
-  netProfit: number; margin: number;
+  profitBeforeDepreciation: number; marginBeforeDepreciation: number | null;
+  netProfit: number; margin: number | null;
 }
 
 const EXPENSE_DETAIL_CATEGORIES: ExpenseCategory[] = [
@@ -60,7 +60,7 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
 
 export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
   if (yearTotals.length < 2) return [];
-  const v = (extractor: (yt: YearTotals) => number, opts?: { isCost?: boolean; isSubtotal?: boolean; isPercent?: boolean }) =>
+  const v = (extractor: (yt: YearTotals) => number | null, opts?: { isCost?: boolean; isSubtotal?: boolean; isPercent?: boolean }) =>
     buildComparisonValues(yearTotals, extractor, opts);
   const groupRows: ComparisonRow[] = [];
   for (const group of OPERATING_EXPENSE_GROUPS) {

@@ -1,0 +1,91 @@
+{
+  "project_id": "e25ace4a-172e-4082-a037-00473dacf2f2",
+  "operation": "SELECT catalog metadata only; no business rows or authenticated users accessed",
+  "result": {
+    "rows": [
+      {
+        "metadata": {
+          "authenticated_column_select": {
+            "acquisition_cost": true,
+            "insurance_cost": true
+          },
+          "database_name": "postgres",
+          "observed_at": "2026-10-18T22:25:31.826793+00:00",
+          "policies": [
+            {
+              "check": null,
+              "command": "SELECT",
+              "name": "Administrativo read forklifts",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "has_role(( SELECT auth.uid() AS uid), 'administrativo'::app_role)"
+            },
+            {
+              "check": "has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)",
+              "command": "ALL",
+              "name": "Admins full access forklifts",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "has_role(( SELECT auth.uid() AS uid), 'admin'::app_role)"
+            },
+            {
+              "check": null,
+              "command": "SELECT",
+              "name": "Auditor read forklifts",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "(has_role(( SELECT auth.uid() AS uid), 'auditor'::app_role) AND (is_e2e IS NOT TRUE))"
+            },
+            {
+              "check": null,
+              "command": "SELECT",
+              "name": "Dispatchers read forklifts",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "(has_role(( SELECT auth.uid() AS uid), 'dispatcher'::app_role) AND (is_e2e IS NOT TRUE))"
+            },
+            {
+              "check": null,
+              "command": "SELECT",
+              "name": "Mechanics read forklifts",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "(has_role(( SELECT auth.uid() AS uid), 'mechanic'::app_role) AND (is_e2e IS NOT TRUE))"
+            },
+            {
+              "check": null,
+              "command": "SELECT",
+              "name": "Ventas read forklifts",
+              "permissive": "PERMISSIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "(has_role(( SELECT auth.uid() AS uid), 'ventas'::app_role) AND (is_e2e IS NOT TRUE))"
+            },
+            {
+              "check": "( SELECT organization_scope_matches(forklifts.organization_id) AS organization_scope_matches)",
+              "command": "ALL",
+              "name": "org_scope_isolation",
+              "permissive": "RESTRICTIVE",
+              "roles": [
+                "authenticated"
+              ],
+              "using": "( SELECT organization_scope_matches(forklifts.organization_id) AS organization_scope_matches)"
+            }
+          ],
+          "reader_role": "postgres"
+        }
+      }
+    ]
+  }
+}

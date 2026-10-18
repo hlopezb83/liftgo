@@ -1,0 +1,487 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+stderr | src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx > EditPaymentDialog currency wiring > keeps stamped REP amount disabled and submits original fiscal fields
+Warning: useRouter must be used inside a <RouterProvider> component!
+Warning: useRouter must be used inside a <RouterProvider> component!
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests | 3 failed) 3747ms
+     ├ù N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175 1316ms
+     ├ù N8: blocks excess with maximum and currency in the validation message 1143ms
+     ├ù does not submit when FX needed for validation is missing 1142ms
+     Γ£ô keeps stamped REP amount disabled and submits original fiscal fields 140ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx > EditPaymentDialog currency wiring > N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175
+AssertionError: expected "vi.fn()" to be called with arguments: [ ObjectContaining{ΓÇª}, Any<Object> ]
+
+Number of calls: 0
+
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body
+    data-scroll-locked="1"
+    style="pointer-events: none;"
+  >
+    <span
+      aria-hidden="true"
+      data-aria-hidden="true"
+      data-radix-focus-guard=""
+      style="opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"
+      tabindex="0"
+    />
+    <div
+      aria-hidden="true"
+      data-aria-hidden="true"
+    />
+    <div
+      aria-hidden="true"
+      class="fixed inset-0 z-50 bg-foreground/30 dark:bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+      data-aria-hidden="true"
+      data-state="open"
+      style="pointer-events: auto;"
+    />
+    <div
+      aria-labelledby="radix-_r_1_"
+      class="fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-1rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overscroll-contain border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-md max-h-[85vh] overflow-y-auto pt-0 pb-0"
+      data-state="open"
+      data-toast-viewport="dialog"
+      id="radix-_r_0_"
+      role="dialog"
+      style="pointer-events: auto;"
+      tabindex="-1"
+    >
+      <div
+        class="flex flex-col space-y-1.5 text-center sm:text-left sticky top-0 bg-background z-10 -mx-6 px-6 pt-6 pb-3 border-b"
+      >
+        <h2
+          class="text-lg font-semibold leading-none tracking-tight"
+          id="radix-_r_1_"
+        >
+          Editar pago
+        </h2>
+      </div>
+      <div
+        class="min-w-0 pt-2 pb-6"
+      >
+        <form
+          class="space-y-4"
+        >
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              for="_r_6_-form-item"
+            >
+              Monto
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <div
+              class="relative"
+            >
+              <span
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none"
+              >
+                $
+              </span>
+              <input
+                aria-describedby="_r_6_-form-item-description"
+                aria-invalid="false"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-6 pr-14 text-right tabular-nums"
+                id="_r_6_-form-item"
+                inputmode="decimal"
+                name="amount"
+                placeholder="0.00"
+                type="text"
+                value="350"
+              />
+              <span
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none"
+              >
+                MXN
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-2"
+          >
+            <div
+              class="space-y-1.5"
+            >
+              <label
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                for="_r_8_"
+              >
+                Fecha
+                <span
+                  aria-hidden="true"
+                  class="text-destructive ml-0.5"
+                >
+                  *
+                </span>
+              </label>
+              <div
+                class="flex items-start gap-2"
+              >
+                <div
+                  class="flex-1 space-y-1"
+                >
+                  <input
+                    aria-describedby="_r_8_-note"
+                    autocomplete="off"
+                    class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono tabular-nums w-full"
+                    id="_r_8_"
+                    inputmode="numeric"
+                    placeholder="dd/mm/aaaa"
+                    value="01/09/2026"
+                  />
+                </div>
+                <button
+                  aria-expanded=...
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx:39:46
+     37|     setup();
+     38|     submitAmount("350");
+     39|     await waitFor(() => expect(mocks.mutate).toHaveBeenCalledWith(expeΓÇª
+       |                                              ^
+     40|       id: payment.id, amount: 350,
+     41|     }), expect.any(Object)));
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx > EditPaymentDialog currency wiring > N8: blocks excess with maximum and currency in the validation message
+AssertionError: expected "vi.fn()" to be called with arguments: [ { message: StringMatching{ΓÇª} } ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+    {
+-     "message": StringMatching /1,750\.00.*MXN/,
++     "message": "El monto excede el saldo pendiente m├ís el pago original ($265.00). Ajusta la cantidad.",
+    },
+  ]
+
+
+Number of calls: 1
+
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body
+    data-scroll-locked="1"
+    style="pointer-events: none;"
+  >
+    <span
+      aria-hidden="true"
+      data-aria-hidden="true"
+      data-radix-focus-guard=""
+      style="opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"
+      tabindex="0"
+    />
+    <div
+      aria-hidden="true"
+      data-aria-hidden="true"
+    />
+    <div
+      aria-hidden="true"
+      class="fixed inset-0 z-50 bg-foreground/30 dark:bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+      data-aria-hidden="true"
+      data-state="open"
+      style="pointer-events: auto;"
+    />
+    <div
+      aria-labelledby="radix-_r_m_"
+      class="fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-1rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overscroll-contain border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-md max-h-[85vh] overflow-y-auto pt-0 pb-0"
+      data-state="open"
+      data-toast-viewport="dialog"
+      id="radix-_r_l_"
+      role="dialog"
+      style="pointer-events: auto;"
+      tabindex="-1"
+    >
+      <div
+        class="flex flex-col space-y-1.5 text-center sm:text-left sticky top-0 bg-background z-10 -mx-6 px-6 pt-6 pb-3 border-b"
+      >
+        <h2
+          class="text-lg font-semibold leading-none tracking-tight"
+          id="radix-_r_m_"
+        >
+          Editar pago
+        </h2>
+      </div>
+      <div
+        class="min-w-0 pt-2 pb-6"
+      >
+        <form
+          class="space-y-4"
+        >
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              for="_r_r_-form-item"
+            >
+              Monto
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <div
+              class="relative"
+            >
+              <span
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none"
+              >
+                $
+              </span>
+              <input
+                aria-describedby="_r_r_-form-item-description"
+                aria-invalid="false"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-6 pr-14 text-right tabular-nums"
+                id="_r_r_-form-item"
+                inputmode="decimal"
+                name="amount"
+                placeholder="0.00"
+                type="text"
+                value="1751"
+              />
+              <span
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none"
+              >
+                MXN
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-2"
+          >
+            <div
+              class="space-y-1.5"
+            >
+              <label
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                for="_r_t_"
+              >
+                Fecha
+                <span
+                  aria-hidden="true"
+                  class="text-destructive ml-0.5"
+                >
+                  *
+                </span>
+              </label>
+              <div
+                class="flex items-start gap-2"
+              >
+                <div
+                  class="flex-1 space-y-1"
+                >
+                  <input
+                    aria-describedby="_r_t_-note"
+                    autocomplete="off"
+                    class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono tabular-nums w-full"
+                    id="_r_t_"
+                    inputmode="numeric"
+                    placeholder="dd/mm/aaaa"
+                    value="01/09/2026"
+                  />
+                </div>
+                <button
+                  aria-expanded...
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx:48:50
+     46|     setup();
+     47|     submitAmount("1751");
+     48|     await waitFor(() => expect(mocks.validation).toHaveBeenCalledWith({
+       |                                                  ^
+     49|       message: expect.stringMatching(/1,750\.00.*MXN/),
+     50|     }));
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx > EditPaymentDialog currency wiring > does not submit when FX needed for validation is missing
+AssertionError: expected "vi.fn()" to be called with arguments: [ { message: StringMatching{ΓÇª} } ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+    {
+-     "message": StringMatching /tipo de cambio/i,
++     "message": "El monto excede el saldo pendiente m├ís el pago original ($265.00). Ajusta la cantidad.",
+    },
+  ]
+
+
+Number of calls: 1
+
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body
+    data-scroll-locked="1"
+    style="pointer-events: none;"
+  >
+    <span
+      aria-hidden="true"
+      data-aria-hidden="true"
+      data-radix-focus-guard=""
+      style="opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"
+      tabindex="0"
+    />
+    <div
+      aria-hidden="true"
+      data-aria-hidden="true"
+    />
+    <div
+      aria-hidden="true"
+      class="fixed inset-0 z-50 bg-foreground/30 dark:bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+      data-aria-hidden="true"
+      data-state="open"
+      style="pointer-events: auto;"
+    />
+    <div
+      aria-labelledby="radix-_r_1b_"
+      class="fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-1rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overscroll-contain border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-md max-h-[85vh] overflow-y-auto pt-0 pb-0"
+      data-state="open"
+      data-toast-viewport="dialog"
+      id="radix-_r_1a_"
+      role="dialog"
+      style="pointer-events: auto;"
+      tabindex="-1"
+    >
+      <div
+        class="flex flex-col space-y-1.5 text-center sm:text-left sticky top-0 bg-background z-10 -mx-6 px-6 pt-6 pb-3 border-b"
+      >
+        <h2
+          class="text-lg font-semibold leading-none tracking-tight"
+          id="radix-_r_1b_"
+        >
+          Editar pago
+        </h2>
+      </div>
+      <div
+        class="min-w-0 pt-2 pb-6"
+      >
+        <form
+          class="space-y-4"
+        >
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              for="_r_1g_-form-item"
+            >
+              Monto
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <div
+              class="relative"
+            >
+              <span
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none"
+              >
+                $
+              </span>
+              <input
+                aria-describedby="_r_1g_-form-item-description"
+                aria-invalid="false"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-6 pr-14 text-right tabular-nums"
+                id="_r_1g_-form-item"
+                inputmode="decimal"
+                name="amount"
+                placeholder="0.00"
+                type="text"
+                value="350"
+              />
+              <span
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none"
+              >
+                MXN
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-2"
+          >
+            <div
+              class="space-y-1.5"
+            >
+              <label
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                for="_r_1i_"
+              >
+                Fecha
+                <span
+                  aria-hidden="true"
+                  class="text-destructive ml-0.5"
+                >
+                  *
+                </span>
+              </label>
+              <div
+                class="flex items-start gap-2"
+              >
+                <div
+                  class="flex-1 space-y-1"
+                >
+                  <input
+                    aria-describedby="_r_1i_-note"
+                    autocomplete="off"
+                    class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono tabular-nums w-full"
+                    id="_r_1i_"
+                    inputmode="numeric"
+                    placeholder="dd/mm/aaaa"
+                    value="01/09/2026"
+                  />
+                </div>
+                <button
+                  aria-expan...
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx:57:50
+     55|     setup({}, null);
+     56|     submitAmount("350");
+     57|     await waitFor(() => expect(mocks.validation).toHaveBeenCalledWith({
+       |                                                  ^
+     58|       message: expect.stringMatching(/tipo de cambio/i),
+     59|     }));
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  16:04:37
+   Duration  20.37s (transform 1.77s, setup 2.02s, import 11.58s, tests 3.75s, environment 2.16s)
+
+EXIT_CODE=1

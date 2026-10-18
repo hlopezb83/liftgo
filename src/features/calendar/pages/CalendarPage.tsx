@@ -14,10 +14,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { nowMty } from "@/lib/utils";
-import { CalendarLoadingSkeleton, CalendarToolbar, EndingSoonAlert } from "../components/calendar/CalendarPageParts";
+import { CalendarRangeLoadingSkeleton, CalendarToolbar, EndingSoonAlert } from "../components/calendar/CalendarPageParts";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
 import { GanttCard } from "../components/calendar/GanttCard";
+import { useCalendarLocationState } from "../hooks/useCalendarLocationState";
 import { useMaintenanceWindows } from "../hooks/useMaintenanceWindows";
 import { refreshCalendarQueries } from "../lib/refreshCalendarQueries";
 
@@ -39,10 +40,8 @@ function endingSoonBookings(bookings: BookingWithForklift[], todayTs: number) {
 }
 
 export default function CalendarPage() {
-  const [currentDate, setCurrentDate] = useState(nowMty());
   const isMobile = useIsMobile();
-  const [viewMode, setViewMode] = useState<"gantt" | "list">(isMobile ? "list" : "gantt");
-  const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
+  const { currentDate, setCurrentDate, viewMode, setViewMode, ganttRange, setGanttRange } = useCalendarLocationState(isMobile);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fns = rangeFns(ganttRange);
@@ -104,24 +103,7 @@ export default function CalendarPage() {
   // Combina los estados de las consultas para mantener la orquestación legible.
   const hasQueryError = [bError, currentBookingsError, fError, mError].some(Boolean);
   const isLoading = [bLoading, currentBookingsLoading, fLoading, mLoading].some(Boolean);
-
-  // R22-C: el calendario necesita reservas Y equipos; reintentar ambos.
-  if (hasQueryError) {
-    return (
-      <PageContainer>
-        <PageHeader title="Calendario de Disponibilidad" />
-        <QueryErrorState
-          entity="el calendario"
-          onRetry={() => { void bRefetch(); void currentBookingsRefetch(); void fRefetch(); void mRefetch(); }}
-          isRetrying={[bFetching, currentBookingsFetching, fFetching, mFetching].some(Boolean)}
-        />
-      </PageContainer>
-    );
-  }
-
-  if (isLoading) {
-    return <CalendarLoadingSkeleton />;
-  }
+  const summaryReady = ![currentBookingsLoading, fLoading, currentBookingsError, fError].some(Boolean);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -139,7 +121,7 @@ export default function CalendarPage() {
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
       />
-      <EndingSoonAlert items={endingSoon} forkliftMap={forkliftMap} />
+      {summaryReady && <EndingSoonAlert items={endingSoon} forkliftMap={forkliftMap} />}
       {bookingsTruncated && (
         <Alert>
           <WarnIcon className="h-4 w-4" />
@@ -150,7 +132,7 @@ export default function CalendarPage() {
         </Alert>
       )}
 
-      <CalendarStatCards forklifts={forklifts} bookings={currentBookings} />
+      {summaryReady && <CalendarStatCards forklifts={forklifts} bookings={currentBookings} />}
 
       <CalendarToolbar
         viewMode={viewMode}
@@ -167,8 +149,18 @@ export default function CalendarPage() {
         onRefresh={() => { void handleRefresh(); }}
       />
 
+      {hasQueryError && (
+        <QueryErrorState
+          entity="el calendario"
+          onRetry={() => { void bRefetch(); void currentBookingsRefetch(); void fRefetch(); void mRefetch(); }}
+          isRetrying={[bFetching, currentBookingsFetching, fFetching, mFetching].some(Boolean)}
+        />
+      )}
+
       {viewMode === "gantt" ? (
         <GanttCard
+          isLoading={isLoading}
+          hasQueryError={hasQueryError}
           rangeLabel={rangeLabel}
           prevLabel={fns.prevLabel}
           nextLabel={fns.nextLabel}
@@ -188,11 +180,11 @@ export default function CalendarPage() {
             <CardDescription>Reservas no canceladas en {rangeLabel.toLowerCase()}.</CardDescription>
           </CardHeader>
           <CardContent>
-            <EquipmentListView
+            {isLoading ? <CalendarRangeLoadingSkeleton /> : !hasQueryError && <EquipmentListView
               forklifts={forklifts}
               bookings={bookings}
               currentBookings={currentBookings}
-            />
+            />}
           </CardContent>
         </Card>
       )}

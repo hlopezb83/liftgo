@@ -1,8 +1,7 @@
-import { sumMoney, toMxn } from "@/lib/money";
+import { roundMoney, sumMoney } from "@/lib/money";
 
 export type PaymentLike = {
   amount: number;
-  amount_mxn?: number | null;
   currency?: string | null;
   exchange_rate?: number | string | null;
 };
@@ -11,19 +10,33 @@ function code(value: string | null | undefined): string {
   return (value ?? "MXN").toUpperCase();
 }
 
-function positiveRate(value: number | string | null | undefined): number | null {
+function conversionRate(currency: string, value: number | string | null | undefined): number | null {
+  if (currency === "MXN") return 1;
   const n = Number(value ?? 0);
-  return Number.isFinite(n) && n > 0 ? n : null;
+  // Misma regla que public.fx_is_missing: TC = 1 en divisa no es utilizable.
+  return Number.isFinite(n) && n > 0 && n !== 1 ? n : null;
 }
 
-/** Monto del pago en pesos, o `null` si no hay forma confiable de convertirlo. */
-function paymentToMxn(p: PaymentLike): number | null {
-  if (p.amount_mxn != null) return Number(p.amount_mxn);
-  const amount = Number(p.amount ?? 0);
-  const payCode = code(p.currency);
-  if (payCode === "MXN") return amount;
-  const rate = positiveRate(p.exchange_rate);
-  return rate === null ? null : toMxn(amount, payCode, rate);
+/**
+ * Espejo cliente de public.fx_convert_amount: convierte directamente y redondea
+ * una sola vez a centavos de la moneda destino. Devuelve null si falta un TC.
+ * No redondear el paso intermedio a MXN ni sumar conversiones sin redondear.
+ */
+export function convertCurrencyAmount(
+  amount: number,
+  fromCurrency: string | null | undefined,
+  toCurrency: string | null | undefined,
+  fromRate: number | string | null | undefined,
+  toRate: number | string | null | undefined,
+): number | null {
+  if (!Number.isFinite(amount)) return null;
+  const fromCode = code(fromCurrency);
+  const toCode = code(toCurrency);
+  if (fromCode === toCode) return roundMoney(amount);
+  const sourceRate = conversionRate(fromCode, fromRate);
+  const targetRate = conversionRate(toCode, toRate);
+  if (sourceRate === null || targetRate === null) return null;
+  return roundMoney(amount * sourceRate / targetRate);
 }
 
 /**
@@ -31,8 +44,9 @@ function paymentToMxn(p: PaymentLike): number | null {
  * en otra moneda se descontaba 1:1 del total (como abonar 100 dólares y
  * restar 100 pesos), descuadrando el saldo sin ninguna advertencia.
  *
- * Aquí cada pago se normaliza a la moneda de la FACTURA: se lleva a pesos y,
- * si la factura está en divisa, se regresa con el tipo de cambio del documento.
+ * Aquí cada pago se normaliza y redondea a la moneda de la FACTURA antes de
+ * sumarse, como v_invoices_with_balance / fx_convert_amount. Un pago legado sin
+ * moneda hereda la de la factura, también como la vista SQL.
  * Los pagos que no se pueden convertir se cuentan aparte para avisar al usuario
  * en vez de descuadrar el saldo en silencio.
  */
@@ -42,7 +56,6 @@ export function sumPaymentsInInvoiceCurrency(
   invoiceRate: number | string | null | undefined,
 ): { totalPaid: number; unconvertible: number } {
   const invCode = code(invoiceCurrency);
-  const invRate = positiveRate(invoiceRate);
   // E2: acumular con `sumMoney` (currency.js) y no con `+=` en float crudo —
   // un total exactamente cubierto devolvía saldos tipo -1.8e-13 y la UI pintaba
   // la factura como pendiente.
@@ -50,20 +63,11 @@ export function sumPaymentsInInvoiceCurrency(
   let unconvertible = 0;
 
   for (const p of payments) {
-    if (code(p.currency) === invCode) {
-      parts.push(Number(p.amount ?? 0));
-      continue;
-    }
-    const mxn = paymentToMxn(p);
-    if (mxn === null) {
-      unconvertible += 1;
-    } else if (invCode === "MXN") {
-      parts.push(mxn);
-    } else if (invRate !== null) {
-      parts.push(mxn / invRate);
-    } else {
-      unconvertible += 1;
-    }
+    const converted = convertCurrencyAmount(
+      Number(p.amount), p.currency ?? invCode, invCode, p.exchange_rate, invoiceRate,
+    );
+    if (converted === null) unconvertible += 1;
+    else parts.push(converted);
   }
 
   return { totalPaid: sumMoney(parts), unconvertible };

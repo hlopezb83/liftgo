@@ -1,5 +1,6 @@
 import { captureException, getClient, getIsolationScope, setAsyncLocalStorageAsyncContextStrategy, type CloudflareOptions } from "@sentry/cloudflare";
 import { wrapRequestHandler } from "@sentry/cloudflare/request";
+import { databasePrivilegeIncident, databasePrivilegeTarget } from "./databasePrivilegeFailure";
 import { createPrivacyOptions, PUBLIC_SENTRY_DSN, scrubServerEvent } from "./privacyOptions";
 
 type RequestContext = { waitUntil(promise: Promise<unknown>): void; passThroughOnException?(): void };
@@ -121,7 +122,8 @@ export function captureServerError(error: unknown): void {
       if (seen.has(error)) return;
       seen.add(error);
     }
-    captureException(error, { mechanism: { handled: true, type: "liftgo.server" } });
+    const privilegeTarget = databasePrivilegeTarget(error);
+    captureException(privilegeTarget ? databasePrivilegeIncident(privilegeTarget) : error, { mechanism: { handled: true, type: "liftgo.server" } });
   } catch { /* Conservar el resultado y el error original del negocio. */ }
 }
 
@@ -129,7 +131,9 @@ function isExpectedFailure(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const status = Object.getOwnPropertyDescriptor(error, "status")?.value
     ?? Object.getOwnPropertyDescriptor(error, "statusCode")?.value;
-  if (typeof status === "number" && Number.isInteger(status) && status >= 400 && status < 500) return true;
+  if (typeof status === "number" && Number.isInteger(status) && status >= 400 && status < 500) {
+    return status !== 403 || !databasePrivilegeTarget(error);
+  }
   const message = Object.getOwnPropertyDescriptor(error, "message")?.value;
   return typeof message === "string" && /^(?:Unauthorized|Forbidden):/.test(message);
 }

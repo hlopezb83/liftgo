@@ -1,0 +1,425 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo
+
+ Γ£ô src/features/invoices/lib/__tests__/recurringSelection.test.ts (20 tests) 15ms
+ Γ£ô src/lib/domain/__tests__/rentalCalculation.test.ts (41 tests) 29ms
+ Γ£ô src/lib/observability/serverSentry.test.ts (14 tests) 1249ms
+     Γ£ô un transporte que nunca termina tiene un presupuesto total acotado  842ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts (27 tests) 105ms
+ Γ£ô src/features/accounts-payable/__tests__/schemas.zodResolver.test.ts (28 tests) 56ms
+ Γ£ô src/features/auth/__tests__/passwordRecovery.test.tsx (14 tests) 1172ms
+     Γ£ô arranque en fr├¡o: evento v├ílido ANTES de montar React mantiene el formulario  365ms
+ Γ£ô src/lib/organization/__tests__/resolveOrganizationContext.test.ts (14 tests) 21ms
+ Γ£ô src/features/invoices/lib/__tests__/quotedBookingLines.test.ts (18 tests) 30ms
+ Γ£ô src/features/quotes/hooks/__tests__/useQuoteFormLogic.test.tsx (7 tests) 866ms
+ Γ£ô src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx (16 tests) 2721ms
+     Γ£ô confirmada admin: Crear contrato y Extender visibles; resto dentro de M├ís  433ms
+     Γ£ô Cancelar reserva abre di├ílogo fuera del men├║ y Escape regresa el foco a M├ís  316ms
+     Γ£ô Cambiar estatus abre di├ílogo y Escape devuelve foco a M├ís  452ms
+ Γ£ô src/test/e2eProductionGuard.test.ts (18 tests) 87ms
+ Γ£ô src/features/accounts-payable/components/__tests__/PaymentBatchDialogs.focus.test.tsx (16 tests) 4181ms
+     Γ£ô Historial cerrado con Escape devuelve foco tras desmontar  567ms
+     Γ£ô Historial cerrado con footer devuelve foco tras desmontar  606ms
+     Γ£ô conserva foco en ciclos repetidos de apertura y cierre  699ms
+     Γ£ô resuelve el ref actual al remontar el encabezado desktop/m├│vil  626ms
+     Γ£ô sin destino conectado cierra sin intentar enfocar el bot├│n desmontado  309ms
+     Γ£ô isBusy bloquea Escape, Cerrar y X sin restauraci├│n prematura  320ms
+     Γ£ô Exportar cerrado con Cancelar no ejecuta operaciones y restaura foco  374ms
+ Γ£ô src/components/layout/__tests__/ListPageLayout.test.tsx (14 tests) 844ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useAccountsPayableKpis.test.ts (13 tests) 79ms
+ Γ£ô src/features/bank-reconciliation/hooks/__tests__/useStatementUpload.limits.test.ts (7 tests) 179ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx (11 tests) 9838ms
+     Γ£ô no reserva panel vac├¡o ni consulta candidatos sin selecci├│n  625ms
+     Γ£ô abre con click y restaura foco al cerrar  452ms
+     Γ£ô abre con Enter y restaura foco al cerrar  383ms
+     Γ£ô J/K y flechas cambian el destino de foco vigente; ciclos y X  1044ms
+     Γ£ô escribir J/K/flechas en candidatos y textarea no cambia movimiento  442ms
+     Γ£ô preserva checkbox, barra, raz├│n, orden, scroll y tabla en resize  516ms
+     Γ£ô cambio de b├║squeda/estado cierra como antes y conserva callbacks  787ms
+     Γ£ô restaura al listado vigente cuando desaparece la fila por refresh  384ms
+     Γ£ô J navega fuera de la ventana virtual y al cerrar enfoca el listado sin perder selecci├│n ni scroll  4726ms
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts (16 tests) 144ms
+ Γ£ô src/features/portal/__tests__/portalBalance.test.ts (11 tests) 9ms
+ Γ£ô src/features/invoices/components/recurring/__tests__/RecurringInvoicesPreviewDialog.test.tsx (10 tests) 1492ms
+     Γ£ô al reabrir se pierde el consentimiento de tarifa modificada  593ms
+ Γ£ô src/lib/__tests__/serverFnTransport.test.ts (7 tests) 36ms
+ Γ£ô src/lib/server/__tests__/platformOnboarding.test.ts (15 tests) 45ms
+ Γ£ô src/features/crm/hooks/__tests__/useProspectMutations.test.ts (9 tests) 110ms
+ Γ£ô src/features/inventory/hooks/__tests__/usePartInventoryMutations.test.ts (8 tests) 123ms
+ Γ£ô src/features/deliveries/hooks/__tests__/useDeliveries.test.ts (8 tests) 163ms
+ Γ£ô src/lib/domain/__tests__/stateMachines.test.ts (103 tests) 21ms
+ Γ£ô src/features/invoices/hooks/creditNotes/__tests__/useCreditNoteMutations.test.ts (9 tests) 752ms
+ Γ£ô src/features/quotes/components/quotes/__tests__/QuoteDetailActions.test.tsx (15 tests) 969ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useSupplierBillForm.test.tsx (7 tests) 683ms
+ Γ£ô src/features/maintenance/hooks/maintenance/__tests__/useMaintenanceKanban.test.ts (7 tests) 285ms
+ Γ£ô src/lib/branding/__tests__/resolveIssuerBranding.test.ts (11 tests) 11ms
+ Γ£ô src/lib/pdf/documents/__tests__/documents.smoke.test.tsx (9 tests) 461ms
+ Γ£ô src/lib/__tests__/routerCompatLocation.test.tsx (15 tests) 1143ms
+ Γ£ô src/features/quotes/lib/__tests__/quoteFormSchema.test.ts (23 tests) 33ms
+ Γ£ô src/features/inventory/components/inventory/__tests__/ActivatePartDialog.test.tsx (11 tests) 1775ms
+     Γ£ô pide confirmar el descarte y permite seguir editando  410ms
+     Γ£ô descarta la selecci├│n y valores al cerrar y volver a abrir  385ms
+ Γ£ô src/features/invoices/lib/__tests__/bookingCompatibility.test.ts (24 tests) 15ms
+ Γ£ô src/features/returns/hooks/returnInspection/__tests__/useReturnInspectionDialog.test.tsx (10 tests) 168ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormHandlers.test.ts (16 tests) 22ms
+ Γ£ô src/features/damage/hooks/__tests__/useDamageRecords.test.ts (7 tests) 80ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useAccountsPayableKpis.fxMissing.test.ts (8 tests) 62ms
+ Γ£ô src/features/invoices/hooks/creditNotes/__tests__/useCreditNoteForm.test.ts (10 tests) 80ms
+ Γ£ô src/components/dataTable/v2/__tests__/useLiftgoTable.pagination.test.tsx (8 tests) 87ms
+ Γ£ô src/features/operations/components/operations/__tests__/CatalogTabsErrorState.test.tsx (13 tests) 841ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useAgingReport.test.ts (9 tests) 90ms
+ Γ£ô src/features/bank-reconciliation/hooks/mutations/__tests__/useBankLineActions.test.ts (6 tests) 93ms
+ Γ£ô src/components/filters/__tests__/FiltersToolbar.test.tsx (12 tests) 799ms
+     Γ£ô renders Search and propagates (debounced) changes  341ms
+ Γ£ô src/features/quotes/hooks/quoteForm/__tests__/useQuotePrefill.test.tsx (10 tests) 64ms
+ Γ£ô src/lib/server/__tests__/platformFiscalLookup.test.ts (32 tests) 40ms
+ Γ£ô src/features/calendar/pages/__tests__/CalendarPage.navigation.test.tsx (5 tests) 919ms
+     Γ£ô reads date, view and range from the URL, including on a mobile viewport  358ms
+ Γ£ô src/features/invoices/hooks/__tests__/useSaveInvoiceWithBookings.test.ts (6 tests) 605ms
+ Γ£ô src/features/contracts/components/contracts/__tests__/RentalFinancialSummary.test.tsx (9 tests) 287ms
+ Γ£ô src/features/deliveries/components/deliveries/__tests__/PostDeliveryPickupDialog.test.tsx (9 tests) 2046ms
+     Γ£ô protege cambios sin guardar al usar Cancelar  322ms
+     Γ£ô protege cambios sin guardar al usar Cerrar  364ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/invoiceFormBuilders.test.ts (19 tests) 20ms
+ Γ£ô src/features/invoices/components/invoice-form/__tests__/EditableLineItemsTable.test.tsx (5 tests) 1339ms
+ Γ£ô src/features/invoices/pages/__tests__/InvoicesPage.test.tsx (6 tests) 1465ms
+     Γ£ô V03: mantiene una sola b├║squeda fuera del panel m├│vil  514ms
+ Γ£ô src/lib/domain/__tests__/invoiceHelpers.more.test.ts (16 tests) 17ms
+ Γ£ô src/lib/server/__tests__/platformPassword.test.ts (12 tests) 23ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceReadActions.test.tsx (10 tests) 429ms
+ Γ£ô src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx (5 tests) 227ms
+ Γ£ô src/features/contracts/hooks/__tests__/useContracts.test.ts (6 tests) 218ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceFinancialOverview.test.tsx (11 tests) 171ms
+ Γ£ô src/features/bank-reconciliation/hooks/mutations/__tests__/useImportBankStatement.transactional.test.ts (4 tests) 17ms
+ Γ£ô src/features/crm/hooks/__tests__/useProspectForm.test.ts (10 tests) 81ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useExportPaymentsForm.snapshot.test.tsx (4 tests) 153ms
+ Γ£ô src/features/invoices/pages/__tests__/InvoiceDetailBalance.test.tsx (9 tests) 200ms
+ Γ£ô src/lib/errors/__tests__/pgErrorCatalog.test.ts (18 tests) 17ms
+ Γ£ô src/features/invoices/hooks/invoices/recurring/__tests__/useGenerateRecurringInvoices.test.ts (7 tests) 553ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useBillApprovalMutations.test.ts (6 tests) 544ms
+ Γ£ô src/features/maintenance/hooks/maintenance/__tests__/useMaintenanceLogs.test.ts (5 tests) 64ms
+ Γ£ô src/features/maintenance/hooks/maintenance/__tests__/useGenerateRecurringMaintenance.test.tsx (7 tests) 565ms
+ Γ£ô src/features/invoices/components/invoice-detail/InvoiceDetailIdentifiers.test.tsx (10 tests) 754ms
+     Γ£ô un rechazo al copiar no muestra ├⌐xito y conserva el identificador seleccionable  388ms
+ Γ£ô src/features/platform/__tests__/platformReadModels.test.ts (17 tests) 29ms
+ Γ£ô src/features/platform/__tests__/PlatformSupportEditor.test.tsx (3 tests) 350ms
+ Γ£ô src/features/dashboard/lib/__tests__/dashboardSectionHelpers.test.ts (18 tests) 14ms
+ Γ£ô src/layouts/hooks/__tests__/mainScrollRestoration.test.tsx (3 tests) 336ms
+ Γ£ô src/features/invoices/hooks/invoices/cfdi/__tests__/useStampCfdi.test.ts (6 tests) 513ms
+ Γ£ô src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx (4 tests) 134ms
+ Γ£ô src/features/bookings/pages/__tests__/BookingDetail.test.tsx (6 tests) 407ms
+ Γ£ô src/features/cash-flow/lib/__tests__/cashFlowTransformers.test.ts (16 tests) 10ms
+ Γ£ô src/features/accounts-payable/lib/__tests__/parseCfdiXml.test.ts (4 tests) 17ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx (5 tests) 529ms
+ Γ£ô src/features/bank-reconciliation/hooks/__tests__/useBankStatementLines.test.ts (6 tests) 449ms
+ Γ£ô src/features/quotes/hooks/quoteForm/__tests__/quoteFormBuilders.test.ts (9 tests) 15ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx (4 tests) 413ms
+ Γ£ô src/features/bank-reconciliation/lib/__tests__/xmlParsers.test.ts (8 tests) 34ms
+ Γ£ô src/features/bookings/hooks/__tests__/useBookingMutations.test.ts (6 tests) 471ms
+ Γ£ô src/features/deliveries/components/deliveries/__tests__/DeliveryFormFields.selection.test.tsx (7 tests) 3000ms
+     Γ£ô asigna el equipo de la reserva seleccionada  636ms
+     Γ£ô conserva el nuevo equipo y limpia s├│lo la reserva incompatible  537ms
+     Γ£ô reemplaza el tel├⌐fono al elegir otro conductor  454ms
+     Γ£ô no conserva el tel├⌐fono anterior si el nuevo conductor tiene null  437ms
+     Γ£ô no conserva el tel├⌐fono anterior si el nuevo conductor tiene   383ms
+     Γ£ô conserva una correcci├│n manual cuando se actualiza el cat├ílogo  376ms
+ Γ£ô src/lib/server/__tests__/platformSupport.test.ts (15 tests) 18ms
+ Γ£ô src/features/returns/lib/returnInspectionSchema.test.ts (19 tests) 24ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/useInvoiceLineItemHandlers.test.tsx (8 tests) 84ms
+ Γ£ô src/features/contracts/lib/__tests__/invoiceRentalAttribution.test.ts (15 tests) 13ms
+ Γ£ô src/features/customers/hooks/customers/__tests__/useCustomers.rls.test.ts (7 tests) 355ms
+ Γ£ô src/features/fleet/lib/__tests__/forkliftPayload.test.ts (13 tests) 9ms
+ Γ£ô src/lib/server/__tests__/platformFiscalActions.test.ts (12 tests) 24ms
+ Γ£ô src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx (5 tests) 171ms
+ Γ£ô src/lib/storage/__tests__/openStorageFile.test.ts (7 tests) 30ms
+ Γ£ô src/features/maintenance/hooks/maintenance/__tests__/useMaintenanceLabor.test.ts (3 tests) 50ms
+ Γ£ô src/features/customers/pages/__tests__/CustomersSatValidationPage.test.tsx (3 tests) 984ms
+     Γ£ô limita la corrida a 40 y muestra el motivo de una observaci├│n en la tarjeta m├│vil  335ms
+     Γ£ô mantiene m├⌐tricas y validaci├│n de toda la cartera al paginar los resultados  429ms
+ Γ£ô src/features/contracts/hooks/contractDetail/__tests__/combineInvoiceSummaries.test.ts (11 tests) 11ms
+ Γ£ô src/features/quotes/hooks/quoteForm/__tests__/useQuotePrefill.r10.test.ts (10 tests) 11ms
+ Γ£ô src/features/quotes/hooks/quoteDetail/__tests__/useQuoteBookingCreator.test.ts (2 tests) 12ms
+ Γ£ô src/features/inventory/hooks/__tests__/useAddMaintenancePart.test.ts (3 tests) 79ms
+ Γ£ô src/features/accounts-payable/lib/__tests__/supplierBillFormSchema.test.ts (13 tests) 15ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/usePaymentSelection.test.tsx (6 tests) 57ms
+ Γ£ô src/features/maintenance/components/maintenance/__tests__/MaintenanceKanban.access.test.tsx (8 tests) 391ms
+ Γ£ô src/features/customers/components/customers/__tests__/CustomerFormDialog.test.tsx (5 tests) 3446ms
+     Γ£ô pide confirmar antes de descartar datos importados desde una CSF  1128ms
+     Γ£ô conserva el borrador y los valores originales ante un refetch mientras se edita  471ms
+     Γ£ô renueva valores y pesta├▒a al volver a abrir  857ms
+     Γ£ô conserva un borrado manual de correo despu├⌐s de importar la CSF  601ms
+     Γ£ô no cierra ni vuelve a enviar el formulario durante una mutaci├│n pendiente  384ms
+ Γ£ô src/features/accounts-payable/components/__tests__/PaymentBatchesDialog.test.tsx (5 tests) 600ms
+ Γ£ô src/features/dashboard/components/dashboard/__tests__/AlertsRow.test.tsx (5 tests) 203ms
+ Γ£ô src/features/damage/hooks/__tests__/reportDamageRetry.test.tsx (3 tests) 63ms
+ Γ£ô src/lib/domain/__tests__/invoiceTotals.test.ts (20 tests) 13ms
+ Γ£ô src/features/contracts/lib/__tests__/quotedContractRevenue.test.ts (14 tests) 18ms
+ Γ£ô src/lib/server/__tests__/adminGuardsFacade.test.ts (7 tests) 21ms
+ Γ£ô src/features/customers/hooks/customers/__tests__/useCustomersFacade.test.ts (4 tests) 22ms
+ Γ£ô src/features/returns/hooks/__tests__/useReturnableBookings.test.ts (4 tests) 283ms
+ Γ£ô src/lib/query/__tests__/identityScopedCache.test.tsx (7 tests) 86ms
+ Γ£ô src/features/accounts-payable/components/__tests__/AccountsPayableActions.test.tsx (6 tests) 1017ms
+     Γ£ô mantiene la creaci├│n directa y cada callback secundario se ejecuta una vez  573ms
+ Γ£ô src/features/system/hooks/__tests__/useEntitySearch.test.ts (5 tests) 18ms
+ Γ£ô src/features/deliveries/components/deliveries/__tests__/DeliverySignatureDialog.pending.test.tsx (3 tests) 542ms
+ Γ£ô src/test/restoreRehearsalVerify.test.ts (14 tests) 26ms
+ Γ£ô src/features/deliveries/components/deliveries/__tests__/DeliveryFormDialog.access.test.tsx (4 tests) 383ms
+ Γ£ô src/features/dashboard/__tests__/mrrParity.test.ts (4 tests) 7ms
+ Γ£ô src/lib/__tests__/serverFnOrgIsolation.test.ts (11 tests) 257ms
+ Γ£ô src/lib/__tests__/platformHealthFunctions.test.ts (11 tests) 48ms
+ Γ£ô src/lib/ui/__tests__/appFeedbackTelemetry.test.tsx (5 tests) 236ms
+ Γ£ô src/features/returns/components/return-inspection/__tests__/ReturnInspectionDialog.test.tsx (5 tests) 987ms
+     Γ£ô marca combustible obligatorio y bloquea el env├¡o con un mensaje inline  440ms
+ Γ£ô src/features/platform/__tests__/OrganizationGovernanceEditor.test.tsx (4 tests) 896ms
+     Γ£ô confirma descartar al cancelar una ficha modificada y conserva el borrador si sigue editando  359ms
+ Γ£ô src/components/domain/__tests__/KpiTile.test.tsx (14 tests) 305ms
+ Γ£ô src/lib/observability/sentryTransport.test.ts (4 tests) 162ms
+ Γ£ô src/test/contractPlaceholders.test.ts (13 tests) 21ms
+ Γ£ô src/features/platform/__tests__/PlatformFiscalActions.test.tsx (8 tests) 328ms
+ Γ£ô src/lib/ui/__tests__/appFeedback.test.ts (13 tests) 35ms
+ Γ£ô src/lib/__tests__/platformOrganizationGovernanceFunctions.test.ts (14 tests) 1323ms
+     Γ£ô la lista descarta el contacto y extras aunque el servidor los a├▒ada  1281ms
+ Γ£ô src/features/feedback/components/SupportSharingDialog.test.tsx (4 tests) 597ms
+ Γ£ô src/lib/organization/__tests__/adminScope.test.ts (9 tests) 10ms
+ Γ£ô src/lib/__tests__/schemas.common.test.ts (27 tests) 21ms
+ Γ£ô src/hooks/__tests__/useDocuments.upload.test.ts (4 tests) 64ms
+ Γ£ô src/components/forms/__tests__/FormActions.doubleSubmit.test.tsx (4 tests) 456ms
+     Γ£ô R7/R9: dos clicks r├ípidos en submit solo disparan UN handler (guard inFlight)  302ms
+ Γ£ô src/lib/__tests__/supplierRepValidation.test.ts (15 tests) 16ms
+ Γ£ô src/features/audit/__tests__/auditImmutability.test.ts (6 tests) 9ms
+ Γ£ô src/features/__tests__/domain-schemas.test.ts (10 tests) 19ms
+ Γ£ô src/hooks/filters/__tests__/useTableFilters.test.tsx (5 tests) 489ms
+ Γ£ô src/lib/__tests__/utils.date.test.ts (24 tests) 20ms
+stderr | src/lib/__tests__/platformCatalogImportFunctions.test.ts > incorporaciones de maestros en servidor > una revisi├│n desactualizada conserva el conflicto recuperable
+[platform-admin] platform_import_catalog_candidate: 23505
+
+ Γ£ô src/lib/__tests__/platformCatalogImportFunctions.test.ts (12 tests) 38ms
+ Γ£ô src/features/invoices/__tests__/invoiceFlow.test.ts (3 tests) 98ms
+ Γ£ô src/lib/__tests__/platformOperatorsFunctions.test.ts (8 tests) 28ms
+ Γ£ô src/lib/observability/errorsOnlyFilter.test.ts (9 tests) 12ms
+ Γ£ô src/features/platform/__tests__/PlatformCatalogEditing.test.tsx (4 tests) 1393ms
+     Γ£ô protege borrador de model al cerrar  689ms
+     Γ£ô revisa una nueva base sin reemplazar borrador de model  308ms
+stderr | src/lib/__tests__/platformGlobalEditFunctions.test.ts > ediciones globales con base verificada > traduce conflicto SQL a 409
+[platform-admin] platform_update_equipment_model_catalog: 40001
+
+stderr | src/lib/__tests__/platformGlobalEditFunctions.test.ts > ediciones globales con base verificada > traduce conflicto SQL a 409
+[platform-admin] platform_update_parts_catalog: 40001
+
+stderr | src/lib/__tests__/platformGlobalEditFunctions.test.ts > ediciones globales con base verificada > traduce conflicto SQL a 409
+[platform-admin] platform_publish_legal_template_version: 40001
+
+ Γ£ô src/lib/__tests__/platformGlobalEditFunctions.test.ts (10 tests) 23ms
+ Γ£ô src/features/platform/__tests__/PlatformAccess.test.tsx (7 tests) 62ms
+ Γ£ô src/lib/__tests__/platformReadModelFunctions.test.ts (7 tests) 31ms
+stderr | src/test/rolePermissions.test.ts > RoleGuard access enforcement via getAccessLevel > returns 'none' for unknown role or undefined inputs
+[RoleGuard] M├│dulo "ModuloInexistente" no existe en role_permissions { validModules: [ 'Facturas', 'Gesti├│n de Usuarios', 'Reportes' ] }
+
+ Γ£ô src/test/rolePermissions.test.ts (10 tests) 3191ms
+     Γ£ô propagates errors instead of defaulting to dispatcher  3058ms
+ Γ£ô src/components/forms/__tests__/FormDialog.test.tsx (8 tests) 637ms
+ Γ£ô src/features/contracts/hooks/contractForm/__tests__/contractTemplateReplacements.test.ts (3 tests) 8ms
+ Γ£ô src/features/reports/lib/__tests__/drilldown.test.ts (9 tests) 26ms
+ Γ£ô src/features/platform/__tests__/CatalogImportReview.test.tsx (5 tests) 484ms
+ Γ£ô src/features/platform/__tests__/PlatformGuard.test.tsx (5 tests) 359ms
+ Γ£ô src/components/forms/__tests__/MaskedDateInput.test.tsx (10 tests) 202ms
+ Γ£ô src/features/returns/hooks/__tests__/operationCacheRefresh.test.tsx (6 tests) 78ms
+ Γ£ô src/layouts/__tests__/platformEntry.test.tsx (9 tests) 69ms
+ Γ£ô src/features/bookings/__tests__/bookingFlow.test.ts (3 tests) 71ms
+ Γ£ô src/features/quotes/hooks/quoteForm/__tests__/quoteFormPayload.test.ts (9 tests) 13ms
+ Γ£ô src/features/deliveries/lib/__tests__/deliveryFormSchema.test.ts (10 tests) 21ms
+ Γ£ô src/features/auth/__tests__/authBootstrap.test.tsx (8 tests) 104ms
+ Γ£ô src/features/customers/hooks/customers/__tests__/useSatValidation.org.test.tsx (2 tests) 210ms
+ Γ£ô src/lib/pdf/assets/__tests__/globalBrandLogo.test.ts (3 tests) 5547ms
+     Γ£ô A y B obtienen el mismo logo en cada tipo de documento  5474ms
+ Γ£ô src/lib/observability/sentryWorkspaceIdentity.test.tsx (2 tests) 94ms
+ Γ£ô src/features/deliveries/pages/__tests__/DeliveryDetail.booking.test.tsx (3 tests) 196ms
+ Γ£ô src/features/maintenance/lib/__tests__/maintenanceFormHelpers.test.ts (8 tests) 15ms
+ Γ£ô src/features/auth/__tests__/passwordRecoveryCodeLink.test.ts (6 tests) 124ms
+ Γ£ô src/features/suppliers/lib/__tests__/supplierFormSchema.test.ts (9 tests) 19ms
+ Γ£ô src/lib/observability/scrubPII.test.ts (8 tests) 13ms
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > ventas ├ù Cuentas Bancarias ΓåÆ none
+[RoleGuard] M├│dulo "Cuentas Bancarias" no existe en role_permissions {
+  validModules: [ 'Dashboard', 'Cotizaciones', 'Clientes', 'Facturas', 'MRR' ]
+}
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > dispatcher ├ù Cuentas Bancarias ΓåÆ none
+[RoleGuard] M├│dulo "Cuentas Bancarias" no existe en role_permissions {
+  validModules: [ 'Dashboard', 'Flota', 'Reservas', 'Entregas', 'Mantenimiento' ]
+}
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > mechanic ├ù Facturas ΓåÆ none
+[RoleGuard] M├│dulo "Facturas" no existe en role_permissions { validModules: [ 'Dashboard', 'Flota', 'Mantenimiento', 'Da├▒os' ] }
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > mechanic ├ù Clientes ΓåÆ none
+[RoleGuard] M├│dulo "Clientes" no existe en role_permissions { validModules: [ 'Dashboard', 'Flota', 'Mantenimiento', 'Da├▒os' ] }
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > mechanic ├ù Cuentas Bancarias ΓåÆ none
+[RoleGuard] M├│dulo "Cuentas Bancarias" no existe en role_permissions { validModules: [ 'Dashboard', 'Flota', 'Mantenimiento', 'Da├▒os' ] }
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > customer ├ù Facturas ΓåÆ none
+[RoleGuard] M├│dulo "Facturas" no existe en role_permissions { validModules: [] }
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > customer ├ù Flota ΓåÆ none
+[RoleGuard] M├│dulo "Flota" no existe en role_permissions { validModules: [] }
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > customer ├ù Cuentas Bancarias ΓåÆ none
+[RoleGuard] M├│dulo "Cuentas Bancarias" no existe en role_permissions { validModules: [] }
+
+stderr | src/test/roleMatrix.test.ts > Matriz de roles vs m├│dulos ΓÇö getAccessLevel > fail-closed: m├│dulo desconocido ΓåÆ none
+[RoleGuard] M├│dulo "ModuloInexistente" no existe en role_permissions {
+  validModules: [
+    'Dashboard',
+    'Flota',
+    'Reservas',
+    'Facturas',
+    'Contratos',
+    'Clientes',
+    'Mantenimiento',
+    'Cuentas Bancarias',
+    'Flujo de Caja',
+    'Conciliaci├│n Bancaria',
+    'MRR',
+    'Gesti├│n de Usuarios',
+    'Configuraci├│n'
+  ]
+}
+
+ Γ£ô src/test/roleMatrix.test.ts (23 tests) 17ms
+ Γ£ô src/features/returns/pages/__tests__/PendingReturnsPage.accessibility.test.tsx (4 tests) 99ms
+ Γ£ô src/lib/observability/sentryPrivacy.test.ts (8 tests) 11ms
+ Γ£ô src/lib/server/__tests__/platformFacturapiHealth.test.ts (21 tests) 20ms
+ Γ£ô src/features/customers/components/customers/__tests__/CustomerSelectorSearch.test.tsx (2 tests) 434ms
+     Γ£ô reemplaza el contacto al cambiar cliente, permite captura manual y limpia la selecci├│n  324ms
+ Γ£ô src/features/deliveries/lib/__tests__/deliveryDetailHelpers.test.ts (13 tests) 13ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/accountsPayableServerQueries.test.tsx (3 tests) 190ms
+ Γ£ô src/hooks/__tests__/useUnsavedChangesGuardBlocker.test.tsx (3 tests) 486ms
+ Γ£ô src/contexts/__tests__/OrganizationContext.test.tsx (5 tests) 152ms
+ Γ£ô src/features/bank-reconciliation/lib/__tests__/bankLineHash.test.ts (6 tests) 18ms
+ Γ£ô src/features/calendar/hooks/calendar/__tests__/useGanttSegments.test.tsx (5 tests) 66ms
+ Γ£ô src/features/deliveries/lib/__tests__/deliveryBookingDate.test.ts (11 tests) 9ms
+ Γ£ô src/lib/__tests__/platformSupportFunctions.test.ts (6 tests) 1363ms
+     Γ£ô no acepta filtros desconocidos ni ejecuta una consulta m├ís amplia  1321ms
+ Γ£ô src/features/bookings/lib/__tests__/extensionBilling.test.ts (10 tests) 12ms
+ Γ£ô src/features/customers/hooks/customers/__tests__/useCustomerPortalFacade.test.tsx (3 tests) 131ms
+ Γ£ô src/lib/date/__tests__/parseMaskedDate.test.ts (19 tests) 12ms
+ Γ£ô src/features/availability/utils/__tests__/fleetAvailability.test.ts (8 tests) 8ms
+ Γ£ô src/features/bookings/hooks/__tests__/useBookingExtensions.test.ts (4 tests) 357ms
+ Γ£ô src/features/portal/pages/PortalLogin.test.tsx (3 tests) 329ms
+ Γ£ô src/features/invoices/hooks/__tests__/useDamagePrefill.test.tsx (7 tests) 584ms
+ Γ£ô src/hooks/filters/__tests__/sessionStorage.test.ts (6 tests) 8ms
+ Γ£ô src/test/smokeConsoleNoise.test.ts (7 tests) 7ms
+ Γ£ô src/features/audit/hooks/__tests__/useRevertAuditLog.test.ts (3 tests) 273ms
+ Γ£ô src/features/deliveries/components/deliveries/__tests__/DeliveryActions.test.tsx (6 tests) 197ms
+ Γ£ô src/test/drizzleJournalOrder.test.ts (4 tests) 7ms
+ Γ£ô src/test/localCleanup.test.ts (7 tests) 13ms
+ Γ£ô src/components/forms/fields/__tests__/DateField.error.test.tsx (3 tests) 554ms
+     Γ£ô resuelve la captura rechazada al seleccionar un d├¡a v├ílido en el calendario  326ms
+ Γ£ô src/lib/pdf/contract/__tests__/legacyBookingForklift.test.ts (2 tests) 10ms
+ Γ£ô src/lib/__tests__/requireSupabaseAuth.test.ts (5 tests) 12ms
+ Γ£ô src/features/cash-flow/lib/__tests__/recurringBookingItems.test.ts (8 tests) 10ms
+ Γ£ô src/features/fleet/hooks/forklifts/assignForklifts/__tests__/useAssignForklift.test.ts (3 tests) 264ms
+ Γ£ô src/features/platform/__tests__/PlatformOnboarding.test.tsx (3 tests) 499ms
+     Γ£ô conserva clave y payload despu├⌐s de un error de red y los campos quedan protegidos  304ms
+ Γ£ô src/components/branding/__tests__/AuthBrandPanel.test.tsx (5 tests) 110ms
+ Γ£ô src/features/platform/__tests__/OrganizationStatusAction.test.tsx (2 tests) 275ms
+ Γ£ô src/lib/pdf/__tests__/customerFiscalOrgScope.test.ts (2 tests) 11ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankMatchCandidateList.test.tsx (3 tests) 396ms
+ Γ£ô src/features/bookings/components/booking-detail/__tests__/BookingTransportsCard.test.tsx (4 tests) 342ms
+ Γ£ô src/features/reports/components/reports/incomeStatement/__tests__/incomeStatementHelpers.test.ts (10 tests) 16ms
+ Γ£ô src/features/quotes/components/quotes/__tests__/lineHelpers.test.ts (13 tests) 12ms
+ Γ£ô src/features/invoices/hooks/paymentIntents/__tests__/useReviewPaymentIntent.idempotency.test.ts (3 tests) 275ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/statementRowFactories.test.ts (7 tests) 21ms
+ Γ£ô src/hooks/__tests__/useInitialRecordVersion.test.tsx (6 tests) 46ms
+ Γ£ô src/features/invoices/hooks/invoices/cfdi/__tests__/useRefreshCancellationStatus.test.ts (3 tests) 301ms
+ Γ£ô src/features/users/hooks/users/__tests__/useInviteUser.test.tsx (3 tests) 283ms
+ Γ£ô src/features/invoices/components/list/__tests__/InvoicesToolbar.test.tsx (1 test) 1386ms
+     Γ£ô busca sin abrir filtros y conserva valores al cerrar, reabrir y cambiar tama├▒o  1380ms
+ Γ£ô src/lib/__tests__/platformAccessFunctions.test.ts (18 tests) 30ms
+ Γ£ô src/features/maintenance/components/maintenance/__tests__/MaintenanceFormDialog.dateCapture.test.tsx (3 tests) 1879ms
+     Γ£ô conserva la captura imposible (fecha previa cambiada: false)  829ms
+     Γ£ô conserva la captura imposible (fecha previa cambiada: true)  569ms
+     Γ£ô conserva vac├¡o el pr├│ximo servicio opcional despu├⌐s de borrar una fecha capturada  470ms
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts (4 tests) 57ms
+ Γ£ô src/lib/rules/__tests__/businessBlocks.test.ts (8 tests) 25ms
+ Γ£ô src/lib/__tests__/platformFiscalActionsFunctions.test.ts (9 tests) 1553ms
+     Γ£ô rechaza entrada inv├ílida antes de la acci├│n: {"revision":"9223372036854775808"}  1537ms
+ Γ£ô src/features/maintenance/components/maintenance/__tests__/MaintenanceDetailSheet.access.test.tsx (4 tests) 426ms
+ Γ£ô src/lib/date/__tests__/holidaysMx.test.ts (16 tests) 10ms
+ Γ£ô src/features/platform/__tests__/PlatformAuditPage.test.tsx (4 tests) 179ms
+ Γ£ô src/features/bank-reconciliation/hooks/statementUpload/__tests__/statementUploadHelpers.test.ts (5 tests) 44ms
+stderr | src/lib/__tests__/serverEntryErrors.test.ts > entrada SSR: mantiene respuesta e identidad del error > recupera los errores originales de dos respuestas h3 concurrentes
+Error: request-a
+    at C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/src/lib/__tests__/serverEntryErrors.test.ts:18:20
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+Error: request-b
+    at C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/src/lib/__tests__/serverEntryErrors.test.ts:18:59
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+
+stderr | src/lib/__tests__/serverEntryErrors.test.ts > entrada SSR: mantiene respuesta e identidad del error > recupera los errores originales de dos respuestas h3 concurrentes
+Error: request-a
+    at C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/src/lib/__tests__/serverEntryErrors.test.ts:18:20
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+
+stderr | src/lib/__tests__/serverEntryErrors.test.ts > entrada SSR: mantiene respuesta e identidad del error > recupera los errores originales de dos respuestas h3 concurrentes
+Error: request-b
+    at C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/src/lib/__tests__/serverEntryErrors.test.ts:18:59
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+
+stderr | src/lib/__tests__/serverEntryErrors.test.ts > entrada SSR: mantiene respuesta e identidad del error > captura una excepci├│n que escapa y oculta sus detalles al visitante
+Error: private-stack-message
+    at C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/src/lib/__tests__/serverEntryErrors.test.ts:44:19
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)
+    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:2956:64
+
+ Γ£ô src/lib/__tests__/serverEntryErrors.test.ts (3 tests) 21ms
+ Γ£ô src/features/contracts/lib/__tests__/invoiceRentalExtensions.test.ts (10 tests) 18ms
+ Γ£ô src/features/damage/components/damage/__tests__/DamageActionButtons.test.tsx (7 tests) 164ms
+ Γ£ô src/layouts/__tests__/NavLinkActive.test.tsx (4 tests) 198ms
+ Γ£ô src/features/bank-reconciliation/lib/__tests__/matchingScore.test.ts (11 tests) 9ms
+ Γ£ô src/features/platform/__tests__/PlatformOperatorDialog.test.tsx (3 tests) 726ms
+     Γ£ô borra la contrase├▒a antes de esperar la respuesta y tambi├⌐n tras un error  385ms
+ Γ£ô src/features/invoices/hooks/__tests__/useCreateInvoice.businessBlock.test.tsx (2 tests) 213ms
+ Γ£ô src/features/quotes/components/quotes/__tests__/AssignForkliftsCard.test.tsx (2 tests) 82ms
+ Γ£ô src/features/fleet/hooks/forklifts/assignForklifts/__tests__/useUnassignForklift.test.ts (3 tests) 282ms
+ Γ£ô src/features/bank-reconciliation/lib/__tests__/csvParsers.edge.test.ts (9 tests) 20ms
+ Γ£ô src/features/contracts/lib/__tests__/contractFormSchema.test.ts (8 tests) 17ms

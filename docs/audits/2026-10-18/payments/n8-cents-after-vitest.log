@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts (3 tests) 9ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:21:06
+   Duration  3.14s (transform 162ms, setup 893ms, import 133ms, tests 9ms, environment 1.51s)
+
+EXIT_CODE=0

@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-payments
+
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts (6 tests) 9ms
+ Γ£ô src/features/invoices/lib/__tests__/paymentCurrency.test.ts (5 tests) 9ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts (5 tests) 10ms
+
+ Test Files  3 passed (3)
+      Tests  16 passed (16)
+   Start at  16:06:26
+   Duration  14.13s (transform 428ms, setup 8.54s, import 367ms, tests 28ms, environment 9.58s)
+
+EXIT_CODE=0

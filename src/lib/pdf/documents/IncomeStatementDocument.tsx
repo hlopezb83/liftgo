@@ -34,17 +34,19 @@ function periodLabel(p: IncomeStatementDocumentProps): string {
   return `Año ${p.selectedYear}`;
 }
 
-function fmtVal(val: number, isPct?: boolean): string {
+function fmtVal(val: number | null, isPct?: boolean): string {
+  if (val === null) return "No aplica";
   return isPct ? `${val.toFixed(1)}%` : formatCurrency(val);
 }
 
-function fmtDelta(d: number, isPct?: boolean): string {
+function fmtDelta(d: number | null, isPct?: boolean): string {
+  if (d === null) return "No aplica";
   const sign = d >= 0 ? "+" : "";
   return isPct ? `${sign}${d.toFixed(1)} pp` : `${sign}${formatCurrency(d)}`;
 }
 
-function isCost(_label: string, isCost: boolean | undefined, value: number): boolean {
-  return Boolean(isCost) || value < 0;
+function isCost(_label: string, isCost: boolean | undefined, value: number | null): boolean {
+  return value !== null && (Boolean(isCost) || value < 0);
 }
 
 interface RowProps {
@@ -113,7 +115,7 @@ function ComparisonValues({ row, cellWidth }: { row: ComparisonRow; cellWidth: n
       })}
       <Text style={{
         width: cellWidth, textAlign: "right", fontSize: FONT_SIZES.xs, fontFamily: "Helvetica-Bold",
-        color: row.delta >= 0 ? COLORS.positiveGreen : COLORS.costRed,
+        color: row.delta === null ? COLORS.gray500 : row.delta >= 0 ? COLORS.positiveGreen : COLORS.costRed,
       }}>{fmtDelta(row.delta, row.isPercent)}</Text>
       <Text style={{
         width: cellWidth, textAlign: "right", fontSize: FONT_SIZES.xs, fontFamily: "Helvetica-Bold",

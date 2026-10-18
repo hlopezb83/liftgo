@@ -1,7 +1,7 @@
 import { sumMoney } from "@/lib/money";
 import {
   type ExpenseCategory,
-  type MonthData, type StatementRow, type YearTotals,
+  type MonthData, type StatementRow, type YearTotals, type ComparisonRow,
   EXPENSE_CATEGORY_LABELS, DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS,
 } from "./types";
 
@@ -14,10 +14,10 @@ interface RowTotals {
   depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
-  grossProfit: number; grossMargin: number;
+  grossProfit: number; grossMargin: number | null;
   totalExpenses: number;
-  profitBeforeDepreciation: number; marginBeforeDepreciation: number;
-  netProfit: number; margin: number;
+  profitBeforeDepreciation: number; marginBeforeDepreciation: number | null;
+  netProfit: number; margin: number | null;
 }
 
 
@@ -87,7 +87,7 @@ export function buildBreakdownRows(
   filteredData: MonthData[],
   selector: (m: MonthData) => Record<string, number>,
   isCost = false,
-): StatementRow[] {
+) {
   const allNames = new Set<string>();
   filteredData.forEach((r) => Object.keys(selector(r)).forEach((n) => allNames.add(n)));
   return [...allNames].sort().map((name) => ({
@@ -102,7 +102,7 @@ export function buildBreakdownRows(
 export function buildExpenseDetailBreakdown(
   filteredData: MonthData[],
   category: ExpenseCategory,
-): StatementRow[] {
+) {
   const keyOf = (l: { supplier: string; description: string }) =>
     `${l.supplier} · ${l.description || "Sin descripción"}`;
   const monthlyMaps: Record<string, number>[] = filteredData.map((m) => {
@@ -126,12 +126,14 @@ export function buildExpenseDetailBreakdown(
 }
 
 export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthData[]): Record<string, string>[] {
+  const fmt = (value: number | null, isPercent?: boolean) =>
+    value === null ? "No aplica" : isPercent ? `${value.toFixed(1)}%` : value.toFixed(2);
   return statementRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
     filteredData.forEach((d, i) => {
-      obj[d.month] = row.isPercent ? `${row.values[i].toFixed(1)}%` : row.values[i].toFixed(2);
+      obj[d.month] = fmt(row.values[i], row.isPercent);
     });
-    obj["Total"] = row.isPercent ? `${row.total.toFixed(1)}%` : row.total.toFixed(2);
+    obj["Total"] = fmt(row.total, row.isPercent);
     return obj;
   });
 }
@@ -143,14 +145,15 @@ export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthD
  * exactamente las filas comparativas.
  */
 export function buildComparisonCsvRows(
-  comparisonRows: { label: string; yearValues: number[]; delta: number; deltaPct: number | null; isPercent?: boolean }[],
+  comparisonRows: ComparisonRow[],
   years: string[],
 ): Record<string, string>[] {
-  const fmt = (v: number, isPercent?: boolean) => (isPercent ? `${v.toFixed(1)}%` : v.toFixed(2));
+  const fmt = (v: number | null, isPercent?: boolean) =>
+    v === null ? "No aplica" : isPercent ? `${v.toFixed(1)}%` : v.toFixed(2);
   return comparisonRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
     years.forEach((y, i) => {
-      obj[y] = fmt(row.yearValues[i] ?? 0, row.isPercent);
+      obj[y] = fmt(row.yearValues[i] === undefined ? 0 : row.yearValues[i], row.isPercent);
     });
     obj["Variación"] = fmt(row.delta, row.isPercent);
     obj["Variación %"] = row.deltaPct === null ? "—" : `${row.deltaPct.toFixed(1)}%`;
@@ -166,13 +169,13 @@ interface ComparisonValueOptions {
 
 export function buildComparisonValues(
   yearTotals: YearTotals[],
-  extractor: (yt: YearTotals) => number,
+  extractor: (yt: YearTotals) => number | null,
   opts?: ComparisonValueOptions,
 ) {
   const vals = yearTotals.map(extractor);
   const last = vals[vals.length - 1];
   const prev = vals[vals.length - 2];
-  const delta = last - prev;
-  const deltaPct = prev !== 0 ? (delta / Math.abs(prev)) * 100 : null;
+  const delta = last == null || prev == null ? null : last - prev;
+  const deltaPct = delta !== null && prev != null && prev !== 0 ? (delta / Math.abs(prev)) * 100 : null;
   return { yearValues: vals, delta, deltaPct, ...opts };
 }

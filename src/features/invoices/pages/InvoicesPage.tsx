@@ -13,6 +13,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useLocation } from "@/lib/router-compat";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
@@ -91,6 +92,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
 }
 
 export default function InvoicesPage() {
+  const location = useLocation();
   const {
     search, setSearch, statusFilter, setStatusFilter, cfdiFilter, setCfdiFilter,
     dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll,
@@ -177,7 +179,9 @@ export default function InvoicesPage() {
         isError={isError}
         onRetry={() => { void refetch(); }}
         table={table}
-        onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
+        onRowClick={(inv) => navigate(`/invoices/${inv.id}`, {
+          state: { invoiceListBackTo: `${location.pathname}${location.search}${location.hash}` },
+        })}
         onRowPrefetch={(inv) => invoiceQueries.detail(inv.id)}
         hasMoreRows={!!hasNextPage}
         hasActiveFilters={hasActive}

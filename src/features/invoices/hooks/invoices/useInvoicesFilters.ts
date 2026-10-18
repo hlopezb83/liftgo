@@ -1,5 +1,6 @@
 import { isValid, parseISO } from "date-fns";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
+import { writeSessionParams } from "@/hooks/filters/sessionStorage";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/date/toYMD";
 import { useLocation } from "@/lib/router-compat";
@@ -23,6 +24,9 @@ export function useInvoicesFilters() {
   const location = useLocation();
   const navigate = useNavigateTransition();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  useEffect(() => {
+    writeSessionParams(location.pathname, new URLSearchParams(location.search));
+  }, [location.pathname, location.search]);
   const search = normalizeInvoiceSearch(searchParams.get("q"));
   const statusFilter = normalizeInvoiceStatusFilter(searchParams.get("status"));
   const cfdiFilter = normalizeInvoiceCfdiFilter(searchParams.get("cfdi"));

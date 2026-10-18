@@ -1,0 +1,20 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-baseline
+
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > no reserva panel vac├¡o ni consulta candidatos sin selecci├│n 395ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > abre con click y restaura foco al cerrar 368ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > abre con Enter y restaura foco al cerrar 232ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > J/K y flechas cambian el destino de foco vigente; ciclos y X 623ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > escribir J/K/flechas en candidatos y textarea no cambia movimiento 236ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > preserva checkbox, barra, raz├│n, orden, scroll y tabla en resize 302ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > checkbox por teclado no abre inspector 99ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > cambio de b├║squeda/estado cierra como antes y conserva callbacks 654ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > restaura al listado vigente cuando desaparece la fila por refresh 246ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > restaura al listado vigente cuando desaparece la fila por lista vac├¡a 247ms
+ Γ£ô src/features/bank-reconciliation/components/__tests__/BankReconciliationWorkspace.test.tsx > V06 inspector con tabla real y Radix, datos aislados > J navega fuera de la ventana virtual y al cerrar enfoca el listado sin perder selecci├│n ni scroll 3697ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  16:20:49
+   Duration  19.58s (transform 1.47s, setup 795ms, import 9.02s, tests 7.10s, environment 2.17s)
+

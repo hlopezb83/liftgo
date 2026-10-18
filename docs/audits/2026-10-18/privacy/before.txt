@@ -1,0 +1,185 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-privacy
+
+ ❯ src/lib/observability/errorsOnlyFilter.test.ts (9 tests | 6 failed) 22ms
+     ✓ descarta warnings e info 3ms
+     ✓ conserva error y fatal 1ms
+     ✓ descarta validaciones esperadas del negocio 0ms
+     × conserva LC_ desconocidos en message y exception (error) 10ms
+     × conserva LC_ desconocidos en message y exception (fatal) 1ms
+     × conserva cualquier fatal, incluso una validación conocida 1ms
+     × sólo descarta mensajes canónicos enumerados, con delimitador exacto 1ms
+     × conserva cadenas mixtas y excepciones técnicas adicionales 1ms
+     × comparte filtro y saneamiento entre cliente y servidor 1ms
+ ❯ src/lib/observability/captureOperationalError.test.ts (9 tests | 4 failed) 29ms
+     × captura un 403 PostgreSQL de privilegios sobre table supplier_bills 9ms
+     × captura un 403 PostgreSQL de privilegios sobre column discount of relation supplier_bills 1ms
+     × captura un 403 PostgreSQL de privilegios sobre function recalc_supplier_bill 1ms
+     ✓ omite autorización esperada o sin evidencia estructurada: 'new row violates row-level security p…' (403) 1ms
+     ✓ omite autorización esperada o sin evidencia estructurada: 'Forbidden: role mechanic cannot updat…' (403) 0ms
+     ✓ omite autorización esperada o sin evidencia estructurada: 'permission denied' (403) 0ms
+     ✓ omite autorización esperada o sin evidencia estructurada: 'permission denied for table supplier_…' (403) 0ms
+     ✓ omite autorización esperada o sin evidencia estructurada: 'permission denied for table supplier_…' (401) 0ms
+     × captura privilegios técnicos sin status y no copia datos del proveedor 13ms
+ ❯ src/lib/observability/serverSentry.test.ts (14 tests | 1 failed) 987ms
+     ✓ un fallo al adjuntar identidad no interrumpe la operación autorizada 39ms
+     ✓ no evalúa accesores del error ni sustituye el resultado por un fallo del diagnóstico 26ms
+     ✓ aísla dos empresas concurrentes y no conserva identidad en la solicitud siguiente 22ms
+     ✓ sanea el envelope real, mantiene stack y release, y deduplica el mismo fallo 9ms
+     ✓ omite rechazos esperados, pero conserva fallos de disponibilidad 6ms
+     × conserva 403 técnicos estructurados y omite autorización esperada, sin datos del proveedor 14ms
+     ✓ el espacio de plataforma retira la empresa y usa sólo el actor verificado 10ms
+     ✓ obtiene waitUntil desde Nitro y devuelve el stream sin consumirlo 15ms
+     ✓ usa también waitUntil adjunto al Request o recibido por el worker 30ms
+     ✓ un error de transporte no cambia la respuesta ni repite la operación 17ms
+     ✓ en fetch-only envía el error antes de devolver un stream abierto 16ms
+     ✓ un transporte que nunca termina tiene un presupuesto total acotado  767ms
+     ✓ si falla la inicialización del SDK, ejecuta el negocio una sola vez 1ms
+     ✓ no inicializa Sentry en desarrollo o cuando el DSN está vacío 2ms
+
+ Test Files  3 failed (3)
+      Tests  11 failed | 21 passed (32)
+   Start at  16:08:50
+   Duration  15.16s (transform 828ms, setup 5.40s, import 4.47s, tests 1.04s, environment 7.33s)
+
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/lib/observability/captureOperationalError.test.ts > clasificación conservadora de permisos operativos > captura un 403 PostgreSQL de privilegios sobre table supplier_bills
+ FAIL  src/lib/observability/captureOperationalError.test.ts > clasificación conservadora de permisos operativos > captura un 403 PostgreSQL de privilegios sobre column discount of relation supplier_bills
+ FAIL  src/lib/observability/captureOperationalError.test.ts > clasificación conservadora de permisos operativos > captura un 403 PostgreSQL de privilegios sobre function recalc_supplier_bill
+AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times
+ ❯ src/lib/observability/captureOperationalError.test.ts:15:34
+     13|   it.each(["table supplier_bills", "column discount of relation suppli…
+     14|     captureOperationalError({ status: 403, code: "42501", message: `pe…
+     15|     expect(sdk.captureException).toHaveBeenCalledTimes(1);
+       |                                  ^
+     16|     expect(sdk.setContext).toHaveBeenCalledWith("operation", { status:…
+     17|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  src/lib/observability/captureOperationalError.test.ts > clasificación conservadora de permisos operativos > captura privilegios técnicos sin status y no copia datos del proveedor
+AssertionError: expected 'permission denied for table supplier_…' to be 'Database privilege denied for table' // Object.is equality
+
+Expected: "Database privilege denied for table"
+Received: "permission denied for table supplier_bills password=[REDACTED] [REDACTED]"
+
+ ❯ src/lib/observability/captureOperationalError.test.ts:36:30
+     34|     expect(sdk.captureException).toHaveBeenCalledTimes(1);
+     35|     const incident = sdk.captureException.mock.calls[0][0] as Error;
+     36|     expect(incident.message).toBe("Database privilege denied for table…
+       |                              ^
+     37|     const serialized = JSON.stringify({ message: incident.message, sta…
+     38|     for (const secret of ["private-secret", "audit@example.com", "opaq…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  src/lib/observability/errorsOnlyFilter.test.ts > Sentry sólo recibe errores > conserva LC_ desconocidos en message y exception (error)
+ FAIL  src/lib/observability/errorsOnlyFilter.test.ts > Sentry sólo recibe errores > conserva LC_ desconocidos en message y exception (fatal)
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/lib/observability/errorsOnlyFilter.test.ts:20:60
+     18|   it.each(["error", "fatal"])("conserva LC_ desconocidos en message y …
+     19|     for (const value of ["LC_DATABASE_FAILURE: unavailable", "LC_COT_V…
+     20|       expect(isActionableEvent({ level, message: value })).toBe(true);
+       |                                                            ^
+     21|       expect(isActionableEvent({ level, exception: { values: [{ value …
+     22|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  src/lib/observability/errorsOnlyFilter.test.ts > Sentry sólo recibe errores > conserva cualquier fatal, incluso una validación conocida
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/lib/observability/errorsOnlyFilter.test.ts:26:86
+     24|
+     25|   it("conserva cualquier fatal, incluso una validación conocida", () =…
+     26|     expect(isActionableEvent({ level: "fatal", message: "LC_COT_VENCID…
+       |                                                                                      ^
+     27|     expect(isActionableEvent({ level: "fatal", exception: { values: [{…
+     28|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  src/lib/observability/errorsOnlyFilter.test.ts > Sentry sólo recibe errores > sólo descarta mensajes canónicos enumerados, con delimitador exacto
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/lib/observability/errorsOnlyFilter.test.ts:35:62
+     33|     }
+     34|     for (const message of ["LC_COT_VENCIDA : venció", "LC_COT_VENCIDA/…
+     35|       expect(isActionableEvent({ level: "error", message })).toBe(true…
+       |                                                              ^
+     36|     }
+     37|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  src/lib/observability/errorsOnlyFilter.test.ts > Sentry sólo recibe errores > conserva cadenas mixtas y excepciones técnicas adicionales
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ src/lib/observability/errorsOnlyFilter.test.ts:46:63
+     44|       "Invalid login credentials; database unavailable",
+     45|       "LC_COT_VENCIDA: detalle desconocido",
+     46|     ]) expect(isActionableEvent({ level: "error", message })).toBe(tru…
+       |                                                               ^
+     47|     expect(isActionableEvent({ level: "error", message: "LC_COT_VENCID…
+     48|     expect(isActionableEvent({ level: "error", exception: { values: [{…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  src/lib/observability/errorsOnlyFilter.test.ts > Sentry sólo recibe errores > comparte filtro y saneamiento entre cliente y servidor
+AssertionError: expected null not to be null
+ ❯ src/lib/observability/errorsOnlyFilter.test.ts:57:27
+     55|         extra: { body: { password: "private-secret" } }, request: { he…
+     56|       for (const clean of [client(event), scrubServerEvent(event)]) {
+     57|         expect(clean).not.toBeNull();
+       |                           ^
+     58|         expect(JSON.stringify(clean)).not.toContain("audit@example.com…
+     59|         expect(JSON.stringify(clean)).not.toContain("private-secret");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  src/lib/observability/serverSentry.test.ts > SDK oficial de servidor, con cliente compartido y transporte offline > conserva 403 técnicos estructurados y omite autorización esperada, sin datos del proveedor
+AssertionError: expected [ { exception: { …(1) }, …(10) } ] to have a length of 4 but got 1
+
+- Expected
++ Received
+
+- 4
++ 1
+
+ ❯ src/lib/observability/serverSentry.test.ts:121:22
+    119|       return new Response("ok");
+    120|     }, options());
+    121|     expect(events()).toHaveLength(4);
+       |                      ^
+    122|     expect(events().map((event) => event.exception?.values?.[0].value)…
+    123|       "Database privilege denied for table", "Database privilege denie…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+

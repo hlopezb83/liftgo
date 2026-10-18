@@ -1,0 +1,3 @@
+PowerShell/Node equivalent of scripts/arch-check.sh G1-G5 (bash/rg unavailable).
+Scanned 1355 TypeScript files in src/features.
+PASS G1-G5

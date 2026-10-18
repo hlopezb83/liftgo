@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-privacy
+
+ Γ£ô src/lib/observability/errorsOnlyFilter.test.ts (9 tests) 14ms
+ Γ£ô src/lib/observability/captureOperationalError.test.ts (9 tests) 19ms
+ Γ£ô src/lib/observability/serverSentry.test.ts (14 tests) 1074ms
+     Γ£ô un transporte que nunca termina tiene un presupuesto total acotado  774ms
+
+ Test Files  3 passed (3)
+      Tests  32 passed (32)
+   Start at  16:09:16
+   Duration  13.56s (transform 515ms, setup 4.47s, import 4.00s, tests 1.11s, environment 6.31s)
+

@@ -18,6 +18,7 @@ interface Props {
   allowRepMutations?: boolean;
   creditedAmount?: number;
   currency?: string;
+  exchangeRate?: number | string | null;
 }
 
 function countPendingReps(payments: Payment[]): number {
@@ -70,7 +71,7 @@ function PaymentSummaryCard({
 }
 
 export function InvoicePaymentSummary({
-  totalPaid, balance, payments, ppdStamped = false, allowRepMutations = ppdStamped, creditedAmount = 0, currency = "MXN",
+  totalPaid, balance, payments, ppdStamped = false, allowRepMutations = ppdStamped, creditedAmount = 0, currency = "MXN", exchangeRate,
 }: Props) {
   const { columns, canWrite, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId } = usePaymentHistoryColumns(ppdStamped, allowRepMutations);
 
@@ -112,6 +113,8 @@ export function InvoicePaymentSummary({
           onOpenChange={(open) => { if (!open) setEditingPayment(null); }}
           payment={editingPayment}
           balance={balance}
+          invoiceCurrency={currency}
+          invoiceExchangeRate={exchangeRate}
         />
       ) : null}
 

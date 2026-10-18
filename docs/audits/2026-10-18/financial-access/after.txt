@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-financial-access
+
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx (4 tests) 622ms
+     Γ£ô fails closed while the role is unresolved, then fetches fresh data after access is restored  328ms
+ Γ£ô src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx (5 tests) 274ms
+
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Start at  16:07:15
+   Duration  19.15s (transform 3.15s, setup 4.83s, import 15.15s, tests 896ms, environment 4.16s)
+

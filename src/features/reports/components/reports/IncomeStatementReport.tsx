@@ -33,6 +33,12 @@ function FxMissingAlert({ count }: { count: number }) {
   );
 }
 
+function formatMarginKpi(margin: number | null) {
+  return {
+    value: margin === null ? "No aplica" : `${margin.toFixed(1)}%`,
+    color: margin === null ? "text-muted-foreground" : margin >= 0 ? "text-chart-2" : "text-destructive",
+  };
+}
 
 export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
   const {
@@ -60,7 +66,6 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
 
   const netPositive = totals.netProfit >= 0;
-  const marginPositive = totals.margin >= 0;
   // Hallazgo 10: la tarjeta de egresos NO incluye depreciación (la utilidad
   // neta sí la descuenta) — se renombra y se muestra la depreciación total
   // (rentada + ociosa) con los mismos datos ya cargados, sin cambiar cálculos.
@@ -70,7 +75,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     { label: "Egresos antes de depreciación", value: formatCurrency(totals.totalExpenses), icon: TrendingDownIcon, color: "text-destructive" },
     { label: "Depreciación total", value: formatCurrency(totalDepreciation), icon: TrendingDownIcon, color: "text-muted-foreground" },
     { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: netPositive ? TrendingUpIcon : TrendingDownIcon, color: netPositive ? "text-chart-2" : "text-destructive" },
-    { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: marginPositive ? "text-chart-2" : "text-destructive" },
+    { label: "Margen Neto", ...formatMarginKpi(totals.margin), icon: Percent },
   ];
 
   const handleExportPdf = async () => {
@@ -106,7 +111,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
       <FxMissingAlert count={fxMissingCount} />
 
 
-      {rentedWithoutCost.length > 0 && (
+      {accountingBasis === "accrual" && rentedWithoutCost.length > 0 && (
 
         <Alert variant="warning">
           <WarnIcon className="h-4 w-4" />

@@ -1,0 +1,18 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-navigation
+
+ Γ£ô src/features/calendar/pages/__tests__/CalendarPage.navigation.test.tsx (5 tests) 582ms
+ Γ£ô src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx (16 tests) 1701ms
+     Γ£ô confirmada admin: Crear contrato y Extender visibles; resto dentro de M├ís  327ms
+ Γ£ô src/features/bookings/pages/__tests__/BookingDetail.test.tsx (6 tests) 447ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests) 85ms
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx (4 tests) 344ms
+ Γ£ô src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx (1 test) 105ms
+ Γ£ô src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx (2 tests) 137ms
+ Γ£ô src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx (3 tests) 61ms
+
+ Test Files  8 passed (8)
+      Tests  43 passed (43)
+   Start at  16:10:32
+   Duration  28.46s (transform 2.07s, setup 3.33s, import 39.60s, tests 3.46s, environment 6.46s)
+

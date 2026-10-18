@@ -1,0 +1,2 @@
+Command: node node_modules/eslint/bin/eslint.js src/features/fleet/hooks/forklifts/useForkliftFinancials.ts src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx src/features/fleet/pages/ForkliftDetail.tsx src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx
+ExitCode: 0

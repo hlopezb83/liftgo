@@ -1,0 +1,33 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/audit-financial-access
+
+ Γ£ô src/lib/query/__tests__/identityScopedCache.test.tsx (7 tests) 105ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftMutations.test.ts (6 tests) 80ms
+ Γ£ô src/features/fleet/components/forklift-detail/__tests__/ForkliftSpecsCard.insurance.test.tsx (11 tests) 224ms
+ Γ£ô src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx (5 tests) 248ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx (4 tests) 366ms
+ Γ£ô src/features/fleet/lib/__tests__/forkliftPayload.test.ts (13 tests) 10ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftOptimisticLock.test.ts (3 tests) 69ms
+ Γ£ô src/features/fleet/hooks/forklifts/assignForklifts/__tests__/useAssignForklift.test.ts (3 tests) 254ms
+ Γ£ô src/features/fleet/hooks/forklifts/assignForklifts/__tests__/useUnassignForklift.test.ts (3 tests) 334ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftLocation.test.ts (4 tests) 311ms
+ Γ£ô src/features/fleet/components/forklift-detail/__tests__/ForkliftSpecsCard.emptyText.test.tsx (6 tests) 455ms
+ Γ£ô src/features/fleet/lib/__tests__/forkliftFormSchema.test.ts (15 tests) 24ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.roleGate.test.ts (4 tests) 219ms
+ Γ£ô src/features/fleet/hooks/forklifts/assignForklifts/__tests__/useQuoteAssignments.rls.test.ts (3 tests) 195ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useSaleAvailableForklifts.test.ts (2 tests) 296ms
+ Γ£ô src/lib/ui/__tests__/AuthQueryCacheSync.test.tsx (3 tests) 38ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForklifts.rls.test.ts (2 tests) 422ms
+ Γ£ô src/features/fleet/components/forklift-detail/__tests__/StatusChangeCard.test.tsx (2 tests) 1131ms
+     Γ£ô permite corregir el estado de una unidad marcada como rentada (renta ya devuelta)  631ms
+     Γ£ô exige raz├│n para mantenimiento  495ms
+ Γ£ô src/features/fleet/components/forklift-detail/__tests__/ForkliftSpecsCard.location.test.tsx (3 tests) 388ms
+ Γ£ô src/features/fleet/hooks/fleet/__tests__/useFleetColumns.test.tsx (2 tests) 47ms
+ Γ£ô src/features/fleet/lib/__tests__/documentAttachmentRules.test.ts (3 tests) 10ms
+ Γ£ô src/features/fleet/components/fleet/__tests__/FleetMobileCard.test.tsx (2 tests) 171ms
+
+ Test Files  22 passed (22)
+      Tests  106 passed (106)
+   Start at  16:04:59
+   Duration  103.14s (transform 3.43s, setup 20.85s, import 112.40s, tests 5.40s, environment 37.02s)
+

@@ -1,13 +1,26 @@
 import { scrubData, scrubEvent, scrubSpan } from "./scrubPII";
 
-/** Avisos esperados del negocio (validaciones, credenciales): no son incidentes. */
-const EXPECTED_MESSAGES = [/invalid login credentials/i, /^LC_[A-Z_]+:/, /restablecer la contraseña de un administrador/i];
+/** Contratos conocidos completos: texto nuevo o combinado se conserva para revisión. */
+const EXPECTED_VALIDATIONS: Readonly<Record<string, readonly string[]>> = {
+  LC_COT_VENCIDA: ["", "venció"],
+};
+const EXPECTED_MESSAGES = [/^invalid login credentials$/i, /^No puedes restablecer la contraseña de un administrador$/i];
+
+function isExpectedMessage(text: string): boolean {
+  if (EXPECTED_MESSAGES.some((pattern) => pattern.test(text))) return true;
+  const delimiter = text.indexOf(":");
+  if (delimiter < 0) return false;
+  const code = text.slice(0, delimiter);
+  return Object.hasOwn(EXPECTED_VALIDATIONS, code)
+    && EXPECTED_VALIDATIONS[code].includes(text.slice(delimiter + 1).trim());
+}
 
 /** Sólo errores reales llegan a Sentry; warnings/info y validaciones esperadas se descartan. */
 export function isActionableEvent(event: { level?: string; message?: string; exception?: { values?: { value?: string }[] } }): boolean {
   if (event.level && event.level !== "error" && event.level !== "fatal") return false;
-  const texts = [event.message ?? "", ...(event.exception?.values ?? []).map((v) => v.value ?? "")];
-  return !texts.some((t) => EXPECTED_MESSAGES.some((re) => re.test(t)));
+  if (event.level === "fatal") return true;
+  const texts = [event.message ?? "", ...(event.exception?.values ?? []).map((v) => v.value ?? "")].filter(Boolean);
+  return texts.length === 0 || !texts.every(isExpectedMessage);
 }
 
 function errorsOnly<T extends Parameters<typeof scrubEvent>[0]>(event: T): T | null {

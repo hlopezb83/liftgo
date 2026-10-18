@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { deliveryQueries } from "@/features/deliveries";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useParams } from "@/lib/router-compat";
+import { useLocation, useParams } from "@/lib/router-compat";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
 import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";
@@ -22,9 +22,16 @@ import { useBookingExtensions } from "../hooks/bookingActions/useBookingExtensio
 import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
 import { useBooking } from "../hooks/bookings/useBookings";
 
+function bookingBackTo(state: unknown): string {
+  const origin = (state as { calendarReturnTo?: unknown } | null)?.calendarReturnTo;
+  return typeof origin === "string" && /^\/calendar(?:\?[^#]*)?$/.test(origin) ? origin : "/bookings";
+}
+
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigateTransition();
+  const location = useLocation();
+  const backTo = bookingBackTo(location.state);
   const { data: booking, isLoading, isError, refetch } = useBooking(id);
   const canReadTransports = useHasModuleAccess("Entregas", "read");
   const { data: deliveries, isLoading: transportsLoading, isError: transportsError, isFetching: transportsFetching, refetch: refetchTransports } = useQuery({
@@ -64,7 +71,7 @@ export default function BookingDetail() {
         <EmptyState
           title="Reserva no encontrada"
           actionLabel="Volver"
-          onAction={() => navigate("/bookings")}
+          onAction={() => navigate(backTo)}
         />
       </PageContainer>
     );
@@ -83,7 +90,7 @@ export default function BookingDetail() {
         title={booking.booking_number}
         subtitle={subtitle}
         badges={<StatusBadge status={booking.status} />}
-        backTo="/bookings"
+        backTo={backTo}
         actions={<BookingActions
           booking={booking}
           deliveries={readableDeliveries}
