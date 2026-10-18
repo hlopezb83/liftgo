@@ -125,10 +125,10 @@ describe('V06 inspector con tabla real y Radix, datos aislados', () => {
   });
   it.each(['refresh', 'lista vacía'])('restaura al listado vigente cuando desaparece la fila por %s', async (cause) => {
     const view = mount();
+    const region = screen.getByRole('region', { name: 'Movimientos bancarios' });
     const removedRow = row('uno');
     removedRow.focus(); fireEvent.click(removedRow);
     await waitFor(() => expect(screen.getByRole('dialog')).toContainElement(document.activeElement as HTMLElement));
-    const region = screen.getByRole('region', { name: 'Movimientos bancarios' });
     const focus = vi.spyOn(region, 'focus');
     const staleFocus = vi.spyOn(removedRow, 'focus');
     view.rerenderWorkspace({ lines: cause === 'refresh' ? lines.slice(1) : [] });
