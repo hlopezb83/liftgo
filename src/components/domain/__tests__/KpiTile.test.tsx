@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { TestRouter } from "@/test/router";
 import { KpiTile } from "../KpiTile";
 
 /**
@@ -59,16 +60,19 @@ describe("KpiTile · escala del valor (V05)", () => {
   });
 
   it("valores especiales: 0, negativos y porcentajes se miden por longitud", () => {
-    const { container: zero } = render(<KpiTile label="A" value={0} />);
+    const zero = render(<KpiTile label="A" value={0} />);
     expect(valueParagraph(zero.container).className).toContain("text-lg");
     expect(valueParagraph(zero.container).textContent).toBe("0");
+    zero.unmount();
 
-    const { container: neg } = render(<KpiTile label="A" value="-$1,234.56" />);
+    const neg = render(<KpiTile label="A" value="-$1,234.56" />);
     expect(valueParagraph(neg.container).textContent).toBe("-$1,234.56");
+    neg.unmount();
 
-    const { container: pct } = render(<KpiTile label="A" value="12.5%" valueSize="lg" />);
+    const pct = render(<KpiTile label="A" value="12.5%" valueSize="lg" />);
     expect(valueParagraph(pct.container).className).toContain("text-2xl");
     expect(valueParagraph(pct.container).textContent).toBe("12.5%");
+    pct.unmount();
   });
 
   it("importes largos conservan signos, decimales y moneda sin truncar", () => {
@@ -80,13 +84,14 @@ describe("KpiTile · escala del valor (V05)", () => {
   });
 
   it("ReactNode no se convierte a string y usa el tamaño base de su escala", () => {
-    const node = <span data-testid="custom">$1,234</span>;
-    const { container } = render(<KpiTile label="A" value={node} />);
+    const sm = render(<KpiTile label="A" value={<span data-testid="custom">$1,234</span>} />);
     expect(screen.getByTestId("custom")).toBeTruthy();
-    expect(valueParagraph(container).className).toContain("text-lg");
+    expect(valueParagraph(sm.container).className).toContain("text-lg");
+    sm.unmount();
 
-    const { container: lg } = render(<KpiTile label="A" value={node} valueSize="lg" />);
+    const lg = render(<KpiTile label="A" value={<span>$1,234</span>} valueSize="lg" />);
     expect(valueParagraph(lg.container).className).toContain("text-2xl");
+    lg.unmount();
   });
 });
 
@@ -108,7 +113,11 @@ describe("KpiTile · estructura e interacción", () => {
   });
 
   it("con href renderiza enlace navegable", () => {
-    render(<KpiTile label="A" value="1" href="/panel" />);
+    render(
+      <TestRouter>
+        <KpiTile label="A" value="1" href="/panel" />
+      </TestRouter>,
+    );
     const link = screen.getByRole("link");
     expect(link.getAttribute("href")).toBe("/panel");
   });
