@@ -51,7 +51,7 @@ function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine
           <p className="text-xs text-muted-foreground">
             {isCharge ? "Cargo" : "Abono"} · {formatDateMty(line.posted_date)}
           </p>
-          <p className="truncate text-sm font-medium">{line.description || "—"}</p>
+          <p className="whitespace-pre-wrap [overflow-wrap:anywhere] text-sm font-medium">{line.description || "—"}</p>
         </div>
         <StatusBadge
           status={LINE_STATUS_TONE[line.status] ?? "draft"}
