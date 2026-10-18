@@ -1,5 +1,12 @@
 # Roadmap operativo y estado de evidencia
 
+## V08: detalle de equipo (18 de octubre de 2026)
+
+- [x] Base `ed289dbfe4b530e35a9ef3945f523e45c2f9f9ff` y referencias local/remota `fix/ui-v08-equipment-layout-20261018` confirmadas; checkout interno `edit/*`, limpio al inicio.
+- [ ] Seguro desplegable según campos visibles (cero válido), omisión de adquisición no autorizada y resumen financiero antes de Notas; conservar métricas, tarifas y controles.
+- [ ] Pruebas focales, lint y GUI aislada a 375/1440 pendientes. Sin lecturas/mutaciones ERP, versión/changelog ni publicación.
+- Riesgo previo documentado antes de implementar: `useForkliftFinancials` usa clave por equipo sin rol y `enabled: false` no elimina datos ya cacheados; `ForkliftDetail` sigue pasándolos a la tarjeta. `useUserRole` también conserva rol en caché. Un cambio de rol en caliente podría mantener información anterior. V08 no modifica este comportamiento ni unifica los dos gates; requiere revisión separada de permisos/caché.
+
 ## V06: inspector bancario (18 de octubre de 2026)
 
 - [x] P2 PR268: referencias local/remota `fix/ui-v06-bank-inspector-20261018` en `da1b747150340809b3f35ff00c5f19dd83d7e1a5` confirmadas antes de editar. Cierre resuelve fila montada visible o región accesible del listado vigente; sin BODY, nodos antiguos, temporizadores ni cambios de scroll/API compartida.
