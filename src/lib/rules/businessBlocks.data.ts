@@ -35,6 +35,7 @@ export type BusinessBlockCode =
   | "supplier_bill_self_approval"
   | "customer_outstanding_balance"
   | "booking_not_final_for_delete"
+  | "booking_has_linked_documents"
   | "booking_return_not_started"
   | "booking_return_delivery_unverified"
   | "booking_return_already_recorded";
@@ -219,6 +220,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Primero usa Cancelar y después podrás eliminarla.",
     tone: "info",
   },
+  booking_has_linked_documents: {
+    action: "No puedes eliminar esta reserva",
+    reason: "Ya tiene documentos ligados (facturas, contratos, entregas, inspecciones o daños).",
+    nextStep: "Cancela la reserva para conservar su historial; si necesitas quitar documentos, cancélalos o desvincúlalos primero.",
+    tone: "info",
+  },
   booking_return_not_started: {
     action: "Todavía no puedes registrar la devolución",
     reason: "El periodo de renta aún no ha comenzado.",
@@ -269,6 +276,8 @@ export const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }>
   { pattern: /el cliente tiene saldo pendiente/i, code: "customer_outstanding_balance" },
   // RPC `delete_booking`: sólo reservas canceladas o completadas.
   { pattern: /solo se pueden eliminar reservas canceladas o completadas/i, code: "booking_not_final_for_delete" },
+  // RPC `delete_booking`: reserva con facturas/contratos/entregas/inspecciones/daños.
+  { pattern: /tiene documentos ligados/i, code: "booking_has_linked_documents" },
 ];
 
 /** Restricciones con nombre que corresponden a un bloqueo explicable. */

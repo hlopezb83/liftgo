@@ -1,0 +1,6 @@
+{
+  "description": "Al abrir un enlace válido, la pantalla de nueva contraseña ya no muestra «enlace inválido o expirado» por error.",
+  "changes": [
+    "Se reconoce un enlace de recuperación válido aunque la app termine de cargar después de procesarlo."
+  ]
+}

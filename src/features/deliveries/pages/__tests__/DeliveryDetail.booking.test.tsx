@@ -25,6 +25,8 @@ vi.mock("../../hooks/useDeliveries", () => ({
   useDelivery: () => ({ data: delivery, isLoading: false, isError: false }),
   useDeliveries: () => ({ data: [] }),
   useDeleteDelivery: () => ({ mutate: vi.fn() }),
+  useCorrectDeliveryDate: () => ({ mutate: vi.fn(), isPending: false }),
+  useVoidDelivery: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 vi.mock("../../hooks/useDeliveryCompletion", () => ({
   useDeliveryCompletion: (...args: unknown[]) => { mocks.completion(...args); return {}; },

@@ -3,7 +3,9 @@ import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { businessBlockSummary } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { notifyWarning } from "@/lib/ui/appFeedback";
 import { bookingKeys } from "../../lib/queryKeys";
 
 export function useCreateBooking() {
@@ -80,6 +82,11 @@ export function useDeleteBooking() {
     invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
     invalidateKeysFn: (id) => [bookingKeys.detail(id)],
     errorTitle: "Error al eliminar reserva",
+    // Reglas del backend (documentos ligados, estado no final) se explican
+    // como bloqueo de negocio, no como error técnico.
+    onBusinessBlock: (block) => {
+      notifyWarning({ title: block.action, description: businessBlockSummary(block) });
+    },
   });
 }
 

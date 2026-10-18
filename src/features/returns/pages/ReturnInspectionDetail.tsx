@@ -1,24 +1,33 @@
+import { useState } from "react";
+import { AdminCorrectionDialog } from "@/components/domain/AdminCorrectionDialog";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHasModuleAccess } from "@/features/users";
+import { useUserRole } from "@/features/users";
 import { useDocuments } from "@/hooks/useDocuments";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "@/lib/router-compat";
 import { BookingCard } from "../components/return-inspection/BookingCard";
 import { DamagesCard } from "../components/return-inspection/DamagesCard";
 import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
 import { InspectionCard } from "../components/return-inspection/InspectionCard";
 import { UsageFuelCard } from "../components/return-inspection/UsageFuelCard";
-import { useReturnInspection } from "../hooks/useReturnInspections";
+import { useReturnInspection, useVoidReturnInspection } from "../hooks/useReturnInspections";
 
 export default function ReturnInspectionDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigateTransition();
   const { data: ins, isLoading, isError, refetch } = useReturnInspection(id);
   const canUpload = useHasModuleAccess("Entregas", "full");
+  const { data: role } = useUserRole();
+  const voidReturn = useVoidReturnInspection();
+  const [voidOpen, setVoidOpen] = useState(false);
   const { data: photos = [], isLoading: photosLoading, isError: photosError, refetch: refetchPhotos } = useDocuments("return_inspection", id);
 
   if (isLoading) {
@@ -58,7 +67,27 @@ export default function ReturnInspectionDetail() {
         subtitle={`${ins.forklifts?.name || "Equipo"} · ${ins.bookings?.customer_name || "Sin cliente"}`}
         badges={<StatusBadge status={ins.condition} />}
         backTo="/returns"
+        actions={role === "admin" ? (
+          <Button variant="outline" size="sm" className="text-destructive" onClick={() => setVoidOpen(true)}>
+            Anular devolución
+          </Button>
+        ) : undefined}
       />
+      {voidOpen && (
+        <AdminCorrectionDialog
+          open={voidOpen}
+          onOpenChange={setVoidOpen}
+          destructive
+          title={`Anular ${ins.inspection_number}`}
+          description="Úsalo si el equipo no se ha devuelto. Se retira esta devolución, la reserva vuelve a quedar activa y el montacargas se marca rentado. Queda registrado en la bitácora."
+          confirmLabel="Anular devolución"
+          isPending={voidReturn.isPending}
+          onConfirm={({ reason }) => voidReturn.mutate(
+            { id: ins.id, reason },
+            { onSuccess: () => { setVoidOpen(false); navigate(`/bookings/${ins.booking_id}`); } },
+          )}
+        />
+      )}
 
       <div className="grid gap-4 sm:gap-6 sm:grid-cols-2">
         <EquipmentCard ins={ins} />

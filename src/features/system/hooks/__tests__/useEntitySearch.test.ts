@@ -35,7 +35,7 @@ describe("searchEntities", () => {
 
   it("regresa vacío con query < 2 chars", async () => {
     const res = await searchEntities("a", "org-a");
-    expect(res).toEqual({ invoices: [], customers: [], bookings: [] });
+    expect(res).toEqual({ invoices: [], customers: [], bookings: [], deliveries: [], returns: [] });
   });
 
   it("mapea facturas/clientes/reservas y sustituye null por —", async () => {
@@ -72,7 +72,7 @@ describe("searchEntities — organización verificada", () => {
     const { supabase } = await import("@/integrations/supabase/client");
     const from = supabase.from as unknown as ReturnType<typeof vi.fn>;
     const res = await searchEntities("ACME");
-    expect(res).toEqual({ invoices: [], customers: [], bookings: [] });
+    expect(res).toEqual({ invoices: [], customers: [], bookings: [], deliveries: [], returns: [] });
     if (typeof from === "function" && "mock" in from) {
       expect((from as { mock: { calls: unknown[] } }).mock.calls.length).toBe(0);
     }

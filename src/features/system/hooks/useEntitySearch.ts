@@ -26,15 +26,17 @@ export interface EntityResults {
   invoices: EntityHit[];
   customers: EntityHit[];
   bookings: EntityHit[];
+  deliveries: EntityHit[];
+  returns: EntityHit[];
   /**
    * L-6a: si 1 o 2 de las 3 consultas fallan, la sección afectada se expone
    * aquí en vez de devolverse vacía (falso "sin resultados"). La UI muestra un
    * aviso por sección.
    */
-  errors?: Partial<Record<"invoices" | "customers" | "bookings", string>>;
+  errors?: Partial<Record<"invoices" | "customers" | "bookings" | "deliveries" | "returns", string>>;
 }
 
-const EMPTY: EntityResults = { invoices: [], customers: [], bookings: [] };
+const EMPTY: EntityResults = { invoices: [], customers: [], bookings: [], deliveries: [], returns: [] };
 
 /**
  * M-10: el término se interpola crudo dentro de `.or()` de PostgREST — las
@@ -60,7 +62,7 @@ export async function searchEntities(
   const q = sanitizeSearchTerm(query.trim());
   if (q.length < 2 || !organizationId) return EMPTY;
   const like = `%${q}%`;
-  const [invRes, custRes, bookRes] = await Promise.all([
+  const [invRes, custRes, bookRes, delRes, retRes] = await Promise.all([
     // M-3: no mostrar documentos cancelados ni clientes eliminados.
     supabase
       .from("invoices")
@@ -83,43 +85,92 @@ export async function searchEntities(
       .or(`booking_number.ilike.${like},customer_name.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(5),
+    supabase
+      .from("deliveries")
+      .select("id, delivery_number, type, address")
+      .or(`delivery_number.ilike.${like}`)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("return_inspections")
+      .select("id, inspection_number, bookings(customer_name)")
+      .or(`inspection_number.ilike.${like}`)
+      .order("created_at", { ascending: false })
+      .limit(5),
   ]);
   // M-10: antes los `.error` se ignoraban y la búsqueda devolvía vacío aunque
   // las 3 consultas hubieran fallado (falso "sin resultados"). Si TODAS
   // fallan, propagar el primer error para que la query entre en estado error.
-  if (invRes.error && custRes.error && bookRes.error) throw invRes.error;
+  if (invRes.error && custRes.error && bookRes.error && delRes.error && retRes.error) throw invRes.error;
   // L-6a: fallo parcial — devolver las secciones OK y exponer el error por
   // sección para distinguirlo de "cero resultados".
   const errors: NonNullable<EntityResults["errors"]> = {};
   if (invRes.error) errors.invoices = invRes.error.message;
   if (custRes.error) errors.customers = custRes.error.message;
   if (bookRes.error) errors.bookings = bookRes.error.message;
+  if (delRes.error) errors.deliveries = delRes.error.message;
+  if (retRes.error) errors.returns = retRes.error.message;
   return {
     ...(Object.keys(errors).length > 0 ? { errors } : {}),
-    invoices: (invRes.data ?? []).map((i) => ({
-      id: i.id,
-      label: i.invoice_number ?? "—",
-      sub: i.customer_name ?? undefined,
-      url: `/invoices/${i.id}`,
-    })),
-    customers: (custRes.data ?? []).flatMap((row) => {
-      const rel = (row as { customers?: CustomerRow | CustomerRow[] | null }).customers;
-      const c = Array.isArray(rel) ? rel[0] : rel;
-      if (!c) return [];
-      return [{
-        id: c.id,
-        label: c.name ?? "—",
-        sub: c.rfc ?? undefined,
-        url: `/customers/${c.id}`,
-      }];
-    }),
-    bookings: (bookRes.data ?? []).map((b) => ({
-      id: b.id,
-      label: b.booking_number ?? "—",
-      sub: b.customer_name ?? undefined,
-      url: `/bookings/${b.id}`,
-    })),
+    invoices: mapInvoices(invRes.data),
+    customers: mapCustomers(custRes.data),
+    bookings: mapBookings(bookRes.data),
+    deliveries: mapDeliveries(delRes.data),
+    returns: mapReturns(retRes.data),
   };
+}
+
+function mapInvoices(rows: Array<{ id: string; invoice_number: string | null; customer_name: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((i) => ({
+    id: i.id,
+    label: i.invoice_number ?? "—",
+    sub: i.customer_name ?? undefined,
+    url: `/invoices/${i.id}`,
+  }));
+}
+
+function mapCustomers(rows: unknown[] | null): EntityHit[] {
+  return (rows ?? []).flatMap((row) => {
+    const rel = (row as { customers?: CustomerRow | CustomerRow[] | null }).customers;
+    const c = Array.isArray(rel) ? rel[0] : rel;
+    if (!c) return [];
+    return [{
+      id: c.id,
+      label: c.name ?? "—",
+      sub: c.rfc ?? undefined,
+      url: `/customers/${c.id}`,
+    }];
+  });
+}
+
+function mapBookings(rows: Array<{ id: string; booking_number: string | null; customer_name: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((b) => ({
+    id: b.id,
+    label: b.booking_number ?? "—",
+    sub: b.customer_name ?? undefined,
+    url: `/bookings/${b.id}`,
+  }));
+}
+
+function mapDeliveries(rows: Array<{ id: string; delivery_number: string | null; type: string | null; address: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((d) => ({
+    id: d.id,
+    label: d.delivery_number ?? "—",
+    sub: d.type === "pickup" ? "Recolección" : d.type === "delivery" ? "Entrega" : (d.address ?? undefined),
+    url: `/deliveries/${d.id}`,
+  }));
+}
+
+function mapReturns(rows: Array<{ id: string; inspection_number: string | null }> | null): EntityHit[] {
+  return (rows ?? []).map((r) => {
+    const rel = (r as { bookings?: { customer_name: string | null } | null }).bookings;
+    return {
+      id: r.id,
+      label: r.inspection_number ?? "—",
+      sub: rel?.customer_name ?? undefined,
+      url: `/returns/${r.id}`,
+    };
+  });
 }
 
 export function useEntitySearch(query: string, enabled: boolean) {
