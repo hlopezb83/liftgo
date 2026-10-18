@@ -1,0 +1,34 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo
+
+ Γ£ô src/lib/observability/serverSentry.test.ts (14 tests) 1020ms
+     Γ£ô un transporte que nunca termina tiene un presupuesto total acotado  774ms
+ Γ£ô src/features/bookings/pages/__tests__/BookingDetail.test.tsx (6 tests) 682ms
+ Γ£ô src/features/calendar/pages/__tests__/CalendarPage.navigation.test.tsx (5 tests) 775ms
+ Γ£ô src/features/fleet/hooks/forklifts/__tests__/useForkliftFinancials.cacheAccess.test.tsx (4 tests) 337ms
+ Γ£ô src/features/bookings/components/bookings/__tests__/BookingActions.v09.test.tsx (16 tests) 2085ms
+     Γ£ô confirmada admin: Crear contrato y Extender visibles; resto dentro de M├ís  325ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests) 823ms
+     Γ£ô N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175  321ms
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx (4 tests) 370ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx (5 tests) 598ms
+ Γ£ô src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx (5 tests) 162ms
+ Γ£ô src/features/fleet/pages/__tests__/ForkliftDetail.layout.test.tsx (5 tests) 172ms
+ Γ£ô src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx (2 tests) 223ms
+ Γ£ô src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx (1 test) 108ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests) 141ms
+ Γ£ô src/lib/pdf/documents/__tests__/IncomeStatementDocument.margins.test.tsx (2 tests) 52ms
+ Γ£ô src/lib/observability/captureOperationalError.test.ts (9 tests) 26ms
+ Γ£ô src/lib/observability/errorsOnlyFilter.test.ts (9 tests) 13ms
+ Γ£ô src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx (3 tests) 113ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts (6 tests) 10ms
+ Γ£ô src/features/invoices/lib/__tests__/paymentCurrency.test.ts (5 tests) 10ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts (3 tests) 10ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/incomeStatementMargins.audit.test.ts (7 tests) 11ms
+ Γ£ô src/features/reports/hooks/incomeStatement/__tests__/computeDerivedTotals.test.ts (5 tests) 8ms
+
+ Test Files  22 passed (22)
+      Tests  126 passed (126)
+   Start at  16:24:47
+   Duration  39.95s (transform 4.46s, setup 12.35s, import 102.63s, tests 7.75s, environment 23.21s)
+

@@ -1,0 +1,1 @@
+OK: 1239 entradas de changelog validadas.

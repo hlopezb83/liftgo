@@ -1,0 +1,687 @@
+{
+  "repository": "hlopezb83/liftgo",
+  "pull_request": 274,
+  "code_sha": "daa45335df358fdd4eac0a99a2e2515a470af909",
+  "ci_url": "https://github.com/hlopezb83/liftgo/actions/runs/39172070833",
+  "runs": {
+    "workflow_runs": [
+      {
+        "id": 39172070728,
+        "name": "Gitleaks",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 2431,
+        "jobs_url": "https://api.github.com/repos/hlopezb83/liftgo/actions/runs/39172070728/jobs",
+        "logs_url": "https://api.github.com/repos/hlopezb83/liftgo/actions/runs/39172070728/logs",
+        "workflow_id": 296085351
+      },
+      {
+        "id": 39172070822,
+        "name": "Multi-tenant A/B gate",
+        "status": "in_progress",
+        "conclusion": null,
+        "run_number": 304,
+        "jobs_url": "https://api.github.com/repos/hlopezb83/liftgo/actions/runs/39172070822/jobs",
+        "logs_url": "https://api.github.com/repos/hlopezb83/liftgo/actions/runs/39172070822/logs",
+        "workflow_id": 362949850
+      },
+      {
+        "id": 39172070833,
+        "name": "CI",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 2615,
+        "jobs_url": "https://api.github.com/repos/hlopezb83/liftgo/actions/runs/39172070833/jobs",
+        "logs_url": "https://api.github.com/repos/hlopezb83/liftgo/actions/runs/39172070833/logs",
+        "workflow_id": 277680110
+      }
+    ]
+  },
+  "jobs": {
+    "jobs": [
+      {
+        "id": 117807049146,
+        "name": "Calidad (lint, tipos, build y arranque)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "ESLint",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Typecheck",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Typecheck de pruebas de navegador",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Guardrails de arquitectura",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Build",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Preparar Chromium",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Smoke de arranque (build real)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Subir diagnóstico del smoke",
+            "status": "completed",
+            "conclusion": "skipped",
+            "number": 11
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          }
+        ]
+      },
+      {
+        "id": 117807049288,
+        "name": "Detectar cambios",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 117807049306,
+        "name": "Pruebas (Vitest shard 2/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Vitest (shard 2/6)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Subir blob del shard",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 117807049329,
+        "name": "Pruebas (Vitest shard 4/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Vitest (shard 4/6)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Subir blob del shard",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 117807049345,
+        "name": "Dependency review",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          }
+        ]
+      },
+      {
+        "id": 117807049350,
+        "name": "Pruebas (Vitest shard 5/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Vitest (shard 5/6)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Subir blob del shard",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 117807049392,
+        "name": "Pruebas (Vitest shard 1/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Vitest (shard 1/6)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Subir blob del shard",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 117807049720,
+        "name": "Pruebas (Vitest shard 6/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Vitest (shard 6/6)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Subir blob del shard",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 117807050009,
+        "name": "Pruebas (Vitest shard 3/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Vitest (shard 3/6)",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Subir blob del shard",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          }
+        ]
+      },
+      {
+        "id": 117807081035,
+        "name": "Funciones Supabase (Deno, sin red)",
+        "status": "completed",
+        "conclusion": "skipped",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": null
+      },
+      {
+        "id": 117807081146,
+        "name": "Lint de migraciones",
+        "status": "completed",
+        "conclusion": "skipped",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": null
+      },
+      {
+        "id": 117807081499,
+        "name": "Actionlint",
+        "status": "completed",
+        "conclusion": "skipped",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": null
+      },
+      {
+        "id": 117807534765,
+        "name": "Pruebas (merge + cobertura)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_id": 39172070833,
+        "logs_url": null,
+        "steps": [
+          {
+            "name": "Set up job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 1
+          },
+          {
+            "name": "Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 2
+          },
+          {
+            "name": "Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 3
+          },
+          {
+            "name": "Descargar blob shard 1",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 4
+          },
+          {
+            "name": "Descargar blob shard 2",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 5
+          },
+          {
+            "name": "Descargar blob shard 3",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 6
+          },
+          {
+            "name": "Descargar blob shard 4",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 7
+          },
+          {
+            "name": "Descargar blob shard 5",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 8
+          },
+          {
+            "name": "Descargar blob shard 6",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 9
+          },
+          {
+            "name": "Merge de reportes + umbrales de cobertura",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 10
+          },
+          {
+            "name": "Subir reportes",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 11
+          },
+          {
+            "name": "Post Run ./.github/actions/setup-bun-project",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 21
+          },
+          {
+            "name": "Post Run actions/checkout@v7",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 22
+          },
+          {
+            "name": "Complete job",
+            "status": "completed",
+            "conclusion": "success",
+            "number": 23
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,7 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo
+
+ Γ£ô src/features/invoices/lib/__tests__/recurringSelection.test.ts (20 tests) 12ms
+ Γ£ô src/lib/domain/__tests__/rentalCalculation.test.ts (41 tests) 27ms
+ Γ£ô src/lib/observability/serverSentry.test.ts (14 tests) 1024ms
+     Γ£ô un transporte que nunca termina tiene un presupuesto total acotado  769ms
