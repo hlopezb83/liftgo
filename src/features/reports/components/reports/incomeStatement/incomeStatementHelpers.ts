@@ -4,16 +4,18 @@ import type { StatementRow, ComparisonRow } from "../../../hooks/useIncomeStatem
 
 export interface BreakdownRow { label: string; values: number[]; total: number }
 
-export const formatCell = (row: StatementRow | ComparisonRow, value: number) =>
-  row.isPercent ? `${value.toFixed(1)}%` : formatCurrency(value);
+export const formatCell = (row: StatementRow | ComparisonRow, value: number | null) =>
+  value === null ? "No aplica" : row.isPercent ? `${value.toFixed(1)}%` : formatCurrency(value);
 
 export function formatRowDelta(row: ComparisonRow): string {
+  if (row.delta === null) return "No aplica";
   const sign = row.delta >= 0 ? "+" : "";
   if (row.isPercent) return `${sign}${row.delta.toFixed(1)} pp`;
   return `${sign}${formatCurrency(row.delta)}`;
 }
 
-export const cellColor = (row: StatementRow | ComparisonRow, value: number) => {
+export const cellColor = (row: StatementRow | ComparisonRow, value: number | null) => {
+  if (value === null) return "text-muted-foreground";
   if (row.isCost || value < 0) return "text-destructive";
   return "";
 };

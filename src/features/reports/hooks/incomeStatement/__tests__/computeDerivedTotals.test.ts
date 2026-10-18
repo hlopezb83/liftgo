@@ -81,8 +81,9 @@ describe("computeDerivedTotals (P&L)", () => {
       expenses: emptyExpenses(),
     };
     const r = computeDerivedTotals(t);
-    expect(r.grossMargin).toBe(0);
-    expect(r.margin).toBe(0);
+    expect(r.grossMargin).toBeNull();
+    expect(r.marginBeforeDepreciation).toBeNull();
+    expect(r.margin).toBeNull();
     expect(r.netProfit).toBe(-100);
   });
 });

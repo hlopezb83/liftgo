@@ -11,8 +11,8 @@ export interface PdfMonthData {
 
 export interface PdfStatementRow {
   label: string;
-  values: number[];
-  total: number;
+  values: (number | null)[];
+  total: number | null;
   isSubtotal?: boolean;
   isCost?: boolean;
   isPercent?: boolean;
@@ -20,8 +20,8 @@ export interface PdfStatementRow {
 
 export interface PdfComparisonRow {
   label: string;
-  yearValues: number[];
-  delta: number;
+  yearValues: (number | null)[];
+  delta: number | null;
   deltaPct: number | null;
   isSubtotal?: boolean;
   isCost?: boolean;

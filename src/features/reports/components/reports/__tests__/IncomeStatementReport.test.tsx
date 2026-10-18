@@ -2,7 +2,12 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IncomeStatementReport } from "../IncomeStatementReport";
 
-const reportData = vi.hoisted(() => ({ isComparison: false }));
+const reportData = vi.hoisted(() => ({
+  isComparison: false,
+  margin: 63.3 as number | null,
+  rentedWithoutCost: [] as { id: string; name: string }[],
+  soldWithoutCost: [] as { id: string; name: string }[],
+}));
 
 vi.mock("../../../hooks/useIncomeStatementData", () => ({
   useIncomeStatementData: () => ({
@@ -12,14 +17,16 @@ vi.mock("../../../hooks/useIncomeStatementData", () => ({
       depreciationRented: 8000,
       depreciationIdle: 2000,
       netProfit: 95000,
-      margin: 63.3,
+      margin: reportData.margin,
     },
     filteredData: [], statementRows: [], comparisonRows: [], yearTotals: [],
     csvRows: [], depreciationBreakdownRows: [], cogsBreakdownRows: [],
     rentalBookedBreakdownRows: [], rentalUnbookedBreakdownRows: [],
     salesBreakdownRows: [], otherServicesBreakdownRows: [],
     damageRecoveryBreakdownRows: [], creditNotesBreakdownRows: [],
-    expenseDetailBreakdownByCategory: {}, rentedWithoutCost: [], soldWithoutCost: [],
+    expenseDetailBreakdownByCategory: {},
+    rentedWithoutCost: reportData.rentedWithoutCost,
+    soldWithoutCost: reportData.soldWithoutCost,
     fxMissingCount: 0, availableYears: [2026], selectedYear: "2026",
     setSelectedYear: vi.fn(), isComparison: reportData.isComparison,
     isError: false, isFetching: false, refetch: vi.fn(),
@@ -38,11 +45,16 @@ const expectedKpis = [
   ["Margen Neto", "63.3%"],
 ];
 
-function renderReport() {
-  return render(<IncomeStatementReport startDate={new Date(2026, 0, 1)} endDate={new Date(2026, 0, 31)} />);
+function renderReport(accountingBasis: "accrual" | "cash" = "accrual") {
+  return render(<IncomeStatementReport startDate={new Date(2026, 0, 1)} endDate={new Date(2026, 0, 31)} accountingBasis={accountingBasis} />);
 }
 
-beforeEach(() => { reportData.isComparison = false; });
+beforeEach(() => {
+  reportData.isComparison = false;
+  reportData.margin = 63.3;
+  reportData.rentedWithoutCost = [];
+  reportData.soldWithoutCost = [];
+});
 
 describe("IncomeStatementReport · KPI completos", () => {
   it("conserva los cinco importes exactos del reporte", () => {
@@ -61,5 +73,33 @@ describe("IncomeStatementReport · KPI completos", () => {
       expect(screen.queryByText(label)).toBeNull();
       expect(screen.queryByText(value)).toBeNull();
     }
+  });
+
+  it("N2: muestra un margen no aplicable con estilo neutral", () => {
+    reportData.margin = null;
+    renderReport();
+    const value = screen.getByText("No aplica");
+    expect(value).toHaveAttribute("title", "No aplica");
+    expect(value.parentElement?.parentElement?.firstElementChild).toHaveClass("text-muted-foreground");
+    expect(value.parentElement?.parentElement?.firstElementChild).not.toHaveClass("text-chart-2", "text-destructive");
+    expect(screen.queryByText("0.0%")).not.toBeInTheDocument();
+  });
+
+  it("N3: advierte sobre depreciación faltante en Devengado", () => {
+    reportData.rentedWithoutCost = [{ id: "rented-no-cost", name: "Equipo rentado sin costo" }];
+    renderReport("accrual");
+    expect(screen.getByText("Equipos sin costo de adquisición")).toBeInTheDocument();
+    expect(screen.getByText("Equipo rentado sin costo")).toBeInTheDocument();
+  });
+
+  it("N3: Efectivo omite la advertencia de depreciación y conserva la de costo de venta", () => {
+    reportData.rentedWithoutCost = [{ id: "rented-no-cost", name: "Equipo rentado sin costo" }];
+    reportData.soldWithoutCost = [{ id: "sold-no-cost", name: "Equipo vendido sin costo" }];
+    renderReport("cash");
+    expect(screen.queryByText("Equipos sin costo de adquisición")).not.toBeInTheDocument();
+    expect(screen.queryByText("Equipo rentado sin costo")).not.toBeInTheDocument();
+    expect(screen.getByText("Equipos vendidos sin costo de adquisición")).toBeInTheDocument();
+    expect(screen.getByText("Equipo vendido sin costo")).toBeInTheDocument();
+    expect(screen.getByText("(Depreciación excluida en base efectivo)")).toBeInTheDocument();
   });
 });

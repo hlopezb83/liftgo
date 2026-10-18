@@ -73,20 +73,20 @@ export interface MonthData {
   damageRecoveryByCustomer: Record<string, number>;
   creditNotesByCustomer: Record<string, number>;
   grossProfit: number;
-  grossMargin: number;
+  grossMargin: number | null;
   expenses: Record<ExpenseCategory, number>;
   expensesDetailByCategory: Partial<Record<ExpenseCategory, ExpenseDetailLine[]>>;
   totalExpenses: number;
   profitBeforeDepreciation: number;
-  marginBeforeDepreciation: number;
+  marginBeforeDepreciation: number | null;
   netProfit: number;
-  margin: number;
+  margin: number | null;
 }
 
 export interface StatementRow {
   label: string;
-  values: number[];
-  total: number;
+  values: (number | null)[];
+  total: number | null;
   isSubtotal?: boolean;
   isCost?: boolean;
   isPercent?: boolean;
@@ -109,19 +109,19 @@ export interface YearTotals {
   cogsForkliftSales: number;
   expenses: Record<ExpenseCategory, number>;
   grossProfit: number;
-  grossMargin: number;
+  grossMargin: number | null;
   totalExpenses: number;
   profitBeforeDepreciation: number;
-  marginBeforeDepreciation: number;
+  marginBeforeDepreciation: number | null;
   netProfit: number;
-  margin: number;
+  margin: number | null;
 }
 
 
 export interface ComparisonRow {
   label: string;
-  yearValues: number[];
-  delta: number;
+  yearValues: (number | null)[];
+  delta: number | null;
   deltaPct: number | null;
   isSubtotal?: boolean;
   isCost?: boolean;
@@ -150,13 +150,15 @@ export function computeDerivedTotals(t: {
 }) {
   const directCostsSubtotal = DIRECT_COST_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
   const grossProfit = roundMoney(t.revenue - t.maintenanceCost - t.damageCost - directCostsSubtotal - t.cogsForkliftSales);
-  const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : 0;
+  // Sin ingresos netos positivos el margen no aplica; los importes se conservan
+  // y el valor ausente se propaga a pantalla y exportaciones.
+  const grossMargin = t.revenue > 0 ? (grossProfit / t.revenue) * 100 : null;
   const opexTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + t.expenses[c], 0);
   const totalExpenses = roundMoney(t.maintenanceCost + t.damageCost + directCostsSubtotal + t.cogsForkliftSales + opexTotal);
   const profitBeforeDepreciation = roundMoney(t.revenue - totalExpenses);
-  const marginBeforeDepreciation = t.revenue > 0 ? (profitBeforeDepreciation / t.revenue) * 100 : 0;
+  const marginBeforeDepreciation = t.revenue > 0 ? (profitBeforeDepreciation / t.revenue) * 100 : null;
   const netProfit = roundMoney(profitBeforeDepreciation - t.depreciation);
-  const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : 0;
+  const margin = t.revenue > 0 ? (netProfit / t.revenue) * 100 : null;
   return { grossProfit, grossMargin, totalExpenses, profitBeforeDepreciation, marginBeforeDepreciation, netProfit, margin };
 }
 
