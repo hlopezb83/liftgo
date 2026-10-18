@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { skipToken, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { useUserRole, type AppRole } from "@/features/users";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
@@ -42,14 +43,31 @@ const forkliftFinancialsQueries = defineEntityQueries<"forklift-financials", nev
 );
 
 export function useForkliftFinancials(forkliftId: string | undefined) {
+  const queryClient = useQueryClient();
   const { data: role } = useUserRole();
   const canViewFinancials = !!role && FINANCIAL_VIEWER_ROLES.has(role);
-  return useQuery({
-    ...forkliftFinancialsQueries.detail(forkliftId ?? ""),
+  const options = forkliftFinancialsQueries.detail(forkliftId ?? "");
+  const query = useQuery({
+    ...options,
+    // `enabled` alone retains cached data and still permits manual refetches.
+    queryFn: canViewFinancials ? options.queryFn : skipToken,
     // Gate por rol: sin esto el mecánico disparaba el RPC en cada detalle de
     // unidad y recibía un toast de error 400 "Forbidden".
     enabled: !!forkliftId && canViewFinancials,
     // Defensa extra: si el rol cambia en caliente o el guard drifta, no tostar.
     meta: { silent: true },
   });
+
+  useEffect(() => {
+    if (canViewFinancials) return;
+    const financialQueries = { queryKey: forkliftFinancialsQueries.keys.all };
+    // Cancel before removing: even a transport that ignores cancellation must
+    // not repopulate the cache when its old privileged request settles.
+    void queryClient.cancelQueries(financialQueries);
+    queryClient.removeQueries(financialQueries);
+  }, [canViewFinancials, queryClient]);
+
+  // Fail closed in the same render, before the cache-cleanup effect runs.
+  // Identity/organization purges remain owned by the existing global guards.
+  return { ...query, data: canViewFinancials ? query.data : undefined, canViewFinancials };
 }

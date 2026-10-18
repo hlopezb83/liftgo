@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -34,6 +34,11 @@ import { useForkliftLocation } from "../hooks/forklifts/useForkliftLocation";
 import { useForklift, useDeleteForklift, useStatusLogs } from "../hooks/forklifts/useForklifts";
 import { useCanSeeFinancialCosts } from "../hooks/useCanSeeFinancialCosts";
 
+function FinancialAccessGuard({ canViewFinancials, children }: { canViewFinancials: boolean; children: ReactNode }) {
+  if (!canViewFinancials) return null;
+  return children;
+}
+
 export default function ForkliftDetail() {
   const canUploadDamagePhotos = useHasModuleAccess("Daños", "full");
   const canSeeCosts = useCanSeeFinancialCosts();
@@ -49,7 +54,7 @@ export default function ForkliftDetail() {
   const todayYmd = useServerTodayMty();
   const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings, todayYmd) : null;
   const displayStatus = deriveForkliftDisplayStatus(forklift, availability);
-  const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
+  const { data: financials, isLoading: loadingFinancials, canViewFinancials } = useForkliftFinancials(id);
   const { data: locationData, isError: locationError } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -117,7 +122,9 @@ export default function ForkliftDetail() {
         <ForkliftRatesCard forklift={forklift} />
       </div>
 
-      <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
+      <FinancialAccessGuard canViewFinancials={canViewFinancials}>
+        <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
+      </FinancialAccessGuard>
 
       {forklift.notes && (
         <NotesCard value={forklift.notes} readOnly />
@@ -128,7 +135,9 @@ export default function ForkliftDetail() {
       </RoleGuard>
       <ForkliftBookingsList bookings={bookings || []} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
-      {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
+      <FinancialAccessGuard canViewFinancials={canViewFinancials}>
+        {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
+      </FinancialAccessGuard>
       {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" showUploader={canUploadDamagePhotos} />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} accessModule="Flota" />}
       <ForkliftStatusHistory logs={logs || []} />
