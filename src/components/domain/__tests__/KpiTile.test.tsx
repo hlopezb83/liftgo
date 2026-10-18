@@ -103,7 +103,7 @@ describe("KpiTile · estructura e interacción", () => {
   });
 
   it("etiqueta corta de 1 línea mantiene la misma zona reservada", () => {
-    const { container } = render(<KpiTile label="MRR" value="$1,000" />);
+    render(<KpiTile label="MRR" value="$1,000" />);
     const label = screen.getByText("MRR");
     expect(label.className).toContain("min-h-[2.5em]");
   });
