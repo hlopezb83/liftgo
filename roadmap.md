@@ -4,7 +4,9 @@
 
 - [x] Base `2d38f5eaa153db042749b1da845fe56a5ee31f66` confirmada; checkout interno `edit/*`, correspondiente a la referencia seleccionada por el coordinador.
 - [x] Sólo Resultados: grid 1/2/3/5 columnas y etiquetas sin clamp; KpiTile: sólo etiqueta sin clamp y ruptura de emergencia. Valores, cálculos, interacción y otros grids intactos.
-- [ ] Ejecutar pruebas focales de etiquetas/valores/comparativo y regresión reportes/dashboard, lint y QA aislada a 375/640/1024/1440 y texto 200%.
+- [x] Vitest: 54/54 en ocho archivos (KpiTile, cinco etiquetas/importes exactos de Resultados, comparativo sin KPI, derivados del reporte y MRR); ESLint de cuatro archivos y diff sin errores.
+- [x] Chromium aislado, componentes KPI reales y hook ficticio fuera del proyecto: a 375/640/1024/1440, sin recortes ni overflow; valores alineados por fila en Resultados, StatCards y MrrKpiCluster. A 375 los cinco valores habituales de Resultados quedan en una línea. Capturas/medidas en `/tmp/browser/kpi-mobile/`; sin errores de página ni lecturas ERP.
+- [ ] Límite observado al 200% (simulado duplicando tamaño raíz, también escala espacios; no equivale al zoom de sólo texto del navegador): Resultados muestra etiquetas completas, pero con 3+ líneas pierde alineación a 640/1024/1440 (desfases máximos 105/70/175 px); StatCards/MRR tienen overflow a 375 y contenido sin ancho disponible en algunas celdas a 1024. Reportado antes de ampliar alcance; grids ajenos y valores no se modifican. QA autenticada/publicada pendiente.
 - [ ] Coordinador: build productivo y typechecks en CI; ejecución manual no permitida por el entorno. No equivale a QA autenticada/publicada; sin datos, versiones, changelog ni publicación.
 
 ## V04–V05: presentación KPI (Resultados, Conciliación, KpiTile)
