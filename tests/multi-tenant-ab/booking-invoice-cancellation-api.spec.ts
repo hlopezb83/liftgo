@@ -67,12 +67,13 @@ async function withScenario(
   invoiceStatus: "draft" | "sent" | "cancelled",
   run: (scenario: Scenario) => Promise<void>,
   side = readAbContext().A,
+  fiscalSnapshot?: { id: string; status: "pending" | "accepted" },
 ) {
   const A = side;
   const owner = await login(A, "internal");
   const dispatcher = await login(A, "dispatcher");
   const s: Scenario = {
-    owner, dispatcher, side: A, invoiceId: randomUUID(), bookingId: randomUUID(), forkliftId: randomUUID(),
+    owner, dispatcher, side: A, invoiceId: fiscalSnapshot?.id ?? randomUUID(), bookingId: randomUUID(), forkliftId: randomUUID(),
   };
   const start = todayKeyMty();
   const endDate = new Date(`${start}T12:00:00Z`);
@@ -101,14 +102,45 @@ async function withScenario(
       line_items: [{ description: "Synthetic rental", quantity: 1, unit_price: 100, total: 100 }],
       subtotal: 100, tax_rate: 0, tax_amount: 0, total: 100,
     };
-    const invoice = dataOrThrow(await owner.from("invoices").insert(payload).select("*").single(), "create ordinary invoice");
+    const invoice = dataOrThrow(fiscalSnapshot
+      ? await owner.from("invoices").update({ booking_id: payload.booking_id,
+        billing_period_start: start, billing_period_end: end }).eq("id", s.invoiceId)
+        .eq("organization_id", A.organizationId).select("*").single()
+      : await owner.from("invoices").insert(payload).select("*").single(), "prepare invoice through ordinary SDK");
     expect(invoice).toMatchObject({ id: s.invoiceId, organization_id: A.organizationId, status: invoiceStatus,
-      is_e2e: false, cfdi_uuid: null, facturapi_invoice_id: null, cancellation_status: "none" });
+      is_e2e: false, cfdi_uuid: null, facturapi_invoice_id: null, cancellation_status: fiscalSnapshot?.status ?? "none" });
     if (link === "pivot") await attach(s);
     await run(s);
   } finally {
     await cleanup(s);
   }
+}
+
+for (const link of ["direct", "pivot"] as const) {
+  test(`R2 invoice cancellation: pending fiscal cancellation remains active for ${link} link`, async () => {
+    const context = readAbContext();
+    await withScenario(link, "sent", async (s) => {
+      await expectHiddenInvoice(s);
+      const before = await readState(s);
+      expect(before.invoice.cancellation_status).toBe("pending");
+      const fiscalWrite = await s.owner.from("invoices").update({ cancellation_status: "accepted" })
+        .eq("id", s.invoiceId).select("id");
+      expect(fiscalWrite.error?.code, "SDK cannot elude existing fiscal metadata guard").toBe("23514");
+      expect((await cancel(s, "owner", "rpc")).error?.code).toBe("23514");
+      expect((await cancel(s, "dispatcher", "rpc")).error?.code).toBe("23514");
+      expect((await cancel(s, "dispatcher", "update")).error?.code).toBe("23514");
+      expect(await readState(s)).toEqual(before);
+    }, context.A, { id: context.cancellationInvoiceSnapshots.pending[link], status: "pending" });
+  });
+
+  test(`R2 invoice cancellation: accepted fiscal cancellation permits ${link} booking cancellation`, async () => {
+    const context = readAbContext();
+    await withScenario(link, "sent", async (s) => {
+      expect((await readState(s)).invoice.cancellation_status).toBe("accepted");
+      expect((await cancel(s, "dispatcher", "rpc")).error).toBeNull();
+      expect((await readState(s)).booking.status).toBe("cancelled");
+    }, context.A, { id: context.cancellationInvoiceSnapshots.accepted[link], status: "accepted" });
+  });
 }
 
 async function attach(s: Scenario, bookingId = s.bookingId) {

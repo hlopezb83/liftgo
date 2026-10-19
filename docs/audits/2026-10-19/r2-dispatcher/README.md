@@ -4,7 +4,7 @@ Audited base: `7ac56b7b904f79fdb0b194dbccd97d67f364273a`.
 
 ## Baseline stage (tests only)
 
-`booking-invoice-cancellation-api.spec.ts` adds 21 expectations against the existing ephemeral A/B backend. ASUS has no running local Supabase stack, so these tests are prepared for the existing A/B CI lane; no dynamic result is claimed until that run finishes.
+The initial baseline commits of `booking-invoice-cancellation-api.spec.ts` add 21 expectations against the existing ephemeral A/B backend. Four further fixture-state controls cover pending and accepted fiscal cancellation (25 total). ASUS has no running local Supabase stack, so these tests are prepared for the existing A/B CI lane; no dynamic result is claimed until that run finishes.
 
 The A/B seed adds disposable Auth dispatchers in both synthetic organizations and validates their roles. Every case logs in through `createLocalUserClient`, verifies Auth user, membership-derived organization and actual role, then uses ordinary PostgREST SDK requests for fixture rows, operations, reads and cleanup. Business rows use the default `is_e2e=false`. Dispatchers must still see no invoice rows. No role/credential/policy is changed in a published backend.
 
@@ -20,6 +20,6 @@ A cancellation-only trigger cannot protect the opposite order. Two private recip
 
 Drafts can remain linked after booking cancellation; later activation is blocked. Unrelated edits of legacy inconsistent invoices must remain possible when lifecycle/link/cancellation fields do not change. The migration must not update existing business rows or grant invoice visibility to dispatcher.
 
-Fiscal pending/accepted states cannot be fabricated by an ordinary authenticated SDK because the existing fiscal metadata guard forbids it. A later fixture-only extension may preseed those synthetic snapshots through the existing seed admin, explicitly separate from the authenticated operation under test. No CFDI UUID, PAC call or fiscal bypass is needed.
+Fiscal pending/accepted states cannot be fabricated by an ordinary authenticated SDK because the existing fiscal metadata guard forbids it. A separate fixture-only extension preseeds four synthetic invoice snapshots through the existing seed admin, explicitly separate from the authenticated operation under test. Cases then attach them, read them, attempt cancellation and clean them up through ordinary SDK login. A negative SDK fiscal-metadata write verifies that the existing guard still rejects assigning accepted. No CFDI UUID, Facturapi id, PAC call or fiscal bypass is used.
 
 The dispatcher migration slot is reserved as **0106**, after the separately prepared REP claim migration 0105. SQL/journal/snapshot preparation waits for that base and the baseline CI evidence. Nothing in this document certifies a published ledger or authorizes migration application.

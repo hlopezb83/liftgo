@@ -19,6 +19,12 @@ export default async function globalTeardown(): Promise<void> {
     .from(AB_BUCKET)
     .remove([ctx.A.storagePath, ctx.B.storagePath, AB_LEGACY_OBJECT]);
 
+  for (const status of Object.values(ctx.cancellationInvoiceSnapshots ?? {})) {
+    for (const id of Object.values(status)) {
+      await admin.from("invoices").delete().eq("id", id).eq("organization_id", ctx.A.organizationId);
+    }
+  }
+
   for (const side of [ctx.A, ctx.B]) {
     await admin.from("documents").delete().eq("id", side.documentId);
     await admin.from("invoices").delete().eq("id", side.invoiceId);

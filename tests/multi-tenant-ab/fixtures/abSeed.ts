@@ -14,6 +14,7 @@
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -62,6 +63,8 @@ export type AbContext = {
   platformOperatorUserId: string;
   platformOperator: AbSide["internal"];
   roles: Record<"ventas" | "administrativo" | "mecanico", AbSide["internal"]>;
+  /** Fiscal snapshots exist only as synthetic seed states, never PAC calls. */
+  cancellationInvoiceSnapshots: Record<"pending" | "accepted", Record<"direct" | "pivot", string>>;
   /** Empresas iniciales que el ensayo suspendió y debe restaurar al terminar. */
   initialActiveOrganizationIds: string[];
 };
@@ -341,6 +344,26 @@ async function setOrganizationActive(
   );
 }
 
+async function seedCancellationSnapshots(admin: SupabaseClient, side: AbSide): Promise<AbContext["cancellationInvoiceSnapshots"]> {
+  const snapshots = { pending: { direct: randomUUID(), pivot: randomUUID() },
+    accepted: { direct: randomUUID(), pivot: randomUUID() } };
+  for (const status of ["pending", "accepted"] as const) {
+    for (const link of ["direct", "pivot"] as const) {
+      const id = snapshots[status][link];
+      // This is fixture initialization through the EXISTING local seed admin.
+      // Ordinary Auth is deliberately forbidden from assigning fiscal states.
+      // No UUID, Facturapi id, stamp or actual cancellation is fabricated.
+      must("synthetic cancellation snapshot", (await admin.from("invoices").insert({
+        id, organization_id: side.organizationId, customer_id: side.customerId,
+        invoice_number: `AB-FISCAL-${status}-${id}`, customer_name: "Synthetic fiscal snapshot",
+        line_items: [{ description: "Synthetic fiscal snapshot", quantity: 1, unit_price: 100, total: 100 }],
+        subtotal: 100, tax_rate: 0, tax_amount: 0, total: 100, status: "sent", cancellation_status: status,
+      })).error);
+    }
+  }
+  return snapshots;
+}
+
 export async function seedAbEnvironment(): Promise<AbContext> {
   const admin = createLocalAdminClient("seed");
 
@@ -450,6 +473,8 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     );
   }
 
+  const cancellationInvoiceSnapshots = await seedCancellationSnapshots(admin, A);
+
   const context: AbContext = {
     A,
     B,
@@ -457,6 +482,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     platformOperatorUserId: operatorId,
     platformOperator,
     roles,
+    cancellationInvoiceSnapshots,
     initialActiveOrganizationIds,
   };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });
