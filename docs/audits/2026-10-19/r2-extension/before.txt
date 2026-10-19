@@ -1,0 +1,207 @@
+
+ RUN  v4.1.11 <workspace>
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx (15 tests | 12 failed) 1057ms
+     ├ù inherits USD/17.5 while preserving the agreed numeric rate and extended period 93ms
+     ├ù also applies currency when the transport already supplies the complete booking 74ms
+     ├ù normalizes domestic or missing currency MXN to MXN/1 68ms
+     ├ù normalizes domestic or missing currency null to MXN/1 74ms
+     ├ù normalizes domestic or missing currency  to MXN/1 76ms
+     ├ù uses the same currency normalization as the primary-booking prefill 83ms
+     ├ù clears unusable foreign FX null and blocks submission 77ms
+     ├ù clears unusable foreign FX 0 and blocks submission 67ms
+     ├ù clears unusable foreign FX -17.5 and blocks submission 82ms
+     ├ù clears unusable foreign FX NaN and blocks submission 79ms
+     ├ù preserves the existing validation against placeholder foreign FX 1 68ms
+     ├ù waits for customers, then inherits currency once without overwriting later edits 74ms
+     Γ£ô does not apply extension data while editing an existing invoice 2ms
+     Γ£ô keeps the already-invoiced guard ahead of all prefill fields 72ms
+     Γ£ô keeps the no-billable-days guard ahead of all prefill fields 67ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 12 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > inherits USD/17.5 while preserving the agreed numeric rate and extended period
+AssertionError: expected { id: 'synthetic-booking', ΓÇª(8) } to match object { currency: 'USD', tipo_cambio: 17.5 }
+(14 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "currency": "USD",
+-   "tipo_cambio": 17.5,
++   "booking_number": "SYNTHETIC-EXTENSION",
++   "customer_id": "synthetic-customer",
++   "customer_name": "Synthetic customer",
++   "daily_rate": 100,
++   "forklifts": {
++     "daily_rate": 900,
++     "monthly_rate": 20000,
++     "name": "Synthetic forklift",
++     "serial_number": "SYNTHETIC",
++     "weekly_rate": 6000,
++   },
++   "id": "synthetic-booking",
++   "monthly_rate": 2000,
++   "recurring_billing": false,
++   "weekly_rate": 600,
+  }
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:125:38
+    123|     const { result } = renderPrefill();
+    124|     await waitUntilPrefilled(result);
+    125|     expect(state.response?.bookings).toMatchObject({ currency: "USD", ΓÇª
+       |                                      ^
+    126|     expect(result.current.form.getValues()).toMatchObject({
+    127|       customerId: customer.id, bookingId: booking.id, bookingIds: [booΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/12]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > also applies currency when the transport already supplies the complete booking
+AssertionError: expected { serie: '', folio: '', ΓÇª(12) } to match object { moneda: 'USD', tipoCambio: 17.5 }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "moneda": "USD",
+-   "tipoCambio": 17.5,
++   "moneda": "EUR",
++   "tipoCambio": 22,
+  }
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:140:51
+    138|     const { result } = renderPrefill();
+    139|     await waitUntilPrefilled(result);
+    140|     expect(result.current.form.getValues("cfdi")).toMatchObject({ moneΓÇª
+       |                                                   ^
+    141|   });
+    142|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/12]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > normalizes domestic or missing currency MXN to MXN/1
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > normalizes domestic or missing currency null to MXN/1
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > normalizes domestic or missing currency  to MXN/1
+AssertionError: expected { serie: '', folio: '', ΓÇª(12) } to match object { moneda: 'MXN', tipoCambio: 1 }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "moneda": "MXN",
+-   "tipoCambio": 1,
++   "moneda": "EUR",
++   "tipoCambio": 22,
+  }
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:147:51
+    145|     const { result } = renderPrefill();
+    146|     await waitUntilPrefilled(result);
+    147|     expect(result.current.form.getValues("cfdi")).toMatchObject({ moneΓÇª
+       |                                                   ^
+    148|     expect(result.current.form.getValues("lineItems")[0]).toMatchObjecΓÇª
+    149|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/12]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > uses the same currency normalization as the primary-booking prefill
+AssertionError: expected { serie: '', folio: '', ΓÇª(12) } to match object { moneda: 'USD', tipoCambio: 17.5 }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "moneda": "USD",
+-   "tipoCambio": 17.5,
++   "moneda": "EUR",
++   "tipoCambio": 22,
+  }
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:155:51
+    153|     const { result } = renderPrefill();
+    154|     await waitUntilPrefilled(result);
+    155|     expect(result.current.form.getValues("cfdi")).toMatchObject({ moneΓÇª
+       |                                                   ^
+    156|   });
+    157|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/12]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > clears unusable foreign FX null and blocks submission
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > clears unusable foreign FX 0 and blocks submission
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > clears unusable foreign FX -17.5 and blocks submission
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > clears unusable foreign FX NaN and blocks submission
+AssertionError: expected { serie: '', folio: '', ΓÇª(12) } to match object { moneda: 'USD', tipoCambio: +0 }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "moneda": "USD",
+-   "tipoCambio": 0,
++   "moneda": "EUR",
++   "tipoCambio": 22,
+  }
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:162:51
+    160|     const { result } = renderPrefill();
+    161|     await waitUntilPrefilled(result);
+    162|     expect(result.current.form.getValues("cfdi")).toMatchObject({ moneΓÇª
+       |                                                   ^
+    163|     const parsed = invoiceFormSchema.safeParse(result.current.form.getΓÇª
+    164|     expect(parsed.success).toBe(false);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/12]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > preserves the existing validation against placeholder foreign FX 1
+AssertionError: expected { serie: '', folio: '', ΓÇª(12) } to match object { moneda: 'USD', tipoCambio: 1 }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "moneda": "USD",
+-   "tipoCambio": 1,
++   "moneda": "EUR",
++   "tipoCambio": 22,
+  }
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:173:51
+    171|     const { result } = renderPrefill();
+    172|     await waitUntilPrefilled(result);
+    173|     expect(result.current.form.getValues("cfdi")).toMatchObject({ moneΓÇª
+       |                                                   ^
+    174|     expect(invoiceFormSchema.safeParse(result.current.form.getValues()ΓÇª
+    175|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/12]ΓÄ»
+
+ FAIL  src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx > extension invoice currency through the actual query and prefill > waits for customers, then inherits currency once without overwriting later edits
+AssertionError: expected 'EUR' to be 'USD' // Object.is equality
+
+Expected: "USD"
+Received: "EUR"
+
+ Γ¥» src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:184:58
+    182|     rerender({ loaded: true, edit: false });
+    183|     await waitUntilPrefilled(result);
+    184|     expect(result.current.form.getValues("cfdi.moneda")).toBe("USD");
+       |                                                          ^
+    185|     act(() => result.current.form.setValue("cfdi.tipoCambio", 18));
+    186|     rerender({ loaded: true, edit: false });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/12]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  12 failed | 3 passed (15)
+   Start at  00:12:17
+   Duration  7.39s (transform 500ms, setup 720ms, import 4.13s, tests 1.06s, environment 1.18s)
+
+JSON report written to <workspace>/docs/audits/2026-10-19/r2-extension/before.json

@@ -1,0 +1,18 @@
+
+ RUN  v4.1.11 <workspace>
+
+ Γ£ô src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx (15 tests) 1189ms
+ Γ£ô src/features/bookings/hooks/__tests__/useBookingExtensions.test.ts (4 tests) 292ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormTotals.test.ts (4 tests) 55ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormHandlers.test.ts (16 tests) 18ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/invoiceFormBuilders.test.ts (19 tests) 10ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/resolveBillingPeriod.test.ts (4 tests) 4ms
+ Γ£ô src/features/bookings/lib/__tests__/extensionBilling.test.ts (10 tests) 7ms
+ Γ£ô src/features/invoices/hooks/invoiceForm/__tests__/primaryBookingCurrency.test.ts (2 tests) 8ms
+
+ Test Files  8 passed (8)
+      Tests  74 passed (74)
+   Start at  00:14:41
+   Duration  72.07s (transform 3.65s, setup 5.91s, import 50.70s, tests 1.58s, environment 10.31s)
+
+JSON report written to <workspace>/docs/audits/2026-10-19/r2-extension/after.json
