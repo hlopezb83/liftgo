@@ -113,7 +113,7 @@ async function recoverRepFolio(
   return "rep_folio_pending";
 }
 
-async function handleRequest(req: Request): Promise<Response> {
+export async function handleRequest(req: Request): Promise<Response> {
   const RUN_STARTED_AT = Date.now();
   const outOfBudget = () => Date.now() - RUN_STARTED_AT > RUN_BUDGET_MS;
   let truncated = false;
@@ -672,13 +672,29 @@ async function handleRequest(req: Request): Promise<Response> {
         if (outcome.kind === "recover") {
           facturapiId = outcome.facturapi_id;
           repUuid = outcome.uuid;
-          await admin.from("payments")
+          const { data: savedIds, error: idsError } = await admin.from(
+            "payments",
+          )
             .update({
               rep_facturapi_id: facturapiId,
               rep_cfdi_uuid: repUuid,
               rep_lookup_attempts: 0, // racha de misses consecutivos: reset
             })
-            .eq("id", paymentId);
+            .eq("id", paymentId)
+            .select("id")
+            .maybeSingle();
+          // Un error de Supabase resuelve la promesa; no entra en catch.
+          // Mantener el claim en stamping: el REP ya existe en el PAC y no
+          // debemos finalizar ni habilitar otra emisión sin guardar sus IDs.
+          if (idsError || !savedIds) {
+            results.push({
+              invoice_id: paymentId,
+              status: "rep_persistence_error",
+              error: idsError?.message ??
+                "REP identifier update affected no rows",
+            });
+            continue;
+          }
         } else if (outcome.kind === "pending") {
           await admin.from("payments").update({
             rep_facturapi_id: outcome.facturapi_id,
@@ -795,7 +811,8 @@ async function handleRequest(req: Request): Promise<Response> {
           const exhausted = decideXmlFailure(
             p.rep_stamping_attempts as number | null,
           ) === "mark_error";
-          await admin.from("payments")
+          const { data: savedXmlState, error: xmlStateError } = await admin
+            .from("payments")
             .update({
               ...(exhausted
                 ? {
@@ -811,7 +828,18 @@ async function handleRequest(req: Request): Promise<Response> {
                 }),
               rep_stamping_attempts: attempts,
             })
-            .eq("id", paymentId);
+            .eq("id", paymentId)
+            .select("id")
+            .maybeSingle();
+          if (xmlStateError || !savedXmlState) {
+            results.push({
+              invoice_id: paymentId,
+              status: "rep_persistence_error",
+              error: xmlStateError?.message ??
+                "REP XML state update affected no rows",
+            });
+            continue;
+          }
           results.push({
             invoice_id: paymentId,
             status: exhausted
@@ -820,7 +848,9 @@ async function handleRequest(req: Request): Promise<Response> {
           });
           continue;
         }
-        await admin.from("payments")
+        const { data: stampedPayment, error: stampError } = await admin.from(
+          "payments",
+        )
           .update({
             rep_cfdi_status: "stamped",
             rep_stamping_started_at: null,
@@ -831,7 +861,18 @@ async function handleRequest(req: Request): Promise<Response> {
             rep_stamping_attempts: 0,
             rep_xml_pending: false,
           })
-          .eq("id", paymentId);
+          .eq("id", paymentId)
+          .select("id")
+          .maybeSingle();
+        if (stampError || !stampedPayment) {
+          results.push({
+            invoice_id: paymentId,
+            status: "rep_persistence_error",
+            error: stampError?.message ??
+              "REP finalization update affected no rows",
+          });
+          continue;
+        }
         // Tramo 8.1: recuperar pagos ya timbrados que quedaron SIN folio
         // interno. Siempre dentro de la organización del propio pago y de forma
         // idempotente (la RPC devuelve el folio existente si ya coincide).
