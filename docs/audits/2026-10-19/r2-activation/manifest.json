@@ -1573,7 +1573,7 @@
           "pr": 285,
           "sourceCommit": "45b452431dda30d5138e01ac73490366b184bda9",
           "provisional": false,
-          "alreadyMergedAtBaseline": false,
+          "alreadyMergedAtBaseline": true,
           "runtimeFiles": [
             {
               "path": "src/features/invoices/components/invoice-detail/InvoicePaymentSummary.tsx",
@@ -1597,7 +1597,7 @@
           "pr": 286,
           "sourceCommit": "8f4103f266a2e3e57375776fee6f2c063650d47c",
           "provisional": false,
-          "alreadyMergedAtBaseline": false,
+          "alreadyMergedAtBaseline": true,
           "runtimeFiles": [
             {
               "path": "src/components/layout/DetailPageHeader.tsx",
@@ -1834,6 +1834,7 @@
   ],
   "readme": {
     "path": "docs/audits/2026-10-19/r2-activation/README.md",
-    "sha256": "a785790f84fd861ab7633e6bc40a4654dc46e04a5744d80384d4237ed5e78e27"
+    "sha256": "19ba1d13e9ed52fd28de4f811db06d97147d61f7b940ab9161d64a164ec02041",
+    "hashBasis": "Exact source Git blob bytes, UTF-8 LF"
   }
 }
