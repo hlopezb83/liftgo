@@ -13,6 +13,7 @@ type Booking = Tables<"bookings">;
 type Scenario = {
   owner: Client; dispatcher: Client; side: AbSide;
   invoiceId: string; bookingId: string; forkliftId: string;
+  additionalBookings: { bookingId: string; forkliftId: string }[];
 };
 
 function dataOrThrow<T>(result: { data: T | null; error: { message: string } | null }, label: string): T {
@@ -49,8 +50,14 @@ async function readState(s: Scenario) {
 async function cleanup(s: Scenario) {
   // Ordinary authenticated SDK only, including cleanup. No service fallback,
   // privileged teardown RPC, is_e2e=true or bypass context is used by a case.
+  // Delete the invoice before ANY booking: a baseline that exposes an invalid
+  // direct link may still reference a sibling when the primary assertion fails.
   for (const [table, id] of [
-    ["invoices", s.invoiceId], ["bookings", s.bookingId], ["forklifts", s.forkliftId],
+    ["invoices", s.invoiceId],
+    ...s.additionalBookings.map(({ bookingId }) => ["bookings", bookingId] as const),
+    ["bookings", s.bookingId],
+    ...s.additionalBookings.map(({ forkliftId }) => ["forklifts", forkliftId] as const),
+    ["forklifts", s.forkliftId],
   ] as const) {
     const present = dataOrThrow(await s.owner.from(table).select("id").eq("id", id)
       .eq("organization_id", s.side.organizationId), `cleanup read ${table}`);
@@ -60,6 +67,11 @@ async function cleanup(s: Scenario) {
     expect(dataOrThrow(await s.owner.from(table).select("id").eq("id", id), `cleanup verify ${table}`)).toEqual([]);
   }
   await Promise.all([s.owner.auth.signOut({ scope: "local" }), s.dispatcher.auth.signOut({ scope: "local" })]);
+}
+
+function fixtureFailureSummary(error: unknown) {
+  return { kind: error instanceof Error ? error.name : typeof error,
+    sqlStates: error instanceof Error ? [...new Set(error.message.match(/\b(?:23503|23505|23514|42501|55P03|40P01)\b/g) ?? [])] : [] };
 }
 
 async function withScenario(
@@ -75,14 +87,16 @@ async function withScenario(
   const dispatcher = await login(A, "dispatcher");
   const s: Scenario = {
     owner, dispatcher, side: A, invoiceId: fiscalSnapshot?.id ?? randomUUID(), bookingId: bookingId ?? randomUUID(), forkliftId: randomUUID(),
+    additionalBookings: [],
   };
   const start = todayKeyMty();
   const endDate = new Date(`${start}T12:00:00Z`);
   endDate.setUTCDate(endDate.getUTCDate() + 6);
   const end = endDate.toISOString().slice(0, 10);
+  let primaryFailure: { error: unknown } | undefined;
   try {
     const forklift = dataOrThrow(await owner.from("forklifts").insert({
-      id: s.forkliftId, organization_id: A.organizationId, name: "Synthetic cancellation unit",
+      id: s.forkliftId, organization_id: A.organizationId, name: `Synthetic cancellation unit ${s.forkliftId}`,
       model: "SYNTHETIC", serial_number: s.forkliftId, status: "available", daily_rate: 100,
     }).select("id, organization_id, is_e2e").single(), "create ordinary forklift");
     expect(forklift).toMatchObject({ id: s.forkliftId, organization_id: A.organizationId, is_e2e: false });
@@ -118,34 +132,44 @@ async function withScenario(
     if (fiscalSnapshot?.cfdiStatus) expect(invoice).toMatchObject({ cfdi_status: fiscalSnapshot.cfdiStatus });
     if (link === "pivot") await attach(s);
     await run(s);
+  } catch (error) {
+    primaryFailure = { error };
+    throw error;
   } finally {
-    await cleanup(s);
+    try {
+      await cleanup(s);
+    } catch (error) {
+      if (!primaryFailure) throw error;
+      // Keep the operation/assertion as the test failure. The secondary cleanup
+      // diagnostic records kinds/SQLSTATEs only, never row data or credentials.
+      const diagnostic = JSON.stringify({ primaryFailurePreserved: true,
+        primary: fixtureFailureSummary(primaryFailure.error), secondaryCleanup: fixtureFailureSummary(error) });
+      test.info().annotations.push({ type: "secondary-fixture-cleanup-failure", description: diagnostic });
+      try {
+        await test.info().attach("secondary-fixture-cleanup-failure", { contentType: "application/json", body: diagnostic });
+      } catch {
+        // The annotation remains available even if the artifact writer fails;
+        // never replace the original operation/assertion with an attachment error.
+      }
+    }
   }
 }
 
 async function withAdditionalBooking(s: Scenario, run: (bookingId: string) => Promise<void>, bookingId: string = randomUUID()) {
   const forkliftId = randomUUID();
   const original = (await readState(s)).booking;
-  try {
-    dataOrThrow(await s.owner.from("forklifts").insert({ id: forkliftId, organization_id: s.side.organizationId,
-      name: "Synthetic sibling unit", model: "SYNTHETIC", status: "available" }).select("id").single(), "create sibling unit");
-    const booking = dataOrThrow(await s.owner.from("bookings").insert({
-      id: bookingId, organization_id: s.side.organizationId, forklift_id: forkliftId, customer_id: s.side.customerId,
-      customer_name: "Synthetic sibling booking", booking_number: `AB-SIBLING-${bookingId}`,
-      start_date: original.start_date, end_date: original.end_date, status: "confirmed", currency: "MXN", tipo_cambio: 1,
-    }).select("id, organization_id, status, is_e2e").single(), "create sibling booking");
-    expect(booking).toMatchObject({ id: bookingId, organization_id: s.side.organizationId, status: "confirmed", is_e2e: false });
-    await run(bookingId);
-  } finally {
-    expect((await s.owner.from("invoice_bookings").delete().eq("booking_id", bookingId)
-      .eq("organization_id", s.side.organizationId)).error).toBeNull();
-    for (const [table, id] of [["bookings", bookingId], ["forklifts", forkliftId]] as const) {
-      const present = dataOrThrow(await s.owner.from(table).select("id").eq("id", id)
-        .eq("organization_id", s.side.organizationId), "read sibling cleanup");
-      expect(dataOrThrow(await s.owner.from(table).delete().eq("id", id).eq("organization_id", s.side.organizationId)
-        .select("id"), "delete sibling cleanup")).toEqual(present);
-    }
-  }
+  // Registration precedes inserts so partial setup is also removed by the
+  // outer scenario's finally, AFTER its invoice and the unchanged assertions.
+  s.additionalBookings.push({ bookingId, forkliftId });
+  dataOrThrow(await s.owner.from("forklifts").insert({ id: forkliftId, organization_id: s.side.organizationId,
+    name: `Synthetic sibling unit ${forkliftId}`, model: "SYNTHETIC", status: "available" }).select("id").single(), "create sibling unit");
+  const booking = dataOrThrow(await s.owner.from("bookings").insert({
+    id: bookingId, organization_id: s.side.organizationId, forklift_id: forkliftId, customer_id: s.side.customerId,
+    customer_name: "Synthetic sibling booking", booking_number: `AB-SIBLING-${bookingId}`,
+    start_date: original.start_date, end_date: original.end_date, status: "confirmed", currency: "MXN", tipo_cambio: 1,
+  }).select("id, organization_id, status, is_e2e").single(), "create sibling booking");
+  expect(booking).toMatchObject({ id: bookingId, organization_id: s.side.organizationId, status: "confirmed", is_e2e: false });
+  await run(bookingId);
 }
 
 async function expectOccupiedFiscalSnapshot(s: Scenario) {
