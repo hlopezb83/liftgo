@@ -94,6 +94,19 @@ describe("useInvoiceLineItemHandlers (useFieldArray integration)", () => {
     expect(ids.every((id) => typeof id === "string" && id.length > 0)).toBe(true);
   });
 
+  it("acepta cantidades fraccionarias positivas y recalcula su importe", async () => {
+    const { result } = setupHook();
+    act(() => result.current.handlers.addLineItem());
+    act(() => result.current.handlers.updateLineItem(0, "unit_price", 100));
+    act(() => result.current.handlers.updateLineItem(0, "quantity", 0.25));
+    let valid = false;
+    await act(async () => {
+      valid = await result.current.form.trigger("lineItems.0.quantity");
+    });
+    expect(valid).toBe(true);
+    expect(result.current.form.getValues("lineItems.0.total")).toBe(25);
+  });
+
   it("trigger de validación falla cuando quantity = 0 (schema)", async () => {
     const { result } = setupHook();
     act(() => result.current.handlers.addLineItem());
@@ -105,6 +118,6 @@ describe("useInvoiceLineItemHandlers (useFieldArray integration)", () => {
     expect(valid).toBe(false);
     const fieldState = result.current.form.getFieldState("lineItems.0.quantity");
     expect(fieldState.invalid).toBe(true);
-    expect(fieldState.error?.message).toBe("Cantidad ≥ 1");
+    expect(fieldState.error?.message).toBe("Cantidad mayor a 0");
   });
 });

@@ -1,6 +1,11 @@
 import currency from "currency.js";
 
 export interface LineItem {
+  quote_line_id?: string;
+  source_quote_id?: string;
+  source_quote_line_id?: string;
+  line_kind?: "charge" | "rental" | "sale" | "manual";
+  charge_kind?: "logistics" | "insurance";
   description: string;
   quantity: number;
   unit_price: number;

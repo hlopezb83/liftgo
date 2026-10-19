@@ -7,6 +7,7 @@ import {
   type LineItemValues,
   EMPTY_CFDI,
 } from "../../lib/invoiceFormSchema";
+import { applyQuoteChargeAvailability, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 
 export type Customer = {
   id: string; name: string;
@@ -32,6 +33,7 @@ export type ExistingInvoice = {
 
 
 export type SourceQuote = {
+  id?: string;
   customer_name?: string | null; customer_id: string | null;
   line_items?: unknown; tax_rate?: number | string; notes?: string | null;
   quote_type?: string; currency?: string | null; tipo_cambio?: number | string | null;
@@ -116,13 +118,14 @@ export function buildFromInvoice(inv: ExistingInvoice, customers: Customer[] | u
 }
 
 interface FromQuoteArgs {
+  chargeAvailability?: QuoteChargeAvailability;
   q: SourceQuote;
   assignments: Assignment[] | undefined;
   forklifts: Forklift[] | undefined;
   customers: Customer[] | undefined;
 }
 
-export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuoteArgs): InvoiceFormValues {
+export function buildFromQuote({ q, assignments, forklifts, customers, chargeAvailability }: FromQuoteArgs): InvoiceFormValues {
   const cfdi: CfdiFormValues = { ...EMPTY_CFDI };
   // Las cotizaciones soportan USD: heredar la moneda para no facturar en MXN
   // montos cotizados en USD.
@@ -144,7 +147,9 @@ export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuo
     bookingIds: [],
     customerId: q.customer_id ?? "",
     customerName: toStr(q.customer_name),
-    lineItems: items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)),
+    lineItems: q.id
+      ? applyQuoteChargeAvailability(q.id, items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)), chargeAvailability)
+      : items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)),
     taxRate: q.tax_rate == null ? 16 : Number(q.tax_rate),
     dueDate: undefined,
     issueDate: nowMty(),

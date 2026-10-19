@@ -56,3 +56,10 @@ describe("collectInvoicedBookingIds", () => {
     expect(collectInvoicedBookingIds([], [], undefined).size).toBe(0);
   });
 });
+
+
+it("retains the direct booking of the current invoice, but not another invoice's claim", () => {
+  const invoices = [{ id: "own", status: "draft", booking_id: "booking" }];
+  expect(collectInvoicedBookingIds(invoices, [], "own").has("booking")).toBe(false);
+  expect(collectInvoicedBookingIds([...invoices, { id: "other", status: "paid", booking_id: "booking" }], [], "own").has("booking")).toBe(true);
+});

@@ -3,7 +3,7 @@
   "imports": {
     "@sentry/deno": "npm:@sentry/deno@10.76.2",
     "@std/assert": "jsr:@std/assert@1.0.19",
-    "facturapi": "npm:facturapi@5.1.0"
+    "facturapi": "npm:facturapi@5.2.0"
   },
   "lint": {
     "rules": {

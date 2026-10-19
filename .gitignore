@@ -52,3 +52,7 @@ playwright-report-multitenant/
 
 # Bindings locales de Wrangler (credenciales efímeras CI/local)
 .dev.vars*
+
+# Temporary byte-verified Drizzle replay for local CI only
+/.ci-drizzle-replay*/
+
