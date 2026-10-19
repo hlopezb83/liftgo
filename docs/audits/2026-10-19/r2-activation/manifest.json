@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "status": "PROPOSED_NOT_EXECUTED",
-  "generatedAt": "2026-10-19T11:27:31.757Z",
-  "documentBase": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+  "generatedAt": "2026-10-19T12:23:23Z",
+  "documentBase": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
   "auditBase": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
-  "coordinator": "Parent owns merges, target approval, official migration/publication and QA coordination",
+  "coordinator": "Parent owns target approval, official migration/publication and QA coordination; release code merges are complete",
   "executionPerformed": {
     "remoteConnections": false,
     "remoteReadQueries": false,
@@ -17,21 +17,25 @@
     "pacCalls": false,
     "permissionChanges": false,
     "toolDownloads": false,
-    "scope": "Backend, migration and deployment operations only; repository reads and PR publication are separate"
+    "scope": "Operations performed by this documentation task only; coordinated external read-only preflight is separately recorded in observedPreflight; no migration/deployment is represented as executed"
   },
   "sources": [
     {
-      "commit": "4de7d314c140ccccb326730430bd8e6eb96219c8",
+      "commit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
       "path": "docs/migration-release-contract.md",
       "sha256": "50e96977b88434645e729c2f3fa52329f6534a3ea180c914dcd5ecb32d50f4a2"
     },
     {
       "commit": "45b452431dda30d5138e01ac73490366b184bda9",
-      "label": "r2-rep-ci reviewed head"
+      "label": "PR285 reviewed head, merged into the pinned release"
     },
     {
-      "commit": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
-      "label": "r2-dispatcher-ci reviewed head"
+      "commit": "d628dd0c24db765c82ffb2197c56df9b214dc1f0",
+      "label": "PR283 final reconciled reviewed head, merged into the pinned release"
+    },
+    {
+      "commit": "069a732787e2c61c956172ae8f4c08ecf0956256",
+      "label": "PR284 final reconciled reviewed head, merged into the pinned release"
     }
   ],
   "prs": [
@@ -40,41 +44,40 @@
       "url": "https://github.com/hlopezb83/liftgo/pull/282",
       "reviewedHead": "46e5880eac4f9f992d68e14108c1a20cf7abf426",
       "mergeCommit": "4de7d314c140ccccb326730430bd8e6eb96219c8",
-      "state": "MERGED_PUBLICATION_NOT_VERIFIED"
-    },
-    {
-      "number": 283,
-      "url": "https://github.com/hlopezb83/liftgo/pull/283",
-      "lastKnownHead": "d628dd0c24db765c82ffb2197c56df9b214dc1f0",
-      "finalActivationHead": null,
-      "state": "RECONCILED_LOCAL_CHECKS_PASS_NEW_HEAD_CI_AND_PARENT_REVIEW_PENDING",
-      "preReconciliationHead": "991347f1e871791c5f9243cbaf89e81f14e12b3f",
-      "reconciledCandidateHead": "d628dd0c24db765c82ffb2197c56df9b214dc1f0"
+      "state": "MERGED_POSTMERGE_RELEASE_CHECKS_PASSED_PUBLICATION_NOT_VERIFIED",
+      "liveRepositoryStatusFetched": true
     },
     {
       "number": 285,
       "url": "https://github.com/hlopezb83/liftgo/pull/285",
       "reviewedHead": "45b452431dda30d5138e01ac73490366b184bda9",
-      "state": "MERGED_POSTMERGE_CHECKS_PASSED_PER_COORDINATOR_PUBLICATION_NOT_VERIFIED",
-      "liveStatusFetched": false,
-      "mergeCommit": "3d679f30da4ffdf861a2ac185c435128fe3d1809"
-    },
-    {
-      "number": 284,
-      "url": "https://github.com/hlopezb83/liftgo/pull/284",
-      "reviewedHead": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
-      "state": "RECONCILED_LOCAL_CHECKS_PASS_NEW_HEAD_CI_AND_PARENT_REVIEW_PENDING",
-      "liveStatusFetched": false,
-      "reconciledCandidateHead": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
-      "finalActivationHead": null
+      "mergeCommit": "3d679f30da4ffdf861a2ac185c435128fe3d1809",
+      "state": "MERGED_POSTMERGE_RELEASE_CHECKS_PASSED_PUBLICATION_NOT_VERIFIED",
+      "liveRepositoryStatusFetched": true
     },
     {
       "number": 286,
       "url": "https://github.com/hlopezb83/liftgo/pull/286",
       "reviewedHead": "8f4103f266a2e3e57375776fee6f2c063650d47c",
-      "state": "MERGED_POSTMERGE_CHECKS_PASSED_PER_COORDINATOR_PUBLICATION_NOT_VERIFIED",
-      "liveStatusFetched": false,
-      "mergeCommit": "0a532d68f0458b96b6e5a8e9f32900322056775f"
+      "mergeCommit": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+      "state": "MERGED_POSTMERGE_RELEASE_CHECKS_PASSED_PUBLICATION_NOT_VERIFIED",
+      "liveRepositoryStatusFetched": true
+    },
+    {
+      "number": 283,
+      "url": "https://github.com/hlopezb83/liftgo/pull/283",
+      "reviewedHead": "d628dd0c24db765c82ffb2197c56df9b214dc1f0",
+      "mergeCommit": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "state": "MERGED_POSTMERGE_RELEASE_CHECKS_PASSED_PUBLICATION_NOT_VERIFIED",
+      "liveRepositoryStatusFetched": true
+    },
+    {
+      "number": 284,
+      "url": "https://github.com/hlopezb83/liftgo/pull/284",
+      "reviewedHead": "069a732787e2c61c956172ae8f4c08ecf0956256",
+      "mergeCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+      "state": "MERGED_POSTMERGE_RELEASE_CHECKS_PASSED_PUBLICATION_NOT_VERIFIED",
+      "liveRepositoryStatusFetched": true
     }
   ],
   "dependencies": [
@@ -85,9 +88,7 @@
     }
   ],
   "releaseBinding": {
-    "finalIntegratedReleaseSha": null,
-    "placeholder": "<FINAL_INTEGRATED_RELEASE_SHA>",
-    "requiresFinal283Head": true,
+    "finalIntegratedReleaseSha": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
     "requiresFinalTreeReviewAndCi": true,
     "requiresSqlAndFullJournalExactByteMatch": true,
     "squashMergeProvenanceMustBeRecorded": true,
@@ -96,8 +97,18 @@
       105,
       106
     ],
-    "requiresFinal284Head": true,
-    "logistics107Included": false
+    "logistics107Included": false,
+    "status": "PINNED_MERGED_RELEASE_NOT_ACTIVATED",
+    "reviewedHeadsAndMergeProvenanceVerified": true,
+    "mergeOrder": [
+      282,
+      285,
+      286,
+      283,
+      284
+    ],
+    "finalTreeReleaseCi": "SUCCESS_WITH_CONDITIONALLY_SKIPPED_CHECKS",
+    "subsequentCheckoutOrDdlRequiresNewManifest": true
   },
   "target": {
     "environmentLabel": "<APPROVED_TARGET>",
@@ -105,11 +116,23 @@
     "specificApprovalReference": "<APPROVED_MIGRATION_AND_PUBLICATION_REFERENCE>",
     "officialRunner": "<OFFICIAL_RUNNER_IDENTITY>",
     "exclusiveExecutionControl": "<APPROVED_SINGLE_EXECUTOR_CONTROL>",
-    "repWriteQuiescenceControl": "<APPROVED_OPERATIONAL_WINDOW_CONTROL>",
+    "repWriteQuiescenceControl": "<APPROVED_NO_NEW_REP_AND_OLD_REQUEST_DRAIN_CONTROL>",
     "migrationSecretVariable": "LOVABLE_DB_MIGRATION_URL",
     "secretValueIncluded": false,
     "frontendChannel": "<APPROVED_FRONTEND_DEPLOYMENT_CHANNEL>",
-    "edgeChannel": "<APPROVED_EDGE_DEPLOYMENT_CHANNEL>"
+    "edgeChannel": "<APPROVED_EDGE_DEPLOYMENT_CHANNEL>",
+    "sourceBinding": {
+      "status": "EXPECTED_REFERENCE_VERIFIED_IN_SOURCE_ONLY",
+      "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+      "path": "supabase/config.toml",
+      "sha256": "5f74fb4c7e21019a17082eb0656aa3b70477ad97f50ee3b709d26303c5c0d39d",
+      "matchesCoordinatorExpectedReference": true,
+      "backendReferenceIncluded": false,
+      "liveFrontendEdgeBinding": "UNVERIFIED",
+      "ledgerCompatibility": "BLOCKED_LEDGER_DRIFT",
+      "productionRunner": "UNRESOLVED",
+      "deploymentChannels": "UNRESOLVED"
+    }
   },
   "runnerContract": {
     "source": "docs/migration-release-contract.md",
@@ -130,7 +153,7 @@
     "builtInMigrationMutex": false
   },
   "fullJournal": {
-    "sourceCommit": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
+    "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
     "path": "drizzle/migrations/meta/_journal.json",
     "version": "7",
     "dialect": "postgresql",
@@ -141,9 +164,10 @@
     "baselinePrefix": {
       "throughIdx": 104,
       "matchesBaseJournalAndSqlExactly": true,
-      "expectedRemoteAppliedState": "UNVERIFIED",
+      "expectedRemoteAppliedState": "OBSERVED_TIMESTAMPS_THROUGH_0104_BUT_NOT_BYTE_EXACT_CURRENT_PREFIX",
       "journalSha256": "3c42fd32aa88ca7f068fcad2248cb616960411c753c9291713389c9ed33d5d87",
-      "entryCount": 105
+      "entryCount": 105,
+      "sourceCommit": "7ac56b7b904f79fdb0b194dbccd97d67f364273a"
     },
     "entries": [
       {
@@ -1340,7 +1364,21 @@
         }
       },
       {
-        "commit": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
+        "commit": "069a732787e2c61c956172ae8f4c08ecf0956256",
+        "path": "drizzle/migrations/meta/_journal.json",
+        "sha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+        "bytes": 17337,
+        "entryCount": 107,
+        "terminalEntry": {
+          "idx": 106,
+          "version": "7",
+          "when": 1792392861354,
+          "tag": "0106_booking_invoice_cancellation_guards",
+          "breakpoints": true
+        }
+      },
+      {
+        "commit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
         "path": "drizzle/migrations/meta/_journal.json",
         "sha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
         "bytes": 17337,
@@ -1366,7 +1404,7 @@
       "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
       "bytes": 1744,
       "containsCRLF": false,
-      "sourceCommit": "45b452431dda30d5138e01ac73490366b184bda9",
+      "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
       "expectedState": "PROPOSED_NOT_EXECUTED",
       "requiresPrecedingPrefix": 104,
       "signature": "public.claim_payment_rep_stamping(uuid,integer DEFAULT 5)",
@@ -1405,7 +1443,8 @@
             "tables": {}
           }
         }
-      }
+      },
+      "reviewedHead": "45b452431dda30d5138e01ac73490366b184bda9"
     },
     {
       "idx": 106,
@@ -1417,7 +1456,7 @@
       "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
       "bytes": 9873,
       "containsCRLF": false,
-      "sourceCommit": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
+      "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
       "expectedState": "PROPOSED_NOT_EXECUTED",
       "dependsOnIdx": 105,
       "newGrants": false,
@@ -1509,7 +1548,8 @@
             "tables": {}
           }
         }
-      }
+      },
+      "reviewedHead": "069a732787e2c61c956172ae8f4c08ecf0956256"
     }
   ],
   "deployables": {
@@ -1519,151 +1559,181 @@
       "groups": [
         {
           "pr": 282,
-          "sourceCommit": "46e5880eac4f9f992d68e14108c1a20cf7abf426",
+          "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
           "provisional": false,
           "alreadyMergedAtBaseline": true,
           "runtimeFiles": [
             {
               "path": "src/features/bookings/hooks/bookingActions/useBookingExtensions.ts",
-              "sha256": "8940388d8f8d8127b49ad9a5b64aded163940bee52131d6fc53de06fcbf16551"
+              "sha256": "8940388d8f8d8127b49ad9a5b64aded163940bee52131d6fc53de06fcbf16551",
+              "bytes": 5867
             },
             {
               "path": "src/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers.ts",
-              "sha256": "ed49637bad618fbcce14f8831f10ab183a2ba85db02f525955b0660399c3ee3b"
+              "sha256": "ed49637bad618fbcce14f8831f10ab183a2ba85db02f525955b0660399c3ee3b",
+              "bytes": 9077
             },
             {
               "path": "src/features/invoices/hooks/useExtensionPrefill.ts",
-              "sha256": "50110cbb7a076e12a55359d75346872efe6050b90e0cbf0d06de56753c6f93c1"
+              "sha256": "50110cbb7a076e12a55359d75346872efe6050b90e0cbf0d06de56753c6f93c1",
+              "bytes": 4865
             }
-          ]
+          ],
+          "reviewedSourceCommit": "46e5880eac4f9f992d68e14108c1a20cf7abf426"
         },
         {
           "pr": 283,
-          "sourceCommit": "991347f1e871791c5f9243cbaf89e81f14e12b3f",
-          "provisional": true,
-          "alreadyMergedAtBaseline": false,
+          "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+          "provisional": false,
+          "alreadyMergedAtBaseline": true,
           "runtimeFiles": [
             {
               "path": "src/components/forms/DatePickerField.tsx",
-              "sha256": "7e1213eea373dc8901ad1aebbdd2d7d14656362f0bc6ac9d3a02d6ac2bd04277"
+              "sha256": "7e1213eea373dc8901ad1aebbdd2d7d14656362f0bc6ac9d3a02d6ac2bd04277",
+              "bytes": 6018
             },
             {
               "path": "src/components/forms/MaskedDateInput.tsx",
-              "sha256": "fb8fab4e4f464e26a5fdcf83c2fa315aaa78d59d96dc2f02aa723c707b416e45"
+              "sha256": "fb8fab4e4f464e26a5fdcf83c2fa315aaa78d59d96dc2f02aa723c707b416e45",
+              "bytes": 6147
             },
             {
               "path": "src/features/invoices/components/invoice-detail/EditPaymentDialog.tsx",
-              "sha256": "e01228a26ff1da97f9a5ec230e7544c26cb18b328f6b3ac991a568c2075567dd"
+              "sha256": "e01228a26ff1da97f9a5ec230e7544c26cb18b328f6b3ac991a568c2075567dd",
+              "bytes": 7990
             },
             {
               "path": "src/features/invoices/components/invoices/RecordPaymentDialog.tsx",
-              "sha256": "51341af48d69ca4061b355fdc19b5a7ec7d8df8df7677c884548a8c74b9c6ca0"
+              "sha256": "51341af48d69ca4061b355fdc19b5a7ec7d8df8df7677c884548a8c74b9c6ca0",
+              "bytes": 7191
             },
             {
               "path": "src/features/invoices/hooks/invoices/paymentFormDirty.ts",
-              "sha256": "0f6877671434bf4742f429a48b746f62f9a72e3be3aaba1c6502616f760d04a3"
+              "sha256": "0f6877671434bf4742f429a48b746f62f9a72e3be3aaba1c6502616f760d04a3",
+              "bytes": 1248
             },
             {
               "path": "src/features/invoices/hooks/invoices/useRecordPaymentForm.ts",
-              "sha256": "1e29faa60a67ee6a525db26b912513cfd81bded265a2b6ef286bd466a06a1e9c"
+              "sha256": "1e29faa60a67ee6a525db26b912513cfd81bded265a2b6ef286bd466a06a1e9c",
+              "bytes": 9201
             }
-          ]
+          ],
+          "reviewedSourceCommit": "d628dd0c24db765c82ffb2197c56df9b214dc1f0"
         },
         {
           "pr": 285,
-          "sourceCommit": "45b452431dda30d5138e01ac73490366b184bda9",
+          "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
           "provisional": false,
           "alreadyMergedAtBaseline": true,
           "runtimeFiles": [
             {
               "path": "src/features/invoices/components/invoice-detail/InvoicePaymentSummary.tsx",
-              "sha256": "10026be086a6562a0c732a7e21eb22ed98b1859a1976961cf991b8ce6635eeda"
+              "sha256": "10026be086a6562a0c732a7e21eb22ed98b1859a1976961cf991b8ce6635eeda",
+              "bytes": 4468
             },
             {
               "path": "src/features/invoices/hooks/invoices/cfdi/usePaymentComplement.ts",
-              "sha256": "593ccf6a3370f259d92e1939d6909c43900971a74d0ff2b49e9ffc0379815a6e"
+              "sha256": "593ccf6a3370f259d92e1939d6909c43900971a74d0ff2b49e9ffc0379815a6e",
+              "bytes": 3667
             },
             {
               "path": "src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx",
-              "sha256": "ebb39f0a7970324f235d540a78d382a7c2b01980546cbaf33110bdd7f9f71ebb"
+              "sha256": "ebb39f0a7970324f235d540a78d382a7c2b01980546cbaf33110bdd7f9f71ebb",
+              "bytes": 9125
             },
             {
               "path": "src/features/invoices/lib/canStampPaymentRep.ts",
-              "sha256": "3879bb9c9aa5ef564e67c1f6401136017724ccb63ff1b491fda6e12e376a3dc2"
+              "sha256": "3879bb9c9aa5ef564e67c1f6401136017724ccb63ff1b491fda6e12e376a3dc2",
+              "bytes": 628
             }
-          ]
+          ],
+          "reviewedSourceCommit": "45b452431dda30d5138e01ac73490366b184bda9"
         },
         {
           "pr": 286,
-          "sourceCommit": "8f4103f266a2e3e57375776fee6f2c063650d47c",
+          "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
           "provisional": false,
           "alreadyMergedAtBaseline": true,
           "runtimeFiles": [
             {
               "path": "src/components/layout/DetailPageHeader.tsx",
-              "sha256": "1a5556198f80c969162eeae12f2cdce840a530b338f2a85d714ab98d4ccfee27"
+              "sha256": "1a5556198f80c969162eeae12f2cdce840a530b338f2a85d714ab98d4ccfee27",
+              "bytes": 2613
             },
             {
               "path": "src/features/customers/components/customer-detail/CustomerInvoicesList.tsx",
-              "sha256": "813384eb3e4ec8735b972e8bed2a054031f2072677f20dc9c4071f84c9df4f5e"
+              "sha256": "813384eb3e4ec8735b972e8bed2a054031f2072677f20dc9c4071f84c9df4f5e",
+              "bytes": 3626
             },
             {
               "path": "src/features/customers/pages/CustomerDetailPage.tsx",
-              "sha256": "f157152c5a2735dab3f91d484173dac459601f924fc7ccd25426e69f55482f7c"
+              "sha256": "f157152c5a2735dab3f91d484173dac459601f924fc7ccd25426e69f55482f7c",
+              "bytes": 7214
             },
             {
               "path": "src/features/customers/pages/CustomersPage.tsx",
-              "sha256": "f2bee755517fe7472576272779eff18527a8e182b246d77f3a9390c42b73a4eb"
+              "sha256": "f2bee755517fe7472576272779eff18527a8e182b246d77f3a9390c42b73a4eb",
+              "bytes": 8624
             },
             {
               "path": "src/features/invoices/components/invoice-detail/InvoiceDetailBody.tsx",
-              "sha256": "e724612859a1d9531465dcbb5f2d994e8372f68051583ebad1eba166a82851e1"
+              "sha256": "e724612859a1d9531465dcbb5f2d994e8372f68051583ebad1eba166a82851e1",
+              "bytes": 7878
             },
             {
               "path": "src/features/reports/components/reports/IncomeStatementReport.tsx",
-              "sha256": "3fa3f5d0f323c9f012963849cf9ef2c467add021f05bedf814fa1092421b07a0"
+              "sha256": "3fa3f5d0f323c9f012963849cf9ef2c467add021f05bedf814fa1092421b07a0",
+              "bytes": 9455
             },
             {
               "path": "src/features/reports/hooks/incomeStatement/depreciationPresentation.ts",
-              "sha256": "cc20f32ef137d3ba16b7ad45d3df0aa9fbca5305e66f653b428b160acb6f0842"
+              "sha256": "cc20f32ef137d3ba16b7ad45d3df0aa9fbca5305e66f653b428b160acb6f0842",
+              "bytes": 807
             },
             {
               "path": "src/features/reports/hooks/incomeStatement/statementAmountPresentation.ts",
-              "sha256": "6229789f6c7a38ed19ceac11db1bcb8a3ae80a754ca9c6b9bb0cfc41cd0448ab"
+              "sha256": "6229789f6c7a38ed19ceac11db1bcb8a3ae80a754ca9c6b9bb0cfc41cd0448ab",
+              "bytes": 441
             },
             {
               "path": "src/features/reports/hooks/incomeStatement/statementRowFactories.ts",
-              "sha256": "0c4f7ce36641acd2fa50dc0796d85b3d3c91ca0b7e767e90e899b65f0f77bb70"
+              "sha256": "0c4f7ce36641acd2fa50dc0796d85b3d3c91ca0b7e767e90e899b65f0f77bb70",
+              "bytes": 8835
             },
             {
               "path": "src/features/reports/hooks/incomeStatement/useStatementRows.ts",
-              "sha256": "099c3100b91e5cfa0c2f9aaa8ec8a70ccd800f13d4278a66d8e3161471185ce0"
+              "sha256": "099c3100b91e5cfa0c2f9aaa8ec8a70ccd800f13d4278a66d8e3161471185ce0",
+              "bytes": 5766
             },
             {
               "path": "src/lib/navigation/customerInvoiceOrigins.ts",
-              "sha256": "f35dfe3b3d6d22838079cfdc8f423d6285f910b7fb3045f0ff8999baa221dcaa"
+              "sha256": "f35dfe3b3d6d22838079cfdc8f423d6285f910b7fb3045f0ff8999baa221dcaa",
+              "bytes": 1639
             }
-          ]
+          ],
+          "reviewedSourceCommit": "8f4103f266a2e3e57375776fee6f2c063650d47c"
         }
       ]
     },
     "modifiedEdge": [
       {
         "name": "stamp-payment-complement",
-        "sourceCommit": "45b452431dda30d5138e01ac73490366b184bda9",
+        "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
         "entryPath": "supabase/functions/stamp-payment-complement/index.ts",
         "entrySha256": "c3341cab9b9e748647d6cc623872f353016331cc01bdb700dcafb5632b144038",
         "changedRuntimeFiles": [
           {
             "path": "supabase/functions/stamp-payment-complement/handler.ts",
-            "sha256": "57919f3e99dba6f871c8709096e195be5c461617cc2e4139250fb47bf3db2e83"
+            "sha256": "57919f3e99dba6f871c8709096e195be5c461617cc2e4139250fb47bf3db2e83",
+            "bytes": 24603
           }
         ],
         "dependsOnMigrationIdxs": [
           105
         ],
         "activationChannel": "<APPROVED_EDGE_DEPLOYMENT_CHANNEL>",
-        "deploymentStatus": "NOT_EXECUTED"
+        "deploymentStatus": "NOT_EXECUTED",
+        "reviewedSourceCommit": "45b452431dda30d5138e01ac73490366b184bda9"
       }
     ],
     "unchangedEdgeDependencies": [
@@ -1672,14 +1742,16 @@
         "sourceAtBase": "4de7d314c140ccccb326730430bd8e6eb96219c8",
         "codeChangedByThisPlan": false,
         "publishedIdentityAndHealth": "UNVERIFIED",
-        "redeployInferredFromTestsOnly": false
+        "redeployInferredFromTestsOnly": false,
+        "verifiedSourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b"
       },
       {
         "name": "reconcile-stamping-invoices",
         "sourceAtBase": "4de7d314c140ccccb326730430bd8e6eb96219c8",
         "codeChangedByThisPlan": false,
         "publishedIdentityAndHealth": "UNVERIFIED",
-        "redeployInferredFromTestsOnly": false
+        "redeployInferredFromTestsOnly": false,
+        "verifiedSourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b"
       }
     ]
   },
@@ -1733,18 +1805,18 @@
   "orderedActivation": [
     {
       "step": 1,
-      "action": "Parent resolves final 283 head and reviews/merges approved candidates; 285 before 284; pin integrated release and final-tree CI",
-      "status": "NOT_EXECUTED"
+      "action": "Use pinned integrated release and recorded reviewed heads; code merges and release CI verified; generate production artifacts only through the approved channel and revalidate exact manifest",
+      "status": "SOURCE_MERGES_AND_RELEASE_CI_VERIFIED_PRODUCTION_ARTIFACTS_NOT_EXECUTED"
     },
     {
       "step": 2,
-      "action": "Resolve target, specific approval, official runner, single-executor control and approved no-new-REP operational window",
-      "status": "UNVERIFIED"
+      "action": "Resolve documented historic ledger drift and renew review; repeat preflight; resolve target, approval, official runner and exclusive execution; block new REP requests and prove all old-handler requests drained before SQL",
+      "status": "BLOCKED_LEDGER_DRIFT_AND_OPERATIONAL_GATES_UNVERIFIED"
     },
     {
       "step": 3,
       "action": "Read fresh full ledger and object contracts; compare all hashes/timestamps and exact pending batch against fullJournal",
-      "status": "NOT_EXECUTED"
+      "status": "READ_ONLY_OBSERVATION_COMPLETED_BLOCKED_FRESH_APPROVED_PREFLIGHT_REQUIRED"
     },
     {
       "step": 4,
@@ -1758,12 +1830,12 @@
     },
     {
       "step": 6,
-      "action": "Activate changed REP Edge then frontend from same final release through separately approved channels; preserve operational window until verified",
+      "action": "Activate changed REP Edge then frontend from pinned release through approved channels; verify versions and health while retaining operational window and proving no old-handler execution can still write",
       "status": "NOT_EXECUTED"
     },
     {
       "step": 7,
-      "action": "Coordinated authorized QA with synthetic fixtures, record safe results and release operational window only on parent approval",
+      "action": "Coordinated authorized QA with synthetic fixtures; record safe results; reopen only after SQL/Edge verification, old-handler drain evidence and parent approval",
       "status": "NOT_EXECUTED"
     }
   ],
@@ -1773,9 +1845,15 @@
     "sqlDownOrDroppingGuardsApproved": false,
     "frontend": "Previously verified compatible artifact may be a separately approved containment, preserving SQL and corrected Edge; UI defects may return",
     "edge": "No validated safe rollback to old handler while REP writes active; old uncertain-response-to-error behavior can permit reissue even with 0105",
-    "preferredDatabaseRecovery": "Forward reviewed migration; no manual ledger/business-row repair, no grant/account/credential workaround"
+    "preferredDatabaseRecovery": "Forward reviewed migration; no manual ledger/business-row repair, no grant/account/credential workaround",
+    "oldHandlerDrain": "Also required for initial activation and any approved Edge containment; no reopening while old requests could persist error and permit reclaim"
   },
   "qa": [
+    {
+      "id": "rep-old-handler-drain",
+      "expected": "Approved operational evidence of zero old-handler executions capable of writing before SQL and reopening; new-request blocking or corrected deployment alone does not prove drain",
+      "status": "NOT_EXECUTED"
+    },
     {
       "id": "extension-currency",
       "expected": "USD/17.5 retained; MXN/1; invalid foreign FX blocks",
@@ -1784,14 +1862,14 @@
     {
       "id": "sat-method-compatibility",
       "expected": "Changed method reviewed SAT; notes preserve overrides 28/29; stamped REP fiscal fields immutable",
-      "requiresPr283FinalHead": true,
-      "status": "NOT_EXECUTED"
+      "status": "NOT_EXECUTED",
+      "reviewedPr283Head": "d628dd0c24db765c82ffb2197c56df9b214dc1f0"
     },
     {
       "id": "payment-date",
       "expected": "Invalid/partial capture cannot submit previous date; invoice issue-date keyboard compatibility retained",
-      "requiresPr283FinalHead": true,
-      "status": "NOT_EXECUTED"
+      "status": "NOT_EXECUTED",
+      "reviewedPr283Head": "d628dd0c24db765c82ffb2197c56df9b214dc1f0"
     },
     {
       "id": "rep-ui-cache",
@@ -1824,7 +1902,8 @@
     "Lost PAC response -> reconciler -> UUID persisted as stamped is NOT proven by the existing preservation/no-retry and Auth/RPC corpus",
     "Reconciler handleRequest remains private; no export, source transformation or process harness is introduced here",
     "Booking claim/cancellation protection does not certify complete immutability of all draft fields/links during PAC",
-    "No real account, live-PAC, remote migration, browser, Docker, deployment, tool installation or permission operation was executed in this task"
+    "No real account, live-PAC, remote migration, browser, Docker, deployment, tool installation or permission operation was executed in this task",
+    "Configured backend source reference is verified. Coordinated live ledger/catalog read found a strict-prefix blocker; frontend/Edge live binding, official production runner, deployment channels and old-handler drainage are unverified."
   ],
   "excludedScope": [
     "Logistics persistent consumption model or any migration 0107+",
@@ -1834,7 +1913,331 @@
   ],
   "readme": {
     "path": "docs/audits/2026-10-19/r2-activation/README.md",
-    "sha256": "19ba1d13e9ed52fd28de4f811db06d97147d61f7b940ab9161d64a164ec02041",
+    "sha256": "a243b84999bb35d0cb293b885cc5c512c0f601431642c4fd9310a5113e6ef096",
     "hashBasis": "Exact source Git blob bytes, UTF-8 LF"
+  },
+  "repositoryVerification": [
+    {
+      "pr": 282,
+      "reviewedHead": "46e5880eac4f9f992d68e14108c1a20cf7abf426",
+      "mergeCommit": "4de7d314c140ccccb326730430bd8e6eb96219c8",
+      "checkedAt": "2026-10-19T12:13:53Z",
+      "checksEvidenceUrl": "https://api.github.com/repos/hlopezb83/liftgo/commits/4de7d314c140ccccb326730430bd8e6eb96219c8/check-runs",
+      "scope": "Release validation checks; independent Dependabot maintenance excluded",
+      "results": {
+        "Pruebas (merge + cobertura)": "success",
+        "Actionlint": "skipped",
+        "Lint de migraciones": "skipped",
+        "Funciones Supabase (Deno, sin red)": "skipped",
+        "Dependency review": "skipped",
+        "Pruebas (Vitest shard 4/6)": "success",
+        "Pruebas (Vitest shard 6/6)": "success",
+        "Pruebas (Vitest shard 5/6)": "success",
+        "Pruebas (Vitest shard 2/6)": "success",
+        "Calidad (lint, tipos, build y arranque)": "success",
+        "Pruebas (Vitest shard 1/6)": "success",
+        "Pruebas (Vitest shard 3/6)": "success",
+        "Detectar cambios": "success",
+        "Gate A/B multiempresa (Supabase local efímero)": "success",
+        "Detectar secretos": "success"
+      },
+      "allRecordedChecksCompleted": true,
+      "unexpectedFailures": []
+    },
+    {
+      "pr": 285,
+      "reviewedHead": "45b452431dda30d5138e01ac73490366b184bda9",
+      "mergeCommit": "3d679f30da4ffdf861a2ac185c435128fe3d1809",
+      "checkedAt": "2026-10-19T12:13:53Z",
+      "checksEvidenceUrl": "https://api.github.com/repos/hlopezb83/liftgo/commits/3d679f30da4ffdf861a2ac185c435128fe3d1809/check-runs",
+      "scope": "Release validation checks; independent Dependabot maintenance excluded",
+      "results": {
+        "SQL smoke results": "success",
+        "RLS DB results": "success",
+        "Pruebas (merge + cobertura)": "success",
+        "Actionlint": "skipped",
+        "Funciones Supabase (Deno, sin red)": "success",
+        "Lint de migraciones": "success",
+        "Dependency review": "skipped",
+        "Pruebas (Vitest shard 4/6)": "success",
+        "Pruebas (Vitest shard 3/6)": "success",
+        "Detectar cambios": "success",
+        "Pruebas (Vitest shard 5/6)": "success",
+        "Pruebas (Vitest shard 6/6)": "success",
+        "Pruebas (Vitest shard 1/6)": "success",
+        "Pruebas (Vitest shard 2/6)": "success",
+        "Gate A/B multiempresa (Supabase local efímero)": "success",
+        "Detectar secretos": "success",
+        "Calidad (lint, tipos, build y arranque)": "success",
+        "RLS DB tests (Supabase local)": "success"
+      },
+      "allRecordedChecksCompleted": true,
+      "unexpectedFailures": []
+    },
+    {
+      "pr": 286,
+      "reviewedHead": "8f4103f266a2e3e57375776fee6f2c063650d47c",
+      "mergeCommit": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+      "checkedAt": "2026-10-19T12:13:53Z",
+      "checksEvidenceUrl": "https://api.github.com/repos/hlopezb83/liftgo/commits/0a532d68f0458b96b6e5a8e9f32900322056775f/check-runs",
+      "scope": "Release validation checks; independent Dependabot maintenance excluded",
+      "results": {
+        "Pruebas (merge + cobertura)": "success",
+        "Funciones Supabase (Deno, sin red)": "skipped",
+        "Lint de migraciones": "skipped",
+        "Actionlint": "skipped",
+        "Dependency review": "skipped",
+        "Pruebas (Vitest shard 4/6)": "success",
+        "Pruebas (Vitest shard 5/6)": "success",
+        "Pruebas (Vitest shard 3/6)": "success",
+        "Pruebas (Vitest shard 1/6)": "success",
+        "Pruebas (Vitest shard 2/6)": "success",
+        "Pruebas (Vitest shard 6/6)": "success",
+        "Calidad (lint, tipos, build y arranque)": "success",
+        "Detectar cambios": "success",
+        "Detectar secretos": "success",
+        "Gate A/B multiempresa (Supabase local efímero)": "success"
+      },
+      "allRecordedChecksCompleted": true,
+      "unexpectedFailures": []
+    },
+    {
+      "pr": 283,
+      "reviewedHead": "d628dd0c24db765c82ffb2197c56df9b214dc1f0",
+      "mergeCommit": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "checkedAt": "2026-10-19T12:13:53Z",
+      "checksEvidenceUrl": "https://api.github.com/repos/hlopezb83/liftgo/commits/a72ecf2a485fceb3bd5aca12310b3d3d22b51efd/check-runs",
+      "scope": "Release validation checks; independent Dependabot maintenance excluded",
+      "results": {
+        "Pruebas (merge + cobertura)": "success",
+        "Lint de migraciones": "skipped",
+        "Funciones Supabase (Deno, sin red)": "skipped",
+        "Actionlint": "skipped",
+        "Dependency review": "skipped",
+        "Gate A/B multiempresa (Supabase local efímero)": "success",
+        "Pruebas (Vitest shard 5/6)": "success",
+        "Pruebas (Vitest shard 6/6)": "success",
+        "Pruebas (Vitest shard 1/6)": "success",
+        "Pruebas (Vitest shard 2/6)": "success",
+        "Pruebas (Vitest shard 4/6)": "success",
+        "Pruebas (Vitest shard 3/6)": "success",
+        "Calidad (lint, tipos, build y arranque)": "success",
+        "Detectar cambios": "success",
+        "Detectar secretos": "success"
+      },
+      "allRecordedChecksCompleted": true,
+      "unexpectedFailures": []
+    },
+    {
+      "pr": 284,
+      "reviewedHead": "069a732787e2c61c956172ae8f4c08ecf0956256",
+      "mergeCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+      "checkedAt": "2026-10-19T12:13:53Z",
+      "checksEvidenceUrl": "https://api.github.com/repos/hlopezb83/liftgo/commits/cebe9a94d023dc1714fa5e0585a43902e05c3a2b/check-runs",
+      "scope": "Release validation checks; independent Dependabot maintenance excluded",
+      "results": {
+        "SQL smoke results": "success",
+        "RLS DB results": "success",
+        "Pruebas (merge + cobertura)": "success",
+        "Actionlint": "skipped",
+        "Lint de migraciones": "success",
+        "Funciones Supabase (Deno, sin red)": "success",
+        "Dependency review": "skipped",
+        "Pruebas (Vitest shard 2/6)": "success",
+        "Pruebas (Vitest shard 5/6)": "success",
+        "Pruebas (Vitest shard 4/6)": "success",
+        "Calidad (lint, tipos, build y arranque)": "success",
+        "Pruebas (Vitest shard 6/6)": "success",
+        "Pruebas (Vitest shard 1/6)": "success",
+        "Pruebas (Vitest shard 3/6)": "success",
+        "Detectar cambios": "success",
+        "RLS DB tests (Supabase local)": "success",
+        "Gate A/B multiempresa (Supabase local efímero)": "success",
+        "Detectar secretos": "success"
+      },
+      "allRecordedChecksCompleted": true,
+      "unexpectedFailures": []
+    }
+  ],
+  "previousDocumentBase": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+  "previousProposalCommit": "ffedaf1f58a6be515a702f9649114d3dbec6c955",
+  "repTransitionGate": {
+    "status": "UNVERIFIED_NOT_EXECUTED",
+    "blockNewRequests": true,
+    "drainAllOldHandlerRequestsBeforeSql": true,
+    "verifyNoOldHandlerExecutionCanWriteBeforeReopening": true,
+    "noNewRequestsAloneIsSufficient": false,
+    "deploymentAloneProvesDrain": false,
+    "requiresApprovedOperationalEvidence": true,
+    "ifDrainUnknown": "STOP before SQL or reopening; keep the approved window closed",
+    "risk": "An old in-flight handler can persist error after SQL 0105 on an uncertain PAC result and allow a new claim; deployment does not terminate all previous executions",
+    "releaseOnlyAfter": [
+      "fresh exact ledger and object verification",
+      "corrected Edge identity and health verification",
+      "no old handler requests remain capable of writing",
+      "coordinated authorized QA and parent approval"
+    ],
+    "permissionCredentialOrDataWorkaroundsAllowed": false
+  },
+  "localValidation": {
+    "status": "PASS_SOURCE_ONLY",
+    "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "exactMigrationHashesAndSizesMatched": 107,
+    "journalAndTwoSnapshotsVerified": true,
+    "runtimeHashesBoundToFinalRelease": true,
+    "runtimeFilesMatchedReviewedHeads": true,
+    "baselinePrefixThrough104UnchangedInSource": true,
+    "logistics0107AbsentAndExcluded": true,
+    "doesNotCertifyRemoteStateOrDeployment": true,
+    "repositoryJournalChecker": "PASS using Node 24 and the unchanged pure collectJournalIssues; all 107 pinned-source entries valid; rejects extra 0107, missing entry and non-increasing when",
+    "bunAvailableOnPath": false,
+    "negativeProbesRejected": [
+      "wrong migration checksum",
+      "unapproved logistics0107 entry",
+      "no-new-requests-only transition gate",
+      "premature ledger approval"
+    ],
+    "sanitizedHistoricalEvidenceLocallyReproduced": [
+      "four newline-only checksum matches",
+      "historical0030 raw SQL and journal-add/remove provenance"
+    ],
+    "documentationLinksAndDiffScopeChecked": true
+  },
+  "observedPreflight": {
+    "status": "BLOCKED_LEDGER_DRIFT",
+    "observationWindowUtc": {
+      "from": "2026-10-19T12:12:00Z",
+      "through": "2026-10-19T12:13:59Z"
+    },
+    "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "scope": "Coordinated read-only migration-ledger and catalog observation; no business-data read or write, migrations, deployment, secret or permission change",
+    "rawLedgerAndTargetDetailsIncluded": false,
+    "journalEntryCount": 107,
+    "ledgerRowCount": 106,
+    "expectedPrefixThroughIdx": 104,
+    "matchedTimestampCount": 105,
+    "exactHashMatchCount": 95,
+    "hashMismatchIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      46,
+      51,
+      52,
+      74,
+      77
+    ],
+    "extraHistoricalRowCount": 1,
+    "duplicateTimestampCount": 0,
+    "duplicateTimestampHashPairCount": 0,
+    "missingExpectedPrefixTimestampCount": 0,
+    "diagnosticClassifications": [
+      {
+        "idxs": [
+          46,
+          51,
+          52
+        ],
+        "classification": "PROVEN_TERMINAL_CRLF_BLANK_LINE_DIFFERENCE",
+        "evidence": "Removing only the final two CRLF blank-line bytes from each current Git blob produces the exact applied SHA-256; diagnosis only, no file/ledger normalization authorized"
+      },
+      {
+        "idxs": [
+          77
+        ],
+        "classification": "PROVEN_LF_CRLF_DIFFERENCE",
+        "evidence": "Converting current LF bytes to CRLF produces the exact applied SHA-256; diagnosis only, no file/ledger normalization authorized"
+      },
+      {
+        "idxs": [
+          4,
+          5,
+          6,
+          7,
+          10
+        ],
+        "classification": "DOCUMENTED_HISTORICAL_DIFFERENCES_APPLIED_BYTES_NOT_RECOVERED",
+        "reference": {
+          "commit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+          "path": "docs/multiempresa/tramo-8-1-rollout-folio-rep.md",
+          "lines": [
+            358,
+            421
+          ]
+        },
+        "currentScope": "Historical limited functional comparison not freshly revalidated; no exact raw matching bytes among 967 examined historical migration SQL blobs"
+      },
+      {
+        "idxs": [
+          74
+        ],
+        "classification": "CURRENT_OBJECTS_CONFORM_APPLIED_PAYLOAD_BYTES_UNRECOVERED",
+        "reference": {
+          "commit": "20e388d1f8ff05a99eb6ff06681eeec7b73c21a7",
+          "path": "drizzle/migrations/0074_return_date_parts_activation.sql"
+        },
+        "currentScope": "No exact raw applied-file match to examined Git or formatting variants. Fresh targeted catalog comparison found no unexplained current object divergence; this does not satisfy byte-exact ledger-prefix compatibility.",
+        "freshObjectComparison": {
+          "observationWindowUtc": {
+            "from": "2026-10-19T12:17:00Z",
+            "through": "2026-10-19T12:19:59Z"
+          },
+          "functionsMatching0074SourceExactly": [
+            "activate_parts_catalog",
+            "assign_contract_number_on_insert",
+            "get_occupied_forklift_ids_today",
+            "list_invoices_with_balance"
+          ],
+          "laterReviewedFunction": {
+            "name": "complete_return_inspection",
+            "sourcePath": "drizzle/migrations/0081_operational_lifecycle_guards.sql",
+            "bodyMatchesExactly": true,
+            "changeFrom0074": "Actual-delivery-date minimum replaces booking-start minimum"
+          },
+          "trigger": {
+            "name": "trg_contract_number_on_insert",
+            "enabledAndDefinitionMatches0074": true
+          },
+          "signaturesDefaultsResultsSecurityLanguageVolatilitySearchPathMatch": true,
+          "noUnexplainedCurrentDefinitionDivergenceFound": true,
+          "grantsOriginAudited": false,
+          "permissionChangesPerformed": false,
+          "originalAppliedFileBytesRecovered": false
+        }
+      }
+    ],
+    "extraHistoricalRow": {
+      "classification": "IDENTIFIED_HISTORICAL_MIGRATION_REMOVED_FROM_CURRENT_JOURNAL",
+      "originalTag": "0030_portal_fallback_respects_account_status",
+      "path": "drizzle/migrations/0030_portal_fallback_respects_account_status.sql",
+      "sourceBlob": "37c4caf912b1105cd38750f919a18d3da00d3cb6",
+      "journalAddedCommit": "148912e2e9ab60947f1c5e3eee798b37a70df9be",
+      "journalRemovedCommit": "841bcb894d6c158cf9d9f8cdbb4c1dfc9ecbf034",
+      "rawSqlHashAndHistoricalJournalTimestampMatched": true,
+      "partOfCurrentApprovedPrefix": false
+    },
+    "migration0104": {
+      "status": "CURRENT_RELEASE_HASH_MATCHES_APPLIED_HASH",
+      "supersededProposalHashIsNotComparisonBaseline": true,
+      "officialSourceReference": "docs/audits/2026-10-18/supplier-discount-integrated/README.md"
+    },
+    "pendingByTimestampRuleIdxs": [
+      105,
+      106
+    ],
+    "pendingSelectionDoesNotAuthorizeExecution": true,
+    "catalog": {
+      "repClaimStillContainsOldTimeBasedReclaim": true,
+      "migration0106PrivateFunctionsAbsent": 3,
+      "migration0106TriggersAbsent": 3
+    },
+    "nextGate": "STOP; investigate unresolved provenance and compatibility, obtain renewed review and repeat fresh read-only preflight; strict current-prefix contract is not satisfied",
+    "ledgerRewriteOrHistoricalSqlNormalizationAllowed": false,
+    "productionRunnerSecretInjectionExclusiveExecutionVerified": false,
+    "frontendEdgeLiveBindingVerified": false,
+    "publicationChannelsVerified": false,
+    "oldRepRequestsDrainStatus": "UNVERIFIED_NOT_PERFORMED"
   }
 }
