@@ -1,7 +1,7 @@
 {
   "base": "e51f16d71d4180671fa3c4147fc514da2f37ac34",
   "migration": "0104_supplier_bill_details_rpc",
-  "sqlLfSha256": "1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877",
+  "sqlLfSha256": "374a36eb1c433ba631ad69ae95cc3662fe3dc2ba019105d0ab1400a03aff87b0",
   "sql": {
     "before": {
       "passed": 10,
@@ -24,7 +24,7 @@
     "testFiles": 5
   },
   "notPerformed": [
-    "published SQL",
+    "published SQL by this thread",
     "hosting deploy",
     "merge",
     "real accounts or payments"
@@ -37,13 +37,18 @@
     "changelogExit": 0
   },
   "integration": {
-    "officialMain": "ff6e6146eb925c53a3caa3e585019b87cbc233b7",
+    "officialMain": "a8ca0080f22968eccb788a605a9a066093f9a688",
     "fxParent": "2bc2c89f5498515af2dc9d36a2af240be070a845",
     "candidateVersion": "8.44.12",
     "official0103When": 1792368366457,
-    "candidate0104When": 1792368835673,
     "sqlCodeChanged": false,
-    "k1ClientCodeChanged": false
+    "k1ClientCodeChanged": false,
+    "previousOfficialMain": "ff6e6146eb925c53a3caa3e585019b87cbc233b7",
+    "official0104When": 1792370295568,
+    "previousCandidate0104When": 1792368835673,
+    "sqlBytesChanged": true,
+    "sqlFunctionalChange": false,
+    "officialSnapshot": "drizzle/migrations/meta/0104_snapshot.json"
   },
   "originalMatrixSqlLfSha256": "eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1",
   "restrictedMigrator": {
@@ -66,5 +71,25 @@
       39179927520,
       39179927521
     ]
+  },
+  "approvedSqlLfSha256": "1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877",
+  "officialReconciliation": {
+    "evidence": "official-format-comparison.json",
+    "coordinatorReportedApplied": true,
+    "coordinatorReportedCatalogAndAclVerified": true,
+    "localDatabaseQueryPerformed": false,
+    "reapplyRequired": false,
+    "forwardMigrationRequired": false,
+    "localChecks": {
+      "typecheckExit": 0,
+      "clientExit": 0,
+      "clientPassed": 33,
+      "clientTotal": 33,
+      "clientFiles": 5,
+      "journalExit": 0,
+      "journalEntries": 105,
+      "changelogExit": 0,
+      "changelogEntries": 1243
+    }
   }
 }

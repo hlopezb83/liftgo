@@ -117,7 +117,7 @@ BEGIN
       RAISE EXCEPTION 'Cambiar descuento requiere total explicito' USING ERRCODE='22023';
     END IF;
     IF v_new.subtotal IS NULL OR v_new.discount IS NULL OR v_new.tax_amount IS NULL
-       OR v_new.retention_iva IS NULL OR v_new.retention_isr IS NULL OR v_new.total IS NULL
+        OR v_new.retention_iva IS NULL OR v_new.retention_isr IS NULL OR v_new.total IS NULL
        OR v_new.exchange_rate IS NULL OR v_new.currency IS NULL
        OR v_new.subtotal::text IN ('NaN','Infinity','-Infinity')
        OR v_new.discount::text IN ('NaN','Infinity','-Infinity')

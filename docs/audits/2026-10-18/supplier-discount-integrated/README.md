@@ -1,57 +1,54 @@
-# K1: migración y cliente integrados, sin activar
+# K1: cliente reconciliado con la migración oficial
 
-La edición previa reenvía `discount` mediante UPDATE de columnas, pero el rol no tiene ese privilegio. Este paquete contiene código real: `drizzle/migrations/0104_supplier_bill_details_rpc.sql`, journal y el cliente que llama `update_supplier_bill_details(uuid,jsonb)`. Sustituye la propuesta documental de PR273; aquella evidencia histórica no acredita este nuevo SHA.
+El formulario previo reenvía `discount` mediante UPDATE por columnas, pero ese campo no está autorizado. Este paquete usa la RPC `update_supplier_bill_details(uuid,jsonb)` y conserva el total almacenado al editar sólo metadatos. Sustituye la propuesta documental de PR273; sus pruebas históricas no acreditan automáticamente esta implementación.
 
-Base: PR277 `e51f16d71d4180671fa3c4147fc514da2f37ac34`. La rama conserva PR277 como ancestro: 0103 mantiene sus bytes y 0104 ocupa el siguiente índice. El PR apunta a main para que se ejecuten los workflows requeridos, filtrados por esa base; el commit K1 a1cd8d756 separa su implementación de FX ya revisado. No hace falta activar K1 para revisar o aplicar FX por separado. El migrador aplica todas las entradas pendientes del SHA seleccionado: **no usar este checkout para aplicar sólo 0103**. Primero aprobación y SQL servidor verificado; después cliente. Ninguna aprobación de preparación equivale a ejecutar los permisos propuestos.
+## Estado y divergencia de formato, 2026-10-19
 
-SQL0104 actual LF SHA256: `1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877`. La variante anterior `eabf3090...` se conserva en la evidencia de la matriz original; no es el payload actual.
+El coordinador aplicó únicamente 0104 por el canal oficial Lovable y confirmó después catálogo y ACL. Se incorpora main oficial `a8ca0080f22968eccb788a605a9a066093f9a688`, incluidos SQL, journal, snapshot y tipo generado de la RPC. **Los archivos aplicados se conservan sin modificar; no reaplicar 0103/0104 ni editar el ledger.** El cliente espera CI del head final, fusión y publicación coordinadas. Este hilo no ejecutó SQL publicado.
 
-## Contrato y permisos propuestos
+La aplicación introdujo un espacio de indentación respecto al SQL aprobado. Ambos payloads se registran por separado:
 
-La RPC exige sesión authenticated, usuario activo admin/administrativo y contexto interno de una empresa activa. Bloquea la factura de esa empresa, usa allowlist de18campos y assignments estáticos; conserva constraints/triggers existentes. Un proveedor nuevo debe pertenecer a esa empresa y estar vigente.
+| Archivo | Bytes LF | SHA256 |
+| --- | ---: | --- |
+| Aprobado en `cccc744a971e6363c40f740f92731eab1481e9bf` | 8719 | `1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877` |
+| Oficial aplicado, conservado en esta rama | 8720 | `374a36eb1c433ba631ad69ae95cc3662fe3dc2ba019105d0ab1400a03aff87b0` |
 
-Cambiar importes, moneda, TC o identidad fiscal de una factura aprobada, pagada, parcial, cancelada o con cualquier pago exige resolver el pago o la reaprobación por su flujo. Descripción/categoría/fechas de cobertura y vencimiento con importes idénticos siguen permitidas. Éstos son candados explícitos de la nueva RPC y requieren revisión del paquete.
+La única diferencia es un byte ASCII 0x20 adicional, offset base cero 6189, línea 120 antes de `OR v_new.retention_iva`. Está en código PL/pgSQL, fuera de literales, identificadores entre comillas y comentarios. Retirar exclusivamente ese byte hace coincidir ambos archivos. No cambia tokens, valores, guardas ni comportamiento; no requiere 0105. La comparación está en `official-format-comparison.json`.
 
-Sólo propone EXECUTE authenticated sobre la nueva RPC y retira EXECUTE PUBLIC/anon/service_role. **No concede UPDATE de tabla ni discount**, no modifica ownership de objetos existentes y no reescribe datos. La firma nueva será propiedad del migrador que la cree; el owner y la ACL efectiva deben verificarse al activar. No se ejecutó nada de esto en la base publicada.
+El journal oficial usa `104.when=1792370295568`, en lugar del candidato `1792368835673`. 0103 conserva SQL, snapshot y `when=1792368366457`. Las versiones siguen N5 8.44.10, cliente FX 8.44.11 y K1 8.44.12. Conservar el SQL aprobado antiguo junto al hash aplicado distinto dejaría drift oculto: Drizzle selecciona pendientes por timestamp y no verifica los hashes históricos.
 
-## Precisión y metadatos legados
+El coordinador y su revisor confirmaron cuerpo de catálogo coincidente con el aplicado, owner postgres, SECURITY DEFINER y search_path fijado; EXECUTE para authenticated y retirado de PUBLIC/anon/service_role. Confirmaron ausencia de UPDATE(discount), UPDATE global o nuevos permisos SET/BYPASSRLS. Esta verificación fue recibida del coordinador; no se deriva del fixture local. Capturas y ledger internos permanecen privados.
 
-Se retiró el rechazo adicional de2/6decimales de la propuesta v3. La RPC usa la coerción propia del rowtype existente, sin una política de escala nueva. La lectura autorizada del catálogo confirmó dinero `numeric(14,2)` y TC `numeric(14,6)`; no encontró precisión extra almacenada. El perfil de numeric sin typmod del fixture es una compatibilidad hipotética, nunca una afirmación sobre datos publicados.
+## Contrato de edición
 
-El servidor compara los números JSON crudos contra OLD **antes** de `jsonb_populate_record`. Un cambio que el typmod redondearía de vuelta al valor anterior sigue sujeto a los candados. Tras coerción, todo cambio monetario debe ser finito, no negativo, descuento<=subtotal y total coherente con los componentes persistidos. No se permite un total inconsistente por redondeos individuales.
+La RPC exige sesión authenticated, usuario activo admin/administrativo y empresa interna activa. Bloquea la factura de esa empresa, valida una lista explícita de 18 campos y usa asignaciones estáticas. Conserva constraints/triggers; un proveedor nuevo debe pertenecer a esa empresa y estar vigente.
 
-El formulario conserva el total original cuando componentes, moneda y TC son idénticos; cambiar sólo descripción no recalcula un total legado ni fabrica un cambio monetario. Si cambia el grupo monetario, display y submit usan la fórmula existente, calculada de los datos realmente enviados. Las validaciones habituales del formulario siguen vigentes; esto no habilita todos los datos legados inválidos.
+Cambiar importes, moneda, TC o identidad fiscal de una factura aprobada, pagada, parcial, cancelada o con cualquier pago conserva los candados. Descripción, categoría, cobertura y vencimiento con importes idénticos siguen permitidos. La migración no concede UPDATE de tabla/discount, cambia ownership existente ni reescribe datos.
 
-## Evidencia comparable
+Usa la coerción del rowtype vigente, sin rechazo adicional por escala 2/6. El catálogo previamente autorizado confirmó dinero `numeric(14,2)` y TC `numeric(14,6)`; numeric sin typmod es sólo un perfil hipotético del fixture. Compara números JSON originales con OLD antes de `jsonb_populate_record`; cambios que la coerción redondearía al mismo valor siguen sujetos a los candados. Componentes persistidos deben ser finitos, no negativos y coherentes con el total.
 
-- Misma matriz SQL de30casos: **10/30 antes (v3) →30/30 después (0104 exacta)**. `before-results.json` y `after-results.json` contienen SQLSTATE, perfiles y filas sintéticas; `cases.sql` no cambia entre fases. Cluster fijo `127.0.0.1:55442`; ambas ejecuciones registran stop0/status3.
-- Mismo hook real del formulario, esquema, defaults y submit: **4/7 antes →7/7 después**. Tres fallos demostraban normalización involuntaria de totales al editar descripción. Transportes simulados; no hay API real.
-- Cliente integrado: **33/33 en5archivos**, incluyendo contrato RPC y propagación de rechazo sin fallback raw ni éxito/invalidation falsos. `client-final.txt`.
-- `input-hashes.json` distingue bytes ejecutados de fuentes normalizadas para publicación. Las entradas antes/después usaron los mismos bytes de casos/fixture; se sanearon rutas personales y formato de logs al publicarlos.
-- Lint, tipos, build, journal y changelog se registran en sus archivos. La matriz95y las cinco carreras de PR273 son evidencia histórica de v3 y no se vuelven a atribuir a este SHA. No se amplió la matriz por el bloqueo de activación.
+El formulario conserva el total original cuando componentes, moneda y TC son idénticos. Si cambia ese grupo, muestra y envía la fórmula existente sobre los datos enviados. Mantiene las validaciones habituales; no habilita datos legados inválidos.
 
-Los fixtures incluyen los helpers/guards de la propuesta anterior y perfiles sintéticos; no acreditan todos los triggers, ACL, RLS, API ni datos productivos. CI de la nueva rama y revisión del SHA exacto son puertas adicionales.
+## Evidencia comparable conservada
 
-## Aplicación y compensación
+- Matriz SQL original: **10/30 antes y 30/30 después**, con casos/fixture iguales. El resultado posterior original corresponde a `eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1`; no se reasigna su hash al SQL actual. Identifica 17 casos con typmods y 13 hipotéticos sin typmod.
+- Hook real: **4/7 antes y 7/7 después**. Tres fallos demostraban cambios involuntarios del total al editar descripción. Transportes simulados.
+- Regresión cliente original: **33/33 en cinco archivos**, contrato RPC y rechazo sin fallback raw ni invalidaciones falsas. `client-final.txt` conserva aquella ejecución. Las fuentes K1 no cambian al integrar main oficial.
+- Migrador restringido: la variante original falla con CREATE 42501 y RPC ausente; la corregida aprobada `1fbcf64a…` obtiene **8/8 controles y 30/30 casos previos**. [Detalle y límite de ownership del fixture](./restricted-migrator/README.md). Los resultados siguen ligados a ese hash.
+- `input-hashes.json` distingue bytes ejecutados de fuentes normalizadas para publicar. No se alteran capturas históricas para atribuirlas al SQL oficial posterior. La matriz 95 y cinco carreras de PR273 siguen siendo evidencia de aquella propuesta.
 
-El contrato del carril existente está en `docs/migration-release-contract.md`: runner oficial con conexión inyectada en `LOVABLE_DB_MIGRATION_URL`, frozen lockfile, `bun run migrations:check` y `bunx drizzle-kit migrate --config=drizzle.config.ts`. No se entrega URL/clave por chat ni argumentos. Drizzle pone pendientes+ledger en una transacción; requiere un único ejecutor y comparación fresca completa de ledger/hashes antes/después. No se crea un runner paralelo ni se modifica ledger manualmente.
+Los fixtures no acreditan todos los triggers, ACL, RLS, API ni datos productivos. Los archivos de lint, tipos, build, journal y changelog conservan ejecuciones anteriores; el nuevo head requiere sus propios checks.
 
-La aplicación publicada sigue pendiente de autorización específica del coordinador/usuario y de confirmar el mecanismo Lovable acordado. Después se verifican firma, definer/search_path/flags, owner, ACL efectiva, ausencia de UPDATE(discount)/UPDATE global y disponibilidad del contrato RPC en API. Sólo entonces se publica el cliente aprobado. Refrescar metadatos/ledger en ese momento; el README no sustituye la lectura actual.
+## Historial del migrador restringido
 
-Compensación propuesta: retirar el puente cliente y, mediante una nueva migración aprobada, deshabilitar sólo EXECUTE de la RPC si hace falta contener sesiones antiguas, conservando la función y los datos. No DROP, no UPDATE global, no borrar ledger ni revertir descuentos/pagos. El cliente anterior conserva el defecto K1; esa retirada es contención, no recuperación funcional. La corrección forward compatible es preferible.
+El head `99901fed` aprobó cliente, pero RLS `39179927520` y A/B `39179927521` fallaron creando 0104: SQLSTATE 42501, permiso denegado para declarar SET de app.cxp_rpc. Las suites posteriores no corrieron. La corrección retiró tres cláusulas SET app.* y comprueba después de auth/org y antes de escribir que ninguno de app.cxp_rpc, app.cxp_recalc o app.audit_revert sea on. Conserva sólo SET search_path, sin ampliar privilegios.
 
-Sin Chrome, BUILD de Lovable, merge, publicación, permisos reales ni transacciones de negocio. El destino y las capturas internas permanecen en el paquete privado del coordinador; no se vuelven a publicar aquí.
+Un contexto heredado activo se rechaza con 42501 sin modificar fila ni parámetro; unset/off permite la llamada normal. Una llamada anidada tras una operación interna que dejó bypass on se rechaza de forma deliberada. El fixture separa DDL bajo migrador restringido de runtime con owner postgres; no acredita permisos publicados.
 
-La retargetización del PR y este ajuste documental habilitan los checks del mismo código K1; no cambian la migración, el helper ni los resultados locales. Debe revisarse el head final de CI. La integración con N5 y la armonización de versiones permanecen con el coordinador.
+## Publicación y compensación
 
-## Integración del journal oficial, 2026-10-19
+El carril se describe en `docs/migration-release-contract.md`: canal oficial, único ejecutor y comparación fresca de hashes/journal/ledger. La aplicación y verificación de 0104 ya fueron coordinadas por el padre. Este PR entrega el cliente contra esa implementación. No crear otro runner, reaplicar SQL, editar ledger ni generar 0105 para ocultar formato.
 
-Se incorpora main oficial ff6e6146 y el cliente FX reconciliado2bc2c89f, incluyendo N5f95aac98. Las releases quedan N5 8.44.10, cliente FX 8.44.11 y K1 8.44.12.0103 conserva SQL/snapshot oficiales y when1792368366457. El when anterior propuesto para0104 era menor y podía ser omitido por Drizzle; se sustituye antes de su aprobación por 1792368835673, estrictamente posterior.0104 sigue sin aplicarse y su SQL conserva el mismo hash. El código K1 y los casos ejecutados no cambian; sus resultados originales se conservan. No reaplicar0103 ni editar ledger. El padre coordina permisos, aplicación y publicación de K1.
+Si fuera necesaria y expresamente aprobada, la compensación propuesta es retirar el puente cliente y deshabilitar sólo EXECUTE mediante una migración posterior, conservando función, datos e historial. Sin DROP, UPDATE global, borrado de ledger ni reversión de descuentos/pagos. El cliente anterior conserva el defecto K1; retirarlo es contención.
 
-## Compatibilidad del migrador restringido
-
-CI del head99901fed paso cliente/lint/tipos/build pero RLS39179927520 y A/B39179927521 fallaron al crear0104: SQLSTATE42501, permission denied to set parameter app.cxp_rpc. Las suites posteriores no corrieron. La correccion elimina las tres clausulas SET app.* de la funcion y comprueba, despues de auth/org y antes de escribir, que ninguno de app.cxp_rpc, app.cxp_recalc o app.audit_revert sea on. Un contexto activo se rechaza42501 sin modificar fila ni parametro; unset/off sigue permitido. Se conserva SET search_path. No se concede SET ni se amplian privilegios del migrador.
-
-Diferencia deliberada: una llamada a K1 anidada en una transaccion interna que dejo bypass on se rechaza en vez de enmascarar ese contexto. Las llamadas normales RPC no lo requieren. La revision de guards no encontro otra dependencia en su cadena. Deben aprobarse el nuevo hash y gates exactos antes de la aplicacion coordinada.0104 no se ejecuto en la base publicada.
-
-La reproduccion exacta y la nueva comprobacion estan en [restricted-migrator/README.md](./restricted-migrator/README.md): variante anterior CREATE42501/RPCausente; actual CREATE0 bajo migradorNOSUPsinSET,8/8controles y30/30casos previos. Se documenta por separado el ownership postgres usado en runtime del fixture y no se atribuye ACL productiva a esa prueba. Cluster55443detenido. Los gates reales Supabase deben aprobar el nuevo head antes de aplicar.
+Sin Chrome, BUILD de Lovable, merge, publicación, permisos reales ni transacciones de negocio desde este hilo. El padre coordina fusión, publicación y QA.
