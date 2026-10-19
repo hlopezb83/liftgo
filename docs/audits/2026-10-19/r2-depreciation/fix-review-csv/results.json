@@ -1,0 +1,72 @@
+{
+  "baseCommit": "8e1fb034b8c923c4637fb7219f7d84630329c5f3",
+  "execution": "offline Vitest; no browser, SQL, backend, or external services",
+  "before": {
+    "total": 5,
+    "passed": 0,
+    "failed": 5,
+    "exitCode": 1
+  },
+  "after": {
+    "total": 5,
+    "passed": 5,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "related": {
+    "total": 69,
+    "passed": 69,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "checks": {
+    "eslintChangedFiles": {
+      "exitCode": 0,
+      "warnings": 0
+    },
+    "typecheck": {
+      "command": "tsc --noEmit",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "exitCode": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "R2 review: CSV and visible half-cent depreciation amounts monthly CSV matches visible raw values, sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: CSV and visible half-cent depreciation amounts monthly CSV matches visible raw values, sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: CSV and visible half-cent depreciation amounts comparative CSV matches raw year and delta values, sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: CSV and visible half-cent depreciation amounts comparative CSV matches raw year and delta values, sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: CSV and visible half-cent depreciation amounts keeps all monetary CSV text aligned without changing percent or unavailable values",
+      "before": "failed",
+      "after": "passed"
+    }
+  ],
+  "sourceSha256Encoding": "UTF-8 with CRLF normalized to LF",
+  "sourceSha256": {
+    "src/features/reports/hooks/incomeStatement/statementRowFactories.ts": "3a64bb03012e14384585bc24020851b6a0da67347aba5375b4e57a2db41be6e9",
+    "src/features/reports/hooks/incomeStatement/__tests__/depreciationCsvHalfCent.audit.test.ts": "f11b4f15ecc3821d2f7277d01c06589f35acf1b3134f387bbd6641cdad3c3d0a"
+  },
+  "rawReportsSha256": {
+    "depreciation-csv-before.json": "8c4a90940576e06dd31334653516619743c9742a2e8529f39d35acd5d21de126",
+    "depreciation-csv-after.json": "27dbce8c647904acc75ba22e223985e64a205a357a8eae1451acf01eebf29d1d",
+    "depreciation-csv-related.json": "5fe45297b60ec982758167943c83bfc2d2c0b8a592887a9dc8f57b90dfa6436e"
+  }
+}

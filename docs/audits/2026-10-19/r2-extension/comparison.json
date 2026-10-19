@@ -1,0 +1,138 @@
+{
+  "baseCommit": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "generatedAt": "2026-10-19T06:16:16.168Z",
+  "environment": {
+    "runtime": "v24.19.0",
+    "backend": "mocked transport, offline",
+    "gui": "not used"
+  },
+  "validations": {
+    "baselineRegression": {
+      "exitCode": 1,
+      "total": 15,
+      "passed": 3,
+      "failed": 12
+    },
+    "finalRegression": {
+      "exitCode": 0,
+      "total": 15,
+      "passed": 15,
+      "failed": 0
+    },
+    "finalRelated": {
+      "exitCode": 0,
+      "files": 8,
+      "total": 74,
+      "passed": 74,
+      "failed": 0
+    },
+    "eslintChangedFiles": {
+      "exitCode": 0,
+      "warnings": 0,
+      "errors": 0
+    },
+    "typecheckProject": {
+      "command": "node node_modules/typescript/bin/tsc --noEmit",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "extension invoice currency through the actual query and prefill inherits USD/17.5 while preserving the agreed numeric rate and extended period",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill also applies currency when the transport already supplies the complete booking",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency MXN to MXN/1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency null to MXN/1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency  to MXN/1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill uses the same currency normalization as the primary-booking prefill",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill clears unusable foreign FX null and blocks submission",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill clears unusable foreign FX 0 and blocks submission",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill clears unusable foreign FX -17.5 and blocks submission",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill clears unusable foreign FX NaN and blocks submission",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill preserves the existing validation against placeholder foreign FX 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill waits for customers, then inherits currency once without overwriting later edits",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill does not apply extension data while editing an existing invoice",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill keeps the already-invoiced guard ahead of all prefill fields",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "extension invoice currency through the actual query and prefill keeps the no-billable-days guard ahead of all prefill fields",
+      "before": "passed",
+      "after": "passed"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "src/features/bookings/hooks/bookingActions/useBookingExtensions.ts",
+      "sha256": "6d3bab85b50fa1758685a28100f5a7ee24c2642160619f745ef9b0f0d544ba8c"
+    },
+    {
+      "path": "src/features/invoices/hooks/useExtensionPrefill.ts",
+      "sha256": "7c927568b93717071f0971abdb4f4ee21a6a71b2472bf34c60f699b99e6d7a73"
+    },
+    {
+      "path": "src/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers.ts",
+      "sha256": "73c2cfdb4880f6916e256a41beed124e021cba6897b40bc9e7ed9b72e792f7ef"
+    },
+    {
+      "path": "src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx",
+      "sha256": "4ccbec56205734f8c502376529745513f7f39437a6e024892b2be01bca358d77"
+    }
+  ]
+}

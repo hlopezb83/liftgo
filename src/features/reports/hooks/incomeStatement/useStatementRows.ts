@@ -1,4 +1,5 @@
 
+import { DEPRECIATION_ROUNDING_LABEL, depreciationRoundingAdjustment } from "./depreciationPresentation";
 import {
   buildStatementRows, buildBreakdownRows, buildCsvRows, buildComparisonValues,
   buildExpenseDetailBreakdown,
@@ -63,6 +64,9 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
   const v = (extractor: (yt: YearTotals) => number | null, opts?: { isCost?: boolean; isSubtotal?: boolean; isPercent?: boolean }) =>
     buildComparisonValues(yearTotals, extractor, opts);
   const groupRows: ComparisonRow[] = [];
+  const roundingRows: ComparisonRow[] = yearTotals.some((year) => depreciationRoundingAdjustment(year) !== 0)
+    ? [{ label: DEPRECIATION_ROUNDING_LABEL, ...v(depreciationRoundingAdjustment, { isCost: true }) }]
+    : [];
   for (const group of OPERATING_EXPENSE_GROUPS) {
     for (const c of group.categories) {
       groupRows.push({
@@ -102,6 +106,7 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
     { label: "Margen antes de Depreciación", ...v((yt) => yt.marginBeforeDepreciation, { isPercent: true }) },
     { label: "(-) Depreciación (Equipos Rentados)", ...v((yt) => yt.depreciationRented, { isCost: true }) },
     { label: "(-) Depreciación (Flota Ociosa)", ...v((yt) => yt.depreciationIdle, { isCost: true }) },
+    ...roundingRows,
     { label: "= Utilidad Neta", ...v((yt) => yt.netProfit, { isSubtotal: true }) },
     { label: "Margen Neto", ...v((yt) => yt.margin, { isPercent: true }) },
   ];

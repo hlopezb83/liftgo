@@ -9,7 +9,7 @@ import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useSearchParams } from "@/lib/router-compat";
+import { useLocation, useSearchParams } from "@/lib/router-compat";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
@@ -27,11 +27,19 @@ function renderCustomerMobileCard(customer: Customer, open: (id: string) => void
   return <CustomerMobileCard customer={customer} onOpen={open} />;
 }
 
+function useOpenCustomer() {
+  const navigate = useNavigateTransition();
+  const location = useLocation();
+  return (id: string) => navigate(`/customers/${id}`, {
+    state: { customerListBackTo: `${location.pathname}${location.search}${location.hash}` },
+  });
+}
+
 export default function CustomersPage() {
   const customerPages = useCustomersIncremental();
   const { isLoading, isError, refetch } = customerPages;
   const customers = useMemo(() => customerPages.data?.pages.flatMap((page) => page.slice(0, LIST_PAGE_LIMIT)) ?? [], [customerPages.data]);
-  const navigate = useNavigateTransition();
+  const openCustomer = useOpenCustomer();
   const [searchParams, setSearchParams] = useSearchParams();
   const searchKey = searchParams.toString();
   const createCustomer = useCreateCustomer();
@@ -173,14 +181,14 @@ export default function CustomersPage() {
           onClick: () => { void customerPages.fetchNextPage(); }, loaded: customers.length }}
         onRetry={() => { void refetch(); }}
         table={table}
-        onRowClick={(c) => navigate(`/customers/${c.id}`)}
+        onRowClick={(c) => openCustomer(c.id)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyIcon={UsersIcon}
         emptyMessage="No se encontraron clientes"
         emptyActionLabel={canWrite ? "Nuevo cliente" : undefined}
         onEmptyAction={canWrite ? openCreate : undefined}
-        mobileCardRender={(customer) => renderCustomerMobileCard(customer, (id) => navigate(`/customers/${id}`))}
+        mobileCardRender={(customer) => renderCustomerMobileCard(customer, openCustomer)}
         mobileKeyExtractor={(c) => c.id}
         skeletonColumns={6}
       />
