@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
 import type { Tables, TablesInsert } from "../../src/integrations/supabase/types";
 import { todayKeyMty } from "../../src/lib/format/dateFormats";
-import { readAbContext, type AbSide } from "./fixtures/abSeed";
+import { DRAFT_FISCAL_CASES, readAbContext, type AbSide } from "./fixtures/abSeed";
 import { createLocalUserClient } from "./fixtures/localBackend";
 import { withLocalRowLock } from "./fixtures/localLockCoordinator";
 
@@ -67,7 +67,7 @@ async function withScenario(
   invoiceStatus: "draft" | "sent" | "cancelled",
   run: (scenario: Scenario) => Promise<void>,
   side = readAbContext().A,
-  fiscalSnapshot?: { id: string; status: "pending" | "accepted" },
+  fiscalSnapshot?: { id: string; status: "none" | "pending" | "accepted"; cfdiStatus?: string },
   bookingId?: string,
 ) {
   const A = side;
@@ -115,6 +115,7 @@ async function withScenario(
     }
     expect(invoice).toMatchObject({ id: s.invoiceId, organization_id: A.organizationId, status: invoiceStatus,
       is_e2e: false, cfdi_uuid: null, facturapi_invoice_id: null, cancellation_status: fiscalSnapshot?.status ?? "none" });
+    if (fiscalSnapshot?.cfdiStatus) expect(invoice).toMatchObject({ cfdi_status: fiscalSnapshot.cfdiStatus });
     if (link === "pivot") await attach(s);
     await run(s);
   } finally {
@@ -147,7 +148,63 @@ async function withAdditionalBooking(s: Scenario, run: (bookingId: string) => Pr
   }
 }
 
+async function expectOccupiedFiscalSnapshot(s: Scenario) {
+  const before = await readState(s);
+  for (const [actor, operation] of [["owner", "rpc"], ["dispatcher", "rpc"], ["dispatcher", "update"]] as const) {
+    expect((await cancel(s, actor, operation)).error?.code).toBe("23514");
+    expect(await readState(s)).toEqual(before);
+  }
+  await expectHiddenInvoice(s);
+}
+
+async function expectFreeFiscalSnapshot(s: Scenario) {
+  const before = await readState(s);
+  expect((await cancel(s, "dispatcher", "rpc")).error).toBeNull();
+  const after = await readState(s);
+  expect(after.booking.status).toBe("cancelled");
+  expect(after.invoice).toEqual(before.invoice);
+  expect(after.links).toEqual(before.links);
+}
+
 for (const link of ["direct", "pivot"] as const) {
+  test(`R2 pre-PAC attachment: ordinary SDK cannot attach draft stamping through ${link} to cancelled booking`, async () => {
+    const context = readAbContext();
+    await withScenario("none", "draft", async (s) => {
+      await withAdditionalBooking(s, async (cancelledBookingId) => {
+        expect((await s.dispatcher.rpc("cancel_booking", { p_booking_id: cancelledBookingId,
+          p_reason: "Synthetic attachment rejection control" })).error).toBeNull();
+        const readTarget = async () => dataOrThrow(await s.owner.from("bookings").select("*")
+          .eq("id", cancelledBookingId).eq("organization_id", s.side.organizationId).single(), "read cancelled attachment target");
+        const targetBefore = await readTarget();
+        expect(targetBefore).toMatchObject({ status: "cancelled", is_e2e: false });
+        const before = await readState(s);
+        const rejected = link === "direct"
+          ? await s.owner.from("invoices").update({ booking_id: cancelledBookingId }).eq("id", s.invoiceId).select("id")
+          : await s.owner.from("invoice_bookings").insert({ invoice_id: s.invoiceId,
+            booking_id: cancelledBookingId, organization_id: s.side.organizationId }).select("invoice_id");
+        expect(rejected.error?.code).toBe("23514");
+        expect(rejected.error?.message).toBe("No se puede emitir ni ligar una factura vigente a una reserva cancelada.");
+        expect(await readState(s)).toEqual(before);
+        expect(await readTarget()).toEqual(targetBefore);
+      });
+    }, context.A, { id: context.draftFiscalAttachmentInvoices[link], status: "none", cfdiStatus: "stamping" });
+  });
+
+  for (const state of DRAFT_FISCAL_CASES) {
+    const exercise = state.occupied ? expectOccupiedFiscalSnapshot : expectFreeFiscalSnapshot;
+
+    test(`R2 pre-PAC cancellation: draft ${state.key} ${link} is ${state.occupied ? "occupied" : "free"}`, async () => {
+      const context = readAbContext();
+      await withScenario(link, "draft", async (s) => {
+        await expectHiddenInvoice(s);
+        expect((await readState(s)).invoice).toMatchObject({ status: "draft",
+          cfdi_status: state.cfdiStatus, cancellation_status: state.cancellationStatus });
+        await exercise(s);
+      }, context.A, { id: context.draftFiscalInvoiceSnapshots[state.key][link],
+        status: state.cancellationStatus, cfdiStatus: state.cfdiStatus });
+    });
+  }
+
   test(`R2 invoice cancellation: pending fiscal cancellation remains active for ${link} link`, async () => {
     const context = readAbContext();
     await withScenario(link, "sent", async (s) => {
@@ -523,7 +580,8 @@ test("R2 invoice cancellation concurrency: reverse-order recurring RPC cursor wa
     const before = await readState(s);
     const periodStart = before.booking.start_date;
     const periodEnd = dayAfter(periodStart, 1);
-    dataOrThrow(await s.owner.from("bookings").update({ recurring_billing: true }).in("id", ids)
+    dataOrThrow(await s.owner.from("bookings").update({ recurring_billing: true,
+      end_date: dayAfter(periodStart, 40) }).in("id", ids)
       .eq("organization_id", s.side.organizationId).select("id"), "enable synthetic recurring fixtures");
     let createdId: string | undefined;
     try {

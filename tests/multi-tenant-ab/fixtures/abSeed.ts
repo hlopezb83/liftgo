@@ -41,6 +41,16 @@ import { bootstrapLocalPlatformOperator } from "./bootstrapPlatformOperator";
 
 export const AB_CONTEXT_FILE = "tests/multi-tenant-ab/.state/ab-context.json";
 
+// Fixture-only lifecycle snapshots. No PAC call, fiscal UUID or provider id.
+export const DRAFT_FISCAL_CASES = [
+  { key: "stamping", cfdiStatus: "stamping", cancellationStatus: "none", occupied: true },
+  { key: "stampingAccepted", cfdiStatus: "stamping", cancellationStatus: "accepted", occupied: true },
+  { key: "stamped", cfdiStatus: "stamped", cancellationStatus: "none", occupied: true },
+  { key: "stampedAccepted", cfdiStatus: "stamped", cancellationStatus: "accepted", occupied: false },
+  { key: "pending", cfdiStatus: "pending", cancellationStatus: "none", occupied: false },
+  { key: "error", cfdiStatus: "error", cancellationStatus: "none", occupied: false },
+] as const;
+
 export type AbSide = {
   organizationId: string;
   organizationName: string;
@@ -65,6 +75,8 @@ export type AbContext = {
   roles: Record<"ventas" | "administrativo" | "mecanico", AbSide["internal"]>;
   /** Fiscal snapshots exist only as synthetic seed states, never PAC calls. */
   cancellationInvoiceSnapshots: Record<"pending" | "accepted", Record<"direct" | "pivot", string>>;
+  draftFiscalInvoiceSnapshots: Record<typeof DRAFT_FISCAL_CASES[number]["key"], Record<"direct" | "pivot", string>>;
+  draftFiscalAttachmentInvoices: Record<"direct" | "pivot", string>;
   /** Empresas iniciales que el ensayo suspendió y debe restaurar al terminar. */
   initialActiveOrganizationIds: string[];
 };
@@ -364,6 +376,29 @@ async function seedCancellationSnapshots(admin: SupabaseClient, side: AbSide): P
   return snapshots;
 }
 
+async function seedDraftFiscalSnapshots(admin: SupabaseClient, side: AbSide) {
+  const snapshots = {} as AbContext["draftFiscalInvoiceSnapshots"];
+  const attachmentInvoices = { direct: randomUUID(), pivot: randomUUID() };
+  for (const state of DRAFT_FISCAL_CASES) {
+    snapshots[state.key] = { direct: randomUUID(), pivot: randomUUID() };
+    const invoiceIds = state.key === "stamping"
+      ? [...Object.values(snapshots[state.key]), ...Object.values(attachmentInvoices)]
+      : Object.values(snapshots[state.key]);
+    for (const id of invoiceIds) {
+      // Existing ephemeral seed admin initializes states unavailable to normal
+      // Auth writes. Tests only attach/read/cancel/delete through logged-in SDK.
+      must("synthetic pre-PAC snapshot", (await admin.from("invoices").insert({
+        id, organization_id: side.organizationId, customer_id: side.customerId,
+        invoice_number: `AB-PREPAC-${state.key}-${id}`, customer_name: "Synthetic pre-PAC snapshot",
+        line_items: [{ description: "Synthetic rental", quantity: 1, unit_price: 100, total: 100 }],
+        subtotal: 100, tax_rate: 0, tax_amount: 0, total: 100, status: "draft",
+        cfdi_status: state.cfdiStatus, cancellation_status: state.cancellationStatus,
+      })).error);
+    }
+  }
+  return { snapshots, attachmentInvoices };
+}
+
 export async function seedAbEnvironment(): Promise<AbContext> {
   const admin = createLocalAdminClient("seed");
 
@@ -474,6 +509,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
   }
 
   const cancellationInvoiceSnapshots = await seedCancellationSnapshots(admin, A);
+  const draftFiscal = await seedDraftFiscalSnapshots(admin, A);
 
   const context: AbContext = {
     A,
@@ -483,6 +519,8 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     platformOperator,
     roles,
     cancellationInvoiceSnapshots,
+    draftFiscalInvoiceSnapshots: draftFiscal.snapshots,
+    draftFiscalAttachmentInvoices: draftFiscal.attachmentInvoices,
     initialActiveOrganizationIds,
   };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });
