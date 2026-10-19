@@ -743,6 +743,13 @@
       "when": 1792391158311,
       "tag": "0105_rep_claim_reconciliation_only",
       "breakpoints": true
+    },
+    {
+      "idx": 106,
+      "version": "7",
+      "when": 1792392861354,
+      "tag": "0106_booking_invoice_cancellation_guards",
+      "breakpoints": true
     }
   ]
 }

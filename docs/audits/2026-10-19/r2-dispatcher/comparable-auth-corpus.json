@@ -1,0 +1,25 @@
+{
+  "baseline": "4a3d87e11beee7e8e6a8f8973cc1ca5cb2717ad6",
+  "files": [
+    {
+      "path": "tests/multi-tenant-ab/booking-invoice-cancellation-api.spec.ts",
+      "identical": true,
+      "lfSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099"
+    },
+    {
+      "path": "tests/multi-tenant-ab/stamp-cfdi-booking-claim-api.spec.ts",
+      "identical": true,
+      "lfSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e"
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.mjs",
+      "identical": true,
+      "lfSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f"
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.config.mjs",
+      "identical": true,
+      "lfSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a"
+    }
+  ]
+}

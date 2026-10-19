@@ -1,0 +1,153 @@
+{
+  "head": "4a3d87e11beee7e8e6a8f8973cc1ca5cb2717ad6",
+  "run": "https://github.com/hlopezb83/liftgo/actions/runs/39216609017",
+  "stats": {
+    "total": 97,
+    "passed": 85,
+    "failed": 12,
+    "skipped": 0,
+    "flaky": 0
+  },
+  "actualHandlerCases": [
+    {
+      "case": "R2 actual fiscal handler: cancel-first, direct booking link",
+      "status": "failed",
+      "proof": {
+        "phase": "cancellation queues before actual claim",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 200,
+            "code": null,
+            "claimedRow": true
+          }
+        ],
+        "configCalls": 1,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": false,
+        "cancelResult": {
+          "code": null
+        },
+        "handlerStatus": 400,
+        "snapshotUnchanged": false
+      }
+    },
+    {
+      "case": "R2 actual fiscal handler: claim-first, direct booking link",
+      "status": "failed",
+      "proof": {
+        "phase": "authenticated cancellation after committed actual claim",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 200,
+            "code": null,
+            "claimedRow": true
+          }
+        ],
+        "configCalls": 1,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": false,
+        "cancelResult": {
+          "code": null
+        },
+        "handlerStatus": null,
+        "snapshotUnchanged": false
+      }
+    },
+    {
+      "case": "R2 actual fiscal handler: cancel-first, pivot booking link",
+      "status": "failed",
+      "proof": {
+        "phase": "cancellation queues before actual claim",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 200,
+            "code": null,
+            "claimedRow": true
+          }
+        ],
+        "configCalls": 1,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": false,
+        "cancelResult": {
+          "code": null
+        },
+        "handlerStatus": 400,
+        "snapshotUnchanged": false
+      }
+    },
+    {
+      "case": "R2 actual fiscal handler: claim-first, pivot booking link",
+      "status": "failed",
+      "proof": {
+        "phase": "authenticated cancellation after committed actual claim",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 200,
+            "code": null,
+            "claimedRow": true
+          }
+        ],
+        "configCalls": 1,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": false,
+        "cancelResult": {
+          "code": null
+        },
+        "handlerStatus": null,
+        "snapshotUnchanged": false
+      }
+    }
+  ],
+  "breakdown": {
+    "priorSuite": {
+      "passed": 47,
+      "failed": 0
+    },
+    "auth46": {
+      "passed": 38,
+      "failed": 8,
+      "earlier32ControlsPassed": 32
+    },
+    "actualHandler4": {
+      "passed": 0,
+      "failed": 4
+    }
+  },
+  "teardown": "success",
+  "quality": {
+    "ci": 39216609004,
+    "rls": 39216608936,
+    "gitleaks": 39216609070,
+    "conclusion": "success"
+  },
+  "publishedBackendTouched": false,
+  "rawLogsIncluded": false
+}

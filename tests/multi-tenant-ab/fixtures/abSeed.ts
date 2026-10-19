@@ -14,6 +14,7 @@
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
@@ -40,6 +41,16 @@ import { bootstrapLocalPlatformOperator } from "./bootstrapPlatformOperator";
 
 export const AB_CONTEXT_FILE = "tests/multi-tenant-ab/.state/ab-context.json";
 
+// Fixture-only lifecycle snapshots. No PAC call, fiscal UUID or provider id.
+export const DRAFT_FISCAL_CASES = [
+  { key: "stamping", cfdiStatus: "stamping", cancellationStatus: "none", occupied: true },
+  { key: "stampingAccepted", cfdiStatus: "stamping", cancellationStatus: "accepted", occupied: true },
+  { key: "stamped", cfdiStatus: "stamped", cancellationStatus: "none", occupied: true },
+  { key: "stampedAccepted", cfdiStatus: "stamped", cancellationStatus: "accepted", occupied: false },
+  { key: "pending", cfdiStatus: "pending", cancellationStatus: "none", occupied: false },
+  { key: "error", cfdiStatus: "error", cancellationStatus: "none", occupied: false },
+] as const;
+
 export type AbSide = {
   organizationId: string;
   organizationName: string;
@@ -50,6 +61,7 @@ export type AbSide = {
   documentId: string;
   storagePath: string;
   internal: { email: string; password: string; userId: string };
+  dispatcher: { email: string; password: string; userId: string };
   portal: { email: string; password: string; userId: string };
 };
 
@@ -61,6 +73,10 @@ export type AbContext = {
   platformOperatorUserId: string;
   platformOperator: AbSide["internal"];
   roles: Record<"ventas" | "administrativo" | "mecanico", AbSide["internal"]>;
+  /** Fiscal snapshots exist only as synthetic seed states, never PAC calls. */
+  cancellationInvoiceSnapshots: Record<"pending" | "accepted", Record<"direct" | "pivot", string>>;
+  draftFiscalInvoiceSnapshots: Record<typeof DRAFT_FISCAL_CASES[number]["key"], Record<"direct" | "pivot", string>>;
+  draftFiscalAttachmentInvoices: Record<"direct" | "pivot", string>;
   /** Empresas iniciales que el ensayo suspendió y debe restaurar al terminar. */
   initialActiveOrganizationIds: string[];
 };
@@ -107,6 +123,7 @@ async function seedSide(
     invoiceTotal: number;
     documentId: string;
     internalEmail: string;
+    dispatcherEmail: string;
     portalEmail: string;
   },
   active: boolean,
@@ -149,6 +166,7 @@ async function seedSide(
 
 
   const internal = await createUser(admin, ids.internalEmail, org.id);
+  const dispatcher = await createUser(admin, ids.dispatcherEmail, org.id);
   const portal = await createUser(admin, ids.portalEmail, org.id);
 
   // El trigger `handle_new_user` ya crea la fila de `user_roles` al dar de
@@ -162,6 +180,12 @@ async function seedSide(
       .upsert({ user_id: internal.userId, role: "admin" }, { onConflict: "user_id" })).error,
   );
   must(
+    "user_roles (interno dispatcher)",
+    (await admin
+      .from("user_roles")
+      .upsert({ user_id: dispatcher.userId, role: "dispatcher" }, { onConflict: "user_id" })).error,
+  );
+  must(
     "user_roles (portal customer)",
     (await admin
       .from("user_roles")
@@ -172,11 +196,11 @@ async function seedSide(
   const { data: rolesData, error: rolesError } = await admin
     .from("user_roles")
     .select("user_id, role")
-    .in("user_id", [internal.userId, portal.userId]);
+    .in("user_id", [internal.userId, dispatcher.userId, portal.userId]);
   must("verificación de roles", rolesError);
   const roleOf = (userId: string) =>
     (rolesData ?? []).find((row) => row.user_id === userId)?.role;
-  if (roleOf(internal.userId) !== "admin" || roleOf(portal.userId) !== "customer") {
+  if (roleOf(internal.userId) !== "admin" || roleOf(dispatcher.userId) !== "dispatcher" || roleOf(portal.userId) !== "customer") {
     throw new Error(
       `[ab-seed] roles inesperados para ${org.slug}: interno=${roleOf(internal.userId) ?? "sin rol"}, portal=${roleOf(portal.userId) ?? "sin rol"}.`,
     );
@@ -186,6 +210,7 @@ async function seedSide(
     "organization_memberships",
     (await admin.from("organization_memberships").insert([
       { organization_id: org.id, auth_user_id: internal.userId, member_type: "internal" },
+      { organization_id: org.id, auth_user_id: dispatcher.userId, member_type: "internal" },
       { organization_id: org.id, auth_user_id: portal.userId, member_type: "portal" },
     ])).error,
   );
@@ -281,6 +306,7 @@ async function seedSide(
     documentId: ids.documentId,
     storagePath,
     internal,
+    dispatcher,
     portal,
   };
 }
@@ -328,6 +354,49 @@ async function setOrganizationActive(
       p_active: active,
     })).error,
   );
+}
+
+async function seedCancellationSnapshots(admin: SupabaseClient, side: AbSide): Promise<AbContext["cancellationInvoiceSnapshots"]> {
+  const snapshots = { pending: { direct: randomUUID(), pivot: randomUUID() },
+    accepted: { direct: randomUUID(), pivot: randomUUID() } };
+  for (const status of ["pending", "accepted"] as const) {
+    for (const link of ["direct", "pivot"] as const) {
+      const id = snapshots[status][link];
+      // This is fixture initialization through the EXISTING local seed admin.
+      // Ordinary Auth is deliberately forbidden from assigning fiscal states.
+      // No UUID, Facturapi id, stamp or actual cancellation is fabricated.
+      must("synthetic cancellation snapshot", (await admin.from("invoices").insert({
+        id, organization_id: side.organizationId, customer_id: side.customerId,
+        invoice_number: `AB-FISCAL-${status}-${id}`, customer_name: "Synthetic fiscal snapshot",
+        line_items: [{ description: "Synthetic fiscal snapshot", quantity: 1, unit_price: 100, total: 100 }],
+        subtotal: 100, tax_rate: 0, tax_amount: 0, total: 100, status: "sent", cancellation_status: status,
+      })).error);
+    }
+  }
+  return snapshots;
+}
+
+async function seedDraftFiscalSnapshots(admin: SupabaseClient, side: AbSide) {
+  const snapshots = {} as AbContext["draftFiscalInvoiceSnapshots"];
+  const attachmentInvoices = { direct: randomUUID(), pivot: randomUUID() };
+  for (const state of DRAFT_FISCAL_CASES) {
+    snapshots[state.key] = { direct: randomUUID(), pivot: randomUUID() };
+    const invoiceIds = state.key === "stamping"
+      ? [...Object.values(snapshots[state.key]), ...Object.values(attachmentInvoices)]
+      : Object.values(snapshots[state.key]);
+    for (const id of invoiceIds) {
+      // Existing ephemeral seed admin initializes states unavailable to normal
+      // Auth writes. Tests only attach/read/cancel/delete through logged-in SDK.
+      must("synthetic pre-PAC snapshot", (await admin.from("invoices").insert({
+        id, organization_id: side.organizationId, customer_id: side.customerId,
+        invoice_number: `AB-PREPAC-${state.key}-${id}`, customer_name: "Synthetic pre-PAC snapshot",
+        line_items: [{ description: "Synthetic rental", quantity: 1, unit_price: 100, total: 100 }],
+        subtotal: 100, tax_rate: 0, tax_amount: 0, total: 100, status: "draft",
+        cfdi_status: state.cfdiStatus, cancellation_status: state.cancellationStatus,
+      })).error);
+    }
+  }
+  return { snapshots, attachmentInvoices };
 }
 
 export async function seedAbEnvironment(): Promise<AbContext> {
@@ -379,6 +448,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
       invoiceTotal: AB_INVOICE_TOTAL_A,
       documentId: AB_DOCUMENT_A,
       internalEmail: AB_EMAILS.internalA,
+      dispatcherEmail: AB_EMAILS.dispatcherA,
       portalEmail: AB_EMAILS.portalA,
     },
     true,
@@ -406,6 +476,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
       invoiceTotal: AB_INVOICE_TOTAL_B,
       documentId: AB_DOCUMENT_B,
       internalEmail: AB_EMAILS.internalB,
+      dispatcherEmail: AB_EMAILS.dispatcherB,
       portalEmail: AB_EMAILS.portalB,
     },
     false,
@@ -437,6 +508,9 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     );
   }
 
+  const cancellationInvoiceSnapshots = await seedCancellationSnapshots(admin, A);
+  const draftFiscal = await seedDraftFiscalSnapshots(admin, A);
+
   const context: AbContext = {
     A,
     B,
@@ -444,6 +518,9 @@ export async function seedAbEnvironment(): Promise<AbContext> {
     platformOperatorUserId: operatorId,
     platformOperator,
     roles,
+    cancellationInvoiceSnapshots,
+    draftFiscalInvoiceSnapshots: draftFiscal.snapshots,
+    draftFiscalAttachmentInvoices: draftFiscal.attachmentInvoices,
     initialActiveOrganizationIds,
   };
   mkdirSync(dirname(AB_CONTEXT_FILE), { recursive: true });

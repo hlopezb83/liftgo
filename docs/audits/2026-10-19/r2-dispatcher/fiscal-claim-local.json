@@ -1,0 +1,79 @@
+{
+  "boundary": "Actual handleStampCfdi/auth/org code, injected synthetic claim transport; no SQL/Auth backend/PAC execution",
+  "focusedResult": {
+    "total": 1,
+    "passed": 1,
+    "failed": 0,
+    "success": true
+  },
+  "scratchTestLfSha256": "732a72571df5fbeee06253caf58c28674bd38003ba75760b7cc552aa725cf6a5",
+  "permanentDenoTestLfSha256": "71792de65e4ecdc7d7f1b24b1d13b09c96953aaa9777a739c43530de86112a35",
+  "observations": [
+    {
+      "case": "claim-injected23514",
+      "injectedClaimResult": {
+        "data": null,
+        "error": {
+          "code": "23514",
+          "message": "invoice_booking_not_cancelled (injected claim boundary)"
+        }
+      },
+      "response_status": 409,
+      "response": {
+        "error": "Invoice already stamped or in progress"
+      },
+      "pac_call_count": 0,
+      "fiscal_config_calls": 0,
+      "fetch_calls": 0,
+      "updates_attempted": [
+        {
+          "table": "invoices",
+          "patch": {
+            "cfdi_status": "stamping"
+          },
+          "filters": [
+            {
+              "col": "id",
+              "val": "11111111-1111-4111-8111-111111111111"
+            },
+            {
+              "col": "cfdi_status",
+              "val": [
+                "pending",
+                "error"
+              ]
+            },
+            {
+              "col": "cfdi_uuid",
+              "val": null
+            }
+          ]
+        }
+      ],
+      "inserts": [],
+      "uploads": [],
+      "rpcs": []
+    }
+  ],
+  "denoCachedOnly": {
+    "result": "blocked missing cached dependency",
+    "package": "@sentry/deno@10.76.2",
+    "downloadAttempted": false
+  },
+  "deniedLocalAction": {
+    "kind": "OS CIM access error; no sandbox/auto-review request",
+    "command": "Get-CimInstance Win32_Process -Filter \"name = 'node.exe'\" | Where-Object { $_.CommandLine -like '*dispatcher-stamp-claim-denied*' } | Select-Object ProcessId,ParentProcessId,CreationDate",
+    "message": "Access to a CIM resource was not available to the client.",
+    "processDataReturned": false,
+    "retried": false,
+    "alternateEnumeration": false
+  },
+  "publishedBackendTouched": false,
+  "rawLogsIncluded": false,
+  "permanentDenoPacTransportAssertion": {
+    "transport": "existing installFacturapiMock globalThis.fetch helper",
+    "expectedCalls": 0,
+    "restoredInFinally": true,
+    "execution": "pending isolated CI"
+  }
+}
