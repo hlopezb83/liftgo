@@ -1,0 +1,2382 @@
+{
+  "schemaVersion": 1,
+  "status": "CANDIDATE_NOT_APPROVED_NOT_EXECUTED",
+  "generatedAt": "2026-10-19T13:24:41Z",
+  "candidateSourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+  "pr": {
+    "number": 292,
+    "url": "https://github.com/hlopezb83/liftgo/pull/292",
+    "reviewedHead": "c851174ae1f72194e00cec3a28dc50762617bba2",
+    "mergeCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "baseRelease": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "state": "MERGED_POSTMERGE_CHECKS_SUCCEEDED_ACTIVATION_NOT_VERIFIED"
+  },
+  "frozenR2Boundary": {
+    "sourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "documentationCommit": "fcc1fa6359afe49ce9a9724bbac2fccf11dbb3b6",
+    "manifest": {
+      "path": "docs/audits/2026-10-19/r2-activation/manifest.json",
+      "sha256": "b200b908b1e75f59bb6d17ac245bd8c11e00e5f25a16b6a0e002c6ea389ad260",
+      "bytes": 87321,
+      "containsCRLF": false
+    },
+    "readme": {
+      "path": "docs/audits/2026-10-19/r2-activation/README.md",
+      "sha256": "a243b84999bb35d0cb293b885cc5c512c0f601431642c4fd9310a5113e6ef096",
+      "bytes": 18439,
+      "containsCRLF": false
+    },
+    "entryCount": 107,
+    "lastMigrationIdx": 106,
+    "frozenFilesPreservedByteForByte": true,
+    "logistics0107IncludedInFrozenPlan": false,
+    "newMainMayUseFrozenManifestUnchangedForActivation": false
+  },
+  "authorization": {
+    "approvalGrantedByThisCandidate": false,
+    "migrationExecutionAuthorized": false,
+    "deploymentAuthorized": false,
+    "lovableAgentContactAuthorized": false,
+    "channelDiscoveryAloneWouldAuthorizeMigrationOrDeployment": false,
+    "permissionChangesAuthorized": false,
+    "noImplicitExpansionOfFrozenScope": true
+  },
+  "executionPerformed": {
+    "repositoryReadsAndLocalDocumentation": true,
+    "remoteDatabaseReadByThisTask": false,
+    "remoteMigration": false,
+    "deployment": false,
+    "lovableAgentContact": false,
+    "permissionChanges": false,
+    "businessDataReadsOrWrites": false
+  },
+  "fullJournal": {
+    "sourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "path": "drizzle/migrations/meta/_journal.json",
+    "sha256": "78145ea95e344550fdd485ef01b696941467d5dae0bf7a253db16b7b9301aeec",
+    "bytes": 17488,
+    "containsCRLF": false,
+    "version": "7",
+    "dialect": "postgresql",
+    "entryCount": 108,
+    "entries": [
+      {
+        "idx": 0,
+        "version": "7",
+        "when": 1789330097121,
+        "tag": "0000_multi_org_phase0_core_tables",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0000_multi_org_phase0_core_tables.sql",
+        "sha256": "abd94122a5b4ed1a5deb284fc98e2570cab80dbae420296cdb960df43b8027b2",
+        "bytes": 12521,
+        "containsCRLF": false
+      },
+      {
+        "idx": 1,
+        "version": "7",
+        "when": 1789331300000,
+        "tag": "0001_multi_org_phase0_membership_consistency",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0001_multi_org_phase0_membership_consistency.sql",
+        "sha256": "5083b4ec11668e5e4dc555f27a90f19d041677ab721cfe8cb2097dc937195a01",
+        "bytes": 5413,
+        "containsCRLF": false
+      },
+      {
+        "idx": 2,
+        "version": "7",
+        "when": 1789336500000,
+        "tag": "0002_multi_org_phase1_add_organization_columns",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0002_multi_org_phase1_add_organization_columns.sql",
+        "sha256": "ada2825f97564978f9a6a0c7a02aeac8b6271984efb777cde8c1ac0c3b747ce4",
+        "bytes": 7868,
+        "containsCRLF": false
+      },
+      {
+        "idx": 3,
+        "version": "7",
+        "when": 1789340400000,
+        "tag": "0003_multi_org_phase2_customer_integrity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0003_multi_org_phase2_customer_integrity.sql",
+        "sha256": "0d289f4c6a96c9173b906f3300bc4b6aa4c6b62fd3c4df3c083a29dfface77c0",
+        "bytes": 4093,
+        "containsCRLF": false
+      },
+      {
+        "idx": 4,
+        "version": "7",
+        "when": 1789342200000,
+        "tag": "0004_multi_org_phase3_write_context_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0004_multi_org_phase3_write_context_guard.sql",
+        "sha256": "ffc22130fe7f95bda1f5a520ca63afd2f63013edd3f56f1cc0e8e1fcd86add62",
+        "bytes": 9277,
+        "containsCRLF": false
+      },
+      {
+        "idx": 5,
+        "version": "7",
+        "when": 1789344000000,
+        "tag": "0005_multi_org_phase4_read_isolation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0005_multi_org_phase4_read_isolation.sql",
+        "sha256": "877a67d70d4f6b2a1309aa0bd6f5c6a5e4a91a292bf5a76ab7469e5a4326e128",
+        "bytes": 3480,
+        "containsCRLF": false
+      },
+      {
+        "idx": 6,
+        "version": "7",
+        "when": 1789344600000,
+        "tag": "0006_multi_org_phase4_portal_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sha256": "a65e787cb015681e1feb145013b08b6f020d68506529df68ab5eca091cb05ae5",
+        "bytes": 8779,
+        "containsCRLF": false
+      },
+      {
+        "idx": 7,
+        "version": "7",
+        "when": 1789345200000,
+        "tag": "0007_multi_org_phase4_customer_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0007_multi_org_phase4_customer_rpc_scope.sql",
+        "sha256": "c296a4f7fdde7fc1f3510bb5313d225ba263d89718ae3f1863a84b09c00a63e8",
+        "bytes": 6160,
+        "containsCRLF": false
+      },
+      {
+        "idx": 8,
+        "version": "7",
+        "when": 1789345800000,
+        "tag": "0008_multi_org_phase5_config_and_read_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0008_multi_org_phase5_config_and_read_rpc_scope.sql",
+        "sha256": "b4e48f3d757e856f7e10d1eaff79b1d1e78a585a34299c23d4978acec4366423",
+        "bytes": 4527,
+        "containsCRLF": false
+      },
+      {
+        "idx": 9,
+        "version": "7",
+        "when": 1789346400000,
+        "tag": "0009_multi_org_phase5_bank_read_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0009_multi_org_phase5_bank_read_rpc_scope.sql",
+        "sha256": "1ab4511a862931b139928a3286386e8282dd289a85068c8537f8ae8e6501381b",
+        "bytes": 2156,
+        "containsCRLF": false
+      },
+      {
+        "idx": 10,
+        "version": "7",
+        "when": 1789347000000,
+        "tag": "0010_multi_org_phase5_bank_write_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0010_multi_org_phase5_bank_write_rpc_scope.sql",
+        "sha256": "b0804f85f8c51db800129598892bc82306248b15223a1c571c0616191a05686e",
+        "bytes": 2306,
+        "containsCRLF": false
+      },
+      {
+        "idx": 11,
+        "version": "7",
+        "when": 1789347600000,
+        "tag": "0011_multi_org_phase5_bank_upload_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0011_multi_org_phase5_bank_upload_scope.sql",
+        "sha256": "afccf278b354128be9daaaee11d3393ec818b6416c6faead3e60bf99fff2d154",
+        "bytes": 6522,
+        "containsCRLF": false
+      },
+      {
+        "idx": 12,
+        "version": "7",
+        "when": 1789348200000,
+        "tag": "0012_multi_org_phase5_bank_finalize_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0012_multi_org_phase5_bank_finalize_scope.sql",
+        "sha256": "ef7ce0ea56c7788b5e6a9d2476e97f34d11789f4840d2ca538088e81f174f8f2",
+        "bytes": 12162,
+        "containsCRLF": false
+      },
+      {
+        "idx": 13,
+        "version": "7",
+        "when": 1789348800000,
+        "tag": "0013_multi_org_phase5_sale_quote_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0013_multi_org_phase5_sale_quote_rpc_scope.sql",
+        "sha256": "069aa50c1b3e39348c02fe36df292becce90c78612ec2be4924747277854873d",
+        "bytes": 2432,
+        "containsCRLF": false
+      },
+      {
+        "idx": 14,
+        "version": "7",
+        "when": 1789349400000,
+        "tag": "0014_multi_org_phase5_booking_lifecycle_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0014_multi_org_phase5_booking_lifecycle_rpc_scope.sql",
+        "sha256": "dac419ba05d19fe11b71fbb8bebe0f2ccf8b7624c4e48e85b1e25195e05ae031",
+        "bytes": 2896,
+        "containsCRLF": false
+      },
+      {
+        "idx": 15,
+        "version": "7",
+        "when": 1789350000000,
+        "tag": "0015_multi_org_phase5_return_contract_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0015_multi_org_phase5_return_contract_rpc_scope.sql",
+        "sha256": "d6b5e5ba462cbc00b3820f5e3213a65813013ffe93163944ded39117852a400a",
+        "bytes": 22182,
+        "containsCRLF": false
+      },
+      {
+        "idx": 16,
+        "version": "7",
+        "when": 1789350600000,
+        "tag": "0016_multi_org_phase6_numbering_fiscal_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0016_multi_org_phase6_numbering_fiscal_scope.sql",
+        "sha256": "ae3463c6e1da9c0691fdbf26c407ab46015946f285f495992a98d14a9a0fa1a2",
+        "bytes": 23180,
+        "containsCRLF": false
+      },
+      {
+        "idx": 17,
+        "version": "7",
+        "when": 1789351200000,
+        "tag": "0017_multi_org_phase6_billing_config_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0017_multi_org_phase6_billing_config_scope.sql",
+        "sha256": "c59ed411faf434f129a750164abcee22c8343e2bf2fa7e4de288d1b0dcecc066",
+        "bytes": 7531,
+        "containsCRLF": false
+      },
+      {
+        "idx": 18,
+        "version": "7",
+        "when": 1789351800000,
+        "tag": "0018_multi_org_phase6_supplier_approval_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0018_multi_org_phase6_supplier_approval_scope.sql",
+        "sha256": "512ed51fd1d49c2b885fec7a32157091aa783a4c6cc2ee2a53986588c190a8fa",
+        "bytes": 4703,
+        "containsCRLF": false
+      },
+      {
+        "idx": 19,
+        "version": "7",
+        "when": 1789352400000,
+        "tag": "0019_multi_org_phase6_public_branding",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0019_multi_org_phase6_public_branding.sql",
+        "sha256": "acbe892f3d58292ba299d2f85709dd6b63519d733d3a6529b9c64a7d33e20bdf",
+        "bytes": 1612,
+        "containsCRLF": false
+      },
+      {
+        "idx": 20,
+        "version": "7",
+        "when": 1789353000000,
+        "tag": "0020_multi_org_phase7_storage_migration_ledger",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0020_multi_org_phase7_storage_migration_ledger.sql",
+        "sha256": "4deaed042e6b5dc9cd4677f76ca35f7e7e17547dd548addaa24c951f7983b4f8",
+        "bytes": 4991,
+        "containsCRLF": false
+      },
+      {
+        "idx": 21,
+        "version": "7",
+        "when": 1789488995765,
+        "tag": "0021_storage_policies_org_prefix_aware",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0021_storage_policies_org_prefix_aware.sql",
+        "sha256": "e7ffb6933e8650de179f984ede844eab632baec383ef206d2a94442620030f76",
+        "bytes": 4875,
+        "containsCRLF": false
+      },
+      {
+        "idx": 22,
+        "version": "7",
+        "when": 1789491753221,
+        "tag": "0022_storage_tenant_scoped_policies",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0022_storage_tenant_scoped_policies.sql",
+        "sha256": "7cbe5fe7313d34f5f5da1eb90bc5c7ae41e164a0fde00373243eed9f7fc2c875",
+        "bytes": 8885,
+        "containsCRLF": false
+      },
+      {
+        "idx": 23,
+        "version": "7",
+        "when": 1789494754486,
+        "tag": "0023_payment_intent_invoice_definer_check",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0023_payment_intent_invoice_definer_check.sql",
+        "sha256": "9ee7719ada9edfbe2f6e96e76ed3dddaa670040590ecc8b77ae1ea32f4c964e8",
+        "bytes": 1813,
+        "containsCRLF": false
+      },
+      {
+        "idx": 24,
+        "version": "7",
+        "when": 1789497000000,
+        "tag": "0024_portal_fallback_respects_account_status",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0024_portal_fallback_respects_account_status.sql",
+        "sha256": "1a6bd55eb5ef76e8ce7f34e4621b1f581618751a29fd6a334cc11c319978571a",
+        "bytes": 1884,
+        "containsCRLF": false
+      },
+      {
+        "idx": 25,
+        "version": "7",
+        "when": 1789499881000,
+        "tag": "0025_multi_org_phase8_admin_membership_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0025_multi_org_phase8_admin_membership_scope.sql",
+        "sha256": "77ce5b2ee5c0d5b264c435a07ea8e3df5af7079fbe7a988aba4926a3620c2304",
+        "bytes": 12875,
+        "containsCRLF": false
+      },
+      {
+        "idx": 26,
+        "version": "7",
+        "when": 1789519033000,
+        "tag": "0026_rep_number_org_scoped_assignment",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0026_rep_number_org_scoped_assignment.sql",
+        "sha256": "08b9a9af6ec89358a9e7f4f61110f3ccb30cebdd2dcc5998c5d5660b60ca3b4f",
+        "bytes": 7874,
+        "containsCRLF": false
+      },
+      {
+        "idx": 27,
+        "version": "7",
+        "when": 1789614261000,
+        "tag": "0027_storage_tenant_scope_remaining_buckets",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0027_storage_tenant_scope_remaining_buckets.sql",
+        "sha256": "017f696b4e8409e659c728969127a583d4d05ebe226884dde382ae37d3907da4",
+        "bytes": 17399,
+        "containsCRLF": false
+      },
+      {
+        "idx": 28,
+        "version": "7",
+        "when": 1789664564000,
+        "tag": "0028_multi_org_function_acl_revoke_anon",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0028_multi_org_function_acl_revoke_anon.sql",
+        "sha256": "b8efa6a0574139f3bd3472a3e615123ae47f20dba46b8d2bfde029c2c0a39fcc",
+        "bytes": 4588,
+        "containsCRLF": false
+      },
+      {
+        "idx": 29,
+        "version": "7",
+        "when": 1789750964000,
+        "tag": "0029_multi_org_unique_scope_by_organization",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0029_multi_org_unique_scope_by_organization.sql",
+        "sha256": "2fcf9e70368c5720a160c2864eb29c4b935386afea165695663efaa5992f8f83",
+        "bytes": 10436,
+        "containsCRLF": false
+      },
+      {
+        "idx": 30,
+        "version": "7",
+        "when": 1789837364000,
+        "tag": "0030_multi_org_onboarding_and_customer_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0030_multi_org_onboarding_and_customer_scope.sql",
+        "sha256": "ee7dc399c093d05ef2b3e49106bff48ae539a82cf3acd5dd94e36680c68447ec",
+        "bytes": 43366,
+        "containsCRLF": false
+      },
+      {
+        "idx": 31,
+        "version": "7",
+        "when": 1789923764000,
+        "tag": "0031_multi_org_audit_hardening",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0031_multi_org_audit_hardening.sql",
+        "sha256": "375518bad9a4a5707f45198f9f0e1361f96c816e015255761fd28b7c3980a1a1",
+        "bytes": 29540,
+        "containsCRLF": false
+      },
+      {
+        "idx": 32,
+        "version": "7",
+        "when": 1790010164000,
+        "tag": "0032_multi_org_storage_staff_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0032_multi_org_storage_staff_scope.sql",
+        "sha256": "c394ad7087784ba93b05d249a0b932e604c1d94b288113043e182e1a2d459094",
+        "bytes": 16749,
+        "containsCRLF": false
+      },
+      {
+        "idx": 33,
+        "version": "7",
+        "when": 1790096564000,
+        "tag": "0033_handle_new_user_trusted_org_context",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0033_handle_new_user_trusted_org_context.sql",
+        "sha256": "9639708420ee331747eabc5ab6ebfdaeb7618a1239085ecc4efbc1fa6e06f3d2",
+        "bytes": 3035,
+        "containsCRLF": false
+      },
+      {
+        "idx": 34,
+        "version": "7",
+        "when": 1790182964000,
+        "tag": "0034_storage_manual_resolutions",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0034_storage_manual_resolutions.sql",
+        "sha256": "394f0ab090d8758b7669287bd85afa886b597383ebdf3dd963763659a8c124f7",
+        "bytes": 2061,
+        "containsCRLF": false
+      },
+      {
+        "idx": 35,
+        "version": "7",
+        "when": 1790269364000,
+        "tag": "0035_storage_manual_resolutions_force_rls",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0035_storage_manual_resolutions_force_rls.sql",
+        "sha256": "45f655efd93c383cf408502b2a0358989c03a85a27c85e68cc0e3452eae32f5e",
+        "bytes": 1070,
+        "containsCRLF": false
+      },
+      {
+        "idx": 36,
+        "version": "7",
+        "when": 1790355764000,
+        "tag": "0036_multi_org_analytics_rpc_invoker_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0036_multi_org_analytics_rpc_invoker_scope.sql",
+        "sha256": "0b3be95a58d70d91c339cb3e633bead313ceb1dcbbe362c8d3bb317ed25832da",
+        "bytes": 1555,
+        "containsCRLF": false
+      },
+      {
+        "idx": 37,
+        "version": "7",
+        "when": 1790442164000,
+        "tag": "0037_multi_org_invoice_balance_rpc_invoker_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0037_multi_org_invoice_balance_rpc_invoker_scope.sql",
+        "sha256": "91ec759e0cbac79cca9f2dc337c6362e628d15bc4cdcb84333718a8f7cfdf6c8",
+        "bytes": 1125,
+        "containsCRLF": false
+      },
+      {
+        "idx": 38,
+        "version": "7",
+        "when": 1790528564000,
+        "tag": "0038_e2e_utilities_tenant_scoped",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0038_e2e_utilities_tenant_scoped.sql",
+        "sha256": "65cde4269a1ce630f29b242efd4dd5580d31203fcaba883ff79eb99690f6a480",
+        "bytes": 26952,
+        "containsCRLF": false
+      },
+      {
+        "idx": 39,
+        "version": "7",
+        "when": 1790614964000,
+        "tag": "0039_multi_org_rpc_helper_invoker_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0039_multi_org_rpc_helper_invoker_scope.sql",
+        "sha256": "8ab7bb924f6af4f42b9ea826089a75c4284d79d496ca24a7ba4dc9a0368ffbde",
+        "bytes": 8079,
+        "containsCRLF": false
+      },
+      {
+        "idx": 40,
+        "version": "7",
+        "when": 1790701364000,
+        "tag": "0040_multi_org_mutating_rpc_org_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0040_multi_org_mutating_rpc_org_guard.sql",
+        "sha256": "319520dfecd8f5f6ac9b483f27a2433dc098a8047d7307e1acc243cf426479c2",
+        "bytes": 36322,
+        "containsCRLF": false
+      },
+      {
+        "idx": 41,
+        "version": "7",
+        "when": 1790787764000,
+        "tag": "0041_multi_org_supplier_damage_rpc_org_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0041_multi_org_supplier_damage_rpc_org_guard.sql",
+        "sha256": "88694312183ff225d81ce28b4da8ccc2fa5fda71bbde5d1d712fca164a6ecbf3",
+        "bytes": 68734,
+        "containsCRLF": false
+      },
+      {
+        "idx": 42,
+        "version": "7",
+        "when": 1790874164000,
+        "tag": "0042_multi_org_bank_inspection_rpc_org_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0042_multi_org_bank_inspection_rpc_org_guard.sql",
+        "sha256": "789ff8f896f1674da485c6a8aec5e53ca013c8e6367c4bb9b14bfea19d1f070d",
+        "bytes": 59595,
+        "containsCRLF": false
+      },
+      {
+        "idx": 43,
+        "version": "7",
+        "when": 1790874165000,
+        "tag": "0043_multi_org_counters_secrets_locks_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0043_multi_org_counters_secrets_locks_guard.sql",
+        "sha256": "bed50391810e0f388deae690bc4e058b7a857aa4276d2e1b9d1ce26e71740e20",
+        "bytes": 14689,
+        "containsCRLF": false
+      },
+      {
+        "idx": 44,
+        "version": "7",
+        "when": 1790874166000,
+        "tag": "0044_multi_org_customer_reads_link_rep_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0044_multi_org_customer_reads_link_rep_guard.sql",
+        "sha256": "b0f33de65c75e43d79192c2817cb0989e3e484fa30429a05bcd1d76b66b2d4c2",
+        "bytes": 23267,
+        "containsCRLF": false
+      },
+      {
+        "idx": 45,
+        "version": "7",
+        "when": 1790874167000,
+        "tag": "0045_approve_payment_intent_neutral_exchange_rate",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0045_approve_payment_intent_neutral_exchange_rate.sql",
+        "sha256": "9097676dac967adac52327436183e2098222cded87de2143c3bbb2d4b78b7264",
+        "bytes": 5595,
+        "containsCRLF": false
+      },
+      {
+        "idx": 46,
+        "version": "7",
+        "when": 1790874168000,
+        "tag": "0046_liftgo_shared_catalogs_foundation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0046_liftgo_shared_catalogs_foundation.sql",
+        "sha256": "82c228ceb83c76a258f8de9fafbd63e40ad06424b3f243fdb3141f11f493cd7f",
+        "bytes": 27440,
+        "containsCRLF": true
+      },
+      {
+        "idx": 47,
+        "version": "7",
+        "when": 1790874169000,
+        "tag": "0047_shared_equipment_models_phase1",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0047_shared_equipment_models_phase1.sql",
+        "sha256": "82311c5604c0839967c65d0804d1ef7559d671c661c780024700ad3d87fe4da2",
+        "bytes": 13714,
+        "containsCRLF": false
+      },
+      {
+        "idx": 48,
+        "version": "7",
+        "when": 1790874170000,
+        "tag": "0048_shared_parts_catalog_phase2",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0048_shared_parts_catalog_phase2.sql",
+        "sha256": "e33f83e8e396c24268bc829a101e5303896d15e1432c9969a5f6b1bf3040e760",
+        "bytes": 13108,
+        "containsCRLF": false
+      },
+      {
+        "idx": 49,
+        "version": "7",
+        "when": 1790874171000,
+        "tag": "0049_versioned_legal_templates_phase3",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0049_versioned_legal_templates_phase3.sql",
+        "sha256": "10830080037a61e23abd32f595db36649ec11f106b1cc6f7cad3ac0d64fe499c",
+        "bytes": 10557,
+        "containsCRLF": false
+      },
+      {
+        "idx": 50,
+        "version": "7",
+        "when": 1790874172000,
+        "tag": "0050_platform_legal_template_versions_phase3b",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0050_platform_legal_template_versions_phase3b.sql",
+        "sha256": "8609c8e04e2c59a5ab294b3120d883449123b71b903d2afabc12cce04268b4eb",
+        "bytes": 13981,
+        "containsCRLF": false
+      },
+      {
+        "idx": 51,
+        "version": "7",
+        "when": 1790874173000,
+        "tag": "0051_organization_legal_overrides_phase3c",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0051_organization_legal_overrides_phase3c.sql",
+        "sha256": "509cb6af5069e66cce30a4552347274423987ed2c8a0bd0cfdd3d88e0aae4b70",
+        "bytes": 8287,
+        "containsCRLF": true
+      },
+      {
+        "idx": 52,
+        "version": "7",
+        "when": 1790874174000,
+        "tag": "0052_booking_number_authenticated_acl",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0052_booking_number_authenticated_acl.sql",
+        "sha256": "7aae3e491c8f891f980b5b0be1f8b7f8853fe46bb76c639ffb490cad534ef4da",
+        "bytes": 1803,
+        "containsCRLF": true
+      },
+      {
+        "idx": 53,
+        "version": "7",
+        "when": 1790874175000,
+        "tag": "0053_contract_signed_issuer_snapshot",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0053_contract_signed_issuer_snapshot.sql",
+        "sha256": "cb6ea5b3ec185406deec6cdb6f7ebbf23543b3f6406bb16ad38eda1e5966fae4",
+        "bytes": 6027,
+        "containsCRLF": true
+      },
+      {
+        "idx": 54,
+        "version": "7",
+        "when": 1790874176000,
+        "tag": "0054_rate_limits_platform_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0054_rate_limits_platform_scope.sql",
+        "sha256": "c0c61fd6d5e3f4ab984fbd16873f05512278455f6504c3bcc3e308e2ed9c614b",
+        "bytes": 378,
+        "containsCRLF": false
+      },
+      {
+        "idx": 55,
+        "version": "7",
+        "when": 1790874177000,
+        "tag": "0055_handle_new_user_deferred_org_provisioning",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0055_handle_new_user_deferred_org_provisioning.sql",
+        "sha256": "b7e236f53509957e3a1c271a6196f6e59e5f78fd1ab27bba85f09f41845b8d26",
+        "bytes": 1857,
+        "containsCRLF": false
+      },
+      {
+        "idx": 56,
+        "version": "7",
+        "when": 1790874178000,
+        "tag": "0056_handle_new_user_comment",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0056_handle_new_user_comment.sql",
+        "sha256": "60499bbbba877a897eacdb5efe7982f5994b6ba225e38a2d92b3d21941f0ec8d",
+        "bytes": 211,
+        "containsCRLF": false
+      },
+      {
+        "idx": 57,
+        "version": "7",
+        "when": 1790874179000,
+        "tag": "0057_provision_invited_internal_user_atomic",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0057_provision_invited_internal_user_atomic.sql",
+        "sha256": "f94c7a1466057a36cb3ffee3ed7d5da53049be09703ca94b5f5ed6226e7ab082",
+        "bytes": 4307,
+        "containsCRLF": false
+      },
+      {
+        "idx": 58,
+        "version": "7",
+        "when": 1790874180000,
+        "tag": "0058_provision_invited_comment",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0058_provision_invited_comment.sql",
+        "sha256": "35a2fcab1b44614808fbe632b87e53976ffdb15104b34e55fa01375c581aaf67",
+        "bytes": 227,
+        "containsCRLF": false
+      },
+      {
+        "idx": 59,
+        "version": "7",
+        "when": 1790874181000,
+        "tag": "0059_quote_folios_start_at_one",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0059_quote_folios_start_at_one.sql",
+        "sha256": "9ebe9e6480cae95bd842476299c14fe6720de3416fdc9efb3129002298e42e0d",
+        "bytes": 2938,
+        "containsCRLF": true
+      },
+      {
+        "idx": 60,
+        "version": "7",
+        "when": 1790874182000,
+        "tag": "0060_profile_self_update_org_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0060_profile_self_update_org_scope.sql",
+        "sha256": "c5529252a60556776b5ae693fec10f87e80cfef91e9af0ddd90b3521c4318c97",
+        "bytes": 538,
+        "containsCRLF": false
+      },
+      {
+        "idx": 61,
+        "version": "7",
+        "when": 1790874183000,
+        "tag": "0061_pending_organization_first_admin_provisioning",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0061_pending_organization_first_admin_provisioning.sql",
+        "sha256": "841f380df6b74890edc246d586c0b316756f18ae2d7d22015bab427eaabe86c6",
+        "bytes": 2343,
+        "containsCRLF": false
+      },
+      {
+        "idx": 62,
+        "version": "7",
+        "when": 1790874184000,
+        "tag": "0062_ledger_sync_noop",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0062_ledger_sync_noop.sql",
+        "sha256": "2eab17323cd0bc8aaa172bd5d53d4bc1c734d926530fdf03099c17cce566e0d1",
+        "bytes": 130,
+        "containsCRLF": false
+      },
+      {
+        "idx": 63,
+        "version": "7",
+        "when": 1790874185000,
+        "tag": "0063_discard_internal_user_atomic",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0063_discard_internal_user_atomic.sql",
+        "sha256": "1e016c2515801dc023799daac38d969bc0d9f28f7987fe99c086d7f8043636c1",
+        "bytes": 2597,
+        "containsCRLF": false
+      },
+      {
+        "idx": 64,
+        "version": "7",
+        "when": 1790874186000,
+        "tag": "0064_ledger_sync_noop_0063",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0064_ledger_sync_noop_0063.sql",
+        "sha256": "2ceba911516e9268e67076535465e095066927e36d3b95d6747944a379d7399f",
+        "bytes": 101,
+        "containsCRLF": false
+      },
+      {
+        "idx": 65,
+        "version": "7",
+        "when": 1790874187000,
+        "tag": "0065_customer_relation_edit_isolation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0065_customer_relation_edit_isolation.sql",
+        "sha256": "7fa769d6dea92709889c373a3df061cd830903763962b329e3edd5260735f43c",
+        "bytes": 5962,
+        "containsCRLF": false
+      },
+      {
+        "idx": 66,
+        "version": "7",
+        "when": 1790874188000,
+        "tag": "0066_ledger_sync_noop_0065",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0066_ledger_sync_noop_0065.sql",
+        "sha256": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",
+        "bytes": 9,
+        "containsCRLF": false
+      },
+      {
+        "idx": 67,
+        "version": "7",
+        "when": 1790874189000,
+        "tag": "0067_customer_sat_validation_org_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0067_customer_sat_validation_org_scope.sql",
+        "sha256": "af9c2993d7d1d03c8c2d2ec12c9f933260c2bb25119be7c9f553c437d84ad27c",
+        "bytes": 3662,
+        "containsCRLF": false
+      },
+      {
+        "idx": 68,
+        "version": "7",
+        "when": 1790874190000,
+        "tag": "0068_ledger_sync_noop_0067",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0068_ledger_sync_noop_0067.sql",
+        "sha256": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",
+        "bytes": 9,
+        "containsCRLF": false
+      },
+      {
+        "idx": 69,
+        "version": "7",
+        "when": 1790874191000,
+        "tag": "0069_quote_booking_staff_scoped_rpc",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0069_quote_booking_staff_scoped_rpc.sql",
+        "sha256": "f76a3a38c4791a54ac1683af2dc309116104ef74b401afc8435058e83224b568",
+        "bytes": 3431,
+        "containsCRLF": false
+      },
+      {
+        "idx": 70,
+        "version": "7",
+        "when": 1790874192000,
+        "tag": "0070_contract_deposit_idempotence",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0070_contract_deposit_idempotence.sql",
+        "sha256": "722e7121491f073ff3d04c118a4a4ef5d4fb9ede90b595a1daf8cc7c63b113c5",
+        "bytes": 2889,
+        "containsCRLF": false
+      },
+      {
+        "idx": 71,
+        "version": "7",
+        "when": 1790874193000,
+        "tag": "0071_forklift_financials_physical_occupancy",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0071_forklift_financials_physical_occupancy.sql",
+        "sha256": "5fa976e47aceafb6e175c9a8e10e88fc369e8d175e2dbfc3311f93cc7609c7ff",
+        "bytes": 4853,
+        "containsCRLF": false
+      },
+      {
+        "idx": 72,
+        "version": "7",
+        "when": 1790874194000,
+        "tag": "0072_dashboard_fleet_counts_unbounded",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0072_dashboard_fleet_counts_unbounded.sql",
+        "sha256": "479378ad83e78983a51291b672cad7a62bf2f54cc2e6a3bea70516b64155eaa2",
+        "bytes": 1992,
+        "containsCRLF": false
+      },
+      {
+        "idx": 73,
+        "version": "7",
+        "when": 1790874195000,
+        "tag": "0073_clear_location_after_return",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0073_clear_location_after_return.sql",
+        "sha256": "207e89d864255ebf7c2c71e2880b845f88119d206bfd1efc9fbdfd1320084250",
+        "bytes": 2345,
+        "containsCRLF": false
+      },
+      {
+        "idx": 74,
+        "version": "7",
+        "when": 1790874196000,
+        "tag": "0074_return_date_parts_activation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0074_return_date_parts_activation.sql",
+        "sha256": "dff813067a55e5190a14f60d4f07276c8e84e7581e0149bd6be929f5ec4f1f78",
+        "bytes": 20055,
+        "containsCRLF": false
+      },
+      {
+        "idx": 75,
+        "version": "7",
+        "when": 1790874197000,
+        "tag": "0075_recurring_group_collision_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0075_recurring_group_collision_guard.sql",
+        "sha256": "bbe7a5baf7579192ed8a14e9a83cc620d284e5ae1125cca469029d7637543d17",
+        "bytes": 9146,
+        "containsCRLF": true
+      },
+      {
+        "idx": 76,
+        "version": "7",
+        "when": 1790874198000,
+        "tag": "0076_accounts_payable_query_indexes",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0076_accounts_payable_query_indexes.sql",
+        "sha256": "990b3a1628769ca8dee37757c134309867249dcc87fbfee76dc4b9f05a3cf920",
+        "bytes": 364,
+        "containsCRLF": false
+      },
+      {
+        "idx": 77,
+        "version": "7",
+        "when": 1790874199000,
+        "tag": "0077_supplier_primary_atomic_switch",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0077_supplier_primary_atomic_switch.sql",
+        "sha256": "69c06ae726c6c1d58258bcbf00edc669bd27f8dd8db27c26789b79a338302de9",
+        "bytes": 5444,
+        "containsCRLF": false
+      },
+      {
+        "idx": 78,
+        "version": "7",
+        "when": 1790874200000,
+        "tag": "0078_bank_account_history_restrict",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0078_bank_account_history_restrict.sql",
+        "sha256": "32b16781c4da226cd177ba2a7000b715f8e39453247617d97a9a3fc1769b9d42",
+        "bytes": 1104,
+        "containsCRLF": false
+      },
+      {
+        "idx": 79,
+        "version": "7",
+        "when": 1790874201000,
+        "tag": "0079_revenue_month_invoice_credits",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0079_revenue_month_invoice_credits.sql",
+        "sha256": "01841479530bff6a1a532b216234ac00808bebc0d12d25f587e5e9e7eccdf033",
+        "bytes": 1697,
+        "containsCRLF": false
+      },
+      {
+        "idx": 80,
+        "version": "7",
+        "when": 1790874202000,
+        "tag": "0080_calendar_maintenance_windows",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0080_calendar_maintenance_windows.sql",
+        "sha256": "ce1d49b4a387e522169bbf924c9bcf908205e0feea356888799850e98901fa4b",
+        "bytes": 2550,
+        "containsCRLF": false
+      },
+      {
+        "idx": 81,
+        "version": "7",
+        "when": 1790874202001,
+        "tag": "0081_operational_lifecycle_guards",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0081_operational_lifecycle_guards.sql",
+        "sha256": "c76bad49edf36fdad2e9fb265b9fe70245bd8c6142db19609bb27f8754b87053",
+        "bytes": 31528,
+        "containsCRLF": false
+      },
+      {
+        "idx": 82,
+        "version": "7",
+        "when": 1790874202002,
+        "tag": "0082_maintenance_cost_integrity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0082_maintenance_cost_integrity.sql",
+        "sha256": "65a00f643cb188b5f40551ae95a622cf9325f2529a521812e95a4b317c14c785",
+        "bytes": 19321,
+        "containsCRLF": true
+      },
+      {
+        "idx": 83,
+        "version": "7",
+        "when": 1790874202003,
+        "tag": "0083_organization_display_identity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0083_organization_display_identity.sql",
+        "sha256": "4d3417b7816e413a258d99d95d7d652ba05b9c6e483019d519d41612f2539f3c",
+        "bytes": 1149,
+        "containsCRLF": false
+      },
+      {
+        "idx": 84,
+        "version": "7",
+        "when": 1790874202004,
+        "tag": "0084_notification_recipient_org_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0084_notification_recipient_org_scope.sql",
+        "sha256": "b8f1adabcdab91dff995addac62fdaffddf1dbb601f0d57fa4373ebd235ab277",
+        "bytes": 4394,
+        "containsCRLF": false
+      },
+      {
+        "idx": 85,
+        "version": "7",
+        "when": 1790874202005,
+        "tag": "0085_payment_batch_snapshot_and_bank_currency",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0085_payment_batch_snapshot_and_bank_currency.sql",
+        "sha256": "4b0fed32591890607b119cc35d6c227085f92c45ec94430aeda5c60141850c25",
+        "bytes": 17376,
+        "containsCRLF": false
+      },
+      {
+        "idx": 86,
+        "version": "7",
+        "when": 1790874202006,
+        "tag": "0086_inventory_and_operational_integrity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0086_inventory_and_operational_integrity.sql",
+        "sha256": "55c0403a4bbecebc9b6375a5f01ac3977567aabf9a0c3a63bccdfead495c8319",
+        "bytes": 38436,
+        "containsCRLF": false
+      },
+      {
+        "idx": 87,
+        "version": "7",
+        "when": 1790874202007,
+        "tag": "0087_booking_quote_rental_line_identity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0087_booking_quote_rental_line_identity.sql",
+        "sha256": "3a4253d4caa936077fe2802195e01d81cbfb57318ed3a1c69bbed4c55eba3e30",
+        "bytes": 4455,
+        "containsCRLF": false
+      },
+      {
+        "idx": 88,
+        "version": "7",
+        "when": 1790885052977,
+        "tag": "0088_platform_center_readmodels_and_audit",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0088_platform_center_readmodels_and_audit.sql",
+        "sha256": "92dff62b4ecf05689d3a386874b67693fc65789333b13b7af8a675f66cff5a75",
+        "bytes": 18462,
+        "containsCRLF": false
+      },
+      {
+        "idx": 89,
+        "version": "7",
+        "when": 1790890234134,
+        "tag": "0089_resumable_platform_onboarding",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0089_resumable_platform_onboarding.sql",
+        "sha256": "b33a7214567eeb9b4ccf7095c9cbb9e27d1439077e6b6ba69f52bce0aec3546f",
+        "bytes": 9969,
+        "containsCRLF": false
+      },
+      {
+        "idx": 90,
+        "version": "7",
+        "when": 1790897569107,
+        "tag": "0090_reviewed_catalog_imports",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0090_reviewed_catalog_imports.sql",
+        "sha256": "883419338de940e6a16c7bbd0e47b9958a1b50d228e1459bbdb18aeb9ec2353c",
+        "bytes": 23374,
+        "containsCRLF": false
+      },
+      {
+        "idx": 91,
+        "version": "7",
+        "when": 1790904569507,
+        "tag": "0091_platform_capabilities_and_root",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0091_platform_capabilities_and_root.sql",
+        "sha256": "2d095136d93009668b404f07285fd274910169d2c1738c00fc371be3d554855b",
+        "bytes": 60934,
+        "containsCRLF": false
+      },
+      {
+        "idx": 92,
+        "version": "7",
+        "when": 1790970257472,
+        "tag": "0092_platform_operator_sessions_and_access",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0092_platform_operator_sessions_and_access.sql",
+        "sha256": "ab4d1e9c3bb3bc7e376b1b29450b60e4328ce75460a706aca07b8f2e5d5dead7",
+        "bytes": 9665,
+        "containsCRLF": false
+      },
+      {
+        "idx": 93,
+        "version": "7",
+        "when": 1790976000000,
+        "tag": "0093_platform_integration_health",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0093_platform_integration_health.sql",
+        "sha256": "441c9833cdcc4769b7c4299ce409b251ada3a86aa0890dc52456cfd671dc2822",
+        "bytes": 13989,
+        "containsCRLF": false
+      },
+      {
+        "idx": 94,
+        "version": "7",
+        "when": 1790978331000,
+        "tag": "0094_platform_support_cases",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0094_platform_support_cases.sql",
+        "sha256": "ddd148d3f9939cb0acecf72f4c2bc1e63398bfdf2c8210172e58de446d8644cc",
+        "bytes": 23522,
+        "containsCRLF": false
+      },
+      {
+        "idx": 95,
+        "version": "7",
+        "when": 1790988438092,
+        "tag": "0095_support_display_identity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0095_support_display_identity.sql",
+        "sha256": "71c4bc31f65fde9639159a62dd8f638e6196a0fe1fe6f232db0137d3cd597301",
+        "bytes": 3861,
+        "containsCRLF": false
+      },
+      {
+        "idx": 96,
+        "version": "7",
+        "when": 1790991167291,
+        "tag": "0096_recurring_invoice_org_context",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0096_recurring_invoice_org_context.sql",
+        "sha256": "88a1c3176b7c57ef8a5455fc9c73500b74a9268de3060b532fdecc09453c83d2",
+        "bytes": 9212,
+        "containsCRLF": false
+      },
+      {
+        "idx": 97,
+        "version": "7",
+        "when": 1790991273930,
+        "tag": "0097_recurring_invoice_org_context",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0097_recurring_invoice_org_context.sql",
+        "sha256": "377913168d9cb35797b3a044146a984ddcf1a675bdc4b822d702ca4734a502f0",
+        "bytes": 8401,
+        "containsCRLF": false
+      },
+      {
+        "idx": 98,
+        "version": "7",
+        "when": 1790991931103,
+        "tag": "0098_platform_fiscal_job_history",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0098_platform_fiscal_job_history.sql",
+        "sha256": "57cd6e7be40381cb58a7e2ad09f28784b05903298c2605ac363475e9ed4fc312",
+        "bytes": 14054,
+        "containsCRLF": false
+      },
+      {
+        "idx": 99,
+        "version": "7",
+        "when": 1791022774090,
+        "tag": "0099_platform_fiscal_recovery",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0099_platform_fiscal_recovery.sql",
+        "sha256": "12d54c3c439c010e44ebdd952900b153b25dc4c954829f5e3800b990132b2772",
+        "bytes": 31613,
+        "containsCRLF": true
+      },
+      {
+        "idx": 100,
+        "version": "7",
+        "when": 1791035610000,
+        "tag": "0100_platform_organization_governance",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0100_platform_organization_governance.sql",
+        "sha256": "3188dad012705a9f3674b61d2a1a066313bfb9005a44c584f76f37e833b67a2e",
+        "bytes": 10874,
+        "containsCRLF": false
+      },
+      {
+        "idx": 101,
+        "version": "7",
+        "when": 1791062762896,
+        "tag": "0101_platform_edit_conflicts",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0101_platform_edit_conflicts.sql",
+        "sha256": "4cd78fabd3b421648de70d1b22bb7b34da3e3fb1eb11b75b46dab4c6fa019eaa",
+        "bytes": 18730,
+        "containsCRLF": false
+      },
+      {
+        "idx": 102,
+        "version": "7",
+        "when": 1791913029443,
+        "tag": "0102_admin_delivery_return_corrections",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0102_admin_delivery_return_corrections.sql",
+        "sha256": "da4d9e76ccdbaf1acf083d7dcd055db0f3d9340abe4473915a402768a117eb27",
+        "bytes": 9794,
+        "containsCRLF": false
+      },
+      {
+        "idx": 103,
+        "version": "7",
+        "when": 1792368366457,
+        "tag": "0103_canonical_payment_invoice_currency",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0103_canonical_payment_invoice_currency.sql",
+        "sha256": "9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271",
+        "bytes": 19025,
+        "containsCRLF": false
+      },
+      {
+        "idx": 104,
+        "version": "7",
+        "when": 1792370295568,
+        "tag": "0104_supplier_bill_details_rpc",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0104_supplier_bill_details_rpc.sql",
+        "sha256": "374a36eb1c433ba631ad69ae95cc3662fe3dc2ba019105d0ab1400a03aff87b0",
+        "bytes": 8720,
+        "containsCRLF": false
+      },
+      {
+        "idx": 105,
+        "version": "7",
+        "when": 1792391158311,
+        "tag": "0105_rep_claim_reconciliation_only",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+        "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+        "bytes": 1744,
+        "containsCRLF": false
+      },
+      {
+        "idx": 106,
+        "version": "7",
+        "when": 1792392861354,
+        "tag": "0106_booking_invoice_cancellation_guards",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+        "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+        "bytes": 9873,
+        "containsCRLF": false
+      },
+      {
+        "idx": 107,
+        "version": "7",
+        "when": 1792392861355,
+        "tag": "0107_quote_charge_tracking",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+        "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+        "bytes": 40557,
+        "containsCRLF": false
+      }
+    ],
+    "prefixThrough106MatchesFrozenManifestExactly": true,
+    "hashBasis": "SHA-256 of exact Git blob bytes; no newline normalization"
+  },
+  "migration0107": {
+    "idx": 107,
+    "version": "7",
+    "when": 1792392861355,
+    "tag": "0107_quote_charge_tracking",
+    "breakpoints": true,
+    "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+    "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+    "bytes": 40557,
+    "containsCRLF": false,
+    "sourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "reviewedHead": "c851174ae1f72194e00cec3a28dc50762617bba2",
+    "state": "CANDIDATE_NOT_EXECUTED",
+    "dependsOnMigrationIdxs": [
+      105,
+      106
+    ],
+    "snapshot": {
+      "path": "drizzle/migrations/meta/0107_snapshot.json",
+      "sha256": "1e87f3926d6f77f6da26f5e278ee232fbb7da4f5a3c8963f1d552d7fdccfa057",
+      "bytes": 336,
+      "containsCRLF": false,
+      "metadata": {
+        "id": "3c6492d3-f08b-476b-b94b-9f94a7ac7fbd",
+        "prevId": "b4e20fc3-4672-41c4-b8cb-ebfe6246743b",
+        "version": "7",
+        "dialect": "postgresql",
+        "tables": {},
+        "enums": {},
+        "schemas": {},
+        "views": {},
+        "sequences": {},
+        "roles": {},
+        "policies": {},
+        "_meta": {
+          "columns": {},
+          "schemas": {},
+          "tables": {}
+        }
+      }
+    },
+    "dataMutationBeyondDdl": true,
+    "allOrganizationsOfTargetPotentiallyAffected": true
+  },
+  "dependencies": {
+    "orderedMigrationIdxs": [
+      105,
+      106,
+      107
+    ],
+    "databaseMustPrecedeLogisticsFrontendAndRecurringEdge": true,
+    "repEdgeAnd0105MustBeVerifiedTogether": true,
+    "ifPreviouslyObservedLedgerIsUnchangedDrizzleWouldSelect": [
+      105,
+      106,
+      107
+    ],
+    "pendingSelectionIsConditionalNotFreshOrApproved": true,
+    "freshFullLedgerAndExactPendingBatchRequired": true,
+    "drizzleSelectsAllPendingJournalEntries": true
+  },
+  "quoteSourceInitialization": {
+    "reviewStatus": "SOURCE_ONLY_NOT_EXECUTED_LIVE_IMPACT_NOT_MEASURED",
+    "sql": "UPDATE public.quotes SET line_items=line_items;",
+    "scope": "Every existing quote row in the target, without organization/status filter",
+    "metadataFields": [
+      "quote_line_id",
+      "line_kind",
+      "charge_kind for exact known logistics/insurance labels"
+    ],
+    "normalTriggersRemainEnabled": true,
+    "expectedSourceEffects": {
+      "version": "Existing BEFORE UPDATE optimistic-lock trigger increments OLD.version by 1",
+      "updatedAt": "Existing update trigger assigns current timestamp",
+      "audit": "Existing audit trigger may write changed-field metadata according to actor/session/E2E rules; line_items content is excluded from stored audit payloads in the inspected source"
+    },
+    "auditCountOrActorAttributionCertified": false,
+    "liveQuoteRowCountsOrShapeInspected": false,
+    "liveAuditAndVersionTriggersVerified": false,
+    "invoiceHistoryAttributed": false,
+    "historicalChargesMarkedPaid": false,
+    "invoiceSourceIdsBackfilled": false,
+    "businessAmountsRepaired": false,
+    "existingInvoiceMarkers": {
+      "quote_charge_tracking_version": null,
+      "newInvoiceTrackingVersionDefault": 1,
+      "quote_charge_ever_issuedDefault": false
+    },
+    "beforeActivationRequired": [
+      "Review live quote count/size and JSON array/object/UUID/duplicate validity through separately authorized preflight",
+      "Verify installed quote version, timestamp, audit and normalizer trigger contracts and runner context",
+      "Review expected version/audit impact and GIN-index locks/capacity",
+      "Coordinate approved writer/recurring window and old REP request drain; reload open quote editors after activation"
+    ],
+    "sourceReferences": [
+      {
+        "commit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "path": "docs/quote-charge-tracking.md",
+        "sha256": "3ff0e44eb39ab5ada93b63f506db19c4b0813f66574c22b5115f7b4552cd27fb",
+        "bytes": 4848,
+        "containsCRLF": false,
+        "lines": [
+          1,
+          80
+        ]
+      },
+      {
+        "commit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+        "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+        "bytes": 40557,
+        "containsCRLF": false,
+        "lines": [
+          1,
+          98
+        ]
+      },
+      {
+        "commit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "path": "supabase/migrations/20260720163313_c1932be1-97eb-46bc-a2fe-e458be144cbc.sql",
+        "sha256": "d263d039945d1477d62e6352003e8e5dd0f2dc808db2c601f4218f701f500c7b",
+        "bytes": 11542,
+        "containsCRLF": false,
+        "lines": [
+          206,
+          253
+        ]
+      },
+      {
+        "commit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "path": "supabase/migrations/20260214003229_cfd42b5e-d178-491c-88a5-12a8363c1f23.sql",
+        "sha256": "52de02236a4e3877cdd5ddb91a90383c0413c2d5e5854a912284c9cc0aa31133",
+        "bytes": 9433,
+        "containsCRLF": false,
+        "lines": [
+          140,
+          143
+        ]
+      },
+      {
+        "commit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "path": "supabase/migrations/20260215213953_c9710225-f227-4178-9ee1-13efd2ccd721.sql",
+        "sha256": "561b1ac80dfafb16d985f1523f7d8e16381fd0f4058e3610ef32ff0bc3bb55f7",
+        "bytes": 4285,
+        "containsCRLF": false,
+        "lines": [
+          97,
+          97
+        ]
+      },
+      {
+        "commit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "path": "supabase/migrations/20260827230851_cedf214a-4b32-474d-ae3d-8eb6b5e4ddd4.sql",
+        "sha256": "4a4e232ac31cefa7cf25bc3e7f300eac5e7c835e9c2f01fb5b40549a650d4061",
+        "bytes": 5225,
+        "containsCRLF": false,
+        "lines": [
+          1,
+          110
+        ]
+      }
+    ]
+  },
+  "legacyAndConsumptionPolicy": {
+    "legacyInvoiceTrackingRemainsNull": true,
+    "editingLegacyDoesNotSilentlyUpgrade": true,
+    "untracedHistoryRequiresExplicitReview": true,
+    "positiveAmountWithoutLinesRequiresReview": true,
+    "knownEquipmentFormatsOnlyExcludeRentalSaleOnlyHistory": true,
+    "descriptionOrPositionBasedInvoiceAttribution": false,
+    "legacyReconciliationWorkflowIntroduced": false,
+    "partialFixedDollarDiscountRequiresReview": true,
+    "draftsReserveQuantities": true,
+    "stampingAndPendingFiscalCancellationRetainQuantities": true,
+    "acceptedFiscalOrAllowedUnfiscalizedCancellationReleasesQuantities": true,
+    "creditNotesAutomaticallyReleaseQuantities": false
+  },
+  "databaseAccessReview": {
+    "newAvailabilityRpc": "public.get_quote_charge_availability(uuid[],uuid)",
+    "securityDefiner": true,
+    "executeGrantedTo": [
+      "authenticated",
+      "service_role"
+    ],
+    "publicAndAnonExecuteRevoked": true,
+    "internalAuthorization": "Current invoice-reader roles admin/administrativo/auditor within current organization; service role follows reviewed server path",
+    "privateHelperAndTriggerExecuteRevoked": true,
+    "existingManualAndRecurringRpcPrivilegeContractsIntendedPreserved": true,
+    "requiresFreshObjectAndAclReviewBeforeActivation": true,
+    "actualPermissionChangePerformed": false
+  },
+  "deployables": {
+    "sourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "frontend": {
+      "runtimeAndBuildSourceFiles": [
+        {
+          "path": "src/components/forms/DatePickerField.tsx",
+          "sha256": "7e1213eea373dc8901ad1aebbdd2d7d14656362f0bc6ac9d3a02d6ac2bd04277",
+          "bytes": 6018,
+          "containsCRLF": false,
+          "sourcePrs": [
+            283
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/components/forms/MaskedDateInput.tsx",
+          "sha256": "fb8fab4e4f464e26a5fdcf83c2fa315aaa78d59d96dc2f02aa723c707b416e45",
+          "bytes": 6147,
+          "containsCRLF": false,
+          "sourcePrs": [
+            283
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/components/layout/DetailPageHeader.tsx",
+          "sha256": "1a5556198f80c969162eeae12f2cdce840a530b338f2a85d714ab98d4ccfee27",
+          "bytes": 2613,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/bookings/hooks/bookingActions/useBookingExtensions.ts",
+          "sha256": "8940388d8f8d8127b49ad9a5b64aded163940bee52131d6fc53de06fcbf16551",
+          "bytes": 5867,
+          "containsCRLF": false,
+          "sourcePrs": [
+            282
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/bookings/lib/extensionBilling.ts",
+          "sha256": "83adf0f265005d09db015ac3f7a91844dc4d87305d09a240d13130af9e715b6b",
+          "bytes": 4220,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/customers/components/customer-detail/CustomerInvoicesList.tsx",
+          "sha256": "813384eb3e4ec8735b972e8bed2a054031f2072677f20dc9c4071f84c9df4f5e",
+          "bytes": 3626,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/customers/pages/CustomerDetailPage.tsx",
+          "sha256": "f157152c5a2735dab3f91d484173dac459601f924fc7ccd25426e69f55482f7c",
+          "bytes": 7214,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/customers/pages/CustomersPage.tsx",
+          "sha256": "f2bee755517fe7472576272779eff18527a8e182b246d77f3a9390c42b73a4eb",
+          "bytes": 8624,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/components/invoice-detail/EditPaymentDialog.tsx",
+          "sha256": "e01228a26ff1da97f9a5ec230e7544c26cb18b328f6b3ac991a568c2075567dd",
+          "bytes": 7990,
+          "containsCRLF": false,
+          "sourcePrs": [
+            283
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/components/invoice-detail/InvoiceDetailBody.tsx",
+          "sha256": "e724612859a1d9531465dcbb5f2d994e8372f68051583ebad1eba166a82851e1",
+          "bytes": 7878,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/components/invoice-detail/InvoicePaymentSummary.tsx",
+          "sha256": "10026be086a6562a0c732a7e21eb22ed98b1859a1976961cf991b8ce6635eeda",
+          "bytes": 4468,
+          "containsCRLF": false,
+          "sourcePrs": [
+            285
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/components/invoice-form/EditableLineItemsTable.tsx",
+          "sha256": "352b3f16918d11ee950b626c8d691640248474e1beca4640a75745488eb1e432",
+          "bytes": 7748,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/components/invoices/RecordPaymentDialog.tsx",
+          "sha256": "51341af48d69ca4061b355fdc19b5a7ec7d8df8df7677c884548a8c74b9c6ca0",
+          "bytes": 7191,
+          "containsCRLF": false,
+          "sourcePrs": [
+            283
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/components/recurring/RecurringPreviewParts.tsx",
+          "sha256": "e152d21a6175865b64393b20ec47439bf7220ea04cc8864c60acbf5319d76018",
+          "bytes": 7943,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoiceForm/invoiceFormBuilders.ts",
+          "sha256": "9bc9b40862d0ebfeb3c0d13f2114820bbc9c12cc633ceffbd79dc059366d1c3c",
+          "bytes": 6935,
+          "containsCRLF": true,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers.ts",
+          "sha256": "e317603326b7b093685450fd2ab6d53a7f66915774a65e0a159b05b51b190563",
+          "bytes": 10117,
+          "containsCRLF": false,
+          "sourcePrs": [
+            282,
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts",
+          "sha256": "354d1160cafbd1ab0e3a7a219a7ca061cd4f348a4d701246b7dfc987389b3b67",
+          "bytes": 5427,
+          "containsCRLF": true,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoiceForm/useInvoicePrefill.ts",
+          "sha256": "c39ee3cbebaecd06d095a07543fc7956345075ab8e29b2b82bc1c919305cc73b",
+          "bytes": 3232,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoiceForm/useInvoiceQuoteCharges.ts",
+          "sha256": "c775b9879a8074b7bee51005fc3980cd9c3411806e34c3eae7202aed90c37e4d",
+          "bytes": 4111,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoices/cfdi/usePaymentComplement.ts",
+          "sha256": "593ccf6a3370f259d92e1939d6909c43900971a74d0ff2b49e9ffc0379815a6e",
+          "bytes": 3667,
+          "containsCRLF": false,
+          "sourcePrs": [
+            285
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/hooks/invoices/paymentFormDirty.ts",
+          "sha256": "0f6877671434bf4742f429a48b746f62f9a72e3be3aaba1c6502616f760d04a3",
+          "bytes": 1248,
+          "containsCRLF": false,
+          "sourcePrs": [
+            283
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/hooks/invoices/recurring/usePreviewRecurringInvoices.ts",
+          "sha256": "a845cec35237749879322fd92e1187f8128aac2a0ba7aab5c23c08660cdd6152",
+          "bytes": 2381,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx",
+          "sha256": "ebb39f0a7970324f235d540a78d382a7c2b01980546cbaf33110bdd7f9f71ebb",
+          "bytes": 9125,
+          "containsCRLF": false,
+          "sourcePrs": [
+            285
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/hooks/invoices/useQuoteChargeAvailability.ts",
+          "sha256": "907153cf500ded32b9495571e7d1127fd5cc2b43625d0e2ff4811a9b3e37c215",
+          "bytes": 1250,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/hooks/invoices/useRecordPaymentForm.ts",
+          "sha256": "1e29faa60a67ee6a525db26b912513cfd81bded265a2b6ef286bd466a06a1e9c",
+          "bytes": 9201,
+          "containsCRLF": false,
+          "sourcePrs": [
+            283
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/hooks/useExtensionPrefill.ts",
+          "sha256": "50110cbb7a076e12a55359d75346872efe6050b90e0cbf0d06de56753c6f93c1",
+          "bytes": 4865,
+          "containsCRLF": false,
+          "sourcePrs": [
+            282
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/hooks/useInvoiceFormLogic.ts",
+          "sha256": "6eeb2bb21103777161e76daa349aeaca652e26abc7f9221ed2b18f952e926833",
+          "bytes": 11479,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/lib/canStampPaymentRep.ts",
+          "sha256": "3879bb9c9aa5ef564e67c1f6401136017724ccb63ff1b491fda6e12e376a3dc2",
+          "bytes": 628,
+          "containsCRLF": false,
+          "sourcePrs": [
+            285
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/invoices/lib/invoiceFormSchema.ts",
+          "sha256": "85d3026a536805e6e45bf7acca9eb52f632f94d69640bc379b7cd6fc6759c07a",
+          "bytes": 6933,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/lib/invoiceLineSerialization.ts",
+          "sha256": "b917f86b65bd2360c122f6a6e3e803c9152a51670a158ed632dc19aab08502bd",
+          "bytes": 721,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/lib/quoteChargeAvailability.ts",
+          "sha256": "316425ed7b016d0f3d111f1aad7661b006f11670d0610b7ade59e7d9628358b4",
+          "bytes": 8212,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/lib/quotedBookingLines.ts",
+          "sha256": "17fc530b27cef949b5d4881ab7d8be4c782e3a969609463986ddbc5f8c2cbdd1",
+          "bytes": 4114,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/invoices/pages/InvoiceForm.tsx",
+          "sha256": "81e23b3c5b64fbdc4892cb15c05e464bff6752337c5bbedbade2a44d5bfc1663",
+          "bytes": 9132,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/hooks/quoteForm/quoteFormBuilders.ts",
+          "sha256": "9a917e64a464a0f9324a6b6b549fb6c740c450eb9a9a2a437b621da69f527273",
+          "bytes": 3892,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/hooks/quoteForm/quoteFormPayload.ts",
+          "sha256": "811fb7908d512a72feeed71daeb3ef8a2c252c37aa3a645a30799a8c803041b8",
+          "bytes": 3341,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/hooks/quoteForm/quotePrefill.logic.ts",
+          "sha256": "ce845a00f881b12df2aff254f24ba4b0ecf524f6b31cdf21ce95f54d89e8160e",
+          "bytes": 11136,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/hooks/quoteForm/useQuoteFormLogic.ts",
+          "sha256": "5f8d4852cf83e157a9dfbb65c164b9e8541ec8b424ff119b5b632a1d7c559901",
+          "bytes": 8331,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/lib/quoteChargeIdentity.ts",
+          "sha256": "259ea03862e6d59784dcc58162c48ba4987482645febf2b06acff64610d26397",
+          "bytes": 2132,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/lib/quotedRentalAllocation.ts",
+          "sha256": "7f319bd2f562bbe0ee48949a75686ef523b7762aa69028fcf29f672ee5865676",
+          "bytes": 7675,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/quotes/pages/QuoteForm.tsx",
+          "sha256": "460ee87900129e315414c04038af026dc80fc2e5ba52bd0c1ba0f6d7fce98a75",
+          "bytes": 4982,
+          "containsCRLF": true,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/features/reports/components/reports/IncomeStatementReport.tsx",
+          "sha256": "3fa3f5d0f323c9f012963849cf9ef2c467add021f05bedf814fa1092421b07a0",
+          "bytes": 9455,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/reports/hooks/incomeStatement/depreciationPresentation.ts",
+          "sha256": "cc20f32ef137d3ba16b7ad45d3df0aa9fbca5305e66f653b428b160acb6f0842",
+          "bytes": 807,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/reports/hooks/incomeStatement/statementAmountPresentation.ts",
+          "sha256": "6229789f6c7a38ed19ceac11db1bcb8a3ae80a754ca9c6b9bb0cfc41cd0448ab",
+          "bytes": 441,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/reports/hooks/incomeStatement/statementRowFactories.ts",
+          "sha256": "0c4f7ce36641acd2fa50dc0796d85b3d3c91ca0b7e767e90e899b65f0f77bb70",
+          "bytes": 8835,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/features/reports/hooks/incomeStatement/useStatementRows.ts",
+          "sha256": "099c3100b91e5cfa0c2f9aaa8ec8a70ccd800f13d4278a66d8e3161471185ce0",
+          "bytes": 5766,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        },
+        {
+          "path": "src/integrations/supabase/types.ts",
+          "sha256": "09b32004aa9fe196add6a285903ecba25451c325e208b36cd375b84bd1ed13b3",
+          "bytes": 270234,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/lib/domain/invoiceTotals.ts",
+          "sha256": "ebe518c13015fb00bc304f4f0efd29758d9e541d81360b9d821d1331d61ab74d",
+          "bytes": 3994,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/lib/domain/nonRentalLines.ts",
+          "sha256": "665f3108623efeb2a281658db3a64fe510cddf8c86f701c785c84c54d8c7621a",
+          "bytes": 3029,
+          "containsCRLF": false,
+          "sourcePrs": [
+            292
+          ],
+          "revisedByLogistics": true
+        },
+        {
+          "path": "src/lib/navigation/customerInvoiceOrigins.ts",
+          "sha256": "f35dfe3b3d6d22838079cfdc8f423d6285f910b7fb3045f0ff8999baa221dcaa",
+          "bytes": 1639,
+          "containsCRLF": false,
+          "sourcePrs": [
+            286
+          ],
+          "revisedByLogistics": false
+        }
+      ],
+      "removedRuntimeSourceFiles": [
+        {
+          "previousSourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+          "path": "src/features/invoices/hooks/invoices/useBilledExtraBookings.ts",
+          "sha256": "d03bf9e4d3df87e6f8cccf8b9d47040c7e614fd7e43d78009ee5296ef9ee33c5",
+          "bytes": 1592,
+          "containsCRLF": false
+        }
+      ],
+      "deploymentStatus": "NOT_EXECUTED"
+    },
+    "edge": [
+      {
+        "name": "stamp-payment-complement",
+        "introducedByPr": 285,
+        "codeChangedBy292": false,
+        "sourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "entry": {
+          "path": "supabase/functions/stamp-payment-complement/index.ts",
+          "sha256": "c3341cab9b9e748647d6cc623872f353016331cc01bdb700dcafb5632b144038",
+          "bytes": 469,
+          "containsCRLF": false
+        },
+        "runtimeFiles": [
+          {
+            "path": "supabase/functions/stamp-payment-complement/handler.ts",
+            "sha256": "57919f3e99dba6f871c8709096e195be5c461617cc2e4139250fb47bf3db2e83",
+            "bytes": 24603,
+            "containsCRLF": false
+          }
+        ],
+        "dependsOnMigrationIdxs": [
+          105
+        ],
+        "deploymentStatus": "NOT_EXECUTED",
+        "liveIdentity": "UNVERIFIED"
+      },
+      {
+        "name": "generate-recurring-invoices",
+        "introducedByPr": 292,
+        "codeChangedBy292": true,
+        "sourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "entryPath": "supabase/functions/generate-recurring-invoices/index.ts",
+        "runtimeFiles": [
+          {
+            "path": "supabase/functions/generate-recurring-invoices/index.ts",
+            "sha256": "fd5d9c0df3c37a40ed57ac22f6b6f59285e5b2874dea122a2aaa68875550f8d3",
+            "bytes": 35180,
+            "containsCRLF": false
+          },
+          {
+            "path": "supabase/functions/generate-recurring-invoices/invoiceHistory.ts",
+            "sha256": "7293cdf88abe136b9066512316228d804ea6b59602775a59f1afe2c2e2985179",
+            "bytes": 1306,
+            "containsCRLF": false
+          },
+          {
+            "path": "supabase/functions/generate-recurring-invoices/quoteCharges.ts",
+            "sha256": "1359ac069c9dc43df702de36fb6711ddb09ab9521ccda9b25d2a87fd1c5c1408",
+            "bytes": 5094,
+            "containsCRLF": false
+          },
+          {
+            "path": "supabase/functions/generate-recurring-invoices/quoteDiscountGuard.ts",
+            "sha256": "6ddbb8b85c940f3af19a0208436c64d18b24fa114e30e9c912a3a69facfdb28c",
+            "bytes": 1005,
+            "containsCRLF": false
+          }
+        ],
+        "dependsOnMigrationIdxs": [
+          107
+        ],
+        "deploymentStatus": "NOT_EXECUTED",
+        "liveIdentity": "UNVERIFIED"
+      }
+    ],
+    "sameCandidateArtifactVersionRequired": true,
+    "oldAutomaticChargeWritersAfter0107": "Fail closed when provenance is absent; coordinate update/reload rather than disable guards"
+  },
+  "operationalGates": {
+    "status": "UNRESOLVED_NOT_EXECUTED",
+    "officialRunner": "UNVERIFIED",
+    "officialSecretInjection": "UNVERIFIED",
+    "singleExecutorControl": "UNVERIFIED",
+    "frontendAndEdgeDeploymentChannels": "UNVERIFIED",
+    "liveFrontendEdgeBackendBinding": "UNVERIFIED",
+    "oldRepRequestsDrain": "UNVERIFIED",
+    "requiresNoNewRepAndCompleteOldHandlerDrainBeforeSqlAndReopening": true,
+    "newRequestBlockOrDeploymentAloneProvesDrain": false,
+    "requiresApprovedQuoteInvoiceWriterAndRecurringWindow": true,
+    "cronCredentialOrPermissionWorkaroundsAllowed": false,
+    "automaticRollbackApproved": false
+  },
+  "historicalConformityUpdate": {
+    "status": "BOUNDED_CURRENT_OBJECTS_CONFORM_ORIGINAL_APPLIED_BYTES_UNRECOVERED",
+    "comparedSourceCommit": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "applicableDefinitionSourceFilesUnchangedInCandidate": true,
+    "catalogObservationWindowUtc": {
+      "after": "2026-10-19T13:06:47Z",
+      "before": "2026-10-19T13:08:43Z"
+    },
+    "aclServerTimestampUtc": "2026-10-19 13:10:23.12754+00",
+    "counts": {
+      "function_contracts_passed": 17,
+      "function_contracts_total": 17,
+      "historical_0004_0007_functions_byte_exact": 13,
+      "bank_rpcs_invoker": 4,
+      "policies_passed": 56,
+      "policies_total": 56,
+      "organization_guards_passed": 57,
+      "customer_link_triggers_passed": 1,
+      "application_role_acl_passed": 17
+    },
+    "historicalIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10
+    ],
+    "functionChecks": [
+      {
+        "name": "accept_quote_from_portal",
+        "latestDefinitionPath": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sourceLine": 108,
+        "currentComposedSourceBodySha256": "e734bfe00b0e99ddf2de188a2252db80696e0d5fe5f6336543a4bd04078b6a01",
+        "passed": true
+      },
+      {
+        "name": "confirm_bank_match",
+        "latestDefinitionPath": "supabase/migrations/20260901182145_26e1f20a-d2b3-404d-a1c6-533a8652d52f.sql",
+        "sourceLine": 131,
+        "currentComposedSourceBodySha256": "de0eb097a8b977b9247eebb5ecb75b184a7209be1723f8f40bde541bf47bbc11",
+        "passed": true
+      },
+      {
+        "name": "confirm_bank_matches",
+        "latestDefinitionPath": "supabase/migrations/20260729014329_38b9d08a-0b05-43c6-8248-4866e223150c.sql",
+        "sourceLine": 3,
+        "currentComposedSourceBodySha256": "9067b27f34b5da8dc34466c5246679a6253db2341ec6726bc3ac1e223dffec14",
+        "passed": true
+      },
+      {
+        "name": "customer_can_read_document_object",
+        "latestDefinitionPath": "drizzle/migrations/0031_multi_org_audit_hardening.sql",
+        "sourceLine": 218,
+        "currentComposedSourceBodySha256": "05342c89cf5b464ca71d7b537510c073013989a6dd557c004bd6bf711ef483ff",
+        "passed": true
+      },
+      {
+        "name": "customer_owns_invoice",
+        "latestDefinitionPath": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sourceLine": 43,
+        "currentComposedSourceBodySha256": "a6f5625c812810a659234fabdcef6e4fdde4ab8c944d88294d85a5376619622b",
+        "passed": true
+      },
+      {
+        "name": "enforce_organization_write_context",
+        "latestDefinitionPath": "drizzle/migrations/0030_multi_org_onboarding_and_customer_scope.sql",
+        "sourceLine": 185,
+        "currentComposedSourceBodySha256": "a1078e31561465dc268d51d980f5ff570ca646a069c9e01b3b080acc45851d96",
+        "passed": true
+      },
+      {
+        "name": "ensure_single_active_organization_customer",
+        "latestDefinitionPath": "drizzle/migrations/0030_multi_org_onboarding_and_customer_scope.sql",
+        "sourceLine": 705,
+        "currentComposedSourceBodySha256": "b3c34dc4432ec7b6b613a2d41b584a12d3f82f28ac65e6ab9fe85bcaccd3ce2a",
+        "passed": true
+      },
+      {
+        "name": "get_customer_forklifts_brief",
+        "latestDefinitionPath": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sourceLine": 201,
+        "currentComposedSourceBodySha256": "eb8593f3032c4d18234a4668a3ded71df48c070da2e7a2aacb1c806e43521cb5",
+        "passed": true
+      },
+      {
+        "name": "get_customer_id_for_user",
+        "latestDefinitionPath": "drizzle/migrations/0039_multi_org_rpc_helper_invoker_scope.sql",
+        "sourceLine": 83,
+        "currentComposedSourceBodySha256": "beb8ef05a1d2aff74de005260233eb9602f1697889e812cae9a4cff6346071cb",
+        "passed": true
+      },
+      {
+        "name": "get_customer_profitability",
+        "latestDefinitionPath": "drizzle/migrations/0044_multi_org_customer_reads_link_rep_guard.sql",
+        "sourceLine": 34,
+        "currentComposedSourceBodySha256": "3cd736e322d3761491df8156596efd691b5800f670d17b66f83dfa68a59beba1",
+        "passed": true
+      },
+      {
+        "name": "get_customer_summary",
+        "latestDefinitionPath": "drizzle/migrations/0044_multi_org_customer_reads_link_rep_guard.sql",
+        "sourceLine": 146,
+        "currentComposedSourceBodySha256": "f42d1b3f9bbc453a0fef4a72c412201bd1260529b7ddf0c6b06c753bec06c3e3",
+        "passed": true
+      },
+      {
+        "name": "get_portal_contracts",
+        "latestDefinitionPath": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sourceLine": 230,
+        "currentComposedSourceBodySha256": "30f7ead8aee8d341a8652ee67d317ff916aa9e0ef1daf46209e28669378c5c64",
+        "passed": true
+      },
+      {
+        "name": "get_portal_invoices",
+        "latestDefinitionPath": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sourceLine": 258,
+        "currentComposedSourceBodySha256": "99a2e3ccd92ffa302d999144b9293dd80c5355d50f0f3787c5b290e35dbb3f03",
+        "passed": true
+      },
+      {
+        "name": "ignore_bank_lines",
+        "latestDefinitionPath": "supabase/migrations/20260728173715_4a7cb4a5-b4a2-4bb4-9d14-f9eaab608093.sql",
+        "sourceLine": 172,
+        "currentComposedSourceBodySha256": "44829158b2a1d16146d81c72be8dbb5afda296995a59e597d290007428ec57c2",
+        "passed": true
+      },
+      {
+        "name": "organization_scope_matches",
+        "latestDefinitionPath": "drizzle/migrations/0031_multi_org_audit_hardening.sql",
+        "sourceLine": 280,
+        "currentComposedSourceBodySha256": "63eaa4a5333a535f4e14c02397d69546cd006e2486eaa4d576be61f6842b74c6",
+        "passed": true
+      },
+      {
+        "name": "reject_quote_from_portal",
+        "latestDefinitionPath": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sourceLine": 157,
+        "currentComposedSourceBodySha256": "196b65dc4649511f77ecdb121c85f5ae0d3c64cf7a2d13cc33deb506ac6a5d58",
+        "passed": true
+      },
+      {
+        "name": "unmatch_bank_line",
+        "latestDefinitionPath": "supabase/migrations/20260901182145_26e1f20a-d2b3-404d-a1c6-533a8652d52f.sql",
+        "sourceLine": 342,
+        "currentComposedSourceBodySha256": "49fccdb24649adc4dad3a144fec592917d77e8f6951a000982d1e0959c7198d9",
+        "passed": true
+      }
+    ],
+    "laterDefinitionsAndBankForwardPatchesIncluded": true,
+    "expectedPolicyCount": 56,
+    "expectedOrganizationWriteGuardCount": 57,
+    "customerAfterInsertLinkTriggerConforms": true,
+    "historicalPolicyCount55SupersededBy0086": true,
+    "guardSetChanges0054And0086AccountedFor": true,
+    "preexistingInfrastructureGrantOriginAudited": false,
+    "infrastructureIdentityIncluded": false,
+    "rawCatalogOrBackendIdentifiersIncluded": false,
+    "separateSelectSnapshotsNotOneTransaction": true,
+    "functionalLiveTenantBehaviorTested": false,
+    "originalAppliedSqlBytesRecovered": false,
+    "ledgerCompatibilityEstablished": false
+  },
+  "ledgerGate": {
+    "status": "BLOCKED_LEDGER_DRIFT",
+    "historicalMismatchCount": 10,
+    "extraIdentifiedRemovedHistoricalRowCount": 1,
+    "currentObjectConformityDoesNotSatisfyExactPrefix": true,
+    "migration0074Status": "CURRENT_OBJECTS_CONFORM_ORIGINAL_APPLIED_BYTES_UNRECOVERED",
+    "fourNewlineDifferencesAndRemoved0030RemainAsDocumentedInFrozenPlan": true,
+    "ledgerRepairOrHistoricalHashRewriteAllowed": false,
+    "freshLedgerReadAndRenewedReviewRequired": true
+  },
+  "postmergeCi": {
+    "runs": [
+      {
+        "name": "Gitleaks",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369276",
+        "headSha": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "runAttempt": 1
+      },
+      {
+        "name": "RLS DB tests",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369380",
+        "headSha": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "runAttempt": 1
+      },
+      {
+        "name": "CI",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465",
+        "headSha": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "runAttempt": 1
+      },
+      {
+        "name": "Multi-tenant A/B gate",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369407",
+        "headSha": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+        "runAttempt": 1
+      }
+    ],
+    "checks": [
+      {
+        "name": "SQL smoke results",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/runs/118080715848"
+      },
+      {
+        "name": "RLS DB results",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/runs/118080710065"
+      },
+      {
+        "name": "Pruebas (merge + cobertura)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118080444873"
+      },
+      {
+        "name": "Lint de migraciones",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079384588"
+      },
+      {
+        "name": "Funciones Supabase (Deno, sin red)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079384563"
+      },
+      {
+        "name": "Actionlint",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079384562"
+      },
+      {
+        "name": "Dependency review",
+        "status": "completed",
+        "conclusion": "skipped",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079319451"
+      },
+      {
+        "name": "Gate A/B multiempresa (Supabase local efímero)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369407/job/118079318385"
+      },
+      {
+        "name": "Pruebas (Vitest shard 1/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079318381"
+      },
+      {
+        "name": "Detectar cambios",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079318342"
+      },
+      {
+        "name": "Pruebas (Vitest shard 2/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079318258"
+      },
+      {
+        "name": "Pruebas (Vitest shard 6/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079318187"
+      },
+      {
+        "name": "Pruebas (Vitest shard 4/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079318123"
+      },
+      {
+        "name": "Pruebas (Vitest shard 5/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079318106"
+      },
+      {
+        "name": "Pruebas (Vitest shard 3/6)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079317919"
+      },
+      {
+        "name": "RLS DB tests (Supabase local)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369380/job/118079317901"
+      },
+      {
+        "name": "Calidad (lint, tipos, build y arranque)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369465/job/118079317634"
+      },
+      {
+        "name": "Detectar secretos",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/hlopezb83/liftgo/actions/runs/39258369276/job/118079317442"
+      }
+    ],
+    "observationWindowUtc": {
+      "after": "2026-10-19T13:19:33Z",
+      "before": "2026-10-19T13:20:04Z"
+    },
+    "overallStatus": "SUCCESS",
+    "failedOrPendingChecks": [],
+    "scope": "Exact merged candidate source; conditionally skipped checks are not executed tests"
+  },
+  "reviewedHeadCiCaveat": {
+    "source": "https://github.com/hlopezb83/liftgo/pull/292",
+    "sameHead": "c851174ae1f72194e00cec3a28dc50762617bba2",
+    "firstAttempt": "5-second timeout in BankReconciliationWorkspace.test.tsx:142",
+    "retry": "Only failed jobs rerun; same SHA passed; test and timeout unchanged",
+    "notEvidenceOfLiveActivation": true
+  },
+  "activationStatus": "BLOCKED_NOT_APPROVED_NOT_EXECUTED",
+  "appendix": {
+    "path": "docs/audits/2026-10-19/r2-activation/LOGISTICS-CANDIDATE.md",
+    "sha256": "5b2f10e58388a061bd479984d41b9bc6c9c09bd5493e7cb013e34ee70e7de320"
+  },
+  "localValidation": {
+    "status": "PASS_SOURCE_ONLY",
+    "journalEntryCount": 108,
+    "prefix107Unchanged": true,
+    "frozenPlanFilesUnchanged": true,
+    "snapshotChainVerified": true,
+    "sourceRefsAndRuntimeHashesVerified": true,
+    "reviewedHeadAndMergeTreesIdentical": true,
+    "remoteActivationNotVerified": true
+  }
+}
