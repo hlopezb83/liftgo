@@ -1,0 +1,68 @@
+{
+  "base": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "generatedAt": "2026-10-19T06:32:22.258Z",
+  "corpus": {
+    "total": 58,
+    "new": 45,
+    "existingControls": 13,
+    "before": {
+      "exitCode": 1,
+      "failed": 24,
+      "passed": 34,
+      "logSha256": "f63aa4a1cd5aac70042dd7e09cdfe6fb95e07eb537e7f8e7544bab49996a9412"
+    },
+    "after": {
+      "exitCode": 0,
+      "failed": 0,
+      "passed": 58,
+      "logSha256": "157dd0ca4ea7ebe4922a0529ad6bedf1b678712fa1718d9783ec36956f894730"
+    }
+  },
+  "checks": {
+    "typecheck": "PASS",
+    "browserTypecheck": "PASS",
+    "eslint": "PASS (0 errors, 0 warnings)",
+    "denoFmt": "PASS",
+    "denoLint": "PASS",
+    "migrationJournal": "PASS (106 migrations)",
+    "diffCheck": "PASS"
+  },
+  "migration": {
+    "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+    "tag": "0105_rep_claim_reconciliation_only",
+    "idx": 105,
+    "when": 1792391158311,
+    "sha256Lf": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+    "bytesLf": 1744,
+    "applied": false,
+    "changesPermissions": false
+  },
+  "remaining": {
+    "denoSdkCases": "4 cases added; execution blocked locally by missing cached dependencies; existing CI required",
+    "authenticatedRpc": "1 A/B API case added for stale claims, identifiers, concurrency, org and role; existing isolated CI required",
+    "gui": "not executed",
+    "publishedBackend": "untouched"
+  },
+  "files": [
+    {
+      "path": "src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx",
+      "beforeSha256Lf": "9f84d388809ec73dffc48d3c7494cc3dd7bf089e4c6b0f7a0941bc3a3c0c958e",
+      "afterSha256Lf": "7391eff0b4565b0ec3063f73da751e1b926c2183a14fafb27e5029074553ae4b"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/InvoicePaymentSummary.tsx",
+      "beforeSha256Lf": "016c6f065f7fb3b9dbcf1e86bf7b73b0ec77988019fd73538a813fb2c0c3ab9c",
+      "afterSha256Lf": "10026be086a6562a0c732a7e21eb22ed98b1859a1976961cf991b8ce6635eeda"
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/cfdi/usePaymentComplement.ts",
+      "beforeSha256Lf": "fd6458a6fb6529bd539d6b8281141f5fcdfafd5a339bf7e1ad62d60e89eae26a",
+      "afterSha256Lf": "3e6a1431917eab11c6dd3b71aed36e13fb26a9e73e0ef204476129996c8bb479"
+    },
+    {
+      "path": "supabase/functions/stamp-payment-complement/handler.ts",
+      "beforeSha256Lf": "383c052198cd207d2d16271335f2e96a760224a57174df7cb2685aad09f82525",
+      "afterSha256Lf": "57919f3e99dba6f871c8709096e195be5c461617cc2e4139250fb47bf3db2e83"
+    }
+  ]
+}
