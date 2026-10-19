@@ -5,6 +5,7 @@ import {
   useBookingExtension,
 } from "@/features/bookings";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
+import { applyPrimaryCurrency } from "./invoiceForm/useInvoiceFormHandlers";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
 
@@ -31,6 +32,8 @@ type ExtensionBooking = {
   daily_rate?: number | null;
   weekly_rate?: number | null;
   monthly_rate?: number | null;
+  currency?: string | null;
+  tipo_cambio?: number | null;
   forklifts?: {
     name?: string | null;
     serial_number?: string | null;
@@ -55,6 +58,7 @@ function applyBookingFields(
     form.setValue("bookingIds", [booking.id], { shouldDirty: true });
     form.setValue("bookingId", booking.id, { shouldDirty: true });
   }
+  applyPrimaryCurrency(form, booking);
 }
 
 /** Partidas del tramo extendido, según tarifas del equipo o de la reserva. */

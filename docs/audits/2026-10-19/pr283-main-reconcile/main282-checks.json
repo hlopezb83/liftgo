@@ -1,0 +1,30 @@
+{
+  "originalPr283": "991347f1e871791c5f9243cbaf89e81f14e12b3f",
+  "incomingMain": "4de7d314c140ccccb326730430bd8e6eb96219c8",
+  "conflicts": [],
+  "all43ParentBlobsPreserved": true,
+  "before": {
+    "passed": 127,
+    "total": 127,
+    "files": 20
+  },
+  "after": {
+    "passed": 127,
+    "total": 127,
+    "files": 20
+  },
+  "comparableCasesAndSelection": false,
+  "extensions": {
+    "passed": 74,
+    "total": 74,
+    "files": 8
+  },
+  "eslintExit": 0,
+  "typecheckExit": 0,
+  "diffCheckExit": 0,
+  "rawLogsIncluded": false,
+  "backendExecuted": false,
+  "browserExecuted": false,
+  "intermediateCheckpoint": true,
+  "nextStep": "Merge new main 3d679f30 (PR285) and repeat final checks"
+}

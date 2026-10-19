@@ -1,0 +1,244 @@
+{
+  "numTotalTestSuites": 2,
+  "numPassedTestSuites": 0,
+  "numFailedTestSuites": 2,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 15,
+  "numPassedTests": 3,
+  "numFailedTests": 12,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1792390337392,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill inherits USD/17.5 while preserving the agreed numeric rate and extended period",
+          "status": "failed",
+          "title": "inherits USD/17.5 while preserving the agreed numeric rate and extended period",
+          "duration": 92.72599999999966,
+          "failureMessages": [
+            "AssertionError: expected { id: 'synthetic-booking', …(8) } to match object { currency: 'USD', tipo_cambio: 17.5 }\n(14 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:125:38\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill also applies currency when the transport already supplies the complete booking",
+          "status": "failed",
+          "title": "also applies currency when the transport already supplies the complete booking",
+          "duration": 74.34040000000005,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: 17.5 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:140:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency MXN to MXN/1",
+          "status": "failed",
+          "title": "normalizes domestic or missing currency MXN to MXN/1",
+          "duration": 67.84189999999944,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'MXN', tipoCambio: 1 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:147:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency null to MXN/1",
+          "status": "failed",
+          "title": "normalizes domestic or missing currency null to MXN/1",
+          "duration": 73.57420000000002,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'MXN', tipoCambio: 1 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:147:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency  to MXN/1",
+          "status": "failed",
+          "title": "normalizes domestic or missing currency  to MXN/1",
+          "duration": 75.60999999999967,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'MXN', tipoCambio: 1 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:147:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill uses the same currency normalization as the primary-booking prefill",
+          "status": "failed",
+          "title": "uses the same currency normalization as the primary-booking prefill",
+          "duration": 82.57110000000011,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: 17.5 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:155:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX null and blocks submission",
+          "status": "failed",
+          "title": "clears unusable foreign FX null and blocks submission",
+          "duration": 76.57960000000003,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: +0 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:162:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX 0 and blocks submission",
+          "status": "failed",
+          "title": "clears unusable foreign FX 0 and blocks submission",
+          "duration": 66.59839999999986,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: +0 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:162:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX -17.5 and blocks submission",
+          "status": "failed",
+          "title": "clears unusable foreign FX -17.5 and blocks submission",
+          "duration": 81.88970000000063,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: +0 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:162:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX NaN and blocks submission",
+          "status": "failed",
+          "title": "clears unusable foreign FX NaN and blocks submission",
+          "duration": 78.92429999999968,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: +0 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:162:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill preserves the existing validation against placeholder foreign FX 1",
+          "status": "failed",
+          "title": "preserves the existing validation against placeholder foreign FX 1",
+          "duration": 67.57510000000002,
+          "failureMessages": [
+            "AssertionError: expected { serie: '', folio: '', …(12) } to match object { moneda: 'USD', tipoCambio: 1 }\n(12 matching properties omitted from actual)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/chai/index.js:1700:25)\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:173:51\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill waits for customers, then inherits currency once without overwriting later edits",
+          "status": "failed",
+          "title": "waits for customers, then inherits currency once without overwriting later edits",
+          "duration": 73.84799999999996,
+          "failureMessages": [
+            "AssertionError: expected 'EUR' to be 'USD' // Object.is equality\n    at <workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx:184:58\n    at file:///C:/Users/torta/Documents/Codex/2026-10-18/task-2/liftgo/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20"
+          ],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill does not apply extension data while editing an existing invoice",
+          "status": "passed",
+          "title": "does not apply extension data while editing an existing invoice",
+          "duration": 1.742099999999482,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill keeps the already-invoiced guard ahead of all prefill fields",
+          "status": "passed",
+          "title": "keeps the already-invoiced guard ahead of all prefill fields",
+          "duration": 71.64480000000003,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill keeps the no-billable-days guard ahead of all prefill fields",
+          "status": "passed",
+          "title": "keeps the no-billable-days guard ahead of all prefill fields",
+          "duration": 67.01729999999952,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390343758,
+      "endTime": 1792390344811.0173,
+      "status": "failed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx"
+    }
+  ]
+}

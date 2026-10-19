@@ -1,0 +1,991 @@
+{
+  "numTotalTestSuites": 23,
+  "numPassedTestSuites": 23,
+  "numFailedTestSuites": 0,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 74,
+  "numPassedTests": 74,
+  "numFailedTests": 0,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "snapshot": {
+    "added": 0,
+    "failure": false,
+    "filesAdded": 0,
+    "filesRemoved": 0,
+    "filesRemovedList": [],
+    "filesUnmatched": 0,
+    "filesUpdated": 0,
+    "matched": 0,
+    "total": 0,
+    "unchecked": 0,
+    "uncheckedKeysByFile": [],
+    "unmatched": 0,
+    "updated": 0,
+    "didUpdate": false
+  },
+  "startTime": 1792390480919,
+  "success": true,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "useCreateBookingExtension (RPC extend_booking)"
+          ],
+          "fullName": "useCreateBookingExtension (RPC extend_booking) happy path llama al RPC con los parámetros correctos",
+          "status": "passed",
+          "title": "happy path llama al RPC con los parámetros correctos",
+          "duration": 81.31700000000092,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "useCreateBookingExtension (RPC extend_booking)"
+          ],
+          "fullName": "useCreateBookingExtension (RPC extend_booking) omite p_reason cuando no se provee",
+          "status": "passed",
+          "title": "omite p_reason cuando no se provee",
+          "duration": 73.6966999999986,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "useCreateBookingExtension (RPC extend_booking)"
+          ],
+          "fullName": "useCreateBookingExtension (RPC extend_booking) propaga error del RPC (buffer de mantenimiento o traslape)",
+          "status": "passed",
+          "title": "propaga error del RPC (buffer de mantenimiento o traslape)",
+          "duration": 67.03999999999905,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "useCreateBookingExtension (RPC extend_booking)"
+          ],
+          "fullName": "useCreateBookingExtension (RPC extend_booking) propaga error si el RPC rechaza por rol (Forbidden)",
+          "status": "passed",
+          "title": "propaga error si el RPC rechaza por rol (Forbidden)",
+          "duration": 66.90129999999954,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390504186,
+      "endTime": 1792390504474.9014,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/bookings/hooks/__tests__/useBookingExtensions.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "extensionBillableRange"
+          ],
+          "fullName": "extensionBillableRange cobra desde el día siguiente al fin original, fin inclusivo",
+          "status": "passed",
+          "title": "cobra desde el día siguiente al fin original, fin inclusivo",
+          "duration": 2.4160000000001673,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extensionBillableRange"
+          ],
+          "fullName": "extensionBillableRange devuelve null si la extensión no agrega días",
+          "status": "passed",
+          "title": "devuelve null si la extensión no agrega días",
+          "duration": 0.3499000000001615,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extensionBillableRange"
+          ],
+          "fullName": "extensionBillableRange un solo día extra cuenta como 1",
+          "status": "passed",
+          "title": "un solo día extra cuenta como 1",
+          "duration": 0.29719999999997526,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveExtensionRates"
+          ],
+          "fullName": "resolveExtensionRates la tarifa pactada en la reserva pisa a la maestra",
+          "status": "passed",
+          "title": "la tarifa pactada en la reserva pisa a la maestra",
+          "duration": 0.2559999999998581,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveExtensionRates"
+          ],
+          "fullName": "resolveExtensionRates F1: las tarifas pactadas diaria y semanal también pisan a la maestra",
+          "status": "passed",
+          "title": "F1: las tarifas pactadas diaria y semanal también pisan a la maestra",
+          "duration": 0.1691000000000713,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveExtensionRates"
+          ],
+          "fullName": "resolveExtensionRates ignora la pactada cuando es 0 o nula",
+          "status": "passed",
+          "title": "ignora la pactada cuando es 0 o nula",
+          "duration": 0.18859999999995125,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveExtensionRates"
+          ],
+          "fullName": "resolveExtensionRates no cae al catálogo en diaria/semanal si hay una mensual pactada (se prorratea)",
+          "status": "passed",
+          "title": "no cae al catálogo en diaria/semanal si hay una mensual pactada (se prorratea)",
+          "duration": 0.12900000000036016,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildExtensionLineItems"
+          ],
+          "fullName": "buildExtensionLineItems genera partidas sólo del tramo extendido",
+          "status": "passed",
+          "title": "genera partidas sólo del tramo extendido",
+          "duration": 1.0419999999999163,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildExtensionLineItems"
+          ],
+          "fullName": "buildExtensionLineItems devuelve [] si no hay días cobrables",
+          "status": "passed",
+          "title": "devuelve [] si no hay días cobrables",
+          "duration": 0.30829999999969004,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildExtensionLineItems"
+          ],
+          "fullName": "buildExtensionLineItems devuelve [] si el equipo no tiene tarifas",
+          "status": "passed",
+          "title": "devuelve [] si el equipo no tiene tarifas",
+          "duration": 0.3421000000003005,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390542808,
+      "endTime": 1792390542813.342,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/bookings/lib/__tests__/extensionBilling.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill inherits USD/17.5 while preserving the agreed numeric rate and extended period",
+          "status": "passed",
+          "title": "inherits USD/17.5 while preserving the agreed numeric rate and extended period",
+          "duration": 116.40750000000116,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill also applies currency when the transport already supplies the complete booking",
+          "status": "passed",
+          "title": "also applies currency when the transport already supplies the complete booking",
+          "duration": 76.91719999999987,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency MXN to MXN/1",
+          "status": "passed",
+          "title": "normalizes domestic or missing currency MXN to MXN/1",
+          "duration": 70.5609999999997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency null to MXN/1",
+          "status": "passed",
+          "title": "normalizes domestic or missing currency null to MXN/1",
+          "duration": 66.88990000000013,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency  to MXN/1",
+          "status": "passed",
+          "title": "normalizes domestic or missing currency  to MXN/1",
+          "duration": 91.67050000000017,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill uses the same currency normalization as the primary-booking prefill",
+          "status": "passed",
+          "title": "uses the same currency normalization as the primary-booking prefill",
+          "duration": 77.10699999999997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX null and blocks submission",
+          "status": "passed",
+          "title": "clears unusable foreign FX null and blocks submission",
+          "duration": 71.06550000000061,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX 0 and blocks submission",
+          "status": "passed",
+          "title": "clears unusable foreign FX 0 and blocks submission",
+          "duration": 96.62299999999959,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX -17.5 and blocks submission",
+          "status": "passed",
+          "title": "clears unusable foreign FX -17.5 and blocks submission",
+          "duration": 65.65589999999975,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill clears unusable foreign FX NaN and blocks submission",
+          "status": "passed",
+          "title": "clears unusable foreign FX NaN and blocks submission",
+          "duration": 63.63160000000062,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill preserves the existing validation against placeholder foreign FX 1",
+          "status": "passed",
+          "title": "preserves the existing validation against placeholder foreign FX 1",
+          "duration": 105.40719999999965,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill waits for customers, then inherits currency once without overwriting later edits",
+          "status": "passed",
+          "title": "waits for customers, then inherits currency once without overwriting later edits",
+          "duration": 127.55639999999948,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill does not apply extension data while editing an existing invoice",
+          "status": "passed",
+          "title": "does not apply extension data while editing an existing invoice",
+          "duration": 4.632900000000518,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill keeps the already-invoiced guard ahead of all prefill fields",
+          "status": "passed",
+          "title": "keeps the already-invoiced guard ahead of all prefill fields",
+          "duration": 81.29050000000097,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "extension invoice currency through the actual query and prefill"
+          ],
+          "fullName": "extension invoice currency through the actual query and prefill keeps the no-billable-days guard ahead of all prefill fields",
+          "status": "passed",
+          "title": "keeps the no-billable-days guard ahead of all prefill fields",
+          "duration": 69.08290000000125,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390489581,
+      "endTime": 1792390490766.083,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "resolveFormaPago"
+          ],
+          "fullName": "resolveFormaPago normaliza PPD a 99 aunque el formulario conserve la forma PUE predeterminada",
+          "status": "passed",
+          "title": "normaliza PPD a 99 aunque el formulario conserve la forma PUE predeterminada",
+          "duration": 1.339100000000144,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveFormaPago"
+          ],
+          "fullName": "resolveFormaPago conserva la forma capturada para PUE",
+          "status": "passed",
+          "title": "conserva la forma capturada para PUE",
+          "duration": 0.1956000000000131,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveFormaPago"
+          ],
+          "fullName": "resolveFormaPago fija 99 al elegir PPD y restaura 03 al volver a PUE",
+          "status": "passed",
+          "title": "fija 99 al elegir PPD y restaura 03 al volver a PUE",
+          "duration": 0.18630000000030122,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer mapea rfc, razon_social, regimen_fiscal y cp desde un customer completo",
+          "status": "passed",
+          "title": "mapea rfc, razon_social, regimen_fiscal y cp desde un customer completo",
+          "duration": 0.30490000000008877,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer incluye usoCfdi cuando el customer tiene uso_cfdi",
+          "status": "passed",
+          "title": "incluye usoCfdi cuando el customer tiene uso_cfdi",
+          "duration": 0.1485000000002401,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer NO sobreescribe usoCfdi cuando customer.uso_cfdi es null",
+          "status": "passed",
+          "title": "NO sobreescribe usoCfdi cuando customer.uso_cfdi es null",
+          "duration": 0.4675999999999476,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer NO sobreescribe usoCfdi cuando uso_cfdi es undefined",
+          "status": "passed",
+          "title": "NO sobreescribe usoCfdi cuando uso_cfdi es undefined",
+          "duration": 0.20650000000023283,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer fallback a customer.name cuando razon_social es null",
+          "status": "passed",
+          "title": "fallback a customer.name cuando razon_social es null",
+          "duration": 0.16200000000026193,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer rfc null → string vacío",
+          "status": "passed",
+          "title": "rfc null → string vacío",
+          "duration": 0.24529999999958818,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "cfdiFromCustomer"
+          ],
+          "fullName": "cfdiFromCustomer cp null → string vacío",
+          "status": "passed",
+          "title": "cp null → string vacío",
+          "duration": 0.20249999999941792,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — taxRate"
+          ],
+          "fullName": "buildFromQuote — taxRate preserva tax_rate = 0 (cliente exento) sin forzar 16 (regresión del bug)",
+          "status": "passed",
+          "title": "preserva tax_rate = 0 (cliente exento) sin forzar 16 (regresión del bug)",
+          "duration": 1.399000000000342,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — taxRate"
+          ],
+          "fullName": "buildFromQuote — taxRate preserva tax_rate = 8",
+          "status": "passed",
+          "title": "preserva tax_rate = 8",
+          "duration": 0.36779999999998836,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — taxRate"
+          ],
+          "fullName": "buildFromQuote — taxRate preserva tax_rate = 16",
+          "status": "passed",
+          "title": "preserva tax_rate = 16",
+          "duration": 0.30280000000038854,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — taxRate"
+          ],
+          "fullName": "buildFromQuote — taxRate usa 16 como default cuando tax_rate es null",
+          "status": "passed",
+          "title": "usa 16 como default cuando tax_rate es null",
+          "duration": 0.3091999999996915,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — taxRate"
+          ],
+          "fullName": "buildFromQuote — taxRate usa 16 como default cuando tax_rate es undefined",
+          "status": "passed",
+          "title": "usa 16 como default cuando tax_rate es undefined",
+          "duration": 0.20509999999922002,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — taxRate"
+          ],
+          "fullName": "buildFromQuote — taxRate hereda customerId, customerName, currency (USD) y lineItems",
+          "status": "passed",
+          "title": "hereda customerId, customerName, currency (USD) y lineItems",
+          "duration": 1.3171000000002095,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — tipo de cambio (A5-02)"
+          ],
+          "fullName": "buildFromQuote — tipo de cambio (A5-02) hereda el TC de la cotización USD",
+          "status": "passed",
+          "title": "hereda el TC de la cotización USD",
+          "duration": 0.2577000000001135,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — tipo de cambio (A5-02)"
+          ],
+          "fullName": "buildFromQuote — tipo de cambio (A5-02) ignora TC inválido y deja el default",
+          "status": "passed",
+          "title": "ignora TC inválido y deja el default",
+          "duration": 0.134900000000016,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildFromQuote — tipo de cambio (A5-02)"
+          ],
+          "fullName": "buildFromQuote — tipo de cambio (A5-02) MXN no toca el TC",
+          "status": "passed",
+          "title": "MXN no toca el TC",
+          "duration": 0.1607000000003609,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390532022,
+      "endTime": 1792390532030.2578,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/invoiceForm/__tests__/invoiceFormBuilders.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "moneda de la reserva primaria"
+          ],
+          "fullName": "moneda de la reserva primaria reemplaza USD/TC previo por MXN/1 al seleccionar una reserva MXN",
+          "status": "passed",
+          "title": "reemplaza USD/TC previo por MXN/1 al seleccionar una reserva MXN",
+          "duration": 4.7620999999999185,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "moneda de la reserva primaria"
+          ],
+          "fullName": "moneda de la reserva primaria vacía el tipo de cambio foráneo inválido para que valide en lugar de conservar el anterior",
+          "status": "passed",
+          "title": "vacía el tipo de cambio foráneo inválido para que valide en lugar de conservar el anterior",
+          "duration": 0.8333999999995285,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390553079,
+      "endTime": 1792390553084.8335,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/invoiceForm/__tests__/primaryBookingCurrency.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "resolveBillingPeriod"
+          ],
+          "fullName": "resolveBillingPeriod respeta el periodo capturado por el usuario",
+          "status": "passed",
+          "title": "respeta el periodo capturado por el usuario",
+          "duration": 1.6479999999992287,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveBillingPeriod"
+          ],
+          "fullName": "resolveBillingPeriod deriva el mes de emisión cuando falta el periodo completo",
+          "status": "passed",
+          "title": "deriva el mes de emisión cuando falta el periodo completo",
+          "duration": 0.3091000000003987,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveBillingPeriod"
+          ],
+          "fullName": "resolveBillingPeriod completa solo el extremo faltante",
+          "status": "passed",
+          "title": "completa solo el extremo faltante",
+          "duration": 0.14679999999952997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "resolveBillingPeriod"
+          ],
+          "fullName": "resolveBillingPeriod nunca devuelve nulos",
+          "status": "passed",
+          "title": "nunca devuelve nulos",
+          "duration": 1.053899999999885,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390539412,
+      "endTime": 1792390539416.054,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/invoiceForm/__tests__/resolveBillingPeriod.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking"
+          ],
+          "fullName": "buildLinesForBooking usa la tarifa pactada en la reserva cuando existe (no la del montacargas)",
+          "status": "passed",
+          "title": "usa la tarifa pactada en la reserva cuando existe (no la del montacargas)",
+          "duration": 6.274100000000544,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking"
+          ],
+          "fullName": "buildLinesForBooking cae a la tarifa del montacargas cuando la reserva no capturó tarifa (null)",
+          "status": "passed",
+          "title": "cae a la tarifa del montacargas cuando la reserva no capturó tarifa (null)",
+          "duration": 1.2824999999993452,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking"
+          ],
+          "fullName": "buildLinesForBooking marca las partidas con clave_prod_serv, clave_unidad y objeto_imp",
+          "status": "passed",
+          "title": "marca las partidas con clave_prod_serv, clave_unidad y objeto_imp",
+          "duration": 0.6484000000000378,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking"
+          ],
+          "fullName": "buildLinesForBooking devuelve [] si no encuentra el montacargas",
+          "status": "passed",
+          "title": "devuelve [] si no encuentra el montacargas",
+          "duration": 0.5924000000013621,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking · primer ciclo de reservas largas"
+          ],
+          "fullName": "buildLinesForBooking · primer ciclo de reservas largas reserva de 1 año que inicia a mitad de mes: días restantes al precio diario",
+          "status": "passed",
+          "title": "reserva de 1 año que inicia a mitad de mes: días restantes al precio diario",
+          "duration": 1.1690999999991618,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking · primer ciclo de reservas largas"
+          ],
+          "fullName": "buildLinesForBooking · primer ciclo de reservas largas mes de 31 días: precio diario con decimales, total = qty × precio",
+          "status": "passed",
+          "title": "mes de 31 días: precio diario con decimales, total = qty × precio",
+          "duration": 0.8413000000000466,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking · primer ciclo de reservas largas"
+          ],
+          "fullName": "buildLinesForBooking · primer ciclo de reservas largas reserva de 1 año que inicia el día 1: mes completo, sin prorrateo",
+          "status": "passed",
+          "title": "reserva de 1 año que inicia el día 1: mes completo, sin prorrateo",
+          "duration": 0.6996000000017375,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking · primer ciclo de reservas largas"
+          ],
+          "fullName": "buildLinesForBooking · primer ciclo de reservas largas renta corta dentro del mismo mes: cálculo sin cambios",
+          "status": "passed",
+          "title": "renta corta dentro del mismo mes: cálculo sin cambios",
+          "duration": 0.6424000000006345,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "buildLinesForBooking · primer ciclo de reservas largas"
+          ],
+          "fullName": "buildLinesForBooking · primer ciclo de reservas largas reserva no recurrente de un año conserva el rango completo",
+          "status": "passed",
+          "title": "reserva no recurrente de un año conserva el rango completo",
+          "duration": 1.0597999999990861,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) no recurrente: exactamente el rango de la reserva",
+          "status": "passed",
+          "title": "no recurrente: exactamente el rango de la reserva",
+          "duration": 0.5090999999993073,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) recurrente que termina DENTRO de su mes inicial: usa la reserva, no el mes de emisión",
+          "status": "passed",
+          "title": "recurrente que termina DENTRO de su mes inicial: usa la reserva, no el mes de emisión",
+          "duration": 0.29830000000038126,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) recurrente multi-mes: primer ciclo (inicio → fin del mes inicial)",
+          "status": "passed",
+          "title": "recurrente multi-mes: primer ciclo (inicio → fin del mes inicial)",
+          "duration": 0.2135999999991327,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) fin de mes: reserva recurrente que inicia el último día del mes",
+          "status": "passed",
+          "title": "fin de mes: reserva recurrente que inicia el último día del mes",
+          "duration": 0.1749999999992724,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) cambio de mes/año: diciembre corta al 31-dic aunque la emisión sea en enero",
+          "status": "passed",
+          "title": "cambio de mes/año: diciembre corta al 31-dic aunque la emisión sea en enero",
+          "duration": 0.1823000000003958,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) sin reserva: cae al mes de la fecha de emisión (fallback)",
+          "status": "passed",
+          "title": "sin reserva: cae al mes de la fecha de emisión (fallback)",
+          "duration": 0.21919999999954598,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "prefillBillingPeriod (Bug 4: periodo acotado a la reserva)"
+          ],
+          "fullName": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) zonas horarias: la fecha de emisión usa componentes locales, no UTC",
+          "status": "passed",
+          "title": "zonas horarias: la fecha de emisión usa componentes locales, no UTC",
+          "duration": 0.17669999999998254,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390525534,
+      "endTime": 1792390525550.2192,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormHandlers.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "useInvoiceFormTotals"
+          ],
+          "fullName": "useInvoiceFormTotals línea objeto_imp='01' (exenta) no genera IVA",
+          "status": "passed",
+          "title": "línea objeto_imp='01' (exenta) no genera IVA",
+          "duration": 32.235499999998865,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "useInvoiceFormTotals"
+          ],
+          "fullName": "useInvoiceFormTotals tax_rate por línea gana sobre la tasa global",
+          "status": "passed",
+          "title": "tax_rate por línea gana sobre la tasa global",
+          "duration": 10.016299999999319,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "useInvoiceFormTotals"
+          ],
+          "fullName": "useInvoiceFormTotals sin objeto_imp/tax_rate por línea usa la tasa global (comportamiento previo intacto)",
+          "status": "passed",
+          "title": "sin objeto_imp/tax_rate por línea usa la tasa global (comportamiento previo intacto)",
+          "duration": 4.362100000000282,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        },
+        {
+          "ancestorTitles": [
+            "useInvoiceFormTotals"
+          ],
+          "fullName": "useInvoiceFormTotals recalcula cuando cambian las líneas del formulario",
+          "status": "passed",
+          "title": "recalcula cuando cambian las líneas del formulario",
+          "duration": 4.8145999999997,
+          "failureMessages": [],
+          "meta": {},
+          "tags": []
+        }
+      ],
+      "startTime": 1792390512971,
+      "endTime": 1792390513022.8147,
+      "status": "passed",
+      "message": "",
+      "name": "<workspace>/src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormTotals.test.ts"
+    }
+  ]
+}
