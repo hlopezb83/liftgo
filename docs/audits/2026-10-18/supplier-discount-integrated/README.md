@@ -2,7 +2,7 @@
 
 La edición previa reenvía `discount` mediante UPDATE de columnas, pero el rol no tiene ese privilegio. Este paquete contiene código real: `drizzle/migrations/0104_supplier_bill_details_rpc.sql`, journal y el cliente que llama `update_supplier_bill_details(uuid,jsonb)`. Sustituye la propuesta documental de PR273; aquella evidencia histórica no acredita este nuevo SHA.
 
-Base: PR277 `e51f16d71d4180671fa3c4147fc514da2f37ac34`. Es una rama apilada: 0103 conserva sus bytes y 0104 ocupa el siguiente índice. No hace falta activar K1 para revisar o aplicar FX por separado. El migrador aplica todas las entradas pendientes del SHA seleccionado: **no usar este checkout para aplicar sólo 0103**. Primero aprobación y SQL servidor verificado; después cliente. Ninguna aprobación de preparación equivale a ejecutar los permisos propuestos.
+Base: PR277 `e51f16d71d4180671fa3c4147fc514da2f37ac34`. La rama conserva PR277 como ancestro: 0103 mantiene sus bytes y 0104 ocupa el siguiente índice. El PR apunta a main para que se ejecuten los workflows requeridos, filtrados por esa base; el commit K1 a1cd8d756 separa su implementación de FX ya revisado. No hace falta activar K1 para revisar o aplicar FX por separado. El migrador aplica todas las entradas pendientes del SHA seleccionado: **no usar este checkout para aplicar sólo 0103**. Primero aprobación y SQL servidor verificado; después cliente. Ninguna aprobación de preparación equivale a ejecutar los permisos propuestos.
 
 SQL0104 LF SHA256: `eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1`.
 
@@ -41,3 +41,5 @@ La aplicación publicada sigue pendiente de autorización específica del coordi
 Compensación propuesta: retirar el puente cliente y, mediante una nueva migración aprobada, deshabilitar sólo EXECUTE de la RPC si hace falta contener sesiones antiguas, conservando la función y los datos. No DROP, no UPDATE global, no borrar ledger ni revertir descuentos/pagos. El cliente anterior conserva el defecto K1; esa retirada es contención, no recuperación funcional. La corrección forward compatible es preferible.
 
 Sin Chrome, BUILD de Lovable, merge, publicación, permisos reales ni transacciones de negocio. El destino y las capturas internas permanecen en el paquete privado del coordinador; no se vuelven a publicar aquí.
+
+La retargetización del PR y este ajuste documental habilitan los checks del mismo código K1; no cambian la migración, el helper ni los resultados locales. Debe revisarse el head final de CI. La integración con N5 y la armonización de versiones permanecen con el coordinador.
