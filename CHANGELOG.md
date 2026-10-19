@@ -1,6 +1,14 @@
-## [8.44.9] — 2026-10-18
+## [8.44.12] — 2026-10-19
 
-- Pagos convierte y redondea por pago, valida un máximo estricto y sincroniza el estado de factura con la misma política, conservando los candados REP. Requiere la migración aprobada antes de activar el cliente.
+- La factura de proveedor conserva el total al editar metadatos. La RPC valida empresa, autorizacion e importes; rechaza un bypass activo sin requerir privilegios SET sobre parametros internos.
+
+## [8.44.11] — 2026-10-19
+
+- Pagos convierte y redondea por pago, valida el saldo en moneda de factura y conserva los candados REP. El servidor0103 ya fue aplicado por el canal oficial; el padre coordina publicar el cliente tras verificarlo.
+
+## [8.44.10] — 2026-10-18
+
+- Calendario conserva periodo y vista mientras abre una reserva; una segunda apertura durante la carga conserva el origen de Volver.
 
 ## [8.44.8] — 2026-10-18
 

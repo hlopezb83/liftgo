@@ -1,7 +1,7 @@
 {
   "base": "e51f16d71d4180671fa3c4147fc514da2f37ac34",
   "migration": "0104_supplier_bill_details_rpc",
-  "sqlLfSha256": "eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1",
+  "sqlLfSha256": "1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877",
   "sql": {
     "before": {
       "passed": 10,
@@ -44,5 +44,27 @@
     "candidate0104When": 1792368835673,
     "sqlCodeChanged": false,
     "k1ClientCodeChanged": false
+  },
+  "originalMatrixSqlLfSha256": "eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1",
+  "restrictedMigrator": {
+    "before": {
+      "sqlstate": "42501",
+      "rpcAbsent": true,
+      "sqlLfSha256": "eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1"
+    },
+    "after": {
+      "ddlPassed": true,
+      "controlsPassed": 8,
+      "legacyCasesPassed": 30,
+      "sqlLfSha256": "1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877"
+    },
+    "fixturePort": 55443,
+    "runtimeOwner": "postgres in synthetic fixture after restricted DDL control",
+    "parameterSetGrantsAdded": false,
+    "evidence": "restricted-migrator/README.md",
+    "failedCiBefore": [
+      39179927520,
+      39179927521
+    ]
   }
 }

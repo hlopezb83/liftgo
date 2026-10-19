@@ -4,7 +4,7 @@ La edición previa reenvía `discount` mediante UPDATE de columnas, pero el rol 
 
 Base: PR277 `e51f16d71d4180671fa3c4147fc514da2f37ac34`. La rama conserva PR277 como ancestro: 0103 mantiene sus bytes y 0104 ocupa el siguiente índice. El PR apunta a main para que se ejecuten los workflows requeridos, filtrados por esa base; el commit K1 a1cd8d756 separa su implementación de FX ya revisado. No hace falta activar K1 para revisar o aplicar FX por separado. El migrador aplica todas las entradas pendientes del SHA seleccionado: **no usar este checkout para aplicar sólo 0103**. Primero aprobación y SQL servidor verificado; después cliente. Ninguna aprobación de preparación equivale a ejecutar los permisos propuestos.
 
-SQL0104 LF SHA256: `eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1`.
+SQL0104 actual LF SHA256: `1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877`. La variante anterior `eabf3090...` se conserva en la evidencia de la matriz original; no es el payload actual.
 
 ## Contrato y permisos propuestos
 
@@ -47,3 +47,11 @@ La retargetización del PR y este ajuste documental habilitan los checks del mis
 ## Integración del journal oficial, 2026-10-19
 
 Se incorpora main oficial ff6e6146 y el cliente FX reconciliado2bc2c89f, incluyendo N5f95aac98. Las releases quedan N5 8.44.10, cliente FX 8.44.11 y K1 8.44.12.0103 conserva SQL/snapshot oficiales y when1792368366457. El when anterior propuesto para0104 era menor y podía ser omitido por Drizzle; se sustituye antes de su aprobación por 1792368835673, estrictamente posterior.0104 sigue sin aplicarse y su SQL conserva el mismo hash. El código K1 y los casos ejecutados no cambian; sus resultados originales se conservan. No reaplicar0103 ni editar ledger. El padre coordina permisos, aplicación y publicación de K1.
+
+## Compatibilidad del migrador restringido
+
+CI del head99901fed paso cliente/lint/tipos/build pero RLS39179927520 y A/B39179927521 fallaron al crear0104: SQLSTATE42501, permission denied to set parameter app.cxp_rpc. Las suites posteriores no corrieron. La correccion elimina las tres clausulas SET app.* de la funcion y comprueba, despues de auth/org y antes de escribir, que ninguno de app.cxp_rpc, app.cxp_recalc o app.audit_revert sea on. Un contexto activo se rechaza42501 sin modificar fila ni parametro; unset/off sigue permitido. Se conserva SET search_path. No se concede SET ni se amplian privilegios del migrador.
+
+Diferencia deliberada: una llamada a K1 anidada en una transaccion interna que dejo bypass on se rechaza en vez de enmascarar ese contexto. Las llamadas normales RPC no lo requieren. La revision de guards no encontro otra dependencia en su cadena. Deben aprobarse el nuevo hash y gates exactos antes de la aplicacion coordinada.0104 no se ejecuto en la base publicada.
+
+La reproduccion exacta y la nueva comprobacion estan en [restricted-migrator/README.md](./restricted-migrator/README.md): variante anterior CREATE42501/RPCausente; actual CREATE0 bajo migradorNOSUPsinSET,8/8controles y30/30casos previos. Se documenta por separado el ownership postgres usado en runtime del fixture y no se atribuye ACL productiva a esa prueba. Cluster55443detenido. Los gates reales Supabase deben aprobar el nuevo head antes de aplicar.

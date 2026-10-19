@@ -1,0 +1,46 @@
+{
+  "phase": "before",
+  "synthetic": true,
+  "host": "127.0.0.1",
+  "port": 55443,
+  "database": "liftgo_k1_restricted_before_final",
+  "source_commit": "99901fedd1b83b000e6230c6750ed65576f257df",
+  "candidate_sha256": "eabf3090ca8a3e7585586ac416f528520b6f4d8d083b57caf84267545ef0b7e1",
+  "fixture_sha256": "9b799cfa91d609ad262f420861f7822586b1d9e1e706ce913263f0ef2c8bb9c3",
+  "legacy_cases_sha256": "ac5ce16dbd782bd77db7c3c9ce6a031b3a1de618d344b461ccf59e404ee778af",
+  "checks": [
+    {
+      "id": "restricted-role-has-no-SET-privileges",
+      "passed": true,
+      "actual": {
+        "superuser": false,
+        "create_role": false,
+        "create_db": false,
+        "parameter_set": {
+          "app.cxp_rpc": false,
+          "app.cxp_recalc": false,
+          "app.audit_revert": false
+        }
+      }
+    },
+    {
+      "id": "migration-applies-as-restricted-role",
+      "passed": false,
+      "exit_code": 3,
+      "sqlstate": "42501",
+      "error": "psql:<worktree>/docs/audits/2026-10-18/supplier-discount-integrated/restricted-migrator/before-0104.sql:154: ERROR:  42501: permission denied to set parameter \"app.cxp_rpc\"\r\nLOCATION:  validate_option_array_item, guc.c:6767"
+    },
+    {
+      "id": "new-function-config-only-search-path",
+      "passed": false,
+      "actual": {
+        "exists": false,
+        "owner": null,
+        "config": null,
+        "security_definer": null
+      }
+    }
+  ],
+  "passed": 1,
+  "failed": 2
+}
