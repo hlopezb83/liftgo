@@ -18,7 +18,7 @@ export interface PaymentFormSnapshot {
   method: string;
   paymentFormSat: string;
   stampRep: boolean;
-  date: Date;
+  date?: Date;
 }
 
 export interface PaymentFormBaseline {

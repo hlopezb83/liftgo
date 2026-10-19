@@ -1,0 +1,105 @@
+{
+  "base": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "scope": "R2 RecordPaymentDialog invalid and partial date",
+  "environment": "offline Vitest, real dialog/date controls/form hook, mocked mutation and feedback",
+  "runs": [
+    {
+      "name": "before",
+      "total": 9,
+      "passed": 2,
+      "failed": 7,
+      "success": false,
+      "exitCode": 1
+    },
+    {
+      "name": "after",
+      "total": 9,
+      "passed": 9,
+      "failed": 0,
+      "success": true,
+      "exitCode": 0
+    },
+    {
+      "name": "related",
+      "total": 60,
+      "passed": 60,
+      "failed": 0,
+      "success": true,
+      "exitCode": 0
+    }
+  ],
+  "lintExitCode": 0,
+  "typecheckExitCode": 0,
+  "network": "blocked by src/test/setup.ts",
+  "guiExecuted": false,
+  "backendExecuted": false,
+  "migrationRequired": false,
+  "evidence": [
+    {
+      "file": "before.json",
+      "sha256": "cf091be947816dcecd6c36cef7077ab5f2af5b7b9dc393cefe91b9999c3f0fd6"
+    },
+    {
+      "file": "before.log",
+      "sha256": "ce0ef039f95dbe4b76e7378f7b0284285e7a4cc677f50e634ac0787d0db267b7"
+    },
+    {
+      "file": "after.json",
+      "sha256": "7729c07bb7bd69550bb4d6ab9926cb8a1e52cddf2906481cf115493e740ea1b6"
+    },
+    {
+      "file": "after.log",
+      "sha256": "f4b2523e4150308cdb0bbf72893695e51b1e03d096293aaec94818cf718a3b64"
+    },
+    {
+      "file": "related.json",
+      "sha256": "b8369ff2efd188cbd5e72646277f58f40fb936bc87948d9e0a00c2594b0bbca2"
+    },
+    {
+      "file": "related.log",
+      "sha256": "094aec9d14d3ae13c3d6e09fc2efaf869db3700e0063861dcd901e2c84daa4b9"
+    },
+    {
+      "file": "lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "README.md",
+      "sha256": "fa3ef52e33d1f5ae7c0d87968c60ff888c355747b6ae15a2c9468b93609986de"
+    }
+  ],
+  "source": [
+    {
+      "file": "src/components/forms/MaskedDateInput.tsx",
+      "sha256": "881c2dc8bc751104dcb00ffa34d6138c909dff662822efaa589646c3df93505d"
+    },
+    {
+      "file": "src/components/forms/__tests__/MaskedDateInput.test.tsx",
+      "sha256": "f3604aa9594f9a5799c376d722db46cb2b91a4f86e7a749ac5fb382f6ff42ab3"
+    },
+    {
+      "file": "src/components/forms/__tests__/DatePickerField.test.tsx",
+      "sha256": "724643090cf1f014c864e9a75640656f0d304b5243611f14a0002eb2af7fda11"
+    },
+    {
+      "file": "src/features/invoices/components/invoices/RecordPaymentDialog.tsx",
+      "sha256": "ef38ef5f03753dc56e79979d7607f68bc9a988d70654de86ce25fba006fb98bc"
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/useRecordPaymentForm.ts",
+      "sha256": "f5763404314af7b8f0297517421fb5a452e17f4e765a76c0b803bbf5ca6cb0d6"
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/paymentFormDirty.ts",
+      "sha256": "24594f1fe54742bb39d96eb9f5050553e6bb102043437c9aab3eadc5312d2857"
+    },
+    {
+      "file": "src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx",
+      "sha256": "afbb31d1bbdf9ffc5f0f437486c943f2986dd71877e39bf99dc6f1c10231558c"
+    }
+  ]
+}

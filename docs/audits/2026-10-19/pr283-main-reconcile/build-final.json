@@ -1,0 +1,19 @@
+{
+  "finalIncomingMain": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+  "node": "v24.19.0",
+  "command": "node node_modules/vite/bin/vite.js build --logLevel warn",
+  "exitCode": 0,
+  "signal": null,
+  "warningKinds": [
+    "dependency-module-directives",
+    "fontkit-undefined-import",
+    "browser-node-externalization",
+    "chunk-size",
+    "tsconfig-paths-plugin"
+  ],
+  "rawOutputIncluded": false,
+  "versionGenerationRun": false,
+  "sentryUploadEnabled": false,
+  "metricsEnabled": false,
+  "apiOrigin": "loopback"
+}

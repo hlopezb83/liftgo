@@ -1,0 +1,1106 @@
+{
+  "status": "LOCAL_MAIN283_RECONCILIATION_VERIFIED_AUTH_CI_PENDING",
+  "operation": "local normal merge main INTO PR284; no remote merge or push",
+  "beforeHead": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+  "incomingMain": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+  "previousMain": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+  "mergeConflicts": [],
+  "protectedBlobs": [
+    {
+      "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+      "afterSha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "afterSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/meta/0105_snapshot.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "3d20b42bd1d26c591abb1c2c8d2a91226da7df7ffcaaada8c8c4020f4b278a9c",
+      "afterSha256": "3d20b42bd1d26c591abb1c2c8d2a91226da7df7ffcaaada8c8c4020f4b278a9c",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/meta/0106_snapshot.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "9dd08d593a8270b34abdf21ece6ce323d85f483014bb233152f16bee39905007",
+      "afterSha256": "9dd08d593a8270b34abdf21ece6ce323d85f483014bb233152f16bee39905007",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/meta/_journal.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+      "afterSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+      "unchanged": true
+    }
+  ],
+  "authComparableCorpus": [
+    {
+      "path": "tests/multi-tenant-ab/booking-invoice-cancellation-api.spec.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099",
+      "afterSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/stamp-cfdi-booking-claim-api.spec.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e",
+      "afterSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.mjs",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f",
+      "afterSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.config.mjs",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a",
+      "afterSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a",
+      "unchanged": true
+    }
+  ],
+  "incomingPreservation": [
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/README.md",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "109787c7baa1da788bab463bc4bb42f7913f5226b7a2452340d08d6a90223de2",
+      "afterSha256": "109787c7baa1da788bab463bc4bb42f7913f5226b7a2452340d08d6a90223de2",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/after-extensions.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "03eb8dd335b087dbc37c1703ef25d714b0735bd3091c2ebde77ea3f3546e55c1",
+      "afterSha256": "03eb8dd335b087dbc37c1703ef25d714b0735bd3091c2ebde77ea3f3546e55c1",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/after-payments.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "ca890020e6d51657c9b6fd82b013c0ed49c29f91a4426831f2fb0b2ce5a1da54",
+      "afterSha256": "ca890020e6d51657c9b6fd82b013c0ed49c29f91a4426831f2fb0b2ce5a1da54",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/after-rep.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "a5b02ff2e5f7bb849b2e369777a33c0fbaad2535302e960ae7a361d176b9ac6f",
+      "afterSha256": "a5b02ff2e5f7bb849b2e369777a33c0fbaad2535302e960ae7a361d176b9ac6f",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/before-payments.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "d792fbaa19e1823df75c77a95bf2a6d10119a1e92fae68f3e7f59c8119effb2a",
+      "afterSha256": "d792fbaa19e1823df75c77a95bf2a6d10119a1e92fae68f3e7f59c8119effb2a",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/build-final.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "9cbd95d1f205187f73eb6a4e256ea3cafbc22c6499426b719fbda4a416fe1d96",
+      "afterSha256": "9cbd95d1f205187f73eb6a4e256ea3cafbc22c6499426b719fbda4a416fe1d96",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main282-checks.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "6121133d921e8d5a838369d304c9ab7cd6180d747c215a77e6fa211b334297e9",
+      "afterSha256": "6121133d921e8d5a838369d304c9ab7cd6180d747c215a77e6fa211b334297e9",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main282-extensions.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "60faf14ba811c4012fac72da2cb8779b15446bee7bd8c698d6cb80fc174eefd8",
+      "afterSha256": "60faf14ba811c4012fac72da2cb8779b15446bee7bd8c698d6cb80fc174eefd8",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main282-payments.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "0167855a0e9c5f9af799161dae5896454d3eb3dbf0a8778e8f4c506bfcd21109",
+      "afterSha256": "0167855a0e9c5f9af799161dae5896454d3eb3dbf0a8778e8f4c506bfcd21109",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main282-preservation.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "6218229f50115cedb20b4d458309e24ed186cba4c5175dd6fc55e20281407edc",
+      "afterSha256": "6218229f50115cedb20b4d458309e24ed186cba4c5175dd6fc55e20281407edc",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main285-checks.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "ac0a36919d7db6e42cf44ec28c438c3ae53d8cee2f15176bbdea48a3db7a5ce1",
+      "afterSha256": "ac0a36919d7db6e42cf44ec28c438c3ae53d8cee2f15176bbdea48a3db7a5ce1",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main285-extensions.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "13994eb2b9595fb5422067fdd39c107004f72ce41b8587666ae3131be638ccb2",
+      "afterSha256": "13994eb2b9595fb5422067fdd39c107004f72ce41b8587666ae3131be638ccb2",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main285-payments.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "9d8137f17e5c710fc1974a63e8ee3ce775933c89dab37bd508e167dd5b4e5906",
+      "afterSha256": "9d8137f17e5c710fc1974a63e8ee3ce775933c89dab37bd508e167dd5b4e5906",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main285-preservation.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "c36050b3e2eada0ca30c00f93c54e157f07caad9ad8227ba8f3418960ae69ddf",
+      "afterSha256": "c36050b3e2eada0ca30c00f93c54e157f07caad9ad8227ba8f3418960ae69ddf",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/main285-rep.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "d11080c5198357dfafff6a7e6b192c8560e1e9558ba5c1c0597d0d0f5e489e76",
+      "afterSha256": "d11080c5198357dfafff6a7e6b192c8560e1e9558ba5c1c0597d0d0f5e489e76",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/preservation.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "60cb9994cdd7fa3f517d356f94a97d4f854117cfeb7f9e14fc15b7f575de27c5",
+      "afterSha256": "60cb9994cdd7fa3f517d356f94a97d4f854117cfeb7f9e14fc15b7f575de27c5",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/pr283-main-reconcile/summary.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "66e45531f40a2bd5a39eb6f67d26471f528e17d9efa4e29cdaaace76b9dd54f6",
+      "afterSha256": "66e45531f40a2bd5a39eb6f67d26471f528e17d9efa4e29cdaaace76b9dd54f6",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/INTEGRATION.md",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "249c9c58da84a7d3423e578f2069ce5a52c39df12752cc91a69d019f508cc634",
+      "afterSha256": "249c9c58da84a7d3423e578f2069ce5a52c39df12752cc91a69d019f508cc634",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/README.md",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "fa3ef52e33d1f5ae7c0d87968c60ff888c355747b6ae15a2c9468b93609986de",
+      "afterSha256": "fa3ef52e33d1f5ae7c0d87968c60ff888c355747b6ae15a2c9468b93609986de",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/after.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "7729c07bb7bd69550bb4d6ab9926cb8a1e52cddf2906481cf115493e740ea1b6",
+      "afterSha256": "7729c07bb7bd69550bb4d6ab9926cb8a1e52cddf2906481cf115493e740ea1b6",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/after.log",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "1b439503b9b32319af564042235fcd82cbc81d14be0930ea6096418a069add95",
+      "afterSha256": "1b439503b9b32319af564042235fcd82cbc81d14be0930ea6096418a069add95",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/before.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "cf091be947816dcecd6c36cef7077ab5f2af5b7b9dc393cefe91b9999c3f0fd6",
+      "afterSha256": "cf091be947816dcecd6c36cef7077ab5f2af5b7b9dc393cefe91b9999c3f0fd6",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/before.log",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "ee462510eb86e0d6d4ab3a9754303c68f44f167d274b5667d5988732b4717bec",
+      "afterSha256": "ee462510eb86e0d6d4ab3a9754303c68f44f167d274b5667d5988732b4717bec",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/compatibility/README.md",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "809b52a444ffb804d2ae39758b0b67722b833ef68e020359d9b49c64ed20b0aa",
+      "afterSha256": "809b52a444ffb804d2ae39758b0b67722b833ef68e020359d9b49c64ed20b0aa",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/compatibility/after.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "9adf7d113b65fc21c6b8ec2bc15c90f214e78afad580357edb79a48d78648647",
+      "afterSha256": "9adf7d113b65fc21c6b8ec2bc15c90f214e78afad580357edb79a48d78648647",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/compatibility/before.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "0f192625e77796ee5ac5d312929d60429ca9b1bdd91f5403776181851a64b4bf",
+      "afterSha256": "0f192625e77796ee5ac5d312929d60429ca9b1bdd91f5403776181851a64b4bf",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/compatibility/manifest.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "f8de8c3b533a9aeb0b7505719b496476afad88e6c6b6c84c7f74484d60c5068e",
+      "afterSha256": "f8de8c3b533a9aeb0b7505719b496476afad88e6c6b6c84c7f74484d60c5068e",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/lint.log",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "afterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/manifest.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "7b2f25805724e4bb7664b8781eaac1d19900f8e9c9e07d995e9ac458accd1ede",
+      "afterSha256": "7b2f25805724e4bb7664b8781eaac1d19900f8e9c9e07d995e9ac458accd1ede",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/related.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "b8369ff2efd188cbd5e72646277f58f40fb936bc87948d9e0a00c2594b0bbca2",
+      "afterSha256": "b8369ff2efd188cbd5e72646277f58f40fb936bc87948d9e0a00c2594b0bbca2",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/related.log",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "11f87e340ceba3339ae9072c81be29511e60eb5683e7ebbb98f27d69494a0534",
+      "afterSha256": "11f87e340ceba3339ae9072c81be29511e60eb5683e7ebbb98f27d69494a0534",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-date/types.log",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "afterSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/README.md",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "cc678bd1f11c2b34f5647d462d2b3ed184affba466488685f8afe9f4e7e74c6e",
+      "afterSha256": "cc678bd1f11c2b34f5647d462d2b3ed184affba466488685f8afe9f4e7e74c6e",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/after.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "c0e45d2e47c23f15bec1143e3298669bd198ba8bc9a055dd2ead2abac31973c6",
+      "afterSha256": "c0e45d2e47c23f15bec1143e3298669bd198ba8bc9a055dd2ead2abac31973c6",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/before.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "7a8e6f67d13061e45ce23226b8a2e88325cf605b83b63557d6deb269cb395793",
+      "afterSha256": "7a8e6f67d13061e45ce23226b8a2e88325cf605b83b63557d6deb269cb395793",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/manifest.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "80c10b345a006eb672f7531479af6fac9f7ac82acab9a91d889eb213a9396645",
+      "afterSha256": "80c10b345a006eb672f7531479af6fac9f7ac82acab9a91d889eb213a9396645",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/related.json",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "621b15503cd840bc8a93910509fb41561a02c3ec9bbeb417e5d4b81a6eaab38f",
+      "afterSha256": "621b15503cd840bc8a93910509fb41561a02c3ec9bbeb417e5d4b81a6eaab38f",
+      "unchanged": true
+    },
+    {
+      "path": "src/components/forms/DatePickerField.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "7e1213eea373dc8901ad1aebbdd2d7d14656362f0bc6ac9d3a02d6ac2bd04277",
+      "afterSha256": "7e1213eea373dc8901ad1aebbdd2d7d14656362f0bc6ac9d3a02d6ac2bd04277",
+      "unchanged": true
+    },
+    {
+      "path": "src/components/forms/MaskedDateInput.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "fb8fab4e4f464e26a5fdcf83c2fa315aaa78d59d96dc2f02aa723c707b416e45",
+      "afterSha256": "fb8fab4e4f464e26a5fdcf83c2fa315aaa78d59d96dc2f02aa723c707b416e45",
+      "unchanged": true
+    },
+    {
+      "path": "src/components/forms/__tests__/DatePickerField.test.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "6d679e6f27046c8d74a18dda12beff2b364206acdb685f3bd786ef5991933296",
+      "afterSha256": "6d679e6f27046c8d74a18dda12beff2b364206acdb685f3bd786ef5991933296",
+      "unchanged": true
+    },
+    {
+      "path": "src/components/forms/__tests__/MaskedDateInput.test.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "9a02b6c1a942c03202d6496743a30172c86009447d681dbf0ebc7e6014297453",
+      "afterSha256": "9a02b6c1a942c03202d6496743a30172c86009447d681dbf0ebc7e6014297453",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/EditPaymentDialog.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "e01228a26ff1da97f9a5ec230e7544c26cb18b328f6b3ac991a568c2075567dd",
+      "afterSha256": "e01228a26ff1da97f9a5ec230e7544c26cb18b328f6b3ac991a568c2075567dd",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "b19016a4e712185b28117d632374df1225e8b3146a774d60a8575be47c1c1f36",
+      "afterSha256": "b19016a4e712185b28117d632374df1225e8b3146a774d60a8575be47c1c1f36",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/components/invoices/RecordPaymentDialog.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "51341af48d69ca4061b355fdc19b5a7ec7d8df8df7677c884548a8c74b9c6ca0",
+      "afterSha256": "51341af48d69ca4061b355fdc19b5a7ec7d8df8df7677c884548a8c74b9c6ca0",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/components/invoices/__tests__/InvoiceDetailsCardMaskedDateCompatibility.test.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "9ef220464399f676149f57aaf279dd3ea62180d75d12adc0b4e98a5af8b037ba",
+      "afterSha256": "9ef220464399f676149f57aaf279dd3ea62180d75d12adc0b4e98a5af8b037ba",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "afbb31d1bbdf9ffc5f0f437486c943f2986dd71877e39bf99dc6f1c10231558c",
+      "afterSha256": "afbb31d1bbdf9ffc5f0f437486c943f2986dd71877e39bf99dc6f1c10231558c",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/paymentFormDirty.ts",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "0f6877671434bf4742f429a48b746f62f9a72e3be3aaba1c6502616f760d04a3",
+      "afterSha256": "0f6877671434bf4742f429a48b746f62f9a72e3be3aaba1c6502616f760d04a3",
+      "unchanged": true
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/useRecordPaymentForm.ts",
+      "source": "a72ecf2a485fceb3bd5aca12310b3d3d22b51efd",
+      "beforeSha256": "1e29faa60a67ee6a525db26b912513cfd81bded265a2b6ef286bd466a06a1e9c",
+      "afterSha256": "1e29faa60a67ee6a525db26b912513cfd81bded265a2b6ef286bd466a06a1e9c",
+      "unchanged": true
+    }
+  ],
+  "existingPrPreservation": [
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/MAIN-RECONCILIATION.md",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "fb212622922919c982746bed1a54ab924d6efde11388cb3c891e54fad1f86df8",
+      "afterSha256": "fb212622922919c982746bed1a54ab924d6efde11388cb3c891e54fad1f86df8",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/README.md",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "995da067d3c12a3af52625e2ef28d08d78ac50c642d501a34e19413d0fc3c2db",
+      "afterSha256": "995da067d3c12a3af52625e2ef28d08d78ac50c642d501a34e19413d0fc3c2db",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/after-b-auth-sql.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "06ab3e012c2be8afb0b086b8a45bb0ded1d981418f5704d154799176d0efda34",
+      "afterSha256": "06ab3e012c2be8afb0b086b8a45bb0ded1d981418f5704d154799176d0efda34",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/baseline-c-auth-sql.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "f8d63b38ed110d4b9b4c2e27798bd0d1c4f6998e6d42a5b39cf4e4c9aa743298",
+      "afterSha256": "f8d63b38ed110d4b9b4c2e27798bd0d1c4f6998e6d42a5b39cf4e4c9aa743298",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/baseline-summary.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "804fd936964c9c31ec3d7142c7fc3b14ab59450f0259950e1a5992a3989439ae",
+      "afterSha256": "804fd936964c9c31ec3d7142c7fc3b14ab59450f0259950e1a5992a3989439ae",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/comparable-auth-corpus.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "7e27e7c61899a585d3c1140b864ec9d8ebedfb95dda1c1e6ebe82962f55ccfa9",
+      "afterSha256": "7e27e7c61899a585d3c1140b864ec9d8ebedfb95dda1c1e6ebe82962f55ccfa9",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/fiscal-claim-local.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "2b2adf543dd9cbdc6b261be9ab5a531347e98949310ba87eae3ee0ef2bd1ad9c",
+      "afterSha256": "2b2adf543dd9cbdc6b261be9ab5a531347e98949310ba87eae3ee0ef2bd1ad9c",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/main-reconciliation.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "212b658a4463fca4c34a78bde80b3f039702706c7f8dfc6dcd5fbacf246eb3a3",
+      "afterSha256": "212b658a4463fca4c34a78bde80b3f039702706c7f8dfc6dcd5fbacf246eb3a3",
+      "unchanged": true
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-dispatcher/proposal-checks.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "f71d308bea41282a61b20ebf6730e2e3552c31f6477731dc7a294e686573842a",
+      "afterSha256": "f71d308bea41282a61b20ebf6730e2e3552c31f6477731dc7a294e686573842a",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "afterSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/meta/0106_snapshot.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "9dd08d593a8270b34abdf21ece6ce323d85f483014bb233152f16bee39905007",
+      "afterSha256": "9dd08d593a8270b34abdf21ece6ce323d85f483014bb233152f16bee39905007",
+      "unchanged": true
+    },
+    {
+      "path": "drizzle/migrations/meta/_journal.json",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+      "afterSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/functions/stamp-cfdi/booking_claim_test.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "71792de65e4ecdc7d7f1b24b1d13b09c96953aaa9777a739c43530de86112a35",
+      "afterSha256": "71792de65e4ecdc7d7f1b24b1d13b09c96953aaa9777a739c43530de86112a35",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/tests/rls/booking_invoice_cancellation_metadata.sql",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "914588dde6a6a19a2740c9f80bb1c8f975281ea55029fdfd465c7279917c3146",
+      "afterSha256": "914588dde6a6a19a2740c9f80bb1c8f975281ea55029fdfd465c7279917c3146",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/booking-invoice-cancellation-api.spec.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099",
+      "afterSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/abIdentities.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "09d6b8160ccd7e82890db54b59ad073e9ab5b1d4d05a8eb8191392352ec75607",
+      "afterSha256": "09d6b8160ccd7e82890db54b59ad073e9ab5b1d4d05a8eb8191392352ec75607",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/abSeed.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "26a3614d44d05653dd6cb74b389540880989e41f067e80c471550ef879b61d71",
+      "afterSha256": "26a3614d44d05653dd6cb74b389540880989e41f067e80c471550ef879b61d71",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/localLockCoordinator.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "5565975a52864959f8bb45012915db2284033240ef1b6bc820a96b1dfeab7ab5",
+      "afterSha256": "5565975a52864959f8bb45012915db2284033240ef1b6bc820a96b1dfeab7ab5",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.config.mjs",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a",
+      "afterSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.mjs",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f",
+      "afterSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/global.teardown.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "c36a52de32247a378950bd25e6ab91d9cc4f75874e6d71dc741f294c2da737f9",
+      "afterSha256": "c36a52de32247a378950bd25e6ab91d9cc4f75874e6d71dc741f294c2da737f9",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/stamp-cfdi-booking-claim-api.spec.ts",
+      "source": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "beforeSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e",
+      "afterSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e",
+      "unchanged": true
+    }
+  ],
+  "journal": {
+    "entries": 107,
+    "mainPrefixEntries": 106,
+    "prefixThrough105MatchesMain": true,
+    "lastEntry": {
+      "idx": 106,
+      "version": "7",
+      "when": 1792392861354,
+      "tag": "0106_booking_invoice_cancellation_guards",
+      "breakpoints": true
+    }
+  },
+  "runtimeDifferenceFromMain": [],
+  "validation": {
+    "tests": {
+      "total": 99,
+      "passed": 99,
+      "failed": 0,
+      "skipped": 0,
+      "files": 10,
+      "repComparable": 58,
+      "additionalPaymentCases": 41
+    },
+    "applicationTypesExit": 0,
+    "browserTypesExit": 0,
+    "journalExit": 0,
+    "eslint": {
+      "files": 11,
+      "exitCode": 0,
+      "warnings": 0
+    },
+    "build": {
+      "exitCode": 0,
+      "purpose": "local compilation only; loopback placeholder; Sentry upload disabled; no prebuild; not publication artifact"
+    },
+    "diffCheck": "PASS"
+  },
+  "testCorpus": [
+    {
+      "path": "src/components/forms/__tests__/DatePickerField.test.tsx",
+      "cases": [
+        {
+          "name": "DatePickerField: mes de la fecha vigente abre el mes seleccionado, deja navegar y vuelve a la selección al reabrir",
+          "status": "passed"
+        },
+        {
+          "name": "DatePickerField: mes de la fecha vigente usa el mes de una fecha capturada por teclado al abrir",
+          "status": "passed"
+        },
+        {
+          "name": "DatePickerField: mes de la fecha vigente permite vaciar fechas opcionales y restablecerlas desde el formulario",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/components/forms/__tests__/MaskedDateInput.test.tsx",
+      "cases": [
+        {
+          "name": "MaskedDateInput teclear 8 dígitos produce la fecha con máscara",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput acepta pegado en formato ISO",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput H escribe la fecha de hoy",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput ArrowUp ajusta el segmento activo (día)",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput con el cursor al final ajusta el año",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput + sobre el segmento de mes avanza el mes",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput marca error en fechas imposibles",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput Escape limpia el campo",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput opt-in parcial invalida antes de blur y avisa al salir del campo",
+          "status": "passed"
+        },
+        {
+          "name": "MaskedDateInput rechaza por teclado una fecha bloqueada por el matcher",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "cases": [
+        {
+          "name": "EditPaymentDialog reviewed SAT form changes transfer/03 to cash/01 and exposes the suggested SAT form for review",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form suggests the shared default for Efectivo only after changing method",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form suggests the shared default for Cheque only after changing method",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form suggests the shared default for Tarjeta only after changing method",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form preserves a stored card SAT28 override when editing only notes",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form preserves a stored card SAT29 override when editing only notes",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form allows an explicit SAT28 override after switching to card",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form allows an explicit SAT29 override after switching to card",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form keeps a card override when the same method is selected again",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form restores the stored SAT form when another payment opens in the mounted dialog",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form does not invent a missing legacy SAT form when editing only notes",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form locks stamped fiscal fields and permits notes with stored SAT28",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form locks stamped fiscal fields and permits notes with stored SAT29",
+          "status": "passed"
+        },
+        {
+          "name": "EditPaymentDialog reviewed SAT form locks stamped fiscal fields and permits notes with stored SATnull",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "cases": [
+        {
+          "name": "Historial de pagos — permisos y moneda consulta conserva importes, estados y descargas sin ofrecer modificaciones",
+          "status": "passed"
+        },
+        {
+          "name": "Historial de pagos — permisos y moneda escritura permite REP y editar pagos sin timbrar, mantiene el bloqueo fiscal",
+          "status": "passed"
+        },
+        {
+          "name": "Historial de pagos — permisos y moneda al perder permiso desaparece un editor ya abierto",
+          "status": "passed"
+        },
+        {
+          "name": "Historial de pagos — permisos y moneda cancelación de factura impide nuevos REP pero permite consultar una cancelación en proceso",
+          "status": "passed"
+        },
+        {
+          "name": "Historial de pagos — permisos y moneda los resúmenes usan USD sin convertir importes a pesos",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/components/invoices/__tests__/InvoiceDetailsCardMaskedDateCompatibility.test.tsx",
+      "cases": [
+        {
+          "name": "InvoiceDetailsCard compatibility with partial masked date capture keeps partial text before blur and completes a historical date without bouncing to today",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx",
+      "cases": [
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after impossible input",
+          "status": "passed"
+        },
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after partial before blur input",
+          "status": "passed"
+        },
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after empty input",
+          "status": "passed"
+        },
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after disabled future input",
+          "status": "passed"
+        },
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative retains partial text and its explanation after blur without submitting stale state",
+          "status": "passed"
+        },
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative submits the corrected date once after invalid capture",
+          "status": "passed"
+        },
+        {
+          "name": "RecordPaymentDialog: current date capture is authoritative reopening discards invalid capture and restores today's valid date",
+          "status": "passed"
+        },
+        {
+          "name": "useRecordPaymentForm: date submit guard rejects missing or invalid Date values without serializing them",
+          "status": "passed"
+        },
+        {
+          "name": "useRecordPaymentForm: date submit guard rejects missing or invalid Date values without serializing them",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/__tests__/usePaymentHistoryColumns.repRecovery.test.tsx",
+      "cases": [
+        {
+          "name": "REP recovery action offers an explicit retry after a pre-PAC failure leaves pending without provider identifiers",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action preserves existing unissued state none",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action preserves existing unissued state error",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action preserves existing unissued state null",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action blocks none when a PAC id exists without a UUID",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action blocks pending when a PAC id exists without a UUID",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action blocks error when a PAC id exists without a UUID",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action blocks none with an existing UUID",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action blocks pending with an existing UUID",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action blocks error with an existing UUID",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action does not expose uncertain or terminal state stamping as retryable",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action does not expose uncertain or terminal state stamped as retryable",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action does not expose uncertain or terminal state cancelled as retryable",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action does not expose uncertain or terminal state unexpected as retryable",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action retains the in-flight guard for pending recovery",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action does not expose pending recovery to read-only users",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action retains the parent invoice cancellation guard",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action requires a stamped PPD parent invoice",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action keeps the pending banner consistent with recovery eligibility",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action does not infer a retry from missing claim/error metadata",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery action disables a stale eligible row when its authoritative refetch failed",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) rejects a direct request for stamping older than 6 minutes before claim or PAC",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) rejects a direct request for stamping older than 60 minutes before claim or PAC",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) rejects a direct request for stamping older than 1440 minutes before claim or PAC",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) rejects an existing UUID even when the local status incorrectly says pending",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) makes a pre-PAC configuration failure recoverable without provider identifiers",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps a provider timeout in stamping, without exposing a manual reissue",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps lost response uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps invalid response uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps HTTP 500 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps HTTP 408 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps HTTP 409 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps HTTP 425 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps HTTP 429 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) retains definite HTTP 400 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) retains definite HTTP 401 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) retains definite HTTP 403 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) retains definite HTTP 422 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) keeps an accepted REP without UUID in stamping and blocks manual reissue",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) preserves handler role restrictions",
+          "status": "passed"
+        },
+        {
+          "name": "real REP handler to recovery UI (offline DI) preserves rejection of an active claim",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+      "cases": [
+        {
+          "name": "useRecordPaymentForm · bloqueos explicables sin sobrepago no hay bloqueo",
+          "status": "passed"
+        },
+        {
+          "name": "useRecordPaymentForm · bloqueos explicables monto mayor al saldo produce el bloqueo explicable",
+          "status": "passed"
+        },
+        {
+          "name": "useRecordPaymentForm · bloqueos explicables rechazo del backend por saldo se muestra como bloqueo, no como toast",
+          "status": "passed"
+        },
+        {
+          "name": "useRecordPaymentForm · bloqueos explicables errores no catalogados siguen usando el manejo actual",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.recoveryCache.test.tsx",
+      "cases": [
+        {
+          "name": "REP recovery keeps cached actions safe holds isPending until the authoritative payment refetch completes",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery keeps cached actions safe blocks stale none locally if the refetch fails, without fabricating persisted state",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery keeps cached actions safe does not treat a missing payment query as a successful refresh",
+          "status": "passed"
+        },
+        {
+          "name": "REP recovery keeps cached actions safe permits correction after a fresh pre-PAC pending result, preserving the original failure",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    },
+    {
+      "path": "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.test.ts",
+      "cases": [
+        {
+          "name": "complemento de pago — resultado fiscal sólo anuncia cancelación cuando el SAT la aceptó",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal no anuncia cancelación final para pending",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal no anuncia cancelación final para verifying",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal no anuncia cancelación final para rejected",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal no anuncia cancelación final para expired",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal no anuncia cancelación final para undefined",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal no anuncia cancelación final para unexpected",
+          "status": "passed"
+        },
+        {
+          "name": "complemento de pago — resultado fiscal un REP pendiente informa sin prometer UUID ni anunciar timbrado",
+          "status": "passed"
+        }
+      ],
+      "status": "passed"
+    }
+  ],
+  "authRlsNewHead": "PENDING_EXISTING_EPHEMERAL_CI_AFTER_COORDINATED_ROOT_PUSH",
+  "priorAuthEvidenceNotReattributed": true,
+  "additionalProductEdits": false,
+  "localLogFingerprints": [
+    {
+      "name": "main283-tests.json",
+      "sha256": "aacfda85aed0a5de09658acc0cfe072ad3d1d6d5c3d135669d36e78c58cddd26",
+      "publication": "local only"
+    },
+    {
+      "name": "main283-tests.log",
+      "sha256": "8ec4f163867a4377f144d0918971b0f5fa87e3f09104d33a5fb7ab7918ed814c",
+      "publication": "local only"
+    },
+    {
+      "name": "main283-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publication": "local only"
+    },
+    {
+      "name": "main283-browser-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publication": "local only"
+    },
+    {
+      "name": "main283-journal.log",
+      "sha256": "8485cbf66bcec50feaefe67cc1cd73cb58d605636f6fc9c1045afbf142f83018",
+      "publication": "local only"
+    },
+    {
+      "name": "main283-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publication": "local only"
+    },
+    {
+      "name": "main283-build.log",
+      "sha256": "91b81d58f43ba9cc415697a9adc453316e7fe5f50a0c987607cd2cb89dd81586",
+      "publication": "local only"
+    }
+  ],
+  "remoteActionsExecuted": [],
+  "credentialsOrPermissionsChanged": false
+}

@@ -37,7 +37,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit, isDirty,
-    amountBlock, exceedsBalance,
+    amountBlock, exceedsBalance, dateError,
   } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, invoiceIssuedAt, onOpenChange });
 
 
@@ -75,7 +75,10 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           <DatePickerField
             label="Fecha"
             date={date}
-            onSelect={(d) => { if (d) setDate(d); }}
+            onSelect={setDate}
+            required
+            invalidateOnPartial
+            error={dateError}
             disabled={{ after: nowMty() }}
           />
 
@@ -157,7 +160,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           <Button
             type="submit"
             data-testid="record-payment-submit"
-            disabled={createPayment.isPending || stampComplement.isPending || exceedsBalance}
+            disabled={createPayment.isPending || stampComplement.isPending || exceedsBalance || !!dateError}
           >
             {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar pago")}
           </Button>

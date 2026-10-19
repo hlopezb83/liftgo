@@ -1,0 +1,695 @@
+{
+  "stage": "after-payments",
+  "suite": "payments",
+  "exitCode": 0,
+  "signal": null,
+  "node": "v24.19.0",
+  "elapsedMs": 107709,
+  "selection": [
+    "src/components/forms/__tests__/DatePickerField.test.tsx",
+    "src/components/forms/__tests__/FormDialog.test.tsx",
+    "src/components/forms/__tests__/MaskedDateInput.test.tsx",
+    "src/components/forms/fields/__tests__/DateField.error.test.tsx",
+    "src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts",
+    "src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts",
+    "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx",
+    "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+    "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+    "src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts",
+    "src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+    "src/features/invoices/components/invoices/__tests__/InvoiceDetailsCardMaskedDateCompatibility.test.tsx",
+    "src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx",
+    "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+    "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+    "src/features/invoices/lib/__tests__/paymentCurrency.test.ts",
+    "src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts",
+    "src/features/maintenance/components/maintenance/__tests__/MaintenanceFormDialog.dateCapture.test.tsx",
+    "src/lib/date/__tests__/parseMaskedDate.test.ts",
+    "src/lib/date/__tests__/toYMD.test.ts"
+  ],
+  "summary": {
+    "total": 127,
+    "passed": 127,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 20
+  },
+  "results": [
+    {
+      "file": "src/components/forms/__tests__/DatePickerField.test.tsx",
+      "status": "passed",
+      "lfSha256": "6d679e6f27046c8d74a18dda12beff2b364206acdb685f3bd786ef5991933296",
+      "cases": [
+        {
+          "title": "DatePickerField: mes de la fecha vigente abre el mes seleccionado, deja navegar y vuelve a la selección al reabrir",
+          "status": "passed"
+        },
+        {
+          "title": "DatePickerField: mes de la fecha vigente usa el mes de una fecha capturada por teclado al abrir",
+          "status": "passed"
+        },
+        {
+          "title": "DatePickerField: mes de la fecha vigente permite vaciar fechas opcionales y restablecerlas desde el formulario",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/components/forms/__tests__/FormDialog.test.tsx",
+      "status": "passed",
+      "lfSha256": "8fd13e26c97ade96d394bc0c9815f58f761aca421ec4064925b9357740011988",
+      "cases": [
+        {
+          "title": "FormDialog permite copiar un aviso sin cerrar ni pedir descartar el formulario",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog cierra directo con Esc cuando no hay cambios",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog pide confirmación con Esc cuando hay cambios sin guardar",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog 'Seguir editando' mantiene el diálogo abierto",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog 'Descartar' cierra el diálogo",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog ignora Esc mientras el submit está en curso",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog retira la confirmación pendiente al cerrar desde el guardado y no la reabre",
+          "status": "passed"
+        },
+        {
+          "title": "FormDialog muestra título y descripción",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/components/forms/__tests__/MaskedDateInput.test.tsx",
+      "status": "passed",
+      "lfSha256": "9a02b6c1a942c03202d6496743a30172c86009447d681dbf0ebc7e6014297453",
+      "cases": [
+        {
+          "title": "MaskedDateInput teclear 8 dígitos produce la fecha con máscara",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput acepta pegado en formato ISO",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput H escribe la fecha de hoy",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput ArrowUp ajusta el segmento activo (día)",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput con el cursor al final ajusta el año",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput + sobre el segmento de mes avanza el mes",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput marca error en fechas imposibles",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput Escape limpia el campo",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput opt-in parcial invalida antes de blur y avisa al salir del campo",
+          "status": "passed"
+        },
+        {
+          "title": "MaskedDateInput rechaza por teclado una fecha bloqueada por el matcher",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/lib/date/__tests__/parseMaskedDate.test.ts",
+      "status": "passed",
+      "lfSha256": "bbae479b7b9ffaeab87959d5e4f627297e2a5ddf1aaa4834d587c00844043276",
+      "cases": [
+        {
+          "title": "digitsOf descarta separadores y limita a 8 dígitos",
+          "status": "passed"
+        },
+        {
+          "title": "digitsOf acepta pegado en ISO",
+          "status": "passed"
+        },
+        {
+          "title": "formatMask formatea ",
+          "status": "passed"
+        },
+        {
+          "title": "formatMask formatea 1",
+          "status": "passed"
+        },
+        {
+          "title": "formatMask formatea 15",
+          "status": "passed"
+        },
+        {
+          "title": "formatMask formatea 1509",
+          "status": "passed"
+        },
+        {
+          "title": "formatMask formatea 15092026",
+          "status": "passed"
+        },
+        {
+          "title": "parseMaskedDate parsea una fecha completa",
+          "status": "passed"
+        },
+        {
+          "title": "parseMaskedDate no reporta error mientras está incompleta",
+          "status": "passed"
+        },
+        {
+          "title": "parseMaskedDate rechaza fechas imposibles",
+          "status": "passed"
+        },
+        {
+          "title": "parseMaskedDate valida años bisiestos",
+          "status": "passed"
+        },
+        {
+          "title": "digitsFromDate serializa por componentes locales",
+          "status": "passed"
+        },
+        {
+          "title": "segmentos mapea el cursor al segmento",
+          "status": "passed"
+        },
+        {
+          "title": "segmentos posiciona el cursor al final del segmento disponible",
+          "status": "passed"
+        },
+        {
+          "title": "stepSegment incrementa el día",
+          "status": "passed"
+        },
+        {
+          "title": "stepSegment incrementa el mes y recorta el día al máximo del mes destino",
+          "status": "passed"
+        },
+        {
+          "title": "stepSegment da la vuelta en día y mes",
+          "status": "passed"
+        },
+        {
+          "title": "stepSegment incrementa el año respetando bisiestos",
+          "status": "passed"
+        },
+        {
+          "title": "stepSegment parte de la fecha de referencia cuando la captura está incompleta",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/lib/date/__tests__/toYMD.test.ts",
+      "status": "passed",
+      "lfSha256": "614a19d28c762924c9e2b28acd95ac9ee4c0eeec97486270e7d12a24bbaa0a17",
+      "cases": [
+        {
+          "title": "toYMD formatea componentes locales",
+          "status": "passed"
+        },
+        {
+          "title": "toYMD devuelve undefined para null/undefined",
+          "status": "passed"
+        },
+        {
+          "title": "toYMD no se corre por offset UTC en horas de noche",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/components/forms/fields/__tests__/DateField.error.test.tsx",
+      "status": "passed",
+      "lfSha256": "65dc1e7eba01ee1cc082df2bcffd65d471f8631819aa63e6b72ad07a3cd5717b",
+      "cases": [
+        {
+          "title": "DateField: error de fecha único prioriza el motivo del campo sin duplicar el error de schema",
+          "status": "passed"
+        },
+        {
+          "title": "DateField: error de fecha único explica en español una fecha vacía y la vincula al campo",
+          "status": "passed"
+        },
+        {
+          "title": "DateField: error de fecha único resuelve la captura rechazada al seleccionar un día válido en el calendario",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/lib/__tests__/paymentCurrency.test.ts",
+      "status": "passed",
+      "lfSha256": "fe3790a4d41730dc7f1986a3f951cfda51b415b8917acea0ddb03a0ea61be659",
+      "cases": [
+        {
+          "title": "invoice payment currency policy N7: rounds each MXN payment to invoice cents before summing (synthetic USD 100 / FX 17.5)",
+          "status": "passed"
+        },
+        {
+          "title": "invoice payment currency policy rounds a foreign-to-foreign conversion once in the invoice currency",
+          "status": "passed"
+        },
+        {
+          "title": "invoice payment currency policy uses invoice currency for legacy payments without a currency, as the balance view does",
+          "status": "passed"
+        },
+        {
+          "title": "invoice payment currency policy same-currency payments do not require FX, but cross-currency rates of 1 are missing",
+          "status": "passed"
+        },
+        {
+          "title": "invoice payment currency policy counts missing FX without silently changing the subtotal of convertible payments",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts",
+      "status": "passed",
+      "lfSha256": "66805e545b60cb59062ed7fb26039ba32da4168c65f079726558c87f8c902027",
+      "cases": [
+        {
+          "title": "PostgreSQL numeric rounding parity does not pre-round a decimal quotient across the half-cent boundary",
+          "status": "passed"
+        },
+        {
+          "title": "PostgreSQL numeric rounding parity rounds exact halves away from zero like PostgreSQL numeric",
+          "status": "passed"
+        },
+        {
+          "title": "PostgreSQL numeric rounding parity never turns a non-finite edit into a valid zero payment",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts",
+      "status": "passed",
+      "lfSha256": "b0e03fcb7df825f3085288ea03eb6a929add1f5742eed8381a021800c5c9d657",
+      "cases": [
+        {
+          "title": "edit payment cents are validated in invoice currency does not treat one USD cent as one MXN cent of tolerance",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment cents are validated in invoice currency compares MXN cent edits after rounding each payment to USD invoice cents",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment cents are validated in invoice currency rejects an extra invoice cent in either conversion direction",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts",
+      "status": "passed",
+      "lfSha256": "2a391203907f8a418f3312b291db94265642fa5be4eeab82e255310bbd314284",
+      "cases": [
+        {
+          "title": "edit payment currency validation N8: permits MXN 350 with USD 90 remaining and original MXN 175 (synthetic USD 100 / FX 17.5)",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment currency validation N8: reports the maximum in the payment currency, MXN 1750",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment currency validation converts the original payment at invoice precision before computing the maximum",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment currency validation also validates a USD payment on an MXN invoice",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment currency validation blocks validation if a cross-currency rate is missing",
+          "status": "passed"
+        },
+        {
+          "title": "edit payment currency validation preserves REP stamped bypass even when conversion is unavailable",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx",
+      "status": "passed",
+      "lfSha256": "057be2ea67bba689e81515323046887f10624aecd0392f527052b6c34005f987",
+      "cases": [
+        {
+          "title": "EditPaymentDialog currency wiring N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog currency wiring N8: blocks excess with maximum and currency in the validation message",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog currency wiring does not submit when FX needed for validation is missing",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog currency wiring keeps stamped REP amount disabled and submits original fiscal fields",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "status": "passed",
+      "lfSha256": "b19016a4e712185b28117d632374df1225e8b3146a774d60a8575be47c1c1f36",
+      "cases": [
+        {
+          "title": "EditPaymentDialog reviewed SAT form changes transfer/03 to cash/01 and exposes the suggested SAT form for review",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form suggests the shared default for Efectivo only after changing method",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form suggests the shared default for Cheque only after changing method",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form suggests the shared default for Tarjeta only after changing method",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form preserves a stored card SAT28 override when editing only notes",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form preserves a stored card SAT29 override when editing only notes",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form allows an explicit SAT28 override after switching to card",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form allows an explicit SAT29 override after switching to card",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form keeps a card override when the same method is selected again",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form restores the stored SAT form when another payment opens in the mounted dialog",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form does not invent a missing legacy SAT form when editing only notes",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form locks stamped fiscal fields and permits notes with stored SAT28",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form locks stamped fiscal fields and permits notes with stored SAT29",
+          "status": "passed"
+        },
+        {
+          "title": "EditPaymentDialog reviewed SAT form locks stamped fiscal fields and permits notes with stored SATnull",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+      "status": "passed",
+      "lfSha256": "ad8b942364773d70b2391720ee6242e8897c464a614e24bcf5afb5c28134bae4",
+      "cases": [
+        {
+          "title": "validateEditPaymentAmount monto igual al tope exacto → ok",
+          "status": "passed"
+        },
+        {
+          "title": "validateEditPaymentAmount redondear el origen a un centavo adicional no permite sobrepago",
+          "status": "passed"
+        },
+        {
+          "title": "validateEditPaymentAmount monto excede el tope → ok:false con maxAllowed",
+          "status": "passed"
+        },
+        {
+          "title": "validateEditPaymentAmount monto menor al saldo → ok",
+          "status": "passed"
+        },
+        {
+          "title": "validateEditPaymentAmount REP timbrado → siempre ok, sin importar el monto",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts",
+      "status": "passed",
+      "lfSha256": "b271a8d0a293b8ff4def51242fe7ff44975df1441249da6f58a42936d473cbdb",
+      "cases": [
+        {
+          "title": "canonical strict invoice-currency maximum rejects a whole extra invoice cent while retaining cents that round to the same value",
+          "status": "passed"
+        },
+        {
+          "title": "canonical strict invoice-currency maximum validates the rounded source amount that the form and server persist",
+          "status": "passed"
+        },
+        {
+          "title": "canonical strict invoice-currency maximum keeps stamped REP validation bypass; fiscal protection remains server-side",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "status": "passed",
+      "lfSha256": "7bd500762dfa47d4ec0f3f3d931df3dfc3db4e4ad9fcbbf95f850567892cdaba",
+      "cases": [
+        {
+          "title": "Historial de pagos — permisos y moneda consulta conserva importes, estados y descargas sin ofrecer modificaciones",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda escritura permite REP y editar pagos sin timbrar, mantiene el bloqueo fiscal",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda al perder permiso desaparece un editor ya abierto",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda cancelación de factura impide nuevos REP pero permite consultar una cancelación en proceso",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda los resúmenes usan USD sin convertir importes a pesos",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoices/__tests__/InvoiceDetailsCardMaskedDateCompatibility.test.tsx",
+      "status": "passed",
+      "lfSha256": "9ef220464399f676149f57aaf279dd3ea62180d75d12adc0b4e98a5af8b037ba",
+      "cases": [
+        {
+          "title": "InvoiceDetailsCard compatibility with partial masked date capture keeps partial text before blur and completes a historical date without bouncing to today",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx",
+      "status": "passed",
+      "lfSha256": "afbb31d1bbdf9ffc5f0f437486c943f2986dd71877e39bf99dc6f1c10231558c",
+      "cases": [
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after impossible input",
+          "status": "passed"
+        },
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after partial before blur input",
+          "status": "passed"
+        },
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after empty input",
+          "status": "passed"
+        },
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative does not submit the previous valid date after disabled future input",
+          "status": "passed"
+        },
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative retains partial text and its explanation after blur without submitting stale state",
+          "status": "passed"
+        },
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative submits the corrected date once after invalid capture",
+          "status": "passed"
+        },
+        {
+          "title": "RecordPaymentDialog: current date capture is authoritative reopening discards invalid capture and restores today's valid date",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm: date submit guard rejects missing or invalid Date values without serializing them",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm: date submit guard rejects missing or invalid Date values without serializing them",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+      "status": "passed",
+      "lfSha256": "c01178fd780e0865b503280645ddcde3ee29d6fa3e1e407dad31b313653078fd",
+      "cases": [
+        {
+          "title": "useRecordPaymentForm · bloqueos explicables sin sobrepago no hay bloqueo",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm · bloqueos explicables monto mayor al saldo produce el bloqueo explicable",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm · bloqueos explicables rechazo del backend por saldo se muestra como bloqueo, no como toast",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm · bloqueos explicables errores no catalogados siguen usando el manejo actual",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "status": "passed",
+      "lfSha256": "787915d0cbda205743e450bdd65def96d996c1e01545a49133b0ae80206953fb",
+      "cases": [
+        {
+          "title": "useRecordPaymentForm amount inicial = balance.toFixed(2)",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm rerender con open=true y nuevo balance refresca amount",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm cambiar method sincroniza paymentFormSat vía satCodeForMethod",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con monto 0 → notifyError, no llama createPayment",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con USD usa el exchangeRate provisto en el payload",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con USD y exchangeRate '0' → notifyError, no llama createPayment",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con USD y exchangeRate vacío → notifyError",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm C-1 currency bloqueada a la moneda de la factura; setCurrency es no-op",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm USD con invoiceExchangeRate=17.25 prellena exchangeRate",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm MXN ignora invoiceExchangeRate y usa '1'",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm USD sin invoiceExchangeRate cae a '1'",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit válido llama createPayment con payload correcto",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con monto mayor al saldo → notifyValidation, no llama createPayment",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con monto == saldo (tolerancia centavo) sí llama createPayment",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con fecha anterior a issued_at → notifyValidation, no llama createPayment",
+          "status": "passed"
+        },
+        {
+          "title": "useRecordPaymentForm submit con issued_at antiguo sí llama createPayment",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/maintenance/components/maintenance/__tests__/MaintenanceFormDialog.dateCapture.test.tsx",
+      "status": "passed",
+      "lfSha256": "fa769ec8c21ebde76b3c7b431a5d85d26f69ab405ed5c4d63fcb74d96fe91b9a",
+      "cases": [
+        {
+          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva la captura imposible (fecha previa cambiada: false)",
+          "status": "passed"
+        },
+        {
+          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva la captura imposible (fecha previa cambiada: true)",
+          "status": "passed"
+        },
+        {
+          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva vacío el próximo servicio opcional después de borrar una fecha capturada",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "privacy": {
+    "rawLogsCommitted": false,
+    "rawFailureMessagesIncluded": false,
+    "backend": false,
+    "browser": false,
+    "network": "src/test/setup.ts offline barrier"
+  }
+}
