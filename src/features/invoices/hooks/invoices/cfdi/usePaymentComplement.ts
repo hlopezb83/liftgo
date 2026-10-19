@@ -21,7 +21,7 @@ export function useStampPaymentComplement() {
   const mutation = useEntityMutation({
     mutationFn: async (paymentId: string) => {
       if (blockedRef.current.has(paymentId)) {
-        throw new Error("No se pudo confirmar el estado del REP. Recarga los pagos antes de reintentar.");
+        throw new Error("No se pudo confirmar el estado del REP. Recarga la página antes de reintentar.");
       }
       try {
         return await invokeEdgeFunction("stamp-payment-complement", {

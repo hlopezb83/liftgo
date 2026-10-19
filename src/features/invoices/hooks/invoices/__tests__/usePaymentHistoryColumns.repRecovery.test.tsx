@@ -178,7 +178,7 @@ describe("REP recovery action", () => {
     renderRep(payment());
     const button = screen.getByRole("button", { name: "Timbrar REP" });
     expect(button).toBeDisabled();
-    expect(button).toHaveAttribute("title", expect.stringContaining("Recarga los pagos"));
+    expect(button).toHaveAttribute("title", expect.stringContaining("Recarga la página"));
     fireEvent.click(button);
     expect(mocks.mutate).not.toHaveBeenCalled();
   });
