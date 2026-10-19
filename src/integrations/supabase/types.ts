@@ -2587,6 +2587,8 @@ export type Database = {
           notes: string | null
           organization_id: string
           paid_at: string | null
+          quote_charge_ever_issued: boolean
+          quote_charge_tracking_version: number | null
           quote_id: string | null
           receptor_domicilio_fiscal_cp: string | null
           receptor_razon_social: string | null
@@ -2648,6 +2650,8 @@ export type Database = {
           notes?: string | null
           organization_id: string
           paid_at?: string | null
+          quote_charge_ever_issued?: boolean
+          quote_charge_tracking_version?: number | null
           quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
           receptor_razon_social?: string | null
@@ -2709,6 +2713,8 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           paid_at?: string | null
+          quote_charge_ever_issued?: boolean
+          quote_charge_tracking_version?: number | null
           quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
           receptor_razon_social?: string | null
@@ -6671,6 +6677,10 @@ export type Database = {
         Returns: number
       }
       generate_feedback_number: { Args: never; Returns: string }
+      get_quote_charge_availability: {
+        Args: { p_quote_ids: string[]; p_exclude_invoice_id?: string }
+        Returns: Json
+      }
       get_accounts_payable_summary: { Args: never; Returns: Json }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }
@@ -8106,6 +8116,8 @@ export type Database = {
               notes: string | null
               organization_id: string
               paid_at: string | null
+              quote_charge_ever_issued: boolean
+              quote_charge_tracking_version: number | null
               quote_id: string | null
               receptor_domicilio_fiscal_cp: string | null
               receptor_razon_social: string | null
@@ -8182,6 +8194,8 @@ export type Database = {
               notes: string | null
               organization_id: string
               paid_at: string | null
+              quote_charge_ever_issued: boolean
+              quote_charge_tracking_version: number | null
               quote_id: string | null
               receptor_domicilio_fiscal_cp: string | null
               receptor_razon_social: string | null
