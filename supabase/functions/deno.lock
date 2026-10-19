@@ -5,7 +5,7 @@
     "jsr:@std/internal@^1.0.12": "1.0.14",
     "npm:@sentry/deno@10.76.2": "10.76.2",
     "npm:@types/node@*": "22.5.4",
-    "npm:facturapi@5.1.0": "5.1.0"
+    "npm:facturapi@5.2.0": "5.2.0"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -52,8 +52,8 @@
         "undici-types"
       ]
     },
-    "facturapi@5.1.0": {
-      "integrity": "sha512-CSaev3TBx2BaXI7VrSs9k5YbVcAw2h6tK4B5KwmiQ/9hFswNsvdATRfUl+oCH+9wDVR7b4HZZNjxLxt1+yQy5w=="
+    "facturapi@5.2.0": {
+      "integrity": "sha512-v9hZFpjXkIVxqDjaDAmp+KYwMJZ/G6XUyE1eRXMvXbMmKPi+rf8I1ycoQLAPy26KeiIG7DTZOtcQtwhs+srwMQ=="
     },
     "undici-types@6.19.8": {
       "integrity": "sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw=="
@@ -173,7 +173,7 @@
     "dependencies": [
       "jsr:@std/assert@1.0.19",
       "npm:@sentry/deno@10.76.2",
-      "npm:facturapi@5.1.0"
+      "npm:facturapi@5.2.0"
     ]
   }
 }
