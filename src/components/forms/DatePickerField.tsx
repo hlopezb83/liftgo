@@ -27,6 +27,7 @@ interface DatePickerFieldProps {
   onSelect: (d?: Date) => void;
   placeholder?: string;
   required?: boolean;
+  invalidateOnPartial?: boolean;
   error?: string;
   disabled?: Matcher | Matcher[];
   captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
@@ -43,6 +44,7 @@ export function DatePickerField({
   onSelect,
   placeholder = "Seleccionar fecha",
   required,
+  invalidateOnPartial,
   error,
   disabled,
   captionLayout,
@@ -98,6 +100,7 @@ export function DatePickerField({
               id={fieldId}
               value={date}
               onChange={(d) => onSelect(normalize(d))}
+              invalidateOnPartial={invalidateOnPartial}
               today={nowMty()}
               placeholder={placeholder === "Seleccionar fecha" ? undefined : placeholder}
               // §3.3: el teclado respeta el mismo matcher que el calendario.

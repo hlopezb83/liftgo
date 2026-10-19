@@ -77,6 +77,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
             date={date}
             onSelect={setDate}
             required
+            invalidateOnPartial
             error={dateError}
             disabled={{ after: nowMty() }}
           />
