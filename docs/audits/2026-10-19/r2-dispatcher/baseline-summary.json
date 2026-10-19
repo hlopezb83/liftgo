@@ -79,6 +79,38 @@
     "head": "ff48c9675072fbbcad04055a0015d484bb1cbbb3",
     "migrationPredicate": "status-only 0106 from 72d6966a3; fiscal SQL followup excluded",
     "preparedAuthCases": 46,
-    "ciResult": "pending parent-controlled run"
+    "ciResult": {
+      "run": "https://github.com/hlopezb83/liftgo/actions/runs/39214822446",
+      "passed": 81,
+      "failed": 12,
+      "classification": "6 fiscal cancellation failures;1 cleanup23503 masks direct attachment;5 fixture23505 failures;not a clean8-regression baseline"
+    }
+  },
+  "comparableFiscalBaseline": {
+    "head": "4a3d87e11beee7e8e6a8f8973cc1ca5cb2717ad6",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39216609017",
+    "stats": {
+      "total": 97,
+      "passed": 85,
+      "failed": 12,
+      "skipped": 0,
+      "flaky": 0
+    },
+    "breakdown": {
+      "priorSuite": {
+        "passed": 47,
+        "failed": 0
+      },
+      "auth46": {
+        "passed": 38,
+        "failed": 8,
+        "earlier32ControlsPassed": 32
+      },
+      "actualHandler4": {
+        "passed": 0,
+        "failed": 4
+      }
+    },
+    "sanitizedProof": "baseline-c-auth-sql.json"
   }
 }

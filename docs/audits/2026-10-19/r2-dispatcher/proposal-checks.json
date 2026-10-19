@@ -29,9 +29,13 @@
     "denoNewTestLintExit": 0
   },
   "authenticatedProposalTests": {
-    "prepared": 46,
+    "prepared": 50,
     "executedLocally": false,
-    "afterCi": "pending"
+    "afterCi": "pending corrective CI",
+    "includes": {
+      "ordinaryAuth": 46,
+      "actualHandlerAuthSql": 4
+    }
   },
   "sqlMetadataSuite": {
     "path": "supabase/tests/rls/booking_invoice_cancellation_metadata.sql",
@@ -51,7 +55,7 @@
     "newGrants": false,
     "existingRpcInvokerAndAclUnchanged": true
   },
-  "blocker": "Followup 46 real Auth cases and changed metadata SQL await isolated CI; actual claim database server path is not exercised by Auth/DI evidence. No merge/application authorization.",
+  "blocker": "Corrective CI pending; baseline C proves actual handler/Auth/API/SQL path with external provider barrier. No merge or published migration authorization.",
   "publishedBackendTouched": false,
   "newInfrastructure": false,
   "rawLogsIncluded": false,
@@ -72,7 +76,7 @@
     "sqlSmokeSuitesPassed": 46
   },
   "fiscalPredicate": "cfdi_status=stamping OR ((status NOT IN (draft,cancelled) OR cfdi_status=stamped) AND cancellation_status IS DISTINCT FROM accepted)",
-  "claimDatabaseServerPathExecuted": false,
+  "claimDatabaseServerPathExecuted": true,
   "offlineHandlerDi": {
     "realHandlerAuthAndOrganizationCode": true,
     "transportClaimErrorInjected": "23514",
@@ -97,5 +101,11 @@
     "executedSqlAuthOrDeno": false,
     "migrationLfSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
     "permanentDenoTestLfSha256": "71792de65e4ecdc7d7f1b24b1d13b09c96953aaa9777a739c43530de86112a35"
+  },
+  "comparableBaseline": {
+    "head": "4a3d87e11beee7e8e6a8f8973cc1ca5cb2717ad6",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39216609017",
+    "passed": 85,
+    "failed": 12
   }
 }
