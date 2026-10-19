@@ -30,9 +30,10 @@ function deferred<T>() {
  */
 export async function withLocalRowLock<T>(
   table: "bookings" | "invoices",
-  id: string,
+  id: string | string[],
   organizationId: string,
   run: (coordinator: { release: () => void; waitForBlocked: (queryFragment: string) => Promise<void> }) => Promise<T>,
+  mode: "update" | "share" = "update",
 ): Promise<T> {
   const url = localDatabaseUrl();
   const holder = postgres(url, { max: 1, connect_timeout: 10, onnotice: () => {} });
@@ -41,9 +42,13 @@ export async function withLocalRowLock<T>(
   const released = deferred<void>();
   const holding = holder.begin(async (tx) => {
     await tx`SET LOCAL lock_timeout = '10s'`;
-    const rows = await tx`SELECT id FROM ${tx(`public.${table}`)}
-      WHERE id = ${id}::uuid AND organization_id = ${organizationId}::uuid FOR UPDATE`;
-    expect(rows, "coordinator locks exactly the synthetic owned row").toHaveLength(1);
+    const ids = Array.isArray(id) ? id : [id];
+    const rows = mode === "share"
+      ? await tx`SELECT id FROM ${tx(`public.${table}`)}
+        WHERE id = ANY(${ids}::uuid[]) AND organization_id = ${organizationId}::uuid ORDER BY id FOR SHARE`
+      : await tx`SELECT id FROM ${tx(`public.${table}`)}
+        WHERE id = ANY(${ids}::uuid[]) AND organization_id = ${organizationId}::uuid ORDER BY id FOR UPDATE`;
+    expect(rows, "coordinator locks exactly the synthetic owned rows").toHaveLength(ids.length);
     const [backend] = await tx<{ pid: number }[]>`SELECT pg_backend_pid() AS pid`;
     locked.resolve(backend.pid);
     await released.promise;

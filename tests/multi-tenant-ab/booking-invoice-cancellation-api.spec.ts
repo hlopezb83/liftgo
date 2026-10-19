@@ -68,12 +68,13 @@ async function withScenario(
   run: (scenario: Scenario) => Promise<void>,
   side = readAbContext().A,
   fiscalSnapshot?: { id: string; status: "pending" | "accepted" },
+  bookingId?: string,
 ) {
   const A = side;
   const owner = await login(A, "internal");
   const dispatcher = await login(A, "dispatcher");
   const s: Scenario = {
-    owner, dispatcher, side: A, invoiceId: fiscalSnapshot?.id ?? randomUUID(), bookingId: randomUUID(), forkliftId: randomUUID(),
+    owner, dispatcher, side: A, invoiceId: fiscalSnapshot?.id ?? randomUUID(), bookingId: bookingId ?? randomUUID(), forkliftId: randomUUID(),
   };
   const start = todayKeyMty();
   const endDate = new Date(`${start}T12:00:00Z`);
@@ -108,7 +109,8 @@ async function withScenario(
         .eq("organization_id", A.organizationId).select("*").single()
       : await owner.from("invoices").insert(payload).select("*").single(), "prepare invoice through ordinary SDK");
     if (invoiceStatus === "cancelled") {
-      invoice = dataOrThrow(await owner.from("invoices").update({ status: "cancelled" })
+      invoice = dataOrThrow(await owner.from("invoices").update({ status: "cancelled",
+        cancellation_reason: "Synthetic unstamped cancellation fixture" })
         .eq("id", s.invoiceId).eq("organization_id", A.organizationId).select("*").single(), "cancel synthetic unstamped invoice through ordinary SDK");
     }
     expect(invoice).toMatchObject({ id: s.invoiceId, organization_id: A.organizationId, status: invoiceStatus,
@@ -117,6 +119,31 @@ async function withScenario(
     await run(s);
   } finally {
     await cleanup(s);
+  }
+}
+
+async function withAdditionalBooking(s: Scenario, run: (bookingId: string) => Promise<void>, bookingId: string = randomUUID()) {
+  const forkliftId = randomUUID();
+  const original = (await readState(s)).booking;
+  try {
+    dataOrThrow(await s.owner.from("forklifts").insert({ id: forkliftId, organization_id: s.side.organizationId,
+      name: "Synthetic sibling unit", model: "SYNTHETIC", status: "available" }).select("id").single(), "create sibling unit");
+    const booking = dataOrThrow(await s.owner.from("bookings").insert({
+      id: bookingId, organization_id: s.side.organizationId, forklift_id: forkliftId, customer_id: s.side.customerId,
+      customer_name: "Synthetic sibling booking", booking_number: `AB-SIBLING-${bookingId}`,
+      start_date: original.start_date, end_date: original.end_date, status: "confirmed", currency: "MXN", tipo_cambio: 1,
+    }).select("id, organization_id, status, is_e2e").single(), "create sibling booking");
+    expect(booking).toMatchObject({ id: bookingId, organization_id: s.side.organizationId, status: "confirmed", is_e2e: false });
+    await run(bookingId);
+  } finally {
+    expect((await s.owner.from("invoice_bookings").delete().eq("booking_id", bookingId)
+      .eq("organization_id", s.side.organizationId)).error).toBeNull();
+    for (const [table, id] of [["bookings", bookingId], ["forklifts", forkliftId]] as const) {
+      const present = dataOrThrow(await s.owner.from(table).select("id").eq("id", id)
+        .eq("organization_id", s.side.organizationId), "read sibling cleanup");
+      expect(dataOrThrow(await s.owner.from(table).delete().eq("id", id).eq("organization_id", s.side.organizationId)
+        .select("id"), "delete sibling cleanup")).toEqual(present);
+    }
   }
 }
 
@@ -129,7 +156,9 @@ for (const link of ["direct", "pivot"] as const) {
       expect(before.invoice.cancellation_status).toBe("pending");
       const fiscalWrite = await s.owner.from("invoices").update({ cancellation_status: "accepted" })
         .eq("id", s.invoiceId).select("id");
-      expect(fiscalWrite.error?.code, "SDK cannot elude existing fiscal metadata guard").toBe("23514");
+      // DB4-06 column ACL denies fiscal writes before the legacy trigger.
+      expect(fiscalWrite.error?.code, "SDK cannot elude existing fiscal column ACL").toBe("42501");
+      expect(fiscalWrite.error?.message).toMatch(/permission denied.*invoices/i);
       expect((await cancel(s, "owner", "rpc")).error?.code).toBe("23514");
       expect((await cancel(s, "dispatcher", "rpc")).error?.code).toBe("23514");
       expect((await cancel(s, "dispatcher", "update")).error?.code).toBe("23514");
@@ -395,3 +424,188 @@ for (const first of ["save-rpc", "issue"] as const) {
     });
   });
 }
+
+test("R2 invoice cancellation: billing create RPC infers organization on invoice and pivots", async () => {
+  await withScenario("none", "draft", async (s) => {
+    const source = (await readState(s)).invoice;
+    const { organization_id: omittedOrganization, ...payload } = source;
+    let createdId: string | undefined;
+    try {
+      const created = dataOrThrow<Invoice[]>(await s.owner.rpc("save_invoice_with_bookings", {
+        p_invoice: { ...payload, booking_id: s.bookingId }, p_booking_ids: [s.bookingId],
+        p_invoice_id: null, p_expected_version: null,
+      }), "create through existing invoice RPC without organization field");
+      createdId = created[0]?.id;
+      expect(created).toHaveLength(1);
+      expect(created[0]).toMatchObject({ organization_id: s.side.organizationId, booking_id: s.bookingId,
+        status: "draft", is_e2e: false });
+      const links = dataOrThrow(await s.owner.from("invoice_bookings").select("invoice_id, booking_id, organization_id")
+        .eq("invoice_id", createdId), "RPC sync inferred pivot organization");
+      expect(links).toEqual([{ invoice_id: createdId, booking_id: s.bookingId, organization_id: s.side.organizationId }]);
+      expect((await s.owner.from("invoices").update({ status: "sent" }).eq("id", createdId).select("id")).error).toBeNull();
+    } finally {
+      if (createdId) dataOrThrow(await s.owner.from("invoices").delete().eq("id", createdId)
+        .eq("organization_id", s.side.organizationId).select("id"), "cleanup RPC-created invoice");
+    }
+  });
+});
+
+test("R2 invoice cancellation: legitimate active pivot UPDATE succeeds with a free invoice", async () => {
+  await withScenario("pivot", "sent", async (s) => {
+    await withAdditionalBooking(s, async (otherBookingId) => {
+      const updated = dataOrThrow(await s.owner.from("invoice_bookings").update({ booking_id: otherBookingId })
+        .eq("invoice_id", s.invoiceId).eq("booking_id", s.bookingId).select("invoice_id, booking_id, organization_id"),
+      "ordinary legitimate pivot UPDATE");
+      expect(updated).toEqual([{ invoice_id: s.invoiceId, booking_id: otherBookingId, organization_id: s.side.organizationId }]);
+      expect((await readState(s)).invoice.status).toBe("sent");
+    });
+  });
+});
+
+test("R2 invoice cancellation: contended pivot UPDATE returns only 55P03 without drift and billing RPC advances", async () => {
+  await withScenario("pivot", "draft", async (s) => {
+    await withAdditionalBooking(s, async (otherBookingId) => {
+      const before = await readState(s);
+      await withLocalRowLock("invoices", s.invoiceId, s.side.organizationId, async (gate) => {
+        const saving = s.owner.rpc("save_invoice_with_bookings", {
+          p_invoice: JSON.parse(JSON.stringify(before.invoice)), p_booking_ids: [s.bookingId],
+          p_invoice_id: s.invoiceId, p_expected_version: before.invoice.version,
+        }).then((result) => result);
+        try {
+          await gate.waitForBlocked("save_invoice_with_bookings");
+          const unchanged = await s.owner.from("invoice_bookings").update({ booking_id: s.bookingId })
+            .eq("invoice_id", s.invoiceId).eq("booking_id", s.bookingId).select("booking_id");
+          expect(unchanged.error).toBeNull();
+          const rejected = await s.owner.from("invoice_bookings").update({ booking_id: otherBookingId })
+            .eq("invoice_id", s.invoiceId).eq("booking_id", s.bookingId).select("*");
+          expect(rejected.error?.code).toBe("55P03");
+          expect(rejected.error?.message).toMatch(/reintenta/i);
+          expect(await readState(s)).toEqual(before);
+          gate.release();
+          expect((await saving).error).toBeNull();
+        } finally {
+          gate.release();
+          await Promise.allSettled([saving]);
+        }
+      });
+      expect((await readState(s)).links.map((link) => link.booking_id)).toEqual([s.bookingId]);
+    });
+  });
+});
+
+function dayAfter(date: string, days: number) {
+  const parsed = new Date(`${date}T12:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + days);
+  return parsed.toISOString().slice(0, 10);
+}
+
+async function withTwoBookings(run: (s: Scenario, ids: [string, string]) => Promise<void>) {
+  const suffix = randomUUID().slice(24);
+  const low = `00000000-0000-4000-8000-${suffix}`;
+  const high = `ffffffff-ffff-4fff-8fff-${suffix}`;
+  // Physical insertion order is high -> low, opposite the UUID lock order.
+  await withScenario("none", "draft", async (s) => {
+    await withAdditionalBooking(s, async () => {
+      const current = await readState(s);
+      const laterStart = dayAfter(current.booking.start_date, 2);
+      dataOrThrow(await s.owner.from("invoices").update({ billing_period_start: laterStart })
+        .eq("id", s.invoiceId).select("id"), "set distinct second billing period");
+      expect((await s.owner.rpc("sync_invoice_bookings", { p_invoice_id: s.invoiceId,
+        p_booking_ids: [low, high] })).error).toBeNull();
+      await run(s, [low, high]);
+    }, low);
+  }, readAbContext().A, undefined, high);
+}
+
+test("R2 invoice cancellation concurrency: reverse-order recurring RPC cursor waits while two-booking issue completes", async () => {
+  await withTwoBookings(async (s, ids) => {
+    const [low, high] = ids;
+    const before = await readState(s);
+    const periodStart = before.booking.start_date;
+    const periodEnd = dayAfter(periodStart, 1);
+    dataOrThrow(await s.owner.from("bookings").update({ recurring_billing: true }).in("id", ids)
+      .eq("organization_id", s.side.organizationId).select("id"), "enable synthetic recurring fixtures");
+    let createdId: string | undefined;
+    try {
+      await withLocalRowLock("bookings", ids, s.side.organizationId, async (gate) => {
+        let billingSettled = false;
+        let issuedResult: Awaited<ReturnType<typeof issue>> | undefined;
+        const billing = s.owner.rpc("create_recurring_invoice", {
+          p_booking_ids: [high, low], p_customer_id: s.side.customerId, p_customer_name: "Synthetic recurring customer",
+          p_line_items: [{ description: "Synthetic recurring period", quantity: 1, unit_price: 100, total: 100 }],
+          p_subtotal: 100, p_tax_rate: 0, p_tax_amount: 0, p_total: 100,
+          p_billing_period_start: periodStart, p_billing_period_end: periodEnd,
+          p_receptor_rfc: "AAA010101AAA", p_receptor_razon_social: "SYNTHETIC", p_receptor_regimen_fiscal: "601",
+          p_receptor_domicilio_fiscal_cp: "64000", p_uso_cfdi: "G03", p_moneda: "MXN", p_tipo_cambio: 1,
+        }).then((result) => {
+          billingSettled = true;
+          if (!result.error && Array.isArray(result.data)) createdId = result.data[0]?.invoice_id;
+          return result;
+        });
+        const started: PromiseLike<unknown>[] = [billing];
+        try {
+          // SHARE barriers on BOTH books stop the cursor's first UPDATE,
+          // independent of its physical/query-plan order, while billing's
+          // own SHARE readers can pass both parents in reversed input order.
+          await gate.waitForBlocked("create_recurring_invoice");
+          const issuance = issue(s).then((result) => { issuedResult = result; return result; });
+          started.push(issuance);
+          await expect.poll(() => issuedResult !== undefined, { timeout: 5_000,
+            message: "two-booking issue commits while recurring cursor is still blocked" }).toBe(true);
+          expect(issuedResult?.error).toBeNull();
+          expect(billingSettled).toBe(false);
+          gate.release();
+          const created = dataOrThrow<{ invoice_id: string; already_existed: boolean }[]>(await billing, "recurring RPC advances");
+          createdId = created[0]?.invoice_id;
+          expect(created).toHaveLength(1);
+          expect(created[0].already_existed).toBe(false);
+        } finally {
+          gate.release();
+          await Promise.allSettled(started);
+        }
+      }, "share");
+      const books = dataOrThrow(await s.owner.from("bookings").select("id, last_billed_date, is_e2e")
+        .in("id", ids).order("id"), "recurring cursor committed on both books");
+      expect(books).toEqual(ids.map((id) => ({ id, last_billed_date: periodEnd, is_e2e: false })));
+      expect((await readState(s)).invoice.status).toBe("sent");
+    } finally {
+      if (createdId) dataOrThrow(await s.owner.from("invoices").delete().eq("id", createdId)
+        .eq("organization_id", s.side.organizationId).select("id"), "cleanup recurring invoice");
+    }
+  });
+});
+
+test("R2 invoice cancellation concurrency: two multi-booking invoices issue under shared parent barriers", async () => {
+  await withTwoBookings(async (s, ids) => {
+    const before = await readState(s);
+    const { organization_id: omittedOrganization, ...source } = before.invoice;
+    let createdId: string | undefined;
+    try {
+      const created = dataOrThrow<Invoice[]>(await s.owner.rpc("save_invoice_with_bookings", {
+        p_invoice: { ...source, booking_id: null, billing_period_start: before.booking.start_date,
+          billing_period_end: dayAfter(before.booking.start_date, 1) },
+        p_booking_ids: [...ids].reverse(), p_invoice_id: null, p_expected_version: null,
+      }), "create separate period with reversed multi-booking input");
+      createdId = created[0]?.id;
+      expect(created).toHaveLength(1);
+      await withLocalRowLock("bookings", ids, s.side.organizationId, async (gate) => {
+        let finished = 0;
+        const first = issue(s).then((result) => { finished += 1; return result; });
+        const second = s.owner.from("invoices").update({ status: "sent" }).eq("id", createdId)
+          .eq("organization_id", s.side.organizationId).select("id").then((result) => { finished += 1; return result; });
+        try {
+          await expect.poll(() => finished, { timeout: 5_000,
+            message: "both issuance readers complete despite parent SHARE barriers" }).toBe(2);
+          const results = await Promise.all([first, second]);
+          expect(results.map((result) => result.error)).toEqual([null, null]);
+        } finally {
+          gate.release();
+          await Promise.allSettled([first, second]);
+        }
+      }, "share");
+    } finally {
+      if (createdId) dataOrThrow(await s.owner.from("invoices").delete().eq("id", createdId)
+        .eq("organization_id", s.side.organizationId).select("id"), "cleanup second issued invoice");
+    }
+  });
+});

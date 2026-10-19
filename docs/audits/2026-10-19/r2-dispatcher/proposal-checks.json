@@ -1,0 +1,55 @@
+{
+  "status": "REVIEWABLE_PROPOSAL_BLOCKED_FISCAL_DRAFT_CLAIM",
+  "auditedBase": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "repDependency": [
+    "d1dc0a590650f3f3d1b43015de2d9fcb808e6f84",
+    "45b452431dda30d5138e01ac73490366b184bda9"
+  ],
+  "migration": {
+    "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+    "lfSha256": "fe9685db953dd8930e50303cfeed0a29ad66128c85ea0200d14f54366c0d74fe",
+    "entry": {
+      "idx": 106,
+      "version": "7",
+      "when": 1792392861354,
+      "tag": "0106_booking_invoice_cancellation_guards",
+      "breakpoints": true
+    },
+    "snapshotId": "b4e20fc3-4672-41c4-b8cb-ebfe6246743b",
+    "previousSnapshotId": "d9eee720-9ea3-4f40-bcf5-596198189b41"
+  },
+  "localChecks": {
+    "browserTestTypesExit": 0,
+    "changedTestLintExit": 0,
+    "journalCheckExit": 0,
+    "journalMigrationCount": 107,
+    "diffCheckExit": 0
+  },
+  "authenticatedProposalTests": {
+    "prepared": 32,
+    "executedLocally": false,
+    "afterCi": "pending"
+  },
+  "sqlMetadataSuite": {
+    "path": "supabase/tests/rls/booking_invoice_cancellation_metadata.sql",
+    "executedLocally": false
+  },
+  "lockContract": {
+    "billingBookingReaders": "FOR SHARE",
+    "directCancellation": "FOR NO KEY UPDATE",
+    "cancellationRpc": "existing FOR UPDATE unchanged",
+    "pivotInsert": "invoice FOR UPDATE waits",
+    "pivotIdentityUpdate": "invoice FOR UPDATE NOWAIT; 55P03 retry; atomic rollback",
+    "newAdvisoryLocks": false
+  },
+  "privateFunctions": {
+    "new": 3,
+    "revokeExecuteOnlyOnNewFunctions": true,
+    "newGrants": false,
+    "existingRpcInvokerAndAclUnchanged": true
+  },
+  "blocker": "Draft cfdi_status=stamping claim before PAC is not yet guarded by this status-only proposal; do not merge or publish until parent resolves and verifies the fiscal predicate/claim contract",
+  "publishedBackendTouched": false,
+  "newInfrastructure": false,
+  "rawLogsIncluded": false
+}
