@@ -1,0 +1,27 @@
+{
+  "base": "cbdbb631d4338704e328a13b652587eac97c8b1b",
+  "candidateVersion": "8.44.10",
+  "before": {
+    "visualFailed": 10,
+    "doubleActivationFailed": 1
+  },
+  "after": {
+    "testsPassed": 37,
+    "testFiles": 5,
+    "visualSnapshots": 36
+  },
+  "checks": {
+    "globalLintExit": 0,
+    "finalDeltaLintExit": 0,
+    "typecheckExit": 0,
+    "clientSsrBuildExit": 0,
+    "changelogExit": 0
+  },
+  "notPerformed": [
+    "Chrome",
+    "published QA",
+    "merge",
+    "deploy",
+    "database writes"
+  ]
+}

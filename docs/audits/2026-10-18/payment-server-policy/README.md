@@ -1,8 +1,8 @@
 # N7/N8 — canonical server payment policy, proposed activation
 
-This change aligns invoice-currency payment conversion, rounding, maximum and status. It is **not applied to a published database**. N7/N8 remain open end to end until the coordinator approves and applies the migration, verifies its ledger and objects, then publishes and repeats QA. K1 remains a separate, inactive proposal.
+This change aligns invoice-currency payment conversion, rounding, maximum and status. On 2026-10-19 the coordinator confirmed official application of0103 and independent readback. This branch adopts that official journal and snapshot without changing the SQL. **Do not apply0103 again or insert ledger rows.** Client publication and end-to-end QA remain with the coordinator. K1 is separate and inactive.
 
-Base: `cbdbb631d4338704e328a13b652587eac97c8b1b` (the parent merged the independent N5 fix). Runtime candidate version: 8.44.9. No Chrome, deployment, published migration, permissions/account change, real transaction or data backfill was performed here.
+Integration base: official main `ff6e6146eb925c53a3caa3e585019b87cbc233b7` plus N5 `f95aac98f506a4cc18424c14932dffe1272ea1bf`. Current client candidate:8.44.11, following N5 release8.44.10. The original evidence below was recorded for candidate8.44.9 before that release-order reconciliation. No Chrome, deployment, published migration, permissions/account change, real transaction or data backfill was performed here.
 
 ## Product and policy
 
@@ -58,10 +58,8 @@ Only start fixture runners against their fixed loopback ports/databases after cr
 
 ## Activation and non-destructive compensation
 
-The coordinator privately holds the exact observed application target, the current ledger/fingerprints and K1 consent hashes. **The versioned application channel is still unconfirmed.** The available project-bound query action supports DDL but does not promise migration-ledger bookkeeping or atomicity; hosting publication does not promise database migration or a selectable commit. No runner, manual ledger insertion or deployment mechanism is invented here.
+The coordinator privately holds target, ledger and ACL/ownership comparisons. Official0103 is now present in main with its exact journal timestamp and snapshot; SQL LF SHA256 remains9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271. No application was executed by this worktree. Do not replay0103, modify its SQL or manually edit ledger.
 
-Before execution approval: identify the official versioned migration channel, confirm its target/ownership/atomicity/ledger contract, refresh target and function fingerprints, verify entry102 is still the expected predecessor and entry103 is free, and review the exact migration bytes/checks. If the ledger or schema differs, stop and rebase/review rather than running all pending migrations or skipping ledger entries.
-
-After explicit approval through that channel: apply only the reviewed forward migration atomically; read the ledger and six functions/two triggers back, compare definitions and unchanged privileges/REP guards; refresh any required API schema cache. Only then activate the matching strict client release and perform isolated authorized QA. Code merge/CI and synthetic evidence alone are not permission to apply or publish.
+The coordinator verifies official readback, unchanged privileges and REP guards before publishing the matching strict client. The client code is byte-identical to reviewed e51f16d; this integration adds N5 and harmonizes only release metadata and the official journal/snapshot. CI of the final head and isolated authorized QA remain required. K1 requires its own approval/application; this branch does not contain0104.
 
 `rollback-reviewed-functions.sql` is a **proposal** for a compensating forward migration restoring the previous six definitions and two trigger definitions without changing data or permissions. Never delete/reverse ledger history. First withdraw the matching client change selectively and evaluate payments already accepted under the new policy; do not automatically change or delete those payments. Restoring old definitions reintroduces the demonstrated FX bugs, so prefer an approved forward fix. A rollback needs fresh fingerprint checks and its own explicit approval, not automatic execution of this artifact.

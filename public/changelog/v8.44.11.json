@@ -1,6 +1,6 @@
 {
-  "version": "8.44.9",
-  "date": "2026-10-18",
+  "version": "8.44.11",
+  "date": "2026-10-19",
   "type": "patch",
   "category": "bugfix",
   "title": "Pagos con conversión y redondeo coherentes",

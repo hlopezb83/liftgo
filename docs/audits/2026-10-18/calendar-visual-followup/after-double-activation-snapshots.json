@@ -1,0 +1,25 @@
+[
+  {
+    "phase": "source",
+    "url": "/calendar?date=2026-11-18&view=gantt&range=month"
+  },
+  {
+    "phase": "first-activation-pending",
+    "url": "/bookings/bk-november",
+    "origin": "/calendar?date=2026-11-18&view=gantt&range=month"
+  },
+  {
+    "phase": "second-activation-pending",
+    "url": "/bookings/bk-november",
+    "origin": "/calendar?date=2026-11-18&view=gantt&range=month"
+  },
+  {
+    "phase": "detail-settled",
+    "url": "/bookings/bk-november",
+    "origin": "/calendar?date=2026-11-18&view=gantt&range=month"
+  },
+  {
+    "phase": "returned",
+    "url": "/calendar?date=2026-11-18&view=gantt&range=month"
+  }
+]

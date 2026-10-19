@@ -21,15 +21,23 @@ export function useCalendarLocationState(isMobile: boolean) {
   const { pathname } = useLocation();
   const [fallbackDate] = useState(nowMty);
   const [savedParams] = useState(() => readSessionParams(CALENDAR_PATH));
+  const hasCalendarParams = ["date", "view", "range"].some((key) => params.has(key));
+  const [calendarParams, setCalendarParams] = useState(params);
+  // A pending sibling route can retain this screen with the destination URL.
+  // Capture calendar renders only; a bare reentry also keeps the latest period.
+  if (pathname === CALENDAR_PATH && hasCalendarParams && calendarParams !== params) {
+    setCalendarParams(params);
+  }
+  const visibleParams = pathname === CALENDAR_PATH && hasCalendarParams ? params : calendarParams;
   const state = useMemo(() => {
-    const source = ["date", "view", "range"].some((key) => params.has(key)) ? params : savedParams;
+    const source = ["date", "view", "range"].some((key) => visibleParams.has(key)) ? visibleParams : savedParams;
     return {
       currentDate: readDate(source.get("date"), fallbackDate),
       viewMode: source.get("view") === "gantt" || source.get("view") === "list"
         ? source.get("view") as ViewMode : isMobile ? "list" : "gantt",
       ganttRange: source.get("range") === "week" ? "week" as const : "month" as const,
     };
-  }, [params, savedParams, fallbackDate, isMobile]);
+  }, [visibleParams, savedParams, fallbackDate, isMobile]);
 
   const date = toYMD(state.currentDate);
   const { viewMode, ganttRange } = state;
