@@ -5,6 +5,7 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +21,11 @@ import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignment
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
+
+function invoiceSubmitBlock(chargeBlock: string | null, isEdit: boolean, version: number | null | undefined) {
+  if (chargeBlock) return chargeBlock;
+  return isEdit && version == null ? "Cargando la factura…" : undefined;
+}
 
 export default function InvoiceForm() {
   const navigate = useNavigateTransition();
@@ -44,6 +50,7 @@ export default function InvoiceForm() {
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
   const currency = useWatch({ control: f.form.control, name: "cfdi.moneda" });
   const isSubmitting = f.saveInvoice.isPending;
+  const submitBlock = invoiceSubmitBlock(f.chargeBlock, f.isEdit, f.invoiceVersion);
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
@@ -153,6 +160,14 @@ export default function InvoiceForm() {
 
           <CfdiFieldsCard />
 
+          {f.chargeBlock && (
+            <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-2">
+              <p>{f.chargeBlock}</p>
+              <p className="text-sm text-muted-foreground">Los borradores también reservan cargos. Si hay partidas históricas sin vínculo, concílialas antes de continuar.</p>
+              <Button type="button" variant="outline" size="sm" disabled={f.isLoadingChargeAvailability}
+                onClick={() => void f.retryChargeAvailability()}>Reintentar consulta</Button>
+            </div>
+          )}
           <EditableLineItemsTable />
 
           <TotalsSummary
@@ -181,8 +196,8 @@ export default function InvoiceForm() {
           {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
               y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
           <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
-            submitDisabled={f.isEdit && f.invoiceVersion == null}
-            submitDisabledReason={f.isEdit && f.invoiceVersion == null ? "Cargando la factura…" : undefined}
+            submitDisabled={!!submitBlock}
+            submitDisabledReason={submitBlock}
           />
         </form>
       </Form>

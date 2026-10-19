@@ -13,7 +13,8 @@ import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestorati
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { TopbarUserMenu } from "@/layouts/TopbarUserMenu";
-import { Outlet } from "@/lib/router-compat-ui";
+import { useLocation } from "@/lib/router-compat";
+import { Link, Outlet } from "@/lib/router-compat-ui";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 
 function focusSearchInput() {
@@ -67,19 +68,28 @@ function HotkeysHost() {
 
 export default function MainLayout() {
   const mainRef = useRef<HTMLElement>(null);
+  const location = useLocation();
   useMainScrollRestoration(mainRef);
   return (
     <SidebarProvider>
       <PageActionsProvider>
         <div className="h-[100dvh] flex w-full">
-          <a
-            href="#main-content"
+          <Link
+            to={`${location.pathname}${location.search}#main-content`}
+            state={location.state}
+            onClick={(event) => {
+              if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              // Native hash navigation discards TanStack history state, including
+              // the exact list origin used by nested detail return actions.
+              mainRef.current?.focus({ preventScroll: true });
+              mainRef.current?.scrollTo({ top: 0 });
+            }}
             className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Saltar al contenido
-          </a>
+          </Link>
           <AppSidebar />
-          <main ref={mainRef} id="main-content" className="flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+          <main ref={mainRef} id="main-content" tabIndex={-1} className="flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
             <header data-app-header className="sticky top-0 z-30 h-12 flex items-center gap-3 border-b px-4 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[env(safe-area-inset-top)] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
               <SidebarTrigger className="touch:h-11 touch:w-11" />
               <div className="flex-1 min-w-0">

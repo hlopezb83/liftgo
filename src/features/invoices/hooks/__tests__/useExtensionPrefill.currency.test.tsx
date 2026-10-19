@@ -84,6 +84,10 @@ function useRealPrefill(loaded: boolean, edit: boolean) {
   const form = useForm({ defaultValues: defaults });
   const handlers = useInvoiceFormHandlers({
     form, customers: [customer], bookings: [booking], forklifts: [forklift] as never,
+    // Extension currency fixtures have no quote charges to load.
+    loadQuoteCharges: async () => {
+      throw new Error("Unexpected quote-charge lookup in extension currency test");
+    },
   });
   const prefill = useExtensionPrefill({
     form, isEdit: edit, extensionId: "synthetic-extension", customersLoaded: loaded,
