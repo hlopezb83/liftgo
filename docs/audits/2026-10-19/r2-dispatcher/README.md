@@ -4,11 +4,11 @@ Audited base: `7ac56b7b904f79fdb0b194dbccd97d67f364273a`.
 
 ## Baseline stage (tests only)
 
-`booking-invoice-cancellation-api.spec.ts` adds 19 expectations against the existing ephemeral A/B backend. ASUS has no running local Supabase stack, so these tests are prepared for the existing A/B CI lane; no dynamic result is claimed until that run finishes.
+`booking-invoice-cancellation-api.spec.ts` adds 21 expectations against the existing ephemeral A/B backend. ASUS has no running local Supabase stack, so these tests are prepared for the existing A/B CI lane; no dynamic result is claimed until that run finishes.
 
 The A/B seed adds disposable Auth dispatchers in both synthetic organizations and validates their roles. Every case logs in through `createLocalUserClient`, verifies Auth user, membership-derived organization and actual role, then uses ordinary PostgREST SDK requests for fixture rows, operations, reads and cleanup. Business rows use the default `is_e2e=false`. Dispatchers must still see no invoice rows. No role/credential/policy is changed in a published backend.
 
-The matrix covers admin and dispatcher, RPC and direct UPDATE, direct and pivot invoice links, draft/cancelled controls, later draft emission, foreign organization denials, inverse links to cancelled bookings, and four overlapping issue/attach versus cancellation cases. Whole invoice/booking/link snapshots verify rejected writes do not drift.
+The matrix covers admin and dispatcher, RPC and direct UPDATE, direct and pivot invoice links, draft/cancelled controls, later draft emission, foreign organization denials, inverse links to cancelled bookings, and four overlapping issue/attach versus cancellation cases. Another two races start with a draft without pivots and a cancelled booking, then reverse the order of emission and new pivot attachment while both requests overlap. Whole invoice/booking/link snapshots verify rejected writes do not drift.
 
 The lock coordinator uses the existing loopback `DB_URL` only for `SELECT ... FOR UPDATE` and lock observation. It performs no business mutation or JWT/GUC impersonation. Actual racing operations remain authenticated SDK requests. It forces both orderings without new RPCs, test triggers or timing sleeps: hold a booking to queue billing before cancellation, or hold an invoice to queue billing while cancellation commits. `pg_blocking_pids` confirms the request is waiting before the next step. Locks are released and started requests settled even on failed expectations.
 

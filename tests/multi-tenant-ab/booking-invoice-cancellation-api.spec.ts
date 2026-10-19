@@ -292,3 +292,36 @@ for (const operation of ["issue", "attach"] as const) {
     });
   });
 }
+
+for (const first of ["issue", "attach"] as const) {
+  test(`R2 invoice cancellation concurrency: draft without pivot, ${first} wins invoice lock before the other writer`, async () => {
+    await withScenario("none", "draft", async (s) => {
+      expect((await cancel(s, "dispatcher", "rpc")).error).toBeNull();
+      await withLocalRowLock("invoices", s.invoiceId, s.side.organizationId, async (gate) => {
+        const attachDraft = () => s.owner.from("invoice_bookings").insert({
+          invoice_id: s.invoiceId, booking_id: s.bookingId, organization_id: s.side.organizationId,
+        }).select("invoice_id").then((result) => result);
+        const started: PromiseLike<unknown>[] = [];
+        try {
+          const initial = first === "issue" ? issue(s) : attachDraft();
+          started.push(initial);
+          await gate.waitForBlocked(first === "issue" ? "invoices" : "invoice_bookings");
+          const following = first === "issue" ? attachDraft() : issue(s);
+          started.push(following);
+          await gate.waitForBlocked(first === "issue" ? "invoice_bookings" : "invoices");
+          gate.release();
+          const [accepted, rejected] = await Promise.all([initial, following]);
+          expect(accepted.error).toBeNull();
+          expect(rejected.error?.code).toBe("23514");
+        } finally {
+          gate.release();
+          await Promise.allSettled(started);
+        }
+      });
+      const state = await readState(s);
+      expect(state.booking.status).toBe("cancelled");
+      expect(state.invoice.status).toBe(first === "issue" ? "sent" : "draft");
+      expect(state.links.map((link) => link.booking_id)).toEqual(first === "issue" ? [] : [s.bookingId]);
+    });
+  });
+}
