@@ -357,3 +357,37 @@ for (const first of ["issue", "attach"] as const) {
     });
   });
 }
+
+for (const first of ["save-rpc", "issue"] as const) {
+  test(`R2 invoice cancellation concurrency: existing billing RPC and direct issue, ${first} holds invoice first`, async () => {
+    await withScenario("pivot", "draft", async (s) => {
+      const before = await readState(s);
+      const save = () => s.owner.rpc("save_invoice_with_bookings", {
+        p_invoice: JSON.parse(JSON.stringify(before.invoice)), p_booking_ids: [s.bookingId],
+        p_invoice_id: s.invoiceId, p_expected_version: before.invoice.version,
+      }).then((result) => result);
+      await withLocalRowLock("bookings", s.bookingId, s.side.organizationId, async (gate) => {
+        const started: PromiseLike<unknown>[] = [];
+        try {
+          const initial = first === "save-rpc" ? save() : issue(s);
+          started.push(initial);
+          await gate.waitForBlocked(first === "save-rpc" ? "save_invoice_with_bookings" : "invoices");
+          const following = first === "save-rpc" ? issue(s) : save();
+          started.push(following);
+          await gate.waitForBlocked(first === "save-rpc" ? "invoices" : "save_invoice_with_bookings");
+          gate.release();
+          const [initialResult, followingResult] = await Promise.all([initial, following]);
+          expect(initialResult.error).toBeNull();
+          expect(followingResult.error?.code ?? null).toBe(first === "save-rpc" ? null : "55000");
+        } finally {
+          gate.release();
+          await Promise.allSettled(started);
+        }
+      });
+      const state = await readState(s);
+      expect(state.booking.status).toBe("confirmed");
+      expect(state.invoice.status).toBe("sent");
+      expect(state.links.map((link) => link.booking_id)).toEqual([s.bookingId]);
+    });
+  });
+}
