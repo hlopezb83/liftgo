@@ -11,6 +11,7 @@ import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
+import { canStampPaymentRep } from "../../lib/canStampPaymentRep";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { PAYMENT_METHODS } from "../../lib/paymentMethods";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
@@ -22,6 +23,18 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = Object.fromEntries(
 );
 
 type Payment = Tables<"payments">;
+
+function getStampRepActionState(stampRep: ReturnType<typeof useStampPaymentComplement>, paymentId: string) {
+  const retryBlocked = stampRep.retryBlockedPaymentIds?.has(paymentId) ?? false;
+  return {
+    disabled: stampRep.isPending || retryBlocked,
+    title: stampRep.isPending
+      ? "Hay un timbrado de REP en curso"
+      : retryBlocked
+        ? "No se pudo confirmar el estado del REP. Recarga la página antes de reintentar."
+        : "Timbrar complemento de pago",
+  };
+}
 
 async function downloadRep(paymentId: string, format: CfdiFormat) {
   try {
@@ -92,6 +105,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
           const repNumber = p.rep_number;
           // FIX R4-04: cancelación REP en proceso ante el SAT.
           const repCancelPending = (p.rep_cancellation_status as string | null) === "pending";
+          const stampAction = getStampRepActionState(stampRep, p.id);
           return (
             <div className="flex items-center gap-1.5">
               {repNumber && (
@@ -134,17 +148,13 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   )}
                 </>
               )}
-              {canMutateRep && (status === "none" || status === "error") && (
+              {canMutateRep && canStampPaymentRep(p) && (
                 <Button
                   variant="outline" size="sm" className="h-7 text-xs"
-                  disabled={stampRep.isPending}
-                  title={
-                    stampRep.isPending
-                      ? "Hay un timbrado de REP en curso"
-                      : "Timbrar complemento de pago"
-                  }
+                  disabled={stampAction.disabled}
+                  title={stampAction.title}
                   onClick={() => {
-                    if (stampRep.isPending) return;
+                    if (stampAction.disabled) return;
                     stampRep.mutate(p.id);
                   }}
                 >

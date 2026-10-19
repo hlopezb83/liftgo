@@ -13,7 +13,7 @@
     "total": 127,
     "files": 20
   },
-  "comparableCasesAndSelection": false,
+  "comparableCasesAndSelection": true,
   "extensions": {
     "passed": 74,
     "total": 74,
@@ -26,5 +26,6 @@
   "backendExecuted": false,
   "browserExecuted": false,
   "intermediateCheckpoint": true,
-  "nextStep": "Merge new main 3d679f30 (PR285) and repeat final checks"
+  "nextStep": "Merge new main 3d679f30 (PR285) and repeat final checks",
+  "comparisonUsesSortedCaseKeys": true
 }

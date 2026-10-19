@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
+import { canStampPaymentRep } from "../../lib/canStampPaymentRep";
 import { CancelRepDialog } from "./CancelRepDialog";
 import { EditPaymentDialog } from "./EditPaymentDialog";
 
@@ -22,10 +23,7 @@ interface Props {
 }
 
 function countPendingReps(payments: Payment[]): number {
-  return payments.filter((p) => {
-    const s = (p.rep_cfdi_status as string | null) ?? "none";
-    return s === "none" || s === "error";
-  }).length;
+  return payments.filter(canStampPaymentRep).length;
 }
 
 function PaymentSummaryCard({
