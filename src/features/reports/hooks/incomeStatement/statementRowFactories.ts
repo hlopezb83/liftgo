@@ -132,15 +132,23 @@ export function buildExpenseDetailBreakdown(
     }));
 }
 
+// Match the screen/PDF's Intl currency rounding, including exact half cents.
+// CSV keeps a decimal point and no grouping or currency symbol for import.
+const csvAmountFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+  useGrouping: false,
+});
+const formatCsvValue = (value: number | null, isPercent?: boolean) =>
+  value === null ? "No aplica" : isPercent ? `${value.toFixed(1)}%` : csvAmountFormatter.format(value);
+
 export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthData[]): Record<string, string>[] {
-  const fmt = (value: number | null, isPercent?: boolean) =>
-    value === null ? "No aplica" : isPercent ? `${value.toFixed(1)}%` : value.toFixed(2);
   return statementRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
     filteredData.forEach((d, i) => {
-      obj[d.month] = fmt(row.values[i], row.isPercent);
+      obj[d.month] = formatCsvValue(row.values[i], row.isPercent);
     });
-    obj["Total"] = fmt(row.total, row.isPercent);
+    obj["Total"] = formatCsvValue(row.total, row.isPercent);
     return obj;
   });
 }
@@ -155,14 +163,12 @@ export function buildComparisonCsvRows(
   comparisonRows: ComparisonRow[],
   years: string[],
 ): Record<string, string>[] {
-  const fmt = (v: number | null, isPercent?: boolean) =>
-    v === null ? "No aplica" : isPercent ? `${v.toFixed(1)}%` : v.toFixed(2);
   return comparisonRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
     years.forEach((y, i) => {
-      obj[y] = fmt(row.yearValues[i] === undefined ? 0 : row.yearValues[i], row.isPercent);
+      obj[y] = formatCsvValue(row.yearValues[i] === undefined ? 0 : row.yearValues[i], row.isPercent);
     });
-    obj["Variación"] = fmt(row.delta, row.isPercent);
+    obj["Variación"] = formatCsvValue(row.delta, row.isPercent);
     obj["Variación %"] = row.deltaPct === null ? "—" : `${row.deltaPct.toFixed(1)}%`;
     return obj;
   });
