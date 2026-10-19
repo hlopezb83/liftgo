@@ -10,6 +10,7 @@ import { assertLocalEphemeralBackend } from "./fixtures/localBackend";
 for (const link of ["direct", "pivot"] as const) {
   for (const order of ["cancel-first", "claim-first"] as const) {
     test(`R2 actual fiscal handler: ${order}, ${link} booking link`, async ({}, testInfo) => {
+      testInfo.setTimeout(60_000);
       assertLocalEphemeralBackend("actual fiscal handler wrapper");
       const stem = join("tests/multi-tenant-ab/.state", `actual-claim-${link}-${order}`);
       const rawReport = `${stem}.vitest.json`;
@@ -31,11 +32,20 @@ for (const link of ["direct", "pivot"] as const) {
         });
         // Only the deliberately sanitized proof is attached. Child stdout,
         // errors, credentials and the complete Vitest report are never logged.
-        const proof = JSON.parse(readFileSync(proofFile, "utf8")) as {
+        let proof: {
           phase: string; authVerified: boolean; cleanupVerified: boolean;
           providerCreateCalls: number; providerInvoiceCalls: number;
           blockedRemoteCalls: number; claimResponses: { status: number; code: string | null; claimedRow: boolean }[];
         };
+        try {
+          proof = JSON.parse(readFileSync(proofFile, "utf8"));
+        } catch {
+          const diagnostic = { phase: "child-ended-without-valid-safe-proof", exitCode: outcome.code, signal: outcome.signal };
+          await testInfo.attach("actual-handler-safe-child-diagnostic", {
+            body: JSON.stringify(diagnostic, null, 2), contentType: "application/json",
+          });
+          throw new Error(`Actual handler child did not provide valid safe proof (exitCode=${outcome.code}, signal=${outcome.signal ?? "none"}).`);
+        }
         await testInfo.attach("actual-handler-auth-sql-proof", {
           body: JSON.stringify(proof, null, 2), contentType: "application/json",
         });
