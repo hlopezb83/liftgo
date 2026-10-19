@@ -62,3 +62,11 @@ describe("extractNonRentalLines", () => {
     expect(extractNonRentalLines("string")).toEqual([]);
   });
 });
+
+it("does not classify generated extension or calendar-prorated rental rows as quote extras", () => {
+  expect(extractNonRentalLines([
+    { description: "MC-01 — Extensión: Renta diaria (2026-10-01 al 2026-10-02)", quantity: 2, unit_price: 100, total: 200 },
+    { description: "MC-01 — Renta septiembre 2026 (19 días al precio diario)", quantity: 19, unit_price: 100, total: 1900 },
+    { description: "Texto editado", line_kind: "rental", quantity: 1, unit_price: 100, total: 100 },
+  ])).toEqual([]);
+});

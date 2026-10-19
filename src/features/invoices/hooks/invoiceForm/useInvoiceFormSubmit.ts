@@ -1,31 +1,18 @@
+import { toLineItems } from "../../lib/invoiceLineSerialization";
 import { useUpdateQuote } from "@/features/quotes";
 import { orEmpty } from "@/lib/coerce";
 import { monthBounds } from "@/lib/date/monthBounds";
 import { toYMD } from "@/lib/date/toYMD";
-import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
+import { computeTotals } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
 import { roundMoney } from "@/lib/money";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
 import { resolveCfdiFormaPago } from "../../lib/cfdiPaymentForm";
 import { useSaveInvoiceWithBookings } from "../invoices/useInvoices";
-import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
+import type { InvoiceFormValues, CfdiFormValues } from "../../lib/invoiceFormSchema";
 
 
-function toLineItems(items: LineItemValues[]): LineItem[] {
-  return items.map((i) => ({
-    description: i.description ?? "",
-    quantity: Number(i.quantity ?? 0),
-    unit_price: Number(i.unit_price ?? 0),
-    total: Number(i.total ?? 0),
-    discount: i.discount,
-    discount_type: i.discount_type,
-    clave_prod_serv: i.clave_prod_serv,
-    clave_unidad: i.clave_unidad,
-    objeto_imp: i.objeto_imp,
-    tax_rate: i.tax_rate,
-  }));
-}
 
 interface BuildPayloadArgs {
   values: InvoiceFormValues;

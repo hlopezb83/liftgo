@@ -1,3 +1,4 @@
+import { preserveQuoteChargeIdentities } from "../../lib/quoteChargeIdentity";
 import { toYMD } from "@/lib/date/toYMD";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
@@ -6,7 +7,7 @@ import { roundMoney } from "@/lib/money";
 import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 
 export interface BuildQuotePayloadArgs {
-  existingQuote: { quote_number?: string | null; status?: string | null } | null | undefined;
+  existingQuote: { quote_number?: string | null; status?: string | null; line_items?: unknown } | null | undefined;
   customerId: string;
   customerName: string;
   quoteType: "rental" | "sale" | string;
@@ -64,7 +65,7 @@ export function buildQuotePayload(a: BuildQuotePayloadArgs) {
     equipment_model_id: pickFirstModelId(a),
     start_date: startStr,
     end_date: endStr,
-    line_items: toJsonArray(a.lineItems),
+    line_items: toJsonArray(preserveQuoteChargeIdentities(a.lineItems, a.existingQuote?.line_items)),
     subtotal: roundMoney(a.subtotal),
     tax_rate: Number(a.taxRate),
     tax_amount: roundMoney(a.taxAmount),

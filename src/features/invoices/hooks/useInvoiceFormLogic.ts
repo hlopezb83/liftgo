@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
@@ -26,7 +26,8 @@ import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
-import { useBilledExtraBookings } from "./invoices/useBilledExtraBookings";
+import { useQuoteChargeAvailability } from "./invoices/useQuoteChargeAvailability";
+import { CHARGE_AVAILABILITY_UNAVAILABLE, collectInvoiceChargeQuoteIds, quoteChargeSelectionError } from "../lib/quoteChargeAvailability";
 import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
@@ -58,12 +59,13 @@ function collectBookingQuoteIds(bookings?: { quote_id?: string | null }[]): stri
 
 /** Reservas que ya están facturadas (por columna directa o por pivote). */
 export function collectInvoicedBookingIds(
-  invoices: { status: string; booking_id?: string | null }[] | undefined,
+  invoices: { id?: string; status: string; booking_id?: string | null }[] | undefined,
   allInvoiceBookings: { invoice_id: string; booking_id: string }[] | undefined,
   currentInvoiceId?: string,
 ): Set<string> {
   const set = new Set<string>();
   invoices?.forEach((inv) => {
+    if (currentInvoiceId && inv.id === currentInvoiceId) return;
     if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
   });
   // Excluye las reservas de la factura que se está editando.
@@ -119,7 +121,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const isEdit = !!id;
   const quoteId = fromQuoteId || undefined;
 
-  const { data: bookings } = useBookings();
+  const bookingsQuery = useBookings();
+  const { data: bookings } = bookingsQuery;
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
@@ -127,7 +130,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: assignments } = useQuoteAssignments(quoteId);
   const { data: invoices } = useInvoices();
   const { data: allInvoiceBookings } = useAllInvoiceBookings();
-  const { data: invoiceBookingsRows } = useInvoiceBookings(id);
+  const invoiceBookingsQuery = useInvoiceBookings(id);
+  const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
 
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
@@ -136,8 +140,6 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: buildEmptyInvoiceValues(),
   });
-
-  useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds });
 
   const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(
     quoteId,
@@ -161,9 +163,44 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
-  // FIX-4: reservas cuyas partidas extra ya se facturaron (no re-precargar).
-  const { data: bookingsWithBilledExtras } = useBilledExtraBookings();
-  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes, bookingsWithBilledExtras });
+  const selectedBookingIds = useWatch({ control: form.control, name: "bookingIds" });
+  const currentLines = useWatch({ control: form.control, name: "lineItems" });
+  // Keep the original invoice's quote scope even after its last traced line is
+  // removed. Adding a new row must not make availability disappear.
+  const originalLines = Array.isArray(existing?.line_items) ? existing.line_items as unknown as LineItem[] : [];
+  const linkedBookingIds = [...new Set([...(selectedBookingIds ?? []), ...existingBookingIds, ...(existing?.booking_id ? [existing.booking_id] : [])])];
+  const quoteScopeBookings = [
+    ...(bookings ?? []),
+    ...(invoiceBookingsRows ?? []).flatMap((row) => row.bookings && Object.hasOwn(row.bookings, "quote_id") ? [{
+      id: row.booking_id,
+      quote_id: typeof row.bookings.quote_id === "string" ? row.bookings.quote_id : null,
+    }] : []),
+  ];
+  const bookingSourceBlock = (isEdit && !!existing && !invoiceBookingsRows)
+    || linkedBookingIds.some((bookingId) => !quoteScopeBookings.some((booking) => booking.id === bookingId))
+    ? "No se pudo verificar la cotización de todas las reservas vinculadas. Recarga las reservas y sus vínculos antes de guardar." : null;
+  const relatedQuoteIds = collectInvoiceChargeQuoteIds({
+    fromQuoteId, existingQuoteId: existing?.quote_id, originalLines, currentLines: currentLines ?? [],
+    bookingQuoteIds: linkedBookingIds
+      .flatMap((bookingId) => {
+        const quote = quoteScopeBookings.find((booking) => booking.id === bookingId)?.quote_id;
+        return quote ? [quote] : [];
+      }),
+  });
+  const chargeAvailability = useQuoteChargeAvailability(relatedQuoteIds, id);
+  const { quoteChargePrefillError } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
+    chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
+  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
+    form, customers, bookings, forklifts, quotes: bookingSourceQuotes,
+    loadQuoteCharges: chargeAvailability.loadForQuotes,
+  });
+  const chargeAvailabilityError = relatedQuoteIds.length > 0
+    ? chargeAvailability.isError ? CHARGE_AVAILABILITY_UNAVAILABLE
+      : !chargeAvailability.data ? "Verificando los cargos de la cotización…"
+        : quoteChargeSelectionError(relatedQuoteIds, currentLines ?? [], chargeAvailability.data)
+    : null;
+  const chargeBlock = isLoadingCharges ? "Verificando los cargos de las reservas…"
+    : bookingSourceBlock || chargeSelectionError || chargeAvailabilityError || quoteChargePrefillError;
 
   const totals = useInvoiceFormTotals(form);
 
@@ -206,7 +243,9 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
    */
   const validateSelection = (
     values: InvoiceFormValues,
-  ): { field: "bookingIds" | "billingPeriodStart"; message: string } | null => {
+  ): { field: "bookingIds" | "billingPeriodStart" | "lineItems"; message: string } | null => {
+    const chargeError = chargeBlock || quoteChargeSelectionError(relatedQuoteIds, values.lineItems, chargeAvailability.data);
+    if (chargeError) return { field: "lineItems", message: chargeError };
     const selected = (values.bookingIds ?? [])
       .map((bid) => bookings?.find((b) => b.id === bid))
       .filter(Boolean) as unknown as BillableBooking[];
@@ -247,6 +286,12 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     handleCustomerSelect, handleBookingSelect, handleBookingsChange,
     onSubmit,
     validateSelection,
+    chargeBlock,
+    retryChargeAvailability: () => {
+      if (bookingSourceBlock) return Promise.all([bookingsQuery.refetch(), invoiceBookingsQuery.refetch()]);
+      return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
+    },
+    isLoadingChargeAvailability: isLoadingCharges || chargeAvailability.isFetching,
     saveInvoice: submit.saveInvoice,
     updateQuote: submit.updateQuote,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,

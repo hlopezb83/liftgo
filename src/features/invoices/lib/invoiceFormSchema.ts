@@ -4,7 +4,12 @@ import { nowMty } from "@/lib/utils";
 export const lineItemSchema = z
   .object({
     description: z.string().trim().min(1, "Descripción requerida"),
-    quantity: z.number().min(1, "Cantidad ≥ 1"),
+    quote_line_id: z.string().uuid().optional(),
+    source_quote_id: z.string().uuid().optional(),
+    source_quote_line_id: z.string().uuid().optional(),
+    line_kind: z.enum(["charge", "rental", "sale", "manual"]).optional(),
+    charge_kind: z.enum(["logistics", "insurance"]).optional(),
+    quantity: z.number().positive("Cantidad mayor a 0"),
     unit_price: z.number().min(0, "Precio ≥ 0"),
     total: z.number(),
     clave_prod_serv: z.string().optional(),
@@ -23,6 +28,10 @@ export const lineItemSchema = z
 
     discount_type: z.enum(["%", "$"]).optional(),
   })
+  .refine(
+    (l) => !!l.source_quote_id === !!l.source_quote_line_id && (l.line_kind !== "charge" || !!l.source_quote_id || !!l.quote_line_id),
+    { message: "El vínculo del cargo con la cotización está incompleto", path: ["source_quote_line_id"] },
+  )
   .refine(
     (l) => l.discount_type !== "%" || l.discount == null || l.discount <= 100,
     { message: "El descuento no puede exceder 100%", path: ["discount"] },
@@ -147,7 +156,7 @@ export const EMPTY_CFDI: CfdiFormValues = {
 };
 
 export const EMPTY_LINE: LineItemValues = {
-  description: "", quantity: 1, unit_price: 0, total: 0,
+  line_kind: "manual", description: "", quantity: 1, unit_price: 0, total: 0,
   clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
 };
 

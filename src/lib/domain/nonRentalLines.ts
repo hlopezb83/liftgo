@@ -21,7 +21,7 @@ export interface NonRentalLineDto {
 // clave va siempre tras el separador " — ". Antes se buscaba el substring en
 // cualquier posición, así que una línea manual como "Cargo por Renta mensual
 // atrasada" se descartaba por falso positivo. Anclamos al formato generado.
-const GENERATED_RENTAL_LINE = / — Renta (mensual|semanal|diaria)/;
+const GENERATED_RENTAL_LINE = /(?:^| — )(?:Extensión: )?Renta (?:mensual|semanal|diaria|(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) \d{4} \(\d+ días al precio diario\))/;
 const SALE_SUFFIX = /Venta de equipo/i;
 
 /**
@@ -29,7 +29,9 @@ const SALE_SUFFIX = /Venta de equipo/i;
  * Se usa para separar servicios adicionales (logística, entrega, etc.) que no
  * son generados automáticamente al facturar desde reserva.
  */
-function isRentalOrSaleLine(description: string | undefined): boolean {
+function isRentalOrSaleLine(item: LineItem): boolean {
+  if (item.line_kind) return item.line_kind === "rental" || item.line_kind === "sale";
+  const description = item.description;
   if (!description) return false;
   if (SALE_SUFFIX.test(description)) return true;
   return GENERATED_RENTAL_LINE.test(description);
@@ -47,7 +49,7 @@ export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto
   if (!Array.isArray(quoteLineItems)) return [];
   const items = quoteLineItems as LineItem[];
   return items
-    .filter((item) => !isRentalOrSaleLine(item.description))
+    .filter((item) => !isRentalOrSaleLine(item))
     .map((item) => ({
       description: item.description ?? "",
       quantity: Number(item.quantity ?? 1),
@@ -61,14 +63,4 @@ export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto
       clave_unidad: "E48",
       objeto_imp: "02",
     }));
-}
-
-/**
- * FIX-4: ¿las partidas de una factura incluyen al menos una partida extra
- * (no renta ni venta de equipo)? Se usa para no volver a pre-cargar seguro /
- * logística en una segunda factura de la misma reserva.
- */
-export function hasNonRentalLines(lineItems: unknown): boolean {
-  if (!Array.isArray(lineItems)) return false;
-  return (lineItems as LineItem[]).some((item) => !isRentalOrSaleLine(item.description));
 }

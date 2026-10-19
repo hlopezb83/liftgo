@@ -73,6 +73,8 @@ export default function QuoteForm() {
 
           <LogisticsCard form={form} includeLogistics={f.includeLogistics} includeInsurance={f.includeInsurance} />
 
+          {f.chargeIdentityError && <Alert variant="destructive"><AlertDescription>{f.chargeIdentityError}</AlertDescription></Alert>}
+
           <CostSummaryCard
             lineItems={f.lineItems}
             subtotal={f.subtotal}
@@ -111,6 +113,8 @@ export default function QuoteForm() {
             <FormActions
               submitLabel={f.id ? "Actualizar cotización" : "Crear cotización"}
               isPending={f.isPending}
+              submitDisabled={!!f.chargeIdentityError}
+              submitDisabledReason={f.chargeIdentityError ?? undefined}
               onCancel={() => f.navigate(-1)}
             />
           )}
