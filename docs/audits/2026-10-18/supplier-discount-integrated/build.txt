@@ -1,0 +1,5 @@
+Command: node node_modules/vite/bin/vite.js build
+Exit: 0
+Client and SSR built locally, no deployment.
+Raw SHA256: 531e92f54b3da32259df5c12b8d3ddebf1862749292467c9c8dd8e41163c1953
+Raw log retained locally; existing dependency warnings are outside this change.

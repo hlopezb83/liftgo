@@ -1,0 +1,155 @@
+pg_ctl ["-D","<worktree>\\.local-pg\\data-restricted","-l","<worktree>\\.local-pg\\restricted-server.log","-o","-h 127.0.0.1 -p 55443","-w","-t","30","start"]
+waiting for server to start.... done
+server started
+
+EXIT=0
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","postgres","-Atq","-c","SELECT json_build_object('data_directory',current_setting('data_directory'),'port',inet_server_port(),'address',inet_server_addr(),'version',version())"]
+{"data_directory" : "<worktree>/.local-pg/data-restricted", "port" : 55443, "address" : "127.0.0.1", "version" : "PostgreSQL 17.9 on x86_64-windows, compiled by msvc-19.44.35222, 64-bit"}
+
+EXIT=0
+createdb ["-h","127.0.0.1","-p","55443","-U","postgres","liftgo_k1_restricted_before_final"]
+
+EXIT=0
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","liftgo_k1_restricted_before_final","-v","ON_ERROR_STOP=1","--set=VERBOSITY=verbose","-U","postgres","-Atq"]
+
+EXIT=0
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","liftgo_k1_restricted_before_final","-v","ON_ERROR_STOP=1","--set=VERBOSITY=verbose","-f","<worktree>\\docs\\audits\\2026-10-18\\supplier-discount-integrated\\baseline-fixture.sql"]
+DO
+DO
+DO
+CREATE SCHEMA
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+GRANT
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TYPE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+CREATE TABLE
+GRANT
+CREATE TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+ALTER TABLE
+CREATE TABLE
+ALTER TABLE
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+CREATE FUNCTION
+GRANT
+ALTER TABLE
+ALTER TABLE
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+GRANT
+ALTER TABLE
+CREATE POLICY
+CREATE POLICY
+CREATE POLICY
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE TRIGGER
+REVOKE
+GRANT
+INSERT 0 13
+INSERT 0 13
+INSERT 0 12
+INSERT 0 3
+INSERT 0 12
+INSERT 0 2
+INSERT 0 3
+       set_config
+-------------------------
+ {"role":"service_role"}
+(1 row)
+
+INSERT 0 8
+UPDATE 1
+INSERT 0 3
+ recalc_supplier_bill
+----------------------
+
+(1 row)
+
+ recalc_supplier_bill
+----------------------
+
+(1 row)
+
+ set_config | set_config | set_config
+------------+------------+------------
+ off        | {}         |
+(1 row)
+
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE FUNCTION
+CREATE TRIGGER
+psql:<worktree>/docs/audits/2026-10-18/supplier-discount-integrated/baseline-fixture.sql:66: NOTICE:  00000: constraint "supplier_bills_discount_non_negative_chk" of relation "supplier_bills" does not exist, skipping
+LOCATION:  ATExecDropConstraint, tablecmds.c:12657
+
+EXIT=0
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","liftgo_k1_restricted_before_final","-v","ON_ERROR_STOP=1","--set=VERBOSITY=verbose","-U","postgres","-Atq"]
+
+EXIT=0
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","liftgo_k1_restricted_before_final","-v","ON_ERROR_STOP=1","--set=VERBOSITY=verbose","-U","postgres","-Atq"]
+{"superuser" : false, "create_role" : false, "create_db" : false, "parameter_set" : {"app.cxp_rpc": false, "app.cxp_recalc": false, "app.audit_revert": false}}
+
+EXIT=0
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","liftgo_k1_restricted_before_final","-v","ON_ERROR_STOP=1","--set=VERBOSITY=verbose","-U","restricted_migrator","--single-transaction","-f","<worktree>\\docs\\audits\\2026-10-18\\supplier-discount-integrated\\restricted-migrator\\before-0104.sql"]
+psql:<worktree>/docs/audits/2026-10-18/supplier-discount-integrated/restricted-migrator/before-0104.sql:154: ERROR:  42501: permission denied to set parameter "app.cxp_rpc"
+LOCATION:  validate_option_array_item, guc.c:6767
+
+EXIT=3
+psql ["-X","-h","127.0.0.1","-p","55443","-U","postgres","-d","liftgo_k1_restricted_before_final","-v","ON_ERROR_STOP=1","--set=VERBOSITY=verbose","-U","postgres","-Atq"]
+{"exists" : false, "owner" : null, "config" : null, "security_definer" : null}
+
+EXIT=0
+pg_ctl ["-D","<worktree>\\.local-pg\\data-restricted","-m","fast","-w","-t","30","stop"]
+waiting for server to shut down.... done
+server stopped
+
+EXIT=0
+pg_ctl ["-D","<worktree>\\.local-pg\\data-restricted","status"]
+pg_ctl: no server running
+
+EXIT=3
+STOPPED_STATUS_EXPECTED_3=3

@@ -1,0 +1,12 @@
+
+ RUN  v4.1.11 <worktree>/docs/audits/2026-10-18/supplier-discount-precision
+
+ Γ£ô client-form.test.tsx (7 tests) 151ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  17:50:54
+   Duration  7.50s (transform 245ms, setup 507ms, import 5.68s, tests 151ms, environment 823ms)
+
+JSON report written to <worktree>/docs/audits/2026-10-18/supplier-discount-precision/client-after-results.json
+ExitCode=0

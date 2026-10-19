@@ -1,0 +1,46 @@
+{
+  "approved": {
+    "commit": "cccc744a971e6363c40f740f92731eab1481e9bf",
+    "sqlLfBytes": 8719,
+    "sqlLfSha256": "1fbcf64ae779070e0900061921661481fe44cb1cd23b6ab70dc322599129c877"
+  },
+  "official": {
+    "commit": "a8ca0080f22968eccb788a605a9a066093f9a688",
+    "sqlLfBytes": 8720,
+    "sqlLfSha256": "374a36eb1c433ba631ad69ae95cc3662fe3dc2ba019105d0ab1400a03aff87b0",
+    "journalEntry": {
+      "idx": 104,
+      "version": "7",
+      "when": 1792370295568,
+      "tag": "0104_supplier_bill_details_rpc",
+      "breakpoints": true
+    },
+    "snapshot": {
+      "path": "drizzle/migrations/meta/0104_snapshot.json",
+      "sha256": "8a411d52843d895e3fc4722b9509cb17f2d196042b7d3eac66b08aacf485743a",
+      "id": "8f2d4bd9-4569-4f8e-9bb0-f9797c949616",
+      "prevId": "f0d2fe18-d684-4a26-87f8-ab9e4a6898df"
+    }
+  },
+  "difference": {
+    "insertedByteDecimal": 32,
+    "zeroBasedByteOffset": 6189,
+    "oneBasedLine": 120,
+    "context": "PL/pgSQL indentation immediately before OR v_new.retention_iva; outside strings, quoted identifiers and comments",
+    "removingOnlyThisByteMatchesApproved": true,
+    "functionalChange": false
+  },
+  "preserved0103": [
+    {
+      "path": "drizzle/migrations/0103_canonical_payment_invoice_currency.sql",
+      "unchanged": true,
+      "sha256": "9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271"
+    },
+    {
+      "path": "drizzle/migrations/meta/0103_snapshot.json",
+      "unchanged": true,
+      "sha256": "c0d4b9ee87dd9a7109b874eb2620a32818be2289f8c115de91e34580515babf0"
+    }
+  ],
+  "scope": "Repository Git LF byte comparison; catalog/ACL verification was separately confirmed by the coordinator. No SQL execution by this comparison."
+}

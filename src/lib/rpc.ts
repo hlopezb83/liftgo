@@ -10,6 +10,7 @@ type RpcName =
   | "get_dashboard_fleet_counts"
   | "get_my_support_case"
   | "share_my_support_report"
+  | "update_supplier_bill_details"
   | "withdraw_my_support_report";
 
 /**

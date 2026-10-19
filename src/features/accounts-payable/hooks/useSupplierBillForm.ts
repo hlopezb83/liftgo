@@ -5,9 +5,9 @@ import { useSuppliers } from "@/features/suppliers";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { roundMoney } from "@/lib/money";
 import { nonNegativeAmountCoerced, positiveAmountCoerced } from "@/lib/schemas";
 import { nowMty } from "@/lib/utils";
+import { supplierBillFormTotal } from "../lib/supplierBillFormTotal";
 import { useCreateSupplierBill, useUpdateSupplierBill } from "./useSupplierBillMutations";
 import type { SupplierBillDetail } from "./useSupplierBill";
 import type { ExpenseCategory } from "../lib/supplierBillConstants";
@@ -145,9 +145,9 @@ export function useSupplierBillForm(
 
 
   const { data: suppliersList } = useSuppliers();
-  const [supplierId, issueDate, dueDate, subtotalRaw, discountRaw, taxRaw, retIvaRaw, retIsrRaw] = useWatch({
+  const [supplierId, issueDate, dueDate, subtotalRaw, discountRaw, taxRaw, retIvaRaw, retIsrRaw, currency, exchangeRate] = useWatch({
     control: form.control,
-    name: ["supplier_id", "issue_date", "due_date", "subtotal", "discount", "tax_amount", "retention_iva", "retention_isr"],
+    name: ["supplier_id", "issue_date", "due_date", "subtotal", "discount", "tax_amount", "retention_iva", "retention_isr", "currency", "exchange_rate"],
   });
 
   const selectedSupplier = suppliersList?.find((s) => s.id === supplierId);
@@ -179,7 +179,10 @@ export function useSupplierBillForm(
   // Piso defensivo: el total nunca debe ser negativo (la guarda del schema
   // ya bloquea retenciones excesivas, pero esto protege contra datos
   // importados o editados directamente en BD).
-  const total = roundMoney(Math.max(0, subtotal - discount + tax - retIva - retIsr));
+  const total = supplierBillFormTotal({
+    subtotal, discount, tax_amount: tax, retention_iva: retIva, retention_isr: retIsr,
+    currency, exchange_rate: exchangeRate,
+  }, initialBill);
 
   const onSubmit = (data: SupplierBillFormData) => {
     const basePayload = {
@@ -197,7 +200,7 @@ export function useSupplierBillForm(
       tax_amount: data.tax_amount,
       retention_iva: data.retention_iva,
       retention_isr: data.retention_isr,
-      total,
+      total: supplierBillFormTotal(data, initialBill),
       cfdi_uuid: data.cfdi_uuid || null,
       payment_method_sat: data.payment_method_sat ?? null,
     };

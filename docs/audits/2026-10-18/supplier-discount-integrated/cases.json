@@ -1,0 +1,440 @@
+[
+  {
+    "id": "typed_metadata_full_identical",
+    "seed": {},
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "versioned-typmods",
+    "metadata": true
+  },
+  {
+    "id": "typed_legacy_formula_mismatch_metadata",
+    "seed": {
+      "total": 90
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited",
+      "total": 90
+    },
+    "profile": "versioned-typmods",
+    "metadata": true
+  },
+  {
+    "id": "typed_approved_formula_mismatch_metadata",
+    "seed": {
+      "total": 90,
+      "approval_status": "approved"
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited",
+      "total": 90
+    },
+    "profile": "versioned-typmods",
+    "metadata": true
+  },
+  {
+    "id": "typed_fractional_subtotal_normalizes",
+    "seed": {},
+    "patch": {
+      "description": "description edited",
+      "subtotal": 100.001
+    },
+    "expected": "00000",
+    "persisted": {
+      "subtotal": 100,
+      "total": 100
+    },
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_fractional_rate_normalizes",
+    "seed": {},
+    "patch": {
+      "description": "description edited",
+      "exchange_rate": 17.1234567
+    },
+    "expected": "00000",
+    "persisted": {
+      "exchange_rate": 17.123457,
+      "total": 100
+    },
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_fractional_discount_normalizes",
+    "seed": {},
+    "patch": {
+      "description": "description edited",
+      "discount": 10.001,
+      "total": 90
+    },
+    "expected": "00000",
+    "persisted": {
+      "discount": 10,
+      "total": 90
+    },
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_approved_raw_subtotal_change_locked",
+    "seed": {
+      "approval_status": "approved"
+    },
+    "patch": {
+      "description": "description edited",
+      "subtotal": 100.001
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_approved_raw_rate_change_locked",
+    "seed": {
+      "approval_status": "approved"
+    },
+    "patch": {
+      "description": "description edited",
+      "exchange_rate": 17.50000001
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_approved_raw_discount_change_locked",
+    "seed": {
+      "approval_status": "approved",
+      "discount": 10,
+      "total": 90
+    },
+    "patch": {
+      "description": "description edited",
+      "discount": 10.001
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_approved_full_identical_metadata",
+    "seed": {
+      "approval_status": "approved"
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "versioned-typmods",
+    "metadata": true
+  },
+  {
+    "id": "typed_fractional_components_inconsistent_final_total",
+    "seed": {},
+    "patch": {
+      "subtotal": 100.004,
+      "tax_amount": 0.004,
+      "total": 100.01
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_negative_fraction_before_coercion",
+    "seed": {},
+    "patch": {
+      "discount": -0.001
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_rate_rounds_to_zero_rejected",
+    "seed": {},
+    "patch": {
+      "exchange_rate": 1e-7
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_unknown_key_rejected",
+    "seed": {},
+    "patch": {
+      "unknown_field": 1
+    },
+    "expected": "22023",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_numeric_string_rejected",
+    "seed": {},
+    "patch": {
+      "subtotal": "100"
+    },
+    "expected": "22023",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "typed_discount_change_requires_explicit_total",
+    "seed": {},
+    "patch": {
+      "discount": 10
+    },
+    "expected": "22023",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false,
+    "sparse": true
+  },
+  {
+    "id": "typed_discount_cannot_exceed_subtotal",
+    "seed": {},
+    "patch": {
+      "discount": 101,
+      "total": 0
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "versioned-typmods",
+    "metadata": false
+  },
+  {
+    "id": "legacy_rate_identical_metadata",
+    "seed": {
+      "exchange_rate": 17.1234567
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_subtotal_identical_metadata",
+    "seed": {
+      "subtotal": 100.001
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_discount_identical_metadata",
+    "seed": {
+      "discount": 10.001,
+      "total": 89.999
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_tax_identical_metadata",
+    "seed": {
+      "tax_amount": 0.001,
+      "total": 100.001
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_retention_iva_identical_metadata",
+    "seed": {
+      "retention_iva": 0.001,
+      "total": 99.999
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_retention_isr_identical_metadata",
+    "seed": {
+      "retention_isr": 0.001,
+      "total": 99.999
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_total_identical_metadata",
+    "seed": {
+      "total": 100.001
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_approved_rate_identical_metadata",
+    "seed": {
+      "approval_status": "approved",
+      "exchange_rate": 17.1234567
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_approved_amounts_identical_metadata",
+    "seed": {
+      "approval_status": "approved",
+      "subtotal": 100.001,
+      "total": 100.001
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true
+  },
+  {
+    "id": "legacy_rate_identical_real_discount_change",
+    "seed": {
+      "exchange_rate": 17.1234567
+    },
+    "patch": {
+      "discount": 10,
+      "total": 90
+    },
+    "expected": "00000",
+    "persisted": {
+      "exchange_rate": 17.1234567,
+      "discount": 10,
+      "total": 90
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": false
+  },
+  {
+    "id": "legacy_new_precision_follows_existing_type",
+    "seed": {},
+    "patch": {
+      "discount": 10.001,
+      "total": 90
+    },
+    "expected": "00000",
+    "persisted": {
+      "discount": 10.001,
+      "total": 90
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": false
+  },
+  {
+    "id": "legacy_approved_real_subtotal_change_locked",
+    "seed": {
+      "approval_status": "approved",
+      "subtotal": 100.001
+    },
+    "patch": {
+      "subtotal": 100.002
+    },
+    "expected": "23514",
+    "persisted": {},
+    "profile": "hypothetical-bare-numeric",
+    "metadata": false
+  },
+  {
+    "id": "legacy_sparse_metadata_control",
+    "seed": {
+      "exchange_rate": 17.1234567,
+      "total": 100.001
+    },
+    "patch": {
+      "description": "description edited"
+    },
+    "expected": "00000",
+    "persisted": {
+      "description": "description edited"
+    },
+    "profile": "hypothetical-bare-numeric",
+    "metadata": true,
+    "sparse": true
+  }
+]

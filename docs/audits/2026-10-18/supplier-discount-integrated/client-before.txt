@@ -1,0 +1,82 @@
+
+ RUN  v4.1.11 <worktree>/docs/audits/2026-10-18/supplier-discount-precision
+
+ Γ¥» client-form.test.tsx (7 tests | 3 failed) 149ms
+     Γ£ô control: preserves consistent two-decimal amounts and a six-decimal exchange rate 54ms
+     Γ£ô captures an unchanged seven-decimal rate in an explicit hypothetical legacy profile 23ms
+     ├ù does not repair a cent-precision legacy total that differs from its component formula during a metadata edit 20ms
+     ├ù preserves a hypothetical bare-numeric legacy total rather than rounding it on a metadata edit 5ms
+     Γ£ô captures unchanged three-decimal components while preserving their existing rounded total 12ms
+     ├ù preserves unchanged three-decimal components and their raw legacy total during a metadata edit 13ms
+     Γ£ô control: recalculates total when the user actually changes a monetary component 18ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  client-form.test.tsx > K1 real form metadata-only payload compatibility > does not repair a cent-precision legacy total that differs from its component formula during a metadata edit
+AssertionError: total: expected 103 to be 104 // Object.is equality
+
+- Expected
++ Received
+
+- 104
++ 103
+
+ Γ¥» expectOriginalMoney client-form.test.tsx:100:45
+     98|     // Omitted fields also preserve the database value if a future canΓÇª
+     99|     // uses a differential patch. A present field must be exactly unchΓÇª
+    100|     expect({ ...bill, ...patch }[key], key).toBe(bill[key]);
+       |                                             ^
+    101|   }
+    102| }
+ Γ¥» client-form.test.tsx:127:5
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»
+
+ FAIL  client-form.test.tsx > K1 real form metadata-only payload compatibility > preserves a hypothetical bare-numeric legacy total rather than rounding it on a metadata edit
+AssertionError: total: expected 103 to be 103.004 // Object.is equality
+
+- Expected
++ Received
+
+- 103.004
++ 103
+
+ Γ¥» expectOriginalMoney client-form.test.tsx:100:45
+     98|     // Omitted fields also preserve the database value if a future canΓÇª
+     99|     // uses a differential patch. A present field must be exactly unchΓÇª
+    100|     expect({ ...bill, ...patch }[key], key).toBe(bill[key]);
+       |                                             ^
+    101|   }
+    102| }
+ Γ¥» client-form.test.tsx:135:5
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»
+
+ FAIL  client-form.test.tsx > K1 real form metadata-only payload compatibility > preserves unchanged three-decimal components and their raw legacy total during a metadata edit
+AssertionError: total: expected 102.99 to be 102.993 // Object.is equality
+
+- Expected
++ Received
+
+- 102.993
++ 102.99
+
+ Γ¥» expectOriginalMoney client-form.test.tsx:100:45
+     98|     // Omitted fields also preserve the database value if a future canΓÇª
+     99|     // uses a differential patch. A present field must be exactly unchΓÇª
+    100|     expect({ ...bill, ...patch }[key], key).toBe(bill[key]);
+       |                                             ^
+    101|   }
+    102| }
+ Γ¥» client-form.test.tsx:166:5
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 4 passed (7)
+   Start at  17:48:18
+   Duration  9.06s (transform 362ms, setup 654ms, import 6.66s, tests 149ms, environment 1.18s)
+
+JSON report written to <worktree>/docs/audits/2026-10-18/supplier-discount-precision/client-before-results.json
+ExitCode=1

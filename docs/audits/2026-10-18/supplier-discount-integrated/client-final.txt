@@ -1,0 +1,13 @@
+
+ RUN  v4.1.11 <worktree>
+
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useSupplierBillForm.legacy.test.tsx (7 tests) 100ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useSupplierBillForm.test.tsx (7 tests) 550ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useUpdateSupplierBill.rpc.test.tsx (3 tests) 27ms
+ Γ£ô src/features/accounts-payable/hooks/__tests__/useSupplierBillMutations.test.tsx (3 tests) 239ms
+ Γ£ô src/features/accounts-payable/lib/__tests__/supplierBillFormSchema.test.ts (13 tests) 12ms
+
+ Test Files  5 passed (5)
+      Tests  33 passed (33)
+   Start at  17:55:51
+   Duration  13.93s (transform 941ms, setup 2.18s, import 14.43s, tests 929ms, environment 3.57s)

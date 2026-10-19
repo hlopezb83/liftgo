@@ -1,0 +1,22 @@
+[
+  {
+    "name": "baseline-fixture.sql",
+    "executedRawSha256": "2a5bd8a0319d0ee7e03008f0adcf6a8f6e8c949d8f40840653fd372f5afa77d1",
+    "publishedLfSha256": "498a6c4027ba4c66be44655e229b27548eb3508899742352f141a48153712bf4"
+  },
+  {
+    "name": "baseline-rpc-v3.sql",
+    "executedRawSha256": "899180d976f87186ca33c63159fcfb4c11b1870f1ddae379d5cfb67aad0102ba",
+    "publishedLfSha256": "899180d976f87186ca33c63159fcfb4c11b1870f1ddae379d5cfb67aad0102ba"
+  },
+  {
+    "name": "cases.sql",
+    "executedRawSha256": "1371cca2f3cca5ebaa6ea6b3f496329f211f61babedc2142718fdaf48b017cad",
+    "publishedLfSha256": "1371cca2f3cca5ebaa6ea6b3f496329f211f61babedc2142718fdaf48b017cad"
+  },
+  {
+    "name": "client-form.test.tsx",
+    "executedRawSha256": "5cf4a03ea5242fa496286385446095b1120bc2d32c74043f2f04211a17ac3a0b",
+    "publishedLfSha256": "5cf4a03ea5242fa496286385446095b1120bc2d32c74043f2f04211a17ac3a0b"
+  }
+]
