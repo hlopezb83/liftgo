@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { getCustomerListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
+import { useLocation } from "@/lib/router-compat";
 
 interface InvoiceRow {
   id: string;
@@ -14,10 +16,21 @@ interface InvoiceRow {
   total: number | string;
   issued_at: string;
   due_date?: string | null;
+  currency?: string | null;
 }
 
 export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
   const navigate = useNavigateTransition();
+  const location = useLocation();
+  const openInvoice = (id: string) => {
+    const customerListBackTo = getCustomerListBackTo(location.state);
+    navigate(`/invoices/${id}`, {
+      state: {
+        customerInvoiceBackTo: `${location.pathname}${location.search}${location.hash}`,
+        ...(customerListBackTo ? { customerListBackTo } : {}),
+      },
+    });
+  };
   // R6-FE-04a (N6-VEN-02): ventas (Facturas=none) veía folios que navegaban
   // a /invoices/:id → pantalla "Sin permisos". Facturas=none: se oculta la
   // sección; Facturas=read: folio como texto plano sin enlace.
@@ -43,8 +56,8 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
                   ? {
                       role: "button",
                       tabIndex: 0,
-                      onClick: () => navigate(`/invoices/${inv.id}`),
-                      onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/invoices/${inv.id}`); } },
+                      onClick: () => openInvoice(inv.id),
+                      onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openInvoice(inv.id); } },
                     }
                   : {})}
                 className={`flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm ${canOpenInvoice ? "cursor-pointer hover:bg-muted/60" : ""}`}
@@ -57,7 +70,8 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono font-semibold">{formatCurrency(Number(inv.total))}</span>
+                  <span className="font-mono font-semibold">{formatCurrencyWithCode(Number(inv.total), inv.currency ?? "MXN")}</span>
+                  <span className="text-xs text-muted-foreground">{inv.currency ?? "MXN"}</span>
                   <StatusBadge status={inv.status} />
                 </div>
               </div>

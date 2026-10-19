@@ -1,0 +1,85 @@
+{
+  "base": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "environment": "Offline Vitest/happy-dom and native TanStack memory router; synthetic fixtures; no backend/browser",
+  "before": {
+    "regression_failures": 6,
+    "passing_controls": 7,
+    "vitest_exit_codes": [
+      1,
+      1
+    ]
+  },
+  "after": {
+    "tests": 34,
+    "files": 6,
+    "vitest_exit_code": 0,
+    "lint_exit_code": 0,
+    "typecheck_exit_code": 0,
+    "diff_check_exit_code": 0
+  },
+  "source_sha256": [
+    {
+      "path": "src/components/layout/DetailPageHeader.tsx",
+      "sha256": "1a5556198f80c969162eeae12f2cdce840a530b338f2a85d714ab98d4ccfee27"
+    },
+    {
+      "path": "src/features/customers/components/customer-detail/CustomerInvoicesList.tsx",
+      "sha256": "813384eb3e4ec8735b972e8bed2a054031f2072677f20dc9c4071f84c9df4f5e"
+    },
+    {
+      "path": "src/features/customers/pages/CustomerDetailPage.tsx",
+      "sha256": "f157152c5a2735dab3f91d484173dac459601f924fc7ccd25426e69f55482f7c"
+    },
+    {
+      "path": "src/features/customers/pages/CustomersPage.tsx",
+      "sha256": "f2bee755517fe7472576272779eff18527a8e182b246d77f3a9390c42b73a4eb"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/InvoiceDetailBody.tsx",
+      "sha256": "e724612859a1d9531465dcbb5f2d994e8372f68051583ebad1eba166a82851e1"
+    },
+    {
+      "path": "src/lib/navigation/customerInvoiceOrigins.ts",
+      "sha256": "f35dfe3b3d6d22838079cfdc8f423d6285f910b7fb3045f0ff8999baa221dcaa"
+    },
+    {
+      "path": "src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx",
+      "sha256": "3e8808cc850abf9201b75f727c075e775c106ac938545c3e1fabb89b32fc2994"
+    },
+    {
+      "path": "src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx",
+      "sha256": "e0b6a15dfdf023552ffe732be785e9c069079dcbcd4cd63ec2db7be43a727957"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx",
+      "sha256": "dd5413d25550cbe55fc373d9c40e1d5fcd1ae72ec8833025ddec19fecfca3c93"
+    }
+  ],
+  "evidence_sha256": [
+    {
+      "path": "before-tests.log",
+      "sha256": "d2cc648819fa76144c0d76b356070f6c67b5d93c06c593f40e580c405571e71d"
+    },
+    {
+      "path": "before-list-tests.log",
+      "sha256": "e6432c888a0f4378920d39814c8f035ed174618d4f7f95d152478f7fc37497c8"
+    },
+    {
+      "path": "after-tests.log",
+      "sha256": "af1a097e485aa91b88a4865e80c4c2f4ea4ed2797759772d6bba4aea3ae7aee0"
+    },
+    {
+      "path": "lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "diff-check.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "sha256_normalization": "UTF-8 without BOM; CRLF normalized to LF"
+}
