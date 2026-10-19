@@ -565,6 +565,12 @@ CREATE FUNCTION public.lock_invoice_quote_charge_link_change()
 RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public,pg_temp AS $$
 DECLARE v_id uuid; v_ids uuid[];
 BEGIN
+  -- A no-op identity update cannot detach a source. Match the existing
+  -- billing guard so it does not contend with an in-flight invoice save.
+  IF TG_OP='UPDATE' AND ROW(NEW.invoice_id,NEW.booking_id,NEW.organization_id)
+    IS NOT DISTINCT FROM ROW(OLD.invoice_id,OLD.booking_id,OLD.organization_id) THEN
+    RETURN NEW;
+  END IF;
   v_ids:=ARRAY[OLD.invoice_id];
   IF TG_OP='UPDATE' THEN v_ids:=array_append(v_ids,NEW.invoice_id); END IF;
   FOR v_id IN SELECT DISTINCT unnest(v_ids) ORDER BY 1 LOOP

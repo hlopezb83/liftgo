@@ -554,9 +554,15 @@ test("R2 invoice cancellation: contended pivot UPDATE returns only 55P03 without
         }).then((result) => result);
         try {
           await gate.waitForBlocked("save_invoice_with_bookings");
-          const unchanged = await s.owner.from("invoice_bookings").update({ booking_id: s.bookingId })
-            .eq("invoice_id", s.invoiceId).eq("booking_id", s.bookingId).select("booking_id");
+          // A repeated identity write is harmless even while the parent invoice
+          // is locked; source-link guards must only lock actual link mutations.
+          const unchanged = await s.owner.from("invoice_bookings").update({
+            invoice_id: s.invoiceId, booking_id: s.bookingId, organization_id: s.side.organizationId,
+          }).eq("invoice_id", s.invoiceId).eq("booking_id", s.bookingId)
+            .select("invoice_id, booking_id, organization_id");
           expect(unchanged.error).toBeNull();
+          expect(unchanged.data).toEqual([{ invoice_id: s.invoiceId,
+            booking_id: s.bookingId, organization_id: s.side.organizationId }]);
           const rejected = await s.owner.from("invoice_bookings").update({ booking_id: otherBookingId })
             .eq("invoice_id", s.invoiceId).eq("booking_id", s.bookingId).select("*");
           expect(rejected.error?.code).toBe("55P03");
