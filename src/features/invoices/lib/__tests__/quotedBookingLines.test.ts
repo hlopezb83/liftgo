@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { generateLineItemsFromModel, computeTotals } from "@/lib/domain/invoiceHelpers";
 import { applyDiscount, money } from "@/lib/domain/invoiceTotals";
 import { recurringQuoteIssue } from "../../../../../supabase/functions/generate-recurring-invoices/quoteDiscountGuard";
+import { originalPeriodBooking } from "../originalBookingPeriod";
 import { buildQuotedBookingLines, quotedBillingPeriodError, type BookingQuoteSource, type QuotedBooking } from "../quotedBookingLines";
 
 const meta = { modelId: "model", quantity: 2, dailyRate: 750.50, weeklyRate: 4250.25, monthlyRate: 14500.75 };
@@ -21,6 +22,13 @@ const build = (selected = bookings, source = quote, all = bookings) =>
   buildQuotedBookingLines(selected, all, units, [source], fallback);
 
 describe("descuentos de cotización al facturar reservas", () => {
+  it("restores the discounted original term after an extension without repricing the expanded rental", () => {
+    const expanded = bookings.map((booking) => ({ ...booking, end_date: "2026-10-06" }));
+    const history = bookings.map((booking) => ({ booking_id: booking.id, original_end_date: "2026-10-03", new_end_date: "2026-10-06" }));
+    const original = expanded.map((booking) => originalPeriodBooking(booking, history)!);
+    expect(build(original, quote, original)).toEqual(build());
+    expect(quotedBillingPeriodError(original, [quote], "2026-09-26", "2026-10-03")).toBeNull();
+  });
   it("al guardar rechaza un periodo parcial introducido después de precargar partidas", () => {
     expect(quotedBillingPeriodError(bookings, [quote], "2026-09-26", "2026-09-27")).toMatch(/periodo completo/);
     expect(quotedBillingPeriodError(bookings, [quote], "2026-09-26", "2026-10-03")).toBeNull();
