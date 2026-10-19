@@ -50,6 +50,7 @@ export type AbSide = {
   documentId: string;
   storagePath: string;
   internal: { email: string; password: string; userId: string };
+  dispatcher: { email: string; password: string; userId: string };
   portal: { email: string; password: string; userId: string };
 };
 
@@ -107,6 +108,7 @@ async function seedSide(
     invoiceTotal: number;
     documentId: string;
     internalEmail: string;
+    dispatcherEmail: string;
     portalEmail: string;
   },
   active: boolean,
@@ -149,6 +151,7 @@ async function seedSide(
 
 
   const internal = await createUser(admin, ids.internalEmail, org.id);
+  const dispatcher = await createUser(admin, ids.dispatcherEmail, org.id);
   const portal = await createUser(admin, ids.portalEmail, org.id);
 
   // El trigger `handle_new_user` ya crea la fila de `user_roles` al dar de
@@ -162,6 +165,12 @@ async function seedSide(
       .upsert({ user_id: internal.userId, role: "admin" }, { onConflict: "user_id" })).error,
   );
   must(
+    "user_roles (interno dispatcher)",
+    (await admin
+      .from("user_roles")
+      .upsert({ user_id: dispatcher.userId, role: "dispatcher" }, { onConflict: "user_id" })).error,
+  );
+  must(
     "user_roles (portal customer)",
     (await admin
       .from("user_roles")
@@ -172,11 +181,11 @@ async function seedSide(
   const { data: rolesData, error: rolesError } = await admin
     .from("user_roles")
     .select("user_id, role")
-    .in("user_id", [internal.userId, portal.userId]);
+    .in("user_id", [internal.userId, dispatcher.userId, portal.userId]);
   must("verificación de roles", rolesError);
   const roleOf = (userId: string) =>
     (rolesData ?? []).find((row) => row.user_id === userId)?.role;
-  if (roleOf(internal.userId) !== "admin" || roleOf(portal.userId) !== "customer") {
+  if (roleOf(internal.userId) !== "admin" || roleOf(dispatcher.userId) !== "dispatcher" || roleOf(portal.userId) !== "customer") {
     throw new Error(
       `[ab-seed] roles inesperados para ${org.slug}: interno=${roleOf(internal.userId) ?? "sin rol"}, portal=${roleOf(portal.userId) ?? "sin rol"}.`,
     );
@@ -186,6 +195,7 @@ async function seedSide(
     "organization_memberships",
     (await admin.from("organization_memberships").insert([
       { organization_id: org.id, auth_user_id: internal.userId, member_type: "internal" },
+      { organization_id: org.id, auth_user_id: dispatcher.userId, member_type: "internal" },
       { organization_id: org.id, auth_user_id: portal.userId, member_type: "portal" },
     ])).error,
   );
@@ -281,6 +291,7 @@ async function seedSide(
     documentId: ids.documentId,
     storagePath,
     internal,
+    dispatcher,
     portal,
   };
 }
@@ -379,6 +390,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
       invoiceTotal: AB_INVOICE_TOTAL_A,
       documentId: AB_DOCUMENT_A,
       internalEmail: AB_EMAILS.internalA,
+      dispatcherEmail: AB_EMAILS.dispatcherA,
       portalEmail: AB_EMAILS.portalA,
     },
     true,
@@ -406,6 +418,7 @@ export async function seedAbEnvironment(): Promise<AbContext> {
       invoiceTotal: AB_INVOICE_TOTAL_B,
       documentId: AB_DOCUMENT_B,
       internalEmail: AB_EMAILS.internalB,
+      dispatcherEmail: AB_EMAILS.dispatcherB,
       portalEmail: AB_EMAILS.portalB,
     },
     false,

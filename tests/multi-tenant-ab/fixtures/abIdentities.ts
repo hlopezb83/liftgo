@@ -44,6 +44,8 @@ export const AB_LEGACY_OBJECT = "ab-gate-legacy/sin-prefijo.txt";
 export const AB_EMAILS = {
   internalA: "ab-gate-interno-a@example.invalid",
   internalB: "ab-gate-interno-b@example.invalid",
+  dispatcherA: "ab-gate-dispatcher-a@example.invalid",
+  dispatcherB: "ab-gate-dispatcher-b@example.invalid",
   portalA: "ab-gate-portal-a@example.invalid",
   portalB: "ab-gate-portal-b@example.invalid",
   platformOperator: "ab-gate-operador@example.invalid",
