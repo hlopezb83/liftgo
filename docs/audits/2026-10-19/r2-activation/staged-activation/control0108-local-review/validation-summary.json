@@ -1,0 +1,373 @@
+{
+  "schemaVersion": 1,
+  "status": "LOCAL_REVIEW_CANDIDATE_ONLY",
+  "productionExecution": false,
+  "applicationJournalModified": false,
+  "actualMigrationWrapperVerified": false,
+  "sourceMigrations": [
+    {
+      "filename": "0105_rep_claim_reconciliation_only.sql",
+      "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+      "created_at": 1792391158311,
+      "syntheticAppliedId": 108
+    },
+    {
+      "filename": "0106_booking_invoice_cancellation_guards.sql",
+      "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "created_at": 1792392861354,
+      "syntheticAppliedId": 109
+    },
+    {
+      "filename": "0107_quote_charge_tracking.sql",
+      "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+      "created_at": 1792392861355,
+      "syntheticAppliedId": 110
+    }
+  ],
+  "acceptedHistoricalRows": 106,
+  "acceptedHistoryFingerprint": "9b7baf5f1bf7d180c4b5cec686152b36600fb62a2a58d5fa2a3fe2bd9ecaa125",
+  "exactCurrentJournalPrefix": false,
+  "sourceSha256": {
+    "original-proposal.sql": "9d0de26617f82b7bca29fced476d2797916c01c24382d0fa3a2667509c27f425",
+    "control0108.template.sql": "39ef7e3a16cf4143886df3d2fe35b35fd5eb0d2e3591751e59da5abf981060a8",
+    "control0108.local-fixture.sql": "934533099299d404c99e001068ce3706705e45b08a82190fa8c8d4e2ca110696",
+    "function-contracts.json": "62904eb391a173066525cedf13a16e988bed7f433992dc86cc110a9c6d199fa5",
+    "build_control.py": "5ccd09ae0108943c2daf75ef8e2963f9384fee2eff70c750b54819d226039b92",
+    "test_control.py": "1ea9084fc0a76aa42e8fa15ac3c8f8d9049f2d3974e305150c817eaae8ab3f9c",
+    "test_builder.py": "b16d7af6eecb50709b95d2b429e019275da35c40ada677aea551f6d213659a94"
+  },
+  "localSqlTests": {
+    "passed": 70,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "positive_exact_migrated_fixture",
+        "passed": true
+      },
+      {
+        "name": "positive_nonconsecutive_stage_ids",
+        "passed": true
+      },
+      {
+        "name": "positive_control_and_own_ledger_row_one_transaction",
+        "passed": true
+      },
+      {
+        "name": "original_rejects_valid_non_postgres_owner",
+        "passed": true
+      },
+      {
+        "name": "historical_only_106_rows",
+        "passed": true
+      },
+      {
+        "name": "historical_missing_row",
+        "passed": true
+      },
+      {
+        "name": "unexpected_extra_row",
+        "passed": true
+      },
+      {
+        "name": "historical_hash_changed",
+        "passed": true
+      },
+      {
+        "name": "historical_timestamp_changed",
+        "passed": true
+      },
+      {
+        "name": "historical_row_replaced_same_count",
+        "passed": true
+      },
+      {
+        "name": "duplicate_ledger_id",
+        "passed": true
+      },
+      {
+        "name": "duplicate_ledger_timestamp",
+        "passed": true
+      },
+      {
+        "name": "null_ledger_timestamp",
+        "passed": true
+      },
+      {
+        "name": "stage_missing_same_count",
+        "passed": true
+      },
+      {
+        "name": "stage_hash_changed",
+        "passed": true
+      },
+      {
+        "name": "stage_timestamp_generated_instead_of_reviewed",
+        "passed": true
+      },
+      {
+        "name": "stage_hash_duplicated",
+        "passed": true
+      },
+      {
+        "name": "stage_order_0106_before_0105",
+        "passed": true
+      },
+      {
+        "name": "stage_order_0107_before_0106",
+        "passed": true
+      },
+      {
+        "name": "own_control_already_recorded",
+        "passed": true
+      },
+      {
+        "name": "function_missing",
+        "passed": true
+      },
+      {
+        "name": "function_body_changed",
+        "passed": true
+      },
+      {
+        "name": "function_strict_changed",
+        "passed": true
+      },
+      {
+        "name": "function_default_changed",
+        "passed": true
+      },
+      {
+        "name": "function_return_type_changed",
+        "passed": true
+      },
+      {
+        "name": "function_setof_changed",
+        "passed": true
+      },
+      {
+        "name": "function_out_name_changed",
+        "passed": true
+      },
+      {
+        "name": "function_security_definer_changed",
+        "passed": true
+      },
+      {
+        "name": "function_search_path_changed",
+        "passed": true
+      },
+      {
+        "name": "function_owner_changed",
+        "passed": true
+      },
+      {
+        "name": "function_parallel_changed",
+        "passed": true
+      },
+      {
+        "name": "function_leakproof_changed",
+        "passed": true
+      },
+      {
+        "name": "inherited_acl_anon_grant",
+        "passed": true
+      },
+      {
+        "name": "inherited_acl_auth_revoke",
+        "passed": true
+      },
+      {
+        "name": "inherited_acl_extra_role",
+        "passed": true
+      },
+      {
+        "name": "inherited_acl_grant_option",
+        "passed": true
+      },
+      {
+        "name": "inherited_effective_role_membership",
+        "passed": true
+      },
+      {
+        "name": "private_function_anon_grant",
+        "passed": true
+      },
+      {
+        "name": "availability_auth_revoke",
+        "passed": true
+      },
+      {
+        "name": "private_function_extra_role_grant",
+        "passed": true
+      },
+      {
+        "name": "availability_extra_role_grant",
+        "passed": true
+      },
+      {
+        "name": "trigger_disabled",
+        "passed": true
+      },
+      {
+        "name": "trigger_missing",
+        "passed": true
+      },
+      {
+        "name": "trigger_wrong_update_columns",
+        "passed": true
+      },
+      {
+        "name": "column_default_changed",
+        "passed": true
+      },
+      {
+        "name": "column_nullability_changed",
+        "passed": true
+      },
+      {
+        "name": "check_constraint_weakened",
+        "passed": true
+      },
+      {
+        "name": "gin_wrong_opclass",
+        "passed": true
+      },
+      {
+        "name": "quote_not_array",
+        "passed": true
+      },
+      {
+        "name": "quote_not_object",
+        "passed": true
+      },
+      {
+        "name": "quote_invalid_uuid",
+        "passed": true
+      },
+      {
+        "name": "quote_missing_kind",
+        "passed": true
+      },
+      {
+        "name": "quote_duplicate_casefold_uuid",
+        "passed": true
+      },
+      {
+        "name": "actor_rls_filtered",
+        "passed": true
+      },
+      {
+        "name": "temp_catalog_cannot_mask_real_catalog",
+        "passed": true
+      },
+      {
+        "name": "temp_role_cannot_bypass_actor_gate",
+        "passed": true
+      },
+      {
+        "name": "force_rls_superuser_sees_all_rows",
+        "passed": true
+      },
+      {
+        "name": "force_rls_restricted_actor_rejected",
+        "passed": true
+      },
+      {
+        "name": "second_org_bad_quote_detected",
+        "passed": true
+      },
+      {
+        "name": "quote_uuid_not_canonical",
+        "passed": true
+      },
+      {
+        "name": "quote_logistics_missing_charge_kind",
+        "passed": true
+      },
+      {
+        "name": "quote_insurance_missing_charge_kind",
+        "passed": true
+      },
+      {
+        "name": "quote_source_preserves_existing_kind",
+        "passed": true
+      },
+      {
+        "name": "security_baseline_missing_functions",
+        "passed": true
+      },
+      {
+        "name": "security_baseline_duplicate_signature",
+        "passed": true
+      },
+      {
+        "name": "security_baseline_missing_owner",
+        "passed": true
+      },
+      {
+        "name": "security_baseline_missing_acl",
+        "passed": true
+      },
+      {
+        "name": "security_baseline_effective_wrong_type",
+        "passed": true
+      },
+      {
+        "name": "replica_trigger_mode",
+        "passed": true
+      },
+      {
+        "name": "all_case_transactions_rolled_back",
+        "passed": true
+      }
+    ]
+  },
+  "offlineBuilderTests": {
+    "passed": 6,
+    "failed": 0,
+    "cases": [
+      {
+        "name": "positive_optimized",
+        "passed": true
+      },
+      {
+        "name": "original_proposal_changed",
+        "passed": true
+      },
+      {
+        "name": "pinned_migration_changed",
+        "passed": true
+      },
+      {
+        "name": "missing_security_baseline",
+        "passed": true
+      },
+      {
+        "name": "duplicate_security_signature",
+        "passed": true
+      },
+      {
+        "name": "wrong_security_scope",
+        "passed": true
+      }
+    ]
+  },
+  "transactionHarnessTests": {
+    "passed": 3,
+    "failed": 0,
+    "testedControlSha256": "934533099299d404c99e001068ce3706705e45b08a82190fa8c8d4e2ca110696",
+    "fullSuccessLedgerCount": 110,
+    "fullFailureLedgerCount": 106,
+    "stagedFailureLedgerCount": 108,
+    "testDatabasesRemoved": true,
+    "serverStopped": true
+  },
+  "securityBaseline": "SYNTHETIC_LOCAL_FIXTURE_ONLY; target prior owners, inherited ACLs and new-function default ACLs need separate review",
+  "limitations": [
+    "Focused PostgreSQL17 synthetic fixture, not a full historical replay or Supabase platform replica",
+    "Full ACL admission rule for new functions is deliberately stricter than the SQL REVOKE recipient list",
+    "Original reviewed migration timestamps required; generated timestamp mapping is rejected",
+    "Does not prove runner selection, transaction scope, ledger registration, timeout termination, deployed source identity, admission control or old-writer drain"
+  ],
+  "stageIdContract": "Unique IDs greater than historical maximum107, strictly increasing in0105,0106,0107 order; gaps permitted."
+}
