@@ -199,6 +199,20 @@ jobs:
       - name: Prepare reports directory
         run: mkdir -p reports
 
+      # Focused fixture in a separately created disposable database. This tests
+      # the exact sync migration and two real concurrent sessions; the full
+      # product schema/RLS suites below remain a separate required check.
+      - name: Non-recurring invoice overlap regression (isolated PostgreSQL)
+        env:
+          RUN_LOCAL_OVERLAP_TESTS: "1"
+          PGHOST: 127.0.0.1
+          PGPORT: "54322"
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: |
+          set -euo pipefail
+          python3 scripts/tests/test_nonrecurring_invoice_overlap.py 2>&1 | tee reports/nonrecurring-invoice-overlap.log
+
       - name: Protección del último raíz con dos sesiones concurrentes
         run: python3 scripts/platform_root_concurrency.py
 
