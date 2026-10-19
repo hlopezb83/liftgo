@@ -3,14 +3,17 @@
   "commonBase": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
   "main282": "4de7d314c140ccccb326730430bd8e6eb96219c8",
   "firstMerge": "e2b44a9f2",
-  "finalIncomingMain285": "3d679f30da4ffdf861a2ac185c435128fe3d1809",
+  "main285": "3d679f30da4ffdf861a2ac185c435128fe3d1809",
+  "secondMerge": "d90e9be47",
+  "finalIncomingMain286": "0a532d68f0458b96b6e5a8e9f32900322056775f",
   "mergeConflicts": [],
   "manualProductEdits": false,
   "preservation": {
     "allParentBlobsPreserved": true,
-    "parentFileAssertions": 71,
-    "uniquePaths": 59,
-    "repMigration0105MatchesMain": true
+    "parentFileAssertions": 132,
+    "uniquePaths": 92,
+    "repMigration0105MatchesFinalMain": true,
+    "customersAndReportsUnchangedFromMain286": true
   },
   "beforePayments": {
     "total": 127,
@@ -56,16 +59,25 @@
     "eslintWarnings": 0,
     "migrationJournalExit": 0,
     "journalCount": 106,
-    "viteBuildExit": 0,
+    "viteBuildFinalExit": 0,
     "diffCheckExit": 0
   },
-  "build": {
+  "buildCheckpoints": {
+    "main285Exit": 0,
+    "main286Exit": 0,
+    "finalEvidence": "build-final.json",
     "directVite": true,
     "versionGenerationRun": false,
     "sentryUploadEnabled": false,
     "metricsEnabled": false,
     "apiOrigin": "loopback",
-    "dependencyWarningsObserved": true
+    "warningKinds": [
+      "dependency-module-directives",
+      "fontkit-undefined-import",
+      "browser-node-externalization",
+      "chunk-size",
+      "tsconfig-paths-plugin"
+    ]
   },
   "privacy": {
     "rawLogsCommitted": false,

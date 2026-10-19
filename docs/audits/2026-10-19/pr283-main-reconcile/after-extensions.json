@@ -4,7 +4,7 @@
   "exitCode": 0,
   "signal": null,
   "node": "v24.19.0",
-  "elapsedMs": 59743,
+  "elapsedMs": 69576,
   "selection": [
     "src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx",
     "src/features/invoices/hooks/invoiceForm/__tests__",

@@ -4,7 +4,7 @@
   "exitCode": 0,
   "signal": null,
   "node": "v24.19.0",
-  "elapsedMs": 33073,
+  "elapsedMs": 41057,
   "selection": [
     "src/features/invoices/hooks/invoices/__tests__/usePaymentHistoryColumns.repRecovery.test.tsx",
     "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.recoveryCache.test.tsx",

@@ -1,0 +1,48 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-customers
+
+ Γ¥» src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx (6 tests | 2 failed) 75ms
+     Γ£ô cancelar una conversi├│n no vincula el siguiente cliente independiente al prospecto anterior 42ms
+     Γ£ô una conversi├│n guardada conserva la vinculaci├│n al prospecto correcto 9ms
+     Γ£ô el acceso r├ípido abre un alta limpia aunque la p├ígina ya estuviera montada 5ms
+     Γ£ô una URL de alta no abre el formulario para un rol sin permiso de escritura 2ms
+     ├ù preserva la URL exacta al usar Abrir fila 11ms
+     ├ù preserva la URL exacta al usar Abrir tarjeta 4ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx > CustomersPage - origen de la ficha > preserva la URL exacta al usar Abrir fila
+ FAIL  src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx > CustomersPage - origen de la ficha > preserva la URL exacta al usar Abrir tarjeta
+AssertionError: expected "vi.fn()" to be called with arguments: [ '/customers/customer-1', ΓÇª(1) ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+    "/customers/customer-1",
+-   {
+-     "state": {
+-       "customerListBackTo": "/customers?q=aceros&page=3&status=active#results",
+-     },
+-   },
+  ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx:117:28
+    115|     render(<CustomersPage />);
+    116|     fireEvent.click(screen.getByRole("button", { name: label }));
+    117|     expect(state.navigate).toHaveBeenCalledWith("/customers/customer-1ΓÇª
+       |                            ^
+    118|       state: { customerListBackTo: "/customers?q=aceros&page=3&status=ΓÇª
+    119|     });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+   Start at  00:14:16
+   Duration  6.87s (transform 239ms, setup 785ms, import 4.41s, tests 75ms, environment 1.05s)

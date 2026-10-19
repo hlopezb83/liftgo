@@ -12,6 +12,10 @@
     {
       "name": "main-PR285",
       "ref": "3d679f30da4ffdf861a2ac185c435128fe3d1809"
+    },
+    {
+      "name": "main-PR286",
+      "ref": "0a532d68f0458b96b6e5a8e9f32900322056775f"
     }
   ],
   "files": [
@@ -511,8 +515,435 @@
       "expectedBlob": "c410075dfdd5ffa9396e46b29c2ef29ea8fb1a53",
       "currentBlob": "c410075dfdd5ffa9396e46b29c2ef29ea8fb1a53",
       "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/INTEGRATION.md",
+      "expectedBlob": "c49b5097a2210e87f2c22aa5a0c911cbfc89290b",
+      "currentBlob": "c49b5097a2210e87f2c22aa5a0c911cbfc89290b",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/README.md",
+      "expectedBlob": "750b7aa22bf13cabc63155267ac3f3e31dc9800c",
+      "currentBlob": "750b7aa22bf13cabc63155267ac3f3e31dc9800c",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/after-tests.log",
+      "expectedBlob": "999f88271ebbfa5aaa3f4134cc069c5ed81df471",
+      "currentBlob": "999f88271ebbfa5aaa3f4134cc069c5ed81df471",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/before-list-tests.log",
+      "expectedBlob": "394db2a734c493b4f6542c37d6dc284a55dbe55e",
+      "currentBlob": "394db2a734c493b4f6542c37d6dc284a55dbe55e",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/before-tests.log",
+      "expectedBlob": "018cf91f9e82dd9e37b2ee77ab264c160c301998",
+      "currentBlob": "018cf91f9e82dd9e37b2ee77ab264c160c301998",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/diff-check.log",
+      "expectedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "currentBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/lint.log",
+      "expectedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "currentBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/manifest.json",
+      "expectedBlob": "50ce425dde92b551aa6259e3182b87b2a4b4560c",
+      "currentBlob": "50ce425dde92b551aa6259e3182b87b2a4b4560c",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-customers/typecheck.log",
+      "expectedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "currentBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-depreciation/README.md",
+      "expectedBlob": "9c54a941293d454d1fc080ed3d545b4d181b28f3",
+      "currentBlob": "9c54a941293d454d1fc080ed3d545b4d181b28f3",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-depreciation/fix-review-csv/README.md",
+      "expectedBlob": "1d8a35b77fbe35770584be23289f9ac293517898",
+      "currentBlob": "1d8a35b77fbe35770584be23289f9ac293517898",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-depreciation/fix-review-csv/results.json",
+      "expectedBlob": "70308536dcbc8d11120576fa3c0e9873aea219da",
+      "currentBlob": "70308536dcbc8d11120576fa3c0e9873aea219da",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-depreciation/fix-review-intl-boundary/README.md",
+      "expectedBlob": "27fd406b2ec77644baa75552b02c6b9eafb6c4aa",
+      "currentBlob": "27fd406b2ec77644baa75552b02c6b9eafb6c4aa",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-depreciation/fix-review-intl-boundary/results.json",
+      "expectedBlob": "7d33e4c2d23607246f0d1a75428c2fc1f45c0d17",
+      "currentBlob": "7d33e4c2d23607246f0d1a75428c2fc1f45c0d17",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-depreciation/results.json",
+      "expectedBlob": "10ce9ddd20d8c518997c8852498f5726d23de2c8",
+      "currentBlob": "10ce9ddd20d8c518997c8852498f5726d23de2c8",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/README.md",
+      "expectedBlob": "54769be6f3f7652de1f8f6d0980b051474898cd8",
+      "currentBlob": "54769be6f3f7652de1f8f6d0980b051474898cd8",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/after.json",
+      "expectedBlob": "3be0bd02e3d5b906de808794622529be8543b0d8",
+      "currentBlob": "3be0bd02e3d5b906de808794622529be8543b0d8",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/after.txt",
+      "expectedBlob": "1986b589e584dbf99cba0fd7d91dd631719c80c1",
+      "currentBlob": "1986b589e584dbf99cba0fd7d91dd631719c80c1",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/before.json",
+      "expectedBlob": "70b4b61c2a67f598070b1b4a89cd41504e8a9126",
+      "currentBlob": "70b4b61c2a67f598070b1b4a89cd41504e8a9126",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/before.txt",
+      "expectedBlob": "93733c63abcc4155a5b44c7106075b8adb9746c2",
+      "currentBlob": "93733c63abcc4155a5b44c7106075b8adb9746c2",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/comparison.json",
+      "expectedBlob": "97a589f3e47d14901d8e680ec24d4c074fda48fe",
+      "currentBlob": "97a589f3e47d14901d8e680ec24d4c074fda48fe",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/lint.txt",
+      "expectedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "currentBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-extension/types.txt",
+      "expectedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "currentBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-rep-recovery/BASELINE.md",
+      "expectedBlob": "00dd7d525d2c4c6c131550b701a910ed4943636f",
+      "currentBlob": "00dd7d525d2c4c6c131550b701a910ed4943636f",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-rep-recovery/INTEGRATION.md",
+      "expectedBlob": "1ce8a8d6b5e23ced9f0edb5f21a750f0ee4da198",
+      "currentBlob": "1ce8a8d6b5e23ced9f0edb5f21a750f0ee4da198",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-rep-recovery/README.md",
+      "expectedBlob": "7eb1048c9f416ab1d23575fbed3b6f37125c9b3a",
+      "currentBlob": "7eb1048c9f416ab1d23575fbed3b6f37125c9b3a",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "docs/audits/2026-10-19/r2-rep-recovery/results.json",
+      "expectedBlob": "f56f7de52d8a2da78ca53e4208b7d0cffc97ef4d",
+      "currentBlob": "f56f7de52d8a2da78ca53e4208b7d0cffc97ef4d",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+      "expectedBlob": "bd685553c17de53ffed5b5a226b538f2ce80aa11",
+      "currentBlob": "bd685553c17de53ffed5b5a226b538f2ce80aa11",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "drizzle/migrations/meta/0105_snapshot.json",
+      "expectedBlob": "2ce886085b195cde455f8b34908be33269e9c56d",
+      "currentBlob": "2ce886085b195cde455f8b34908be33269e9c56d",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "drizzle/migrations/meta/_journal.json",
+      "expectedBlob": "cfb62175827f0aa975a54b329804fd717ec2c683",
+      "currentBlob": "cfb62175827f0aa975a54b329804fd717ec2c683",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/components/layout/DetailPageHeader.tsx",
+      "expectedBlob": "576f72ff7bed4f06aee82b4938bda55d8e564356",
+      "currentBlob": "576f72ff7bed4f06aee82b4938bda55d8e564356",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/bookings/hooks/bookingActions/useBookingExtensions.ts",
+      "expectedBlob": "b5d065f00b524766971fe13121cf9200da7ae0b7",
+      "currentBlob": "b5d065f00b524766971fe13121cf9200da7ae0b7",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/customers/components/customer-detail/CustomerInvoicesList.tsx",
+      "expectedBlob": "8203aef489f72892aafa2d8ae0cbc520f566a3de",
+      "currentBlob": "8203aef489f72892aafa2d8ae0cbc520f566a3de",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/customers/pages/CustomerDetailPage.tsx",
+      "expectedBlob": "6839ab3a41f89c75f1b23dbdfee7e59a237e00b7",
+      "currentBlob": "6839ab3a41f89c75f1b23dbdfee7e59a237e00b7",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/customers/pages/CustomersPage.tsx",
+      "expectedBlob": "45247841eeb4ee236e4d4ccacdeab285c9c4c7e1",
+      "currentBlob": "45247841eeb4ee236e4d4ccacdeab285c9c4c7e1",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx",
+      "expectedBlob": "ee9f4356fb13877e05edf4243cdf6b0bb7c53480",
+      "currentBlob": "ee9f4356fb13877e05edf4243cdf6b0bb7c53480",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx",
+      "expectedBlob": "958aaa528a1e5ea450ddee9bdff59f03ac98a9cb",
+      "currentBlob": "958aaa528a1e5ea450ddee9bdff59f03ac98a9cb",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/components/invoice-detail/InvoiceDetailBody.tsx",
+      "expectedBlob": "55901f0329fe362b0d8830f754c27ca0524839ce",
+      "currentBlob": "55901f0329fe362b0d8830f754c27ca0524839ce",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/components/invoice-detail/InvoicePaymentSummary.tsx",
+      "expectedBlob": "53e415ca04d579e4e95d6f9d5262a65cad1f4530",
+      "currentBlob": "53e415ca04d579e4e95d6f9d5262a65cad1f4530",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx",
+      "expectedBlob": "eba99dd64749a7fdf62aa2d22bd6e6830a64d8f4",
+      "currentBlob": "eba99dd64749a7fdf62aa2d22bd6e6830a64d8f4",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx",
+      "expectedBlob": "8b145b7b46ca1df62618a03544f4311d91679f1a",
+      "currentBlob": "8b145b7b46ca1df62618a03544f4311d91679f1a",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers.ts",
+      "expectedBlob": "3f748dfd070c55bd2da1713e43070146b3144870",
+      "currentBlob": "3f748dfd070c55bd2da1713e43070146b3144870",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/invoices/__tests__/usePaymentHistoryColumns.repRecovery.test.tsx",
+      "expectedBlob": "5de5e77cd87c466d0af307fa0ee25cfbe847b7b9",
+      "currentBlob": "5de5e77cd87c466d0af307fa0ee25cfbe847b7b9",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.recoveryCache.test.tsx",
+      "expectedBlob": "0a907e90256ad1f9d5c3a2995ab97bc005dc8f58",
+      "currentBlob": "0a907e90256ad1f9d5c3a2995ab97bc005dc8f58",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/invoices/cfdi/usePaymentComplement.ts",
+      "expectedBlob": "a28b740c90310669e9ec239a6a940c350ea0ee32",
+      "currentBlob": "a28b740c90310669e9ec239a6a940c350ea0ee32",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx",
+      "expectedBlob": "7893299f360a5f38908c11b645afa9566ba76fe6",
+      "currentBlob": "7893299f360a5f38908c11b645afa9566ba76fe6",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/hooks/useExtensionPrefill.ts",
+      "expectedBlob": "969ead4bb9ba3d0989c67223151ae228c1d28a1e",
+      "currentBlob": "969ead4bb9ba3d0989c67223151ae228c1d28a1e",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/invoices/lib/canStampPaymentRep.ts",
+      "expectedBlob": "d035378a38c4bf55e8c9d6f07cb1972992042037",
+      "currentBlob": "d035378a38c4bf55e8c9d6f07cb1972992042037",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/components/reports/IncomeStatementReport.tsx",
+      "expectedBlob": "cf0eb60a740f1ec3ae536c1699bcd83a8fe4a6d2",
+      "currentBlob": "cf0eb60a740f1ec3ae536c1699bcd83a8fe4a6d2",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx",
+      "expectedBlob": "f3f9fa39f3cbea197bdb0aa37b0cf6ae2e9e35c3",
+      "currentBlob": "f3f9fa39f3cbea197bdb0aa37b0cf6ae2e9e35c3",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/__tests__/depreciationCsvHalfCent.audit.test.ts",
+      "expectedBlob": "4971da5bf8ff7326b35b6030bc5de3fa1fc440de",
+      "currentBlob": "4971da5bf8ff7326b35b6030bc5de3fa1fc440de",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/__tests__/depreciationIntlBoundary.audit.test.tsx",
+      "expectedBlob": "2857679d6e728e4e3302d6539dbda30fede30c09",
+      "currentBlob": "2857679d6e728e4e3302d6539dbda30fede30c09",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/__tests__/depreciationPresentation.audit.test.ts",
+      "expectedBlob": "e5eb9730b2bd2253c52dd84b639d77f1c7440429",
+      "currentBlob": "e5eb9730b2bd2253c52dd84b639d77f1c7440429",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/depreciationPresentation.ts",
+      "expectedBlob": "f0d5e1f7ec8013439441e0bc405670044d522060",
+      "currentBlob": "f0d5e1f7ec8013439441e0bc405670044d522060",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/statementAmountPresentation.ts",
+      "expectedBlob": "a980692f2b536504682fb48c40f905eaec602e16",
+      "currentBlob": "a980692f2b536504682fb48c40f905eaec602e16",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/statementRowFactories.ts",
+      "expectedBlob": "7cc218f19875799649142f02996a86a9cad8699b",
+      "currentBlob": "7cc218f19875799649142f02996a86a9cad8699b",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/features/reports/hooks/incomeStatement/useStatementRows.ts",
+      "expectedBlob": "0db906c50c5c00df08598080f3023342ff61fcbd",
+      "currentBlob": "0db906c50c5c00df08598080f3023342ff61fcbd",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "src/lib/navigation/customerInvoiceOrigins.ts",
+      "expectedBlob": "5bb714257b39b29a5e628d98eb811b21ff6ac84d",
+      "currentBlob": "5bb714257b39b29a5e628d98eb811b21ff6ac84d",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "supabase/functions/stamp-payment-complement/handler.ts",
+      "expectedBlob": "9ad19391a89e592c0579d59fa542b67130e34a11",
+      "currentBlob": "9ad19391a89e592c0579d59fa542b67130e34a11",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "supabase/functions/stamp-payment-complement/handler_test.ts",
+      "expectedBlob": "1b487eb401020534addac1f72ee5864fe68924bc",
+      "currentBlob": "1b487eb401020534addac1f72ee5864fe68924bc",
+      "identical": true
+    },
+    {
+      "parent": "main-PR286",
+      "path": "tests/multi-tenant-ab/rep-claim-recovery-api.spec.ts",
+      "expectedBlob": "c410075dfdd5ffa9396e46b29c2ef29ea8fb1a53",
+      "currentBlob": "c410075dfdd5ffa9396e46b29c2ef29ea8fb1a53",
+      "identical": true
     }
   ],
   "allPreserved": true,
-  "uniquePaths": 59
+  "uniquePaths": 92
 }

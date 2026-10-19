@@ -1,0 +1,383 @@
+{
+  "stage": "after-extensions",
+  "suite": "extensions",
+  "exitCode": 0,
+  "signal": null,
+  "node": "v24.19.0",
+  "elapsedMs": 59743,
+  "selection": [
+    "src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx",
+    "src/features/invoices/hooks/invoiceForm/__tests__",
+    "src/features/bookings/hooks/__tests__/useBookingExtensions.test.ts",
+    "src/features/bookings/lib/__tests__/extensionBilling.test.ts"
+  ],
+  "summary": {
+    "total": 74,
+    "passed": 74,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 8
+  },
+  "results": [
+    {
+      "file": "src/features/bookings/hooks/__tests__/useBookingExtensions.test.ts",
+      "status": "passed",
+      "lfSha256": "17b74e88821bc79bfaddbd1e87d2dd332c2dfefa0d8a66bb7315402544e38968",
+      "cases": [
+        {
+          "title": "useCreateBookingExtension (RPC extend_booking) happy path llama al RPC con los parámetros correctos",
+          "status": "passed"
+        },
+        {
+          "title": "useCreateBookingExtension (RPC extend_booking) omite p_reason cuando no se provee",
+          "status": "passed"
+        },
+        {
+          "title": "useCreateBookingExtension (RPC extend_booking) propaga error del RPC (buffer de mantenimiento o traslape)",
+          "status": "passed"
+        },
+        {
+          "title": "useCreateBookingExtension (RPC extend_booking) propaga error si el RPC rechaza por rol (Forbidden)",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/bookings/lib/__tests__/extensionBilling.test.ts",
+      "status": "passed",
+      "lfSha256": "f5dc96a1824d9e10596b8c26088616f7bc355e697af6c3482492e47173a2618a",
+      "cases": [
+        {
+          "title": "extensionBillableRange cobra desde el día siguiente al fin original, fin inclusivo",
+          "status": "passed"
+        },
+        {
+          "title": "extensionBillableRange devuelve null si la extensión no agrega días",
+          "status": "passed"
+        },
+        {
+          "title": "extensionBillableRange un solo día extra cuenta como 1",
+          "status": "passed"
+        },
+        {
+          "title": "resolveExtensionRates la tarifa pactada en la reserva pisa a la maestra",
+          "status": "passed"
+        },
+        {
+          "title": "resolveExtensionRates F1: las tarifas pactadas diaria y semanal también pisan a la maestra",
+          "status": "passed"
+        },
+        {
+          "title": "resolveExtensionRates ignora la pactada cuando es 0 o nula",
+          "status": "passed"
+        },
+        {
+          "title": "resolveExtensionRates no cae al catálogo en diaria/semanal si hay una mensual pactada (se prorratea)",
+          "status": "passed"
+        },
+        {
+          "title": "buildExtensionLineItems genera partidas sólo del tramo extendido",
+          "status": "passed"
+        },
+        {
+          "title": "buildExtensionLineItems devuelve [] si no hay días cobrables",
+          "status": "passed"
+        },
+        {
+          "title": "buildExtensionLineItems devuelve [] si el equipo no tiene tarifas",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/__tests__/useExtensionPrefill.currency.test.tsx",
+      "status": "passed",
+      "lfSha256": "4ccbec56205734f8c502376529745513f7f39437a6e024892b2be01bca358d77",
+      "cases": [
+        {
+          "title": "extension invoice currency through the actual query and prefill inherits USD/17.5 while preserving the agreed numeric rate and extended period",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill also applies currency when the transport already supplies the complete booking",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency MXN to MXN/1",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency null to MXN/1",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill normalizes domestic or missing currency  to MXN/1",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill uses the same currency normalization as the primary-booking prefill",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill clears unusable foreign FX null and blocks submission",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill clears unusable foreign FX 0 and blocks submission",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill clears unusable foreign FX -17.5 and blocks submission",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill clears unusable foreign FX NaN and blocks submission",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill preserves the existing validation against placeholder foreign FX 1",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill waits for customers, then inherits currency once without overwriting later edits",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill does not apply extension data while editing an existing invoice",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill keeps the already-invoiced guard ahead of all prefill fields",
+          "status": "passed"
+        },
+        {
+          "title": "extension invoice currency through the actual query and prefill keeps the no-billable-days guard ahead of all prefill fields",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoiceForm/__tests__/invoiceFormBuilders.test.ts",
+      "status": "passed",
+      "lfSha256": "b1533e7804cfa899fd2ef9d36612015ee9bf7f19545dab2c0868f0fbd216d89b",
+      "cases": [
+        {
+          "title": "resolveFormaPago normaliza PPD a 99 aunque el formulario conserve la forma PUE predeterminada",
+          "status": "passed"
+        },
+        {
+          "title": "resolveFormaPago conserva la forma capturada para PUE",
+          "status": "passed"
+        },
+        {
+          "title": "resolveFormaPago fija 99 al elegir PPD y restaura 03 al volver a PUE",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer mapea rfc, razon_social, regimen_fiscal y cp desde un customer completo",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer incluye usoCfdi cuando el customer tiene uso_cfdi",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer NO sobreescribe usoCfdi cuando customer.uso_cfdi es null",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer NO sobreescribe usoCfdi cuando uso_cfdi es undefined",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer fallback a customer.name cuando razon_social es null",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer rfc null → string vacío",
+          "status": "passed"
+        },
+        {
+          "title": "cfdiFromCustomer cp null → string vacío",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — taxRate preserva tax_rate = 0 (cliente exento) sin forzar 16 (regresión del bug)",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — taxRate preserva tax_rate = 8",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — taxRate preserva tax_rate = 16",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — taxRate usa 16 como default cuando tax_rate es null",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — taxRate usa 16 como default cuando tax_rate es undefined",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — taxRate hereda customerId, customerName, currency (USD) y lineItems",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — tipo de cambio (A5-02) hereda el TC de la cotización USD",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — tipo de cambio (A5-02) ignora TC inválido y deja el default",
+          "status": "passed"
+        },
+        {
+          "title": "buildFromQuote — tipo de cambio (A5-02) MXN no toca el TC",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoiceForm/__tests__/primaryBookingCurrency.test.ts",
+      "status": "passed",
+      "lfSha256": "1c3ae40787b87e7bf1cecf2ee562b1de6272f2f686401e8faa429bdad59b1b88",
+      "cases": [
+        {
+          "title": "moneda de la reserva primaria reemplaza USD/TC previo por MXN/1 al seleccionar una reserva MXN",
+          "status": "passed"
+        },
+        {
+          "title": "moneda de la reserva primaria vacía el tipo de cambio foráneo inválido para que valide en lugar de conservar el anterior",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoiceForm/__tests__/resolveBillingPeriod.test.ts",
+      "status": "passed",
+      "lfSha256": "db5346b62765553cedef72e558dad08ea6ffd9aa07df69347f20cc5b810d8b49",
+      "cases": [
+        {
+          "title": "resolveBillingPeriod respeta el periodo capturado por el usuario",
+          "status": "passed"
+        },
+        {
+          "title": "resolveBillingPeriod deriva el mes de emisión cuando falta el periodo completo",
+          "status": "passed"
+        },
+        {
+          "title": "resolveBillingPeriod completa solo el extremo faltante",
+          "status": "passed"
+        },
+        {
+          "title": "resolveBillingPeriod nunca devuelve nulos",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormHandlers.test.ts",
+      "status": "passed",
+      "lfSha256": "d67744e1d61ee23526c6bf24df3654a958c85ed6aca6c45e65506900d25bd3ed",
+      "cases": [
+        {
+          "title": "buildLinesForBooking usa la tarifa pactada en la reserva cuando existe (no la del montacargas)",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking cae a la tarifa del montacargas cuando la reserva no capturó tarifa (null)",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking marca las partidas con clave_prod_serv, clave_unidad y objeto_imp",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking devuelve [] si no encuentra el montacargas",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking · primer ciclo de reservas largas reserva de 1 año que inicia a mitad de mes: días restantes al precio diario",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking · primer ciclo de reservas largas mes de 31 días: precio diario con decimales, total = qty × precio",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking · primer ciclo de reservas largas reserva de 1 año que inicia el día 1: mes completo, sin prorrateo",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking · primer ciclo de reservas largas renta corta dentro del mismo mes: cálculo sin cambios",
+          "status": "passed"
+        },
+        {
+          "title": "buildLinesForBooking · primer ciclo de reservas largas reserva no recurrente de un año conserva el rango completo",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) no recurrente: exactamente el rango de la reserva",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) recurrente que termina DENTRO de su mes inicial: usa la reserva, no el mes de emisión",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) recurrente multi-mes: primer ciclo (inicio → fin del mes inicial)",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) fin de mes: reserva recurrente que inicia el último día del mes",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) cambio de mes/año: diciembre corta al 31-dic aunque la emisión sea en enero",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) sin reserva: cae al mes de la fecha de emisión (fallback)",
+          "status": "passed"
+        },
+        {
+          "title": "prefillBillingPeriod (Bug 4: periodo acotado a la reserva) zonas horarias: la fecha de emisión usa componentes locales, no UTC",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoiceForm/__tests__/useInvoiceFormTotals.test.ts",
+      "status": "passed",
+      "lfSha256": "91cbe29071ae96fec2090671dd7f0ffd19b0b573c45059fa85c0680b77de8990",
+      "cases": [
+        {
+          "title": "useInvoiceFormTotals línea objeto_imp='01' (exenta) no genera IVA",
+          "status": "passed"
+        },
+        {
+          "title": "useInvoiceFormTotals tax_rate por línea gana sobre la tasa global",
+          "status": "passed"
+        },
+        {
+          "title": "useInvoiceFormTotals sin objeto_imp/tax_rate por línea usa la tasa global (comportamiento previo intacto)",
+          "status": "passed"
+        },
+        {
+          "title": "useInvoiceFormTotals recalcula cuando cambian las líneas del formulario",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "privacy": {
+    "rawLogsCommitted": false,
+    "rawFailureMessagesIncluded": false,
+    "backend": false,
+    "browser": false,
+    "network": "src/test/setup.ts offline barrier"
+  }
+}

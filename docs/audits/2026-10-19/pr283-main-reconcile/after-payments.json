@@ -4,7 +4,7 @@
   "exitCode": 0,
   "signal": null,
   "node": "v24.19.0",
-  "elapsedMs": 94894,
+  "elapsedMs": 107709,
   "selection": [
     "src/components/forms/__tests__/DatePickerField.test.tsx",
     "src/components/forms/__tests__/FormDialog.test.tsx",
@@ -304,25 +304,6 @@
         },
         {
           "title": "PostgreSQL numeric rounding parity never turns a non-finite edit into a valid zero payment",
-          "status": "passed"
-        }
-      ]
-    },
-    {
-      "file": "src/features/maintenance/components/maintenance/__tests__/MaintenanceFormDialog.dateCapture.test.tsx",
-      "status": "passed",
-      "lfSha256": "fa769ec8c21ebde76b3c7b431a5d85d26f69ab405ed5c4d63fcb74d96fe91b9a",
-      "cases": [
-        {
-          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva la captura imposible (fecha previa cambiada: false)",
-          "status": "passed"
-        },
-        {
-          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva la captura imposible (fecha previa cambiada: true)",
-          "status": "passed"
-        },
-        {
-          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva vacío el próximo servicio opcional después de borrar una fecha capturada",
           "status": "passed"
         }
       ]
@@ -680,6 +661,25 @@
         },
         {
           "title": "useRecordPaymentForm submit con issued_at antiguo sí llama createPayment",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/maintenance/components/maintenance/__tests__/MaintenanceFormDialog.dateCapture.test.tsx",
+      "status": "passed",
+      "lfSha256": "fa769ec8c21ebde76b3c7b431a5d85d26f69ab405ed5c4d63fcb74d96fe91b9a",
+      "cases": [
+        {
+          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva la captura imposible (fecha previa cambiada: false)",
+          "status": "passed"
+        },
+        {
+          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva la captura imposible (fecha previa cambiada: true)",
+          "status": "passed"
+        },
+        {
+          "title": "Mantenimiento: conservar fecha inválida al validar el formulario conserva vacío el próximo servicio opcional después de borrar una fecha capturada",
           "status": "passed"
         }
       ]

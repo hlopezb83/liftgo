@@ -3,10 +3,13 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import CustomersPage from "../CustomersPage";
 
-const state = vi.hoisted(() => ({ search: "", canWrite: true, create: vi.fn(), link: vi.fn() }));
+const state = vi.hoisted(() => ({ search: "", canWrite: true, create: vi.fn(), link: vi.fn(), navigate: vi.fn() }));
 vi.mock("@/components/dataTable/v2", () => ({ useLiftgoTable: () => ({}) }));
 vi.mock("@/components/layout/ListPageLayout", () => ({
-  ListPageLayout: ({ actions }: { actions: ReactNode }) => <>{actions}</>,
+  ListPageLayout: ({ actions, onRowClick, mobileCardRender }: {
+    actions: ReactNode; onRowClick: (customer: { id: string }) => void;
+    mobileCardRender: (customer: { id: string }) => ReactNode;
+  }) => <>{actions}<button onClick={() => onRowClick({ id: "customer-1" })}>Abrir fila</button>{mobileCardRender({ id: "customer-1" })}</>,
 }));
 vi.mock("@/contexts/pageActions", () => ({ usePageActions: vi.fn() }));
 vi.mock("@/features/crm", () => ({ useUpdateProspect: () => ({ mutate: state.link }) }));
@@ -14,9 +17,10 @@ vi.mock("@/features/users", () => ({ useHasModuleAccess: () => state.canWrite })
 vi.mock("@/hooks/filters/useTableFilters", () => ({
   useTableFilters: () => ({ values: { q: "" }, set: vi.fn(), reset: vi.fn(), hasActive: false, filtered: [] }),
 }));
-vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
+vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => state.navigate }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
 vi.mock("@/lib/router-compat", () => ({
+  useLocation: () => ({ pathname: "/customers", search: state.search ? `?${state.search}` : "", hash: "#results" }),
   useSearchParams: () => [new URLSearchParams(state.search), (params: URLSearchParams | Record<string, string>) => {
     state.search = new URLSearchParams(params).toString();
   }],
@@ -32,7 +36,9 @@ vi.mock("../../hooks/customers/useCustomers", () => ({
   useCreateCustomer: () => ({ mutate: state.create, isPending: false }),
   useUpdateCustomer: () => ({ mutate: vi.fn(), isPending: false }),
 }));
-vi.mock("../../components/customers/CustomerMobileCard", () => ({ CustomerMobileCard: () => null }));
+vi.mock("../../components/customers/CustomerMobileCard", () => ({
+  CustomerMobileCard: ({ customer, onOpen }: { customer: { id: string }; onOpen: (id: string) => void }) => <button onClick={() => onOpen(customer.id)}>Abrir tarjeta</button>,
+}));
 vi.mock("../../components/customers/CustomersToolbar", () => ({
   CustomersActions: ({ onCreate }: { onCreate: () => void }) => <button onClick={onCreate}>Nuevo cliente</button>,
   CustomersSecondaryActions: () => null,
@@ -100,5 +106,16 @@ describe("CustomersPage — origen del alta", () => {
     render(<CustomersPage />);
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(state.create).not.toHaveBeenCalled();
+  });
+});
+
+describe("CustomersPage - origen de la ficha", () => {
+  it.each(["Abrir fila", "Abrir tarjeta"])("preserva la URL exacta al usar %s", (label) => {
+    state.search = "q=aceros&page=3&status=active";
+    render(<CustomersPage />);
+    fireEvent.click(screen.getByRole("button", { name: label }));
+    expect(state.navigate).toHaveBeenCalledWith("/customers/customer-1", {
+      state: { customerListBackTo: "/customers?q=aceros&page=3&status=active#results" },
+    });
   });
 });

@@ -5,6 +5,10 @@ import { IncomeStatementReport } from "../IncomeStatementReport";
 const reportData = vi.hoisted(() => ({
   isComparison: false,
   margin: 63.3 as number | null,
+  depreciation: 10000,
+  depreciationRented: 8000,
+  depreciationIdle: 2000,
+  roundingContext: null as "monthly" | "comparison" | null,
   rentedWithoutCost: [] as { id: string; name: string }[],
   soldWithoutCost: [] as { id: string; name: string }[],
 }));
@@ -14,12 +18,18 @@ vi.mock("../../../hooks/useIncomeStatementData", () => ({
     totals: {
       revenue: 150000,
       totalExpenses: 45000,
-      depreciationRented: 8000,
-      depreciationIdle: 2000,
+      depreciation: reportData.depreciation,
+      depreciationRented: reportData.depreciationRented,
+      depreciationIdle: reportData.depreciationIdle,
       netProfit: 95000,
       margin: reportData.margin,
     },
-    filteredData: [], statementRows: [], comparisonRows: [], yearTotals: [],
+    filteredData: [],
+    statementRows: reportData.roundingContext === "monthly"
+      ? [{ label: "Ajuste de redondeo de depreciación", values: [-0.01], total: -0.01 }] : [],
+    comparisonRows: reportData.roundingContext === "comparison"
+      ? [{ label: "Ajuste de redondeo de depreciación", yearValues: [-0.01, 0], delta: 0.01, deltaPct: 100 }] : [],
+    yearTotals: [],
     csvRows: [], depreciationBreakdownRows: [], cogsBreakdownRows: [],
     rentalBookedBreakdownRows: [], rentalUnbookedBreakdownRows: [],
     salesBreakdownRows: [], otherServicesBreakdownRows: [],
@@ -52,6 +62,10 @@ function renderReport(accountingBasis: "accrual" | "cash" = "accrual") {
 beforeEach(() => {
   reportData.isComparison = false;
   reportData.margin = 63.3;
+  reportData.depreciation = 10000;
+  reportData.depreciationRented = 8000;
+  reportData.depreciationIdle = 2000;
+  reportData.roundingContext = null;
   reportData.rentedWithoutCost = [];
   reportData.soldWithoutCost = [];
 });
@@ -73,6 +87,28 @@ describe("IncomeStatementReport · KPI completos", () => {
       expect(screen.queryByText(label)).toBeNull();
       expect(screen.queryByText(value)).toBeNull();
     }
+  });
+
+  it("R2: el KPI usa la depreciación canónica que descuenta la utilidad", () => {
+    reportData.depreciation = 20.83;
+    reportData.depreciationRented = 2.02;
+    reportData.depreciationIdle = 18.82;
+    renderReport();
+    const label = screen.getByText("Depreciación total");
+    expect(label.parentElement).toHaveTextContent("$20.83");
+    expect(label.parentElement).not.toHaveTextContent("$20.84");
+  });
+
+  it.each(["monthly", "comparison"] as const)("R2: explica el ajuste visible en %s", (context) => {
+    reportData.roundingContext = context;
+    reportData.isComparison = context === "comparison";
+    renderReport();
+    expect(screen.getByText(/El ajuste de redondeo concilia/)).toHaveTextContent("No modifica la utilidad.");
+  });
+
+  it("R2: omite la explicación cuando no hay diferencia mostrada", () => {
+    renderReport("cash");
+    expect(screen.queryByText(/El ajuste de redondeo concilia/)).not.toBeInTheDocument();
   });
 
   it("N2: muestra un margen no aplicable con estilo neutral", () => {
