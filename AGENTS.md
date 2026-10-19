@@ -5,3 +5,4 @@
 - Use the opt-in `stackedControls` layout only for lists requiring separate search and facet rows; default list geometry remains unchanged.
 - Bank reconciliation keeps a single mounted table and a viewport-independent Sheet inspector; at close resolve the current mounted row or the accessible current list region as fallback, so virtualized or removed rows never leave focus on BODY and selection/scroll remain intact.
 - Equipment insurance disclosure derives its initial expansion from authorized visible fields only; keep financial-summary access independent from cost visibility to preserve the existing permission boundaries.
+- Pending quote-charge RPC contracts live in a focused typed client that reuses the managed session; never rewrite generated database types or suppress unavailable-function errors to accommodate an unapplied migration.

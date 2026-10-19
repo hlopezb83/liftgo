@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { useQuoteChargeAvailability } from "../useQuoteChargeAvailability";
+vi.mock("../quoteChargeClient", () => ({ createQuoteChargeClient: () => ({ rpc }) }));
 const { rpc, from } = vi.hoisted(() => ({ rpc: vi.fn(), from: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { rpc, from } }));
 const quoteId = "11111111-1111-4111-8111-111111111111";
