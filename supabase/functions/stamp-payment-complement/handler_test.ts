@@ -185,6 +185,55 @@ Deno.test("handler: returns 409 when the REP is already stamped", async () => {
   assertEquals(res.status, 409);
 });
 
+for (
+  const scenario of ["lost-response", "invalid-json", "http-500", "http-409"]
+) {
+  Deno.test(`handler: ${scenario} preserves the REP claim for reconciliation`, async () => {
+    const mock = installFacturapiMock({
+      "/invoices": () => {
+        if (scenario === "lost-response") {
+          throw new TypeError("Synthetic lost response");
+        }
+        if (scenario === "invalid-json") {
+          return new Response("{", {
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+        return new Response(
+          JSON.stringify({ message: "Synthetic PAC failure" }),
+          {
+            status: scenario === "http-500" ? 500 : 409,
+            headers: { "Content-Type": "application/json" },
+          },
+        );
+      },
+    });
+    try {
+      const { deps, serviceState } = repDeps();
+      const res = await handleStampPaymentComplement(
+        makeRequest({ payment_id: PAYMENT_ID }),
+        deps,
+      );
+      assertEquals(res.status, 502);
+      assertEquals((await res.json()).code, "PAC_UNCERTAIN");
+      assert(mock.calls.length > 0, "the mocked transport must be exercised");
+      for (const call of mock.calls) {
+        assertEquals(JSON.parse(call.body!).idempotency_key, PAYMENT_ID);
+      }
+      assertEquals(serviceState.updates.length, 1);
+      const update = serviceState.updates[0];
+      assertEquals(update.table, "payments");
+      assertEquals(update.patch.rep_cfdi_status, undefined);
+      assertEquals(update.patch.rep_stamping_started_at, undefined);
+      assertEquals(update.patch.rep_facturapi_id, undefined);
+      assertEquals(update.patch.rep_cfdi_uuid, undefined);
+      assert(String(update.patch.rep_error_message).includes("PAC"));
+    } finally {
+      mock.restore();
+    }
+  });
+}
+
 Deno.test("handler: happy path calls Facturapi and persists REP", async () => {
   const mock = installFacturapiMock({
     "/invoices": (req) =>

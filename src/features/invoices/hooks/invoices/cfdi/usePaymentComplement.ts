@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
 import { satStatusLabel } from "@/features/feedback";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
@@ -8,11 +9,46 @@ import { invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
 
 export function useStampPaymentComplement() {
   const queryClient = useQueryClient();
-  return useEntityMutation({
+  const blockedRef = useRef<ReadonlySet<string>>(new Set());
+  const [retryBlockedPaymentIds, setRetryBlockedPaymentIds] = useState<ReadonlySet<string>>(() => new Set());
+  const setRetryBlocked = (paymentId: string, blocked: boolean) => {
+    const next = new Set(blockedRef.current);
+    if (blocked) next.add(paymentId);
+    else next.delete(paymentId);
+    blockedRef.current = next;
+    setRetryBlockedPaymentIds(next);
+  };
+  const mutation = useEntityMutation({
     mutationFn: async (paymentId: string) => {
-      return await invokeEdgeFunction("stamp-payment-complement", {
-        body: { payment_id: paymentId },
-      });
+      if (blockedRef.current.has(paymentId)) {
+        throw new Error("No se pudo confirmar el estado del REP. Recarga los pagos antes de reintentar.");
+      }
+      try {
+        return await invokeEdgeFunction("stamp-payment-complement", {
+          body: { payment_id: paymentId },
+        });
+      } catch (error) {
+        // Keep isPending until the server state replaces any cached none/pending
+        // row. A failed/missing read blocks this action locally, without
+        // inventing a persisted REP state or releasing an uncertain claim.
+        setRetryBlocked(paymentId, true);
+        try {
+          await queryClient.invalidateQueries(
+            { queryKey: paymentKeys.all, refetchType: "all" },
+            { throwOnError: true },
+          );
+          const refreshed = queryClient.getQueryCache().findAll({ queryKey: paymentKeys.all }).some((query) => {
+            const { data, status, isInvalidated } = query.state;
+            return status === "success" && !isInvalidated && Array.isArray(data) &&
+              data.some((row: unknown) => row && typeof row === "object" && "id" in row && row.id === paymentId);
+          });
+          if (refreshed) setRetryBlocked(paymentId, false);
+        } catch {
+          // Preserve the original stamping error. The disabled action explains
+          // that the operator must reload before attempting another emission.
+        }
+        throw error;
+      }
     },
     invalidateKeys: [paymentKeys.all, invoiceKeys.all],
     successMsg: "Complemento de pago timbrado",
@@ -20,10 +56,10 @@ export function useStampPaymentComplement() {
     onError: (error) => {
       if (!isPacPending(error)) return;
       notifyInfo("Solicitud de timbrado recibida. El complemento sigue pendiente; consulta su estado para confirmar el resultado.");
-      void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
       return true;
     },
   });
+  return { ...mutation, retryBlockedPaymentIds };
 }
 
 export function useCancelPaymentComplement() {

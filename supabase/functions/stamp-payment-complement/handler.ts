@@ -51,6 +51,7 @@ interface PaymentRow {
   amount?: number | string | null;
   rep_cfdi_status?: string | null;
   rep_facturapi_id?: string | null;
+  rep_cfdi_uuid?: string | null;
   payment_form_sat?: string | null;
   payment_date?: string | null;
   currency?: string | null;
@@ -197,11 +198,21 @@ export async function handleStampPaymentComplement(
     if (paymentRow.rep_cfdi_status === "stamped") {
       return jsonError(req, 409, "Este pago ya tiene un REP timbrado");
     }
+    if (paymentRow.rep_cfdi_status === "stamping") {
+      return jsonError(req, 409, claimRejectionMessage("stamping"));
+    }
     if (paymentRow.rep_facturapi_id) {
       return jsonError(
         req,
         409,
         "El REP ya tiene un ID de Facturapi. Espera la conciliación o revisa su estado antes de reemitir.",
+      );
+    }
+    if (paymentRow.rep_cfdi_uuid) {
+      return jsonError(
+        req,
+        409,
+        "Este pago ya tiene un UUID de REP. Revisa su estado antes de reemitir.",
       );
     }
     if (!paymentRow.payment_form_sat) {
@@ -553,6 +564,23 @@ export async function handleStampPaymentComplement(
       }
       const desc = describeFacturapiError(err);
       console.error("Facturapi REP create error:", desc.detail);
+      // A missing/invalid response or an upstream failure does not establish
+      // whether the PAC issued the REP. Preserve stamping and its claim so
+      // reconciliation resolves external_id before another emission is allowed.
+      const definitiveRejection = desc.status >= 400 && desc.status < 500 &&
+        ![408, 409, 425, 429].includes(desc.status);
+      if (!definitiveRejection) {
+        await supabase.from("payments").update({
+          rep_error_message:
+            "No se confirmó el resultado del timbrado. Se consultará al PAC antes de permitir otro intento.",
+        }).eq("id", payment_id);
+        return jsonError(
+          req,
+          502,
+          "No se confirmó el resultado del timbrado del REP. Espera la conciliación antes de reintentar.",
+          { code: "PAC_UNCERTAIN" },
+        );
+      }
       await failAfterClaim("error", desc.detail.slice(0, 1000));
       return jsonError(
         req,
