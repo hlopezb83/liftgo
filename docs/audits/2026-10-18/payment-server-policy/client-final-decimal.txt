@@ -1,0 +1,46 @@
+
+ RUN  v4.1.11 <user>/Documents/Codex/2026-10-18/task-2/audit-payment-server-fix
+
+ Γ£ô src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts (3 tests) 5ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests) 883ms
+     Γ£ô N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175  349ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx (5 tests) 573ms
+ Γ£ô src/features/invoices/components/invoice-detail/InvoiceDetailIdentifiers.test.tsx (10 tests) 468ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceReadActions.test.tsx (10 tests) 242ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests) 76ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceCreditNotePermissions.test.tsx (6 tests) 146ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceFinancialOverview.test.tsx (11 tests) 97ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceStampPermissions.test.tsx (3 tests) 63ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailBadges.test.tsx (6 tests) 60ms
+ Γ£ô src/features/invoices/lib/__tests__/quotedBookingLines.test.ts (18 tests) 45ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts (27 tests) 26ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts (6 tests) 10ms
+ Γ£ô src/features/invoices/lib/__tests__/satErrorCodes.test.ts (11 tests) 8ms
+ Γ£ô src/features/invoices/lib/__tests__/bookingCompatibility.test.ts (24 tests) 14ms
+ Γ£ô src/features/invoices/lib/__tests__/recurringSelection.test.ts (20 tests) 17ms
+ Γ£ô src/features/invoices/lib/__tests__/cancelCfdiSchema.test.ts (9 tests) 12ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceListFilters.test.ts (5 tests) 5ms
+ Γ£ô src/features/invoices/lib/__tests__/backfillStampSnapshot.test.ts (2 tests) 8ms
+ Γ£ô src/features/invoices/lib/__tests__/formatStoredCfdiError.test.ts (6 tests) 10ms
+ Γ£ô src/features/invoices/lib/__tests__/computeMaxCreditable.test.ts (11 tests) 5ms
+ Γ£ô src/features/invoices/lib/__tests__/creditNoteLimits.test.ts (4 tests) 5ms
+ Γ£ô src/features/invoices/lib/__tests__/repBackedPayments.test.ts (6 tests) 7ms
+ Γ£ô src/features/invoices/lib/__tests__/paymentCurrency.test.ts (5 tests) 10ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts (3 tests) 6ms
+ Γ£ô src/features/invoices/lib/__tests__/facturapiErrors.test.ts (5 tests) 7ms
+ Γ£ô src/features/invoices/lib/__tests__/cfdiPrechecks.test.ts (5 tests) 9ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts (5 tests) 7ms
+ Γ£ô src/features/invoices/lib/__tests__/queryKeys.test.ts (4 tests) 6ms
+ Γ£ô src/features/invoices/lib/__tests__/paymentCatalogs.test.ts (5 tests) 7ms
+ Γ£ô src/features/invoices/lib/__tests__/formatRecurringFailure.test.ts (4 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceHistory.test.ts (2 tests) 4ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts (3 tests) 8ms
+ Γ£ô src/features/invoices/lib/__tests__/creditNoteDiscount.test.ts (3 tests) 4ms
+
+ Test Files  34 passed (34)
+      Tests  257 passed (257)
+   Start at  17:22:02
+   Duration  64.27s (transform 3.53s, setup 14.23s, import 71.67s, tests 2.86s, environment 29.11s)
+
+
+ExitCode=0

@@ -1,0 +1,210 @@
+
+ RUN  v4.1.11 <user>/Documents/Codex/2026-10-18/task-2/audit-payment-server-fix
+
+ Γ£ô src/features/invoices/lib/__tests__/recurringSelection.test.ts (20 tests) 9ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts (27 tests) 20ms
+ Γ£ô src/features/invoices/lib/__tests__/quotedBookingLines.test.ts (18 tests) 20ms
+ Γ£ô src/features/invoices/lib/__tests__/bookingCompatibility.test.ts (24 tests) 12ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceFinancialOverview.test.tsx (11 tests) 72ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceReadActions.test.tsx (10 tests) 197ms
+ Γ£ô src/features/invoices/components/invoice-detail/InvoiceDetailIdentifiers.test.tsx (10 tests) 305ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceCreditNotePermissions.test.tsx (6 tests) 120ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (6 tests) 66ms
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests | 1 failed) 1462ms
+     Γ£ô N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175 208ms
+     ├ù N8: blocks excess with maximum and currency in the validation message 1101ms
+     Γ£ô does not submit when FX needed for validation is missing 83ms
+     Γ£ô keeps stamped REP amount disabled and submits original fiscal fields 68ms
+ Γ£ô src/features/invoices/lib/__tests__/cfdiPrechecks.test.ts (5 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/backfillStampSnapshot.test.ts (2 tests) 4ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceStampPermissions.test.tsx (3 tests) 59ms
+ Γ£ô src/features/invoices/lib/__tests__/satErrorCodes.test.ts (11 tests) 6ms
+ Γ£ô src/features/invoices/lib/__tests__/creditNoteLimits.test.ts (4 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/cancelCfdiSchema.test.ts (9 tests) 6ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailBadges.test.tsx (6 tests) 28ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts (3 tests) 4ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyRounding.test.ts (3 tests) 3ms
+ Γ£ô src/features/invoices/lib/__tests__/paymentCurrency.test.ts (5 tests) 3ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentCurrencyValidation.test.ts (6 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/queryKeys.test.ts (4 tests) 4ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx (5 tests) 270ms
+ Γ£ô src/features/invoices/lib/__tests__/repBackedPayments.test.ts (6 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/computeMaxCreditable.test.ts (11 tests) 5ms
+ Γ£ô src/features/invoices/lib/__tests__/formatStoredCfdiError.test.ts (6 tests) 7ms
+ Γ£ô src/features/invoices/lib/__tests__/paymentCatalogs.test.ts (5 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceListFilters.test.ts (5 tests) 4ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts (5 tests) 3ms
+ Γ£ô src/features/invoices/lib/__tests__/facturapiErrors.test.ts (5 tests) 4ms
+ Γ£ô src/features/invoices/lib/__tests__/invoiceHistory.test.ts (2 tests) 2ms
+ Γ£ô src/features/invoices/lib/__tests__/creditNoteDiscount.test.ts (3 tests) 2ms
+ Γ£ô src/features/invoices/lib/__tests__/formatRecurringFailure.test.ts (4 tests) 3ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 1 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx > EditPaymentDialog currency wiring > N8: blocks excess with maximum and currency in the validation message
+AssertionError: expected "vi.fn()" to be called with arguments: [ { message: StringMatching{ΓÇª} } ]
+
+Received:
+
+  1st vi.fn() call:
+
+  [
+    {
+-     "message": StringMatching /1,750\.00.*MXN/,
++     "message": "El monto convertido excede el saldo disponible. Referencia en moneda de pago: $1,750.00. Ajusta la cantidad.",
+    },
+  ]
+
+
+Number of calls: 1
+
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body
+    data-scroll-locked="1"
+    style="pointer-events: none;"
+  >
+    <span
+      aria-hidden="true"
+      data-aria-hidden="true"
+      data-radix-focus-guard=""
+      style="opacity: 0; position: fixed; pointer-events: none; outline-color: none; outline-style: none; outline-width: initial;"
+      tabindex="0"
+    />
+    <div
+      aria-hidden="true"
+      data-aria-hidden="true"
+    />
+    <div
+      aria-hidden="true"
+      class="fixed inset-0 z-50 bg-foreground/30 dark:bg-black/60 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+      data-aria-hidden="true"
+      data-state="open"
+      style="pointer-events: auto;"
+    />
+    <div
+      aria-labelledby="radix-_r_m_"
+      class="fixed left-[50%] top-[50%] z-50 grid w-[calc(100%-1rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overscroll-contain border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-md max-h-[85vh] overflow-y-auto pt-0 pb-0"
+      data-state="open"
+      data-toast-viewport="dialog"
+      id="radix-_r_l_"
+      role="dialog"
+      style="pointer-events: auto;"
+      tabindex="-1"
+    >
+      <div
+        class="flex flex-col space-y-1.5 text-center sm:text-left sticky top-0 bg-background z-10 -mx-6 px-6 pt-6 pb-3 border-b"
+      >
+        <h2
+          class="text-lg font-semibold leading-none tracking-tight"
+          id="radix-_r_m_"
+        >
+          Editar pago
+        </h2>
+      </div>
+      <div
+        class="min-w-0 pt-2 pb-6"
+      >
+        <form
+          class="space-y-4"
+        >
+          <div
+            class="space-y-2"
+          >
+            <label
+              class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              for="_r_r_-form-item"
+            >
+              Monto
+              <span
+                aria-hidden="true"
+                class="text-destructive ml-0.5"
+              >
+                *
+              </span>
+            </label>
+            <div
+              class="relative"
+            >
+              <span
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none"
+              >
+                $
+              </span>
+              <input
+                aria-describedby="_r_r_-form-item-description"
+                aria-invalid="false"
+                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pl-6 pr-14 text-right tabular-nums"
+                id="_r_r_-form-item"
+                inputmode="decimal"
+                name="amount"
+                placeholder="0.00"
+                type="text"
+                value="1751"
+              />
+              <span
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground pointer-events-none"
+              >
+                MXN
+              </span>
+            </div>
+          </div>
+          <div
+            class="space-y-2"
+          >
+            <div
+              class="space-y-1.5"
+            >
+              <label
+                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                for="_r_t_"
+              >
+                Fecha
+                <span
+                  aria-hidden="true"
+                  class="text-destructive ml-0.5"
+                >
+                  *
+                </span>
+              </label>
+              <div
+                class="flex items-start gap-2"
+              >
+                <div
+                  class="flex-1 space-y-1"
+                >
+                  <input
+                    aria-describedby="_r_t_-note"
+                    autocomplete="off"
+                    class="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 font-mono tabular-nums w-full"
+                    id="_r_t_"
+                    inputmode="numeric"
+                    placeholder="dd/mm/aaaa"
+                    value="01/09/2026"
+                  />
+                </div>
+                <button
+                  aria-expanded...
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx:49:50
+     47|     setup();
+     48|     submitAmount("1751");
+     49|     await waitFor(() => expect(mocks.validation).toHaveBeenCalledWith({
+       |                                                  ^
+     50|       message: expect.stringMatching(/1,750\.00.*MXN/),
+     51|     }));
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»
+
+
+ Test Files  1 failed | 32 passed (33)
+      Tests  1 failed | 253 passed (254)
+   Start at  17:15:43
+   Duration  31.97s (transform 2.38s, setup 6.01s, import 36.85s, tests 2.72s, environment 12.51s)
+
+
+ExitCode=1

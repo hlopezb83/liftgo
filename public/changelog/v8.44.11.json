@@ -1,0 +1,13 @@
+{
+  "version": "8.44.11",
+  "date": "2026-10-19",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Pagos con conversión y redondeo coherentes",
+  "description": "La validación de pagos usa los mismos centavos de la factura y conserva la protección fiscal de los complementos timbrados.",
+  "changes": [
+    "Cada pago se convierte y redondea antes de sumarse, también al calcular el estado final de la factura.",
+    "La edición rechaza sobrepagos y conserva conversiones válidas con tipos de cambio de seis decimales.",
+    "Las notas de pagos protegidos siguen editables sin permitir cambios en sus datos fiscales."
+  ]
+}

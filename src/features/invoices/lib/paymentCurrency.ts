@@ -1,4 +1,7 @@
-import { roundMoney, sumMoney } from "@/lib/money";
+import { sumMoney } from "@/lib/money";
+import { roundConvertedAmount, roundCurrencyAmount } from "./paymentCurrencyRounding";
+
+export { roundCurrencyAmount } from "./paymentCurrencyRounding";
 
 export type PaymentLike = {
   amount: number;
@@ -10,11 +13,11 @@ function code(value: string | null | undefined): string {
   return (value ?? "MXN").toUpperCase();
 }
 
-function conversionRate(currency: string, value: number | string | null | undefined): number | null {
+function conversionRate(currency: string, value: number | string | null | undefined): number | string | null {
   if (currency === "MXN") return 1;
   const n = Number(value ?? 0);
   // Misma regla que public.fx_is_missing: TC = 1 en divisa no es utilizable.
-  return Number.isFinite(n) && n > 0 && n !== 1 ? n : null;
+  return Number.isFinite(n) && n > 0 && n !== 1 ? value ?? null : null;
 }
 
 /**
@@ -32,11 +35,11 @@ export function convertCurrencyAmount(
   if (!Number.isFinite(amount)) return null;
   const fromCode = code(fromCurrency);
   const toCode = code(toCurrency);
-  if (fromCode === toCode) return roundMoney(amount);
+  if (fromCode === toCode) return roundCurrencyAmount(amount);
   const sourceRate = conversionRate(fromCode, fromRate);
   const targetRate = conversionRate(toCode, toRate);
   if (sourceRate === null || targetRate === null) return null;
-  return roundMoney(amount * sourceRate / targetRate);
+  return roundConvertedAmount(amount, sourceRate, targetRate);
 }
 
 /**

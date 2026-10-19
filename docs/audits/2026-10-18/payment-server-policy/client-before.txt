@@ -1,0 +1,62 @@
+
+ RUN  v4.1.11 <user>/Documents/Codex/2026-10-18/task-2/audit-payment-server-fix
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts (3 tests | 2 failed) 9ms
+     ├ù rejects a whole extra invoice cent while retaining cents that round to the same value 7ms
+     ├ù validates the rounded source amount that the form and server persist 1ms
+     Γ£ô keeps stamped REP validation bypass; fiscal protection remains server-side 0ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 2 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts > canonical strict invoice-currency maximum > rejects a whole extra invoice cent while retaining cents that round to the same value
+AssertionError: expected { ok: true } to deeply equal { ok: false, maxAllowed: 1750 }
+
+- Expected
++ Received
+
+  {
+-   "maxAllowed": 1750,
+-   "ok": false,
++   "ok": true,
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts:10:75
+      8|     expect(validateEditPaymentAmount(1750.08, 90, 175, false, mxnOnUsdΓÇª
+      9|     for (const amount of [1750.09, 1750.26, 1800]) {
+     10|       expect(validateEditPaymentAmount(amount, 90, 175, false, mxnOnUsΓÇª
+       |                                                                           ^
+     11|     }
+     12|     expect(validateEditPaymentAmount(100.01, 90, 10, false)).toEqual({ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/2]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts > canonical strict invoice-currency maximum > validates the rounded source amount that the form and server persist
+AssertionError: expected { ok: true } to deeply equal { ok: false, maxAllowed: 0.02 }
+
+- Expected
++ Received
+
+  {
+-   "maxAllowed": 0.02,
+-   "ok": false,
++   "ok": true,
+  }
+
+ Γ¥» src/features/invoices/components/invoice-detail/__tests__/EditPaymentStrictMaximum.test.ts:17:71
+     15|   it("validates the rounded source amount that the form and server perΓÇª
+     16|     const usdOnMxn = { invoiceCurrency: "MXN", paymentCurrency: "USD",ΓÇª
+     17|     expect(validateEditPaymentAmount(0.015, 0.3, 0, false, usdOnMxn)).ΓÇª
+       |                                                                       ^
+     18|     expect(validateEditPaymentAmount(0.015, 0.35, 0, false, usdOnMxn))ΓÇª
+     19|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/2]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  17:13:59
+   Duration  1.05s (transform 62ms, setup 325ms, import 42ms, tests 9ms, environment 504ms)
+
+
+ExitCode=1

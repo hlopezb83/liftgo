@@ -1,5 +1,5 @@
 import { roundMoney } from "@/lib/money";
-import { convertCurrencyAmount } from "../../lib/paymentCurrency";
+import { convertCurrencyAmount, roundCurrencyAmount } from "../../lib/paymentCurrency";
 
 interface PaymentCurrencyContext {
   invoiceCurrency?: string | null;
@@ -16,8 +16,9 @@ type ValidationResult = { ok: true }
  * M3-01: valida el tope BL-11 al editar un pago — el monto nuevo no puede
  * exceder el saldo actual (en moneda de factura) más la contribución original
  * del pago en esa misma moneda. Convierte también el nuevo importe a moneda
- * de factura y aplica allí la tolerancia de 0.01. El máximo sólo se convierte
- * a moneda de pago para mostrarlo en el mensaje.
+ * de factura, después de redondear el importe origen como se persistirá.
+ * No admite un centavo adicional de sobrepago. La conversión inversa sólo
+ * proporciona una referencia en moneda de pago para el mensaje.
  * Con REP timbrado el servidor
  * rechaza cambios de monto/fecha; el cliente no debe ni intentar validarlos
  * (se ignoran, siempre pasa).
@@ -30,6 +31,8 @@ export function validateEditPaymentAmount(
   context: PaymentCurrencyContext = {},
 ): ValidationResult {
   if (isRepStamped) return { ok: true };
+  const persistedAmount = roundCurrencyAmount(newAmount);
+  if (persistedAmount === null) return { ok: false, reason: "missing_exchange_rate" };
   const invoiceCurrency = context.invoiceCurrency ?? "MXN";
   const paymentCurrency = context.paymentCurrency ?? invoiceCurrency;
   const originalInInvoiceCurrency = convertCurrencyAmount(
@@ -37,14 +40,14 @@ export function validateEditPaymentAmount(
     context.paymentExchangeRate, context.invoiceExchangeRate,
   );
   const newInInvoiceCurrency = convertCurrencyAmount(
-    newAmount, paymentCurrency, invoiceCurrency,
+    persistedAmount, paymentCurrency, invoiceCurrency,
     context.paymentExchangeRate, context.invoiceExchangeRate,
   );
   if (originalInInvoiceCurrency === null || newInInvoiceCurrency === null) {
     return { ok: false, reason: "missing_exchange_rate" };
   }
   const maxInInvoiceCurrency = roundMoney(balance + originalInInvoiceCurrency);
-  if (roundMoney(newInInvoiceCurrency - maxInInvoiceCurrency) > 0.01) {
+  if (roundMoney(newInInvoiceCurrency - maxInInvoiceCurrency) > 0) {
     const maxAllowed = convertCurrencyAmount(
       maxInInvoiceCurrency, invoiceCurrency, paymentCurrency,
       context.invoiceExchangeRate, context.paymentExchangeRate,

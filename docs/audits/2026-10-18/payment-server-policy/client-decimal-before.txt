@@ -1,0 +1,78 @@
+
+ RUN  v4.1.11 <user>/Documents/Codex/2026-10-18/task-2/audit-payment-server-fix
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts (3 tests | 3 failed) 10ms
+     ├ù does not pre-round a decimal quotient across the half-cent boundary 6ms
+     ├ù rounds exact halves away from zero like PostgreSQL numeric 1ms
+     ├ù never turns a non-finite edit into a valid zero payment 2ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 3 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts > PostgreSQL numeric rounding parity > does not pre-round a decimal quotient across the half-cent boundary
+AssertionError: expected 2500.01 to be 2500 // Object.is equality
+
+- Expected
++ Received
+
+- 2500
++ 2500.01
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts:7:75
+      5| describe("PostgreSQL numeric rounding parity", () => {
+      6|   it("does not pre-round a decimal quotient across the half-cent boundΓÇª
+      7|     expect(convertCurrencyAmount(43750.09, "MXN", "USD", 1, "17.500001ΓÇª
+       |                                                                           ^
+      8|     expect(validateEditPaymentAmount(43750.09, 2490, 175, false, {
+      9|       invoiceCurrency: "USD", invoiceExchangeRate: "17.500001", paymenΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/3]ΓÄ»
+
+ FAIL  src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts > PostgreSQL numeric rounding parity > rounds exact halves away from zero like PostgreSQL numeric
+AssertionError: expected -0 to be -0.01 // Object.is equality
+
+- Expected
++ Received
+
+- -0.01
++ -0
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts:14:63
+     12|
+     13|   it("rounds exact halves away from zero like PostgreSQL numeric", () ΓÇª
+     14|     expect(convertCurrencyAmount(-0.005, "MXN", "MXN", 1, 1)).toBe(-0.ΓÇª
+       |                                                               ^
+     15|     expect(convertCurrencyAmount(0.005, "MXN", "MXN", 1, 1)).toBe(0.01ΓÇª
+     16|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/3]ΓÄ»
+
+ FAIL  src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts > PostgreSQL numeric rounding parity > never turns a non-finite edit into a valid zero payment
+AssertionError: expected { ok: true } to deeply equal { ok: false, ΓÇª(1) }
+
+- Expected
++ Received
+
+  {
+-   "ok": false,
+-   "reason": "missing_exchange_rate",
++   "ok": true,
+  }
+
+ Γ¥» src/features/invoices/lib/__tests__/paymentCurrencyExactRounding.test.ts:20:63
+     18|   it("never turns a non-finite edit into a valid zero payment", () => {
+     19|     for (const value of [NaN, Infinity, -Infinity]) {
+     20|       expect(validateEditPaymentAmount(value, 90, 10, false)).toEqual(ΓÇª
+       |                                                               ^
+     21|     }
+     22|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/3]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  17:19:42
+   Duration  1.02s (transform 57ms, setup 311ms, import 39ms, tests 10ms, environment 475ms)
+
+
+ExitCode=1

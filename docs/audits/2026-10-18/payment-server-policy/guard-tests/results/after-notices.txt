@@ -1,0 +1,71 @@
+drop cascades to 33 other objects
+drop cascades to 2 other objects
+PASS rep-amount expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-payment_date expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-currency expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-exchange_rate expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-payment_form_sat expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-installment_number expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-prior_balance expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-invoice_id expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-old-stamped-bypass expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-subcent-raw-delta expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-delete expected=23514 actual=23514 message=No se puede eliminar un pago con REP timbrado. Cancele el complemento primero.
+PASS rep-notes expected=00000 actual=00000 message=
+PASS rep-reference expected=00000 actual=00000 message=
+PASS rep-fiscal-noop expected=00000 actual=00000 message=
+PASS rep-caller-flags-no-bypass expected=23514 actual=23514 message=No se pueden modificar los campos fiscales de un pago con REP timbrado. Cancele el complemento primero.
+PASS unsealed-update expected=00000 actual=00000 message=
+PASS unsealed-delete expected=00000 actual=00000 message=
+PASS draft-insert expected=23514 actual=23514 message=No se pueden registrar pagos en facturas en borrador. Envia la factura primero.
+PASS draft-update expected=23514 actual=23514 message=No se pueden registrar pagos en facturas en borrador. Envia la factura primero.
+PASS cancelled-insert expected=23514 actual=23514 message=No se pueden registrar pagos en facturas canceladas
+PASS cancelled-update expected=23514 actual=23514 message=No se pueden registrar pagos en facturas canceladas
+PASS pue-stamped-partial-insert expected=23514 actual=23514 message=Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: 100.00)
+PASS pue-stamped-partial-update expected=23514 actual=23514 message=Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: 100.00)
+PASS pue-stamped-full expected=00000 actual=00000 message=
+PASS pue-stamped-short expected=23514 actual=23514 message=Pago parcial rechazado: la factura esta timbrada como PUE (pago en una sola exhibicion) y debe liquidarse completa (saldo facturable: 100.00)
+PASS pue-stamped-overpay expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (101.00) excede el saldo facturable (100.00) despues de notas de credito
+PASS pue-pending-partial expected=00000 actual=00000 message=
+PASS ppd-stamped-partial expected=00000 actual=00000 message=
+PASS nc-active-exact expected=00000 actual=00000 message=
+PASS nc-active-over expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (81.00) excede el saldo facturable (80.00) despues de notas de credito
+PASS nc-cancelled-ignored expected=00000 actual=00000 message=
+PASS nc-accepted-ignored expected=00000 actual=00000 message=
+PASS nc-pending-cfdi-ignored expected=00000 actual=00000 message=
+PASS nc-cancellation-pending-still-counts expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (81.00) excede el saldo facturable (80.00) despues de notas de credito
+PASS nc-cancellation-pending-exact expected=00000 actual=00000 message=
+PASS nc-cancellation-rejected-still-counts expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (81.00) excede el saldo facturable (80.00) despues de notas de credito
+PASS nc-cancellation-rejected-exact expected=00000 actual=00000 message=
+PASS nc-cancellation-expired-still-counts expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (81.00) excede el saldo facturable (80.00) despues de notas de credito
+PASS nc-cancellation-expired-exact expected=00000 actual=00000 message=
+PASS sync-nc-paid expected=00000 actual=00000 message=
+PASS sync-nc-sent expected=00000 actual=00000 message=
+PASS nc-other-invoice-ignored expected=00000 actual=00000 message=
+PASS guard-foreign-org-nc-excluded expected=00000 actual=00000 message=
+PASS guard-foreign-org-payment-excluded expected=00000 actual=00000 message=
+PASS guard-null-org-payment-counted expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (105.00) excede el saldo facturable (100.00) despues de notas de credito
+PASS guard-own-org-payment-counted expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (105.00) excede el saldo facturable (100.00) despues de notas de credito
+PASS sync-org-539 expected=00000 actual=00000 message=
+PASS sync-org-540 expected=00000 actual=00000 message=
+PASS sync-org-541 expected=00000 actual=00000 message=
+PASS sync-org-542 expected=00000 actual=00000 message=
+PASS sync-foreign-invoice-rejected expected=42501 actual=42501 message=not_authorized
+PASS sync-missing-org-rejected expected=42501 actual=42501 message=not_authorized
+PASS guard-new-null-org-allowed expected=00000 actual=00000 message=
+PASS guard-round-before-fx expected=00000 actual=00000 message=
+PASS guard-currency-only-overpay expected=23514 actual=23514 message=Sobrepago rechazado: la suma de pagos (175.00) excede el saldo facturable (100.00) despues de notas de credito
+PASS guard-exchange-rate-only-canonical expected=00000 actual=00000 message=
+PASS rep-cap-per-payment-cents-covered expected=P0001 actual=P0001 message=La nota de credito (0 + 0.01 = 0.01) excede el maximo acreditable (0.00): el total de la factura es 0.12 y 0.12 ya estan declarados en complementos de pago (REP) timbrados. Cancela los REP ante el SAT antes de emitir esta NC.
+PASS rep-cap-per-payment-cents-over expected=P0001 actual=P0001 message=La nota de credito (0 + 0.89 = 0.89) excede el maximo acreditable (0.88): el total de la factura es 1 y 0.12 ya estan declarados en complementos de pago (REP) timbrados. Cancela los REP ante el SAT antes de emitir esta NC.
+PASS rep-cap-per-payment-cents-exact expected=00000 actual=00000 message=
+PASS rep-cap-cancelled-ignored expected=00000 actual=00000 message=
+PASS rep-cap-unsealed-ignored expected=00000 actual=00000 message=
+PASS legacy-nan-notes expected=00000 actual=00000 message=
+PASS legacy-nan-delete expected=00000 actual=00000 message=
+PASS legacy-nan-repair expected=00000 actual=00000 message=
+PASS legacy-nan-monetary-rejected expected=23514 actual=23514 message=No se puede verificar el sobrepago: falta un tipo de cambio valido para el pago o pagos existentes
+PASS new-nan-rejected expected=23514 actual=23514 message=No se puede verificar el sobrepago: falta un tipo de cambio valido para el pago o pagos existentes
+PASS legacy-nan-idempotent-notes expected=00000 actual=00000 message=
+PASS rep-bad-fx-idempotent-notes expected=00000 actual=00000 message=
+PASS sync-n7-real-invoice-integrity expected=00000 actual=00000 message=

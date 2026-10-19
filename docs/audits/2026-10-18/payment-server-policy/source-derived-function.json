@@ -1,0 +1,10 @@
+{
+  "result": {
+    "rows": [
+      {
+        "name": "trg_payment_amount_mxn",
+        "definition": "CREATE OR REPLACE FUNCTION public.trg_payment_amount_mxn()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO 'public'\nAS $function$\nDECLARE\n  v_moneda text;\n  v_tipo_cambio numeric;\n  v_pay_currency text;\nBEGIN\n  SELECT i.moneda, i.tipo_cambio INTO v_moneda, v_tipo_cambio\n  FROM public.invoices i\n  WHERE i.id = NEW.invoice_id;\n  v_moneda := upper(COALESCE(v_moneda, 'MXN'));\n  v_pay_currency := upper(COALESCE(NEW.currency, v_moneda));\n\n  IF v_pay_currency = 'MXN' THEN\n    NEW.amount_mxn := ROUND(COALESCE(NEW.amount, 0), 2);\n  ELSIF v_pay_currency <> v_moneda THEN\n    -- R6-07: cruce permitido si hay tipo de cambio disponible (R5-01).\n    IF COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)) IS NULL THEN\n      RAISE EXCEPTION\n        'Pago en % no coincide con la moneda de la factura (%) y no hay tipo de cambio para convertirlo',\n        v_pay_currency, v_moneda\n        USING ERRCODE = 'check_violation';\n    END IF;\n    NEW.amount_mxn := ROUND(\n      NEW.amount * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)),\n      2\n    );\n  ELSE\n    NEW.amount_mxn := ROUND(\n      COALESCE(NEW.amount, 0) * COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0)),\n      2\n    );\n  END IF;\n  RETURN NEW;\nEND;\n$function$\n"
+      }
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+[
+  {
+    "Function": "enforce_credit_note_max()",
+    "Before": "d6c22f53008a409570dd5216012ee5b0",
+    "After": "fda404a1771a17fa6aeaf3d32b044e6b",
+    "Changed": true
+  },
+  {
+    "Function": "enforce_payment_matches_invoice_currency()",
+    "Before": "7f5a96df4487fb7c4c78d1a009dca2ed",
+    "After": "564b6d93ee21fe84cf9f04eb450f3703",
+    "Changed": true
+  },
+  {
+    "Function": "enforce_payment_within_invoice_total()",
+    "Before": "936e626a72bd021db19c46841cfa00af",
+    "After": "a6d41c1f7e0f0cea7e867ee55bd84d9b",
+    "Changed": true
+  },
+  {
+    "Function": "fx_convert_amount(numeric,text,text,numeric,numeric)",
+    "Before": "93eeb3ac6428a0f1e17e4ca3cb8e013c",
+    "After": "93eeb3ac6428a0f1e17e4ca3cb8e013c",
+    "Changed": false
+  },
+  {
+    "Function": "fx_is_missing(text,numeric)",
+    "Before": "05a87eb3c2398d2c83b5380309715783",
+    "After": "05a87eb3c2398d2c83b5380309715783",
+    "Changed": false
+  },
+  {
+    "Function": "guard_invoice_status_integrity()",
+    "Before": "22f36bdf6a1892cd6037fae30db55e90",
+    "After": "bea284a14b6183c2d77beccfe79334be",
+    "Changed": true
+  },
+  {
+    "Function": "prevent_payment_delete_when_rep_stamped()",
+    "Before": "1349ce0177b46a17e3eb4252790783a4",
+    "After": "1349ce0177b46a17e3eb4252790783a4",
+    "Changed": false
+  },
+  {
+    "Function": "prevent_payment_mutation_when_rep_stamped()",
+    "Before": "105db69e07f634e9d4ce42d2e4d16970",
+    "After": "105db69e07f634e9d4ce42d2e4d16970",
+    "Changed": false
+  },
+  {
+    "Function": "sync_invoice_status(uuid)",
+    "Before": "43867b46fa83b160f7f177fa433c1ff0",
+    "After": "f71c9ad082f77b589e2c4f3eb13c325b",
+    "Changed": true
+  },
+  {
+    "Function": "trg_payment_amount_mxn()",
+    "Before": "58d767c28ba000ef3b04bee15c89094e",
+    "After": "e7df092b08fa86f8e424e926be37321d",
+    "Changed": true
+  }
+]

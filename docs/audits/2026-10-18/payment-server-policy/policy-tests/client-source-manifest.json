@@ -1,0 +1,44 @@
+[
+  {
+    "phase": "baseline",
+    "source": "main89967/src/features/invoices/lib/paymentCurrency.ts",
+    "snapshot": "client-baseline-src/features/invoices/lib/paymentCurrency.ts",
+    "sha256": "50B86A89744063AFA5FBFAF9DC063ADCE0716E5CBDBC5FFABA3FFF2845AC992F"
+  },
+  {
+    "phase": "baseline",
+    "source": "main89967/src/features/invoices/components/invoice-detail/validateEditPaymentAmount.ts",
+    "snapshot": "client-baseline-src/features/invoices/components/invoice-detail/validateEditPaymentAmount.ts",
+    "sha256": "DBFE886B26361F0CB738583CB7581E0788DF9ADAF0F723B09BCF61ED59DB6134"
+  },
+  {
+    "phase": "baseline",
+    "source": "main89967/src/lib/money/index.ts",
+    "snapshot": "client-baseline-src/lib/money/index.ts",
+    "sha256": "B24DA779A84875731322DF981B1C0154303BAD542956F33142B01449F4310CD2"
+  },
+  {
+    "phase": "candidate",
+    "source": "integrator-worktree/src/features/invoices/lib/paymentCurrency.ts",
+    "snapshot": "client-candidate-src/features/invoices/lib/paymentCurrency.ts",
+    "sha256": "53445EFBB63464D8AEA5777952B6663688D0913691A146760D19B8F1B2678D7C"
+  },
+  {
+    "phase": "candidate",
+    "source": "integrator-worktree/src/features/invoices/components/invoice-detail/validateEditPaymentAmount.ts",
+    "snapshot": "client-candidate-src/features/invoices/components/invoice-detail/validateEditPaymentAmount.ts",
+    "sha256": "8C8AEE1A8C17429C6F2183DB67FBF6FB941B506A7346AF85B1C57D26C5935C9E"
+  },
+  {
+    "phase": "candidate",
+    "source": "integrator-worktree/src/lib/money/index.ts",
+    "snapshot": "client-candidate-src/lib/money/index.ts",
+    "sha256": "B24DA779A84875731322DF981B1C0154303BAD542956F33142B01449F4310CD2"
+  },
+  {
+    "phase": "candidate",
+    "source": "integrator-worktree/src/features/invoices/lib/paymentCurrencyRounding.ts",
+    "snapshot": "client-candidate-src/features/invoices/lib/paymentCurrencyRounding.ts",
+    "sha256": "6A21681847EDB73CA0C32FA6891798D1C837B68642107C42E64121F8E79BBE9F"
+  }
+]

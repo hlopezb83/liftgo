@@ -1,0 +1,7 @@
+Generated six replacement functions, two trigger replacements and definition-only rollback; no database connection.
+Prepared synthetic baseline verified against sanitized function sources; no database connection.
+OK: 104 migraciones Drizzle registradas en orden
+OK: 1241 entradas de changelog validadas.
+Generator/prepare/journal/changelog/script syntax: ExitCode=0
+Staged privacy scan: 116 files, no deployment/backend/real ACL/ledger/user-path markers; migration Git LF SHA256=9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271.
+Product diff-check excludes preserved-byte policy-test artifacts and execution .txt files (CRLF/padding preserved); publication packaging did not alter case SQL or expected values.

@@ -1,0 +1,3 @@
+OK: 104 migraciones Drizzle registradas en orden
+
+ExitCode=0

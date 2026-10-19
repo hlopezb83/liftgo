@@ -1,0 +1,69 @@
+{
+    "after": {
+        "id": "40000000-0000-0000-0000-000000000700",
+        "total": 2500,
+        "moneda": "USD",
+        "status": "paid",
+        "balance": 0.00,
+        "paid_amount": 2500.00,
+        "tipo_cambio": 17.500001,
+        "invoice_number": "DECIMAL-PROBE-700",
+        "credited_amount": 0,
+        "payments_fx_missing": 0
+    },
+    "input": {
+        "new_amount": 43750.09,
+        "invoice_rate": 17.500001,
+        "payment_rate": 1,
+        "invoice_total": 2500,
+        "original_amount": 175,
+        "invoice_currency": "USD",
+        "payment_currency": "MXN"
+    },
+    "before": {
+        "id": "40000000-0000-0000-0000-000000000700",
+        "total": 2500,
+        "moneda": "USD",
+        "status": "partial",
+        "balance": 2490.00,
+        "paid_amount": 10.00,
+        "tipo_cambio": 17.500001,
+        "invoice_number": "DECIMAL-PROBE-700",
+        "credited_amount": 0,
+        "payments_fx_missing": 0
+    },
+    "target": {
+        "port": 55440,
+        "role": "authenticated",
+        "address": "127.0.0.1",
+        "database": "liftgo_payment_policy_fixture"
+    },
+    "update": {
+        "message": "accepted",
+        "affected": 1,
+        "sqlstate": "00000"
+    },
+    "fixture": "synthetic standalone decimal boundary; not production",
+    "functions": [
+        {
+            "md5": "a6d41c1f7e0f0cea7e867ee55bd84d9b",
+            "name": "enforce_payment_within_invoice_total"
+        },
+        {
+            "md5": "93eeb3ac6428a0f1e17e4ca3cb8e013c",
+            "name": "fx_convert_amount"
+        },
+        {
+            "md5": "bea284a14b6183c2d77beccfe79334be",
+            "name": "guard_invoice_status_integrity"
+        },
+        {
+            "md5": "f71c9ad082f77b589e2c4f3eb13c325b",
+            "name": "sync_invoice_status"
+        }
+    ],
+    "sql_canonical": 2500.00,
+    "raw_ratio_text": "2500.0049999997142857",
+    "assertion_passed": true,
+    "comparable_suite_unchanged": true
+}

@@ -1,0 +1,14 @@
+PASS insert-insert: second session blocked, then 23514; persisted 60.00/100, 1 row(s)
+PASS update-update: second session blocked, then 23514; persisted 90.00/100, 2 row(s)
+PASS insert-update: second session blocked, then 23514; persisted 90.00/100, 2 row(s)
+PASS update-insert: second session blocked, then 23514; persisted 60.00/100, 1 row(s)
+{
+  "phase": "before",
+  "total": 4,
+  "passed": 4,
+  "target": {
+    "database": "liftgo_payment_guard_policy_fixture",
+    "host": "127.0.0.1/32",
+    "port": 55441
+  }
+}
