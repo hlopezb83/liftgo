@@ -1,4 +1,4 @@
-import { roundMoney } from "@/lib/money";
+import { formatStatementAmount } from "./statementAmountPresentation";
 
 export const DEPRECIATION_ROUNDING_LABEL = "Ajuste de redondeo de depreciación";
 
@@ -8,10 +8,11 @@ interface DepreciationAmounts {
   depreciationIdle: number;
 }
 
-// Currency formatting rounds both signs away from zero at a half cent.
-// Work with displayed cents here only; never feed this adjustment into totals.
-const displayedCents = (amount: number) =>
-  Math.sign(amount) * Math.round(roundMoney(Math.abs(amount)) * 100);
+// Count the actual displayed cents without pre-rounding intermediate values.
+// This adjustment is presentation only and never feeds back into totals.
+const displayedCents = (amount: number) => Number.isFinite(amount)
+  ? Math.round(Number(formatStatementAmount(amount)) * 100)
+  : 0;
 
 export function depreciationRoundingAdjustment(amounts: DepreciationAmounts): number {
   return (

@@ -1,5 +1,6 @@
 import { sumMoney } from "@/lib/money";
 import { DEPRECIATION_ROUNDING_LABEL, depreciationRoundingAdjustment } from "./depreciationPresentation";
+import { formatStatementAmount } from "./statementAmountPresentation";
 import {
   type ExpenseCategory,
   type MonthData, type StatementRow, type YearTotals, type ComparisonRow,
@@ -132,15 +133,8 @@ export function buildExpenseDetailBreakdown(
     }));
 }
 
-// Match the screen/PDF's Intl currency rounding, including exact half cents.
-// CSV keeps a decimal point and no grouping or currency symbol for import.
-const csvAmountFormatter = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-  useGrouping: false,
-});
 const formatCsvValue = (value: number | null, isPercent?: boolean) =>
-  value === null ? "No aplica" : isPercent ? `${value.toFixed(1)}%` : csvAmountFormatter.format(value);
+  value === null ? "No aplica" : isPercent ? `${value.toFixed(1)}%` : formatStatementAmount(value);
 
 export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthData[]): Record<string, string>[] {
   return statementRows.map((row) => {
