@@ -23,6 +23,9 @@ on:
       - "scripts/tests/**"
       - ".github/actions/setup-bun-project/**"
       - "drizzle.config.ts"
+      - "drizzle.ci.config.ts"
+      - "scripts/ci-drizzle-*.mjs"
+      - "scripts/tests/ci-drizzle-*.test.mjs"
       - "bun.lock"
       - "package.json"
       - "scripts/patch_legacy_migrations.py"
@@ -40,6 +43,9 @@ on:
       - "scripts/tests/**"
       - ".github/actions/setup-bun-project/**"
       - "drizzle.config.ts"
+      - "drizzle.ci.config.ts"
+      - "scripts/ci-drizzle-*.mjs"
+      - "scripts/tests/ci-drizzle-*.test.mjs"
       - "bun.lock"
       - "package.json"
       - "scripts/patch_legacy_migrations.py"
@@ -172,12 +178,19 @@ jobs:
       - name: Validar journal de migraciones Drizzle
         run: bun run migrations:check
 
-      - name: Aplicar migraciones Drizzle con drizzle-kit
+      - name: Probar guard y preparar replay Drizzle efímero
+        run: |
+          bun run test:ci-tools
+          bun scripts/ci-drizzle-replay.mjs prepare
+          mkdir -p reports
+          cp .ci-drizzle-replay/manifest.json reports/ci-drizzle-replay-manifest.json
+
+      - name: Aplicar y verificar migraciones Drizzle del replay efímero
         id: drizzle
         run: |
           set -euo pipefail
-          export LOVABLE_DB_MIGRATION_URL="$DB_URL"
-          bunx drizzle-kit migrate --config=drizzle.config.ts
+          bunx drizzle-kit migrate --config=drizzle.ci.config.ts
+          bun scripts/ci-drizzle-replay.mjs verify
 
       - name: Diagnóstico PostgreSQL de Drizzle (sólo rollback en fallo)
         if: failure() && steps.drizzle.outcome == 'failure'
