@@ -1,0 +1,129 @@
+{
+  "baseCommit": "d3960e6fe96f54d3541871a1cb4d1104a1f6afd3",
+  "execution": "offline Vitest; real HTML table and PDF document/formatters, simulated PDF drawing primitives; no browser, SQL, backend or external services",
+  "before": {
+    "total": 16,
+    "passed": 4,
+    "failed": 12,
+    "exitCode": 1
+  },
+  "after": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "related": {
+    "total": 85,
+    "passed": 85,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "checks": {
+    "eslintChangedFiles": {
+      "exitCode": 0,
+      "warnings": 0
+    },
+    "typecheck": {
+      "command": "tsc --noEmit",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "exitCode": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'just below half cent', sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'just below half cent', sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'RPC one active/rented day', sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'RPC one active/rented day', sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'just above half cent', sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'just above half cent', sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'exact half cent control', sign 1",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention monthly UI, CSV and PDF: 'exact half cent control', sign -1",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'just below half cent', sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'just below half cent', sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'RPC one active/rented day', sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'RPC one active/rented day', sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'just above half cent', sign 1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'just above half cent', sign -1",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'exact half cent control', sign 1",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2 review: one visible Intl rounding convention comparative UI, CSV and PDF: 'exact half cent control', sign -1",
+      "before": "passed",
+      "after": "passed"
+    }
+  ],
+  "sourceSha256Encoding": "UTF-8 with CRLF normalized to LF",
+  "sourceSha256": {
+    "src/features/reports/hooks/incomeStatement/statementAmountPresentation.ts": "6229789f6c7a38ed19ceac11db1bcb8a3ae80a754ca9c6b9bb0cfc41cd0448ab",
+    "src/features/reports/hooks/incomeStatement/depreciationPresentation.ts": "cc20f32ef137d3ba16b7ad45d3df0aa9fbca5305e66f653b428b160acb6f0842",
+    "src/features/reports/hooks/incomeStatement/statementRowFactories.ts": "0c4f7ce36641acd2fa50dc0796d85b3d3c91ca0b7e767e90e899b65f0f77bb70",
+    "src/features/reports/hooks/incomeStatement/__tests__/depreciationIntlBoundary.audit.test.tsx": "823b0d9fd3803292304c7649cab3ddb5b67764cce6fddecd047ad189785ba58d"
+  },
+  "rawReportsSha256": {
+    "depreciation-intl-before.json": "ef0e599c24f0923f21203a24b9cb8c1ba58d1a904a4a7f853d9f8f0eacff2443",
+    "depreciation-intl-after.json": "9e3fce0f683a88012b0b2faf167c7a9ef1251d6f8dc8fb6f02fa294c53fde7b7",
+    "depreciation-intl-related.json": "e84a483e6be3391698c62ef2686d309352e2703935ccfb4dfb353544313ed164"
+  }
+}

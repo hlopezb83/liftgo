@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { DEPRECIATION_ROUNDING_LABEL } from "../../hooks/incomeStatement/depreciationPresentation";
 import { buildComparisonCsvRows } from "../../hooks/incomeStatement/statementRowFactories";
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 import { IncomeStatementTable } from "./IncomeStatementTable";
@@ -40,6 +41,20 @@ function formatMarginKpi(margin: number | null) {
   };
 }
 
+function DepreciationRoundingNote({ isComparison, statementRows, comparisonRows }: {
+  isComparison: boolean;
+  statementRows: { label: string }[];
+  comparisonRows: { label: string }[];
+}) {
+  const rows = isComparison ? comparisonRows : statementRows;
+  if (!rows.some((row) => row.label === DEPRECIATION_ROUNDING_LABEL)) return null;
+  return (
+    <p className="text-xs text-muted-foreground">
+      El ajuste de redondeo concilia los componentes mostrados con la depreciación total. No modifica la utilidad.
+    </p>
+  );
+}
+
 export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
   const {
     filteredData, totals, statementRows, comparisonRows, yearTotals,
@@ -68,8 +83,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   const netPositive = totals.netProfit >= 0;
   // Hallazgo 10: la tarjeta de egresos NO incluye depreciación (la utilidad
   // neta sí la descuenta) — se renombra y se muestra la depreciación total
-  // (rentada + ociosa) con los mismos datos ya cargados, sin cambiar cálculos.
-  const totalDepreciation = totals.depreciationRented + totals.depreciationIdle;
+  // canónica que se descuenta de la utilidad, sin sumar componentes redondeados.
+  const totalDepreciation = totals.depreciation;
   const kpis = [
     { label: "Ingresos", value: formatCurrency(totals.revenue), icon: RevenueIcon, color: "text-chart-2" },
     { label: "Egresos antes de depreciación", value: formatCurrency(totals.totalExpenses), icon: TrendingDownIcon, color: "text-destructive" },
@@ -196,6 +211,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         creditNotesBreakdownRows={creditNotesBreakdownRows}
         expenseDetailBreakdownByCategory={expenseDetailBreakdownByCategory}
       />
+      <DepreciationRoundingNote isComparison={isComparison} statementRows={statementRows} comparisonRows={comparisonRows} />
     </>
   );
 }

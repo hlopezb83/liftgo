@@ -1,0 +1,136 @@
+{
+  "baseCommit": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "execution": "offline Vitest; no browser, backend, SQL, permissions, or external services",
+  "before": {
+    "total": 17,
+    "passed": 10,
+    "failed": 7,
+    "exitCode": 1
+  },
+  "after": {
+    "total": 17,
+    "passed": 17,
+    "failed": 0,
+    "source": "same cases within the related suite",
+    "exitCode": 0
+  },
+  "related": {
+    "total": 64,
+    "passed": 64,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "checks": {
+    "eslintChangedFiles": {
+      "exitCode": 0,
+      "warnings": 0
+    },
+    "typecheck": {
+      "command": "tsc --noEmit",
+      "exitCode": 0
+    },
+    "diffCheck": {
+      "exitCode": 0
+    }
+  },
+  "cases": [
+    {
+      "name": "IncomeStatementReport · KPI completos conserva los cinco importes exactos del reporte",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos el comparativo sigue sin mostrar KPI",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos R2: el KPI usa la depreciación canónica que descuenta la utilidad",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos R2: explica el ajuste visible en monthly",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos R2: explica el ajuste visible en comparison",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos R2: omite la explicación cuando no hay diferencia mostrada",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos N2: muestra un margen no aplicable con estilo neutral",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos N3: advierte sobre depreciación faltante en Devengado",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "IncomeStatementReport · KPI completos N3: Efectivo omite la advertencia de depreciación y conserva la de costo de venta",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense shows the negative cent explicitly, preserving monthly components and profit",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense reconciles each month and the independently rounded range total",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense carries the same adjustment into comparative rows and CSV",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense omits rounding noise when rented days = 0",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense omits rounding noise when rented days = 1",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense omits rounding noise when rented days = 31",
+      "before": "passed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense preserves negative components and shows the opposite adjustment",
+      "before": "failed",
+      "after": "passed"
+    },
+    {
+      "name": "R2: depreciation presentation reconciles with the canonical expense does not add a depreciation adjustment in cash basis",
+      "before": "passed",
+      "after": "passed"
+    }
+  ],
+  "sourceSha256Encoding": "UTF-8 with CRLF normalized to LF",
+  "sourceSha256": {
+    "src/features/reports/components/reports/IncomeStatementReport.tsx": "3fa3f5d0f323c9f012963849cf9ef2c467add021f05bedf814fa1092421b07a0",
+    "src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx": "76f3d96847748ec453a1f1e6d1fc6ea8bf79100ddf1068e7cba5af1509dce3a3",
+    "src/features/reports/hooks/incomeStatement/depreciationPresentation.ts": "212cdc3620f6ca5d15e883ddea33a17edc22ee3b9fc4d05b91d9893171c2ceb0",
+    "src/features/reports/hooks/incomeStatement/statementRowFactories.ts": "0e1b624e632b5da4ec31467c8679af73f225bf55a048df611c7f9eb6534e1409",
+    "src/features/reports/hooks/incomeStatement/useStatementRows.ts": "099c3100b91e5cfa0c2f9aaa8ec8a70ccd800f13d4278a66d8e3161471185ce0",
+    "src/features/reports/hooks/incomeStatement/__tests__/depreciationPresentation.audit.test.ts": "777353579e4edfaa1f651c266d634fd97e448a08f0ef8633fc4799d2fa8d0790"
+  },
+  "rawReportsSha256": {
+    "depreciation-before.json": "784514394efb807eb5def01b986e86b22d706d648f1ebcc454e9f40ef3a8f04e",
+    "depreciation-related.json": "4c60252574ae1205b63cf846c3c0064b521c6779b8f74eb1d860f943a8796d4c"
+  }
+}

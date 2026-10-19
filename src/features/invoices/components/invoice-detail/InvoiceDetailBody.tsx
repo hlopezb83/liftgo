@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { useQuote } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { getInvoiceBackNavigation } from "@/lib/navigation/customerInvoiceOrigins";
 import { useLocation } from "@/lib/router-compat";
 import { StampErrorDialog } from "../StampErrorDialog";
 import { InvoiceCreditNotesCard } from "./InvoiceCreditNotesCard";
@@ -68,8 +69,7 @@ export function InvoiceDetailBody({
   invoice, id, derived, actions, userRole, sourceQuote, sourceBookings, refetch,
 }: Props) {
   const location = useLocation();
-  const origin = (location.state as { invoiceListBackTo?: unknown } | null)?.invoiceListBackTo;
-  const backTo = typeof origin === "string" && /^\/invoices(?:[?#]|$)/.test(origin) ? origin : undefined;
+  const backNavigation = getInvoiceBackNavigation(location.state, invoice.customer_id);
   const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance,
     unconvertiblePayments, showCfdiError, showCollectionNotes, visibility, ppdStamped } = derived;
   const currency = invoice.moneda ?? "MXN";
@@ -78,8 +78,7 @@ export function InvoiceDetailBody({
     <>
       <DetailPageHeader
         title={invoice.invoice_number}
-        backTo={backTo ?? "/invoices"}
-        restoreListFilters={!backTo}
+        {...backNavigation}
         badges={
           <InvoiceDetailBadges
             invoiceStatus={invoice.status}

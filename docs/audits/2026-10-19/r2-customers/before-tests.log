@@ -1,0 +1,108 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-customers
+
+ Γ¥» src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx (7 tests | 4 failed) 3322ms
+     ├ù labels USD and MXN totals explicitly without converting the original amounts 89ms
+     ├ù returns invoice ΓåÆ customer ΓåÆ exact customer list after mouse activation 1057ms
+     ├ù returns invoice ΓåÆ customer ΓåÆ exact customer list after Enter activation 1041ms
+     ├ù returns invoice ΓåÆ customer ΓåÆ exact customer list after   activation 1042ms
+     Γ£ô keeps read access informational with no invoice navigation 48ms
+     Γ£ô keeps Facturas=none hidden 20ms
+     Γ£ô falls back safely to the customer list on direct visits without history state 23ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 4 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx > Customer invoice currency and return navigation > labels USD and MXN totals explicitly without converting the original amounts
+TestingLibraryElementError: Unable to find an element with the text: USD. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<div
+  class="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm cursor-pointer hover:bg-muted/60"
+  role="button"
+  tabindex="0"
+>
+  <div>
+    <p
+      class="font-medium"
+    >
+      FAC-USD
+    </p>
+    <p
+      class="text-xs text-muted-foreground"
+    >
+      19/10/2026
+    </p>
+  </div>
+  <div
+    class="flex items-center gap-3"
+  >
+    <span
+      class="font-mono font-semibold"
+    >
+      $100.00
+    </span>
+    <div
+      class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover:bg-primary/80 gap-1.5 whitespace-nowrap font-medium text-foreground bg-info/10 border-info/20 [--dot:hsl(var(--info))]"
+    >
+      <span
+        aria-hidden="true"
+        class="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--dot)]"
+      />
+      Sin pagar
+    </div>
+  </div>
+</div>
+ Γ¥» Object.getElementError ../liftgo/node_modules/@testing-library/dom/dist/config.js:37:19
+ Γ¥» ../liftgo/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ Γ¥» ../liftgo/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ Γ¥» ../liftgo/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ Γ¥» src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx:91:41
+     89|       const row = screen.getByText(`FAC-${code}`).closest("[role=buttoΓÇª
+     90|       expect(row).not.toBeNull();
+     91|       expect(within(row as HTMLElement).getByText(code)).toBeInTheDocuΓÇª
+       |                                         ^
+     92|       expect(row?.textContent).toMatch(/100\.00/);
+     93|       expect(row?.textContent).not.toMatch(/1,750/);
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/4]ΓÄ»
+
+ FAIL  src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx > Customer invoice currency and return navigation > returns invoice ΓåÆ customer ΓåÆ exact customer list after mouse activation
+ FAIL  src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx > Customer invoice currency and return navigation > returns invoice ΓåÆ customer ΓåÆ exact customer list after Enter activation
+ FAIL  src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx > Customer invoice currency and return navigation > returns invoice ΓåÆ customer ΓåÆ exact customer list after   activation
+AssertionError: expected '/invoices?q=unrelated' to be '/customers/11111111-1111-4111-8111-11ΓÇª' // Object.is equality
+
+Ignored nodes: comments, script, style
+<html>
+  <head />
+  <body>
+    <div>
+      <output
+        data-testid="location"
+      >
+        /invoices?q=unrelated
+      </output>
+    </div>
+  </body>
+</html>...
+
+Expected: "/customers/11111111-1111-4111-8111-111111111111?tab=invoices#history"
+Received: "/invoices?q=unrelated"
+
+ Γ¥» src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx:106:76
+    104|     window.sessionStorage.setItem("list-filters:/invoices", "q=unrelatΓÇª
+    105|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    106|     await waitFor(() => expect(screen.getByTestId("location").textContΓÇª
+       |                                                                            ^
+    107|     fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    108|     await waitFor(() => expect(screen.getByTestId("location").textContΓÇª
+ Γ¥» runWithExpensiveErrorDiagnosticsDisabled ../liftgo/node_modules/@testing-library/dom/dist/config.js:47:12
+ Γ¥» checkCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ Γ¥» Timeout.checkRealTimersCallback ../liftgo/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/4]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 3 passed (7)
+   Start at  00:13:41
+   Duration  10.61s (transform 689ms, setup 571ms, import 5.06s, tests 3.32s, environment 1.20s)

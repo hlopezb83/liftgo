@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useParams } from "@/lib/router-compat";
+import { getCustomerListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
+import { useLocation, useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerBookingsHistory } from "../components/customer-detail/CustomerBookingsHistory";
 import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
@@ -31,6 +32,8 @@ function customerSubtitle(customer: { name: string; company?: string | null; rfc
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
+  const location = useLocation();
+  const listBackTo = getCustomerListBackTo(location.state);
   const s = useCustomerDetailPage(id);
 
   const handleExportStatement = async () => {
@@ -59,7 +62,7 @@ export default function CustomerDetailPage() {
         <EmptyState
           title="Cliente no encontrado"
           actionLabel="Volver"
-          onAction={() => navigate("/customers")}
+          onAction={() => navigate(listBackTo ?? "/customers")}
         />
       </PageContainer>
     );
@@ -72,7 +75,8 @@ export default function CustomerDetailPage() {
         // R14-FE-04: si la empresa repite el nombre del contacto, el subtítulo
         // duplicaba el título; en ese caso se muestra el RFC como metadato útil.
         subtitle={customerSubtitle(s.customer)}
-        backTo="/customers"
+        backTo={listBackTo ?? "/customers"}
+        restoreListFilters={!listBackTo}
         actions={
           <>
             <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>

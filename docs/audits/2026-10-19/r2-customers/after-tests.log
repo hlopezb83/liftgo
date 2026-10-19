@@ -1,0 +1,14 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-customers
+
+ Γ£ô src/features/customers/pages/__tests__/CustomerInvoiceNavigation.test.tsx (7 tests) 291ms
+ Γ£ô src/features/customers/pages/__tests__/CustomersPage.creation.test.tsx (6 tests) 52ms
+ Γ£ô src/features/invoices/components/list/__tests__/InvoiceMobileCard.test.tsx (2 tests) 72ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/InvoiceDetailNavigation.test.tsx (15 tests) 76ms
+ Γ£ô src/components/layout/__tests__/DetailPageHeader.navigation.test.tsx (3 tests) 42ms
+ Γ£ô src/features/invoices/pages/__tests__/InvoicesPage.navigation.test.tsx (1 test) 56ms
+
+ Test Files  6 passed (6)
+      Tests  34 passed (34)
+   Start at  00:18:42
+   Duration  29.86s (transform 1.21s, setup 2.62s, import 20.57s, tests 590ms, environment 4.48s)
