@@ -21,15 +21,15 @@ import {
   type InvoiceFormValues,
 
 } from "../lib/invoiceFormSchema";
-import { bookingPeriodConflict, originalPeriodBooking, originalPeriodUnavailable } from "../lib/originalBookingPeriod";
+import { bookingPeriodSelectionError } from "../lib/originalBookingPeriod";
 import { quoteChargeSelectionError } from "../lib/quoteChargeAvailability";
 import { quotedBillingPeriodError } from "../lib/quotedBookingLines";
+import { useInvoiceBookingPeriods } from "./invoiceForm/useInvoiceBookingPeriods";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
 import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
-import { useBookingBillingEvidence } from "./invoices/useBookingBillingEvidence";
 import { useInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
@@ -130,21 +130,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
   const { data: sourceQuote } = useQuote(quoteId);
   const { data: assignments } = useQuoteAssignments(quoteId);
-  const billingEvidence = useBookingBillingEvidence();
-  const billingReady = billingEvidence.claims.isSuccess && billingEvidence.extensions.isSuccess;
-  const billingEvidenceBlock = billingEvidence.claims.isError || billingEvidence.extensions.isError
-    ? "No se pudo verificar el historial de facturación. Recarga y reintenta."
-    : !billingReady ? "Espera a que cargue el historial de facturación de las reservas." : null;
-  // Never mutate the operational booking dates; this view belongs only to new
-  // original-period invoices. Existing invoices and extension prefill keep their term.
-  const originalBookings = bookings?.flatMap((booking) => {
-    const original = originalPeriodBooking(booking, billingEvidence.extensions.data ?? []);
-    return original ? [original] : [];
-  });
-  const billingBookings = isEdit || extensionId ? bookings : originalBookings;
   const invoiceBookingsQuery = useInvoiceBookings(id);
   const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
+  const periods = useInvoiceBookingPeriods({ bookings, isEdit, id, extensionId, existing, existingBookingIds });
 
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
 
@@ -181,23 +170,16 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { quoteChargePrefillError } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
     chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
-    form, customers, bookings: billingReady ? billingBookings : undefined, forklifts, quotes: bookingSourceQuotes,
+    form, customers, bookings: periods.handlerBookings, forklifts, quotes: bookingSourceQuotes,
     loadQuoteCharges: chargeAvailability.loadForQuotes,
   });
   const selectedBookingIds = useWatch({ control: form.control, name: "bookingIds" });
-  const chargeBlock = ((selectedBookingIds?.length ?? 0) > 0 ? billingEvidenceBlock : null) || invoiceChargeBlock(isLoadingCharges,
+  const chargeBlock = invoiceChargeBlock(isLoadingCharges, periods.linkedBlock(selectedBookingIds),
     bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quoteChargePrefillError);
 
   const totals = useInvoiceFormTotals(form);
 
-  const invoicedBookingIds = new Set((billingBookings ?? []).filter((booking) => {
-    const editingLinkedBooking = isEdit && (existing?.booking_id === booking.id || existingBookingIds.includes(booking.id));
-    if (editingLinkedBooking && !booking.recurring_billing && existing?.billing_period_start && existing.billing_period_end) {
-      return bookingPeriodConflict(booking.id, existing.billing_period_start, existing.billing_period_end,
-        billingEvidence.claims.data ?? [], id);
-    }
-    return originalPeriodUnavailable(booking, billingEvidence.claims.data ?? [], id);
-  }).map((booking) => booking.id));
+
 
   // v7.307.0: al facturar una extensión, la reserva YA tiene factura del
   // período original. Se re-habilita para poder ligar la factura del tramo
@@ -212,8 +194,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const extensionBookingId = extension?.booking_id ?? null;
 
   const availableBookings = filterAvailableBookings(
-    billingReady ? billingBookings as BookingWithForklift[] | undefined : [],
-    invoicedBookingIds,
+    periods.candidates as BookingWithForklift[] | undefined,
+    periods.unavailableIds,
     extensionBookingId,
   );
 
@@ -233,24 +215,17 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const validateSelection = (
     values: InvoiceFormValues,
   ): { field: "bookingIds" | "billingPeriodStart" | "lineItems"; message: string } | null => {
-    if ((values.bookingIds?.length ?? 0) > 0 && billingEvidenceBlock) {
-      return { field: "bookingIds", message: billingEvidenceBlock };
-    }
     const chargeError = chargeBlock || quoteChargeSelectionError(relatedQuoteIds, values.lineItems, chargeAvailability.data);
     if (chargeError) return { field: "lineItems", message: chargeError };
     const selected = (values.bookingIds ?? [])
-      .map((bid) => billingBookings?.find((b) => b.id === bid))
+      .map((bid) => periods.billingBookings?.find((b) => b.id === bid))
       .filter(Boolean) as unknown as BillableBooking[];
-    if (selected.length !== new Set(values.bookingIds ?? []).size) {
-      return { field: "bookingIds", message: "No se pudo verificar el periodo original de las reservas. Revisa su historial de extensiones." };
-    }
+    const periodError = bookingPeriodSelectionError(values.bookingIds ?? [], selected, periods.claims,
+      values.billingPeriodStart, values.billingPeriodEnd, periods.block, id);
+    if (periodError) return periodError;
     if (selected.length === 0) return null;
-    if (selected.some((booking) => !booking.recurring_billing && bookingPeriodConflict(booking.id, values.billingPeriodStart,
-      values.billingPeriodEnd, billingEvidence.claims.data ?? [], id))) {
-      return { field: "billingPeriodStart", message: "Este periodo se superpone con otra factura activa de la reserva. Revisa las fechas o cancela la factura anterior." };
-    }
     if (!isEdit) {
-      const quoted = (values.bookingIds ?? []).flatMap((bid) => billingBookings?.find((booking) => booking.id === bid) ?? []);
+      const quoted = (values.bookingIds ?? []).flatMap((bid) => periods.billingBookings?.find((booking) => booking.id === bid) ?? []);
       const pactError = quotedBillingPeriodError(quoted, bookingSourceQuotes, values.billingPeriodStart, values.billingPeriodEnd,
         { requestedId: extensionId, loaded: extension });
       if (pactError) return { field: "billingPeriodStart", message: pactError };
@@ -286,14 +261,13 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     onSubmit,
     validateSelection,
     chargeBlock,
-    bookingAvailabilityBlock: billingEvidenceBlock || (!isEdit && !extensionId && originalBookings?.length !== bookings?.length
-      ? "Hay reservas con historial de extensiones incompleto o incoherente. Revisa su historial antes de facturar el periodo original." : null),
+    bookingAvailabilityBlock: periods.availabilityBlock,
     retryChargeAvailability: () => {
-      if (billingEvidenceBlock || originalBookings?.length !== bookings?.length) return Promise.all([bookingsQuery.refetch(), billingEvidence.claims.refetch(), billingEvidence.extensions.refetch()]);
+      if (periods.block || periods.invalidHistory) return Promise.all([bookingsQuery.refetch(), periods.refetch()]);
       if (bookingSourceBlock) return Promise.all([bookingsQuery.refetch(), invoiceBookingsQuery.refetch()]);
       return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
     },
-    isLoadingChargeAvailability: isLoadingCharges || chargeAvailability.isFetching || billingEvidence.claims.isFetching || billingEvidence.extensions.isFetching,
+    isLoadingChargeAvailability: isLoadingCharges || chargeAvailability.isFetching || periods.isFetching,
     saveInvoice: submit.saveInvoice,
     updateQuote: submit.updateQuote,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,

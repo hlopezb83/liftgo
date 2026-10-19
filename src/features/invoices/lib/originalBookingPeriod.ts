@@ -57,3 +57,17 @@ export function originalPeriodUnavailable(
     && claim.invoice_id !== currentInvoiceId && claim.status !== "cancelled");
   return bookingPeriodConflict(booking.id, booking.start_date, booking.end_date, claims, currentInvoiceId);
 }
+
+/** Validate submitted IDs and actual dates independently of selector rendering. */
+export function bookingPeriodSelectionError(
+  ids: string[], selected: BillableBooking[], claims: BookingInvoiceClaim[],
+  start: string, end: string, block: string | null, currentInvoiceId?: string,
+): { field: "bookingIds" | "billingPeriodStart"; message: string } | null {
+  if (ids.length > 0 && block) return { field: "bookingIds", message: block };
+  if (selected.length !== new Set(ids).size) {
+    return { field: "bookingIds", message: "No se pudo verificar el periodo original de las reservas. Revisa su historial de extensiones." };
+  }
+  const overlap = selected.some((booking) => !booking.recurring_billing
+    && bookingPeriodConflict(booking.id, start, end, claims, currentInvoiceId));
+  return overlap ? { field: "billingPeriodStart", message: "Este periodo se superpone con otra factura activa de la reserva. Revisa las fechas o cancela la factura anterior." } : null;
+}
