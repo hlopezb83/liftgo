@@ -441,3 +441,28 @@ Nitro 3.0.260603-beta, React PDF 4.6.1 y Wrangler 4.147.0:
 Las advertencias anteriores no sustituyen la validación de errores de página,
 hidratación, descargas o rendimiento. El límite de chunks y los demás avisos
 se mantienen activos.
+
+
+### Replay Drizzle efímero y recibo target-bound 0108
+
+Los gates RLS y A/B validan primero el journal canónico (`migrations:check`).
+`ci-drizzle-replay.mjs prepare` genera una copia temporal aislada del historial y
+registra explícitamente la exclusión del recibo `0108_control0108_verified_release`.
+Este bloque DO verifica el estado concreto del destino liberado (incluidos ACL y
+ledger de su preflight), no define esquema funcional portable para una BD vacía.
+Sólo se reconoce su identidad exacta: idx 108, when 1792440638110 y SHA-256
+`ce97a5bcebbcf5f5671861c4d74ed33b3c930710e9f99ded7441a7daf5ec89eb`.
+Cualquier deriva de esta identidad aborta; no existe una exclusión genérica de
+controles ni una opción para deshabilitar verificaciones.
+
+`drizzle.ci.config.ts` consume únicamente esa copia validada y rechaza destinos
+distintos del PostgreSQL local efímero de CI. Todas las migraciones funcionales
+conservan sus bytes y orden canónico. Tras `drizzle-kit migrate`, `verify` compara
+el ledger real completo (hash y timestamp) contra el replay; no inserta ni simula
+una fila aplicada para 0108. El diagnóstico en fallo consume la misma copia,
+valida el prefijo aplicado y revierte siempre su transacción.
+
+El SQL, snapshots, journal y configuración productivos permanecen intactos. Las
+suites SQL/RLS y A/B siguen ejecutándose completas después del gate de ledger.
+El recibo 0108 conserva su verificación propia en el destino autorizado; CI no
+pretende certificar ni reconstruir ese estado productivo.

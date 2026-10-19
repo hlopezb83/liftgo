@@ -2587,6 +2587,8 @@ export type Database = {
           notes: string | null
           organization_id: string
           paid_at: string | null
+          quote_charge_ever_issued: boolean
+          quote_charge_tracking_version: number | null
           quote_id: string | null
           receptor_domicilio_fiscal_cp: string | null
           receptor_razon_social: string | null
@@ -2648,6 +2650,8 @@ export type Database = {
           notes?: string | null
           organization_id: string
           paid_at?: string | null
+          quote_charge_ever_issued?: boolean
+          quote_charge_tracking_version?: number | null
           quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
           receptor_razon_social?: string | null
@@ -2709,6 +2713,8 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           paid_at?: string | null
+          quote_charge_ever_issued?: boolean
+          quote_charge_tracking_version?: number | null
           quote_id?: string | null
           receptor_domicilio_fiscal_cp?: string | null
           receptor_razon_social?: string | null
@@ -6946,6 +6952,10 @@ export type Database = {
           razon_social: string
         }[]
       }
+      get_quote_charge_availability: {
+        Args: { p_exclude_invoice_id?: string; p_quote_ids: string[] }
+        Returns: Json
+      }
       get_sale_available_forklifts: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {
@@ -7818,6 +7828,18 @@ export type Database = {
       purge_e2e_data: { Args: never; Returns: Json }
       purge_expired_support_diagnostics: { Args: never; Returns: number }
       purge_old_notifications: { Args: never; Returns: number }
+      quote_charge_invoice_active: {
+        Args: { p_invoice: Database["public"]["Tables"]["invoices"]["Row"] }
+        Returns: boolean
+      }
+      quote_charge_is_generated_equipment_line: {
+        Args: { p_line: Json }
+        Returns: boolean
+      }
+      quote_has_legacy_charge_history: {
+        Args: { p_exclude_invoice_id?: string; p_quote_id: string }
+        Returns: boolean
+      }
       quote_sale_units_unassigned: {
         Args: { p_quote_id: string }
         Returns: number
@@ -8106,6 +8128,8 @@ export type Database = {
               notes: string | null
               organization_id: string
               paid_at: string | null
+              quote_charge_ever_issued: boolean
+              quote_charge_tracking_version: number | null
               quote_id: string | null
               receptor_domicilio_fiscal_cp: string | null
               receptor_razon_social: string | null
@@ -8182,6 +8206,8 @@ export type Database = {
               notes: string | null
               organization_id: string
               paid_at: string | null
+              quote_charge_ever_issued: boolean
+              quote_charge_tracking_version: number | null
               quote_id: string | null
               receptor_domicilio_fiscal_cp: string | null
               receptor_razon_social: string | null

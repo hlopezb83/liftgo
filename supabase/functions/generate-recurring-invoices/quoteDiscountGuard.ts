@@ -21,7 +21,9 @@ export function recurringQuoteIssue(
     return "quote_source_missing";
   }
   const rows = [
-    ...quote.line_items,
+    ...quote.line_items.filter((row) =>
+      !row || typeof row !== "object" || row.line_kind !== "charge"
+    ),
     ...(Array.isArray(quote.rental_meta) ? quote.rental_meta : []),
   ];
   return rows.some((row) =>

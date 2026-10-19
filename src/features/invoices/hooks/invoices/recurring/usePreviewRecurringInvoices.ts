@@ -8,6 +8,7 @@ type PreviewReason =
   | "period_in_future"
   | "booking_ended"
   | "no_exchange_rate"
+  | "quote_charge_review"
   | "quote_discount_review"
   | "quote_source_missing";
 

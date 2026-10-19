@@ -1,21 +1,48 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createMemoryHistory, createRootRoute, createRoute, createRouter, RouterProvider } from "@tanstack/react-router";
 import type { ComponentProps } from "react";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InvoiceDetailBody } from "@/features/invoices/components/invoice-detail/InvoiceDetailBody";
-import { useLocation, useNavigate } from "@/lib/router-compat";
-import { TestRouter } from "@/test/router";
+import { useLocation } from "@/lib/router-compat";
+import MainLayout from "@/layouts/MainLayout";
+import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
+import CustomersPage from "../CustomersPage";
 import CustomerDetailPage from "../CustomerDetailPage";
 
 const access = vi.hoisted(() => ({ level: "full" }));
 const customerId = "11111111-1111-4111-8111-111111111111";
 const invoiceId = "22222222-2222-4222-8222-222222222222";
-const listOrigin = "/customers?q=aceros&page=3&status=active#results";
-const customerOrigin = `/customers/${customerId}?tab=invoices#history`;
+const listOrigin = "/customers?q=QA-AUDIT#main-content";
+const customerOrigin = `/customers/${customerId}`;
 
 vi.mock("@/features/users", () => ({
   useUserRole: () => ({ data: "admin" }),
   useRolePermissions: () => ({ data: {} }),
   getAccessLevel: () => access.level,
+  useHasModuleAccess: () => true,
+}));
+// Keep the real layout, list/table, detail, invoice row and return buttons.
+// Only unrelated shell widgets and backend data are replaced offline.
+vi.mock("react-hotkeys-hook", () => ({ useHotkeys: vi.fn() }));
+vi.mock("@/components/feedback/KeyboardShortcutsDialog", () => ({ KeyboardShortcutsDialog: () => null }));
+vi.mock("@/layouts/AppSidebar", () => ({ AppSidebar: () => null }));
+vi.mock("@/layouts/TopbarBreadcrumbs", () => ({ TopbarBreadcrumbs: () => null }));
+vi.mock("@/layouts/TopbarUserMenu", () => ({ TopbarUserMenu: () => null }));
+vi.mock("@/layouts/OfflineBanner", () => ({ OfflineBanner: () => null }));
+vi.mock("@/features/feedback", () => ({ FeedbackFab: () => null }));
+vi.mock("@/features/system/components/GlobalSearch", () => ({ GlobalSearch: () => null }));
+vi.mock("@/features/crm", () => ({ useUpdateProspect: () => ({ mutate: vi.fn() }) }));
+vi.mock("../../hooks/customers/customerQueries", () => ({
+  useCustomersIncremental: () => ({ data: { pages: [[{ id: customerId, name: "QA-AUDIT", rfc: null, phone: null, email: null }]] }, isLoading: false, isError: false,
+    refetch: vi.fn(), hasNextPage: false, isFetchingNextPage: false, fetchNextPage: vi.fn() }),
+}));
+vi.mock("../../hooks/customers/useCustomers", () => ({
+  useCreateCustomer: () => ({ mutate: vi.fn(), isPending: false }),
+  useUpdateCustomer: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+vi.mock("../../components/customers/CustomersToolbar", () => ({
+  CustomersActions: () => null, CustomersSecondaryActions: () => null, CustomersFilters: () => null,
 }));
 vi.mock("@/layouts/RoleGuard", () => ({ RoleGuard: () => null }));
 vi.mock("../../hooks/customers/useCustomerDetailPage", () => ({
@@ -61,11 +88,10 @@ const invoiceProps = {
 
 function Flow() {
   const location = useLocation();
-  const navigate = useNavigate();
   return <>
     <output data-testid="location">{`${location.pathname}${location.search}${location.hash}`}</output>
     {location.pathname === "/customers" ? (
-      <button onClick={() => navigate(customerOrigin, { state: { customerListBackTo: listOrigin } })}>Abrir cliente</button>
+      <CustomersPage />
     ) : location.pathname.startsWith("/customers/") ? (
       <CustomerDetailPage />
     ) : location.pathname.startsWith("/invoices/") ? (
@@ -74,10 +100,23 @@ function Flow() {
   </>;
 }
 
+function renderFlow(entry = listOrigin) {
+  const root = createRootRoute({ component: MainLayout });
+  const routes = ["/customers", "/customers/$id", "/invoices/$id"].map((path) =>
+    createRoute({ getParentRoute: () => root, path, component: Flow }),
+  );
+  const router = createRouter({ routeTree: root.addChildren(routes),
+    history: createMemoryHistory({ initialEntries: [entry] }),
+    parseSearch, stringifySearch, defaultPendingMinMs: 0 });
+  render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}><RouterProvider router={router} /></QueryClientProvider>);
+  return router;
+}
+
 async function openCustomer() {
-  render(<TestRouter initialEntries={[listOrigin]} path="/customers/$id"><Flow /></TestRouter>);
-  fireEvent.click(await screen.findByRole("button", { name: "Abrir cliente" }));
+  const router = renderFlow();
+  fireEvent.click((await screen.findAllByText("QA-AUDIT"))[0]);
   await screen.findByText("Cliente de prueba");
+  return router;
 }
 
 beforeEach(() => { access.level = "full"; window.sessionStorage.clear(); });
@@ -108,6 +147,46 @@ describe("Customer invoice currency and return navigation", () => {
     await waitFor(() => expect(screen.getByTestId("location").textContent).toBe(listOrigin));
   });
 
+  it.each(["mouse", "Enter", " "])("preserves real list → detail → skip → invoice → two returns with %s invoice-row activation", async (activation) => {
+    const router = await openCustomer();
+    const main = screen.getByRole("main");
+    main.scrollTop = 350;
+    const skip = screen.getByRole("link", { name: "Saltar al contenido" });
+    skip.focus();
+    // A link's keyboard Enter activation dispatches click in the browser.
+    fireEvent.click(skip);
+    await waitFor(() => expect(router.state.location.hash).toBe("main-content"));
+    expect(main).toHaveFocus();
+    expect(main.scrollTop).toBe(0);
+    expect(router.state.location.state).toMatchObject({ customerListBackTo: listOrigin });
+    // Repeated activation on the same fragment must also retain focus/state.
+    main.scrollTop = 350;
+    skip.focus();
+    fireEvent.click(skip);
+    expect(main).toHaveFocus();
+    expect(main.scrollTop).toBe(0);
+    expect(router.state.location.state).toMatchObject({ customerListBackTo: listOrigin });
+    const row = screen.getByRole("button", { name: /FAC-USD/ });
+    if (activation === "mouse") fireEvent.click(row);
+    else fireEvent.keyDown(row, { key: activation });
+    await waitFor(() => expect(router.state.location.pathname).toBe(`/invoices/${invoiceId}`));
+    window.sessionStorage.setItem("list-filters:/customers", "q=changed-in-another-tab");
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe(`${customerOrigin}#main-content`));
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe(listOrigin));
+  });
+
+  it("keeps the current query and deep-entry fallback after skipping", async () => {
+    window.sessionStorage.setItem("list-filters:/customers", "q=saved");
+    const router = renderFlow(`${customerOrigin}?tab=invoices#history`);
+    fireEvent.click(await screen.findByRole("link", { name: "Saltar al contenido" }));
+    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe(`${customerOrigin}?tab=invoices#main-content`));
+    expect(router.state.location.state).not.toHaveProperty("customerListBackTo");
+    fireEvent.click(screen.getByRole("button", { name: "Volver" }));
+    await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/customers?q=saved"));
+  });
+
   it("keeps read access informational with no invoice navigation", async () => {
     access.level = "read";
     await openCustomer();
@@ -127,7 +206,7 @@ describe("Customer invoice currency and return navigation", () => {
 
   it("falls back safely to the customer list on direct visits without history state", async () => {
     window.sessionStorage.setItem("list-filters:/customers", "q=saved");
-    render(<TestRouter initialEntries={[customerOrigin]} path="/customers/$id"><Flow /></TestRouter>);
+    renderFlow(`${customerOrigin}?tab=invoices#history`);
     fireEvent.click(await screen.findByRole("button", { name: "Volver" }));
     await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/customers?q=saved"));
   });
