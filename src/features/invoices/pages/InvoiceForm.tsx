@@ -160,9 +160,9 @@ export default function InvoiceForm() {
 
           <CfdiFieldsCard />
 
-          {f.chargeBlock && (
+          {(f.chargeBlock || f.bookingAvailabilityBlock) && (
             <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 space-y-2">
-              <p>{f.chargeBlock}</p>
+              <p>{f.chargeBlock || f.bookingAvailabilityBlock}</p>
               <p className="text-sm text-muted-foreground">Los borradores también reservan cargos. Si hay partidas históricas sin vínculo, concílialas antes de continuar.</p>
               <Button type="button" variant="outline" size="sm" disabled={f.isLoadingChargeAvailability}
                 onClick={() => void f.retryChargeAvailability()}>Reintentar consulta</Button>

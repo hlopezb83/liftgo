@@ -1,13 +1,13 @@
 # Estado vigente de R2 y límites de la evidencia
 
-Corte: 2026-10-19 23:33 UTC. Este resumen sustituye únicamente las afirmaciones de estado pendiente de los planes históricos de esta carpeta. No reescribe sus resultados, manifiestos, hashes, snapshots ni decisiones originales; cada uno conserva su corte temporal.
+Corte: 2026-10-19 23:40 UTC. Este resumen sustituye únicamente las afirmaciones de estado pendiente de los planes históricos de esta carpeta. No reescribe sus resultados, manifiestos, hashes, snapshots ni decisiones originales; cada uno conserva su corte temporal.
 
 ## Hechos separados por capa
 
 - **Base de datos:** 0105–0107 fueron aplicadas mediante el control transaccional 0108. El [recibo técnico de activación](../release-0105-0108/RECEIPT.md) registra la llamada oficial, los cuatro registros añadidos, las aserciones y la conservación de las 106 filas históricas. Los planes previos que dicen que nada fue aplicado ya no describen este estado.
 - **Publicación comprobada:** la revisión publicada de referencia es `433dcc44`. No equivale al main más reciente. Este PR documental no publica frontend, funciones ni servidor.
-- **Código:** main observado `dca5978746f0fc6cd4a0860cab9070549a9a9f53` incluye [PR298](https://github.com/hlopezb83/liftgo/pull/298) y [PR291 Facturapi 5.2.0](https://github.com/hlopezb83/liftgo/pull/291). La inclusión en main no demuestra despliegue.
-- **Trabajo posterior:** [PR299](https://github.com/hlopezb83/liftgo/pull/299) permanece en validación al corte. Su migración 0109 no está aplicada y sus correcciones no deben declararse publicadas. Comprobar sus estados actuales antes de una futura activación.
+- **Código:** main observado `b3aea47cc7cfd670bd91185a3dcca3f8b1e669cc` (versión de fuente 8.44.15) incluye [PR298](https://github.com/hlopezb83/liftgo/pull/298) y [PR291 Facturapi 5.2.0](https://github.com/hlopezb83/liftgo/pull/291). La inclusión en main no demuestra despliegue.
+- **Trabajo posterior:** [PR299](https://github.com/hlopezb83/liftgo/pull/299) ya fue fusionado en main; su validación posterior a la fusión se verifica por separado. Su migración 0109 no está aplicada y sus correcciones no deben declararse publicadas. Comprobar sus estados actuales antes de una futura activación.
 - **Dependencias:** los PR288–290 se actualizan y validan por separado. No se incluyen como desplegados ni aprobados por este documento.
 
 ## Cobertura de auditoría y límites
