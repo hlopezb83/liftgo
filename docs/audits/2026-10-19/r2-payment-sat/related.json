@@ -1,0 +1,251 @@
+{
+  "base": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "source": "Final corrected component",
+  "summary": {
+    "total": 48,
+    "passed": 48,
+    "failed": 0
+  },
+  "cases": [
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+      "title": "sin sobrepago no hay bloqueo",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+      "title": "monto mayor al saldo produce el bloqueo explicable",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+      "title": "rechazo del backend por saldo se muestra como bloqueo, no como toast",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts",
+      "title": "errores no catalogados siguen usando el manejo actual",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "amount inicial = balance.toFixed(2)",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "rerender con open=true y nuevo balance refresca amount",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "cambiar method sincroniza paymentFormSat vía satCodeForMethod",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con monto 0 → notifyError, no llama createPayment",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con USD usa el exchangeRate provisto en el payload",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con USD y exchangeRate '0' → notifyError, no llama createPayment",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con USD y exchangeRate vacío → notifyError",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "C-1 currency bloqueada a la moneda de la factura; setCurrency es no-op",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "USD con invoiceExchangeRate=17.25 prellena exchangeRate",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "MXN ignora invoiceExchangeRate y usa '1'",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "USD sin invoiceExchangeRate cae a '1'",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit válido llama createPayment con payload correcto",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con monto mayor al saldo → notifyValidation, no llama createPayment",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con monto == saldo (tolerancia centavo) sí llama createPayment",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con fecha anterior a issued_at → notifyValidation, no llama createPayment",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts",
+      "title": "submit con issued_at antiguo sí llama createPayment",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx",
+      "title": "N8: submits synthetic MXN 350 for USD 90 balance and original MXN 175",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx",
+      "title": "N8: blocks excess with maximum and currency in the validation message",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx",
+      "title": "does not submit when FX needed for validation is missing",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx",
+      "title": "keeps stamped REP amount disabled and submits original fiscal fields",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "changes transfer/03 to cash/01 and exposes the suggested SAT form for review",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "suggests the shared default for Efectivo only after changing method",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "suggests the shared default for Cheque only after changing method",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "suggests the shared default for Tarjeta only after changing method",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "preserves a stored card SAT28 override when editing only notes",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "preserves a stored card SAT29 override when editing only notes",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "allows an explicit SAT28 override after switching to card",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "allows an explicit SAT29 override after switching to card",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "keeps a card override when the same method is selected again",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "restores the stored SAT form when another payment opens in the mounted dialog",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "does not invent a missing legacy SAT form when editing only notes",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "locks stamped fiscal fields and permits notes with stored SAT28",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "locks stamped fiscal fields and permits notes with stored SAT29",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "locks stamped fiscal fields and permits notes with stored SATnull",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+      "title": "monto igual al tope exacto → ok",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+      "title": "redondear el origen a un centavo adicional no permite sobrepago",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+      "title": "monto excede el tope → ok:false con maxAllowed",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+      "title": "monto menor al saldo → ok",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogValidation.test.ts",
+      "title": "REP timbrado → siempre ok, sin importar el monto",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "title": "consulta conserva importes, estados y descargas sin ofrecer modificaciones",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "title": "escritura permite REP y editar pagos sin timbrar, mantiene el bloqueo fiscal",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "title": "al perder permiso desaparece un editor ya abierto",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "title": "cancelación de factura impide nuevos REP pero permite consultar una cancelación en proceso",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "title": "los resúmenes usan USD sin convertir importes a pesos",
+      "status": "passed"
+    }
+  ]
+}

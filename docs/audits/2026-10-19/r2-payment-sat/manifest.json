@@ -1,0 +1,34 @@
+{
+  "base": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "baselineComponentGitBlob": "91136a9223d9d71adf5d455e99ce3dd4567812c7",
+  "node": "v24.19.0",
+  "verification": {
+    "eslint": "PASS, zero warnings",
+    "typecheck": "PASS, tsc --noEmit",
+    "browser": "Not used",
+    "network": "Offline Vitest network barrier; no external provider or database calls"
+  },
+  "files": [
+    {
+      "path": "src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "sha256": "b19016a4e712185b28117d632374df1225e8b3146a774d60a8575be47c1c1f36"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-detail/EditPaymentDialog.tsx",
+      "sha256": "e01228a26ff1da97f9a5ec230e7544c26cb18b328f6b3ac991a568c2075567dd"
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/before.json",
+      "sha256": "7a8e6f67d13061e45ce23226b8a2e88325cf605b83b63557d6deb269cb395793"
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/after.json",
+      "sha256": "c0e45d2e47c23f15bec1143e3298669bd198ba8bc9a055dd2ead2abac31973c6"
+    },
+    {
+      "path": "docs/audits/2026-10-19/r2-payment-sat/related.json",
+      "sha256": "621b15503cd840bc8a93910509fb41561a02c3ec9bbeb417e5d4b81a6eaab38f"
+    }
+  ],
+  "hashFormat": "SHA-256 of UTF-8 text normalized to LF"
+}
