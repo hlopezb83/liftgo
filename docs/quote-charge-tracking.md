@@ -67,5 +67,14 @@ correct project's ledger, then explicitly authorize and verify the migration.
 - `supabase/tests/rls/quote_charge_tracking.sql` exercises persistent identities,
   draft reservations, partial quantities, cancellation/reissue, issued locks,
   marker opt-out, role/tenant access and own-invoice exclusion in a rollback.
+- `tests/multi-tenant-ab/quote-charge-tracking-api.spec.ts` uses ordinary Auth
+  login and PostgREST in the existing local-only A/B gate: own/cross-tenant
+  availability, complete-response refusal, partial draft reservation, exact
+  remainder, atomic overconsumption rollback and marker opt-out rejection.
+  It does not manufacture historical rows by bypassing product guards; genuine
+  pre-migration legacy history is covered separately by the SQL fixture.
+- Existing E2E rental fixtures now declare `line_kind: rental`, including the
+  forward definition of `e2e_seed_scenario`; its role checks and grants remain
+  unchanged. There is no test-user exemption from the new provenance guards.
 - Full Supabase migration replay and Auth/role gates remain required in CI.
   Focused PostgreSQL validation is not evidence of remote migration activation.
