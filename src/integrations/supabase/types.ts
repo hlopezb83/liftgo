@@ -6677,10 +6677,6 @@ export type Database = {
         Returns: number
       }
       generate_feedback_number: { Args: never; Returns: string }
-      get_quote_charge_availability: {
-        Args: { p_quote_ids: string[]; p_exclude_invoice_id?: string }
-        Returns: Json
-      }
       get_accounts_payable_summary: { Args: never; Returns: Json }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }
@@ -6955,6 +6951,10 @@ export type Database = {
           logo_url: string
           razon_social: string
         }[]
+      }
+      get_quote_charge_availability: {
+        Args: { p_exclude_invoice_id?: string; p_quote_ids: string[] }
+        Returns: Json
       }
       get_sale_available_forklifts: {
         Args: { p_limit?: number; p_offset?: number }
@@ -7828,6 +7828,18 @@ export type Database = {
       purge_e2e_data: { Args: never; Returns: Json }
       purge_expired_support_diagnostics: { Args: never; Returns: number }
       purge_old_notifications: { Args: never; Returns: number }
+      quote_charge_invoice_active: {
+        Args: { p_invoice: Database["public"]["Tables"]["invoices"]["Row"] }
+        Returns: boolean
+      }
+      quote_charge_is_generated_equipment_line: {
+        Args: { p_line: Json }
+        Returns: boolean
+      }
+      quote_has_legacy_charge_history: {
+        Args: { p_exclude_invoice_id?: string; p_quote_id: string }
+        Returns: boolean
+      }
       quote_sale_units_unassigned: {
         Args: { p_quote_id: string }
         Returns: number
