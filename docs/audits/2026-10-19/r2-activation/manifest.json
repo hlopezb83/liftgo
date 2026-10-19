@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
   "status": "PROPOSED_NOT_EXECUTED",
-  "generatedAt": "2026-10-19T11:14:07.722Z",
-  "documentBase": "4de7d314c140ccccb326730430bd8e6eb96219c8",
+  "generatedAt": "2026-10-19T11:27:31.757Z",
+  "documentBase": "0a532d68f0458b96b6e5a8e9f32900322056775f",
   "auditBase": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
   "coordinator": "Parent owns merges, target approval, official migration/publication and QA coordination",
   "executionPerformed": {
@@ -16,7 +16,8 @@
     "realAccounts": false,
     "pacCalls": false,
     "permissionChanges": false,
-    "toolDownloads": false
+    "toolDownloads": false,
+    "scope": "Backend, migration and deployment operations only; repository reads and PR publication are separate"
   },
   "sources": [
     {
@@ -44,30 +45,36 @@
     {
       "number": 283,
       "url": "https://github.com/hlopezb83/liftgo/pull/283",
-      "lastKnownHead": "991347f1e871791c5f9243cbaf89e81f14e12b3f",
+      "lastKnownHead": "d628dd0c24db765c82ffb2197c56df9b214dc1f0",
       "finalActivationHead": null,
-      "state": "RECONCILIATION_IN_PROGRESS_FINAL_HEAD_REVIEW_CI_REQUIRED"
+      "state": "RECONCILED_LOCAL_CHECKS_PASS_NEW_HEAD_CI_AND_PARENT_REVIEW_PENDING",
+      "preReconciliationHead": "991347f1e871791c5f9243cbaf89e81f14e12b3f",
+      "reconciledCandidateHead": "d628dd0c24db765c82ffb2197c56df9b214dc1f0"
     },
     {
       "number": 285,
       "url": "https://github.com/hlopezb83/liftgo/pull/285",
       "reviewedHead": "45b452431dda30d5138e01ac73490366b184bda9",
-      "state": "REVIEW_CI_APPROVED_PER_COORDINATOR_MERGE_AND_PUBLICATION_PENDING",
-      "liveStatusFetched": false
+      "state": "MERGED_POSTMERGE_CHECKS_PASSED_PER_COORDINATOR_PUBLICATION_NOT_VERIFIED",
+      "liveStatusFetched": false,
+      "mergeCommit": "3d679f30da4ffdf861a2ac185c435128fe3d1809"
     },
     {
       "number": 284,
       "url": "https://github.com/hlopezb83/liftgo/pull/284",
       "reviewedHead": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
-      "state": "REVIEW_CI_APPROVED_PER_COORDINATOR_MERGE_AND_PUBLICATION_PENDING",
-      "liveStatusFetched": false
+      "state": "RECONCILED_LOCAL_CHECKS_PASS_NEW_HEAD_CI_AND_PARENT_REVIEW_PENDING",
+      "liveStatusFetched": false,
+      "reconciledCandidateHead": "f9379a270caac4b3e83b8c56b2d077d3c5859723",
+      "finalActivationHead": null
     },
     {
       "number": 286,
       "url": "https://github.com/hlopezb83/liftgo/pull/286",
       "reviewedHead": "8f4103f266a2e3e57375776fee6f2c063650d47c",
-      "state": "REVIEW_CI_APPROVED_PER_COORDINATOR_MERGE_AND_PUBLICATION_PENDING",
-      "liveStatusFetched": false
+      "state": "MERGED_POSTMERGE_CHECKS_PASSED_PER_COORDINATOR_PUBLICATION_NOT_VERIFIED",
+      "liveStatusFetched": false,
+      "mergeCommit": "0a532d68f0458b96b6e5a8e9f32900322056775f"
     }
   ],
   "dependencies": [
@@ -88,7 +95,9 @@
     "coordinatedReleaseGateMigrationIdxs": [
       105,
       106
-    ]
+    ],
+    "requiresFinal284Head": true,
+    "logistics107Included": false
   },
   "target": {
     "environmentLabel": "<APPROVED_TARGET>",

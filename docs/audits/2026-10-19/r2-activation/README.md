@@ -1,10 +1,10 @@
 # Propuesta de activación R2
 
 Estado: **`PROPOSED_NOT_EXECUTED`**. Base documental local:
-`4de7d314c140ccccb326730430bd8e6eb96219c8` (PR 282 ya integrado).
+`0a532d68f0458b96b6e5a8e9f32900322056775f` (PR 282, 285 y 286 integrados).
 Esta entrega contiene únicamente documentación. No certifica el backend, el
 ledger, el canal de publicación ni una autorización para ejecutar el plan.
-No se conectó a ningún destino ni se aplicó, desplegó, fusionó o probó una cuenta.
+No se conectó a ningún backend ni se aplicó, desplegó, fusionó o probó una cuenta.
 
 El [contrato de migraciones](../../../migration-release-contract.md) rige esta
 propuesta. `manifest.json` fija las fuentes revisadas, el journal completo y los
@@ -15,10 +15,10 @@ hashes esperados; sus placeholders deben resolverse privadamente por el padre.
 | PR | Fuente local fijada | Situación al preparar esta propuesta |
 | --- | --- | --- |
 | 282 | merge `4de7d314c140ccccb326730430bd8e6eb96219c8` | Integrado; publicación no verificada aquí |
-| 283 | último head conocido `991347f1e871791c5f9243cbaf89e81f14e12b3f` | En reconciliación; **head final, revisión y CI pendientes** |
-| 285 | `45b452431dda30d5138e01ac73490366b184bda9` | Revisado/CI aprobado según coordinación; merge/publicación pendientes |
-| 284 | `988803bcb7247674ad0c1ca2f5c28eb084f34105` | Revisado/CI aprobado según coordinación; depende de 285 |
-| 286 | `8f4103f266a2e3e57375776fee6f2c063650d47c` | Revisado/CI aprobado según coordinación; merge/publicación pendientes |
+| 283 | candidato reconciliado `d628dd0c24db765c82ffb2197c56df9b214dc1f0` | Comprobaciones locales PASS; **CI del nuevo head y revisión pendientes** |
+| 285 | `45b452431dda30d5138e01ac73490366b184bda9` | Integrado; postmerge verde según coordinación; publicación no verificada |
+| 284 | candidato reconciliado `f9379a270caac4b3e83b8c56b2d077d3c5859723` | Comprobaciones locales PASS; **CI del nuevo head y revisión pendientes**; depende de 285 |
+| 286 | `8f4103f266a2e3e57375776fee6f2c063650d47c` | Integrado; postmerge verde según coordinación; publicación no verificada |
 
 El orden obligatorio es **285 → 284**, con SQL **0105 → 0106**. El padre
 coordina los merges. El head conocido de 283 no es una autorización de activación.
