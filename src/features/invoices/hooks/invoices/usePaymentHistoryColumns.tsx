@@ -31,7 +31,7 @@ function getStampRepActionState(stampRep: ReturnType<typeof useStampPaymentCompl
     title: stampRep.isPending
       ? "Hay un timbrado de REP en curso"
       : retryBlocked
-        ? "No se pudo confirmar el estado del REP. Recarga los pagos antes de reintentar."
+        ? "No se pudo confirmar el estado del REP. Recarga la página antes de reintentar."
         : "Timbrar complemento de pago",
   };
 }
