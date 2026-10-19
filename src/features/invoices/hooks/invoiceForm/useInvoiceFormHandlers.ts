@@ -3,10 +3,10 @@ import type { Forklift } from "@/features/fleet";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
-import { applyQuoteChargeAvailability, buildAvailableQuoteChargeLines, preserveEnteredQuoteChargeLines, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
+import { applyQuoteChargeAvailability, buildAvailableQuoteChargeLines, preserveEnteredQuoteChargeLines, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { buildQuotedBookingLines, type BookingQuoteSource } from "../../lib/quotedBookingLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
@@ -141,6 +141,19 @@ export function applyPrimaryCurrency<T extends Pick<Booking, "currency" | "tipo_
     { shouldDirty: true });
 }
 
+async function availableChargesForBookings(
+  selected: Booking[], quotes: QuoteSource[] | undefined, loadQuoteCharges: Props["loadQuoteCharges"],
+): Promise<LineItemValues[]> {
+  const quoteIds = [...new Set(selected.flatMap((booking) => booking.quote_id ? [booking.quote_id] : []))];
+  const availability = quoteIds.length ? await loadQuoteCharges(quoteIds) : undefined;
+  for (const quoteId of quoteIds) {
+    const source = quotes?.find((quote) => quote.id === quoteId);
+    if (!Array.isArray(source?.line_items)) throw new Error("No se pudieron verificar las partidas de la cotización. Recarga y reintenta.");
+    applyQuoteChargeAvailability(quoteId, source.line_items as LineItemValues[], availability);
+  }
+  return buildAvailableQuoteChargeLines(quoteIds, availability);
+}
+
 export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteCharges }: Props) {
 
   const selectionRequest = useRef(0);
@@ -171,15 +184,8 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
       if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
       rentalLines = buildQuotedBookingLines(selected, bookings ?? [], forklifts ?? [], quotes,
         (booking) => buildLinesForBooking(booking, forklifts));
-      const quoteIds = [...new Set(selected.flatMap((b) => b.quote_id ? [b.quote_id] : []))];
-      const availability = quoteIds.length ? await loadQuoteCharges(quoteIds) : undefined;
+      const available = await availableChargesForBookings(selected, quotes, loadQuoteCharges);
       if (request !== selectionRequest.current) return;
-      for (const quoteId of quoteIds) {
-        const source = quotes?.find((quote) => quote.id === quoteId);
-        if (!Array.isArray(source?.line_items)) throw new Error("No se pudieron verificar las partidas de la cotización. Recarga y reintenta.");
-        applyQuoteChargeAvailability(quoteId, source.line_items as LineItemValues[], availability);
-      }
-      const available = buildAvailableQuoteChargeLines(quoteIds, availability);
       const current = form.getValues("lineItems");
       extraLines = preserveEnteredQuoteChargeLines(available, current);
     } catch (error) {

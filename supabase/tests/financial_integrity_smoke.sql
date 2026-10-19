@@ -184,6 +184,10 @@ BEGIN
   -- Reproduce a genuinely historical row by bypassing every current user
   -- trigger. The legacy state predates both the generic insert-state guard and
   -- the financial guard under test; re-enable them before reconciliation.
+  -- Validate all previously queued deferred constraints before this existing
+  -- historical-fixture DDL. PostgreSQL refuses ALTER TABLE with pending events;
+  -- keep checks immediate for the remainder of this rollback-only smoke test.
+  SET CONSTRAINTS ALL IMMEDIATE;
   ALTER TABLE public.invoices DISABLE TRIGGER USER;
   INSERT INTO public.invoices (
     id, organization_id, invoice_number, customer_id, customer_name, subtotal, tax_amount,

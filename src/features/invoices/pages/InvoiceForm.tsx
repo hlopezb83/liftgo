@@ -22,6 +22,11 @@ import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 
+function invoiceSubmitBlock(chargeBlock: string | null, isEdit: boolean, version: number | null | undefined) {
+  if (chargeBlock) return chargeBlock;
+  return isEdit && version == null ? "Cargando la factura…" : undefined;
+}
+
 export default function InvoiceForm() {
   const navigate = useNavigateTransition();
   const { id } = useParams();
@@ -45,6 +50,7 @@ export default function InvoiceForm() {
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
   const currency = useWatch({ control: f.form.control, name: "cfdi.moneda" });
   const isSubmitting = f.saveInvoice.isPending;
+  const submitBlock = invoiceSubmitBlock(f.chargeBlock, f.isEdit, f.invoiceVersion);
   // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
   // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
@@ -190,8 +196,8 @@ export default function InvoiceForm() {
           {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
               y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
           <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
-            submitDisabled={!!f.chargeBlock || (f.isEdit && f.invoiceVersion == null)}
-            submitDisabledReason={f.chargeBlock || (f.isEdit && f.invoiceVersion == null ? "Cargando la factura…" : undefined)}
+            submitDisabled={!!submitBlock}
+            submitDisabledReason={submitBlock}
           />
         </form>
       </Form>

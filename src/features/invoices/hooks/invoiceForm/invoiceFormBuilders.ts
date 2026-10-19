@@ -1,4 +1,3 @@
-import { applyQuoteChargeAvailability, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { toStr } from "@/lib/coerce";
 import { parseDateLocal, nowMty } from "@/lib/utils";
 import { resolveCfdiFormaPago } from "../../lib/cfdiPaymentForm";
@@ -8,6 +7,7 @@ import {
   type LineItemValues,
   EMPTY_CFDI,
 } from "../../lib/invoiceFormSchema";
+import { applyQuoteChargeAvailability, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 
 export type Customer = {
   id: string; name: string;

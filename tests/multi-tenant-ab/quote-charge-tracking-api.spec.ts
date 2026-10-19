@@ -30,7 +30,6 @@ test("quote charge Auth: scoped availability, partial reservations and atomic ov
   const quoteId = randomUUID();
   const lineId = randomUUID();
   const invoiceIds: string[] = [];
-  let quoteCreated = false;
   const date = todayKeyMty();
   const line = (quantity: number) => ({
     line_kind: "charge", description: "Synthetic delivery", quantity,
@@ -53,7 +52,6 @@ test("quote charge Auth: scoped availability, partial reservations and atomic ov
       subtotal: 300, tax_rate: 0, tax_amount: 0, total: 300,
       line_items: [{ quote_line_id: lineId, line_kind: "charge", description: "Synthetic delivery", quantity: 3, unit_price: 100, total: 300 }],
     }).select("id,organization_id,is_e2e,line_items").single(), "create normal source quote");
-    quoteCreated = true;
     expect(quote).toMatchObject({ id: quoteId, organization_id: A.organizationId, is_e2e: false });
     const available = () => owner.rpc("get_quote_charge_availability", { p_quote_ids: [quoteId] });
     expect(required(await available(), "initial complete availability")).toMatchObject({ complete: true, quotes: [{
@@ -86,18 +84,32 @@ test("quote charge Auth: scoped availability, partial reservations and atomic ov
     invoiceIds.push(last[0].id);
     expect(required(await available(), "source fully reserved")).toMatchObject({ quotes: [{ lines: [{ consumed_quantity: 3, remaining_quantity: 0 }] }] });
 
+    const protectedRows = () => owner.from("invoices")
+      .select("id,quote_charge_tracking_version,line_items").eq("quote_id", quoteId).order("id");
+    const beforeMarkerAttempts = required(await protectedRows(), "source rows before marker attempts");
     const stripMarker = await owner.from("invoices").update({ quote_charge_tracking_version: null }).eq("id", first[0].id).select("id");
-    expect(stripMarker.error?.code).toBe("23514");
-    const nullMarker = await owner.from("invoices").insert({ organization_id: A.organizationId,
-      customer_id: A.customerId, invoice_number: `AB-NULL-${randomUUID()}`, quote_charge_tracking_version: null });
+    // Normal Auth retains the existing column-level UPDATE boundary. It cannot
+    // reach the immutable-marker trigger, which is separately covered in SQL.
+    expect(stripMarker.error?.code).toBe("42501");
+    expect(stripMarker.data).toBeNull();
+    expect(required(await protectedRows(), "denied marker update preserves source rows")).toEqual(beforeMarkerAttempts);
+    const rejectedId = randomUUID();
+    const nullMarker = await owner.from("invoices").insert({ id: rejectedId, organization_id: A.organizationId,
+      customer_id: A.customerId, invoice_number: `AB-NULL-${rejectedId}`, quote_charge_tracking_version: null });
     expect(nullMarker.error?.code).toBe("23514");
+    expect(nullMarker.data).toBeNull();
+    expect(required(await owner.from("invoices").select("id").eq("id", rejectedId), "NULL marker insertion leaves no row")).toEqual([]);
+    expect(required(await protectedRows(), "rejected insert preserves existing source rows")).toEqual(beforeMarkerAttempts);
   } finally {
     const remaining = required<{ id: string }[]>(await owner.from("invoices").select("id").eq("quote_id", quoteId).eq("organization_id", A.organizationId), "read synthetic invoice cleanup scope");
     const cleanupIds = new Set([...invoiceIds, ...remaining.map((row) => row.id)]);
     for (const id of cleanupIds) {
       expect(required(await owner.from("invoices").delete().eq("id", id).eq("organization_id", A.organizationId).select("id"), "normal draft cleanup")).toEqual([{ id }]);
     }
-    if (quoteCreated) expect(required(await owner.from("quotes").delete().eq("id", quoteId).eq("organization_id", A.organizationId).select("id"), "normal quote cleanup")).toEqual([{ id: quoteId }]);
+    const quoteBeforeCleanup = required(await owner.from("quotes").select("id").eq("id", quoteId)
+      .eq("organization_id", A.organizationId), "read synthetic quote cleanup scope");
+    expect(required(await owner.from("quotes").delete().eq("id", quoteId).eq("organization_id", A.organizationId)
+      .select("id"), "normal quote cleanup")).toEqual(quoteBeforeCleanup);
     await Promise.all([owner.auth.signOut({ scope: "local" }), other.auth.signOut({ scope: "local" })]);
   }
 });

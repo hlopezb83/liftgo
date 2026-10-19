@@ -22,3 +22,15 @@ export function preserveQuoteChargeIdentities(lines: LineItem[], existingLineIte
     } : line;
   });
 }
+
+
+/** Unsupported legacy edits keep the original preview visible and cannot save. */
+export function quoteChargePreview(items: LineItem[], existingLineItems: unknown): { items: LineItem[]; chargeIdentityError: string | null } {
+  try { return { items: preserveQuoteChargeIdentities(items, existingLineItems), chargeIdentityError: null }; }
+  catch (error) {
+    return {
+      items: Array.isArray(existingLineItems) ? existingLineItems as LineItem[] : items,
+      chargeIdentityError: error instanceof Error ? error.message : "Revisa los cargos de la cotización antes de guardar.",
+    };
+  }
+}

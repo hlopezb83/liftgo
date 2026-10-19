@@ -22,8 +22,7 @@ describe("useQuoteChargeAvailability", () => {
     expect(from).not.toHaveBeenCalled();
     client.clear();
   });
-  it.each([{ data: null, error: { message: "unavailable" } }, { data: { complete: true, quotes: [] }, error: null }])
-    ("exposes failed or incomplete reads instead of an empty available set", async (response: { data: unknown; error: unknown }) => {
+  it.each([{ data: null, error: { message: "unavailable" } }, { data: { complete: true, quotes: [] }, error: null }])("exposes failed or incomplete reads instead of an empty available set", async (response: { data: unknown; error: unknown }) => {
       rpc.mockResolvedValue(response);
       const { result, client } = setup();
       await waitFor(() => expect(result.current.isError).toBe(true));

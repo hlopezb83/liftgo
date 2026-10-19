@@ -1,4 +1,3 @@
-import type { QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
@@ -6,6 +5,7 @@ import {
   type Customer, type ExistingInvoice, type SourceQuote, type Forklift, type Assignment,
 } from "./invoiceFormBuilders";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
+import type { QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import type { UseFormReturn } from "react-hook-form";
 interface Props {
   chargeAvailability?: QuoteChargeAvailability;

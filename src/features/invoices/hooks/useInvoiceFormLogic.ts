@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
@@ -21,13 +21,13 @@ import {
   type InvoiceFormValues,
 
 } from "../lib/invoiceFormSchema";
+import { quoteChargeSelectionError } from "../lib/quoteChargeAvailability";
 import { quotedBillingPeriodError } from "../lib/quotedBookingLines";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
-import { useQuoteChargeAvailability } from "./invoices/useQuoteChargeAvailability";
-import { CHARGE_AVAILABILITY_UNAVAILABLE, collectInvoiceChargeQuoteIds, quoteChargeSelectionError } from "../lib/quoteChargeAvailability";
+import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
 import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
@@ -163,44 +163,17 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
-  const selectedBookingIds = useWatch({ control: form.control, name: "bookingIds" });
-  const currentLines = useWatch({ control: form.control, name: "lineItems" });
-  // Keep the original invoice's quote scope even after its last traced line is
-  // removed. Adding a new row must not make availability disappear.
-  const originalLines = Array.isArray(existing?.line_items) ? existing.line_items as unknown as LineItem[] : [];
-  const linkedBookingIds = [...new Set([...(selectedBookingIds ?? []), ...existingBookingIds, ...(existing?.booking_id ? [existing.booking_id] : [])])];
-  const quoteScopeBookings = [
-    ...(bookings ?? []),
-    ...(invoiceBookingsRows ?? []).flatMap((row) => row.bookings && Object.hasOwn(row.bookings, "quote_id") ? [{
-      id: row.booking_id,
-      quote_id: typeof row.bookings.quote_id === "string" ? row.bookings.quote_id : null,
-    }] : []),
-  ];
-  const bookingSourceBlock = (isEdit && !!existing && !invoiceBookingsRows)
-    || linkedBookingIds.some((bookingId) => !quoteScopeBookings.some((booking) => booking.id === bookingId))
-    ? "No se pudo verificar la cotización de todas las reservas vinculadas. Recarga las reservas y sus vínculos antes de guardar." : null;
-  const relatedQuoteIds = collectInvoiceChargeQuoteIds({
-    fromQuoteId, existingQuoteId: existing?.quote_id, originalLines, currentLines: currentLines ?? [],
-    bookingQuoteIds: linkedBookingIds
-      .flatMap((bookingId) => {
-        const quote = quoteScopeBookings.find((booking) => booking.id === bookingId)?.quote_id;
-        return quote ? [quote] : [];
-      }),
+  const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
+    form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
   });
-  const chargeAvailability = useQuoteChargeAvailability(relatedQuoteIds, id);
   const { quoteChargePrefillError } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
     chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
     form, customers, bookings, forklifts, quotes: bookingSourceQuotes,
     loadQuoteCharges: chargeAvailability.loadForQuotes,
   });
-  const chargeAvailabilityError = relatedQuoteIds.length > 0
-    ? chargeAvailability.isError ? CHARGE_AVAILABILITY_UNAVAILABLE
-      : !chargeAvailability.data ? "Verificando los cargos de la cotización…"
-        : quoteChargeSelectionError(relatedQuoteIds, currentLines ?? [], chargeAvailability.data)
-    : null;
-  const chargeBlock = isLoadingCharges ? "Verificando los cargos de las reservas…"
-    : bookingSourceBlock || chargeSelectionError || chargeAvailabilityError || quoteChargePrefillError;
+  const chargeBlock = invoiceChargeBlock(isLoadingCharges,
+    bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quoteChargePrefillError);
 
   const totals = useInvoiceFormTotals(form);
 
@@ -216,7 +189,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { extension } = useExtensionPrefill({
     isEdit,
     extensionId,
-    customersLoaded: (customers?.length ?? 0) > 0,
+    customersLoaded: Boolean(customers?.length),
     form,
     handleCustomerSelect,
   });

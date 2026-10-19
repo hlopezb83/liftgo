@@ -1,4 +1,3 @@
-import { preserveQuoteChargeIdentities } from "../../lib/quoteChargeIdentity";
 import { useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { useCustomers } from "@/features/customers";
@@ -9,6 +8,7 @@ import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { preserveQuoteChargeIdentities, quoteChargePreview } from "../../lib/quoteChargeIdentity";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
@@ -59,7 +59,8 @@ export function useQuoteFormLogic() {
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
 
-  const generated: { items: LineItem[]; chargeIdentityError: string | null } = useMemo(() => {
+  const existingLineItems = existingQuote?.line_items;
+  const generated = useMemo(() => {
     if (!equipmentModels) return { items: [], chargeIdentityError: null };
     let items: LineItem[];
     if (quoteType === "sale") {
@@ -74,14 +75,8 @@ export function useQuoteFormLogic() {
     if (includeInsurance && (insuranceCost ?? 0) > 0) {
       items.push({ line_kind: "charge", charge_kind: "insurance", description: "Seguro", quantity: 1, unit_price: insuranceCost, total: insuranceCost });
     }
-    try { return { items: preserveQuoteChargeIdentities(items, existingQuote?.line_items), chargeIdentityError: null }; }
-    catch (error) {
-      return {
-        items: Array.isArray(existingQuote?.line_items) ? existingQuote.line_items as unknown as LineItem[] : items,
-        chargeIdentityError: error instanceof Error ? error.message : "Revisa los cargos de la cotización antes de guardar.",
-      };
-    }
-  }, [existingQuote?.line_items, quoteType, saleLines, rentalLines, equipmentModels, startDate, endDate,
+    return quoteChargePreview(items, existingLineItems);
+  }, [existingLineItems, quoteType, saleLines, rentalLines, equipmentModels, startDate, endDate,
       includeLogistics, logisticsCost, includeInsurance, insuranceCost]);
 
   const lineItems = generated.items;

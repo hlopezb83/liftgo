@@ -1,7 +1,7 @@
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { parseQuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { invoiceKeys } from "../../lib/queryKeys";
+import { parseQuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 
 export function quoteChargeAvailabilityQuery(quoteIds: string[], currentInvoiceId?: string) {
   const ids = [...new Set(quoteIds)].sort();

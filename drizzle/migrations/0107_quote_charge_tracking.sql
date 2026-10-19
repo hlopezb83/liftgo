@@ -562,7 +562,7 @@ $function$;
 
 --> statement-breakpoint
 CREATE FUNCTION public.lock_invoice_quote_charge_link_change()
-RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public, pg_temp AS $$
 DECLARE v_id uuid; v_ids uuid[];
 BEGIN
   -- A no-op identity update cannot detach a source. Match the existing
@@ -588,7 +588,7 @@ CREATE TRIGGER zz_lock_invoice_quote_charge_link_change BEFORE UPDATE OR DELETE 
 FOR EACH ROW EXECUTE FUNCTION public.lock_invoice_quote_charge_link_change();
 
 CREATE FUNCTION public.guard_booking_quote_charge_origin()
-RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=public,pg_temp AS $$
+RETURNS trigger LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path = public, pg_temp AS $$
 DECLARE v_id uuid;
 BEGIN
   IF NEW.quote_id IS NOT DISTINCT FROM OLD.quote_id THEN RETURN NEW; END IF;

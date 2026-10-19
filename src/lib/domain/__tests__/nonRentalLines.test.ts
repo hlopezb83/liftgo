@@ -56,6 +56,27 @@ describe("extractNonRentalLines", () => {
     ]);
   });
 
+  it("conserva frases manuales de renta o venta que no coinciden con el formato completo", () => {
+    const descriptions = [
+      "Operador — Renta diaria de operador",
+      "Ajuste — Renta mensual atrasada",
+      "Equipo — Extensión: Renta diaria de operador",
+      "Equipo — Renta septiembre 2026 (19 días al precio diario) ajuste",
+      "Comisión por Venta de equipo",
+      "Toyota - Venta de equipo usada",
+    ];
+    const items = descriptions.map((description) => ({ description, quantity: 1, unit_price: 100, total: 100 }));
+    expect(extractNonRentalLines(items).map((item) => item.description)).toEqual(descriptions);
+  });
+
+  it("conserva cargos explícitos aunque su descripción coincida con una renta o venta generada", () => {
+    const items = [
+      { line_kind: "manual", description: "MC-01 — Renta diaria", quantity: 1, unit_price: 100, total: 100 },
+      { line_kind: "charge", description: "MC-02 - Venta de equipo", quantity: 1, unit_price: 200, total: 200 },
+    ];
+    expect(extractNonRentalLines(items).map((item) => item.description)).toEqual(items.map((item) => item.description));
+  });
+
   it("devuelve [] si el input no es un arreglo", () => {
     expect(extractNonRentalLines(null)).toEqual([]);
     expect(extractNonRentalLines(undefined)).toEqual([]);
@@ -67,6 +88,8 @@ it("does not classify generated extension or calendar-prorated rental rows as qu
   expect(extractNonRentalLines([
     { description: "MC-01 — Extensión: Renta diaria (2026-10-01 al 2026-10-02)", quantity: 2, unit_price: 100, total: 200 },
     { description: "MC-01 — Renta septiembre 2026 (19 días al precio diario)", quantity: 19, unit_price: 100, total: 1900 },
+    { description: "MC-01 — Renta mensual (prorrateo 10 días) (Serie: X)", quantity: 1, unit_price: 100, total: 100 },
+    { description: "Extensión: Renta diaria (2026-10-01 al 2026-10-02) (Serie: X)", quantity: 2, unit_price: 100, total: 200 },
     { description: "Texto editado", line_kind: "rental", quantity: 1, unit_price: 100, total: 100 },
   ])).toEqual([]);
 });

@@ -16,13 +16,12 @@ export interface NonRentalLineDto {
   objeto_imp?: string;
 }
 
-// Las partidas de renta GENERADAS (rentalCalculation.generateLineItemsFrom*)
-// tienen formato exacto `<equipo> — Renta mensual|semanal|diaria…`: la palabra
-// clave va siempre tras el separador " — ". Antes se buscaba el substring en
-// cualquier posición, así que una línea manual como "Cargo por Renta mensual
-// atrasada" se descartaba por falso positivo. Anclamos al formato generado.
-const GENERATED_RENTAL_LINE = /(?:^| — )(?:Extensión: )?Renta (?:mensual|semanal|diaria|(?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) \d{4} \(\d+ días al precio diario\))/;
-const SALE_SUFFIX = /Venta de equipo/i;
+// Legacy fallback must match the complete generated description, not a rental
+// phrase inside a manual service. Explicit line_kind always takes precedence.
+const GENERATED_RENTAL_LINE = /^.+ — Renta (?:mensual|semanal|diaria)(?: \(.*\))?$/;
+const GENERATED_EXTENSION_LINE = /^(?:.+ — )?Extensión: Renta (?:mensual|semanal|diaria)(?: \(.*\))?$/;
+const GENERATED_CALENDAR_RENTAL_LINE = /^.+ — Renta (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) \d{4} \(\d+ días al precio diario\)$/;
+const GENERATED_SALE_LINE = /^.+ - Venta de equipo$/;
 
 /**
  * Determina si una partida de cotización corresponde a renta o venta de equipo.
@@ -33,8 +32,10 @@ function isRentalOrSaleLine(item: LineItem): boolean {
   if (item.line_kind) return item.line_kind === "rental" || item.line_kind === "sale";
   const description = item.description;
   if (!description) return false;
-  if (SALE_SUFFIX.test(description)) return true;
-  return GENERATED_RENTAL_LINE.test(description);
+  return GENERATED_RENTAL_LINE.test(description)
+    || GENERATED_EXTENSION_LINE.test(description)
+    || GENERATED_CALENDAR_RENTAL_LINE.test(description)
+    || GENERATED_SALE_LINE.test(description);
 }
 
 /**
