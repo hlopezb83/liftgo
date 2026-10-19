@@ -1,0 +1,25 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../vitest.config" without a file extension (.tool-tmp/currency-vitest.config.ts:3:18). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <worktree>
+
+ ✓ src/features/invoices/lib/__tests__/invoiceFormCurrency.test.ts (5 tests) 19ms
+stdout | src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > keeps the visible USD currency and amounts when cached invoice is present at mount
+synthetic-prefill-trace cached [{"kind":"reset","moneda":"USD"},{"kind":"watch","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""}]
+
+stdout | src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > submits USD fiscal metadata without changing amounts when invoice loads cached
+synthetic-submit cached {"trace":[{"kind":"reset","moneda":"USD"},{"kind":"watch","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.receptorRazonSocial","moneda":"USD"}],"payload":{"booking_id":null,"customer_id":"synthetic-customer","customer_name":"Synthetic USD customer","quote_id":null,"line_items":[{"description":"Synthetic rental","quantity":1,"unit_price":100,"total":100}],"subtotal":100,"tax_rate":0,"tax_amount":0,"total":100,"due_date":null,"issued_at":"2026-10-19","billing_period_start":null,"billing_period_end":null,"notes":null,"serie":null,"folio":null,"forma_pago":"99","metodo_pago":"PPD","uso_cfdi":"G03","moneda":"USD","tipo_cambio":17.5,"receptor_rfc":"AAA010101AAA","receptor_razon_social":"SYNTHETIC CUSTOMER EDITED","receptor_regimen_fiscal":"601","receptor_domicilio_fiscal_cp":"06600","global_periodicity":null,"global_months":null,"global_year":null}}
+
+stdout | src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > submits USD fiscal metadata without changing amounts when invoice loads after mount
+synthetic-submit after mount {"trace":[{"kind":"reset","moneda":"USD"},{"kind":"watch","moneda":"USD"},{"kind":"native-select-change","name":"","value":"99"},{"kind":"native-select-change","name":"","value":"PPD"},{"kind":"native-select-change","name":"","value":"USD"},{"kind":"watch","name":"cfdi.receptorRazonSocial","moneda":"USD"}],"payload":{"booking_id":null,"customer_id":"synthetic-customer","customer_name":"Synthetic USD customer","quote_id":null,"line_items":[{"description":"Synthetic rental","quantity":1,"unit_price":100,"total":100}],"subtotal":100,"tax_rate":0,"tax_amount":0,"total":100,"due_date":null,"issued_at":"2026-10-19","billing_period_start":null,"billing_period_end":null,"notes":null,"serie":null,"folio":null,"forma_pago":"99","metodo_pago":"PPD","uso_cfdi":"G03","moneda":"USD","tipo_cambio":17.5,"receptor_rfc":"AAA010101AAA","receptor_razon_social":"SYNTHETIC CUSTOMER EDITED","receptor_regimen_fiscal":"601","receptor_domicilio_fiscal_cp":"06600","global_periodicity":null,"global_months":null,"global_year":null}}
+
+ ✓ src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx (4 tests) 1474ms
+     ✓ keeps the visible USD currency and amounts when cached invoice is present at mount  354ms
+     ✓ submits USD fiscal metadata without changing amounts when invoice loads cached  406ms
+     ✓ still applies deliberate native Select choices for MXN, PPD and EUR  523ms
+
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Start at  19:39:01
+   Duration  7.89s (transform 583ms, setup 818ms, import 8.91s, tests 1.49s, environment 1.55s)

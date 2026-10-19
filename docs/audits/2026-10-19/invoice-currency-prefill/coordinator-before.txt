@@ -1,0 +1,112 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - import "../vitest.config" without a file extension (.tool-tmp/currency-vitest.config.ts:3:18). Add the file extension
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 <before-worktree>
+
+ ❯ src/features/invoices/lib/__tests__/invoiceFormCurrency.test.ts (5 tests | 2 failed) 29ms
+     × rejects an empty currency "" even with a valid exchange rate 21ms
+     × rejects an empty currency "   " even with a valid exchange rate 2ms
+     ✓ preserves valid MXN receiver edits and amounts 2ms
+     ✓ preserves valid USD receiver edits and amounts 1ms
+     ✓ preserves valid EUR receiver edits and amounts 1ms
+stdout | src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > keeps the visible USD currency and amounts when cached invoice is present at mount
+synthetic-prefill-trace cached [{"kind":"reset","moneda":"USD"},{"kind":"watch","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.formaPago","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.metodoPago","moneda":"USD"},{"kind":"watch","name":"cfdi.formaPago","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.moneda","moneda":""},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.formaPago","moneda":""},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""}]
+
+stdout | src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > submits USD fiscal metadata without changing amounts when invoice loads cached
+synthetic-submit cached {"trace":[{"kind":"reset","moneda":"USD"},{"kind":"watch","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.formaPago","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.metodoPago","moneda":"USD"},{"kind":"watch","name":"cfdi.formaPago","moneda":"USD"},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.moneda","moneda":""},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.formaPago","moneda":""},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""},{"kind":"native-select-change","name":"","value":""},{"kind":"watch","name":"cfdi.receptorRazonSocial","moneda":""}],"payload":{"booking_id":null,"customer_id":"synthetic-customer","customer_name":"Synthetic USD customer","quote_id":null,"line_items":[{"description":"Synthetic rental","quantity":1,"unit_price":100,"total":100}],"subtotal":100,"tax_rate":0,"tax_amount":0,"total":100,"due_date":null,"issued_at":"2026-10-19","billing_period_start":null,"billing_period_end":null,"notes":null,"serie":null,"folio":null,"forma_pago":null,"metodo_pago":null,"uso_cfdi":"G03","moneda":null,"tipo_cambio":17.5,"receptor_rfc":"AAA010101AAA","receptor_razon_social":"SYNTHETIC CUSTOMER EDITED","receptor_regimen_fiscal":"601","receptor_domicilio_fiscal_cp":"06600","global_periodicity":null,"global_months":null,"global_year":null}}
+
+stdout | src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > submits USD fiscal metadata without changing amounts when invoice loads after mount
+synthetic-submit after mount {"trace":[{"kind":"reset","moneda":"USD"},{"kind":"watch","moneda":"USD"},{"kind":"native-select-change","name":"","value":"99"},{"kind":"native-select-change","name":"","value":"PPD"},{"kind":"native-select-change","name":"","value":"USD"},{"kind":"watch","name":"cfdi.receptorRazonSocial","moneda":"USD"}],"payload":{"booking_id":null,"customer_id":"synthetic-customer","customer_name":"Synthetic USD customer","quote_id":null,"line_items":[{"description":"Synthetic rental","quantity":1,"unit_price":100,"total":100}],"subtotal":100,"tax_rate":0,"tax_amount":0,"total":100,"due_date":null,"issued_at":"2026-10-19","billing_period_start":null,"billing_period_end":null,"notes":null,"serie":null,"folio":null,"forma_pago":"99","metodo_pago":"PPD","uso_cfdi":"G03","moneda":"USD","tipo_cambio":17.5,"receptor_rfc":"AAA010101AAA","receptor_razon_social":"SYNTHETIC CUSTOMER EDITED","receptor_regimen_fiscal":"601","receptor_domicilio_fiscal_cp":"06600","global_periodicity":null,"global_months":null,"global_year":null}}
+
+ ❯ src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx (4 tests | 2 failed) 1578ms
+     × keeps the visible USD currency and amounts when cached invoice is present at mount 442ms
+     × submits USD fiscal metadata without changing amounts when invoice loads cached 424ms
+     ✓ submits USD fiscal metadata without changing amounts when invoice loads after mount 245ms
+     ✓ still applies deliberate native Select choices for MXN, PPD and EUR  463ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/features/invoices/lib/__tests__/invoiceFormCurrency.test.ts > invoice currency before saving receiver edits > rejects an empty currency "" even with a valid exchange rate
+ FAIL  src/features/invoices/lib/__tests__/invoiceFormCurrency.test.ts > invoice currency before saving receiver edits > rejects an empty currency "   " even with a valid exchange rate
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ src/features/invoices/lib/__tests__/invoiceFormCurrency.test.ts:18:28
+     16|   it.each(["", "   "])("rejects an empty currency %j even with a valid…
+     17|     const result = invoiceFormSchema.safeParse(receiverEdit(currency));
+     18|     expect(result.success).toBe(false);
+       |                            ^
+     19|     if (!result.success) {
+     20|       expect(result.error.issues.some((issue) => issue.path.join(".") …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > keeps the visible USD currency and amounts when cached invoice is present at mount
+AssertionError: expected '' to be 'USD' // Object.is equality
+
+- Expected
++ Received
+
+- USD
+
+ ❯ src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx:96:27
+     94|     console.log("synthetic-prefill-trace", "cached", JSON.stringify(tr…
+     95|     const values = JSON.parse(screen.getByLabelText("CFDI values").tex…
+     96|     expect(values.moneda).toBe("USD");
+       |                           ^
+     97|     expect(screen.getByRole("combobox", { name: "Moneda" })).toHaveTex…
+     98|     expect(screen.getByLabelText("Importe neto partida 1")).toHaveText…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx > CfdiFieldsCard existing USD invoice prefill > submits USD fiscal metadata without changing amounts when invoice loads cached
+AssertionError: expected { booking_id: null, …(27) } to match object { moneda: 'USD', …(12) }
+(15 matching properties omitted from actual)
+
+- Expected
++ Received
+
+@@ -1,17 +1,17 @@
+  {
+-   "forma_pago": "99",
++   "forma_pago": null,
+    "line_items": [
+-     {
++     ObjectContaining {
+        "description": "Synthetic rental",
+        "quantity": 1,
+        "total": 100,
+        "unit_price": 100,
+      },
+    ],
+-   "metodo_pago": "PPD",
+-   "moneda": "USD",
++   "metodo_pago": null,
++   "moneda": null,
+    "receptor_domicilio_fiscal_cp": "06600",
+    "receptor_razon_social": "SYNTHETIC CUSTOMER EDITED",
+    "receptor_regimen_fiscal": "601",
+    "receptor_rfc": "AAA010101AAA",
+    "subtotal": 100,
+
+ ❯ src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx:116:40
+    114|     // eslint-disable-next-line no-console -- Synthetic payload retain…
+    115|     console.log("synthetic-submit", load, JSON.stringify({ trace, payl…
+    116|     expect(onPayload.mock.calls[0][0]).toMatchObject({
+       |                                        ^
+    117|       moneda: "USD", tipo_cambio: 17.5, metodo_pago: "PPD", forma_pago…
+    118|       receptor_rfc: "AAA010101AAA", receptor_razon_social: "SYNTHETIC …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  4 failed | 5 passed (9)
+   Start at  19:39:01
+   Duration  7.98s (transform 598ms, setup 854ms, import 8.87s, tests 1.61s, environment 1.56s)

@@ -35,7 +35,7 @@ export const cfdiSchema = z.object({
   formaPago: z.string(),
   metodoPago: z.string(),
   usoCfdi: z.string(),
-  moneda: z.string(),
+  moneda: z.string().trim().min(1, "Selecciona una moneda"),
   tipoCambio: z.number().min(0),
   receptorRfc: z.string(),
   receptorRazonSocial: z.string(),

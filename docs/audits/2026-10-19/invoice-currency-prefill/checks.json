@@ -1,0 +1,79 @@
+{
+  "base": "6e5d08159f9102a3c6369f29fed5e78c15e7e1c5",
+  "before": {
+    "passed": 2,
+    "failed": 2
+  },
+  "after": {
+    "passed": 4,
+    "failed": 0
+  },
+  "product_inputs": [
+    {
+      "path": "src/features/invoices/components/invoice-form/CfdiFieldsCard.tsx",
+      "before_sha256": "4a96bf00c9c1f91030368cba7b4d7aef12fe543700d630a6776479f88511fee8",
+      "after_sha256": "dfaa4e671115425c7e2ecb4ebda5838ad288f59f999887e7bffc4c1b45242948",
+      "before_lf_sha256": "16d08176a6c2d48b914c724cd2eedf69be789513df6c41d9a5c9061188940065",
+      "after_lf_sha256": "c83b68e96ce897c317c586d89ed06e1f456edd6db2ac230a62d4269076c2fb73"
+    },
+    {
+      "path": "src/features/invoices/lib/invoiceFormSchema.ts",
+      "before_sha256": "72040bc51b629ea9c7ad1aee708eb7383f1cdd68ac4df5ab5917ac167e01c48f",
+      "after_sha256": "64a842c7b74727dfd816a7656a8ef1bc5879de4146861d29ebaae2909e93e6f5",
+      "before_lf_sha256": "31e97fb57dc39179ab890551bdc9804327a4643e582bf6e979eb7f3dcef4dab1",
+      "after_lf_sha256": "781db009092ed16418174193223e54fb2dcfa116ffdfafc8db608ea708b3973a"
+    }
+  ],
+  "test_assertions_unchanged_between_phases": true,
+  "network": "blocked by src/test/setup.ts; no requests made",
+  "published_qa": false,
+  "coordinatorVerification": {
+    "before": {
+      "passed": 5,
+      "failed": 4,
+      "total": 9,
+      "exit": 1
+    },
+    "after": {
+      "passed": 9,
+      "failed": 0,
+      "total": 9,
+      "exit": 0
+    },
+    "relatedRegression": {
+      "passed": 94,
+      "failed": 0,
+      "files": 10,
+      "exit": 0
+    },
+    "tests": [
+      {
+        "path": "src/features/invoices/components/invoice-form/__tests__/CfdiFieldsCard.prefill.test.tsx",
+        "sha256": "da5cf9efbd4383e44e09ad025d3a74fa6f9806e6e1edb1fb832600d1ea8cfc99",
+        "identicalBeforeAfter": true
+      },
+      {
+        "path": "src/features/invoices/lib/__tests__/invoiceFormCurrency.test.ts",
+        "sha256": "2ab2c446b398e86ba2c2ecfd70eef5e02b30dca7cd4d2a360b7499c74688a97e",
+        "identicalBeforeAfter": true
+      }
+    ],
+    "finalSources": [
+      {
+        "path": "src/features/invoices/components/invoice-form/CfdiFieldsCard.tsx",
+        "lfSha256": "c83b68e96ce897c317c586d89ed06e1f456edd6db2ac230a62d4269076c2fb73",
+        "sameLfAsAgentAfter": true
+      },
+      {
+        "path": "src/features/invoices/lib/invoiceFormSchema.ts",
+        "lfSha256": "781db009092ed16418174193223e54fb2dcfa116ffdfafc8db608ea708b3973a",
+        "sameLfAsAgentAfter": true
+      }
+    ],
+    "lintExit": 0,
+    "buildExit": 0,
+    "changelogEntries": 1244,
+    "typecheck": 0,
+    "publishedQa": false
+  }
+}
