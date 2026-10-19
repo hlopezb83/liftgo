@@ -722,6 +722,13 @@
       "when": 1791913029443,
       "tag": "0102_admin_delivery_return_corrections",
       "breakpoints": true
+    },
+    {
+      "idx": 103,
+      "version": "7",
+      "when": 1792368366457,
+      "tag": "0103_canonical_payment_invoice_currency",
+      "breakpoints": true
     }
   ]
 }
