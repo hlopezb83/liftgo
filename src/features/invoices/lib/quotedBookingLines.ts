@@ -76,7 +76,7 @@ export function buildQuotedBookingLines(
       throw new Error("Esta cotización tiene descuentos y un periodo recurrente o modificado. Revisa las partidas del periodo en una factura manual; no se precargarán tarifas sin descuento.");
     }
     result.push(...allocateQuotedRentalLines(quote, chosen, allBookings, units).map((line) => ({
-      ...line, clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
+      ...line, line_kind: "rental" as const, clave_prod_serv: "78181500", clave_unidad: "DAY", objeto_imp: "02",
     })));
   }
   return result;

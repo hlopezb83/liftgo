@@ -21,12 +21,13 @@ import {
   type InvoiceFormValues,
 
 } from "../lib/invoiceFormSchema";
+import { quoteChargeSelectionError } from "../lib/quoteChargeAvailability";
 import { quotedBillingPeriodError } from "../lib/quotedBookingLines";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
 import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
-import { useBilledExtraBookings } from "./invoices/useBilledExtraBookings";
+import { invoiceChargeBlock, useInvoiceQuoteCharges } from "./invoiceForm/useInvoiceQuoteCharges";
 import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
 import { useExtensionPrefill } from "./useExtensionPrefill";
@@ -58,12 +59,13 @@ function collectBookingQuoteIds(bookings?: { quote_id?: string | null }[]): stri
 
 /** Reservas que ya están facturadas (por columna directa o por pivote). */
 export function collectInvoicedBookingIds(
-  invoices: { status: string; booking_id?: string | null }[] | undefined,
+  invoices: { id?: string; status: string; booking_id?: string | null }[] | undefined,
   allInvoiceBookings: { invoice_id: string; booking_id: string }[] | undefined,
   currentInvoiceId?: string,
 ): Set<string> {
   const set = new Set<string>();
   invoices?.forEach((inv) => {
+    if (currentInvoiceId && inv.id === currentInvoiceId) return;
     if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
   });
   // Excluye las reservas de la factura que se está editando.
@@ -119,7 +121,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const isEdit = !!id;
   const quoteId = fromQuoteId || undefined;
 
-  const { data: bookings } = useBookings();
+  const bookingsQuery = useBookings();
+  const { data: bookings } = bookingsQuery;
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
@@ -127,7 +130,8 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: assignments } = useQuoteAssignments(quoteId);
   const { data: invoices } = useInvoices();
   const { data: allInvoiceBookings } = useAllInvoiceBookings();
-  const { data: invoiceBookingsRows } = useInvoiceBookings(id);
+  const invoiceBookingsQuery = useInvoiceBookings(id);
+  const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
 
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
@@ -136,8 +140,6 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: buildEmptyInvoiceValues(),
   });
-
-  useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds });
 
   const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(
     quoteId,
@@ -161,9 +163,17 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
-  // FIX-4: reservas cuyas partidas extra ya se facturaron (no re-precargar).
-  const { data: bookingsWithBilledExtras } = useBilledExtraBookings();
-  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes, bookingsWithBilledExtras });
+  const { relatedQuoteIds, chargeAvailability, bookingSourceBlock, chargeAvailabilityError } = useInvoiceQuoteCharges({
+    form, bookings, invoiceBookingsRows, existing, fromQuoteId, currentInvoiceId: id,
+  });
+  const { quoteChargePrefillError } = useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
+    chargeAvailability: chargeAvailability.isError ? undefined : chargeAvailability.data });
+  const { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection } = useInvoiceFormHandlers({
+    form, customers, bookings, forklifts, quotes: bookingSourceQuotes,
+    loadQuoteCharges: chargeAvailability.loadForQuotes,
+  });
+  const chargeBlock = invoiceChargeBlock(isLoadingCharges,
+    bookingSourceBlock, chargeSelectionError, chargeAvailabilityError, quoteChargePrefillError);
 
   const totals = useInvoiceFormTotals(form);
 
@@ -179,7 +189,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { extension } = useExtensionPrefill({
     isEdit,
     extensionId,
-    customersLoaded: (customers?.length ?? 0) > 0,
+    customersLoaded: Boolean(customers?.length),
     form,
     handleCustomerSelect,
   });
@@ -206,7 +216,9 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
    */
   const validateSelection = (
     values: InvoiceFormValues,
-  ): { field: "bookingIds" | "billingPeriodStart"; message: string } | null => {
+  ): { field: "bookingIds" | "billingPeriodStart" | "lineItems"; message: string } | null => {
+    const chargeError = chargeBlock || quoteChargeSelectionError(relatedQuoteIds, values.lineItems, chargeAvailability.data);
+    if (chargeError) return { field: "lineItems", message: chargeError };
     const selected = (values.bookingIds ?? [])
       .map((bid) => bookings?.find((b) => b.id === bid))
       .filter(Boolean) as unknown as BillableBooking[];
@@ -247,6 +259,12 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     handleCustomerSelect, handleBookingSelect, handleBookingsChange,
     onSubmit,
     validateSelection,
+    chargeBlock,
+    retryChargeAvailability: () => {
+      if (bookingSourceBlock) return Promise.all([bookingsQuery.refetch(), invoiceBookingsQuery.refetch()]);
+      return chargeSelectionError ? retryChargeSelection() : chargeAvailability.refetch();
+    },
+    isLoadingChargeAvailability: isLoadingCharges || chargeAvailability.isFetching,
     saveInvoice: submit.saveInvoice,
     updateQuote: submit.updateQuote,
     subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,

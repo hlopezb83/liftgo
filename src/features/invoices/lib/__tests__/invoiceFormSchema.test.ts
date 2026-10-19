@@ -31,11 +31,11 @@ describe("lineItemSchema", () => {
     }
   });
 
-  it("rechaza quantity < 1", () => {
+  it("rechaza quantity <= 0", () => {
     const res = lineItemSchema.safeParse({ ...EMPTY_LINE, description: "x", quantity: 0, unit_price: 100, total: 0 });
     expect(res.success).toBe(false);
     if (!res.success) {
-      expect(res.error.issues[0]?.message).toBe("Cantidad ≥ 1");
+      expect(res.error.issues[0]?.message).toBe("Cantidad mayor a 0");
     }
   });
 

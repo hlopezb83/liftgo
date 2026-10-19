@@ -3,10 +3,9 @@ import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import {
-  extractNonRentalLines,
-  hasNonRentalLines,
-  type NonRentalLineDto,
-} from "../_shared/nonRentalLines.ts";
+  recurringChargeAmounts,
+  recurringQuoteCharges,
+} from "./quoteCharges.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { resolveCallerOrganization } from "../_shared/orgContext.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -116,7 +115,8 @@ type PreviewLine = {
     | "booking_ended"
     | "no_exchange_rate"
     | "quote_discount_review"
-    | "quote_source_missing";
+    | "quote_source_missing"
+    | "quote_charge_review";
   // A1-1: bandera para exponer al operador que la reserva no es MXN.
   currency?: string;
   // B5-01: la tarifa pudo cambiar después de este período (booking.updated_at
@@ -153,10 +153,8 @@ type PlanItem = {
   tipoCambio: number;
   // B5-01: advertencia de tarifa potencialmente desactualizada para el periodo.
   rateWarning: boolean;
-  // FIX-6 (ronda 2): primera factura de la reserva → anexar extras pactados
-  // en la cotización (seguro, logística) una sola vez.
+  // Persistent source quote for remaining charge quantities across siblings.
   quoteId: string | null;
-  isFirstInvoice: boolean;
 };
 
 async function buildPlan(
@@ -226,13 +224,35 @@ async function buildPlan(
   let truncated = false;
   let pendingCount = 0;
 
+  const chargeReview = new Map<string, boolean>();
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
-    const quoteIssue = recurringQuoteIssue(
+    let quoteIssue: PreviewLine["reason"] | null = recurringQuoteIssue(
       booking.quote_id,
       booking.organization_id,
       booking.quotes,
     );
+
+    if (booking.quote_id && !quoteIssue) {
+      if (!chargeReview.has(booking.quote_id)) {
+        const { data, error } = await supabase.rpc(
+          "get_quote_charge_availability",
+          {
+            p_quote_ids: [booking.quote_id],
+          },
+        );
+        if (error) throw error;
+        try {
+          recurringQuoteCharges(data, [booking.quote_id]);
+          chargeReview.set(booking.quote_id, false);
+        } catch {
+          chargeReview.set(booking.quote_id, true);
+        }
+      }
+      if (chargeReview.get(booking.quote_id)) {
+        quoteIssue = "quote_charge_review";
+      }
+    }
 
     // A1-1: moneda y tipo de cambio de la reserva (default MXN/1 si no hay dato).
     const bookingCurrency = String(booking.currency ?? "MXN").toUpperCase();
@@ -254,13 +274,10 @@ async function buildPlan(
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
     // contradice — es la columna que se desincroniza (v6.110.0).
     let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
-    // FIX-3 (ronda 3): "extras ya cobrados" = existe una factura VIGENTE de la
-    // reserva (ligada por el pivote O por invoices.booking_id) que además trae
-    // partidas no-renta. Antes bastaba cualquier factura vigente del pivote:
-    // una factura manual sin pivote provocaba doble cobro, y una factura de
-    // pura renta hacía que los extras nunca se cobraran.
+    // Period history includes pivot and legacy direct links. Charge availability
+    // is independently read from the authoritative source-identity RPC.
     const invoiceFields =
-      "id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status, line_items";
+      "id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status, cfdi_uuid, cancellation_status, line_items";
     const { data: linked, error: linkedErr } = await supabase
       .from("invoice_bookings")
       .select(`invoices!inner(${invoiceFields}, organization_id)`)
@@ -282,9 +299,6 @@ async function buildPlan(
         { invoices: HistoricalInvoice | null }
       >,
       (direct ?? []) as HistoricalInvoice[],
-    );
-    const extrasAlreadyBilled = invoices.some((invoice) =>
-      hasNonRentalLines(invoice.line_items)
     );
     if (invoices.length === 0) {
       effectiveLastBilled = null;
@@ -542,7 +556,6 @@ async function buildPlan(
         rateWarning,
         // FIX-6
         quoteId: (booking.quote_id as string | null) ?? null,
-        isFirstInvoice: !extrasAlreadyBilled && firstIteration,
       });
       virtualLastBilled = endStr;
       firstIteration = false;
@@ -665,27 +678,20 @@ async function executePlan(
         .eq("organization_id", first.organizationId)
         .maybeSingle();
 
-      // FIX-6 (ronda 2): extras pactados en la cotización (seguro, logística)
-      // se cobran UNA sola vez, en la primera factura de la reserva.
-      const extraLines: NonRentalLineDto[] = [];
-      const seenQuotes = new Set<string>();
-      for (const i of group) {
-        if (!i.isFirstInvoice || !i.quoteId || seenQuotes.has(i.quoteId)) {
-          continue;
-        }
-        seenQuotes.add(i.quoteId);
-        const { data: quote, error: quoteErr } = await supabase
-          .from("quotes")
-          .select("line_items")
-          .eq("id", i.quoteId)
-          .eq("organization_id", i.organizationId)
-          .maybeSingle();
-        if (quoteErr) throw quoteErr;
-        if (!quote) {
-          throw new Error("No se encontró la cotización de la reserva");
-        }
-        extraLines.push(...extractNonRentalLines(quote?.line_items));
-      }
+      // Re-read before every group/catch-up period. The SQL guard atomically
+      // reserves these exact source quantities, including sibling bookings.
+      const quoteIds = [
+        ...new Set(
+          group.map((i) => i.quoteId).filter((id): id is string => !!id),
+        ),
+      ];
+      const { data: chargeAvailability, error: chargeError } = await supabase
+        .rpc(
+          "get_quote_charge_availability",
+          { p_quote_ids: quoteIds },
+        );
+      if (chargeError) throw chargeError;
+      const extraLines = recurringQuoteCharges(chargeAvailability, quoteIds);
 
       const rentalLines = group.map((i) => {
         const proratedLabel = i.isProrated
@@ -697,6 +703,7 @@ async function executePlan(
           } al ${fmtMx(i.billingEnd)}${proratedLabel})${
             i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""
           }`,
+          line_kind: "rental",
           quantity: 1,
           unit_price: i.billedAmount,
           total: i.billedAmount,
@@ -705,13 +712,12 @@ async function executePlan(
       const lineItems = [...rentalLines, ...extraLines];
       const billedAmounts = [
         ...group.map((i) => i.billedAmount),
-        ...extraLines.map((l) => l.total),
       ];
 
       // M23: tasa por cliente (frontera 8%, exento 0%) en vez de 16 fijo,
       // y aritmética en centavos enteros (_shared/money.ts) en vez de floats
       // con Math.round — elimina el drift de centavos acumulado por período.
-      const subtotalCents = sumMoneyCents(billedAmounts);
+      const rentalSubtotalCents = sumMoneyCents(billedAmounts);
       // R9-14: `resolveVatRatePercent` distingue "sin dato" (null/undefined/NaN
       // -> DEFAULT_VAT_RATE_PERCENT) de "0% explícito" (se respeta). Antes
       // `Number(customer?.tax_rate)` convertía null en 0 y generaba IVA 0%
@@ -721,7 +727,13 @@ async function executePlan(
       // Facturapi al timbrar). Redondear una sola vez sobre el subtotal
       // agregado generaba varianzas de centavos que dejaban la factura
       // recurrente en cfdi_status='error' (BL-A5).
-      const taxAmountCents = sumLineTaxCents(billedAmounts, taxRate);
+      const chargeAmounts = extraLines.map((line) =>
+        recurringChargeAmounts(line, taxRate)
+      );
+      const subtotalCents = rentalSubtotalCents +
+        chargeAmounts.reduce((sum, line) => sum + line.netCents, 0);
+      const taxAmountCents = sumLineTaxCents(billedAmounts, taxRate) +
+        chargeAmounts.reduce((sum, line) => sum + line.taxCents, 0);
 
       const subtotal = fromCents(subtotalCents);
       const taxAmount = fromCents(taxAmountCents);

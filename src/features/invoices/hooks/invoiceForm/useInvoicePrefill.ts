@@ -1,12 +1,14 @@
-import { useEffect, useEffectEvent } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import {
   buildFromInvoice, buildFromQuote,
   type Customer, type ExistingInvoice, type SourceQuote, type Forklift, type Assignment,
 } from "./invoiceFormBuilders";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
+import type { QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import type { UseFormReturn } from "react-hook-form";
 interface Props {
+  chargeAvailability?: QuoteChargeAvailability;
   existing: ExistingInvoice | null | undefined;
   sourceQuote: SourceQuote | null | undefined;
   assignments: Assignment[] | undefined;
@@ -18,8 +20,10 @@ interface Props {
 }
 
 export function useInvoicePrefill({
-  existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds,
+  existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds, chargeAvailability,
 }: Props) {
+  const prefilledQuote = useRef<string | undefined>(undefined);
+  const [quoteChargePrefillError, setQuoteChargePrefillError] = useState<string | null>(null);
   usePrefillEffect(() => {
     if (!existing) return;
     form.reset(buildFromInvoice(existing, customers));
@@ -41,7 +45,24 @@ export function useInvoicePrefill({
   }, [existing?.booking_id, bookingIdsKey]);
 
   usePrefillEffect(() => {
-    if (!sourceQuote || isEdit) return;
-    form.reset(buildFromQuote({ q: sourceQuote, assignments, forklifts, customers }), { keepDirty: true });
-  }, [sourceQuote, customers, isEdit, assignments, forklifts]);
+    if (!sourceQuote || isEdit || !customers || !forklifts
+      || (sourceQuote.quote_type === "sale" && !assignments)
+      || (sourceQuote.id && !chargeAvailability)) return;
+    if (sourceQuote.id && prefilledQuote.current === sourceQuote.id) return;
+    try {
+      const values = buildFromQuote({ q: sourceQuote, assignments, forklifts, customers, chargeAvailability });
+      const enteredLines = form.getValues("lineItems").map((line) => ({ ...line }));
+      form.reset(values, { keepDirtyValues: true });
+      // RHF merges dirty arrays by index. A manual row entered while the RPC
+      // was pending must never acquire the hidden identity of a quote row.
+      if (enteredLines.length) {
+        form.setValue("lineItems", [...values.lineItems, ...enteredLines], { shouldDirty: true });
+      }
+      prefilledQuote.current = sourceQuote.id;
+      setQuoteChargePrefillError(null);
+    } catch (error) {
+      setQuoteChargePrefillError(error instanceof Error ? error.message : "No se pudieron verificar los cargos de la cotización.");
+    }
+  }, [sourceQuote, customers, isEdit, assignments, forklifts, chargeAvailability]);
+  return { quoteChargePrefillError };
 }

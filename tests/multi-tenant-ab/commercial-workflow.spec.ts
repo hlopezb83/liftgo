@@ -16,7 +16,7 @@ test("cotización nueva → aceptación UI → conversión UI → factura persis
     customer_name: source.data.customer_name, forklift_id: ids.forklift_id,
     equipment_model_id: null, rental_meta: null, quote_type: "rental", currency: "MXN",
     start_date: ymd(start), end_date: ymd(end), valid_until: ymd(end),
-    line_items: [{ description: "Renta diaria local", quantity: 3, unit_price: 500, total: 1500 }],
+    line_items: [{ description: "Renta diaria local", line_kind: "rental", quantity: 3, unit_price: 500, total: 1500 }],
     subtotal: 1500, tax_rate: 16, tax_amount: 240, total: 1740,
     status: "draft",
   }).select("*").single();

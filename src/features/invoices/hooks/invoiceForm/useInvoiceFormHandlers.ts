@@ -1,11 +1,12 @@
+import { useRef, useState } from "react";
 import type { Forklift } from "@/features/fleet";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
-import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
+import { applyQuoteChargeAvailability, buildAvailableQuoteChargeLines, preserveEnteredQuoteChargeLines, type QuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
 import { buildQuotedBookingLines, type BookingQuoteSource } from "../../lib/quotedBookingLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
@@ -41,9 +42,7 @@ interface Props {
   /** Cotizaciones origen de las reservas cargadas; se usan para arrastrar
    *  partidas no-renta (logística/entrega) a la factura. */
   quotes?: QuoteSource[] | undefined;
-  /** FIX-4: reservas cuyas partidas extra (seguro/logística) YA se facturaron.
-   *  No se vuelven a pre-cargar para evitar doble cobro. */
-  bookingsWithBilledExtras?: Set<string> | undefined;
+  loadQuoteCharges: (quoteIds: string[]) => Promise<QuoteChargeAvailability>;
 }
 
 function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Customer) {
@@ -65,6 +64,7 @@ const SAT_LINE_DEFAULTS = {
   clave_prod_serv: "78181500",
   clave_unidad: "DAY",
   objeto_imp: "02",
+  line_kind: "rental",
 } as const;
 
 function monthLabel(ymd: string): string {
@@ -141,30 +141,25 @@ export function applyPrimaryCurrency<T extends Pick<Booking, "currency" | "tipo_
     { shouldDirty: true });
 }
 
-function collectExtraLinesFromQuotes(
-  selected: Booking[],
-  quotes: QuoteSource[] | undefined,
-  alreadyBilled?: Set<string> | undefined,
-): LineItemValues[] {
-  // Arrastrar partidas no-renta (logística/entrega) desde la cotización origen.
-  // Deduplicado por quote_id para no repetirlas si la cotización se dividió en varias reservas.
-  const seenQuoteIds = new Set<string>();
-  const extraLines: LineItemValues[] = [];
-  for (const b of selected) {
-    if (!b.quote_id || seenQuoteIds.has(b.quote_id)) continue;
-    // FIX-4: si la reserva ya tiene una factura vigente con partidas extra,
-    // no se vuelven a pre-cargar (se cobrarían dos veces).
-    if (alreadyBilled?.has(b.id)) continue;
-    seenQuoteIds.add(b.quote_id);
-    const q = quotes?.find((x) => x.id === b.quote_id);
-    if (!q) continue;
-    extraLines.push(...extractNonRentalLines(q.line_items));
+async function availableChargesForBookings(
+  selected: Booking[], quotes: QuoteSource[] | undefined, loadQuoteCharges: Props["loadQuoteCharges"],
+): Promise<LineItemValues[]> {
+  const quoteIds = [...new Set(selected.flatMap((booking) => booking.quote_id ? [booking.quote_id] : []))];
+  const availability = quoteIds.length ? await loadQuoteCharges(quoteIds) : undefined;
+  for (const quoteId of quoteIds) {
+    const source = quotes?.find((quote) => quote.id === quoteId);
+    if (!Array.isArray(source?.line_items)) throw new Error("No se pudieron verificar las partidas de la cotización. Recarga y reintenta.");
+    applyQuoteChargeAvailability(quoteId, source.line_items as LineItemValues[], availability);
   }
-  return extraLines;
+  return buildAvailableQuoteChargeLines(quoteIds, availability);
 }
 
+export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, loadQuoteCharges }: Props) {
 
-export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes, bookingsWithBilledExtras }: Props) {
+  const selectionRequest = useRef(0);
+  const [isLoadingCharges, setIsLoadingCharges] = useState(false);
+  const [chargeSelectionError, setChargeSelectionError] = useState<string | null>(null);
+  const [lastSelection, setLastSelection] = useState<string[]>([]);
 
   const handleCustomerSelect = (selectedCustomerId: string) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
@@ -174,18 +169,33 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     applyCfdiPatch(form, customer);
   };
 
-  const handleBookingsChange = (selectedIds: string[]) => {
+  const handleBookingsChange = async (selectedIds: string[]) => {
+    const request = ++selectionRequest.current;
+    setChargeSelectionError(null);
+    setLastSelection(selectedIds);
     const selected = selectedIds
       .map((id) => bookings?.find((b) => b.id === id))
       .filter((b): b is Booking => !!b);
 
     let rentalLines: LineItemValues[];
+    let extraLines: LineItemValues[];
+    setIsLoadingCharges(true);
     try {
+      if (selected.length !== new Set(selectedIds).size) throw new Error("No se pudieron cargar todas las reservas seleccionadas. Recarga las reservas y reintenta.");
       rentalLines = buildQuotedBookingLines(selected, bookings ?? [], forklifts ?? [], quotes,
         (booking) => buildLinesForBooking(booking, forklifts));
+      const available = await availableChargesForBookings(selected, quotes, loadQuoteCharges);
+      if (request !== selectionRequest.current) return;
+      const current = form.getValues("lineItems");
+      extraLines = preserveEnteredQuoteChargeLines(available, current);
     } catch (error) {
-      notifyValidation({ message: error instanceof Error ? error.message : "No se pudieron recuperar los precios pactados." });
+      if (request !== selectionRequest.current) return;
+      const message = error instanceof Error ? error.message : "No se pudieron recuperar los precios pactados.";
+      setChargeSelectionError(message);
+      notifyValidation({ message });
       return;
+    } finally {
+      if (request === selectionRequest.current) setIsLoadingCharges(false);
     }
 
     form.setValue("bookingIds", selectedIds, { shouldDirty: true });
@@ -205,8 +215,6 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     applyPrimaryCustomer(form, selected[0], customers);
     applyPrimaryCurrency(form, selected[0]);
 
-    const extraLines = collectExtraLinesFromQuotes(selected, quotes, bookingsWithBilledExtras);
-
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
   };
 
@@ -215,5 +223,5 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     handleBookingsChange(id ? [id] : []);
   };
 
-  return { handleCustomerSelect, handleBookingSelect, handleBookingsChange };
+  return { handleCustomerSelect, handleBookingSelect, handleBookingsChange, isLoadingCharges, chargeSelectionError, retryChargeSelection: () => handleBookingsChange(lastSelection) };
 }

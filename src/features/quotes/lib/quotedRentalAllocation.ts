@@ -40,7 +40,7 @@ const REVIEW = "No se puede reconstruir con certeza el descuento pactado. Revisa
 
 export function hasQuotedDiscount(quote: RentalQuoteSource): boolean {
   return [quote.line_items, quote.rental_meta].some((rows) => Array.isArray(rows)
-    && rows.some((row) => row && typeof row === "object" && Number(row.discount) > 0));
+    && rows.some((row) => row && typeof row === "object" && row.line_kind !== "charge" && Number(row.discount) > 0));
 }
 
 function rentalItems(value: unknown): LineItem[] {
