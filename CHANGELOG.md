@@ -1,3 +1,7 @@
+## [8.44.14] - 2026-10-19
+
+- La consulta de cargos usa un contrato local explícito y la sesión existente sin modificar tipos generados ni ocultar errores cuando falta la operación en la base.
+
 ## [8.44.13] - 2026-10-19
 
 - La factura conserva moneda y opciones CFDI durante la carga de la edición; una moneda vacía bloquea el guardado.

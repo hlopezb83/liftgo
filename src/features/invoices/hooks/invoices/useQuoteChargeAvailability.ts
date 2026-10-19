@@ -1,7 +1,7 @@
 import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 import { parseQuoteChargeAvailability } from "../../lib/quoteChargeAvailability";
+import { createQuoteChargeClient } from "./quoteChargeClient";
 
 export function quoteChargeAvailabilityQuery(quoteIds: string[], currentInvoiceId?: string) {
   const ids = [...new Set(quoteIds)].sort();
@@ -10,7 +10,7 @@ export function quoteChargeAvailabilityQuery(quoteIds: string[], currentInvoiceI
     enabled: ids.length > 0,
     staleTime: 0,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_quote_charge_availability", {
+      const { data, error } = await createQuoteChargeClient().rpc("get_quote_charge_availability", {
         p_quote_ids: ids,
         p_exclude_invoice_id: currentInvoiceId ?? undefined,
       });

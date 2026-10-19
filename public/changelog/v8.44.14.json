@@ -1,0 +1,12 @@
+{
+  "version": "8.44.14",
+  "date": "2026-10-19",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Consulta de cargos con contrato local explícito",
+  "description": "La consulta conserva la sesión existente sin modificar tipos generados ni ocultar errores de disponibilidad.",
+  "changes": [
+    "El contrato revisado de cargos se mantiene separado de los tipos generados.",
+    "Una operación ausente o una sesión inválida conserva su error real."
+  ]
+}
