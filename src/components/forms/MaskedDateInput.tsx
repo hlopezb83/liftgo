@@ -93,13 +93,13 @@ export function MaskedDateInput({
       return;
     }
 
-    // §3.4: captura parcial (menos de 8 dígitos). Antes el formulario conservaba
-    // en silencio la fecha anterior; ahora se limpia el valor y, al salir del
-    // campo, se muestra el aviso.
+    // Captura parcial: invalida el valor en cuanto cambia el texto. Un submit
+    // con Enter puede ocurrir antes del blur y no debe usar la fecha anterior.
+    // El aviso específico de captura incompleta se muestra al salir del campo.
     if (!parsed.complete) {
       const incomplete = next.length > 0;
       setError(final && incomplete ? "Fecha incompleta (DD/MM/AAAA)" : null);
-      if (final || !incomplete) onChange(undefined);
+      onChange(undefined);
       return;
     }
 

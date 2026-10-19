@@ -96,6 +96,8 @@ describe("MaskedDateInput", () => {
     expect(out()).toBe(new Date(2026, 8, 15).toDateString());
 
     fireEvent.change(input(), { target: { value: "1509" } });
+    expect(out()).toBe("vacío");
+    expect(input().value).toBe("15/09");
     fireEvent.blur(input());
     expect(out()).toBe("vacío");
     expect(screen.getByText("Fecha incompleta (DD/MM/AAAA)")).toBeInTheDocument();
