@@ -1,4 +1,5 @@
 import { sumMoney } from "@/lib/money";
+import { DEPRECIATION_ROUNDING_LABEL, depreciationRoundingAdjustment } from "./depreciationPresentation";
 import {
   type ExpenseCategory,
   type MonthData, type StatementRow, type YearTotals, type ComparisonRow,
@@ -56,6 +57,11 @@ const operatingExpenseGroupRows = (filteredData: MonthData[], totals: RowTotals)
 
 
 export function buildStatementRows(filteredData: MonthData[], totals: RowTotals): StatementRow[] {
+  const roundingValues = filteredData.map(depreciationRoundingAdjustment);
+  const roundingTotal = depreciationRoundingAdjustment(totals);
+  const roundingRows: StatementRow[] = roundingTotal !== 0 || roundingValues.some((value) => value !== 0)
+    ? [{ label: DEPRECIATION_ROUNDING_LABEL, values: roundingValues, total: roundingTotal, isCost: true }]
+    : [];
   return [
     { label: "  Ingresos por Rentas (con reserva)", values: filteredData.map((r) => r.revenueRentalBooked), total: totals.revenueRentalBooked },
     { label: "  Ingresos por Rentas (sin reserva)", values: filteredData.map((r) => r.revenueRentalUnbooked), total: totals.revenueRentalUnbooked },
@@ -77,6 +83,7 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "Margen antes de Depreciación", values: filteredData.map((r) => r.marginBeforeDepreciation), total: totals.marginBeforeDepreciation, isPercent: true },
     { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciationRented), total: totals.depreciationRented, isCost: true },
     { label: "(-) Depreciación (Flota Ociosa)", values: filteredData.map((r) => r.depreciationIdle), total: totals.depreciationIdle, isCost: true },
+    ...roundingRows,
     { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ];
