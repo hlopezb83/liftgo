@@ -5,9 +5,6 @@ RETURNS uuid
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path TO pg_catalog, public, pg_temp
-SET app.cxp_rpc TO 'off'
-SET app.cxp_recalc TO 'off'
-SET app.audit_revert TO 'off'
 AS $function$
 DECLARE
   v_actor uuid := auth.uid();
@@ -39,6 +36,13 @@ BEGIN
   v_org := public.current_internal_organization_id();
   IF v_org IS NULL THEN
     RAISE EXCEPTION 'Se requiere membresia interna en una empresa activa' USING ERRCODE='42501';
+  END IF;
+  -- Do not require parameter SET privileges from the migration runner or
+  -- silently inherit a privileged writer's bypass context.
+  IF current_setting('app.cxp_rpc',true)='on'
+     OR current_setting('app.cxp_recalc',true)='on'
+     OR current_setting('app.audit_revert',true)='on' THEN
+    RAISE EXCEPTION 'Contexto interno no permitido para editar facturas de proveedor' USING ERRCODE='42501';
   END IF;
   IF jsonb_typeof(p_patch) IS DISTINCT FROM 'object' OR p_patch='{}'::jsonb THEN
     RAISE EXCEPTION 'El patch debe ser un objeto no vacio' USING ERRCODE='22023';
