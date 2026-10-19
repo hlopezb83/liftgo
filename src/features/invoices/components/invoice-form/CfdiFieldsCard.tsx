@@ -21,7 +21,9 @@ function CfdiCatalogSelects() {
       <FormField control={control} name="cfdi.formaPago" render={({ field }) => (
         <FormItem>
           <FormLabel>Forma de Pago</FormLabel>
-          <Select value={field.value} disabled={metodoPago === "PPD"} onValueChange={field.onChange}>
+          <Select value={field.value} disabled={metodoPago === "PPD"} onValueChange={(value) => {
+            if (value) field.onChange(value);
+          }}>
             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
             <SelectContent>
               {FORMA_PAGO.map((f) => <SelectItem key={f.code} value={f.code}>{f.label}</SelectItem>)}
@@ -35,6 +37,7 @@ function CfdiCatalogSelects() {
         <FormItem>
           <FormLabel>Método de Pago</FormLabel>
           <Select value={field.value} onValueChange={(value) => {
+            if (!value) return;
             field.onChange(value);
             setValue("cfdi.formaPago", formaPagoForMetodoChange(value, getValues("cfdi.formaPago")), {
               shouldDirty: true,
@@ -52,7 +55,9 @@ function CfdiCatalogSelects() {
       <FormField control={control} name="cfdi.usoCfdi" render={({ field }) => (
         <FormItem>
           <FormLabel>Uso CFDI</FormLabel>
-          <Select value={field.value} onValueChange={field.onChange}>
+          <Select value={field.value} onValueChange={(value) => {
+            if (value) field.onChange(value);
+          }}>
             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
             <SelectContent>
               {USO_CFDI.map((u) => <SelectItem key={u.code} value={u.code}>{u.label}</SelectItem>)}
@@ -74,6 +79,9 @@ function CurrencyFields() {
         <FormItem>
           <FormLabel>Moneda</FormLabel>
           <Select value={field.value} onValueChange={(v) => {
+            // Radix can emit an empty native-select value while reset hydrates
+            // its options. There is no empty currency option to select.
+            if (!v) return;
             field.onChange(v);
             if (v === "MXN") setValue("cfdi.tipoCambio", 1, { shouldDirty: true });
           }}>

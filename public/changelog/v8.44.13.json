@@ -1,0 +1,12 @@
+{
+  "version": "8.44.13",
+  "date": "2026-10-19",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Factura conserva moneda al editar datos fiscales",
+  "description": "La edición conserva la moneda y las opciones CFDI al cargar una factura; una moneda vacía impide guardar.",
+  "changes": [
+    "Editar el receptor conserva moneda, tipo de cambio, importes y opciones CFDI.",
+    "El formulario solicita una moneda válida antes de guardar si el campo está vacío."
+  ]
+}
