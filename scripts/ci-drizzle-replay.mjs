@@ -16,6 +16,14 @@ export const EXCLUDED_RECEIPT = Object.freeze({
   when: 1792440638110,
   sha256: "ce97a5bcebbcf5f5671861c4d74ed33b3c930710e9f99ded7441a7daf5ec89eb",
 });
+// Optional until the official runner generates this assertion-only receipt.
+// No timestamp is invented: canonical validation checks its generated timestamp,
+// and the exact observed value is bound into the replay manifest below.
+const OPTIONAL_RECEIPT = Object.freeze({
+  idx: 110,
+  tag: "0110_control0109_verified_release",
+  sha256: "3e99b978f260dedd927dd1104b84b5af74ee524b3d78dff0acd9446c2df2e13f",
+});
 const EXCLUSION_REASON = "Target-bound release-control receipt: its production ledger and ACL assertions cannot attest a fresh CI database. It is not applied or recorded in the CI ledger.";
 const JOURNAL_RELATIVE_PATH = "meta/_journal.json";
 const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
@@ -109,7 +117,26 @@ function loadCanonical(rootDir) {
     || receipt.sha256 !== EXCLUDED_RECEIPT.sha256) {
     throw new Error("Unrecognized 0108 receipt: exact idx, tag, timestamp and pinned SHA256 are required. No migration was excluded.");
   }
-  const included = sourceEntries.filter(({ entry }) => entry.idx !== EXCLUDED_RECEIPT.idx);
+  const excludedReceipts = [{ ...EXCLUDED_RECEIPT, reason: EXCLUSION_REASON }];
+  // Match both identity and reviewed bytes. Other migrations remain executable,
+  // including any unrelated migration at index 110; never skip by prefix/name.
+  const optionalReceipt = sourceEntries.find(({ entry, sha256: hash }) =>
+    entry.tag === OPTIONAL_RECEIPT.tag || hash === OPTIONAL_RECEIPT.sha256);
+  if (optionalReceipt) {
+    if (optionalReceipt.entry.idx !== OPTIONAL_RECEIPT.idx
+      || optionalReceipt.entry.tag !== OPTIONAL_RECEIPT.tag
+      || optionalReceipt.sha256 !== OPTIONAL_RECEIPT.sha256
+      || optionalReceipt.entry.breakpoints !== true) {
+      throw new Error("Unrecognized 0110 receipt: exact idx, tag, breakpoints and pinned SHA256 are required. No migration was excluded.");
+    }
+    // Reject a second copy of the same receipt under any other identity.
+    if (sourceEntries.filter(({ sha256: hash }) => hash === OPTIONAL_RECEIPT.sha256).length !== 1) {
+      throw new Error("Duplicate pinned 0110 receipt. No migration was excluded.");
+    }
+    excludedReceipts.push({ ...OPTIONAL_RECEIPT, when: optionalReceipt.entry.when, reason: EXCLUSION_REASON });
+  }
+  const excludedIndexes = new Set(excludedReceipts.map(({ idx }) => idx));
+  const included = sourceEntries.filter(({ entry }) => !excludedIndexes.has(entry.idx));
   const replayJournal = { ...journal, entries: included.map(({ entry }) => entry) };
   const replayJournalBytes = Buffer.from(`${JSON.stringify(replayJournal, null, 2)}\n`);
   const entries = included.map(({ entry, bytes, sha256: hash }) => ({ ...entry, sha256: hash, bytes: bytes.length }));
@@ -119,7 +146,7 @@ function loadCanonical(rootDir) {
     source: "drizzle/migrations",
     sourceJournalSha256: sha256(journalBytes),
     replayJournalSha256: sha256(replayJournalBytes),
-    excludedReceipts: [{ ...EXCLUDED_RECEIPT, reason: EXCLUSION_REASON }],
+    excludedReceipts,
     migrations: entries,
   };
   return { root, sourceDirectory, included, entries, journal: replayJournal, replayJournalBytes, manifest };
@@ -225,7 +252,7 @@ export async function verifyReplay({ env = process.env, rootDir = process.cwd() 
     if (!table[0]?.id) throw new Error("CI replay ledger drizzle.__drizzle_migrations is missing.");
     const rows = await connection`select hash, created_at from drizzle.__drizzle_migrations order by created_at, id`;
     assertReplayLedger(rows, replay.entries);
-    return { count: rows.length, excludedReceipt: EXCLUDED_RECEIPT.tag };
+    return { count: rows.length, excludedReceipts: replay.manifest.excludedReceipts.map(({ tag }) => tag) };
   } finally {
     await connection.end({ timeout: 5 });
   }
@@ -234,11 +261,11 @@ export async function verifyReplay({ env = process.env, rootDir = process.cwd() 
 async function main(command) {
   if (command === "prepare") {
     const replay = await prepareReplay();
-    console.info(`Prepared ${replay.entries.length} byte-identical CI migrations; excluded only ${EXCLUDED_RECEIPT.tag}.`);
+    console.info(`Prepared ${replay.entries.length} byte-identical CI migrations; excluded only ${replay.manifest.excludedReceipts.map(({ tag }) => tag).join(", ")}.`);
     console.info(`Explicit exclusion manifest: ${replay.manifestPath}`);
   } else if (command === "verify") {
     const result = await verifyReplay();
-    console.info(`Verified the exact ${result.count}-row CI replay ledger; ${result.excludedReceipt} is not recorded.`);
+    console.info(`Verified the exact ${result.count}-row CI replay ledger; ${result.excludedReceipts.join(", ")} not recorded.`);
   } else {
     throw new Error("Usage: node scripts/ci-drizzle-replay.mjs <prepare|verify>");
   }
