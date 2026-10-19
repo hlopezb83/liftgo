@@ -1,0 +1,570 @@
+{
+  "sourceSha": "cbdbb631d4338704e328a13b652587eac97c8b1b",
+  "qaFile": "qa-pr276-published-n5.json",
+  "qaSha256": "902830D7EA5B927E40971CC677E24C3013D6824A3C20DC9257DCB7ADAE117B27",
+  "testSourceSha256": "8127338F17021CD85E86F24CFBC9FABDAB1B363C4A6F5AB72EFA4AF8D2788F5C",
+  "sourceLog": "before-visual.txt",
+  "scope": "Offline synthetic data; real TanStack route lifecycle and actual CalendarPage/BookingDetail; mobile hook branch selected by fixture",
+  "failedTests": 10,
+  "passedTests": 0,
+  "snapshots": [
+    {
+      "phase": "booking-source",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "booking-pending",
+      "viewport": "desktop",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "booking-settled",
+      "viewport": "desktop",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "RSV-0014"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": null,
+      "selectedTabs": [],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "calendar-returned",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "booking-source",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "booking-pending",
+      "viewport": "mobile",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "booking-settled",
+      "viewport": "mobile",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "RSV-0014"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": null,
+      "selectedTabs": [],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "calendar-returned",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "panel-source",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "panel-pending",
+      "viewport": "desktop",
+      "url": "/",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "panel-settled",
+      "viewport": "desktop",
+      "url": "/",
+      "headings": [
+        "Panel destino"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": null,
+      "selectedTabs": [],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "panel-source",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "panel-pending",
+      "viewport": "mobile",
+      "url": "/",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "panel-settled",
+      "viewport": "mobile",
+      "url": "/",
+      "headings": [
+        "Panel destino"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": null,
+      "selectedTabs": [],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-source",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-pending",
+      "viewport": "desktop",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-returned-bare",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-10-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-10-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-settled",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-10-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-10-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-source",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-pending",
+      "viewport": "mobile",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "cancel-returned-bare",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-10-18&view=list&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-10-18&view=list&range=month"
+    },
+    {
+      "phase": "cancel-settled",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-10-18&view=list&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-10-18&view=list&range=month"
+    },
+    {
+      "phase": "explicit-source",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "explicit-pending",
+      "viewport": "desktop",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "explicit-returned",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-12-18&view=list&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Diciembre de 2026",
+      "calendarRange": "Diciembre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-12-18&view=list&range=month"
+    },
+    {
+      "phase": "explicit-settled",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-12-18&view=list&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Diciembre de 2026",
+      "calendarRange": "Diciembre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-12-18&view=list&range=month"
+    },
+    {
+      "phase": "explicit-source",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-11-18&view=gantt&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Noviembre de 2026",
+      "calendarRange": "Noviembre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "explicit-pending",
+      "viewport": "mobile",
+      "url": "/bookings/bk-november",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=gantt&range=month"
+    },
+    {
+      "phase": "explicit-returned",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-12-18&view=list&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Diciembre de 2026",
+      "calendarRange": "Diciembre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-12-18&view=list&range=month"
+    },
+    {
+      "phase": "explicit-settled",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-12-18&view=list&range=month",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Diciembre de 2026",
+      "calendarRange": "Diciembre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-12-18&view=list&range=month"
+    },
+    {
+      "phase": "week-source",
+      "viewport": "desktop",
+      "url": "/calendar?date=2026-11-18&view=list&range=week",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": "15 nov ΓÇô 22/11/2026",
+      "selectedTabs": [
+        "Lista",
+        "Semana"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=list&range=week"
+    },
+    {
+      "phase": "week-pending",
+      "viewport": "desktop",
+      "url": "/",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Gantt",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=list&range=week"
+    },
+    {
+      "phase": "week-settled",
+      "viewport": "desktop",
+      "url": "/",
+      "headings": [
+        "Panel destino"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": null,
+      "selectedTabs": [],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=list&range=week"
+    },
+    {
+      "phase": "week-source",
+      "viewport": "mobile",
+      "url": "/calendar?date=2026-11-18&view=list&range=week",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": "15 nov ΓÇô 22/11/2026",
+      "selectedTabs": [
+        "Lista",
+        "Semana"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=list&range=week"
+    },
+    {
+      "phase": "week-pending",
+      "viewport": "mobile",
+      "url": "/",
+      "headings": [
+        "Calendario de Disponibilidad"
+      ],
+      "calendarPeriod": "Octubre de 2026",
+      "calendarRange": "Octubre de 2026",
+      "selectedTabs": [
+        "Lista",
+        "Mes"
+      ],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=list&range=week"
+    },
+    {
+      "phase": "week-settled",
+      "viewport": "mobile",
+      "url": "/",
+      "headings": [
+        "Panel destino"
+      ],
+      "calendarPeriod": null,
+      "calendarRange": null,
+      "selectedTabs": [],
+      "calendarLoading": false,
+      "savedCalendar": "date=2026-11-18&view=list&range=week"
+    }
+  ]
+}

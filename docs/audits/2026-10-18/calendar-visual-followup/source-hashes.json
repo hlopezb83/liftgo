@@ -1,0 +1,12 @@
+[
+  {
+    "name": "CalendarPage.pending-navigation.test.tsx",
+    "workspaceSha256": "8127338f17021cd85e86f24cfbc9fabdab1b363c4a6f5ab72efa4af8d2788f5c",
+    "gitLfSha256": "ff1cb62ee8d04e89a9cced8721e93008f6dbc452ad2a019ad211767b13016aaf"
+  },
+  {
+    "name": "CalendarPage.pending-navigation.double-activation.test.tsx",
+    "workspaceSha256": "e5b6a3ab60385a1cd5659bc6ea416794952e8f51d4d7ced81c243ef30fa1e860",
+    "gitLfSha256": "08f8f79d9d0883e3aad8e9510d10349a8578259011f1f370bf85215ad1281d0a"
+  }
+]

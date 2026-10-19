@@ -35,5 +35,14 @@
     "buildExit": 0,
     "journalExit": 0,
     "changelogExit": 0
+  },
+  "integration": {
+    "officialMain": "ff6e6146eb925c53a3caa3e585019b87cbc233b7",
+    "fxParent": "2bc2c89f5498515af2dc9d36a2af240be070a845",
+    "candidateVersion": "8.44.12",
+    "official0103When": 1792368366457,
+    "candidate0104When": 1792368835673,
+    "sqlCodeChanged": false,
+    "k1ClientCodeChanged": false
   }
 }

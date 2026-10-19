@@ -75,9 +75,12 @@ export function GanttRow({ forklift, segments, days, maintenanceSegments = [] }:
                 <button
                   type="button"
                   aria-label={`Abrir reserva ${seg.label}`}
-                  onClick={() => navigate(`/bookings/${seg.booking.id}`, {
-                    state: { calendarReturnTo: `${location.pathname}${location.search}` },
-                  })}
+                  onClick={() => {
+                    if (location.pathname !== "/calendar") return;
+                    navigate(`/bookings/${seg.booking.id}`, {
+                      state: { calendarReturnTo: `${location.pathname}${location.search}` },
+                    });
+                  }}
                   className={`absolute top-0.5 h-5 rounded-sm flex items-center overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring transition-opacity hover:opacity-90 ${!isConfirmed ? "opacity-30 border border-dashed border-foreground/30" : ""}`}
                   style={{
                     left: `${seg.leftPercent}%`,

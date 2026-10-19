@@ -43,3 +43,7 @@ Compensación propuesta: retirar el puente cliente y, mediante una nueva migraci
 Sin Chrome, BUILD de Lovable, merge, publicación, permisos reales ni transacciones de negocio. El destino y las capturas internas permanecen en el paquete privado del coordinador; no se vuelven a publicar aquí.
 
 La retargetización del PR y este ajuste documental habilitan los checks del mismo código K1; no cambian la migración, el helper ni los resultados locales. Debe revisarse el head final de CI. La integración con N5 y la armonización de versiones permanecen con el coordinador.
+
+## Integración del journal oficial, 2026-10-19
+
+Se incorpora main oficial ff6e6146 y el cliente FX reconciliado2bc2c89f, incluyendo N5f95aac98. Las releases quedan N5 8.44.10, cliente FX 8.44.11 y K1 8.44.12.0103 conserva SQL/snapshot oficiales y when1792368366457. El when anterior propuesto para0104 era menor y podía ser omitido por Drizzle; se sustituye antes de su aprobación por 1792368835673, estrictamente posterior.0104 sigue sin aplicarse y su SQL conserva el mismo hash. El código K1 y los casos ejecutados no cambian; sus resultados originales se conservan. No reaplicar0103 ni editar ledger. El padre coordina permisos, aplicación y publicación de K1.
