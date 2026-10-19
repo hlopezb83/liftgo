@@ -1,0 +1,17 @@
+{
+  "scope": "same unchanged real-component compatibility test after scoped invalidateOnPartial opt-in",
+  "tests": 1,
+  "passed": 1,
+  "failed": 0,
+  "success": true,
+  "exit_code": 0,
+  "observed_partial": {
+    "input": "15/09",
+    "stored_date": "2026-08-14"
+  },
+  "observed_complete": {
+    "input": "15/09/2026",
+    "stored_date": "2026-09-15"
+  },
+  "test_lint_exit_code": 0
+}

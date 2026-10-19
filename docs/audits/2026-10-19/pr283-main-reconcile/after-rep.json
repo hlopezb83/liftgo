@@ -1,0 +1,291 @@
+{
+  "stage": "after-rep",
+  "suite": "rep",
+  "exitCode": 0,
+  "signal": null,
+  "node": "v24.19.0",
+  "elapsedMs": 41057,
+  "selection": [
+    "src/features/invoices/hooks/invoices/__tests__/usePaymentHistoryColumns.repRecovery.test.tsx",
+    "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.recoveryCache.test.tsx",
+    "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.test.ts",
+    "src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx"
+  ],
+  "summary": {
+    "total": 58,
+    "passed": 58,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 4
+  },
+  "results": [
+    {
+      "file": "src/features/invoices/components/invoice-detail/__tests__/InvoicePaymentPermissions.test.tsx",
+      "status": "passed",
+      "lfSha256": "7bd500762dfa47d4ec0f3f3d931df3dfc3db4e4ad9fcbbf95f850567892cdaba",
+      "cases": [
+        {
+          "title": "Historial de pagos — permisos y moneda consulta conserva importes, estados y descargas sin ofrecer modificaciones",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda escritura permite REP y editar pagos sin timbrar, mantiene el bloqueo fiscal",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda al perder permiso desaparece un editor ya abierto",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda cancelación de factura impide nuevos REP pero permite consultar una cancelación en proceso",
+          "status": "passed"
+        },
+        {
+          "title": "Historial de pagos — permisos y moneda los resúmenes usan USD sin convertir importes a pesos",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/__tests__/usePaymentHistoryColumns.repRecovery.test.tsx",
+      "status": "passed",
+      "lfSha256": "16516871c7d091d51a4b121bacdd5f62f3ff9c650fc0c3122dbd49b171b97cb7",
+      "cases": [
+        {
+          "title": "REP recovery action offers an explicit retry after a pre-PAC failure leaves pending without provider identifiers",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action preserves existing unissued state none",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action preserves existing unissued state error",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action preserves existing unissued state null",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action blocks none when a PAC id exists without a UUID",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action blocks pending when a PAC id exists without a UUID",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action blocks error when a PAC id exists without a UUID",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action blocks none with an existing UUID",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action blocks pending with an existing UUID",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action blocks error with an existing UUID",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action does not expose uncertain or terminal state stamping as retryable",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action does not expose uncertain or terminal state stamped as retryable",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action does not expose uncertain or terminal state cancelled as retryable",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action does not expose uncertain or terminal state unexpected as retryable",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action retains the in-flight guard for pending recovery",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action does not expose pending recovery to read-only users",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action retains the parent invoice cancellation guard",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action requires a stamped PPD parent invoice",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action keeps the pending banner consistent with recovery eligibility",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action does not infer a retry from missing claim/error metadata",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery action disables a stale eligible row when its authoritative refetch failed",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) rejects a direct request for stamping older than 6 minutes before claim or PAC",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) rejects a direct request for stamping older than 60 minutes before claim or PAC",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) rejects a direct request for stamping older than 1440 minutes before claim or PAC",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) rejects an existing UUID even when the local status incorrectly says pending",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) makes a pre-PAC configuration failure recoverable without provider identifiers",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps a provider timeout in stamping, without exposing a manual reissue",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps lost response uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps invalid response uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps HTTP 500 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps HTTP 408 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps HTTP 409 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps HTTP 425 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps HTTP 429 uncertain for reconciliation instead of making it retryable",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) retains definite HTTP 400 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) retains definite HTTP 401 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) retains definite HTTP 403 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) retains definite HTTP 422 rejection as error and allows correction/retry",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) keeps an accepted REP without UUID in stamping and blocks manual reissue",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) preserves handler role restrictions",
+          "status": "passed"
+        },
+        {
+          "title": "real REP handler to recovery UI (offline DI) preserves rejection of an active claim",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.recoveryCache.test.tsx",
+      "status": "passed",
+      "lfSha256": "252a97a4e07399e81abd5b4b358abcb532a71e13d2f0606519dbae66f3c4171d",
+      "cases": [
+        {
+          "title": "REP recovery keeps cached actions safe holds isPending until the authoritative payment refetch completes",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery keeps cached actions safe blocks stale none locally if the refetch fails, without fabricating persisted state",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery keeps cached actions safe does not treat a missing payment query as a successful refresh",
+          "status": "passed"
+        },
+        {
+          "title": "REP recovery keeps cached actions safe permits correction after a fresh pre-PAC pending result, preserving the original failure",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "file": "src/features/invoices/hooks/invoices/cfdi/__tests__/usePaymentComplement.test.ts",
+      "status": "passed",
+      "lfSha256": "e13376722b261eda18e6644f750dce147bd4e62b99427b819137235d9c6a7c82",
+      "cases": [
+        {
+          "title": "complemento de pago — resultado fiscal sólo anuncia cancelación cuando el SAT la aceptó",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal no anuncia cancelación final para pending",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal no anuncia cancelación final para verifying",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal no anuncia cancelación final para rejected",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal no anuncia cancelación final para expired",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal no anuncia cancelación final para undefined",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal no anuncia cancelación final para unexpected",
+          "status": "passed"
+        },
+        {
+          "title": "complemento de pago — resultado fiscal un REP pendiente informa sin prometer UUID ni anunciar timbrado",
+          "status": "passed"
+        }
+      ]
+    }
+  ],
+  "privacy": {
+    "rawLogsCommitted": false,
+    "rawFailureMessagesIncluded": false,
+    "backend": false,
+    "browser": false,
+    "network": "src/test/setup.ts offline barrier"
+  }
+}

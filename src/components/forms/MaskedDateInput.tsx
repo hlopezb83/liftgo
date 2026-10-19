@@ -28,6 +28,8 @@ export interface MaskedDateInputProps {
    * fecha de un pago con REP timbrado).
    */
   isDateDisabled?: (date: Date) => boolean;
+  /** Invalidate a required form value during typing, before blur or Enter. */
+  invalidateOnPartial?: boolean;
   className?: string;
   /** Error de dominio del formulario; se presenta una sola vez junto al campo. */
   errorMessage?: string;
@@ -51,6 +53,7 @@ export function MaskedDateInput({
   placeholder = MASK_PLACEHOLDER,
   disabled,
   isDateDisabled,
+  invalidateOnPartial = false,
   className,
   errorMessage,
   ...aria
@@ -93,13 +96,12 @@ export function MaskedDateInput({
       return;
     }
 
-    // §3.4: captura parcial (menos de 8 dígitos). Antes el formulario conservaba
-    // en silencio la fecha anterior; ahora se limpia el valor y, al salir del
-    // campo, se muestra el aviso.
+    // Required forms may opt into invalidation before blur/Enter. Other
+    // callers retain their existing partial-edit contract until completion.
     if (!parsed.complete) {
       const incomplete = next.length > 0;
       setError(final && incomplete ? "Fecha incompleta (DD/MM/AAAA)" : null);
-      if (final || !incomplete) onChange(undefined);
+      if (invalidateOnPartial || final || !incomplete) onChange(undefined);
       return;
     }
 

@@ -1,0 +1,79 @@
+{
+  "originalPr283": "991347f1e871791c5f9243cbaf89e81f14e12b3f",
+  "commonBase": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "main282": "4de7d314c140ccccb326730430bd8e6eb96219c8",
+  "firstMerge": "e2b44a9f2",
+  "finalIncomingMain285": "3d679f30da4ffdf861a2ac185c435128fe3d1809",
+  "mergeConflicts": [],
+  "manualProductEdits": false,
+  "preservation": {
+    "allParentBlobsPreserved": true,
+    "parentFileAssertions": 71,
+    "uniquePaths": 59,
+    "repMigration0105MatchesMain": true
+  },
+  "beforePayments": {
+    "total": 127,
+    "passed": 127,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 20
+  },
+  "afterPayments": {
+    "total": 127,
+    "passed": 127,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 20
+  },
+  "paymentsSameSelection": true,
+  "paymentsSameCases": true,
+  "afterExtensions": {
+    "total": 74,
+    "passed": 74,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 8
+  },
+  "extensionsSameCasesAsMain282": true,
+  "afterRep": {
+    "total": 58,
+    "passed": 58,
+    "failed": 0,
+    "pending": 0,
+    "success": true,
+    "files": 4
+  },
+  "totalCaseExecutions": 259,
+  "uniqueCaseKeys": 253,
+  "checks": {
+    "appTypesExit": 0,
+    "browserTestTypesExit": 0,
+    "eslintExit": 0,
+    "eslintWarnings": 0,
+    "migrationJournalExit": 0,
+    "journalCount": 106,
+    "viteBuildExit": 0,
+    "diffCheckExit": 0
+  },
+  "build": {
+    "directVite": true,
+    "versionGenerationRun": false,
+    "sentryUploadEnabled": false,
+    "metricsEnabled": false,
+    "apiOrigin": "loopback",
+    "dependencyWarningsObserved": true
+  },
+  "privacy": {
+    "rawLogsCommitted": false,
+    "rawFailureMessagesIncluded": false,
+    "backendExecuted": false,
+    "browserExecuted": false,
+    "pacExecuted": false,
+    "migrationExecuted": false
+  },
+  "permissionDenial": false
+}

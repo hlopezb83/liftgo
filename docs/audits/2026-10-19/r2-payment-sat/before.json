@@ -1,0 +1,94 @@
+{
+  "base": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "source": "Unmodified audited component; final regression test file",
+  "testSha256": "b19016a4e712185b28117d632374df1225e8b3146a774d60a8575be47c1c1f36",
+  "command": "node node_modules/vitest/vitest.mjs run src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx --maxWorkers 1 --reporter=json",
+  "summary": {
+    "total": 14,
+    "passed": 3,
+    "failed": 11
+  },
+  "cases": [
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "changes transfer/03 to cash/01 and exposes the suggested SAT form for review",
+      "status": "failed",
+      "failure": "TestingLibraryElementError: Unable to find an accessible element with the role \"combobox\" and name \"Forma de pago SAT\""
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "suggests the shared default for Efectivo only after changing method",
+      "status": "failed",
+      "failure": "AssertionError: expected { id: 'synthetic-payment', …(6) } to match object { payment_method: 'cash', …(1) }"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "suggests the shared default for Cheque only after changing method",
+      "status": "failed",
+      "failure": "AssertionError: expected { id: 'synthetic-payment', …(6) } to match object { payment_method: 'check', …(1) }"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "suggests the shared default for Tarjeta only after changing method",
+      "status": "failed",
+      "failure": "AssertionError: expected { id: 'synthetic-payment', …(6) } to match object { payment_method: 'card', …(1) }"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "preserves a stored card SAT28 override when editing only notes",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "preserves a stored card SAT29 override when editing only notes",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "allows an explicit SAT28 override after switching to card",
+      "status": "failed",
+      "failure": "TestingLibraryElementError: Unable to find an accessible element with the role \"combobox\" and name \"Forma de pago SAT\""
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "allows an explicit SAT29 override after switching to card",
+      "status": "failed",
+      "failure": "TestingLibraryElementError: Unable to find an accessible element with the role \"combobox\" and name \"Forma de pago SAT\""
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "keeps a card override when the same method is selected again",
+      "status": "passed"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "restores the stored SAT form when another payment opens in the mounted dialog",
+      "status": "failed",
+      "failure": "TestingLibraryElementError: Unable to find an accessible element with the role \"combobox\" and name \"Forma de pago SAT\""
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "does not invent a missing legacy SAT form when editing only notes",
+      "status": "failed",
+      "failure": "TestingLibraryElementError: Unable to find an accessible element with the role \"combobox\" and name \"Forma de pago SAT\""
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "locks stamped fiscal fields and permits notes with stored SAT28",
+      "status": "failed",
+      "failure": "Error: expect(element).toBeDisabled()"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "locks stamped fiscal fields and permits notes with stored SAT29",
+      "status": "failed",
+      "failure": "Error: expect(element).toBeDisabled()"
+    },
+    {
+      "suite": "features/invoices/components/invoice-detail/__tests__/EditPaymentDialogSat.test.tsx",
+      "title": "locks stamped fiscal fields and permits notes with stored SATnull",
+      "status": "failed",
+      "failure": "Error: expect(element).toBeDisabled()"
+    }
+  ]
+}
