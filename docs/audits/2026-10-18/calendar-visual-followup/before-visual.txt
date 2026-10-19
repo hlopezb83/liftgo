@@ -1,0 +1,416 @@
+
+ RUN  v4.1.11 <workspace>
+
+N5_VISUAL_SNAPSHOT {"phase":"booking-source","viewport":"desktop","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"booking-pending","viewport":"desktop","url":"/bookings/bk-november","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"booking-settled","viewport":"desktop","url":"/bookings/bk-november","headings":["RSV-0014"],"calendarPeriod":null,"calendarRange":null,"selectedTabs":[],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"calendar-returned","viewport":"desktop","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"booking-source","viewport":"mobile","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"booking-pending","viewport":"mobile","url":"/bookings/bk-november","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"booking-settled","viewport":"mobile","url":"/bookings/bk-november","headings":["RSV-0014"],"calendarPeriod":null,"calendarRange":null,"selectedTabs":[],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"calendar-returned","viewport":"mobile","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"panel-source","viewport":"desktop","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"panel-pending","viewport":"desktop","url":"/","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"panel-settled","viewport":"desktop","url":"/","headings":["Panel destino"],"calendarPeriod":null,"calendarRange":null,"selectedTabs":[],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"panel-source","viewport":"mobile","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"panel-pending","viewport":"mobile","url":"/","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"panel-settled","viewport":"mobile","url":"/","headings":["Panel destino"],"calendarPeriod":null,"calendarRange":null,"selectedTabs":[],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-source","viewport":"desktop","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-pending","viewport":"desktop","url":"/bookings/bk-november","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-returned-bare","viewport":"desktop","url":"/calendar?date=2026-10-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-10-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-settled","viewport":"desktop","url":"/calendar?date=2026-10-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-10-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-source","viewport":"mobile","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-pending","viewport":"mobile","url":"/bookings/bk-november","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-returned-bare","viewport":"mobile","url":"/calendar?date=2026-10-18&view=list&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-10-18&view=list&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"cancel-settled","viewport":"mobile","url":"/calendar?date=2026-10-18&view=list&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-10-18&view=list&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-source","viewport":"desktop","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-pending","viewport":"desktop","url":"/bookings/bk-november","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-returned","viewport":"desktop","url":"/calendar?date=2026-12-18&view=list&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Diciembre de 2026","calendarRange":"Diciembre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-12-18&view=list&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-settled","viewport":"desktop","url":"/calendar?date=2026-12-18&view=list&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Diciembre de 2026","calendarRange":"Diciembre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-12-18&view=list&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-source","viewport":"mobile","url":"/calendar?date=2026-11-18&view=gantt&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Noviembre de 2026","calendarRange":"Noviembre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-pending","viewport":"mobile","url":"/bookings/bk-november","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=gantt&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-returned","viewport":"mobile","url":"/calendar?date=2026-12-18&view=list&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Diciembre de 2026","calendarRange":"Diciembre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-12-18&view=list&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"explicit-settled","viewport":"mobile","url":"/calendar?date=2026-12-18&view=list&range=month","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Diciembre de 2026","calendarRange":"Diciembre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-12-18&view=list&range=month"}
+N5_VISUAL_SNAPSHOT {"phase":"week-source","viewport":"desktop","url":"/calendar?date=2026-11-18&view=list&range=week","headings":["Calendario de Disponibilidad"],"calendarPeriod":null,"calendarRange":"15 nov ΓÇô 22/11/2026","selectedTabs":["Lista","Semana"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=list&range=week"}
+N5_VISUAL_SNAPSHOT {"phase":"week-pending","viewport":"desktop","url":"/","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Gantt","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=list&range=week"}
+N5_VISUAL_SNAPSHOT {"phase":"week-settled","viewport":"desktop","url":"/","headings":["Panel destino"],"calendarPeriod":null,"calendarRange":null,"selectedTabs":[],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=list&range=week"}
+N5_VISUAL_SNAPSHOT {"phase":"week-source","viewport":"mobile","url":"/calendar?date=2026-11-18&view=list&range=week","headings":["Calendario de Disponibilidad"],"calendarPeriod":null,"calendarRange":"15 nov ΓÇô 22/11/2026","selectedTabs":["Lista","Semana"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=list&range=week"}
+N5_VISUAL_SNAPSHOT {"phase":"week-pending","viewport":"mobile","url":"/","headings":["Calendario de Disponibilidad"],"calendarPeriod":"Octubre de 2026","calendarRange":"Octubre de 2026","selectedTabs":["Lista","Mes"],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=list&range=week"}
+N5_VISUAL_SNAPSHOT {"phase":"week-settled","viewport":"mobile","url":"/","headings":["Panel destino"],"calendarPeriod":null,"calendarRange":null,"selectedTabs":[],"calendarLoading":false,"savedCalendar":"date=2026-11-18&view=list&range=week"}
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx (10 tests | 10 failed) 2169ms
+     ├ù keeps the November booking origin while its route loads (mobile=false) 438ms
+     ├ù keeps the November booking origin while its route loads (mobile=true) 265ms
+     ├ù retains outgoing calendar content without writing to the pending Panel route (mobile=false) 169ms
+     ├ù retains outgoing calendar content without writing to the pending Panel route (mobile=true) 157ms
+     ├ù retains November when a pending detail is cancelled by bare calendar navigation (mobile=false) 180ms
+     ├ù retains November when a pending detail is cancelled by bare calendar navigation (mobile=true) 188ms
+     ├ù an explicit new calendar URL overrides the retained pending snapshot (mobile=false) 195ms
+     ├ù an explicit new calendar URL overrides the retained pending snapshot (mobile=true) 163ms
+     ├ù retains List/Week content while a sibling Panel is pending (mobile=false) 219ms
+     ├ù retains List/Week content while a sibling Panel is pending (mobile=true) 190ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 10 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=false)
+AssertionError: expected { phase: 'booking-pending', ΓÇª(8) } to match object { ΓÇª(3) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "calendarLoading": false,
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+      "Gantt",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:143:66
+    141|       expect.soft(router.state.location.searchStr).toBe("");
+    142|       expect.soft(router.state.location.state).toMatchObject({ calendaΓÇª
+    143|       expect.soft(captureVisualState("booking-pending", mobile)).toMatΓÇª
+       |                                                                  ^
+    144|         calendarPeriod: "Noviembre de 2026", selectedTabs: ["Gantt", "ΓÇª
+    145|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > keeps the November booking origin while its route loads (mobile=true)
+AssertionError: expected { phase: 'booking-pending', ΓÇª(8) } to match object { ΓÇª(3) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "calendarLoading": false,
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+-     "Gantt",
++     "Lista",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:143:66
+    141|       expect.soft(router.state.location.searchStr).toBe("");
+    142|       expect.soft(router.state.location.state).toMatchObject({ calendaΓÇª
+    143|       expect.soft(captureVisualState("booking-pending", mobile)).toMatΓÇª
+       |                                                                  ^
+    144|         calendarPeriod: "Noviembre de 2026", selectedTabs: ["Gantt", "ΓÇª
+    145|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains outgoing calendar content without writing to the pending Panel route (mobile=false)
+AssertionError: expected { phase: 'panel-pending', ΓÇª(8) } to match object { ΓÇª(3) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "calendarLoading": false,
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+      "Gantt",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:178:64
+    176|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    177|       expect.soft(router.state.location.searchStr).toBe("");
+    178|       expect.soft(captureVisualState("panel-pending", mobile)).toMatchΓÇª
+       |                                                                ^
+    179|         calendarPeriod: "Noviembre de 2026", selectedTabs: ["Gantt", "ΓÇª
+    180|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains outgoing calendar content without writing to the pending Panel route (mobile=true)
+AssertionError: expected { phase: 'panel-pending', ΓÇª(8) } to match object { ΓÇª(3) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "calendarLoading": false,
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+-     "Gantt",
++     "Lista",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:178:64
+    176|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    177|       expect.soft(router.state.location.searchStr).toBe("");
+    178|       expect.soft(captureVisualState("panel-pending", mobile)).toMatchΓÇª
+       |                                                                ^
+    179|         calendarPeriod: "Noviembre de 2026", selectedTabs: ["Gantt", "ΓÇª
+    180|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains November when a pending detail is cancelled by bare calendar navigation (mobile=false)
+AssertionError: expected { phase: 'cancel-returned-bare', ΓÇª(8) } to match object { ΓÇª(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+      "Gantt",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:203:71
+    201|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    202|       await act(async () => {});
+    203|       expect.soft(captureVisualState("cancel-returned-bare", mobile)).ΓÇª
+       |                                                                       ^
+    204|       expect.soft(screen.getByRole("heading", { name: "Calendario de DΓÇª
+    205|       expect.soft(router.state.location.href).toBe("/calendar?date=202ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[5/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains November when a pending detail is cancelled by bare calendar navigation (mobile=false)
+AssertionError: expected '/calendar?date=2026-10-18&view=gantt&ΓÇª' to be '/calendar?date=2026-11-18&view=gantt&ΓÇª' // Object.is equality
+
+Expected: "/calendar?date=2026-11-18&view=gantt&range=month"
+Received: "/calendar?date=2026-10-18&view=gantt&range=month"
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:205:47
+    203|       expect.soft(captureVisualState("cancel-returned-bare", mobile)).ΓÇª
+    204|       expect.soft(screen.getByRole("heading", { name: "Calendario de DΓÇª
+    205|       expect.soft(router.state.location.href).toBe("/calendar?date=202ΓÇª
+       |                                               ^
+    206|     } finally {
+    207|       await act(async () => release());
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[6/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains November when a pending detail is cancelled by bare calendar navigation (mobile=false)
+AssertionError: expected { phase: 'cancel-settled', ΓÇª(8) } to match object { ΓÇª(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+      "Gantt",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:209:58
+    207|       await act(async () => release());
+    208|     }
+    209|     expect(captureVisualState("cancel-settled", mobile)).toMatchObjectΓÇª
+       |                                                          ^
+    210|   });
+    211|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[7/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains November when a pending detail is cancelled by bare calendar navigation (mobile=true)
+AssertionError: expected { phase: 'cancel-returned-bare', ΓÇª(8) } to match object { ΓÇª(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+-     "Gantt",
++     "Lista",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:203:71
+    201|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    202|       await act(async () => {});
+    203|       expect.soft(captureVisualState("cancel-returned-bare", mobile)).ΓÇª
+       |                                                                       ^
+    204|       expect.soft(screen.getByRole("heading", { name: "Calendario de DΓÇª
+    205|       expect.soft(router.state.location.href).toBe("/calendar?date=202ΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[8/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains November when a pending detail is cancelled by bare calendar navigation (mobile=true)
+AssertionError: expected '/calendar?date=2026-10-18&view=list&rΓÇª' to be '/calendar?date=2026-11-18&view=gantt&ΓÇª' // Object.is equality
+
+Expected: "/calendar?date=2026-11-18&view=gantt&range=month"
+Received: "/calendar?date=2026-10-18&view=list&range=month"
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:205:47
+    203|       expect.soft(captureVisualState("cancel-returned-bare", mobile)).ΓÇª
+    204|       expect.soft(screen.getByRole("heading", { name: "Calendario de DΓÇª
+    205|       expect.soft(router.state.location.href).toBe("/calendar?date=202ΓÇª
+       |                                               ^
+    206|     } finally {
+    207|       await act(async () => release());
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[9/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains November when a pending detail is cancelled by bare calendar navigation (mobile=true)
+AssertionError: expected { phase: 'cancel-settled', ΓÇª(8) } to match object { ΓÇª(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+-     "Gantt",
++     "Lista",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:209:58
+    207|       await act(async () => release());
+    208|     }
+    209|     expect(captureVisualState("cancel-settled", mobile)).toMatchObjectΓÇª
+       |                                                          ^
+    210|   });
+    211|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[10/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > an explicit new calendar URL overrides the retained pending snapshot (mobile=false)
+AssertionError: expected { phase: 'explicit-pending', ΓÇª(8) } to match object { ΓÇª(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+      "Gantt",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:222:67
+    220|       fireEvent.click(screen.getByRole("button", { name: "Abrir reservΓÇª
+    221|       await waitFor(() => expect(pendingLoader).toHaveBeenCalled());
+    222|       expect.soft(captureVisualState("explicit-pending", mobile)).toMaΓÇª
+       |                                                                   ^
+    223|       fireEvent.click(screen.getByRole("button", { name: "Reabrir diciΓÇª
+    224|       await waitFor(() => expect(router.state.location.href).toBe("/caΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[11/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > an explicit new calendar URL overrides the retained pending snapshot (mobile=true)
+AssertionError: expected { phase: 'explicit-pending', ΓÇª(8) } to match object { ΓÇª(2) }
+(7 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "calendarPeriod": "Noviembre de 2026",
++   "calendarPeriod": "Octubre de 2026",
+    "selectedTabs": [
+-     "Gantt",
++     "Lista",
+      "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:222:67
+    220|       fireEvent.click(screen.getByRole("button", { name: "Abrir reservΓÇª
+    221|       await waitFor(() => expect(pendingLoader).toHaveBeenCalled());
+    222|       expect.soft(captureVisualState("explicit-pending", mobile)).toMaΓÇª
+       |                                                                   ^
+    223|       fireEvent.click(screen.getByRole("button", { name: "Reabrir diciΓÇª
+    224|       await waitFor(() => expect(router.state.location.href).toBe("/caΓÇª
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[12/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains List/Week content while a sibling Panel is pending (mobile=false)
+AssertionError: expected { phase: 'week-pending', ΓÇª(8) } to match object { ΓÇª(3) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "calendarLoading": false,
+-   "calendarRange": "15 nov ΓÇô 22/11/2026",
++   "calendarRange": "Octubre de 2026",
+    "selectedTabs": [
+-     "Lista",
+-     "Semana",
++     "Gantt",
++     "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:248:63
+    246|       await waitFor(() => expect(pendingLoader).toHaveBeenCalled());
+    247|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    248|       expect.soft(captureVisualState("week-pending", mobile)).toMatchOΓÇª
+       |                                                               ^
+    249|         calendarRange: source.calendarRange, selectedTabs: source.seleΓÇª
+    250|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[13/14]ΓÄ»
+
+ FAIL  src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx > N5 real sibling-route pending navigation > retains List/Week content while a sibling Panel is pending (mobile=true)
+AssertionError: expected { phase: 'week-pending', ΓÇª(8) } to match object { ΓÇª(3) }
+(6 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "calendarLoading": false,
+-   "calendarRange": "15 nov ΓÇô 22/11/2026",
++   "calendarRange": "Octubre de 2026",
+    "selectedTabs": [
+      "Lista",
+-     "Semana",
++     "Mes",
+    ],
+  }
+
+ Γ¥» src/features/calendar/pages/__tests__/CalendarPage.pending-navigation.test.tsx:248:63
+    246|       await waitFor(() => expect(pendingLoader).toHaveBeenCalled());
+    247|       await waitFor(() => expect(router.state.location.pathname).toBe(ΓÇª
+    248|       expect.soft(captureVisualState("week-pending", mobile)).toMatchOΓÇª
+       |                                                               ^
+    249|         calendarRange: source.calendarRange, selectedTabs: source.seleΓÇª
+    250|       });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[14/14]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  10 failed (10)
+   Start at  17:46:41
+   Duration  8.35s (transform 984ms, setup 270ms, import 5.13s, tests 2.17s, environment 545ms)

@@ -1,0 +1,12 @@
+{
+  "version": "8.44.10",
+  "date": "2026-10-18",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Calendario conserva el periodo mientras abre una reserva",
+  "description": "El calendario mantiene la fecha, vista y rango visibles mientras termina de abrir la reserva.",
+  "changes": [
+    "Abrir una reserva desde noviembre conserva noviembre durante la carga del detalle.",
+    "Volver recupera el mismo periodo y los controles conservan su comportamiento."
+  ]
+}

@@ -1,0 +1,5 @@
+Command: node node_modules/vite/bin/vite.js build
+Exit: 0
+Client and SSR builds completed locally; no deployment.
+Raw local output SHA256: b82cdbb272ecef13fec714edc2cbdd33d6d3c4f4d408fec24433e35852bf880e
+Raw output retained locally; this file is a summary.
