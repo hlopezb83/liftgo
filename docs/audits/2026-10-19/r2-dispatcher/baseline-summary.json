@@ -112,5 +112,32 @@
       }
     },
     "sanitizedProof": "baseline-c-auth-sql.json"
+  },
+  "comparableCorrectiveResult": {
+    "head": "69f36a636479ba9768bc4421e9a59337e19bdcda",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39217621954",
+    "stats": {
+      "total": 97,
+      "passed": 97,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0
+    },
+    "breakdown": {
+      "priorSuite": {
+        "passed": 47,
+        "failed": 0
+      },
+      "auth46": {
+        "passed": 46,
+        "failed": 0,
+        "earlier32ControlsPassed": 32
+      },
+      "actualHandler4": {
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    "sanitizedProof": "after-b-auth-sql.json"
   }
 }
