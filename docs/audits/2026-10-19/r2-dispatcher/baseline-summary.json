@@ -1,0 +1,22 @@
+{
+  "pullRequest": "https://github.com/hlopezb83/liftgo/pull/284",
+  "head": "c154c81540fb2c237c6d5c6ed18f907aeae57274",
+  "run": "https://github.com/hlopezb83/liftgo/actions/runs/39210544534",
+  "result": "failure",
+  "newMigrationApplied": false,
+  "environment": "existing local ephemeral Supabase CI with ordinary Auth and SDK under RLS",
+  "newTestFile": { "total": 21, "passed": 3, "failed": 18 },
+  "passingControls": ["owner RPC rejects direct active invoice", "owner RPC rejects pivot active invoice", "foreign dispatcher cannot cancel or observe A records"],
+  "confirmedMissingCancellationRejections": {
+    "expectedSqlState": "23514",
+    "cases": 6,
+    "actorsAndPaths": ["dispatcher RPC/direct", "dispatcher RPC/pivot", "dispatcher UPDATE/direct", "dispatcher UPDATE/pivot", "owner UPDATE/direct", "owner UPDATE/pivot"]
+  },
+  "harnessCorrectionsBeforeAfterRun": [
+    "Two cancelled-invoice fixtures must be created sent then cancelled by ordinary SDK update instead of invalid direct cancelled INSERT",
+    "Case clients must use Auth signOut scope local so other clients of the same synthetic user retain their sessions"
+  ],
+  "legacyUiOrSeedFailures": { "count": 7, "productFinding": false, "possibleCause": "default global sign-out; requires corrected after-run confirmation" },
+  "containsRawLogs": false,
+  "publishedBackendTouched": false
+}

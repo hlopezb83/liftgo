@@ -12,6 +12,12 @@ The matrix covers admin and dispatcher, RPC and direct UPDATE, direct and pivot 
 
 The lock coordinator uses the existing loopback `DB_URL` only for `SELECT ... FOR UPDATE` and lock observation. It performs no business mutation or JWT/GUC impersonation. Actual racing operations remain authenticated SDK requests. It forces both orderings without new RPCs, test triggers or timing sleeps: hold a booking to queue billing before cancellation, or hold an invoice to queue billing while cancellation commits. `pg_blocking_pids` confirms the request is waiting before the next step. Locks are released and started requests settled even on failed expectations.
 
+### Baseline result
+
+[A/B run 39210544534](https://github.com/hlopezb83/liftgo/actions/runs/39210544534) ran head `c154c81540fb2c237c6d5c6ed18f907aeae57274` without new migration SQL. The new file reached real Auth/SDK operations: 3 passing tests (owner RPC direct/pivot controls and foreign dispatcher denial), 18 failing tests. Six failures specifically show the absent `23514` cancellation rejection for dispatcher RPC/direct UPDATE and owner direct UPDATE with direct/pivot active invoices. `baseline-summary.json` preserves a safe structured summary, not raw job logs.
+
+The run also exposed two test setup errors from inserting `status=cancelled` directly; those fixtures now start sent and use the ordinary SDK cancellation update. All case clients now sign out with `scope: local`; the original default global sign-out could invalidate other clients belonging to the same synthetic user and may explain seven legacy UI/seed failures in that run. Those unrelated failures are not counted as product findings. The corrected after run must verify them again.
+
 ## Proposed migration design (not yet implemented in this stage)
 
 `cancel_booking(uuid,text)` remains SECURITY INVOKER, including its existing row lock and guards. A private SECURITY DEFINER trigger will inspect same-organization active invoices on cancellation, including direct and pivot links, so that a dispatcher cannot bypass the rule through invoice RLS. The active predicate matches the current RPC: status outside draft/cancelled and cancellation not accepted. Pending cancellation remains active.

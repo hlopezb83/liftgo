@@ -59,7 +59,7 @@ async function cleanup(s: Scenario) {
     expect(deleted).toEqual(present);
     expect(dataOrThrow(await s.owner.from(table).select("id").eq("id", id), `cleanup verify ${table}`)).toEqual([]);
   }
-  await Promise.all([s.owner.auth.signOut(), s.dispatcher.auth.signOut()]);
+  await Promise.all([s.owner.auth.signOut({ scope: "local" }), s.dispatcher.auth.signOut({ scope: "local" })]);
 }
 
 async function withScenario(
@@ -95,18 +95,22 @@ async function withScenario(
     const payload: TablesInsert<"invoices"> = {
       id: s.invoiceId, organization_id: A.organizationId, customer_id: A.customerId,
       customer_name: "Synthetic cancellation customer", invoice_number: `AB-CANCEL-${s.invoiceId}`,
-      status: invoiceStatus, issued_at: start, due_date: null,
+      status: invoiceStatus === "cancelled" ? "sent" : invoiceStatus, issued_at: start, due_date: null,
       booking_id: link === "direct" ? s.bookingId : null,
       billing_period_start: start, billing_period_end: end,
       moneda: "MXN", tipo_cambio: 1, metodo_pago: "PPD", forma_pago: "99",
       line_items: [{ description: "Synthetic rental", quantity: 1, unit_price: 100, total: 100 }],
       subtotal: 100, tax_rate: 0, tax_amount: 0, total: 100,
     };
-    const invoice = dataOrThrow(fiscalSnapshot
+    let invoice = dataOrThrow(fiscalSnapshot
       ? await owner.from("invoices").update({ booking_id: payload.booking_id,
         billing_period_start: start, billing_period_end: end }).eq("id", s.invoiceId)
         .eq("organization_id", A.organizationId).select("*").single()
       : await owner.from("invoices").insert(payload).select("*").single(), "prepare invoice through ordinary SDK");
+    if (invoiceStatus === "cancelled") {
+      invoice = dataOrThrow(await owner.from("invoices").update({ status: "cancelled" })
+        .eq("id", s.invoiceId).eq("organization_id", A.organizationId).select("*").single(), "cancel synthetic unstamped invoice through ordinary SDK");
+    }
     expect(invoice).toMatchObject({ id: s.invoiceId, organization_id: A.organizationId, status: invoiceStatus,
       is_e2e: false, cfdi_uuid: null, facturapi_invoice_id: null, cancellation_status: fiscalSnapshot?.status ?? "none" });
     if (link === "pivot") await attach(s);
@@ -233,7 +237,7 @@ test("R2 invoice cancellation: foreign dispatcher cannot cancel or observe A boo
       expect(direct.error).toBeNull();
       expect(direct.data).toEqual([]);
       expect(await readState(s)).toEqual(before);
-    } finally { await foreign.auth.signOut(); }
+    } finally { await foreign.auth.signOut({ scope: "local" }); }
   });
 });
 
