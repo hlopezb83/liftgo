@@ -1,0 +1,51 @@
+{
+  "activationAuthorized": false,
+  "baselineApprovalStatus": "NOT_APPROVED",
+  "baselineArtifactSha256": "8d8a0ba626c93bd9686d2f666d4ab99ffea7ce8beb097aba1741b1a670b05242",
+  "exactCurrentPrefix": {
+    "additionalRows": [
+      {
+        "created_at": 1789683904941,
+        "hash": "927e6c306e8eacea96a1380dadfd6c3b0845af3cd46c00372cb9643dfe1ec98f",
+        "id": 31
+      }
+    ],
+    "doesNotAuthorizeActivation": true,
+    "duplicates": [],
+    "hashMismatchIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      46,
+      51,
+      52,
+      74,
+      77
+    ],
+    "matches": false,
+    "missingPrefixIdxs": [],
+    "status": "EXACT_CURRENT_PREFIX_MISMATCH"
+  },
+  "expectedRowCount": 106,
+  "expectedStage": "baseline",
+  "limits": [
+    "Offline evidence comparison, not a fresh database observation",
+    "Does not verify target identity, exclusivity, objects, deployment or drain",
+    "Exit zero means only the supplied snapshot matches the requested unapproved checkpoint"
+  ],
+  "matchesRequestedSnapshot": true,
+  "nextUnappliedStageIdxs": [
+    105,
+    106,
+    107
+  ],
+  "observedRowCount": 106,
+  "observedRowsSha256": "f2bc2dbeb7b66b35efbcb9e5a1737f8d683137e77727f0abae4be52564951705",
+  "recognizedAppends": [],
+  "recognizedStage": "baseline",
+  "sourceCommit": "995ac32d7db6e61d338f632eac4a2422db6f9512",
+  "status": "OBSERVED_HISTORY_MATCH",
+  "unexpectedDeltas": []
+}

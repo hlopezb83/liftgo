@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "status": "READ_ONLY_AGGREGATE_OBSERVATION_NOT_ACTIVATION_APPROVAL",
+  "sourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+  "databaseStatus": {
+    "enabled": true,
+    "stack": "supabase"
+  },
+  "target": "Previously verified Lift GO project; internal identifiers omitted",
+  "outputScope": "Counts and cron job names/active flags only; JSON evaluated in place, no record-level contents or identifiers returned",
+  "observations": [
+    {
+      "name": "capabilities",
+      "sql": "SELECT current_timestamp AS observed_at, current_setting('server_version_num') AS server_version_num, to_regprocedure('pg_catalog.pg_input_is_valid(text,text)') IS NOT NULL AS has_input_validation, to_regclass('cron.job') IS NOT NULL AS has_cron_jobs;",
+      "result": {
+        "rows": [
+          {
+            "has_cron_jobs": true,
+            "has_input_validation": true,
+            "observed_at": "2026-10-19 15:59:20.842062+00",
+            "server_version_num": "170006"
+          }
+        ]
+      }
+    },
+    {
+      "name": "quotes_shapes_identities_and_size",
+      "sql": "WITH qs AS (\n SELECT id, organization_id, line_items FROM public.quotes\n), lines AS (\n SELECT q.id AS quote_id, li.value AS line\n FROM qs q CROSS JOIN LATERAL jsonb_array_elements(\n CASE WHEN jsonb_typeof(q.line_items)='array' THEN q.line_items ELSE '[]'::jsonb END) li(value)\n), parsed AS (\n SELECT quote_id, line, nullif(line->>'quote_line_id','') AS raw_id,\n CASE WHEN pg_input_is_valid(nullif(line->>'quote_line_id',''),'uuid')\n THEN nullif(line->>'quote_line_id','')::uuid END AS normalized_id FROM lines\n), dupes AS (\n SELECT quote_id, normalized_id, count(*) AS occurrences FROM parsed\n WHERE normalized_id IS NOT NULL GROUP BY quote_id, normalized_id HAVING count(*)>1\n)\nSELECT current_timestamp AS observed_at,\n (SELECT count(*) FROM qs) AS quote_rows,\n (SELECT count(DISTINCT organization_id) FROM qs) AS organizations_with_quotes,\n (SELECT count(*) FROM qs WHERE jsonb_typeof(line_items) IS DISTINCT FROM 'array') AS quote_rows_nonarray_or_null,\n (SELECT coalesce(sum(pg_column_size(line_items)),0) FROM qs) AS stored_line_items_bytes,\n count(*) AS quote_line_elements,\n count(*) FILTER (WHERE jsonb_typeof(line) IS DISTINCT FROM 'object') AS nonobject_line_elements,\n count(DISTINCT quote_id) FILTER (WHERE jsonb_typeof(line) IS DISTINCT FROM 'object') AS quotes_with_nonobject_lines,\n count(*) FILTER (WHERE raw_id IS NULL) AS lines_needing_generated_id,\n count(*) FILTER (WHERE raw_id IS NOT NULL AND normalized_id IS NULL) AS invalid_uuid_lines,\n count(DISTINCT quote_id) FILTER (WHERE raw_id IS NOT NULL AND normalized_id IS NULL) AS quotes_with_invalid_uuid,\n count(*) FILTER (WHERE normalized_id IS NOT NULL AND raw_id IS DISTINCT FROM normalized_id::text) AS valid_noncanonical_uuid_lines,\n (SELECT count(*) FROM dupes) AS duplicate_normalized_id_groups,\n (SELECT count(DISTINCT quote_id) FROM dupes) AS quotes_with_duplicate_normalized_ids\nFROM parsed;",
+      "result": {
+        "rows": [
+          {
+            "duplicate_normalized_id_groups": 0,
+            "invalid_uuid_lines": 0,
+            "lines_needing_generated_id": 311,
+            "nonobject_line_elements": 0,
+            "observed_at": "2026-10-19 16:00:02.985897+00",
+            "organizations_with_quotes": 2,
+            "quote_line_elements": 311,
+            "quote_rows": 176,
+            "quote_rows_nonarray_or_null": 0,
+            "quotes_with_duplicate_normalized_ids": 0,
+            "quotes_with_invalid_uuid": 0,
+            "quotes_with_nonobject_lines": 0,
+            "stored_line_items_bytes": 47424,
+            "valid_noncanonical_uuid_lines": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "quote_versions",
+      "sql": "SELECT current_timestamp AS observed_at, count(*) AS quote_rows, count(*) FILTER (WHERE version IS NULL) AS quote_rows_null_version, count(*) FILTER (WHERE version = 2147483647) AS quote_rows_at_integer_maximum, min(version) AS minimum_version, max(version) AS maximum_version FROM public.quotes;",
+      "result": {
+        "rows": [
+          {
+            "maximum_version": 6,
+            "minimum_version": 1,
+            "observed_at": "2026-10-19 16:00:53.384062+00",
+            "quote_rows": 176,
+            "quote_rows_at_integer_maximum": 0,
+            "quote_rows_null_version": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "legacy_invoice_shapes_and_provenance",
+      "sql": "WITH i AS (\n SELECT id,line_items FROM public.invoices\n), lines AS (\n SELECT i.id,l.value AS line,\n   nullif(l.value->>'source_quote_id','') AS quote_raw,\n   nullif(l.value->>'source_quote_line_id','') AS line_raw,\n   l.value->>'quantity' AS qty_raw,\n   l.value->>'unit_price' AS price_raw,\n   l.value->>'discount' AS discount_raw,\n   l.value->>'total' AS total_raw,\n   l.value->>'amount' AS amount_raw\n FROM i CROSS JOIN LATERAL jsonb_array_elements(\n   CASE WHEN jsonb_typeof(i.line_items)='array' THEN i.line_items ELSE '[]'::jsonb END\n ) l\n), parsed AS (\n SELECT *,\n   CASE WHEN quote_raw IS NOT NULL AND pg_input_is_valid(quote_raw,'uuid') THEN quote_raw::uuid END AS quote_uuid,\n   CASE WHEN line_raw IS NOT NULL AND pg_input_is_valid(line_raw,'uuid') THEN line_raw::uuid END AS line_uuid,\n   CASE WHEN qty_raw IS NOT NULL AND pg_input_is_valid(qty_raw,'numeric') THEN qty_raw::numeric END AS qty\n FROM lines\n)\nSELECT\n current_timestamp AS observed_at,\n count(*) AS invoice_line_elements,\n count(*) FILTER (WHERE line ? 'source_quote_line_id' OR line ? 'source_quote_id') AS lines_with_any_source_key,\n (SELECT count(*) FROM i) AS invoice_rows,\n (SELECT count(*) FROM i WHERE jsonb_typeof(line_items) IS DISTINCT FROM 'array') AS invoices_invalid_outer_shape,\n count(*) FILTER (WHERE jsonb_typeof(line) IS DISTINCT FROM 'object') AS non_object_invoice_lines,\n count(*) FILTER (WHERE (line ? 'source_quote_id') IS DISTINCT FROM (line ? 'source_quote_line_id')) AS mismatched_source_key_presence_lines,\n count(*) FILTER (WHERE line->>'line_kind'='charge' AND NOT (line ? 'source_quote_line_id')) AS charge_lines_without_source_key,\n count(DISTINCT id) FILTER (WHERE line->>'line_kind'='charge' AND NOT (line ? 'source_quote_line_id')) AS invoices_with_charge_without_source_key,\n count(*) FILTER (WHERE quote_raw IS NOT NULL AND NOT pg_input_is_valid(quote_raw,'uuid')) AS invalid_source_quote_uuid_lines,\n count(*) FILTER (WHERE line ? 'source_quote_line_id' AND (quote_uuid IS NULL OR line_uuid IS NULL)) AS sourced_lines_missing_or_invalid_uuid,\n count(*) FILTER (WHERE line ? 'source_quote_line_id' AND\n   (quote_raw IS DISTINCT FROM quote_uuid::text OR line_raw IS DISTINCT FROM line_uuid::text)) AS sourced_lines_noncanonical_uuid,\n count(*) FILTER (WHERE line ? 'source_quote_line_id' AND\n   (qty_raw IS NULL OR NOT pg_input_is_valid(qty_raw,'numeric') OR qty<=0 OR qty::text IN ('NaN','Infinity','-Infinity'))) AS sourced_lines_invalid_quantity,\n count(*) FILTER (WHERE line ? 'source_quote_line_id' AND (\n   (price_raw IS NOT NULL AND NOT pg_input_is_valid(price_raw,'numeric')) OR\n   (discount_raw IS NOT NULL AND NOT pg_input_is_valid(discount_raw,'numeric')) OR\n   (total_raw IS NOT NULL AND NOT pg_input_is_valid(total_raw,'numeric')) OR\n   (line ? 'amount' AND amount_raw IS NOT NULL AND NOT pg_input_is_valid(amount_raw,'numeric'))\n )) AS sourced_lines_invalid_numeric_cast\nFROM parsed;\n",
+      "result": {
+        "rows": [
+          {
+            "charge_lines_without_source_key": 0,
+            "invalid_source_quote_uuid_lines": 0,
+            "invoice_line_elements": 214,
+            "invoice_rows": 144,
+            "invoices_invalid_outer_shape": 0,
+            "invoices_with_charge_without_source_key": 0,
+            "lines_with_any_source_key": 0,
+            "mismatched_source_key_presence_lines": 0,
+            "non_object_invoice_lines": 0,
+            "observed_at": "2026-10-19 16:01:38.496695+00",
+            "sourced_lines_invalid_numeric_cast": 0,
+            "sourced_lines_invalid_quantity": 0,
+            "sourced_lines_missing_or_invalid_uuid": 0,
+            "sourced_lines_noncanonical_uuid": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "quote_numeric_and_identity_validation",
+      "sql": "WITH q AS (\n  SELECT id, line_items, version FROM public.quotes\n), lines AS (\n  SELECT q.id, l.value AS line,\n    nullif(l.value->>'quote_line_id','') AS raw_id,\n    l.value->>'quantity' AS raw_quantity,\n    l.value->>'unit_price' AS raw_price\n  FROM q CROSS JOIN LATERAL jsonb_array_elements(\n    CASE WHEN jsonb_typeof(q.line_items)='array' THEN q.line_items ELSE '[]'::jsonb END\n  ) l\n), parsed AS (\n  SELECT *,\n    CASE WHEN raw_id IS NOT NULL AND pg_input_is_valid(raw_id,'uuid') THEN raw_id::uuid END AS parsed_id,\n    CASE WHEN raw_quantity IS NOT NULL AND pg_input_is_valid(raw_quantity,'numeric') THEN raw_quantity::numeric END AS qty,\n    CASE WHEN raw_price IS NOT NULL AND pg_input_is_valid(raw_price,'numeric') THEN raw_price::numeric END AS price\n  FROM lines\n), duplicates AS (\n  SELECT id,parsed_id FROM parsed WHERE parsed_id IS NOT NULL\n  GROUP BY id,parsed_id HAVING count(*)>1\n)\nSELECT\n current_timestamp AS observed_at,\n (SELECT count(*) FROM q) AS quote_rows,\n (SELECT count(*) FROM q WHERE jsonb_typeof(line_items) IS DISTINCT FROM 'array') AS quotes_invalid_outer_shape,\n (SELECT count(*) FROM q WHERE version=2147483647) AS quote_version_increment_overflow,\n count(*) AS quote_lines,\n count(*) FILTER (WHERE jsonb_typeof(line) IS DISTINCT FROM 'object') AS non_object_lines,\n count(*) FILTER (WHERE raw_id IS NULL) AS lines_needing_generated_id,\n count(*) FILTER (WHERE raw_id IS NOT NULL AND NOT pg_input_is_valid(raw_id,'uuid')) AS invalid_uuid_lines,\n count(*) FILTER (WHERE parsed_id IS NOT NULL AND raw_id IS DISTINCT FROM parsed_id::text) AS valid_but_noncanonical_uuid_lines,\n (SELECT count(*) FROM duplicates) AS duplicate_parsed_uuid_groups,\n (SELECT count(DISTINCT id) FROM duplicates) AS quotes_with_duplicate_parsed_uuids,\n count(*) FILTER (WHERE raw_quantity IS NOT NULL AND NOT pg_input_is_valid(raw_quantity,'numeric')) AS invalid_quantity_cast_lines,\n count(*) FILTER (WHERE raw_price IS NOT NULL AND NOT pg_input_is_valid(raw_price,'numeric')) AS invalid_price_cast_lines,\n count(*) FILTER (WHERE qty<=0) AS nonpositive_quantity_lines,\n count(*) FILTER (WHERE price<0) AS negative_price_lines,\n count(*) FILTER (WHERE qty::text IN ('NaN','Infinity','-Infinity')) AS nonfinite_quantity_lines,\n count(*) FILTER (WHERE price::text IN ('NaN','Infinity','-Infinity')) AS nonfinite_price_lines\nFROM parsed;\n",
+      "result": {
+        "rows": [
+          {
+            "duplicate_parsed_uuid_groups": 0,
+            "invalid_price_cast_lines": 0,
+            "invalid_quantity_cast_lines": 0,
+            "invalid_uuid_lines": 0,
+            "lines_needing_generated_id": 311,
+            "negative_price_lines": 0,
+            "non_object_lines": 0,
+            "nonfinite_price_lines": 0,
+            "nonfinite_quantity_lines": 0,
+            "nonpositive_quantity_lines": 0,
+            "observed_at": "2026-10-19 16:01:59.248263+00",
+            "quote_lines": 311,
+            "quote_rows": 176,
+            "quote_version_increment_overflow": 0,
+            "quotes_invalid_outer_shape": 0,
+            "quotes_with_duplicate_parsed_uuids": 0,
+            "valid_but_noncanonical_uuid_lines": 0
+          }
+        ]
+      }
+    },
+    {
+      "name": "cron_job_metadata",
+      "sql": "SELECT jobname, active FROM cron.job ORDER BY jobname;",
+      "result": {
+        "rows": [
+          {
+            "active": true,
+            "jobname": "expire-stale-quotes-daily"
+          },
+          {
+            "active": true,
+            "jobname": "generate-recurring-maintenance-daily"
+          },
+          {
+            "active": true,
+            "jobname": "mark-overdue-supplier-bills-daily"
+          },
+          {
+            "active": true,
+            "jobname": "mark-started-bookings-rented-daily"
+          },
+          {
+            "active": true,
+            "jobname": "process-cfdi-retry-queue-5min"
+          },
+          {
+            "active": true,
+            "jobname": "purge-old-notifications-daily"
+          },
+          {
+            "active": true,
+            "jobname": "purge-platform-support-diagnostics"
+          },
+          {
+            "active": true,
+            "jobname": "reconcile-expired-bookings"
+          },
+          {
+            "active": true,
+            "jobname": "reconcile-stamping-invoices-5min"
+          }
+        ]
+      },
+      "observedUtcBounds": {
+        "after": "2026-10-19T15:59:21Z",
+        "before": "2026-10-19T16:00:11Z"
+      },
+      "serverTimestampIncluded": false
+    },
+    {
+      "name": "legacy_review_projection_exact_source_classifier",
+      "sql": "WITH invoices_projected_legacy AS (\n SELECT i.id, i.organization_id, i.quote_id, i.booking_id, i.line_items,\n CASE WHEN i.cfdi_status='stamping' THEN true\n      WHEN i.cfdi_status='stamped' OR i.cfdi_uuid IS NOT NULL\n        THEN i.cancellation_status IS DISTINCT FROM 'accepted'\n      ELSE i.status IS DISTINCT FROM 'cancelled' AND i.cfdi_status IS DISTINCT FROM 'cancelled' END AS active,\n CASE WHEN jsonb_typeof(i.line_items)='array' THEN jsonb_array_length(i.line_items)=0 AND coalesce(i.subtotal,0)>0\n      ELSE true END AS malformed_or_positive_empty\n FROM public.invoices i\n), needs_review AS (\n SELECT i.* FROM invoices_projected_legacy i\n WHERE active AND (malformed_or_positive_empty OR EXISTS (\n   SELECT 1 FROM jsonb_array_elements(CASE WHEN jsonb_typeof(i.line_items)='array' THEN i.line_items ELSE '[]'::jsonb END) li\n   WHERE NOT (CASE WHEN nullif(li->>'line_kind','') IS NOT NULL THEN li->>'line_kind' IN ('rental','sale')\n    ELSE coalesce(li->>'description' ~ '^.+ — Renta (mensual|semanal|diaria)( \\(.*\\))?$', false)\n    OR coalesce(li->>'description' ~ '^(.+ — )?Extensión: Renta (mensual|semanal|diaria)( \\(.*\\))?$', false)\n    OR coalesce(li->>'description' ~ '^.+ — Renta (enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre) [0-9]{4} \\([0-9]+ días al precio diario\\)$', false)\n    OR coalesce(li->>'description' ~ '^.+ - Venta de equipo$', false) END)\n   AND (li->>'source_quote_id' IS NULL OR li->>'source_quote_line_id' IS NULL)\n ))\n), affected AS (\n SELECT q.id AS quote_id,i.id AS invoice_id FROM public.quotes q JOIN needs_review i ON i.organization_id=q.organization_id\n WHERE i.quote_id=q.id OR EXISTS (\n  SELECT 1 FROM public.bookings b WHERE b.quote_id=q.id AND b.organization_id=q.organization_id\n   AND (b.id=i.booking_id OR EXISTS (\n    SELECT 1 FROM public.invoice_bookings ib WHERE ib.invoice_id=i.id AND ib.booking_id=b.id AND ib.organization_id=q.organization_id\n   ))\n )\n)\nSELECT current_timestamp AS observed_at,\n (SELECT count(*) FROM needs_review) AS active_invoices_with_legacy_review_candidate_lines,\n count(DISTINCT invoice_id) AS such_invoices_linked_to_quotes,\n count(DISTINCT quote_id) AS quotes_projected_to_require_legacy_review,\n count(*) AS affected_quote_invoice_pairs\nFROM affected;",
+      "result": {
+        "rows": [
+          {
+            "active_invoices_with_legacy_review_candidate_lines": 20,
+            "affected_quote_invoice_pairs": 14,
+            "observed_at": "2026-10-19 16:04:10.69315+00",
+            "quotes_projected_to_require_legacy_review": 14,
+            "such_invoices_linked_to_quotes": 14
+          }
+        ]
+      },
+      "scope": "Projection treating existing invoices as legacy NULL, as 0107 ADD COLUMN then SET DEFAULT would do; exact classifier expression copied from source lines 15–19"
+    }
+  ],
+  "caveats": [
+    "Separate SELECT snapshots, not a single consistent transaction",
+    "One initial metadata SELECT returned 504/UNAVAILABLE; the narrower metadata retry succeeded",
+    "No SQL migrations, DDL, DML, application RPCs, fiscal calls, deployments, permission changes or agent messages",
+    "Zero current source-origin keys makes sourced-line predicates vacuous, not evidence that legacy history is attributable",
+    "Quote discount/currency/full source-link consistency, installed trigger context and complete business behavior remain outside these counts",
+    "No current ledger read or full live-binding/deployment verification performed in this bounded pass",
+    "An initial legacy classifier projection used over-escaped regex text and was discarded. The authoritative projection copies the exact SQL expression from source without re-encoding; only that result is included."
+  ]
+}

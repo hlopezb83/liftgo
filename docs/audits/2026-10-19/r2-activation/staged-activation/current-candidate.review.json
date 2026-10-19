@@ -1,0 +1,406 @@
+{
+  "schemaVersion": 1,
+  "status": "CURRENT_STAGED_CANDIDATE_HISTORICAL_RISK_ACCEPTED_EXECUTION_NOT_READY",
+  "activationAuthorized": false,
+  "executed": false,
+  "repository": "hlopezb83/liftgo",
+  "sourceCommit": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+  "sourceRootTreeSha1": "098d05b134337d1c4606722abfd326b0aebf52ff",
+  "sourceReview": {
+    "restoredBase": "995ac32d7db6e61d338f632eac4a2422db6f9512",
+    "previousReviewedSource": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "incrementalPullRequest": 294,
+    "sourceIdenticalToRestoredBase": false,
+    "onlyRuntimeDelta": "supabase/functions/reconcile-stamping-invoices/index.ts",
+    "changedPaths": [
+      {
+        "path": "src/test/edge-functions/reconcileRepPersistence.test.ts",
+        "status": "added",
+        "before": null,
+        "after": {
+          "mode": "100644",
+          "type": "blob",
+          "sha": "31bf50bf98fac47bc6c8ee85fcb8395d14fb46e0",
+          "bytes": 8969,
+          "sha256": "28ff34e79a7b4f38e5c2a49bd87482ddbb39715eb52d575a7e93a78fbf870657"
+        }
+      },
+      {
+        "path": "supabase/functions/reconcile-stamping-invoices/index.ts",
+        "status": "modified",
+        "before": {
+          "mode": "100644",
+          "type": "blob",
+          "sha": "a783d4197f6edd2e0f81ac25d60b2f3e12bff158",
+          "bytes": 42094,
+          "sha256": "26f640c15d2ed13457bf84893e4031c01a28fb696137e97565b7a0d0c3ab5b43"
+        },
+        "after": {
+          "mode": "100644",
+          "type": "blob",
+          "sha": "12f6320f3465189aa1a02ed6726ad7719c1d17ef",
+          "bytes": 43602,
+          "sha256": "1c152bfdb606dab54c259851cf1184c059387edd9ecf86cc54a3b7247512b8e2"
+        }
+      }
+    ],
+    "unchangedInheritedFiles": 5460,
+    "report": "source-e38-report.json",
+    "reportSha256": "7930d6c90584ecb5530fba22f6dfd372d7dff820f330b330d05c0f2c2b44dd13"
+  },
+  "historicalDecision": {
+    "artifact": "historical-risk-decision.json",
+    "sha256": "923fe4050c7a3055b89909415beb0c9232adc4c9565d4419c1e42d204e34ec35",
+    "riskAccepted": true,
+    "decisionUtc": "2026-10-19T17:16:44Z",
+    "doesNotAuthorizeActivation": true
+  },
+  "exactBaseline": {
+    "artifact": "historical-baseline.review.json",
+    "artifactSha256": "8d8a0ba626c93bd9686d2f666d4ab99ffea7ce8beb097aba1741b1a670b05242",
+    "canonicalRowsSha256": "f2bc2dbeb7b66b35efbcb9e5a1737f8d683137e77727f0abae4be52564951705",
+    "rowCount": 106,
+    "hashMismatchIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      46,
+      51,
+      52,
+      74,
+      77
+    ],
+    "unrecoveredOriginalPayloadIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      74
+    ],
+    "identifiedHistoricalExtra": {
+      "id": 31,
+      "created_at": 1789683904941,
+      "hash": "927e6c306e8eacea96a1380dadfd6c3b0845af3cd46c00372cb9643dfe1ec98f"
+    },
+    "scope": "Preserve this exact observed Lift GO history without rewriting rows or SQL; no generalized drift exception"
+  },
+  "freshLedger": {
+    "artifact": "refreshed-ledger.snapshot.json",
+    "sha256": "8b5eb3f35703aaffab60c5718011096d8bb1511f2dc4ddeb9f675a295da06ab9",
+    "utcObservationBounds": {
+      "after": "2026-10-19T17:17:42.974Z",
+      "before": "2026-10-19T17:18:00.997Z"
+    },
+    "serverTimestampAvailable": false,
+    "canonicalRowsSha256": "f2bc2dbeb7b66b35efbcb9e5a1737f8d683137e77727f0abae4be52564951705",
+    "rowCount": 106,
+    "result": "OBSERVED_HISTORY_MATCH",
+    "unexpectedDeltas": [],
+    "exactCurrentPrefix": "EXACT_CURRENT_PREFIX_MISMATCH",
+    "comparison": "comparison-refreshed-history.json",
+    "comparisonSha256": "126f067415556a5190173814a34d89949b6a3283b93bbc7a4f2aef7fd4f99576",
+    "observedOutsideVerifiedFreeze": true,
+    "mustRefreshUnderExclusiveWindow": true
+  },
+  "journal": {
+    "path": "drizzle/migrations/meta/_journal.json",
+    "entryCount": 108,
+    "sha256": "78145ea95e344550fdd485ef01b696941467d5dae0bf7a253db16b7b9301aeec",
+    "canonicalEntriesSha256": "51b305fdcaae7f09d57bcd777c90d14ed66482f11f4eb785d9dcddc7109dcfcf",
+    "fullEntriesArtifact": "historical-baseline.review.json",
+    "unchangedAtCurrentSource": true
+  },
+  "wholeFileStages": [
+    {
+      "checkpoint": "C1",
+      "tag": "0105_rep_claim_reconciliation_only",
+      "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+      "when": 1792391158311,
+      "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+      "bytes": 1744,
+      "expectedTotalLedgerRows": 107,
+      "atomicSqlAndAuthoritativeLedgerRequired": true
+    },
+    {
+      "checkpoint": "C2",
+      "tag": "0106_booking_invoice_cancellation_guards",
+      "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+      "when": 1792392861354,
+      "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "bytes": 9873,
+      "expectedTotalLedgerRows": 108,
+      "atomicSqlAndAuthoritativeLedgerRequired": true
+    },
+    {
+      "checkpoint": "C3",
+      "tag": "0107_quote_charge_tracking",
+      "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+      "when": 1792392861355,
+      "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+      "bytes": 40557,
+      "expectedTotalLedgerRows": 109,
+      "atomicSqlAndAuthoritativeLedgerRequired": true
+    }
+  ],
+  "requiredEdgeFunctions": [
+    {
+      "name": "stamp-payment-complement",
+      "file_count": 6,
+      "changed_paths": [],
+      "base_tree_sha1": "a36c800bc516e0f5c56df6778d3ae6afd95005cc",
+      "e38_tree_sha1": "a36c800bc516e0f5c56df6778d3ae6afd95005cc"
+    },
+    {
+      "name": "generate-recurring-invoices",
+      "file_count": 12,
+      "changed_paths": [],
+      "base_tree_sha1": "c7e18b6ff7565611d9279968820601bd6a8a4f35",
+      "e38_tree_sha1": "c7e18b6ff7565611d9279968820601bd6a8a4f35"
+    },
+    {
+      "name": "reconcile-stamping-invoices",
+      "file_count": 4,
+      "changed_paths": [
+        "supabase/functions/reconcile-stamping-invoices/index.ts"
+      ],
+      "base_tree_sha1": "96ab6cbb3aea991473850bcf8a251b03fc3b9ef9",
+      "e38_tree_sha1": "d419b340e628eb17ad783825c6016c64560f712d"
+    }
+  ],
+  "nonEdgeFiscalRuntime": {
+    "path": "src/lib/server/platformFiscalActions.server.ts",
+    "bytes": 3084,
+    "sha256": "085f4411547ed1e7785e4edd64c8f50d9e03f48aa3f0199e5dae10f48ce50c7c",
+    "sourceBinding": "Verified e38 root tree equals existing local 01f0d127 tree; server file is unchanged from restored base",
+    "deploymentRequired": "Verify the non-Edge server-runtime bundle/revision and routing at selected source; retire old executions before reopening"
+  },
+  "frontend": {
+    "sourceCommit": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+    "trackedFrontendAssetsUnchangedFromRestoredBase": true,
+    "buildArtifactAndDeployedRevisionVerified": false,
+    "versionTimestampMayBeRegeneratedByPrebuild": true,
+    "staleQuoteEditorsMustReload": true
+  },
+  "postmergeChecks": [
+    {
+      "id": 39291377966,
+      "name": "CI",
+      "head_branch": "main",
+      "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-19T17:07:05Z",
+      "updated_at": "2026-10-19T17:10:33Z",
+      "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966",
+      "jobs": [
+        {
+          "id": 118192594013,
+          "name": "Detectar cambios",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:07:16Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594013"
+        },
+        {
+          "id": 118192594220,
+          "name": "Pruebas (Vitest shard 2/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:09:06Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594220"
+        },
+        {
+          "id": 118192594252,
+          "name": "Pruebas (Vitest shard 1/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:13Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594252"
+        },
+        {
+          "id": 118192594284,
+          "name": "Pruebas (Vitest shard 3/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:19Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594284"
+        },
+        {
+          "id": 118192594418,
+          "name": "Pruebas (Vitest shard 5/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:40Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594418"
+        },
+        {
+          "id": 118192594421,
+          "name": "Pruebas (Vitest shard 6/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:09:26Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594421"
+        },
+        {
+          "id": 118192594457,
+          "name": "Calidad (lint, tipos, build y arranque)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:09:07Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594457"
+        },
+        {
+          "id": 118192594468,
+          "name": "Pruebas (Vitest shard 4/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:00Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594468"
+        },
+        {
+          "id": 118192596648,
+          "name": "Dependency review",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:06Z",
+          "completed_at": "2026-10-19T17:07:05Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192596648"
+        },
+        {
+          "id": 118192683895,
+          "name": "Funciones Supabase (Deno, sin red)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:19Z",
+          "completed_at": "2026-10-19T17:07:40Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192683895"
+        },
+        {
+          "id": 118192686225,
+          "name": "Lint de migraciones",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:16Z",
+          "completed_at": "2026-10-19T17:07:16Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192686225"
+        },
+        {
+          "id": 118192686246,
+          "name": "Actionlint",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:16Z",
+          "completed_at": "2026-10-19T17:07:16Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192686246"
+        },
+        {
+          "id": 118193868642,
+          "name": "Pruebas (merge + cobertura)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:09:44Z",
+          "completed_at": "2026-10-19T17:10:33Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118193868642"
+        }
+      ]
+    },
+    {
+      "id": 39291377930,
+      "name": "Gitleaks",
+      "head_branch": "main",
+      "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-19T17:07:05Z",
+      "updated_at": "2026-10-19T17:07:18Z",
+      "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377930",
+      "jobs": [
+        {
+          "id": 118192594143,
+          "name": "Detectar secretos",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:07:18Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377930/job/118192594143"
+        }
+      ]
+    }
+  ],
+  "ciTestEvidence": {
+    "vitest_files_passed": 632,
+    "vitest_tests_passed": 4133,
+    "actual_handler_rep_persistence_tests_passed": 14,
+    "deno_tests_passed": 600,
+    "deno_tests_failed": 0,
+    "browser_build_smoke_tests_passed": 2,
+    "targeted_deno_passing_cases": {
+      "stamp-payment-complement": 45,
+      "generate-recurring-invoices": 28,
+      "reconcile-stamping-invoices": 18
+    },
+    "source": "source-e38-ci-log-excerpts.json"
+  },
+  "operationalGates": {
+    "officialWholeFileSqlLedgerContract": "UNVERIFIED",
+    "singleExecutorExclusion": "UNVERIFIED",
+    "admissionFence": "UNVERIFIED",
+    "oldEdgeAndServerExecutionDrain": "UNVERIFIED",
+    "outstandingDatabaseWriteRetirement": "UNVERIFIED",
+    "twoOrganizationWindowAndHoldOwner": "UNRESOLVED",
+    "actualMigrationActorRlsAndAllOrganizationCoverage": "UNVERIFIED",
+    "effectiveAccessReviewAndRequiredApprovals": "UNRESOLVED",
+    "actualDeployedArtifactIdentity": "UNVERIFIED",
+    "repositoryStrictPrefixGuard": "UNCHANGED_AND_MISMATCHING"
+  },
+  "recovery": {
+    "laterStageFailure": "Retain prior committed stages, keep all relevant writers fenced, recover forward",
+    "uncertainOutcome": "First establish original executor/session/transaction terminality or safe rollback; then fresh ledger/object reads. Absence without terminality cannot authorize retry. Never replay successful 0107.",
+    "newControls": "Admission gate, invocation registry and database writer fence are proposed designs only, not implemented."
+  },
+  "frozenPredecessors": {
+    "r2Source": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "r2Excludes0107": true,
+    "originalLogisticsCandidateSource": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "originalFilesModified": false,
+    "oldManifestMayPublishNewMainUnchanged": false
+  },
+  "comparator": {
+    "path": "compare_ledger.py",
+    "sha256": "16960585dad9328e4961b1e1a38007647e55b28eb73acd75672766d272c49253",
+    "unitTestsPassed": 35,
+    "independentMutationChecksPassed": 668,
+    "consumesHistoricalRiskApproval": false,
+    "repositoryGuardModified": false,
+    "networkOrDatabaseWrites": false
+  }
+}

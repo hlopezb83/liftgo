@@ -1,0 +1,1911 @@
+{
+  "schemaVersion": 1,
+  "status": "OBSERVED_HISTORY_REVIEW_REQUIRED_NOT_APPROVED",
+  "activationAuthorized": false,
+  "purpose": "Exact preserved historical evidence and proposed stage recognition only; no guard replacement or approval",
+  "sourceBinding": {
+    "reviewedSourceCommit": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+    "candidateSourceCommit": "995ac32d7db6e61d338f632eac4a2422db6f9512",
+    "deployableSourceEquality": "VERIFIED_ALL_INHERITED_TRACKED_PATHS_AND_MODES_IDENTICAL",
+    "verificationArtifact": "source-identity-report.json",
+    "sourceIdentityReportSha256": "35cdf163edebbbd98559c5fe68423b6ab3837216d701f3d31a7f91d99ddccd92",
+    "actualDeployedArtifactVerified": false,
+    "targetBinding": "Preserved verified Lift GO audit target; fresh live identity must be confirmed separately; internal identifiers omitted"
+  },
+  "observation": {
+    "sourceCommitAtObservation": "cebe9a94d023dc1714fa5e0585a43902e05c3a2b",
+    "utcBounds": {
+      "after": "2026-10-19T12:12:06Z",
+      "before": "2026-10-19T12:12:23Z"
+    },
+    "serverTimestampAvailable": false,
+    "freshReadPerformedForThisArtifact": false,
+    "rowCount": 106,
+    "rows": [
+      {
+        "id": 1,
+        "created_at": 1789330097121,
+        "hash": "abd94122a5b4ed1a5deb284fc98e2570cab80dbae420296cdb960df43b8027b2"
+      },
+      {
+        "id": 2,
+        "created_at": 1789331300000,
+        "hash": "5083b4ec11668e5e4dc555f27a90f19d041677ab721cfe8cb2097dc937195a01"
+      },
+      {
+        "id": 3,
+        "created_at": 1789336500000,
+        "hash": "ada2825f97564978f9a6a0c7a02aeac8b6271984efb777cde8c1ac0c3b747ce4"
+      },
+      {
+        "id": 4,
+        "created_at": 1789340400000,
+        "hash": "0d289f4c6a96c9173b906f3300bc4b6aa4c6b62fd3c4df3c083a29dfface77c0"
+      },
+      {
+        "id": 5,
+        "created_at": 1789342200000,
+        "hash": "5fcdaa37d86aabe71416656838634048cc9e2b01f56bfc1dc79eb252be35a1fe"
+      },
+      {
+        "id": 6,
+        "created_at": 1789344000000,
+        "hash": "50d1d8825936e0350150d028eb7228b661658513728d52a18189728be1a97222"
+      },
+      {
+        "id": 7,
+        "created_at": 1789344600000,
+        "hash": "f5fff09125980fb45f1ed3ab99d0c344888a4152bcafa838731d8133cf909649"
+      },
+      {
+        "id": 8,
+        "created_at": 1789345200000,
+        "hash": "5eb32b054df0243b81aeaa2097295155629ae83545e6246ba960797a45ad2780"
+      },
+      {
+        "id": 9,
+        "created_at": 1789345800000,
+        "hash": "b4e48f3d757e856f7e10d1eaff79b1d1e78a585a34299c23d4978acec4366423"
+      },
+      {
+        "id": 10,
+        "created_at": 1789346400000,
+        "hash": "1ab4511a862931b139928a3286386e8282dd289a85068c8537f8ae8e6501381b"
+      },
+      {
+        "id": 11,
+        "created_at": 1789347000000,
+        "hash": "946fd13877cec47261c3c09f5d07b0ff75c8c84d6667890784d89798298bac1e"
+      },
+      {
+        "id": 12,
+        "created_at": 1789347600000,
+        "hash": "afccf278b354128be9daaaee11d3393ec818b6416c6faead3e60bf99fff2d154"
+      },
+      {
+        "id": 13,
+        "created_at": 1789348200000,
+        "hash": "ef7ce0ea56c7788b5e6a9d2476e97f34d11789f4840d2ca538088e81f174f8f2"
+      },
+      {
+        "id": 14,
+        "created_at": 1789348800000,
+        "hash": "069aa50c1b3e39348c02fe36df292becce90c78612ec2be4924747277854873d"
+      },
+      {
+        "id": 15,
+        "created_at": 1789349400000,
+        "hash": "dac419ba05d19fe11b71fbb8bebe0f2ccf8b7624c4e48e85b1e25195e05ae031"
+      },
+      {
+        "id": 16,
+        "created_at": 1789350000000,
+        "hash": "d6b5e5ba462cbc00b3820f5e3213a65813013ffe93163944ded39117852a400a"
+      },
+      {
+        "id": 17,
+        "created_at": 1789350600000,
+        "hash": "ae3463c6e1da9c0691fdbf26c407ab46015946f285f495992a98d14a9a0fa1a2"
+      },
+      {
+        "id": 18,
+        "created_at": 1789351200000,
+        "hash": "c59ed411faf434f129a750164abcee22c8343e2bf2fa7e4de288d1b0dcecc066"
+      },
+      {
+        "id": 19,
+        "created_at": 1789351800000,
+        "hash": "512ed51fd1d49c2b885fec7a32157091aa783a4c6cc2ee2a53986588c190a8fa"
+      },
+      {
+        "id": 20,
+        "created_at": 1789352400000,
+        "hash": "acbe892f3d58292ba299d2f85709dd6b63519d733d3a6529b9c64a7d33e20bdf"
+      },
+      {
+        "id": 21,
+        "created_at": 1789353000000,
+        "hash": "4deaed042e6b5dc9cd4677f76ca35f7e7e17547dd548addaa24c951f7983b4f8"
+      },
+      {
+        "id": 22,
+        "created_at": 1789488995765,
+        "hash": "e7ffb6933e8650de179f984ede844eab632baec383ef206d2a94442620030f76"
+      },
+      {
+        "id": 23,
+        "created_at": 1789491753221,
+        "hash": "7cbe5fe7313d34f5f5da1eb90bc5c7ae41e164a0fde00373243eed9f7fc2c875"
+      },
+      {
+        "id": 24,
+        "created_at": 1789494754486,
+        "hash": "9ee7719ada9edfbe2f6e96e76ed3dddaa670040590ecc8b77ae1ea32f4c964e8"
+      },
+      {
+        "id": 25,
+        "created_at": 1789497000000,
+        "hash": "1a6bd55eb5ef76e8ce7f34e4621b1f581618751a29fd6a334cc11c319978571a"
+      },
+      {
+        "id": 26,
+        "created_at": 1789499881000,
+        "hash": "77ce5b2ee5c0d5b264c435a07ea8e3df5af7079fbe7a988aba4926a3620c2304"
+      },
+      {
+        "id": 27,
+        "created_at": 1789519033000,
+        "hash": "08b9a9af6ec89358a9e7f4f61110f3ccb30cebdd2dcc5998c5d5660b60ca3b4f"
+      },
+      {
+        "id": 28,
+        "created_at": 1789614261000,
+        "hash": "017f696b4e8409e659c728969127a583d4d05ebe226884dde382ae37d3907da4"
+      },
+      {
+        "id": 29,
+        "created_at": 1789664564000,
+        "hash": "b8efa6a0574139f3bd3472a3e615123ae47f20dba46b8d2bfde029c2c0a39fcc"
+      },
+      {
+        "id": 31,
+        "created_at": 1789683904941,
+        "hash": "927e6c306e8eacea96a1380dadfd6c3b0845af3cd46c00372cb9643dfe1ec98f"
+      },
+      {
+        "id": 30,
+        "created_at": 1789750964000,
+        "hash": "2fcf9e70368c5720a160c2864eb29c4b935386afea165695663efaa5992f8f83"
+      },
+      {
+        "id": 32,
+        "created_at": 1789837364000,
+        "hash": "ee7dc399c093d05ef2b3e49106bff48ae539a82cf3acd5dd94e36680c68447ec"
+      },
+      {
+        "id": 33,
+        "created_at": 1789923764000,
+        "hash": "375518bad9a4a5707f45198f9f0e1361f96c816e015255761fd28b7c3980a1a1"
+      },
+      {
+        "id": 34,
+        "created_at": 1790010164000,
+        "hash": "c394ad7087784ba93b05d249a0b932e604c1d94b288113043e182e1a2d459094"
+      },
+      {
+        "id": 35,
+        "created_at": 1790096564000,
+        "hash": "9639708420ee331747eabc5ab6ebfdaeb7618a1239085ecc4efbc1fa6e06f3d2"
+      },
+      {
+        "id": 36,
+        "created_at": 1790182964000,
+        "hash": "394f0ab090d8758b7669287bd85afa886b597383ebdf3dd963763659a8c124f7"
+      },
+      {
+        "id": 37,
+        "created_at": 1790269364000,
+        "hash": "45f655efd93c383cf408502b2a0358989c03a85a27c85e68cc0e3452eae32f5e"
+      },
+      {
+        "id": 38,
+        "created_at": 1790355764000,
+        "hash": "0b3be95a58d70d91c339cb3e633bead313ceb1dcbbe362c8d3bb317ed25832da"
+      },
+      {
+        "id": 39,
+        "created_at": 1790442164000,
+        "hash": "91ec759e0cbac79cca9f2dc337c6362e628d15bc4cdcb84333718a8f7cfdf6c8"
+      },
+      {
+        "id": 40,
+        "created_at": 1790528564000,
+        "hash": "65cde4269a1ce630f29b242efd4dd5580d31203fcaba883ff79eb99690f6a480"
+      },
+      {
+        "id": 41,
+        "created_at": 1790614964000,
+        "hash": "8ab7bb924f6af4f42b9ea826089a75c4284d79d496ca24a7ba4dc9a0368ffbde"
+      },
+      {
+        "id": 42,
+        "created_at": 1790701364000,
+        "hash": "319520dfecd8f5f6ac9b483f27a2433dc098a8047d7307e1acc243cf426479c2"
+      },
+      {
+        "id": 43,
+        "created_at": 1790787764000,
+        "hash": "88694312183ff225d81ce28b4da8ccc2fa5fda71bbde5d1d712fca164a6ecbf3"
+      },
+      {
+        "id": 44,
+        "created_at": 1790874164000,
+        "hash": "789ff8f896f1674da485c6a8aec5e53ca013c8e6367c4bb9b14bfea19d1f070d"
+      },
+      {
+        "id": 45,
+        "created_at": 1790874165000,
+        "hash": "bed50391810e0f388deae690bc4e058b7a857aa4276d2e1b9d1ce26e71740e20"
+      },
+      {
+        "id": 46,
+        "created_at": 1790874166000,
+        "hash": "b0f33de65c75e43d79192c2817cb0989e3e484fa30429a05bcd1d76b66b2d4c2"
+      },
+      {
+        "id": 47,
+        "created_at": 1790874167000,
+        "hash": "9097676dac967adac52327436183e2098222cded87de2143c3bbb2d4b78b7264"
+      },
+      {
+        "id": 48,
+        "created_at": 1790874168000,
+        "hash": "580291920d494973ed03b56c46c60e7f8422b5dd834d79ad78b855704037a686"
+      },
+      {
+        "id": 49,
+        "created_at": 1790874169000,
+        "hash": "82311c5604c0839967c65d0804d1ef7559d671c661c780024700ad3d87fe4da2"
+      },
+      {
+        "id": 50,
+        "created_at": 1790874170000,
+        "hash": "e33f83e8e396c24268bc829a101e5303896d15e1432c9969a5f6b1bf3040e760"
+      },
+      {
+        "id": 51,
+        "created_at": 1790874171000,
+        "hash": "10830080037a61e23abd32f595db36649ec11f106b1cc6f7cad3ac0d64fe499c"
+      },
+      {
+        "id": 52,
+        "created_at": 1790874172000,
+        "hash": "8609c8e04e2c59a5ab294b3120d883449123b71b903d2afabc12cce04268b4eb"
+      },
+      {
+        "id": 53,
+        "created_at": 1790874173000,
+        "hash": "0228b6f802c9b941823beea0bb882e9220876a0b0521368b6f7a0109bbd935c5"
+      },
+      {
+        "id": 54,
+        "created_at": 1790874174000,
+        "hash": "de5907d8b729c1df736fdec6198d15de0d4bad1315c30f61d71b0e53c060ee28"
+      },
+      {
+        "id": 55,
+        "created_at": 1790874175000,
+        "hash": "cb6ea5b3ec185406deec6cdb6f7ebbf23543b3f6406bb16ad38eda1e5966fae4"
+      },
+      {
+        "id": 56,
+        "created_at": 1790874176000,
+        "hash": "c0c61fd6d5e3f4ab984fbd16873f05512278455f6504c3bcc3e308e2ed9c614b"
+      },
+      {
+        "id": 57,
+        "created_at": 1790874177000,
+        "hash": "b7e236f53509957e3a1c271a6196f6e59e5f78fd1ab27bba85f09f41845b8d26"
+      },
+      {
+        "id": 58,
+        "created_at": 1790874178000,
+        "hash": "60499bbbba877a897eacdb5efe7982f5994b6ba225e38a2d92b3d21941f0ec8d"
+      },
+      {
+        "id": 59,
+        "created_at": 1790874179000,
+        "hash": "f94c7a1466057a36cb3ffee3ed7d5da53049be09703ca94b5f5ed6226e7ab082"
+      },
+      {
+        "id": 60,
+        "created_at": 1790874180000,
+        "hash": "35a2fcab1b44614808fbe632b87e53976ffdb15104b34e55fa01375c581aaf67"
+      },
+      {
+        "id": 61,
+        "created_at": 1790874181000,
+        "hash": "9ebe9e6480cae95bd842476299c14fe6720de3416fdc9efb3129002298e42e0d"
+      },
+      {
+        "id": 62,
+        "created_at": 1790874182000,
+        "hash": "c5529252a60556776b5ae693fec10f87e80cfef91e9af0ddd90b3521c4318c97"
+      },
+      {
+        "id": 63,
+        "created_at": 1790874183000,
+        "hash": "841f380df6b74890edc246d586c0b316756f18ae2d7d22015bab427eaabe86c6"
+      },
+      {
+        "id": 64,
+        "created_at": 1790874184000,
+        "hash": "2eab17323cd0bc8aaa172bd5d53d4bc1c734d926530fdf03099c17cce566e0d1"
+      },
+      {
+        "id": 65,
+        "created_at": 1790874185000,
+        "hash": "1e016c2515801dc023799daac38d969bc0d9f28f7987fe99c086d7f8043636c1"
+      },
+      {
+        "id": 66,
+        "created_at": 1790874186000,
+        "hash": "2ceba911516e9268e67076535465e095066927e36d3b95d6747944a379d7399f"
+      },
+      {
+        "id": 67,
+        "created_at": 1790874187000,
+        "hash": "7fa769d6dea92709889c373a3df061cd830903763962b329e3edd5260735f43c"
+      },
+      {
+        "id": 68,
+        "created_at": 1790874188000,
+        "hash": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a"
+      },
+      {
+        "id": 69,
+        "created_at": 1790874189000,
+        "hash": "af9c2993d7d1d03c8c2d2ec12c9f933260c2bb25119be7c9f553c437d84ad27c"
+      },
+      {
+        "id": 70,
+        "created_at": 1790874190000,
+        "hash": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a"
+      },
+      {
+        "id": 71,
+        "created_at": 1790874191000,
+        "hash": "f76a3a38c4791a54ac1683af2dc309116104ef74b401afc8435058e83224b568"
+      },
+      {
+        "id": 72,
+        "created_at": 1790874192000,
+        "hash": "722e7121491f073ff3d04c118a4a4ef5d4fb9ede90b595a1daf8cc7c63b113c5"
+      },
+      {
+        "id": 73,
+        "created_at": 1790874193000,
+        "hash": "5fa976e47aceafb6e175c9a8e10e88fc369e8d175e2dbfc3311f93cc7609c7ff"
+      },
+      {
+        "id": 74,
+        "created_at": 1790874194000,
+        "hash": "479378ad83e78983a51291b672cad7a62bf2f54cc2e6a3bea70516b64155eaa2"
+      },
+      {
+        "id": 75,
+        "created_at": 1790874195000,
+        "hash": "207e89d864255ebf7c2c71e2880b845f88119d206bfd1efc9fbdfd1320084250"
+      },
+      {
+        "id": 76,
+        "created_at": 1790874196000,
+        "hash": "06d5f408c13dd885974d567039dca1b205dec821c6d0f8081df6b58461d828dc"
+      },
+      {
+        "id": 77,
+        "created_at": 1790874197000,
+        "hash": "bbe7a5baf7579192ed8a14e9a83cc620d284e5ae1125cca469029d7637543d17"
+      },
+      {
+        "id": 78,
+        "created_at": 1790874198000,
+        "hash": "990b3a1628769ca8dee37757c134309867249dcc87fbfee76dc4b9f05a3cf920"
+      },
+      {
+        "id": 79,
+        "created_at": 1790874199000,
+        "hash": "714c0b3173211616bbeb26c916ad9d33cfec6b0fd118f66c4722759edf4d6ef0"
+      },
+      {
+        "id": 80,
+        "created_at": 1790874200000,
+        "hash": "32b16781c4da226cd177ba2a7000b715f8e39453247617d97a9a3fc1769b9d42"
+      },
+      {
+        "id": 82,
+        "created_at": 1790874201000,
+        "hash": "01841479530bff6a1a532b216234ac00808bebc0d12d25f587e5e9e7eccdf033"
+      },
+      {
+        "id": 83,
+        "created_at": 1790874202000,
+        "hash": "ce1d49b4a387e522169bbf924c9bcf908205e0feea356888799850e98901fa4b"
+      },
+      {
+        "id": 84,
+        "created_at": 1790874202001,
+        "hash": "c76bad49edf36fdad2e9fb265b9fe70245bd8c6142db19609bb27f8754b87053"
+      },
+      {
+        "id": 85,
+        "created_at": 1790874202002,
+        "hash": "65a00f643cb188b5f40551ae95a622cf9325f2529a521812e95a4b317c14c785"
+      },
+      {
+        "id": 86,
+        "created_at": 1790874202003,
+        "hash": "4d3417b7816e413a258d99d95d7d652ba05b9c6e483019d519d41612f2539f3c"
+      },
+      {
+        "id": 87,
+        "created_at": 1790874202004,
+        "hash": "b8f1adabcdab91dff995addac62fdaffddf1dbb601f0d57fa4373ebd235ab277"
+      },
+      {
+        "id": 88,
+        "created_at": 1790874202005,
+        "hash": "4b0fed32591890607b119cc35d6c227085f92c45ec94430aeda5c60141850c25"
+      },
+      {
+        "id": 89,
+        "created_at": 1790874202006,
+        "hash": "55c0403a4bbecebc9b6375a5f01ac3977567aabf9a0c3a63bccdfead495c8319"
+      },
+      {
+        "id": 90,
+        "created_at": 1790874202007,
+        "hash": "3a4253d4caa936077fe2802195e01d81cbfb57318ed3a1c69bbed4c55eba3e30"
+      },
+      {
+        "id": 91,
+        "created_at": 1790885052977,
+        "hash": "92dff62b4ecf05689d3a386874b67693fc65789333b13b7af8a675f66cff5a75"
+      },
+      {
+        "id": 92,
+        "created_at": 1790890234134,
+        "hash": "b33a7214567eeb9b4ccf7095c9cbb9e27d1439077e6b6ba69f52bce0aec3546f"
+      },
+      {
+        "id": 93,
+        "created_at": 1790897569107,
+        "hash": "883419338de940e6a16c7bbd0e47b9958a1b50d228e1459bbdb18aeb9ec2353c"
+      },
+      {
+        "id": 94,
+        "created_at": 1790904569507,
+        "hash": "2d095136d93009668b404f07285fd274910169d2c1738c00fc371be3d554855b"
+      },
+      {
+        "id": 95,
+        "created_at": 1790970257472,
+        "hash": "ab4d1e9c3bb3bc7e376b1b29450b60e4328ce75460a706aca07b8f2e5d5dead7"
+      },
+      {
+        "id": 96,
+        "created_at": 1790976000000,
+        "hash": "441c9833cdcc4769b7c4299ce409b251ada3a86aa0890dc52456cfd671dc2822"
+      },
+      {
+        "id": 97,
+        "created_at": 1790978331000,
+        "hash": "ddd148d3f9939cb0acecf72f4c2bc1e63398bfdf2c8210172e58de446d8644cc"
+      },
+      {
+        "id": 98,
+        "created_at": 1790988438092,
+        "hash": "71c4bc31f65fde9639159a62dd8f638e6196a0fe1fe6f232db0137d3cd597301"
+      },
+      {
+        "id": 99,
+        "created_at": 1790991167291,
+        "hash": "88a1c3176b7c57ef8a5455fc9c73500b74a9268de3060b532fdecc09453c83d2"
+      },
+      {
+        "id": 100,
+        "created_at": 1790991273930,
+        "hash": "377913168d9cb35797b3a044146a984ddcf1a675bdc4b822d702ca4734a502f0"
+      },
+      {
+        "id": 101,
+        "created_at": 1790991931103,
+        "hash": "57cd6e7be40381cb58a7e2ad09f28784b05903298c2605ac363475e9ed4fc312"
+      },
+      {
+        "id": 102,
+        "created_at": 1791022774090,
+        "hash": "12d54c3c439c010e44ebdd952900b153b25dc4c954829f5e3800b990132b2772"
+      },
+      {
+        "id": 103,
+        "created_at": 1791035610000,
+        "hash": "3188dad012705a9f3674b61d2a1a066313bfb9005a44c584f76f37e833b67a2e"
+      },
+      {
+        "id": 104,
+        "created_at": 1791062762896,
+        "hash": "4cd78fabd3b421648de70d1b22bb7b34da3e3fb1eb11b75b46dab4c6fa019eaa"
+      },
+      {
+        "id": 105,
+        "created_at": 1791913029443,
+        "hash": "da4d9e76ccdbaf1acf083d7dcd055db0f3d9340abe4473915a402768a117eb27"
+      },
+      {
+        "id": 106,
+        "created_at": 1792368366457,
+        "hash": "9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271"
+      },
+      {
+        "id": 107,
+        "created_at": 1792370295568,
+        "hash": "374a36eb1c433ba631ad69ae95cc3662fe3dc2ba019105d0ab1400a03aff87b0"
+      }
+    ],
+    "canonicalRowsSha256": "f2bc2dbeb7b66b35efbcb9e5a1737f8d683137e77727f0abae4be52564951705",
+    "preservedInputFileSha256": "1ef3fd0ac31b6ed0d479d38e7de695518373e924f89d622f6dd48b14241783f8"
+  },
+  "currentJournal": {
+    "sourceCommit": "995ac32d7db6e61d338f632eac4a2422db6f9512",
+    "entryCount": 108,
+    "path": "drizzle/migrations/meta/_journal.json",
+    "fileSha256": "78145ea95e344550fdd485ef01b696941467d5dae0bf7a253db16b7b9301aeec",
+    "entries": [
+      {
+        "idx": 0,
+        "version": "7",
+        "when": 1789330097121,
+        "tag": "0000_multi_org_phase0_core_tables",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0000_multi_org_phase0_core_tables.sql",
+        "sha256": "abd94122a5b4ed1a5deb284fc98e2570cab80dbae420296cdb960df43b8027b2",
+        "bytes": 12521,
+        "containsCRLF": false
+      },
+      {
+        "idx": 1,
+        "version": "7",
+        "when": 1789331300000,
+        "tag": "0001_multi_org_phase0_membership_consistency",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0001_multi_org_phase0_membership_consistency.sql",
+        "sha256": "5083b4ec11668e5e4dc555f27a90f19d041677ab721cfe8cb2097dc937195a01",
+        "bytes": 5413,
+        "containsCRLF": false
+      },
+      {
+        "idx": 2,
+        "version": "7",
+        "when": 1789336500000,
+        "tag": "0002_multi_org_phase1_add_organization_columns",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0002_multi_org_phase1_add_organization_columns.sql",
+        "sha256": "ada2825f97564978f9a6a0c7a02aeac8b6271984efb777cde8c1ac0c3b747ce4",
+        "bytes": 7868,
+        "containsCRLF": false
+      },
+      {
+        "idx": 3,
+        "version": "7",
+        "when": 1789340400000,
+        "tag": "0003_multi_org_phase2_customer_integrity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0003_multi_org_phase2_customer_integrity.sql",
+        "sha256": "0d289f4c6a96c9173b906f3300bc4b6aa4c6b62fd3c4df3c083a29dfface77c0",
+        "bytes": 4093,
+        "containsCRLF": false
+      },
+      {
+        "idx": 4,
+        "version": "7",
+        "when": 1789342200000,
+        "tag": "0004_multi_org_phase3_write_context_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0004_multi_org_phase3_write_context_guard.sql",
+        "sha256": "ffc22130fe7f95bda1f5a520ca63afd2f63013edd3f56f1cc0e8e1fcd86add62",
+        "bytes": 9277,
+        "containsCRLF": false
+      },
+      {
+        "idx": 5,
+        "version": "7",
+        "when": 1789344000000,
+        "tag": "0005_multi_org_phase4_read_isolation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0005_multi_org_phase4_read_isolation.sql",
+        "sha256": "877a67d70d4f6b2a1309aa0bd6f5c6a5e4a91a292bf5a76ab7469e5a4326e128",
+        "bytes": 3480,
+        "containsCRLF": false
+      },
+      {
+        "idx": 6,
+        "version": "7",
+        "when": 1789344600000,
+        "tag": "0006_multi_org_phase4_portal_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0006_multi_org_phase4_portal_scope.sql",
+        "sha256": "a65e787cb015681e1feb145013b08b6f020d68506529df68ab5eca091cb05ae5",
+        "bytes": 8779,
+        "containsCRLF": false
+      },
+      {
+        "idx": 7,
+        "version": "7",
+        "when": 1789345200000,
+        "tag": "0007_multi_org_phase4_customer_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0007_multi_org_phase4_customer_rpc_scope.sql",
+        "sha256": "c296a4f7fdde7fc1f3510bb5313d225ba263d89718ae3f1863a84b09c00a63e8",
+        "bytes": 6160,
+        "containsCRLF": false
+      },
+      {
+        "idx": 8,
+        "version": "7",
+        "when": 1789345800000,
+        "tag": "0008_multi_org_phase5_config_and_read_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0008_multi_org_phase5_config_and_read_rpc_scope.sql",
+        "sha256": "b4e48f3d757e856f7e10d1eaff79b1d1e78a585a34299c23d4978acec4366423",
+        "bytes": 4527,
+        "containsCRLF": false
+      },
+      {
+        "idx": 9,
+        "version": "7",
+        "when": 1789346400000,
+        "tag": "0009_multi_org_phase5_bank_read_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0009_multi_org_phase5_bank_read_rpc_scope.sql",
+        "sha256": "1ab4511a862931b139928a3286386e8282dd289a85068c8537f8ae8e6501381b",
+        "bytes": 2156,
+        "containsCRLF": false
+      },
+      {
+        "idx": 10,
+        "version": "7",
+        "when": 1789347000000,
+        "tag": "0010_multi_org_phase5_bank_write_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0010_multi_org_phase5_bank_write_rpc_scope.sql",
+        "sha256": "b0804f85f8c51db800129598892bc82306248b15223a1c571c0616191a05686e",
+        "bytes": 2306,
+        "containsCRLF": false
+      },
+      {
+        "idx": 11,
+        "version": "7",
+        "when": 1789347600000,
+        "tag": "0011_multi_org_phase5_bank_upload_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0011_multi_org_phase5_bank_upload_scope.sql",
+        "sha256": "afccf278b354128be9daaaee11d3393ec818b6416c6faead3e60bf99fff2d154",
+        "bytes": 6522,
+        "containsCRLF": false
+      },
+      {
+        "idx": 12,
+        "version": "7",
+        "when": 1789348200000,
+        "tag": "0012_multi_org_phase5_bank_finalize_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0012_multi_org_phase5_bank_finalize_scope.sql",
+        "sha256": "ef7ce0ea56c7788b5e6a9d2476e97f34d11789f4840d2ca538088e81f174f8f2",
+        "bytes": 12162,
+        "containsCRLF": false
+      },
+      {
+        "idx": 13,
+        "version": "7",
+        "when": 1789348800000,
+        "tag": "0013_multi_org_phase5_sale_quote_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0013_multi_org_phase5_sale_quote_rpc_scope.sql",
+        "sha256": "069aa50c1b3e39348c02fe36df292becce90c78612ec2be4924747277854873d",
+        "bytes": 2432,
+        "containsCRLF": false
+      },
+      {
+        "idx": 14,
+        "version": "7",
+        "when": 1789349400000,
+        "tag": "0014_multi_org_phase5_booking_lifecycle_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0014_multi_org_phase5_booking_lifecycle_rpc_scope.sql",
+        "sha256": "dac419ba05d19fe11b71fbb8bebe0f2ccf8b7624c4e48e85b1e25195e05ae031",
+        "bytes": 2896,
+        "containsCRLF": false
+      },
+      {
+        "idx": 15,
+        "version": "7",
+        "when": 1789350000000,
+        "tag": "0015_multi_org_phase5_return_contract_rpc_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0015_multi_org_phase5_return_contract_rpc_scope.sql",
+        "sha256": "d6b5e5ba462cbc00b3820f5e3213a65813013ffe93163944ded39117852a400a",
+        "bytes": 22182,
+        "containsCRLF": false
+      },
+      {
+        "idx": 16,
+        "version": "7",
+        "when": 1789350600000,
+        "tag": "0016_multi_org_phase6_numbering_fiscal_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0016_multi_org_phase6_numbering_fiscal_scope.sql",
+        "sha256": "ae3463c6e1da9c0691fdbf26c407ab46015946f285f495992a98d14a9a0fa1a2",
+        "bytes": 23180,
+        "containsCRLF": false
+      },
+      {
+        "idx": 17,
+        "version": "7",
+        "when": 1789351200000,
+        "tag": "0017_multi_org_phase6_billing_config_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0017_multi_org_phase6_billing_config_scope.sql",
+        "sha256": "c59ed411faf434f129a750164abcee22c8343e2bf2fa7e4de288d1b0dcecc066",
+        "bytes": 7531,
+        "containsCRLF": false
+      },
+      {
+        "idx": 18,
+        "version": "7",
+        "when": 1789351800000,
+        "tag": "0018_multi_org_phase6_supplier_approval_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0018_multi_org_phase6_supplier_approval_scope.sql",
+        "sha256": "512ed51fd1d49c2b885fec7a32157091aa783a4c6cc2ee2a53986588c190a8fa",
+        "bytes": 4703,
+        "containsCRLF": false
+      },
+      {
+        "idx": 19,
+        "version": "7",
+        "when": 1789352400000,
+        "tag": "0019_multi_org_phase6_public_branding",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0019_multi_org_phase6_public_branding.sql",
+        "sha256": "acbe892f3d58292ba299d2f85709dd6b63519d733d3a6529b9c64a7d33e20bdf",
+        "bytes": 1612,
+        "containsCRLF": false
+      },
+      {
+        "idx": 20,
+        "version": "7",
+        "when": 1789353000000,
+        "tag": "0020_multi_org_phase7_storage_migration_ledger",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0020_multi_org_phase7_storage_migration_ledger.sql",
+        "sha256": "4deaed042e6b5dc9cd4677f76ca35f7e7e17547dd548addaa24c951f7983b4f8",
+        "bytes": 4991,
+        "containsCRLF": false
+      },
+      {
+        "idx": 21,
+        "version": "7",
+        "when": 1789488995765,
+        "tag": "0021_storage_policies_org_prefix_aware",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0021_storage_policies_org_prefix_aware.sql",
+        "sha256": "e7ffb6933e8650de179f984ede844eab632baec383ef206d2a94442620030f76",
+        "bytes": 4875,
+        "containsCRLF": false
+      },
+      {
+        "idx": 22,
+        "version": "7",
+        "when": 1789491753221,
+        "tag": "0022_storage_tenant_scoped_policies",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0022_storage_tenant_scoped_policies.sql",
+        "sha256": "7cbe5fe7313d34f5f5da1eb90bc5c7ae41e164a0fde00373243eed9f7fc2c875",
+        "bytes": 8885,
+        "containsCRLF": false
+      },
+      {
+        "idx": 23,
+        "version": "7",
+        "when": 1789494754486,
+        "tag": "0023_payment_intent_invoice_definer_check",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0023_payment_intent_invoice_definer_check.sql",
+        "sha256": "9ee7719ada9edfbe2f6e96e76ed3dddaa670040590ecc8b77ae1ea32f4c964e8",
+        "bytes": 1813,
+        "containsCRLF": false
+      },
+      {
+        "idx": 24,
+        "version": "7",
+        "when": 1789497000000,
+        "tag": "0024_portal_fallback_respects_account_status",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0024_portal_fallback_respects_account_status.sql",
+        "sha256": "1a6bd55eb5ef76e8ce7f34e4621b1f581618751a29fd6a334cc11c319978571a",
+        "bytes": 1884,
+        "containsCRLF": false
+      },
+      {
+        "idx": 25,
+        "version": "7",
+        "when": 1789499881000,
+        "tag": "0025_multi_org_phase8_admin_membership_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0025_multi_org_phase8_admin_membership_scope.sql",
+        "sha256": "77ce5b2ee5c0d5b264c435a07ea8e3df5af7079fbe7a988aba4926a3620c2304",
+        "bytes": 12875,
+        "containsCRLF": false
+      },
+      {
+        "idx": 26,
+        "version": "7",
+        "when": 1789519033000,
+        "tag": "0026_rep_number_org_scoped_assignment",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0026_rep_number_org_scoped_assignment.sql",
+        "sha256": "08b9a9af6ec89358a9e7f4f61110f3ccb30cebdd2dcc5998c5d5660b60ca3b4f",
+        "bytes": 7874,
+        "containsCRLF": false
+      },
+      {
+        "idx": 27,
+        "version": "7",
+        "when": 1789614261000,
+        "tag": "0027_storage_tenant_scope_remaining_buckets",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0027_storage_tenant_scope_remaining_buckets.sql",
+        "sha256": "017f696b4e8409e659c728969127a583d4d05ebe226884dde382ae37d3907da4",
+        "bytes": 17399,
+        "containsCRLF": false
+      },
+      {
+        "idx": 28,
+        "version": "7",
+        "when": 1789664564000,
+        "tag": "0028_multi_org_function_acl_revoke_anon",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0028_multi_org_function_acl_revoke_anon.sql",
+        "sha256": "b8efa6a0574139f3bd3472a3e615123ae47f20dba46b8d2bfde029c2c0a39fcc",
+        "bytes": 4588,
+        "containsCRLF": false
+      },
+      {
+        "idx": 29,
+        "version": "7",
+        "when": 1789750964000,
+        "tag": "0029_multi_org_unique_scope_by_organization",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0029_multi_org_unique_scope_by_organization.sql",
+        "sha256": "2fcf9e70368c5720a160c2864eb29c4b935386afea165695663efaa5992f8f83",
+        "bytes": 10436,
+        "containsCRLF": false
+      },
+      {
+        "idx": 30,
+        "version": "7",
+        "when": 1789837364000,
+        "tag": "0030_multi_org_onboarding_and_customer_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0030_multi_org_onboarding_and_customer_scope.sql",
+        "sha256": "ee7dc399c093d05ef2b3e49106bff48ae539a82cf3acd5dd94e36680c68447ec",
+        "bytes": 43366,
+        "containsCRLF": false
+      },
+      {
+        "idx": 31,
+        "version": "7",
+        "when": 1789923764000,
+        "tag": "0031_multi_org_audit_hardening",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0031_multi_org_audit_hardening.sql",
+        "sha256": "375518bad9a4a5707f45198f9f0e1361f96c816e015255761fd28b7c3980a1a1",
+        "bytes": 29540,
+        "containsCRLF": false
+      },
+      {
+        "idx": 32,
+        "version": "7",
+        "when": 1790010164000,
+        "tag": "0032_multi_org_storage_staff_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0032_multi_org_storage_staff_scope.sql",
+        "sha256": "c394ad7087784ba93b05d249a0b932e604c1d94b288113043e182e1a2d459094",
+        "bytes": 16749,
+        "containsCRLF": false
+      },
+      {
+        "idx": 33,
+        "version": "7",
+        "when": 1790096564000,
+        "tag": "0033_handle_new_user_trusted_org_context",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0033_handle_new_user_trusted_org_context.sql",
+        "sha256": "9639708420ee331747eabc5ab6ebfdaeb7618a1239085ecc4efbc1fa6e06f3d2",
+        "bytes": 3035,
+        "containsCRLF": false
+      },
+      {
+        "idx": 34,
+        "version": "7",
+        "when": 1790182964000,
+        "tag": "0034_storage_manual_resolutions",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0034_storage_manual_resolutions.sql",
+        "sha256": "394f0ab090d8758b7669287bd85afa886b597383ebdf3dd963763659a8c124f7",
+        "bytes": 2061,
+        "containsCRLF": false
+      },
+      {
+        "idx": 35,
+        "version": "7",
+        "when": 1790269364000,
+        "tag": "0035_storage_manual_resolutions_force_rls",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0035_storage_manual_resolutions_force_rls.sql",
+        "sha256": "45f655efd93c383cf408502b2a0358989c03a85a27c85e68cc0e3452eae32f5e",
+        "bytes": 1070,
+        "containsCRLF": false
+      },
+      {
+        "idx": 36,
+        "version": "7",
+        "when": 1790355764000,
+        "tag": "0036_multi_org_analytics_rpc_invoker_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0036_multi_org_analytics_rpc_invoker_scope.sql",
+        "sha256": "0b3be95a58d70d91c339cb3e633bead313ceb1dcbbe362c8d3bb317ed25832da",
+        "bytes": 1555,
+        "containsCRLF": false
+      },
+      {
+        "idx": 37,
+        "version": "7",
+        "when": 1790442164000,
+        "tag": "0037_multi_org_invoice_balance_rpc_invoker_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0037_multi_org_invoice_balance_rpc_invoker_scope.sql",
+        "sha256": "91ec759e0cbac79cca9f2dc337c6362e628d15bc4cdcb84333718a8f7cfdf6c8",
+        "bytes": 1125,
+        "containsCRLF": false
+      },
+      {
+        "idx": 38,
+        "version": "7",
+        "when": 1790528564000,
+        "tag": "0038_e2e_utilities_tenant_scoped",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0038_e2e_utilities_tenant_scoped.sql",
+        "sha256": "65cde4269a1ce630f29b242efd4dd5580d31203fcaba883ff79eb99690f6a480",
+        "bytes": 26952,
+        "containsCRLF": false
+      },
+      {
+        "idx": 39,
+        "version": "7",
+        "when": 1790614964000,
+        "tag": "0039_multi_org_rpc_helper_invoker_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0039_multi_org_rpc_helper_invoker_scope.sql",
+        "sha256": "8ab7bb924f6af4f42b9ea826089a75c4284d79d496ca24a7ba4dc9a0368ffbde",
+        "bytes": 8079,
+        "containsCRLF": false
+      },
+      {
+        "idx": 40,
+        "version": "7",
+        "when": 1790701364000,
+        "tag": "0040_multi_org_mutating_rpc_org_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0040_multi_org_mutating_rpc_org_guard.sql",
+        "sha256": "319520dfecd8f5f6ac9b483f27a2433dc098a8047d7307e1acc243cf426479c2",
+        "bytes": 36322,
+        "containsCRLF": false
+      },
+      {
+        "idx": 41,
+        "version": "7",
+        "when": 1790787764000,
+        "tag": "0041_multi_org_supplier_damage_rpc_org_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0041_multi_org_supplier_damage_rpc_org_guard.sql",
+        "sha256": "88694312183ff225d81ce28b4da8ccc2fa5fda71bbde5d1d712fca164a6ecbf3",
+        "bytes": 68734,
+        "containsCRLF": false
+      },
+      {
+        "idx": 42,
+        "version": "7",
+        "when": 1790874164000,
+        "tag": "0042_multi_org_bank_inspection_rpc_org_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0042_multi_org_bank_inspection_rpc_org_guard.sql",
+        "sha256": "789ff8f896f1674da485c6a8aec5e53ca013c8e6367c4bb9b14bfea19d1f070d",
+        "bytes": 59595,
+        "containsCRLF": false
+      },
+      {
+        "idx": 43,
+        "version": "7",
+        "when": 1790874165000,
+        "tag": "0043_multi_org_counters_secrets_locks_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0043_multi_org_counters_secrets_locks_guard.sql",
+        "sha256": "bed50391810e0f388deae690bc4e058b7a857aa4276d2e1b9d1ce26e71740e20",
+        "bytes": 14689,
+        "containsCRLF": false
+      },
+      {
+        "idx": 44,
+        "version": "7",
+        "when": 1790874166000,
+        "tag": "0044_multi_org_customer_reads_link_rep_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0044_multi_org_customer_reads_link_rep_guard.sql",
+        "sha256": "b0f33de65c75e43d79192c2817cb0989e3e484fa30429a05bcd1d76b66b2d4c2",
+        "bytes": 23267,
+        "containsCRLF": false
+      },
+      {
+        "idx": 45,
+        "version": "7",
+        "when": 1790874167000,
+        "tag": "0045_approve_payment_intent_neutral_exchange_rate",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0045_approve_payment_intent_neutral_exchange_rate.sql",
+        "sha256": "9097676dac967adac52327436183e2098222cded87de2143c3bbb2d4b78b7264",
+        "bytes": 5595,
+        "containsCRLF": false
+      },
+      {
+        "idx": 46,
+        "version": "7",
+        "when": 1790874168000,
+        "tag": "0046_liftgo_shared_catalogs_foundation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0046_liftgo_shared_catalogs_foundation.sql",
+        "sha256": "82c228ceb83c76a258f8de9fafbd63e40ad06424b3f243fdb3141f11f493cd7f",
+        "bytes": 27440,
+        "containsCRLF": true
+      },
+      {
+        "idx": 47,
+        "version": "7",
+        "when": 1790874169000,
+        "tag": "0047_shared_equipment_models_phase1",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0047_shared_equipment_models_phase1.sql",
+        "sha256": "82311c5604c0839967c65d0804d1ef7559d671c661c780024700ad3d87fe4da2",
+        "bytes": 13714,
+        "containsCRLF": false
+      },
+      {
+        "idx": 48,
+        "version": "7",
+        "when": 1790874170000,
+        "tag": "0048_shared_parts_catalog_phase2",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0048_shared_parts_catalog_phase2.sql",
+        "sha256": "e33f83e8e396c24268bc829a101e5303896d15e1432c9969a5f6b1bf3040e760",
+        "bytes": 13108,
+        "containsCRLF": false
+      },
+      {
+        "idx": 49,
+        "version": "7",
+        "when": 1790874171000,
+        "tag": "0049_versioned_legal_templates_phase3",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0049_versioned_legal_templates_phase3.sql",
+        "sha256": "10830080037a61e23abd32f595db36649ec11f106b1cc6f7cad3ac0d64fe499c",
+        "bytes": 10557,
+        "containsCRLF": false
+      },
+      {
+        "idx": 50,
+        "version": "7",
+        "when": 1790874172000,
+        "tag": "0050_platform_legal_template_versions_phase3b",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0050_platform_legal_template_versions_phase3b.sql",
+        "sha256": "8609c8e04e2c59a5ab294b3120d883449123b71b903d2afabc12cce04268b4eb",
+        "bytes": 13981,
+        "containsCRLF": false
+      },
+      {
+        "idx": 51,
+        "version": "7",
+        "when": 1790874173000,
+        "tag": "0051_organization_legal_overrides_phase3c",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0051_organization_legal_overrides_phase3c.sql",
+        "sha256": "509cb6af5069e66cce30a4552347274423987ed2c8a0bd0cfdd3d88e0aae4b70",
+        "bytes": 8287,
+        "containsCRLF": true
+      },
+      {
+        "idx": 52,
+        "version": "7",
+        "when": 1790874174000,
+        "tag": "0052_booking_number_authenticated_acl",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0052_booking_number_authenticated_acl.sql",
+        "sha256": "7aae3e491c8f891f980b5b0be1f8b7f8853fe46bb76c639ffb490cad534ef4da",
+        "bytes": 1803,
+        "containsCRLF": true
+      },
+      {
+        "idx": 53,
+        "version": "7",
+        "when": 1790874175000,
+        "tag": "0053_contract_signed_issuer_snapshot",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0053_contract_signed_issuer_snapshot.sql",
+        "sha256": "cb6ea5b3ec185406deec6cdb6f7ebbf23543b3f6406bb16ad38eda1e5966fae4",
+        "bytes": 6027,
+        "containsCRLF": true
+      },
+      {
+        "idx": 54,
+        "version": "7",
+        "when": 1790874176000,
+        "tag": "0054_rate_limits_platform_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0054_rate_limits_platform_scope.sql",
+        "sha256": "c0c61fd6d5e3f4ab984fbd16873f05512278455f6504c3bcc3e308e2ed9c614b",
+        "bytes": 378,
+        "containsCRLF": false
+      },
+      {
+        "idx": 55,
+        "version": "7",
+        "when": 1790874177000,
+        "tag": "0055_handle_new_user_deferred_org_provisioning",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0055_handle_new_user_deferred_org_provisioning.sql",
+        "sha256": "b7e236f53509957e3a1c271a6196f6e59e5f78fd1ab27bba85f09f41845b8d26",
+        "bytes": 1857,
+        "containsCRLF": false
+      },
+      {
+        "idx": 56,
+        "version": "7",
+        "when": 1790874178000,
+        "tag": "0056_handle_new_user_comment",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0056_handle_new_user_comment.sql",
+        "sha256": "60499bbbba877a897eacdb5efe7982f5994b6ba225e38a2d92b3d21941f0ec8d",
+        "bytes": 211,
+        "containsCRLF": false
+      },
+      {
+        "idx": 57,
+        "version": "7",
+        "when": 1790874179000,
+        "tag": "0057_provision_invited_internal_user_atomic",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0057_provision_invited_internal_user_atomic.sql",
+        "sha256": "f94c7a1466057a36cb3ffee3ed7d5da53049be09703ca94b5f5ed6226e7ab082",
+        "bytes": 4307,
+        "containsCRLF": false
+      },
+      {
+        "idx": 58,
+        "version": "7",
+        "when": 1790874180000,
+        "tag": "0058_provision_invited_comment",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0058_provision_invited_comment.sql",
+        "sha256": "35a2fcab1b44614808fbe632b87e53976ffdb15104b34e55fa01375c581aaf67",
+        "bytes": 227,
+        "containsCRLF": false
+      },
+      {
+        "idx": 59,
+        "version": "7",
+        "when": 1790874181000,
+        "tag": "0059_quote_folios_start_at_one",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0059_quote_folios_start_at_one.sql",
+        "sha256": "9ebe9e6480cae95bd842476299c14fe6720de3416fdc9efb3129002298e42e0d",
+        "bytes": 2938,
+        "containsCRLF": true
+      },
+      {
+        "idx": 60,
+        "version": "7",
+        "when": 1790874182000,
+        "tag": "0060_profile_self_update_org_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0060_profile_self_update_org_scope.sql",
+        "sha256": "c5529252a60556776b5ae693fec10f87e80cfef91e9af0ddd90b3521c4318c97",
+        "bytes": 538,
+        "containsCRLF": false
+      },
+      {
+        "idx": 61,
+        "version": "7",
+        "when": 1790874183000,
+        "tag": "0061_pending_organization_first_admin_provisioning",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0061_pending_organization_first_admin_provisioning.sql",
+        "sha256": "841f380df6b74890edc246d586c0b316756f18ae2d7d22015bab427eaabe86c6",
+        "bytes": 2343,
+        "containsCRLF": false
+      },
+      {
+        "idx": 62,
+        "version": "7",
+        "when": 1790874184000,
+        "tag": "0062_ledger_sync_noop",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0062_ledger_sync_noop.sql",
+        "sha256": "2eab17323cd0bc8aaa172bd5d53d4bc1c734d926530fdf03099c17cce566e0d1",
+        "bytes": 130,
+        "containsCRLF": false
+      },
+      {
+        "idx": 63,
+        "version": "7",
+        "when": 1790874185000,
+        "tag": "0063_discard_internal_user_atomic",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0063_discard_internal_user_atomic.sql",
+        "sha256": "1e016c2515801dc023799daac38d969bc0d9f28f7987fe99c086d7f8043636c1",
+        "bytes": 2597,
+        "containsCRLF": false
+      },
+      {
+        "idx": 64,
+        "version": "7",
+        "when": 1790874186000,
+        "tag": "0064_ledger_sync_noop_0063",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0064_ledger_sync_noop_0063.sql",
+        "sha256": "2ceba911516e9268e67076535465e095066927e36d3b95d6747944a379d7399f",
+        "bytes": 101,
+        "containsCRLF": false
+      },
+      {
+        "idx": 65,
+        "version": "7",
+        "when": 1790874187000,
+        "tag": "0065_customer_relation_edit_isolation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0065_customer_relation_edit_isolation.sql",
+        "sha256": "7fa769d6dea92709889c373a3df061cd830903763962b329e3edd5260735f43c",
+        "bytes": 5962,
+        "containsCRLF": false
+      },
+      {
+        "idx": 66,
+        "version": "7",
+        "when": 1790874188000,
+        "tag": "0066_ledger_sync_noop_0065",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0066_ledger_sync_noop_0065.sql",
+        "sha256": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",
+        "bytes": 9,
+        "containsCRLF": false
+      },
+      {
+        "idx": 67,
+        "version": "7",
+        "when": 1790874189000,
+        "tag": "0067_customer_sat_validation_org_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0067_customer_sat_validation_org_scope.sql",
+        "sha256": "af9c2993d7d1d03c8c2d2ec12c9f933260c2bb25119be7c9f553c437d84ad27c",
+        "bytes": 3662,
+        "containsCRLF": false
+      },
+      {
+        "idx": 68,
+        "version": "7",
+        "when": 1790874190000,
+        "tag": "0068_ledger_sync_noop_0067",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0068_ledger_sync_noop_0067.sql",
+        "sha256": "17db4fd369edb9244b9f91d9aeed145c3d04ad8ba6e95d06247f07a63527d11a",
+        "bytes": 9,
+        "containsCRLF": false
+      },
+      {
+        "idx": 69,
+        "version": "7",
+        "when": 1790874191000,
+        "tag": "0069_quote_booking_staff_scoped_rpc",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0069_quote_booking_staff_scoped_rpc.sql",
+        "sha256": "f76a3a38c4791a54ac1683af2dc309116104ef74b401afc8435058e83224b568",
+        "bytes": 3431,
+        "containsCRLF": false
+      },
+      {
+        "idx": 70,
+        "version": "7",
+        "when": 1790874192000,
+        "tag": "0070_contract_deposit_idempotence",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0070_contract_deposit_idempotence.sql",
+        "sha256": "722e7121491f073ff3d04c118a4a4ef5d4fb9ede90b595a1daf8cc7c63b113c5",
+        "bytes": 2889,
+        "containsCRLF": false
+      },
+      {
+        "idx": 71,
+        "version": "7",
+        "when": 1790874193000,
+        "tag": "0071_forklift_financials_physical_occupancy",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0071_forklift_financials_physical_occupancy.sql",
+        "sha256": "5fa976e47aceafb6e175c9a8e10e88fc369e8d175e2dbfc3311f93cc7609c7ff",
+        "bytes": 4853,
+        "containsCRLF": false
+      },
+      {
+        "idx": 72,
+        "version": "7",
+        "when": 1790874194000,
+        "tag": "0072_dashboard_fleet_counts_unbounded",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0072_dashboard_fleet_counts_unbounded.sql",
+        "sha256": "479378ad83e78983a51291b672cad7a62bf2f54cc2e6a3bea70516b64155eaa2",
+        "bytes": 1992,
+        "containsCRLF": false
+      },
+      {
+        "idx": 73,
+        "version": "7",
+        "when": 1790874195000,
+        "tag": "0073_clear_location_after_return",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0073_clear_location_after_return.sql",
+        "sha256": "207e89d864255ebf7c2c71e2880b845f88119d206bfd1efc9fbdfd1320084250",
+        "bytes": 2345,
+        "containsCRLF": false
+      },
+      {
+        "idx": 74,
+        "version": "7",
+        "when": 1790874196000,
+        "tag": "0074_return_date_parts_activation",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0074_return_date_parts_activation.sql",
+        "sha256": "dff813067a55e5190a14f60d4f07276c8e84e7581e0149bd6be929f5ec4f1f78",
+        "bytes": 20055,
+        "containsCRLF": false
+      },
+      {
+        "idx": 75,
+        "version": "7",
+        "when": 1790874197000,
+        "tag": "0075_recurring_group_collision_guard",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0075_recurring_group_collision_guard.sql",
+        "sha256": "bbe7a5baf7579192ed8a14e9a83cc620d284e5ae1125cca469029d7637543d17",
+        "bytes": 9146,
+        "containsCRLF": true
+      },
+      {
+        "idx": 76,
+        "version": "7",
+        "when": 1790874198000,
+        "tag": "0076_accounts_payable_query_indexes",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0076_accounts_payable_query_indexes.sql",
+        "sha256": "990b3a1628769ca8dee37757c134309867249dcc87fbfee76dc4b9f05a3cf920",
+        "bytes": 364,
+        "containsCRLF": false
+      },
+      {
+        "idx": 77,
+        "version": "7",
+        "when": 1790874199000,
+        "tag": "0077_supplier_primary_atomic_switch",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0077_supplier_primary_atomic_switch.sql",
+        "sha256": "69c06ae726c6c1d58258bcbf00edc669bd27f8dd8db27c26789b79a338302de9",
+        "bytes": 5444,
+        "containsCRLF": false
+      },
+      {
+        "idx": 78,
+        "version": "7",
+        "when": 1790874200000,
+        "tag": "0078_bank_account_history_restrict",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0078_bank_account_history_restrict.sql",
+        "sha256": "32b16781c4da226cd177ba2a7000b715f8e39453247617d97a9a3fc1769b9d42",
+        "bytes": 1104,
+        "containsCRLF": false
+      },
+      {
+        "idx": 79,
+        "version": "7",
+        "when": 1790874201000,
+        "tag": "0079_revenue_month_invoice_credits",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0079_revenue_month_invoice_credits.sql",
+        "sha256": "01841479530bff6a1a532b216234ac00808bebc0d12d25f587e5e9e7eccdf033",
+        "bytes": 1697,
+        "containsCRLF": false
+      },
+      {
+        "idx": 80,
+        "version": "7",
+        "when": 1790874202000,
+        "tag": "0080_calendar_maintenance_windows",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0080_calendar_maintenance_windows.sql",
+        "sha256": "ce1d49b4a387e522169bbf924c9bcf908205e0feea356888799850e98901fa4b",
+        "bytes": 2550,
+        "containsCRLF": false
+      },
+      {
+        "idx": 81,
+        "version": "7",
+        "when": 1790874202001,
+        "tag": "0081_operational_lifecycle_guards",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0081_operational_lifecycle_guards.sql",
+        "sha256": "c76bad49edf36fdad2e9fb265b9fe70245bd8c6142db19609bb27f8754b87053",
+        "bytes": 31528,
+        "containsCRLF": false
+      },
+      {
+        "idx": 82,
+        "version": "7",
+        "when": 1790874202002,
+        "tag": "0082_maintenance_cost_integrity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0082_maintenance_cost_integrity.sql",
+        "sha256": "65a00f643cb188b5f40551ae95a622cf9325f2529a521812e95a4b317c14c785",
+        "bytes": 19321,
+        "containsCRLF": true
+      },
+      {
+        "idx": 83,
+        "version": "7",
+        "when": 1790874202003,
+        "tag": "0083_organization_display_identity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0083_organization_display_identity.sql",
+        "sha256": "4d3417b7816e413a258d99d95d7d652ba05b9c6e483019d519d41612f2539f3c",
+        "bytes": 1149,
+        "containsCRLF": false
+      },
+      {
+        "idx": 84,
+        "version": "7",
+        "when": 1790874202004,
+        "tag": "0084_notification_recipient_org_scope",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0084_notification_recipient_org_scope.sql",
+        "sha256": "b8f1adabcdab91dff995addac62fdaffddf1dbb601f0d57fa4373ebd235ab277",
+        "bytes": 4394,
+        "containsCRLF": false
+      },
+      {
+        "idx": 85,
+        "version": "7",
+        "when": 1790874202005,
+        "tag": "0085_payment_batch_snapshot_and_bank_currency",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0085_payment_batch_snapshot_and_bank_currency.sql",
+        "sha256": "4b0fed32591890607b119cc35d6c227085f92c45ec94430aeda5c60141850c25",
+        "bytes": 17376,
+        "containsCRLF": false
+      },
+      {
+        "idx": 86,
+        "version": "7",
+        "when": 1790874202006,
+        "tag": "0086_inventory_and_operational_integrity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0086_inventory_and_operational_integrity.sql",
+        "sha256": "55c0403a4bbecebc9b6375a5f01ac3977567aabf9a0c3a63bccdfead495c8319",
+        "bytes": 38436,
+        "containsCRLF": false
+      },
+      {
+        "idx": 87,
+        "version": "7",
+        "when": 1790874202007,
+        "tag": "0087_booking_quote_rental_line_identity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0087_booking_quote_rental_line_identity.sql",
+        "sha256": "3a4253d4caa936077fe2802195e01d81cbfb57318ed3a1c69bbed4c55eba3e30",
+        "bytes": 4455,
+        "containsCRLF": false
+      },
+      {
+        "idx": 88,
+        "version": "7",
+        "when": 1790885052977,
+        "tag": "0088_platform_center_readmodels_and_audit",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0088_platform_center_readmodels_and_audit.sql",
+        "sha256": "92dff62b4ecf05689d3a386874b67693fc65789333b13b7af8a675f66cff5a75",
+        "bytes": 18462,
+        "containsCRLF": false
+      },
+      {
+        "idx": 89,
+        "version": "7",
+        "when": 1790890234134,
+        "tag": "0089_resumable_platform_onboarding",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0089_resumable_platform_onboarding.sql",
+        "sha256": "b33a7214567eeb9b4ccf7095c9cbb9e27d1439077e6b6ba69f52bce0aec3546f",
+        "bytes": 9969,
+        "containsCRLF": false
+      },
+      {
+        "idx": 90,
+        "version": "7",
+        "when": 1790897569107,
+        "tag": "0090_reviewed_catalog_imports",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0090_reviewed_catalog_imports.sql",
+        "sha256": "883419338de940e6a16c7bbd0e47b9958a1b50d228e1459bbdb18aeb9ec2353c",
+        "bytes": 23374,
+        "containsCRLF": false
+      },
+      {
+        "idx": 91,
+        "version": "7",
+        "when": 1790904569507,
+        "tag": "0091_platform_capabilities_and_root",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0091_platform_capabilities_and_root.sql",
+        "sha256": "2d095136d93009668b404f07285fd274910169d2c1738c00fc371be3d554855b",
+        "bytes": 60934,
+        "containsCRLF": false
+      },
+      {
+        "idx": 92,
+        "version": "7",
+        "when": 1790970257472,
+        "tag": "0092_platform_operator_sessions_and_access",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0092_platform_operator_sessions_and_access.sql",
+        "sha256": "ab4d1e9c3bb3bc7e376b1b29450b60e4328ce75460a706aca07b8f2e5d5dead7",
+        "bytes": 9665,
+        "containsCRLF": false
+      },
+      {
+        "idx": 93,
+        "version": "7",
+        "when": 1790976000000,
+        "tag": "0093_platform_integration_health",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0093_platform_integration_health.sql",
+        "sha256": "441c9833cdcc4769b7c4299ce409b251ada3a86aa0890dc52456cfd671dc2822",
+        "bytes": 13989,
+        "containsCRLF": false
+      },
+      {
+        "idx": 94,
+        "version": "7",
+        "when": 1790978331000,
+        "tag": "0094_platform_support_cases",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0094_platform_support_cases.sql",
+        "sha256": "ddd148d3f9939cb0acecf72f4c2bc1e63398bfdf2c8210172e58de446d8644cc",
+        "bytes": 23522,
+        "containsCRLF": false
+      },
+      {
+        "idx": 95,
+        "version": "7",
+        "when": 1790988438092,
+        "tag": "0095_support_display_identity",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0095_support_display_identity.sql",
+        "sha256": "71c4bc31f65fde9639159a62dd8f638e6196a0fe1fe6f232db0137d3cd597301",
+        "bytes": 3861,
+        "containsCRLF": false
+      },
+      {
+        "idx": 96,
+        "version": "7",
+        "when": 1790991167291,
+        "tag": "0096_recurring_invoice_org_context",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0096_recurring_invoice_org_context.sql",
+        "sha256": "88a1c3176b7c57ef8a5455fc9c73500b74a9268de3060b532fdecc09453c83d2",
+        "bytes": 9212,
+        "containsCRLF": false
+      },
+      {
+        "idx": 97,
+        "version": "7",
+        "when": 1790991273930,
+        "tag": "0097_recurring_invoice_org_context",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0097_recurring_invoice_org_context.sql",
+        "sha256": "377913168d9cb35797b3a044146a984ddcf1a675bdc4b822d702ca4734a502f0",
+        "bytes": 8401,
+        "containsCRLF": false
+      },
+      {
+        "idx": 98,
+        "version": "7",
+        "when": 1790991931103,
+        "tag": "0098_platform_fiscal_job_history",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0098_platform_fiscal_job_history.sql",
+        "sha256": "57cd6e7be40381cb58a7e2ad09f28784b05903298c2605ac363475e9ed4fc312",
+        "bytes": 14054,
+        "containsCRLF": false
+      },
+      {
+        "idx": 99,
+        "version": "7",
+        "when": 1791022774090,
+        "tag": "0099_platform_fiscal_recovery",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0099_platform_fiscal_recovery.sql",
+        "sha256": "12d54c3c439c010e44ebdd952900b153b25dc4c954829f5e3800b990132b2772",
+        "bytes": 31613,
+        "containsCRLF": true
+      },
+      {
+        "idx": 100,
+        "version": "7",
+        "when": 1791035610000,
+        "tag": "0100_platform_organization_governance",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0100_platform_organization_governance.sql",
+        "sha256": "3188dad012705a9f3674b61d2a1a066313bfb9005a44c584f76f37e833b67a2e",
+        "bytes": 10874,
+        "containsCRLF": false
+      },
+      {
+        "idx": 101,
+        "version": "7",
+        "when": 1791062762896,
+        "tag": "0101_platform_edit_conflicts",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0101_platform_edit_conflicts.sql",
+        "sha256": "4cd78fabd3b421648de70d1b22bb7b34da3e3fb1eb11b75b46dab4c6fa019eaa",
+        "bytes": 18730,
+        "containsCRLF": false
+      },
+      {
+        "idx": 102,
+        "version": "7",
+        "when": 1791913029443,
+        "tag": "0102_admin_delivery_return_corrections",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0102_admin_delivery_return_corrections.sql",
+        "sha256": "da4d9e76ccdbaf1acf083d7dcd055db0f3d9340abe4473915a402768a117eb27",
+        "bytes": 9794,
+        "containsCRLF": false
+      },
+      {
+        "idx": 103,
+        "version": "7",
+        "when": 1792368366457,
+        "tag": "0103_canonical_payment_invoice_currency",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0103_canonical_payment_invoice_currency.sql",
+        "sha256": "9261e8b61c0f699ae57b336a36982a4acf4868e2984712302ac92d0222e91271",
+        "bytes": 19025,
+        "containsCRLF": false
+      },
+      {
+        "idx": 104,
+        "version": "7",
+        "when": 1792370295568,
+        "tag": "0104_supplier_bill_details_rpc",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0104_supplier_bill_details_rpc.sql",
+        "sha256": "374a36eb1c433ba631ad69ae95cc3662fe3dc2ba019105d0ab1400a03aff87b0",
+        "bytes": 8720,
+        "containsCRLF": false
+      },
+      {
+        "idx": 105,
+        "version": "7",
+        "when": 1792391158311,
+        "tag": "0105_rep_claim_reconciliation_only",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+        "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+        "bytes": 1744,
+        "containsCRLF": false
+      },
+      {
+        "idx": 106,
+        "version": "7",
+        "when": 1792392861354,
+        "tag": "0106_booking_invoice_cancellation_guards",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+        "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+        "bytes": 9873,
+        "containsCRLF": false
+      },
+      {
+        "idx": 107,
+        "version": "7",
+        "when": 1792392861355,
+        "tag": "0107_quote_charge_tracking",
+        "breakpoints": true,
+        "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+        "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+        "bytes": 40557,
+        "containsCRLF": false
+      }
+    ],
+    "canonicalEntriesSha256": "51b305fdcaae7f09d57bcd777c90d14ed66482f11f4eb785d9dcddc7109dcfcf"
+  },
+  "historicalReview": {
+    "status": "NOT_APPROVED",
+    "expectedTimestampCountThrough104": 105,
+    "exactHashMatches": 95,
+    "mismatches": [
+      {
+        "idx": 4,
+        "tag": "0004_multi_org_phase3_write_context_guard",
+        "when": 1789342200000,
+        "observedLedgerId": 5,
+        "observedHash": "5fcdaa37d86aabe71416656838634048cc9e2b01f56bfc1dc79eb252be35a1fe",
+        "currentFileHash": "ffc22130fe7f95bda1f5a520ca63afd2f63013edd3f56f1cc0e8e1fcd86add62",
+        "classification": "CURRENT_OBJECTS_CONFORM_IN_BOUNDED_FRESH_REVIEW_ORIGINAL_APPLIED_PAYLOAD_UNRECOVERED"
+      },
+      {
+        "idx": 5,
+        "tag": "0005_multi_org_phase4_read_isolation",
+        "when": 1789344000000,
+        "observedLedgerId": 6,
+        "observedHash": "50d1d8825936e0350150d028eb7228b661658513728d52a18189728be1a97222",
+        "currentFileHash": "877a67d70d4f6b2a1309aa0bd6f5c6a5e4a91a292bf5a76ab7469e5a4326e128",
+        "classification": "CURRENT_OBJECTS_CONFORM_IN_BOUNDED_FRESH_REVIEW_ORIGINAL_APPLIED_PAYLOAD_UNRECOVERED"
+      },
+      {
+        "idx": 6,
+        "tag": "0006_multi_org_phase4_portal_scope",
+        "when": 1789344600000,
+        "observedLedgerId": 7,
+        "observedHash": "f5fff09125980fb45f1ed3ab99d0c344888a4152bcafa838731d8133cf909649",
+        "currentFileHash": "a65e787cb015681e1feb145013b08b6f020d68506529df68ab5eca091cb05ae5",
+        "classification": "CURRENT_OBJECTS_CONFORM_IN_BOUNDED_FRESH_REVIEW_ORIGINAL_APPLIED_PAYLOAD_UNRECOVERED"
+      },
+      {
+        "idx": 7,
+        "tag": "0007_multi_org_phase4_customer_rpc_scope",
+        "when": 1789345200000,
+        "observedLedgerId": 8,
+        "observedHash": "5eb32b054df0243b81aeaa2097295155629ae83545e6246ba960797a45ad2780",
+        "currentFileHash": "c296a4f7fdde7fc1f3510bb5313d225ba263d89718ae3f1863a84b09c00a63e8",
+        "classification": "CURRENT_OBJECTS_CONFORM_IN_BOUNDED_FRESH_REVIEW_ORIGINAL_APPLIED_PAYLOAD_UNRECOVERED"
+      },
+      {
+        "idx": 10,
+        "tag": "0010_multi_org_phase5_bank_write_rpc_scope",
+        "when": 1789347000000,
+        "observedLedgerId": 11,
+        "observedHash": "946fd13877cec47261c3c09f5d07b0ff75c8c84d6667890784d89798298bac1e",
+        "currentFileHash": "b0804f85f8c51db800129598892bc82306248b15223a1c571c0616191a05686e",
+        "classification": "CURRENT_OBJECTS_CONFORM_IN_BOUNDED_FRESH_REVIEW_ORIGINAL_APPLIED_PAYLOAD_UNRECOVERED"
+      },
+      {
+        "idx": 46,
+        "tag": "0046_liftgo_shared_catalogs_foundation",
+        "when": 1790874168000,
+        "observedLedgerId": 48,
+        "observedHash": "580291920d494973ed03b56c46c60e7f8422b5dd834d79ad78b855704037a686",
+        "currentFileHash": "82c228ceb83c76a258f8de9fafbd63e40ad06424b3f243fdb3141f11f493cd7f",
+        "classification": "Formatting-only payload reproduction: remove precisely the final CRLF blank line (two bytes); full SHA256 equals the stored applied hash."
+      },
+      {
+        "idx": 51,
+        "tag": "0051_organization_legal_overrides_phase3c",
+        "when": 1790874173000,
+        "observedLedgerId": 53,
+        "observedHash": "0228b6f802c9b941823beea0bb882e9220876a0b0521368b6f7a0109bbd935c5",
+        "currentFileHash": "509cb6af5069e66cce30a4552347274423987ed2c8a0bd0cfdd3d88e0aae4b70",
+        "classification": "Formatting-only payload reproduction: remove precisely the final CRLF blank line (two bytes); full SHA256 equals the stored applied hash."
+      },
+      {
+        "idx": 52,
+        "tag": "0052_booking_number_authenticated_acl",
+        "when": 1790874174000,
+        "observedLedgerId": 54,
+        "observedHash": "de5907d8b729c1df736fdec6198d15de0d4bad1315c30f61d71b0e53c060ee28",
+        "currentFileHash": "7aae3e491c8f891f980b5b0be1f8b7f8853fe46bb76c639ffb490cad534ef4da",
+        "classification": "Formatting-only payload reproduction: remove precisely the final CRLF blank line (two bytes); full SHA256 equals the stored applied hash."
+      },
+      {
+        "idx": 74,
+        "tag": "0074_return_date_parts_activation",
+        "when": 1790874196000,
+        "observedLedgerId": 76,
+        "observedHash": "06d5f408c13dd885974d567039dca1b205dec821c6d0f8081df6b58461d828dc",
+        "currentFileHash": "dff813067a55e5190a14f60d4f07276c8e84e7581e0149bd6be929f5ec4f1f78",
+        "classification": "Original payload not recovered. Fresh targeted current catalog conforms exactly to latest applicable function bodies and trigger. Current-object conformity does not prove original byte provenance or formatting-only drift."
+      },
+      {
+        "idx": 77,
+        "tag": "0077_supplier_primary_atomic_switch",
+        "when": 1790874199000,
+        "observedLedgerId": 79,
+        "observedHash": "714c0b3173211616bbeb26c916ad9d33cfec6b0fd118f66c4722759edf4d6ef0",
+        "currentFileHash": "69c06ae726c6c1d58258bcbf00edc669bd27f8dd8db27c26789b79a338302de9",
+        "classification": "Formatting-only payload reproduction: convert every LF to CRLF; full SHA256 equals the stored applied hash."
+      }
+    ],
+    "identifiedExtraHistoricalRows": [
+      {
+        "created_at": 1789683904941,
+        "hash": "927e6c306e8eacea96a1380dadfd6c3b0845af3cd46c00372cb9643dfe1ec98f",
+        "id": 31,
+        "original_tag": "0030_portal_fallback_respects_account_status",
+        "classification": "Exact raw historic SQL match; entry removed from current journal",
+        "sql_blob": "37c4caf912b1105cd38750f919a18d3da00d3cb6",
+        "journal_added_commit": "148912e2e9ab60947f1c5e3eee798b37a70df9be",
+        "journal_removed_commit": "841bcb894d6c158cf9d9f8cdbb4c1dfc9ecbf034"
+      }
+    ],
+    "0104MatchesExactly": true,
+    "unrecoveredOriginalPayloadIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      74
+    ],
+    "boundedCurrentConformity": {
+      "historicalFunctions": 13,
+      "bankRpcs": 4,
+      "policies": 56,
+      "orgGuards": 57,
+      "customerLinkTrigger": 1,
+      "applicationRoleAclChecks": 17
+    },
+    "semanticConformityIsNotByteIdentity": true,
+    "ledgerRepairAuthorized": false
+  },
+  "stageContract": {
+    "status": "PROPOSED_NOT_APPROVED",
+    "sequence": [
+      105,
+      106,
+      107
+    ],
+    "expectedTotalRows": {
+      "baseline": 106,
+      "0105": 107,
+      "0106": 108,
+      "0107": 109
+    },
+    "requireExplicitExpectedCheckpoint": true,
+    "preserveEveryBaselineIdTimestampHash": true,
+    "newRowsRequireUniqueIdsGreaterThanBaselineMaximum": true,
+    "contiguousSerialIdsRequired": false,
+    "wholeFileSqlAndLedgerAtomicityVerified": false,
+    "exclusivityVerified": false,
+    "repDrainVerified": false,
+    "executionAuthorized": false
+  },
+  "limits": [
+    "Offline comparison of supplied files is not fresh target validation",
+    "Any observed-history match remains distinct from exact-current-prefix equality",
+    "No migration, ledger repair, SQL rewrite, exception installation, deployment, or permission change"
+  ]
+}

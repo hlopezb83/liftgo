@@ -1,0 +1,562 @@
+{
+  "checked_at_utc": "2026-10-19T17:21:33.348680+00:00",
+  "repository": "hlopezb83/liftgo",
+  "base_sha": "995ac32d7db6e61d338f632eac4a2422db6f9512",
+  "source_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+  "source_root_tree_sha1": "098d05b134337d1c4606722abfd326b0aebf52ff",
+  "base_root_tree_sha1": "57e1c3a121dd55f2c85b786feb287fe96ce24371",
+  "result": "PASS: exact PR294 reconciler-only runtime delta plus new regression test; all other tracked files unchanged; postmerge CI and Gitleaks terminal success on exact source SHA",
+  "whole_repository_equal": false,
+  "all_runtime_sources_equal_to_restored_base": false,
+  "reviewed_source_binding": "e38 is a reviewed incremental successor to restored 995, not a source-identical alias; only the REP reconciler index.ts runtime source changed.",
+  "base_file_count": 5461,
+  "source_file_count": 5462,
+  "unchanged_inherited_file_count": 5460,
+  "changed_paths": [
+    {
+      "path": "src/test/edge-functions/reconcileRepPersistence.test.ts",
+      "status": "added",
+      "before": null,
+      "after": {
+        "mode": "100644",
+        "type": "blob",
+        "sha": "31bf50bf98fac47bc6c8ee85fcb8395d14fb46e0",
+        "bytes": 8969,
+        "sha256": "28ff34e79a7b4f38e5c2a49bd87482ddbb39715eb52d575a7e93a78fbf870657"
+      }
+    },
+    {
+      "path": "supabase/functions/reconcile-stamping-invoices/index.ts",
+      "status": "modified",
+      "before": {
+        "mode": "100644",
+        "type": "blob",
+        "sha": "a783d4197f6edd2e0f81ac25d60b2f3e12bff158",
+        "bytes": 42094,
+        "sha256": "26f640c15d2ed13457bf84893e4031c01a28fb696137e97565b7a0d0c3ab5b43"
+      },
+      "after": {
+        "mode": "100644",
+        "type": "blob",
+        "sha": "12f6320f3465189aa1a02ed6726ad7719c1d17ef",
+        "bytes": 43602,
+        "sha256": "1c152bfdb606dab54c259851cf1184c059387edd9ecf86cc54a3b7247512b8e2"
+      }
+    }
+  ],
+  "exact_pr_patch_checks": [
+    {
+      "path": "src/test/edge-functions/reconcileRepPersistence.test.ts",
+      "exact_pr_patch_matches_source": true
+    },
+    {
+      "path": "supabase/functions/reconcile-stamping-invoices/index.ts",
+      "exact_pr_patch_matches_source": true
+    }
+  ],
+  "tree_checks": [
+    {
+      "path": "/",
+      "tree_sha1": "098d05b134337d1c4606722abfd326b0aebf52ff",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    },
+    {
+      "path": "src",
+      "tree_sha1": "626eae7424312debb37474a422c7156f51b05abb",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    },
+    {
+      "path": "src/test",
+      "tree_sha1": "2c06209977c99d325638517c8dcb18c0d6d2cec3",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    },
+    {
+      "path": "src/test/edge-functions",
+      "tree_sha1": "3a056db27fdb0cdd1fbfac2625ab5c32a9da7fcb",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    },
+    {
+      "path": "supabase",
+      "tree_sha1": "f73c9f60639293908bfa6d040a15b292ab1573ee",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    },
+    {
+      "path": "supabase/functions",
+      "tree_sha1": "c3dc2c9283e7c598c35e285b9baa5d0202a4ea00",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    },
+    {
+      "path": "supabase/functions/reconcile-stamping-invoices",
+      "tree_sha1": "d419b340e628eb17ad783825c6016c64560f712d",
+      "git_object_hash_verified": true,
+      "local_entries_equal": true,
+      "truncated": false
+    }
+  ],
+  "file_families": {
+    "drizzle/": {
+      "file_count": 134,
+      "changed_paths": []
+    },
+    "drizzle/migrations/": {
+      "file_count": 133,
+      "changed_paths": []
+    },
+    "supabase/migrations/": {
+      "file_count": 593,
+      "changed_paths": []
+    },
+    "supabase/functions/": {
+      "file_count": 195,
+      "changed_paths": [
+        "supabase/functions/reconcile-stamping-invoices/index.ts"
+      ]
+    },
+    "src/": {
+      "file_count": 2108,
+      "changed_paths": [
+        "src/test/edge-functions/reconcileRepPersistence.test.ts"
+      ]
+    },
+    "public/": {
+      "file_count": 1772,
+      "changed_paths": []
+    },
+    "scripts/": {
+      "file_count": 25,
+      "changed_paths": []
+    }
+  },
+  "function_coverage": {
+    "stamp-payment-complement": {
+      "file_count": 6,
+      "changed_paths": [],
+      "base_tree_sha1": "a36c800bc516e0f5c56df6778d3ae6afd95005cc",
+      "e38_tree_sha1": "a36c800bc516e0f5c56df6778d3ae6afd95005cc"
+    },
+    "generate-recurring-invoices": {
+      "file_count": 12,
+      "changed_paths": [],
+      "base_tree_sha1": "c7e18b6ff7565611d9279968820601bd6a8a4f35",
+      "e38_tree_sha1": "c7e18b6ff7565611d9279968820601bd6a8a4f35"
+    },
+    "reconcile-stamping-invoices": {
+      "file_count": 4,
+      "changed_paths": [
+        "supabase/functions/reconcile-stamping-invoices/index.ts"
+      ],
+      "base_tree_sha1": "96ab6cbb3aea991473850bcf8a251b03fc3b9ef9",
+      "e38_tree_sha1": "d419b340e628eb17ad783825c6016c64560f712d"
+    },
+    "_shared": {
+      "file_count": 86,
+      "changed_paths": [],
+      "base_tree_sha1": "11a5112e8a1f345ca86f103ea411c0d3e975f182",
+      "e38_tree_sha1": "11a5112e8a1f345ca86f103ea411c0d3e975f182"
+    }
+  },
+  "specific_unchanged_files": [
+    {
+      "path": "drizzle/migrations/meta/_journal.json",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "61a590802fecd3ffbc177bcc456e8818a32e09ac",
+      "bytes": 17488,
+      "sha256": "78145ea95e344550fdd485ef01b696941467d5dae0bf7a253db16b7b9301aeec"
+    },
+    {
+      "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bd685553c17de53ffed5b5a226b538f2ce80aa11",
+      "bytes": 1744,
+      "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663"
+    },
+    {
+      "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "02ee2474f72e6514ef32a2b0f1a0d9b1c77f9c2c",
+      "bytes": 9873,
+      "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1"
+    },
+    {
+      "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "753364a0fbbcd5a45aa5af3109ffd089bfd29c4e",
+      "bytes": 40557,
+      "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1"
+    },
+    {
+      "path": "supabase/functions/stamp-payment-complement/index.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bd90ff3b8e2a8a81adc21cba3639778486ba311f",
+      "bytes": 469,
+      "sha256": "c3341cab9b9e748647d6cc623872f353016331cc01bdb700dcafb5632b144038"
+    },
+    {
+      "path": "supabase/functions/stamp-payment-complement/handler.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "9ad19391a89e592c0579d59fa542b67130e34a11",
+      "bytes": 24603,
+      "sha256": "57919f3e99dba6f871c8709096e195be5c461617cc2e4139250fb47bf3db2e83"
+    },
+    {
+      "path": "supabase/functions/generate-recurring-invoices/index.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "379541f0eb979abc66f91fea6747ea5ab688142e",
+      "bytes": 35180,
+      "sha256": "fd5d9c0df3c37a40ed57ac22f6b6f59285e5b2874dea122a2aaa68875550f8d3"
+    },
+    {
+      "path": "supabase/functions/generate-recurring-invoices/quoteCharges.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "47264ebc7f54b5b0e343582e9a9a8e2f4e06f933",
+      "bytes": 5094,
+      "sha256": "1359ac069c9dc43df702de36fb6711ddb09ab9521ccda9b25d2a87fd1c5c1408"
+    },
+    {
+      "path": "supabase/functions/generate-recurring-invoices/quoteDiscountGuard.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fd0de7073450b888cad606f83eb83c5209437f02",
+      "bytes": 1005,
+      "sha256": "6ddbb8b85c940f3af19a0208436c64d18b24fa114e30e9c912a3a69facfdb28c"
+    },
+    {
+      "path": "supabase/functions/generate-recurring-invoices/invoiceHistory.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "15608ca32c99306f3ef63b631ba3cb76cf94fde5",
+      "bytes": 1306,
+      "sha256": "7293cdf88abe136b9066512316228d804ea6b59602775a59f1afe2c2e2985179"
+    },
+    {
+      "path": "supabase/functions/reconcile-stamping-invoices/decisions.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a471ffc43cd8512db77a97735b17646bee9bda57",
+      "bytes": 4976,
+      "sha256": "a8aeca50a9c24c6c305bbd985a399ac8372102f994e18f0988018df8261fe86b"
+    },
+    {
+      "path": "src/integrations/supabase/types.ts",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "78bb49493c48a786723df5098a94d05cd81834e7",
+      "bytes": 270234,
+      "sha256": "09b32004aa9fe196add6a285903ecba25451c325e208b36cd375b84bd1ed13b3"
+    },
+    {
+      "path": "public/version.json",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "fc488fc6cc1db49579423dcfcb144802bad78a81",
+      "bytes": 72,
+      "sha256": "473a2b15dd9eb327f908642b721f4503dcc48be30331f9238d6f33798705f094"
+    },
+    {
+      "path": "supabase/config.toml",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "40ac0c0577f7e5e5e1e87cfae7f2eb5cca347a29",
+      "bytes": 874,
+      "sha256": "5f74fb4c7e21019a17082eb0656aa3b70477ad97f50ee3b709d26303c5c0d39d"
+    },
+    {
+      "path": "supabase/functions/deno.json",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6f7803edb2ea36e0616373c1b2ff819e77cb8d41",
+      "bytes": 275,
+      "sha256": "ec5f267f4b666991ff5c8fe2d438a0c3afc5eb5d60d53a1a0270c1ef743b616d"
+    },
+    {
+      "path": "supabase/functions/deno.lock",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "01d7b911e1a532e01f490d9c96c1c0b6d5c3aa9e",
+      "bytes": 15981,
+      "sha256": "1d414c1debede7ac2001487da86368822a829df4174fd3b16daf5e0d7b027065"
+    },
+    {
+      "path": "package.json",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5fb3f01464e1d95b1eca6453a52929fd5129ca12",
+      "bytes": 6103,
+      "sha256": "6dff5f09f3aee05f53323c3b6d0abcbfffa59f46e7c077b6b36294e68f38a4cc"
+    },
+    {
+      "path": "bun.lock",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "20195c7b4a57493b9a6486c91313cbfb03f414f6",
+      "bytes": 529469,
+      "sha256": "87e7cc855b58aa133be7c6c463841a7e25a49f8989ba20fb7c570944761fa721"
+    },
+    {
+      "path": "scripts/gen-version.mjs",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2548901293f904bdb73bcef5652ed57b955fd9b9",
+      "bytes": 2782,
+      "sha256": "626c4d4310dc567ebee4d9e7d57fa58c48c50ced6fd5b8e3b7f54df99917d0e5"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "equal_at_e38": true,
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1e2d2e11b3888824f70c0c0783669a16d85f6882",
+      "bytes": 13721,
+      "sha256": "1215e159357cac1093b0e532e9ad31bf6a3a35d1a8de2a6f4aa28863bb9244ac"
+    }
+  ],
+  "ci_runs": [
+    {
+      "id": 39291377966,
+      "name": "CI",
+      "head_branch": "main",
+      "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-19T17:07:05Z",
+      "updated_at": "2026-10-19T17:10:33Z",
+      "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966",
+      "jobs": [
+        {
+          "id": 118192594013,
+          "name": "Detectar cambios",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:07:16Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594013"
+        },
+        {
+          "id": 118192594220,
+          "name": "Pruebas (Vitest shard 2/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:09:06Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594220"
+        },
+        {
+          "id": 118192594252,
+          "name": "Pruebas (Vitest shard 1/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:13Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594252"
+        },
+        {
+          "id": 118192594284,
+          "name": "Pruebas (Vitest shard 3/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:19Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594284"
+        },
+        {
+          "id": 118192594418,
+          "name": "Pruebas (Vitest shard 5/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:40Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594418"
+        },
+        {
+          "id": 118192594421,
+          "name": "Pruebas (Vitest shard 6/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:09:26Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594421"
+        },
+        {
+          "id": 118192594457,
+          "name": "Calidad (lint, tipos, build y arranque)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:09:07Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594457"
+        },
+        {
+          "id": 118192594468,
+          "name": "Pruebas (Vitest shard 4/6)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:09Z",
+          "completed_at": "2026-10-19T17:09:00Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192594468"
+        },
+        {
+          "id": 118192596648,
+          "name": "Dependency review",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:06Z",
+          "completed_at": "2026-10-19T17:07:05Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192596648"
+        },
+        {
+          "id": 118192683895,
+          "name": "Funciones Supabase (Deno, sin red)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:19Z",
+          "completed_at": "2026-10-19T17:07:40Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192683895"
+        },
+        {
+          "id": 118192686225,
+          "name": "Lint de migraciones",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:16Z",
+          "completed_at": "2026-10-19T17:07:16Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192686225"
+        },
+        {
+          "id": 118192686246,
+          "name": "Actionlint",
+          "status": "completed",
+          "conclusion": "skipped",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:16Z",
+          "completed_at": "2026-10-19T17:07:16Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118192686246"
+        },
+        {
+          "id": 118193868642,
+          "name": "Pruebas (merge + cobertura)",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:09:44Z",
+          "completed_at": "2026-10-19T17:10:33Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377966/job/118193868642"
+        }
+      ]
+    },
+    {
+      "id": 39291377930,
+      "name": "Gitleaks",
+      "head_branch": "main",
+      "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+      "event": "push",
+      "status": "completed",
+      "conclusion": "success",
+      "run_attempt": 1,
+      "created_at": "2026-10-19T17:07:05Z",
+      "updated_at": "2026-10-19T17:07:18Z",
+      "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377930",
+      "jobs": [
+        {
+          "id": 118192594143,
+          "name": "Detectar secretos",
+          "status": "completed",
+          "conclusion": "success",
+          "head_sha": "e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+          "started_at": "2026-10-19T17:07:08Z",
+          "completed_at": "2026-10-19T17:07:18Z",
+          "html_url": "https://github.com/hlopezb83/liftgo/actions/runs/39291377930/job/118192594143"
+        }
+      ]
+    }
+  ],
+  "ci_test_evidence": {
+    "vitest_files_passed": 632,
+    "vitest_tests_passed": 4133,
+    "actual_handler_rep_persistence_tests_passed": 14,
+    "deno_tests_passed": 600,
+    "deno_tests_failed": 0,
+    "browser_build_smoke_tests_passed": 2,
+    "targeted_deno_passing_cases": {
+      "stamp-payment-complement": 45,
+      "generate-recurring-invoices": 28,
+      "reconcile-stamping-invoices": 18
+    },
+    "source": "source-e38-ci-log-excerpts.json"
+  },
+  "method": [
+    "Read-only GitHub connector: main ref, full commit, PR metadata and patch, compare, seven nontruncated trees, exact workflow runs/jobs, and three job logs.",
+    "Cryptographically rebuilt each fetched tree object SHA-1; matched every entry to the existing local fixed tree.",
+    "Existing local commit 01f0d127b7119332af1bc1fcb9169ba81f5f765c has the same root tree as e38; used its object database only for reads and independent full inventory and SHA-256 checks.",
+    "Compared every tracked file and mode against local full restored base 995; compared exact unified patches to PR294.",
+    "No checkout, fetch, repository edits, dependency installation, local suite rerun, remote write, deployment, database access, or Lovable call."
+  ],
+  "limitations": [
+    "Source review and CI do not establish the currently deployed Edge function bytes, production/frontend artifact identity, or selected deployment.",
+    "All migrations including 0105/0106/0107 and the journal are byte-identical; no database ledger/schema or actual migration application was queried. Claim-safety integration depends on the intended SQL guards being applied.",
+    "Tests run against mocks/offline and build smoke uses an intentionally nonexistent local backend. No real PAC/SAT issuance, payment, cron, storage, organization data or live end-to-end behavior was exercised.",
+    "Migration lint, Actionlint and dependency review were skipped by unchanged-path/push conditions. They must not be described as successful executions.",
+    "The fix checks three REP persistence boundaries only. Preexisting unchecked REP pending/manual-review/defer/revert diagnostic updates, invoice XML-state updates, and credit-note updates remain outside its scope.",
+    "A failed final REP state write can follow successful XML/PDF uploads; the fix suppresses false success and folio work but is not a transaction or artifact rollback.",
+    "Main-ref observation is point-in-time. Recheck the exact SHA before any later authorized activation.",
+    "Generated build timestamps, environment, credentials, untracked files, remote dependencies and runtime configuration were not validated."
+  ],
+  "sources": [
+    "https://github.com/hlopezb83/liftgo/commit/e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+    "https://github.com/hlopezb83/liftgo/compare/995ac32d7db6e61d338f632eac4a2422db6f9512...e38a34e1e0352f881d15edd2cfebdd2ed2489f00",
+    "https://github.com/hlopezb83/liftgo/pull/294",
+    "https://github.com/hlopezb83/liftgo/actions/runs/39291377966",
+    "https://github.com/hlopezb83/liftgo/actions/runs/39291377930"
+  ]
+}
