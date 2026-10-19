@@ -17,6 +17,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { isIdentityQueryKey } from "@/lib/query/identityScope";
 import {
   createBrowserPersister,
+  getBrowserStorage,
   purgeForeignPersistedCaches,
   PERSIST_MAX_AGE_MS,
   shouldPersistQuery,
@@ -58,15 +59,14 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
       if (cancelled) return;
       queryClient.removeQueries(notIdentity);
 
-      if (typeof window !== "undefined") {
-        purgeForeignPersistedCaches(window.localStorage, scope);
-      }
+      const storage = getBrowserStorage();
+      if (storage) purgeForeignPersistedCaches(storage, scope);
 
       if (!scope) return;
 
       const [unsub, restored] = persistQueryClient({
         queryClient,
-        persister: createBrowserPersister(scope),
+        persister: createBrowserPersister(scope, storage),
         maxAge: PERSIST_MAX_AGE_MS,
         dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
         buster: scope,

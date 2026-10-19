@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import {
   appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync,
-  readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync,
+  readFileSync, readdirSync, renameSync, rmSync, symlinkSync, writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -61,9 +61,12 @@ function ledger(entries) {
   }));
 }
 
-function addFutureMigration(f, tag = "0109_after_release_receipt") {
+function addFutureMigration(f) {
   const journal = readJson(f.journalPath);
   const last = journal.entries.at(-1);
+  // The repository keeps growing beyond the pinned receipt. Match the next
+  // journal identity instead of reusing 0109 forever.
+  const tag = `${String(last.idx + 1).padStart(4, "0")}_after_release_receipt`;
   const entry = {
     idx: last.idx + 1,
     version: "7",
@@ -135,10 +138,11 @@ test("prepare omits exactly the pinned receipt from replay, retaining all canoni
 
 test("the omission is not a cutoff: later migrations retain their original identities and execute", async (t) => {
   const f = fixture(t);
-  const future = addFutureMigration(f);
+  const futures = [addFutureMigration(f), addFutureMigration(f)];
+  const future = futures.at(-1);
   const replay = await prepareReplay(f);
   const replayJournal = readJson(path.join(replay.migrationsDir, "meta/_journal.json"));
-  assert.deepEqual(replayJournal.entries.at(-1), future);
+  assert.deepEqual(replayJournal.entries.slice(-futures.length), futures);
   assert.equal(replay.entries.at(-1).idx, future.idx);
   assert.equal(replay.entries.at(-1).tag, future.tag);
   assert.equal(replay.entries.some((entry) => entry.tag === RECEIPT.tag), false);
@@ -155,7 +159,7 @@ for (const [label, mutate] of [
   ["receipt timestamp changed", (journal) => { journal.entries[108].when += 1; }],
   ["receipt index changed", (journal) => { journal.entries[108].idx = 109; }],
   ["receipt tag changed", (journal) => { journal.entries[108].tag = "0108_other_receipt"; }],
-  ["receipt removed", (journal) => { journal.entries.pop(); }],
+  ["receipt removed", (journal) => { journal.entries.splice(RECEIPT.idx, 1); }],
   ["duplicate tag", (journal) => { journal.entries[1].tag = journal.entries[0].tag; }],
   ["noncontiguous index", (journal) => { journal.entries[1].idx = 4; }],
   ["nonmonotonic timestamp", (journal) => { journal.entries[1].when = journal.entries[0].when; }],
@@ -344,6 +348,7 @@ test("canonical journal parser refuses malformed schemas, duplicate filenames, a
 test("a valid canonical journal still cannot rename or remove the pinned receipt", async (t) => {
   for (const action of ["rename", "remove"]) {
     const f = fixture(t);
+    addFutureMigration(f); // Exercise removal when the receipt is not the tail.
     const journal = readJson(f.journalPath);
     const receiptPath = path.join(f.canonicalDir, `${RECEIPT.tag}.sql`);
     if (action === "rename") {
@@ -351,7 +356,18 @@ test("a valid canonical journal still cannot rename or remove the pinned receipt
       journal.entries[108].tag = tag;
       cpSync(receiptPath, path.join(f.canonicalDir, `${tag}.sql`));
     } else {
-      journal.entries.pop();
+      journal.entries.splice(RECEIPT.idx, 1);
+      // Keep this malicious fixture structurally valid after removing the
+      // actual receipt, so the independent pinned-receipt guard must reject it.
+      // Only temporary fixture identities change; canonical source is untouched.
+      for (const [idx, entry] of journal.entries.entries()) {
+        if (idx < RECEIPT.idx) continue;
+        const oldTag = entry.tag;
+        entry.idx = idx;
+        entry.tag = `${String(idx).padStart(4, "0")}_${oldTag.slice(5)}`;
+        renameSync(path.join(f.canonicalDir, `${oldTag}.sql`),
+          path.join(f.canonicalDir, `${entry.tag}.sql`));
+      }
     }
     rmSync(receiptPath);
     writeJson(f.journalPath, journal);

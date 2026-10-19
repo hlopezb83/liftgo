@@ -190,6 +190,24 @@ describe("identidad de caché", () => {
     }
   });
 
+  it("acceso denegado a localStorage no bloquea el contenido protegido", async () => {
+    setIdentity(USER_A, ORG_A);
+    const qc = new QueryClient();
+    const storage = vi.spyOn(window, "localStorage", "get").mockImplementation(() => {
+      throw new DOMException("Storage access disabled", "SecurityError");
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      renderTree(qc);
+      await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
+      expect(qc.getQueryCache().getAll()).toHaveLength(0);
+      expect(warn).toHaveBeenCalledWith("Query cache storage unavailable; using memory only.");
+    } finally {
+      storage.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
   it("desmontar antes de restaurar no borra ni restaura caché tardíamente", async () => {
     setIdentity(USER_A, ORG_A);
     const qc = new QueryClient();

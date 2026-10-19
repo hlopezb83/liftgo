@@ -66,3 +66,30 @@ describe("booking selection with persistent charges", () => {
     expect(result.current.form.getValues("bookingIds")).toEqual(["b2"]);
   });
 });
+
+import { originalPeriodBooking } from "../../../lib/originalBookingPeriod";
+
+describe("extension-first original period prefill", () => {
+  it("prefills only Oct 23–24, USD 2×100 and FX 17.5 without repeating consumed logistics", async () => {
+    const operational = { id: "original", forklift_id: "f1", quote_id: q, start_date: "2026-10-23", end_date: "2026-10-26",
+      currency: "USD", tipo_cambio: 17.5, daily_rate: 100, recurring_billing: false };
+    const original = originalPeriodBooking(operational, [{ booking_id: "original", original_end_date: "2026-10-24", new_end_date: "2026-10-26", pending_invoice_id: "draft-extension" }])!;
+    const consumed: QuoteChargeAvailability = { complete: true, quotes: [{ ...availability.quotes[0], lines: [{ ...availability.quotes[0].lines[0], consumed_quantity: 4, remaining_quantity: 0 }] }] };
+    const { result } = renderHook(() => {
+      const form = useForm<InvoiceFormValues>({ defaultValues: buildEmptyInvoiceValues() });
+      return { form, ...useInvoiceFormHandlers({ form, customers: [], bookings: [original], forklifts,
+        quotes: [{ ...quotes[0], start_date: "2026-10-23", end_date: "2026-10-24" }], loadQuoteCharges: async () => consumed }) };
+    });
+    await act(async () => { await result.current.handleBookingsChange([original.id]); });
+    expect(result.current.chargeSelectionError).toBeNull();
+    expect(result.current.form.getValues("billingPeriodStart")).toBe("2026-10-23");
+    expect(result.current.form.getValues("billingPeriodEnd")).toBe("2026-10-24");
+    expect(result.current.form.getValues("cfdi.moneda")).toBe("USD");
+    expect(result.current.form.getValues("cfdi.tipoCambio")).toBe(17.5);
+    expect(result.current.form.getValues("lineItems")).toHaveLength(1);
+    expect(result.current.form.getValues("lineItems")[0]).toMatchObject({ quantity: 2, unit_price: 100, total: 200, line_kind: "rental" });
+    await act(async () => { await result.current.handleBookingsChange([original.id]); });
+    expect(result.current.form.getValues("lineItems")).toHaveLength(1);
+    expect(operational.end_date).toBe("2026-10-26");
+  });
+});

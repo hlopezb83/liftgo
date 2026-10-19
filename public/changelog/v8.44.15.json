@@ -1,0 +1,13 @@
+{
+  "version": "8.44.15",
+  "date": "2026-10-19",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Facturar una extensión conserva el periodo original pendiente",
+  "description": "El periodo original sigue disponible después de facturar una extensión, con sus días, moneda y precios pactados.",
+  "changes": [
+    "La factura original precarga sólo su periodo y conserva el tipo de cambio y los descuentos de la cotización, sin duplicar cargos de logística ya facturados.",
+    "Los borradores y facturas activas reservan sus fechas; las reservas no recurrentes rechazan periodos superpuestos o antecedentes con fechas ambiguas.",
+    "Los historiales de extensiones incompletos requieren revisión antes de facturar; la política de facturación recurrente no cambia."
+  ]
+}
