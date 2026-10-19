@@ -8395,6 +8395,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      update_supplier_bill_details: {
+        Args: { p_bill_id: string; p_patch: Json }
+        Returns: string
+      }
       update_user_role_safe: {
         Args: {
           _new_role: Database["public"]["Enums"]["app_role"]
