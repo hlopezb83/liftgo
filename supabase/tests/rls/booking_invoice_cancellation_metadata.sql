@@ -45,6 +45,15 @@ BEGIN
       RAISE EXCEPTION 'Guard must run after organization context: %', v_table;
     END IF;
   END LOOP;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t JOIN pg_attribute a
+      ON a.attrelid=t.tgrelid AND a.attname='cfdi_status'
+    WHERE t.tgrelid='public.invoices'::regclass
+      AND t.tgname='zz_guard_invoice_booking_cancellation'
+      AND (t.tgtype & 16)=16 AND a.attnum=ANY(t.tgattr::smallint[])
+  ) THEN
+    RAISE EXCEPTION 'Invoice guard must run on UPDATE OF cfdi_status before PAC';
+  END IF;
   RAISE NOTICE 'PASS: booking/invoice private trigger metadata and unchanged INVOKER RPC';
 END;
 $metadata$;

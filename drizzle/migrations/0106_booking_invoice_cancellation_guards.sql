@@ -1,6 +1,7 @@
 -- R2: keep the cancellation invariant independent of caller invoice RLS.
 -- DDL only. No business-row repair, permission expansion or RPC privilege change.
 -- cancel_booking remains INVOKER. Private trigger functions only deny writes.
+-- A fiscal claim is occupied before PAC, even while commercial status is draft.
 
 CREATE OR REPLACE FUNCTION public.guard_booking_cancellation_invoices()
 RETURNS trigger
@@ -34,8 +35,10 @@ BEGIN
   IF EXISTS (
     SELECT 1 FROM public.invoices i
      WHERE i.organization_id = OLD.organization_id
-       AND i.status NOT IN ('draft', 'cancelled')
-       AND i.cancellation_status IS DISTINCT FROM 'accepted'
+       AND (i.cfdi_status = 'stamping' OR (
+         (i.status NOT IN ('draft', 'cancelled') OR i.cfdi_status = 'stamped')
+         AND i.cancellation_status IS DISTINCT FROM 'accepted'
+       ))
        AND (i.booking_id = OLD.id OR EXISTS (
          SELECT 1 FROM public.invoice_bookings ib
           WHERE ib.invoice_id = i.id AND ib.booking_id = OLD.id
@@ -63,8 +66,8 @@ DECLARE
 BEGIN
   -- Preserve unrelated edits of legacy inconsistent rows, including a caller
   -- that sends unchanged lifecycle fields alongside notes or other metadata.
-  IF TG_OP = 'UPDATE' AND ROW(NEW.status, NEW.booking_id, NEW.cancellation_status)
-       IS NOT DISTINCT FROM ROW(OLD.status, OLD.booking_id, OLD.cancellation_status) THEN
+  IF TG_OP = 'UPDATE' AND ROW(NEW.status, NEW.booking_id, NEW.cancellation_status, NEW.cfdi_status)
+       IS NOT DISTINCT FROM ROW(OLD.status, OLD.booking_id, OLD.cancellation_status, OLD.cfdi_status) THEN
     RETURN NEW;
   END IF;
   IF NEW.organization_id IS NULL OR (auth.uid() IS NOT NULL AND (
@@ -77,8 +80,12 @@ BEGIN
      AND current_setting('role', true) NOT IN ('none', 'postgres', 'service_role') THEN
     RAISE EXCEPTION 'Factura o reserva inexistente o no autorizada.' USING ERRCODE = '42501';
   END IF;
-  v_active := NEW.status NOT IN ('draft', 'cancelled')
-    AND NEW.cancellation_status IS DISTINCT FROM 'accepted';
+  -- The claim UPDATE must fail before any PAC request if its booking is
+  -- cancelled. Pending/error drafts are free; accepted never frees stamping.
+  v_active := NEW.cfdi_status = 'stamping' OR (
+    (NEW.status NOT IN ('draft', 'cancelled') OR NEW.cfdi_status = 'stamped')
+    AND NEW.cancellation_status IS DISTINCT FROM 'accepted'
+  );
 
   -- INSERT owns its new invoice; UPDATE already holds that invoice row.
   -- Never acquire advisory locks here: existing billing RPCs take them before
@@ -118,6 +125,7 @@ SET search_path = public, pg_temp
 AS $function$
 DECLARE
   v_invoice_status text;
+  v_cfdi_status text;
   v_cancellation_status text;
   v_booking_status text;
 BEGIN
@@ -161,12 +169,14 @@ BEGIN
     RAISE EXCEPTION 'Factura o reserva inexistente o no autorizada.' USING ERRCODE = '42501';
   END IF;
   -- Reread only after both row locks, never from a pre-lock/stable snapshot.
-  SELECT i.status, i.cancellation_status INTO v_invoice_status, v_cancellation_status
+  SELECT i.status, i.cfdi_status, i.cancellation_status INTO v_invoice_status, v_cfdi_status, v_cancellation_status
     FROM public.invoices i WHERE i.id = NEW.invoice_id AND i.organization_id = NEW.organization_id;
   SELECT b.status INTO v_booking_status FROM public.bookings b
    WHERE b.id = NEW.booking_id AND b.organization_id = NEW.organization_id;
-  IF v_invoice_status NOT IN ('draft', 'cancelled')
-     AND v_cancellation_status IS DISTINCT FROM 'accepted' AND v_booking_status = 'cancelled' THEN
+  IF (v_cfdi_status = 'stamping' OR (
+       (v_invoice_status NOT IN ('draft', 'cancelled') OR v_cfdi_status = 'stamped')
+       AND v_cancellation_status IS DISTINCT FROM 'accepted'
+     )) AND v_booking_status = 'cancelled' THEN
     RAISE EXCEPTION 'No se puede emitir ni ligar una factura vigente a una reserva cancelada.'
       USING ERRCODE = '23514', CONSTRAINT = 'invoice_booking_not_cancelled';
   END IF;
@@ -182,7 +192,7 @@ CREATE TRIGGER zz_guard_booking_cancellation_invoices
   BEFORE UPDATE OF status ON public.bookings
   FOR EACH ROW EXECUTE FUNCTION public.guard_booking_cancellation_invoices();
 CREATE TRIGGER zz_guard_invoice_booking_cancellation
-  BEFORE INSERT OR UPDATE OF status, booking_id, cancellation_status ON public.invoices
+  BEFORE INSERT OR UPDATE OF status, booking_id, cancellation_status, cfdi_status ON public.invoices
   FOR EACH ROW EXECUTE FUNCTION public.guard_invoice_booking_cancellation();
 CREATE TRIGGER zz_guard_invoice_booking_link_cancellation
   BEFORE INSERT OR UPDATE OF invoice_id, booking_id ON public.invoice_bookings

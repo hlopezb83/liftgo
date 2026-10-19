@@ -1,5 +1,6 @@
 // Real handler/auth/org code; injected transport only, no SQL, Auth backend or PAC.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { installFacturapiMock } from "../_shared/test/facturapiMock.ts";
 import { buildSupabaseMock } from "../_shared/test/supabaseClientMock.ts";
 import { handleStampCfdi } from "./handler.ts";
 
@@ -43,44 +44,51 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
   });
   let fetchCalls = 0;
   let fiscalConfigReads = 0;
-  const response = await handleStampCfdi(
-    new Request("http://localhost:8080/stamp-cfdi", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer synthetic-token",
-        "Content-Type": "application/json",
+  // The official SDK uses globalThis.fetch, independently of deps.fetchImpl.
+  const pac = installFacturapiMock({});
+  try {
+    const response = await handleStampCfdi(
+      new Request("http://localhost:8080/stamp-cfdi", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer synthetic-token",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ invoice_id: invoiceId }),
+      }),
+      {
+        createCallerClient: () => caller.client,
+        createServiceClient: () => service.client,
+        fetchImpl: () => {
+          fetchCalls++;
+          throw new Error("Network forbidden in offline test");
+        },
+        env: () => {
+          fiscalConfigReads++;
+          return undefined;
+        },
       },
-      body: JSON.stringify({ invoice_id: invoiceId }),
-    }),
-    {
-      createCallerClient: () => caller.client,
-      createServiceClient: () => service.client,
-      fetchImpl: () => {
-        fetchCalls++;
-        throw new Error("Network forbidden in offline test");
-      },
-      env: () => {
-        fiscalConfigReads++;
-        return undefined;
-      },
-    },
-  );
-  assertEquals(response.status, 409);
-  assertEquals(await response.json(), {
-    error: "Invoice already stamped or in progress",
-  });
-  assertEquals(fetchCalls, 0);
-  assertEquals(fiscalConfigReads, 0);
-  assertEquals(service.updates, [{
-    table: "invoices",
-    patch: { cfdi_status: "stamping" },
-    filters: [
-      { col: "id", val: invoiceId },
-      { col: "cfdi_status", val: ["pending", "error"] },
-      { col: "cfdi_uuid", val: null },
-    ],
-  }]);
-  assertEquals(service.inserts, []);
-  assertEquals(service.uploads, []);
-  assertEquals(service.rpcCalls, []);
+    );
+    assertEquals(response.status, 409);
+    assertEquals(await response.json(), {
+      error: "Invoice already stamped or in progress",
+    });
+    assertEquals(fetchCalls, 0);
+    assertEquals(pac.calls, []);
+    assertEquals(fiscalConfigReads, 0);
+    assertEquals(service.updates, [{
+      table: "invoices",
+      patch: { cfdi_status: "stamping" },
+      filters: [
+        { col: "id", val: invoiceId },
+        { col: "cfdi_status", val: ["pending", "error"] },
+        { col: "cfdi_uuid", val: null },
+      ],
+    }]);
+    assertEquals(service.inserts, []);
+    assertEquals(service.uploads, []);
+    assertEquals(service.rpcCalls, []);
+  } finally {
+    pac.restore();
+  }
 });
