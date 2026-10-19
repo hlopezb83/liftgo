@@ -1,0 +1,37 @@
+{
+  "before_commit": "022c5610dec4692eca7ad69c7aa06220b005982d",
+  "after_source_state": "integration owner working tree, scoped invalidateOnPartial default false and RecordPaymentDialog true",
+  "sha256_normalization": "UTF-8 without BOM; CRLF normalized to LF",
+  "source_sha256": [
+    {
+      "path": "src/components/forms/MaskedDateInput.tsx",
+      "sha256": "fb8fab4e4f464e26a5fdcf83c2fa315aaa78d59d96dc2f02aa723c707b416e45"
+    },
+    {
+      "path": "src/components/forms/DatePickerField.tsx",
+      "sha256": "7e1213eea373dc8901ad1aebbdd2d7d14656362f0bc6ac9d3a02d6ac2bd04277"
+    },
+    {
+      "path": "src/features/invoices/components/invoices/RecordPaymentDialog.tsx",
+      "sha256": "51341af48d69ca4061b355fdc19b5a7ec7d8df8df7677c884548a8c74b9c6ca0"
+    },
+    {
+      "path": "src/features/invoices/components/invoice-form/InvoiceDetailsCard.tsx",
+      "sha256": "3d413115adc161c99d12100dd01947883f4fd4db35e9540c5bba958b4dac2655"
+    },
+    {
+      "path": "src/features/invoices/components/invoices/__tests__/InvoiceDetailsCardMaskedDateCompatibility.test.tsx",
+      "sha256": "9ef220464399f676149f57aaf279dd3ea62180d75d12adc0b4e98a5af8b037ba"
+    }
+  ],
+  "evidence_sha256": [
+    {
+      "path": "before.json",
+      "sha256": "0f192625e77796ee5ac5d312929d60429ca9b1bdd91f5403776181851a64b4bf"
+    },
+    {
+      "path": "after.json",
+      "sha256": "9adf7d113b65fc21c6b8ec2bc15c90f214e78afad580357edb79a48d78648647"
+    }
+  ]
+}

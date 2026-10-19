@@ -20,8 +20,8 @@ const matchModel = (item: LineItem, models: EquipmentModel[]) =>
   models.find((m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model));
 
 /** Servicios adicionales que se capturan como casilla + monto, no como partida libre. */
-const isLogisticsLine = (item: LineItem) => !!item.description?.includes("Logística");
-const isInsuranceLine = (item: LineItem) => /seguro/i.test(item.description ?? "");
+const isLogisticsLine = (item: LineItem) => item.charge_kind === "logistics" || (!item.line_kind && !!item.description?.includes("Logística"));
+const isInsuranceLine = (item: LineItem) => item.charge_kind === "insurance" || (!item.line_kind && /seguro/i.test(item.description ?? ""));
 
 function extractExtra(items: LineItem[], match: (item: LineItem) => boolean): { include: boolean; cost: number } {
   const found = items.find(match);

@@ -19,6 +19,13 @@ export default async function globalTeardown(): Promise<void> {
     .from(AB_BUCKET)
     .remove([ctx.A.storagePath, ctx.B.storagePath, AB_LEGACY_OBJECT]);
 
+  for (const status of [...Object.values(ctx.cancellationInvoiceSnapshots ?? {}),
+    ...Object.values(ctx.draftFiscalInvoiceSnapshots ?? {}), ctx.draftFiscalAttachmentInvoices ?? {}]) {
+    for (const id of Object.values(status)) {
+      await admin.from("invoices").delete().eq("id", id).eq("organization_id", ctx.A.organizationId);
+    }
+  }
+
   for (const side of [ctx.A, ctx.B]) {
     await admin.from("documents").delete().eq("id", side.documentId);
     await admin.from("invoices").delete().eq("id", side.invoiceId);
@@ -26,7 +33,7 @@ export default async function globalTeardown(): Promise<void> {
     await admin.from("organization_memberships").delete().eq("organization_id", side.organizationId);
     const roles = side.organizationId === ctx.A.organizationId
       ? Object.values(ctx.roles).map((user) => user.userId) : [];
-    for (const userId of [side.internal.userId, side.portal.userId, ...roles]) {
+    for (const userId of [side.internal.userId, side.dispatcher.userId, side.portal.userId, ...roles]) {
       await admin.auth.admin.deleteUser(userId);
     }
     await admin.from("organization_customers").delete().eq("organization_id", side.organizationId);

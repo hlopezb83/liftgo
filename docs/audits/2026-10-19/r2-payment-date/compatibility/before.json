@@ -1,0 +1,28 @@
+{
+  "candidate_commit": "022c5610dec4692eca7ad69c7aa06220b005982d",
+  "scope": "real InvoiceDetailsCard with RHF and production date adapter/control",
+  "today": "2026-10-19",
+  "initial_issue_date": "2026-08-14",
+  "tests": 1,
+  "passed": 0,
+  "failed": 1,
+  "success": false,
+  "exit_code": 1,
+  "failed_assertions": 4,
+  "expected_partial": {
+    "input": "15/09",
+    "stored_date": "2026-08-14"
+  },
+  "observed_partial": {
+    "input": "19/10/2026",
+    "stored_date": "2026-10-19"
+  },
+  "expected_complete": {
+    "input": "15/09/2026",
+    "stored_date": "2026-09-15"
+  },
+  "observed_complete": {
+    "input": "19/10/2026",
+    "stored_date": "2026-10-19"
+  }
+}

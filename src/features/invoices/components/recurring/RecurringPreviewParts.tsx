@@ -42,6 +42,7 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
   period_in_future: "Período futuro",
   booking_ended: "Reserva terminada — completa la devolución",
   no_exchange_rate: "Tipo de cambio pendiente",
+  quote_charge_review: "Cargos de cotización pendientes de verificar o conciliar",
   quote_discount_review: "Descuento pactado — requiere facturación manual revisada",
   quote_source_missing: "No se pudo verificar la cotización de origen",
 };

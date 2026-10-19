@@ -2,29 +2,29 @@ import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import process from "node:process";
 import postgres from "postgres";
+import { ciDatabaseUrl, validateReplay, assertReplayLedger } from "./ci-drizzle-replay.mjs";
 
 /** Refuse all endpoints except the disposable database created by these CI jobs. */
 export function diagnosticDatabaseUrl(env) {
-  const url = new URL(env.DB_URL || "");
-  if (env.CI !== "true" || url.protocol !== "postgresql:" || url.hostname !== "127.0.0.1"
-    || url.port !== "54322" || url.pathname !== "/postgres" || url.username !== "postgres"
-    || url.search || url.hash) throw new Error("El diagnóstico requiere PostgreSQL efímero de CI.");
-  return url.href;
+  return ciDatabaseUrl(env);
 }
 
 async function diagnose(env) {
+  const replay = validateReplay({ env });
   const connection = postgres(diagnosticDatabaseUrl(env), { max: 1, onnotice: () => {} });
   const rollback = new Error("diagnostic-rollback");
   let current = "journal";
   try {
-    const journal = JSON.parse(await readFile("drizzle/migrations/meta/_journal.json", "utf8"));
+    const journal = replay.journal;
     await connection.begin(async (tx) => {
       const table = await tx`select to_regclass('drizzle.__drizzle_migrations') as id`;
-      const applied = table[0].id ? await tx`select coalesce(max(created_at),0) as cutoff from drizzle.__drizzle_migrations` : [{ cutoff: 0 }];
+      const applied = table[0].id ? await tx`select hash, created_at from drizzle.__drizzle_migrations order by created_at` : [];
+      assertReplayLedger(applied, replay.entries, { allowPrefix: true });
+      const cutoff = applied.length ? Number(applied[applied.length - 1].created_at) : 0;
       for (const entry of journal.entries) {
-        if (Number(entry.when) <= Number(applied[0].cutoff)) continue;
+        if (Number(entry.when) <= cutoff) continue;
         current = entry.tag;
-        const sql = await readFile(`drizzle/migrations/${entry.tag}.sql`, "utf8");
+        const sql = await readFile(`${replay.migrationsDir}/${entry.tag}.sql`, "utf8");
         for (const statement of sql.split("--> statement-breakpoint")) {
           if (statement.trim()) await tx.unsafe(statement, [], { prepare: false });
         }

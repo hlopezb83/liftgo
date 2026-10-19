@@ -1,0 +1,154 @@
+{
+  "status": "LOCAL_RECONCILIATION_VERIFIED_AUTH_CI_PENDING",
+  "beforeHead": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
+  "incomingMain": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+  "operation": "local main INTO PR284 branch; no GitHub merge or push",
+  "resolution": {
+    "conflictedPaths": [
+      "drizzle/migrations/meta/_journal.json"
+    ],
+    "strategy": "Preserve exact prior 284 journal: byte-identical main prefix through 0105 followed by sole existing 0106 entry",
+    "source": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
+    "resolvedJournalSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+    "resolvedEntries": 107
+  },
+  "checks": {
+    "oldHead": "988803bcb7247674ad0c1ca2f5c28eb084f34105",
+    "incomingMain": "0a532d68f0458b96b6e5a8e9f32900322056775f",
+    "protectedBlobs": [
+      {
+        "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+        "beforeSha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+        "afterSha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+        "unchanged": true
+      },
+      {
+        "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+        "beforeSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+        "afterSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+        "unchanged": true
+      },
+      {
+        "path": "drizzle/migrations/meta/0105_snapshot.json",
+        "beforeSha256": "3d20b42bd1d26c591abb1c2c8d2a91226da7df7ffcaaada8c8c4020f4b278a9c",
+        "afterSha256": "3d20b42bd1d26c591abb1c2c8d2a91226da7df7ffcaaada8c8c4020f4b278a9c",
+        "unchanged": true
+      },
+      {
+        "path": "drizzle/migrations/meta/0106_snapshot.json",
+        "beforeSha256": "9dd08d593a8270b34abdf21ece6ce323d85f483014bb233152f16bee39905007",
+        "afterSha256": "9dd08d593a8270b34abdf21ece6ce323d85f483014bb233152f16bee39905007",
+        "unchanged": true
+      },
+      {
+        "path": "drizzle/migrations/meta/_journal.json",
+        "beforeSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+        "afterSha256": "67dc478a840a0f7330537dad24f0d3462168b41deebbe5b9e04d75c8b4bc2070",
+        "unchanged": true
+      }
+    ],
+    "journalEntries": 107,
+    "journalIssues": [],
+    "prefixThrough105MatchesMain": true,
+    "runtimeDiffFromMain": []
+  },
+  "authComparableCorpus": [
+    {
+      "path": "tests/multi-tenant-ab/booking-invoice-cancellation-api.spec.ts",
+      "beforeSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099",
+      "afterSha256": "c58e5ec13fd428e37e1b97e289ff0480d76ff7f0adb51ff5df4cef8823b62099",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/stamp-cfdi-booking-claim-api.spec.ts",
+      "beforeSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e",
+      "afterSha256": "26844f51da9bae8564b045d108226e23d5a736f9f6d4cb864a1f93465e639b7e",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.mjs",
+      "beforeSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f",
+      "afterSha256": "f2713305eb813e10c27ae16cabe56ae812601ec9fdd749542ab6ad71dc8ac46f",
+      "unchanged": true
+    },
+    {
+      "path": "tests/multi-tenant-ab/fixtures/stamp-cfdi-booking-claim.vitest.config.mjs",
+      "beforeSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a",
+      "afterSha256": "bda09a7742b6010592fae35dda729b7d42dfdc6d7bffb036e2d05b4393008d5a",
+      "unchanged": true
+    }
+  ],
+  "validation": {
+    "rep": {
+      "files": 4,
+      "total": 58,
+      "passed": 58,
+      "failed": 0,
+      "skipped": 0
+    },
+    "applicationTypecheck": "PASS",
+    "browserTypecheck": "PASS",
+    "journal": {
+      "entries": 107,
+      "issues": []
+    },
+    "eslint": {
+      "files": 22,
+      "errors": 0,
+      "warnings": 0
+    },
+    "build": {
+      "command": "node node_modules/vite/bin/vite.js build",
+      "exitCode": 0,
+      "purpose": "local compilation only; fake loopback backend; Sentry upload disabled; no prebuild timestamp mutation; not a publication artifact",
+      "warningCodes": [
+        "PLUGIN_TIMINGS",
+        "MODULE_LEVEL_DIRECTIVE",
+        "IMPORT_IS_UNDEFINED"
+      ]
+    },
+    "diffCheck": "PASS"
+  },
+  "auth97OnNewHead": {
+    "status": "NOT_EXECUTED_LOCALLY_PENDING_EXISTING_EPHEMERAL_CI_AFTER_PARENT_PUSH",
+    "priorEvidenceNotReattributed": true
+  },
+  "localLogFingerprints": [
+    {
+      "name": "reconcile-rep-tests.log",
+      "sha256": "74eb7fee2527e8402b75a3d2cb66a23e4d74b6093c440ade537d649006486c59",
+      "publication": "local only; no raw CI or backend captures"
+    },
+    {
+      "name": "reconcile-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publication": "local only; no raw CI or backend captures"
+    },
+    {
+      "name": "reconcile-browser-types.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publication": "local only; no raw CI or backend captures"
+    },
+    {
+      "name": "reconcile-lint.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "publication": "local only; no raw CI or backend captures"
+    },
+    {
+      "name": "reconcile-build.log",
+      "sha256": "3def7812b17b8be71984215ac1f997e1bc8830692a351b9fcdc4ab51913c1704",
+      "publication": "local only; no raw CI or backend captures"
+    }
+  ],
+  "remoteActions": {
+    "push": false,
+    "githubPrMerge": false,
+    "backend": false,
+    "migrations": false,
+    "pac": false,
+    "browser": false,
+    "remoteCli": false,
+    "permissionOrAccountChanges": false
+  },
+  "activationManifestTouched": false
+}

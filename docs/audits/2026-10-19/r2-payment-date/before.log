@@ -1,0 +1,178 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-payment-date
+
+ Γ¥» src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx (9 tests | 7 failed) 849ms
+     ├ù does not submit the previous valid date after impossible input 224ms
+     ├ù does not submit the previous valid date after partial before blur input 107ms
+     ├ù does not submit the previous valid date after empty input 92ms
+     ├ù does not submit the previous valid date after disabled future input 105ms
+     ├ù retains partial text and its explanation after blur without submitting stale state 99ms
+     Γ£ô submits the corrected date once after invalid capture 99ms
+     Γ£ô reopening discards invalid capture and restores today's valid date 111ms
+     ├ù rejects missing or invalid Date values without serializing them 4ms
+     ├ù rejects missing or invalid Date values without serializing them 5ms
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ» Failed Tests 7 ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»
+
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > RecordPaymentDialog: current date capture is authoritative > does not submit the previous valid date after impossible input
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > RecordPaymentDialog: current date capture is authoritative > does not submit the previous valid date after partial before blur input
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > RecordPaymentDialog: current date capture is authoritative > does not submit the previous valid date after empty input
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > RecordPaymentDialog: current date capture is authoritative > does not submit the previous valid date after disabled future input
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "amount": 100,
+        "currency": "MXN",
+        "exchange_rate": 1,
+        "invoice_id": "synthetic-invoice-date",
+        "notes": null,
+        "payment_date": "2026-09-15",
+        "payment_form_sat": "03",
+        "payment_method": "transfer",
+        "reference_number": null,
+      },
+      Object {
+        "onError": [Function onError],
+        "onSuccess": [Function onSuccess],
+      },
+    ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx:58:30
+     56|     fireEvent.change(date, { target: { value } });
+     57|     submitForm(submit);
+     58|     expect(mocks.create).not.toHaveBeenCalled();
+       |                              ^
+     59|     expect(mocks.stamp).not.toHaveBeenCalled();
+     60|     expect(date).toHaveAttribute("aria-invalid", "true");
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/7]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > RecordPaymentDialog: current date capture is authoritative > retains partial text and its explanation after blur without submitting stale state
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "amount": 100,
+        "currency": "MXN",
+        "exchange_rate": 1,
+        "invoice_id": "synthetic-invoice-date",
+        "notes": null,
+        "payment_date": "2026-09-15",
+        "payment_form_sat": "03",
+        "payment_method": "transfer",
+        "reference_number": null,
+      },
+      Object {
+        "onError": [Function onError],
+        "onSuccess": [Function onSuccess],
+      },
+    ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx:73:30
+     71|     expect(screen.getByText("Fecha incompleta (DD/MM/AAAA)")).toBeInThΓÇª
+     72|     submitForm(submit);
+     73|     expect(mocks.create).not.toHaveBeenCalled();
+       |                              ^
+     74|   });
+     75|
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[2/7]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > useRecordPaymentForm: date submit guard > rejects missing or invalid Date values without serializing them
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "amount": 100,
+        "currency": "MXN",
+        "exchange_rate": 1,
+        "invoice_id": "synthetic-invoice-date",
+        "notes": null,
+        "payment_date": undefined,
+        "payment_form_sat": "03",
+        "payment_method": "transfer",
+        "reference_number": null,
+      },
+      Object {
+        "onError": [Function onError],
+        "onSuccess": [Function onSuccess],
+      },
+    ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx:111:30
+    109|     act(() => result.current.setDate(date as Date));
+    110|     await act(async () => { await result.current.handleSubmit(); });
+    111|     expect(mocks.create).not.toHaveBeenCalled();
+       |                              ^
+    112|     expect(mocks.validation).toHaveBeenCalledWith({ message: "Captura ΓÇª
+    113|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[3/7]ΓÄ»
+
+ FAIL  src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx > useRecordPaymentForm: date submit guard > rejects missing or invalid Date values without serializing them
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "amount": 100,
+        "currency": "MXN",
+        "exchange_rate": 1,
+        "invoice_id": "synthetic-invoice-date",
+        "notes": null,
+        "payment_date": "NaN-NaN-NaN",
+        "payment_form_sat": "03",
+        "payment_method": "transfer",
+        "reference_number": null,
+      },
+      Object {
+        "onError": [Function onError],
+        "onSuccess": [Function onSuccess],
+      },
+    ]
+
+
+Number of calls: 1
+
+ Γ¥» src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx:111:30
+    109|     act(() => result.current.setDate(date as Date));
+    110|     await act(async () => { await result.current.handleSubmit(); });
+    111|     expect(mocks.create).not.toHaveBeenCalled();
+       |                              ^
+    112|     expect(mocks.validation).toHaveBeenCalledWith({ message: "Captura ΓÇª
+    113|   });
+
+ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[4/7]ΓÄ»
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed | 2 passed (9)
+   Start at  00:13:20
+   Duration  9.50s (transform 709ms, setup 784ms, import 6.28s, tests 849ms, environment 1.17s)
+
+JSON report written to C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-payment-date/docs/audits/2026-10-19/r2-payment-date/before.json

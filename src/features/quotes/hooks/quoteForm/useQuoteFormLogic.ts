@@ -8,6 +8,7 @@ import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { preserveQuoteChargeIdentities, quoteChargePreview } from "../../lib/quoteChargeIdentity";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
@@ -58,25 +59,28 @@ export function useQuoteFormLogic() {
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
 
-  const lineItems: LineItem[] = useMemo(() => {
-    if (!equipmentModels) return [];
+  const existingLineItems = existingQuote?.line_items;
+  const generated = useMemo(() => {
+    if (!equipmentModels) return { items: [], chargeIdentityError: null };
     let items: LineItem[];
     if (quoteType === "sale") {
       items = buildSaleItems(saleLines ?? [], equipmentModels);
     } else {
-      if (!startDate || !endDate) return [];
+      if (!startDate || !endDate) return { items: [], chargeIdentityError: null };
       items = buildRentalItems(rentalLines ?? [], equipmentModels, startDate, endDate);
     }
     if (includeLogistics && (logisticsCost ?? 0) > 0) {
-      items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
+      items.push({ line_kind: "charge", charge_kind: "logistics", description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
     if (includeInsurance && (insuranceCost ?? 0) > 0) {
-      items.push({ description: "Seguro", quantity: 1, unit_price: insuranceCost, total: insuranceCost });
+      items.push({ line_kind: "charge", charge_kind: "insurance", description: "Seguro", quantity: 1, unit_price: insuranceCost, total: insuranceCost });
     }
-    return items;
-  }, [quoteType, saleLines, rentalLines, equipmentModels, startDate, endDate,
+    return quoteChargePreview(items, existingLineItems);
+  }, [existingLineItems, quoteType, saleLines, rentalLines, equipmentModels, startDate, endDate,
       includeLogistics, logisticsCost, includeInsurance, insuranceCost]);
 
+  const lineItems = generated.items;
+  const chargeIdentityError = generated.chargeIdentityError;
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
   const isPending = createQuote.isPending || updateQuote.isPending;
@@ -88,6 +92,15 @@ export function useQuoteFormLogic() {
         title: "Cotización aceptada",
         message: "No se pueden modificar los montos de una cotización aceptada o ya convertida a reserva.",
       });
+      return;
+    }
+    if (chargeIdentityError) {
+      notifyValidation({ message: chargeIdentityError });
+      return;
+    }
+    try { preserveQuoteChargeIdentities(lineItems, existingQuote?.line_items); }
+    catch (error) {
+      notifyValidation({ message: error instanceof Error ? error.message : "Revisa los cargos de la cotización." });
       return;
     }
     const payload = buildQuotePayload({
@@ -156,6 +169,7 @@ export function useQuoteFormLogic() {
     form,
     quoteType,
     isAmountLocked,
+    chargeIdentityError,
     currency,
     taxRate,
     dateRange,

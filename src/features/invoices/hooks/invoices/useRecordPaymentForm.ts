@@ -15,6 +15,11 @@ import { isPaymentFormDirty } from "./paymentFormDirty";
 
 /** L-7: monto máximo de un pago individual (anti-capturas erróneas). */
 const MAX_PAYMENT_AMOUNT = 99_999_999.99;
+const INVALID_PAYMENT_DATE_MESSAGE = "Captura una fecha válida para el pago.";
+
+function isValidPaymentDate(date: Date | undefined): date is Date {
+  return !!date && Number.isFinite(date.getTime());
+}
 
 interface Args {
   open: boolean;
@@ -39,7 +44,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
       ? String(invoiceExchangeRate)
       : "1";
   const [amount, setAmount] = useState(balance.toFixed(2));
-  const [date, setDate] = useState<Date>(nowMty());
+  const [date, setDate] = useState<Date | undefined>(nowMty());
   const [method, setMethod] = useState("transfer");
   const [paymentFormSat, setPaymentFormSat] = useState("03");
   // C-1: divisa bloqueada a la factura hasta que exista soporte multi-moneda.
@@ -114,6 +119,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
         reason: `El monto es mayor que el saldo pendiente ($${balanceRounded.toFixed(2)}).`,
       })
     : serverBlock;
+  const dateError = isValidPaymentDate(date) ? undefined : INVALID_PAYMENT_DATE_MESSAGE;
 
   const handleSubmit = async () => {
     setServerBlock(null);
@@ -126,6 +132,9 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
       });
       return;
     }
+    // La captura vacía, parcial o rechazada por el calendario no conserva una
+    // fecha anterior. Validar también aquí cubre Enter y submits programáticos.
+    if (!isValidPaymentDate(date)) { notifyValidation({ message: INVALID_PAYMENT_DATE_MESSAGE }); return; }
     // R10 Bloque 8.1: la fecha de pago no puede ser futura (SAT rechaza REP con
     // fecha posterior a la del timbrado y contabilidad se rompe).
     const endOfToday = nowMty();
@@ -213,7 +222,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit, isDirty,
-    amountBlock, exceedsBalance,
+    amountBlock, exceedsBalance, dateError,
   };
 }
 

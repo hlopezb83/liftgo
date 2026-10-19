@@ -12,6 +12,7 @@ export function buildSaleItems(lines: SaleLine[], models: EquipmentModel[]): Lin
     .map((l) => {
       const m = models.find((em) => em.id === l.modelId);
       return {
+        line_kind: "sale",
         description: m ? `${m.manufacturer} ${m.model} - Venta de equipo` : "Venta de equipo",
         quantity: l.quantity,
         unit_price: l.unitPrice,
@@ -60,6 +61,7 @@ export function buildRentalItems(
   for (const line of lines.filter((l) => !l.modelId && (l.legacyTotal ?? 0) > 0)) {
     const unitPrice = line.legacyTotal ?? 0;
     const item: LineItem = {
+      line_kind: "rental",
       description: line.legacyDescription ?? "Renta montacargas",
       quantity: line.quantity,
       unit_price: unitPrice,
@@ -81,7 +83,7 @@ export function buildRentalItems(
       toYMD(startDate), toYMD(endDate), line.quantity,
     );
     applyLineDiscount(line, generated);
-    items.push(...generated);
+    items.push(...generated.map((item) => ({ ...item, line_kind: "rental" as const })));
   }
   return items;
 }

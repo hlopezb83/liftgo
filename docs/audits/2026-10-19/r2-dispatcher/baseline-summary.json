@@ -1,0 +1,143 @@
+{
+  "pullRequest": "https://github.com/hlopezb83/liftgo/pull/284",
+  "head": "c154c81540fb2c237c6d5c6ed18f907aeae57274",
+  "run": "https://github.com/hlopezb83/liftgo/actions/runs/39210544534",
+  "result": "failure",
+  "newMigrationApplied": false,
+  "environment": "existing local ephemeral Supabase CI with ordinary Auth and SDK under RLS",
+  "newTestFile": {
+    "total": 21,
+    "passed": 3,
+    "failed": 18
+  },
+  "passingControls": [
+    "owner RPC rejects direct active invoice",
+    "owner RPC rejects pivot active invoice",
+    "foreign dispatcher cannot cancel or observe A records"
+  ],
+  "confirmedMissingCancellationRejections": {
+    "expectedSqlState": "23514",
+    "cases": 6,
+    "actorsAndPaths": [
+      "dispatcher RPC/direct",
+      "dispatcher RPC/pivot",
+      "dispatcher UPDATE/direct",
+      "dispatcher UPDATE/pivot",
+      "owner UPDATE/direct",
+      "owner UPDATE/pivot"
+    ]
+  },
+  "harnessCorrectionsBeforeAfterRun": [
+    "Two cancelled-invoice fixtures must be created sent then cancelled by ordinary SDK update instead of invalid direct cancelled INSERT",
+    "Case clients must use Auth signOut scope local so other clients of the same synthetic user retain their sessions"
+  ],
+  "legacyUiOrSeedFailures": {
+    "count": 7,
+    "productFinding": false,
+    "possibleCause": "default global sign-out; requires corrected after-run confirmation"
+  },
+  "containsRawLogs": false,
+  "publishedBackendTouched": false,
+  "secondTestsOnlyBaseline": {
+    "head": "c9d121c7442c45f4ff8845cb2c2b1caae6391665",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39211895347",
+    "total": 73,
+    "passed": 52,
+    "failed": 21,
+    "legacy": {
+      "total": 46,
+      "passed": 46,
+      "failed": 0
+    },
+    "newTestFile": {
+      "total": 27,
+      "passed": 6,
+      "failed": 21
+    },
+    "remainingHarnessCorrections": [
+      "Two cancelled invoice fixtures additionally require cancellation_reason under 0103 guard_invoice_status_integrity",
+      "Two pending controls fail before cancel_booking because the deliberate fiscal UPDATE is denied 42501 by the DB4-06 column ACL; cancellation rejection expectations remain 23514"
+    ]
+  },
+  "firstProposal": {
+    "head": "72d6966a3",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39213459182",
+    "total": 79,
+    "passed": 78,
+    "failed": 1,
+    "target": {
+      "total": 32,
+      "passed": 31,
+      "failed": 1
+    },
+    "remainingFixtureCorrection": "Set both synthetic recurring booking end dates to start+40 days in ordinary SDK update; prior six-day fixture rejected correctly before concurrency",
+    "unexpectedConcurrencyErrorAccepted": false,
+    "rlsSuitesPassed": 116,
+    "sqlSmokeSuitesPassed": 46
+  },
+  "fiscalTestsOnlyBaseline": {
+    "head": "ff48c9675072fbbcad04055a0015d484bb1cbbb3",
+    "migrationPredicate": "status-only 0106 from 72d6966a3; fiscal SQL followup excluded",
+    "preparedAuthCases": 46,
+    "ciResult": {
+      "run": "https://github.com/hlopezb83/liftgo/actions/runs/39214822446",
+      "passed": 81,
+      "failed": 12,
+      "classification": "6 fiscal cancellation failures;1 cleanup23503 masks direct attachment;5 fixture23505 failures;not a clean8-regression baseline"
+    }
+  },
+  "comparableFiscalBaseline": {
+    "head": "4a3d87e11beee7e8e6a8f8973cc1ca5cb2717ad6",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39216609017",
+    "stats": {
+      "total": 97,
+      "passed": 85,
+      "failed": 12,
+      "skipped": 0,
+      "flaky": 0
+    },
+    "breakdown": {
+      "priorSuite": {
+        "passed": 47,
+        "failed": 0
+      },
+      "auth46": {
+        "passed": 38,
+        "failed": 8,
+        "earlier32ControlsPassed": 32
+      },
+      "actualHandler4": {
+        "passed": 0,
+        "failed": 4
+      }
+    },
+    "sanitizedProof": "baseline-c-auth-sql.json"
+  },
+  "comparableCorrectiveResult": {
+    "head": "69f36a636479ba9768bc4421e9a59337e19bdcda",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39217621954",
+    "stats": {
+      "total": 97,
+      "passed": 97,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0
+    },
+    "breakdown": {
+      "priorSuite": {
+        "passed": 47,
+        "failed": 0
+      },
+      "auth46": {
+        "passed": 46,
+        "failed": 0,
+        "earlier32ControlsPassed": 32
+      },
+      "actualHandler4": {
+        "passed": 4,
+        "failed": 0
+      }
+    },
+    "sanitizedProof": "after-b-auth-sql.json"
+  }
+}

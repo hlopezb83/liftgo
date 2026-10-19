@@ -1,0 +1,139 @@
+{
+  "status": "VERIFIED_PROPOSAL_PENDING_PARENT_REVIEW_NO_MERGE_OR_PUBLICATION",
+  "auditedBase": "7ac56b7b904f79fdb0b194dbccd97d67f364273a",
+  "repDependency": [
+    "d1dc0a590650f3f3d1b43015de2d9fcb808e6f84",
+    "45b452431dda30d5138e01ac73490366b184bda9"
+  ],
+  "migration": {
+    "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+    "lfSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+    "entry": {
+      "idx": 106,
+      "version": "7",
+      "when": 1792392861354,
+      "tag": "0106_booking_invoice_cancellation_guards",
+      "breakpoints": true
+    },
+    "snapshotId": "b4e20fc3-4672-41c4-b8cb-ebfe6246743b",
+    "previousSnapshotId": "d9eee720-9ea3-4f40-bcf5-596198189b41"
+  },
+  "localChecks": {
+    "browserTestTypesExit": 0,
+    "changedTestLintExit": 0,
+    "journalCheckExit": 0,
+    "journalMigrationCount": 107,
+    "diffCheckExit": 0,
+    "migrationLintExit": 0,
+    "denoNewTestFmtExit": 0,
+    "denoNewTestLintExit": 0
+  },
+  "authenticatedProposalTests": {
+    "prepared": 50,
+    "executedLocally": false,
+    "afterCi": {
+      "head": "69f36a636479ba9768bc4421e9a59337e19bdcda",
+      "run": "https://github.com/hlopezb83/liftgo/actions/runs/39217621954",
+      "total": 50,
+      "passed": 50,
+      "failed": 0,
+      "fullSuite": {
+        "total": 97,
+        "passed": 97,
+        "failed": 0,
+        "skipped": 0,
+        "flaky": 0
+      }
+    },
+    "includes": {
+      "ordinaryAuth": 46,
+      "actualHandlerAuthSql": 4
+    }
+  },
+  "sqlMetadataSuite": {
+    "path": "supabase/tests/rls/booking_invoice_cancellation_metadata.sql",
+    "executedLocally": false,
+    "executedInIsolatedCi": true
+  },
+  "lockContract": {
+    "billingBookingReaders": "FOR SHARE",
+    "directCancellation": "FOR NO KEY UPDATE",
+    "cancellationRpc": "existing FOR UPDATE unchanged",
+    "pivotInsert": "invoice FOR UPDATE waits",
+    "pivotIdentityUpdate": "invoice FOR UPDATE NOWAIT; 55P03 retry; atomic rollback",
+    "newAdvisoryLocks": false
+  },
+  "privateFunctions": {
+    "new": 3,
+    "revokeExecuteOnlyOnNewFunctions": true,
+    "newGrants": false,
+    "existingRpcInvokerAndAclUnchanged": true
+  },
+  "blocker": "No implementation blocker; parent review and separate merge/published migration authorization remain required.",
+  "publishedBackendTouched": false,
+  "newInfrastructure": false,
+  "rawLogsIncluded": false,
+  "firstProposalCi": {
+    "head": "72d6966a3",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39213459182",
+    "total": 79,
+    "passed": 78,
+    "failed": 1,
+    "target": {
+      "total": 32,
+      "passed": 31,
+      "failed": 1
+    },
+    "remainingFixtureCorrection": "Set both synthetic recurring booking end dates to start+40 days in ordinary SDK update; prior six-day fixture rejected correctly before concurrency",
+    "unexpectedConcurrencyErrorAccepted": false,
+    "rlsSuitesPassed": 116,
+    "sqlSmokeSuitesPassed": 46
+  },
+  "fiscalPredicate": "cfdi_status=stamping OR ((status NOT IN (draft,cancelled) OR cfdi_status=stamped) AND cancellation_status IS DISTINCT FROM accepted)",
+  "claimDatabaseServerPathExecuted": true,
+  "offlineHandlerDi": {
+    "realHandlerAuthAndOrganizationCode": true,
+    "transportClaimErrorInjected": "23514",
+    "focusedVitest": {
+      "passed": 1,
+      "failed": 0
+    },
+    "permanentDenoTest": "supabase/functions/stamp-cfdi/booking_claim_test.ts",
+    "localDenoExecution": "not executed; cached-only missing @sentry/deno@10.76.2; no download",
+    "pacCalls": 0
+  },
+  "explicitLimit": "Does not freeze all draft fields/links during PAC; existing explicit unlink paths are outside this three-guard guarantee",
+  "fiscalTestsOnlyBaseline": {
+    "head": "ff48c9675072fbbcad04055a0015d484bb1cbbb3",
+    "migrationPredicate": "status-only 0106 from 72d6966a3; fiscal SQL followup excluded",
+    "preparedAuthCases": 46,
+    "ciResult": {
+      "run": "https://github.com/hlopezb83/liftgo/actions/runs/39214822446",
+      "passed": 81,
+      "failed": 12,
+      "classification": "6 fiscal cancellation failures;1 cleanup23503 masks direct attachment;5 fixture23505 failures;not a clean8-regression baseline"
+    }
+  },
+  "staticReview": {
+    "reviewer": "r2_date_fix",
+    "result": "approved without static blockers",
+    "executedSqlAuthOrDeno": false,
+    "migrationLfSha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+    "permanentDenoTestLfSha256": "71792de65e4ecdc7d7f1b24b1d13b09c96953aaa9777a739c43530de86112a35"
+  },
+  "comparableBaseline": {
+    "head": "4a3d87e11beee7e8e6a8f8973cc1ca5cb2717ad6",
+    "run": "https://github.com/hlopezb83/liftgo/actions/runs/39216609017",
+    "passed": 85,
+    "failed": 12
+  },
+  "correctiveCi": {
+    "ci": 39217621608,
+    "rls": 39217621666,
+    "gitleaks": 39217621709,
+    "conclusion": "success",
+    "rlsSuites": 116,
+    "sqlSmokeSuites": 46
+  },
+  "actualHandlerAuthSqlProof": "after-b-auth-sql.json"
+}

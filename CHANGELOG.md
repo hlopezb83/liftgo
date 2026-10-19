@@ -1,3 +1,7 @@
+## [8.44.14] - 2026-10-19
+
+- Saltar al contenido conserva el contexto de navegación y el foco accesible; Volver desde factura y cliente mantiene filtros y fragmento del listado.
+
 ## [8.44.13] - 2026-10-19
 
 - La factura conserva moneda y opciones CFDI durante la carga de la edición; una moneda vacía bloquea el guardado.

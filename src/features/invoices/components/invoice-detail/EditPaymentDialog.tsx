@@ -1,6 +1,6 @@
 import { parseISO } from "date-fns";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import {
@@ -15,6 +15,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
+import { FORMA_PAGO } from "@/lib/domain/satCatalogs";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
@@ -23,14 +24,8 @@ import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedba
 import { nowMty } from "@/lib/utils";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
 import { roundCurrencyAmount } from "../../lib/paymentCurrency";
+import { PAYMENT_METHODS, satCodeForMethod } from "../../lib/paymentMethods";
 import { validateEditPaymentAmount } from "./validateEditPaymentAmount";
-
-const METHODS = [
-  { value: "transfer", label: "Transferencia" },
-  { value: "cash", label: "Efectivo" },
-  { value: "check", label: "Cheque" },
-  { value: "card", label: "Tarjeta" },
-];
 
 const schema = z.object({
   amount: positiveAmount("Monto inválido"),
@@ -39,6 +34,7 @@ const schema = z.object({
     message: "La fecha del pago no puede ser futura.",
   }),
   method: z.string().min(1),
+  paymentFormSat: z.string(),
   reference: z.string().default(""),
   notes: z.string().default(""),
 });
@@ -59,6 +55,7 @@ interface Props {
 export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoiceCurrency, invoiceExchangeRate }: Props) {
   const updatePayment = useUpdatePayment();
   const isRepStamped = (payment.rep_cfdi_status as string | null) === "stamped";
+  const initialPaymentFormSat = payment.payment_form_sat ?? "";
   const paymentCurrency = (payment.currency ?? invoiceCurrency ?? "MXN").toUpperCase();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -66,6 +63,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
       amount: payment.amount,
       date: parseISO(payment.payment_date),
       method: payment.payment_method || "transfer",
+      paymentFormSat: initialPaymentFormSat,
       reference: payment.reference_number || "",
       notes: payment.notes || "",
     },
@@ -77,11 +75,14 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
         amount: payment.amount,
         date: parseISO(payment.payment_date),
         method: payment.payment_method || "transfer",
+        paymentFormSat: initialPaymentFormSat,
         reference: payment.reference_number || "",
         notes: payment.notes || "",
       });
     }
-  }, [open, payment, form]);
+  }, [open, payment, form, initialPaymentFormSat]);
+
+  const selectedMethod = useWatch({ control: form.control, name: "method" });
 
   const onSubmit = (values: FormValues) => {
     const amount = isRepStamped ? payment.amount : roundCurrencyAmount(values.amount);
@@ -111,7 +112,12 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
         // los valores originales para no dar pie a un intento inválido.
         amount,
         payment_date: isRepStamped ? payment.payment_date : (toYMD(values.date) ?? ""),
-        payment_method: values.method,
+        payment_method: isRepStamped ? payment.payment_method : values.method,
+        // Patch reviewed changes only; notes must neither infer a missing SAT
+        // code nor rewrite stamped fiscal data.
+        ...(!isRepStamped && values.paymentFormSat && values.paymentFormSat !== payment.payment_form_sat
+          ? { payment_form_sat: values.paymentFormSat }
+          : {}),
         reference_number: values.reference.trim() || null,
         notes: values.notes.trim() || null,
       },
@@ -148,7 +154,23 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance, invoic
             name="method"
             label="Método de Pago"
             required
-            options={METHODS}
+            options={PAYMENT_METHODS.map(({ value, label }) => ({ value, label }))}
+            disabled={isRepStamped}
+            onValueChange={(method) => {
+              // Suggest only on an actual method change, never on save or a
+              // same-method selection that would erase an explicit 28/29.
+              if (!isRepStamped && method && method !== selectedMethod) {
+                form.setValue("paymentFormSat", satCodeForMethod(method), { shouldDirty: true, shouldValidate: true });
+              }
+            }}
+          />
+          <SelectField
+            control={form.control}
+            name="paymentFormSat"
+            label="Forma de pago SAT"
+            options={FORMA_PAGO.map(({ code, label }) => ({ value: code, label }))}
+            disabled={isRepStamped}
+            description={isRepStamped ? undefined : "Revisa la clave del comprobante; tarjeta admite crédito, débito o servicios."}
           />
           <TextField
             control={form.control}

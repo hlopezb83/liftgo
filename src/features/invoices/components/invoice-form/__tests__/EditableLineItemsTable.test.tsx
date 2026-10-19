@@ -97,3 +97,29 @@ describe("EditableLineItemsTable — descuentos visibles", () => {
     expect(screen.getByLabelText("Importe neto partida 3")).toHaveTextContent("$10.00");
   });
 });
+
+describe("EditableLineItemsTable — persistent quote origins", () => {
+  it("keeps source IDs during a fractional quantity edit and locks the quoted unit price", () => {
+    const line: LineItemValues = { description: "Entrega", quantity: 2, unit_price: 100, total: 200,
+      line_kind: "charge", source_quote_id: "11111111-1111-4111-8111-111111111111",
+      source_quote_line_id: "22222222-2222-4222-8222-222222222222" };
+    render(<Harness lines={[line]} />);
+    expect(screen.getByLabelText("Precio unitario partida 1")).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Cantidad partida 1"), { target: { value: "0.5" } });
+    expect(JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]")[0])
+      .toMatchObject({ ...line, quantity: 0.5, total: 50 });
+  });
+
+  it("after removing the final traced row a new row is explicitly manual and does not inherit the deleted origin", () => {
+    render(<Harness lines={[{ description: "Entrega", quantity: 1, unit_price: 100, total: 100,
+      line_kind: "charge", source_quote_id: "11111111-1111-4111-8111-111111111111",
+      source_quote_line_id: "22222222-2222-4222-8222-222222222222" }]} />);
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar partida" }));
+    fireEvent.click(screen.getByRole("button", { name: "Agregar Fila" }));
+    const lines = JSON.parse(screen.getByLabelText("Partidas conservadas").textContent ?? "[]");
+    expect(lines).toHaveLength(1);
+    expect(lines[0].line_kind).toBe("manual");
+    expect(lines[0].source_quote_id).toBeUndefined();
+    expect(lines[0].source_quote_line_id).toBeUndefined();
+  });
+});

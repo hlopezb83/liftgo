@@ -71,6 +71,7 @@ interface RowProps {
 function LineItemRow({ index, onRemove }: RowProps) {
   const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
   const currency = useWatch({ control, name: "cfdi.moneda" });
+  const origin = useWatch({ control, name: `lineItems.${index}.source_quote_line_id` });
   const [quantity, unitPrice, discount, discountType] = useWatch({
     control,
     name: [`lineItems.${index}.quantity`, `lineItems.${index}.unit_price`,
@@ -93,6 +94,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
         <FormField control={control} name={`lineItems.${index}.description`} render={({ field }) => (
           <FormItem><FormControl><Input className="h-8" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
+        {origin && <p className="text-xs text-muted-foreground mt-1">Cargo vinculado a cotización</p>}
       </TableCell>
       <TableCell>
         <FormField control={control} name={`lineItems.${index}.clave_prod_serv`} render={({ field }) => (
@@ -124,7 +126,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
         <FormField control={control} name={`lineItems.${index}.quantity`} render={({ field }) => (
           <FormItem>
             <FormControl>
-              <Input type="number" min={1} aria-label={`Cantidad partida ${index + 1}`} className="h-8" value={field.value} onChange={(e) => {
+              <Input type="number" min={0.000001} step="any" aria-label={`Cantidad partida ${index + 1}`} className="h-8" value={field.value} onChange={(e) => {
                 const v = Number(e.target.value);
                 field.onChange(v);
                 syncTotal(v, Number(unitPrice ?? 0));
@@ -138,7 +140,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
         <FormField control={control} name={`lineItems.${index}.unit_price`} render={({ field }) => (
           <FormItem>
             <FormControl>
-              <Input type="number" step="0.01" min={0} aria-label={`Precio unitario partida ${index + 1}`} className="h-8" value={field.value} onChange={(e) => {
+              <Input type="number" step="0.01" min={0} disabled={!!origin} title={origin ? "Precio pactado en la cotización" : undefined} aria-label={`Precio unitario partida ${index + 1}`} className="h-8" value={field.value} onChange={(e) => {
                 const v = Number(e.target.value);
                 field.onChange(v);
                 syncTotal(Number(quantity ?? 0), v);

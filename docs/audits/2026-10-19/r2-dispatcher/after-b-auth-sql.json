@@ -1,0 +1,156 @@
+{
+  "head": "69f36a636479ba9768bc4421e9a59337e19bdcda",
+  "run": "https://github.com/hlopezb83/liftgo/actions/runs/39217621954",
+  "stats": {
+    "total": 97,
+    "passed": 97,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0
+  },
+  "actualHandlerCases": [
+    {
+      "case": "R2 actual fiscal handler: cancel-first, direct booking link",
+      "status": "passed",
+      "proof": {
+        "phase": "passed",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 400,
+            "code": "23514",
+            "claimedRow": false
+          }
+        ],
+        "configCalls": 0,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": true,
+        "cancelResult": {
+          "code": null
+        },
+        "handlerStatus": 409,
+        "snapshotUnchanged": true
+      }
+    },
+    {
+      "case": "R2 actual fiscal handler: claim-first, direct booking link",
+      "status": "passed",
+      "proof": {
+        "phase": "passed",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 200,
+            "code": null,
+            "claimedRow": true
+          }
+        ],
+        "configCalls": 1,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": false,
+        "cancelResult": {
+          "code": "23514"
+        },
+        "handlerStatus": 400,
+        "snapshotUnchanged": true
+      }
+    },
+    {
+      "case": "R2 actual fiscal handler: cancel-first, pivot booking link",
+      "status": "passed",
+      "proof": {
+        "phase": "passed",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 400,
+            "code": "23514",
+            "claimedRow": false
+          }
+        ],
+        "configCalls": 0,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": true,
+        "cancelResult": {
+          "code": null
+        },
+        "handlerStatus": 409,
+        "snapshotUnchanged": true
+      }
+    },
+    {
+      "case": "R2 actual fiscal handler: claim-first, pivot booking link",
+      "status": "passed",
+      "proof": {
+        "phase": "passed",
+        "authVerified": true,
+        "cleanupVerified": true,
+        "callerFactoryCalls": 1,
+        "callerUsesRequestBearer": true,
+        "serviceFactoryCalls": 1,
+        "claimResponses": [
+          {
+            "status": 200,
+            "code": null,
+            "claimedRow": true
+          }
+        ],
+        "configCalls": 1,
+        "providerCreateCalls": 0,
+        "providerInvoiceCalls": 0,
+        "blockedRemoteCalls": 0,
+        "claimQueuedBehindCancellation": false,
+        "cancelResult": {
+          "code": "23514"
+        },
+        "handlerStatus": 400,
+        "snapshotUnchanged": true
+      }
+    }
+  ],
+  "breakdown": {
+    "priorSuite": {
+      "passed": 47,
+      "failed": 0
+    },
+    "auth46": {
+      "passed": 46,
+      "failed": 0,
+      "earlier32ControlsPassed": 32
+    },
+    "actualHandler4": {
+      "passed": 4,
+      "failed": 0
+    }
+  },
+  "teardown": "success",
+  "quality": {
+    "ci": 39217621608,
+    "rls": 39217621666,
+    "gitleaks": 39217621709,
+    "conclusion": "success",
+    "rlsSuites": 116,
+    "sqlSmokeSuites": 46
+  },
+  "publishedBackendTouched": false,
+  "rawLogsIncluded": false,
+  "evidenceOnlyFollowupChangesExecutableCode": false
+}

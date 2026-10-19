@@ -5,11 +5,11 @@ import { MaskedDateInput } from "../MaskedDateInput";
 
 const TODAY = new Date(2026, 7, 14); // 14/08/2026
 
-function Harness() {
+function Harness({ invalidateOnPartial = false }: { invalidateOnPartial?: boolean }) {
   const [value, setValue] = useState<Date | undefined>(undefined);
   return (
     <>
-      <MaskedDateInput value={value} onChange={setValue} today={TODAY} aria-label="Fecha" />
+      <MaskedDateInput value={value} onChange={setValue} today={TODAY} aria-label="Fecha" invalidateOnPartial={invalidateOnPartial} />
       <output data-testid="out">{value ? value.toDateString() : "vacío"}</output>
     </>
   );
@@ -90,12 +90,14 @@ describe("MaskedDateInput", () => {
   });
 
   // §3.4 auditoría v2: la captura parcial ya no conserva en silencio la fecha previa.
-  it("captura parcial limpia el valor y avisa al salir del campo", () => {
-    render(<Harness />);
+  it("opt-in parcial invalida antes de blur y avisa al salir del campo", () => {
+    render(<Harness invalidateOnPartial />);
     type("15092026");
     expect(out()).toBe(new Date(2026, 8, 15).toDateString());
 
     fireEvent.change(input(), { target: { value: "1509" } });
+    expect(out()).toBe("vacío");
+    expect(input().value).toBe("15/09");
     fireEvent.blur(input());
     expect(out()).toBe("vacío");
     expect(screen.getByText("Fecha incompleta (DD/MM/AAAA)")).toBeInTheDocument();

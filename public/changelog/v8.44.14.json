@@ -1,0 +1,12 @@
+{
+  "version": "8.44.14",
+  "date": "2026-10-19",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Volver conserva el origen después de saltar al contenido",
+  "description": "Saltar al contenido conserva el contexto de navegación y mueve el foco al contenido principal.",
+  "changes": [
+    "Volver desde una factura al cliente y al listado conserva los filtros y el fragmento original, incluso después de usar Saltar al contenido.",
+    "El enlace mantiene la ruta y los parámetros actuales, y permite enfocar el contenido principal sin agregarlo al recorrido de Tab."
+  ]
+}

@@ -1,0 +1,25 @@
+
+ RUN  v4.1.11 C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-payment-date
+
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts (16 tests) 83ms
+ Γ£ô src/features/invoices/components/invoices/__tests__/RecordPaymentDialogDate.test.tsx (9 tests) 1846ms
+     Γ£ô does not submit the previous valid date after impossible input  417ms
+     Γ£ô reopening discards invalid capture and restores today's valid date  316ms
+ Γ£ô src/components/forms/__tests__/FormDialog.test.tsx (8 tests) 411ms
+ Γ£ô src/components/forms/__tests__/MaskedDateInput.test.tsx (10 tests) 167ms
+ Γ£ô src/features/maintenance/components/maintenance/__tests__/MaintenanceFormDialog.dateCapture.test.tsx (3 tests) 1237ms
+     Γ£ô conserva la captura imposible (fecha previa cambiada: false)  570ms
+     Γ£ô conserva la captura imposible (fecha previa cambiada: true)  321ms
+     Γ£ô conserva vac├¡o el pr├│ximo servicio opcional despu├⌐s de borrar una fecha capturada  341ms
+ Γ£ô src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.blocks.test.ts (4 tests) 47ms
+ Γ£ô src/components/forms/fields/__tests__/DateField.error.test.tsx (3 tests) 275ms
+ Γ£ô src/features/invoices/components/invoice-detail/__tests__/EditPaymentDialogCurrency.test.tsx (4 tests) 560ms
+ Γ£ô src/components/forms/__tests__/DatePickerField.test.tsx (3 tests) 425ms
+     Γ£ô abre el mes seleccionado, deja navegar y vuelve a la selecci├│n al reabrir  333ms
+
+ Test Files  9 passed (9)
+      Tests  60 passed (60)
+   Start at  00:14:37
+   Duration  78.48s (transform 2.31s, setup 6.30s, import 52.53s, tests 5.05s, environment 10.73s)
+
+JSON report written to C:/Users/torta/Documents/Codex/2026-10-18/task-2/r2-payment-date/docs/audits/2026-10-19/r2-payment-date/related.json

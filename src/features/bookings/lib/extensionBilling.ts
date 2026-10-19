@@ -117,6 +117,7 @@ export function buildExtensionLineItems({
   const serieSuffix = serialNumber ? ` (Serie: ${serialNumber})` : "";
   return items.map((item) => ({
     ...item,
+    line_kind: "rental",
     description: `${prefix}Extensión: ${item.description} (${range.start} al ${range.end})${serieSuffix}`,
   }));
 }
