@@ -1,10 +1,12 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import "@/features/auth/recoveryCapture";
+import { startRecoveryCapture } from "@/features/auth/recoveryCapture";
 import { supabase } from "@/integrations/supabase/client";
 import { dismissAuthError } from "@/lib/ui/appFeedback";
 import type { User, Session } from "@supabase/supabase-js";
 
+// A named, executed bootstrap cannot be discarded by package.sideEffects.
+startRecoveryCapture();
 
 interface AuthContextValue {
   user: User | null;

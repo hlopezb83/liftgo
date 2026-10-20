@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { useQuotes } from "../useQuotes";
 
 const db = vi.hoisted(() => ({ getSession: vi.fn(), from: vi.fn(), result: vi.fn() }));
-vi.mock("@/features/auth/recoveryCapture", () => ({}));
+vi.mock("@/features/auth/recoveryCapture", () => ({ startRecoveryCapture: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: {
   auth: { getSession: db.getSession }, from: db.from,
 } }));

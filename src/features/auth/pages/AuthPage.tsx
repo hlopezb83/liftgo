@@ -14,8 +14,14 @@ import {
 } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
 import { useRecoveryStatus } from "../hooks/useRecoveryStatus";
-import { endRecovery, getRecoveryUserId } from "../recoverySession";
+import { completeRecovery, endRecovery, getRecoveryIdentityKey, getRecoveryUserId, type RecoveryStatus } from "../recoverySession";
 import { AuthCardHeader, AuthModeLinks, RecoveryNotice } from "./AuthPageParts";
+
+function recoveryNoticeStatus(recovery: RecoveryStatus, sessionMatches: boolean): "pending" | "error" | null {
+  if (recovery === "error") return "error";
+  if (recovery === "pending" || (recovery === "active" && !sessionMatches)) return "pending";
+  return null;
+}
 
 export default function AuthPage({ platform = false, destination = "/platform" }: { platform?: boolean; destination?: string }) {
   const { user, signIn, signOut, resetPassword, updatePassword } = useAuth();
@@ -72,8 +78,12 @@ export default function AuthPage({ platform = false, destination = "/platform" }
   const recoverySessionMatches =
     recovery === "active" && !!user && user.id === getRecoveryUserId();
   const canSubmitReset = recoverySessionMatches;
+  const noticeStatus = recoveryNoticeStatus(recovery, recoverySessionMatches);
 
   const cancelRecovery = async () => {
+    // The capture listener can run before AuthProvider publishes that session.
+    // Never dismiss a confirmed flow in that short identity-sync window.
+    if (recovery === "active" && !recoverySessionMatches) return;
     setPassword("");
     // Sólo se cierra la sesión cuando ES la de recuperación (`active`).
     // Con `pending`/`error` puede haber una sesión ajena previa: no se toca.
@@ -93,9 +103,15 @@ export default function AuthPage({ platform = false, destination = "/platform" }
     }
     if (mode === "reset") {
       if (!canSubmitReset) return;
+      const submittedIdentity = getRecoveryIdentityKey();
       const { error } = await updatePassword(password);
       if (error) {
         notifyAuthError({ error, title: "No pudimos guardar la contraseña" });
+        return;
+      }
+      if (!completeRecovery(submittedIdentity)) {
+        setPassword("");
+        notifyAuthError({ error: new Error("La sesión cambió durante la actualización. Revisa la cuenta actual antes de continuar."), title: "La sesión cambió" });
         return;
       }
       notifySuccess("Contraseña actualizada");
@@ -135,9 +151,9 @@ export default function AuthPage({ platform = false, destination = "/platform" }
             platform={platform}
           />
           <CardContent>
-            {recovery === "error" || recovery === "pending" ? (
+            {noticeStatus ? (
               <RecoveryNotice
-                status={recovery}
+                status={noticeStatus}
                 onRequestNew={() => {
                   finishRecovery("forgot");
                 }}
