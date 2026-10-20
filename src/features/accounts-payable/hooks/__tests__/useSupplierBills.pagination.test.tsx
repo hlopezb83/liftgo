@@ -23,6 +23,7 @@ function createPagedQuery(table: "supplier_bills" | "supplier_payments") {
   let pageEnd = -1;
   builder.select = vi.fn(() => builder);
   builder.order = vi.fn(() => builder);
+  builder.abortSignal = vi.fn(() => builder);
   builder.range = vi.fn((from: number, to: number) => {
     pageStart = from;
     pageEnd = to;
