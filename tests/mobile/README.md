@@ -8,8 +8,10 @@ ficticio validado y Chromium instalado por la acción existente.
 
 ## Cobertura
 
-- Acceso de empleados y portal: mostrar/ocultar contraseña, recuperación sin
-  enviar correo, volver al acceso y segunda hidratación tras recargar.
+- Acceso de empleados: mostrar/ocultar contraseña. Portal: contraseña editable
+  y enmascarada, sin exigir el toggle que esa pantalla no ofrece. Ambos validan
+  campos y botones dentro del ancho del viewport, recuperación sin enviar correo, volver
+  al acceso y segunda hidratación tras recargar.
 - Listas con tarjetas ficticias no vacías de reservas, entregas y devoluciones;
   enlaces enfocables y ausencia de desbordamiento horizontal en documento y
   contenedor principal.
