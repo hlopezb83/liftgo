@@ -1,9 +1,12 @@
 import { supabase } from "@/integrations/supabase/client";
+import { rememberedRecoveryPhase, rememberRecoverySession, recoverySessionIdentity, type RecoveryAuthSession } from "./recoveryPersistence";
 import {
   detectRecoveryCodeFromHref,
   getRecoveryStatus,
+  hasRecoveryCallbackToken,
   markRecoveryActive,
   markRecoveryError,
+  matchesRecoveryCallback,
   stripRecoveryCodeFromUrl,
   syncRecoverySessionUser,
 } from "./recoverySession";
@@ -12,11 +15,11 @@ import {
  * AUTH-REC-01 / P1 — captura TEMPRANA del evento `PASSWORD_RECOVERY`.
  *
  * El SDK puede emitir el evento antes de que React monte cualquier listener,
- * y entonces se perdía. Esta suscripción se registra al importar el módulo
- * (lo hace `AuthContext`, que entra en el grafo antes de renderizar).
+ * y entonces se perdía. `AuthContext` llama explícitamente al bootstrap antes
+ * de renderizar; no depende de que el build conserve imports de side effects.
  *
- * Sólo se conserva estado mínimo en memoria: ni tokens, ni logs, ni red
- * adicional. Tampoco se llama al SDK desde dentro del callback, para no
+ * Se conserva sólo identidad de sesión y estado de finalización para sobrevivir
+ * recargas: ni tokens, ni logs, ni red adicional. No se llama al SDK desde el callback, para no
  * bloquear su lock interno.
  */
 let started = false;
@@ -34,7 +37,7 @@ export function isFreshRecoveryToken(token: string | null | undefined, nowMs = D
     const amr = (JSON.parse(json) as { amr?: Array<{ method?: string; timestamp?: number }> }).amr;
     if (!Array.isArray(amr)) return false;
     const nowS = nowMs / 1000;
-    return amr.some((m) => m?.method === "recovery" && typeof m.timestamp === "number" && nowS - m.timestamp <= RECOVERY_TOKEN_MAX_AGE_S);
+    return amr.some((m) => m?.method === "recovery" && typeof m.timestamp === "number" && nowS >= m.timestamp && nowS - m.timestamp <= RECOVERY_TOKEN_MAX_AGE_S);
   } catch {
     return false;
   }
@@ -56,7 +59,7 @@ export function exchangeRecoveryCodeFromUrl(): void {
     supabase.auth as unknown as {
       exchangeCodeForSession?: (
         code: string,
-      ) => Promise<{ data?: { session?: { user?: { id?: string } } | null }; error?: unknown }>;
+      ) => Promise<{ data?: { session?: RecoveryAuthSession }; error?: unknown }>;
     }
   ).exchangeCodeForSession;
   if (typeof exchange !== "function") return;
@@ -69,6 +72,7 @@ export function exchangeRecoveryCodeFromUrl(): void {
         markRecoveryError();
         return;
       }
+      rememberRecoverySession(data?.session ?? null);
       if (getRecoveryStatus() !== "active") markRecoveryActive(userId);
     })
     .catch(() => {
@@ -77,20 +81,25 @@ export function exchangeRecoveryCodeFromUrl(): void {
 }
 
 type AuthChangeEvent = string;
-type AuthSession = { user?: { id?: string } | null; access_token?: string } | null;
+type AuthSession = RecoveryAuthSession;
 
 // AUTH-REC-03: el SDK puede procesar el enlace (#access_token) y emitir
 // `PASSWORD_RECOVERY` antes de esta suscripción; entonces sólo llega
-// INITIAL_SESSION/SIGNED_IN. Se confirma únicamente si el token nuevo
-// declara un inicio por recuperación reciente (no una sesión previa).
+// INITIAL_SESSION/SIGNED_IN. Se confirma con la identidad del callback o la
+// continuidad de la MISMA sesión; un código pendiente necesita su canje.
 function isLateRecoveryEvent(event: AuthChangeEvent, session: AuthSession): boolean {
-  return (event === "INITIAL_SESSION" || event === "SIGNED_IN") &&
-    getRecoveryStatus() === "pending" &&
-    isFreshRecoveryToken(session?.access_token);
+  if (!["INITIAL_SESSION", "SIGNED_IN", "TOKEN_REFRESHED"].includes(event)) return false;
+  if (getRecoveryStatus() === "error") return false;
+  if (!matchesRecoveryCallback(session)) return false;
+  const phase = rememberedRecoveryPhase(session);
+  if (phase === "completed") return false;
+  return phase === "unfinished" ||
+    ((getRecoveryStatus() === "idle" || hasRecoveryCallbackToken()) && isFreshRecoveryToken(session?.access_token));
 }
 
 function handleAuthStateChange(event: AuthChangeEvent, session: AuthSession): void {
   if (event === "PASSWORD_RECOVERY") {
+    rememberRecoverySession(session);
     markRecoveryActive(session?.user?.id);
     return;
   }
@@ -98,12 +107,13 @@ function handleAuthStateChange(event: AuthChangeEvent, session: AuthSession): vo
   // SDK; no debe invalidar una recuperación ya confirmada.
   if (event === "INITIAL_SESSION" && !session) return;
   if (isLateRecoveryEvent(event, session)) {
+    rememberRecoverySession(session);
     markRecoveryActive(session?.user?.id);
     return;
   }
   // Cambio de usuario o cierre de sesión: el flujo activo deja de valer.
   // Un refresco de token del mismo usuario lo mantiene intacto.
-  syncRecoverySessionUser(session?.user?.id ?? null);
+  syncRecoverySessionUser(session?.user?.id ?? null, recoverySessionIdentity(session)?.sessionId);
 }
 
 export function startRecoveryCapture(): void {

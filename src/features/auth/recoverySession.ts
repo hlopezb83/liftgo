@@ -1,3 +1,5 @@
+import { activeRecoverySessionId, completeRememberedRecovery, recoverySessionIdentity, type RecoveryAuthSession } from "./recoveryPersistence";
+
 /**
  * AUTH-REC-01 — estado explícito del flujo "restablecer contraseña".
  *
@@ -6,14 +8,16 @@
  * hacía que `AuthGuard` dejara de renderizar `AuthPage` (el formulario de
  * nueva contraseña desaparecía). Este store vive fuera de React: se marca
  * `pending` en el arranque en frío leyendo la URL, y sólo pasa a `active`
- * cuando el SDK emite `PASSWORD_RECOVERY`.
+ * cuando el SDK confirma la recuperación. La continuidad tras recargar se
+ * vincula al usuario y session_id confirmados, nunca a "hay una sesión".
  *
  * P1: una sesión cualquiera (por ejemplo la de otro usuario que ya estaba
  * abierta) NO confirma la recuperación. auth-js 2.115.0 conserva la sesión
  * previa cuando el enlace es inválido, así que confirmar por "hay sesión"
  * permitía cambiar la contraseña de una cuenta ajena.
  *
- * Nunca se guardan ni se registran tokens: sólo el tipo de enlace.
+ * Nunca se guardan ni se registran tokens adicionales: sólo identidad y fase
+ * del flujo. Este gate es de UI, no una restricción de permisos del backend.
  */
 export type RecoveryStatus = "idle" | "pending" | "active" | "error";
 
@@ -29,6 +33,17 @@ let status: RecoveryStatus = "idle";
  * la sesión ajena.
  */
 let recoveryUserId: string | null = null;
+// Only identity claims are retained, never the incoming bearer token. `null`
+// means an incoming token could not be identified, `undefined` means no token.
+let callbackSessionId: string | null | undefined;
+let callbackHasCode = false;
+
+export function matchesRecoveryCallback(session: RecoveryAuthSession): boolean {
+  return !callbackHasCode && (callbackSessionId === undefined ||
+    (callbackSessionId !== null && recoverySessionIdentity(session)?.sessionId === callbackSessionId));
+}
+
+export function hasRecoveryCallbackToken(): boolean { return callbackSessionId !== undefined; }
 const listeners = new Set<() => void>();
 let pendingTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -93,9 +108,10 @@ export function getRecoveryUserId(): string | null {
  * MISMO usuario no rompe nada; cerrar sesión o cambiar de usuario invalida el
  * flujo activo (el formulario deja de ser utilizable) sin tocar esa sesión.
  */
-export function syncRecoverySessionUser(userId: string | null | undefined): void {
+export function syncRecoverySessionUser(userId: string | null | undefined, sessionId?: string): void {
   if (status !== "active") return;
-  if (userId && userId === recoveryUserId) return;
+  const activeSessionId = recoveryUserId ? activeRecoverySessionId(recoveryUserId) : null;
+  if (userId && userId === recoveryUserId && (!sessionId || !activeSessionId || sessionId === activeSessionId)) return;
   recoveryUserId = null;
   set("error");
 }
@@ -108,13 +124,31 @@ export function markRecoveryError(): void {
 /** Fin del flujo (éxito o cancelación). */
 export function endRecovery(): void {
   recoveryUserId = null;
+  callbackSessionId = undefined;
+  callbackHasCode = false;
   set("idle");
+}
+
+/** Snapshot before an async password update; a later account must not finish it. */
+export function getRecoveryIdentityKey(): string | null {
+  return status === "active" && recoveryUserId
+    ? JSON.stringify([recoveryUserId, activeRecoverySessionId(recoveryUserId)]) : null;
+}
+
+/** Record completion only for the exact flow that submitted the update. */
+export function completeRecovery(expectedIdentity = getRecoveryIdentityKey()): boolean {
+  if (!expectedIdentity || expectedIdentity !== getRecoveryIdentityKey()) return false;
+  completeRememberedRecovery(recoveryUserId);
+  endRecovery();
+  return true;
 }
 
 /** Sólo para pruebas: vuelve el store a su estado inicial. */
 export function resetRecoveryForTests(): void {
   clearPendingTimer();
   recoveryUserId = null;
+  callbackSessionId = undefined;
+  callbackHasCode = false;
   status = "idle";
   for (const l of listeners) l();
 }
@@ -205,6 +239,14 @@ export function stripRecoveryCodeFromUrl(): void {
 export function initRecoveryFromLocation(href?: string): void {
   const target = href ?? (typeof window !== "undefined" ? window.location.href : "");
   if (!target) return;
+  try {
+    const url = new URL(target, "http://localhost");
+    callbackHasCode = !!detectRecoveryCodeFromHref(target);
+    const hash = new URLSearchParams(url.hash.slice(1));
+    if (hash.has("access_token")) {
+      callbackSessionId = recoverySessionIdentity({ user: { id: "callback" }, access_token: hash.get("access_token") ?? "" })?.sessionId ?? null;
+    }
+  } catch { /* classification below handles malformed URLs */ }
   const detected = detectRecoveryFromHref(target);
   if (detected === "pending") markRecoveryPending();
   else if (detected === "error") markRecoveryError();

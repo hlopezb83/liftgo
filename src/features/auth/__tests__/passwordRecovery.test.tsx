@@ -230,6 +230,22 @@ describe("AUTH-REC-01 — recuperación de contraseña", () => {
     expect(getRecoveryStatus()).toBe("idle");
   });
 
+  it("un updateUser tardío de A no completa la nueva recuperación de B", async () => {
+    let resolveUpdate: ((result: { error: null }) => void) | undefined;
+    h.updateUser.mockImplementationOnce(() => new Promise((resolve) => { resolveUpdate = resolve; }));
+    emit("PASSWORD_RECOVERY", SESSION);
+    renderApp();
+    const input = await screen.findByLabelText("Nueva contraseña");
+    fireEvent.change(input, { target: { value: "nuevaClave123" } });
+    fireEvent.click(screen.getByTestId("auth-submit"));
+    await waitFor(() => expect(h.updateUser).toHaveBeenCalled());
+    emit("PASSWORD_RECOVERY", FOREIGN_SESSION);
+    await act(async () => { resolveUpdate?.({ error: null }); });
+    expect(getRecoveryStatus()).toBe("active");
+    expect(screen.queryByText("Contenido ERP")).toBeNull();
+    expect(screen.getByLabelText("Nueva contraseña")).toHaveValue("");
+  });
+
   it("cancelar cierra la sesión de recuperación y vuelve al login", async () => {
     initRecoveryFromLocation("http://localhost/auth#type=recovery");
     emit("PASSWORD_RECOVERY", SESSION);

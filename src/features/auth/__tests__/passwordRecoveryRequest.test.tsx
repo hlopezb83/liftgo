@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const reset = vi.hoisted(() => vi.fn().mockResolvedValue({ error: null }));
-vi.mock("@/features/auth/recoveryCapture", () => ({}));
+vi.mock("@/features/auth/recoveryCapture", () => ({ startRecoveryCapture: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: {
   resetPasswordForEmail: reset,
   onAuthStateChange: () => ({ data: { subscription: { unsubscribe: vi.fn() } } }),

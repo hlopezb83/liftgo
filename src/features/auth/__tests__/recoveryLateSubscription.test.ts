@@ -10,22 +10,25 @@ const { isFreshRecoveryToken } = await import("../recoveryCapture");
 
 function token(amr: unknown) {
   const b = (o: unknown) => btoa(JSON.stringify(o)).replace(/=+$/, "");
-  return `${b({ alg: "HS256" })}.${b({ amr })}.firma`;
+  return `${b({ alg: "HS256" })}.${b({ amr, session_id: "synthetic-session" })}.firma`;
 }
 const now = Math.floor(Date.now() / 1000);
 
 describe("AUTH-REC-03: PASSWORD_RECOVERY perdido", () => {
-  beforeEach(() => resetRecoveryForTests());
+  beforeEach(() => {
+    localStorage.clear();
+    resetRecoveryForTests();
+  });
 
   it("confirma con la sesión inicial si el token es de recuperación reciente", () => {
-    initRecoveryFromLocation("http://localhost/auth?type=recovery#access_token=x&type=recovery");
+    initRecoveryFromLocation(`http://localhost/auth?type=recovery#access_token=${token([{ method: "recovery", timestamp: now }])}&type=recovery`);
     expect(getRecoveryStatus()).toBe("pending");
     h.listener?.("INITIAL_SESSION", { access_token: token([{ method: "recovery", timestamp: now }]), user: { id: "u1" } });
     expect(getRecoveryStatus()).toBe("active");
   });
 
   it("una sesión previa de contraseña no confirma la recuperación", () => {
-    initRecoveryFromLocation("http://localhost/auth?type=recovery#access_token=x&type=recovery");
+    initRecoveryFromLocation(`http://localhost/auth?type=recovery#access_token=${token([{ method: "recovery", timestamp: now }])}&type=recovery`);
     h.listener?.("INITIAL_SESSION", { access_token: token([{ method: "password", timestamp: now }]), user: { id: "u1" } });
     expect(getRecoveryStatus()).toBe("pending");
   });

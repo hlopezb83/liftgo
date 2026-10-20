@@ -43,6 +43,8 @@ export const inviteUserFn = createServerFn({ method: "POST" })
 
     const { email, full_name, password } = data;
     validateInviteInput(g, data);
+    const { getInviteRecoveryRedirect } = await import("./server/recoveryRedirect.server");
+    const redirectTo = getInviteRecoveryRedirect(password);
 
     // AUTH-001 / B-2: unicidad de email con comparación exacta en minúsculas.
     const emailLc = email.toLowerCase();
@@ -91,6 +93,7 @@ export const inviteUserFn = createServerFn({ method: "POST" })
       const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
         type: "recovery",
         email,
+        options: { redirectTo },
       });
       if (linkErr) console.error("[invite-user] generateLink:", linkErr.message);
       recoveryLink = linkData?.properties?.action_link ?? null;
@@ -185,9 +188,11 @@ export const resetUserPasswordFn = createServerFn({ method: "POST" })
       throw new g.HttpError(404, "No se encontró el usuario. Actualiza la lista.");
     }
 
+    const { getRecoveryRedirect } = await import("./server/recoveryRedirect.server");
     const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
       type: "recovery",
       email: userData.user.email,
+      options: { redirectTo: getRecoveryRedirect() },
     });
     if (linkErr || !linkData?.properties?.action_link) {
       console.error("[reset-user-password] generateLink failed", {
