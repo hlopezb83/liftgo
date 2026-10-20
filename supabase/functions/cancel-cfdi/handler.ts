@@ -27,6 +27,14 @@ const VALID_SAT_STATUSES = [
   "rejected",
   "expired",
 ];
+const CANCELLATION_WARNINGS: Record<string, string> = {
+  pending:
+    "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar.",
+  rejected:
+    "La solicitud de cancelación fue rechazada. La factura sigue vigente.",
+  expired:
+    "La solicitud de cancelación venció. La factura sigue vigente; consulta su estado antes de solicitar nuevamente la cancelación.",
+};
 
 export interface CancelCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
@@ -358,9 +366,7 @@ export async function handleCancelCfdi(
         stub: isStub,
         cancellation_status: satStatus,
         accepted: isAccepted,
-        warning: !isAccepted
-          ? "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar."
-          : undefined,
+        warning: CANCELLATION_WARNINGS[satStatus],
       },
       200,
     );

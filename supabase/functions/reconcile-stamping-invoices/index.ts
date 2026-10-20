@@ -639,17 +639,56 @@ export async function handleRequest(req: Request): Promise<Response> {
         break;
       }
       const paymentId = p.id as string;
-      if (
-        !(await claimRow(
-          "payments",
-          paymentId,
-          "rep_stamping_started_at",
-          p.rep_stamping_started_at,
-        ))
-      ) {
-        results.push({ invoice_id: paymentId, status: "claimed_by_other_run" });
+      // Keep a claim token for every subsequent state write. A stale worker
+      // must not overwrite a payment that another worker has since recovered.
+      const claimedAt = new Date().toISOString();
+      const { data: claimedPayment, error: claimError } = await admin
+        .from("payments")
+        .update({ rep_stamping_started_at: claimedAt })
+        .eq("id", paymentId)
+        .eq("organization_id", p.organization_id)
+        .eq("rep_cfdi_status", "stamping")
+        .eq("rep_stamping_started_at", p.rep_stamping_started_at)
+        .select("id")
+        .maybeSingle();
+      if (claimError || !claimedPayment) {
+        results.push({
+          invoice_id: paymentId,
+          status: claimError ? "rep_persistence_error" : "claimed_by_other_run",
+          ...(claimError ? { error: claimError.message } : {}),
+        });
         continue;
       }
+
+      const persistRepState = async (
+        patch: Record<string, unknown>,
+        operation: string,
+      ): Promise<boolean> => {
+        try {
+          const { data, error } = await admin.from("payments")
+            .update(patch)
+            .eq("id", paymentId)
+            .eq("organization_id", p.organization_id)
+            .eq("rep_cfdi_status", "stamping")
+            .eq("rep_stamping_started_at", claimedAt)
+            .select("id")
+            .maybeSingle();
+          if (!error && data) return true;
+          results.push({
+            invoice_id: paymentId,
+            status: "rep_persistence_error",
+            error: error?.message ?? `REP ${operation} update affected no rows`,
+          });
+        } catch (err) {
+          results.push({
+            invoice_id: paymentId,
+            status: "rep_persistence_error",
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+        // Do not release the claim or report a transition unless persisted.
+        return false;
+      };
 
       let facturapiId = p.rep_facturapi_id as string | null;
       let repUuid = p.rep_cfdi_uuid as string | null;
@@ -672,44 +711,26 @@ export async function handleRequest(req: Request): Promise<Response> {
         if (outcome.kind === "recover") {
           facturapiId = outcome.facturapi_id;
           repUuid = outcome.uuid;
-          const { data: savedIds, error: idsError } = await admin.from(
-            "payments",
-          )
-            .update({
-              rep_facturapi_id: facturapiId,
-              rep_cfdi_uuid: repUuid,
-              rep_lookup_attempts: 0, // racha de misses consecutivos: reset
-            })
-            .eq("id", paymentId)
-            .select("id")
-            .maybeSingle();
-          // Un error de Supabase resuelve la promesa; no entra en catch.
-          // Mantener el claim en stamping: el REP ya existe en el PAC y no
-          // debemos finalizar ni habilitar otra emisión sin guardar sus IDs.
-          if (idsError || !savedIds) {
-            results.push({
-              invoice_id: paymentId,
-              status: "rep_persistence_error",
-              error: idsError?.message ??
-                "REP identifier update affected no rows",
-            });
-            continue;
-          }
+          if (!(await persistRepState({
+            rep_facturapi_id: facturapiId,
+            rep_cfdi_uuid: repUuid,
+            rep_lookup_attempts: 0,
+          }, "identifier"))) continue;
         } else if (outcome.kind === "pending") {
-          await admin.from("payments").update({
+          if (!(await persistRepState({
             rep_facturapi_id: outcome.facturapi_id,
             rep_error_message:
               "Facturapi aceptó el REP; timbrado pendiente de resolución.",
-          }).eq("id", paymentId);
+          }, "pending state"))) continue;
           results.push({ invoice_id: paymentId, status: "rep_pac_pending" });
           continue;
         } else if (outcome.kind === "manual_review") {
-          await admin.from("payments").update({
+          if (!(await persistRepState({
             rep_facturapi_id: outcome.facturapi_id,
             rep_cfdi_status: "error",
             rep_error_message:
               "Facturapi confirmó fallo del REP. Revisar el comprobante antes de volver a emitir.",
-          }).eq("id", paymentId);
+          }, "manual review state"))) continue;
           results.push({
             invoice_id: paymentId,
             status: "rep_pac_failed_manual_review",
@@ -718,9 +739,9 @@ export async function handleRequest(req: Request): Promise<Response> {
         } else if (outcome.kind === "defer") {
           // N9: solo un miss REAL incrementa el contador; lookup_failed no.
           if (outcome.consume_attempt) {
-            await admin.from("payments")
-              .update({ rep_lookup_attempts: (lookupAttempts ?? 0) + 1 })
-              .eq("id", paymentId);
+            if (!(await persistRepState({
+              rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
+            }, "lookup attempt"))) continue;
           }
           // PAC no respondió o aún no indexa: reintentar el próximo ciclo.
           results.push({
@@ -732,15 +753,13 @@ export async function handleRequest(req: Request): Promise<Response> {
           // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
           // PAC respondiendo (antes: al primer miss → re-timbrado → CFDI
           // tipo P duplicado ante el SAT).
-          await admin.from("payments")
-            .update({
-              rep_cfdi_status: "error",
-              rep_stamping_started_at: null,
-              rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
-              rep_error_message:
-                `Timbrado de REP interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
-            })
-            .eq("id", paymentId);
+          if (!(await persistRepState({
+            rep_cfdi_status: "error",
+            rep_stamping_started_at: null,
+            rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
+            rep_error_message:
+              `Timbrado de REP interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
+          }, "retry state"))) continue;
           results.push({
             invoice_id: paymentId,
             status: "rep_reverted_to_error",
@@ -811,9 +830,7 @@ export async function handleRequest(req: Request): Promise<Response> {
           const exhausted = decideXmlFailure(
             p.rep_stamping_attempts as number | null,
           ) === "mark_error";
-          const { data: savedXmlState, error: xmlStateError } = await admin
-            .from("payments")
-            .update({
+          if (!(await persistRepState({
               ...(exhausted
                 ? {
                   rep_cfdi_status: "stamped",
@@ -827,19 +844,7 @@ export async function handleRequest(req: Request): Promise<Response> {
                     `Reconcile: descarga de XML del REP falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
                 }),
               rep_stamping_attempts: attempts,
-            })
-            .eq("id", paymentId)
-            .select("id")
-            .maybeSingle();
-          if (xmlStateError || !savedXmlState) {
-            results.push({
-              invoice_id: paymentId,
-              status: "rep_persistence_error",
-              error: xmlStateError?.message ??
-                "REP XML state update affected no rows",
-            });
-            continue;
-          }
+            }, "XML state"))) continue;
           results.push({
             invoice_id: paymentId,
             status: exhausted
@@ -848,10 +853,7 @@ export async function handleRequest(req: Request): Promise<Response> {
           });
           continue;
         }
-        const { data: stampedPayment, error: stampError } = await admin.from(
-          "payments",
-        )
-          .update({
+        if (!(await persistRepState({
             rep_cfdi_status: "stamped",
             rep_stamping_started_at: null,
             rep_xml_url: xmlPath,
@@ -860,19 +862,7 @@ export async function handleRequest(req: Request): Promise<Response> {
             rep_lookup_attempts: 0,
             rep_stamping_attempts: 0,
             rep_xml_pending: false,
-          })
-          .eq("id", paymentId)
-          .select("id")
-          .maybeSingle();
-        if (stampError || !stampedPayment) {
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_persistence_error",
-            error: stampError?.message ??
-              "REP finalization update affected no rows",
-          });
-          continue;
-        }
+          }, "finalization"))) continue;
         // Tramo 8.1: recuperar pagos ya timbrados que quedaron SIN folio
         // interno. Siempre dentro de la organización del propio pago y de forma
         // idempotente (la RPC devuelve el folio existente si ya coincide).

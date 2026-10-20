@@ -51,7 +51,7 @@ const { handleRequest } = (await import(handlerPath)) as {
 
 type Write = Record<string, unknown>;
 function fixture(
-  fail: "ids" | "stamped" | "xml" | "none",
+  fail: "ids" | "stamped" | "xml" | "state" | "counter" | "claim" | "throw" | "none",
   noRow = false,
   attempts = 0,
   existingIds = false,
@@ -70,6 +70,7 @@ function fixture(
     rep_folio: 1,
   };
   const writes: Write[] = [];
+  const writeFilters: Write[] = [];
   const upload = vi.fn(async () => ({ error: null }));
   mocks.admin = {
     storage: { from: () => ({ upload }) },
@@ -86,7 +87,15 @@ function fixture(
             error: null,
           };
         writes.push({ ...patch });
+        writeFilters.push({ ...filters });
+        if (Object.entries(filters).some(([key, value]) => payment[key] !== value))
+          return { data: null, error: null };
+        if (fail === "throw" && "rep_facturapi_id" in patch)
+          throw new Error("injected transport failure");
         const fails =
+          (fail === "claim" && Object.keys(patch).length === 1 && "rep_stamping_started_at" in patch) ||
+          (fail === "state" && ("rep_cfdi_status" in patch || "rep_facturapi_id" in patch)) ||
+          (fail === "counter" && "rep_lookup_attempts" in patch) ||
           (fail === "ids" &&
             "rep_facturapi_id" in patch &&
             !("rep_cfdi_status" in patch)) ||
@@ -121,7 +130,7 @@ function fixture(
       return query;
     },
   };
-  return { payment, writes, upload };
+  return { payment, writes, writeFilters, upload };
 }
 async function reconcile() {
   const response = await handleRequest(
@@ -247,5 +256,139 @@ describe("REP reconciler persistence boundaries (actual handler, no network)", (
     expect(payment.rep_lookup_attempts).toBe(2);
     expect(writes).toHaveLength(1); // only the optimistic timestamp claim
     expect(mocks.xml).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("REP lookup transitions require acknowledged, owned persistence", () => {
+  const cases = [
+    ["pending", "rep_pac_pending", 2, "stamping"],
+    ["failed", "rep_pac_failed_manual_review", 2, "error"],
+    ["miss", "rep_reverted_to_error", 4, "error"],
+  ] as const;
+
+  it.each(cases)("does not report %s transition on DB error or zero rows", async (kind, _status, count) => {
+    for (const noRow of [false, true]) {
+      const { payment } = fixture("state", noRow);
+      payment.rep_lookup_attempts = count;
+      mocks.lookup.mockResolvedValue({ kind, facturapi_id: "pac-1" });
+      expect(await reconcile()).toEqual([
+        expect.objectContaining({ status: "rep_persistence_error" }),
+      ]);
+      expect(payment.rep_cfdi_status).toBe("stamping");
+      expect(payment.rep_stamping_started_at).not.toBeNull();
+      expect(payment.rep_facturapi_id).toBeNull();
+      expect(payment.rep_lookup_attempts).toBe(count);
+      expect(mocks.xml).not.toHaveBeenCalled();
+      expect(mocks.folio).not.toHaveBeenCalled();
+    }
+  });
+
+  it.each(cases)("reports %s only after persisting its transition", async (kind, status, count, nextState) => {
+    const { payment, writeFilters } = fixture("none");
+    payment.rep_lookup_attempts = count;
+    mocks.lookup.mockResolvedValue({ kind, facturapi_id: "pac-1" });
+    expect(await reconcile()).toEqual([expect.objectContaining({ status })]);
+    expect(payment.rep_cfdi_status).toBe(nextState);
+    expect(payment.rep_lookup_attempts).toBe(kind === "miss" ? count + 1 : count);
+    expect(payment.rep_facturapi_id).toBe(kind === "miss" ? null : "pac-1");
+    expect(writeFilters[1]).toEqual({
+      id: payment.id,
+      organization_id: payment.organization_id,
+      rep_cfdi_status: "stamping",
+      rep_stamping_started_at: expect.any(String),
+    });
+    expect(mocks.xml).not.toHaveBeenCalled();
+  });
+
+  it.each([false, true])("does not consume an unpersisted lookup miss (noRow=%s)", async (noRow) => {
+    const { payment } = fixture("counter", noRow);
+    mocks.lookup.mockResolvedValue({ kind: "miss" });
+    expect(await reconcile()).toEqual([expect.objectContaining({ status: "rep_persistence_error" })]);
+    expect(payment.rep_lookup_attempts).toBe(2);
+    expect(payment.rep_cfdi_status).toBe("stamping");
+  });
+
+  it.each(["pending", "failed", "miss", "hit"])("does not overwrite another worker's claim after %s lookup", async (kind) => {
+    const { payment } = fixture("none");
+    payment.rep_lookup_attempts = 4;
+    mocks.lookup.mockImplementation(async () => {
+      payment.rep_stamping_started_at = "2099-01-01T00:00:00.000Z";
+      return { kind, facturapi_id: "pac-1", uuid: "uuid-1" };
+    });
+    expect(await reconcile()).toEqual([expect.objectContaining({ status: "rep_persistence_error" })]);
+    expect(payment.rep_stamping_started_at).toBe("2099-01-01T00:00:00.000Z");
+    expect(payment.rep_cfdi_status).toBe("stamping");
+    expect(payment.rep_facturapi_id).toBeNull();
+    expect(payment.rep_lookup_attempts).toBe(4);
+    expect(mocks.xml).not.toHaveBeenCalled();
+  });
+
+  it("does not overwrite a terminal state set during document download", async () => {
+    const { payment } = fixture("none", false, 0, true);
+    mocks.xml.mockImplementation(async () => {
+      payment.rep_cfdi_status = "cancelled";
+      return "<xml />";
+    });
+    expect(await reconcile()).toEqual([expect.objectContaining({ status: "rep_persistence_error" })]);
+    expect(payment.rep_cfdi_status).toBe("cancelled");
+    expect(mocks.folio).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("REP sequential recovery invariants", () => {
+  it("preserves the claim on a thrown persistence error", async () => {
+    const { payment } = fixture("throw");
+    mocks.lookup.mockResolvedValue({ kind: "pending", facturapi_id: "pac-1" });
+    expect(await reconcile()).toEqual([expect.objectContaining({ status: "rep_persistence_error" })]);
+    expect(payment.rep_cfdi_status).toBe("stamping");
+    expect(payment.rep_facturapi_id).toBeNull();
+    expect(mocks.xml).not.toHaveBeenCalled();
+  });
+
+  it("recovers the same REP after uncertain lookup without consuming a miss", async () => {
+    const { payment } = fixture("none");
+    mocks.lookup.mockResolvedValueOnce({ kind: "lookup_failed" });
+    expect(await reconcile()).toEqual([expect.objectContaining({ status: "rep_lookup_deferred" })]);
+    expect(payment.rep_lookup_attempts).toBe(2);
+    expect(payment.rep_cfdi_status).toBe("stamping");
+    payment.rep_stamping_started_at = "2026-01-01T00:00:00.000Z";
+    expect(await reconcile()).toEqual([expect.objectContaining({ status: "rep_reconciled" })]);
+    expect(payment.rep_facturapi_id).toBe("pac-1");
+    expect(payment.rep_cfdi_status).toBe("stamped");
+    expect(mocks.xml).toHaveBeenCalledTimes(1);
+  });
+
+  it("retains four confirmed misses and enables retry only on persisted fifth miss", async () => {
+    const { payment } = fixture("none");
+    payment.rep_lookup_attempts = 0;
+    mocks.lookup.mockResolvedValue({ kind: "miss" });
+    for (let count = 1; count <= 5; count++) {
+      payment.rep_stamping_started_at = "2026-01-01T00:00:00.000Z";
+      expect(await reconcile()).toEqual([expect.objectContaining({
+        status: count < 5 ? "rep_lookup_deferred" : "rep_reverted_to_error",
+      })]);
+      expect(payment.rep_lookup_attempts).toBe(count);
+      expect(payment.rep_cfdi_status).toBe(count < 5 ? "stamping" : "error");
+    }
+    expect(payment.rep_stamping_started_at).toBeNull();
+    expect(mocks.xml).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("REP claim failure", () => {
+  it.each([false, true])("does not contact PAC without an acknowledged claim (noRow=%s)", async (noRow) => {
+    const { payment, writes } = fixture("claim", noRow);
+    expect(await reconcile()).toEqual([expect.objectContaining({
+      status: noRow ? "claimed_by_other_run" : "rep_persistence_error",
+    })]);
+    expect(payment.rep_stamping_started_at).toBe("2026-01-01T00:00:00.000Z");
+    expect(payment.rep_cfdi_status).toBe("stamping");
+    expect(writes).toHaveLength(1);
+    expect(mocks.lookup).not.toHaveBeenCalled();
+    expect(mocks.xml).not.toHaveBeenCalled();
+    expect(mocks.folio).not.toHaveBeenCalled();
   });
 });
