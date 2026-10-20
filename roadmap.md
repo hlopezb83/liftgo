@@ -1,5 +1,74 @@
 # Roadmap operativo y estado de evidencia
 
+## Mejoras futuras priorizadas (20 de octubre de 2026)
+
+Base revisada: `d37f0fde2640853ace2b54f675985e5393cd041b` (main, PR 308).
+Estas propuestas amplían producto o cobertura preventiva; no sustituyen la cola
+separada de bugs reproducidos ni implican implementación, despliegue o pruebas
+productivas completadas. Prioridad sugerida para planificación: alta primero,
+media después; sin fechas ni esfuerzo comprometidos. Se conserva abajo la
+evidencia histórica, que no certifica el estado actual.
+
+### Prioridad alta
+
+- [ ] **Proteger y recuperar reservas en captura.** Incorporar primero un aviso
+  fiable al salir o recargar; después evaluar borradores con restaurar/descartar,
+  caducidad y separación por usuario y empresa. Revalidar disponibilidad antes
+  de guardar una reserva recuperada. Evidencia: [BookingForm](src/features/bookings/pages/BookingForm.tsx)
+  navega directamente al cancelar y [useBookingFormState](src/features/bookings/hooks/bookingForm/useBookingFormState.ts)
+  mantiene la captura en memoria. Los cambios mediante `setValue` de fechas,
+  cliente y equipo no bastan para activar `isDirty`: no conectar sólo un guard
+  al indicador actual. Aceptación: cambios reales en esos campos activan la
+  protección; salir, volver, recargar y descartar tienen resultados explícitos;
+  nunca se restaura un borrador de otro usuario o empresa. No existe promesa de
+  autosalvado verificada, por eso se registra como mejora.
+
+- [ ] **Comprobar equivalencia monetaria entre UI, Edge y SQL.** Añadir una matriz
+  de contratos con importes cercanos al medio centavo, porcentajes fraccionarios,
+  notas de crédito parciales y pagos en monedas mixtas. Comparar resultados en
+  moneda de factura y errores ante tipos de cambio ausentes, no sólo probar cada
+  capa por separado. Evidencia: [invoiceTotals](src/lib/domain/invoiceTotals.ts),
+  [validador Edge de NC](supabase/functions/_shared/creditNoteSourceValidation.ts),
+  [límites de NC](src/features/invoices/lib/creditNoteLimits.ts) y
+  [sincronización SQL](drizzle/migrations/0103_canonical_payment_invoice_currency.sql).
+  Aceptación: los mismos fixtures producen importes y reglas equivalentes en
+  las tres capas, en entorno aislado sin timbrado. Las correcciones puntuales de
+  redondeo y moneda observadas en la auditoría pertenecen a la cola de bugs;
+  esta propuesta es cobertura preventiva adicional.
+
+- [ ] **Añadir smoke de UI publicada, anónimo y sin mutaciones.** Complementar
+  [prod-smoke.yml](.github/workflows/prod-smoke.yml), que hoy comprueba `HEAD /`
+  y `version.json`, con carga de `/` y `/portal/login`, assets, render y errores
+  de página, incluida recarga e interacción local que demuestre hidratación.
+  Reutilizar los criterios de [app-boot.spec.ts](tests/smoke/app-boot.spec.ts),
+  respetando los controles realmente disponibles en cada pantalla. Aceptación:
+  detecta chunks rotos o una interfaz que no arranca aunque el HTML responda;
+  bloquea peticiones mutantes y servicios externos, sin sesión, envíos de
+  formularios, correos ni datos reales. Es cobertura propuesta, no evidencia de
+  un fallo publicado ni activación de un monitor nuevo.
+
+### Prioridad media
+
+- [ ] **Explicar la falta de disponibilidad con una siguiente acción segura.**
+  Distinguir reserva incompatible, custodia vencida, mantenimiento, baja/archivo
+  e identidad de modelo cuando haya evidencia de la causa. El aviso actual de
+  [EquipmentAssignmentDialog](src/features/quotes/components/quotes/EquipmentAssignmentDialog.tsx)
+  sugiere liberar o cambiar el equipo a disponible sin explicar la restricción.
+  Aceptación: mostrar motivo verificable y ruta de resolución respetando permisos;
+  cuando falte evidencia, indicar que no se conoce la causa. Nunca proponer
+  marcar un equipo rentado como disponible para forzar una conversión. La
+  corrección del emparejamiento de modelos es un bug separado de esta mejora.
+
+- [ ] **Dar trazabilidad al saldo a favor del cliente.** Diseñar una cuenta
+  corriente por empresa y cliente con origen en NC/pago, moneda, movimientos,
+  aplicación a facturas y eventual devolución. Evidencia:
+  [computeMaxCreditable](src/features/invoices/lib/computeMaxCreditable.ts)
+  reconoce que todavía no existe flujo de reembolso. Aceptación propuesta:
+  reconstruir el saldo desde movimientos auditables, evitar doble aplicación y
+  conservar vínculo al documento y tipo de cambio aplicable. Definir antes las
+  reglas de aprobación, reversión y tratamiento contable/fiscal; la propuesta
+  no autoriza ejecutar devoluciones, mover dinero ni operar fuera de sandbox.
+
 ## Hallazgos Sentry de LiftGo (18 de octubre de 2026)
 
 - [x] LIFTGO-D: recuperación ante mensajes exactos de sesión rechazada; regresiones aisladas pasan. Esto no demuestra la causa original del token rechazado ni una solución publicada.
