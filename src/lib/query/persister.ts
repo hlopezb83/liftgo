@@ -123,14 +123,24 @@ export function shouldPersistQuery(query: Query): boolean {
  * devuelve un persister en memoria: nada se restaura ni se escribe en disco
  * antes de que la sesión y la organización estén resueltas.
  */
-export function createBrowserPersister(scope: string | null) {
+export function getBrowserStorage(): Storage | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage;
+  } catch {
+    console.warn("Query cache storage unavailable; using memory only.");
+    return null;
+  }
+}
+
+export function createBrowserPersister(scope: string | null, storage = getBrowserStorage()) {
   const inMemory = {
     getItem: () => null,
     setItem: () => undefined,
     removeItem: () => undefined,
   };
 
-  if (typeof window === "undefined" || !scope) {
+  if (!storage || !scope) {
     return createSyncStoragePersister({
       storage: inMemory,
       key: scope ? persistedCacheKey(scope) : `${PERSIST_KEY_PREFIX}:anonymous`,
@@ -138,9 +148,9 @@ export function createBrowserPersister(scope: string | null) {
     });
   }
 
-  purgeForeignPersistedCaches(window.localStorage, scope);
+  purgeForeignPersistedCaches(storage, scope);
   return createSyncStoragePersister({
-    storage: window.localStorage,
+    storage,
     key: persistedCacheKey(scope),
     throttleTime: 1000,
   });

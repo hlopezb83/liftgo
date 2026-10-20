@@ -2,7 +2,7 @@
  * Tramo 2 multiempresa: la caché (memoria y disco) queda separada por
  * identidad verificada y nunca se restaura antes de resolverla.
  */
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { dehydrate, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -128,6 +128,95 @@ describe("identidad de caché", () => {
     expect(screen.queryByText("Contenido protegido")).not.toBeInTheDocument();
     await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
     expect(qc.getQueryData(["forklifts", "list"])).toBeUndefined();
+  });
+
+  it("restaura sólo catálogos de la identidad verificada desde el SDK real", async () => {
+    setIdentity(USER_A, ORG_A);
+    const previous = new QueryClient();
+    previous.setQueryData(["forklifts", "list"], [{ id: "allowed" }]);
+    previous.setQueryData(["customers", "list"], [{ id: "private" }]);
+    window.localStorage.setItem(persistedCacheKey(scopeA), JSON.stringify({
+      timestamp: Date.now(),
+      buster: scopeA,
+      clientState: dehydrate(previous, { shouldDehydrateQuery: shouldPersistQuery }),
+    }));
+    const qc = new QueryClient();
+    renderTree(qc);
+    await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
+    expect(qc.getQueryData(["forklifts", "list"])).toEqual([{ id: "allowed" }]);
+    expect(qc.getQueryData(["customers", "list"])).toBeUndefined();
+    previous.clear();
+  });
+
+  it("una caché corrupta no bloquea el contenido protegido", async () => {
+    setIdentity(USER_A, ORG_A);
+    window.localStorage.setItem(persistedCacheKey(scopeA), "{invalid-json");
+    const qc = new QueryClient();
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      renderTree(qc);
+      await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
+      expect(window.localStorage.getItem(persistedCacheKey(scopeA))).toBeNull();
+      expect(qc.getQueryCache().getAll()).toHaveLength(0);
+    } finally {
+      error.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("almacenamiento bloqueado permite continuar sin restaurar otra identidad", async () => {
+    setIdentity(USER_A, ORG_A);
+    window.localStorage.setItem(persistedCacheKey(scopeB), "foreign-cache");
+    const qc = new QueryClient();
+    const get = vi.spyOn(window.localStorage, "getItem").mockImplementation(() => {
+      throw new DOMException("Storage disabled", "SecurityError");
+    });
+    const remove = vi.spyOn(window.localStorage, "removeItem").mockImplementation(() => {
+      throw new DOMException("Storage disabled", "SecurityError");
+    });
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      renderTree(qc);
+      await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
+      expect(qc.getQueryCache().getAll()).toHaveLength(0);
+      expect(warn).toHaveBeenCalledWith("Query cache restoration unavailable; using memory only.");
+    } finally {
+      get.mockRestore();
+      remove.mockRestore();
+      error.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("acceso denegado a localStorage no bloquea el contenido protegido", async () => {
+    setIdentity(USER_A, ORG_A);
+    const qc = new QueryClient();
+    const storage = vi.spyOn(window, "localStorage", "get").mockImplementation(() => {
+      throw new DOMException("Storage access disabled", "SecurityError");
+    });
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    try {
+      renderTree(qc);
+      await waitFor(() => expect(screen.getByText("Contenido protegido")).toBeInTheDocument());
+      expect(qc.getQueryCache().getAll()).toHaveLength(0);
+      expect(warn).toHaveBeenCalledWith("Query cache storage unavailable; using memory only.");
+    } finally {
+      storage.mockRestore();
+      warn.mockRestore();
+    }
+  });
+
+  it("desmontar antes de restaurar no borra ni restaura caché tardíamente", async () => {
+    setIdentity(USER_A, ORG_A);
+    const qc = new QueryClient();
+    const { unmount } = renderTree(qc);
+    unmount();
+    qc.setQueryData(["forklifts", "new-owner"], ["new-cache"]);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(qc.getQueryData(["forklifts", "new-owner"])).toEqual(["new-cache"]);
   });
 
   it("una respuesta tardía de la sesión anterior no vuelve a la caché", async () => {
