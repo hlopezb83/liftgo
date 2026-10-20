@@ -1,31 +1,19 @@
 import { useMemo } from "react";
 import { ORGANIZATION_WORKSPACE, usePlatformOperatorStatus } from "@/features/platform";
 import {
-  getRouteAccessLevel,
-  type AccessLevel,
-  type AppRole,
+  getNavigationAccessLevel,
   useRolePermissions,
   useUserRole,
 } from "@/features/users";
 import {
   NAV_GROUPS,
-  ALWAYS_VISIBLE_ROUTES,
   type NavGroup,
 } from "@/layouts/sidebar/navConfig";
 
-function getItemAccess(
-  perms: Record<string, Record<string, AccessLevel>> | undefined,
-  role: AppRole | undefined,
-  url: string,
-): AccessLevel {
-  if (!perms || !role) return "none";
-  if (ALWAYS_VISIBLE_ROUTES.includes(url)) return "full";
-  return getRouteAccessLevel(perms, role, url);
-}
-
 export function useVisibleNavGroups(): NavGroup[] {
-  const { data: role } = useUserRole();
-  const { data: perms } = useRolePermissions();
+  const { data: role, isError: roleError } = useUserRole();
+  const { data: permissionData, isError: permissionsError } = useRolePermissions();
+  const perms = roleError || permissionsError ? undefined : permissionData;
   // Tramo 9: los items de operación de plataforma sólo se muestran cuando el
   // servidor confirma al operador (fail-closed: sin dato = oculto).
   const { data: isPlatformOperator } = usePlatformOperatorStatus();
@@ -39,7 +27,7 @@ export function useVisibleNavGroups(): NavGroup[] {
         items: group.items.filter(
           (item) =>
             item.platformOperatorOnly ? isPlatformOperator === true :
-              getItemAccess(perms, role ?? undefined, item.url) !== "none",
+              getNavigationAccessLevel(perms, role ?? undefined, item.url) !== "none",
         ).map((item) => item.url === "/" && isPlatformOperator === true
           ? { ...item, destination: ORGANIZATION_WORKSPACE }
           : item),

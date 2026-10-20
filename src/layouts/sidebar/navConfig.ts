@@ -128,4 +128,4 @@ export const NAV_GROUPS: NavGroup[] = [
 // Items that bypass the permissions check
 // v7.226.0 · E2E-N8: quitar /audit y /activity del always-visible — ahora
 // se resuelven contra el módulo "Auditoría" en useRolePermissions.
-export const ALWAYS_VISIBLE_ROUTES = ["/changelog", "/help", "/mis-reportes", "/leaderboard"];
+export { ALWAYS_VISIBLE_ROUTES } from "@/features/users";
