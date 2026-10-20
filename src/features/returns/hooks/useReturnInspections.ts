@@ -71,6 +71,7 @@ export function useVoidReturnInspection() {
     // Solo listas: refrescar el detalle de la devolución borrada daba error 0 filas.
     invalidateKeys: [
       returnInspectionKeys.lists(), ["bookings"], ["forklifts"], ["status_logs"], ["deliveries"],
+      ["damage_records"],
       ["sidebar-badge-counts"], ["fleet"],
       operationSummaryKeys.dashboardStats.all, operationSummaryKeys.fleetLocations.all,
       operationSummaryKeys.forkliftLocation.all,

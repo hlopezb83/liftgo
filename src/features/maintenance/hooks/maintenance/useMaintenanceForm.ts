@@ -5,7 +5,7 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { canModifyMaintenance } from "../../lib/maintenanceAccess";
 import {
-  maintenanceFormSchema, initialMaintenanceForm, maintenanceLogToFormValues,
+  maintenanceFormSchema, buildInitialMaintenanceForm, maintenanceLogToFormValues,
   buildMaintenancePayload, type MaintenanceFormValues,
 } from "../../lib/maintenanceFormHelpers";
 import {
@@ -22,13 +22,13 @@ export function useMaintenanceForm(forkliftMap: ForkliftMap) {
   const updateLog = useUpdateMaintenanceLog();
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceFormSchema),
-    defaultValues: initialMaintenanceForm,
+    defaultValues: buildInitialMaintenanceForm(),
   });
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [availablePrompt, setAvailablePrompt] = useState<AvailablePrompt | null>(null);
 
-  const openCreate = () => { form.reset(initialMaintenanceForm); setEditingLogId(null); setDialogOpen(true); };
+  const openCreate = () => { form.reset(buildInitialMaintenanceForm()); setEditingLogId(null); setDialogOpen(true); };
 
   const openEdit = (log: MaintenanceLog) => {
     if (!canModifyMaintenance(log, true)) {
@@ -48,7 +48,7 @@ export function useMaintenanceForm(forkliftMap: ForkliftMap) {
           notifySuccess("Registro de mantenimiento actualizado");
           setDialogOpen(false);
           setEditingLogId(null);
-          form.reset(initialMaintenanceForm);
+          form.reset(buildInitialMaintenanceForm());
         },
       });
       return;
@@ -61,7 +61,7 @@ export function useMaintenanceForm(forkliftMap: ForkliftMap) {
         if (selectedForklift && selectedForklift.status === "maintenance") {
           setAvailablePrompt({ forkliftId: selectedForklift.id, forkliftName: selectedForklift.name });
         }
-        form.reset(initialMaintenanceForm);
+        form.reset(buildInitialMaintenanceForm());
       },
     });
   };

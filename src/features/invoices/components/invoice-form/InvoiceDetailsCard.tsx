@@ -1,5 +1,6 @@
 import { useWatch } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
+import { DateField } from "@/components/forms/fields/DateField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -80,12 +81,7 @@ export function InvoiceDetailsCard({
               <FormMessage />
             </FormItem>
           )} />
-          <FormField control={form.control} name="issueDate" render={({ field }) => (
-            <FormItem>
-              <DatePickerField label="Fecha de Factura" date={field.value} onSelect={(d) => field.onChange(d || new Date())} placeholder="Seleccionar fecha" />
-              <FormMessage />
-            </FormItem>
-          )} />
+          <DateField control={form.control} name="issueDate" label="Fecha de Factura" required />
           <FormField control={form.control} name="dueDate" render={({ field }) => (
             <FormItem>
               <DatePickerField label="Fecha de Vencimiento" date={field.value} onSelect={field.onChange} placeholder="Seleccionar fecha" />

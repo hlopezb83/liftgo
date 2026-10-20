@@ -26,10 +26,19 @@ export const deliverySchema = z.object({
       message: "Sin operador ni firma: escribe quién autorizó o por qué se registra así",
     });
   }
-  // La fecha pasada sólo es válida si se registra como completada.
-  if (values.alreadyCompleted) return;
   const day = new Date(values.scheduledDate); day.setHours(0, 0, 0, 0);
   const today = nowMty(); today.setHours(0, 0, 0, 0);
+  if (values.alreadyCompleted) {
+    if (day.getTime() > today.getTime()) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["scheduledDate"],
+        message: "La fecha real de un transporte realizado no puede ser futura",
+      });
+    }
+    return;
+  }
+  // La fecha pasada sólo es válida si se registra como completada.
   if (day.getTime() < today.getTime()) {
     ctx.addIssue({
       code: "custom",

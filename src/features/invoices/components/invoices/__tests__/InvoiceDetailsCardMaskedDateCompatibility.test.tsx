@@ -43,15 +43,15 @@ afterEach(() => { cleanup(); vi.useRealTimers(); });
 describe("InvoiceDetailsCard compatibility with partial masked date capture", () => {
   it("keeps partial text before blur and completes a historical date without bouncing to today", () => {
     render(<InvoiceFormHarness />);
-    const input = screen.getByLabelText("Fecha de Factura") as HTMLInputElement;
+    const input = screen.getByRole("textbox", { name: "Fecha de Factura" }) as HTMLInputElement;
     expect(input).toHaveValue("14/08/2026");
     expect(screen.getByTestId("issue-date-value")).toHaveTextContent("2026-08-14");
 
     fireEvent.change(input, { target: { value: "1509" } });
-    // This caller deliberately retains the prior date until blur/completion.
-    // Emitting undefined early makes its real adapter replace the date by today.
+    // An incomplete capture invalidates the form without replacing the visible
+    // partial text or silently substituting today. Completion restores validity.
     expect.soft(input).toHaveValue("15/09");
-    expect.soft(screen.getByTestId("issue-date-value")).toHaveTextContent("2026-08-14");
+    expect.soft(screen.getByTestId("issue-date-value")).toHaveTextContent("sin fecha");
 
     // Continue from the actual displayed text, as typing into the same control.
     for (const digit of "2026") {

@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { satStatusLabel } from "@/features/feedback";
+import { incomeStatementKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
@@ -10,9 +11,9 @@ import { creditNoteKeys, invoiceKeys } from "../../lib/queryKeys";
 
 /**
  * Keys invalidadas tras cualquier mutación de nota de crédito:
- * el árbol de credit_notes + invoices (afecta saldos, status y timbrado).
+ * el árbol de credit_notes + invoices y el estado de resultados.
  */
-const CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all] as const;
+const CREDIT_NOTE_INVALIDATIONS = [creditNoteKeys.all, invoiceKeys.all, incomeStatementKeys.all] as const;
 
 export function useCreateCreditNote() {
   const queryClient = useQueryClient();

@@ -4,6 +4,7 @@
  */
 import { sumMoney } from "@/lib/money";
 import { computeMaxCreditable } from "./computeMaxCreditable";
+import { sumPaymentsInInvoiceCurrency } from "./paymentCurrency";
 import { isRepBacked, repBackedPayments, sumRepBackedPaymentsInInvoiceCurrency } from "./repBackedPayments";
 import type { CreditNote } from "../hooks/creditNotes/useCreditNotes";
 import type { Payment } from "../hooks/usePayments";
@@ -15,6 +16,8 @@ export interface CreditNoteLimits {
   repPayments: Payment[];
   /** Cobrado sin complemento de pago vigente (genera saldo a favor). */
   otherPaid: number;
+  /** Pagos sin REP cuyo importe no se puede expresar en moneda de factura. */
+  fxMissingOtherPayments: number;
   maxCreditable: number;
   /** El tope quedó en cero por complementos de pago vigentes. */
   blockedByReps: boolean;
@@ -59,8 +62,10 @@ export function computeCreditNoteLimits(
     invoiceCurrency.moneda,
     invoiceCurrency.tipo_cambio,
   );
-  const otherPaid = sumMoney(
-    payments.filter((p) => !isRepBacked(p)).map((p) => Number(p.amount) || 0),
+  const { totalPaid: otherPaid, unconvertible: fxMissingOtherPayments } = sumPaymentsInInvoiceCurrency(
+    payments.filter((p) => !isRepBacked(p)),
+    invoiceCurrency.moneda,
+    invoiceCurrency.tipo_cambio,
   );
 
   const maxCreditable = computeMaxCreditable(Number(invoiceTotal), activeCredits, draftCredits, repBacked);
@@ -71,9 +76,10 @@ export function computeCreditNoteLimits(
     repBacked,
     repPayments,
     otherPaid,
+    fxMissingOtherPayments,
     maxCreditable,
     blockedByReps: repBacked > 0.005 && maxCreditable <= 0.005,
-    willCreateCredit: otherPaid > 0.005 && maxCreditable > 0.005,
+    willCreateCredit: fxMissingOtherPayments === 0 && otherPaid > 0.005 && maxCreditable > 0.005,
     fxMissingReps,
     blockedByMissingFx: fxMissingReps > 0,
   };

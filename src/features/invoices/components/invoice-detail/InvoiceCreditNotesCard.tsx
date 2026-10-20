@@ -40,7 +40,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
 
   const {
     activeCredits, draftCredits, repBacked, repPayments, otherPaid,
-    maxCreditable, blockedByReps, willCreateCredit, fxMissingReps, blockedByMissingFx,
+    maxCreditable, blockedByReps, willCreateCredit, fxMissingReps, blockedByMissingFx, fxMissingOtherPayments,
   } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments, {
     moneda: invoice.moneda,
     tipo_cambio: invoice.tipo_cambio,
@@ -74,6 +74,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
             blockedByReps={blockedByReps}
             willCreateCredit={willCreateCredit}
             otherPaid={otherPaid}
+            fxMissingOtherPayments={fxMissingOtherPayments}
             currency={invoice.moneda ?? "MXN"}
           />
           <CreditNotesTable

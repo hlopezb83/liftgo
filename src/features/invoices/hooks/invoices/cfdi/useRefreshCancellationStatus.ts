@@ -1,8 +1,9 @@
 import { satStatusLabel } from "@/features/feedback";
+import { incomeStatementKeys } from "@/features/reports";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
-import { invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
+import { creditNoteKeys, invoiceKeys, paymentKeys } from "../../../lib/queryKeys";
 
 export function useRefreshCancellationStatus() {
   return useEntityMutation({
@@ -37,7 +38,7 @@ export function useRefreshCreditNoteCancellationStatus() {
         { body: { credit_note_id: creditNoteId } },
       );
     },
-    invalidateKeys: [invoiceKeys.all],
+    invalidateKeys: [creditNoteKeys.all, invoiceKeys.all, incomeStatementKeys.all],
     errorTitle: "Error al consultar estado SAT",
     onSuccess: (data) => {
       const status = data?.cancellation_status;

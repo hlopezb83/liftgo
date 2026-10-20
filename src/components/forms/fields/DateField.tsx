@@ -13,7 +13,9 @@ interface DateFieldProps<TFieldValues extends FieldValues> {
 }
 
 /**
- * Wrapper RHF sobre DatePickerField. Almacena `Date | undefined` en el form.
+ * Wrapper RHF sobre DatePickerField. Una fecha válida es Date y un vaciado
+ * intencional es undefined. La captura no vacía inválida usa null hasta corregir:
+ * z.date() la rechaza incluso en campos opcionales, sin aceptar un borrado.
  * En submit conviene mapear con `toYMD(value)` para columnas Postgres tipo `date`.
  */
 export function DateField<TFieldValues extends FieldValues>({
@@ -32,21 +34,24 @@ export function DateField<TFieldValues extends FieldValues>({
     <FormField
       control={control}
       name={name}
-      render={({ field, fieldState }) => (
-        <FormItem>
+      render={({ field, fieldState }) => {
+        const value = (currentForm ? currentForm.getValues(name) : field.value) as Date | null | undefined;
+        const date = value ?? undefined;
+        return <FormItem>
           <FormControl>
             <DatePickerField
               label={label}
-              date={(currentForm ? currentForm.getValues(name) : field.value) as Date | undefined}
+              date={date}
               onSelect={field.onChange}
+              onInvalidInput={() => field.onChange(null)}
               placeholder={placeholder}
               required={required}
               disabled={disabledMatcher}
               error={fieldState.error?.message}
             />
           </FormControl>
-        </FormItem>
-      )}
+        </FormItem>;
+      }}
     />
   );
 }

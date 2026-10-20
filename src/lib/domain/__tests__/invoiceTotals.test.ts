@@ -27,6 +27,19 @@ describe("lineItemTotal", () => {
 });
 
 describe("applyDiscountToBase", () => {
+  it("BF01: redondea una sola vez los porcentajes fraccionarios", () => {
+    expect(applyDiscountToBase(1000.99, 0.5, "%")).toBe(995.99);
+    expect(applyDiscountToBase(2001.98, 0.5, "%")).toBe(1991.97);
+    expect(applyDiscountToBase(1001, 0.5, "%")).toBe(995.99);
+    expect(applyDiscountToBase(1001.01, 0.5, "%")).toBe(996);
+  });
+
+  it("conserva la normalización de la base a centavos antes de aplicar el porcentaje", () => {
+    expect(applyDiscountToBase(1000.999, 0.5, "%")).toBe(995.99);
+    expect(applyDiscountToBase(1001.004, 0.5, "%")).toBe(995.99);
+    expect(applyDiscountToBase(0.005, 50, "%")).toBe(0);
+  });
+
   it("descuento porcentual normal", () => {
     expect(applyDiscountToBase(1_000, 10, "%")).toBe(900);
   });

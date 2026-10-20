@@ -56,7 +56,9 @@ export function applyDiscountToBase(
   }
   // R7 Bloque 21.6: descuento porcentual limitado a 100% (antes clampeaba en silencio a 0).
   const pct = Math.min(discount, 100);
-  const discountAmount = money(safeBase).multiply(pct).divide(100).value;
+  // Redondear sólo el descuento final, igual que el validador fiscal de NC.
+  // multiply(pct).divide(100) redondeaba dos veces y perdía un centavo.
+  const discountAmount = money((money(safeBase).value * pct) / 100).value;
   const result = money(safeBase).subtract(discountAmount).value;
   return Math.max(0, result);
 }

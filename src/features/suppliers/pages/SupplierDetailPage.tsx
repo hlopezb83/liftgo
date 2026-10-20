@@ -28,11 +28,26 @@ type LinkedExpense = { id: string; expense_date: string; category: string; descr
 
 type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
 
+function LinkedTotal({ loading, error, total, count, entity }: {
+  loading: boolean; error: boolean; total: number; count: number; entity: string;
+}) {
+  if (error) return <p>No disponible</p>;
+  if (loading) return <p role="status">Cargando {entity}…</p>;
+  return <>
+    <p className="text-xl font-bold tabular-nums">{formatCurrency(total)}</p>
+    <p className="text-xs text-muted-foreground">{count} registro(s)</p>
+  </>;
+}
+
 export default function SupplierDetailPage() {
   const { id } = useParams();
   const { data: supplier, isLoading, isError, refetch } = useSupplier(id);
-  const { data: bills } = useSupplierBills();
-  const { data: maintenanceLogs } = useMaintenanceLogs();
+  const billsQuery = useSupplierBills();
+  const { data: bills } = billsQuery;
+  const maintenanceQuery = useMaintenanceLogs();
+  const { data: maintenanceLogs } = maintenanceQuery;
+  const expensesLoading = billsQuery.isLoading || !bills;
+  const maintenanceLoading = maintenanceQuery.isLoading || !maintenanceLogs;
   const { forkliftMap } = useForkliftMap();
 
   const [editOpen, setEditOpen] = useState(false);
@@ -144,8 +159,8 @@ export default function SupplierDetailPage() {
             <div className="rounded-full bg-primary/10 p-3"><ExpenseIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Gastos Operativos</p>
-              <p className="text-xl font-bold tabular-nums">{formatCurrency(totalExpenses)}</p>
-              <p className="text-xs text-muted-foreground">{linkedExpenses.length} registro(s)</p>
+              <LinkedTotal loading={expensesLoading} error={billsQuery.isError}
+                total={totalExpenses} count={linkedExpenses.length} entity="gastos" />
             </div>
           </CardContent>
         </Card>
@@ -154,8 +169,8 @@ export default function SupplierDetailPage() {
             <div className="rounded-full bg-primary/10 p-3"><MaintenanceIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Mantenimiento</p>
-              <p className="text-xl font-bold tabular-nums">{formatCurrency(totalMaintenance)}</p>
-              <p className="text-xs text-muted-foreground">{linkedMaintenance.length} registro(s)</p>
+              <LinkedTotal loading={maintenanceLoading} error={maintenanceQuery.isError}
+                total={totalMaintenance} count={linkedMaintenance.length} entity="mantenimiento" />
             </div>
           </CardContent>
         </Card>
@@ -164,14 +179,24 @@ export default function SupplierDetailPage() {
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><DocumentIcon className="h-4 w-4" />Gastos Operativos Vinculados</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <DataTableV2 table={expensesTable} emptyMessage="Sin gastos vinculados" />
+          {billsQuery.isError ? (
+            <QueryErrorState bare entity="los gastos vinculados" error={billsQuery.error}
+              isRetrying={billsQuery.isFetching} onRetry={() => { void billsQuery.refetch(); }} />
+          ) : expensesLoading ? <Skeleton className="h-24 w-full" /> : (
+            <DataTableV2 table={expensesTable} emptyMessage="Sin gastos vinculados" />
+          )}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base flex items-center gap-2"><MaintenanceIcon className="h-4 w-4" />Mantenimiento Vinculado</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <DataTableV2 table={maintenanceTable} emptyMessage="Sin mantenimiento vinculado" />
+          {maintenanceQuery.isError ? (
+            <QueryErrorState bare entity="el mantenimiento vinculado" error={maintenanceQuery.error}
+              isRetrying={maintenanceQuery.isFetching} onRetry={() => { void maintenanceQuery.refetch(); }} />
+          ) : maintenanceLoading ? <Skeleton className="h-24 w-full" /> : (
+            <DataTableV2 table={maintenanceTable} emptyMessage="Sin mantenimiento vinculado" />
+          )}
         </CardContent>
       </Card>
 

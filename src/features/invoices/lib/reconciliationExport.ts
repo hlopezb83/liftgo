@@ -18,11 +18,6 @@ const HEADERS = [
   "Total",
 ] as const;
 
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  return formatDateMty(d);
-}
-
 export async function downloadReconciliationXlsx(rows: ReconciliationRow[]): Promise<string> {
   const XLSX = await import("@e965/xlsx");
   const data: (string | number)[][] = [[...HEADERS]];
@@ -31,7 +26,7 @@ export async function downloadReconciliationXlsx(rows: ReconciliationRow[]): Pro
   for (const r of rows) {
     data.push([
       r.invoice_number,
-      fmtDate(r.issued_at),
+      formatDateMty(r.issued_at),
       r.customer_name ?? "",
       r.status,
       r.cfdi_status ?? "",
