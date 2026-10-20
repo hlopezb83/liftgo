@@ -4966,6 +4966,48 @@ export type Database = {
           },
         ]
       }
+      role_permission_audit_events: {
+        Row: {
+          action: string
+          actor_kind: string
+          actor_user_id: string | null
+          changed_fields: string[]
+          database_session_user: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          recorded_at: string
+          transaction_id: number
+        }
+        Insert: {
+          action: string
+          actor_kind: string
+          actor_user_id?: string | null
+          changed_fields: string[]
+          database_session_user: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          recorded_at?: string
+          transaction_id?: number
+        }
+        Update: {
+          action?: string
+          actor_kind?: string
+          actor_user_id?: string | null
+          changed_fields?: string[]
+          database_session_user?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          recorded_at?: string
+          transaction_id?: number
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           access_level: string
