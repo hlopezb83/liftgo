@@ -165,6 +165,26 @@ class GlobalAuditTests(unittest.TestCase):
             self.sql('DROP TRIGGER booking_audit ON bookings')
         self.assertEqual(self.sql('SELECT count(*) FROM role_permission_audit_events'),'0')
 
+    def test_scope_coverage_gate_rejects_global_audit_grants(self):
+        self.sql('BEGIN;'+self.migration+'COMMIT;')
+        source=(ROOT/'supabase/tests/rls/multi_org_scope_coverage.sql').read_text()
+        start=source.index("    IF r.table_name = 'role_permission_audit_events' THEN")
+        end=source.index('\n    IF r.tiene_org OR',start)
+        block=source[start:end]
+        gate="""DO $$ DECLARE r record; v_fallas text[] := ARRAY[]::text[];
+          BEGIN
+            SELECT 'role_permission_audit_events'::text AS table_name,
+              EXISTS(SELECT 1 FROM pg_attribute WHERE attrelid='role_permission_audit_events'::regclass AND attname='organization_id' AND NOT attisdropped) AS tiene_org,
+              (SELECT count(*) FROM pg_policy WHERE polrelid='role_permission_audit_events'::regclass) AS n_policies INTO r;
+        """+block+"""
+            IF cardinality(v_fallas)>0 THEN RAISE EXCEPTION '%',array_to_string(v_fallas, '; '); END IF;
+          END $$;"""
+        self.sql(gate)
+        self.sql('GRANT SELECT ON role_permission_audit_events TO authenticated')
+        self.sql(gate,error='exige global owner-only')
+        self.sql('REVOKE SELECT ON role_permission_audit_events FROM authenticated')
+        self.sql(gate)
+
     def test_failed_audit_insert_rolls_back_permission_change(self):
         self.sql('BEGIN;'+self.migration+'COMMIT;')
         self.sql("ALTER TABLE role_permission_audit_events ADD CONSTRAINT deliberate_failure CHECK(action <> 'UPDATE')")
