@@ -326,50 +326,63 @@ Deno.test("cancel-cfdi: happy path llama a Facturapi DELETE y acepta", async () 
   }
 });
 
-Deno.test("cancel-cfdi: SAT 'pending' devuelve warning y no marca cancelled", async () => {
-  const mock = installFacturapiMock({
-    "/invoices/fapi_p": () => facturapiOk({ cancellation_status: "pending" }),
-  });
-  try {
-    const { deps, serviceState } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
-      fetchImpl: globalThis.fetch,
-      service: {
-        selects: {
-          user_roles: { data: [{ role: "admin" }], error: null },
-          invoices: {
-            data: {
-              organization_id: ORG_ID,
-              cfdi_status: "stamped",
-              facturapi_invoice_id: "fapi_p",
-            },
-            error: null,
-          },
-          company_settings: {
-            data: { facturapi_mode: "test", organization_id: ORG_ID },
-            error: null,
-          },
-          billing_secrets: { data: null, error: null },
-        },
-        updates: { invoices: { data: null, error: null } },
-      },
+for (const satStatus of ["pending", "rejected", "expired"]) {
+  Deno.test(`cancel-cfdi: SAT ${satStatus} devuelve warning preciso y no marca cancelled`, async () => {
+    const mock = installFacturapiMock({
+      "/invoices/fapi_p": () => facturapiOk({ cancellation_status: satStatus }),
     });
-    const res = await handleCancelCfdi(
-      makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
-      deps,
-    );
-    const body = await res.json();
-    assertEquals(res.status, 200);
-    assertEquals(body.accepted, false);
-    assertEquals(body.cancellation_status, "pending");
-    assert(typeof body.warning === "string");
-    const upd = serviceState.updates.find((u) => u.table === "invoices");
-    assertEquals(upd!.patch.cancellation_status, "pending");
-    assertEquals(upd!.patch.cfdi_status, undefined);
-  } finally {
-    mock.restore();
-  }
-});
+    try {
+      const { deps, serviceState } = makeDeps({
+        env: { FACTURAPI_TEST_KEY: "sk_test_fixture" },
+        fetchImpl: globalThis.fetch,
+        service: {
+          selects: {
+            user_roles: { data: [{ role: "admin" }], error: null },
+            invoices: {
+              data: {
+                organization_id: ORG_ID,
+                cfdi_status: "stamped",
+                facturapi_invoice_id: "fapi_p",
+              },
+              error: null,
+            },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
+            billing_secrets: { data: null, error: null },
+          },
+          updates: { invoices: { data: null, error: null } },
+        },
+      });
+      const res = await handleCancelCfdi(
+        makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+        deps,
+      );
+      const body = await res.json();
+      assertEquals(res.status, 200);
+      assertEquals(body.accepted, false);
+      assertEquals(body.cancellation_status, satStatus);
+      assert(typeof body.warning === "string");
+      if (satStatus === "pending") {
+        assert(body.warning.includes("72 horas"));
+      } else {
+        assert(
+          body.warning.includes(
+            satStatus === "rejected" ? "rechazada" : "venció",
+          ),
+        );
+        assert(!body.warning.includes("pendiente"));
+        assert(!body.warning.includes("72 horas"));
+      }
+      const upd = serviceState.updates.find((u) => u.table === "invoices");
+      assertEquals(upd!.patch.cancellation_status, satStatus);
+      assertEquals(upd!.patch.cfdi_status, undefined);
+    } finally {
+      mock.restore();
+    }
+  });
+}
 
 Deno.test("cancel-cfdi: Facturapi 500 devuelve 502", async () => {
   const mock = installFacturapiMock({

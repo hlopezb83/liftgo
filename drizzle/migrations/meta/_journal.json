@@ -799,6 +799,13 @@
       "when": 1792470000002,
       "tag": "0113_global_role_permission_audit",
       "breakpoints": true
+    },
+    {
+      "idx": 114,
+      "version": "7",
+      "when": 1792470000003,
+      "tag": "0114_recurring_invoice_booking_lock",
+      "breakpoints": true
     }
   ]
 }
