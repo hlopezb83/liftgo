@@ -35,6 +35,19 @@ export function getRouteAccessLevel(
   return route ? getAccessLevel(perms, role, ROUTE_TO_MODULE[route]) : "none";
 }
 
+/** Public navigation pages that do not require a module permission. */
+export const ALWAYS_VISIBLE_ROUTES = ["/changelog", "/help", "/mis-reportes", "/leaderboard"];
+
+/** One visibility policy for the sidebar and quick navigation. */
+export function getNavigationAccessLevel(
+  perms: PermissionsMap | undefined, role: AppRole | undefined, pathname: string,
+): AccessLevel {
+  if (!perms || !role) return "none";
+  const path = pathname.split(/[?#]/)[0];
+  if (ALWAYS_VISIBLE_ROUTES.includes(path)) return "full";
+  return getRouteAccessLevel(perms, role, path);
+}
+
 export const MODULES = [
   "Dashboard", "Flota", "Reservas", "Calendario", "Entregas",
   "Facturas", "Contratos", "Cotizaciones", "Clientes",

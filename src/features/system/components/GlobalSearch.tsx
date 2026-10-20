@@ -7,7 +7,7 @@ import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import { useEntitySearch } from "@/features/system/hooks/useEntitySearch";
-import { DISPATCHER_FINANCIAL_MODULES, ROUTE_TO_MODULE, useHasFinancialAccess } from "@/features/users";
+import { getNavigationAccessLevel, useHasFinancialAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
@@ -100,6 +100,9 @@ function EntitySearchResults({
 
 export function GlobalSearch() {
   const canSeeFinancials = useHasFinancialAccess();
+  const { data: role, isError: roleError } = useUserRole();
+  const { data: permissionData, isError: permissionsError } = useRolePermissions();
+  const perms = roleError || permissionsError ? undefined : permissionData;
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const debouncedInput = useDebouncedValue(input, 200);
@@ -127,24 +130,30 @@ export function GlobalSearch() {
 
   const groups = useMemo(() => {
     const map = new Map<string, Item[]>();
-    ITEMS.filter((item) => canSeeFinancials || (
-      item.url !== "/income-statement" && !DISPATCHER_FINANCIAL_MODULES.includes(ROUTE_TO_MODULE[item.url])
-    )).forEach((i) => {
+    ITEMS.filter((item) => getNavigationAccessLevel(perms, role ?? undefined, item.url) !== "none").forEach((i) => {
       const arr = map.get(i.group) ?? [];
       arr.push(i);
       map.set(i.group, arr);
     });
     return [...map.entries()];
-  }, [canSeeFinancials]);
+  }, [perms, role]);
 
   const entityQuery = useEntitySearch(debouncedInput, open);
-  // A role switch must never display invoice hits from a previous privileged query.
+  // A role/permission switch must not retain links from a privileged query.
+  const canVisit = (url: string) => getNavigationAccessLevel(perms, role ?? undefined, url) !== "none";
+  const sectionRoutes: Record<string, string> = {
+    invoices: "/invoices", customers: "/customers", bookings: "/bookings", deliveries: "/deliveries", returns: "/returns",
+  };
   const entities = entityQuery.data && {
     ...entityQuery.data,
-    invoices: canSeeFinancials ? entityQuery.data.invoices : [],
-    errors: canSeeFinancials ? entityQuery.data.errors : Object.fromEntries(
-      Object.entries(entityQuery.data.errors ?? {}).filter(([section]) => section !== "invoices"),
-    ),
+    invoices: canSeeFinancials ? entityQuery.data.invoices.filter((hit) => canVisit(hit.url)) : [],
+    customers: entityQuery.data.customers.filter((hit) => canVisit(hit.url)),
+    bookings: entityQuery.data.bookings.filter((hit) => canVisit(hit.url)),
+    deliveries: entityQuery.data.deliveries.filter((hit) => canVisit(hit.url)),
+    returns: entityQuery.data.returns.filter((hit) => canVisit(hit.url)),
+    errors: Object.fromEntries(Object.entries(entityQuery.data.errors ?? {}).filter(([section]) =>
+      !!sectionRoutes[section] && canVisit(sectionRoutes[section]) && (section !== "invoices" || canSeeFinancials),
+    )),
   };
   const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
