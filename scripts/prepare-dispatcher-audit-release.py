@@ -39,6 +39,23 @@ def generate(fingerprint, ledger_fingerprint, root=ROOT):
         f"('{digest}', {entry['when']})" for digest, entry in zip(hashes, targets)
     )
     sql111, sql112, sql113 = [payload.decode("utf-8") for payload in payloads]
+    # Bootstrap the EXACT reviewed definitions, never a stub or edited migration.
+    # Refuse extraction drift rather than guessing statement boundaries.
+    table_start = "CREATE TABLE IF NOT EXISTS public.role_permission_audit_events ("
+    table_end = "\n);\n"
+    function_start = "CREATE OR REPLACE FUNCTION public.audit_global_role_permission_change()"
+    function_end = "\n$function$;"
+    if sql113.count(table_start) != 1 or sql113.count(function_start) != 1 or sql113.count(function_end) != 1:
+        raise ValueError("Unexpected canonical 0113 bootstrap definitions")
+    start = sql113.index(table_start)
+    bootstrap_table = sql113[start:sql113.index(table_end, start) + len(table_end)]
+    start = sql113.index(function_start)
+    bootstrap_function = sql113[start:sql113.index(function_end, start) + len(function_end)]
+    # Strict CREATE refuses objects created concurrently after the preflight.
+    # Only creation mode changes; column/default/constraint and function bodies
+    # remain byte-for-byte canonical. Full 0113 still executes unchanged below.
+    bootstrap_table = bootstrap_table.replace("CREATE TABLE IF NOT EXISTS", "CREATE TABLE", 1)
+    bootstrap_function = bootstrap_function.replace("CREATE OR REPLACE FUNCTION", "CREATE FUNCTION", 1)
     return f"""-- Generated only. Review and authorize the target before execution.
 -- Canonical migration bytes remain unchanged; no tenant or actor is invented.
 BEGIN;
@@ -48,6 +65,10 @@ LOCK TABLE drizzle.__drizzle_migrations IN SHARE ROW EXCLUSIVE MODE;
 LOCK TABLE public.role_permissions IN SHARE ROW EXCLUSIVE MODE;
 DO $preflight$
 BEGIN
+  IF to_regclass('public.role_permission_audit_events') IS NOT NULL
+     OR to_regprocedure('public.audit_global_role_permission_change()') IS NOT NULL THEN
+    RAISE EXCEPTION 'Global audit bootstrap objects already exist; inspect state before proceeding';
+  END IF;
   IF current_setting('session_replication_role') <> 'origin' THEN
     RAISE EXCEPTION 'Normal trigger execution is required';
   END IF;
@@ -78,6 +99,32 @@ CREATE TEMP TABLE dispatcher_release_acl ON COMMIT DROP AS
   SELECT proacl, proowner, prosecdef, proconfig
   FROM pg_proc WHERE oid = 'public.get_customer_summary(uuid)'::regprocedure;
 
+-- Create only the two absent canonical objects before 0113 validates ACLs.
+-- Platform default grants may reach additional sandbox roles. Never modify
+-- those defaults or pre-existing objects; harden only these new objects.
+{bootstrap_table}
+ALTER TABLE public.role_permission_audit_events ENABLE ROW LEVEL SECURITY;
+{bootstrap_function}
+DO $bootstrap_acl$
+DECLARE v_grantee oid; v_role text;
+BEGIN
+  FOR v_grantee IN
+    SELECT DISTINCT a.grantee FROM pg_class c,
+      LATERAL aclexplode(COALESCE(c.relacl,acldefault('r',c.relowner))) a
+    WHERE c.oid='public.role_permission_audit_events'::regclass AND a.grantee<>c.relowner
+  LOOP
+    v_role := CASE WHEN v_grantee=0 THEN 'PUBLIC' ELSE quote_ident(pg_get_userbyid(v_grantee)) END;
+    EXECUTE 'REVOKE ALL ON TABLE public.role_permission_audit_events FROM ' || v_role;
+  END LOOP;
+  FOR v_grantee IN
+    SELECT DISTINCT a.grantee FROM pg_proc p,
+      LATERAL aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) a
+    WHERE p.oid='public.audit_global_role_permission_change()'::regprocedure AND a.grantee<>p.proowner
+  LOOP
+    v_role := CASE WHEN v_grantee=0 THEN 'PUBLIC' ELSE quote_ident(pg_get_userbyid(v_grantee)) END;
+    EXECUTE 'REVOKE ALL ON FUNCTION public.audit_global_role_permission_change() FROM ' || v_role;
+  END LOOP;
+END $bootstrap_acl$;
 -- Bootstrap 0113 without advancing the migration ledger.
 {sql113}
 CREATE TEMP TABLE dispatcher_release_expected ON COMMIT DROP AS
