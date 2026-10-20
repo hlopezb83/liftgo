@@ -56,11 +56,24 @@ CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.
 REVOKE ALL ON TABLE public.return_inspection_usage_bases FROM PUBLIC, anon, authenticated, service_role;
 -- Match the owner-only convention: no reader role or additional app access.
 DO $owner_policy$
-DECLARE v_owner name;
+DECLARE
+  v_owner oid;
+  v_grantee oid;
 BEGIN
-  SELECT pg_get_userbyid(relowner) INTO v_owner FROM pg_class
+  SELECT relowner INTO v_owner FROM pg_class
     WHERE oid = 'public.return_inspection_usage_bases'::regclass;
-  EXECUTE format('GRANT ALL ON public.return_inspection_usage_bases TO %I', v_owner);
+  -- Platform/default ACLs may name additional or ephemeral roles. Remove
+  -- grants from this new private object only; never change default privileges.
+  FOR v_grantee IN
+    SELECT DISTINCT a.grantee
+    FROM pg_class c, LATERAL aclexplode(COALESCE(c.relacl, acldefault('r', c.relowner))) a
+    WHERE c.oid = 'public.return_inspection_usage_bases'::regclass
+      AND a.grantee <> c.relowner
+  LOOP
+    EXECUTE format('REVOKE ALL ON TABLE public.return_inspection_usage_bases FROM %s',
+      CASE WHEN v_grantee = 0 THEN 'PUBLIC' ELSE quote_ident(pg_get_userbyid(v_grantee)) END);
+  END LOOP;
+  EXECUTE format('GRANT ALL ON public.return_inspection_usage_bases TO %I', pg_get_userbyid(v_owner));
   CREATE POLICY return_usage_basis_deny_application ON public.return_inspection_usage_bases
     AS RESTRICTIVE FOR ALL TO PUBLIC USING (false) WITH CHECK (false);
 END;
@@ -174,6 +187,28 @@ BEGIN
 END;
 $$;
 REVOKE ALL ON FUNCTION public.recalculate_return_usage_charge() FROM PUBLIC, anon, authenticated, service_role;
+DO $private_usage_function_acl$
+DECLARE
+  v_function regprocedure;
+  v_grantee oid;
+BEGIN
+  -- Only these two NEW helpers are owner-only. Existing RPC/trigger ACLs,
+  -- other objects and pg_default_acl remain untouched, including platform roles.
+  FOREACH v_function IN ARRAY ARRAY[
+    'public.return_usage_charge_basis(uuid,uuid,timestamptz,timestamptz)'::regprocedure,
+    'public.recalculate_return_usage_charge()'::regprocedure
+  ] LOOP
+    FOR v_grantee IN
+      SELECT DISTINCT a.grantee
+      FROM pg_proc p, LATERAL aclexplode(COALESCE(p.proacl, acldefault('f', p.proowner))) a
+      WHERE p.oid = v_function::oid AND a.grantee <> p.proowner
+    LOOP
+      EXECUTE format('REVOKE ALL ON FUNCTION %s FROM %s', v_function,
+        CASE WHEN v_grantee = 0 THEN 'PUBLIC' ELSE quote_ident(pg_get_userbyid(v_grantee)) END);
+    END LOOP;
+  END LOOP;
+END;
+$private_usage_function_acl$;
 DROP TRIGGER IF EXISTS trg_recalculate_return_usage_charge ON public.return_inspections;
 CREATE TRIGGER trg_recalculate_return_usage_charge
   BEFORE INSERT OR UPDATE OF hours_used, extra_hours, suggested_extra_hour_charge
