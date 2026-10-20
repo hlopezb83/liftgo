@@ -1,0 +1,357 @@
+{
+  "checked_at_utc": "2026-10-19T16:43:19Z",
+  "repository": "hlopezb83/liftgo",
+  "reviewed_source_sha": "e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc",
+  "restored_source_sha": "995ac32d7db6e61d338f632eac4a2422db6f9512",
+  "reviewed_root_tree_sha": "8304a005538f01653aa7b2fdad685a6f20e55914",
+  "restored_root_tree_sha": "57e1c3a121dd55f2c85b786feb287fe96ce24371",
+  "source_identity_result": "PASS: all inherited tracked files and modes are identical; only an archived Markdown plan was added",
+  "entire_repository_tree_equal": false,
+  "reviewed_deployable_source_equal": true,
+  "runtime_or_build_paths_changed": [],
+  "test_paths_changed": [],
+  "all_changed_paths": [
+    {
+      "path": ".lovable/plan/activación-lift-go-e8a20ee-capacidades-y-ruta-oficial-sólo-l-2026-10-19.md",
+      "status": "added",
+      "before": null,
+      "after": {
+        "mode": "100644",
+        "type": "blob",
+        "sha": "5b0697897895bb08c10a9519d6e5ae6eae692a2b"
+      },
+      "classification": "nondeployable archived Markdown diagnostic"
+    }
+  ],
+  "reviewed_file_count": 5460,
+  "restored_file_count": 5461,
+  "unchanged_inherited_file_count": 5460,
+  "identical_root_entries": {
+    ".env": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "1f396fb0b33aa4487c86b901c31949a3c2c2091b"
+    },
+    ".env.example": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "99b3a1685798a8b4e8bc4ecce39e8572f9571afc"
+    },
+    ".github": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "4cc4d2874bc8265cb1ec49d1e8eb95f3aa6b65c3"
+    },
+    ".gitignore": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "3103343c9ebbcc66af8c0c80b64ceb02137eb7ec"
+    },
+    ".gitleaks.toml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "bef50ba477745e08bd75679de31e0543331c4bda"
+    },
+    ".gitleaksignore": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "77a2620d20209e8cafde77f29e01838eff15edbe"
+    },
+    ".node-version": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a45fd52cc5891570d6299fab38643103c3955474"
+    },
+    ".npmrc": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "214c29d1395919ce175f26d140526368127981ba"
+    },
+    ".nvmrc": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a45fd52cc5891570d6299fab38643103c3955474"
+    },
+    ".vitest-reports": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "80e2e37a9f677dc3ff34f825ba2ab3a459c0b48a"
+    },
+    "AGENTS.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "a77f9be00c703388b81893b96fccb7867c4b43b5"
+    },
+    "CHANGELOG.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "7252bd354d80ce382dc08febfe6a924db15a275c"
+    },
+    "README.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "80e6285e7143e9195d602be2105b84cfc45059cf"
+    },
+    "architecture.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6792c33284d547c181e77401628ee2330456c1cf"
+    },
+    "bun.lock": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "20195c7b4a57493b9a6486c91313cbfb03f414f6"
+    },
+    "bunfig.toml": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "eccc852c7b9f67eecab0b218eb5dd1f4d9ad4852"
+    },
+    "components.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f0817a84e832a693e7a79a911efe0b081bd97e06"
+    },
+    "docs": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "607884326ed8bdfaebcd73322fb43efb99120a98"
+    },
+    "drizzle.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "466668f366d59b51c678238a2fd148b2659558fa"
+    },
+    "drizzle": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "5f758cedfd821f70270a5dedf3cf9c2a11424978"
+    },
+    "eslint.config.js": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "504af70f4d62937e11ee7dbba602077aeb96a8cf"
+    },
+    "knip.jsonc": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "384dad8c31fa07867ee8de68a3f6917133f95536"
+    },
+    "package.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "5fb3f01464e1d95b1eca6453a52929fd5129ca12"
+    },
+    "playwright.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "d25f0ec4365654e08cf2391a62e563a875153f56"
+    },
+    "playwright.multitenant.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "18169f05e23d83b9b6cc809eadece2ec019bbb41"
+    },
+    "playwright.smoke.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "522a0a2375e1832df428bf5d3d450864c1b8ac35"
+    },
+    "public": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "b55332cc1b790e987a6a52f56a854a45df64df87"
+    },
+    "roadmap.md": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "48387d0aa232a805fefa0f587cf19ada124eecc5"
+    },
+    "scripts": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "060099c988d6341658215417ce0bb8b9660c932f"
+    },
+    "src": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "9ab5dd671dc0dcd3314fa51c736a58ac248d904c"
+    },
+    "supabase": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "9818952eff708369f3e3c493fd64cd1bd2379614"
+    },
+    "tests": {
+      "mode": "040000",
+      "type": "tree",
+      "sha": "2413cc2469175f3e4cb59af6b821acdef913c200"
+    },
+    "tsconfig.browser-tests.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "22035694d8aca7160a477df4d576a33f1a47c635"
+    },
+    "tsconfig.json": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "b0da24cd7b619b9e3a6687845ac4ae55c32a3c7e"
+    },
+    "vite.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "f9f88f531b8e96151bfe47193ea9f3e3372d9c6c"
+    },
+    "vitest.config.ts": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "6a5e44ad707f3e2f7bdcbb8a766363342591e60b"
+    },
+    "wrangler.jsonc": {
+      "mode": "100644",
+      "type": "blob",
+      "sha": "2c1d943263d7bf25200350dfc539662bc27ae40e"
+    }
+  },
+  "coverage_counts": {
+    "all_src_files_including_tests": 2107,
+    "all_public_assets": 1772,
+    "all_scripts_including_build_and_tests": 25,
+    "all_supabase_files_including_functions_shared_config_migrations_tests": 955,
+    "all_edge_function_files": 195,
+    "all_edge_shared_files": 86,
+    "all_drizzle_files": 134,
+    "drizzle_sql_files": 108,
+    "drizzle_snapshot_files": 24,
+    "drizzle_journal_files": 1
+  },
+  "specific_file_evidence": [
+    {
+      "path": "src/integrations/supabase/types.ts",
+      "git_blob_sha1": "78bb49493c48a786723df5098a94d05cd81834e7",
+      "sha256": "09b32004aa9fe196add6a285903ecba25451c325e208b36cd375b84bd1ed13b3",
+      "bytes": 270234,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "public/version.json",
+      "git_blob_sha1": "fc488fc6cc1db49579423dcfcb144802bad78a81",
+      "sha256": "473a2b15dd9eb327f908642b721f4503dcc48be30331f9238d6f33798705f094",
+      "bytes": 72,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "drizzle/migrations/meta/_journal.json",
+      "git_blob_sha1": "61a590802fecd3ffbc177bcc456e8818a32e09ac",
+      "sha256": "78145ea95e344550fdd485ef01b696941467d5dae0bf7a253db16b7b9301aeec",
+      "bytes": 17488,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "package.json",
+      "git_blob_sha1": "5fb3f01464e1d95b1eca6453a52929fd5129ca12",
+      "sha256": "6dff5f09f3aee05f53323c3b6d0abcbfffa59f46e7c077b6b36294e68f38a4cc",
+      "bytes": 6103,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "bun.lock",
+      "git_blob_sha1": "20195c7b4a57493b9a6486c91313cbfb03f414f6",
+      "sha256": "87e7cc855b58aa133be7c6c463841a7e25a49f8989ba20fb7c570944761fa721",
+      "bytes": 529469,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "bunfig.toml",
+      "git_blob_sha1": "eccc852c7b9f67eecab0b218eb5dd1f4d9ad4852",
+      "sha256": "366fc9712878c09fe0fee77df1f41a1614b45c561f673f53d9bc39a9fc7b6569",
+      "bytes": 380,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "vite.config.ts",
+      "git_blob_sha1": "f9f88f531b8e96151bfe47193ea9f3e3372d9c6c",
+      "sha256": "44b0cf21fbdad2c01d9155801a7ea8fe91c17c4f7458d5c40b05b46e12f36e8c",
+      "bytes": 3667,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "tsconfig.json",
+      "git_blob_sha1": "b0da24cd7b619b9e3a6687845ac4ae55c32a3c7e",
+      "sha256": "586d3269d9a10c74691d2d3644757f2a1aa94b3acf8e6d7f37ddab484672ef2c",
+      "bytes": 608,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "wrangler.jsonc",
+      "git_blob_sha1": "2c1d943263d7bf25200350dfc539662bc27ae40e",
+      "sha256": "5e2affe66a9f1dbbd1dd84e4b57e7ec6f74e320cd70144609321cf3f82736c89",
+      "bytes": 668,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "drizzle.config.ts",
+      "git_blob_sha1": "466668f366d59b51c678238a2fd148b2659558fa",
+      "sha256": "091bb5bda4b36dcbc2ef729cdc65afd67163149c221e8a5b0c6f38ebc542da2c",
+      "bytes": 245,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "supabase/config.toml",
+      "git_blob_sha1": "40ac0c0577f7e5e5e1e87cfae7f2eb5cca347a29",
+      "sha256": "5f74fb4c7e21019a17082eb0656aa3b70477ad97f50ee3b709d26303c5c0d39d",
+      "bytes": 874,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "scripts/gen-version.mjs",
+      "git_blob_sha1": "2548901293f904bdb73bcef5652ed57b955fd9b9",
+      "sha256": "626c4d4310dc567ebee4d9e7d57fa58c48c50ced6fd5b8e3b7f54df99917d0e5",
+      "bytes": 2782,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "drizzle/migrations/0105_rep_claim_reconciliation_only.sql",
+      "git_blob_sha1": "bd685553c17de53ffed5b5a226b538f2ce80aa11",
+      "sha256": "90eb081d9547456abef06f8ca74d46130367f437f472dc35836e43af9df8f663",
+      "bytes": 1744,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "drizzle/migrations/0106_booking_invoice_cancellation_guards.sql",
+      "git_blob_sha1": "02ee2474f72e6514ef32a2b0f1a0d9b1c77f9c2c",
+      "sha256": "b364165b0d27f207b7a2b99ecfe1fa00ceab70ba4277ff1b3d155a3fd4d0d2a1",
+      "bytes": 9873,
+      "equal_at_restored_source": true
+    },
+    {
+      "path": "drizzle/migrations/0107_quote_charge_tracking.sql",
+      "git_blob_sha1": "753364a0fbbcd5a45aa5af3109ffd089bfd29c4e",
+      "sha256": "b6ba356d8138421d8d6236a1be40ad0a4881c5c1403d90435fa3ba98eb862de1",
+      "bytes": 40557,
+      "equal_at_restored_source": true
+    }
+  ],
+  "method": [
+    "GitHub GET resolved abbreviated commit and supplied full restored root tree; no truncation.",
+    "Verified saved tree responses against their Git SHA-1 object IDs.",
+    "Compared every root entry mode, type and object ID with local reviewed commit.",
+    "All root entries other than .lovable are identical; identical Git subtree IDs cover all descendants.",
+    "Expanded entire changed .lovable subtree and compared every leaf with reviewed commit.",
+    "GitHub compare independently confirms the same single added path.",
+    "No fetch, checkout, repository edits, tests, build, deployment, database queries, or Lovable calls were performed."
+  ],
+  "candidate_binding_conclusion": "A new local candidate may bind the full restored SHA as source-equivalent to reviewed e8a20ee, explicitly recording the one archived Markdown addition. This does not validate or authorize activation, reconcile the ledger, or establish live deployment identity.",
+  "limitations": [
+    "This is exact tracked deployable-source equality, not a bit-for-bit deployed artifact or live-runtime attestation.",
+    "scripts/gen-version.mjs writes generatedAt from the current clock during prebuild; independently rebuilt artifacts can differ despite identical tracked source.",
+    "Untracked files, external dependency availability, environment values, secrets, database ledger state, runtime configuration and deployment selection were not verified.",
+    "The restored commit is not present in the local Git object database; remote tree reads establish its source identity without altering local repositories."
+  ],
+  "sources": [
+    "https://github.com/hlopezb83/liftgo/commit/995ac32d7db6e61d338f632eac4a2422db6f9512",
+    "https://github.com/hlopezb83/liftgo/compare/e8a20ee0879aafbcad6fef74f403d78cbe7eb0cc...995ac32d7db6e61d338f632eac4a2422db6f9512",
+    "https://api.github.com/repos/hlopezb83/liftgo/git/trees/57e1c3a121dd55f2c85b786feb287fe96ce24371",
+    "https://api.github.com/repos/hlopezb83/liftgo/git/trees/5b9b5741a49db6be397b0703aa9e9467048215ad"
+  ]
+}

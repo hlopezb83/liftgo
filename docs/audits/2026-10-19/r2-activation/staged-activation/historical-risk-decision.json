@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "status": "HISTORICAL_PROVENANCE_RISK_ACCEPTED_EXECUTION_NOT_READY",
+  "historicalRiskAccepted": true,
+  "activationAuthorized": false,
+  "executionReady": false,
+  "decisionUtc": "2026-10-19T17:16:44Z",
+  "decisionEvidence": {
+    "decisionSource": "Owner approval recorded in the project review on 2026-10-19 at 17:16:44 UTC",
+    "approvedDecisionSummary": "Preserve the exact existing history, documenting its ten known differences and identified historical extra without rewriting it. Original applied files for six differences remain unrecovered despite current-object verification. Proceeding by complete stages means earlier successful stages remain installed if a later stage fails, with forward recovery. Admission fencing and completion of old operations must still be verified before a window affecting both organizations. This decision does not assert migration or publication occurred."
+  },
+  "acceptedBaseline": {
+    "artifact": "historical-baseline.review.json",
+    "artifactSha256": "8d8a0ba626c93bd9686d2f666d4ab99ffea7ce8beb097aba1741b1a670b05242",
+    "canonicalRowsSha256": "f2bc2dbeb7b66b35efbcb9e5a1737f8d683137e77727f0abae4be52564951705",
+    "rowCount": 106,
+    "hashMismatchIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      46,
+      51,
+      52,
+      74,
+      77
+    ],
+    "unrecoveredOriginalPayloadIdxs": [
+      4,
+      5,
+      6,
+      7,
+      10,
+      74
+    ],
+    "identifiedHistoricalExtra": {
+      "id": 31,
+      "created_at": 1789683904941,
+      "hash": "927e6c306e8eacea96a1380dadfd6c3b0845af3cd46c00372cb9643dfe1ec98f"
+    },
+    "scope": "Preserve this exact observed Lift GO history without rewriting rows or SQL; no generalized drift exception"
+  },
+  "acceptedRecoveryConsequence": "If a later complete stage fails, earlier committed stages remain installed and recovery proceeds forward.",
+  "exactCurrentPrefixStatus": "EXACT_CURRENT_PREFIX_MISMATCH",
+  "notGrantedByThisDecision": [
+    "Activation readiness or permission to bypass remaining controls",
+    "Changing the repository strict-prefix guard or installing a generalized exception",
+    "Rewriting ledger rows, migration timestamps, hashes or historical SQL",
+    "A verified official SQL-plus-ledger execution contract or exclusive executor",
+    "A proven admission fence, old-worker drain, outstanding-write retirement or maintenance switch",
+    "A scheduled two-organization window, hold-state budget, or named reopening owner",
+    "Any mandatory permission-change approval or material access expansion",
+    "Deployment artifact identity or evidence that any migration/deployment has occurred"
+  ],
+  "comparatorInterpretation": "The unchanged offline comparator deliberately does not consume conversation approval. Its baselineApprovalStatus NOT_APPROVED describes the original frozen artifact, not the later historical-risk decision in this file. Its sourceCommit remains the original 995ac32d evidence binding; the current candidate is separately bound in current-candidate.review.json. Match labels and exit 0 never establish execution authority.",
+  "refresh": {
+    "artifact": "refreshed-ledger.snapshot.json",
+    "comparison": "comparison-refreshed-history.json",
+    "result": "OBSERVED_HISTORY_MATCH",
+    "unexpectedDeltas": 0,
+    "stage": "baseline",
+    "note": "Point-in-time read without an established writer freeze; repeat under the approved exclusive window before any application."
+  }
+}

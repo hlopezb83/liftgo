@@ -1,0 +1,40 @@
+test_0104_is_not_an_exception (test_compare_ledger.LedgerComparisonTests.test_0104_is_not_an_exception) ... ok
+test_artifact_cannot_promote_approval (test_compare_ledger.LedgerComparisonTests.test_artifact_cannot_promote_approval) ... ok
+test_canonical_bigint_strings_are_exact (test_compare_ledger.LedgerComparisonTests.test_canonical_bigint_strings_are_exact) ... ok
+test_changed_hash (test_compare_ledger.LedgerComparisonTests.test_changed_hash) ... ok
+test_changed_id (test_compare_ledger.LedgerComparisonTests.test_changed_id) ... ok
+test_changed_timestamp (test_compare_ledger.LedgerComparisonTests.test_changed_timestamp) ... ok
+test_cli_parses_the_same_bytes_it_hashes (test_compare_ledger.LedgerComparisonTests.test_cli_parses_the_same_bytes_it_hashes) ... ok
+test_cli_pin_and_exit_codes (test_compare_ledger.LedgerComparisonTests.test_cli_pin_and_exit_codes) ... ok
+test_duplicate_exact_row (test_compare_ledger.LedgerComparisonTests.test_duplicate_exact_row) ... ok
+test_duplicate_id_different_pair (test_compare_ledger.LedgerComparisonTests.test_duplicate_id_different_pair) ... ok
+test_duplicate_json_keys_rejected (test_compare_ledger.LedgerComparisonTests.test_duplicate_json_keys_rejected) ... ok
+test_duplicate_pair_with_new_id (test_compare_ledger.LedgerComparisonTests.test_duplicate_pair_with_new_id) ... ok
+test_duplicate_stage_pair (test_compare_ledger.LedgerComparisonTests.test_duplicate_stage_pair) ... ok
+test_duplicate_timestamp_different_hash (test_compare_ledger.LedgerComparisonTests.test_duplicate_timestamp_different_hash) ... ok
+test_empty_input_not_a_pass (test_compare_ledger.LedgerComparisonTests.test_empty_input_not_a_pass) ... ok
+test_exact_modern_prefix_is_distinct_and_cannot_replace_history (test_compare_ledger.LedgerComparisonTests.test_exact_modern_prefix_is_distinct_and_cannot_replace_history) ... ok
+test_exact_whole_file_stage_prefixes (test_compare_ledger.LedgerComparisonTests.test_exact_whole_file_stage_prefixes) ... ok
+test_expected_checkpoint_is_not_automatically_advanced (test_compare_ledger.LedgerComparisonTests.test_expected_checkpoint_is_not_automatically_advanced) ... ok
+test_future_stage_gap_rejected (test_compare_ledger.LedgerComparisonTests.test_future_stage_gap_rejected) ... ok
+test_hash_normalization_is_not_an_exception (test_compare_ledger.LedgerComparisonTests.test_hash_normalization_is_not_an_exception) ... ok
+test_input_order_does_not_change_identity (test_compare_ledger.LedgerComparisonTests.test_input_order_does_not_change_identity) ... ok
+test_internal_journal_fingerprint_tamper (test_compare_ledger.LedgerComparisonTests.test_internal_journal_fingerprint_tamper) ... ok
+test_internal_row_fingerprint_tamper (test_compare_ledger.LedgerComparisonTests.test_internal_row_fingerprint_tamper) ... ok
+test_malformed_rows_rejected (test_compare_ledger.LedgerComparisonTests.test_malformed_rows_rejected) ... ok
+test_new_serial_sequence_gaps_allowed (test_compare_ledger.LedgerComparisonTests.test_new_serial_sequence_gaps_allowed) ... ok
+test_null_journal_entry_is_clean_validation_error (test_compare_ledger.LedgerComparisonTests.test_null_journal_entry_is_clean_validation_error) ... ok
+test_preserved_baseline_matches_but_is_not_exact_current_prefix (test_compare_ledger.LedgerComparisonTests.test_preserved_baseline_matches_but_is_not_exact_current_prefix) ... ok
+test_prior_checkpoint_is_not_claimed_complete (test_compare_ledger.LedgerComparisonTests.test_prior_checkpoint_is_not_claimed_complete) ... ok
+test_removed_historical_extra_cannot_be_ignored (test_compare_ledger.LedgerComparisonTests.test_removed_historical_extra_cannot_be_ignored) ... ok
+test_removed_row (test_compare_ledger.LedgerComparisonTests.test_removed_row) ... ok
+test_stage_cannot_reuse_old_serial_gap (test_compare_ledger.LedgerComparisonTests.test_stage_cannot_reuse_old_serial_gap) ... ok
+test_tool_error_is_not_an_empty_ledger (test_compare_ledger.LedgerComparisonTests.test_tool_error_is_not_an_empty_ledger) ... ok
+test_unknown_added_row (test_compare_ledger.LedgerComparisonTests.test_unknown_added_row) ... ok
+test_wrong_stage_hash (test_compare_ledger.LedgerComparisonTests.test_wrong_stage_hash) ... ok
+test_wrong_stage_timestamp (test_compare_ledger.LedgerComparisonTests.test_wrong_stage_timestamp) ... ok
+
+----------------------------------------------------------------------
+Ran 35 tests in 0.375s
+
+OK
