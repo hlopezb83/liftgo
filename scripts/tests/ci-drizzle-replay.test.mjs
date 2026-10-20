@@ -22,6 +22,12 @@ const RECEIPT = {
   when: 1792440638110,
   sha256: "ce97a5bcebbcf5f5671861c4d74ed33b3c930710e9f99ded7441a7daf5ec89eb",
 };
+const OPTIONAL_RECEIPT = {
+  idx: 110,
+  tag: "0110_control0109_verified_release",
+  sha256: "3e99b978f260dedd927dd1104b84b5af74ee524b3d78dff0acd9446c2df2e13f",
+};
+const isPinnedReceipt = (entry) => [RECEIPT.tag, OPTIONAL_RECEIPT.tag].includes(entry.tag);
 const REPO_ROOT = fileURLToPath(new URL("../../", import.meta.url));
 const ENV = Object.freeze({
   CI: "true",
@@ -118,12 +124,12 @@ test("prepare omits exactly the pinned receipt from replay, retaining all canoni
   assert.equal(digest(sourceSql[`${RECEIPT.tag}.sql`]), RECEIPT.sha256);
 
   const replay = await prepareReplay(f);
-  const expected = canonicalJournal.entries.filter((entry) => entry.tag !== RECEIPT.tag);
+  const expected = canonicalJournal.entries.filter((entry) => !isPinnedReceipt(entry));
   assert.equal(replay.databaseUrl, ENV.DB_URL);
   assert.notEqual(path.resolve(replay.migrationsDir), path.resolve(f.canonicalDir));
   assert.deepEqual(readFileSync(f.journalPath), sourceJournalBytes, "canonical journal is immutable");
   assertSqlBytes(f.canonicalDir, sourceSql);
-  const functionalSql = Object.fromEntries(Object.entries(sourceSql).filter(([name]) => name !== `${RECEIPT.tag}.sql`));
+  const functionalSql = Object.fromEntries(Object.entries(sourceSql).filter(([name]) => !isPinnedReceipt({ tag: name.slice(0, -4) })));
   assertSqlBytes(replay.migrationsDir, functionalSql);
   assert.equal(existsSync(path.join(replay.migrationsDir, `${RECEIPT.tag}.sql`)), false);
   assert.deepEqual(readJson(path.join(replay.migrationsDir, "meta/_journal.json")).entries, expected);
@@ -456,7 +462,7 @@ test("verification reads the exact observed ledger and never inserts a fictional
   const replay = await prepareReplay(f);
   const result = verifyWithFakeDriver(f, ledger(replay.entries));
   assert.equal(result.status, 0, result.stderr);
-  assert.deepEqual(JSON.parse(result.stdout), { count: replay.entries.length, excludedReceipt: RECEIPT.tag });
+  assert.deepEqual(JSON.parse(result.stdout), { count: replay.entries.length, excludedReceipts: readJson(f.journalPath).entries.filter(isPinnedReceipt).map(({ tag }) => tag) });
   const events = readFileSync(path.join(f.rootDir, "driver-events.log"), "utf8").trim().split("\n");
   assert.deepEqual(events, [
     "connect",
@@ -509,3 +515,114 @@ test("byte-identical symlinks cannot replace canonical SQL, replay SQL, or the r
     assert.throws(() => validateReplay(f), /non-symlink/, target);
   }
 });
+
+
+function addOptionalReceipt(f) {
+  const journal = readJson(f.journalPath);
+  const existing = journal.entries.find(({ tag }) => tag === OPTIONAL_RECEIPT.tag);
+  const entry = existing ?? {
+    idx: OPTIONAL_RECEIPT.idx, version: "7", tag: OPTIONAL_RECEIPT.tag,
+    when: journal.entries.at(-1).when + 1, breakpoints: true,
+  };
+  if (!existing) {
+    assert.equal(journal.entries.length, OPTIONAL_RECEIPT.idx);
+    journal.entries.push(entry);
+    writeJson(f.journalPath, journal);
+  }
+  const bytes = readFileSync(path.join(REPO_ROOT, "scripts/tests/fixtures/control0109-receipt.sql"));
+  assert.equal(digest(bytes), OPTIONAL_RECEIPT.sha256, "reviewed fixture pin must remain independent");
+  writeFileSync(path.join(f.canonicalDir, `${entry.tag}.sql`), bytes);
+  return entry;
+}
+
+test("optional exact 0110 receipt is excluded while 0109 and later functional migrations execute", async (t) => {
+  const f = fixture(t);
+  const receipt = addOptionalReceipt(f);
+  const future = addFutureMigration(f);
+  const sourceSql = sqlSnapshot(f.canonicalDir);
+  const journalBytes = readFileSync(f.journalPath);
+  const replay = await prepareReplay(f);
+  assert.deepEqual(replay.manifest.excludedReceipts.map(({ idx, tag, when, sha256 }) => ({ idx, tag, when, sha256 })),
+    [RECEIPT, { ...OPTIONAL_RECEIPT, when: receipt.when }]);
+  assert.ok(replay.entries.some(({ idx, tag }) => idx === 109 && tag === "0109_nonrecurring_invoice_period_overlap"));
+  assert.ok(replay.entries.some(({ tag }) => tag === future.tag));
+  assert.equal(existsSync(path.join(replay.migrationsDir, `${receipt.tag}.sql`)), false);
+  assertSqlBytes(f.canonicalDir, sourceSql);
+  assert.deepEqual(readFileSync(f.journalPath), journalBytes);
+  assert.doesNotThrow(() => assertReplayLedger(ledger(replay.entries), replay.entries));
+  const fabricated = [...ledger(replay.entries), { hash: OPTIONAL_RECEIPT.sha256, created_at: receipt.when }];
+  assert.throws(() => assertReplayLedger(fabricated, replay.entries), /CI replay ledger/);
+  const missing0109 = ledger(replay.entries).filter((_, idx) => replay.entries[idx].idx !== 109);
+  assert.throws(() => assertReplayLedger(missing0109, replay.entries), /CI replay ledger/);
+});
+
+test("absent optional receipt does not block preparation or skip unrelated index 110", async (t) => {
+  const f = fixture(t);
+  const journal = readJson(f.journalPath);
+  // Build the pre-activation history even after the official runner adds 0110.
+  const removed = journal.entries.splice(OPTIONAL_RECEIPT.idx);
+  for (const entry of removed) rmSync(path.join(f.canonicalDir, `${entry.tag}.sql`));
+  writeJson(f.journalPath, journal);
+  const absent = await prepareReplay(f);
+  assert.deepEqual(absent.manifest.excludedReceipts.map(({ tag }) => tag), [RECEIPT.tag]);
+  const unrelated = addFutureMigration(f);
+  const replay = await prepareReplay(f);
+  assert.equal(unrelated.idx, 110);
+  assert.ok(replay.entries.some(({ tag }) => tag === unrelated.tag));
+});
+
+for (const scenario of ["bytes", "tag", "duplicate", "missing file", "missing journal entry", "breakpoints", "timestamp", "version"]) {
+  test(`optional receipt fails closed for ${scenario}`, async (t) => {
+    const f = fixture(t);
+    const receipt = addOptionalReceipt(f);
+    const sqlPath = path.join(f.canonicalDir, `${receipt.tag}.sql`);
+    const journal = readJson(f.journalPath);
+    if (scenario === "bytes") appendFileSync(sqlPath, "\n-- unreviewed change\n");
+    if (scenario === "tag") {
+      journal.entries[110].tag = "0110_other_receipt";
+      renameSync(sqlPath, path.join(f.canonicalDir, "0110_other_receipt.sql"));
+    }
+    if (scenario === "duplicate") {
+      const future = { ...receipt, idx: journal.entries.length,
+        tag: `${String(journal.entries.length).padStart(4, "0")}_duplicate_receipt`,
+        when: journal.entries.at(-1).when + 1 };
+      journal.entries.push(future);
+      cpSync(sqlPath, path.join(f.canonicalDir, `${future.tag}.sql`));
+    }
+    if (scenario === "missing file") rmSync(sqlPath);
+    if (scenario === "missing journal entry") journal.entries.splice(110, 1);
+    if (scenario === "breakpoints") journal.entries[110].breakpoints = false;
+    if (scenario === "timestamp") journal.entries[110].when = journal.entries[109].when;
+    if (scenario === "version") journal.entries[110].version = "6";
+    writeJson(f.journalPath, journal);
+    await assert.rejects(() => prepareReplay(f));
+  });
+}
+
+for (const scenario of ["timestamp drift", "removed receipt", "manifest timestamp", "restored staged receipt"]) {
+  test(`prepared optional exclusion cannot accept ${scenario}`, async (t) => {
+    const f = fixture(t);
+    const receipt = addOptionalReceipt(f);
+    const replay = await prepareReplay(f);
+    if (scenario === "timestamp drift") {
+      const journal = readJson(f.journalPath);
+      journal.entries[110].when += 1;
+      writeJson(f.journalPath, journal);
+    }
+    if (scenario === "removed receipt") {
+      const journal = readJson(f.journalPath);
+      journal.entries.splice(110, 1);
+      writeJson(f.journalPath, journal);
+      rmSync(path.join(f.canonicalDir, `${receipt.tag}.sql`));
+    }
+    if (scenario === "manifest timestamp") {
+      const manifest = readJson(replay.manifestPath);
+      manifest.excludedReceipts[1].when += 1;
+      writeJson(replay.manifestPath, manifest);
+    }
+    if (scenario === "restored staged receipt") {
+      cpSync(path.join(f.canonicalDir, `${receipt.tag}.sql`), path.join(replay.migrationsDir, `${receipt.tag}.sql`));
+    }
+    assert.throws(() => validateReplay(f));
+  });
+}
