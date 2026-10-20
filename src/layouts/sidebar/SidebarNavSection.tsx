@@ -127,7 +127,8 @@ function NavMenuItem({ item }: { item: NavItem }) {
             // Shift/Alt o botón central el navegador abre otra pestaña.
             if (!isMobile) return;
             if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
-            setOpenMobile(false);
+            // El destino controla el foco al navegar; no devolverlo al menú.
+            setOpenMobile(false, { restoreFocus: false });
           }}
 
         >

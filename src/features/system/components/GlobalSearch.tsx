@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo, useTransition, type ElementType } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef, useTransition, type ElementType } from "react";
 import { routeLoaders } from "@/app-routes/routes-config";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import { getNavigationAccessLevel, useHasFinancialAccess, useRolePermissions, us
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { restoreModalFocus } from "@/lib/ui/restoreModalFocus";
 
 type Item = { title: string; url: string; icon: ElementType; group: string; keywords?: string };
 
@@ -103,6 +104,8 @@ export function GlobalSearch() {
   const { data: role, isError: roleError } = useUserRole();
   const { data: permissionData, isError: permissionsError } = useRolePermissions();
   const perms = roleError || permissionsError ? undefined : permissionData;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const navigatingRef = useRef(false);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const debouncedInput = useDebouncedValue(input, 200);
@@ -116,6 +119,7 @@ export function GlobalSearch() {
         const isInput = tag === "input" || tag === "textarea" || (document.activeElement as HTMLElement)?.isContentEditable;
         if (isInput) return;
         e.preventDefault();
+        navigatingRef.current = false;
         setOpen((o) => !o);
       }
     };
@@ -158,11 +162,13 @@ export function GlobalSearch() {
   const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
   const go = (url: string) => {
+    navigatingRef.current = true;
     setOpen(false);
     startTransition(() => {
       try {
         navigate(url);
       } catch (err) {
+        navigatingRef.current = false;
         console.error("GlobalSearch navigation failed", err);
         notifyError({ error: err, title: "No se pudo abrir la sección. Intenta de nuevo.", severity: "warning" });
       }
@@ -174,9 +180,10 @@ export function GlobalSearch() {
       {/* Bug 7: "Buscar…" prometía búsqueda de contenido; el cajón navega a
           módulos y entidades (facturas/clientes/reservas) → "Ir a…". */}
       <Button
+        ref={triggerRef}
         variant="outline"
         size="sm"
-        onClick={() => setOpen(true)}
+        onClick={() => { navigatingRef.current = false; setOpen(true); }}
         className="h-8 gap-2 text-muted-foreground hover:text-foreground px-2.5 touch:h-11 touch:min-w-11"
         aria-label="Navegación rápida"
       >
@@ -187,7 +194,10 @@ export function GlobalSearch() {
         </Badge>
       </Button>
 
-      <CommandDialog open={open} onOpenChange={handleOpenChange}>
+      <CommandDialog open={open} onOpenChange={handleOpenChange} title="Navegación rápida" description="Busca módulos y registros de la aplicación." onCloseAutoFocus={(event) => {
+        if (navigatingRef.current) { event.preventDefault(); return; }
+        restoreModalFocus(event, triggerRef.current);
+      }}>
         {/* shouldFilter=false: entidades se filtran server-side; para páginas
             usamos el `value` que incluye keywords y cmdk filtra localmente. */}
         <CommandInput

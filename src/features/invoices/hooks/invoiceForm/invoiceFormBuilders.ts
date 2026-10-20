@@ -20,7 +20,7 @@ export type Customer = {
 
 export type ExistingInvoice = {
   customer_name?: string | null; customer_id: string | null; booking_id?: string | null;
-  line_items?: unknown; tax_rate?: number | string; due_date?: string | null;
+  line_items?: unknown; tax_rate?: number | string | null; due_date?: string | null;
   issued_at?: string | null; notes?: string | null;
   billing_period_start?: string | null; billing_period_end?: string | null;
   serie?: string | null; folio?: string | null; forma_pago?: string | null;
@@ -107,7 +107,8 @@ export function buildFromInvoice(inv: ExistingInvoice, customers: Customer[] | u
     customerId: inv.customer_id ?? "",
     customerName: toStr(inv.customer_name),
     lineItems: (inv.line_items as LineItemValues[]) || [],
-    taxRate: Number(inv.tax_rate) || 0,
+    // A missing rate uses the existing quote/stamping default, not an explicit zero.
+    taxRate: inv.tax_rate == null ? 16 : Number(inv.tax_rate) || 0,
     dueDate: inv.due_date ? parseDateLocal(inv.due_date) : undefined,
     issueDate: inv.issued_at ? parseDateLocal(inv.issued_at) : nowMty(),
     billingPeriodStart: toStr(inv.billing_period_start),

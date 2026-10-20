@@ -72,7 +72,7 @@ bloquean la integración. Los avisos informativos de pruebas aprobadas se conser
 
 | Job | Corre | Qué protege |
 | --- | --- | --- |
-| `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build y **smoke de arranque** |
+| `quality` | siempre | ESLint, typecheck, guardrails de arquitectura, build, **smoke de arranque** y **16 escenarios móviles offline** |
 | `tests` (matriz 1/6 … 6/6) | siempre | Suite completa de Vitest, repartida en seis shards |
 | `tests-merge` | siempre | Une los blobs y aplica los **umbrales de cobertura** |
 | `deno-functions` | si cambió `supabase/functions/**` | `deno fmt`, `deno lint` y tests unitarios **sin red** |
@@ -147,6 +147,21 @@ sea de transporte (`Failed to fetch`, Supabase, React/hidratación) fallan.
 Cubierto por `src/test/smokeConsoleNoise.test.ts`.
 
 
+
+### Aceptación móvil del build real
+
+`playwright.mobile.config.ts` añade 16 escenarios (ocho por viewport 360/390px)
+al mismo job `quality`, después del smoke. Reutiliza el build ficticio, sin otro
+build ni backend: acceso, listas operativas con tarjetas no vacías, menú,
+Atrás/Adelante, navegación rápida y filtros con cierre/reapertura y foco.
+El build de CI y el guard de reuso usan el mismo marcador `smoke-placeholder`;
+no se debilita la comprobación de referencias productivas.
+
+Las respuestas interceptadas son sintéticas y sólo permiten lecturas conocidas;
+mutaciones, endpoints desconocidos, HTTP externo y websockets se bloquean.
+El artifact `mobile-acceptance-artifacts` guarda reporte y evidencia durante
+siete días, también al fallar. Véase [el contrato móvil](../tests/mobile/README.md).
+No certifica RLS, integración real, dispositivo físico, teclado virtual ni iOS.
 
 ### Vitest en 6 shards + merge
 

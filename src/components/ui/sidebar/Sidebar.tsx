@@ -2,7 +2,7 @@ import type { CSSProperties, ComponentProps, ElementRef, Ref } from "react";
 import { PanelLeft } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { useSidebar } from "./context";
 import { SIDEBAR_WIDTH_MOBILE } from "./constants";
 
@@ -11,7 +11,7 @@ export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "off
     variant?: "sidebar" | "floating" | "inset";
     collapsible?: "offcanvas" | "icon" | "none";
   } & { ref?: Ref<HTMLDivElement> }) => {
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, state, openMobile, setOpenMobile, restoreMobileFocus } = useSidebar();
 
   if (collapsible === "none") {
     return (
@@ -29,12 +29,15 @@ export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "off
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
         <SheetContent
+          onCloseAutoFocus={restoreMobileFocus}
           data-sidebar="sidebar"
           data-mobile="true"
           className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
           style={{ "--sidebar-width": SIDEBAR_WIDTH_MOBILE } as CSSProperties}
           side={side}
         >
+          <SheetTitle className="sr-only">Menú principal</SheetTitle>
+          <SheetDescription className="sr-only">Navegación de la aplicación.</SheetDescription>
           <div className="flex h-full w-full flex-col">{children}</div>
         </SheetContent>
       </Sheet>
@@ -86,11 +89,12 @@ export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "off
 Sidebar.displayName = "Sidebar";
 
 export const SidebarTrigger = ({ className, onClick, ref, ...props }: ComponentProps<typeof Button> & { ref?: Ref<ElementRef<typeof Button>> }) => {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, triggerId } = useSidebar();
   return (
     <Button
       ref={ref}
       data-sidebar="trigger"
+      data-sidebar-trigger={triggerId}
       variant="ghost"
       size="icon"
       className={cn("h-7 w-7", className)}

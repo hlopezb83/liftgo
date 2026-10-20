@@ -4,7 +4,7 @@ import { defineConfig, devices } from "@playwright/test";
 import { PRODUCTION_PROJECT_REFS } from "./tests/e2e/fixtures/productionGuard";
 
 /**
- * Smoke de arranque: única prueba de navegador que corre en CI.
+ * Smoke de arranque: base compartida por las pruebas de navegador de CI.
  *
  * Sirve el build REAL (`dist/` + `wrangler dev`, el mismo empaquetado que se
  * publica) y comprueba que la app arranca sin errores de página. Ese es
