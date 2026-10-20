@@ -443,7 +443,7 @@ hidratación, descargas o rendimiento. El límite de chunks y los demás avisos
 se mantienen activos.
 
 
-### Replay Drizzle efímero y recibo target-bound 0108
+### Replay Drizzle efímero y recibos target-bound revisados
 
 Los gates RLS y A/B validan primero el journal canónico (`migrations:check`).
 `ci-drizzle-replay.mjs prepare` genera una copia temporal aislada del historial y
@@ -455,14 +455,27 @@ Sólo se reconoce su identidad exacta: idx 108, when 1792440638110 y SHA-256
 Cualquier deriva de esta identidad aborta; no existe una exclusión genérica de
 controles ni una opción para deshabilitar verificaciones.
 
+Además se admite, únicamente cuando lo genere el runner oficial, el recibo
+opcional `0110_control0109_verified_release`: idx 110, breakpoints true y SHA-256
+`3e99b978f260dedd927dd1104b84b5af74ee524b3d78dff0acd9446c2df2e13f`.
+El timestamp todavía no existe antes de esa generación: debe satisfacer las
+reglas canónicas de entero seguro positivo y orden estrictamente creciente, y
+su valor observado queda ligado al manifest. Una deriva posterior invalida el
+replay preparado. Su ausencia no bloquea el historial anterior; otra migración
+en idx 110 sigue ejecutándose, nunca se omite por nombre o prefijo. Bytes
+modificados, identidad distinta o una copia duplicada del recibo se rechazan.
+La migración funcional 0109 se conserva íntegra y debe figurar en el ledger de CI.
+El fixture SQL bajo `scripts/tests/fixtures` sólo prueba este reconocimiento;
+no se agrega el recibo a migraciones ni se ejecuta desde el fixture.
+
 `drizzle.ci.config.ts` consume únicamente esa copia validada y rechaza destinos
 distintos del PostgreSQL local efímero de CI. Todas las migraciones funcionales
 conservan sus bytes y orden canónico. Tras `drizzle-kit migrate`, `verify` compara
 el ledger real completo (hash y timestamp) contra el replay; no inserta ni simula
-una fila aplicada para 0108. El diagnóstico en fallo consume la misma copia,
+filas aplicadas para los recibos excluidos. El diagnóstico en fallo consume la misma copia,
 valida el prefijo aplicado y revierte siempre su transacción.
 
 El SQL, snapshots, journal y configuración productivos permanecen intactos. Las
 suites SQL/RLS y A/B siguen ejecutándose completas después del gate de ledger.
-El recibo 0108 conserva su verificación propia en el destino autorizado; CI no
+Cada recibo conserva su verificación propia en el destino autorizado; CI no
 pretende certificar ni reconstruir ese estado productivo.
