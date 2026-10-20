@@ -105,3 +105,13 @@ describe("deliverySchema — Bug 3: justificación sin operador ni firma", () =>
     expect(r.success).toBe(true);
   });
 });
+
+// OP02: the historical branch must not accept a future actual occurrence.
+describe("historical actual date", () => {
+  it("rejects tomorrow even when alreadyCompleted is selected", () => {
+    const tomorrow = nowMty(); tomorrow.setDate(tomorrow.getDate() + 1);
+    const result = deliverySchema.safeParse({ ...base, alreadyCompleted: true, scheduledDate: tomorrow });
+    expect(result.success).toBe(false);
+    if (!result.success) expect(result.error.issues.some(issue => issue.path[0] === "scheduledDate")).toBe(true);
+  });
+});

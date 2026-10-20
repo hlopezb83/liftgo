@@ -154,8 +154,9 @@ export function EquipmentAssignmentDialog({
       (f) =>
         isSelectable(f) &&
         (!rpcAvailableIds || rpcAvailableIds.has(f.id)) &&
-        f.manufacturer === model.manufacturer &&
-        f.model === model.model &&
+        // Match the same stable identity as convert_quote_to_bookings. A
+        // renamed label is harmless; missing/different IDs are not assignable.
+        f.equipment_model_id === model.id &&
         !alreadyAssigned.has(f.id),
     );
 

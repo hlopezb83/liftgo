@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -76,19 +76,21 @@ function RangeFieldHeading({
 
 function DateRangeFooter({
   localRange,
+  required,
   onClear,
   onCancel,
   onApply,
 }: {
   localRange?: DateRange;
+  required?: boolean;
   onClear: () => void;
   onCancel: () => void;
   onApply: () => void;
 }) {
-  const canApply = !!localRange?.from && !!localRange?.to;
+  const canApply = (!!localRange?.from && !!localRange?.to) || (!required && !localRange?.from && !localRange?.to);
   return (
     <DialogFooter className="px-4 py-3 border-t flex-row flex-wrap justify-between sm:px-5 sm:justify-between gap-2">
-      <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from}>
+      <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from && !localRange?.to}>
         Limpiar
       </Button>
       <div className="flex gap-2">
@@ -114,6 +116,9 @@ export function DateRangePickerField({
   error,
   helperText,
 }: DateRangePickerFieldProps) {
+  const descriptionId = useId();
+  const invalid = error ? true : undefined;
+  const describedBy = error || helperText ? descriptionId : undefined;
   const isMobile = useIsMobile();
   const isTabletOrBelow = useIsTabletOrBelow();
   const [open, setOpen] = useState(false);
@@ -160,6 +165,8 @@ export function DateRangePickerField({
               onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
               today={nowMty()}
               aria-label={`${fieldName} — inicio`}
+              aria-invalid={invalid}
+              aria-describedby={describedBy}
               className="min-w-0"
             />
           </div>
@@ -170,6 +177,8 @@ export function DateRangePickerField({
               onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
               today={nowMty()}
               aria-label={`${fieldName} — fin`}
+              aria-invalid={invalid}
+              aria-describedby={describedBy}
               className="min-w-0"
             />
           </div>
@@ -191,6 +200,7 @@ export function DateRangePickerField({
           label={fieldName}
           liveLabel={liveLabel}
           localRange={localRange}
+          required={required}
           singleMonth={isTabletOrBelow}
           onCalendarSelect={(r) => {
             const { range, apply } = nextRangeState(localRange, r);
@@ -203,7 +213,7 @@ export function DateRangePickerField({
           onApply={() => applyRange(localRange)}
         />
       </Dialog>
-      {error ? <p className="text-sm text-destructive">{error}</p> : helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
+      {error ? <p id={descriptionId} className="text-sm text-destructive">{error}</p> : helperText ? <p id={descriptionId} className="text-xs text-muted-foreground">{helperText}</p> : null}
     </div>
   );
 }
@@ -212,6 +222,7 @@ function RangeDialogBody({
   label,
   liveLabel,
   localRange,
+  required,
   singleMonth,
   onCalendarSelect,
   onClear,
@@ -221,6 +232,7 @@ function RangeDialogBody({
   label: string;
   liveLabel: string;
   localRange?: DateRange;
+  required?: boolean;
   singleMonth: boolean;
   onCalendarSelect: (r?: DateRange) => void;
   onClear: () => void;
@@ -255,6 +267,7 @@ function RangeDialogBody({
       </div>
       <DateRangeFooter
         localRange={localRange}
+        required={required}
         onClear={onClear}
         onCancel={onCancel}
         onApply={onApply}

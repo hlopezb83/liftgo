@@ -18,7 +18,7 @@ function Field() {
     defaultValues: { date: new Date(2026, 8, 30) },
   });
   return <Form {...form}><form onSubmit={form.handleSubmit(() => {})}>
-    <DateField control={form.control} name="date" label="Fecha de inspección" disabledMatcher={{ after: new Date(2026, 8, 30) }} />
+    <DateField control={form.control} name="date" label="Fecha de inspección" required disabledMatcher={{ after: new Date(2026, 8, 30) }} />
     <button type="submit">Guardar</button>
   </form></Form>;
 }
@@ -26,7 +26,7 @@ function Field() {
 describe("DateField: error de fecha único", () => {
   it("prioriza el motivo del campo sin duplicar el error de schema", async () => {
     render(<Field />);
-    const input = screen.getByLabelText("Fecha de inspección");
+    const input = screen.getByRole("textbox", { name: "Fecha de inspección" });
     fireEvent.change(input, { target: { value: "01102026" } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     await waitFor(() => expect(input).toHaveAttribute("aria-invalid", "true"));
@@ -37,7 +37,7 @@ describe("DateField: error de fecha único", () => {
 
   it("explica en español una fecha vacía y la vincula al campo", async () => {
     render(<Field />);
-    const input = screen.getByLabelText("Fecha de inspección");
+    const input = screen.getByRole("textbox", { name: "Fecha de inspección" });
     fireEvent.change(input, { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar" }));
     const error = await screen.findByText("Selecciona una fecha válida");
@@ -47,7 +47,7 @@ describe("DateField: error de fecha único", () => {
 
   it("resuelve la captura rechazada al seleccionar un día válido en el calendario", async () => {
     render(<Field />);
-    const input = screen.getByLabelText("Fecha de inspección");
+    const input = screen.getByRole("textbox", { name: "Fecha de inspección" });
     fireEvent.change(input, { target: { value: "01102026" } });
     expect(screen.getByText("Esta fecha no está permitida")).toBeInTheDocument();
     expect(input).toHaveValue("01/10/2026");
@@ -56,8 +56,8 @@ describe("DateField: error de fecha único", () => {
     expect(within(dialog).getByRole("button", { name: "Aplicar" })).toBeDisabled();
     fireEvent.click(within(dialog).getByRole("button", { name: /30 de septiembre/i }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Aplicar" }));
-    await waitFor(() => expect(screen.getByLabelText("Fecha de inspección")).toHaveValue("30/09/2026"));
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Fecha de inspección" })).toHaveValue("30/09/2026"));
     expect(screen.queryByText("Esta fecha no está permitida")).not.toBeInTheDocument();
-    expect(screen.getByLabelText("Fecha de inspección")).not.toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByRole("textbox", { name: "Fecha de inspección" })).not.toHaveAttribute("aria-invalid", "true");
   });
 });

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CREDIT_NOTE_MOTIVES as MOTIVES } from "@/features/invoices/lib/creditNoteMotives";
 import type { Tables } from "@/integrations/supabase/types";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useCreditNoteForm } from "../../hooks/creditNotes/useCreditNoteForm";
 import { CreditNoteLinesTable } from "./CreditNoteLinesTable";
 
@@ -20,6 +20,8 @@ interface Props {
 }
 
 export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCreditable, repBacked = 0 }: Props) {
+  const currency = invoice.moneda || "MXN";
+  const formatAmount = (amount: number) => formatCurrencyWithCode(amount, currency);
   const f = useCreditNoteForm(invoice, maxCreditable, () => onOpenChange(false));
 
   return (
@@ -31,9 +33,9 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
       title="Nueva nota de Crédito"
       width="2xl"
       description={<>Factura {invoice.invoice_number}. Máximo acreditable:{" "}
-        <span className="tabular-nums font-semibold">{formatCurrency(maxCreditable)}</span>.
+        <span className="tabular-nums font-semibold">{formatAmount(maxCreditable)}</span>.
         {repBacked > 0.005 && (
-          <> El tope descuenta {formatCurrency(repBacked)} ya declarados en complementos de pago (REP) vigentes;
+          <> El tope descuenta {formatAmount(repBacked)} ya declarados en complementos de pago (REP) vigentes;
             para acreditar más, cancela primero esos complementos ante el SAT.</>
         )}{" "}
         El borrador NO modifica el saldo; éste se reduce únicamente al timbrar la nota de crédito.</>}
@@ -69,22 +71,22 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
             </div>
           </div>
 
-          <CreditNoteLinesTable lines={f.lines} onUpdate={f.updateLine} lineMax={f.lineMax} />
+          <CreditNoteLinesTable lines={f.lines} onUpdate={f.updateLine} lineMax={f.lineMax} currency={currency} />
 
           <div className="flex justify-end">
             <div className="w-64 space-y-1 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span className="font-mono">{formatCurrency(f.subtotal)}</span>
+                <span className="font-mono">{formatAmount(f.subtotal)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">IVA ({f.taxRate}%):</span>
-                <span className="font-mono">{formatCurrency(f.taxAmount)}</span>
+                <span className="font-mono">{formatAmount(f.taxAmount)}</span>
               </div>
               <div className="flex justify-between border-t pt-1 font-semibold">
                 <span>Total NC:</span>
                 <span className={`font-mono ${f.exceedsMax ? "text-destructive" : ""}`}>
-                  {formatCurrency(f.total)}
+                  {formatAmount(f.total)}
                 </span>
               </div>
               {f.exceedsMax && (

@@ -19,10 +19,10 @@ export const maintenanceFormSchema = z.object({
 
 export type MaintenanceFormValues = z.infer<typeof maintenanceFormSchema>;
 
-export const initialMaintenanceForm: MaintenanceFormValues = {
+export const buildInitialMaintenanceForm = (): MaintenanceFormValues => ({
   forkliftId: "", serviceType: "", description: "", cost: null,
   performedBy: "", performedAt: nowMty(), nextServiceDate: undefined, supplierId: "",
-};
+});
 
 export function maintenanceLogToFormValues(log: MaintenanceLog): MaintenanceFormValues {
   // R10 Bloque 5: prellenamos desde `manual_cost` (columna capturada por

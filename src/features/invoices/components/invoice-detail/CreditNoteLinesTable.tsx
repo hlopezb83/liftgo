@@ -2,17 +2,18 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { creditNoteDiscountForSelection } from "@/features/invoices/lib/creditNoteDiscount";
 import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import type { EditableCreditNoteLine } from "../../hooks/creditNotes/useCreditNoteForm";
 
 interface Props {
   lines: EditableCreditNoteLine[];
+  currency?: string;
   onUpdate: (idx: number, patch: Partial<EditableCreditNoteLine>) => void;
   /** Fix 8.1: máximos facturados por línea, para mostrar el hint del tope. */
   lineMax?: (idx: number) => { quantity: number; unit_price: number };
 }
 
-export function CreditNoteLinesTable({ lines, onUpdate, lineMax }: Props) {
+export function CreditNoteLinesTable({ lines, onUpdate, lineMax, currency = "MXN" }: Props) {
   const netSubtotal = (line: EditableCreditNoteLine, index: number) => {
     const selectedGross = lineItemTotal(line.quantity, line.unit_price);
     const maximum = lineMax?.(index);
@@ -79,12 +80,12 @@ export function CreditNoteLinesTable({ lines, onUpdate, lineMax }: Props) {
                 />
                 {lineMax && (
                   <p className="mt-1 text-[11px] text-muted-foreground text-right">
-                    Máximo: {formatCurrency(lineMax(i).unit_price)} facturado
+                    Máximo: {formatCurrencyWithCode(lineMax(i).unit_price, currency)} facturado
                   </p>
                 )}
               </TableCell>
               <TableCell className="text-right font-mono text-sm">
-                {formatCurrency(netSubtotal(l, i))}
+                {formatCurrencyWithCode(netSubtotal(l, i), currency)}
               </TableCell>
             </TableRow>
           ))}

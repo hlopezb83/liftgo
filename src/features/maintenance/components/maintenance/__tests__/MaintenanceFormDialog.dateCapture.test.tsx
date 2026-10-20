@@ -40,7 +40,7 @@ describe("Mantenimiento: conservar fecha inválida al validar el formulario", ()
   it.each([false, true])("conserva la captura imposible (fecha previa cambiada: %s)", async (changePrevious) => {
     render(<MaintenanceForm />);
     fireEvent.click(screen.getByRole("button", { name: "Nuevo mantenimiento" }));
-    const date = await screen.findByLabelText("Fecha de Servicio");
+    const date = await screen.findByRole("textbox", { name: "Fecha de Servicio" });
     if (changePrevious) {
       fireEvent.change(date, { target: { value: "15/08/2026" } });
       fireEvent.blur(date);

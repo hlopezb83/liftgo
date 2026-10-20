@@ -57,3 +57,44 @@ describe("computeCreditNoteLimits", () => {
     expect(r.willCreateCredit).toBe(true);
   });
 });
+
+
+describe("BF02: non-REP payment currency controls", () => {
+  it.each([
+    { invoice: "MXN", rate: 1, payment: "USD", paymentRate: 20, amount: 50, expected: 1000 },
+    { invoice: "USD", rate: 20, payment: "MXN", paymentRate: 1, amount: 1000, expected: 50 },
+    { invoice: "EUR", rate: 25, payment: "USD", paymentRate: 20, amount: 50, expected: 40 },
+    { invoice: "USD", rate: null, payment: "USD", paymentRate: null, amount: 50, expected: 50 },
+    { invoice: "USD", rate: null, payment: null, paymentRate: null, amount: 50, expected: 50 },
+  ])("converts $payment to invoice $invoice without changing the credit cap", (fixture) => {
+    const r = computeCreditNoteLimits(2000, [], [pay({ amount: fixture.amount,
+      currency: fixture.payment ?? undefined, exchange_rate: fixture.paymentRate ?? undefined })],
+    { moneda: fixture.invoice, tipo_cambio: fixture.rate });
+    expect(r.otherPaid).toBe(fixture.expected);
+    expect(r.fxMissingOtherPayments).toBe(0);
+    expect(r.maxCreditable).toBe(2000);
+    expect(r.willCreateCredit).toBe(true);
+  });
+
+  it("reports unknown conversion without presenting a partial sum as total or changing the REP cap", () => {
+    const r = computeCreditNoteLimits(2000, [], [
+      pay({ amount: 50, currency: "USD", exchange_rate: undefined }),
+      pay({ amount: 100, currency: "MXN" }),
+    ], { moneda: "MXN" });
+    expect(r.otherPaid).toBe(100);
+    expect(r.fxMissingOtherPayments).toBe(1);
+    expect(r.willCreateCredit).toBe(false);
+    expect(r.blockedByMissingFx).toBe(false);
+    expect(r.maxCreditable).toBe(2000);
+  });
+
+  it("converts a cancelled REP as a non-REP payment, but keeps active REP fail-closed", () => {
+    const r = computeCreditNoteLimits(2000, [], [
+      pay({ amount: 50, currency: "USD", exchange_rate: 20, rep_cfdi_status: "stamped", rep_cancelled_at: "2026-10-20" }),
+      pay({ amount: 10, currency: "USD", exchange_rate: undefined, rep_cfdi_status: "stamped" }),
+    ], { moneda: "MXN" });
+    expect(r.otherPaid).toBe(1000);
+    expect(r.fxMissingReps).toBe(1);
+    expect(r.blockedByMissingFx).toBe(true);
+  });
+});

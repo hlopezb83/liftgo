@@ -28,6 +28,8 @@ export interface MaskedDateInputProps {
    * fecha de un pago con REP timbrado).
    */
   isDateDisabled?: (date: Date) => boolean;
+  /** Reject non-empty invalid or incomplete input, separately from an intentional clear. */
+  onInvalidInput?: () => void;
   /** Invalidate a required form value during typing, before blur or Enter. */
   invalidateOnPartial?: boolean;
   className?: string;
@@ -35,6 +37,7 @@ export interface MaskedDateInputProps {
   errorMessage?: string;
   "aria-describedby"?: string;
   "aria-label"?: string;
+  "aria-invalid"?: boolean;
 }
 
 const STEP_KEYS: Record<string, number> = { ArrowUp: 1, "+": 1, ArrowDown: -1, "-": -1 };
@@ -54,6 +57,7 @@ export function MaskedDateInput({
   disabled,
   isDateDisabled,
   invalidateOnPartial = false,
+  onInvalidInput,
   className,
   errorMessage,
   ...aria
@@ -82,6 +86,11 @@ export function MaskedDateInput({
     }
   }
 
+  const rejectInput = () => {
+    if (onInvalidInput) onInvalidInput();
+    else onChange(undefined);
+  };
+
   /**
    * @param final `true` en blur: además avisa de capturas parciales.
    */
@@ -92,7 +101,7 @@ export function MaskedDateInput({
     // §3.3: fecha completa pero bloqueada por el matcher del calendario.
     if (parsed.date && isDateDisabled?.(parsed.date)) {
       setError("Esta fecha no está permitida");
-      onChange(undefined);
+      rejectInput();
       return;
     }
 
@@ -100,13 +109,15 @@ export function MaskedDateInput({
     // callers retain their existing partial-edit contract until completion.
     if (!parsed.complete) {
       const incomplete = next.length > 0;
-      setError(final && incomplete ? "Fecha incompleta (DD/MM/AAAA)" : null);
-      if (invalidateOnPartial || final || !incomplete) onChange(undefined);
+      setError((final || onInvalidInput) && incomplete ? "Fecha incompleta (DD/MM/AAAA)" : null);
+      if (incomplete && onInvalidInput) onInvalidInput();
+      else if (invalidateOnPartial || final || !incomplete) onChange(undefined);
       return;
     }
 
     setError(parsed.error);
-    onChange(parsed.date ?? undefined);
+    if (parsed.date) onChange(parsed.date);
+    else rejectInput();
   };
 
   const applyDigits = (next: string) => {
@@ -177,7 +188,7 @@ export function MaskedDateInput({
         autoComplete="off"
         {...aria}
         aria-describedby={describedBy}
-        aria-invalid={displayedError ? true : undefined}
+        aria-invalid={displayedError ? true : aria["aria-invalid"]}
         className={cn("font-mono tabular-nums", displayedError && "border-destructive", className)}
       />
       {displayedError ? <p id={errorId} className="text-sm text-destructive">{displayedError}</p> : null}

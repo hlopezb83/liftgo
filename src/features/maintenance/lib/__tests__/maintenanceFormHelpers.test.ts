@@ -2,15 +2,26 @@ import { describe, it, expect } from "vitest";
 import {
   buildMaintenancePayload,
   maintenanceLogToFormValues,
-  initialMaintenanceForm,
+  buildInitialMaintenanceForm,
   maintenanceFormSchema,
 } from "../maintenanceFormHelpers";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
+describe("buildInitialMaintenanceForm", () => {
+  it("entrega valores nuevos sin compartir objetos Date entre aperturas", () => {
+    const first = buildInitialMaintenanceForm();
+    const second = buildInitialMaintenanceForm();
+    expect(first).not.toBe(second);
+    expect(first.performedAt).not.toBe(second.performedAt);
+    first.performedAt.setFullYear(1999);
+    expect(second.performedAt.getFullYear()).not.toBe(1999);
+  });
+});
+
 describe("maintenanceFormSchema", () => {
   it("acepta payload mínimo válido", () => {
     const r = maintenanceFormSchema.safeParse({
-      ...initialMaintenanceForm,
+      ...buildInitialMaintenanceForm(),
       forkliftId: "f1",
       serviceType: "preventivo",
     });
@@ -18,18 +29,18 @@ describe("maintenanceFormSchema", () => {
   });
 
   it("rechaza sin montacargas", () => {
-    const r = maintenanceFormSchema.safeParse({ ...initialMaintenanceForm, serviceType: "x" });
+    const r = maintenanceFormSchema.safeParse({ ...buildInitialMaintenanceForm(), serviceType: "x" });
     expect(r.success).toBe(false);
   });
 
   it("rechaza sin tipo de servicio", () => {
-    const r = maintenanceFormSchema.safeParse({ ...initialMaintenanceForm, forkliftId: "f1" });
+    const r = maintenanceFormSchema.safeParse({ ...buildInitialMaintenanceForm(), forkliftId: "f1" });
     expect(r.success).toBe(false);
   });
 
   it("rechaza costo negativo", () => {
     const r = maintenanceFormSchema.safeParse({
-      ...initialMaintenanceForm, forkliftId: "f1", serviceType: "x", cost: -1,
+      ...buildInitialMaintenanceForm(), forkliftId: "f1", serviceType: "x", cost: -1,
     });
     expect(r.success).toBe(false);
   });

@@ -80,8 +80,9 @@ export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFor
         driver_phone: values.driverPhone || null,
         notes: values.notes || null,
         status: values.alreadyCompleted ? "completed" : "scheduled",
-        // Bugs 1-2: completed_at lo sella el trigger de DB con el reloj del
-        // servidor (el reloj del navegador producía timestamps < created_at).
+        // El servidor deriva completed_at de la fecha/hora elegida para
+        // históricos y rechaza futuros; created_at conserva cuándo se capturó.
+        // No enviar timestamps construidos con el reloj del navegador.
         // Bug 3: histórico sin operador → guardar la justificación capturada.
         completed_no_evidence_reason:
           values.alreadyCompleted && !values.driverName.trim() && values.noEvidenceReason.trim()

@@ -4870,6 +4870,42 @@ export type Database = {
           },
         ]
       }
+      return_inspection_usage_bases: {
+        Row: {
+          basis: Json
+          captured_at: string
+          inspection_id: string
+          organization_id: string
+        }
+        Insert: {
+          basis: Json
+          captured_at?: string
+          inspection_id: string
+          organization_id: string
+        }
+        Update: {
+          basis?: Json
+          captured_at?: string
+          inspection_id?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_inspection_usage_bases_inspection_id_fkey"
+            columns: ["inspection_id"]
+            isOneToOne: true
+            referencedRelation: "return_inspections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_inspection_usage_bases_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       return_inspections: {
         Row: {
           booking_id: string

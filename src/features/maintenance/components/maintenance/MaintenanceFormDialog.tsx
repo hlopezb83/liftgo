@@ -89,7 +89,7 @@ export function MaintenanceFormDialog({
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DateField control={form.control} name="performedAt" label="Fecha de Servicio" />
+              <DateField control={form.control} name="performedAt" label="Fecha de Servicio" required />
               <DateField control={form.control} name="nextServiceDate" label="Próximo Servicio" placeholder="Opcional" />
             </div>
             <SupplierField control={form.control} name="supplierId" allowEmpty />

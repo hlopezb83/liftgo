@@ -1,4 +1,6 @@
+import { deliveryKeys } from "@/features/deliveries";
 import { forkliftKeys } from "@/features/fleet";
+import { quoteKeys } from "@/features/quotes";
 import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
@@ -102,7 +104,7 @@ export function useCancelBooking() {
       if (error) throw error;
       return bookingId;
     },
-    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
+    invalidateKeys: [deliveryKeys.all, quoteKeys.all, bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
     invalidateKeysFn: (id) => [bookingKeys.detail(id)],
     errorTitle: "Error al cancelar reserva",
   });

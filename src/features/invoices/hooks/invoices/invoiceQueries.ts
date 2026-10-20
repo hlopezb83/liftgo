@@ -2,13 +2,14 @@ import { queryOptions, useInfiniteQuery, useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import {
   createInvoiceListFilters,
   createInvoiceListQueryKey,
   sanitizeInvoiceSearchForQuery,
   type InvoiceListFilters,
 } from "../../lib/invoiceListFilters";
+import { normalizeInvoiceListSorting, type InvoiceListSorting } from "../../lib/invoiceListSorting";
 import { invoiceKeys } from "../../lib/queryKeys";
 
 type InvoiceRow = Tables<"invoices">;
@@ -86,11 +87,16 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
   return data ?? [];
 }
 
-async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) {
+async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number, sorting: InvoiceListSorting) {
   const from = pageIndex * INVOICE_PAGE_SIZE;
   const to = from + INVOICE_PAGE_SIZE - 1;
-  const { data, error } = await baseInvoiceQuery(filters)
-    .order("created_at", { ascending: false })
+  let query = baseInvoiceQuery(filters);
+  for (const sort of sorting) {
+    query = query.order(sort.id, { ascending: !sort.desc, nullsFirst: false });
+  }
+  if (sorting.length === 0) query = query.order("created_at", { ascending: false });
+  // A unique tie-breaker keeps equal values in the same order across pages.
+  const { data, error } = await query
     .order("id", { ascending: false })
     .range(from, to)
     .returns<InvoiceRow[]>();
@@ -99,15 +105,21 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
   return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
 }
 
-export async function fetchInvoicesForExport(filters?: InvoiceListFilters, limit = 10_000) {
+export async function fetchInvoicesForExport(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
-  const { data, error } = await baseInvoiceQuery(normalized)
-    .order("created_at", { ascending: false })
-    .order("id", { ascending: false })
-    .limit(limit)
-    .returns<InvoiceRow[]>();
-  if (error) throw error;
-  return data ?? [];
+  const rows: InvoiceRow[] = [];
+  // Continue to an empty page instead of treating a server row cap as EOF.
+  // Advance by the actual count so a smaller server cap cannot skip invoices.
+  for (;;) {
+    const { data, error } = await baseInvoiceQuery(normalized)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(rows.length, rows.length + LIST_PAGE_LIMIT - 1)
+      .returns<InvoiceRow[]>();
+    if (error) throw error; // Never return a partially downloaded export.
+    if (!data?.length) return rows;
+    rows.push(...data);
+  }
 }
 
 
@@ -163,14 +175,15 @@ export function useInvoice(id: string | undefined) {
 /**
  * Paginación por cursor (range) para el listado de facturas.
  * Devuelve páginas de INVOICE_PAGE_SIZE con `fetchNextPage()` y `hasNextPage`.
- * Los filtros participan en la queryKey, de modo que cambiar filtros reinicia
+ * Los filtros y el orden participan en la queryKey, de modo que cambiarlos reinicia
  * la paginación automáticamente.
  */
-export function useInvoicesInfinite(filters?: InvoiceListFilters) {
+export function useInvoicesInfinite(filters?: InvoiceListFilters, sorting: InvoiceListSorting = []) {
   const normalized = createInvoiceListFilters(filters);
+  const normalizedSorting = normalizeInvoiceListSorting(sorting);
   return useInfiniteQuery({
-    queryKey: [...createInvoiceListQueryKey(normalized), "infinite"],
-    queryFn: ({ pageParam }) => fetchInvoicePage(normalized, pageParam as number),
+    queryKey: [...createInvoiceListQueryKey(normalized), "infinite", normalizedSorting],
+    queryFn: ({ pageParam }) => fetchInvoicePage(normalized, pageParam as number, normalizedSorting),
     initialPageParam: 0,
     getNextPageParam: (last) => last.nextPage,
     staleTime: INVOICE_STALE_MS,

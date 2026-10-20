@@ -15,7 +15,7 @@ import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useLocation } from "@/lib/router-compat";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
@@ -24,6 +24,7 @@ import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGen
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
 import { fetchInvoicesForExport, invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
+import type { SortingState } from "@tanstack/react-table";
 
 type Invoice = Tables<"invoices">;
 
@@ -98,7 +99,8 @@ export default function InvoicesPage() {
     dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll,
   } = useInvoicesFilters();
 
-  const invoicesQuery = useInvoicesInfinite(queryFilters);
+  const [sorting, setSorting] = useState<SortingState>([{ id: "invoice_number", desc: true }]);
+  const invoicesQuery = useInvoicesInfinite(queryFilters, sorting);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
   const isUpdatingFilters = invoicesQuery.isPlaceholderData;
   const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
@@ -118,8 +120,10 @@ export default function InvoicesPage() {
     data: isUpdatingFilters ? [] : invoiceRows,
     columns,
     getRowId: (i) => i.id,
-    initialSorting: [{ id: "invoice_number", desc: true }],
-    resetKey: filterKey,
+    controlledSorting: sorting,
+    onControlledSortingChange: setSorting,
+    manualSorting: true,
+    resetKey: `${filterKey}|${JSON.stringify(sorting)}`,
     preservePaginationOnAppend: true,
   });
 
@@ -153,7 +157,9 @@ export default function InvoicesPage() {
         actions={(canCreate || showExport) &&
           <InvoicesActionsBar
             onOpenPreview={openPreview}
-             onExport={() => { void exportCsv(); }}
+            onExport={() => { void exportCsv().catch((error: unknown) => {
+              notifyError({ title: "No se pudieron exportar las facturas", error });
+            }); }}
             onNew={() => navigate("/invoices/new")}
             previewPending={previewRecurring.isPending}
             showExport={showExport}
