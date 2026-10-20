@@ -17,6 +17,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { isIdentityQueryKey } from "@/lib/query/identityScope";
 import {
   createBrowserPersister,
+  getBrowserStorage,
   purgeForeignPersistedCaches,
   PERSIST_MAX_AGE_MS,
   shouldPersistQuery,
@@ -55,23 +56,31 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
       // Una consulta que ya estaba resolviéndose puede reinsertarse al
       // completarse; se vuelve a purgar tras ceder el turno al microtask.
       await Promise.resolve();
+      if (cancelled) return;
       queryClient.removeQueries(notIdentity);
 
-      if (typeof window !== "undefined") {
-        purgeForeignPersistedCaches(window.localStorage, scope);
-      }
+      const storage = getBrowserStorage();
+      if (storage) purgeForeignPersistedCaches(storage, scope);
 
       if (!scope) return;
 
       const [unsub, restored] = persistQueryClient({
         queryClient,
-        persister: createBrowserPersister(scope),
+        persister: createBrowserPersister(scope, storage),
         maxAge: PERSIST_MAX_AGE_MS,
         dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
         buster: scope,
       });
       unsubscribe = unsub;
-      await restored;
+      try {
+        await restored;
+      } catch {
+        // The persistence SDK rejects failed restoration after attempting to discard
+        // corrupt/unavailable storage. Keep the already-cleared, identity-scoped
+        // in-memory cache usable; do not retry or subscribe to broken storage.
+        unsubscribe();
+        if (!cancelled) console.warn("Query cache restoration unavailable; using memory only.");
+      }
       if (cancelled) return;
       setReadyScope(scope);
     };
