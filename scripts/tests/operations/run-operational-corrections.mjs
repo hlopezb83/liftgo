@@ -59,7 +59,15 @@ const rejected = async (query, code, pattern) => {
   );
 };
 try {
-  run("initdb", ["-D", `${dir}/data`, "-U", "postgres", "--auth=trust"]);
+  // PostgreSQL forbids demoting the bootstrap role. Use a separate local-only
+  // bootstrap, then make the migration owner match the non-superuser target.
+  run("initdb", [
+    "-D",
+    `${dir}/data`,
+    "-U",
+    "acl_cluster_admin",
+    "--auth=trust",
+  ]);
   run("pg_ctl", [
     "-D",
     `${dir}/data`,
@@ -73,11 +81,14 @@ try {
   sql = postgres({
     host: "127.0.0.1",
     port,
-    username: "postgres",
+    username: "acl_cluster_admin",
     database: "postgres",
     max: 1,
     onnotice: () => {},
   });
+  await sql.unsafe(
+    "CREATE ROLE postgres SUPERUSER LOGIN; ALTER DATABASE postgres OWNER TO postgres; SET SESSION AUTHORIZATION postgres",
+  );
   await sql.unsafe(`CREATE ROLE authenticated; CREATE ROLE anon; CREATE ROLE service_role; CREATE SCHEMA auth;
     CREATE TABLE public.organizations(id uuid PRIMARY KEY,is_active boolean NOT NULL DEFAULT true); INSERT INTO public.organizations(id) VALUES('10000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002');
     CREATE TYPE public.app_role AS ENUM('admin','administrativo','dispatcher','mechanic');
@@ -153,6 +164,173 @@ try {
       "\n$function$;",
     ),
   );
+  // Model the pre-existing target functions before applying 0115. The ACL
+  // regression must not accidentally replace the source's real function bodies.
+  for (const [file, name, tag] of [
+    [
+      "supabase/migrations/20260903211605_481d235f-a11b-40c3-a88c-30611707e6c3.sql",
+      "set_delivery_completed_at",
+      "\n$$;",
+    ],
+    [
+      "drizzle/migrations/0102_admin_delivery_return_corrections.sql",
+      "void_return_inspection",
+      "\n$$;",
+    ],
+    [
+      "drizzle/migrations/0103_canonical_payment_invoice_currency.sql",
+      "sync_invoice_status",
+      "\n$function$;",
+    ],
+  ])
+    await sql.unsafe(extract(file, name, tag));
+  // These DEFAULT PRIVILEGES changes are fixtures in this disposable cluster
+  // only. Include global/schema ACLs, an inherited role, and a quoted role name.
+  await sql.unsafe(`
+    CREATE ROLE sandbox_exec_fixture; CREATE ROLE sandbox_exec;
+    CREATE ROLE "qa global ""quoted"""; CREATE ROLE sandbox_inherited;
+    GRANT sandbox_exec_fixture TO sandbox_inherited;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+      GRANT ALL ON TABLES TO anon,authenticated,service_role;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+      GRANT SELECT,INSERT ON TABLES TO sandbox_exec_fixture,sandbox_exec;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres
+      GRANT SELECT ON TABLES TO "qa global ""quoted""";
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public
+      GRANT EXECUTE ON FUNCTIONS TO anon,authenticated,service_role,sandbox_exec_fixture;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres
+      GRANT EXECUTE ON FUNCTIONS TO "qa global ""quoted""";
+    REVOKE ALL ON FUNCTION public.set_delivery_completed_at(),public.guard_archived_damage_immutable()
+      FROM PUBLIC,anon,authenticated;
+    REVOKE ALL ON FUNCTION public.void_return_inspection(uuid,text),public.sync_invoice_status(uuid)
+      FROM PUBLIC,anon;
+    GRANT EXECUTE ON FUNCTION public.void_return_inspection(uuid,text),public.sync_invoice_status(uuid)
+      TO authenticated;
+    GRANT EXECUTE ON FUNCTION public.set_delivery_completed_at(),public.guard_archived_damage_immutable(),
+      public.void_return_inspection(uuid,text),public.sync_invoice_status(uuid)
+      TO service_role,sandbox_exec_fixture,"qa global ""quoted""";
+    GRANT authenticated,anon TO postgres;
+    ALTER ROLE postgres NOSUPERUSER BYPASSRLS;
+  `);
+  const aclSnapshot = async (db = sql) => {
+    const [snapshot] = await db.unsafe(`SELECT
+      (SELECT jsonb_agg(to_jsonb(d) ORDER BY d.oid) FROM pg_default_acl d) AS defaults,
+      (SELECT jsonb_agg(jsonb_build_object('oid',p.oid,'owner',p.proowner,'acl',p.proacl::text) ORDER BY p.oid)
+         FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+         WHERE n.nspname IN ('public','auth') AND p.oid NOT IN (
+           COALESCE(to_regprocedure('public.return_usage_charge_basis(uuid,uuid,timestamptz,timestamptz)')::oid,0),
+           COALESCE(to_regprocedure('public.recalculate_return_usage_charge()')::oid,0))) AS functions,
+      (SELECT jsonb_agg(jsonb_build_object('oid',c.oid,'owner',c.relowner,'acl',c.relacl::text) ORDER BY c.oid)
+         FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+         WHERE n.nspname='public' AND c.oid IS DISTINCT FROM to_regclass('public.return_inspection_usage_bases')::oid
+           AND c.relkind IN ('r','p')) AS tables`);
+    return snapshot;
+  };
+  const definitionSnapshot = async () =>
+    Array.from(
+      await sql.unsafe(`
+    SELECT oid,pg_get_functiondef(oid) AS definition FROM pg_proc
+     WHERE oid IN ('public.set_delivery_completed_at()'::regprocedure,
+       'public.guard_archived_damage_immutable()'::regprocedure,
+       'public.void_return_inspection(uuid,text)'::regprocedure,
+       'public.sync_invoice_status(uuid)'::regprocedure) ORDER BY oid`),
+    );
+  const ownerOnly = async (db = sql) => {
+    const rows = await db.unsafe(`WITH targets AS (
+      SELECT 'table' AS kind,c.relowner AS owner,COALESCE(c.relacl,acldefault('r',c.relowner)) AS acl
+        FROM pg_class c WHERE c.oid=to_regclass('public.return_inspection_usage_bases')
+      UNION ALL
+      SELECT p.proname,p.proowner,COALESCE(p.proacl,acldefault('f',p.proowner)) FROM pg_proc p
+       WHERE p.oid IN (to_regprocedure('public.return_usage_charge_basis(uuid,uuid,timestamptz,timestamptz)'),
+         to_regprocedure('public.recalculate_return_usage_charge()')))
+      SELECT kind,pg_get_userbyid(owner) AS owner,
+        EXISTS(SELECT 1 FROM aclexplode(acl) a WHERE a.grantee<>owner) AS non_owner,
+        EXISTS(SELECT 1 FROM aclexplode(acl) a WHERE a.grantee=owner) AS owner_grant
+      FROM targets ORDER BY kind`);
+    assert.equal(rows.length, 3, "All three private objects must exist");
+    for (const row of rows) {
+      assert.equal(row.owner, "postgres");
+      assert.equal(row.non_owner, false, row.kind);
+      assert.equal(row.owner_grant, true, row.kind);
+    }
+    const privileges = await db.unsafe(`SELECT rolname,
+      has_table_privilege(oid,'public.return_inspection_usage_bases','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS table_access,
+      has_function_privilege(oid,'public.return_usage_charge_basis(uuid,uuid,timestamptz,timestamptz)','EXECUTE') AS basis,
+      has_function_privilege(oid,'public.recalculate_return_usage_charge()','EXECUTE') AS recalculate
+      FROM pg_roles WHERE rolname IN ('anon','authenticated','service_role','sandbox_exec_fixture','sandbox_exec','sandbox_inherited','qa global "quoted"')`);
+    assert.equal(privileges.length, 7);
+    for (const row of privileges) {
+      assert.equal(
+        row.table_access || row.basis || row.recalculate,
+        false,
+        row.rolname,
+      );
+    }
+  };
+  const beforeAcls = await aclSnapshot();
+  const beforeDefinitions = await definitionSnapshot();
+  // Positive control: prove the fixtures reproduce inherited default grants.
+  // Remove PostgreSQL's implicit PUBLIC EXECUTE from the probe so it cannot
+  // mask missing explicit global/schema grants or the role inheritance check.
+  await sql.begin(async (tx) => {
+    await tx.unsafe(
+      "CREATE TABLE public.acl_default_probe(id integer); CREATE FUNCTION public.acl_default_probe() RETURNS integer LANGUAGE sql AS 'SELECT 1'; REVOKE EXECUTE ON FUNCTION public.acl_default_probe() FROM PUBLIC",
+    );
+    const [probe] = await tx.unsafe(`SELECT
+      has_table_privilege('sandbox_exec','public.acl_default_probe','SELECT,INSERT') AS table_access,
+      has_function_privilege('sandbox_inherited','public.acl_default_probe()','EXECUTE') AS inherited_function,
+      has_function_privilege('qa global "quoted"','public.acl_default_probe()','EXECUTE') AS global_function`);
+    assert.deepEqual(probe, {
+      table_access: true,
+      inherited_function: true,
+      global_function: true,
+    });
+    await tx.unsafe(
+      "DROP TABLE public.acl_default_probe; DROP FUNCTION public.acl_default_probe()",
+    );
+  });
+  pass(
+    "ACL positive control reproduces global/schema/extra-role default grants",
+  );
+  const migration = readFileSync(
+    path.join(
+      root,
+      "drizzle/migrations/0115_operational_audit_corrections.sql",
+    ),
+    "utf8",
+  );
+  await sql.unsafe(
+    "CREATE TEMP TABLE acl_migration_ledger(id serial PRIMARY KEY, hash text); INSERT INTO acl_migration_ledger(hash) VALUES('preserved-prefix')",
+  );
+  await assert.rejects(
+    sql.begin(async (tx) => {
+      await tx.unsafe(migration);
+      await ownerOnly(tx);
+      assert.deepEqual(await aclSnapshot(tx), beforeAcls);
+      await tx.unsafe(
+        "INSERT INTO acl_migration_ledger(hash) VALUES('0115-fixture'); DO $$ BEGIN RAISE EXCEPTION 'forced ACL migration rollback'; END $$",
+      );
+    }),
+    (error) =>
+      error.code === "P0001" &&
+      /forced ACL migration rollback/.test(error.message),
+  );
+  assert.deepEqual(await aclSnapshot(), beforeAcls);
+  assert.deepEqual(await definitionSnapshot(), beforeDefinitions);
+  const [rolledBack] = await sql.unsafe(`SELECT
+    to_regclass('public.return_inspection_usage_bases') IS NULL AS no_table,
+    to_regprocedure('public.return_usage_charge_basis(uuid,uuid,timestamptz,timestamptz)') IS NULL AS no_basis,
+    to_regprocedure('public.recalculate_return_usage_charge()') IS NULL AS no_recalculate,
+    (SELECT count(*)::integer FROM acl_migration_ledger) AS ledger_rows`);
+  assert.deepEqual(rolledBack, {
+    no_table: true,
+    no_basis: true,
+    no_recalculate: true,
+    ledger_rows: 1,
+  });
+  pass(
+    "ACL forced failure rolls back objects, prior definitions/ACLs/defaults and ledger rows",
+  );
   const seed = async () => {
     await sql.unsafe(`RESET ROLE; SELECT set_config('test.role','admin',false),set_config('test.org','${org}',false);
       TRUNCATE bookings,forklifts,return_inspections,damage_records,deliveries,contracts,maintenance_logs,audit_logs,status_logs CASCADE;
@@ -183,15 +361,42 @@ try {
   await seed();
   const legacyId = await complete();
   await sql.unsafe("RESET ROLE");
-  await sql.unsafe(
-    readFileSync(
-      path.join(
-        root,
-        "drizzle/migrations/0115_operational_audit_corrections.sql",
-      ),
-      "utf8",
-    ),
+  await sql.begin(async (tx) => {
+    await tx.unsafe(migration);
+    await ownerOnly(tx);
+    assert.deepEqual(await aclSnapshot(tx), beforeAcls);
+  });
+  await ownerOnly();
+  assert.deepEqual(await aclSnapshot(), beforeAcls);
+  const [actor] = await sql.unsafe(
+    "SELECT current_user AS actor,rolsuper,rolbypassrls FROM pg_roles WHERE rolname=current_user",
   );
+  assert.deepEqual(actor, {
+    actor: "postgres",
+    rolsuper: false,
+    rolbypassrls: true,
+  });
+  const [guard] = await sql.unsafe(
+    "SELECT prosecdef FROM pg_proc WHERE oid='public.guard_archived_damage_immutable()'::regprocedure",
+  );
+  assert.equal(guard.prosecdef, false);
+  const syncBefore = beforeDefinitions.find((row) =>
+    row.definition.includes("FUNCTION public.sync_invoice_status("),
+  );
+  assert.equal(
+    (await definitionSnapshot()).find((row) => row.oid === syncBefore.oid)
+      .definition,
+    syncBefore.definition,
+  );
+  pass(
+    "ACL exactly three new objects are owner-only; prior ACLs/defaults and sync body preserved as non-superuser postgres",
+  );
+  const aclGate = readFileSync(
+    path.join(root, "supabase/tests/rls/operational_usage_owner_acl_0115.sql"),
+    "utf8",
+  ).replace(/^\\set[^\n]*\n/gm, "");
+  await sql.unsafe(aclGate);
+  pass("ACL full-schema SQL gate also passes in the disposable focused schema");
   await sql.unsafe(
     "CREATE TRIGGER trg_set_delivery_completed_at BEFORE INSERT OR UPDATE ON deliveries FOR EACH ROW EXECUTE FUNCTION public.set_delivery_completed_at()",
   );

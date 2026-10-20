@@ -91,3 +91,30 @@ only the inspection-link/updated-at difference. Direct updates (including a
 forged context setting) remain blocked before and after annulment. The ordinary
 restore RPC is also exercised. Snapshot storage keeps the standard restrictive
 organization policy and write-context trigger without any application grants.
+
+### Owner-only ACL regression
+
+The unactivated 0115 candidate now removes every non-owner ACL grantee from
+exactly its new snapshot table and two new private helpers. It enumerates actual
+ACLs instead of naming ephemeral platform roles. No default privileges or ACLs
+of existing functions/tables are changed by this hardening; 0116 is unchanged.
+
+The same disposable launcher installs deliberately broad global/schema default
+ACL fixtures, including extra sandbox roles, an inherited role and a quoted role
+name. A positive control proves those grants take effect. It applies exact 0115
+as non-superuser postgres with BYPASSRLS, then checks owner-only stored/effective
+ACLs, unchanged default ACLs and every existing function/table ACL. A forced
+transaction failure verifies rollback of the new objects, previous function
+definitions and simulated ledger rows. Sequence values may still advance.
+Existing function ACL fixtures match the reviewed preflight, with additional
+marker grants retained; this is not a claim about arbitrary divergent ACLs.
+The positive function probe removes PUBLIC EXECUTE so extra-role access cannot
+be masked by PostgreSQL's implicit PUBLIC grant.
+The new read-only catalog suite `operational_usage_owner_acl_0115.sql` also runs
+under the existing full-schema SQL gate. Default-ACL fixture changes occur only
+inside the disposable local cluster, never in the migration or remote database.
+
+Changing this candidate is permitted only while 0115 remains unrecorded in the
+target ledger. Reconfirm the absence of its ledger row and all three new objects
+(the helper definitions use CREATE OR REPLACE), and use the newly reviewed SHA256 at
+activation; never rewrite an already-applied migration or repair ledger history.

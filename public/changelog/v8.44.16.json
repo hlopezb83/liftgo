@@ -1,0 +1,15 @@
+{
+  "version": "8.44.16",
+  "date": "2026-10-20",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Correcciones de operaciones, facturación, fechas y reportes",
+  "description": "Veinte correcciones verificadas mejoran la coherencia operativa, los importes, la captura de fechas y las consultas completas.",
+  "changes": [
+    "La asignación conserva la identidad del modelo y las entregas históricas respetan su fecha real; cancelar reservas actualiza las vistas relacionadas.",
+    "Anular una devolución conserva daños y reparaciones con auditoría. Corregir horas usa la base original; los históricos sin evidencia confiable requieren revisión administrativa.",
+    "Las notas de crédito redondean descuentos y muestran la moneda correcta; la conciliación actualiza fechas, saldos y reportes sin depender del estado previo.",
+    "Los calendarios permiten vaciar campos opcionales y anuncian errores; las fechas inválidas no se sustituyen ni se guardan silenciosamente.",
+    "Proveedores distingue carga, error y vacío; las exportaciones incluyen todas las páginas, conservan fechas civiles y la lista de facturas ordena globalmente."
+  ]
+}
