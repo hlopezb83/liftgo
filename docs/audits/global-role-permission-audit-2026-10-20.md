@@ -47,7 +47,12 @@ lo ejecuta ni solicita credenciales. Para una base verificada en 0110:
 1. Bloquea ledger y matriz; comprueba receipt 0110 y ausencia de las tres nuevas
    migraciones. Verifica las huellas de función y ledger completo obtenidas
    en un preflight reciente y que la ejecución normal de triggers esté activa.
-2. Preinstala el cuerpo idempotente exacto de 0113 sin registrar ningún avance.
+2. Exige que no existan la tabla ni la función nuevas de auditoría. Extrae sus
+   definiciones completas y exactas de 0113, crea ambos objetos sin adjuntar aún
+   el trigger, usa CREATE estricto para rechazar creaciones concurrentes,
+   habilita RLS y revoca todas las concesiones no-owner heredadas,
+   exclusivamente sobre esos dos objetos recién creados. No usa funciones stub.
+   Después ejecuta 0113 íntegro sin registrar ningún avance.
 3. Aplica los archivos exactos 0111 y 0112.
 4. Repite 0113, comprueba permisos y conservación de ACL, propietario y
    configuración de seguridad de la función.
@@ -77,14 +82,14 @@ actual y sus dependencias sean equivalentes al supuesto probado.
 
 ## Verificación local
 
-- PostgreSQL 17.9: 11/11 pruebas aprobadas con esquema focal y dos empresas,
+- PostgreSQL 17.9: 15/15 pruebas aprobadas con esquema focal y dos empresas,
   incluyendo evento de reserva tenant B y ejecución de la suite SQL de CI.
 - Cubre las tres operaciones auditadas, no-op, actor autenticado/sistema,
   marcadores E2E/fuente sin efecto evasivo, denegación de acceso de aplicaciones,
   repetición no destructiva y rollback de DDL, eventos, permisos y ledger.
 - Casos negativos: drift de columnas, defaults, constraints, policies y trigger;
   huellas de función/ledger incorrectas, modo replica y migración registrada.
-- Generador sin conexión: 3/3 pruebas aprobadas.
+- Generador sin conexión: 4/4 pruebas aprobadas.
 - Preparador/replay Drizzle: 59/59 pruebas unitarias aprobadas.
 - Lint de migración, journal de 114 entradas, sintaxis YAML y diff: aprobados.
 - Revisión independiente SQL, wrapper y CI: sin bloqueantes.
@@ -97,11 +102,43 @@ mantiene su replay ascendente habitual y añade el harness aislado del orden
 especial; la suite SQL también se ejecutará contra el esquema real en CI.
 No se repitió la batería frontend porque el parche no cambia su código.
 
+## Default privileges de plataforma y alcance del preparador
+
+Un intento posterior con el SQL inicial fue rechazado por la guarda owner-only,
+con rollback completo. La plataforma asigna por defecto permisos de tabla y
+función a roles adicionales de sandbox. Revocar solamente los roles estándar
+no elimina esas concesiones; la guarda de 0113 actuó correctamente.
+
+El preparador actualizado no modifica DEFAULT PRIVILEGES, roles, memberships,
+objetos existentes ni los bytes/hashes de 0111–0113. La normalización local de
+ACL ocurre en la misma transacción, sólo sobre la tabla y función nuevas, antes
+de ejecutar el contenido canónico completo de 0113. Sólo el modo de creación
+del preámbulo cambia a CREATE estricto, sin IF NOT EXISTS ni OR REPLACE; las
+columnas, constraints, defaults y cuerpo de función son los canónicos. La tabla usa UUID: no crea
+secuencias ni requiere cambiar sus permisos. Si alguno de los dos objetos ya
+existe, se aborta antes de modificarlo y se exige inspeccionar el estado.
+
+0113 crudo requiere defaults compatibles con su contrato owner-only, o este
+preparador especial para el estado verificado en 0110. No se afirma que ejecutar
+el migrador global sin ese preámbulo sea portable a plataformas con grants
+adicionales. No hace falta una nueva migración: el estado final sigue siendo
+exactamente el contrato de 0113, sin avanzar el ledger antes de 0111/0112.
+
+Las pruebas focales reproducen grants predeterminados de SELECT/INSERT en tablas,
+EXECUTE en funciones y SELECT/USAGE en secuencias para dos roles BYPASSRLS sin
+superusuario. Verifican éxito del preparador, rechazo del 0113 crudo, conservación
+de defaults, ACL y objetos ajenos, ausencia de nuevas secuencias, hashes canónicos,
+rollback total ante fallo posterior y rechazo de objetos preexistentes. También
+mantienen los doce casos anteriores. Servidor temporal detenido al terminar.
+
 ## Estado y siguiente paso
 
-Parche local preparado. No se ha aplicado esta nueva migración ni se ha
-publicado la aplicación. La revisión y confirmación del alcance nuevo deben
-preceder cualquier aplicación remota. Primero publicar/revisar el parche en
-PR y verificar CI. Después autorizar la transacción especial de las tres
-migraciones y la publicación del frontend validado, con nueva lectura de
-huellas/estado inmediatamente antes de aplicar.
+La corrección de auditoría 0113 ya se fusionó mediante PR303 y su CI terminó
+verde. El intento de aplicar la transacción 0111–0113 fue rechazado por la
+guarda owner-only debido a los default grants de plataforma; se comprobó el
+rollback completo. No se alteraron los hashes ni se registraron las migraciones.
+
+El ajuste del preparador descrito arriba está preparado y probado localmente,
+aún sin aplicar. Requiere un nuevo PR, revisión y CI antes de un nuevo intento.
+La aplicación deberá usar una nueva lectura de huellas/estado y respetar la
+autorización del destino. La publicación del frontend es una etapa separada.

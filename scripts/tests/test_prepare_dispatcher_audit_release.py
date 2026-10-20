@@ -32,6 +32,20 @@ class ReleaseGeneratorTests(unittest.TestCase):
         self.assertNotIn("SET LOCAL app.organization_id", sql)
         self.assertNotIn("SET LOCAL request.jwt", sql)
 
+    def test_platform_acl_bootstrap_is_bounded_and_precedes_canonical_guard(self):
+        sql = MODULE.generate("a" * 32, "b" * 32)
+        self.assertIn('Global audit bootstrap objects already exist', sql)
+        self.assertLess(sql.index('DO $bootstrap_acl$'), sql.index('-- Bootstrap 0113'))
+        self.assertNotIn('ALTER DEFAULT PRIVILEGES', sql)
+        self.assertNotIn('CREATE ROLE', sql)
+        self.assertNotIn('CREATE SEQUENCE', sql)
+        self.assertIn("a.grantee<>c.relowner", sql)
+        self.assertIn("a.grantee<>p.proowner", sql)
+        self.assertIn("quote_ident(pg_get_userbyid(v_grantee))", sql)
+        self.assertEqual(sql.count('CREATE OR REPLACE FUNCTION public.audit_global_role_permission_change()'), 2)
+        self.assertEqual(sql.count('CREATE FUNCTION public.audit_global_role_permission_change()'), 1)
+        self.assertEqual(sql.count('CREATE TABLE public.role_permission_audit_events ('), 1)
+
     def test_payloads_are_exact_and_hashes_match(self):
         import hashlib
         sql = MODULE.generate("a" * 32, "b" * 32)

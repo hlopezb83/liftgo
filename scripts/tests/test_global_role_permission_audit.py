@@ -185,6 +185,70 @@ class GlobalAuditTests(unittest.TestCase):
         self.sql('REVOKE SELECT ON role_permission_audit_events FROM authenticated')
         self.sql(gate)
 
+    def platform_defaults(self):
+        self.sql("""DO $$ BEGIN
+          IF NOT EXISTS(SELECT FROM pg_roles WHERE rolname='qa_platform_sandbox') THEN CREATE ROLE qa_platform_sandbox BYPASSRLS; END IF;
+          IF NOT EXISTS(SELECT FROM pg_roles WHERE rolname='qa_platform_project') THEN CREATE ROLE qa_platform_project BYPASSRLS; END IF;
+          END $$;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT,INSERT ON TABLES TO qa_platform_sandbox,qa_platform_project;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO qa_platform_project;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT,USAGE ON SEQUENCES TO qa_platform_sandbox,qa_platform_project;
+          CREATE TABLE public.qa_unrelated_table(id serial, value text);
+          CREATE FUNCTION public.qa_unrelated_function() RETURNS integer LANGUAGE sql AS 'SELECT 1';
+        """)
+        self.addCleanup(lambda: self.sql("""
+          DROP TABLE IF EXISTS public.qa_unrelated_table;
+          DROP FUNCTION IF EXISTS public.qa_unrelated_function();
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT,INSERT ON TABLES FROM qa_platform_sandbox,qa_platform_project;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM qa_platform_project;
+          ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT,USAGE ON SEQUENCES FROM qa_platform_sandbox,qa_platform_project;
+        """))
+        return self.platform_snapshot()
+
+    def platform_snapshot(self):
+        return self.sql("""SELECT jsonb_build_object(
+          'defaults',(SELECT jsonb_agg(to_jsonb(d) ORDER BY oid) FROM pg_default_acl d),
+          'relations',(SELECT jsonb_agg(to_jsonb(c) ORDER BY oid) FROM pg_class c WHERE relname IN ('qa_unrelated_table','qa_unrelated_table_id_seq')),
+          'function',(SELECT to_jsonb(p) FROM pg_proc p WHERE oid='qa_unrelated_function()'::regprocedure),
+          'sequences',(SELECT jsonb_agg(oid ORDER BY oid) FROM pg_class WHERE relkind='S'))""")
+
+    def test_platform_defaults_are_hardened_only_on_new_audit_objects(self):
+        before=self.platform_defaults()
+        # Canonical migration remains fail-closed without this release prelude.
+        self.sql('BEGIN;'+self.migration+'COMMIT;',error='owner-only')
+        self.assertEqual(before,self.platform_snapshot())
+        self.sql(self.release)
+        self.assertEqual(before,self.platform_snapshot())
+        for role in ('qa_platform_sandbox','qa_platform_project'):
+            self.assertEqual(self.sql(f"SELECT has_table_privilege('{role}','role_permission_audit_events','SELECT,INSERT,UPDATE,DELETE,TRUNCATE')"),'f')
+            self.assertEqual(self.sql(f"SELECT has_function_privilege('{role}','audit_global_role_permission_change()','EXECUTE')"),'f')
+        self.sql('BEGIN;'+self.migration+'COMMIT;')
+        self.assertEqual(before,self.platform_snapshot())
+        for tag in generator.TAGS:
+            digest=hashlib.sha256((ROOT/'drizzle/migrations'/f'{tag}.sql').read_bytes()).hexdigest()
+            self.assertEqual(self.sql(f"SELECT count(*) FROM drizzle.__drizzle_migrations WHERE hash='{digest}'"),'1')
+
+    def test_platform_default_release_failure_rolls_back_everything(self):
+        before=self.platform_defaults()
+        failing=self.release.replace('-- Record every target',"SELECT 1/0;\n-- Record every target")
+        self.sql(failing,error='22012')
+        self.assertEqual(before,self.platform_snapshot())
+        self.assertEqual(self.sql("SELECT to_regclass('role_permission_audit_events') IS NULL AND to_regprocedure('audit_global_role_permission_change()') IS NULL"),'t')
+        self.assertEqual(self.sql('SELECT count(*) FROM drizzle.__drizzle_migrations'),'1')
+        self.assertEqual(self.sql("SELECT access_level FROM role_permissions WHERE role='dispatcher' AND module='Facturas'"),'read')
+        self.assertEqual(self.sql("SELECT md5(pg_get_functiondef('get_customer_summary(uuid)'::regprocedure))"),self.fingerprint)
+        self.assertEqual(self.sql("SELECT tgfoid::regprocedure::text FROM pg_trigger WHERE tgname='audit_role_permissions'"),'audit_trigger_fn()')
+
+    def test_bootstrap_rejects_preexisting_objects_without_touching_them(self):
+        self.sql('CREATE TABLE role_permission_audit_events(unexpected text)')
+        self.sql(self.release,error='bootstrap objects already exist')
+        self.assertEqual(self.sql("SELECT count(*) FROM information_schema.columns WHERE table_name='role_permission_audit_events'"),'1')
+        self.sql("DROP TABLE role_permission_audit_events; CREATE FUNCTION audit_global_role_permission_change() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'unrelated'; END $$")
+        before=self.sql("SELECT pg_get_functiondef('audit_global_role_permission_change()'::regprocedure)")
+        self.sql(self.release,error='bootstrap objects already exist')
+        self.assertEqual(before,self.sql("SELECT pg_get_functiondef('audit_global_role_permission_change()'::regprocedure)"))
+        self.assertEqual(self.sql('SELECT count(*) FROM drizzle.__drizzle_migrations'),'1')
+
     def test_failed_audit_insert_rolls_back_permission_change(self):
         self.sql('BEGIN;'+self.migration+'COMMIT;')
         self.sql("ALTER TABLE role_permission_audit_events ADD CONSTRAINT deliberate_failure CHECK(action <> 'UPDATE')")
