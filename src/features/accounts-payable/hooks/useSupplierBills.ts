@@ -69,17 +69,22 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
 const BILL_LIST_COLUMNS =
   "id, bill_number, supplier_id, cfdi_uuid, folio, serie, issue_date, due_date, subtotal, tax_amount, retention_isr, retention_iva, total, currency, exchange_rate, payment_method_sat, payment_form_sat, cfdi_use, category, description, status, balance, xml_url, pdf_url, cfdi_xml_url, receptor_rfc, tipo_comprobante, coverage_start, coverage_end, notes, created_by, created_at, updated_at, approval_status, approved_by, approved_at, rejected_by, rejected_at, approval_notes, payment_in_progress_at, suppliers(id, name)";
 
-async function fetchList(): Promise<SupplierBillListItem[]> {
+async function fetchList(signal: AbortSignal): Promise<SupplierBillListItem[]> {
   const fetchAllBills = async () => {
     const rows: SupplierBillListItem[] = [];
     for (let from = 0; ; from += LIST_PAGE_LIMIT) {
+      signal.throwIfAborted();
       const { data, error } = await supabase
         .from("supplier_bills")
         .select(BILL_LIST_COLUMNS)
         .order("issue_date", { ascending: false })
         .order("id", { ascending: true })
         .range(from, from + LIST_PAGE_LIMIT - 1)
+        .abortSignal(signal)
         .returns<SupplierBillListItem[]>();
+      // A response may finish just before cancellation reaches the transport.
+      // Never consume it or request the next page once the query is aborted.
+      signal.throwIfAborted();
       if (error) throw error;
       const page = data ?? [];
       rows.push(...page);
@@ -90,6 +95,7 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
   const fetchAllPayments = async () => {
     const rows: PaymentRepRow[] = [];
     for (let from = 0; ; from += LIST_PAGE_LIMIT) {
+      signal.throwIfAborted();
       const { data, error } = await supabase
         .from("supplier_payments")
         // Todos los pagos alimentan tanto el resumen REP como los KPIs.
@@ -97,7 +103,9 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
         .order("payment_date", { ascending: false })
         .order("id", { ascending: true })
         .range(from, from + LIST_PAGE_LIMIT - 1)
+        .abortSignal(signal)
         .returns<Array<PaymentRepRow & { id: string }>>();
+      signal.throwIfAborted();
       if (error) throw error;
       const page = data ?? [];
       rows.push(...page);
@@ -145,7 +153,7 @@ export const supplierBillQueries = defineEntityQueries<
   SupplierBillDetail | null
 >("supplier_bills", {
   staleTime: 30_000,
-  list: () => fetchList,
+  list: () => ({ signal }) => fetchList(signal),
   detail: (id) => () => fetchDetail(id),
 });
 

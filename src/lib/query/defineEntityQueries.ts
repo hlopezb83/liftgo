@@ -18,10 +18,10 @@
  *   useQuery(quoteQueries.detail(id));
  *   await queryClient.prefetchQuery(quoteQueries.detail(id));
  */
-import { queryOptions } from "@tanstack/react-query";
+import { queryOptions, type QueryFunctionContext } from "@tanstack/react-query";
 import { createEntityKeys, type EntityKeys } from "./createEntityKeys";
 
-type Fetcher<T> = () => Promise<T>;
+type Fetcher<T> = (context: QueryFunctionContext) => Promise<T>;
 
 export interface DefineEntityConfig<TList, TDetail = never, F = Readonly<Record<string, unknown>>> {
   readonly list: (filter?: F) => Fetcher<TList>;

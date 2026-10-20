@@ -1,0 +1,14 @@
+{
+  "version": "8.44.17",
+  "date": "2026-10-20",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Cancelación de consultas, conciliación y seguridad de Vite",
+  "description": "Correcciones adicionales de la auditoría: cancelación de consultas de facturas de proveedor y exportación de conciliación de facturas con moneda y tipo de cambio, junto con el parche compatible de Vite.",
+  "changes": [
+    "Las consultas paginadas de facturas de proveedor consumen la señal de cancelación para detener solicitudes pendientes y páginas posteriores.",
+    "La exportación de conciliación de facturas conserva el importe original, añade moneda, tipo de cambio y equivalente MXN, y explica exclusiones del total timbrado.",
+    "Vite recibe el parche de seguridad mínimo compatible, sin cambiar el pin existente de Rolldown.",
+    "Las ocho mejoras futuras permanecen fuera de este lote."
+  ]
+}
