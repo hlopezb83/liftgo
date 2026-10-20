@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createRepPersistenceFixture } from "./repPersistenceFixture";
 
 const mocks = vi.hoisted(() => ({
   admin: null as unknown,
@@ -49,89 +50,8 @@ const { handleRequest } = (await import(handlerPath)) as {
   handleRequest: (req: Request) => Promise<Response>;
 };
 
-type Write = Record<string, unknown>;
-function fixture(
-  fail: "ids" | "stamped" | "xml" | "state" | "counter" | "claim" | "throw" | "none",
-  noRow = false,
-  attempts = 0,
-  existingIds = false,
-) {
-  const payment: Write = {
-    id: "payment-1",
-    organization_id: "11111111-1111-4111-8111-111111111111",
-    invoice_id: "invoice-1",
-    rep_cfdi_status: "stamping",
-    rep_cfdi_uuid: existingIds ? "22222222-2222-4222-8222-222222222222" : null,
-    rep_facturapi_id: existingIds ? "pac-1" : null,
-    rep_stamping_started_at: "2026-01-01T00:00:00.000Z",
-    rep_lookup_attempts: 2,
-    rep_stamping_attempts: attempts,
-    rep_number: fail === "none" ? "REP-1" : null,
-    rep_folio: 1,
-  };
-  const writes: Write[] = [];
-  const writeFilters: Write[] = [];
-  const upload = vi.fn(async () => ({ error: null }));
-  mocks.admin = {
-    storage: { from: () => ({ upload }) },
-    from(table: string) {
-      let patch: Write | undefined;
-      const filters: Record<string, unknown> = {};
-      const result = () => {
-        if (!patch)
-          return {
-            data:
-              table === "payments" && filters.rep_cfdi_status === "stamping"
-                ? [{ ...payment }]
-                : [],
-            error: null,
-          };
-        writes.push({ ...patch });
-        writeFilters.push({ ...filters });
-        if (Object.entries(filters).some(([key, value]) => payment[key] !== value))
-          return { data: null, error: null };
-        if (fail === "throw" && "rep_facturapi_id" in patch)
-          throw new Error("injected transport failure");
-        const fails =
-          (fail === "claim" && Object.keys(patch).length === 1 && "rep_stamping_started_at" in patch) ||
-          (fail === "state" && ("rep_cfdi_status" in patch || "rep_facturapi_id" in patch)) ||
-          (fail === "counter" && "rep_lookup_attempts" in patch) ||
-          (fail === "ids" &&
-            "rep_facturapi_id" in patch &&
-            !("rep_cfdi_status" in patch)) ||
-          (fail === "stamped" && patch.rep_cfdi_status === "stamped") ||
-          (fail === "xml" && "rep_stamping_attempts" in patch);
-        if (fails)
-          return {
-            data: null,
-            error: noRow ? null : { message: "injected persistence failure" },
-          };
-        Object.assign(payment, patch);
-        return { data: { id: payment.id }, error: null };
-      };
-      const query = {
-        select: () => query,
-        update: (value: Write) => {
-          patch = value;
-          return query;
-        },
-        eq: (key: string, value: unknown) => {
-          filters[key] = value;
-          return query;
-        },
-        lt: () => query,
-        limit: () => query,
-        is: () => query,
-        not: () => query,
-        maybeSingle: () => Promise.resolve(result()),
-        then: (resolve: (value: unknown) => unknown) =>
-          Promise.resolve(result()).then(resolve),
-      };
-      return query;
-    },
-  };
-  return { payment, writes, writeFilters, upload };
-}
+const fixture = createRepPersistenceFixture.bind(null, mocks);
+
 async function reconcile() {
   const response = await handleRequest(
     new Request("http://localhost/reconcile", { method: "POST" }),

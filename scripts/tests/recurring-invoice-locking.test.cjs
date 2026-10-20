@@ -5,7 +5,8 @@ if (process.env.RUN_LOCAL_RECURRING_TESTS !== "1") {
   );
   process.exit(0);
 }
-const { Client } = require(process.env.PG_MODULE || "pg");
+// Use the repository's frozen postgres dependency, not an untracked pg install.
+const postgres = require("postgres");
 const fs = require("fs"),
   assert = require("assert/strict");
 const path = require("path"),
@@ -61,8 +62,31 @@ async function start() {
 
 const uid = (n) => `10900000-0000-4000-8000-${String(n).padStart(12, "0")}`;
 async function conn() {
-  const c = new Client(config);
-  await c.connect();
+  const sql = postgres({
+    ...config,
+    password: "",
+    ssl: false,
+    max: 1,
+    prepare: false,
+    connect_timeout: 5,
+    idle_timeout: 0,
+    connection: { statement_timeout: config.statement_timeout },
+    onnotice: () => {},
+  });
+  // Reserve a physical session: BEGIN/COMMIT and pg_stat_activity must observe
+  // the same backend throughout each concurrent scenario.
+  const session = await sql.reserve();
+  const [{ pid }] = await session.unsafe("SELECT pg_backend_pid() AS pid");
+  const c = {
+    processID: pid,
+    async query(text, parameters = []) {
+      return { rows: await session.unsafe(text, parameters) };
+    },
+    async end() {
+      session.release();
+      await sql.end({ timeout: 1 });
+    },
+  };
   clients.push(c);
   return c;
 }

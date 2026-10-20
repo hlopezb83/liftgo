@@ -5,20 +5,27 @@ allocated loopback TCP port. It never accepts an existing database/connection UR
 It stops its cluster in `finally`; the temporary directory is retained for diagnosis.
 Do not use a shared database or real fiscal provider for these tests.
 
-Requirements: trusted PostgreSQL binaries (`initdb`, `pg_ctl`, `postgres`) and the
-`pg` Node package. For example, using already installed tooling:
+Requirements: trusted PostgreSQL binaries (`initdb`, `pg_ctl`, `postgres`) and
+the repository dependencies installed from `bun.lock`. The harness uses the
+locked `postgres` driver and reserves a physical session for each test client.
+For example, using already installed tooling:
 
 ```sh
 RUN_LOCAL_RECURRING_TESTS=1 \
 PG_BIN=/absolute/path/to/postgresql/bin \
-PG_MODULE=/absolute/path/to/node_modules/pg \
 node scripts/tests/recurring-invoice-locking.test.cjs
 ```
 
-Without the opt-in variable the test prints SKIP and creates nothing. `PG_MODULE`
-may be omitted if `pg` resolves normally. Run the full command in one shell so the
+Without the opt-in variable the test prints SKIP and creates nothing.
+Run the full command in one shell so the
 cluster lives for the entire test. No schema migration is applied outside that
 new cluster.
+
+The RLS DB workflow runs this harness with the opt-in enabled and the trusted
+PostgreSQL 16 binaries already installed on the Ubuntu 24.04 runner. It does not
+start or reuse the runner's PostgreSQL service. Missing binaries, a nonzero exit,
+or anything other than 18 PASS lines fails the step, so SKIP cannot pass CI.
+The console log is included in the existing `rls-db-reports` artifact.
 
 The fixture installs the current function and active-document predicate from
 0107, then applies 0114. To verify the regression fails before the fix, set

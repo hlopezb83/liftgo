@@ -711,26 +711,32 @@ export async function handleRequest(req: Request): Promise<Response> {
         if (outcome.kind === "recover") {
           facturapiId = outcome.facturapi_id;
           repUuid = outcome.uuid;
-          if (!(await persistRepState({
-            rep_facturapi_id: facturapiId,
-            rep_cfdi_uuid: repUuid,
-            rep_lookup_attempts: 0,
-          }, "identifier"))) continue;
+          if (
+            !(await persistRepState({
+              rep_facturapi_id: facturapiId,
+              rep_cfdi_uuid: repUuid,
+              rep_lookup_attempts: 0,
+            }, "identifier"))
+          ) continue;
         } else if (outcome.kind === "pending") {
-          if (!(await persistRepState({
-            rep_facturapi_id: outcome.facturapi_id,
-            rep_error_message:
-              "Facturapi aceptó el REP; timbrado pendiente de resolución.",
-          }, "pending state"))) continue;
+          if (
+            !(await persistRepState({
+              rep_facturapi_id: outcome.facturapi_id,
+              rep_error_message:
+                "Facturapi aceptó el REP; timbrado pendiente de resolución.",
+            }, "pending state"))
+          ) continue;
           results.push({ invoice_id: paymentId, status: "rep_pac_pending" });
           continue;
         } else if (outcome.kind === "manual_review") {
-          if (!(await persistRepState({
-            rep_facturapi_id: outcome.facturapi_id,
-            rep_cfdi_status: "error",
-            rep_error_message:
-              "Facturapi confirmó fallo del REP. Revisar el comprobante antes de volver a emitir.",
-          }, "manual review state"))) continue;
+          if (
+            !(await persistRepState({
+              rep_facturapi_id: outcome.facturapi_id,
+              rep_cfdi_status: "error",
+              rep_error_message:
+                "Facturapi confirmó fallo del REP. Revisar el comprobante antes de volver a emitir.",
+            }, "manual review state"))
+          ) continue;
           results.push({
             invoice_id: paymentId,
             status: "rep_pac_failed_manual_review",
@@ -739,9 +745,11 @@ export async function handleRequest(req: Request): Promise<Response> {
         } else if (outcome.kind === "defer") {
           // N9: solo un miss REAL incrementa el contador; lookup_failed no.
           if (outcome.consume_attempt) {
-            if (!(await persistRepState({
-              rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
-            }, "lookup attempt"))) continue;
+            if (
+              !(await persistRepState({
+                rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
+              }, "lookup attempt"))
+            ) continue;
           }
           // PAC no respondió o aún no indexa: reintentar el próximo ciclo.
           results.push({
@@ -753,13 +761,15 @@ export async function handleRequest(req: Request): Promise<Response> {
           // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
           // PAC respondiendo (antes: al primer miss → re-timbrado → CFDI
           // tipo P duplicado ante el SAT).
-          if (!(await persistRepState({
-            rep_cfdi_status: "error",
-            rep_stamping_started_at: null,
-            rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
-            rep_error_message:
-              `Timbrado de REP interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
-          }, "retry state"))) continue;
+          if (
+            !(await persistRepState({
+              rep_cfdi_status: "error",
+              rep_stamping_started_at: null,
+              rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
+              rep_error_message:
+                `Timbrado de REP interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
+            }, "retry state"))
+          ) continue;
           results.push({
             invoice_id: paymentId,
             status: "rep_reverted_to_error",
@@ -830,7 +840,8 @@ export async function handleRequest(req: Request): Promise<Response> {
           const exhausted = decideXmlFailure(
             p.rep_stamping_attempts as number | null,
           ) === "mark_error";
-          if (!(await persistRepState({
+          if (
+            !(await persistRepState({
               ...(exhausted
                 ? {
                   rep_cfdi_status: "stamped",
@@ -844,7 +855,8 @@ export async function handleRequest(req: Request): Promise<Response> {
                     `Reconcile: descarga de XML del REP falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
                 }),
               rep_stamping_attempts: attempts,
-            }, "XML state"))) continue;
+            }, "XML state"))
+          ) continue;
           results.push({
             invoice_id: paymentId,
             status: exhausted
@@ -853,7 +865,8 @@ export async function handleRequest(req: Request): Promise<Response> {
           });
           continue;
         }
-        if (!(await persistRepState({
+        if (
+          !(await persistRepState({
             rep_cfdi_status: "stamped",
             rep_stamping_started_at: null,
             rep_xml_url: xmlPath,
@@ -862,7 +875,8 @@ export async function handleRequest(req: Request): Promise<Response> {
             rep_lookup_attempts: 0,
             rep_stamping_attempts: 0,
             rep_xml_pending: false,
-          }, "finalization"))) continue;
+          }, "finalization"))
+        ) continue;
         // Tramo 8.1: recuperar pagos ya timbrados que quedaron SIN folio
         // interno. Siempre dentro de la organización del propio pago y de forma
         // idempotente (la RPC devuelve el folio existente si ya coincide).

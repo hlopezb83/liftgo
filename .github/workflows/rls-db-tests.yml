@@ -199,6 +199,24 @@ jobs:
       - name: Prepare reports directory
         run: mkdir -p reports
 
+      # Separate fresh cluster, never the Supabase/shared database. Use only the
+      # runner's preinstalled PostgreSQL and the repo's frozen postgres driver.
+      - name: Recurring invoice locking regression (18 isolated scenarios)
+        env:
+          RUN_LOCAL_RECURRING_TESTS: "1"
+          PG_BIN: /usr/lib/postgresql/16/bin
+        run: |
+          set -euo pipefail
+          for binary in initdb pg_ctl postgres; do
+            test -x "$PG_BIN/$binary" || { echo "::error::Missing trusted PostgreSQL binary: $binary"; exit 1; }
+          done
+          "$PG_BIN/postgres" --version
+          node scripts/tests/recurring-invoice-locking.test.cjs 2>&1 | tee reports/recurring-invoice-locking.log
+          test "$(grep -c '^PASS ' reports/recurring-invoice-locking.log)" -eq 18 || {
+            echo "::error::Expected all 18 recurring invoice locking scenarios; skip or partial runs are not accepted"
+            exit 1
+          }
+
       # Focused fixture in a separately created disposable database. This tests
       # the exact sync migration and two real concurrent sessions; the full
       # product schema/RLS suites below remain a separate required check.

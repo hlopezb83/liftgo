@@ -367,7 +367,11 @@ for (const satStatus of ["pending", "rejected", "expired"]) {
       if (satStatus === "pending") {
         assert(body.warning.includes("72 horas"));
       } else {
-        assert(body.warning.includes(satStatus === "rejected" ? "rechazada" : "venció"));
+        assert(
+          body.warning.includes(
+            satStatus === "rejected" ? "rechazada" : "venció",
+          ),
+        );
         assert(!body.warning.includes("pendiente"));
         assert(!body.warning.includes("72 horas"));
       }
