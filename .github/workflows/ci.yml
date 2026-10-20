@@ -100,13 +100,15 @@ jobs:
       - name: Guardrails de arquitectura
         run: bash scripts/arch-check.sh
 
-      # Build con destino DELIBERADAMENTE inexistente: el smoke solo verifica
-      # arranque y render, nunca datos. Así el CI no necesita secretos.
+      # Build con destino DELIBERADAMENTE inexistente: smoke y móvil usan sólo
+      # respuestas ficticias, nunca datos reales. Así el CI no necesita secretos.
       - name: Build
         env:
+          SUPABASE_URL: http://127.0.0.1:54321
+          SENTRY_DSN: http://public@127.0.0.1:54321/1
           VITE_SUPABASE_URL: http://127.0.0.1:54321
-          VITE_SUPABASE_PUBLISHABLE_KEY: ci-smoke-placeholder
-          VITE_SUPABASE_PROJECT_ID: ci-smoke
+          VITE_SUPABASE_PUBLISHABLE_KEY: smoke-placeholder-key
+          VITE_SUPABASE_PROJECT_ID: smoke-placeholder
         run: bun run build
 
       - name: Preparar Chromium
@@ -118,6 +120,22 @@ jobs:
         env:
           SMOKE_REUSE_BUILD: "1"
         run: bunx playwright test --config playwright.smoke.config.ts
+
+      - name: Aceptación móvil 360/390 (build real, datos ficticios)
+        env:
+          SMOKE_REUSE_BUILD: "1"
+        run: bun run test:e2e:mobile
+
+      - name: Subir evidencia móvil
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: mobile-acceptance-artifacts
+          path: |
+            playwright-report/mobile/
+            test-results/mobile/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Subir diagnóstico del smoke
         if: failure()

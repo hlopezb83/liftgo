@@ -11,6 +11,36 @@ import PortalLogin from "./PortalLogin";
 describe("PortalLogin: fallos de conexión recuperables", () => {
   beforeEach(() => { vi.clearAllMocks(); });
 
+  it("mantiene la contraseña oculta y editable al volver de recuperación, sin enviar formularios", () => {
+    const { unmount } = render(<PortalLogin />);
+    const email = screen.getByLabelText("Correo electrónico");
+    const password = screen.getByLabelText("Contraseña");
+    expect(email).toHaveAttribute("type", "email");
+    expect(password).toHaveAttribute("type", "password");
+    fireEvent.change(email, { target: { value: "qa-movil@example.invalid" } });
+    fireEvent.change(password, { target: { value: "clave-ficticia-sin-enviar" } });
+    expect(password).toHaveValue("clave-ficticia-sin-enviar");
+    expect(password).toHaveAttribute("type", "password");
+
+    fireEvent.click(screen.getByRole("button", { name: "¿Olvidaste tu contraseña?" }));
+    expect(screen.queryByLabelText("Contraseña")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Correo electrónico")).toHaveValue("qa-movil@example.invalid");
+    expect(screen.getByRole("button", { name: "Enviar Enlace" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Volver a iniciar sesión" }));
+    const returned = screen.getByLabelText("Contraseña");
+    expect(returned).toHaveAttribute("type", "password");
+    fireEvent.change(returned, { target: { value: "clave-ficticia-de-regreso" } });
+    expect(returned).toHaveValue("clave-ficticia-de-regreso");
+    expect(returned).toHaveAttribute("type", "password");
+    expect(mocks.signIn).not.toHaveBeenCalled();
+    expect(mocks.resetPassword).not.toHaveBeenCalled();
+
+    unmount();
+    render(<PortalLogin />);
+    expect(screen.getByLabelText("Contraseña")).toHaveValue("");
+    expect(screen.getByLabelText("Contraseña")).toHaveAttribute("type", "password");
+  });
+
   it("desbloquea acceso tras excepción y permite reintentar sin aviso duplicado", async () => {
     const error = new Error("Failed to fetch");
     mocks.signIn.mockRejectedValueOnce(error).mockResolvedValueOnce({ error: null });

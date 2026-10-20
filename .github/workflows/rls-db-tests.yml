@@ -4,10 +4,10 @@ name: RLS DB tests
 # Levanta una base local vacía sin seed: start aplica el historial una vez.
 # Verifica cada versión aplicada y corre todas las suites RLS y smoke SQL.
 #
-# Disparadores acotados (ver docs/ci.md): los cambios de supabase/functions/**
-# no levantan Supabase completo —esos los valida deno-functions (deno fmt/lint,
-# tests unitarios offline) y el CI principal (lint/typecheck/build/smoke).
-# Aquí solo disparan migraciones, SQL/RLS, config de Supabase, el carril Drizzle
+# Disparadores acotados (ver docs/ci.md): normalmente los cambios de funciones
+# los valida deno-functions/CI. La excepción es el reconciliador REP y sus
+# dependencias reales, que también requieren el nuevo gate PostgreSQL integrado.
+# También disparan migraciones, SQL/RLS, config de Supabase, el carril Drizzle
 # y los scripts que estas pruebas consumen.
 
 on:
@@ -15,6 +15,10 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/functions/reconcile-stamping-invoices/**"
+      - "supabase/functions/_shared/orgContext.ts"
+      - "supabase/functions/_shared/storagePath.ts"
+      - "supabase/functions/_shared/validate.ts"
       - "supabase/tests/**"
       - "supabase/config.toml"
       - "drizzle/migrations/**"
@@ -35,6 +39,10 @@ on:
     branches: [main]
     paths:
       - "supabase/migrations/**"
+      - "supabase/functions/reconcile-stamping-invoices/**"
+      - "supabase/functions/_shared/orgContext.ts"
+      - "supabase/functions/_shared/storagePath.ts"
+      - "supabase/functions/_shared/validate.ts"
       - "supabase/tests/**"
       - "supabase/config.toml"
       - "drizzle/migrations/**"
@@ -217,6 +225,15 @@ jobs:
             exit 1
           }
 
+      - name: REP recovery persistence (real isolated PostgreSQL, synthetic PAC)
+        env:
+          RUN_LOCAL_FISCAL_TESTS: "1"
+          PG_BIN: /usr/lib/postgresql/16/bin
+        run: |
+          set -euo pipefail
+          node node_modules/typescript/bin/tsc --noEmit -p scripts/tests/fiscal/tsconfig.json
+          node scripts/tests/fiscal/run-rep-postgres.mjs 2>&1 | tee reports/rep-postgres-integration.log
+
       # Focused fixture in a separately created disposable database. This tests
       # the exact sync migration and two real concurrent sessions; the full
       # product schema/RLS suites below remain a separate required check.
@@ -276,6 +293,15 @@ jobs:
             --junit reports/sql-smoke-junit.xml \
             --suite-name "SQL smoke" \
             --mode smoke
+
+      # Run after all existing rollback suites so these uniquely named,
+      # committed concurrency fixtures cannot influence their assertions.
+      # The job owns this fresh DB and always removes it in Stop Supabase.
+      - name: Recurring invoice concurrency on full replayed schema (5 scenarios)
+        run: |
+          set -euo pipefail
+          node scripts/tests/fiscal/recurring-full-schema.mjs 2>&1 | tee reports/recurring-full-schema.log
+          test "$(grep -c '^PASS full-schema ' reports/recurring-full-schema.log)" -eq 5
 
       - name: Upload SQL reports
         if: always()

@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { CSSProperties, ComponentProps, Ref } from "react";
 import { useIsCompactDesktop, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import { restoreModalFocus } from "@/lib/ui/restoreModalFocus";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   SIDEBAR_COOKIE_MAX_AGE,
@@ -16,9 +17,11 @@ export type SidebarContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   openMobile: boolean;
-  setOpenMobile: (open: boolean) => void;
+  setOpenMobile: (open: boolean, options?: { restoreFocus?: boolean }) => void;
+  restoreMobileFocus: (event: Event) => void;
   isMobile: boolean;
   toggleSidebar: () => void;
+  triggerId: string;
 };
 
 const SidebarContext = createContext<SidebarContextValue | null>(null);
@@ -46,9 +49,20 @@ export const SidebarProvider = ({
   onOpenChange?: (open: boolean) => void;
   ref?: Ref<HTMLDivElement>;
 }) => {
+  const triggerId = useId();
   const isMobile = useIsTabletOrBelow();
   const isCompactDesktop = useIsCompactDesktop();
-  const [openMobile, setOpenMobile] = useState(false);
+  const [openMobile, _setOpenMobile] = useState(false);
+  const shouldRestoreMobileFocus = useRef(true);
+  const setOpenMobile = useCallback((next: boolean, { restoreFocus = true }: { restoreFocus?: boolean } = {}) => {
+    shouldRestoreMobileFocus.current = restoreFocus;
+    _setOpenMobile(next);
+  }, []);
+  const restoreMobileFocus = useCallback((event: Event) => {
+    if (!shouldRestoreMobileFocus.current) { event.preventDefault(); return; }
+    // Resolve at teardown: responsive headers may remount the opener.
+    restoreModalFocus(event, document.querySelector<HTMLButtonElement>(`[data-sidebar-trigger="${triggerId}"]`));
+  }, [triggerId]);
 
   const [_open, _setOpen] = useState(defaultOpen && !isCompactDesktop);
   useEffect(() => {
@@ -71,8 +85,13 @@ export const SidebarProvider = ({
   );
 
   const toggleSidebar = useCallback(() => {
-    return isMobile ? setOpenMobile((v) => !v) : setOpen((v) => !v);
-  }, [isMobile, setOpen, setOpenMobile]);
+    if (isMobile) {
+      shouldRestoreMobileFocus.current = true;
+      _setOpenMobile((v) => !v);
+    } else {
+      setOpen((v) => !v);
+    }
+  }, [isMobile, setOpen]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -88,8 +107,8 @@ export const SidebarProvider = ({
   const state = open ? "expanded" : "collapsed";
 
   const contextValue = useMemo<SidebarContextValue>(
-    () => ({ state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+    () => ({ state, open, setOpen, isMobile, openMobile, setOpenMobile, restoreMobileFocus, toggleSidebar, triggerId }),
+    [state, open, setOpen, isMobile, openMobile, setOpenMobile, restoreMobileFocus, toggleSidebar, triggerId],
   );
 
   return (
