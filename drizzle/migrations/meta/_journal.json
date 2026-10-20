@@ -792,6 +792,13 @@
       "when": 1792470000001,
       "tag": "0112_dispatcher_customer_summary",
       "breakpoints": true
+    },
+    {
+      "idx": 113,
+      "version": "7",
+      "when": 1792470000002,
+      "tag": "0113_global_role_permission_audit",
+      "breakpoints": true
     }
   ]
 }

@@ -32,6 +32,7 @@ DECLARE
     'organizations',                -- catálogo de empresas; select por membresía
     'profiles',                     -- perfil por usuario auth (una empresa por usuario)
     'role_permissions',             -- catálogo de permisos por rol
+    'role_permission_audit_events', -- 0113: bitácora global sólo del owner; contrato abajo
     'user_roles',                   -- rol por usuario auth
     'storage_reference_migrations', -- ledger técnico del migrador Storage (service_role)
     'platform_operators',           -- operadores de plataforma (0030), select propio
@@ -131,6 +132,33 @@ BEGIN
     END IF;
     -- Sin policies + RLS habilitada = deny-all para roles sin BYPASSRLS
     -- (p. ej. organization_document_counters, sólo vía funciones). No es falla.
+
+    -- Global no significa visible: esta bitácora sólo admite al propietario.
+    -- Ni siquiera service_role recibe acceso directo; no reutilizar el
+    -- contrato de infra con concesiones de servicio para satisfacer el gate.
+    IF r.table_name = 'role_permission_audit_events' THEN
+      IF r.tiene_org OR r.n_policies <> 1
+         OR NOT EXISTS (
+           SELECT 1 FROM pg_policy p
+           WHERE p.polrelid = 'public.role_permission_audit_events'::regclass
+             AND p.polname = 'global_permission_audit_deny_application'
+             AND NOT p.polpermissive AND p.polcmd = '*'
+             AND p.polroles = ARRAY[0::oid]
+             AND pg_get_expr(p.polqual,p.polrelid) = 'false'
+             AND pg_get_expr(p.polwithcheck,p.polrelid) = 'false'
+         )
+         OR EXISTS (
+           SELECT 1 FROM pg_class c,
+             LATERAL aclexplode(COALESCE(c.relacl,acldefault('r',c.relowner))) a
+           WHERE c.oid = 'public.role_permission_audit_events'::regclass
+             AND a.grantee <> c.relowner
+         )
+         OR has_table_privilege('anon','public.role_permission_audit_events','SELECT,INSERT,UPDATE,DELETE,TRUNCATE')
+         OR has_table_privilege('authenticated','public.role_permission_audit_events','SELECT,INSERT,UPDATE,DELETE,TRUNCATE')
+         OR has_table_privilege('service_role','public.role_permission_audit_events','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') THEN
+        v_fallas := v_fallas || 'role_permission_audit_events: exige global owner-only y deny-all restrictivo';
+      END IF;
+    END IF;
 
     IF r.tiene_org OR r.table_name = ANY (c_infra_deny_all) THEN
       IF r.table_name = ANY (c_relacion) THEN
