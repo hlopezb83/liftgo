@@ -23,19 +23,30 @@ vi.mock("@/integrations/supabase/client", () => {
         onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
         getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
-      from: (table: string) => cache[table] ?? build([]),
+      from: vi.fn((table: string) => cache[table] ?? build([])),
     },
   };
 });
 
 const { searchEntities } = await import("@/features/system/hooks/useEntitySearch");
 
+beforeEach(() => vi.clearAllMocks());
+
 describe("searchEntities", () => {
-  beforeEach(() => vi.clearAllMocks());
 
   it("regresa vacío con query < 2 chars", async () => {
     const res = await searchEntities("a", "org-a");
     expect(res).toEqual({ invoices: [], customers: [], bookings: [], deliveries: [], returns: [] });
+  });
+
+  it("omite la consulta de facturas y conserva entidades operativas cuando se restringen finanzas", async () => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const res = await searchEntities("ACME", "org-a", false);
+    expect(supabase.from).not.toHaveBeenCalledWith("invoices");
+    expect(res.invoices).toEqual([]);
+    expect(res.customers).toHaveLength(1);
+    expect(res.bookings).toHaveLength(1);
+    expect(res.errors?.invoices).toBeUndefined();
   });
 
   it("mapea facturas/clientes/reservas y sustituye null por —", async () => {

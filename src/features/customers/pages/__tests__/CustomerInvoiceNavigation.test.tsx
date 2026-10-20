@@ -10,7 +10,7 @@ import { parseSearch, stringifySearch } from "@/lib/searchSerialization";
 import CustomersPage from "../CustomersPage";
 import CustomerDetailPage from "../CustomerDetailPage";
 
-const access = vi.hoisted(() => ({ level: "full" }));
+const access = vi.hoisted(() => ({ level: "full", financial: true }));
 const customerId = "11111111-1111-4111-8111-111111111111";
 const invoiceId = "22222222-2222-4222-8222-222222222222";
 const listOrigin = "/customers?q=QA-AUDIT#main-content";
@@ -21,6 +21,7 @@ vi.mock("@/features/users", () => ({
   useRolePermissions: () => ({ data: {} }),
   getAccessLevel: () => access.level,
   useHasModuleAccess: () => true,
+  useHasFinancialAccess: () => access.financial,
 }));
 // Keep the real layout, list/table, detail, invoice row and return buttons.
 // Only unrelated shell widgets and backend data are replaced offline.
@@ -119,9 +120,18 @@ async function openCustomer() {
   return router;
 }
 
-beforeEach(() => { access.level = "full"; window.sessionStorage.clear(); });
+beforeEach(() => { access.level = "full"; access.financial = true; window.sessionStorage.clear(); });
 
 describe("Customer invoice currency and return navigation", () => {
+  it("hides invoices and statement export from dispatcher even with stale privileged data", async () => {
+    access.financial = false;
+    await openCustomer();
+    expect(screen.queryByText("FAC-USD")).not.toBeInTheDocument();
+    expect(screen.queryByText("FAC-MXN")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Estado de Cuenta" })).not.toBeInTheDocument();
+    expect(screen.getByText("Cliente de prueba")).toBeInTheDocument();
+  });
+
   it("labels USD and MXN totals explicitly without converting the original amounts", async () => {
     await openCustomer();
     for (const code of ["USD", "MXN"]) {

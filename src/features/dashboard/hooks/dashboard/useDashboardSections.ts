@@ -3,7 +3,7 @@ import { differenceInDays, parseISO } from "date-fns";
 import { useDeliveries, countOverdueDeliveries } from "@/features/deliveries";
 import { useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
-import { useUserRole } from "@/features/users";
+import { useHasFinancialAccess, useUserRole } from "@/features/users";
 import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import {
@@ -81,12 +81,13 @@ export function useDashboardSections() {
   const { data: stats, isLoading, isError, isFetching, refetch } = useDashboardStats();
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
   const { data: role } = useUserRole();
+  const canViewFinancialCharts = useHasFinancialAccess();
   const { canSeeFinancials, canSeeInsuranceAlerts } = dashboardAccess(role);
   // Bug 6: exponer loading/error de los KPIs financieros — su query es
   // independiente de `useDashboardStats` y sin guard propio la sección
   // Finanzas renderizaba ceros falsos ($0) durante carga o fallo del RPC.
   const kpisQuery = useFinancialKpis(canSeeFinancials);
-  const kpis = kpisQuery.data;
+  const kpis = canSeeFinancials ? kpisQuery.data : undefined;
   const { data: insuranceData } = useInsuranceAlerts(canSeeInsuranceAlerts);
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
   const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
@@ -100,7 +101,9 @@ export function useDashboardSections() {
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = computeUtilizationPercent(counts, activeFleet);
 
-  const overdueInvoices = stats?.overdue_invoices ?? [];
+  // Do not reuse financial payloads cached by an earlier authorized session.
+  const financialStats = canViewFinancialCharts ? stats : undefined;
+  const overdueInvoices = financialStats?.overdue_invoices ?? [];
 
 
   // Nota: React Compiler memoiza las derivaciones puras siguientes.
@@ -115,15 +118,16 @@ export function useDashboardSections() {
     utilizationPercent,
     overdueInvoices,
     canSeeFinancials,
-    outstandingRevenue: stats?.invoice_stats?.outstanding_revenue ?? 0,
+    canViewFinancialCharts,
+    outstandingRevenue: financialStats?.invoice_stats?.outstanding_revenue ?? 0,
     statCards: buildStatCards(counts, activeFleet),
     pieData: buildPieData(counts),
     agingBuckets: computeAgingBuckets(overdueInvoices),
     maintenanceAlerts: mapMaintenanceAlerts(stats?.maintenance_alerts),
     monthlyUtilization: mapMonthlyUtilization(stats),
-    revenuePerUnit: mapRevenuePerUnit(stats),
-    invoiceBreakdown: mapInvoiceBreakdown(stats?.invoice_stats?.breakdown),
-    cashFlowData: mapCashFlow(stats),
+    revenuePerUnit: mapRevenuePerUnit(financialStats),
+    invoiceBreakdown: mapInvoiceBreakdown(financialStats?.invoice_stats?.breakdown),
+    cashFlowData: mapCashFlow(financialStats),
     financials: buildFinancials(kpis),
     // Bug 6: la página decide skeleton/error para la sección Finanzas.
     financialsState: financialSectionState({
@@ -133,6 +137,6 @@ export function useDashboardSections() {
     financialsIsFetching: kpisQuery.isFetching,
     refetchFinancials: kpisQuery.refetch,
     pendingDeliveriesCount: countOverdueDeliveries(deliveries),
-    alertsProps: buildAlertsProps(stats, upcomingInvoices, kpis),
+    alertsProps: buildAlertsProps(stats, canSeeFinancials ? upcomingInvoices : undefined, kpis),
   };
 }

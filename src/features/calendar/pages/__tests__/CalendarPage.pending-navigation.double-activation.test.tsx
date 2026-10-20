@@ -25,7 +25,7 @@ vi.mock("@/features/bookings/hooks/bookings/useBookings", () => ({
 vi.mock("@/features/deliveries", () => ({
   deliveryQueries: { list: () => ({ queryKey: ["deliveries-offline"], queryFn: async () => [] }) },
 }));
-vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false, useHasFinancialAccess: () => false }));
 vi.mock("@/features/bookings/hooks/bookingActions/useBookingExtensions", () => ({ useBookingExtensions: () => ({ data: [] }) }));
 vi.mock("@/features/bookings/components/bookings/BookingActions", () => ({ BookingActions: () => null }));
 vi.mock("@/features/bookings/components/bookings/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));

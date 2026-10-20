@@ -1,8 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { TestRouter } from "@/test/router";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true }));
+const access = vi.hoisted(() => ({ financial: true }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: () => true, useHasFinancialAccess: () => access.financial }));
+beforeEach(() => { access.financial = true; });
 
 import { BookingExtensionsCard } from "../BookingExtensionsCard";
 
@@ -22,6 +24,16 @@ function renderCard(ext: Record<string, unknown>) {
 }
 
 describe("BookingExtensionsCard · extensión ya facturada", () => {
+  it("dispatcher conserva motivo y fechas, sin badge ni enlace de facturación", async () => {
+    access.financial = false;
+    renderCard({ invoice_id: "inv-9", reason: "Extensión operativa de prueba" });
+    expect(await screen.findByText("Extensión operativa de prueba")).toBeInTheDocument();
+    expect(screen.getByText("Extensiones")).toBeInTheDocument();
+    expect(screen.queryByText("Facturada")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /ver factura/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /facturar extensión/i })).not.toBeInTheDocument();
+  });
+
   it("mantiene visible el botón de facturar pero deshabilitado, junto a Ver factura", async () => {
     renderCard({ invoice_id: "inv-9" });
     expect(await screen.findByRole("button", { name: /facturar extensión/i })).toHaveAttribute("aria-disabled", "true");

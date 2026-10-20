@@ -16,7 +16,7 @@ function GuardedRoute() {
       <IncomeStatementPage />
     </Suspense>
   );
-  if (module) element = <RoleGuard module={module} minAccess={minAccess ?? "read"}>{element}</RoleGuard>;
+  if (module) element = <RoleGuard financial module={module} minAccess={minAccess ?? "read"}>{element}</RoleGuard>;
   return element;
 }
 

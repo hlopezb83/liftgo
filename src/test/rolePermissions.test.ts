@@ -93,8 +93,8 @@ describe("RoleGuard access enforcement via getAccessLevel", () => {
     expect(getAccessLevel(perms, "ventas", "Facturas")).toBe("none");
   });
 
-  it("dispatcher has read-only on Facturas (cannot generate recurring)", () => {
-    expect(getAccessLevel(perms, "dispatcher", "Facturas")).toBe("read");
+  it("dispatcher cannot access Facturas even with legacy read permission", () => {
+    expect(getAccessLevel(perms, "dispatcher", "Facturas")).toBe("none");
   });
 
   it("mechanic has full Mantenimiento, no Facturas", () => {

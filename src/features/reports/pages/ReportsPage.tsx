@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useHasFinancialAccess } from "@/features/users";
 import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { useSearchParams } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
@@ -31,6 +32,8 @@ const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
   aging: AgingReport,
 };
 
+const OPERATIONAL_REPORT_TYPES = new Set(["utilization", "utilization-model"]);
+
 const REPORT_TYPES = [
   { value: "utilization", label: "Días reservados por unidad" },
   { value: "utilization-model", label: "Días reservados por modelo" },
@@ -46,11 +49,15 @@ export default function ReportsPage() {
   // Antes se leía solo en mount: links a /reports?type=aging no hacían nada
   // estando ya en la página y el Select no actualizaba la URL.
   const [searchParams, setSearchParams] = useSearchParams();
+  const canSeeFinancialReports = useHasFinancialAccess();
+  const visibleReportTypes = REPORT_TYPES.filter((type) => canSeeFinancialReports || OPERATIONAL_REPORT_TYPES.has(type.value));
   const paramType = searchParams.get("type");
   const reportType = REPORT_TYPES.some((t) => t.value === paramType)
     ? (paramType as string)
     : "utilization";
+  const isRestrictedReport = !canSeeFinancialReports && !OPERATIONAL_REPORT_TYPES.has(reportType);
   const setReportType = (value: string) => {
+    if (!visibleReportTypes.some((type) => type.value === value)) return;
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
       next.set("type", value);
@@ -72,10 +79,10 @@ export default function ReportsPage() {
         <CardContent className="pt-6">
           <div className="flex gap-4 flex-wrap items-end">
             <div className="space-y-1.5">
-              <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger className="w-[260px] max-w-full"><SelectValue /></SelectTrigger>
+              <Select value={isRestrictedReport ? "" : reportType} onValueChange={setReportType}>
+                <SelectTrigger className="w-[260px] max-w-full"><SelectValue placeholder="Selecciona un reporte operativo" /></SelectTrigger>
                 <SelectContent>
-                  {REPORT_TYPES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                  {visibleReportTypes.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -85,7 +92,7 @@ export default function ReportsPage() {
                 nowMty() ya aplica toZonedTime(…, America/Monterrey) y
                 formatDateMty sobre un instante vuelve a aplicarla, lo que en
                 navegadores con TZ distinta mostraba el día anterior. */}
-            {reportType === "aging" ? (
+            {!isRestrictedReport && reportType === "aging" ? (
               <p className="text-sm text-muted-foreground pb-2">
                 Cartera vencida al día de hoy ({formatDateMty(toYMD(nowMty()))})
               </p>
@@ -97,7 +104,9 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
 
-      {(() => {
+      {isRestrictedReport ? (
+        <p role="alert" className="text-sm text-muted-foreground">No tienes permiso para consultar reportes financieros. Selecciona un reporte operativo.</p>
+      ) : (() => {
         const Comp = REPORT_COMPONENTS[reportType];
         return Comp ? <Comp startDate={startDate} endDate={endDate} /> : null;
       })()}

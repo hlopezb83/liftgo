@@ -7,6 +7,7 @@ import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const operatorState = vi.hoisted(() => ({ data: undefined as boolean | undefined }));
+const roleState = vi.hoisted(() => ({ role: "admin" }));
 
 vi.mock("@/features/platform", () => ({
   usePlatformOperatorStatus: () => operatorState,
@@ -20,8 +21,8 @@ vi.mock("@/features/users", async (importOriginal) => {
   );
   return {
     ...actual,
-    useUserRole: () => ({ data: "admin" }),
-    useRolePermissions: () => ({ data: { admin: fullAccess } }),
+    useUserRole: () => ({ data: roleState.role }),
+    useRolePermissions: () => ({ data: { admin: fullAccess, dispatcher: fullAccess } }),
   };
 });
 
@@ -35,6 +36,7 @@ function visibleUrls(): string[] {
 describe("useVisibleNavGroups — operación de plataforma", () => {
   afterEach(() => {
     operatorState.data = undefined;
+    roleState.role = "admin";
   });
 
   it("oculta /platform mientras no hay confirmación del servidor", () => {
@@ -56,4 +58,17 @@ describe("useVisibleNavGroups — operación de plataforma", () => {
     expect(items.map((item) => item.url)).toContain("/platform");
     expect(items.find((item) => item.url === "/")?.destination).toBe("/?workspace=organization");
   });
+});
+
+
+it("hides all financial navigation for dispatcher despite a stale full matrix", () => {
+  roleState.role = "dispatcher";
+  const urls = visibleUrls();
+  for (const url of ["/invoices", "/invoices/reconciliation", "/income-statement",
+    "/cuentas-por-pagar", "/flujo-de-caja", "/cuentas-bancarias", "/conciliacion-bancaria", "/mrr"]) {
+    expect(urls).not.toContain(url);
+  }
+  for (const url of ["/", "/calendar", "/bookings", "/deliveries", "/returns", "/reports"]) {
+    expect(urls).toContain(url);
+  }
 });

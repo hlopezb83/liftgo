@@ -1,4 +1,4 @@
-import { getAccessLevel, useRolePermissions, type AccessLevel } from "./useRolePermissions";
+import { getAccessLevel, hasFinancialAccess, useRolePermissions, type AccessLevel } from "./useRolePermissions";
 import { useUserRole } from "./useUserRole";
 
 /**
@@ -18,4 +18,11 @@ export function useHasModuleAccess(module: string, minAccess: AccessLevel = "rea
 
   const level = getAccessLevel(perms, role, module);
   return ACCESS_ORDER.indexOf(level) >= ACCESS_ORDER.indexOf(minAccess);
+}
+
+/** Financial exclusion for mixed operational/financial surfaces. Existing
+ * module/feature authorization still applies for every other role. */
+export function useHasFinancialAccess(): boolean {
+  const { data: role, isLoading, isError } = useUserRole();
+  return !isLoading && !isError && hasFinancialAccess(role);
 }

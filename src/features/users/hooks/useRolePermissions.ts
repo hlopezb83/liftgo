@@ -10,6 +10,31 @@ import type { AppRole } from "./useUserRole";
 export type AccessLevel = "full" | "read" | "none";
 export type PermissionsMap = Record<string, Record<string, AccessLevel>>;
 
+/** Dispatcher is operational-only in the data layer. Keep stale/custom UI
+ * permissions from reopening financial surfaces while migrations roll out. */
+export const DISPATCHER_FINANCIAL_MODULES: readonly string[] = [
+  "Facturas", "Pagos", "Gastos", "MRR", "Facturas de Proveedor",
+  "Flujo de Caja", "Cuentas Bancarias", "Conciliación Bancaria",
+];
+
+/** Additional exclusion, never a replacement for module permissions/RLS. */
+export function hasFinancialAccess(role: AppRole | null | undefined): boolean {
+  return !!role && role !== "dispatcher";
+}
+
+/** Shared by sidebar and shortcuts; income statement shares the operational
+ * Reportes module but is a financial-only surface. */
+export function getRouteAccessLevel(
+  perms: PermissionsMap | undefined, role: AppRole | undefined, pathname: string,
+): AccessLevel {
+  const path = pathname.split(/[?#]/)[0];
+  if (path === "/income-statement" && !hasFinancialAccess(role)) return "none";
+  const route = Object.keys(ROUTE_TO_MODULE)
+    .sort((a, b) => b.length - a.length)
+    .find((key) => path === key || (key !== "/" && path.startsWith(`${key}/`)));
+  return route ? getAccessLevel(perms, role, ROUTE_TO_MODULE[route]) : "none";
+}
+
 export const MODULES = [
   "Dashboard", "Flota", "Reservas", "Calendario", "Entregas",
   "Facturas", "Contratos", "Cotizaciones", "Clientes",
@@ -105,6 +130,7 @@ export function useUpdatePermission() {
 /** Helper: get access level for a role+module from the permissions map */
 export function getAccessLevel(perms: PermissionsMap | undefined, role: AppRole | undefined, module: string): AccessLevel {
   if (!perms || !role) return "none";
+  if (role === "dispatcher" && DISPATCHER_FINANCIAL_MODULES.includes(module)) return "none";
   const roleMap = perms[role];
   if (roleMap && !(module in roleMap)) {
     telemetry.warn("RoleGuard", `Módulo "${module}" no existe en role_permissions`, {

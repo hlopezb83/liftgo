@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { ORGANIZATION_WORKSPACE, usePlatformOperatorStatus } from "@/features/platform";
 import {
-  ROUTE_TO_MODULE,
+  getRouteAccessLevel,
   type AccessLevel,
   type AppRole,
   useRolePermissions,
@@ -20,9 +20,7 @@ function getItemAccess(
 ): AccessLevel {
   if (!perms || !role) return "none";
   if (ALWAYS_VISIBLE_ROUTES.includes(url)) return "full";
-  const module = ROUTE_TO_MODULE[url];
-  if (!module) return "full";
-  return perms[role]?.[module] ?? "none";
+  return getRouteAccessLevel(perms, role, url);
 }
 
 export function useVisibleNavGroups(): NavGroup[] {

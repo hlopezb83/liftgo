@@ -6,6 +6,7 @@ import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useHasFinancialAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { getCustomerListBackTo } from "@/lib/navigation/customerInvoiceOrigins";
@@ -31,13 +32,14 @@ function customerSubtitle(customer: { name: string; company?: string | null; rfc
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
+  const canSeeFinancials = useHasFinancialAccess();
   const navigate = useNavigateTransition();
   const location = useLocation();
   const listBackTo = getCustomerListBackTo(location.state);
   const s = useCustomerDetailPage(id);
 
   const handleExportStatement = async () => {
-    if (!s.summary || !s.customer) return;
+    if (!canSeeFinancials || !s.summary || !s.customer) return;
     try {
       const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
       await exportCustomerStatementPdf({ customer: s.customer, summary: s.summary });
@@ -79,9 +81,9 @@ export default function CustomerDetailPage() {
         restoreListFilters={!listBackTo}
         actions={
           <>
-            <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
+            {canSeeFinancials && <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
-            </Button>
+            </Button>}
             {/* R7 Bloque 8: matriz (read/full). Editar/Eliminar/Invitar exigen full. */}
             <RoleGuard module="Clientes" minAccess="full" fallback={null}>
               <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
@@ -109,10 +111,10 @@ export default function CustomerDetailPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         <CustomerContactCard customer={s.customer} />
-        <div className={s.profitability ? undefined : "sm:col-span-2"}>
+        {canSeeFinancials && <div className={s.profitability ? undefined : "sm:col-span-2"}>
           <CustomerFinancialSummary totalInvoiced={s.totalInvoiced} totalPaid={s.totalPaid} outstanding={s.outstanding} />
-        </div>
-        {s.profitability && (
+        </div>}
+        {canSeeFinancials && s.profitability && (
           <CustomerProfitabilityCard
             revenue={s.profitability.revenue}
             maintenance_cost={s.profitability.maintenance_cost}
@@ -125,7 +127,7 @@ export default function CustomerDetailPage() {
       <CustomerBookingsHistory bookings={s.bookings} />
       {/* R6-FE-04a: la lista se auto-oculta cuando el rol tiene Facturas=none
           (ver CustomerInvoicesList). */}
-      <CustomerInvoicesList invoices={s.invoices} />
+      {canSeeFinancials && <CustomerInvoicesList invoices={s.invoices} />}
 
       {s.customer.notes && <NotesCard value={s.customer.notes} readOnly />}
 

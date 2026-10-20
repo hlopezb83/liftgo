@@ -30,7 +30,7 @@ vi.mock("@/features/deliveries", () => ({
     }),
   },
 }));
-vi.mock("@/features/users", () => ({ useHasModuleAccess: () => access.allowed }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: () => access.allowed, useHasFinancialAccess: () => true }));
 vi.mock("../../components/bookings/BookingActions", () => ({ BookingActions: () => null }));
 vi.mock("../../components/bookings/BookingStatusHistory", () => ({ BookingStatusHistory: () => null }));
 vi.mock("../../components/booking-detail/BookingBillingCard", () => ({ BookingBillingCard: () => null }));
