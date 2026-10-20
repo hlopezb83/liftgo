@@ -37,7 +37,7 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
   const invoicesAccess = getAccessLevel(perms, role ?? undefined, "Facturas");
-  if (perms && invoicesAccess === "none") return null;
+  if (invoicesAccess === "none") return null;
   const canOpenInvoice = invoicesAccess === "full";
   return (
     <Card>

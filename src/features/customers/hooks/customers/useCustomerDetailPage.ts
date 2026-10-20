@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUserRole } from "@/features/users";
+import { useHasFinancialAccess, useUserRole } from "@/features/users";
 import { isValidUuid } from "@/lib/isValidUuid";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
@@ -62,7 +62,8 @@ export function useCustomerDetailPage(id: string | undefined) {
   // consulta" de "el cliente no existe" (antes ambos caían en el mismo vacío).
   const { data: customer, isLoading, isError, refetch } = useCustomer(validId);
   const { data: summary } = useCustomerSummary(validId);
-  const { data: profitability } = useCustomerProfitability(validId);
+  const canSeeFinancials = useHasFinancialAccess();
+  const { data: profitability } = useCustomerProfitability(canSeeFinancials ? validId : undefined);
   const { data: role } = useUserRole();
 
   const dialogs = useCustomerDetailDialogs();

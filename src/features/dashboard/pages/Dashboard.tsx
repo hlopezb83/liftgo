@@ -28,7 +28,7 @@ export default function Dashboard() {
     pieData, agingBuckets, maintenanceAlerts,
     monthlyUtilization, revenuePerUnit, cashFlowData,
     overdueInvoices, pendingDeliveriesCount,
-    financials, alertsProps, canSeeFinancials,
+    financials, alertsProps, canSeeFinancials, canViewFinancialCharts,
     financialsState, financialsIsFetching, refetchFinancials,
   } = useDashboardSections();
 
@@ -57,17 +57,17 @@ export default function Dashboard() {
               {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
             </div>
           </section>
-          <section className="order-3 md:order-2 border-t border-border/60 pt-5">
+          {canSeeFinancials && <section className="order-3 md:order-2 border-t border-border/60 pt-5">
             <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-4 gap-4">
               {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
             </div>
-          </section>
+          </section>}
           <Skeleton className="order-2 md:order-3 h-16 rounded-xl" />
           <div className="order-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
             <Skeleton className="h-72 rounded-xl xl:col-span-1" />
             <Skeleton className="h-72 rounded-xl xl:col-span-2" />
-            <Skeleton className="h-80 rounded-xl xl:col-span-3" />
+            {canViewFinancialCharts && <Skeleton className="h-80 rounded-xl xl:col-span-3" />}
           </div>
         </div>
       </PageContainer>
@@ -134,6 +134,7 @@ export default function Dashboard() {
               monthlyUtilization={monthlyUtilization}
               revenuePerUnit={revenuePerUnit}
               cashFlowData={cashFlowData}
+              canSeeFinancials={canViewFinancialCharts}
             />
           </div>
         </div>

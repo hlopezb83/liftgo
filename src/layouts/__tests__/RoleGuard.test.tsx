@@ -5,6 +5,7 @@ const state = vi.hoisted(() => ({ role: "dispatcher", access: "none" }));
 
 vi.mock("@/features/users", () => ({
   getAccessLevel: () => state.access,
+  hasFinancialAccess: (role: string) => role !== "dispatcher",
   useUserRole: () => ({ data: state.role, isLoading: false, isError: false }),
   useRolePermissions: () => ({ data: {}, isLoading: false, isError: false }),
 }));
@@ -69,5 +70,23 @@ describe("RoleGuard (R6-B1)", () => {
       </RoleGuard>,
     );
     expect(screen.getByRole("button", { name: "Validar SAT" })).toBeInTheDocument();
+  });
+});
+
+
+describe("RoleGuard financial-only route", () => {
+  it("denies dispatcher even with Reportes full and never mounts children", () => {
+    state.access = "full";
+    const mount = vi.fn();
+    function FinancialPage() { mount(); return <div>Financial data</div>; }
+    render(<RoleGuard financial module="Reportes"><FinancialPage /></RoleGuard>);
+    expect(mount).not.toHaveBeenCalled();
+    expect(screen.getByTestId("no-access")).toBeInTheDocument();
+  });
+  it("preserves authorized report access for administrativo", () => {
+    state.role = "administrativo";
+    state.access = "read";
+    render(<RoleGuard financial module="Reportes"><div>Financial data</div></RoleGuard>);
+    expect(screen.getByText("Financial data")).toBeInTheDocument();
   });
 });

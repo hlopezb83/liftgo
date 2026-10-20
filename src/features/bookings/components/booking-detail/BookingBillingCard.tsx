@@ -6,7 +6,7 @@ import { ClockIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
-import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
+import { getAccessLevel, useHasFinancialAccess, useRolePermissions, useUserRole } from "@/features/users";
 import { formatMtyDate } from "@/lib/utils";
 import { useUpdateBooking } from "../../hooks/bookings/useBookingMutations";
 import { allowsRecurringBilling } from "../../lib/recurringBillingEligibility";
@@ -65,6 +65,7 @@ function RecurringBillingRow({
 }
 
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {
+  const canSeeFinancials = useHasFinancialAccess();
   const fmt = (d: string) => formatMtyDate(d);
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
@@ -73,7 +74,7 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
 
   // La recurrencia es una decisión de facturación: acceso completo en Reservas o en Facturas.
   const canEdit =
-    !!perms &&
+    canSeeFinancials && !!perms &&
     (getAccessLevel(perms, role ?? undefined, "Reservas") === "full" ||
       getAccessLevel(perms, role ?? undefined, "Facturas") === "full");
   const isClosed = CLOSED_STATUSES.has(booking.status);
@@ -84,6 +85,7 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
   );
 
   const handleToggle = (next: boolean) => {
+    if (!canToggle) return;
     if (!next) {
       setDisableConfirmOpen(true);
       return;
@@ -96,12 +98,20 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
   };
 
   const disableRecurring = () => {
+    if (!canToggle) return;
     updateBooking.mutate({
       id: booking.id,
       recurring_billing: false,
       expectedVersion: booking.version,
     }, { onSuccess: () => setDisableConfirmOpen(false) });
   };
+
+  if (!canSeeFinancials) return booking.return_status ? (
+    <Card><CardContent className="pt-6 flex items-center justify-between">
+      <span className="text-sm text-muted-foreground">Estado de devolución</span>
+      <StatusBadge status={booking.return_status} />
+    </CardContent></Card>
+  ) : null;
 
   return (
     <Card>

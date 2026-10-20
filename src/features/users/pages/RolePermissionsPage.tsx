@@ -9,7 +9,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
-import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } from "../hooks/useRolePermissions";
+import { useRolePermissions, useUpdatePermission, getAccessLevel, DISPATCHER_FINANCIAL_MODULES, MODULES, type AccessLevel } from "../hooks/useRolePermissions";
 import { useUserRole } from "../hooks/useUserRole";
 import type { AppRole } from "../hooks/useUserRole";
 
@@ -29,13 +29,14 @@ export default function RolePermissionsPage() {
   const isAdmin = currentRole === "admin";
 
   const getAccess = (role: AppRole, module: string): AccessLevel => {
-    return perms?.[role]?.[module] ?? "none";
+    return getAccessLevel(perms, role, module);
   };
 
   const handleCycle = (role: AppRole, module: string) => {
     // A3-04: no editar sin datos cargados — un clic sobre la matriz vacía
     // mutaría permisos reales partiendo de un "none" falso.
-    if (!isAdmin || role === "admin" || !perms) return;
+    if (!isAdmin || role === "admin" || !perms ||
+      (role === "dispatcher" && DISPATCHER_FINANCIAL_MODULES.includes(module))) return;
     const current = getAccess(role, module);
     const nextIdx = (CYCLE.indexOf(current) + 1) % CYCLE.length;
     const next = CYCLE[nextIdx];
@@ -113,7 +114,8 @@ export default function RolePermissionsPage() {
                   {STAFF_ROLES.map((r) => {
                     const access = getAccess(r, mod);
                     const { icon: Icon, color } = accessConfig[access];
-                    const canEdit = isAdmin && r !== "admin" && !!perms;
+                    const financialRestriction = r === "dispatcher" && DISPATCHER_FINANCIAL_MODULES.includes(mod);
+                    const canEdit = isAdmin && r !== "admin" && !!perms && !financialRestriction;
                     return (
                       <td key={r} className="px-3 py-2.5 text-center">
                         <Button
@@ -127,7 +129,7 @@ export default function RolePermissionsPage() {
                             "h-auto w-auto p-1",
                             !canEdit && "cursor-default opacity-80 disabled:opacity-80"
                           )}
-                          title={`${ROLE_LABELS[r]} · ${mod}: ${accessConfig[access].label}${canEdit ? " · clic para cambiar" : ""}`}
+                          title={financialRestriction ? "Rol operativo, sin acceso financiero" : `${ROLE_LABELS[r]} · ${mod}: ${accessConfig[access].label}${canEdit ? " · clic para cambiar" : ""}`}
                         >
                           <Icon className={cn("h-4 w-4", color)} />
                         </Button>

@@ -6,7 +6,9 @@
  * `GlobalSearch` ahora consume este hook y sólo se ocupa de la UI (cmdk).
  */
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/contexts/AuthContext";
 import { useOrganizationContext } from "@/contexts/OrganizationContext";
+import { useHasFinancialAccess } from "@/features/users";
 import { supabase } from "@/integrations/supabase/client";
 
 interface CustomerRow {
@@ -58,19 +60,20 @@ function sanitizeSearchTerm(term: string): string {
 export async function searchEntities(
   query: string,
   organizationId?: string,
+  includeInvoices = true,
 ): Promise<EntityResults> {
   const q = sanitizeSearchTerm(query.trim());
   if (q.length < 2 || !organizationId) return EMPTY;
   const like = `%${q}%`;
   const [invRes, custRes, bookRes, delRes, retRes] = await Promise.all([
     // M-3: no mostrar documentos cancelados ni clientes eliminados.
-    supabase
+    includeInvoices ? supabase
       .from("invoices")
       .select("id, invoice_number, customer_name, total")
       .neq("status", "cancelled")
       .or(`invoice_number.ilike.${like},customer_name.ilike.${like}`)
       .order("created_at", { ascending: false })
-      .limit(5),
+      .limit(5) : Promise.resolve({ data: [], error: null }),
     supabase
       .from("organization_customers")
       .select("customer_id, customers!inner(id, name, rfc, deleted_at)")
@@ -101,7 +104,8 @@ export async function searchEntities(
   // M-10: antes los `.error` se ignoraban y la búsqueda devolvía vacío aunque
   // las 3 consultas hubieran fallado (falso "sin resultados"). Si TODAS
   // fallan, propagar el primer error para que la query entre en estado error.
-  if (invRes.error && custRes.error && bookRes.error && delRes.error && retRes.error) throw invRes.error;
+  const queriedResults = includeInvoices ? [invRes, custRes, bookRes, delRes, retRes] : [custRes, bookRes, delRes, retRes];
+  if (queriedResults.every((result) => result.error)) throw queriedResults[0].error;
   // L-6a: fallo parcial — devolver las secciones OK y exponer el error por
   // sección para distinguirlo de "cero resultados".
   const errors: NonNullable<EntityResults["errors"]> = {};
@@ -175,10 +179,12 @@ function mapReturns(rows: Array<{ id: string; inspection_number: string | null }
 
 export function useEntitySearch(query: string, enabled: boolean) {
   const org = useOrganizationContext();
+  const { user } = useAuth();
+  const includeInvoices = useHasFinancialAccess();
   const organizationId = org.status === "ready" ? org.organizationId : undefined;
   return useQuery({
-    queryKey: ["global-search", organizationId ?? "unresolved", query],
-    queryFn: () => searchEntities(query, organizationId),
+    queryKey: ["global-search", organizationId ?? "unresolved", user?.id ?? "anonymous", includeInvoices, query],
+    queryFn: () => searchEntities(query, organizationId, includeInvoices),
     enabled: enabled && !!organizationId && query.trim().length >= 2,
     staleTime: 30_000,
   });

@@ -12,6 +12,7 @@ interface DashboardChartsSectionProps {
   monthlyUtilization: UtilizationProps["monthlyUtilization"];
   revenuePerUnit: UtilizationProps["revenuePerUnit"];
   cashFlowData: CashFlowProps["data"];
+  canSeeFinancials: boolean;
 }
 
 export function DashboardChartsSection(props: DashboardChartsSectionProps) {
@@ -23,9 +24,11 @@ export function DashboardChartsSection(props: DashboardChartsSectionProps) {
       <div className="xl:col-span-2">
         <UtilizationCharts monthlyUtilization={props.monthlyUtilization} revenuePerUnit={props.revenuePerUnit} />
       </div>
-      <div className="xl:col-span-3">
-        <CashFlowChart data={props.cashFlowData} />
-      </div>
+      {props.canSeeFinancials && (
+        <div className="xl:col-span-3">
+          <CashFlowChart data={props.cashFlowData} />
+        </div>
+      )}
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { HistoryIcon, InvoiceIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useHasModuleAccess } from "@/features/users";
+import { useHasFinancialAccess, useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
@@ -36,7 +36,9 @@ function billingBadgeLabel(isBilled: boolean, isPendingIssue: boolean, days: num
 
 export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
   const navigate = useNavigateTransition();
+  const canSeeFinancials = useHasFinancialAccess();
   const canInvoice = useHasModuleAccess("Facturas", "full");
+  const showBilling = canSeeFinancials && !recurringBilling;
 
   if (!extensions || extensions.length === 0) return null;
 
@@ -48,7 +50,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
-        {recurringBilling && (
+        {canSeeFinancials && recurringBilling && (
           <p className="text-xs text-muted-foreground">
             Los días adicionales de esta reserva se incluyen al generar el borrador
             del periodo mensual correspondiente.
@@ -78,7 +80,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
                 </span>
               </div>
               {ext.reason && <p className="text-xs">{ext.reason}</p>}
-              {range && !recurringBilling && (
+              {showBilling && range && (
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant={isBilled ? "secondary" : "outline"}>
                     {billingBadgeLabel(isBilled, isPendingIssue, range.days)}

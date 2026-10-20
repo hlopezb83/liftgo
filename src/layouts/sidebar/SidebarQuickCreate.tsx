@@ -5,7 +5,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRolePermissions, useUserRole } from "@/features/users";
+import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 type CreateAction = {
@@ -48,7 +48,7 @@ export function SidebarQuickCreate() {
 
   const allowed = ACTIONS.filter((a) => {
     if (a.adminOnly) return role === "admin";
-    const access = permissions?.[role ?? ""]?.[a.module];
+    const access = getAccessLevel(permissions, role ?? undefined, a.module);
     return access === "full";
   });
 

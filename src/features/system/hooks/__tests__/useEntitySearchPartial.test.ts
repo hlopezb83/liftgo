@@ -1,5 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { beforeEach, describe, it, expect } from "vitest";
 import { vi } from "vitest";
+
+const state = vi.hoisted(() => ({ failAll: false }));
+beforeEach(() => { state.failAll = false; });
 
 /**
  * L-6a: si una de las tres consultas de la búsqueda global falla, la sección
@@ -21,6 +24,7 @@ vi.mock("@/integrations/supabase/client", () => {
         getSession: vi.fn(async () => ({ data: { session: null }, error: null })),
       },
       from: (table: string) => {
+        if (state.failAll) return build(null, { message: "offline" });
         if (table === "invoices") return build(null, { message: "permission denied" });
         if (table === "organization_customers") {
           return build([{ customer_id: "c1", customers: { id: "c1", name: "Cliente Uno", rfc: "AAA010101AAA", deleted_at: null } }], null);
@@ -35,6 +39,11 @@ vi.mock("@/integrations/supabase/client", () => {
 const { searchEntities } = await import("@/features/system/hooks/useEntitySearch");
 
 describe("searchEntities — fallo parcial", () => {
+  it("no disfraza error total como vacío al omitir la consulta financiera", async () => {
+    state.failAll = true;
+    await expect(searchEntities("ACME", "org-a", false)).rejects.toMatchObject({ message: "offline" });
+  });
+
   it("reporta la sección fallida y conserva las demás", async () => {
     const res = await searchEntities("ACME", "org-a");
     expect(res.errors?.invoices).toMatch(/permission denied/);

@@ -7,6 +7,7 @@ import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
 import { useEntitySearch } from "@/features/system/hooks/useEntitySearch";
+import { DISPATCHER_FINANCIAL_MODULES, ROUTE_TO_MODULE, useHasFinancialAccess } from "@/features/users";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
@@ -98,6 +99,7 @@ function EntitySearchResults({
 }
 
 export function GlobalSearch() {
+  const canSeeFinancials = useHasFinancialAccess();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const debouncedInput = useDebouncedValue(input, 200);
@@ -125,16 +127,25 @@ export function GlobalSearch() {
 
   const groups = useMemo(() => {
     const map = new Map<string, Item[]>();
-    ITEMS.forEach((i) => {
+    ITEMS.filter((item) => canSeeFinancials || (
+      item.url !== "/income-statement" && !DISPATCHER_FINANCIAL_MODULES.includes(ROUTE_TO_MODULE[item.url])
+    )).forEach((i) => {
       const arr = map.get(i.group) ?? [];
       arr.push(i);
       map.set(i.group, arr);
     });
     return [...map.entries()];
-  }, []);
+  }, [canSeeFinancials]);
 
   const entityQuery = useEntitySearch(debouncedInput, open);
-  const entities = entityQuery.data;
+  // A role switch must never display invoice hits from a previous privileged query.
+  const entities = entityQuery.data && {
+    ...entityQuery.data,
+    invoices: canSeeFinancials ? entityQuery.data.invoices : [],
+    errors: canSeeFinancials ? entityQuery.data.errors : Object.fromEntries(
+      Object.entries(entityQuery.data.errors ?? {}).filter(([section]) => section !== "invoices"),
+    ),
+  };
   const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length + entities.deliveries.length + entities.returns.length > 0);
 
   const go = (url: string) => {
@@ -171,7 +182,7 @@ export function GlobalSearch() {
         {/* shouldFilter=false: entidades se filtran server-side; para páginas
             usamos el `value` que incluye keywords y cmdk filtra localmente. */}
         <CommandInput
-          placeholder="Buscar módulo, factura, cliente o reserva…"
+          placeholder={canSeeFinancials ? "Buscar módulo, factura, cliente o reserva…" : "Buscar módulo, cliente o reserva…"}
           value={input}
           onValueChange={setInput}
         />

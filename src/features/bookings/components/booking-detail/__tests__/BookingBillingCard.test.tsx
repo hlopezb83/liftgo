@@ -15,6 +15,7 @@ vi.mock("@/features/users", async () => {
   const actual = await vi.importActual<typeof import("@/features/users")>("@/features/users");
   return {
     ...actual,
+    useHasFinancialAccess: () => roleRef.current !== "dispatcher",
     useUserRole: () => ({ data: roleRef.current }),
     useRolePermissions: () => ({ data: perms }),
   };
@@ -51,10 +52,18 @@ describe("BookingBillingCard — permisos y elegibilidad de recurrencia", () => 
     expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeEnabled();
   });
 
-  it("dispatcher (Reservas full) sigue viendo el interruptor", () => {
+  it("dispatcher (Reservas full) no ve controles ni tarjeta de facturación", () => {
     roleRef.current = "dispatcher";
     renderCard(booking);
-    expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeEnabled();
+    expect(screen.queryByLabelText("Activar facturación recurrente mensual")).toBeNull();
+    expect(screen.queryByText("Facturación")).toBeNull();
+  });
+
+  it("conserva estado operativo de devolución para dispatcher", () => {
+    roleRef.current = "dispatcher";
+    renderCard({ ...bookingData, return_status: "pending" } as never);
+    expect(screen.getByText("Estado de devolución")).toBeInTheDocument();
+    expect(screen.queryByText("Facturación")).toBeNull();
   });
 
   it("ventas (solo lectura) no ve el interruptor", () => {
