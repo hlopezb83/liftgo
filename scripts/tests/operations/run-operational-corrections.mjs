@@ -79,17 +79,19 @@ try {
     onnotice: () => {},
   });
   await sql.unsafe(`CREATE ROLE authenticated; CREATE ROLE anon; CREATE ROLE service_role; CREATE SCHEMA auth;
-    CREATE TABLE public.organizations(id uuid PRIMARY KEY); INSERT INTO public.organizations VALUES('10000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002');
+    CREATE TABLE public.organizations(id uuid PRIMARY KEY,is_active boolean NOT NULL DEFAULT true); INSERT INTO public.organizations(id) VALUES('10000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002');
     CREATE TYPE public.app_role AS ENUM('admin','administrativo','dispatcher','mechanic');
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT '50000000-0000-0000-0000-000000000001'::uuid $$;
     CREATE FUNCTION public.current_internal_organization_id() RETURNS uuid LANGUAGE sql AS $$ SELECT coalesce(nullif(current_setting('test.org',true),''),'${org}')::uuid $$;
+    CREATE FUNCTION public.current_organization_id() RETURNS uuid LANGUAGE sql AS $$ SELECT public.current_internal_organization_id() $$;
+    CREATE FUNCTION public.organization_scope_matches(uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT $1 = public.current_internal_organization_id() $$;
     CREATE FUNCTION public.has_role(uuid,public.app_role) RETURNS boolean LANGUAGE sql AS $$ SELECT coalesce(nullif(current_setting('test.role',true),''),'admin')=$2::text $$;
     CREATE FUNCTION public.is_internal_member(uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT true $$;
     CREATE FUNCTION public.booking_is_returned(uuid) RETURNS boolean LANGUAGE sql AS $$ SELECT false $$;
     CREATE TABLE bookings(id uuid PRIMARY KEY,organization_id uuid,forklift_id uuid,booking_number text,status text,return_status text,updated_at timestamptz DEFAULT now(),customer_id uuid,start_date date,end_date date,daily_rate numeric,monthly_rate numeric);
     CREATE TABLE forklifts(id uuid PRIMARY KEY,organization_id uuid,status text,updated_at timestamptz DEFAULT now());
     CREATE TABLE return_inspections(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),organization_id uuid,booking_id uuid,forklift_id uuid,inspection_number text,condition text,damage_notes text,damage_cost numeric,hours_used numeric,fuel_level text,inspected_at timestamptz,extra_hours numeric,suggested_extra_hour_charge numeric,inspected_by text,late_days numeric,suggested_late_charge numeric,created_at timestamptz DEFAULT now());
-    CREATE TABLE damage_records(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),inspection_id uuid REFERENCES return_inspections(id),organization_id uuid,forklift_id uuid,booking_id uuid,customer_id uuid,description text,estimated_cost numeric,status text,previous_forklift_status text,deleted_at timestamptz,repaired_at timestamptz,invoice_id uuid,maintenance_log_id uuid,updated_at timestamptz DEFAULT now());
+    CREATE TABLE damage_records(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),inspection_id uuid REFERENCES return_inspections(id),organization_id uuid,forklift_id uuid,booking_id uuid,customer_id uuid,description text,estimated_cost numeric,status text,previous_forklift_status text,deleted_at timestamptz,deleted_by uuid,repaired_at timestamptz,invoice_id uuid,maintenance_log_id uuid,updated_at timestamptz DEFAULT now());
     CREATE TABLE deliveries(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),booking_id uuid,forklift_id uuid,organization_id uuid,type text,status text,hours_reading numeric,completed_at timestamptz,scheduled_date date,scheduled_time time,created_at timestamptz DEFAULT now());
     CREATE TABLE contracts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),booking_id uuid,organization_id uuid,status text,created_at timestamptz DEFAULT now(),updated_at timestamptz DEFAULT now(),max_hours_per_month numeric,extra_hour_rate numeric);
     CREATE TABLE maintenance_logs(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),forklift_id uuid,organization_id uuid,deleted_at timestamptz,work_status text);
@@ -97,7 +99,7 @@ try {
     CREATE TABLE audit_logs(table_name text,record_id uuid,action text,old_data jsonb,new_data jsonb,user_id uuid,source text,organization_id uuid);
     GRANT USAGE ON SCHEMA public,auth TO authenticated,anon;
     GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;
-    GRANT INSERT,UPDATE ON deliveries TO authenticated;`);
+    GRANT INSERT,UPDATE ON deliveries TO authenticated; GRANT UPDATE ON damage_records TO authenticated;`);
   await sql.unsafe(
     extract(
       "drizzle/migrations/0102_admin_delivery_return_corrections.sql",
@@ -124,6 +126,33 @@ try {
   );
   await sql.unsafe(`REVOKE ALL ON FUNCTION public.correct_return_inspection(uuid,text,text,text,numeric,numeric,text), public.complete_return_inspection(uuid,uuid,text,text,numeric,numeric,text,text,timestamptz) FROM PUBLIC,anon;
     GRANT EXECUTE ON FUNCTION public.correct_return_inspection(uuid,text,text,text,numeric,numeric,text), public.complete_return_inspection(uuid,uuid,text,text,numeric,numeric,text,text,timestamptz) TO authenticated;`);
+  await sql.unsafe(
+    extract(
+      "drizzle/migrations/0030_multi_org_onboarding_and_customer_scope.sql",
+      "enforce_organization_write_context",
+      "\n$$;",
+    ),
+  );
+  await sql.unsafe(
+    extract(
+      "supabase/migrations/20260910023735_7445b1eb-6d15-4e66-b923-57e018a34cc5.sql",
+      "guard_archived_damage_immutable",
+      "\n$function$;",
+    ),
+  );
+  await sql.unsafe(
+    "CREATE TRIGGER trg_damage_archived_immutable BEFORE UPDATE ON damage_records FOR EACH ROW EXECUTE FUNCTION public.guard_archived_damage_immutable()",
+  );
+  await sql.unsafe(
+    "CREATE FUNCTION public.ensure_forklift_maintenance_for_open_damage(uuid,text) RETURNS void LANGUAGE plpgsql AS $$ BEGIN RETURN; END $$",
+  );
+  await sql.unsafe(
+    extract(
+      "drizzle/migrations/0041_multi_org_supplier_damage_rpc_org_guard.sql",
+      "restore_damage_record",
+      "\n$function$;",
+    ),
+  );
   const seed = async () => {
     await sql.unsafe(`RESET ROLE; SELECT set_config('test.role','admin',false),set_config('test.org','${org}',false);
       TRUNCATE bookings,forklifts,return_inspections,damage_records,deliveries,contracts,maintenance_logs,audit_logs,status_logs CASCADE;
@@ -369,6 +398,60 @@ try {
     assert.equal(dr.inspection_id, ret);
     pass(`OP03 ${label} blocks without detachment or deletion`);
   }
+  const archivedId = await seedVoid({ archived: true });
+  await rejected(
+    `UPDATE damage_records SET description='unauthorized edit' WHERE id='${damage}'`,
+    "23514",
+  );
+  await sql.unsafe(
+    `SELECT set_config('app.return_void_inspection','${archivedId}',false)`,
+  );
+  await rejected(
+    `UPDATE damage_records SET inspection_id=NULL WHERE id='${damage}'`,
+    "23514",
+  );
+  await rejected(
+    `UPDATE damage_records SET inspection_id=NULL,description='unauthorized edit' WHERE id='${damage}'`,
+    "23514",
+  );
+  await sql.unsafe("SELECT set_config('app.return_void_inspection','',false)");
+  await sql.unsafe(voidQuery(archivedId));
+  await rejected(
+    `UPDATE damage_records SET description='after annulment' WHERE id='${damage}'`,
+    "23514",
+  );
+  assert.equal(
+    (
+      await sql.unsafe(
+        "SELECT current_setting('app.return_void_inspection',true) AS flag",
+      )
+    )[0].flag,
+    "",
+  );
+  pass(
+    "OP03 archived data remains immutable before/after annulment and spoofed GUC cannot detach",
+  );
+  await rejected(
+    `UPDATE damage_records SET deleted_at=NULL WHERE id='${damage}'`,
+    "23514",
+  );
+  await sql.unsafe(`SELECT public.restore_damage_record('${damage}')`);
+  assert.equal(
+    (
+      await sql.unsafe(
+        `SELECT deleted_at FROM damage_records WHERE id='${damage}'`,
+      )
+    )[0].deleted_at,
+    null,
+  );
+  pass("OP03 existing audited restore RPC still restores archived damage");
+  const [scope] = await sql.unsafe(
+    `SELECT EXISTS(SELECT 1 FROM pg_policies WHERE schemaname='public' AND tablename='return_inspection_usage_bases' AND policyname='org_scope_isolation' AND permissive='RESTRICTIVE') AS policy, EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid='public.return_inspection_usage_bases'::regclass AND tgname='trg_organization_write_context') AS trigger`,
+  );
+  assert.deepEqual(scope, { policy: true, trigger: true });
+  pass(
+    "OP05 internal snapshot retains standard multi-organization policy and write guard",
+  );
   const ret = await seedVoid();
   await sql.unsafe("SELECT set_config('test.role','dispatcher',false)");
   await rejected(voidQuery(ret), "42501");

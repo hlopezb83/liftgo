@@ -27,8 +27,17 @@ DECLARE
   v_balance numeric;
   v_ctid text;
 BEGIN
-  INSERT INTO public.customers(id, name, organization_id)
-  VALUES(v_customer, 'BF03 BF04 regression customer', v_org);
+  -- Customer identity is global; the operational tenant FK targets the
+  -- organization_customers relation. The normal customer trigger may already
+  -- create this relation in single-organization CI, so keep setup idempotent.
+  INSERT INTO public.customers(id, name)
+  VALUES(v_customer, 'BF03 BF04 regression customer');
+  INSERT INTO public.organization_customers(organization_id, customer_id)
+  VALUES(v_org, v_customer)
+  ON CONFLICT (organization_id, customer_id) DO NOTHING;
+  PERFORM pg_temp.expect_true('fixture global customer is linked to the invoice organization',
+    EXISTS (SELECT 1 FROM public.organization_customers
+      WHERE organization_id=v_org AND customer_id=v_customer));
 
   INSERT INTO public.invoices(
     id, organization_id, customer_id, customer_name, invoice_number,

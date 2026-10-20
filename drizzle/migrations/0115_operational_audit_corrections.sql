@@ -48,6 +48,11 @@ CREATE TABLE public.return_inspection_usage_bases (
   captured_at timestamptz NOT NULL DEFAULT now()
 );
 ALTER TABLE public.return_inspection_usage_bases ENABLE ROW LEVEL SECURITY;
+CREATE POLICY org_scope_isolation ON public.return_inspection_usage_bases AS RESTRICTIVE FOR ALL TO authenticated
+  USING (public.organization_scope_matches(organization_id))
+  WITH CHECK (public.organization_scope_matches(organization_id));
+CREATE TRIGGER trg_organization_write_context BEFORE INSERT OR UPDATE ON public.return_inspection_usage_bases
+  FOR EACH ROW EXECUTE FUNCTION public.enforce_organization_write_context();
 REVOKE ALL ON TABLE public.return_inspection_usage_bases FROM PUBLIC, anon, authenticated, service_role;
 -- Match the owner-only convention: no reader role or additional app access.
 DO $owner_policy$
@@ -174,6 +179,45 @@ CREATE TRIGGER trg_recalculate_return_usage_charge
   BEFORE INSERT OR UPDATE OF hours_used, extra_hours, suggested_extra_hour_charge
   ON public.return_inspections FOR EACH ROW EXECUTE FUNCTION public.recalculate_return_usage_charge();
 
+-- Preserve archived immutability while permitting the one audited FK detachment.
+-- INVOKER is essential: a direct authenticated UPDATE cannot impersonate the
+-- SECURITY DEFINER caller merely by setting a custom GUC.
+CREATE OR REPLACE FUNCTION public.guard_archived_damage_immutable()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY INVOKER
+SET search_path TO 'public'
+AS $function$
+BEGIN
+  IF current_setting('app.e2e_seed', true) = 'on'
+     OR current_setting('app.e2e_teardown', true) = 'on' THEN
+    RETURN NEW;
+  END IF;
+  IF OLD.deleted_at IS NOT NULL THEN
+    IF NEW.deleted_at IS NOT NULL THEN
+      IF current_user = (SELECT pg_get_userbyid(proowner) FROM pg_proc
+           WHERE oid = 'public.void_return_inspection(uuid,text)'::regprocedure)
+         AND current_setting('app.return_void_inspection', true) = OLD.inspection_id::text
+         AND OLD.inspection_id IS NOT NULL AND NEW.inspection_id IS NULL
+         AND public.is_internal_member(auth.uid()) AND public.has_role(auth.uid(), 'admin'::public.app_role)
+         AND OLD.organization_id = public.current_internal_organization_id()
+         AND (to_jsonb(NEW) - ARRAY['inspection_id','updated_at'])
+             IS NOT DISTINCT FROM (to_jsonb(OLD) - ARRAY['inspection_id','updated_at']) THEN
+        RETURN NEW;
+      END IF;
+      RAISE EXCEPTION 'Un daño archivado es inmutable; restáuralo antes de editarlo.'
+        USING ERRCODE = '23514';
+    END IF;
+    IF current_setting('app.damage_restore', true) IS DISTINCT FROM 'on' THEN
+      RAISE EXCEPTION 'Usa restore_damage_record para restaurar un daño archivado.'
+        USING ERRCODE = '23514';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+REVOKE ALL ON FUNCTION public.guard_archived_damage_immutable() FROM PUBLIC, anon, authenticated;
+
 -- OP03: retain damage/repair history, and audit the detachment before removing
 -- the mistaken inspection. Never detach billed damage or unfinished repairs.
 CREATE OR REPLACE FUNCTION public.void_return_inspection(p_inspection_id uuid, p_reason text)
@@ -188,6 +232,7 @@ DECLARE
   v_b public.bookings%ROWTYPE;
   v_fl text;
   v_damage public.damage_records%ROWTYPE;
+  v_previous_void text := current_setting('app.return_void_inspection', true);
 BEGIN
   IF p_reason IS NULL OR btrim(p_reason) = '' THEN
     RAISE EXCEPTION 'La anulación requiere un motivo.' USING ERRCODE = 'check_violation';
@@ -244,8 +289,15 @@ BEGIN
          jsonb_build_object('inspection_id', NULL, 'voided_inspection_id', p_inspection_id, 'reason', btrim(p_reason)),
          (select auth.uid()), 'user', v_org
     FROM public.damage_records dr WHERE dr.inspection_id = p_inspection_id AND dr.organization_id = v_org;
-  UPDATE public.damage_records SET inspection_id = NULL, updated_at = now()
-   WHERE inspection_id = p_inspection_id AND organization_id = v_org;
+  PERFORM set_config('app.return_void_inspection', p_inspection_id::text, true);
+  BEGIN
+    UPDATE public.damage_records SET inspection_id = NULL, updated_at = now()
+     WHERE inspection_id = p_inspection_id AND organization_id = v_org;
+    PERFORM set_config('app.return_void_inspection', COALESCE(v_previous_void, ''), true);
+  EXCEPTION WHEN OTHERS THEN
+    PERFORM set_config('app.return_void_inspection', COALESCE(v_previous_void, ''), true);
+    RAISE;
+  END;
   DELETE FROM public.return_inspections WHERE id = p_inspection_id AND organization_id = v_org;
 
   PERFORM set_config('app.audit_revert', 'on', true);

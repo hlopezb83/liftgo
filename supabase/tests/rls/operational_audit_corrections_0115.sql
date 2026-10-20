@@ -87,6 +87,11 @@ UPDATE public.damage_records SET status='repaired' WHERE id='11500000-0000-4000-
 SELECT pg_temp.op_error(format('SELECT public.void_return_inspection(%L,''QA unfinished repair'')',current_setting('test.op0115.inspection')),'P0001');
 UPDATE public.maintenance_logs SET work_status='completed' WHERE id=current_setting('test.op0115.repair')::uuid;
 SELECT public.soft_delete_damage_record('11500000-0000-4000-8000-000000000501');
+SELECT pg_temp.op_error($q$UPDATE public.damage_records SET description='Forbidden archived edit' WHERE id='11500000-0000-4000-8000-000000000501'$q$,'23514');
+SELECT set_config('app.return_void_inspection',current_setting('test.op0115.inspection'),true);
+SELECT pg_temp.op_error($q$UPDATE public.damage_records SET inspection_id=NULL WHERE id='11500000-0000-4000-8000-000000000501'$q$,'23514');
+SELECT pg_temp.op_error($q$UPDATE public.damage_records SET inspection_id=NULL,description='Forbidden mixed edit' WHERE id='11500000-0000-4000-8000-000000000501'$q$,'23514');
+SELECT set_config('app.return_void_inspection','',true);
 
 SET LOCAL request.jwt.claims='{"sub":"11500000-0000-4000-8000-0000000000a2","role":"authenticated"}';
 SELECT pg_temp.op_error(format('SELECT public.void_return_inspection(%L,''QA non admin'')',current_setting('test.op0115.inspection')),'42501');
@@ -98,6 +103,8 @@ SELECT pg_temp.op_error(format('SELECT public.correct_return_inspection(%L,''QA 
 
 SET LOCAL request.jwt.claims='{"sub":"11500000-0000-4000-8000-0000000000a1","role":"authenticated"}';
 SELECT public.void_return_inspection(current_setting('test.op0115.inspection')::uuid,'QA mistaken historical return');
+SELECT pg_temp.op_error($q$UPDATE public.damage_records SET description='Forbidden edit after annulment' WHERE id='11500000-0000-4000-8000-000000000501'$q$,'23514');
+SELECT pg_temp.op_check(current_setting('app.return_void_inspection',true)='', 'OP03 context leaked beyond detachment');
 SELECT pg_temp.op_check(NOT EXISTS(SELECT 1 FROM public.return_inspections WHERE id=current_setting('test.op0115.inspection')::uuid), 'OP03 inspection not annulled');
 SELECT pg_temp.op_check((SELECT inspection_id IS NULL AND deleted_at IS NOT NULL
  AND maintenance_log_id=current_setting('test.op0115.repair')::uuid
@@ -110,6 +117,12 @@ SELECT pg_temp.op_check(EXISTS(SELECT 1 FROM public.audit_logs WHERE table_name=
 SELECT pg_temp.op_check(EXISTS(SELECT 1 FROM public.audit_logs WHERE table_name='return_inspections'
  AND record_id=current_setting('test.op0115.inspection')::uuid AND action='ADMIN_VOID'
  AND old_data->'usage_charge_basis'->>'extra_hour_rate'='10'), 'OP03 pricing snapshot audit lost');
+
+-- The existing administrative restore path remains intact.
+SELECT public.restore_damage_record('11500000-0000-4000-8000-000000000501');
+SELECT pg_temp.op_check((SELECT deleted_at IS NULL FROM public.damage_records
+ WHERE id='11500000-0000-4000-8000-000000000501'), 'OP03 ordinary damage restore regressed');
+SELECT public.soft_delete_damage_record('11500000-0000-4000-8000-000000000501');
 
 SET LOCAL ROLE anon;
 SET LOCAL request.jwt.claims='{"role":"anon"}';

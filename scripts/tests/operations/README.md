@@ -84,3 +84,10 @@ unknown historical basis; historical delivery followed by actual historical
 return; normal completion time; future-date rejection; immutable completed dates;
 resolved and archived damage; preserved repair history; pending repairs and billed
 damage blockers; and helper/RPC ACL checks.
+
+The archived-damage guard uses an invoker-only narrow exception for the effective
+RPC owner, an authenticated organization admin, the exact inspection context, and
+only the inspection-link/updated-at difference. Direct updates (including a
+forged context setting) remain blocked before and after annulment. The ordinary
+restore RPC is also exercised. Snapshot storage keeps the standard restrictive
+organization policy and write-context trigger without any application grants.
