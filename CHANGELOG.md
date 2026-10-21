@@ -1,3 +1,7 @@
+## [8.44.18] - 2026-10-20
+
+- Se corrigen nueve familias de dependencias vulnerables mediante actualizaciones compatibles y reglas planas de esbuild y postcss-selector-parser con pruebas de sus consumidores. El lockfile se valida con Bun 1.3.3 y 1.4.2; se mantienen Vite, Rolldown, Bun en CI y el guard de 24 horas, sin cambios de negocio, permisos ni base de datos.
+
 ## [8.44.15] - 2026-10-19
 
 - Facturar una extensión conserva disponible el periodo original pendiente, sus precios y moneda, sin repetir logística. Las reservas no recurrentes rechazan periodos superpuestos; los historiales ambiguos requieren revisión.
