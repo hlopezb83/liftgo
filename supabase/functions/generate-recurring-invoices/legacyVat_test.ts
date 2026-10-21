@@ -5,7 +5,7 @@ import {
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 // Import the actual executePlan without starting an HTTP listener.
 const originalServe = Deno.serve;
-Deno.serve = (() => ({})) as typeof Deno.serve;
+Deno.serve = (() => ({})) as unknown as typeof Deno.serve;
 const { executePlan } = await import("./index.ts");
 Deno.serve = originalServe;
 
