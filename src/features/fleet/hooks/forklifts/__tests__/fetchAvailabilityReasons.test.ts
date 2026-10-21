@@ -9,9 +9,10 @@ import { fetchAvailabilityReasons } from "../fetchAvailabilityReasons";
 
 const unit: AvailabilityUnit = { id: "f1", name: "Unidad A", model: "Modelo A", status: "available", organization_id: "a" };
 const booking: AvailabilityBooking = { id: "b1", forklift_id: "f1", organization_id: "a", status: "confirmed", start_date: "2026-10-01", end_date: "2026-10-05" };
-let units: AvailabilityUnit[];
+type UnitRow = Omit<AvailabilityUnit, "organization_id"> & { organization_id: string | null };
+let units: UnitRow[];
 let bookings: AvailabilityBooking[];
-let available: AvailabilityUnit[];
+let available: UnitRow[];
 let calls: Array<{ table: string; chain: ChainCall[] }>;
 let tableError: string | undefined;
 let predicateError: string | undefined;
@@ -60,6 +61,21 @@ describe("availability evidence read contract", () => {
     expect(result.unavailable[0].reason.code).toBe("unknown");
     expect(JSON.stringify(result)).not.toContain("Secret B");
     expect(mocks.rpc).not.toHaveBeenCalledWith("booking_is_returned", expect.anything(), expect.anything());
+  });
+  it("discards null-organization fleet rows before displaying or querying their blockers", async () => {
+    units.push({ ...unit, id: "unscoped", name: "Legacy without company", organization_id: null });
+    const result = await fetchAvailabilityReasons(params);
+    expect(result.unavailable.map(({ unit: row }) => row.id)).toEqual(["f1"]);
+    expect(result.reservableWhileRented).toEqual([]);
+    expect(JSON.stringify(result)).not.toContain("Legacy without company");
+    expect(mocks.rpc.mock.calls.filter(([name]) => name === "forklift_has_maintenance_block"))
+      .toEqual([["forklift_has_maintenance_block", { p_org: "a", p_forklift: "f1", p_start: params.start, p_end: params.end }, { signal: undefined }]]);
+  });
+  it("a null-organization RPC row cannot suppress an authorized unavailable unit", async () => {
+    available = [{ ...unit, organization_id: null }];
+    const result = await fetchAvailabilityReasons(params);
+    expect(result.unavailable.map(({ unit: row }) => row.id)).toEqual(["f1"]);
+    expect(result.reservableWhileRented).toEqual([]);
   });
   it("does not assert a rented unit is blocked when the canonical RPC permits the dates", async () => {
     units = [{ ...unit, status: "rented" }]; available = units;

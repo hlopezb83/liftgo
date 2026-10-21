@@ -1,8 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { callRpc } from "@/lib/rpc";
 import { explainUnavailableUnit, overlapsRequestedRange, type AvailabilityBooking, type AvailabilityUnit } from "../../lib/availabilityReasons";
 
 const PAGE_SIZE = 200;
+type AvailabilityUnitRow = Pick<Tables<"forklifts">, keyof AvailabilityUnit>;
 
 async function readUnits(organizationId: string, signal?: AbortSignal): Promise<AvailabilityUnit[]> {
   const rows: AvailabilityUnit[] = [];
@@ -18,7 +20,12 @@ async function readUnits(organizationId: string, signal?: AbortSignal): Promise<
     const { data, error } = await request;
     if (error) throw error;
     const page = data ?? [];
-    rows.push(...page.filter((row) => row.organization_id === organizationId));
+    for (const row of page) {
+      // Supabase permits a null organization on legacy fleet rows. Only copy
+      // the organization after the equality check has narrowed it to string.
+      if (row.organization_id !== organizationId) continue;
+      rows.push({ ...row, organization_id: row.organization_id });
+    }
     if (page.length < PAGE_SIZE) return rows;
   }
 }
@@ -66,7 +73,7 @@ export async function fetchAvailabilityReasons({ organizationId, start, end, can
   if (!organizationId || !start || !end || end < start) throw new Error("Consulta de disponibilidad inválida");
   const [units, available, today] = await Promise.all([
     readUnits(organizationId, signal),
-    callRpc<AvailabilityUnit[]>("get_available_forklifts", { p_start_date: start, p_end_date: end }, { signal }),
+    callRpc<AvailabilityUnitRow[]>("get_available_forklifts", { p_start_date: start, p_end_date: end }, { signal }),
     callRpc<string>("today_mty", {}, { signal }),
   ]);
   // Match only the verified company's fleet. An unrelated cached/returned row
