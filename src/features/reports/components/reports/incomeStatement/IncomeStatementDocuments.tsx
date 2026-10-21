@@ -29,6 +29,7 @@ import {
   STATEMENT_DOCUMENT_PAGE_SIZE,
   useIncomeStatementDocuments,
 } from "../../../hooks/incomeStatement/useIncomeStatementDocuments";
+import { useStatementBillFocus } from "../../../hooks/incomeStatement/useStatementBillFocus";
 
 const SupplierBillDetailSheet = lazy(() =>
   import("@/features/accounts-payable").then((module) => ({
@@ -47,9 +48,11 @@ const SOURCE_LABELS: Record<StatementDocument["source_type"], string> = {
 function DocumentRow({
   document,
   onOpenBill,
+  billTriggerRef,
 }: {
   document: StatementDocument;
-  onOpenBill: (id: string) => void;
+  onOpenBill: (id: string, rowKey: string) => void;
+  billTriggerRef: (rowKey: string, element: HTMLButtonElement | null) => void;
 }) {
   const href = statementDocumentHref(document);
   const isSupplier =
@@ -73,7 +76,8 @@ function DocumentRow({
           <button
             type="button"
             className="underline underline-offset-4"
-            onClick={() => onOpenBill(document.document_id)}
+            ref={(element) => billTriggerRef(document.row_key, element)}
+            onClick={() => onOpenBill(document.document_id, document.row_key)}
           >
             {document.folio}
           </button>
@@ -115,12 +119,14 @@ function DocumentResults({
   page,
   onPage,
   onOpenBill,
+  billTriggerRef,
 }: {
   data: StatementDocumentPage;
   expectedTotal: number;
   page: number;
   onPage: (page: number) => void;
-  onOpenBill: (id: string) => void;
+  onOpenBill: (id: string, rowKey: string) => void;
+  billTriggerRef: (rowKey: string, element: HTMLButtonElement | null) => void;
 }) {
   return (
     <>
@@ -163,6 +169,7 @@ function DocumentResults({
                 key={document.row_key}
                 document={document}
                 onOpenBill={onOpenBill}
+                billTriggerRef={billTriggerRef}
               />
             ))}
           </TableBody>
@@ -212,7 +219,7 @@ export function IncomeStatementDocuments({
   returnFocus?: () => void;
 }) {
   const [page, setPage] = useState(0);
-  const [billId, setBillId] = useState<string | null>(null);
+  const { billId, setBillId, inspectorRef, registerTrigger, openBill, onCloseAutoFocus } = useStatementBillFocus();
   const query = useIncomeStatementDocuments(scope, selection, page);
   const data = query.data;
   const loaded =
@@ -226,6 +233,7 @@ export function IncomeStatementDocuments({
         }}
       >
         <SheetContent
+          ref={inspectorRef}
           className="w-full sm:max-w-4xl overflow-y-auto"
           onCloseAutoFocus={(event) => {
             if (returnFocus) {
@@ -267,7 +275,8 @@ export function IncomeStatementDocuments({
               expectedTotal={selection.expectedTotal}
               page={page}
               onPage={setPage}
-              onOpenBill={setBillId}
+              onOpenBill={openBill}
+              billTriggerRef={registerTrigger}
             />
           )}
         </SheetContent>
@@ -277,6 +286,7 @@ export function IncomeStatementDocuments({
           <SupplierBillDetailSheet
             billId={billId}
             open
+            onCloseAutoFocus={onCloseAutoFocus}
             onOpenChange={(open) => {
               if (!open) setBillId(null);
             }}

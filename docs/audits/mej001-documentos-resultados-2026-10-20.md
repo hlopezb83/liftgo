@@ -41,3 +41,7 @@ PG_BIN=/ruta/absoluta/a/postgresql/bin node scripts/tests/reports/income-stateme
 node scripts/check-drizzle-journal.ts
 vitest run src/features/reports/components/reports/incomeStatement/__tests__/IncomeStatementDocuments.test.tsx src/features/reports/hooks/incomeStatement/__tests__/useIncomeStatementDocuments.test.tsx src/features/reports/components/reports/__tests__/IncomeStatementReport.test.tsx src/features/reports/hooks/incomeStatement/__tests__/depreciationIntlBoundary.audit.test.tsx src/features/reports/pages/__tests__/ReportsPage.financialAccess.test.tsx --maxWorkers=1
 ```
+
+## Revisión de foco anidado
+
+Se corrigió el retorno de foco al cerrar la ficha de proveedor desde el inspector. La ficha acepta `onCloseAutoFocus` de forma opt-in, sin cambiar el comportamiento de otros llamadores. El inspector resuelve el botón de la contribución actual al cerrar, también después de un refetch; si desapareció, enfoca el inspector conectado en vez de BODY. Cuatro pruebas con ambas hojas Radix reales cubren Cerrar, Escape/reapertura, remonte, fila ausente y folios repetidos. La repetición focal del inspector y estas regresiones aprobó 14/14 pruebas con un solo worker; ESLint focal no reportó advertencias.
