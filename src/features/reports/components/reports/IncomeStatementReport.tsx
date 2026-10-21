@@ -3,6 +3,7 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DEPRECIATION_ROUNDING_LABEL } from "../../hooks/incomeStatement/depreciationPresentation";
@@ -186,6 +187,9 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
       />
 
       <IncomeStatementTable
+        key={`${toYMD(startDate)}:${toYMD(endDate)}:${accountingBasis}:${selectedYear}`}
+        documentScope={{ startDate: toYMD(startDate), endDate: toYMD(endDate), accountingBasis }}
+        documentsEnabled={!isFetching}
         isComparison={isComparison}
         filteredData={filteredData}
         yearTotals={yearTotals}
