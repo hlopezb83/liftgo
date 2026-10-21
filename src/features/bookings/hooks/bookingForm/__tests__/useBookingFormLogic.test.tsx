@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   submit: { postBooking: null as { forkliftId: string } | null },
 }));
 
+vi.mock("../useBookingDraft", () => ({ useBookingDraft: () => ({}) }));
 vi.mock("../useBookingFormState", () => ({ useBookingFormState: () => mocks.state }));
 vi.mock("../useBookingFormSubmit", () => ({ useBookingFormSubmit: () => mocks.submit }));
 
