@@ -4,3 +4,4 @@
 export * from "./hooks/useSupplierBills";
 export * from "./lib/buildPaymentsXlsx";
 export * from "./lib/supplierBillConstants";
+export { SupplierBillDetailSheet } from "./components/SupplierBillDetailSheet";
