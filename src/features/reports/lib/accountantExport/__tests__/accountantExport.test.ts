@@ -16,7 +16,7 @@ const payment = (patch: Partial<Payment> = {}): Payment => ({ id: "p1", organiza
 it("keeps invoices and collections as separate facts, never income232; REP cancellation does not remove money", () => {
   const data = blank(); data.invoices = [invoice()]; data.payments = [payment()];
   const sheets = buildAccountantSheets(options, data, company, permissions);
-  const totals = sheets.find((sheet) => sheet.name === "Totales por hecho")?.rows ?? [];
+  const totals = sheets.find((sheet) => sheet.name === "Resumen por moneda")?.rows ?? [];
   expect(totals).toHaveLength(2); expect(totals.map((row) => row["Total original"])).toEqual([116, 116]);
   expect(sheets.find((sheet) => sheet.name === "Cobros")?.rows[0].Estado).toBe("Cobro registrado");
   expect(sheets.find((sheet) => sheet.name === "REP asociados a cobros")?.rows[0].Estado).toBe("cancelled");
@@ -26,7 +26,7 @@ it("includes outside-period parents only as non-summable references", () => {
   const sheets = buildAccountantSheets(options, data, company, permissions);
   expect(sheets.find((sheet) => sheet.name === "Ventas")?.rows).toEqual([]);
   expect(sheets.find((sheet) => sheet.name === "Referencias")?.rows[0].Alcance).toContain("no sumable");
-  expect(sheets.find((sheet) => sheet.name === "Totales por hecho")?.rows).toHaveLength(1);
+  expect(sheets.find((sheet) => sheet.name === "Resumen por moneda")?.rows).toHaveLength(1);
 });
 it("separates canceled, test and unknown environment without asserting unknown means live", () => {
   const data = blank(); data.invoices = [invoice(), invoice({ id: "test", facturapi_env: "test" }), invoice({ id: "unknown", facturapi_env: null }), invoice({ id: "cancel", cancellation_status: "accepted" }), invoice({ id: "draft", status: "draft" })];
@@ -79,7 +79,7 @@ it("rejects TC1 for foreign currencies and preserves separate effective legacy p
   data.payments = [payment({ id: "p-usd", invoice_id: "usd", currency: null as unknown as string, amount: 100 }), payment({ id: "p-mxn", invoice_id: "mxn", currency: null as unknown as string, amount: 100 })];
   const sheets = buildAccountantSheets(options, data, company, permissions);
   expect(sheets.find((sheet) => sheet.name === "Ventas")?.rows.find((row) => row.ID === "usd")?.["Total MXN calculado"]).toBeNull();
-  const totals = sheets.find((sheet) => sheet.name === "Totales por hecho")?.rows.filter((row) => row.Hoja === "Cobros") ?? [];
+  const totals = sheets.find((sheet) => sheet.name === "Resumen por moneda")?.rows.filter((row) => row.Hoja === "Cobros") ?? [];
   expect(totals.map((row) => [row.Moneda, row["Total original"]])).toEqual([["USD", 100], ["MXN", 100]]);
   expect(sheets.find((sheet) => sheet.name === "Control")?.rows).toContainEqual({ Concepto: "Conversión MXN no disponible: Ventas", Valor: 1 });
 });
@@ -93,6 +93,6 @@ it("preserves unknown currency rows without aggregating unidentified units", () 
   const sheets = buildAccountantSheets(options, data, company, permissions);
   expect(sheets.find((sheet) => sheet.name === "Ventas")?.rows).toHaveLength(2);
   expect(sheets.find((sheet) => sheet.name === "Ventas")?.rows.every((row) => row["Total MXN calculado"] === null && row["Advertencia moneda"])).toBe(true);
-  expect(sheets.find((sheet) => sheet.name === "Totales por hecho")?.rows).toEqual([]);
+  expect(sheets.find((sheet) => sheet.name === "Resumen por moneda")?.rows).toEqual([]);
   expect(sheets[0].rows.find((row) => row.Concepto === "Importes no sumables por moneda no verificable: Ventas")?.Valor).toBe(2);
 });

@@ -1,6 +1,7 @@
 import { isFxMissing } from "@/features/cash-flow";
 import { roundMoney, sumMoney, toMxn } from "@/lib/money";
 import { assertOptions } from "./model";
+import { withAccountantColumns } from "./sheetColumns";
 import type { Bill, ExportData, ExportOptions, ExportRow, ExportSheet, Invoice, Sections } from "./model";
 
 const isCancelled = (row: { status: string; cfdi_status?: string | null; cancellation_status?: string }) => row.status === "cancelled" || row.cfdi_status === "cancelled" || row.cancellation_status === "accepted";
@@ -120,7 +121,7 @@ export function buildAccountantSheets(options: ExportOptions, data: ExportData,
     if (typeof row["Total original"] === "number" && !hasCurrency(row.Moneda)) row["Advertencia moneda"] = "Moneda no verificable; importe excluido de totales";
   }
   const controls = buildControls(options, data, company, permissions, sheets, omittedDrafts, omittedTests);
-  return [{ name: "Control", rows: controls }, { name: "Totales por hecho", rows: groupedTotals(sheets), headers: ["Hoja", "Moneda", "Estado", "Ambiente", "Registros", "Total original"] }, ...sheets];
+  return [{ name: "Control", rows: controls }, { name: "Resumen por moneda", rows: groupedTotals(sheets), headers: ["Hoja", "Moneda", "Estado", "Ambiente", "Registros", "Total original"] }, ...sheets.map(withAccountantColumns)];
 }
 
 function groupedTotals(sheets: ExportSheet[]): ExportRow[] {
@@ -139,10 +140,15 @@ function groupedTotals(sheets: ExportSheet[]): ExportRow[] {
 
 function buildControls(options: ExportOptions, data: ExportData, company: { razon_social: string; rfc: string }, permissions: Sections, sheets: ExportSheet[], drafts: number, tests: number): ExportRow[] {
   const controls: ExportRow[] = [
-    { Concepto: "Formato", Valor: "LiftGO paquete operativo para contador v1" },
+    { Concepto: "Formato", Valor: "LiftGO paquete operativo para contador v2" },
     { Concepto: "Empresa", Valor: company.razon_social }, { Concepto: "RFC empresa", Valor: company.rfc },
     { Concepto: "Empresa ID", Valor: options.organizationId }, { Concepto: "Desde", Valor: options.start }, { Concepto: "Hasta", Valor: options.end },
     { Concepto: "Inicio extracción UTC", Valor: data.startedAt }, { Concepto: "Fin extracción UTC", Valor: data.finishedAt },
+    { Concepto: "Cómo revisar", Valor: "1. Verificar empresa, periodo y filtros en Control. 2. Revisar Resumen por moneda, por hoja y moneda. 3. Filtrar los documentos y sus aplicaciones en hojas separadas. 4. Revisar faltantes antes de contabilizar." },
+    { Concepto: "Filtro de borradores", Valor: options.includeDrafts ? "Incluir borradores" : "Excluir borradores" },
+    { Concepto: "Filtro de pruebas", Valor: options.includeTest ? "Incluir Sandbox/E2E conocidos" : "Excluir Sandbox/E2E conocidos" },
+    { Concepto: "Celdas vacías", Valor: "Un dato vacío no significa cero: no está disponible o no aplica. No completar UUID, RFC, moneda o tipo de cambio por suposición." },
+    { Concepto: "Uso de las hojas", Valor: "Encabezados filtrables. Los identificadores técnicos se conservan al final para rastrear el registro. Una hoja autorizada sin filas indica que no hay registros incluidos para ese periodo y filtros." },
     { Concepto: "Naturaleza", Valor: "Datos operativos, no balanza ni pólizas. No garantiza importación directa a CONTPAQi." },
     { Concepto: "Consistencia", Valor: "Consulta paginada, no snapshot transaccional ni cierre bloqueado. Puede haber cambios durante la extracción; verificar antes del cierre oficial." },
     { Concepto: "Totales", Valor: "Cada hoja representa un hecho distinto. NO sumar facturas, notas, cobros, REP y pagos entre sí. Cancelados separados por estado; no representan operaciones vigentes." },
@@ -166,7 +172,8 @@ function buildControls(options: ExportOptions, data: ExportData, company: { razo
     }
     if (sheet.name === "Compras") controls.push({ Concepto: "Compras sin RFC proveedor verificable en catálogo actual", Valor: sheet.rows.filter((row) => !row["Proveedor RFC actual"]).length });
   }
-  for (const key of Object.keys(options.sections) as (keyof Sections)[]) controls.push({ Concepto: `Sección ${key}`, Valor: !permissions[key] ? "No incluida: sin permiso" : options.sections[key] ? "Incluida" : "No solicitada" });
+  const sectionLabels: Record<keyof Sections, string> = { sales: "Ventas y cobros", purchases: "Compras y pagos", expenses: "Gastos operativos" };
+  for (const key of Object.keys(options.sections) as (keyof Sections)[]) controls.push({ Concepto: `Sección ${sectionLabels[key]}`, Valor: !permissions[key] ? "No incluida: sin permiso" : options.sections[key] ? "Incluida" : "No solicitada" });
   for (const sheet of sheets) controls.push({ Concepto: `Filas ${sheet.name}`, Valor: sheet.rows.length });
   return controls;
 }

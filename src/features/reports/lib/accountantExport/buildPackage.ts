@@ -1,6 +1,6 @@
 import { documentCandidates, type DocumentCandidate } from "./documentCandidates";
 import { downloadExistingSupport, SupportError } from "./downloadExisting";
-import { createAccountantWorkbook } from "./writeWorkbook";
+import { serializeAccountantWorkbook } from "./writeWorkbook";
 import type { ExportData, ExportOptions, ExportRow, ExportSheet } from "./model";
 
 export const PACKAGE_LIMITS = { files: 500, fileBytes: 10 * 1024 * 1024, totalBytes: 100 * 1024 * 1024 } as const;
@@ -49,9 +49,7 @@ export async function buildAccountantPackage(options: ExportOptions, data: Expor
     { Concepto: "Límites de soportes", Valor: "500 archivos; 10 MiB por archivo; 100 MiB acumulados. No se recuperan archivos del PAC." },
   ] } : sheet);
   packageSheets.push({ name: "Archivos", rows: manifest, headers: ["Tipo", "Documento ID", "Folio", "UUID", "Alcance", "Formato", "Estado", "Archivo", "Bytes", "SHA256"] });
-  const workbook = await createAccountantWorkbook(packageSheets);
-  const XLSX = await import("@e965/xlsx");
-  entries["informacion-contador.xlsx"] = new Uint8Array(XLSX.write(workbook, { type: "array", bookType: "xlsx" }));
+  entries["informacion-contador.xlsx"] = await serializeAccountantWorkbook(packageSheets);
   entries["indice-archivos.json"] = new TextEncoder().encode(JSON.stringify(summary, null, 2));
   signal.throwIfAborted();
   const { zip } = await import("fflate");
