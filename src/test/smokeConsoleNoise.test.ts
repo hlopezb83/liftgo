@@ -16,7 +16,7 @@ const TRANSPORT = "Failed to load resource: net::ERR_FAILED";
 const BLOCKED_URL = "http://127.0.0.1:54321/auth/v1/token?grant_type=password";
 
 function ctx(...blocked: string[]) {
-  return { origin: ORIGIN, blocked: new Set(blocked.map(normalizeUrl)) };
+  return { origin: ORIGIN, blocked: new Set(blocked.map(normalizeUrl)), blockedHostingScripts: new Set<string>() };
 }
 
 describe("clasificación del ruido de consola del smoke", () => {

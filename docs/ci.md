@@ -305,8 +305,20 @@ las rutas públicas y assets enumerados del origen exacto, sin query strings.
 Aborta APIs incluso del mismo origen y toda red externa (incluidos fuentes y
 telemetría); nunca conecta WebSockets. Cada lectura se hace sin seguir
 redirecciones y entrega la respuesta real sin reemplazar datos. Un intento de
-API del propio origen falla la prueba. Las reglas y la interceptación se
-comprueban offline en `src/test/smokeReadOnlyPolicy.test.ts`.
+API del propio origen falla la prueba. Sólo los GET de tipo script a las URLs
+exactas `https://liftgo.lovable.app/~flock.js` y
+`https://liftgo.lovable.app/__l5e/events.4d3abd1f6b7321c2.js`, inyectadas por el
+hosting para analítica, se clasifican como abortos esperados; no se descargan
+ni se sirven. Se compara literalmente la URL que entrega Playwright, que el
+navegador puede haber normalizado desde el HTML. El clasificador no admite
+queries, credenciales, variantes de esa URL ni otros orígenes; únicamente
+ignora el fragmento. Su mensaje exacto
+`Failed to load resource: net::ERR_FAILED` se ignora sólo con URL atribuida y
+registro de ese aborto en la misma ejecución. Cualquier otro recurso del
+propio origen, método/tipo de petición o error sigue fallando. Las reglas,
+interceptación y atribución se comprueban offline en
+`src/test/smokeReadOnlyPolicy.test.ts`, `src/test/smokeConsoleNoise.test.ts` y
+`src/test/smokeHostingScriptNoise.test.ts`.
 
 No usa credenciales, estado de sesión, secretos, datos reales ni permisos nuevos.
 Los fallos conservan trace/captura durante tres días en `prod-smoke-artifacts`
