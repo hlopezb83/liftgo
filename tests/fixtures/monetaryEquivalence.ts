@@ -75,10 +75,28 @@ export const mixedPayments = {
   ],
   expected: 1.12,
 };
-// Open product discrepancy, not a new approved tax rule. The acceptance test stays RED:
-// UI rounds twice, while Edge/SQL numeric round once. No production fix here.
+// Original D1 discrepancy: the independent acceptance expectation is retained.
+// The local correction changes arithmetic only, not allowed fiscal tax rates.
 export const fractionalTaxDiscrepancy = {
   id: "MEJ005-D1-fractional-tax-double-rounding", taxRate: 16.5,
   line: { description: "Fractional tax boundary", quantity: 1, unit_price: 0.03 },
   expected: { subtotal: 0.03, taxAmount: 0, total: 0.03 },
 };
+
+// Decimal percentage references also cover precision and the existing UI sign
+// contract. The very large case tests a tax alone, not a grand total outside
+// currency.js safe integer-cent limits.
+export const percentageCases: [number, number, number][] = [
+    [0.03, 16.5, 0],
+    [0.01, 49.9999, 0], // currency.js toFixed(4) must not promote 0.00499999
+    [0.01, 50, 0.01],
+    [1000000000000.03, 16.5, 165000000000],
+    [90071992547409.9, 16, 14411518807585.58], // isolate tax, not unsafe grand total
+    [-0.01, 50, 0], // preserve the UI's negative-half-toward-positive contract
+    [-0.03, 50, -0.01],
+    [-0.03, 16.5, 0],
+    [-0.03, 16.7, -0.01],
+    [0.03, -50, -0.01],
+    [1, 1e-7, 0],
+    [1, 0, 0],
+  ];

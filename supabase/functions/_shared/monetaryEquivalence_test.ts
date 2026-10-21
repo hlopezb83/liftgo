@@ -41,7 +41,7 @@ for (const rate of missingRateCases) {
     assertEquals(checkStampFx("MXN", rate).ok, true);
   });
 }
-Deno.test("MEJ005-D1: Edge fractional-tax result (UI acceptance remains red)", () => {
+Deno.test("MEJ005-D1: Edge fractional-tax decimal contract", () => {
   const c = fractionalTaxDiscrepancy;
   assertEquals(recurringChargeAmounts({ ...c.line, total: 0.03 } as RecurringQuoteCharge, c.taxRate), { netCents: 3, taxCents: 0 });
   const result = validateCreditNoteSourceLines({

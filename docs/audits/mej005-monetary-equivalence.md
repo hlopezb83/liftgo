@@ -1,8 +1,10 @@
 # MEJ-005: monetary equivalence evidence
 
-Base: main `24082043f` (8.44.17). Status: **partial / blocked by MEJ005-D1**.
-This change adds tests only. It must not be described as complete or merged as a
-passing release while the acceptance test remains red.
+Base: main `24082043f` (8.44.17). Status: **local gates green, independent review
+and integration pending**. The test-only commit `d5a604f62` exposed MEJ005-D1
+with a normal failing acceptance test. A separate corrective commit changes
+only UI percentage arithmetic and reuses existing decimal rounding; no fiscal
+catalog, Edge calculation, SQL migration or provider behavior changes.
 
 ## Shared matrix
 
@@ -37,7 +39,7 @@ Two different foreign currencies may be converted for accounting in UI/SQL;
 the Edge REP decision deliberately refuses that cross-pair. The fixture asserts
 the refusal instead of inventing provider capability or issuing a REP.
 
-## Open product discrepancy MEJ005-D1
+## Reproduced and locally corrected discrepancy MEJ005-D1
 
 Input: one line, quantity 1, unit price/base 0.03, tax rate 16.5%.
 
@@ -50,9 +52,12 @@ Input: one line, quantity 1, unit price/base 0.03, tax rate 16.5%.
 - The UI-generated NC header is rejected by the source-bound Edge validator
   with `CREDIT_NOTE_TOTALS_MISMATCH`. No provider/network action is needed.
 
-The acceptance test compares UI to the decimal contract and **fails normally**.
-It is not skipped, marked expected-failure, widened to a tolerance, or rewritten
-to accept the divergent UI result. All three layers use the shared input.
+Before the correction, the acceptance test compared UI to the decimal contract
+and **failed normally**: 24 other matrix tests passed, and the wider focused run
+had 89 pass / 1 fail. It was not skipped, marked expected-failure, widened to a
+tolerance, or rewritten to accept the divergent result. After correction that
+same expectation is green, and UI-derived NC totals pass actual Edge source
+validation. All three layers retain the shared input.
 
 This is internal consistency evidence, **not a claim that 16.5% is a valid SAT
 IVA rate**. The current application accepts it: customer `FiscalSection.tsx`
@@ -67,19 +72,30 @@ A diagnostic sweep of 300,003 inputs (0%, 8%, 16%, cent bases 0.00–1000.00)
 found no UI/Edge differences. The retained compact controls use 0/8/16 and
 half-cent/cent boundaries; this is not a proof for all magnitudes or all inputs.
 
-### Proposed correction, not applied
+### Applied local correction, separate commit
 
-Replace only the tax intermediate in `computeTotals` with
-`taxAmount.add(money((money(base).value * rate) / 100))`.
-This retains base normalization, discount allocation, final per-line rounding,
-line-specific rate/objeto_imp and existing currency.js sign handling. It removes
-the extra monetary rounding of the intermediate percentage product. Validate
-this contract before applying; do not rewrite generic `roundMoney`, `sumMoney`,
-FX, SQL tolerances, allowed tax rates, or fiscal provider payloads for convenience.
+`computeTotals` normalizes the base as before and rounds the percentage product
+only once at the monetary boundary. The existing BigInt decimal-rational code
+from `paymentCurrencyRounding.ts` moved to `src/lib/money/decimalRounding.ts`;
+the original feature path re-exports its unchanged FX API. An explicit internal
+rounding mode preserves the UI's negative-half-toward-positive contract while
+FX keeps half-away-from-zero. No tax-rate eligibility policy is added.
 
-Required controls before accepting a correction: the red D1 becomes green;
-0/8/16, per-line sum, fixed/fractional discounts, partial NC/source validation,
-negative NC rejection, signed FX and existing monetary suites remain green.
+A simple `money(base * rate / 100)` was deliberately not used: binary products
+can lose a cent at large magnitudes, and currency.js itself pre-rounds internally
+to four fractional cent digits. For example, 0.01 × 49.9999% must remain 0.00,
+not be promoted to 0.01. The exact decimal helper covers that near-half case,
+1,000,000,000,000.03 × 16.5%, signed half cases and exponent notation.
+
+The maximum-magnitude helper case isolates tax calculation; no promise is made
+for invoice grand totals beyond currency.js's safe integer-cent range. The
+large complete-invoice case stays within that range. Independent PostgreSQL
+numeric expressions verify all twelve additional precision/sign expectations.
+SQL's signed FX rounding differs intentionally from UI's legacy sign contract.
+
+Controls retain 0/8/16, per-line sums, fixed/fractional discounts, partial NC,
+negative NC rejection and existing signed FX behavior. Generic `roundMoney`,
+`sumMoney`, SQL tolerances and provider payloads were not rewritten.
 
 ## Deliberate boundaries
 
@@ -87,7 +103,8 @@ negative NC rejection, signed FX and existing monetary suites remain green.
   verifies `data_directory`, creates its own empty database and stops with the
   existing launcher. No `.env`, custom database URL, remote DB or HTTP is used.
 - This is focused integration, not full schema replay, RLS or permission tests.
-  Product function bodies are extracted from their checked-in migrations;
+  Product function bodies are extracted from their checked-in migrations; a
+  new overriding definition causes the fixture to fail pending source review;
   permissions and unrelated triggers are not copied or bypassed on a live DB.
 - Header triggers validate stored sums, not recompute lines. SQL arithmetic
   reference expressions are explicitly separated from actual product functions.
@@ -115,14 +132,16 @@ and imports only pure local dependencies. No-config avoids resolving unrelated
 project-wide npm imports; no network permission or lockfile mutation is granted.
 The regular offline Deno selector discovers the new `_test.ts` automatically.
 
-Results on 2026-10-20:
+Results on 2026-10-20/21 UTC:
 
-- UI shared matrix: 24 pass, 1 fails normally (D1); no skipped or expected-failure
-  cases. Existing related suites are reported separately below.
+- UI shared matrix: 25 pass after correction, including the originally red D1;
+  additional exact-decimal controls: 15 pass. No skipped or expected-failure cases.
 - Deno shared matrix: 19 pass. With existing money/discount/FX/REP-decision tests:
   69 pass.
-- PostgreSQL monetary suite: 20 pass. Existing REP suite: 11 pass, 31 combined.
-- Fiscal integration TypeScript: pass. Focused UI lint: pass. The repository's
+- PostgreSQL monetary suite: 32 pass. Existing REP suite: 11 pass, 43 combined.
+- Focused UI/domain/NC/FX regression run: 105 pass across nine files.
+- Fiscal integration and isolated arithmetic TypeScript: pass. Touched UI/domain
+  files lint: pass. The repository's
   ESLint configuration ignores fixture/integration directories, so no lint
   coverage is claimed there.
 - Whole-project TypeScript was terminated by the execution environment (`Killed`),

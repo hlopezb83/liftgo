@@ -1,8 +1,8 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { documentCases, creditCases, conversionCases, missingRateCases, mixedPayments, fractionalTaxDiscrepancy } from "../../../tests/fixtures/monetaryEquivalence";
+import { documentCases, creditCases, conversionCases, missingRateCases, mixedPayments, fractionalTaxDiscrepancy, percentageCases } from "../../../tests/fixtures/monetaryEquivalence";
 
 // Reuse the existing cluster-owning launcher. Never load .env or accept a URL.
 const port = Number(process.env.FISCAL_TEST_PORT);
@@ -14,9 +14,17 @@ const connection = { host: "127.0.0.1", port, database: "postgres", username: "p
 const admin = postgres(connection);
 const sql = postgres({ ...connection, database: "monetary_parity" });
 
+// Fail closed if a later migration replaces a pinned product function. This
+// focused fixture must be reviewed rather than silently testing obsolete SQL.
+const migrationSources = ["supabase/migrations", "drizzle/migrations"].flatMap((directory) =>
+  readdirSync(new URL(`../../../${directory}/`, import.meta.url)).filter((file) => file.endsWith(".sql")).sort()
+    .map((file) => ({ name: `${directory}/${file}`, sql: readFileSync(new URL(`../../../${directory}/${file}`, import.meta.url), "utf8") })));
+
 // Load the actual function body, not a retyped mirror that can drift. Historical
 // migrations remain canonical for these five functions; no migrations applied.
 function productFunction(filename: string, name: string, directory = "supabase/migrations") {
+  const declarations = migrationSources.filter((entry) => new RegExp(`CREATE(?:\\s+OR\\s+REPLACE)?\\s+FUNCTION\\s+public\\.${name}\\s*\\(`, "i").test(entry.sql));
+  expect(declarations.at(-1)?.name, `Latest product definition for ${name}`).toBe(`${directory}/${filename}`);
   const source = readFileSync(new URL(`../../../${directory}/${filename}`, import.meta.url), "utf8");
   const start = source.indexOf(`CREATE OR REPLACE FUNCTION public.${name}(`);
   if (start < 0) throw new Error(`Missing product function: ${name}`);
@@ -115,7 +123,14 @@ describe("MEJ-005 disposable PostgreSQL decimal reference and product persistenc
       .rejects.toMatchObject({ code: "23514", message: expect.stringContaining("no hay tipo de cambio") });
     expect(await sql`SELECT * FROM parity_payments`).toHaveLength(0);
   });
-  it("MEJ005-D1: SQL numeric confirms one-round decimal result; UI acceptance remains red", async () => {
+  it.each(percentageCases)("decimal percentage %s × %s = %s with retained UI sign rule", async (amount, rate, expected) => {
+    // PostgreSQL numeric is an independent exact reference. The UI preserves
+    // Math.round/currency.js ties toward +infinity for negative inputs; it does
+    // not adopt FX's separate half-away-from-zero contract.
+    const [row] = await sql`SELECT floor(${amount}::numeric*${rate}::numeric+0.5)/100 AS tax`;
+    expect(Number(row.tax)).toBe(expected);
+  });
+  it("MEJ005-D1: SQL numeric confirms one-round decimal result; UI acceptance retained", async () => {
     const c = fractionalTaxDiscrepancy;
     const [row] = await sql`SELECT round(${c.line.unit_price}::numeric*${c.taxRate}/100,2) AS tax`;
     expect(Number(row.tax)).toBe(c.expected.taxAmount);

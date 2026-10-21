@@ -85,13 +85,16 @@ describe("MEJ-005 shared monetary cases at actual UI/Edge boundaries", () => {
     }, { tax_rate: 16, line_items: [{ quantity: 1, unit_price: 1 }] }))
       .toMatchObject({ ok: false, code: "INVALID_CREDIT_NOTE_LINE" });
   });
-  it("MEJ005-D1 acceptance: fractional-tax UI/Edge must agree to the cent (OPEN product bug)", () => {
+  it("MEJ005-D1 acceptance: fractional-tax UI/Edge must agree to the cent", () => {
     const c = fractionalTaxDiscrepancy;
     const line = { ...c.line, total: lineItemTotal(c.line.quantity, c.line.unit_price) };
     const ui = computeTotals([line], c.taxRate);
     expect(recurringChargeAmounts(line as RecurringQuoteCharge, c.taxRate)).toEqual({ netCents: 3, taxCents: 0 });
-    // Deliberately red, neither skipped nor expected-failure: do not call MEJ-005
-    // complete or turn this into a characterization of the divergent result.
+    // This was red before the isolated D1 correction; retain the independent
+    // decimal expectation, never characterize the divergent old UI result.
     expect(ui).toEqual(c.expected);
+    expect(validateCreditNoteSourceLines({ subtotal: ui.subtotal, tax_amount: ui.taxAmount, total: ui.total,
+      line_items: [{ ...line, source_line_index: 0 }],
+    }, { tax_rate: c.taxRate, line_items: [line] })).toMatchObject({ ok: true, ...c.expected });
   });
 });
