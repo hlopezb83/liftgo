@@ -35,12 +35,15 @@
     "restore:verify": "bun scripts/restore-rehearsal/verify.ts",
     "knip": "knip",
     "knip:deep": "knip --files --dependencies --exports --include-entry-exports",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test:dependencies": "node --test scripts/tests/dependency-security.test.mjs"
   },
   "overrides": {
     "zod-validation-error": "^4.0.2",
     "rolldown": "1.2.11",
-    "vite": "8.3.3"
+    "vite": "8.3.3",
+    "esbuild": "0.28.2",
+    "postcss-selector-parser": "7.1.6"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -163,7 +166,7 @@
     "vite": "8.3.3",
     "vitest": "4.1.11",
     "@sentry/bundler-plugins": "11.7.0",
-    "wrangler": "4.147.0"
+    "wrangler": "4.149.0"
   },
   "version": "7.420.0",
   "engines": {
