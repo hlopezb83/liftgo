@@ -3,6 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DemoTour } from "@/features/invoices";
 import { useHasModuleAccess } from "@/features/users";
 import { DashboardAlertsSection } from "../components/dashboard/DashboardAlertsSection";
 import { DashboardChartsSection } from "../components/dashboard/DashboardChartsSection";
@@ -77,7 +78,7 @@ export default function Dashboard() {
   return (
     <PageTransition>
       <PageContainer>
-        <PageHeader title="Panel" subtitle="Vista general de la flota" />
+        <PageHeader title="Panel" subtitle="Vista general de la flota" actions={<DemoTour />} />
         <div className="flex flex-col gap-6">
           {/* v7.181: agrupar KPIs por área (Operación vs Finanzas) para dar jerarquía. */}
           <section className="order-1">

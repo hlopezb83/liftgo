@@ -1,3 +1,7 @@
+## [8.44.21] - 2026-10-21
+
+- Recorrido guiado de lectura para Admin con folios QA/DEMO existentes y escenarios comprobados, sin crear datos ni operaciones. El detalle documental de Resultados requiere activación separada.
+
 ## [8.44.20] - 2026-10-21
 
 - Borradores locales de reserva con caducidad de siete días y aislamiento de identidad. Consultas de motivos de disponibilidad y excedente de factura con origen, sin cambiar estados operativos ni mover dinero.
