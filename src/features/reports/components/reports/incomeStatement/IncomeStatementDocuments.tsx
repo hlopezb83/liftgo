@@ -139,7 +139,7 @@ function DocumentResults({
         className="mb-3 text-sm"
       >
         {documentTotalMatches(expectedTotal, data.total_amount)
-          ? "Total conciliado"
+          ? "Detalle coincide con el reporte"
           : "El detalle no coincide con el reporte. Actualiza el reporte antes de usar estos importes"}
         : {formatCurrency(data.total_amount)} MXN ({data.total_count}{" "}
         movimientos).

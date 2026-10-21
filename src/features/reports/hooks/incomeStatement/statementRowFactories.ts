@@ -85,6 +85,7 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciationRented), total: totals.depreciationRented, isCost: true },
     { label: "(-) Depreciación (Flota Ociosa)", values: filteredData.map((r) => r.depreciationIdle), total: totals.depreciationIdle, isCost: true },
     ...roundingRows,
+    { label: "= Depreciación total", values: filteredData.map((r) => r.depreciation), total: totals.depreciation, isCost: true, isSubtotal: true },
     { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ];
@@ -162,7 +163,7 @@ export function buildComparisonCsvRows(
     years.forEach((y, i) => {
       obj[y] = formatCsvValue(row.yearValues[i] === undefined ? 0 : row.yearValues[i], row.isPercent);
     });
-    obj["Variación"] = formatCsvValue(row.delta, row.isPercent);
+    obj["Variación"] = row.isPercent && row.delta !== null ? `${row.delta.toFixed(1)} pp` : formatCsvValue(row.delta);
     obj["Variación %"] = row.deltaPct === null ? "—" : `${row.deltaPct.toFixed(1)}%`;
     return obj;
   });
@@ -185,4 +186,24 @@ export function buildComparisonValues(
   const delta = last == null || prev == null ? null : last - prev;
   const deltaPct = delta !== null && prev != null && prev !== 0 ? (delta / Math.abs(prev)) * 100 : null;
   return { yearValues: vals, delta, deltaPct, ...opts };
+}
+
+/** Reconcile displayed cents without hiding a material source/detail mismatch. */
+export function buildDepreciationBreakdownRows(filteredData: MonthData[], total: number) {
+  const rows = buildBreakdownRows(filteredData, (month) => month.depreciationByForklift, true);
+  const cents = (value: number) => Math.round(Number(formatStatementAmount(value)) * 100);
+  const differences = filteredData.map((month, index) =>
+    (cents(month.depreciation) - rows.reduce((sum, row) => sum + cents(row.values[index]), 0)) / 100);
+  const totalDifference = (cents(total) - rows.reduce((sum, row) => sum + cents(row.total), 0)) / 100;
+  if (differences.some((value) => value !== 0) || totalDifference !== 0) {
+    const roundingBound = (rows.length + 1) / 200;
+    const isRounding = [...differences, totalDifference].every((value) => Math.abs(value) <= roundingBound);
+    rows.push({
+      label: isRounding ? "      Ajuste de redondeo del detalle" : "      Diferencia pendiente de explicar en el detalle",
+      values: differences,
+      total: totalDifference,
+      isCost: true,
+    });
+  }
+  return rows;
 }

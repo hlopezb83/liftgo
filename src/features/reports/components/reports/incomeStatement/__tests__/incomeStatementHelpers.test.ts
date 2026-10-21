@@ -49,7 +49,7 @@ describe("getBreakdownFor", () => {
   const sales: Array<{ label: string; values: number[]; total: number }> = [{ label: "s", values: [], total: 0 }];
 
   it("mapea labels conocidos a su breakdown", () => {
-    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("dep");
+    expect(getBreakdownFor("= Depreciación total", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("dep");
     expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("cogs");
     expect(getBreakdownFor("  Ingresos por Rentas (con reserva)", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("rentalBooked");
     expect(getBreakdownFor("  Ingresos por Rentas (sin reserva)", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("rentalUnbooked");
