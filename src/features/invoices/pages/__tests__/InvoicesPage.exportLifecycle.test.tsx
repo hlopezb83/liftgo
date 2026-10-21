@@ -1,0 +1,47 @@
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+const state = vi.hoisted(() => ({ fetch: vi.fn(), save: vi.fn(), filters: { status: 'all', cfdi: 'all', search: '', from: '', to: '' } }));
+vi.mock('@/components/dataTable/v2', () => ({ useLiftgoTable: () => ({ state: { pagination: { pageIndex: 0, pageSize: 25 } } }) }));
+vi.mock('@/components/feedback/StatusBadge', () => ({ StatusBadge: () => null }));
+vi.mock('@/components/filters/FiltersToolbar', () => ({ FiltersToolbar: { Search: () => null } }));
+vi.mock('@/components/icons', () => ({ ViewIcon: () => null, InvoiceIcon: () => null }));
+vi.mock('@/components/layout/ListPageLayout', () => ({ ListPageLayout: ({ actions }: { actions: unknown }) => <div>{actions as never}</div> }));
+vi.mock('@/components/ui/Untranslated', () => ({ Untranslated: () => null }));
+vi.mock('@/contexts/pageActions', () => ({ usePageActions: () => {} }));
+vi.mock('@/features/users', () => ({ useHasModuleAccess: () => true }));
+vi.mock('@/hooks/useNavigateTransition', () => ({ useNavigateTransition: () => () => {} }));
+vi.mock('@/lib/exportCsv', () => ({ exportToCsvGuarded: state.save }));
+vi.mock('@/contexts/OrganizationContext', () => ({ useVerifiedOrganizationId: () => 'org-a' }));
+vi.mock('@/lib/query/useVerifiedIdentityScope', () => ({ useVerifiedIdentityScope: () => 'user:org-a' }));
+vi.mock('../../hooks/invoices/invoiceQueries', () => ({ fetchInvoicesForExport: state.fetch }));
+vi.mock('@/lib/router-compat', () => ({ useLocation: () => ({ pathname: '/invoices', search: '', hash: '' }) }));
+vi.mock('@/lib/ui/appFeedback', () => ({ notifyError: vi.fn(), notifySuccess: vi.fn() }));
+vi.mock('../../components/list/InvoiceMobileCard', () => ({ InvoiceMobileCard: () => null }));
+vi.mock('../../components/list/InvoicesToolbar', () => ({ InvoicesActionsBar: ({ onExport }: { onExport: () => void }) => <button onClick={onExport}>Exportar CSV</button>, InvoicesFiltersBar: () => null }));
+vi.mock('../../components/recurring/RecurringInvoicesPreviewDialog', () => ({ RecurringInvoicesPreviewDialog: () => null }));
+vi.mock('../../components/recurring/RecurringInvoicesResultDialog', () => ({ RecurringInvoicesResultDialog: () => null }));
+vi.mock('../../hooks/invoices/recurring/useGenerateRecurringInvoices', () => ({ useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }) }));
+vi.mock('../../hooks/invoices/recurring/usePreviewRecurringInvoices', () => ({ usePreviewRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }) }));
+vi.mock('../../hooks/invoices/useInvoices', () => ({ fetchInvoicesForExport: state.fetch, invoiceQueries: {}, useInvoicesInfinite: () => ({ data: { pages: [{ rows: [{ id: 'A-1' }] }] }, isLoading: false, isError: false, hasNextPage: false }) }));
+vi.mock('../../hooks/invoices/useInvoicesFilters', () => ({ useInvoicesFilters: () => ({ queryFilters: state.filters, filterKey: JSON.stringify(state.filters), hasActive: false }) }));
+import InvoicesPage from '../InvoicesPage';
+const invoice = { id: 'A-1', invoice_number: 'A-private', customer_name: 'QA-A', total: 116, status: 'sent', issued_at: '2026-10-01' };
+let resolve: (value: unknown[]) => void;
+beforeEach(() => { state.fetch.mockReset(); state.save.mockReset(); state.filters = { status: 'all', cfdi: 'all', search: '', from: '', to: '' }; state.fetch.mockReturnValue(new Promise(r => { resolve = r; })); });
+afterEach(cleanup);
+it('does not save an old invoice export after the page is unmounted on logout/navigation', async () => {
+  const view = render(<InvoicesPage />); fireEvent.click(screen.getByText('Exportar CSV'));
+  expect(state.fetch).toHaveBeenCalledTimes(1); view.unmount();
+  await act(async () => resolve([invoice]));
+  expect(state.save).not.toHaveBeenCalled();
+});
+it('does not save the old filter set after current filters have changed', async () => {
+  const view = render(<InvoicesPage />); fireEvent.click(screen.getByText('Exportar CSV'));
+  state.filters = { ...state.filters, status: 'paid' }; view.rerender(<InvoicesPage />);
+  await act(async () => resolve([invoice]));
+  expect(state.save).not.toHaveBeenCalled();
+});
+it('repeated click starts only one export job', () => {
+  render(<InvoicesPage />); fireEvent.click(screen.getByText('Exportar CSV')); fireEvent.click(screen.getByText('Exportar CSV'));
+  expect(state.fetch).toHaveBeenCalledTimes(1);
+});

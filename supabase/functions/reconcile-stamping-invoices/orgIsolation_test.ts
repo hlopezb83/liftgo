@@ -84,7 +84,7 @@ Deno.test("empresa sin credenciales: reporta config faltante sin usar llaves de 
         error: null,
       },
       organizations: {
-        data: [{ id: ORG_A }, { id: ORG_B }],
+        data: [{ id: ORG_A, is_active: true }, { id: ORG_B }],
         error: null,
       },
     },

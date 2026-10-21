@@ -117,8 +117,8 @@ export function useStatementExports({
     const rows = isComparison ? comparisonCsvRows : csvRows;
     setCsvLoading(true);
     try {
-      const { fetchCompanyDataAndLogo } = await import("@/lib/pdf/shared");
-      const { company } = await fetchCompanyDataAndLogo();
+      const { fetchCompanyData } = await import("@/lib/pdf/shared");
+      const { company } = await fetchCompanyData();
       if (!exportReady.current || exportEpoch.current !== snapshotEpoch) return;
       exportToCsv(
         isComparison

@@ -105,17 +105,25 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number, 
   return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
 }
 
-export async function fetchInvoicesForExport(filters?: InvoiceListFilters) {
+export async function fetchInvoicesForExport(
+  filters: InvoiceListFilters | undefined,
+  scope: { organizationId: string; signal: AbortSignal },
+) {
+  if (!scope.organizationId) throw new Error("Empresa no verificada");
   const normalized = createInvoiceListFilters(filters);
   const rows: InvoiceRow[] = [];
   // Continue to an empty page instead of treating a server row cap as EOF.
   // Advance by the actual count so a smaller server cap cannot skip invoices.
   for (;;) {
+    scope.signal.throwIfAborted();
     const { data, error } = await baseInvoiceQuery(normalized)
+      .eq("organization_id", scope.organizationId)
+      .abortSignal(scope.signal)
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .range(rows.length, rows.length + LIST_PAGE_LIMIT - 1)
       .returns<InvoiceRow[]>();
+    scope.signal.throwIfAborted();
     if (error) throw error; // Never return a partially downloaded export.
     if (!data?.length) return rows;
     rows.push(...data);

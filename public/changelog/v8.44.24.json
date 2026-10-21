@@ -1,0 +1,10 @@
+{
+  "description": "Corrige los hallazgos de la auditoría de confiabilidad: impuestos del REP, contexto de exportaciones, moneda y contratos de respuestas fiscales.",
+  "changes": [
+    "El REP distribuye bases e impuestos por tasa con una proporción coherente del documento de origen; respuestas fiscales incompletas permanecen inciertas y no simulan cancelaciones aceptadas.",
+    "Las peticiones humanas de funciones compartidas comprueban que la empresa esté activa; se conservan los límites de roles y organización.",
+    "Los reportes excluyen importes en moneda extranjera con tipo de cambio inválido y los señalan; la migración 0119 mantiene sincronizados total y detalle sin alterar documentos históricos.",
+    "El CSV de Facturas invalida descargas al cambiar de contexto y evita inicios duplicados; las exportaciones de datos no dependen del logo y el PDF tiene un tiempo de espera acotado.",
+    "El build incorpora identidad de fuentes y la aceptación publicada puede contrastarla con el release aprobado; los contratos de dependencias se incorporan a CI."
+  ]
+}

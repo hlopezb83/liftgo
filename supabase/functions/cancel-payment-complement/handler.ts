@@ -1,3 +1,4 @@
+import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 // Pure handler for cancel-payment-complement, deps-injected for testability.
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
@@ -25,12 +26,6 @@ export type CancelRepDeps = StampCfdiDeps;
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 // M-7: mismos estados SAT que cancel-cfdi/handler.ts.
-const VALID_SAT_STATUSES = [
-  "accepted",
-  "pending",
-  "rejected",
-  "expired",
-];
 const CANCELLATION_WARNINGS: Record<string, string> = {
   pending:
     "Cancelación solicitada. El complemento sigue vigente mientras se resuelve.",
@@ -233,11 +228,15 @@ export async function handleCancelPaymentComplement(
       // M-7: mapear la respuesta del PAC como cancel-cfdi — antes se ignoraba
       // cancellation_status y el REP quedaba 'cancelled' en la BD aunque el
       // SAT lo hubiera dejado pendiente/rechazado/expirado.
-      const rawStatus = ((cancelJson as { cancellation_status?: string })
-        ?.cancellation_status) ?? "accepted";
-      satStatus = VALID_SAT_STATUSES.includes(rawStatus)
-        ? rawStatus
-        : "pending";
+      const result = cancellationResult(cancelJson);
+      if (!result.ok) {
+        return jsonResponse(req, {
+          error:
+            "El PAC no confirmó el estado de cancelación. Consulta su estado antes de reintentar.",
+          code: "PAC_UNCERTAIN",
+        }, { status: 502 });
+      }
+      satStatus = result.status;
     } catch (err) {
       if (isFacturapiTimeout(err)) {
         console.warn("[cancel-payment-complement] facturapi timeout", {

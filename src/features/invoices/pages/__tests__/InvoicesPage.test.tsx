@@ -1,3 +1,4 @@
+vi.mock("../../hooks/invoices/useInvoiceCsvExport", () => ({ useInvoiceCsvExport: () => ({ download: vi.fn(), busy: false, allowed: true }) }));
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen } from "@testing-library/react";

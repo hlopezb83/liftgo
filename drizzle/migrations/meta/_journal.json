@@ -834,6 +834,13 @@
       "when": 1792526400003,
       "tag": "0118_income_statement_calculation_corrections",
       "breakpoints": true
+    },
+    {
+      "idx": 119,
+      "version": "7",
+      "when": 1792526400004,
+      "tag": "0119_income_statement_fx_validity",
+      "breakpoints": true
     }
   ]
 }

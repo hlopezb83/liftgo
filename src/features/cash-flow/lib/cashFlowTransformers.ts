@@ -5,31 +5,15 @@
  * mantener `useCashFlowProjection` reducido a orquestación de queries.
  */
 import currency from "currency.js";
-import { resolveVatRatePercent, toMxn } from "@/lib/money";
+import { isFxMissing, resolveVatRatePercent, toMxn } from "@/lib/money";
 import type { CashFlowItem } from "./cashFlowUtils";
 
 // Re-export para preservar retro-compatibilidad con importadores existentes.
 // La implementación canónica vive en `@/lib/money`.
 export { toMxn };
 
-/**
- * FX faltante: moneda foránea sin tipo de cambio válido (> 0, finito).
- * toMxn en ese caso devuelve el monto SIN convertir (1:1) — proyectarlo sería
- * una subestimación silenciosa (~18× para USD). El cash-flow EXCLUYE estos
- * documentos; el consumidor puede listarlos con este helper para avisar.
- */
-export function isFxMissing(
-  currency: string | null | undefined,
-  fx: number | string | null | undefined,
-): boolean {
-  const code = (currency ?? "MXN").toUpperCase();
-  if (code === "MXN") return false;
-  const rate = Number(fx ?? 0);
-  // R7-08: TC = 1 en moneda foránea es el default del formulario/parser CFDI,
-  // no un tipo de cambio capturado; tratarlo como válido sumaba USD 1:1.
-  if (rate === 1) return true;
-  return !(Number.isFinite(rate) && rate > 0);
-}
+// Canonical predicate is shared by financial aggregates.
+export { isFxMissing } from "@/lib/money";
 
 export interface InvoiceRow {
   id: string;

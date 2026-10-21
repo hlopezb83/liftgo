@@ -2,7 +2,8 @@ name: Prod smoke
 
 # Lecturas HTTP + UI pública publicada: carga, recarga e interacción local.
 # Sin login, secretos, fixtures de datos, backend ni peticiones mutantes.
-# No detecta rollbacks: verifica coherencia bundle/version.json, no contra main.
+# El cron comprueba coherencia de identidad; aceptación manual exige baseline
+# aprobado explícito. No compara ciegamente contra main ni autoriza despliegues.
 
 on:
   schedule:
@@ -10,6 +11,15 @@ on:
     # GitHub Actions y la corrida se retrasaba o se saltaba.
     - cron: "17 * * * *"
   workflow_dispatch:
+    inputs:
+      expected_source_sha256:
+        description: SHA256 de fuentes del release revisado (no del sitio publicado)
+        type: string
+        required: true
+      expected_version:
+        description: Versión del release revisado
+        type: string
+        required: true
 
 permissions:
   contents: read
@@ -28,6 +38,16 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 12
     steps:
+      - name: Exigir baseline aprobado en aceptación manual
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          EXPECTED_SOURCE: ${{ inputs.expected_source_sha256 }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+        run: |
+          set -euo pipefail
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{64}$ ]]
+          [[ "$EXPECTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+
       - name: HEAD /
         run: |
           set -euo pipefail
@@ -55,6 +75,9 @@ jobs:
       - uses: ./.github/actions/setup-playwright
 
       - name: Smoke UI pública (sin autenticación ni escrituras)
+        env:
+          LIFTGO_EXPECTED_SOURCE_ID: ${{ inputs.expected_source_sha256 }}
+          LIFTGO_EXPECTED_VERSION: ${{ inputs.expected_version }}
         run: bunx playwright test --config playwright.prod-smoke.config.ts
 
       - name: Subir diagnóstico de la interfaz

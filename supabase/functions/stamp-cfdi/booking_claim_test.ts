@@ -13,6 +13,10 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
   });
   const service = buildSupabaseMock({
     selects: {
+      organizations: {
+        data: [{ id: organizationId, is_active: true }],
+        error: null,
+      },
       profiles: { data: { is_active: true }, error: null },
       user_roles: { data: [{ role: "admin" }], error: null },
       organization_memberships: {

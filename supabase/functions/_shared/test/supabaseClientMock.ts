@@ -100,7 +100,18 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
       if (seq && seq.length > 0) {
         return Promise.resolve(seq.shift() as TableResponse);
       }
-      return Promise.resolve(selects[table] ?? { data: null, error: null });
+      const result = selects[table] ?? { data: null, error: null };
+      const organizationId = filters.find((f) => f.col === "id")?.val;
+      if (
+        table === "organizations" && organizationId &&
+        Array.isArray(result.data)
+      ) {
+        return Promise.resolve({
+          ...result,
+          data: result.data.filter((row) => row.id === organizationId),
+        });
+      }
+      return Promise.resolve(result);
     };
 
     const resolveUpdate = (): Promise<TableResponse> => {

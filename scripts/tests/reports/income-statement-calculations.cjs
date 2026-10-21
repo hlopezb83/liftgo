@@ -137,6 +137,18 @@ const assertDocumentAcl = async (extraRoles) => {
   await db.unsafe(migration118);
   await assert.rejects(db.unsafe(migration118),/unexpected canonical source/);
 
+  const migration119=read('drizzle/migrations/0119_income_statement_fx_validity.sql');
+  for (const signature of ['public.get_income_statement(date,date,text)',documentSignature]) {
+    await db.unsafe('BEGIN');
+    const [{definition}]=await db`SELECT pg_get_functiondef(${signature}::regprocedure) definition`;
+    await db.unsafe(definition.replace('BEGIN','BEGIN -- fixture 0119 preflight drift'));
+    await assert.rejects(db.unsafe(migration119),/unexpected (canonical|document) source/);
+    await db.unsafe('ROLLBACK');
+  }
+  await db.unsafe(migration119);
+  await assert.rejects(db.unsafe(migration119),/unexpected canonical source/);
+  console.log('0119 hashes', JSON.stringify(await db`SELECT proname, md5(prosrc) AS hash FROM pg_proc WHERE proname IN ('get_income_statement','get_income_statement_documents') ORDER BY proname`));
+
   const afterAcl=await db`SELECT oid,proacl::text FROM pg_proc WHERE proname IN ('get_income_statement','get_income_statement_documents') ORDER BY oid`;
   assert.deepEqual(afterAcl,beforeAcl,'RPC ACLs preserved');
   assert.deepEqual(await snapshots(), beforeScope, 'Unrelated functions, table ACLs, RLS policies, module permissions, defaults, roles and memberships unchanged');
@@ -187,6 +199,16 @@ const assertDocumentAcl = async (extraRoles) => {
   assert.equal(invalidFx.fx_missing.payments,2); assert.equal(invalidFx.months[0].revenue,0);
   const invalidDocs=async()=> (await db`SELECT get_income_statement_documents('2026-10-01','2026-10-31','cash','other_services',NULL,ARRAY['2026-10'],25,0) AS detail`)[0].detail;
   assert.equal((await invalidDocs()).total_count,0);
+  for (const rate of ['NaN','Infinity','-Infinity']) {
+    await db`UPDATE payments SET exchange_rate=${rate}`;
+    const nonfinite=await report('2026-10-01','2026-10-31','cash');
+    assert.equal(nonfinite.fx_missing.payments,2);
+    assert.equal(nonfinite.months[0].revenue,0);
+    assert.equal(nonfinite.months[0].credit_notes_total,0);
+    assert.equal((await invalidDocs()).total_count,0);
+    const [creditDocs]=await db`SELECT get_income_statement_documents('2026-10-01','2026-10-31','cash','credit_notes',NULL,ARRAY['2026-10'],25,0) AS detail`;
+    assert.equal(creditDocs.detail.total_amount,0);
+  }
   await db.unsafe(`UPDATE payments SET currency='USD',amount=58 WHERE id='${id(20)}'`);
   assert.equal((await invalidDocs()).total_count,1);
   assert.equal((await invalidDocs()).total_amount,1000);
@@ -238,6 +260,14 @@ const assertDocumentAcl = async (extraRoles) => {
   assert.equal((await report('2026-11-01','2026-11-30','cash')).months[0].cogs_forklift_sales,1950);
   assert.equal((await report('2026-10-01','2026-10-31','cash')).fx_missing.payments,1);
   assert.equal((await report('2026-11-01','2026-11-30','cash')).fx_missing.payments,1);
+  for (const rate of ['NaN','Infinity','-Infinity']) {
+    await db`UPDATE payments SET exchange_rate=${rate} WHERE id=${id(19)}`;
+    const cogsFx=await report('2026-10-01','2026-10-31','cash');
+    assert.equal(cogsFx.fx_missing.payments,1);
+    assert.equal(cogsFx.months[0].cogs_forklift_sales,1950,'Nonfinite earlier FX cannot consume allocation');
+    const [docs]=await db`SELECT get_income_statement_documents('2026-10-01','2026-10-31','cash','sales',NULL,ARRAY['2026-10'],25,0) AS detail`;
+    assert.equal(docs.detail.total_amount,cogsFx.months[0].revenue_sales);
+  }
   await db.unsafe(`INSERT INTO payments(id,invoice_id,amount,exchange_rate,payment_date,currency)
     VALUES ('${id(23)}','${id(10)}',116,NULL,'2026-12-01','EUR')`);
   assert.equal((await report('2026-10-01','2026-10-31','cash')).fx_missing.payments,1,'Future invalid FX does not affect current COGS allocation');
@@ -346,6 +376,60 @@ const assertDocumentAcl = async (extraRoles) => {
       ('${id(51)}','QA null',NULL,'2022-01-16','2022-01-16',false),
       ('${id(52)}','QA test',48000,'2022-01-16','2022-01-16',true);`);
   assert.equal((await report('2022-01-01','2026-02-28')).months.reduce((a,m)=>a+m.depreciation,0),0);
+
+  // H03: currency units must agree, not merely report/detail totals.
+  for (const currency of ['USD', 'usd', 'MXN', null]) {
+    for (const rate of [null, 0, 1, -1, 20, 'NaN', 'Infinity', '-Infinity']) {
+      await clean();
+      await db`INSERT INTO invoices(id,subtotal,total,tipo_cambio,moneda,invoice_type,customer_name,issued_at,status,invoice_number)
+        VALUES (${id(10)},100,116,${rate},${currency},'standard','QA FX','2026-10-01','sent','QA-FX')`;
+      await db`INSERT INTO payments(id,invoice_id,amount,exchange_rate,payment_date,currency)
+        VALUES (${id(20)},${id(10)},116,${rate},'2026-10-02',${currency})`;
+      await db`INSERT INTO supplier_bills(id,subtotal,total,exchange_rate,currency,category,issue_date,status,approval_status,bill_number)
+        VALUES (${id(40)},1000,1160,${rate},${currency},'renta','2026-10-01','approved','approved','QA-BILL')`;
+      await db`INSERT INTO supplier_payments(id,bill_id,amount,payment_date) VALUES (${id(41)},${id(40)},1160,'2026-10-02')`;
+      const missing = currency !== null && currency.toUpperCase() !== 'MXN' && (rate === null || !Number.isFinite(Number(rate)) || rate <= 0 || rate === 1);
+      for (const basis of ['accrual','cash']) {
+        const r = await report('2026-10-01','2026-10-31',basis);
+        assert.equal(r.fx_missing.invoices,missing ? 1 : 0);
+        assert.equal(r.fx_missing.supplier_bills,missing ? 1 : 0);
+        const [docs] = await db`SELECT get_income_statement_documents('2026-10-01','2026-10-31',${basis},'other_services',NULL,ARRAY['2026-10'],25,0) AS detail`;
+        assert.equal(docs.detail.total_amount,r.months[0].revenue_other_services);
+        const [billDocs] = await db`SELECT get_income_statement_documents('2026-10-01','2026-10-31',${basis},'exp:renta',NULL,ARRAY['2026-10'],25,0) AS detail`;
+        assert.equal(billDocs.detail.total_amount,r.months[0].expenses.renta ?? 0);
+        if (missing) assert.equal(billDocs.detail.total_count,0);
+        if (missing) {
+          assert.equal(r.months[0].revenue,0);
+          assert.equal(r.months[0].expenses.renta ?? 0,0);
+          assert.equal(docs.detail.total_count,0);
+        } else if (currency && currency.toUpperCase() === 'USD') {
+          assert.equal(r.months[0].revenue,2000);
+          assert.equal(r.months[0].expenses.renta,20000);
+        } else {
+          assert.equal(r.months[0].revenue,100, 'MXN and legacy null do not apply a foreign exchange multiplier');
+          assert.equal(r.months[0].expenses.renta,1000);
+        }
+      }
+    }
+  }
+  // Older documents still produce warnings when a payment/credit/coverage enters the range.
+  await clean();
+  await db.unsafe(`INSERT INTO invoices(id,subtotal,total,tipo_cambio,moneda,issued_at,status) VALUES ('${id(10)}',100,116,1,'USD','2026-09-01','sent');
+    INSERT INTO payments(id,invoice_id,amount,payment_date,currency) VALUES ('${id(20)}','${id(10)}',116,'2026-10-02','USD');
+    INSERT INTO supplier_bills(id,subtotal,total,exchange_rate,currency,category,issue_date,coverage_start,coverage_end,status) VALUES ('${id(40)}',1000,1160,1,'USD','renta','2026-09-01','2026-09-01','2026-10-31','pending');
+    INSERT INTO supplier_payments(id,bill_id,amount,payment_date) VALUES ('${id(41)}','${id(40)}',1160,'2026-10-02');`);
+  const oldCash=await report('2026-10-01','2026-10-31','cash');
+  assert.equal(oldCash.fx_missing.invoices,1); assert.equal(oldCash.fx_missing.supplier_bills,1);
+  const oldAccrual=await report('2026-10-01','2026-10-31','accrual');
+  assert.equal(oldAccrual.fx_missing.invoices,0); assert.equal(oldAccrual.fx_missing.supplier_bills,1);
+  await db.unsafe(`INSERT INTO credit_notes(id,subtotal,invoice_id,issued_at,status,cfdi_status,cancellation_status) VALUES ('${id(30)}',20,'${id(10)}','2026-10-03','issued','stamped','none');`);
+  assert.equal((await report('2026-10-01','2026-10-31','accrual')).fx_missing.invoices,1);
+  for (const basis of ['cash','accrual']) {
+    const [creditDocs] = await db`SELECT get_income_statement_documents('2026-10-01','2026-10-31',${basis},'credit_notes',NULL,ARRAY['2026-10'],25,0) AS detail`;
+    assert.equal(creditDocs.detail.total_count,0); assert.equal(creditDocs.detail.total_amount,0);
+    assert.equal((await report('2026-10-01','2026-10-31',basis)).months[0].credit_notes_total,0);
+  }
+  console.log('PASS H03: null/zero/one/negative/nonfinite/valid FX; foreign case and legacy MXN; cash/accrual and document parity');
 
   // Canonical RPC and refreshed document RPC retain tenant and role boundaries.
   await clean();

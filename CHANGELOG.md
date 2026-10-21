@@ -1,3 +1,7 @@
+## [8.44.24] - 2026-10-21
+
+- Se corrigen los ocho grupos de hallazgos de confiabilidad fiscal, financiera, exportaciones y aceptación del release. La activación SQL y Edge se verifica separadamente de la publicación del frontend.
+
 ## [8.44.22] - 2026-10-21
 
 - Resultados permite consultar documentos de origen con paginación, conciliación y retorno de foco. La RPC de lectura conserva RLS y guardas financieras y de módulos, sin conceder acceso a nuevas tablas ni mover dinero.

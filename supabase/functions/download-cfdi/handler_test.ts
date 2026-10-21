@@ -72,7 +72,7 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
-      organizations: { data: [{ id: ORG_ID }], error: null },
+      organizations: { data: [{ id: ORG_ID, is_active: true }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -193,7 +193,7 @@ Deno.test("download-cfdi: organización sin credenciales propias devuelve error 
         // Existe más de una organización: se desactiva el fallback a llaves
         // globales de entorno (compat legado de una sola empresa).
         organizations: {
-          data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+          data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
           error: null,
         },
       },
@@ -371,7 +371,7 @@ function makePortalDeps(opts: {
       profiles: { data: { is_active: true }, error: null },
       user_roles: { data: { role: "customer" }, error: null },
       organizations: {
-        data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+        data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
         error: null,
       },
       ...(opts.selects ?? {}),

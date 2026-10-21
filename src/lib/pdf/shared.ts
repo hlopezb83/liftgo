@@ -42,9 +42,9 @@ class IssuerUnavailableError extends Error {
  * propietaria del documento autorizado. No hay `limit(1)` sobre
  * `company_settings` ni empresa de respaldo.
  */
-export async function fetchCompanyDataAndLogo(
+export async function fetchCompanyData(
   document?: IssuerDocumentRef | null,
-): Promise<{ company: CompanyData; logoBase64: string | null }> {
+): Promise<{ company: CompanyData }> {
   const payload = await getIssuerBranding({
     data: document ? { documentType: document.type, documentId: document.id } : {},
   });
@@ -71,9 +71,13 @@ export async function fetchCompanyDataAndLogo(
     lugar_expedicion: b.lugar_expedicion,
   };
 
-  // Marca global: el mismo asset local para todas las organizaciones.
-  const logoBase64 = await loadGlobalBrandLogo();
+  return { company };
+}
 
+/** PDF-only optional asset; data-only exports never wait for an image. */
+export async function fetchCompanyDataAndLogo(document?: IssuerDocumentRef | null) {
+  const { company } = await fetchCompanyData(document);
+  const logoBase64 = await loadGlobalBrandLogo();
   return { company, logoBase64 };
 }
 

@@ -70,8 +70,8 @@ export function AccountantExportReport({ startDate, endDate }: { startDate: Date
     try {
       const data = await fetchAccountantData(options, permissions, abort.signal);
       if (!isCurrent()) return;
-      const { fetchCompanyDataAndLogo } = await import("@/lib/pdf/shared");
-      const { company } = await fetchCompanyDataAndLogo();
+      const { fetchCompanyData } = await import("@/lib/pdf/shared");
+      const { company } = await fetchCompanyData();
       if (!isCurrent()) return;
       const sheets = buildAccountantSheets(options, data, company, permissions);
       const message = await downloadAccountantExport(options, data, sheets, abort.signal, isCurrent, (done, total) => {

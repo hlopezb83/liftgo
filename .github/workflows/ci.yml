@@ -45,6 +45,7 @@ jobs:
       functions: ${{ steps.filter.outputs.functions }}
       migrations: ${{ steps.filter.outputs.migrations }}
       workflows: ${{ steps.filter.outputs.workflows }}
+      dependencies: ${{ steps.filter.outputs.dependencies }}
 
     steps:
       - uses: actions/checkout@v7
@@ -63,6 +64,12 @@ jobs:
               # viven aquí, así que también deben disparar el lint.
               - 'drizzle/migrations/**'
               - 'scripts/lint-migrations.ts'
+              - '.github/workflows/ci.yml'
+            dependencies:
+              - 'package.json'
+              - 'bun.lock'
+              - 'scripts/tests/dependency-security.test.mjs'
+              - '.github/actions/setup-bun-project/**'
               - '.github/workflows/ci.yml'
             workflows:
               - '.github/workflows/**'
@@ -87,6 +94,9 @@ jobs:
       - uses: ./.github/actions/setup-bun-project
         with:
           save-cache: "true"
+
+      - name: Contrato de identidad de release
+        run: node --test scripts/tests/release-identity.test.mjs
 
       - name: ESLint
         run: bun run lint --max-warnings=0
@@ -351,6 +361,18 @@ jobs:
       - name: Validar GRANT / RLS / POLICY / search_path
         if: steps.files.outputs.list != ''
         run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
+
+  dependency-contracts:
+    name: Contratos de dependencias instaladas
+    needs: changes
+    if: needs.changes.outputs.dependencies == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-bun-project
+      - name: Verificar resolución y contratos de consumidores
+        run: bun run test:dependencies
 
   dependency-review:
     name: Dependency review

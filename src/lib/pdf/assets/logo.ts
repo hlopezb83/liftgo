@@ -1,50 +1,65 @@
-/**
- * Utilitarios centralizados de assets para los builders de PDF
- * (logos e iconografía). Cualquier builder bajo `src/lib/pdf/**` debe
- * consumir estas funciones en lugar de importar fetchers locales por feature.
- */
+/** Optional, public global brand asset. Never use an organization-controlled URL. */
 import { GLOBAL_BRAND_LOCKUP_PATH } from "@/lib/branding/globalBrandLogo";
 
-/**
- * Descarga una imagen desde una URL y la convierte a data URL base64.
- * Devuelve null si la imagen no se puede cargar (CORS, URL inválida, etc.).
- */
-async function loadImageAsBase64(url: string): Promise<string | null> {
+export const BRAND_LOGO_TIMEOUT_MS = 3_000;
+let cached: string | null = null;
+let cacheGeneration = 0;
+
+function readBlob(blob: Blob, signal: AbortSignal): Promise<string | null> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    let settled = false;
+    const finish = (value: string | null) => {
+      if (settled) return;
+      settled = true;
+      signal.removeEventListener("abort", abort);
+      reader.onloadend = null; reader.onerror = null;
+      resolve(value);
+    };
+    const abort = () => {
+      try { reader.abort(); } catch { /* Optional asset: failure still resolves to no logo. */ }
+      finish(null);
+    };
+    reader.onloadend = () => finish(typeof reader.result === "string" ? reader.result : null);
+    reader.onerror = () => finish(null);
+    if (signal.aborted) { finish(null); return; }
+    signal.addEventListener("abort", abort, { once: true });
+    try { reader.readAsDataURL(blob); } catch { finish(null); }
+  });
+}
+
+/** Each attempt owns its deadline: a pending/failed attempt never poisons retries. */
+export async function loadGlobalBrandLogo(signal?: AbortSignal): Promise<string | null> {
+  if (signal?.aborted) return null;
+  if (cached) return cached;
+  const generation = cacheGeneration;
+  const controller = new AbortController();
+  let finish: (value: null) => void = () => undefined;
+  const cancelled = new Promise<null>((resolve) => { finish = resolve; });
+  const abort = () => { controller.abort(); finish(null); };
+  signal?.addEventListener("abort", abort, { once: true });
+  const timer = setTimeout(abort, BRAND_LOGO_TIMEOUT_MS);
   try {
-    // Sin credenciales ni referer: el asset de marca es local y público.
-    const response = await fetch(url, {
-      credentials: "omit",
-      referrerPolicy: "no-referrer",
-    });
-    if (!response.ok) return null;
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return null;
+    const load = async () => {
+      const response = await fetch(GLOBAL_BRAND_LOCKUP_PATH, {
+        credentials: "omit", referrerPolicy: "no-referrer", signal: controller.signal,
+      });
+      if (!response.ok || controller.signal.aborted) return null;
+      const blob = await response.blob();
+      if (controller.signal.aborted) return null;
+      return readBlob(blob, controller.signal);
+    };
+    const result = await Promise.race([load().catch(() => null), cancelled]);
+    if (result && !controller.signal.aborted && generation === cacheGeneration) cached = result;
+    return result;
+  } finally {
+    clearTimeout(timer);
+    signal?.removeEventListener("abort", abort);
   }
 }
 
-let cached: Promise<string | null> | null = null;
-
-/**
- * Logo de los documentos: SIEMPRE el asset local global de LiftGo.
- *
- * No existe logo por organización: no se lee `company_settings.logo_url`, no
- * se firma nada en Storage y no se hace fetch a hosts externos. La ruta es
- * relativa al propio origen, así que A y B obtienen exactamente la misma
- * imagen, con sus colores y proporciones originales.
- */
-export function loadGlobalBrandLogo(): Promise<string | null> {
-  cached ??= loadImageAsBase64(GLOBAL_BRAND_LOCKUP_PATH);
-  return cached;
-}
-
-/** Sólo para pruebas: limpia la caché del asset global. */
+/** Only for tests: stale attempts must not repopulate the cache. */
 export function resetGlobalBrandLogoCache(): void {
+  cacheGeneration += 1;
   cached = null;
 }

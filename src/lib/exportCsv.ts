@@ -63,6 +63,21 @@ export function exportToCsv<T extends Record<string, unknown>>(
 
   const csv = Papa.unparse(rows.map(sanitizeCsvRow), { header: true, newline: "\r\n" });
   const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  saveCsvBlob(filename, blob);
+}
+
+/** Allows queued context/cancellation events to run after synchronous serialization. */
+export async function exportToCsvGuarded<T extends Record<string, unknown>>(
+  filename: string, rows: T[], shouldSave: () => boolean,
+): Promise<void> {
+  if (rows.length === 0 || !shouldSave()) return;
+  const csv = Papa.unparse(rows.map(sanitizeCsvRow), { header: true, newline: "\r\n" });
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  await new Promise<void>((resolve) => setTimeout(resolve, 0));
+  if (shouldSave()) saveCsvBlob(filename, blob);
+}
+
+function saveCsvBlob(filename: string, blob: Blob): void {
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.href = url;

@@ -1,3 +1,4 @@
+import { type RepLine, repTaxBreakdown } from "./taxBreakdown.ts";
 // Pure handler for stamp-payment-complement, deps-injected for testability.
 // Multiempresa · Fase 1: la organización se valida contra el pago leído de
 // BD ANTES de cualquier claim, update o llamada al PAC.
@@ -344,63 +345,19 @@ export async function handleStampPaymentComplement(
       ? DEFAULT_IVA_RATE * 100
       : Number(invoiceRow.tax_rate);
     const rawLines = Array.isArray(invoiceRow.line_items)
-      ? invoiceRow.line_items as Array<{
-        quantity?: number;
-        unit_price?: number;
-        total?: number;
-        objeto_imp?: string;
-        tax_rate?: number;
-      }>
+      ? invoiceRow.line_items as RepLine[]
       : [];
-
-    let subtotalLines = 0;
-    const baseByRate = new Map<string, number>();
-    for (const li of rawLines) {
-      const lineBase =
-        Number(li.total ?? (li.quantity || 1) * (li.unit_price || 0)) || 0;
-      if (lineBase <= 0) continue;
-      subtotalLines += lineBase;
-      if ((li.objeto_imp ?? "02") === "01") {
-        baseByRate.set("exento", (baseByRate.get("exento") ?? 0) + lineBase);
-      } else {
-        const ratePct =
-          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
-            ? li.tax_rate
-            : headerRatePct;
-        const key = ratePct.toFixed(2);
-        baseByRate.set(key, (baseByRate.get(key) ?? 0) + lineBase);
-      }
-    }
-
-    if (subtotalLines <= 0) {
+    const taxes = repTaxBreakdown(rawLines, headerRatePct, amount);
+    if (!taxes) {
       await releaseClaim(
-        "La factura no tiene partidas legibles para descomponer el IVA del complemento",
+        "No se pudo validar el desglose fiscal del complemento",
       );
       return jsonError(
         req,
         422,
-        "Invoice without line items for REP tax breakdown",
+        "Invoice without valid line items for REP tax breakdown",
       );
     }
-
-    const taxes: Array<
-      { base: number; type: "IVA"; rate: number; factor: "Tasa" }
-    > = [];
-    let assignedCents = 0;
-    const amountCents = Math.round(amount * 100);
-    const groups = [...baseByRate.entries()];
-    groups.forEach(([key, groupBase], idx) => {
-      const shareCents = idx === groups.length - 1
-        ? amountCents - assignedCents
-        : Math.round(amountCents * (groupBase / subtotalLines));
-      assignedCents += shareCents;
-      if (key === "exento") return;
-      const rate = Number((Number(key) / 100).toFixed(6));
-      const baseCents = rate > 0
-        ? Math.round(shareCents / (1 + rate))
-        : shareCents;
-      taxes.push({ base: baseCents / 100, type: "IVA", rate, factor: "Tasa" });
-    });
 
     const cfgOutcome = await loadFacturapiConfigOutcome({
       admin: supabase,
@@ -594,7 +551,7 @@ export async function handleStampPaymentComplement(
 
     const pacResult = classifyPacInvoice(repInvoice);
     if (pacResult.kind !== "hit") {
-      const repId = typeof repInvoice.id === "string" ? repInvoice.id : null;
+      const repId = typeof repInvoice?.id === "string" ? repInvoice.id : null;
       await supabase.from("payments").update({
         ...(repId ? { rep_facturapi_id: repId } : {}),
         rep_cfdi_status: pacResult.kind === "failed" ? "error" : "stamping",

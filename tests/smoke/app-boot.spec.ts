@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import packageJson from "../../package.json" with { type: "json" };
 import { classifyConsoleError } from "./consoleNoise";
+import { assertReleaseIdentity } from "../../scripts/release-identity.mjs";
 import { guardReadOnlyApp } from "./readOnlyApp";
 
 /**
@@ -71,17 +72,23 @@ async function expectBooted(page: Page, route: string, published: boolean): Prom
   expect(sentry.active, `Sentry activo tras hidratar ${route}`).toBe(true);
   // A published deployment can lag main legitimately. Do not compare its
   // dependency version to the checkout used by this hourly workflow.
-  if (published) {
-    expect(sentry.version).toMatch(/^\d+\.\d+\.\d+$/);
-    const version = await page.evaluate(async () => {
-      const response = await fetch("/version.json", { cache: "no-store", credentials: "omit" });
-      return (await response.json()).version as string;
-    });
-    expect(version).toMatch(/^\d+\.\d+\.\d+$/);
-    expect(sentry.release, "bundle y version.json pertenecen a la misma versión").toBe(`liftgo@${version}`);
-  } else {
-    expect(sentry.version).toBe(packageJson.dependencies["@sentry/react"]);
-  }
+  const identity = await page.evaluate(async () => {
+    const response = await fetch("/version.json", { cache: "no-store", credentials: "omit" });
+    if (!response.ok) throw new Error(`version.json HTTP ${response.status}`);
+    return {
+      manifest: await response.json(),
+      bundle: (globalThis as unknown as { __LIFTGO_SOURCE_ID__?: string }).__LIFTGO_SOURCE_ID__,
+    };
+  });
+  const sourceSha256 = published ? process.env.LIFTGO_EXPECTED_SOURCE_ID : undefined;
+  const version = published ? process.env.LIFTGO_EXPECTED_VERSION : undefined;
+  // Either both expectations are explicit or neither: never infer approval
+  // from the same deployment under test or from a newer main checkout.
+  const expected = sourceSha256 || version ? { sourceSha256: sourceSha256 ?? "", version: version ?? "" } : undefined;
+  assertReleaseIdentity(identity.manifest, identity.bundle, expected);
+  expect(sentry.release, "bundle y version.json pertenecen a la misma versión").toBe(`liftgo@${identity.manifest.version}`);
+  if (published) expect(sentry.version).toMatch(/^\d+\.\d+\.\d+$/);
+  else expect(sentry.version).toBe(packageJson.dependencies["@sentry/react"]);
   expect(sentry.release).toMatch(/^liftgo@\d+\.\d+\.\d+$/);
   expect(sentry.replay).toBe(0);
 }
