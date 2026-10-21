@@ -1,3 +1,7 @@
+## [8.44.25] - 2026-10-21
+
+- El portal mantiene los controles inactivos hasta completar la hidratación para evitar perder la primera interacción. Incluye una regresión SSR con carga retrasada, sin cambiar permisos ni operaciones fiscales.
+
 ## [8.44.24] - 2026-10-21
 
 - Se corrigen los ocho grupos de hallazgos de confiabilidad fiscal, financiera, exportaciones y aceptación del release. La activación SQL y Edge se verifica separadamente de la publicación del frontend.

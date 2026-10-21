@@ -1,0 +1,7 @@
+{
+  "description": "Evita que el primer clic o la captura de datos se pierdan mientras termina de cargar el portal de clientes.",
+  "changes": [
+    "Los controles del portal permanecen deshabilitados de forma accesible hasta que la pantalla está lista para responder; después funcionan el acceso, la recuperación y la navegación habituales.",
+    "Una regresión reproduce la carga retrasada y verifica que el primer clic funcione, sin iniciar sesión ni enviar correos reales. No cambia permisos, datos ni funciones fiscales."
+  ]
+}
