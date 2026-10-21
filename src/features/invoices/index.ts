@@ -11,3 +11,5 @@ export {
   usePortalPaymentIntents,
   useCreatePaymentIntent,
 } from "./hooks/paymentIntents";
+
+export { DemoTour } from "./components/demo/DemoTour";
