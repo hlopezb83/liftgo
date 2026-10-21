@@ -1,3 +1,7 @@
+## [8.44.20] - 2026-10-21
+
+- Borradores locales de reserva con caducidad de siete días y aislamiento de identidad. Consultas de motivos de disponibilidad y excedente de factura con origen, sin cambiar estados operativos ni mover dinero.
+
 ## [8.44.19] - 2026-10-21
 
 - Resultados aclara moneda, impuestos y fechas. El cálculo porcentual evita dobles redondeos, y las pruebas compartidas y el smoke público refuerzan la verificación sin operaciones remotas.
