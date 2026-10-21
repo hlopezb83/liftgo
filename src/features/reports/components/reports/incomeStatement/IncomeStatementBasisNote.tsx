@@ -7,6 +7,7 @@ export function IncomeStatementBasisNote({ accountingBasis }: { accountingBasis:
 
   return (
     <section aria-label="Moneda, IVA y fechas del reporte" className="space-y-2 rounded-md border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <p><strong>Reporte gerencial.</strong> No sustituye la contabilidad oficial.</p>
       <div className="flex flex-wrap items-center gap-2">
         <span className="uppercase tracking-wide">Base contable:</span>
         <Badge variant={isCash ? "secondary" : "default"}>{isCash ? "Efectivo" : "Devengado"}</Badge>

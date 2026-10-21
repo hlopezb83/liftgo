@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { isFavorableStatementDelta } from "@/lib/reports/incomeStatementPresentation";
 import { cellColor, formatCell, formatRowDelta } from "./incomeStatementHelpers";
 import type { ComparisonRow } from "../../../hooks/useIncomeStatementData";
 
@@ -21,7 +22,7 @@ export function ComparisonTable({ comparisonRows, yearTotals }: Props) {
               {yearTotals.map((yt) => (
                 <TableHead key={yt.year} className="text-right min-w-[120px]">{yt.year}</TableHead>
               ))}
-              <TableHead className="text-right min-w-[120px] font-bold">Var. $</TableHead>
+              <TableHead className="text-right min-w-[120px] font-bold">Variación</TableHead>
               <TableHead className="text-right min-w-[100px] font-bold">Var. %</TableHead>
             </TableRow>
           </TableHeader>
@@ -36,10 +37,10 @@ export function ComparisonTable({ comparisonRows, yearTotals }: Props) {
                     {formatCell(row, val)}
                   </TableCell>
                 ))}
-                <TableCell className={`text-right font-mono font-bold ${row.delta === null ? "text-muted-foreground" : (row.isCost ? row.delta <= 0 : row.delta >= 0) ? "text-chart-2" : "text-destructive"}`}>
+                <TableCell className={`text-right font-mono font-bold ${row.delta === null ? "text-muted-foreground" : isFavorableStatementDelta(row.delta, row.isCost) ? "text-chart-2" : "text-destructive"}`}>
                   {formatRowDelta(row)}
                 </TableCell>
-                <TableCell className={`text-right font-mono font-bold ${row.deltaPct === null ? "text-muted-foreground" : (row.isCost ? row.deltaPct <= 0 : row.deltaPct >= 0) ? "text-chart-2" : "text-destructive"}`}>
+                <TableCell className={`text-right font-mono font-bold ${row.deltaPct === null ? "text-muted-foreground" : isFavorableStatementDelta(row.deltaPct, row.isCost) ? "text-chart-2" : "text-destructive"}`}>
                   {row.deltaPct !== null ? `${row.deltaPct >= 0 ? "+" : ""}${row.deltaPct.toFixed(1)}%` : "—"}
                 </TableCell>
               </TableRow>

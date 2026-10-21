@@ -243,6 +243,13 @@ jobs:
           set -euo pipefail
           node scripts/tests/reports/income-statement-documents.cjs 2>&1 | tee reports/statement-documents.log
 
+      - name: Statement calculation and detail regression (isolated PostgreSQL)
+        env:
+          PG_BIN: /usr/lib/postgresql/16/bin
+        run: |
+          set -euo pipefail
+          node scripts/tests/reports/income-statement-calculations.cjs 2>&1 | tee reports/statement-calculations.log
+
       # Focused fixture in a separately created disposable database. This tests
       # the exact sync migration and two real concurrent sessions; the full
       # product schema/RLS suites below remain a separate required check.
