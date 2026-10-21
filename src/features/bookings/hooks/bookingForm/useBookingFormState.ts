@@ -15,7 +15,7 @@ export function useBookingFormState() {
   const dateRange = useWatch({ control: form.control, name: "date_range" }) as DateRange | undefined;
   const forkliftId = useWatch({ control: form.control, name: "forklift_id" });
 
-  const { availableForklifts, forklifts, datesSelected, isSuccess: availabilitySettled, refetch: revalidateAvailability } =
+  const { availableForklifts, forklifts, datesSelected, isSuccess: availabilitySettled, isLoading: availabilityLoading, isError: availabilityError, isFetching: availabilityFetching, refetch: revalidateAvailability } =
     useAvailableForklifts(dateRange);
 
   // Reset forklift selection si deja de estar disponible al cambiar fechas.
@@ -36,5 +36,5 @@ export function useBookingFormState() {
     ?? dateRangeErrorObj?.from?.message
     ?? dateRangeErrorObj?.to?.message;
 
-  return { form, dateRange, forkliftId, availableForklifts, forklifts, datesSelected, dateRangeError, revalidateAvailability };
+  return { form, dateRange, forkliftId, availableForklifts, forklifts, datesSelected, dateRangeError, revalidateAvailability, availabilityLoading, availabilityError, availabilityFetching };
 }

@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { CustomerSelector } from "@/features/customers";
-import { ForkliftSelector } from "@/features/fleet";
+import { ForkliftAvailabilityHelp, ForkliftSelector } from "@/features/fleet";
 import { toYMD } from "@/lib/date/toYMD";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { BookingDraftNotice } from "../components/bookings/BookingDraftNotice";
@@ -21,6 +21,7 @@ export default function BookingForm() {
     form, customers, createBooking, draft, isSubmitting, submitError,
     dateRange, forkliftId,
     availableForklifts, datesSelected,
+    availabilityLoading, availabilityError, availabilityFetching, revalidateAvailability,
     onSubmit,
     postBooking, showPolicyDialog,
     handleDeliveryDone, handlePolicyDone,
@@ -84,9 +85,14 @@ export default function BookingForm() {
                   onValueChange={(v) => form.setValue("forklift_id", v, { shouldValidate: true, shouldDirty: true })}
                   availableForklifts={availableForklifts}
                   datesSelected={datesSelected}
+                  isLoading={availabilityLoading}
+                  isError={availabilityError}
+                  isFetching={availabilityFetching}
+                  onRetry={() => void revalidateAvailability()}
                   showStatus
                   error={form.formState.errors.forklift_id?.message}
                 />
+                <ForkliftAvailabilityHelp dateRange={dateRange} />
                 {showRecurring && (
                   <SwitchField
                     control={form.control}
