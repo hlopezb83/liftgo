@@ -121,6 +121,9 @@ export default function CalendarPage() {
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
       />
+      <p className="text-sm text-muted-foreground">
+        Un hueco en el calendario no confirma disponibilidad operativa. Revisa el estado del equipo y consulta los motivos en Nueva reserva antes de asignarlo; no fuerces el estado Rentado a Disponible.
+      </p>
       {summaryReady && <EndingSoonAlert items={endingSoon} forkliftMap={forkliftMap} />}
       {bookingsTruncated && (
         <Alert>
