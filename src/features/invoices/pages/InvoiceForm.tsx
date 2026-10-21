@@ -179,6 +179,10 @@ export default function InvoiceForm() {
             onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
           />
 
+          {f.form.formState.errors.taxRate?.message && (
+            <p role="alert" className="text-sm text-destructive">{f.form.formState.errors.taxRate.message}</p>
+          )}
+
           <Card>
             <CardHeader><CardTitle className="text-base">Notas</CardTitle></CardHeader>
             <CardContent>

@@ -841,6 +841,13 @@
       "when": 1792526400004,
       "tag": "0119_income_statement_fx_validity",
       "breakpoints": true
+    },
+    {
+      "idx": 120,
+      "version": "7",
+      "when": 1792627200000,
+      "tag": "0120_reject_obsolete_vat_new_sales",
+      "breakpoints": true
     }
   ]
 }

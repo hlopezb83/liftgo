@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { quoteFormSchema } from "../quoteFormSchema";
+import { quoteFormSchema, createQuoteFormSchema } from "../quoteFormSchema";
 
 const baseRental = {
   quoteType: "rental" as const,
@@ -197,4 +197,15 @@ describe("quoteFormSchema — validUntil TZ Monterrey (Auditoría R9)", () => {
     const r = quoteFormSchema.safeParse({ ...baseSale, validUntil: new Date(2025, 11, 31) });
     expect(r.success).toBe(true);
   });
+});
+
+ it("rejects obsolete 11% rather than silently choosing 16% or 8%", () => {
+  const result = quoteFormSchema.safeParse({ ...baseRental, taxRate: "11" });
+  expect(result.success).toBe(false);
+  if (!result.success) expect(result.error.issues.some((issue) => issue.path[0] === "taxRate" && issue.message.includes("11%"))).toBe(true);
+});
+
+it("allows the unchanged historical header for notes edits, leaving line comparison to the submit guard", () => {
+  expect(createQuoteFormSchema("11").safeParse({ ...baseRental, taxRate: "11", notes: "Reviewed" }).success).toBe(true);
+  expect(createQuoteFormSchema("16").safeParse({ ...baseRental, taxRate: "11" }).success).toBe(false);
 });

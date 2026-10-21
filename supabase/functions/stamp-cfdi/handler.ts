@@ -1,3 +1,4 @@
+import { hasLegacyVat, LEGACY_VAT_MESSAGE } from "../_shared/legacyVat.ts";
 // Pure handler for stamp-cfdi, deps-injected for testability.
 // The Deno.serve entry in index.ts wires real createClient + fetch + env.
 import { handleCors } from "../_shared/cors.ts";
@@ -151,6 +152,15 @@ export async function handleStampCfdi(
           facturapi_invoice_id: inv.facturapi_invoice_id,
         },
         409,
+        jsonHeaders,
+      );
+    }
+
+    // Validate before a claim or provider call, preserving already issued history.
+    if (hasLegacyVat(inv)) {
+      return json(
+        { error: LEGACY_VAT_MESSAGE, code: "OBSOLETE_VAT_RATE" },
+        422,
         jsonHeaders,
       );
     }

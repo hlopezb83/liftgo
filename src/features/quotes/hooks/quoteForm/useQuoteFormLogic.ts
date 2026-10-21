@@ -6,10 +6,12 @@ import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
+import { hasLegacyVat, LEGACY_VAT_MESSAGE } from "@/lib/fiscal/legacyVat";
 import { useParams } from "@/lib/router-compat";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { preserveQuoteChargeIdentities, quoteChargePreview } from "../../lib/quoteChargeIdentity";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
+import { unchangedHistoricalQuoteFiscal, preserveHistoricalQuoteFiscal } from "./legacyQuoteFiscal";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
@@ -35,7 +37,7 @@ export function useQuoteFormLogic() {
   const prefillValues = useQuotePrefillValues({
     existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess,
   });
-  const form = useQuoteForm(prefillValues);
+  const form = useQuoteForm(prefillValues, !!id);
 
   // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
   // de montos — el cliente ya firmó esas cifras. V3-3: la DB tampoco permite
@@ -94,6 +96,11 @@ export function useQuoteFormLogic() {
       });
       return;
     }
+    const unchangedHistoricalFiscal = unchangedHistoricalQuoteFiscal(id, existingQuote, values, prefillValues);
+    if (!unchangedHistoricalFiscal && hasLegacyVat({ tax_rate: values.taxRate, line_items: lineItems })) {
+      notifyValidation({ message: LEGACY_VAT_MESSAGE });
+      return;
+    }
     if (chargeIdentityError) {
       notifyValidation({ message: chargeIdentityError });
       return;
@@ -103,7 +110,7 @@ export function useQuoteFormLogic() {
       notifyValidation({ message: error instanceof Error ? error.message : "Revisa los cargos de la cotización." });
       return;
     }
-    const payload = buildQuotePayload({
+    const generatedPayload = buildQuotePayload({
       existingQuote,
       customerId: values.customerId,
       customerName: values.customerName,
@@ -120,6 +127,7 @@ export function useQuoteFormLogic() {
       tipoCambio: values.tipoCambio,
     });
 
+    const payload = preserveHistoricalQuoteFiscal(generatedPayload, existingQuote, unchangedHistoricalFiscal);
     if (id) {
       // A5-05: se envía la `version` leída al abrir el formulario para que el
       // UPDATE no pise los cambios de otro usuario (bloqueo optimista).

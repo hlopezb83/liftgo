@@ -1,3 +1,4 @@
+import { assertNoLegacyVat } from "../_shared/legacyVat.ts";
 import { requireServiceOrRole } from "../_shared/auth.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
@@ -612,7 +613,7 @@ function errorMessage(error: unknown): string {
   return error == null ? "Error sin detalle" : String(error);
 }
 
-async function executePlan(
+export async function executePlan(
   supabase: SupabaseClient,
   items: PlanItem[],
   allowStaleRate = false,
@@ -723,6 +724,7 @@ async function executePlan(
       // `Number(customer?.tax_rate)` convertía null en 0 y generaba IVA 0%
       // inesperado cuando el cliente no tenía tasa capturada.
       const taxRate = resolveVatRatePercent(customer?.tax_rate);
+      assertNoLegacyVat({ tax_rate: taxRate, line_items: lineItems });
       // A1-B2: IVA línea por línea (mismo criterio que computeTotals y que
       // Facturapi al timbrar). Redondear una sola vez sobre el subtotal
       // agregado generaba varianzas de centavos que dejaban la factura

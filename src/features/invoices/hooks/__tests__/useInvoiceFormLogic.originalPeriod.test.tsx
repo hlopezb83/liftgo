@@ -1,4 +1,4 @@
-import { renderHook } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unknown[], extensions: [] as unknown[], existing: null as unknown,
   rows: [] as unknown[], ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
@@ -78,5 +78,120 @@ describe("original period form wiring", () => {
     expect(malformed.result.current.availableBookings).toEqual([]);
     expect(malformed.result.current.bookingAvailabilityBlock).toMatch(/incompleto/);
     expect(malformed.result.current.validateSelection(values())?.field).toBe("bookingIds");
+  });
+});
+
+
+describe("completed/returned booking billing eligibility", () => {
+  beforeEach(() => {
+    // QA COT0022 → RSV0029 → ENT0015 → DEV0006: return closes operations,
+    // but does not create an invoice or erase the outstanding rental charge.
+    state.bookings = [{ ...booking, status: "completed", return_status: "returned", booking_number: "RSV0029" }];
+    state.extensions = [];
+    state.claims = [];
+  });
+
+  it("offers an uninvoiced returned booking without reopening it or changing its period", () => {
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual(state.bookings);
+    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: booking.end_date })).toBeNull();
+    expect(state.bookings[0]).toMatchObject({ status: "completed", return_status: "returned" });
+    expect(state.handler.mock.lastCall?.[0].bookings).toEqual(state.bookings);
+  });
+
+  it.each(["cancelled", "pending", "draft", "unknown"])("does not offer a %s booking", (status) => {
+    state.bookings = [{ ...booking, status }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+  });
+
+  it.each(["draft", "sent", "paid"])("blocks a returned booking already covered by a %s invoice", (status) => {
+    state.claims = [{ ...claim, status, billing_period_start: booking.start_date }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+    expect(result.current.validateSelection(values())?.message).toMatch(/superpone/);
+  });
+
+  it("allows rebilling after cancellation, but still rejects an out-of-range period", () => {
+    state.claims = [{ ...claim, status: "cancelled", billing_period_start: booking.start_date }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toHaveLength(1);
+    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: booking.end_date })).toBeNull();
+    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: "2026-10-27" })).not.toBeNull();
+  });
+
+  it("keeps an unbilled original term available after the returned booking's extension was invoiced", () => {
+    state.extensions = [extension]; state.claims = [claim];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings?.[0]).toMatchObject({ status: "completed", end_date: extension.original_end_date });
+    expect(result.current.validateSelection(values())).toBeNull();
+    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: booking.end_date })?.message).toMatch(/superpone/);
+  });
+
+  it("rejects inclusive boundary overlap after return", () => {
+    state.claims = [{ ...claim, billing_period_start: "2026-10-24" }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+    expect(result.current.validateSelection(values())?.message).toMatch(/superpone/);
+  });
+
+  it.each([false, true])("fails closed for returned bookings while evidence is unavailable (error=%s)", (error) => {
+    state.ready = false; state.error = error;
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+    expect(result.current.validateSelection(values())?.message).toMatch(/historial/);
+  });
+
+  it("allows the first manual invoice of a completed recurring booking with no claims", () => {
+    // Manual recovery of an unbilled term is distinct from automatically
+    // generating future cycles: the recurring RPC still excludes completed.
+    state.bookings = [{ ...booking, status: "completed", recurring_billing: true }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual(state.bookings);
+    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: booking.end_date })).toBeNull();
+  });
+
+  it("preserves recurring selector policy after return", () => {
+    state.bookings = [{ ...booking, status: "completed", recurring_billing: true }];
+    state.claims = [claim];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+  });
+
+  it("keeps a completed booking available for editing its own original invoice", () => {
+    state.claims = [{ ...claim, invoice_id: "initial", billing_period_start: booking.start_date }];
+    state.existing = { id: "initial", booking_id: booking.id, billing_period_start: booking.start_date, billing_period_end: booking.end_date };
+    const { result } = renderHook(() => useInvoiceFormLogic({ id: "initial", fromQuoteId: null }));
+    expect(result.current.availableBookings).toHaveLength(1);
+    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: booking.end_date })).toBeNull();
+  });
+});
+
+describe("obsolete VAT form wiring", () => {
+  const historical = () => ({ id: "old", customer_id: "qa", customer_name: "QA", issued_at: "2013-01-01", tax_rate: 11,
+    line_items: [{ description: "Historic", quantity: 1, unit_price: 100, total: 100, tax_rate: 11 }],
+    subtotal: 100, tax_amount: 11, total: 111 });
+  it("permits notes-only historical edits and preserves stored fiscal payload", async () => {
+    const invoice = historical(); state.existing = invoice;
+    const { result } = renderHook(() => useInvoiceFormLogic({ id: "old", fromQuoteId: null }));
+    const { buildFromInvoice } = await import("../invoiceForm/invoiceFormBuilders");
+    const edited = { ...buildFromInvoice(invoice, undefined), notes: "Reviewed" };
+    const save = vi.fn();
+    await act(async () => { result.current.form.reset(edited); });
+    await act(async () => { await result.current.form.handleSubmit(save)(); });
+    expect(save).toHaveBeenCalledOnce();
+    expect(result.current.onSubmit(edited)).toMatchObject({ line_items: invoice.line_items, tax_rate: 11, subtotal: 100, tax_amount: 11, total: 111 });
+  });
+  it("blocks a newly created document inheriting legacy 11 before save", async () => {
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    const { buildFromInvoice } = await import("../invoiceForm/invoiceFormBuilders");
+    const inherited = buildFromInvoice(historical(), undefined);
+    const save = vi.fn();
+    await act(async () => { result.current.form.reset(inherited); });
+    await act(async () => { await result.current.form.handleSubmit(save)(); });
+    expect(save).not.toHaveBeenCalled();
+    const invalid = vi.fn();
+    await act(async () => { await result.current.form.handleSubmit(save, invalid)(); });
+    expect(invalid.mock.calls[0][0].taxRate.message).toContain("11%");
   });
 });

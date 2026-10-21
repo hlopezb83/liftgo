@@ -7,6 +7,7 @@ import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
 import { useInitialRecordVersion } from "@/hooks/useInitialRecordVersion";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { hasLegacyVat } from "@/lib/fiscal/legacyVat";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
@@ -16,7 +17,7 @@ import {
   type BillableBooking,
 } from "../lib/bookingCompatibility";
 import {
-  invoiceFormSchema,
+  createInvoiceFormSchema,
   buildEmptyInvoiceValues,
   type InvoiceFormValues,
 
@@ -24,6 +25,7 @@ import {
 import { bookingPeriodSelectionError } from "../lib/originalBookingPeriod";
 import { quoteChargeSelectionError } from "../lib/quoteChargeAvailability";
 import { quotedBillingPeriodError } from "../lib/quotedBookingLines";
+import { buildFromInvoice, type ExistingInvoice } from "./invoiceForm/invoiceFormBuilders";
 import { useInvoiceBookingPeriods } from "./invoiceForm/useInvoiceBookingPeriods";
 import { useInvoiceFormHandlers } from "./invoiceForm/useInvoiceFormHandlers";
 import { useInvoiceFormSubmit } from "./invoiceForm/useInvoiceFormSubmit";
@@ -105,7 +107,12 @@ function toQuoteLineItems(sourceQuote?: { line_items?: unknown } | null): LineIt
     : [];
 }
 
-/** Reservas confirmadas aún no facturadas (+ la de la extensión en curso). */
+function invoiceSchemaForEdit(isEdit: boolean, existing: ExistingInvoice | null | undefined) {
+  return createInvoiceFormSchema(isEdit && existing ? buildFromInvoice(existing, undefined) : undefined);
+}
+
+/** Reservas confirmadas o completadas con periodo pendiente (+ extensión en curso).
+ * La devolución cierra la operación, no la obligación de facturar la renta. */
 function filterAvailableBookings(
   bookings: BookingWithForklift[] | undefined,
   invoicedBookingIds: Set<string>,
@@ -113,7 +120,7 @@ function filterAvailableBookings(
 ): BookingWithForklift[] | undefined {
   return bookings?.filter(
     (booking) =>
-      booking.status === "confirmed" &&
+      (booking.status === "confirmed" || booking.status === "completed") &&
       (!invoicedBookingIds.has(booking.id) || booking.id === extensionBookingId),
   );
 }
@@ -138,7 +145,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
 
   const form = useForm<InvoiceFormValues>({
-    resolver: zodResolver(invoiceFormSchema),
+    resolver: zodResolver(invoiceSchemaForEdit(isEdit, existing)),
     defaultValues: buildEmptyInvoiceValues(),
   });
 
@@ -199,11 +206,18 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     extensionBookingId,
   );
 
-  const onSubmit = (values: InvoiceFormValues) => submit.buildPayload({
-    values, isEdit, fromQuoteId,
-    existingBookingId: existing?.booking_id,
-    existingQuoteId: existing?.quote_id,
-  });
+  const onSubmit = (values: InvoiceFormValues) => {
+    const payload = submit.buildPayload({
+      values, isEdit, fromQuoteId,
+      existingBookingId: existing?.booking_id,
+      existingQuoteId: existing?.quote_id,
+    });
+    // An unchanged historical fiscal snapshot must not be reserialized/recalculated.
+    if (isEdit && existing && hasLegacyVat({ tax_rate: values.taxRate, line_items: values.lineItems })) {
+      return { ...payload, line_items: existing.line_items, tax_rate: existing.tax_rate, subtotal: existing.subtotal, tax_amount: existing.tax_amount, total: existing.total };
+    }
+    return payload;
+  };
 
   /**
    * Regresión v7.423.0 (P2/P3): validación al GUARDAR — no depende del filtro

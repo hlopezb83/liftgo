@@ -77,7 +77,7 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
               <FormItem className="space-y-1.5">
                 <Label>IVA</Label>
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                  <FormControl><SelectTrigger><SelectValue>{field.value === "11" ? "11% (Obsoleto)" : undefined}</SelectValue></SelectTrigger></FormControl>
                   <SelectContent>
                     {APP_CONFIG.TAX_RATE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>

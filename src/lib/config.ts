@@ -15,7 +15,6 @@ export const APP_CONFIG = {
   /** Available tax rate options (Mexico IVA) */
   TAX_RATE_OPTIONS: [
     { value: 16, label: "16% (General)" },
-    { value: 11, label: "11% (Frontera)" },
     { value: 0, label: "0% (Tasa cero)" },
   ],
   /** Available currency options */
