@@ -124,11 +124,11 @@ visible pero muerta, y una prueba que solo hace `goto` no lo ve.
 Tras cada flujo hay una **recarga** con una interacción nueva (escribir en el
 campo de contraseña), que ejercita una segunda hidratación.
 
-Aislamiento: el spec **sólo permite GET/HEAD de documentos públicos y assets
-permitidos del origen exacto**. Aborta APIs del propio origen, red externa y
-WebSockets; no sigue redirecciones. No se mockea nada de la aplicación: sus
-scripts y assets se ejecutan tal cual salen del bundle. Los service workers
-están bloqueados para que ninguna respuesta venga de caché.
+Aislamiento: el spec **aborta toda petición cuyo `URL.origin` no sea
+exactamente el de la app** (antes bastaba con que la URL empezara por el
+origen). No se mockea nada de la aplicación —sus scripts y assets se ejecutan
+tal cual salen del bundle—; simplemente no hay salida a internet. Los service
+workers están bloqueados para que ninguna respuesta venga de caché.
 
 El build y el preview reciben configuración **ficticia explícita**
 (`SUPABASE_URL`, `VITE_SUPABASE_URL=http://127.0.0.1:54321`,
@@ -282,48 +282,7 @@ con todas las migraciones y la validación del journal Drizzle.
 | --- | --- | --- |
 | `gitleaks.yml` | PR, push, manual | Sin cron: un secreto solo entra por push o PR. Permiso `contents: read`; `GITLEAKS_ENABLE_COMMENTS` fijado a `"false"` (su default es `true` y pediría `pull-requests: write`), reporte en el resumen |
 | `codeql.yml` | Semanal (lunes 12:00 UTC), manual | JavaScript/TypeScript, GitHub Actions y Python en tres jobs paralelos; fuera del camino crítico del PR |
-| `prod-smoke.yml` | Cada hora (minuto 17), manual | Lecturas HTTP + UI pública sin sesión; abre issue en fallo |
-
-### Smoke de la interfaz publicada (MEJ-006)
-
-`prod-smoke.yml` conserva HEAD `/`, GET `/version.json`, horario y permisos.
-Añade `playwright.prod-smoke.config.ts`, que ejecuta únicamente
-`tests/smoke/app-boot.spec.ts` contra `https://liftgo.lovable.app`. No compila,
-publica ni importa el setup/teardown autenticado. El contexto empieza vacío,
-no acepta descargas y bloquea service workers y WebSockets.
-
-Reutiliza carga, hidratación, recarga, mostrar/ocultar contraseña y cambio local
-a recuperación, sin enviar formularios. El portal también navega a acceso de
-empleados y vuelve con Atrás. Detecta errores de página/consola, HTTP fallidos,
-redirecciones de recursos y HTML servido como JavaScript/CSS. Comprueba que
-`version.json` coincide con el release del bundle ejecutado, no con `main` ni
-con las dependencias del checkout: un despliegue anterior coherente puede pasar.
-No es una comprobación de rollback, RLS, login ni operaciones de negocio.
-
-La guarda compartida `tests/smoke/readOnlyApp.ts` sólo permite GET/HEAD de
-las rutas públicas y assets enumerados del origen exacto, sin query strings.
-Aborta APIs incluso del mismo origen y toda red externa (incluidos fuentes y
-telemetría); nunca conecta WebSockets. Cada lectura se hace sin seguir
-redirecciones y entrega la respuesta real sin reemplazar datos. Un intento de
-API del propio origen falla la prueba. Sólo los GET de tipo script a las URLs
-exactas `https://liftgo.lovable.app/~flock.js` y
-`https://liftgo.lovable.app/__l5e/events.4d3abd1f6b7321c2.js`, inyectadas por el
-hosting para analítica, se clasifican como abortos esperados; no se descargan
-ni se sirven. Se compara literalmente la URL que entrega Playwright, que el
-navegador puede haber normalizado desde el HTML. El clasificador no admite
-queries, credenciales, variantes de esa URL ni otros orígenes; únicamente
-ignora el fragmento. Su mensaje exacto
-`Failed to load resource: net::ERR_FAILED` se ignora sólo con URL atribuida y
-registro de ese aborto en la misma ejecución. Cualquier otro recurso del
-propio origen, método/tipo de petición o error sigue fallando. Las reglas,
-interceptación y atribución se comprueban offline en
-`src/test/smokeReadOnlyPolicy.test.ts`, `src/test/smokeConsoleNoise.test.ts` y
-`src/test/smokeHostingScriptNoise.test.ts`.
-
-No usa credenciales, estado de sesión, secretos, datos reales ni permisos nuevos.
-Los fallos conservan trace/captura durante tres días en `prod-smoke-artifacts`
-y usan el issue existente de `prod-smoke`. Para ejecutarlo manualmente:
-`bunx playwright test --config playwright.prod-smoke.config.ts`.
+| `prod-smoke.yml` | Cada hora (minuto 17), manual | Dos peticiones de **lectura**; abre issue en fallo |
 
 El minuto 17 evita la congestión del minuto 0 en GitHub Actions, que retrasaba
 o saltaba corridas.

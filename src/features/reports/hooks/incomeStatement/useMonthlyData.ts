@@ -48,7 +48,7 @@ interface RpcResult {
   rented_without_cost: { id: string; name: string }[];
   sold_without_cost: { id: string; name: string }[];
   /** 2A-1: documentos en divisa sin tipo de cambio, excluidos del reporte. */
-  fx_missing?: { invoices?: number; supplier_bills?: number; payments?: number };
+  fx_missing?: { invoices?: number; supplier_bills?: number };
 }
 
 const incomeStatementQueries = defineEntityQueries<
@@ -142,17 +142,17 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const startStr = toYMD(startDate);
   const endStr = toYMD(endDate);
 
-  const { data: rpc, isError, isFetching, isPending, dataUpdatedAt, refetch } = useQuery(
+  const { data: rpc, isError, isFetching, refetch } = useQuery(
     incomeStatementQueries.list({ startStr, endStr, accountingBasis }),
   );
 
   const data: MonthData[] = (rpc?.months ?? []).map(mapMonthRow);
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
   const soldWithoutCost = rpc?.sold_without_cost ?? [];
-  const fxMissingCount = (["invoices", "supplier_bills", "payments"] as const)
-    .reduce((sum, source) => sum + Number(rpc?.fx_missing?.[source] ?? 0), 0);
+  const fxMissingCount =
+    Number(rpc?.fx_missing?.invoices ?? 0) + Number(rpc?.fx_missing?.supplier_bills ?? 0);
 
-  return { data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, isPending, dataUpdatedAt, refetch };
+  return { data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, refetch };
 
 }
 

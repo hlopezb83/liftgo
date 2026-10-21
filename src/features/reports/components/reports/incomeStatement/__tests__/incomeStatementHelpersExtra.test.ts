@@ -50,7 +50,7 @@ describe("getBreakdownFor", () => {
   const sales: BreakdownRow[] = [{ label: "S", values: [1], total: 1 }];
 
   it("mapea etiquetas exactas", () => {
-    expect(getBreakdownFor("= Depreciación total", dep, cogs, rentalBooked, rentalUnbooked, sales))
+    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rentalBooked, rentalUnbooked, sales))
       .toEqual({ rows: dep, key: "dep" });
     expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rentalBooked, rentalUnbooked, sales))
       .toEqual({ rows: cogs, key: "cogs" });

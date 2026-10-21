@@ -17,7 +17,6 @@ vi.mock("@/components/ui/select", () => ({
   SelectContent: ({ children }: { children: ReactNode }) => <>{children}</>,
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => <option value={value}>{children}</option>,
 }));
-vi.mock("../../components/accountantExport/AccountantExportReport", () => ({ AccountantExportReport: () => { state.financialMount("accountant-export"); return <div>Financial accountant export</div>; } }));
 vi.mock("../../components/reports/UtilizationReport", () => ({ UtilizationReport: () => <div>Operational units</div> }));
 vi.mock("../../components/reports/UtilizationByModelReport", () => ({ UtilizationByModelReport: () => <div>Operational models</div> }));
 vi.mock("../../components/reports/RevenueReport", () => ({ RevenueReport: () => { state.financialMount("revenue"); return <div>Financial revenue</div>; } }));
@@ -39,7 +38,7 @@ describe("Reports dispatcher financial boundary", () => {
     expect(state.financialMount).not.toHaveBeenCalled();
   });
 
-  it.each(["revenue", "maintenance", "profitability", "income-statement", "aging", "accountant-export"])("blocks direct ?type=%s without mounting its data component", (type) => {
+  it.each(["revenue", "maintenance", "profitability", "income-statement", "aging"])("blocks direct ?type=%s without mounting its data component", (type) => {
     state.params = new URLSearchParams({ type });
     render(<ReportsPage />);
     expect(screen.getByRole("alert")).toHaveTextContent("No tienes permiso");
@@ -52,7 +51,7 @@ describe("Reports dispatcher financial boundary", () => {
     state.params = new URLSearchParams({ type: "revenue" });
     const { rerender } = render(<ReportsPage />);
     expect(screen.getByText("Financial revenue")).toBeInTheDocument();
-    expect(screen.getAllByRole("option")).toHaveLength(8);
+    expect(screen.getAllByRole("option")).toHaveLength(7);
     state.canSeeFinancials = false;
     state.financialMount.mockClear();
     rerender(<ReportsPage />);

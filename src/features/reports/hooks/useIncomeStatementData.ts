@@ -17,13 +17,13 @@ export function useIncomeStatementData({
   startDate, endDate, accountingBasis = "accrual",
 }: UseIncomeStatementDataProps) {
   const {
-    data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, isPending, dataUpdatedAt, refetch,
+    data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, refetch,
   } = useMonthlyData({ startDate, endDate, accountingBasis });
 
   const {
     filteredData, totals, yearTotals,
     availableYears, selectedYear, setSelectedYear, isComparison,
-  } = useStatementTotals(data, isFetching || isPending);
+  } = useStatementTotals(data);
   const {
     statementRows, csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
@@ -37,7 +37,7 @@ export function useIncomeStatementData({
 
   return {
     data, filteredData, totals, statementRows, comparisonRows, yearTotals,
-    isError, isFetching, isPending, dataUpdatedAt, refetch,
+    isError, isFetching, refetch,
     csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,

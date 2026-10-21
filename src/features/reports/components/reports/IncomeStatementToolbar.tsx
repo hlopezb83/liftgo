@@ -13,14 +13,11 @@ interface Props {
   csvFilename?: string;
   onExportPdf: () => void;
   pdfLoading: boolean;
-  onExportCsv?: () => void;
-  csvLoading?: boolean;
-  exportDisabled?: boolean;
 }
 
 export function IncomeStatementToolbar({
   availableYears, selectedYear, setSelectedYear, csvRows,
-  csvFilename = "estado-resultados.csv", onExportPdf, pdfLoading, onExportCsv, csvLoading = false, exportDisabled = false,
+  csvFilename = "estado-resultados.csv", onExportPdf, pdfLoading,
 }: Props) {
   return (
     <div className="flex items-center justify-end gap-2 flex-wrap">
@@ -36,10 +33,10 @@ export function IncomeStatementToolbar({
           </SelectContent>
         </Select>
       )}
-      <Button variant="outline" size="sm" disabled={exportDisabled || csvLoading || csvRows.length === 0} onClick={onExportCsv ?? (() => exportToCsv(csvFilename, csvRows))}>
+      <Button variant="outline" size="sm" disabled={csvRows.length === 0} onClick={() => exportToCsv(csvFilename, csvRows)}>
         <DownloadIcon className="h-4 w-4 mr-1" />CSV
       </Button>
-      <Button variant="outline" size="sm" onClick={onExportPdf} disabled={exportDisabled || pdfLoading}>
+      <Button variant="outline" size="sm" onClick={onExportPdf} disabled={pdfLoading}>
         <FileDown className="h-4 w-4 mr-1" />{pdfLoading ? "Generando…" : "PDF"}
       </Button>
     </div>

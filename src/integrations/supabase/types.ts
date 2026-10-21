@@ -6921,6 +6921,19 @@ export type Database = {
         Args: { p_basis?: string; p_end_date: string; p_start_date: string }
         Returns: Json
       }
+      get_income_statement_documents: {
+        Args: {
+          p_basis: string
+          p_end_date: string
+          p_kind: string
+          p_label: string
+          p_limit?: number
+          p_month_keys: string[]
+          p_offset?: number
+          p_start_date: string
+        }
+        Returns: Json
+      }
       get_insurance_alerts: { Args: never; Returns: Json }
       get_mrr_detail: { Args: never; Returns: Json }
       get_my_feedback_points_total: { Args: never; Returns: number }
@@ -8155,6 +8168,15 @@ export type Database = {
         Returns: undefined
       }
       restore_supplier: { Args: { p_supplier_id: string }; Returns: undefined }
+      return_usage_charge_basis: {
+        Args: {
+          p_booking_id: string
+          p_inspected_at: string
+          p_org: string
+          p_recorded_at?: string
+        }
+        Returns: Json
+      }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
       revoke_user_sessions: { Args: { _user_id: string }; Returns: undefined }
       save_invoice_with_bookings:

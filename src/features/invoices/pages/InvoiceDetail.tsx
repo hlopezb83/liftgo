@@ -17,7 +17,6 @@ import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetail
 import { useInvoiceBookings } from "../hooks/invoices/useInvoiceBookings";
 import { useInvoice } from "../hooks/invoices/useInvoices";
 import { usePayments } from "../hooks/usePayments";
-import { computeInvoiceCreditBalance } from "../lib/invoiceCreditBalance";
 import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
 import { type PaymentLike, sumPaymentsInInvoiceCurrency } from "../lib/paymentCurrency";
 
@@ -54,7 +53,6 @@ function deriveInvoiceData(
   );
   return {
     paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, unconvertiblePayments,
-    creditBalance: computeInvoiceCreditBalance(invoice, paymentList, creditNotes ?? []),
     balance: roundMoney(total - totalPaid - creditedAmount),
     showCfdiError: Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped",
     showCollectionNotes: !["paid", "draft"].includes(invoice.status),

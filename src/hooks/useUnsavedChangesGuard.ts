@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import type { ConfirmOptions } from "@/components/feedback/confirmContext";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { useBlocker } from "@/lib/router-compat";
 
@@ -10,10 +9,8 @@ import { useBlocker } from "@/lib/router-compat";
  * DENTRO del callback del blocker → lee refs/formState al momento de bloquear,
  * lo que resuelve la carrera `justSavedRef=true → reset() → navigate()` en el mismo tick.
  */
-export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean), options?: ConfirmOptions) {
+export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean)) {
   const confirm = useConfirm();
-  const optionsRef = useRef(options);
-  useEffect(() => { optionsRef.current = options; }, [options]);
 
   const getter = typeof isDirty === "function" ? isDirty : () => isDirty;
   const getterRef = useRef(getter);
@@ -51,7 +48,6 @@ export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean), optio
         confirmLabel: "Descartar",
         cancelLabel: "Seguir editando",
         destructive: true,
-        ...optionsRef.current,
       });
       if (ok) blocker.proceed?.();
       else blocker.reset?.();

@@ -1,22 +1,11 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import {
-  cellColor,
-  formatCell,
-  type BreakdownRow,
-} from "./incomeStatementHelpers";
+import { cellColor, formatCell, type BreakdownRow } from "./incomeStatementHelpers";
 import type { StatementRow } from "../../../hooks/useIncomeStatementData";
 
-type OpenDocuments = (
-  label: string | null,
-  amount: number,
-  monthIndex?: number,
-) => void;
-
 interface Props {
-  onOpenDocuments?: OpenDocuments;
   row: StatementRow;
   breakdownRows: BreakdownRow[];
   isExpandable: boolean;
@@ -30,156 +19,63 @@ function StatementMainRow({
   isExpandable,
   isOpen,
   toggle,
-  onOpenDocuments,
 }: {
-  onOpenDocuments?: OpenDocuments;
   row: StatementRow;
   isExpandable: boolean;
   isOpen: boolean;
   toggle: () => void;
 }) {
+  const handleKeyDown = isExpandable
+    ? (e: ReactKeyboardEvent) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggle();
+        }
+      }
+    : undefined;
+
   return (
     <TableRow
-      className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""}`}
+      className={`${row.isSubtotal ? "bg-muted/40 border-t border-border" : ""} ${isExpandable ? "cursor-pointer hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset" : ""}`}
+      onClick={isExpandable ? toggle : undefined}
+      onKeyDown={handleKeyDown}
+      tabIndex={isExpandable ? 0 : undefined}
+      role={isExpandable ? "button" : undefined}
+      aria-expanded={isExpandable ? isOpen : undefined}
     >
-      <TableCell
-        className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}
-      >
+      <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
         <span className="flex items-center gap-1">
-          {isExpandable ? (
-            isOpen ? (
-              <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
-            ) : (
-              <ChevronRightIcon className="h-3.5 w-3.5 text-muted-foreground" />
-            )
-          ) : null}
-          {isExpandable ? (
-            <button
-              type="button"
-              className="text-left focus-visible:outline focus-visible:outline-2"
-              aria-expanded={isOpen}
-              onClick={toggle}
-            >
-              {row.label}
-            </button>
-          ) : (
-            row.label
-          )}
+          {isExpandable ? (isOpen
+            ? <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
+            : <ChevronRightIcon className="h-3.5 w-3.5 text-muted-foreground" />) : null}
+          {row.label}
         </span>
       </TableCell>
       {row.values.map((val, i) => (
-        <TableCell
-          key={i}
-          className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}
-        >
-          {onOpenDocuments && val !== null && val !== 0 ? (
-            <DocumentAmount
-              label={`Ver documentos de ${row.label.trim()}, columna ${i + 1}`}
-              onOpen={() => onOpenDocuments(null, val, i)}
-            >
-              {formatCell(row, val)}
-            </DocumentAmount>
-          ) : (
-            formatCell(row, val)
-          )}
+        <TableCell key={i} className={`text-right font-mono ${row.isSubtotal ? "font-semibold" : ""} ${cellColor(row, val)}`}>
+          {formatCell(row, val)}
         </TableCell>
       ))}
-      <TableCell
-        className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}
-      >
-        {onOpenDocuments && row.total !== null && row.total !== 0 ? (
-          <DocumentAmount
-            label={`Ver documentos de ${row.label.trim()}, total`}
-            onOpen={() => onOpenDocuments(null, row.total ?? 0)}
-          >
-            {formatCell(row, row.total)}
-          </DocumentAmount>
-        ) : (
-          formatCell(row, row.total)
-        )}
+      <TableCell className={`text-right font-mono font-bold ${cellColor(row, row.total)}`}>
+        {formatCell(row, row.total)}
       </TableCell>
     </TableRow>
   );
 }
 
-function DocumentAmount({
-  label,
-  onOpen,
-  children,
-}: {
-  label: string;
-  onOpen: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      className="underline decoration-dotted underline-offset-4 focus-visible:outline focus-visible:outline-2"
-      aria-label={label}
-      onKeyDown={(event) => event.stopPropagation()}
-      onClick={(event) => {
-        event.stopPropagation();
-        onOpen();
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function BreakdownRowGroup({
-  breakdownRows,
-  onOpenDocuments,
-}: {
-  breakdownRows: BreakdownRow[];
-  onOpenDocuments?: OpenDocuments;
-}) {
+function BreakdownRowGroup({ breakdownRows }: { breakdownRows: BreakdownRow[] }) {
   return (
     <>
       {breakdownRows.map((bRow) => (
         <TableRow key={bRow.label} className="bg-muted/10">
-          <TableCell className="sticky left-0 bg-muted/10 z-10 text-muted-foreground text-xs">
-            {onOpenDocuments ? (
-              <DocumentAmount
-                label={`Ver documentos de ${bRow.label.trim()}`}
-                onOpen={() => onOpenDocuments(bRow.label, bRow.total)}
-              >
-                {bRow.label}
-              </DocumentAmount>
-            ) : (
-              bRow.label
-            )}
-          </TableCell>
+          <TableCell className="sticky left-0 bg-muted/10 z-10 text-muted-foreground text-xs">{bRow.label}</TableCell>
           {bRow.values.map((val, i) => (
-            <TableCell
-              key={i}
-              className="text-right font-mono text-xs text-muted-foreground"
-            >
-              {onOpenDocuments && val !== 0 ? (
-                <DocumentAmount
-                  label={`Ver documentos de ${bRow.label.trim()}, columna ${i + 1}`}
-                  onOpen={() => onOpenDocuments(bRow.label, val, i)}
-                >
-                  {formatCurrency(val)}
-                </DocumentAmount>
-              ) : val > 0 ? (
-                formatCurrency(val)
-              ) : (
-                "—"
-              )}
+            <TableCell key={i} className="text-right font-mono text-xs text-muted-foreground">
+              {val > 0 ? formatCurrency(val) : "—"}
             </TableCell>
           ))}
           <TableCell className="text-right font-mono text-xs font-semibold text-muted-foreground">
-            {onOpenDocuments && bRow.total !== 0 ? (
-              <DocumentAmount
-                label={`Ver documentos de ${bRow.label.trim()}, total`}
-                onOpen={() => onOpenDocuments(bRow.label, bRow.total)}
-              >
-                {formatCurrency(bRow.total)}
-              </DocumentAmount>
-            ) : (
-              formatCurrency(bRow.total)
-            )}
+            {formatCurrency(bRow.total)}
           </TableCell>
         </TableRow>
       ))}
@@ -187,42 +83,20 @@ function BreakdownRowGroup({
   );
 }
 
-export function StatementTableRow({
-  onOpenDocuments,
-  row,
-  breakdownRows,
-  isExpandable,
-  isOpen,
-  toggle,
-  filteredCols,
-}: Props) {
+export function StatementTableRow({ row, breakdownRows, isExpandable, isOpen, toggle, filteredCols }: Props) {
   const showEmptyHint = isExpandable && isOpen && breakdownRows.length === 0;
   const showBreakdown = isExpandable && isOpen && breakdownRows.length > 0;
   return (
     <Fragment>
-      <StatementMainRow
-        onOpenDocuments={onOpenDocuments}
-        row={row}
-        isExpandable={isExpandable}
-        isOpen={isOpen}
-        toggle={toggle}
-      />
+      <StatementMainRow row={row} isExpandable={isExpandable} isOpen={isOpen} toggle={toggle} />
       {showEmptyHint ? (
         <TableRow className="bg-muted/10">
-          <TableCell
-            colSpan={filteredCols + 2}
-            className="text-center text-xs text-muted-foreground italic py-2"
-          >
+          <TableCell colSpan={filteredCols + 2} className="text-center text-xs text-muted-foreground italic py-2">
             Sin desglose disponible
           </TableCell>
         </TableRow>
       ) : null}
-      {showBreakdown ? (
-        <BreakdownRowGroup
-          onOpenDocuments={onOpenDocuments}
-          breakdownRows={breakdownRows}
-        />
-      ) : null}
+      {showBreakdown ? <BreakdownRowGroup breakdownRows={breakdownRows} /> : null}
     </Fragment>
   );
 }

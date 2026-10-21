@@ -64,15 +64,10 @@ function aggregate(rows: MonthData[]) {
 }
 
 
-export function useStatementTotals(data: MonthData[], isFetching = false) {
+export function useStatementTotals(data: MonthData[]) {
   const availableYears = [...new Set(data.map((d) => d.monthKey.substring(0, 4)))].sort();
 
-  const [requestedYear, setSelectedYear] = useState<string>("all");
-  // Do not discard a valid selection during an intermediate empty loading state.
-  const selectionValid = requestedYear === "all"
-    || (requestedYear === "compare" ? availableYears.length > 1 : availableYears.includes(requestedYear));
-  const selectedYear = selectionValid || isFetching ? requestedYear : "all";
-  if (!isFetching && !selectionValid) setSelectedYear("all");
+  const [selectedYear, setSelectedYear] = useState<string>("all");
   const isComparison = selectedYear === "compare";
 
   const filteredData = (selectedYear === "all" || selectedYear === "compare")

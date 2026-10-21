@@ -2,7 +2,6 @@
 // Re-exporta la API consumida por otras features.
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./components/fleet/ForkliftSelector";
-export * from "./components/fleet/ForkliftAvailabilityHelp";
 export * from "./components/fleet/MarkAvailableDialog";
 export * from "./components/forklift-detail/DocumentAttachments";
 export * from "./hooks/forklifts/useAssignForklifts";

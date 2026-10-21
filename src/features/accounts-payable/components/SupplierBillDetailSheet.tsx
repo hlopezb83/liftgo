@@ -12,11 +12,9 @@ interface Props {
   billId: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Optional return target for callers opening the sheet without a trigger. */
-  onCloseAutoFocus?: (event: Event) => void;
 }
 
-export function SupplierBillDetailSheet({ billId, open, onOpenChange, onCloseAutoFocus }: Props) {
+export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
   const { data: bill, isLoading, isError, refetch } = useSupplierBill(open ? billId : null);
   const { data: role } = useUserRole();
   const deleteBill = useDeleteSupplierBill();
@@ -30,7 +28,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange, onCloseAut
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-lg overflow-y-auto" onCloseAutoFocus={onCloseAutoFocus}>
+      <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <DocumentIcon className="h-5 w-5" />

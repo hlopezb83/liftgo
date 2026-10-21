@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Dashboard from "../Dashboard";
 
 const state = vi.hoisted(() => ({ loading: false, canSeeFinancials: false }));
-vi.mock("@/features/invoices", () => ({ DemoTour: () => null }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
 vi.mock("../../hooks/dashboard/useDashboardSections", () => ({ useDashboardSections: () => ({
   isLoading: state.loading,

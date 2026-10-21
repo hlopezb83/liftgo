@@ -23,7 +23,6 @@ import {
   shouldPersistQuery,
 } from "@/lib/query/persister";
 import { useVerifiedIdentityScope } from "@/lib/query/useVerifiedIdentityScope";
-import { syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 
 export function IdentityScopedPersistence({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
@@ -39,8 +38,6 @@ export function IdentityScopedPersistence({ children }: { children: ReactNode })
   }
 
   useEffect(() => {
-    // Loading/error is not logout: retain the verified draft until identity resolves.
-    if (scope) syncFormDraftIdentity(scope);
     let cancelled = false;
     let unsubscribe: (() => void) | undefined;
 

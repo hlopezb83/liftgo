@@ -10,7 +10,6 @@ import { useHasFinancialAccess } from "@/features/users";
 import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { useSearchParams } from "@/lib/router-compat";
 import { nowMty } from "@/lib/utils";
-import { AccountantExportReport } from "../components/accountantExport/AccountantExportReport";
 import { AgingReport } from "../components/reports/AgingReport";
 import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
 import { MaintenanceCostReport } from "../components/reports/MaintenanceCostReport";
@@ -31,7 +30,6 @@ const REPORT_COMPONENTS: Record<string, ComponentType<ReportProps>> = {
   profitability: ProfitabilityByModelReport,
   "income-statement": IncomeStatementReport,
   aging: AgingReport,
-  "accountant-export": AccountantExportReport,
 };
 
 const OPERATIONAL_REPORT_TYPES = new Set(["utilization", "utilization-model"]);
@@ -44,7 +42,6 @@ const REPORT_TYPES = [
   { value: "profitability", label: "Rentabilidad por Modelo" },
   { value: "income-statement", label: "Estado de Resultados" },
   { value: "aging", label: "Antigüedad de Cartera" },
-  { value: "accountant-export", label: "Exportar para contador" },
 ];
 
 export default function ReportsPage() {

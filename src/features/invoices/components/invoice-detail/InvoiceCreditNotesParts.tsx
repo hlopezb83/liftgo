@@ -81,7 +81,7 @@ export function CreditNoteNotices({
       {willCreateCredit && (
         <p className="mx-6 mb-4 text-xs text-muted-foreground">
           Esta factura tiene {formatCurrencyWithCode(otherPaid, currency)} cobrados sin complemento de pago vigente. Una nota de
-          crédito puede dejar un excedente si lo cobrado supera el importe neto de la factura.
+          crédito por ese importe dejará saldo a favor del cliente, aplicable a facturas futuras.
         </p>
       )}
     </>

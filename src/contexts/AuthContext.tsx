@@ -2,7 +2,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { startRecoveryCapture } from "@/features/auth/recoveryCapture";
 import { supabase } from "@/integrations/supabase/client";
-import { syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 import { dismissAuthError } from "@/lib/ui/appFeedback";
 import type { User, Session } from "@supabase/supabase-js";
 
@@ -33,7 +32,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (!active) return;
       receivedAuthEvent = true;
-      if (_event === "SIGNED_OUT" || (_event === "INITIAL_SESSION" && !nextSession)) syncFormDraftIdentity(null);
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       setIsLoading(false);
@@ -50,7 +48,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession()
       .then(({ data: { session: initialSession } }) => {
         if (!active || receivedAuthEvent) return;
-        if (!initialSession) syncFormDraftIdentity(null);
         setSession(initialSession);
         setUser(initialSession?.user ?? null);
         setIsLoading(false);
@@ -69,7 +66,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    syncFormDraftIdentity(null);
     // B-4: si supabase.auth.signOut() rechaza (red caída, etc.) la purga de
     // localStorage NO se saltaba y quedaba un unhandled rejection. try/finally
     // garantiza la purga; el catch hace fallback a signOut local (silencioso).

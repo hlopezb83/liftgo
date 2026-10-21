@@ -54,10 +54,8 @@ function saveBlob(blob: Blob, filename: string): void {
 export async function renderAndSave(
   doc: ReactElement<DocumentProps>,
   filename: string,
-  shouldSave?: () => boolean,
 ): Promise<void> {
   bootstrap();
   const blob = await pdf(doc).toBlob();
-  if (shouldSave && !shouldSave()) throw new Error("El reporte cambió. Vuelve a exportar.");
   saveBlob(blob, filename);
 }

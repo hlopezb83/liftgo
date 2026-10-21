@@ -97,13 +97,11 @@ export default function IncomeStatementPage() {
           </CardContent>
         </Card>
 
-        {startMonth > endMonth ? (
-          <p role="alert" className="text-sm text-destructive">La fecha Desde no puede ser posterior a Hasta. Corrige el rango para consultar o exportar.</p>
-        ) : <IncomeStatementReport
+        <IncomeStatementReport
           startDate={startDate}
           endDate={endDate}
           accountingBasis={accountingBasis}
-        />}
+        />
 
         <p className="text-xs text-muted-foreground px-1">
           Nota: <strong>(-) Mantenimiento</strong> proviene de los registros de mantenimiento.

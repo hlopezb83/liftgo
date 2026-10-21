@@ -7,7 +7,6 @@ import type {
   PdfYearTotals as YearTotals,
   PdfMonthData as MonthData,
 } from "@/lib/pdf/types/incomeStatement";
-import type { IncomeStatementExportContext } from "@/lib/reports/incomeStatementPresentation";
 
 interface ExportPdfParams {
   filteredData: MonthData[];
@@ -19,16 +18,12 @@ interface ExportPdfParams {
   availableYears: string[];
   startDate: Date;
   endDate: Date;
-  exportContext?: IncomeStatementExportContext;
-  shouldSave?: () => boolean;
 }
 
 export async function exportIncomeStatementPdf(params: ExportPdfParams): Promise<void> {
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
-  if (params.shouldSave && !params.shouldSave()) throw new Error("El reporte cambió. Vuelve a exportar.");
   await renderAndSave(
     <IncomeStatementDocument company={company} logoBase64={logoBase64} {...params} />,
     `estado-resultados${params.selectedYear !== "all" ? `-${params.selectedYear}` : ""}.pdf`,
-    params.shouldSave,
   );
 }

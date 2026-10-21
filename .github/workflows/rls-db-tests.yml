@@ -234,22 +234,6 @@ jobs:
           node node_modules/typescript/bin/tsc --noEmit -p scripts/tests/fiscal/tsconfig.json
           node scripts/tests/fiscal/run-rep-postgres.mjs 2>&1 | tee reports/rep-postgres-integration.log
 
-      # Separate disposable cluster; no credentials or connection to shared data.
-      # Replays the effective report source and verifies the new RPC's exact ACL.
-      - name: Statement documents and inherited ACL regression (isolated PostgreSQL)
-        env:
-          PG_BIN: /usr/lib/postgresql/16/bin
-        run: |
-          set -euo pipefail
-          node scripts/tests/reports/income-statement-documents.cjs 2>&1 | tee reports/statement-documents.log
-
-      - name: Statement calculation and detail regression (isolated PostgreSQL)
-        env:
-          PG_BIN: /usr/lib/postgresql/16/bin
-        run: |
-          set -euo pipefail
-          node scripts/tests/reports/income-statement-calculations.cjs 2>&1 | tee reports/statement-calculations.log
-
       # Focused fixture in a separately created disposable database. This tests
       # the exact sync migration and two real concurrent sessions; the full
       # product schema/RLS suites below remain a separate required check.

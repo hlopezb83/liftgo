@@ -8,20 +8,18 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { CustomerSelector } from "@/features/customers";
-import { ForkliftAvailabilityHelp, ForkliftSelector } from "@/features/fleet";
+import { ForkliftSelector } from "@/features/fleet";
 import { toYMD } from "@/lib/date/toYMD";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-import { BookingDraftNotice } from "../components/bookings/BookingDraftNotice";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
 import { allowsRecurringBilling } from "../lib/recurringBillingEligibility";
 
 export default function BookingForm() {
   const {
-    form, customers, createBooking, draft, isSubmitting, submitError,
+    form, customers, createBooking,
     dateRange, forkliftId,
     availableForklifts, datesSelected,
-    availabilityLoading, availabilityError, availabilityFetching, revalidateAvailability,
     onSubmit,
     postBooking, showPolicyDialog,
     handleDeliveryDone, handlePolicyDone,
@@ -54,67 +52,58 @@ export default function BookingForm() {
   const startInPast = startYmd !== undefined && startYmd < todayKeyMty();
 
   const handleCustomerIdChange = (v: string) => {
-    form.setValue("customer_id", v, { shouldDirty: true });
+    form.setValue("customer_id", v);
   };
 
   return (
     <PageContainer maxWidth="form">
       <FormPageHeader title="Nueva reserva" />
-      <BookingDraftNotice draft={draft} busy={isSubmitting || createBooking.isPending} />
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="space-y-6">
-          <fieldset className="space-y-6 min-w-0" disabled={draft.submitBlocked || isSubmitting || createBooking.isPending}>
-            <Card>
-              <CardHeader><CardTitle className="text-base">Detalles de la reserva</CardTitle></CardHeader>
-              <CardContent className="space-y-4">
-                <DateRangePickerField
-                  label="Fechas de reserva"
-                  dateRange={dateRange}
-                  onSelect={(range) => form.setValue("date_range", { from: range?.from, to: range?.to }, { shouldValidate: true, shouldDirty: true })}
-                  required
-                  error={dateRangeError}
-                  helperText="La fecha final cuenta como día de renta. La siguiente reserva puede iniciar a partir del día siguiente."
+          <Card>
+            <CardHeader><CardTitle className="text-base">Detalles de la reserva</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <DateRangePickerField
+                label="Fechas de reserva"
+                dateRange={dateRange}
+                onSelect={(range) => form.setValue("date_range", { from: range?.from, to: range?.to }, { shouldValidate: true })}
+                required
+                error={dateRangeError}
+                helperText="La fecha final cuenta como día de renta. La siguiente reserva puede iniciar a partir del día siguiente."
+              />
+              {startInPast && !dateRangeError && (
+                <p className="text-xs text-warning" role="alert">
+                  La fecha de inicio está en el pasado. Verifica que sea correcta antes de confirmar la reserva.
+                </p>
+              )}
+              <ForkliftSelector
+                value={forkliftId}
+                onValueChange={(v) => form.setValue("forklift_id", v, { shouldValidate: true })}
+                availableForklifts={availableForklifts}
+                datesSelected={datesSelected}
+                showStatus
+                error={form.formState.errors.forklift_id?.message}
+              />
+              {showRecurring && (
+                <SwitchField
+                  control={form.control}
+                  name="recurring_billing"
+                  label="Incluir en facturación mensual"
+                  description="Esta reserva aparecerá en la generación mensual de borradores. Revisa y genera los periodos desde Facturas."
                 />
-                {startInPast && !dateRangeError && (
-                  <p className="text-xs text-warning" role="alert">
-                    La fecha de inicio está en el pasado. Verifica que sea correcta antes de confirmar la reserva.
-                  </p>
-                )}
-                <ForkliftSelector
-                  value={forkliftId}
-                  onValueChange={(v) => form.setValue("forklift_id", v, { shouldValidate: true, shouldDirty: true })}
-                  availableForklifts={availableForklifts}
-                  datesSelected={datesSelected}
-                  isLoading={availabilityLoading}
-                  isError={availabilityError}
-                  isFetching={availabilityFetching}
-                  onRetry={() => void revalidateAvailability()}
-                  showStatus
-                  error={form.formState.errors.forklift_id?.message}
-                />
-                <ForkliftAvailabilityHelp dateRange={dateRange} />
-                {showRecurring && (
-                  <SwitchField
-                    control={form.control}
-                    name="recurring_billing"
-                    label="Incluir en facturación mensual"
-                    description="Esta reserva aparecerá en la generación mensual de borradores. Revisa y genera los periodos desde Facturas."
-                  />
-                )}
-              </CardContent>
-            </Card>
-            <CustomerSelector
-              customers={customers}
-              customerId={customerId}
-              customerName={customerName}
-              onCustomerIdChange={handleCustomerIdChange}
-              onCustomerNameChange={(v) => form.setValue("customer_name", v, { shouldDirty: true })}
-              customerContact={customerContact}
-              onCustomerContactChange={(v) => form.setValue("customer_contact", v, { shouldDirty: true })}
-            />
-          </fieldset>
-          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
-          <FormActions submitLabel="Crear reserva" submitDisabled={draft.submitBlocked} isPending={isSubmitting || createBooking.isPending} onCancel={() => navigate(-1)} />
+              )}
+            </CardContent>
+          </Card>
+          <CustomerSelector
+            customers={customers}
+            customerId={customerId}
+            customerName={customerName}
+            onCustomerIdChange={handleCustomerIdChange}
+            onCustomerNameChange={(v) => form.setValue("customer_name", v)}
+            customerContact={customerContact}
+            onCustomerContactChange={(v) => form.setValue("customer_contact", v)}
+          />
+          <FormActions submitLabel="Crear reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
         </form>
       </Form>
       <BookingPostDialogs

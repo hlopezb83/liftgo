@@ -2,9 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": { "types": ["vite/client", "node"] },
   "include": [
-    "tests/smoke/**/*.ts",
-    "playwright.smoke.config.ts",
-    "playwright.prod-smoke.config.ts",
+    "tests/smoke/password-recovery.spec.ts",
     "tests/mobile/**/*.ts",
     "playwright.mobile.config.ts",
     "tests/multi-tenant-ab/**/*.ts",

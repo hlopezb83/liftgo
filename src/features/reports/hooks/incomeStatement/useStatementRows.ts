@@ -2,7 +2,7 @@
 import { DEPRECIATION_ROUNDING_LABEL, depreciationRoundingAdjustment } from "./depreciationPresentation";
 import {
   buildStatementRows, buildBreakdownRows, buildCsvRows, buildComparisonValues,
-  buildExpenseDetailBreakdown, buildDepreciationBreakdownRows,
+  buildExpenseDetailBreakdown,
 } from "./statementRowFactories";
 import {
   type MonthData, type ComparisonRow, type YearTotals, type ExpenseCategory,
@@ -32,7 +32,7 @@ const EXPENSE_DETAIL_CATEGORIES: ExpenseCategory[] = [
 export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   const statementRows = buildStatementRows(filteredData, totals);
   const csvRows = buildCsvRows(statementRows, filteredData);
-  const depreciationBreakdownRows = buildDepreciationBreakdownRows(filteredData, totals.depreciation);
+  const depreciationBreakdownRows = buildBreakdownRows(filteredData, (m) => m.depreciationByForklift, true);
   const cogsBreakdownRows = buildBreakdownRows(filteredData, (m) => m.cogsByForklift, true);
   const rentalBookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalBookedByCustomer);
   const rentalUnbookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalUnbookedByCustomer);
@@ -107,7 +107,6 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
     { label: "(-) Depreciación (Equipos Rentados)", ...v((yt) => yt.depreciationRented, { isCost: true }) },
     { label: "(-) Depreciación (Flota Ociosa)", ...v((yt) => yt.depreciationIdle, { isCost: true }) },
     ...roundingRows,
-    { label: "= Depreciación total", ...v((yt) => yt.depreciation, { isCost: true, isSubtotal: true }) },
     { label: "= Utilidad Neta", ...v((yt) => yt.netProfit, { isSubtotal: true }) },
     { label: "Margen Neto", ...v((yt) => yt.margin, { isPercent: true }) },
   ];

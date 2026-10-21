@@ -1,23 +1,3 @@
-## [8.44.22] - 2026-10-21
-
-- Resultados permite consultar documentos de origen con paginación, conciliación y retorno de foco. La RPC de lectura conserva RLS y guardas financieras y de módulos, sin conceder acceso a nuevas tablas ni mover dinero.
-
-## [8.44.21] - 2026-10-21
-
-- Recorrido guiado de lectura para Admin con folios QA/DEMO existentes y escenarios comprobados, sin crear datos ni operaciones. El detalle documental de Resultados requiere activación separada.
-
-## [8.44.20] - 2026-10-21
-
-- Borradores locales de reserva con caducidad de siete días y aislamiento de identidad. Consultas de motivos de disponibilidad y excedente de factura con origen, sin cambiar estados operativos ni mover dinero.
-
-## [8.44.19] - 2026-10-21
-
-- Resultados aclara moneda, impuestos y fechas. El cálculo porcentual evita dobles redondeos, y las pruebas compartidas y el smoke público refuerzan la verificación sin operaciones remotas.
-
-## [8.44.18] - 2026-10-20
-
-- Se corrigen nueve familias de dependencias vulnerables mediante actualizaciones compatibles y reglas planas de esbuild y postcss-selector-parser con pruebas de sus consumidores. El lockfile se valida con Bun 1.3.3 y 1.4.2; se mantienen Vite, Rolldown, Bun en CI y el guard de 24 horas, sin cambios de negocio, permisos ni base de datos.
-
 ## [8.44.15] - 2026-10-19
 
 - Facturar una extensión conserva disponible el periodo original pendiente, sus precios y moneda, sin repetir logística. Las reservas no recurrentes rechazan periodos superpuestos; los historiales ambiguos requieren revisión.
