@@ -19,6 +19,7 @@ import { guardReadOnlyApp } from "./readOnlyApp";
 function collectErrors(
   page: Page,
   blocked: ReadonlySet<string>,
+  blockedHostingScripts: ReadonlySet<string>,
   origin: string,
 ): { pageErrors: string[]; consoleErrors: string[] } {
   const pageErrors: string[] = [];
@@ -28,7 +29,7 @@ function collectErrors(
     if (msg.type() !== "error") return;
     const verdict = classifyConsoleError(
       { text: msg.text(), url: msg.location().url || undefined },
-      { origin, blocked },
+      { origin, blocked, blockedHostingScripts },
     );
     if (!verdict.ignored) consoleErrors.push(verdict.diagnostic);
   });
@@ -91,9 +92,9 @@ test("acceso de empleados: carga, alterna contraseña y cambia de modo", async (
   baseURL,
 }, testInfo) => {
   const origin = new URL(baseURL!).origin;
-  const { blocked, problems, assets } = await guardReadOnlyApp(context, origin);
+  const { blocked, blockedHostingScripts, problems, assets } = await guardReadOnlyApp(context, origin);
   const published = testInfo.config.metadata.publishedSmoke === true;
-  const { pageErrors, consoleErrors } = collectErrors(page, blocked, origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked, blockedHostingScripts, origin);
 
   const response = await page.goto("/", { waitUntil: "domcontentloaded" });
   expect(response?.status(), "status de /").toBeLessThan(400);
@@ -142,9 +143,9 @@ test("portal de clientes: carga y navega entre modos del formulario", async ({
   baseURL,
 }, testInfo) => {
   const origin = new URL(baseURL!).origin;
-  const { blocked, problems, assets } = await guardReadOnlyApp(context, origin);
+  const { blocked, blockedHostingScripts, problems, assets } = await guardReadOnlyApp(context, origin);
   const published = testInfo.config.metadata.publishedSmoke === true;
-  const { pageErrors, consoleErrors } = collectErrors(page, blocked, origin);
+  const { pageErrors, consoleErrors } = collectErrors(page, blocked, blockedHostingScripts, origin);
 
   const response = await page.goto("/portal/login", { waitUntil: "domcontentloaded" });
   expect(response?.status(), "status de /portal/login").toBeLessThan(400);

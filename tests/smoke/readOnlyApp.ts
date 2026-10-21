@@ -1,10 +1,12 @@
 import type { BrowserContext } from "@playwright/test";
 import { normalizeUrl } from "./consoleNoise";
+import { expectedHostingScriptAbort } from "./hostingScriptNoise";
 import { allowReadOnlyRequest, responseProblem } from "./readOnlyPolicy";
 
 /** Installed on the context before navigation, including popups and workers. */
 export async function guardReadOnlyApp(context: BrowserContext, origin: string) {
   const blocked = new Set<string>();
+  const blockedHostingScripts = new Set<string>();
   const problems: string[] = [];
   const assets = new Set<string>();
   await context.routeWebSocket("**/*", (socket) => {
@@ -14,12 +16,16 @@ export async function guardReadOnlyApp(context: BrowserContext, origin: string) 
   await context.route("**/*", async (route) => {
     const request = route.request();
     const url = request.url();
-    const allowed = allowReadOnlyRequest({ url, method: request.method(), resourceType: request.resourceType() }, origin);
+    const smokeRequest = { url, method: request.method(), resourceType: request.resourceType() };
+    const allowed = allowReadOnlyRequest(smokeRequest, origin);
     if (!allowed) {
       blocked.add(normalizeUrl(url));
-      // External fonts/telemetry are intentionally offline. Any same-origin
-      // API, form submission or unknown resource is a regression, not noise.
-      if (new URL(url).origin === origin) problems.push(`Blocked ${request.method()} ${new URL(url).pathname}`);
+      const hostingScript = expectedHostingScriptAbort(smokeRequest, origin);
+      // These exact hosting scripts stay offline, like external telemetry.
+      // Every other same-origin request remains a regression, even if this
+      // URL was previously blocked as an expected GET script in this run.
+      if (hostingScript) blockedHostingScripts.add(hostingScript);
+      else if (new URL(url).origin === origin) problems.push(`Blocked ${request.method()} ${new URL(url).pathname}`);
       await route.abort();
       return;
     }
@@ -40,5 +46,5 @@ export async function guardReadOnlyApp(context: BrowserContext, origin: string) 
       await route.abort();
     }
   });
-  return { blocked, problems, assets };
+  return { blocked, blockedHostingScripts, problems, assets };
 }
