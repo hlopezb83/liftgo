@@ -2,13 +2,13 @@ import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DEPRECIATION_ROUNDING_LABEL } from "../../hooks/incomeStatement/depreciationPresentation";
 import { buildComparisonCsvRows } from "../../hooks/incomeStatement/statementRowFactories";
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
+import { IncomeStatementBasisNote } from "./incomeStatement/IncomeStatementBasisNote";
 import { IncomeStatementTable } from "./IncomeStatementTable";
 import { IncomeStatementToolbar } from "./IncomeStatementToolbar";
 
@@ -151,17 +151,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         </Alert>
       )}
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground uppercase tracking-wide">Base contable:</span>
-        <Badge variant={accountingBasis === "cash" ? "secondary" : "default"}>
-          {accountingBasis === "cash" ? "Efectivo" : "Devengado"}
-        </Badge>
-        {accountingBasis === "cash" ? (
-          <span className="text-xs text-muted-foreground">
-            (Depreciación excluida en base efectivo)
-          </span>
-        ) : null}
-      </div>
+      <IncomeStatementBasisNote accountingBasis={accountingBasis} />
 
 
       {/* KPI: una columna en móvil, 2 en sm, 3 en lg y 5 desde xl.

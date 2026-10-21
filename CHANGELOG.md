@@ -1,3 +1,7 @@
+## [8.44.19] - 2026-10-21
+
+- Resultados aclara moneda, impuestos y fechas. El cálculo porcentual evita dobles redondeos, y las pruebas compartidas y el smoke público refuerzan la verificación sin operaciones remotas.
+
 ## [8.44.18] - 2026-10-20
 
 - Se corrigen nueve familias de dependencias vulnerables mediante actualizaciones compatibles y reglas planas de esbuild y postcss-selector-parser con pruebas de sus consumidores. El lockfile se valida con Bun 1.3.3 y 1.4.2; se mantienen Vite, Rolldown, Bun en CI y el guard de 24 horas, sin cambios de negocio, permisos ni base de datos.

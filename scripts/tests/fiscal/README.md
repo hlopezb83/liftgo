@@ -108,3 +108,12 @@ Fixed-dollar partial recurring charges intentionally require manual review;
 existing unit tests guard that refusal. Credit-note proportional discounts and
 invoice display have separate tests. Neither behavior implies a missing automatic
 proration feature, nor does it establish a full quote→invoice→NC provider E2E.
+
+## MEJ-005 monetary equivalence
+
+The same launcher now also runs `monetaryEquivalence.integration.test.ts` in a
+separate database inside its fresh cluster. Shared cases live in
+`tests/fixtures/monetaryEquivalence.ts`; browser/UI and Deno tests use those same
+inputs and cent-exact expectations. No manifest, lockfile, migration, remote DB
+or provider is changed. See `docs/audits/mej005-monetary-equivalence.md` for the
+coverage boundaries, red-to-green MEJ005-D1 evidence and separate local correction.
