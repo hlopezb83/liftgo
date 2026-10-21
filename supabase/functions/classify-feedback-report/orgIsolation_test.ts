@@ -50,6 +50,7 @@ function buildDeps(
 Deno.test("classify: un report_id de otra empresa no llama a AI ni actualiza nada", async () => {
   const mock = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       organization_memberships: {
         data: [{ organization_id: ORG_A, member_type: "internal" }],
         error: null,
@@ -75,6 +76,7 @@ Deno.test("classify: la lectura y la actualización filtran por organization_id"
   const reportId = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
   const mock = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       organization_memberships: {
         data: [{ organization_id: ORG_A, member_type: "internal" }],
         error: null,
@@ -135,6 +137,7 @@ Deno.test("classify: sin membresía interna falla cerrado y no consume AI", asyn
 Deno.test("classify: error al resolver la empresa responde 503 (fail-closed)", async () => {
   const mock = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       organization_memberships: { data: null, error: { message: "down" } },
     },
   });

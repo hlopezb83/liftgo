@@ -15,8 +15,8 @@ import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { toMxn } from "@/lib/money";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { isFxMissing, sumMoney, toMxn } from "@/lib/money";
 import { useParams } from "@/lib/router-compat";
 import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
@@ -24,18 +24,21 @@ import { SupplierContactsSection } from "../components/suppliers/SupplierContact
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useSupplier, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 
-type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
+type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number | null; originalAmount: number; currency: string };
 
 type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string; service_type: string; cost: number | null };
 
-function LinkedTotal({ loading, error, total, count, entity }: {
-  loading: boolean; error: boolean; total: number; count: number; entity: string;
+function LinkedTotal({ loading, error, total, count, entity, excluded = 0 }: {
+  loading: boolean; error: boolean; total: number; count: number; entity: string; excluded?: number;
 }) {
   if (error) return <p>No disponible</p>;
   if (loading) return <p role="status">Cargando {entity}…</p>;
   return <>
     <p className="text-xl font-bold tabular-nums">{formatCurrency(total)}</p>
     <p className="text-xs text-muted-foreground">{count} registro(s)</p>
+    {excluded > 0 && <p role="status" className="text-sm text-amber-700">
+      Total parcial en MXN: {excluded} registro(s) sin tipo de cambio válido excluidos.
+    </p>}
   </>;
 }
 
@@ -62,19 +65,24 @@ export default function SupplierDetailPage() {
       expense_date: b.issue_date,
       category: b.category ?? "—",
       description: b.description,
-      amount: toMxn(Number(b.total), b.currency, b.exchange_rate),
+      amount: isFxMissing(b.currency, b.exchange_rate) ? null : toMxn(Number(b.total), b.currency, b.exchange_rate),
+      originalAmount: Number(b.total),
+      currency: (b.currency ?? "MXN").toUpperCase(),
     }));
 
   const linkedMaintenance = (maintenanceLogs || []).filter((m) => m.supplier_id === id);
 
-  const totalExpenses = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenses = sumMoney(linkedExpenses.map(e => e.amount));
+  const missingFxCount = linkedExpenses.filter(e => e.amount === null).length;
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
 
   const expenseColumns: ColumnDef<LinkedExpense>[] = [
     { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.expense_date)}</span> },
     { id: "category", header: "Categoría", accessorKey: "category", cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
     { id: "description", header: "Descripción", accessorKey: "description", cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span> },
-    { id: "amount", header: "Monto", accessorKey: "amount", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.amount) },
+    { id: "amount", header: "Monto MXN", accessorKey: "amount", meta: { kind: "money" }, cell: ({ row }) => row.original.amount === null
+      ? <span>{formatCurrencyWithCode(row.original.originalAmount, row.original.currency)} {row.original.currency} · Sin TC válido</span>
+      : formatCurrency(row.original.amount) },
   ];
 
   const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
@@ -160,7 +168,7 @@ export default function SupplierDetailPage() {
             <div>
               <p className="text-sm text-muted-foreground">Total Gastos Operativos</p>
               <LinkedTotal loading={expensesLoading} error={billsQuery.isError}
-                total={totalExpenses} count={linkedExpenses.length} entity="gastos" />
+                total={totalExpenses} count={linkedExpenses.length} entity="gastos" excluded={missingFxCount} />
             </div>
           </CardContent>
         </Card>

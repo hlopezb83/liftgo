@@ -12,7 +12,9 @@ vi.mock("@/components/layout/ListPageLayout", () => ({
   ),
 }));
 vi.mock("@/contexts/pageActions", () => ({ usePageActions: () => undefined }));
-vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
+vi.mock("@/contexts/OrganizationContext", () => ({ useVerifiedOrganizationId: () => "org-a" }));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "user:org-a" }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: (_module: string, access: string) => access === "read" }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn() }));
 vi.mock("../../components/list/InvoicesToolbar", () => ({ InvoicesActionsBar: () => null, InvoicesFiltersBar: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesPreviewDialog", () => ({ RecurringInvoicesPreviewDialog: () => null }));

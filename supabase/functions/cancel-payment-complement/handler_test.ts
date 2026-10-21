@@ -134,7 +134,7 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
-      organizations: { data: [{ id: ORG_ID }], error: null },
+      organizations: { data: [{ id: ORG_ID, is_active: true }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -176,10 +176,13 @@ Deno.test("handler: 403 si no admin/administrativo", async () => {
 Deno.test("handler: EC-A1 service_role JWT salta la verificación de rol", async () => {
   const mock = installFacturapiMock({
     "/invoices/fapi_xx": () =>
-      new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      }),
+      new Response(
+        JSON.stringify({ cancellation_status: "accepted", status: "canceled" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
   });
   try {
     const { deps, serviceState } = makeDeps({
@@ -307,10 +310,16 @@ Deno.test("handler: happy path llama Facturapi DELETE y marca cancelled", async 
   const mock = installFacturapiMock({
     "/invoices/fapi_xx": (req) =>
       req.method === "DELETE"
-        ? new Response(JSON.stringify({ ok: true }), {
-          status: 200,
-          headers: { "Content-Type": "application/json" },
-        })
+        ? new Response(
+          JSON.stringify({
+            cancellation_status: "accepted",
+            status: "canceled",
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+          },
+        )
         : new Response("not found", { status: 404 }),
   });
   try {
@@ -431,10 +440,13 @@ Deno.test("handler: MULTIEMPRESA rechaza pago de otra organización (403) sin cl
   const mock = installFacturapiMock({
     "/invoices/fapi_other": () => {
       facturapiCalled++;
-      return new Response(JSON.stringify({ ok: true }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({ cancellation_status: "accepted", status: "canceled" }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     },
   });
   try {
@@ -488,7 +500,7 @@ Deno.test("handler: MULTIEMPRESA sin credenciales propias en modo live rechaza (
         },
         billing_secrets: { data: null, error: null },
         organizations: {
-          data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+          data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
           error: null,
         },
       },
@@ -507,3 +519,72 @@ Deno.test("handler: MULTIEMPRESA sin credenciales propias en modo live rechaza (
   );
   assertEquals(upd, undefined, "no debe marcarse cancelado sin key propia");
 });
+
+for (
+  const response of [null, [], {}, { status: "valid" }, {
+    cancellation_status: "unknown",
+  }, { cancellation_status: "accepted", status: "valid" }]
+) {
+  Deno.test(`Power10: ambiguous PAC cancellation retains claim: ${JSON.stringify(response)}`, async () => {
+    let calls = 0;
+    const pac = installFacturapiMock({
+      "/invoices/fapi_uncertain": () => {
+        calls++;
+        return new Response(JSON.stringify(response), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+      },
+    });
+    try {
+      const { deps, serviceState } = makeDeps({
+        env: { FACTURAPI_TEST_KEY: "sk_test_mock" },
+        service: {
+          selects: {
+            user_roles: { data: [{ role: "admin" }], error: null },
+            payments: {
+              data: {
+                id: PAYMENT_ID,
+                organization_id: ORG_ID,
+                rep_cfdi_status: "stamped",
+                rep_facturapi_id: "fapi_uncertain",
+              },
+              error: null,
+            },
+            company_settings: {
+              data: { facturapi_mode: "test", organization_id: ORG_ID },
+              error: null,
+            },
+            billing_secrets: { data: null, error: null },
+          },
+          rpcs: { assert_invoice_cancellable: { data: "", error: null } },
+          updatesSeq: {
+            payments: [{
+              data: { id: PAYMENT_ID, rep_facturapi_id: "fapi_uncertain" },
+              error: null,
+            }],
+          },
+        },
+      });
+      const res = await handleCancelPaymentComplement(
+        makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
+        deps,
+      );
+      assertEquals(res.status, 502);
+      assertEquals((await res.json()).code, "PAC_UNCERTAIN");
+      assertEquals(calls, 1);
+      assertEquals(
+        serviceState.updates.filter((u) => u.table === "payments").map((u) =>
+          u.patch.rep_cancellation_status
+        ),
+        ["pending"],
+      );
+      assertEquals(
+        serviceState.inserts.some((i) => i.table === "cfdi_retry_queue"),
+        false,
+      );
+    } finally {
+      pac.restore();
+    }
+  });
+}

@@ -23,6 +23,7 @@ export function taxDiagnosticsFixture(
   };
   const state = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       profiles: { data: { is_active: true }, error: null },
       user_roles: { data: [{ role: "administrativo" }], error: null },
       organization_memberships: {

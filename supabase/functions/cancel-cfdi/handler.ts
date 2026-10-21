@@ -1,3 +1,4 @@
+import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 // Pure handler for cancel-cfdi, deps-injected for testability.
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
@@ -21,12 +22,6 @@ import {
 } from "../_shared/cfdiRetryQueue.ts";
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
-const VALID_SAT_STATUSES = [
-  "accepted",
-  "pending",
-  "rejected",
-  "expired",
-];
 const CANCELLATION_WARNINGS: Record<string, string> = {
   pending:
     "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar.",
@@ -289,11 +284,15 @@ export async function handleCancelCfdi(
         const cancelJson = await sdkCallWithTimeout((signal) =>
           cancelInvoiceWithSignal(client, facturApiId, params, { signal })
         );
-        const rawStatus = ((cancelJson as { cancellation_status?: string })
-          ?.cancellation_status) ?? "accepted";
-        satStatus = VALID_SAT_STATUSES.includes(rawStatus)
-          ? rawStatus
-          : "pending";
+        const result = cancellationResult(cancelJson);
+        if (!result.ok) {
+          return jsonResponse(req, {
+            error:
+              "El PAC no confirmó el estado de cancelación. Consulta su estado antes de reintentar.",
+            code: "PAC_UNCERTAIN",
+          }, { status: 502 });
+        }
+        satStatus = result.status;
       } catch (err) {
         // ARQ2-A1: timeout PAC → no cambiar estado local, 504 transient.
         if (isFacturapiTimeout(err)) {

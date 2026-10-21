@@ -115,3 +115,56 @@ describe("logo global en documentos", () => {
     expect(requested).toEqual([GLOBAL_BRAND_LOCKUP_PATH]);
   });
 });
+
+describe("optional logo deadline and recovery", () => {
+  beforeEach(async () => {
+    vi.useFakeTimers();
+    const { resetGlobalBrandLogoCache } = await import("../logo");
+    resetGlobalBrandLogoCache(); getIssuerBranding.mockReset();
+  });
+  afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); });
+
+  it("data-only exports do not fetch or wait for an optional logo", async () => {
+    const fetch = vi.fn(() => new Promise(() => undefined)); vi.stubGlobal("fetch", fetch);
+    getIssuerBranding.mockResolvedValue(brandingFor(ORG_A));
+    const { fetchCompanyData } = await import("@/lib/pdf/shared");
+    expect((await fetchCompanyData()).company.rfc).toBe("AAA010101AAA");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it.each(["fetch", "body"])("bounds a pending %s, aborts and retries independently", async (stage) => {
+    const pending = new Promise(() => undefined);
+    const fetch = vi.fn().mockImplementation(() => stage === "fetch" ? pending : Promise.resolve({ ok: true, blob: () => pending }));
+    vi.stubGlobal("fetch", fetch);
+    const { loadGlobalBrandLogo, BRAND_LOGO_TIMEOUT_MS } = await import("../logo");
+    const first = loadGlobalBrandLogo();
+    await vi.advanceTimersByTimeAsync(BRAND_LOGO_TIMEOUT_MS);
+    expect(await first).toBeNull(); expect(fetch.mock.calls[0][1].signal.aborted).toBe(true);
+    fetch.mockResolvedValueOnce({ ok: false });
+    expect(await loadGlobalBrandLogo()).toBeNull(); expect(fetch).toHaveBeenCalledTimes(2);
+  });
+  it("caller cancellation releases immediately and cannot poison another attempt", async () => {
+    const fetch = vi.fn().mockImplementation(() => new Promise(() => undefined)); vi.stubGlobal("fetch", fetch);
+    const { loadGlobalBrandLogo } = await import("../logo");
+    const abort = new AbortController(); const first = loadGlobalBrandLogo(abort.signal);
+    abort.abort(); expect(await first).toBeNull();
+    expect(fetch.mock.calls[0][1].signal.aborted).toBe(true);
+    fetch.mockResolvedValueOnce({ ok: false }); expect(await loadGlobalBrandLogo()).toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+  it("bounds a stalled FileReader", async () => {
+    const readerAbort = vi.fn();
+    vi.stubGlobal("FileReader", class { abort = readerAbort; readAsDataURL() {} });
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(["png"]) }));
+    const { loadGlobalBrandLogo, BRAND_LOGO_TIMEOUT_MS } = await import("../logo");
+    const work = loadGlobalBrandLogo(); await vi.advanceTimersByTimeAsync(BRAND_LOGO_TIMEOUT_MS);
+    expect(await work).toBeNull(); expect(readerAbort).toHaveBeenCalledTimes(1);
+  });
+});
+
+it("cleans up when FileReader throws synchronously", async () => {
+  const { loadGlobalBrandLogo, resetGlobalBrandLogoCache } = await import("../logo");
+  resetGlobalBrandLogoCache();
+  vi.stubGlobal("FileReader", class { readAsDataURL() { throw new Error("reader unavailable"); } });
+  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, blob: async () => new Blob(["png"]) }));
+  try { expect(await loadGlobalBrandLogo()).toBeNull(); } finally { vi.unstubAllGlobals(); }
+});

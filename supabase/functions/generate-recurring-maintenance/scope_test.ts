@@ -12,18 +12,28 @@ import {
 
 function membershipClient(
   result: { data?: unknown[] | null; error?: unknown },
+  organizations: Array<{ id: string; is_active: boolean }> = [],
 ) {
   return {
-    from() {
+    from(table: string) {
+      let organizationId: unknown;
       const q = {
         select() {
           return q;
         },
-        eq() {
+        eq(column: string, value: unknown) {
+          if (column === "id") organizationId = value;
           return q;
         },
         limit() {
-          return Promise.resolve(result);
+          return Promise.resolve(
+            table === "organizations"
+              ? {
+                data: organizations.filter((row) => row.id === organizationId),
+                error: null,
+              }
+              : result,
+          );
         },
       };
       return q;
@@ -121,7 +131,10 @@ Deno.test("admin A autenticado: alcance acotado a su organización", async () =>
     isCron: false,
     role: "admin",
     userId: "u-a",
-    admin: membershipClient({ data: [{ organization_id: "org-a" }] }),
+    admin: membershipClient(
+      { data: [{ organization_id: "org-a" }] },
+      [{ id: "org-a", is_active: true }],
+    ),
   });
   assertEquals(scope.ok && scope.organizationId, "org-a");
 });
@@ -131,7 +144,10 @@ Deno.test("admin B autenticado: alcance acotado a la suya, nunca a A", async () 
     isCron: false,
     role: "administrativo",
     userId: "u-b",
-    admin: membershipClient({ data: [{ organization_id: "org-b" }] }),
+    admin: membershipClient(
+      { data: [{ organization_id: "org-b" }] },
+      [{ id: "org-b", is_active: true }],
+    ),
   });
   assertEquals(scope.ok && scope.organizationId, "org-b");
 });

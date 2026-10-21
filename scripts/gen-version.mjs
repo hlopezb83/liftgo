@@ -6,6 +6,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { sourceIdentity } from "./release-identity.mjs";
 import { validateEntries } from "./changelog-entry.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -50,8 +51,9 @@ try {
   console.error(`[gen-version] detalle de v${version} ausente o inválido: ${err.message}`);
   process.exit(1);
 }
+const sourceSha256 = await sourceIdentity(root);
 const generatedAt = new Date().toISOString();
-await writeFile(outPath, JSON.stringify({ version, generatedAt }, null, 2) + "\n", "utf8");
+await writeFile(outPath, JSON.stringify({ version, generatedAt, sourceSha256 }, null, 2) + "\n", "utf8");
 await writeFile(recentPath, JSON.stringify(arr.slice(0, RECENT_COUNT)) + "\n", "utf8");
 console.log(`[gen-version] public/version.json → ${version}`);
 console.log(`[gen-version] public/changelog-recent.json → ${Math.min(RECENT_COUNT, arr.length)} entradas`);

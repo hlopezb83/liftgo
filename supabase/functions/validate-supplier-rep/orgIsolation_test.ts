@@ -73,6 +73,7 @@ const billRow = {
 Deno.test("rep: un pago de otra empresa responde 404 sin subir archivos ni actualizar", async () => {
   const mock = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       organization_memberships: membership,
       // Filtrado por empresa: el pago ajeno no existe para este caller.
       supplier_payments: { data: null, error: null },
@@ -90,6 +91,7 @@ Deno.test("rep: un pago de otra empresa responde 404 sin subir archivos ni actua
 Deno.test("rep: un UUID REP de otra empresa no bloquea el pago propio", async () => {
   const mock = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       organization_memberships: membership,
       supplier_bills: { data: billRow, error: null },
     },
@@ -127,6 +129,7 @@ Deno.test("rep: la búsqueda de duplicado incluye el filtro de empresa", async (
   const seen: Array<Array<{ col: string; val: unknown }>> = [];
   const mock = buildSupabaseMock({
     selects: {
+      organizations: { data: [{ id: ORG_A, is_active: true }], error: null },
       organization_memberships: membership,
       supplier_bills: { data: billRow, error: null },
     },

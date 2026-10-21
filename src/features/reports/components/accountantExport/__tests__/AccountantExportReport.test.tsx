@@ -10,7 +10,7 @@ vi.mock("@/features/users", () => ({ useHasFinancialAccess: () => state.financia
 vi.mock("@/contexts/OrganizationContext", () => ({ useVerifiedOrganizationId: () => state.organization }));
 vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => state.identity }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: state.success }));
-vi.mock("@/lib/pdf/shared", () => ({ fetchCompanyDataAndLogo: state.branding }));
+vi.mock("@/lib/pdf/shared", () => ({ fetchCompanyData: state.branding }));
 vi.mock("../../../lib/accountantExport/fetchData", () => ({ fetchAccountantData: state.fetch }));
 vi.mock("../../../lib/accountantExport/buildSheets", () => ({ buildAccountantSheets: () => [{ name: "Control", rows: [] }] }));
 vi.mock("../../../lib/accountantExport/writeWorkbook", () => ({ saveAccountantWorkbook: state.save }));

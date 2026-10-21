@@ -3,25 +3,17 @@
 //   - TanStack devtools (dev-only, first), tanstackStart, viteReact, tailwindcss, tsConfigPaths,
 //     nitro (build-only using cloudflare as a default target), VITE_* env injection, @ path alias,
 //     React/TanStack dedupe, error logger plugins, and sandbox detection (port/host/strictPort).
-import { readFileSync } from "node:fs";
-import path from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { sentryVitePlugin } from "@sentry/bundler-plugins/vite";
 import { visualizer } from "rollup-plugin-visualizer";
+import { validatedBuildIdentity } from "./scripts/release-identity.mjs";
 
-// Versión resuelta desde public/version.json (generado por scripts/gen-version.mjs
-// en el prebuild). Se usa para (a) inyectar VITE_APP_VERSION al bundle y así
-// etiquetar el `release` en Sentry.init, y (b) nombrar el release al subir
-// sourcemaps con @sentry/bundler-plugins/vite. Fallback "unknown" en builds locales.
-const APP_VERSION = (() => {
-  try {
-    const raw = readFileSync(path.resolve(process.cwd(), "public/version.json"), "utf8");
-    return String(JSON.parse(raw)?.version ?? "unknown");
-  } catch {
-    return "unknown";
-  }
-})();
+// Every Vite entry point must match prebuild metadata to the actual tree.
+// This also protects direct `vite build` / `build:dev` without lifecycle hooks.
+const identity = await validatedBuildIdentity(process.cwd());
+const APP_VERSION = identity.version;
 const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
+const APP_SOURCE_ID = identity.sourceSha256;
 
 export default defineConfig({
   tanstackStart: {
@@ -53,6 +45,7 @@ export default defineConfig({
     build: { sourcemap: process.env.SENTRY_AUTH_TOKEN ? "hidden" : false },
     define: {
       "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
+      "import.meta.env.VITE_APP_SOURCE_ID": JSON.stringify(APP_SOURCE_ID),
     },
 
 

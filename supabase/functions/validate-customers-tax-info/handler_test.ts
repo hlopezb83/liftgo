@@ -65,7 +65,11 @@ function makeService(opts: MakeServiceOpts) {
         }
         : { data: opts.billingSecrets, error: null },
       organizations: {
-        data: opts.organizationsCount ?? [{ id: ORG_A }],
+        data: (opts.organizationsCount ?? [{ id: membershipOrgId ?? ORG_A }])
+          .map((row) => ({
+            ...row,
+            is_active: true,
+          })),
         error: null,
       },
     },

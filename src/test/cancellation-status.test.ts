@@ -4,6 +4,7 @@ const h = vi.hoisted(() => ({
   status: "pending",
   supabase: null as any,
   pac: vi.fn(),
+  enqueue: vi.fn(),
 }));
 vi.mock("../../supabase/functions/_shared/cors.ts", () => ({
   handleCors: () => null,
@@ -43,7 +44,7 @@ vi.mock("../../supabase/functions/_shared/facturapi/withTimeout.ts", () => ({
   isFacturapiTimeout: () => false,
 }));
 vi.mock("../../supabase/functions/_shared/cfdiRetryQueue.ts", () => ({
-  enqueueCfdiRetry: vi.fn(),
+  enqueueCfdiRetry: h.enqueue,
   isTransientFacturapiError: () => false,
 }));
 // Keep Deno-only dependencies out of the browser TypeScript graph. Vitest
@@ -69,7 +70,10 @@ const deps: any = {
   env: () => undefined,
 };
 describe("cancellation status messages with mocked boundaries, no network", () => {
-  beforeEach(() => h.pac.mockClear());
+  beforeEach(() => {
+    h.pac.mockClear();
+    h.enqueue.mockClear();
+  });
   for (const scenario of ["payments", "rpc-error", "already-pending"])
     it(`blocks ${scenario} before provider`, async () => {
       const mock = buildSupabaseMock({
@@ -117,24 +121,35 @@ describe("cancellation status messages with mocked boundaries, no network", () =
             error: null,
           },
         },
+        updatesSeq: { invoices: [{ data: { id }, error: null }] },
         updates: { invoices: { data: { id }, error: null } },
         rpcs: { assert_invoice_cancellable: { data: null, error: null } },
       } as any);
       h.supabase = mock.client;
       const res = await handleCancelCfdi(request(), deps);
       const body = await res.json();
+      if (status === "unrecognized") {
+        expect(res.status).toBe(502);
+        expect(body.code).toBe("PAC_UNCERTAIN");
+        expect(body.accepted).toBeUndefined();
+        expect(body.success).toBeUndefined();
+        expect(h.pac).toHaveBeenCalledTimes(1);
+        expect(h.enqueue).not.toHaveBeenCalled();
+        // Only the initial claim persists: no release and no false finalization.
+        expect(mock.updates).toHaveLength(1);
+        expect(mock.updates[0].patch.cancellation_status).toBe("pending");
+        expect(mock.updates[0].patch.cfdi_status).toBeUndefined();
+        return;
+      }
       expect(res.status).toBe(200);
-      expect(body.cancellation_status).toBe(
-        status === "unrecognized" ? "pending" : status,
-      );
+      expect(body.cancellation_status).toBe(status);
       expect(h.pac).toHaveBeenCalledTimes(1);
       if (status === "accepted") {
         expect(body.accepted).toBe(true);
         expect(body.warning).toBeUndefined();
       } else {
         expect(body.accepted).toBe(false);
-        if (status === "pending" || status === "unrecognized")
-          expect(body.warning).toContain("72 horas");
+        if (status === "pending") expect(body.warning).toContain("72 horas");
         else {
           expect(body.warning).toContain(
             status === "rejected" ? "rechazada" : "venció",
@@ -145,9 +160,7 @@ describe("cancellation status messages with mocked boundaries, no network", () =
         }
       }
       const last = mock.updates.at(-1)?.patch;
-      expect(last?.cancellation_status).toBe(
-        status === "unrecognized" ? "pending" : status,
-      );
+      expect(last?.cancellation_status).toBe(status);
       expect(last?.cfdi_status).toBe(
         status === "accepted" ? "cancelled" : undefined,
       );

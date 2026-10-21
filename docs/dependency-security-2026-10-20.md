@@ -126,9 +126,10 @@ inexistencia de todas las vulnerabilidades o explotabilidad previa en producció
 - Antes de fusionar/publicar, cerrar cobertura, smoke, móvil y revisión de
   dependencias en CI; verificar además el instalador efectivo de Lovable.
 
-No se modifican workflows ni permisos. `test:dependencies` se ejecuta explícitamente;
-este lote no añade un paso nuevo al workflow existente. La preparación local no
-implica que se haya creado un PR, fusionado una rama o publicado una versión.
+En el lote original no se modificaron workflows ni permisos. La corrección H08
+posterior conecta `test:dependencies` a un job condicional de CI cuando cambian
+manifest, lock, suite o instalador; ver `docs/release-identity.md`. La preparación
+local no implica un PR, fusión ni publicación.
 
 ## Revisión de cadena de suministro
 

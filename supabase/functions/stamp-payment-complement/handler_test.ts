@@ -88,7 +88,7 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
-      organizations: { data: [{ id: ORG_ID }], error: null },
+      organizations: { data: [{ id: ORG_ID, is_active: true }], error: null },
       ...(serviceConfig.selects ?? {}),
     },
     rpcs: {
@@ -440,7 +440,7 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
           billing_secrets: { data: null, error: null },
           // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
           organizations: {
-            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
             error: null,
           },
         },
@@ -591,6 +591,58 @@ Deno.test("handler: rechaza asignar folio a un pago de otra organización", asyn
     );
     await res.json();
     assertEquals(res.status, 503);
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: Power10 null PAC preserves REP without marking it stamped", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": () =>
+      new Response(
+        "null",
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          payments: { data: VALID_PAYMENT, error: null },
+          invoices: { data: VALID_INVOICE, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { payments: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID }),
+      deps,
+    );
+    assertEquals(res.status, 502);
+    assertEquals((await res.json()).code, "PAC_INCOMPLETE");
+    assertEquals(mock.calls.length, 1);
+    assertEquals(
+      serviceState.updates.some((u) =>
+        u.patch.rep_cfdi_status === "stamped" ||
+        u.patch.rep_cfdi_status === "pending"
+      ),
+      false,
+    );
+    assert(
+      serviceState.updates.some((u) =>
+        typeof u.patch.rep_error_message === "string"
+      ),
+    );
   } finally {
     mock.restore();
   }

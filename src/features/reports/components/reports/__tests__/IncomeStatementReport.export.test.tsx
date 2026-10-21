@@ -49,7 +49,7 @@ vi.mock("@/features/reports/components/reports/IncomeStatementToolbar", () => ({
   ),
 }));
 vi.mock("@/lib/exportCsv", () => ({ exportToCsv: state.saveCsv }));
-vi.mock("@/lib/pdf/shared", () => ({ fetchCompanyDataAndLogo: state.company }));
+vi.mock("@/lib/pdf/shared", () => ({ fetchCompanyData: state.company }));
 vi.mock("@/features/reports/components/reports/IncomeStatementTable", () => ({
   IncomeStatementTable: () => null,
 }));

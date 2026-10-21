@@ -79,6 +79,17 @@ export async function resolveCallerOrganization(
   if (!organizationId) {
     return { ok: false, status: 403, message: ORG_MISSING_MEMBERSHIP };
   }
+  const organization = await admin.from("organizations")
+    .select("is_active").eq("id", organizationId).limit(1);
+  if (organization?.error) {
+    return { ok: false, status: 503, message: ORG_LOOKUP_UNAVAILABLE };
+  }
+  if (
+    !Array.isArray(organization?.data) || organization.data.length !== 1 ||
+    organization.data[0]?.is_active !== true
+  ) {
+    return { ok: false, status: 403, message: "La empresa no está activa." };
+  }
   return { ok: true, organizationId, callerOrganizationId: organizationId };
 }
 

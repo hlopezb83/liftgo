@@ -80,6 +80,10 @@ Deno.test("multiempresa: un solo cliente y un solo período dentro de la misma e
 Deno.test("multiempresa: resolveCallerOrganization deriva la organización de la membresía, no del payload", async () => {
   const mock = buildSupabaseMock({
     selects: {
+      organizations: {
+        data: [{ id: "org-server-side", is_active: true }],
+        error: null,
+      },
       organization_memberships: {
         data: [{ organization_id: "org-server-side", member_type: "internal" }],
         error: null,

@@ -25,10 +25,12 @@ vi.mock("@/components/layout/ListPageLayout", () => ({
     <output data-testid="ids">{table.getRowModel().rows.map(row => row.original.id).join(",")}</output>
   </div>,
 }));
-vi.mock("@/lib/exportCsv", () => ({ exportToCsv: api.exportCsv }));
+vi.mock("@/lib/exportCsv", () => ({ exportToCsvGuarded: api.exportCsv }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn(), notifyError: api.notifyError }));
 vi.mock("@/contexts/pageActions", () => ({ usePageActions: () => undefined }));
-vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
+vi.mock("@/features/users", () => ({ useHasModuleAccess: (_module: string, access: string) => access === "read" }));
+vi.mock("@/contexts/OrganizationContext", () => ({ useVerifiedOrganizationId: () => "org-a" }));
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "user:org-a" }));
 vi.mock("../../components/list/InvoicesToolbar", () => ({ InvoicesActionsBar: ({ onExport }: { onExport: () => void }) => <button onClick={onExport}>Export CSV</button>, InvoicesFiltersBar: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesPreviewDialog", () => ({ RecurringInvoicesPreviewDialog: () => null }));
 vi.mock("../../components/recurring/RecurringInvoicesResultDialog", () => ({ RecurringInvoicesResultDialog: () => null }));
@@ -58,7 +60,7 @@ beforeEach(() => {
     let from = 0, to = 0;
     const orders: Order[] = [];
     const query = {
-      select: () => query, or: () => query,
+      select: () => query, or: () => query, eq: () => query, abortSignal: () => query,
       order: (column: string, options: Omit<Order, "column">) => { orders.push({ column, ...options }); return query; },
       range: (a: number, b: number) => { from = a; to = b; return query; },
       returns: async () => {

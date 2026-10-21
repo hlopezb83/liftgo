@@ -49,7 +49,7 @@ for (const mode of ["test", "live"] as const) {
       selects: {
         company_settings: { data: { facturapi_mode: mode }, error: null },
         billing_secrets: { data: null, error: null },
-        organizations: { data: [{ id: ORG }], error: null },
+        organizations: { data: [{ id: ORG, is_active: true }], error: null },
       },
     });
     const oppositeKey = mode === "test" ? "sk_live_wrong" : "sk_test_wrong";

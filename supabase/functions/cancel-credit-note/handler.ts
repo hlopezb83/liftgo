@@ -1,3 +1,4 @@
+import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 // Pure handler for cancel-credit-note, deps-injected for testability.
 // Multiempresa · Fase 1: la organización se valida contra la NC leída de BD
 // ANTES de cualquier claim, update o llamada al PAC.
@@ -209,12 +210,15 @@ export async function handleCancelCreditNote(
             { signal },
           )
         );
-        const raw = ((cancelJson as { cancellation_status?: string })
-          ?.cancellation_status) ?? "accepted";
-        satStatus =
-          ["accepted", "pending", "rejected", "expired", "none"].includes(raw)
-            ? raw
-            : "pending";
+        const result = cancellationResult(cancelJson);
+        if (!result.ok) {
+          return jsonResponse(req, {
+            error:
+              "El PAC no confirmó el estado de cancelación. Consulta su estado antes de reintentar.",
+            code: "PAC_UNCERTAIN",
+          }, { status: 502 });
+        }
+        satStatus = result.status;
       } catch (err) {
         if (isFacturapiTimeout(err)) {
           console.warn("[cancel-credit-note] facturapi timeout", {

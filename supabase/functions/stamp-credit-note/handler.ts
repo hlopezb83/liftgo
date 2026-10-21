@@ -547,8 +547,8 @@ export async function handleStampCreditNote(
     // reabrirla para un reintento que duplicaría el timbre.
     pacAccepted = true;
     const pacResult = classifyPacInvoice(fa);
-    emittedFacturapiId = typeof fa.id === "string" ? fa.id : null;
-    emittedCfdiUuid = typeof fa.uuid === "string" ? fa.uuid : null;
+    emittedFacturapiId = typeof fa?.id === "string" ? fa.id : null;
+    emittedCfdiUuid = typeof fa?.uuid === "string" ? fa.uuid : null;
     if (pacResult.kind !== "hit") {
       await supabase.from("credit_notes").update({
         ...(emittedFacturapiId

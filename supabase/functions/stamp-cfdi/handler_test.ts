@@ -126,7 +126,7 @@ function makeDeps(opts: {
       },
       // Compat legado: única organización en BD (permite fallback a env keys
       // FACTURAPI_*_KEY salvo que el test override para simular multiempresa).
-      organizations: { data: [{ id: ORG_ID }], error: null },
+      organizations: { data: [{ id: ORG_ID, is_active: true }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -960,7 +960,7 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
           billing_secrets: { data: null, error: null },
           // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
           organizations: {
-            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
             error: null,
           },
         },
@@ -1018,6 +1018,13 @@ Deno.test("handler: error fiscal tras el claim libera la reserva y no emite CFDI
           // Falla transitoria al verificar la empresa: no se puede resolver
           // la configuración fiscal con certeza.
           organizations: { data: null, error: { message: "db down" } },
+        },
+        // The human organization guard succeeds; the subsequent fiscal lookup fails.
+        selectsSeq: {
+          organizations: [
+            { data: [{ id: ORG_ID, is_active: true }], error: null },
+            { data: null, error: { message: "db down" } },
+          ],
         },
         updates: { invoices: { data: null, error: null } },
       },

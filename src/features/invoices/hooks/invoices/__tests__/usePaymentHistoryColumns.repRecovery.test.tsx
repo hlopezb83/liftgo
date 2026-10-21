@@ -73,7 +73,12 @@ async function runHandler({ role = "admin", claim = "claimed", paymentOverrides 
     currency: "MXN", payment_form_sat: "03", payment_date: "2026-10-19",
     ...paymentOverrides,
   });
+  const activeOrganizationLookup = vi.fn((filters: Array<{ col: string; val: unknown }>) => {
+    expect(filters).toContainEqual({ col: "id", val: org });
+    return { data: [{ id: org, is_active: true }], error: null };
+  });
   const service = buildSupabaseMock({
+    selectsByFilter: { organizations: activeOrganizationLookup },
     selects: {
       profiles: { data: { is_active: true }, error: null },
       user_roles: { data: ["admin", "administrativo"].includes(role) ? { role } : null, error: null },
@@ -99,6 +104,9 @@ async function runHandler({ role = "admin", claim = "claimed", paymentOverrides 
     env: () => undefined,
     fetchImpl: async () => { throw new Error("Unexpected network attempt"); },
   });
+  if (["admin", "administrativo"].includes(role)) {
+    expect(activeOrganizationLookup).toHaveBeenCalledExactlyOnceWith([{ col: "id", val: org }]);
+  }
   // The RPC is a DI double, not a database/RLS test. Its claimed result models
   // the real RPC's atomic transition to stamping; apply actual handler writes.
   const persisted = service.updates.reduce((row, update) => update.table === "payments"

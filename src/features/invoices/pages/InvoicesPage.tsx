@@ -10,19 +10,19 @@ import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
-import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useLocation } from "@/lib/router-compat";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { InvoiceMobileCard } from "../components/list/InvoiceMobileCard";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
-import { fetchInvoicesForExport, invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
+import { useInvoiceCsvExport } from "../hooks/invoices/useInvoiceCsvExport";
+import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 import type { SortingState } from "@tanstack/react-table";
 
@@ -108,7 +108,8 @@ export default function InvoicesPage() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   const canCreate = useHasModuleAccess("Facturas", "full");
-  const showExport = !isUpdatingFilters && (invoiceRows.length > 0 || !!hasNextPage);
+  const csvExport = useInvoiceCsvExport(queryFilters);
+  const showExport = csvExport.allowed && !isUpdatingFilters && (invoiceRows.length > 0 || !!hasNextPage);
   const showHeaderNew = isLoading || isError || hasActive || showExport;
   usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
@@ -138,16 +139,6 @@ export default function InvoicesPage() {
     if (reachedLoadedEnd && hasNextPage && !isFetchingNextPage && !isError && !isUpdatingFilters) void fetchNextPage();
   }, [reachedLoadedEnd, hasNextPage, isFetchingNextPage, isError, isUpdatingFilters, fetchNextPage]);
 
-  const exportCsv = async () => {
-    const rows = await fetchInvoicesForExport(queryFilters);
-    // FIX-9 (ronda 3): sin Moneda ni Tipo de cambio, sumar la columna Total
-    // mezclaba MXN y USD 1:1.
-    exportToCsv("facturas.csv", rows.map((inv) => ({
-      "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total,
-      Moneda: inv.moneda || "MXN", "Tipo de cambio": inv.tipo_cambio ?? "",
-      Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "",
-    })));
-  };
 
   return (
     <>
@@ -157,9 +148,8 @@ export default function InvoicesPage() {
         actions={(canCreate || showExport) &&
           <InvoicesActionsBar
             onOpenPreview={openPreview}
-            onExport={() => { void exportCsv().catch((error: unknown) => {
-              notifyError({ title: "No se pudieron exportar las facturas", error });
-            }); }}
+            onExport={() => { void csvExport.download(); }}
+            exportPending={csvExport.busy}
             onNew={() => navigate("/invoices/new")}
             previewPending={previewRecurring.isPending}
             showExport={showExport}

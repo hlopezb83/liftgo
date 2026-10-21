@@ -41,6 +41,19 @@ function renderPage() {
 }
 
 describe("QR01: supplier secondary query availability", () => {
+  it.each([null, 0, 1, -1, Number.NaN, Number.POSITIVE_INFINITY])("excludes missing FX %s from MXN total but preserves the original amount", async (rate) => {
+    queries.bills.data = [
+      { id: "bill-mxn", supplier_id: "sp-1", status: "sent", total: 120, currency: "MXN", exchange_rate: 1, issue_date: "2026-10-20" },
+      { id: "bill-usd", supplier_id: "sp-1", status: "sent", total: 50, currency: "USD", exchange_rate: rate, issue_date: "2026-10-20" },
+    ];
+    queries.maintenance.data = [];
+    renderPage();
+    expect(await screen.findByText(/Total parcial en MXN: 1 registro/)).toBeInTheDocument();
+    expect(screen.getByText(/USD · Sin TC válido/)).toHaveTextContent("50.00");
+    expect(screen.queryByText("$170.00")).not.toBeInTheDocument();
+    expect(screen.getAllByText("$120.00")).toHaveLength(2);
+  });
+
   it("shows loading rather than zero totals or false empty messages", async () => {
     queries.bills.isLoading = true; queries.maintenance.isLoading = true;
     renderPage();

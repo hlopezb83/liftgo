@@ -52,7 +52,7 @@ function makeDeps(opts: {
       },
       // Compat legado: única organización en BD (permite fallback a env keys
       // FACTURAPI_*_KEY salvo que el test override para simular multiempresa).
-      organizations: { data: [{ id: ORG_ID }], error: null },
+      organizations: { data: [{ id: ORG_ID, is_active: true }], error: null },
       ...(opts.service?.selects ?? {}),
     },
   });
@@ -389,7 +389,7 @@ Deno.test("refresh-cancellation: MULTIEMPRESA sin credenciales propias en modo l
         },
         billing_secrets: { data: null, error: null },
         organizations: {
-          data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+          data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
           error: null,
         },
       },

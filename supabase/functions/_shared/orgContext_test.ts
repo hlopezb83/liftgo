@@ -22,7 +22,19 @@ function membershipClient(
     eq: () => builder,
     limit: () => Promise.resolve(result),
   };
-  return { from: () => builder };
+  return {
+    from: (table) =>
+      table === "organizations"
+        ? {
+          select: () => ({
+            eq: () => ({
+              limit: () =>
+                Promise.resolve({ data: [{ is_active: true }], error: null }),
+            }),
+          }),
+        }
+        : builder,
+  };
 }
 
 Deno.test("resolveCallerOrganization devuelve la organización de la membresía interna", async () => {
@@ -112,4 +124,30 @@ Deno.test("groupByOrganization separa por empresa y aparta las huérfanas", () =
   assertEquals(groups.get(ORG_A)?.length, 2);
   assertEquals(groups.get(ORG_B)?.length, 1);
   assertEquals(withoutOrganization.length, 1);
+});
+
+Deno.test("human organization lookup denies suspended, missing and failed state", async () => {
+  for (
+    const [data, error, expected] of [
+      [[{ is_active: false }], null, 403],
+      [[{}], null, 403],
+      [[], null, 403],
+      [null, { message: "offline" }, 503],
+    ] as const
+  ) {
+    const membership = membershipClient({ data: [{ organization_id: ORG_A }] });
+    const admin = {
+      from: (table: string) =>
+        table === "organizations"
+          ? {
+            select: () => ({
+              eq: () => ({ limit: () => Promise.resolve({ data, error }) }),
+            }),
+          }
+          : membership.from(table),
+    };
+    const result = await resolveCallerOrganization(admin, "user-1");
+    assertEquals(result.ok, false);
+    if (!result.ok) assertEquals(result.status, expected);
+  }
 });

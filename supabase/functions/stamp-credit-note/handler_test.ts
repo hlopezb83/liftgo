@@ -69,7 +69,7 @@ function makeDeps(opts: {
         data: [{ organization_id: ORG_ID, member_type: "internal" }],
         error: null,
       },
-      organizations: { data: [{ id: ORG_ID }], error: null },
+      organizations: { data: [{ id: ORG_ID, is_active: true }], error: null },
       ...(serviceConfig.selects ?? {}),
     },
     rpcs: {
@@ -1033,7 +1033,7 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
           billing_secrets: { data: null, error: null },
           // Multiempresa: ya hay 2 organizaciones -> se retira el fallback legado.
           organizations: {
-            data: [{ id: ORG_ID }, { id: OTHER_ORG_ID }],
+            data: [{ id: ORG_ID, is_active: true }, { id: OTHER_ORG_ID }],
             error: null,
           },
         },
@@ -1061,6 +1061,65 @@ Deno.test("handler: MULTIEMPRESA organización sin credenciales propias en modo 
       u.table === "credit_notes" && u.patch.cfdi_status === "error"
     );
     assert(errUpdate, "debe liberar el claim marcando error explícito");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: Power10 null PAC preserves NC without downloading files", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": () =>
+      new Response(
+        "null",
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+  });
+  try {
+    const ncData = { ...VALID_CREDIT_NOTE };
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: { data: ncData, error: null },
+          invoices: { data: STAMPED_INVOICE, error: null },
+          company_settings: {
+            data: { facturapi_mode: "test", organization_id: ORG_ID },
+            error: null,
+          },
+          billing_secrets: { data: null, error: null },
+        },
+        selectsSeq: {
+          credit_notes: [{ data: ncData, error: null }, {
+            data: [],
+            error: null,
+          }],
+        },
+        updatesSeq: { credit_notes: [{ data: { id: NC_ID }, error: null }] },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    assertEquals(res.status, 502);
+    assertEquals((await res.json()).code, "PAC_INCOMPLETE");
+    assertEquals(mock.calls.length, 1);
+    assertEquals(
+      serviceState.updates.some((u) =>
+        u.patch.cfdi_status === "stamped" || u.patch.cfdi_status === "pending"
+      ),
+      false,
+    );
+    assert(
+      serviceState.updates.some((u) =>
+        typeof u.patch.cfdi_error_message === "string"
+      ),
+    );
   } finally {
     mock.restore();
   }
