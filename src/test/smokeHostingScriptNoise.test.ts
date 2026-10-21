@@ -7,7 +7,7 @@ import { allowReadOnlyRequest, PUBLISHED_APP_ORIGIN, type SmokeRequest } from ".
 
 const ORIGIN = PUBLISHED_APP_ORIGIN;
 const TRANSPORT = "Failed to load resource: net::ERR_FAILED";
-const URLS = [`${ORIGIN}/~flock.js`, `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js`];
+const URLS = [`${ORIGIN}/~flock.js`, `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js`, `${ORIGIN}/__l5e/events.b21a279f52bb8621.js`];
 const script = (url: string): SmokeRequest => ({ url, method: "GET", resourceType: "script" });
 const noiseContext = (urls: string[] = []) => ({
   origin: ORIGIN,
@@ -43,6 +43,11 @@ const INVALID_URLS = [
   `${ORIGIN}/__l5e/events.4d3abd1f6b7321c3.js`, `${ORIGIN}/__l5e/events.4D3ABD1F6B7321C2.js`,
   `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js?`, `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js?event=1`,
   `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js.map`, `${ORIGIN}/__l5e/other.js`,
+  `${ORIGIN}/__l5e/events.b21a279f52bb8622.js`, `${ORIGIN}/__l5e/events.B21A279F52BB8621.js`,
+  `${ORIGIN}/__l5e/events.b21a279f52bb8621.js?`, `${ORIGIN}/__l5e/events.b21a279f52bb8621.js?event=1`,
+  `${ORIGIN}/__l5e/events.b21a279f52bb8621.js.map`, `${ORIGIN}/other/events.b21a279f52bb8621.js`,
+  `https://other.invalid/__l5e/events.b21a279f52bb8621.js`,
+  `${ORIGIN}/__l5e/replay`, `${ORIGIN}/__l5e/rrweb-record.js`,
   `${ORIGIN}/~api/analytics`, `${ORIGIN}/__l5e/trackevents`, `${ORIGIN}/api/invoices`,
   `${ORIGIN}/assets/app.js`, `${ORIGIN}/version.json`,
 ];
