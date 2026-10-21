@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent as ReactFormEvent } from "react";
+import { useState, useEffect, useSyncExternalStore, type FormEvent as ReactFormEvent } from "react";
 import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { BrandLockup, GLOBAL_BRAND_NAME } from "@/components/BrandMark";
 import { CompanyIcon } from "@/components/icons";
@@ -17,6 +17,11 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
+// Keep SSR controls inert until this component has hydrated.
+const subscribeHydration = () => () => {};
+const hydratedSnapshot = () => true;
+const serverSnapshot = () => false;
+
 type Mode = "sign-in" | "forgot";
 
 function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
@@ -26,6 +31,7 @@ function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
 }
 
 export default function PortalLogin() {
+  const hydrated = useSyncExternalStore(subscribeHydration, hydratedSnapshot, serverSnapshot);
   const { user, signIn, resetPassword } = useAuth();
   const navigate = useNavigateTransition();
   const [mode, setMode] = useState<Mode>("sign-in");
@@ -39,6 +45,7 @@ export default function PortalLogin() {
 
   const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
+    if (!hydrated || loading) return;
     setLoading(true);
 
     try {
@@ -80,77 +87,79 @@ export default function PortalLogin() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="auth-email">Correo electrónico</Label>
-                <Input
-                  id="auth-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@empresa.com"
-                  required
-                  className="touch:h-11"
-                />
-              </div>
-              {mode === "sign-in" && (
+            <fieldset disabled={!hydrated} aria-busy={!hydrated} aria-label="Controles de acceso" className="m-0 min-w-0 border-0 p-0">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="auth-password">Contraseña</Label>
+                  <Label htmlFor="auth-email">Correo electrónico</Label>
                   <Input
-                    id="auth-password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    id="auth-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@empresa.com"
                     required
-                    minLength={8}
                     className="touch:h-11"
                   />
                 </div>
-              )}
+                {mode === "sign-in" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="auth-password">Contraseña</Label>
+                    <Input
+                      id="auth-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={8}
+                      className="touch:h-11"
+                    />
+                  </div>
+                )}
+                <Button
+                  type="submit"
+                  className="w-full touch:h-11"
+                  disabled={loading}
+                  data-testid="auth-submit"
+                >
+                  {getPortalSubmitLabel(loading, mode)}
+                </Button>
+              </form>
+              <div className="mt-4 text-center space-y-1">
+                {mode === "sign-in" ? (
+                  <Button
+                    variant="link"
+                    className="touch:min-h-11"
+                    onClick={() => setMode("forgot")}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Button>
+                ) : (
+                  <Button
+                    variant="link"
+                    className="touch:min-h-11"
+                    onClick={() => setMode("sign-in")}
+                  >
+                    Volver a iniciar sesión
+                  </Button>
+                )}
+              </div>
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">o</span>
+                </div>
+              </div>
               <Button
-                type="submit"
-                className="w-full touch:h-11"
-                disabled={loading}
-                data-testid="auth-submit"
+                variant="outline"
+                className="w-full touch:min-h-11"
+                onClick={() => navigate("/")}
               >
-                {getPortalSubmitLabel(loading, mode)}
+                <CompanyIcon className="mr-2 h-4 w-4" /> Acceso empleados
               </Button>
-            </form>
-            <div className="mt-4 text-center space-y-1">
-              {mode === "sign-in" ? (
-                <Button
-                  variant="link"
-                  className="touch:min-h-11"
-                  onClick={() => setMode("forgot")}
-                >
-                  ¿Olvidaste tu contraseña?
-                </Button>
-              ) : (
-                <Button
-                  variant="link"
-                  className="touch:min-h-11"
-                  onClick={() => setMode("sign-in")}
-                >
-                  Volver a iniciar sesión
-                </Button>
-              )}
-            </div>
-            <div className="relative my-4">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">o</span>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              className="w-full touch:min-h-11"
-              onClick={() => navigate("/")}
-            >
-              <CompanyIcon className="mr-2 h-4 w-4" /> Acceso empleados
-            </Button>
+            </fieldset>
           </CardContent>
         </Card>
         <p className="mt-6 text-xs text-muted-foreground">
