@@ -63,12 +63,10 @@ export function documentKind(breakdownKey: string | undefined): string | null {
 }
 export function canOpenStatementDocuments(
   kind: string,
-  basis: AccountingBasis,
   permissions: {
     financial: boolean;
     reports: boolean;
     invoices: boolean;
-    payments: boolean;
     supplierBills: boolean;
     expenses: boolean;
   },
@@ -76,10 +74,8 @@ export function canOpenStatementDocuments(
   if (!permissions.financial || !permissions.reports) return false;
   if (kind.startsWith("exp:"))
     return permissions.supplierBills && permissions.expenses;
-  return (
-    permissions.invoices &&
-    (basis !== "cash" || kind === "credit_notes" || permissions.payments)
-  );
+  // The invoice detail owns payment history; there is no separate Pagos module.
+  return permissions.invoices;
 }
 export function documentTotalMatches(
   expected: number,

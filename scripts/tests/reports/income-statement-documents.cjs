@@ -30,7 +30,11 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
     CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql AS $$ SELECT '${id(1)}'::uuid $$;
     CREATE TYPE app_role AS ENUM ('admin','administrativo','auditor','dispatcher');
     CREATE FUNCTION has_role(uuid,app_role) RETURNS boolean LANGUAGE sql AS $$ SELECT $2::text = current_setting('test.role',true) $$;
-    CREATE FUNCTION has_permission(text,text) RETURNS boolean LANGUAGE sql AS $$ SELECT $1 IS DISTINCT FROM current_setting('test.denied_module',true) $$;
+    CREATE TABLE role_permissions(role app_role,module text,access_level text,PRIMARY KEY(role,module));
+    CREATE VIEW user_roles AS SELECT auth.uid() AS user_id, current_setting('test.role',true)::app_role AS role;
+    INSERT INTO role_permissions SELECT role::app_role,module,'read'
+      FROM unnest(ARRAY['admin','administrativo','auditor','dispatcher']) role
+      CROSS JOIN unnest(ARRAY['Facturas','Reportes','Facturas de Proveedor','Gastos']) module;
     CREATE ROLE authenticated; CREATE ROLE anon;
     CREATE TABLE invoices(id uuid PRIMARY KEY, subtotal numeric,total numeric,tipo_cambio numeric,moneda text,invoice_type text,customer_name text,booking_id uuid,quote_id uuid,billing_period_start date,billing_period_end date,line_items jsonb,issued_at date,paid_at date,is_e2e boolean,status text,invoice_number text);
     CREATE TABLE payments(id uuid PRIMARY KEY,invoice_id uuid,amount numeric,exchange_rate numeric,payment_date date);
@@ -51,6 +55,11 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
   for (const {tablename} of tables) {
     await db.unsafe(`ALTER TABLE ${tablename} ADD COLUMN organization_id uuid DEFAULT '${orgA}'; ALTER TABLE ${tablename} ENABLE ROW LEVEL SECURITY; CREATE POLICY tenant ON ${tablename} FOR SELECT TO authenticated USING (organization_id = nullif(current_setting('test.org',true),'')::uuid);`);
   }
+  // Actual exact-match permissions lookup, with current source modules and no obsolete Pagos row.
+  const permissionSource = read('supabase/migrations/20260810184343_aea9a949-c035-4b2c-83c3-9b965c7270ea.sql');
+  const permissionFunction = permissionSource.match(/CREATE OR REPLACE FUNCTION public\.has_permission[\s\S]*?\$\$;/)?.[0];
+  assert(permissionFunction, 'canonical has_permission fixture source must exist');
+  await db.unsafe(permissionFunction);
   await db.unsafe(read('supabase/migrations/20260831184510_1b4d05fe-419b-47ad-b28e-81791f3b6497.sql'));
   await db.unsafe(read('supabase/migrations/20260901015737_5392b1a1-fd02-4797-9b22-0b574cf46594.sql'));
   await db.unsafe('ALTER FUNCTION get_income_statement(date,date,text) SECURITY INVOKER;');
@@ -85,6 +94,14 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
   `);
   const docs = async (basis,kind,label=null,months=['2026-09','2026-10'],limit=25,offset=0) => (await db`SELECT get_income_statement_documents('2026-09-01','2026-10-31',${basis},${kind},${label},${months},${limit},${offset}) result`)[0].result;
   const aggregate = async basis => (await db`SELECT get_income_statement('2026-09-01','2026-10-31',${basis}) result`)[0].result;
+  const [moduleAccess] = await db`SELECT has_permission('Facturas','read') invoices, has_permission('Pagos','read') payments,
+    (SELECT count(*)::int FROM role_permissions WHERE module='Pagos') obsolete_rows`;
+  assert.equal(moduleAccess.invoices,true); assert.equal(moduleAccess.payments,false); assert.equal(moduleAccess.obsolete_rows,0);
+  for (const role of ['admin','administrativo','auditor']) {
+    await db.unsafe(`SET test.role='${role}';`);
+    assert.equal((await docs('cash','other_services')).total_amount,1000,'cash is readable through Facturas/read without Pagos');
+  }
+  await db.unsafe("SET test.role='admin';");
   for (const basis of ['accrual','cash']) {
     const detail = await docs(basis,'other_services');
     const report = await aggregate(basis);
@@ -114,15 +131,20 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
   await db.unsafe(`RESET ROLE; INSERT INTO credit_notes(id,subtotal,invoice_id,issued_at,status,cfdi_status,cancellation_status,credit_note_number,currency) VALUES ('${id(31)}',99,'${id(14)}','2026-10-06','issued','stamped','none','NC-HIDDEN-PARENT','MXN'); SET ROLE authenticated;`);
   const safeCredits = await docs('accrual','credit_notes');
   assert.equal(safeCredits.total_count,1); assert(!JSON.stringify(safeCredits).includes(id(14)));
-  await db.unsafe("SET test.denied_module='Facturas';"); await assert.rejects(docs('cash','other_services'),/Forbidden/);
-  await db.unsafe("SET test.denied_module='Gastos';"); await assert.rejects(docs('accrual','exp:renta'),/Forbidden/);
-  await db.unsafe("SET test.denied_module='Pagos';"); await assert.rejects(docs('cash','other_services'),/Forbidden/);
-  await db.unsafe("SET test.denied_module=''; SET test.role='dispatcher';"); await assert.rejects(docs('accrual','other_services'),/Forbidden/);
+  for (const module of ['Facturas','Reportes','Facturas de Proveedor','Gastos']) {
+    await db.unsafe(`RESET ROLE; UPDATE role_permissions SET access_level='none' WHERE module='${module}'; SET ROLE authenticated;`);
+    for (const basis of ['accrual','cash']) {
+      await assert.rejects(docs(basis,['Facturas de Proveedor','Gastos'].includes(module)?'exp:renta':'other_services'),/Forbidden/);
+    }
+    await db.unsafe(`RESET ROLE; UPDATE role_permissions SET access_level='read' WHERE module='${module}'; SET ROLE authenticated;`);
+  }
+  await db.unsafe("SET test.role='dispatcher';");
+  for (const basis of ['accrual','cash']) await assert.rejects(docs(basis,'other_services'),/Forbidden/);
   await db.unsafe(`SET test.role='auditor'; SET test.org='${orgB}';`);
   const other=await docs('accrual','other_services');assert.equal(other.total_amount,888);assert.equal(other.items[0].folio,'OTHER-TENANT');
   await db.unsafe('RESET ROLE; ALTER FUNCTION get_income_statement(date,date,text) SECURITY DEFINER; SET ROLE authenticated;');
   await assert.rejects(docs('accrual','other_services'),/source version changed/);
-  console.log('PASS: canonical totals, FX, cash dates, credit notes, coverage, linked expense dedup, rounding, pagination, tenant RLS, module/role denial, no default grant, source drift.');
+  console.log('PASS: canonical totals, FX, cash dates, credit notes, coverage, linked expense dedup, rounding, pagination, tenant RLS, actual module matrix without Pagos, module/role denial, no default grant, source drift.');
 })().catch(error=>{console.error(error.message, error.position, error.internal_position); if (error.internal_query) { fs.writeFileSync(path.join(dir,'failed-query.sql'),error.internal_query); console.error(error.internal_query.slice(Math.max(0,Number(error.internal_position)-100),Number(error.internal_position)+100)); } console.error('Evidence:',dir); process.exitCode=1;}).finally(async()=>{
   if(db)await db.end();if(started)pg('pg_ctl',['-D',`${dir}/data`,'-m','immediate','stop']);
 });

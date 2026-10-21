@@ -1,5 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  getAccessLevel,
+  MODULES,
+  type PermissionsMap,
+} from "@/features/users/hooks/useRolePermissions";
 import { IncomeStatementDocuments } from "../IncomeStatementDocuments";
 import { IncomeStatementTable } from "../../IncomeStatementTable";
 import {
@@ -23,9 +28,15 @@ const state = vi.hoisted(() => ({
   },
   calls: vi.fn(),
 }));
+// Current modules only: an absent module must fail closed, not default to true.
+const permissions: PermissionsMap = {
+  auditor: Object.fromEntries(MODULES.map((module) => [module, "read"])),
+};
 vi.mock("@/features/users", () => ({
   useHasFinancialAccess: () => state.financial,
-  useHasModuleAccess: (module: string) => state.denied !== module,
+  useHasModuleAccess: (module: string) =>
+    getAccessLevel(permissions, "auditor", module) !== "none" &&
+    state.denied !== module,
 }));
 vi.mock("@/contexts/OrganizationContext", () => ({
   useVerifiedOrganizationId: () => state.organizationId,
@@ -61,6 +72,11 @@ const selection = {
   expectedTotal: 1000,
   months: ["2026-10"],
 };
+function renderDocuments() {
+  return render(
+    <IncomeStatementDocuments scope={scope} selection={selection} onClose={vi.fn()} />,
+  );
+}
 function page(): StatementDocumentPage {
   return {
     items: [
@@ -135,13 +151,7 @@ beforeEach(() => {
 
 describe("MEJ-001 source documents", () => {
   it("shows document currency, attribution in MXN and cash event distinct from issuance", () => {
-    render(
-      <IncomeStatementDocuments
-        scope={scope}
-        selection={selection}
-        onClose={vi.fn()}
-      />,
-    );
+    renderDocuments();
     expect(
       screen.getByText("Total conciliado: $1,000.00 MXN (26 movimientos)."),
     ).toBeInTheDocument();
@@ -155,13 +165,7 @@ describe("MEJ-001 source documents", () => {
     expect(screen.getByRole("link")).toHaveAttribute("target", "_blank");
   });
   it("paginates without altering dates, basis or selected customer and never labels page sum as total", () => {
-    render(
-      <IncomeStatementDocuments
-        scope={scope}
-        selection={selection}
-        onClose={vi.fn()}
-      />,
-    );
+    renderDocuments();
     expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Siguiente" }));
     expect(state.calls).toHaveBeenLastCalledWith(scope, selection, 1);
@@ -171,13 +175,7 @@ describe("MEJ-001 source documents", () => {
   });
   it("does not flash cached rows on page loading; handles error with retry without claiming zero", () => {
     state.query.isFetching = true;
-    const view = render(
-      <IncomeStatementDocuments
-        scope={scope}
-        selection={selection}
-        onClose={vi.fn()}
-      />,
-    );
+    const view = renderDocuments();
     expect(screen.getByRole("status")).toHaveTextContent("Cargando");
     expect(screen.queryByText("FAC-01")).not.toBeInTheDocument();
     state.query.isFetching = false;
@@ -196,13 +194,7 @@ describe("MEJ-001 source documents", () => {
   it("flags a changed total and explains exact cent reconciliation", () => {
     state.query.data!.total_amount = 999.99;
     state.query.data!.rounding_adjustment = 0.01;
-    render(
-      <IncomeStatementDocuments
-        scope={scope}
-        selection={selection}
-        onClose={vi.fn()}
-      />,
-    );
+    renderDocuments();
     expect(screen.getByRole("alert")).toHaveTextContent("no coincide");
     expect(screen.getByText(/Ajuste de redondeo/)).toHaveTextContent(
       "$0.01 MXN",
@@ -236,7 +228,24 @@ describe("MEJ-001 source documents", () => {
       }),
     ).toBeInTheDocument();
   });
-  it.each(["Facturas", "Pagos", "Reportes"])(
+  it("opens cash documents with invoice read permission and no obsolete Pagos module", () => {
+    expect(MODULES).not.toContain("Pagos");
+    expect(permissions.auditor).not.toHaveProperty("Pagos");
+    expect(getAccessLevel(permissions, "auditor", "Facturas")).toBe("read");
+    render(<IncomeStatementTable {...tableProps} />);
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Ver documentos de Otros Ingresos por Servicios, total",
+      }),
+    );
+    expect(screen.getByText("Documentos de origen")).toBeInTheDocument();
+    expect(state.calls).toHaveBeenLastCalledWith(
+      scope,
+      expect.objectContaining({ kind: "other_services" }),
+      0,
+    );
+  });
+  it.each(["Facturas", "Reportes"])(
     "does not mount or fetch documents without %s",
     (module) => {
       state.denied = module;
@@ -271,15 +280,12 @@ describe("MEJ-001 source documents", () => {
       financial: true,
       reports: true,
       invoices: true,
-      payments: true,
       supplierBills: true,
       expenses: false,
     };
-    expect(canOpenStatementDocuments("exp:renta", "accrual", permissions)).toBe(
-      false,
-    );
+    expect(canOpenStatementDocuments("exp:renta", permissions)).toBe(false);
     expect(
-      canOpenStatementDocuments("other_services", "accrual", {
+      canOpenStatementDocuments("other_services", {
         ...permissions,
         financial: false,
       }),

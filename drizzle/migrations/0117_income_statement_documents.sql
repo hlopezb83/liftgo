@@ -108,8 +108,8 @@ $to7$;
   IF NOT COALESCE(public.has_permission('Reportes','read'), false) OR
     (CASE WHEN p_kind LIKE 'exp:%' THEN
       NOT (COALESCE(public.has_permission('Facturas de Proveedor','read'), false) AND COALESCE(public.has_permission('Gastos','read'), false))
-    ELSE NOT COALESCE(public.has_permission('Facturas','read'), false) OR
-      (p_basis = 'cash' AND p_kind <> 'credit_notes' AND NOT COALESCE(public.has_permission('Pagos','read'), false)) END)
+    -- Invoice detail includes payment history under Facturas/read in either basis.
+    ELSE NOT COALESCE(public.has_permission('Facturas','read'), false) END)
   THEN RAISE EXCEPTION 'Forbidden document access' USING ERRCODE = '42501'; END IF;
   IF (SELECT md5(prosrc) FROM pg_proc WHERE oid = 'public.get_income_statement(date,date,text)'::regprocedure AND NOT prosecdef)
     IS DISTINCT FROM '__SOURCE_HASH__'

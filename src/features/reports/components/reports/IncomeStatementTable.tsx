@@ -108,7 +108,6 @@ export function IncomeStatementTable({
     financial: useHasFinancialAccess(),
     reports: useHasModuleAccess("Reportes"),
     invoices: useHasModuleAccess("Facturas"),
-    payments: useHasModuleAccess("Pagos"),
     supplierBills: useHasModuleAccess("Facturas de Proveedor"),
     expenses: useHasModuleAccess("Gastos"),
   };
@@ -156,7 +155,6 @@ export function IncomeStatementTable({
                     kind &&
                     canOpenStatementDocuments(
                       kind,
-                      documentScope.accountingBasis,
                       permissions,
                     );
                   const showDocuments = canDrill
@@ -217,7 +215,6 @@ export function IncomeStatementTable({
         documentsEnabled &&
         canOpenStatementDocuments(
           selection.kind,
-          documentScope.accountingBasis,
           permissions,
         ) && (
           <IncomeStatementDocuments

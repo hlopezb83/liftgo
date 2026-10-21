@@ -21,7 +21,7 @@ Base: `24082043f`, con MEJ-002 (`5c028fd72`) como dependencia de interfaz. No ca
 
 `0117_income_statement_documents.sql` deriva una función de lectura de los CTE efectivos de `get_income_statement`. Conserva su guardia de roles, clasificación, deduplicación, FX, fechas y aritmética; únicamente propaga identificadores/folios y cambia la proyección final a documentos. No reemplaza ni modifica el reporte original.
 
-La creación falla si el reporte es SECURITY DEFINER, faltan anclas únicas o no existe la deduplicación canónica. La nueva función es SECURITY INVOKER, queda bajo RLS y exige Reportes/read más los módulos de los documentos (Facturas, Pagos para cobros, o Facturas de Proveedor y Gastos para categorías mixtas). Despacho sigue rechazado por la guardia financiera original. No recibe un ID arbitrario de empresa.
+La creación falla si el reporte es SECURITY DEFINER, faltan anclas únicas o no existe la deduplicación canónica. La nueva función es SECURITY INVOKER, queda bajo RLS y exige Reportes/read más los módulos de los documentos (Facturas para facturas y su historial de cobros, o Facturas de Proveedor y Gastos para categorías mixtas). Despacho sigue rechazado por la guardia financiera original. No recibe un ID arbitrario de empresa.
 
 La migración revoca ejecución a PUBLIC, anon y authenticated, incluyendo posibles privilegios por defecto. No contiene GRANT. El ensayo local otorga EXECUTE únicamente al rol sintético de la base desechable para probar el contrato, nunca al proyecto remoto.
 
@@ -45,3 +45,7 @@ vitest run src/features/reports/components/reports/incomeStatement/__tests__/Inc
 ## Revisión de foco anidado
 
 Se corrigió el retorno de foco al cerrar la ficha de proveedor desde el inspector. La ficha acepta `onCloseAutoFocus` de forma opt-in, sin cambiar el comportamiento de otros llamadores. El inspector resuelve el botón de la contribución actual al cerrar, también después de un refetch; si desapareció, enfoca el inspector conectado en vez de BODY. Cuatro pruebas con ambas hojas Radix reales cubren Cerrar, Escape/reapertura, remonte, fila ausente y folios repetidos. La repetición focal del inspector y estas regresiones aprobó 14/14 pruebas con un solo worker; ESLint focal no reportó advertencias.
+
+## Permisos de cobros
+
+La lectura de cobros usa el contrato vigente de la ficha de Facturas/read, tanto en UI como en SQL. La migración `20260610045321_b660bcd2-d9f2-4c18-bf0f-44f0d187b242.sql` eliminó el módulo Pagos y el catálogo `MODULES` ya no lo incluye; no se agrega ni restaura dicho permiso. La regresión usa el catálogo actual y `getAccessLevel`, y el fixture PostgreSQL usa una matriz sin Pagos con la implementación real de `has_permission`. Se conservan la exclusión financiera, Reportes/read, RLS y la ausencia de grants nuevos. El ensayo PostgreSQL pasó para admin, administrativo y auditor con Facturas/read, verificando además denegaciones de cada módulo, ambos tipos de base y Despacho; la repetición UI/hook/foco aprobó 16/16 pruebas con un worker.
