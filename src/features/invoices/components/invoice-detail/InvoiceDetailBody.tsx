@@ -9,6 +9,7 @@ import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { getInvoiceBackNavigation } from "@/lib/navigation/customerInvoiceOrigins";
 import { useLocation } from "@/lib/router-compat";
 import { StampErrorDialog } from "../StampErrorDialog";
+import { InvoiceCreditBalanceCard } from "./InvoiceCreditBalanceCard";
 import { InvoiceCreditNotesCard } from "./InvoiceCreditNotesCard";
 import { InvoiceDetailActions } from "./InvoiceDetailActions";
 import { InvoiceDetailBadges } from "./InvoiceDetailBadges";
@@ -25,6 +26,7 @@ import { ValidateReceptorButton } from "./ValidateReceptorButton";
 import type { useInvoiceDetailActions } from "../../hooks/invoiceDetail/useInvoiceDetailActions";
 import type { useInvoice } from "../../hooks/invoices/useInvoices";
 import type { usePayments } from "../../hooks/usePayments";
+import type { InvoiceCreditBalance } from "../../lib/invoiceCreditBalance";
 import type { computeInvoiceVisibility } from "../../lib/invoiceVisibility";
 
 type Invoice = NonNullable<ReturnType<typeof useInvoice>["data"]>;
@@ -37,6 +39,7 @@ interface Derived {
   paymentList: Payment[];
   lineItems: LineItem[];
   cfdiStatus: string;
+  creditBalance?: InvoiceCreditBalance;
   totalPaid: number;
   creditedAmount: number;
   total: number;
@@ -165,6 +168,7 @@ export function InvoiceDetailBody({
         exchangeRate={invoice.tipo_cambio}
       />
       <PaymentIntentsSection invoiceId={id} />
+      {derived.creditBalance && <InvoiceCreditBalanceCard balance={derived.creditBalance} />}
       <InvoiceCreditNotesCard invoice={invoice} />
       <InvoiceHistoryCard invoiceId={id} />
 
