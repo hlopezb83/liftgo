@@ -16,6 +16,45 @@ let db; let started = false;
 const orgA = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
 const orgB = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
+const documentSignature = 'public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer)';
+const inheritedRoles = ['service_role', 'sandbox_exec_zxefrzfaynnfwazqhwxp'];
+const snapshots = async () => (await db.unsafe(`SELECT
+  (SELECT jsonb_agg(to_jsonb(p) ORDER BY p.oid) FROM pg_proc p
+    WHERE p.pronamespace IN ('public'::regnamespace,'auth'::regnamespace)
+      AND p.oid IS DISTINCT FROM to_regprocedure('${documentSignature}')) AS functions,
+  (SELECT jsonb_agg(jsonb_build_object('id',oid,'acl',relacl::text,'rls',relrowsecurity,'force',relforcerowsecurity) ORDER BY oid)
+    FROM pg_class WHERE relnamespace='public'::regnamespace AND relkind IN ('r','v')) AS tables,
+  (SELECT jsonb_agg(to_jsonb(p) ORDER BY schemaname,tablename,policyname) FROM pg_policies p) AS policies,
+  (SELECT jsonb_agg(to_jsonb(r) ORDER BY role::text,module) FROM role_permissions r) AS permissions,
+  (SELECT jsonb_agg(to_jsonb(d) ORDER BY oid) FROM pg_default_acl d) AS defaults,
+  (SELECT jsonb_agg(to_jsonb(r) ORDER BY oid) FROM pg_roles r) AS roles,
+  (SELECT jsonb_agg(to_jsonb(m) ORDER BY roleid,member) FROM pg_auth_members m) AS memberships`))[0];
+const assertDocumentAcl = async (extraRoles) => {
+  const acl = await db.unsafe(`SELECT a.grantee=p.proowner AS owner,
+    CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END AS grantee,
+    a.privilege_type,a.is_grantable
+    FROM pg_proc p CROSS JOIN LATERAL aclexplode(p.proacl) a
+    WHERE p.oid='${documentSignature}'::regprocedure ORDER BY grantee`);
+  assert.deepEqual(Array.from(acl),[
+    {owner:false,grantee:'authenticated',privilege_type:'EXECUTE',is_grantable:false},
+    {owner:true,grantee:'postgres',privilege_type:'EXECUTE',is_grantable:false},
+  ],'exact ACL contains only owner and authenticated EXECUTE, without explicit grant option');
+  const [security] = await db.unsafe(`SELECT prosecdef,provolatile,proconfig FROM pg_proc
+    WHERE oid='${documentSignature}'::regprocedure`);
+  assert.deepEqual(security,{prosecdef:false,provolatile:'s',proconfig:['search_path=public']});
+  for (const role of ['authenticated','anon',...extraRoles]) {
+    const [access] = await db`SELECT
+      has_function_privilege(${role},${documentSignature},'EXECUTE') AS execute,
+      has_function_privilege(${role},${documentSignature},'EXECUTE WITH GRANT OPTION') AS grant_option`;
+    assert.deepEqual(access,{execute:role==='authenticated',grant_option:false},`${role} execution and grant option`);
+    if (role === 'authenticated') continue;
+    // Role names in this local fixture, like the migration, are quoted as identifiers.
+    await db.unsafe(`SET ROLE "${role.replaceAll('"','""')}";`);
+    try {
+      await assert.rejects(db.unsafe("SELECT public.get_income_statement_documents('2026-09-01','2026-10-31','cash','other_services',NULL,ARRAY['2026-10']);"),/permission denied for function get_income_statement_documents/);
+    } finally { await db.unsafe('RESET ROLE;'); }
+  }
+};
 (async () => {
   const listener = net.createServer();
   await new Promise(resolve => listener.listen(0,'127.0.0.1',resolve));
@@ -62,8 +101,42 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
   await db.unsafe(permissionFunction);
   await db.unsafe(read('supabase/migrations/20260831184510_1b4d05fe-419b-47ad-b28e-81791f3b6497.sql'));
   await db.unsafe(read('supabase/migrations/20260901015737_5392b1a1-fd02-4797-9b22-0b574cf46594.sql'));
+  // Replay only the canonical report rewrites, not unrelated banking migrations.
+  for (const migration of [
+    'supabase/migrations/20260901182145_26e1f20a-d2b3-404d-a1c6-533a8652d52f.sql',
+    'supabase/migrations/20260902004607_e4229dd2-25cf-4702-b625-5c45e1e9e987.sql',
+  ]) {
+    const reportPatches = (read(migration).match(/DO \$do\$[\s\S]*?\$do\$;/g) || [])
+      .filter(block => block.includes("p.proname = 'get_income_statement'"));
+    assert.equal(reportPatches.length,1,`${migration} must have exactly one canonical report patch`);
+    await db.unsafe(reportPatches[0]);
+  }
   await db.unsafe('ALTER FUNCTION get_income_statement(date,date,text) SECURITY INVOKER;');
+
+  // LOCAL FIXTURE ONLY: strengthen observed creator defaults with grant option.
+  // First verify installations where neither optional inherited role exists.
+  await db.unsafe('ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO anon, authenticated WITH GRANT OPTION;');
+  const absentRoles = await db`SELECT rolname FROM pg_roles WHERE rolname = ANY(${inheritedRoles})`;
+  assert.equal(absentRoles.length,0);
+  const absentSnapshot = await snapshots();
   await db.unsafe(read('drizzle/migrations/0117_income_statement_documents.sql'));
+  await assertDocumentAcl([]);
+  assert.deepEqual(await snapshots(),absentSnapshot,'absent-role migration preserves existing functions/ACLs, defaults, roles, tables/RLS and modules');
+  console.log('PASS: optional inherited roles absent; owner/authenticated exact ACL without explicit grant option; unrelated catalog unchanged.');
+
+  // LOCAL FIXTURE ONLY: reproduce the two extra defaults verified in preflight.
+  // Existing canonical ACLs also retain these roles, so an overbroad revoke fails.
+  await db.unsafe(`DROP FUNCTION ${documentSignature};
+    CREATE ROLE service_role; CREATE ROLE sandbox_exec_zxefrzfaynnfwazqhwxp;
+    ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA public GRANT EXECUTE ON FUNCTIONS
+      TO service_role, sandbox_exec_zxefrzfaynnfwazqhwxp WITH GRANT OPTION;
+    GRANT EXECUTE ON FUNCTION public.get_income_statement(date,date,text)
+      TO service_role, sandbox_exec_zxefrzfaynnfwazqhwxp WITH GRANT OPTION;`);
+  const presentSnapshot = await snapshots();
+  await db.unsafe(read('drizzle/migrations/0117_income_statement_documents.sql'));
+  await assertDocumentAcl(inheritedRoles);
+  assert.deepEqual(await snapshots(),presentSnapshot,'inherited-role migration preserves existing functions/ACLs, defaults, roles, tables/RLS and modules');
+  console.log('PASS: inherited anon/authenticated/service_role/sandbox defaults with grant option removed only from the new RPC; unrelated catalog unchanged.');
   const [executionAccess] = await db`SELECT
     has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated,
     has_function_privilege('anon',p.oid,'EXECUTE') AS anon,

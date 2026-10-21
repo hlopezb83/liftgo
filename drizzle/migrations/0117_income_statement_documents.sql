@@ -179,6 +179,19 @@ $migration$;
 -- Remove PUBLIC/anon execution and activate only the approved authenticated RPC.
 -- No table/module grants, role changes or default-privilege changes are made.
 REVOKE ALL ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer) FROM PUBLIC, anon, authenticated;
+-- Remove only the two additional creator-default grants verified in preflight.
+-- Optional roles may be absent elsewhere; never change their defaults or other ACLs.
+DO $rpc_acl$
+DECLARE
+  v_role text;
+BEGIN
+  FOR v_role IN SELECT rolname FROM pg_roles
+    WHERE rolname IN ('service_role', 'sandbox_exec_zxefrzfaynnfwazqhwxp')
+  LOOP
+    EXECUTE format('REVOKE ALL ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer) FROM %I', v_role);
+  END LOOP;
+END;
+$rpc_acl$;
 GRANT EXECUTE ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer) TO authenticated;
 COMMENT ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer)
   IS 'MEJ-001 canonical source documents. Authenticated execution with invoker RLS + original financial role guard + source-module permissions. Paginated; no table or module privileges added.';
