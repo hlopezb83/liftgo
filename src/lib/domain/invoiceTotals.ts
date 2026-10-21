@@ -1,4 +1,5 @@
 import currency from "currency.js";
+import { roundPercentageAmount } from "../money/decimalRounding";
 
 export interface LineItem {
   quote_line_id?: string;
@@ -98,7 +99,10 @@ export function computeTotals(lineItems: LineItem[], taxRate: number) {
       ? item.tax_rate
       : taxRate;
     if (!rate) continue;
-    taxAmount = taxAmount.add(money(base).multiply(rate).divide(100));
+    // Normalize the base as before, but do not round the intermediate base ×
+    // percentage. Exact decimals avoid both double-rounding and large Number
+    // products crossing a half-cent. Retain the UI's existing negative tie rule.
+    taxAmount = taxAmount.add(roundPercentageAmount(money(base).value, rate) ?? 0);
   }
 
   const total = subtotal.add(taxAmount);

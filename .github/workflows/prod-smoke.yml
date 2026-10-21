@@ -1,10 +1,8 @@
 name: Prod smoke
 
-# Único monitoreo automático: dos peticiones de LECTURA a la app publicada.
-# No escribe nada, no autentica y no toca la base. Detecta caídas y que
-# `version.json` siga siendo parseable; NO detecta rollbacks: no compara la
-# versión servida contra ninguna referencia.
-
+# Lecturas HTTP + UI pública publicada: carga, recarga e interacción local.
+# Sin login, secretos, fixtures de datos, backend ni peticiones mutantes.
+# No detecta rollbacks: verifica coherencia bundle/version.json, no contra main.
 
 on:
   schedule:
@@ -26,9 +24,9 @@ env:
 
 jobs:
   ping:
-    name: Ping app y version.json
+    name: App, versión e interfaz pública
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    timeout-minutes: 12
     steps:
       - name: HEAD /
         run: |
@@ -49,6 +47,24 @@ jobs:
             exit 1
           fi
           echo "Versión publicada: $VERSION"
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup-bun-project
+      - uses: ./.github/actions/setup-playwright
+
+      - name: Smoke UI pública (sin autenticación ni escrituras)
+        run: bunx playwright test --config playwright.prod-smoke.config.ts
+
+      - name: Subir diagnóstico de la interfaz
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: prod-smoke-artifacts
+          path: test-results/prod-smoke/
+          retention-days: 3
+          if-no-files-found: ignore
 
       - name: Abrir o actualizar issue en fallo
         if: failure()

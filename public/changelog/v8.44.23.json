@@ -1,0 +1,9 @@
+{
+  "description": "Mejora la lectura y revisión del Excel operativo, tanto en la descarga individual como dentro del paquete de comprobantes.",
+  "changes": [
+    "Control explica el periodo, los filtros y cómo revisar el archivo; el resumen separa importes por hoja, moneda, estado y ambiente sin un total mezclado.",
+    "Las hojas muestran primero folios, fechas y campos contables; mantienen los identificadores técnicos y los encabezados incluso cuando no hay registros.",
+    "Los encabezados, filtros, filas alternadas y primera fila inmovilizada facilitan la consulta; fechas, importes, tipos de cambio y conteos conservan tipos y formatos adecuados.",
+    "Se conservan datos, permisos, límites del ZIP y protección contra fórmulas incrustadas en textos; no se agregan migraciones ni dependencias."
+  ]
+}

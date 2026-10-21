@@ -7,10 +7,13 @@
  * mirar `ConsoleMessage.location().url`, que sí la trae.
  *
  * Regla: se ignora ÚNICAMENTE el error de transporte demostrablemente causado
- * por una petición externa que esta prueba bloqueó. Un asset del origen de la
- * app, un error sin atribución (sin URL) o cualquier error que no sea de
- * transporte (React, hidratación, etc.) siempre falla.
+ * por una petición externa que esta prueba bloqueó, o el ERR_FAILED exacto de
+ * uno de los dos scripts del hosting cuyo aborto GET/script consta en esta
+ * ejecución. Los assets de la app, errores sin URL y errores de aplicación
+ * (React, hidratación, etc.) siempre fallan.
  */
+
+import { knownHostingScriptUrl } from "./hostingScriptNoise";
 
 /** Entrada mínima de un error de consola, desacoplada de Playwright. */
 export interface ConsoleErrorEntry {
@@ -24,6 +27,8 @@ export interface NoiseContext {
   readonly origin: string;
   /** URLs que ESTE spec abortó, ya normalizadas. */
   readonly blocked: ReadonlySet<string>;
+  /** Sólo abortos GET/script del hosting reconocidos por la guarda de ESTE spec. */
+  readonly blockedHostingScripts: ReadonlySet<string>;
 }
 
 export interface NoiseVerdict {
@@ -72,9 +77,13 @@ export function classifyConsoleError(
   } catch {
     sameOrigin = false;
   }
-  // Asset propio roto: exactamente el fallo de empaquetado que este smoke
-  // persigue. Nunca se ignora, aunque el texto sea idéntico al del ruido.
-  if (sameOrigin) return { ignored: false, diagnostic };
+  if (sameOrigin) {
+    // Generic blocked URLs are not provenance for this narrow exception.
+    const hostingScript = knownHostingScriptUrl(entry.url, ctx.origin);
+    const ignored = entry.text === "Failed to load resource: net::ERR_FAILED"
+      && hostingScript !== undefined && ctx.blockedHostingScripts.has(hostingScript);
+    return { ignored, diagnostic };
+  }
 
   if (ctx.blocked.has(normalized)) return { ignored: true, diagnostic };
 
