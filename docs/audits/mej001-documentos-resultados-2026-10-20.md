@@ -2,7 +2,7 @@
 
 ## Estado
 
-Implementación preparada y probada localmente. No aplicada en la base remota, no publicada y sin nuevos permisos EXECUTE. La activación de la migración 0117 y el acceso a su RPC requieren aprobación independiente. La UI muestra un error recuperable si el endpoint aún no está disponible; nunca presenta ese fallo como cero ni como conciliación correcta.
+Implementación preparada y probada localmente. La activación se autorizó el 2026-10-21: la migración 0117 incorpora únicamente EXECUTE de esta RPC para authenticated. Este cambio local no aplica la migración remota ni publica la mejora; ambos pasos quedan a cargo del integrador después de revisión, CI y preflight. La UI muestra un error recuperable si el endpoint aún no está disponible; nunca presenta ese fallo como cero ni como conciliación correcta.
 
 Base: `24082043f`, con MEJ-002 (`5c028fd72`) como dependencia de interfaz. No cambia manifiesto, lockfile, fórmulas del reporte ni permisos de otras funciones.
 
@@ -23,13 +23,13 @@ Base: `24082043f`, con MEJ-002 (`5c028fd72`) como dependencia de interfaz. No ca
 
 La creación falla si el reporte es SECURITY DEFINER, faltan anclas únicas o no existe la deduplicación canónica. La nueva función es SECURITY INVOKER, queda bajo RLS y exige Reportes/read más los módulos de los documentos (Facturas para facturas y su historial de cobros, o Facturas de Proveedor y Gastos para categorías mixtas). Despacho sigue rechazado por la guardia financiera original. No recibe un ID arbitrario de empresa.
 
-La migración revoca ejecución a PUBLIC, anon y authenticated, incluyendo posibles privilegios por defecto. No contiene GRANT. El ensayo local otorga EXECUTE únicamente al rol sintético de la base desechable para probar el contrato, nunca al proyecto remoto.
+La migración revoca ejecución a PUBLIC, anon y authenticated y después concede únicamente EXECUTE de esta RPC a authenticated. No cambia roles, privilegios por defecto, permisos de módulos ni acceso a tablas. Los ACL/defaults reales y cualquier privilegio inesperado se deben revisar antes de la ejecución remota; la prueba local no presupone esos valores. El ensayo comprueba ejecución autenticada, rechazo de anon/PUBLIC y ausencia de nuevos privilegios de tabla; los accesos de tabla de su fixture son exclusivamente locales.
 
 La función comprueba la huella del cuerpo canónico en cada llamada. Si cambia el reporte o vuelve a DEFINER, el detalle falla cerrado y requiere una nueva migración revisada que regenere los CTE; no continúa con cálculos divergentes.
 
 ## Verificación
 
-- PostgreSQL desechable con el cuerpo real del reporte más su deduplicación vigente: conciliación en ambas bases, USD/MXN, pagos parciales en meses distintos, notas de crédito por emisión, prorrateo de cobertura, gasto ligado no duplicado, centavos, paginación, RLS entre dos empresas ficticias, rechazo por módulo y rol, ausencia de permisos por defecto y rechazo ante cambio de versión/seguridad del origen.
+- PostgreSQL desechable con el cuerpo real del reporte más su deduplicación vigente: conciliación en ambas bases, USD/MXN, pagos parciales en meses distintos, notas de crédito por emisión, prorrateo de cobertura, gasto ligado no duplicado, centavos, paginación, RLS entre dos empresas ficticias, rechazo por módulo y rol, ejecución sólo autenticada y rechazo ante cambio de versión/seguridad del origen.
 - Pruebas focales de React/Vitest: 51/51 aprobadas (5 archivos, un worker). navegación categoría/cliente/mes, conservar el contexto, cierre y foco, paginación, carga sin filas anteriores, error/reintento, discrepancia de total, moneda, fichas, permisos y cambio de empresa. Regresiones existentes de etiquetas MEJ-002, redondeo y frontera financiera.
 - ESLint focal y coherencia del journal Drizzle. Diagnóstico TypeScript focal de ocho módulos cambiados: 0 errores; no sustituye el typecheck global.
 - Suite global, typecheck global, build y smoke publicado pendientes del integrador por la pausa de recursos. No se afirma validación visual en producción ni activación remota.
@@ -48,4 +48,4 @@ Se corrigió el retorno de foco al cerrar la ficha de proveedor desde el inspect
 
 ## Permisos de cobros
 
-La lectura de cobros usa el contrato vigente de la ficha de Facturas/read, tanto en UI como en SQL. La migración `20260610045321_b660bcd2-d9f2-4c18-bf0f-44f0d187b242.sql` eliminó el módulo Pagos y el catálogo `MODULES` ya no lo incluye; no se agrega ni restaura dicho permiso. La regresión usa el catálogo actual y `getAccessLevel`, y el fixture PostgreSQL usa una matriz sin Pagos con la implementación real de `has_permission`. Se conservan la exclusión financiera, Reportes/read, RLS y la ausencia de grants nuevos. El ensayo PostgreSQL pasó para admin, administrativo y auditor con Facturas/read, verificando además denegaciones de cada módulo, ambos tipos de base y Despacho; la repetición UI/hook/foco aprobó 16/16 pruebas con un worker.
+La lectura de cobros usa el contrato vigente de la ficha de Facturas/read, tanto en UI como en SQL. La migración `20260610045321_b660bcd2-d9f2-4c18-bf0f-44f0d187b242.sql` eliminó el módulo Pagos y el catálogo `MODULES` ya no lo incluye; no se agrega ni restaura dicho permiso. La regresión usa el catálogo actual y `getAccessLevel`, y el fixture PostgreSQL usa una matriz sin Pagos con la implementación real de `has_permission`. Se conservan la exclusión financiera, Reportes/read, RLS y la ausencia de nuevos permisos de tablas o módulos. El ensayo PostgreSQL pasó para admin, administrativo y auditor con Facturas/read, verificando además denegaciones de cada módulo, ambos tipos de base y Despacho; la repetición UI/hook/foco aprobó 16/16 pruebas con un worker.

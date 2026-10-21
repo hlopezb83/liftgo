@@ -1,7 +1,7 @@
 -- MEJ-001: read-only document drilldown derived from the effective canonical CTEs.
 -- This does not replace get_income_statement or change any arithmetic/filter.
 -- Fail closed on source drift, SECURITY DEFINER, missing anchors or permissions.
--- No EXECUTE grant is added: activation/ACL requires separate reviewed approval.
+-- Approved activation grants only this RPC to authenticated; all data guards remain.
 DO $migration$
 DECLARE
   v_source text;
@@ -176,7 +176,9 @@ $tail$;
 END;
 $migration$;
 
--- Deny the PostgreSQL default PUBLIC execution grant. No new role ACLs here.
+-- Remove PUBLIC/anon execution and activate only the approved authenticated RPC.
+-- No table/module grants, role changes or default-privilege changes are made.
 REVOKE ALL ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer) TO authenticated;
 COMMENT ON FUNCTION public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer)
-  IS 'MEJ-001 canonical source documents. Invoker RLS + original financial role guard + source-module permissions. Paginated; activation requires separately approved EXECUTE ACL.';
+  IS 'MEJ-001 canonical source documents. Authenticated execution with invoker RLS + original financial role guard + source-module permissions. Paginated; no table or module privileges added.';

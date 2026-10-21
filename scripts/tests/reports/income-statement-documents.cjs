@@ -63,12 +63,21 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
   await db.unsafe(read('supabase/migrations/20260831184510_1b4d05fe-419b-47ad-b28e-81791f3b6497.sql'));
   await db.unsafe(read('supabase/migrations/20260901015737_5392b1a1-fd02-4797-9b22-0b574cf46594.sql'));
   await db.unsafe('ALTER FUNCTION get_income_statement(date,date,text) SECURITY INVOKER;');
-  await db.unsafe('ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT EXECUTE ON FUNCTIONS TO authenticated, anon;');
   await db.unsafe(read('drizzle/migrations/0117_income_statement_documents.sql'));
-  const [{allowed}] = await db`SELECT has_function_privilege('authenticated','get_income_statement_documents(date,date,text,text,text,text[],integer,integer)','execute') allowed`;
-  assert.equal(allowed,false,'migration must not activate new access');
-  // LOCAL FIXTURE ONLY: simulate a separately approved activation.
-  await db.unsafe(`GRANT USAGE ON SCHEMA public,auth TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated; GRANT EXECUTE ON FUNCTION get_income_statement_documents(date,date,text,text,text,text[],integer,integer) TO authenticated;`);
+  const [executionAccess] = await db`SELECT
+    has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated,
+    has_function_privilege('anon',p.oid,'EXECUTE') AS anon,
+    EXISTS (SELECT 1 FROM aclexplode(COALESCE(p.proacl,acldefault('f',p.proowner))) acl
+      WHERE acl.grantee=0 AND acl.privilege_type='EXECUTE') AS public
+    FROM pg_proc p WHERE p.oid='public.get_income_statement_documents(date,date,text,text,text,text[],integer,integer)'::regprocedure`;
+  assert.deepEqual(executionAccess,{authenticated:true,anon:false,public:false},'only the approved authenticated execution is activated');
+  const [{tableAccess}] = await db`SELECT has_table_privilege('authenticated','public.invoices','SELECT') AS "tableAccess"`;
+  assert.equal(tableAccess,false,'the migration must not add table privileges');
+  await db.unsafe('SET ROLE anon;');
+  await assert.rejects(db.unsafe("SELECT public.get_income_statement_documents('2026-09-01','2026-10-31','cash','other_services',NULL,ARRAY['2026-10']);"),/permission denied for function get_income_statement_documents/);
+  await db.unsafe('RESET ROLE;');
+  // LOCAL FIXTURE ONLY: model existing table access; execution comes from 0117 itself.
+  await db.unsafe(`GRANT USAGE ON SCHEMA public,auth TO authenticated; GRANT SELECT ON ALL TABLES IN SCHEMA public TO authenticated;`);
   await db.unsafe(`
     INSERT INTO invoices(id,subtotal,total,tipo_cambio,moneda,invoice_type,customer_name,issued_at,status,invoice_number) VALUES
       ('${id(10)}',100,116,20,'USD','standard','Cliente QA','2026-09-15','sent','FAC-USD'),
@@ -144,7 +153,7 @@ const id = n => `00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
   const other=await docs('accrual','other_services');assert.equal(other.total_amount,888);assert.equal(other.items[0].folio,'OTHER-TENANT');
   await db.unsafe('RESET ROLE; ALTER FUNCTION get_income_statement(date,date,text) SECURITY DEFINER; SET ROLE authenticated;');
   await assert.rejects(docs('accrual','other_services'),/source version changed/);
-  console.log('PASS: canonical totals, FX, cash dates, credit notes, coverage, linked expense dedup, rounding, pagination, tenant RLS, actual module matrix without Pagos, module/role denial, no default grant, source drift.');
+  console.log('PASS: authenticated execution, anon/PUBLIC denied, no table grant, canonical totals, FX, cash dates, credit notes, coverage, linked expense dedup, rounding, pagination, tenant RLS, actual module matrix without Pagos, module/role denial, source drift.');
 })().catch(error=>{console.error(error.message, error.position, error.internal_position); if (error.internal_query) { fs.writeFileSync(path.join(dir,'failed-query.sql'),error.internal_query); console.error(error.internal_query.slice(Math.max(0,Number(error.internal_position)-100),Number(error.internal_position)+100)); } console.error('Evidence:',dir); process.exitCode=1;}).finally(async()=>{
   if(db)await db.end();if(started)pg('pg_ctl',['-D',`${dir}/data`,'-m','immediate','stop']);
 });
