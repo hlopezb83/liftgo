@@ -1,15 +1,16 @@
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { formDraftKey, syncFormDraftIdentity } from "@/lib/storage/formDraftStorage";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 const sdk = vi.hoisted(() => ({
   callback: null as ((event: AuthChangeEvent, session: Session | null) => void) | null,
-  getSession: vi.fn(), unsubscribe: vi.fn(),
+  getSession: vi.fn(), unsubscribe: vi.fn(), signOut: vi.fn(),
 }));
 vi.mock("@/features/auth/recoveryCapture", () => ({ startRecoveryCapture: vi.fn() }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: {
-  getSession: sdk.getSession,
+  getSession: sdk.getSession, signOut: sdk.signOut,
   onAuthStateChange: (callback: typeof sdk.callback) => {
     sdk.callback = callback;
     return { data: { subscription: { unsubscribe: sdk.unsubscribe } } };
@@ -25,7 +26,7 @@ function session(id: string, token = id): Session {
   return { user: { id }, access_token: token } as Session;
 }
 
-beforeEach(() => { vi.clearAllMocks(); sdk.callback = null; });
+beforeEach(() => { vi.clearAllMocks(); sdk.callback = null; localStorage.clear(); });
 
 describe("auth bootstrap ordering", () => {
   it.each(["SIGNED_IN", "TOKEN_REFRESHED", "PASSWORD_RECOVERY"] as const)(
@@ -76,5 +77,39 @@ describe("auth bootstrap ordering", () => {
     expect(sdk.unsubscribe).toHaveBeenCalledOnce();
     act(() => sdk.callback?.("SIGNED_IN", session("late")));
     expect(screen.queryByText("late:late")).not.toBeInTheDocument();
+  });
+});
+
+function LogoutButton() {
+  const { signOut } = useAuth();
+  return <button onClick={() => void signOut()}>Salir</button>;
+}
+
+describe("booking draft auth lifecycle", () => {
+  const scope = "current:organization:internal";
+  const seed = () => { syncFormDraftIdentity(scope); localStorage.setItem(formDraftKey(scope), "private draft"); };
+  it("keeps a draft during initial loading, then purges on a confirmed empty session", async () => {
+    seed();
+    let resolve: (value: { data: { session: Session | null } }) => void = () => undefined;
+    sdk.getSession.mockReturnValue(new Promise((done) => { resolve = done; }));
+    render(<AuthProvider><Status /></AuthProvider>);
+    expect(localStorage.getItem(formDraftKey(scope))).toBe("private draft");
+    await act(async () => resolve({ data: { session: null } }));
+    expect(localStorage.getItem(formDraftKey(scope))).toBeNull();
+  });
+  it("purges on SIGNED_OUT from another tab", () => {
+    seed(); sdk.getSession.mockReturnValue(new Promise(() => undefined));
+    render(<AuthProvider><Status /></AuthProvider>);
+    act(() => sdk.callback?.("SIGNED_OUT", null));
+    expect(localStorage.getItem(formDraftKey(scope))).toBeNull();
+  });
+  it("purges as soon as logout is requested even if both signout attempts fail", async () => {
+    seed(); sdk.getSession.mockResolvedValue({ data: { session: session("current") } });
+    sdk.signOut.mockRejectedValue(new Error("offline"));
+    render(<AuthProvider><Status /><LogoutButton /></AuthProvider>);
+    await waitFor(() => expect(screen.getByText("current:current")).toBeVisible());
+    fireEvent.click(screen.getByRole("button", { name: "Salir" }));
+    expect(localStorage.getItem(formDraftKey(scope))).toBeNull();
+    await waitFor(() => expect(sdk.signOut).toHaveBeenCalledTimes(2));
   });
 });

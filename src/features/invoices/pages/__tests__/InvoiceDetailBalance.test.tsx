@@ -17,11 +17,12 @@ vi.mock("../../hooks/usePayments", () => ({ usePayments: mocks.payments }));
 vi.mock("../../hooks/creditNotes/useCreditNotes", () => ({ useCreditNotesForInvoice: mocks.credits }));
 vi.mock("../../hooks/invoiceDetail/useInvoiceDetailActions", () => ({ useInvoiceDetailActions: () => ({}) }));
 vi.mock("../../components/invoice-detail/InvoiceDetailBody", () => ({
-  InvoiceDetailBody: ({ derived }: { derived: { balance: number; totalPaid: number; creditedAmount: number } }) => (
+  InvoiceDetailBody: ({ derived }: { derived: { balance: number; totalPaid: number; creditedAmount: number; creditBalance?: { excess: number | null } } }) => (
     <section aria-label="Detalle financiero">
       <output aria-label="Saldo">{derived.balance}</output>
       <output aria-label="Pagado">{derived.totalPaid}</output>
       <output aria-label="Acreditado">{derived.creditedAmount}</output>
+      <output aria-label="Excedente informado">{derived.creditBalance?.excess ?? "no determinable"}</output>
       <button>Registrar pago</button>
     </section>
   ),
@@ -96,4 +97,13 @@ describe("InvoiceDetail — saldo sólo con dependencias completas", () => {
     expect(screen.getByLabelText("Acreditado")).toHaveTextContent("200");
     expect(screen.getByLabelText("Saldo")).toHaveTextContent("1092");
   });
+});
+
+
+it("derives the excess from the same payments and NULL-active notes as the visible detail", () => {
+  mocks.payments.mockReturnValue({ ...ready, data: [{ id: "p1", invoice_id: invoice.id, amount: 1392, currency: "USD", payment_date: "2026-10-20" }], refetch: mocks.retryPayments });
+  mocks.credits.mockReturnValue({ ...ready, data: [{ id: "c1", invoice_id: invoice.id, credit_note_number: "NC-001", currency: "USD", total: 200, cfdi_status: "stamped", status: "issued", cancellation_status: null }], refetch: mocks.retryCredits });
+  render(<InvoiceDetail />);
+  expect(screen.getByLabelText("Saldo")).toHaveTextContent("-200");
+  expect(screen.getByLabelText("Excedente informado")).toHaveTextContent("200");
 });

@@ -1,3 +1,4 @@
+import { useBookingDraft } from "./useBookingDraft";
 import { useBookingFormState } from "./useBookingFormState";
 import { useBookingFormSubmit } from "./useBookingFormSubmit";
 
@@ -8,7 +9,12 @@ import { useBookingFormSubmit } from "./useBookingFormSubmit";
  */
 export function useBookingFormLogic() {
   const stateBag = useBookingFormState();
-  const submitBag = useBookingFormSubmit();
+  const draft = useBookingDraft(stateBag.form);
+  const submitBag = useBookingFormSubmit({
+    canSubmit: draft.canSubmit,
+    captureCompletion: draft.captureCompletion,
+    revalidateAvailability: stateBag.revalidateAvailability,
+  });
 
   const selectedForklift = stateBag.forklifts?.find(
     (f) => f.id === (submitBag.postBooking?.forkliftId ?? stateBag.forkliftId),
@@ -16,11 +22,18 @@ export function useBookingFormLogic() {
 
   return {
     form: stateBag.form,
+    draft,
+    isSubmitting: submitBag.isSubmitting,
+    submitError: submitBag.submitError,
     customers: submitBag.customers,
     createBooking: submitBag.createBooking,
     dateRange: stateBag.dateRange,
     forkliftId: stateBag.forkliftId,
     availableForklifts: stateBag.availableForklifts,
+    availabilityLoading: stateBag.availabilityLoading,
+    availabilityError: stateBag.availabilityError,
+    availabilityFetching: stateBag.availabilityFetching,
+    revalidateAvailability: stateBag.revalidateAvailability,
     datesSelected: stateBag.datesSelected,
     onSubmit: submitBag.onSubmit,
     postBooking: submitBag.postBooking,
