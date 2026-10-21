@@ -131,7 +131,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintena
           />
         ))}
 
-        {available.length > 0 && <SectionHeader label="Disponibles" count={available.length} />}
+        {available.length > 0 && <SectionHeader label="Estado Disponible (sin actividad en el rango)" count={available.length} />}
         <ChipCloud groups={availableGroups} />
 
         {maintenance.length > 0 && <SectionHeader label="En mantenimiento" count={maintenance.length} />}

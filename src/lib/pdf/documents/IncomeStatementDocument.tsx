@@ -12,6 +12,7 @@ import type {
   PdfYearTotals as YearTotals,
   PdfMonthData as MonthData,
 } from "@/lib/pdf/types/incomeStatement";
+import { isFavorableStatementDelta, statementContextLines, statementMonthChunks, type IncomeStatementExportContext } from "@/lib/reports/incomeStatementPresentation";
 import { nowMty } from "@/lib/utils";
 
 export interface IncomeStatementDocumentProps {
@@ -26,12 +27,12 @@ export interface IncomeStatementDocumentProps {
   availableYears: string[];
   startDate: Date;
   endDate: Date;
+  exportContext?: IncomeStatementExportContext;
 }
 
 function periodLabel(p: IncomeStatementDocumentProps): string {
-  if (p.selectedYear === "all") return `${formatDateMty(p.startDate)} — ${formatDateMty(p.endDate)}`;
-  if (p.selectedYear === "compare") return `Comparativo: ${p.availableYears.join(" vs ")}`;
-  return `Año ${p.selectedYear}`;
+  if (p.exportContext) return `${p.exportContext.periodStart} — ${p.exportContext.periodEnd}`;
+  return `${formatDateMty(p.startDate)} — ${formatDateMty(p.endDate)}`;
 }
 
 function fmtVal(val: number | null, isPct?: boolean): string {
@@ -115,11 +116,11 @@ function ComparisonValues({ row, cellWidth }: { row: ComparisonRow; cellWidth: n
       })}
       <Text style={{
         width: cellWidth, textAlign: "right", fontSize: FONT_SIZES.xs, fontFamily: "Helvetica-Bold",
-        color: row.delta === null ? COLORS.gray500 : row.delta >= 0 ? COLORS.positiveGreen : COLORS.costRed,
+        color: row.delta === null ? COLORS.gray500 : isFavorableStatementDelta(row.delta, row.isCost) ? COLORS.positiveGreen : COLORS.costRed,
       }}>{fmtDelta(row.delta, row.isPercent)}</Text>
       <Text style={{
         width: cellWidth, textAlign: "right", fontSize: FONT_SIZES.xs, fontFamily: "Helvetica-Bold",
-        color: row.deltaPct === null ? COLORS.gray500 : row.deltaPct >= 0 ? COLORS.positiveGreen : COLORS.costRed,
+        color: row.deltaPct === null ? COLORS.gray500 : isFavorableStatementDelta(row.deltaPct, row.isCost) ? COLORS.positiveGreen : COLORS.costRed,
       }}>
         {row.deltaPct === null ? "—" : `${row.deltaPct >= 0 ? "+" : ""}${row.deltaPct.toFixed(1)}%`}
       </Text>
@@ -128,19 +129,40 @@ function ComparisonValues({ row, cellWidth }: { row: ComparisonRow; cellWidth: n
 }
 
 export function IncomeStatementDocument(props: IncomeStatementDocumentProps) {
-  const rows = props.isComparison ? props.comparisonRows : props.statementRows;
-  const headers = props.isComparison
-    ? [...props.yearTotals.map((y) => y.year), "Var. $", "Var. %"]
-    : [...props.filteredData.map((d) => d.month), "Total"];
-  // Landscape A4 = 842pt wide. After margins ~ 760pt. Label = 160. Cells share rest.
-  const cellWidth = Math.max(40, Math.min(70, Math.floor((760 - 160) / headers.length)));
-
+  const groups = props.isComparison ? [{ start: 0, months: props.filteredData }] : statementMonthChunks(props.filteredData);
   return (
     <Document title={`Estado de Resultados ${props.selectedYear}`}>
+      {groups.map(({ start, months }) => <StatementPage key={start} {...props} filteredData={months}
+        statementRows={props.statementRows.map((row) => ({ ...row, values: row.values.slice(start, start + months.length) }))}
+      />)}
+    </Document>
+  );
+}
+
+function pageSegmentLabel(props: IncomeStatementDocumentProps): string {
+  if (props.isComparison) return `Comparativo: ${props.availableYears.join(" / ")}`;
+  if (!props.filteredData.length) return "Sin meses";
+  return `Meses: ${props.filteredData[0].month} a ${props.filteredData.at(-1)?.month ?? ""}`;
+}
+
+function StatementPage(props: IncomeStatementDocumentProps) {
+  const rows = props.isComparison ? props.comparisonRows : props.statementRows;
+  const headers = props.isComparison
+    ? [...props.yearTotals.map((y) => y.year), "Variación", "Var. %"]
+    : [...props.filteredData.map((d) => d.month), "Total periodo"];
+  // Landscape A4 = 842pt wide. After margins ~ 760pt. Label = 160. Cells share rest.
+  const cellWidth = Math.min(90, Math.floor(580 / headers.length));
+  const segment = pageSegmentLabel(props);
+  const basis = !props.exportContext ? "Base no especificada" : props.exportContext.accountingBasis === "cash" ? "Efectivo" : "Devengado";
+
+  return (
       <Page size="A4" orientation="landscape" style={sharedStyles.pageLandscape}>
         <AccentBar />
+        <Text fixed style={{ position: "absolute", top: 13, left: 40, right: 40, fontSize: 6, color: COLORS.gray700 }}>
+          {props.company?.razon_social ?? "Estado de resultados"} · {periodLabel(props)} · MXN · {basis} · {segment}
+        </Text>
         <View style={sharedStyles.headerRow}>
-          <View>
+          <View style={{ width: 380 }}>
             {props.logoBase64 && <Text>{/* logo intentionally skipped on landscape to save space */}</Text>}
             {props.company && (
               <>
@@ -151,14 +173,20 @@ export function IncomeStatementDocument(props: IncomeStatementDocumentProps) {
               </>
             )}
           </View>
-          <View style={sharedStyles.headerRight}>
+          <View style={[sharedStyles.headerRight, { width: 330 }]}>
             <Text style={sharedStyles.headerKicker}>ESTADO DE RESULTADOS</Text>
             <Text style={sharedStyles.headerNumber}>{periodLabel(props)}</Text>
             <Text style={sharedStyles.headerMeta}>Emitido: {formatDateMty(nowMty())}</Text>
           </View>
         </View>
         <View style={sharedStyles.separator} />
+        {props.exportContext && <View style={{ marginBottom: 8 }}>
+          {statementContextLines(props.exportContext).map((line) => <Text key={line} style={{ fontSize: 7, color: COLORS.gray700, marginBottom: 2 }}>{line}</Text>)}
+        </View>}
 
+        <Text style={{ fontSize: 8, color: COLORS.gray700, marginBottom: 6 }}>
+          {segment}. {props.isComparison ? "Variación entre los dos últimos años mostrados." : "Total periodo corresponde al rango completo seleccionado, no al subtotal de estos meses."}
+        </Text>
         <View style={sharedStyles.tableHeader} fixed>
           <Text style={[sharedStyles.tableHeaderText, { width: 160 }]}>CONCEPTO</Text>
           {headers.map((h, i) => (
@@ -174,6 +202,5 @@ export function IncomeStatementDocument(props: IncomeStatementDocumentProps) {
 
         <Footer companyName={props.company?.razon_social ?? null} prefix="Estado de Resultados" />
       </Page>
-    </Document>
   );
 }

@@ -14,8 +14,8 @@
  * disparador `enforce_credit_note_max` en base de datos.
  *
  * Nota de negocio: cuando hay pagos SIN REP vigente, la NC puede dejar saldo a
- * favor del cliente. Hoy no hay flujo de reembolso implementado; queda como
- * feature pendiente ("saldo a favor / devoluciones").
+ * favor del cliente. El detalle muestra el excedente y su origen sólo como
+ * consulta; no aplica importes a otras facturas ni registra devoluciones.
  */
 import { roundMoney } from "@/lib/money";
 

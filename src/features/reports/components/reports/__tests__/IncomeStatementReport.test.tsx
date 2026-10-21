@@ -1,6 +1,9 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { useIncomeStatementData } from "../../../hooks/useIncomeStatementData";
 import { IncomeStatementReport } from "../IncomeStatementReport";
+
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "user:org:internal" }));
 
 const reportData = vi.hoisted(() => ({
   isComparison: false,
@@ -14,7 +17,7 @@ const reportData = vi.hoisted(() => ({
 }));
 
 vi.mock("../../../hooks/useIncomeStatementData", () => ({
-  useIncomeStatementData: () => ({
+  useIncomeStatementData: vi.fn(() => ({
     totals: {
       revenue: 150000,
       totalExpenses: 45000,
@@ -40,7 +43,7 @@ vi.mock("../../../hooks/useIncomeStatementData", () => ({
     fxMissingCount: 0, availableYears: [2026], selectedYear: "2026",
     setSelectedYear: vi.fn(), isComparison: reportData.isComparison,
     isError: false, isFetching: false, refetch: vi.fn(),
-  }),
+  })),
 }));
 
 // Las secciones ajenas al KPI no son el objeto de esta prueba aislada.
@@ -60,6 +63,7 @@ function renderReport(accountingBasis: "accrual" | "cash" = "accrual") {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks();
   reportData.isComparison = false;
   reportData.margin = 63.3;
   reportData.depreciation = 10000;
@@ -68,6 +72,71 @@ beforeEach(() => {
   reportData.roundingContext = null;
   reportData.rentedWithoutCost = [];
   reportData.soldWithoutCost = [];
+});
+
+describe("IncomeStatementReport · moneda, IVA y fechas (MEJ-002)", () => {
+  it.each(["accrual", "cash"] as const)("explica MXN y no promete que todos los costos estén sin IVA en %s", (basis) => {
+    renderReport(basis);
+    const note = screen.getByRole("region", { name: "Moneda, IVA y fechas del reporte" });
+    expect(note).toHaveTextContent("MXN (pesos mexicanos)");
+    expect(note).toHaveTextContent("facturas, notas de crédito y proveedores usan el subtotal sin IVA");
+    expect(note).toHaveTextContent("Mantenimiento, daños y gastos operativos usan el importe registrado, sin separar IVA");
+    expect(note).toHaveTextContent("Los documentos en divisa se convierten a MXN");
+    expect(note).toHaveTextContent("los que no tienen el tipo requerido se excluyen");
+    // La ayuda usa un disclosure nativo, sin tooltip de mouse ni alerta intrusiva.
+    const summary = within(note).getByText("Ver criterios por partida");
+    expect(summary.tagName).toBe("SUMMARY");
+    expect(summary.parentElement?.tagName).toBe("DETAILS");
+    expect(summary.parentElement).not.toHaveAttribute("open");
+  });
+
+  it("explica emisión y cobertura en devengado y conserva las fechas propias", () => {
+    renderReport();
+    const note = screen.getByRole("region", { name: "Moneda, IVA y fechas del reporte" });
+    expect(note).toHaveTextContent("Facturas por fecha de emisión. Proveedores por fecha de emisión o prorrateo de su período de cobertura");
+    expect(note).toHaveTextContent("Notas de crédito: por fecha de emisión, también en efectivo");
+    expect(note).toHaveTextContent("Gastos operativos: por fecha del gasto, en ambas bases");
+    expect(note).toHaveTextContent("Mantenimiento completado: por fecha de realización, en ambas bases");
+    expect(note).toHaveTextContent("Daños: por fecha de reparación o, si falta, de creación");
+    expect(note).toHaveTextContent("Depreciación: cálculo mensual desde la adquisición del equipo");
+    expect(note).not.toHaveTextContent("si la factura de proveedor no tiene total positivo");
+  });
+
+  it("explica cobros/pagos sin mover notas de crédito ni otros costos a la fecha de pago", () => {
+    renderReport("cash");
+    const note = screen.getByRole("region", { name: "Moneda, IVA y fechas del reporte" });
+    expect(note).toHaveTextContent("Facturas por fecha de cobro y proveedores por fecha de pago");
+    expect(note).toHaveTextContent("No equivale a una conciliación bancaria");
+    expect(note).toHaveTextContent("si la factura de proveedor no tiene total positivo, se usa el pago sin separar IVA");
+    expect(note).toHaveTextContent("Notas de crédito: por fecha de emisión, también en efectivo");
+    expect(note).toHaveTextContent("proporción acumulada cobrada de su factura, hasta el 100%");
+    expect(note).toHaveTextContent("incluidos cobros fuera del período consultado");
+    expect(note).toHaveTextContent("no por la fecha de devolución de dinero");
+    expect(note).toHaveTextContent("Costo de equipos vendidos: el automático sigue la fecha de la factura de venta en devengado o del cobro en efectivo");
+    expect(note).toHaveTextContent("Depreciación excluida en base efectivo");
+    expect(note).not.toHaveTextContent("Depreciación: cálculo mensual");
+  });
+
+  it("actualiza la explicación al cambiar de base sin alterar período, importes ni argumentos del hook", () => {
+    const startDate = new Date(2026, 0, 1);
+    const endDate = new Date(2026, 0, 31);
+    const { rerender } = render(<IncomeStatementReport startDate={startDate} endDate={endDate} accountingBasis="accrual" />);
+    expect(useIncomeStatementData).toHaveBeenLastCalledWith({ startDate, endDate, accountingBasis: "accrual" });
+    rerender(<IncomeStatementReport startDate={startDate} endDate={endDate} accountingBasis="cash" />);
+    expect(useIncomeStatementData).toHaveBeenLastCalledWith({ startDate, endDate, accountingBasis: "cash" });
+    expect(screen.getByRole("region", { name: "Moneda, IVA y fechas del reporte" })).toHaveTextContent("Facturas por fecha de cobro");
+    for (const [, value] of expectedKpis) expect(screen.getByText(value)).toBeInTheDocument();
+    rerender(<IncomeStatementReport startDate={startDate} endDate={endDate} accountingBasis="accrual" />);
+    expect(screen.getByRole("region", { name: "Moneda, IVA y fechas del reporte" })).toHaveTextContent("Facturas por fecha de emisión");
+    expect(screen.queryByText("(Depreciación excluida en base efectivo)")).not.toBeInTheDocument();
+  });
+
+  it("mantiene la explicación visible en el comparativo anual", () => {
+    reportData.isComparison = true;
+    renderReport("cash");
+    expect(screen.getByRole("region", { name: "Moneda, IVA y fechas del reporte" })).toHaveTextContent("MXN (pesos mexicanos)");
+    expect(screen.queryByText("$150,000.00")).not.toBeInTheDocument();
+  });
 });
 
 describe("IncomeStatementReport · KPI completos", () => {
