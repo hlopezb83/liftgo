@@ -1,3 +1,7 @@
+## [8.44.22] - 2026-10-21
+
+- Resultados permite consultar documentos de origen con paginación, conciliación y retorno de foco. La RPC de lectura conserva RLS y guardas financieras y de módulos, sin conceder acceso a nuevas tablas ni mover dinero.
+
 ## [8.44.21] - 2026-10-21
 
 - Recorrido guiado de lectura para Admin con folios QA/DEMO existentes y escenarios comprobados, sin crear datos ni operaciones. El detalle documental de Resultados requiere activación separada.
