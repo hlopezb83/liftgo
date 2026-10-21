@@ -1,3 +1,7 @@
+## [8.44.26] - 2026-10-21
+
+- La factura manual admite reservas completadas con periodos pendientes. El IVA del 11% deja de ofrecerse para operaciones nuevas y se rechaza su herencia sin conversión silenciosa, conservando históricos y ajustes relacionados. La migración y las funciones requieren activación verificada separada.
+
 ## [8.44.25] - 2026-10-21
 
 - El portal mantiene los controles inactivos hasta completar la hidratación para evitar perder la primera interacción. Incluye una regresión SSR con carga retrasada, sin cambiar permisos ni operaciones fiscales.

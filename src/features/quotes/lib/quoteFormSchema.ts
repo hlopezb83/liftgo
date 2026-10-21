@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LEGACY_VAT_MESSAGE } from "@/lib/fiscal/legacyVat";
 import { nowMty } from "@/lib/utils";
 
 /**
@@ -79,7 +80,7 @@ const dateRangeSchema = z.object({
   to: z.date().optional(),
 }).partial();
 
-export const quoteFormSchema = z.object({
+const historicalQuoteFormSchema = z.object({
   quoteType: z.enum(["rental", "sale"]),
   customerId: z.string().trim().min(1, "Selecciona un cliente"),
   customerName: z.string().default(""),
@@ -206,6 +207,15 @@ function checkValidUntil(validUntil: Date | null | undefined, rentalEnd: Date | 
     issue("La vigencia no puede ser anterior al fin del periodo de renta");
   }
 }
+
+export function createQuoteFormSchema(previousTaxRate?: string) {
+  return historicalQuoteFormSchema.superRefine((values, ctx) => {
+    if (Number(values.taxRate) === 11 && Number(previousTaxRate) !== 11) {
+      ctx.addIssue({ code: "custom", path: ["taxRate"], message: LEGACY_VAT_MESSAGE });
+    }
+  });
+}
+export const quoteFormSchema = createQuoteFormSchema();
 
 export type QuoteFormValues = z.infer<typeof quoteFormSchema>;
 export type RentalLineValues = z.infer<typeof rentalLineSchema>;

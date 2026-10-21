@@ -2,7 +2,7 @@ import { addDays, startOfDay } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
-import { quoteFormSchema, type QuoteFormValues, type RentalLineValues, type SaleLineValues } from "../../lib/quoteFormSchema";
+import { createQuoteFormSchema, type QuoteFormValues, type RentalLineValues, type SaleLineValues } from "../../lib/quoteFormSchema";
 
 export const EMPTY_SALE_LINE: SaleLineValues = {
   modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%",
@@ -45,9 +45,9 @@ function defaultQuoteFormValues(): QuoteFormValues {
  * la *referencia* de `values`; ver `useQuotePrefillValues` para el
  * memoizado que evita resets espurios y pérdida de ediciones del usuario.
  */
-export function useQuoteForm(values?: QuoteFormValues) {
+export function useQuoteForm(values?: QuoteFormValues, isEdit = false) {
   return useForm<QuoteFormValues>({
-    resolver: zodResolver(quoteFormSchema),
+    resolver: zodResolver(createQuoteFormSchema(isEdit ? values?.taxRate : undefined)),
     defaultValues: defaultQuoteFormValues(),
     values,
     mode: "onSubmit",

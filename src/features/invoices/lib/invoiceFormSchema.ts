@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { legacyVatNeedsCorrection, LEGACY_VAT_MESSAGE } from "@/lib/fiscal/legacyVat";
 import { nowMty } from "@/lib/utils";
 
 export const lineItemSchema = z
@@ -137,12 +138,22 @@ function validateInvoiceTotal(values: InvoiceValues, ctx: Ctx) {
   }
 }
 
-export const invoiceFormSchema = baseInvoiceSchema.superRefine((values, ctx) => {
-  validateBillingPeriod(values, ctx);
-  validateGlobalCfdi(values, ctx);
-  validateExchangeRate(values, ctx);
-  validateInvoiceTotal(values, ctx);
-});
+export function createInvoiceFormSchema(previous?: InvoiceValues) {
+  const previousLines = previous?.lineItems.map((line) => {
+    const parsed = lineItemSchema.safeParse(line);
+    return parsed.success ? parsed.data : line;
+  });
+  return baseInvoiceSchema.superRefine((values, ctx) => {
+    if (legacyVatNeedsCorrection({ tax_rate: values.taxRate, line_items: values.lineItems }, previous && { tax_rate: previous.taxRate, line_items: previousLines })) {
+      issue(ctx, ["taxRate"], LEGACY_VAT_MESSAGE);
+    }
+    validateBillingPeriod(values, ctx);
+    validateGlobalCfdi(values, ctx);
+    validateExchangeRate(values, ctx);
+    validateInvoiceTotal(values, ctx);
+  });
+}
+export const invoiceFormSchema = createInvoiceFormSchema();
 
 export type LineItemValues = z.infer<typeof lineItemSchema>;
 export type CfdiFormValues = z.infer<typeof cfdiSchema>;

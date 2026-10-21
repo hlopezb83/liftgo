@@ -1,0 +1,8 @@
+{
+  "description": "Permite seleccionar reservas completadas con periodos pendientes y evita usar IVA del 11% en nuevas operaciones de venta.",
+  "changes": [
+    "La factura manual permite seleccionar reservas completadas cuando tienen un periodo disponible, sin reabrir entregas ni devoluciones y conservando los controles de periodos ya facturados.",
+    "Los formularios retiran el IVA del 11% como opción para documentos nuevos y avisan cuando se hereda de un registro anterior; no lo convierten automáticamente al 16% ni al 8%.",
+    "Las validaciones de servidor rechazan nuevos ingresos con IVA del 11%; se conservan los documentos históricos y los ajustes relacionados de notas de crédito y complementos de pago. La activación de base de datos y funciones se verifica por separado."
+  ]
+}

@@ -7,8 +7,8 @@ describe("tax rate option labels", () => {
       .toEqual({ value: 0, label: "0% (Tasa cero)" });
   });
 
-  it("preserves the existing numeric rates and default", () => {
-    expect(APP_CONFIG.TAX_RATE_OPTIONS.map(({ value }) => value)).toEqual([16, 11, 0]);
+  it("offers current rates without silently substituting a border incentive", () => {
+    expect(APP_CONFIG.TAX_RATE_OPTIONS.map(({ value }) => value)).toEqual([16, 0]);
     expect(APP_CONFIG.DEFAULT_TAX_RATE).toBe(16);
   });
 });

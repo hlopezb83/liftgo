@@ -1054,3 +1054,96 @@ Deno.test("handler: error fiscal tras el claim libera la reserva y no emite CFDI
     mock.restore();
   }
 });
+
+for (
+  const taxFields of [
+    { tax_rate: 11 },
+    { tax_rate: 16, line_items: [{ tax_rate: 11 }] },
+    { tax_rate: 16, line_items: [{ tax_rate: "11.00" }] },
+  ]
+) {
+  Deno.test(`obsolete VAT rejected before claim or provider: ${JSON.stringify(taxFields)}`, async () => {
+    let providerCalls = 0;
+    const { deps, serviceState } = makeDeps({
+      fetchImpl: (() => {
+        providerCalls++;
+        throw new Error("Provider must not run");
+      }) as typeof fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              organization_id: ORG_ID,
+              cfdi_status: "pending",
+              ...taxFields,
+            },
+            error: null,
+          },
+        },
+      },
+    });
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    assertEquals(res.status, 422);
+    assertEquals((await res.json()).code, "OBSOLETE_VAT_RATE");
+    assertEquals(serviceState.updates.length, 0);
+    assertEquals(providerCalls, 0);
+  });
+}
+Deno.test("already stamped legacy VAT keeps idempotent response and history", async () => {
+  const { deps, serviceState } = makeDeps({
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: {
+            id: INVOICE_ID,
+            organization_id: ORG_ID,
+            tax_rate: 11,
+            cfdi_status: "stamped",
+            cfdi_uuid: "historical-uuid",
+          },
+          error: null,
+        },
+      },
+    },
+  });
+  const res = await handleStampCfdi(
+    makeRequest({ invoice_id: INVOICE_ID }),
+    deps,
+  );
+  assertEquals(res.status, 409);
+  assertEquals((await res.json()).cfdi_uuid, "historical-uuid");
+  assertEquals(serviceState.updates.length, 0);
+});
+
+Deno.test("legacy VAT with provider ID keeps reconciliation guard and performs no writes", async () => {
+  const { deps, serviceState } = makeDeps({
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: {
+            id: INVOICE_ID,
+            organization_id: ORG_ID,
+            tax_rate: 11,
+            cfdi_status: "error",
+            facturapi_invoice_id: "existing-provider-id",
+          },
+          error: null,
+        },
+      },
+    },
+  });
+  const res = await handleStampCfdi(
+    makeRequest({ invoice_id: INVOICE_ID }),
+    deps,
+  );
+  assertEquals(res.status, 409);
+  assertEquals((await res.json()).facturapi_invoice_id, "existing-provider-id");
+  assertEquals(serviceState.updates.length, 0);
+});
