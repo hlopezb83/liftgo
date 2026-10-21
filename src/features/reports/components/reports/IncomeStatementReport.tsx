@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DEPRECIATION_ROUNDING_LABEL } from "../../hooks/incomeStatement/depreciationPresentation";
-import { buildComparisonCsvRows } from "../../hooks/incomeStatement/statementRowFactories";
+import { useStatementExports } from "../../hooks/incomeStatement/useStatementExports";
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 import { IncomeStatementBasisNote } from "./incomeStatement/IncomeStatementBasisNote";
 import { IncomeStatementTable } from "./IncomeStatementTable";
@@ -25,11 +23,11 @@ function FxMissingAlert({ count }: { count: number }) {
   return (
     <Alert variant="warning">
       <WarnIcon className="h-4 w-4" />
-      <AlertTitle>Documentos en divisa sin tipo de cambio</AlertTitle>
+      <AlertTitle>Documentos o cobros sin conversión válida</AlertTitle>
       <AlertDescription>
-        {count} documento{count === 1 ? "" : "s"} en divisa sin tipo de cambio
-        {count === 1 ? " se excluyó" : " se excluyeron"} de este reporte. Captura el tipo de cambio
-        en la factura o en la factura de proveedor para incluirlos.
+        {count} registro{count === 1 ? "" : "s"} de facturas, proveedores o cobros sin tipo de cambio
+        {count === 1 ? " se excluyó" : " se excluyeron"} de este reporte. Revisa la moneda y el tipo de cambio
+        del documento o cobro correspondiente para incluirlos.
       </AlertDescription>
     </Alert>
   );
@@ -57,9 +55,10 @@ function DepreciationRoundingNote({ isComparison, statementRows, comparisonRows 
 }
 
 export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
+  const report = useIncomeStatementData({ startDate, endDate, accountingBasis });
   const {
     filteredData, totals, statementRows, comparisonRows, yearTotals,
-    csvRows, depreciationBreakdownRows, cogsBreakdownRows,
+    depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     otherServicesBreakdownRows,
     damageRecoveryBreakdownRows,
@@ -70,16 +69,13 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     fxMissingCount,
 
     availableYears, selectedYear, setSelectedYear, isComparison,
-    isError, isFetching, refetch,
-  } = useIncomeStatementData({ startDate, endDate, accountingBasis });
+    isError, isFetching, isPending, refetch,
+  } = report;
 
 
-  const [pdfLoading, setPdfLoading] = useState(false);
-  // G-A1: el CSV debe reflejar lo que se ve en pantalla, no el detalle mensual crudo.
-  const comparisonCsvRows = isComparison
-    ? buildComparisonCsvRows(comparisonRows, yearTotals.map((yt) => yt.year))
-    : [];
-
+  const { handleExportPdf, handleExportCsv, pdfLoading, csvLoading, exportDisabled, exportRows } = useStatementExports({
+    ...report, startDate, endDate, accountingBasis,
+  });
 
   const netPositive = totals.netProfit >= 0;
   // Hallazgo 10: la tarjeta de egresos NO incluye depreciación (la utilidad
@@ -94,23 +90,6 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     { label: "Margen Neto", ...formatMarginKpi(totals.margin), icon: Percent },
   ];
 
-  const handleExportPdf = async () => {
-    setPdfLoading(true);
-    try {
-      // Lazy: keep @react-pdf/renderer out of the initial bundle.
-      const { exportIncomeStatementPdf } = await import("@/lib/pdf/incomeStatement");
-      await exportIncomeStatementPdf({
-        filteredData, statementRows, comparisonRows, yearTotals,
-        isComparison, selectedYear, availableYears, startDate, endDate,
-      });
-      notifySuccess("PDF descargado");
-    } catch (err) {
-      notifyError({ error: err, message: "Error al generar PDF" });
-    } finally {
-      setPdfLoading(false);
-    }
-  };
-
   // R22-B: un estado de resultados en ceros por falla de red induce a error.
   if (isError) {
     return (
@@ -122,8 +101,15 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     );
   }
 
+  if (isFetching || isPending) {
+    return <div role="status" aria-live="polite" className="p-6 text-sm text-muted-foreground">Cargando estado de resultados… Las exportaciones estarán disponibles al terminar.</div>;
+  }
+
   return (
     <>
+      {selectedYear !== "all" && selectedYear !== "compare" && (fxMissingCount + rentedWithoutCost.length + soldWithoutCost.length > 0) && (
+        <p className="text-xs text-muted-foreground">Las advertencias corresponden a la consulta completa {toYMD(startDate)} a {toYMD(endDate)}; no se recalculan al seleccionar un año.</p>
+      )}
       <FxMissingAlert count={fxMissingCount} />
 
 
@@ -180,10 +166,13 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         availableYears={availableYears}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
-        csvRows={isComparison ? comparisonCsvRows : csvRows}
+        csvRows={exportRows}
         csvFilename={isComparison ? "estado-resultados-comparativo.csv" : "estado-resultados.csv"}
         onExportPdf={handleExportPdf}
         pdfLoading={pdfLoading}
+        onExportCsv={handleExportCsv}
+        csvLoading={csvLoading}
+        exportDisabled={exportDisabled}
       />
 
       <IncomeStatementTable

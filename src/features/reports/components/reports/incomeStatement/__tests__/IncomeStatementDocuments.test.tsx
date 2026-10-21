@@ -153,7 +153,7 @@ describe("MEJ-001 source documents", () => {
   it("shows document currency, attribution in MXN and cash event distinct from issuance", () => {
     renderDocuments();
     expect(
-      screen.getByText("Total conciliado: $1,000.00 MXN (26 movimientos)."),
+      screen.getByText("Detalle coincide con el reporte: $1,000.00 MXN (26 movimientos)."),
     ).toBeInTheDocument();
     expect(screen.getByText("Documento: 2026-09-15")).toBeInTheDocument();
     expect(screen.getByText("Evento: 2026-10-04")).toBeInTheDocument();
@@ -187,7 +187,7 @@ describe("MEJ-001 source documents", () => {
         onClose={vi.fn()}
       />,
     );
-    expect(screen.queryByText(/Total conciliado/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Detalle coincide con el reporte/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /reintentar/i }));
     expect(state.query.refetch).toHaveBeenCalledOnce();
   });

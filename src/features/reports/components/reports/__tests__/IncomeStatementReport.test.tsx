@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useIncomeStatementData } from "../../../hooks/useIncomeStatementData";
 import { IncomeStatementReport } from "../IncomeStatementReport";
 
+vi.mock("@/lib/query/useVerifiedIdentityScope", () => ({ useVerifiedIdentityScope: () => "user:org:internal" }));
+
 const reportData = vi.hoisted(() => ({
   isComparison: false,
   margin: 63.3 as number | null,
