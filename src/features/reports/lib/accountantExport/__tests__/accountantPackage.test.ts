@@ -1,6 +1,6 @@
 import { webcrypto } from "node:crypto";
 import { afterEach, beforeAll, expect, it, vi } from "vitest";
-import { unzipSync } from "fflate";
+import { strFromU8, unzipSync } from "fflate";
 import { buildAccountantPackage, PACKAGE_LIMITS, saveAccountantPackage } from "../buildPackage";
 import { documentCandidates } from "../documentCandidates";
 import { SupportError } from "../downloadExisting";
@@ -31,6 +31,11 @@ it("packages same workbook and sanitized manifests, marks partial and never expo
   expect(JSON.parse(manifest).archivos[0].SHA256).toMatch(/^[0-9a-f]{64}$/);
   const XLSX = await import("@e965/xlsx"); const workbook = XLSX.read(archive["informacion-contador.xlsx"], { type: "array" });
   expect(workbook.SheetNames).toContain("Archivos");
+  const xlsxArchive = unzipSync(archive["informacion-contador.xlsx"]);
+  expect(strFromU8(xlsxArchive["xl/styles.xml"])).toContain('rgb="FF17365D"');
+  for (const name of Object.keys(xlsxArchive).filter((name) => /^xl\/worksheets\/sheet\d+\.xml$/.test(name))) {
+    expect(strFromU8(xlsxArchive[name])).toContain('ySplit="1" topLeftCell="A2"');
+  }
   expect(JSON.stringify(XLSX.utils.sheet_to_json(workbook.Sheets.Control))).not.toContain("no XML/PDF adjuntos");
   expect(JSON.stringify(XLSX.utils.sheet_to_json(workbook.Sheets.Control))).toContain("ZIP con este Excel");
   const row = XLSX.utils.sheet_to_json(workbook.Sheets.Ventas)[0] as { Folio: string };

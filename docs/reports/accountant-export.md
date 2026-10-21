@@ -1,4 +1,4 @@
-# Exportación operativa para contador, versión 1
+# Exportación operativa para contador, versión 2
 
 ## Objetivo y acceso
 
@@ -9,7 +9,7 @@ Se requieren los permisos existentes de acceso financiero y lectura de Reportes.
 ## Contenido
 
 - Control: empresa, rango, extracción, alcance, exclusiones, contadores de faltantes y advertencias.
-- Totales por hecho: separados por hoja, moneda efectiva, estado y ambiente. Nunca sumar estos hechos entre sí.
+- Resumen por moneda: separados por hoja, moneda efectiva, estado y ambiente. Nunca sumar estos hechos entre sí.
 - Ventas: identidad, cliente/RFC capturados, emisión, importes, impuestos capturados, TC, estado, ambiente, claves SAT y cobertura.
 - Notas de crédito: identidad, factura relacionada, importes originales y estado. No se inventa un TC propio ausente.
 - Cobros: identidad, factura, importe/moneda capturados, moneda efectiva y fuente, fecha, referencia y REP relacionado.
@@ -33,7 +33,15 @@ La extracción paginada NO es un snapshot transaccional ni un cierre bloqueado; 
 
 Textos, UUID e IDs se escriben como celdas de texto explícitas, nunca fórmulas, incluso con prefijos =, +, -, @. No se extraen cuentas bancarias ni notas libres generales. La descripción transaccional del gasto y factura sí se incluye. Sin nuevas dependencias, migraciones, permisos ni llamadas fiscales.
 
-Esta etapa sólo produce Excel; no incluye XML/PDF ni ZIP. La estructura de datos y las referencias documentales pueden reutilizarse en una etapa posterior sin descargar ni publicar documentos ahora.
+El botón Excel produce sólo el libro. La opción de soportes genera el paquete descrito a continuación; ambas modalidades comparten el mismo serializador y formato del libro.
+
+## Lectura y presentación del libro
+
+Control identifica empresa, periodo, filtros elegidos y criterios de revisión. Resumen por moneda conserva los mismos grupos separados por hoja, moneda, estado y ambiente, sin un total general que mezcle hechos o divisas. Los encabezados de las hojas operativas empiezan por los campos de consulta habitual (folio, fecha, cliente/proveedor, moneda e importes); las claves técnicas permanecen al final. Las hojas autorizadas sin registros tienen encabezados útiles, sin inventar filas o importes cero.
+
+La presentación conserva los valores de origen. Fechas civiles válidas se almacenan como fechas numéricas de Excel con formato día/mes/año, sin desplazamiento por zona horaria. Timestamps UTC permanecen como texto. Importes usan dos decimales, tipos de cambio hasta seis decimales y conteos enteros. La tasa de IVA capturada se muestra como porcentaje ya expresado en puntos (16 se muestra como 16, no como 1600%). Identificadores, RFC, UUID y claves SAT siguen siendo texto.
+
+Encabezados contrastados, filas alternadas, filtros y primera fila inmovilizada mejoran la lectura sin alterar consultas, permisos, totales o límites. El formato se aplica tanto a la descarga Excel como al Excel del ZIP. El posprocesado OOXML está limitado a estilos y vistas de las hojas producidas por el writer existente; no incorpora macros, enlaces externos ni fórmulas.
 
 ## Etapa 5: paquete opcional de soportes existentes
 
