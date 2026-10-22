@@ -87,9 +87,9 @@ describe("historial de estado", () => {
       screen.queryByText("Sin cambios de estado registrados"),
     ).not.toBeInTheDocument();
   });
-  it.each([[], [log]])(
+  it.each([{ logs: [] }, { logs: [log] }])(
     "oculta datos ausentes o cacheados al fallar consulta y permite reintento",
-    (logs) => {
+    ({ logs }) => {
       const retry = vi.fn();
       render(<ForkliftStatusHistory logs={logs} isError onRetry={retry} />);
       expect(screen.getByRole("alert")).toHaveTextContent(
