@@ -41,7 +41,9 @@ function RecurringBillingRow({
         <span className="text-sm text-muted-foreground">Facturación recurrente</span>
         <div className="flex items-center gap-2">
           {booking.recurring_billing ? (
-            <RecurringBillingBadge booking={booking} />
+            booking.status === "completed"
+              ? <span className="text-sm text-muted-foreground">Modalidad mensual</span>
+              : <RecurringBillingBadge booking={booking} />
           ) : (
             <span className="text-sm text-muted-foreground">No activa</span>
           )}
@@ -55,6 +57,11 @@ function RecurringBillingRow({
           )}
         </div>
       </div>
+      {booking.status === "completed" && booking.recurring_billing && (
+        <p className="text-xs text-muted-foreground">
+          Facturación automática detenida. Revisa los períodos pendientes en Facturas.
+        </p>
+      )}
       {!booking.recurring_billing && !canEnableRecurring && !isClosed && (
         <p className="text-xs text-muted-foreground">
           Para activarla, la reserva debe cubrir al menos un mes calendario.

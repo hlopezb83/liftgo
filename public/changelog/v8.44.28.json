@@ -1,0 +1,8 @@
+{
+  "description": "Corrige la transición de devolución que borraba la modalidad recurrente e impedía recuperar los períodos de renta pendientes.",
+  "changes": [
+    "Completar una reserva mensual conserva su modalidad; cancelarla la desactiva. Las reservas completadas siguen excluidas de la facturación automática.",
+    "El detalle de una reserva completada distingue la modalidad mensual de la automatización detenida, sin ofrecer activación ni una próxima factura.",
+    "La integración del formulario verifica que una reserva mensual devuelta precargue su siguiente período pendiente con el prorrateo y los impuestos correspondientes, en vez del importe completo de la cotización. La migración y cualquier reparación de datos requieren activación verificada por separado."
+  ]
+}

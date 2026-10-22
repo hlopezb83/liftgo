@@ -1,3 +1,7 @@
+## [8.44.28] - 2026-10-21
+
+- Conserva la modalidad mensual al completar la devolución para recuperar renta pendiente sin reactivar facturación automática. Añade regresión de selección, prorrateo e impuestos; la migración y la reparación específica de datos se activan por separado.
+
 ## [8.44.27] - 2026-10-21
 
 - Recupera renta recurrente pendiente hasta la devolución efectiva por equipo, con prorrateo mensual, verificación de fragmentos históricos y protección contra solapes. Conserva facturas emitidas y cambios no fiscales; la migración requiere activación verificada separada.

@@ -93,3 +93,37 @@ describe("extension-first original period prefill", () => {
     expect(operational.end_date).toBe("2026-10-26");
   });
 });
+
+import { completedRecurringBooking } from "../../../lib/completedRecurringBooking";
+
+describe("returned quote-backed booking recovery integration", () => {
+  const quotedLines = [
+    { description: "QA — Renta mensual", quantity: 2, unit_price: 3000, total: 6000, line_kind: "rental" as const },
+    { description: "QA — Renta diaria", quantity: 16, unit_price: 100, total: 1600, line_kind: "rental" as const },
+  ];
+  const unit = { ...forklifts[0], daily_rate: 100, weekly_rate: 700, monthly_rate: 3000 };
+  const operational = { id: "returned", forklift_id: "f1", quote_id: q, status: "completed", recurring_billing: true,
+    start_date: "2026-07-15", end_date: "2026-09-30", monthly_rate: 3000, daily_rate: 100, weekly_rate: 700 };
+  const quote = { id: q, line_items: quotedLines, start_date: operational.start_date, end_date: operational.end_date,
+    rental_meta: [{ modelId: "qa", quantity: 1, dailyRate: 100, weeklyRate: 700, monthlyRate: 3000, discount: 0 }] };
+  const returned = [{ booking_id: operational.id, forklift_id: "f1", inspected_at: "2026-10-10T18:00:00Z" }];
+  const noCharges: QuoteChargeAvailability = { complete: true, quotes: [{ quote_id: q, legacy_review_required: false, lines: [] }] };
+  it.each([false, true])("retains the actual booking recurrence flag=%s despite full-term quote rows", async (recurring) => {
+    const source = { ...operational, recurring_billing: recurring };
+    const projected = completedRecurringBooking(source, [], returned, new Date("2026-10-22T18:00:00Z")).booking;
+    if (!projected) throw new Error("Expected available booking");
+    const { result } = renderHook(() => {
+      const form = useForm<InvoiceFormValues>({ defaultValues: buildEmptyInvoiceValues() });
+      return { form, ...useInvoiceFormHandlers({ form, customers: [], bookings: [projected], forklifts: [unit], quotes: [quote], loadQuoteCharges: async () => noCharges }) };
+    });
+    // Existing full-term quote rows must not survive a successful selection.
+    act(() => result.current.form.setValue("lineItems", quotedLines));
+    await act(async () => { await result.current.handleBookingsChange([operational.id]); });
+    expect(result.current.chargeSelectionError).toBeNull();
+    expect(result.current.form.getValues("billingPeriodStart")).toBe("2026-07-15");
+    expect(result.current.form.getValues("billingPeriodEnd")).toBe(recurring ? "2026-07-31" : "2026-09-30");
+    const subtotal = result.current.form.getValues("lineItems").reduce((sum, line) => sum + line.total, 0);
+    expect(subtotal).toBe(recurring ? 1645.16 : 7600);
+    if (recurring) expect(result.current.form.getValues("lineItems")).toHaveLength(1);
+  });
+});
