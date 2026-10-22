@@ -11,6 +11,8 @@ export interface BookingInvoiceClaim {
   invoice_id: string;
   booking_id: string;
   status: string;
+  line_items?: unknown;
+  moneda?: string | null;
   billing_period_start: string | null;
   billing_period_end: string | null;
 }
@@ -52,7 +54,8 @@ export function bookingPeriodConflict(
 export function originalPeriodUnavailable(
   booking: BillableBooking, claims: BookingInvoiceClaim[], currentInvoiceId?: string,
 ): boolean {
-  // Preserve the existing recurring selector policy; the recurring engine owns cycles.
+  if (booking.pending_billing_period) return bookingPeriodConflict(booking.id, booking.pending_billing_period.start, booking.pending_billing_period.end, claims, currentInvoiceId);
+  // Active recurring bookings retain their automatic-engine selector policy.
   if (booking.recurring_billing) return claims.some((claim) => claim.booking_id === booking.id
     && claim.invoice_id !== currentInvoiceId && claim.status !== "cancelled");
   return bookingPeriodConflict(booking.id, booking.start_date, booking.end_date, claims, currentInvoiceId);
@@ -67,7 +70,10 @@ export function bookingPeriodSelectionError(
   if (selected.length !== new Set(ids).size) {
     return { field: "bookingIds", message: "No se pudo verificar el periodo original de las reservas. Revisa su historial de extensiones." };
   }
-  const overlap = selected.some((booking) => !booking.recurring_billing
+  const unexpectedCycle = !currentInvoiceId && selected.some((booking) => booking.pending_billing_period
+    && (start !== booking.pending_billing_period.start || end !== booking.pending_billing_period.end));
+  if (unexpectedCycle) return { field: "billingPeriodStart", message: "Conserva las fechas del siguiente periodo recurrente pendiente. Recarga el historial para seleccionar otro ciclo." };
+  const overlap = selected.some((booking) => (!booking.recurring_billing || !!booking.pending_billing_period)
     && bookingPeriodConflict(booking.id, start, end, claims, currentInvoiceId));
   return overlap ? { field: "billingPeriodStart", message: "Este periodo se superpone con otra factura activa de la reserva. Revisa las fechas o cancela la factura anterior." } : null;
 }

@@ -1,0 +1,8 @@
+{
+  "description": "Recupera ciclos y fragmentos de renta pendientes de reservas recurrentes completadas, con prorrateo mensual hasta la devolución efectiva de cada equipo.",
+  "changes": [
+    "La factura manual ofrece el siguiente período realmente pendiente, incluidos fragmentos con cobertura e importe histórico verificables, sin modificar facturas emitidas ni fechas operativas.",
+    "La renta se prorratea por días calendario hasta la devolución registrada de cada equipo, tanto anticipada como tardía; los históricos ambiguos solicitan conciliación específica, sin asumir que no existe deuda.",
+    "Los controles de base de datos impiden nuevos solapes y períodos posteriores a la devolución, preservando ediciones de notas históricas. La recuperación tardía nueva se limita a renta de un equipo por factura para evitar cargos sin atribución. La migración requiere activación verificada por separado."
+  ]
+}

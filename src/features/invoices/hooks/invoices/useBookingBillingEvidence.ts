@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
+import type { ReturnBillingEvidence } from "../../lib/completedRecurringBooking";
 import type { BillingExtension, BookingInvoiceClaim } from "../../lib/originalBookingPeriod";
+
 
 const PAGE_SIZE = 1000;
 
@@ -19,7 +21,7 @@ export async function readAllBillingPages<T>(read: (from: number, to: number) =>
 }
 
 interface InvoiceEvidence {
-  id: string; booking_id: string | null; status: string;
+  id: string; booking_id: string | null; status: string; line_items: unknown; moneda: string | null;
   billing_period_start: string | null; billing_period_end: string | null;
 }
 interface PivotEvidence {
@@ -30,11 +32,11 @@ interface PivotEvidence {
 export async function fetchBookingInvoiceClaims(): Promise<BookingInvoiceClaim[]> {
   const [direct, pivot] = await Promise.all([
     readAllBillingPages<InvoiceEvidence>((from, to) => supabase.from("invoices")
-      .select("id, booking_id, status, billing_period_start, billing_period_end")
+      .select("id, booking_id, status, line_items, moneda, billing_period_start, billing_period_end")
       .not("booking_id", "is", null).neq("status", "cancelled")
       .order("id").range(from, to)),
     readAllBillingPages<PivotEvidence>((from, to) => supabase.from("invoice_bookings")
-      .select("invoice_id, booking_id, invoices!inner(status, billing_period_start, billing_period_end)")
+      .select("invoice_id, booking_id, invoices!inner(status, line_items, moneda, billing_period_start, billing_period_end)")
       .neq("invoices.status", "cancelled").order("invoice_id").order("booking_id").range(from, to)),
   ]);
   return [
@@ -51,5 +53,10 @@ export function useBookingBillingEvidence() {
       .select("booking_id, original_end_date, new_end_date, invoice_id, pending_invoice_id")
       .order("id").range(from, to)),
   });
-  return { claims, extensions };
+  const returns = useQuery({
+    queryKey: ["bookings", "billing-return-history"],
+    queryFn: () => readAllBillingPages<ReturnBillingEvidence>((from, to) => supabase.from("return_inspections")
+      .select("booking_id, forklift_id, inspected_at").order("id").range(from, to)),
+  });
+  return { claims, extensions, returns };
 }

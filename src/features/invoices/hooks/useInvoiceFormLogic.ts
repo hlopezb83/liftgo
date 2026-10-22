@@ -11,6 +11,7 @@ import { hasLegacyVat } from "@/lib/fiscal/legacyVat";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
+import { lateRecoverySelectionError } from "../lib/bookingCompatibility";
 import {
   periodOutsideBookingsError,
   validateBookingSelection,
@@ -113,11 +114,13 @@ function invoiceSchemaForEdit(isEdit: boolean, existing: ExistingInvoice | null 
 
 /** Reservas confirmadas o completadas con periodo pendiente (+ extensión en curso).
  * La devolución cierra la operación, no la obligación de facturar la renta. */
+type InvoiceBillingBooking = BookingWithForklift & Pick<BillableBooking, "pending_billing_period">;
+
 function filterAvailableBookings(
-  bookings: BookingWithForklift[] | undefined,
+  bookings: InvoiceBillingBooking[] | undefined,
   invoicedBookingIds: Set<string>,
   extensionBookingId: string | null,
-): BookingWithForklift[] | undefined {
+): InvoiceBillingBooking[] | undefined {
   return bookings?.filter(
     (booking) =>
       (booking.status === "confirmed" || booking.status === "completed") &&
@@ -140,7 +143,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const invoiceBookingsQuery = useInvoiceBookings(id);
   const { data: invoiceBookingsRows } = invoiceBookingsQuery;
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
-  const periods = useInvoiceBookingPeriods({ bookings, isEdit, id, extensionId, existing, existingBookingIds });
+  const periods = useInvoiceBookingPeriods({ bookings, forklifts, isEdit, id, extensionId, existing, existingBookingIds });
 
   const invoiceVersion = useInitialRecordVersion(id, existing?.id, existing?.version);
 
@@ -235,8 +238,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
       .map((bid) => periods.billingBookings?.find((b) => b.id === bid))
       .filter(Boolean) as unknown as BillableBooking[];
     const periodError = bookingPeriodSelectionError(values.bookingIds ?? [], selected, periods.claims,
-      values.billingPeriodStart, values.billingPeriodEnd, periods.block, id);
+      values.billingPeriodStart, values.billingPeriodEnd, periods.linkedBlock(values.bookingIds), id);
     if (periodError) return periodError;
+    const lateError = !isEdit && lateRecoverySelectionError(selected, values.lineItems);
+    if (lateError) return { field: "lineItems", message: lateError };
     if (selected.length === 0) return null;
     if (!isEdit) {
       const quoted = (values.bookingIds ?? []).flatMap((bid) => periods.billingBookings?.find((booking) => booking.id === bid) ?? []);

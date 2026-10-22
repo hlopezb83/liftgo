@@ -1,3 +1,4 @@
+import currency from "currency.js";
 import { useRef, useState } from "react";
 import type { Forklift } from "@/features/fleet";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
@@ -30,6 +31,7 @@ type Booking = {
   currency?: string | null;
   tipo_cambio?: number | string | null;
   recurring_billing?: boolean | null;
+  pending_billing_period?: { start: string; end: string };
 };
 
 type QuoteSource = BookingQuoteSource;
@@ -89,6 +91,15 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
 
   // El corte al primer mes sólo pertenece al flujo recurrente. Una reserva no
   // recurrente se factura completa para no dejar meses fuera silenciosamente.
+  if (booking.pending_billing_period) {
+    const cycle = firstBillingPeriod(booking.pending_billing_period.start, booking.pending_billing_period.end);
+    if (!cycle) return [];
+    const monthly = booking.monthly_rate ?? forklift.monthly_rate;
+    if (monthly == null || !Number.isFinite(monthly) || monthly < 0) throw new Error("La reserva recurrente no tiene una tarifa mensual válida. Revisa la tarifa pactada antes de facturar.");
+    const amount = Math.round(currency(monthly).intValue * cycle.billedDays / cycle.daysInMonth) / 100;
+    return [{ description: `${forklift.name} — Renta mensual ${monthLabel(cycle.start)} (${cycle.billedDays} días)`,
+      quantity: 1, unit_price: amount, total: amount, ...SAT_LINE_DEFAULTS, clave_unidad: "E48" }];
+  }
   const period = firstBillingPeriod(booking.start_date, booking.end_date);
   if (booking.recurring_billing === true && period?.truncated) {
     const monthly = rated.monthly_rate ?? 0;
