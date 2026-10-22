@@ -1,3 +1,7 @@
+## [8.44.27] - 2026-10-21
+
+- Recupera renta recurrente pendiente hasta la devolución efectiva por equipo, con prorrateo mensual, verificación de fragmentos históricos y protección contra solapes. Conserva facturas emitidas y cambios no fiscales; la migración requiere activación verificada separada.
+
 ## [8.44.26] - 2026-10-21
 
 - La factura manual admite reservas completadas con periodos pendientes. El IVA del 11% deja de ofrecerse para operaciones nuevas y se rechaza su herencia sin conversión silenciosa, conservando históricos y ajustes relacionados. La migración y las funciones requieren activación verificada separada.

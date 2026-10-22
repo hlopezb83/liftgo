@@ -1,3 +1,4 @@
+import { completedRecurringBooking } from "../../lib/completedRecurringBooking";
 import { originalPeriodBooking, originalPeriodUnavailable, bookingPeriodConflict } from "../../lib/originalBookingPeriod";
 import { useBookingBillingEvidence } from "../invoices/useBookingBillingEvidence";
 import type { BillableBooking } from "../../lib/bookingCompatibility";
@@ -10,6 +11,7 @@ interface ExistingPeriod {
 }
 interface Args<T extends BillableBooking> {
   bookings: T[] | undefined;
+  forklifts?: { id: string; monthly_rate?: number | null }[];
   isEdit: boolean;
   id?: string;
   extensionId: string | null;
@@ -36,28 +38,48 @@ function historyError(isEdit: boolean, extensionId: string | null, invalidHistor
     ? "Hay reservas con historial de extensiones incompleto o incoherente. Revisa su historial antes de facturar el periodo original." : null;
 }
 
-/** Keep billing views distinct from operational booking dates. */
-export function useInvoiceBookingPeriods<T extends BillableBooking>(args: Args<T>) {
-  const { bookings, isEdit, extensionId } = args;
-  const evidence = useBookingBillingEvidence();
-  const ready = evidence.claims.isSuccess && evidence.extensions.isSuccess;
-  const block = evidenceError(evidence.claims, evidence.extensions, ready);
-  const originals = bookings?.flatMap((booking) => {
+function projectBookings<T extends BillableBooking>(args: Args<T>, evidence: ReturnType<typeof useBookingBillingEvidence>) {
+  const claims = evidence.claims.data ?? [];
+  const errors = new Map<string, string>();
+  const originals = args.bookings?.flatMap((booking) => {
     const original = originalPeriodBooking(booking, evidence.extensions.data ?? []);
     return original ? [original] : [];
   });
-  const billingBookings = isEdit || extensionId ? bookings : originals;
+  if (args.isEdit || args.extensionId) return { billingBookings: args.bookings, errors, invalidHistory: false };
+  const billingBookings = originals?.flatMap((booking) => {
+    if (booking.status === "completed" && booking.recurring_billing && !evidence.returns.isSuccess) {
+      errors.set(booking.id, `${booking.booking_number ?? booking.id}: no se pudo verificar la devolución efectiva. Espera o reintenta consultar su historial.`);
+      return [];
+    }
+    const monthly = booking.monthly_rate ?? args.forklifts?.find((forklift) => forklift.id === booking.forklift_id)?.monthly_rate;
+    const result = completedRecurringBooking(booking, claims, evidence.returns.data ?? [], new Date(), monthly);
+    if (result.error) errors.set(booking.id, `${booking.booking_number ?? booking.id}: ${result.error}`);
+    return result.booking ? [result.booking] : [];
+  });
+  return { billingBookings, errors, invalidHistory: originals?.length !== args.bookings?.length };
+}
+
+function selectedBlock(ids: string[] | undefined, block: string | null, errors: Map<string, string>) {
+  if (!ids?.length) return null;
+  return block || ids.map((id) => errors.get(id)).find(Boolean) || null;
+}
+
+/** Keep billing views distinct from operational booking dates. */
+export function useInvoiceBookingPeriods<T extends BillableBooking>(args: Args<T>) {
+  const evidence = useBookingBillingEvidence();
+  const ready = evidence.claims.isSuccess && evidence.extensions.isSuccess;
+  const block = evidenceError(evidence.claims, evidence.extensions, ready);
+  const { billingBookings, errors, invalidHistory } = projectBookings(args, evidence);
   const claims = evidence.claims.data ?? [];
   const unavailableIds = new Set(billingBookings?.filter((booking) => unavailable(booking, args, claims)).map((booking) => booking.id));
-  const invalidHistory = originals?.length !== bookings?.length;
-  const historyBlock = historyError(isEdit, extensionId, invalidHistory);
+  const historyBlock = historyError(args.isEdit, args.extensionId, invalidHistory);
   return {
     billingBookings, claims, unavailableIds, ready, block, invalidHistory,
     handlerBookings: ready ? billingBookings : undefined,
     candidates: ready ? billingBookings : [],
-    linkedBlock: (ids: string[] | undefined) => ids?.length ? block : null,
-    availabilityBlock: block || historyBlock,
-    isFetching: evidence.claims.isFetching || evidence.extensions.isFetching,
-    refetch: () => Promise.all([evidence.claims.refetch(), evidence.extensions.refetch()]),
+    linkedBlock: (ids: string[] | undefined) => selectedBlock(ids, block, errors),
+    availabilityBlock: block || historyBlock || [...errors.values()][0],
+    isFetching: evidence.claims.isFetching || evidence.extensions.isFetching || evidence.returns.isFetching,
+    refetch: () => Promise.all([evidence.claims.refetch(), evidence.extensions.refetch(), evidence.returns.refetch()]),
   };
 }

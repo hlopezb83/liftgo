@@ -21,6 +21,12 @@ export interface BillableBooking {
   start_date: string;
   end_date: string;
   recurring_billing?: boolean | null;
+  status?: string;
+  forklift_id?: string;
+  monthly_rate?: number | null;
+  booking_number?: string | null;
+  /** Verified UI-only pending cycle; never replaces operational booking dates. */
+  pending_billing_period?: { start: string; end: string };
   currency?: string | null;
   tipo_cambio?: number | string | null;
 }
@@ -34,9 +40,10 @@ export interface BillableBooking {
  *   con reserva el servidor rechaza cualquier periodo fuera de su rango).
  */
 export function prefillBillingPeriod(
-  booking: Pick<BillableBooking, "start_date" | "end_date" | "recurring_billing"> | undefined,
+  booking: Pick<BillableBooking, "start_date" | "end_date" | "recurring_billing" | "pending_billing_period"> | undefined,
   issueDate: Date,
 ): { start: string; end: string } {
+  if (booking?.pending_billing_period) return booking.pending_billing_period;
   if (booking && !booking.recurring_billing) {
     return { start: booking.start_date, end: booking.end_date };
   }
@@ -64,6 +71,7 @@ export function bookingIncompatibilityReason(
   candidate: BillableBooking,
   issueDate: Date,
 ): string | null {
+  if ([first, candidate].some(isLateRecovery)) return "renta posterior al contrato: factura cada equipo por separado";
   if ((first.customer_id ?? null) !== (candidate.customer_id ?? null)) {
     return "cliente distinto";
   }
@@ -119,9 +127,22 @@ export function periodOutsideBookingsError(
   if (!start || !end) return "El periodo de facturación debe tener inicio y fin.";
   if (start > end) return "El fin del periodo no puede ser anterior al inicio.";
   for (const b of selected) {
-    if (start < b.start_date || end > b.end_date) {
+    if (start < b.start_date || end > (b.pending_billing_period?.end ?? b.end_date)) {
       return `El periodo ${formatDateRange(start, end)} queda fuera del rango de la reserva (${formatDateRange(b.start_date, b.end_date)}).`;
     }
   }
+  return null;
+}
+
+
+export function isLateRecovery(booking: BillableBooking): boolean {
+  return !!booking.pending_billing_period && booking.pending_billing_period.end > booking.end_date;
+}
+
+/** Keep new late-recovery invoices attributable to one unit and rental only. */
+export function lateRecoverySelectionError(selected: BillableBooking[], lines: { line_kind?: string }[]): string | null {
+  if (!selected.some(isLateRecovery)) return null;
+  if (selected.length !== 1) return "Factura la renta posterior al contrato de cada equipo por separado para conservar su atribución.";
+  if (!lines.length || lines.some((line) => line.line_kind !== "rental")) return "La recuperación de renta posterior al contrato sólo permite partidas de renta. Revisa los cargos adicionales por separado para evitar duplicarlos.";
   return null;
 }

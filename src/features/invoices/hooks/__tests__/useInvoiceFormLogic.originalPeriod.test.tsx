@@ -1,7 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unknown[], extensions: [] as unknown[], existing: null as unknown,
-  rows: [] as unknown[], ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
+const state = vi.hoisted(() => ({ bookings: [] as unknown[], claims: [] as unknown[], extensions: [] as unknown[], returns: [] as unknown[], existing: null as unknown,
+  rows: [] as unknown[], returnReady: true, ready: true, error: false, handler: vi.fn(), refetch: vi.fn() }));
 vi.mock("@/features/bookings", () => ({ useBookings: () => ({ data: state.bookings, refetch: state.refetch }) }));
 vi.mock("@/features/customers", () => ({ useCustomers: () => ({ data: [] }) }));
 vi.mock("@/features/fleet", () => ({ useForklifts: () => ({ data: [] }), useQuoteAssignments: () => ({ data: [] }) }));
@@ -11,6 +11,7 @@ vi.mock("../invoices/useInvoices", () => ({ useInvoice: () => ({ data: state.exi
 vi.mock("../invoices/useInvoiceBookings", () => ({ useInvoiceBookings: () => ({ data: state.rows, refetch: state.refetch }) }));
 vi.mock("../invoices/useBookingBillingEvidence", () => ({ useBookingBillingEvidence: () => ({
   claims: { data: state.claims, isSuccess: state.ready, isError: state.error, refetch: state.refetch },
+  returns: { data: state.returns, isSuccess: state.returnReady && state.ready, isError: state.error, refetch: state.refetch },
   extensions: { data: state.extensions, isSuccess: state.ready, isError: state.error, refetch: state.refetch },
 }) }));
 vi.mock("../invoiceForm/useInvoiceFormHandlers", () => ({ useInvoiceFormHandlers: (props: unknown) => {
@@ -27,13 +28,14 @@ vi.mock("../useExtensionPrefill", () => ({ useExtensionPrefill: () => ({ extensi
 import { useInvoiceFormLogic } from "../useInvoiceFormLogic";
 import { buildEmptyInvoiceValues } from "../../lib/invoiceFormSchema";
 
-const booking = { id: "b1", status: "confirmed", start_date: "2026-10-23", end_date: "2026-10-26", currency: "USD", tipo_cambio: 17.5 };
+const booking = { id: "b1", forklift_id: "f1", status: "confirmed", start_date: "2026-10-23", end_date: "2026-10-26", currency: "USD", tipo_cambio: 17.5 };
 const extension = { booking_id: "b1", original_end_date: "2026-10-24", new_end_date: "2026-10-26", pending_invoice_id: "extension-invoice" };
 const claim = { invoice_id: "extension-invoice", booking_id: "b1", status: "draft", billing_period_start: "2026-10-25", billing_period_end: "2026-10-26" };
 const values = () => ({ ...buildEmptyInvoiceValues(), bookingIds: ["b1"], billingPeriodStart: "2026-10-23", billingPeriodEnd: "2026-10-24" });
 beforeEach(() => {
   state.bookings = [booking]; state.extensions = [extension]; state.claims = [claim]; state.existing = null; state.rows = [];
-  state.ready = true; state.error = false; state.handler.mockClear(); state.refetch.mockClear();
+  state.returns = [{ booking_id: "b1", forklift_id: "f1", inspected_at: "2026-09-30T18:00:00Z" }];
+  state.returnReady = true; state.ready = true; state.error = false; state.handler.mockClear(); state.refetch.mockClear();
 });
 
 describe("original period form wiring", () => {
@@ -142,13 +144,11 @@ describe("completed/returned booking billing eligibility", () => {
     expect(result.current.validateSelection(values())?.message).toMatch(/historial/);
   });
 
-  it("allows the first manual invoice of a completed recurring booking with no claims", () => {
-    // Manual recovery of an unbilled term is distinct from automatically
-    // generating future cycles: the recurring RPC still excludes completed.
-    state.bookings = [{ ...booking, status: "completed", recurring_billing: true }];
+  it("allows the first manual invoice of a completed recurring booking with verified return", () => {
+    state.bookings = [{ ...booking, status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" }];
     const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
-    expect(result.current.availableBookings).toEqual(state.bookings);
-    expect(result.current.validateSelection({ ...values(), billingPeriodEnd: booking.end_date })).toBeNull();
+    expect(result.current.availableBookings?.[0].pending_billing_period).toEqual({ start: "2026-07-15", end: "2026-07-31" });
+    expect(result.current.validateSelection({ ...values(), billingPeriodStart: "2026-07-15", billingPeriodEnd: "2026-07-31" })).toBeNull();
   });
 
   it("preserves recurring selector policy after return", () => {
@@ -194,4 +194,97 @@ describe("obsolete VAT form wiring", () => {
     await act(async () => { await result.current.form.handleSubmit(save, invalid)(); });
     expect(invalid.mock.calls[0][0].taxRate.message).toContain("11%");
   });
+});
+
+describe("completed recurring outstanding cycles", () => {
+  it("keeps a completed recurring reservation available after July is billed", () => {
+    state.extensions = [];
+    state.bookings = [{ ...booking, status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" }];
+    state.claims = [{ ...claim, billing_period_start: "2026-07-15", billing_period_end: "2026-07-31" }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toHaveLength(1);
+    expect(result.current.availableBookings?.[0]).toMatchObject({ start_date: "2026-07-15", end_date: "2026-09-30", pending_billing_period: { start: "2026-08-01", end: "2026-08-31" } });
+  });
+});
+
+
+describe("completed recurring safety wiring", () => {
+  const recovered = { ...booking, status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" };
+  const period = (start: string, end: string) => ({ ...values(), billingPeriodStart: start, billingPeriodEnd: end });
+  beforeEach(() => { state.bookings = [recovered]; state.extensions = []; state.claims = []; });
+  it("advances each saved cycle until no rental period remains", () => {
+    const { result, rerender } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    const periods = [["2026-07-15", "2026-07-31"], ["2026-08-01", "2026-08-31"], ["2026-09-01", "2026-09-30"]];
+    for (const [start, end] of periods) {
+      expect(result.current.availableBookings?.[0].pending_billing_period).toEqual({ start, end });
+      expect(result.current.validateSelection(period(start, end))).toBeNull();
+      state.claims.push({ ...claim, billing_period_start: start, billing_period_end: end });
+      rerender();
+    }
+    expect(result.current.availableBookings).toEqual([]);
+  });
+  it("rejects edited dates and stale cycle submissions", () => {
+    const { result, rerender } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.validateSelection(period("2026-07-15", "2026-07-30"))?.message).toMatch(/Conserva/);
+    state.claims = [{ ...claim, billing_period_start: "2026-07-15", billing_period_end: "2026-07-31" }]; rerender();
+    expect(result.current.validateSelection(period("2026-07-15", "2026-07-31"))?.message).toMatch(/Conserva/);
+  });
+  it("reports partial history specifically rather than claiming extension corruption", () => {
+    state.claims = [{ ...claim, billing_period_start: "2026-07-15", billing_period_end: "2026-07-20" }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+    expect(result.current.validateSelection(period("2026-07-15", "2026-07-31"))?.message).toMatch(/parcial/);
+    expect(result.current.bookingAvailabilityBlock).toMatch(/parcial/);
+  });
+  it.each([false, true])("missing return (loading=%s) blocks only its booking, not unrelated invoices", (loading) => {
+    state.returns = []; state.returnReady = !loading;
+    state.bookings.push({ ...booking, id: "other" });
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings?.map((b) => b.id)).toEqual(["other"]);
+    expect(result.current.validateSelection(period("2026-07-15", "2026-07-31"))?.message).toMatch(/devolución/);
+    expect(result.current.validateSelection({ ...values(), bookingIds: ["other"] })).toBeNull();
+    expect(result.current.validateSelection(buildEmptyInvoiceValues())).toBeNull();
+  });
+  it("leaves historical recurring edits alone even with no return evidence", () => {
+    state.returns = [];
+    state.existing = { id: "initial", booking_id: "b1", billing_period_start: "2026-07-15", billing_period_end: "2026-07-31" };
+    state.claims = [{ ...claim, invoice_id: "initial", billing_period_start: "2026-07-15", billing_period_end: "2026-07-31" }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ id: "initial", fromQuoteId: null }));
+    expect(result.current.availableBookings?.[0]).not.toHaveProperty("pending_billing_period");
+    expect(result.current.validateSelection(period("2026-07-15", "2026-07-31"))).toBeNull();
+  });
+});
+
+describe("late recurring form recovery", () => {
+  beforeEach(() => {
+    state.extensions = [];
+    state.bookings = [{ ...booking, status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" }];
+    state.claims = [{ ...claim, billing_period_start: "2026-07-15", billing_period_end: "2026-09-30", line_items: [{ line_kind: "rental" }] }];
+    state.returns = [{ booking_id: "b1", forklift_id: "f1", inspected_at: "2026-10-10T18:00:00Z" }];
+  });
+  it("offers and accepts the actual late-return period without changing the booking", () => {
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings?.[0]).toMatchObject({ end_date: "2026-09-30", pending_billing_period: { start: "2026-10-01", end: "2026-10-10" } });
+    const input = { ...values(), billingPeriodStart: "2026-10-01", billingPeriodEnd: "2026-10-10", lineItems: [{ description: "Rental", quantity: 1, unit_price: 100, total: 100, line_kind: "rental" as const }] };
+    expect(result.current.validateSelection(input)).toBeNull();
+    expect(result.current.validateSelection({ ...input, lineItems: [{ ...input.lineItems[0], line_kind: "charge" }] })?.message).toMatch(/adicionales/);
+  });
+  it("explains unresolved historical charges rather than claiming no debt", () => {
+    state.claims = [{ ...claim, billing_period_start: "2026-07-15", billing_period_end: "2026-09-30" }];
+    const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+    expect(result.current.availableBookings).toEqual([]);
+    expect(result.current.bookingAvailabilityBlock).toMatch(/no se consideran pagados/);
+    expect(result.current.validateSelection({ ...values(), billingPeriodStart: "2026-10-01", billingPeriodEnd: "2026-10-10" })?.message).toMatch(/atribución/);
+  });
+});
+
+it("recovers a verified partial late cycle through the real form, without overlap", () => {
+  state.extensions = [];
+  state.bookings = [{ ...booking, status: "completed", recurring_billing: true, monthly_rate: 10000, start_date: "2026-09-01", end_date: "2026-09-20" }];
+  state.claims = [{ ...claim, moneda: "USD", billing_period_start: "2026-09-01", billing_period_end: "2026-09-20", line_items: [{ line_kind: "rental", quantity: 1, unit_price: 6666.67, total: 6666.67 }] }];
+  state.returns = [{ booking_id: "b1", forklift_id: "f1", inspected_at: "2026-09-25T18:00:00Z" }];
+  const { result } = renderHook(() => useInvoiceFormLogic({ fromQuoteId: null }));
+  expect(result.current.availableBookings?.[0].pending_billing_period).toEqual({ start: "2026-09-21", end: "2026-09-25" });
+  expect(state.handler.mock.lastCall?.[0].bookings[0].end_date).toBe("2026-09-20");
+  expect(result.current.validateSelection({ ...values(), billingPeriodStart: "2026-09-21", billingPeriodEnd: "2026-09-25", lineItems: [{ description: "Rental", quantity: 1, unit_price: 1666.67, total: 1666.67, line_kind: "rental" }] })).toBeNull();
 });

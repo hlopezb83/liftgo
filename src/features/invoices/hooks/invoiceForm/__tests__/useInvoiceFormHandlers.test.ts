@@ -219,3 +219,31 @@ describe("prefillBillingPeriod (Bug 4: periodo acotado a la reserva)", () => {
       .toEqual({ start: "2026-10-01", end: "2026-10-31" });
   });
 });
+
+describe("completed recurring recovery monthly amounts", () => {
+  const base = { id: "b1", forklift_id: "fk-1", start_date: "2026-07-15", end_date: "2026-10-31", recurring_billing: true, monthly_rate: 10000 };
+  it.each([
+    ["2026-07-15", "2026-07-31", 5483.87],
+    ["2026-08-01", "2026-08-31", 10000],
+    ["2026-09-01", "2026-09-10", 3333.33],
+    ["2028-02-01", "2028-02-29", 10000],
+  ])("uses canonical monthly cents for %s through %s", (start, end, expected) => {
+    const lines = buildLinesForBooking({ ...base, pending_billing_period: { start, end } }, [forklift]);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]).toMatchObject({ quantity: 1, unit_price: expected, total: expected, clave_unidad: "E48" });
+  });
+  it("preserves zero agreed monthly rate like the recurring engine", () => {
+    expect(buildLinesForBooking({ ...base, monthly_rate: 0, pending_billing_period: { start: "2026-08-01", end: "2026-08-31" } }, [forklift])[0].total).toBe(0);
+  });
+  it("keeps the existing first-cycle amount for positive agreed monthly rates", () => {
+    const previous = buildLinesForBooking(base, [forklift]);
+    const recovered = buildLinesForBooking({ ...base, pending_billing_period: { start: "2026-07-15", end: "2026-07-31" } }, [forklift]);
+    expect(recovered[0].total).toBe(previous[0].total);
+  });
+});
+
+
+it("blocks missing recurring monthly rate rather than inventing a zero amount", () => {
+  expect(() => buildLinesForBooking({ id: "b1", forklift_id: "fk-1", start_date: "2026-07-01", end_date: "2026-08-31", recurring_billing: true, monthly_rate: null,
+    pending_billing_period: { start: "2026-08-01", end: "2026-08-31" } }, [{ ...forklift, monthly_rate: null }])).toThrow(/tarifa mensual/);
+});

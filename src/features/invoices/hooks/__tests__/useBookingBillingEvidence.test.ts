@@ -14,7 +14,7 @@ describe("complete billing evidence", () => {
     await expect(readAllBillingPages(async () => ({ data: Array(1000).fill("row"), error: null }))).rejects.toThrow(/historial completo/);
   });
   it.each(["direct", "pivot", "both"])("preserves %s links and includes their actual periods", async (link) => {
-    const invoice = { id: "i1", booking_id: "b1", status: "draft", billing_period_start: "2026-10-25", billing_period_end: "2026-10-26" };
+    const invoice = { id: "i1", booking_id: "b1", status: "draft", line_items: [{ line_kind: "rental" }], billing_period_start: "2026-10-25", billing_period_end: "2026-10-26" };
     from.mockImplementation((table: string) => {
       const chain = { select: vi.fn(), not: vi.fn(), neq: vi.fn(), order: vi.fn(), range: vi.fn() };
       for (const name of ["select", "not", "neq", "order"] as const) chain[name].mockReturnValue(chain);
@@ -24,6 +24,7 @@ describe("complete billing evidence", () => {
       return chain;
     });
     const claims = await fetchBookingInvoiceClaims();
+    expect(claims.every((claim) => JSON.stringify(claim.line_items) === JSON.stringify(invoice.line_items))).toBe(true);
     expect(claims.length).toBe(link === "both" ? 2 : 1);
     expect(bookingPeriodConflict("b1", "2026-10-23", "2026-10-24", claims)).toBe(false);
     expect(bookingPeriodConflict("b1", "2026-10-24", "2026-10-25", claims)).toBe(true);
