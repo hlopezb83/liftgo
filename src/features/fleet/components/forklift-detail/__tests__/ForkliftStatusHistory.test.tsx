@@ -59,6 +59,37 @@ describe("historial de estado", () => {
     expect(paragraph?.textContent).toBe(note);
     expect(paragraph).toHaveClass("break-words", "[overflow-wrap:anywhere]");
   });
+  it.each([
+    { entity: "Daño", id: "ba453704-0ecd-4556-beb1-5750b14ec035" },
+    { entity: "Orden de trabajo", id: "53720a6d-3aea-4cbc-9daf-6aa7f1c76dbb" },
+  ])("presenta $entity sin UUID y conserva referencia técnica original", ({ entity, id }) => {
+    const note = `${entity} ${id}: actualización operativa`;
+    render(<ForkliftStatusHistory logs={[{ ...log, note }]} />);
+    expect(screen.getByText(`${entity}: actualización operativa`)).toBeVisible();
+    const original = screen.getByText(note);
+    const detail = original.closest("details");
+    expect(detail).not.toHaveAttribute("open");
+    expect(original).not.toBeVisible();
+    expect(original).toHaveClass("break-words", "[overflow-wrap:anywhere]");
+    expect(within(detail!).getByText("Ver referencia técnica")).toBeVisible();
+    fireEvent.click(within(detail!).getByText("Ver referencia técnica"));
+    expect(detail).toHaveAttribute("open");
+    expect(original).toBeVisible();
+    expect(original.textContent).toBe(note);
+  });
+  it.each([
+    "Daño ba453704-0ecd-4556-beb1-5750b14ec03: actualización operativa",
+    "Daño ga453704-0ecd-4556-beb1-5750b14ec035: actualización operativa",
+    "Revisar daño ba453704-0ecd-4556-beb1-5750b14ec035: actualización operativa",
+    "Daño ba453704-0ecd-4556-beb1-5750b14ec035: nota escrita por usuario",
+    "Daño ba453704-0ecd-4556-beb1-5750b14ec035: actualización operativa\nNota adicional",
+    "Daño ba453704-0ecd-4556-beb1-5750b14ec035: actualización operativa\n",
+  ])("no modifica notas libres o referencias malformadas: %s", (note) => {
+    render(<ForkliftStatusHistory logs={[{ ...log, note }]} />);
+    const paragraph = screen.getByRole("listitem").querySelector("p.whitespace-pre-wrap");
+    expect(paragraph?.textContent).toBe(note);
+    expect(screen.queryByText("Ver referencia técnica")).not.toBeInTheDocument();
+  });
   it("conserva estados desconocidos legibles", () => {
     render(
       <ForkliftStatusHistory logs={[{ ...log, to_status: "custom_state" }]} />,

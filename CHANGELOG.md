@@ -1,6 +1,6 @@
 ## [8.44.30] - 2026-10-22
 
-- Pule el historial de estado del montacargas con una línea de tiempo legible, notas separadas, fechas de Monterrey y controles independientes de carga, error y reintento. Conserva todos los registros y las reglas operativas, sin cambios de datos o permisos.
+- Pule el historial de estado del montacargas con una línea de tiempo legible, notas separadas, fechas de Monterrey y controles independientes de carga, error y reintento. Conserva todos los registros y las reglas operativas, sin cambios de datos o permisos. Las referencias técnicas de las notas automáticas se pueden desplegar sin saturar la lectura.
 
 ## [8.44.29] - 2026-10-22
 

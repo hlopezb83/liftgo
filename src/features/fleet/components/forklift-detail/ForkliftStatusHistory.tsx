@@ -12,6 +12,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateTimeMty } from "@/lib/format/dateFormats";
 
+// Only the verified automatic messages are normalized. Free-text notes remain intact.
+const OPERATIONAL_REFERENCE = /^(Daño|Orden de trabajo) [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(: actualización operativa)(?![\s\S])/i;
+
+function StatusHistoryNote({ note }: { note: string }) {
+  const displayNote = note.replace(OPERATIONAL_REFERENCE, "$1$2");
+  return (
+    <div className="mt-3 border-t pt-3">
+      <p className="mb-1 text-xs font-medium text-muted-foreground">Nota del cambio</p>
+      <p className="whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">{displayNote}</p>
+      {displayNote !== note && (
+        <details className="mt-2 text-xs text-muted-foreground">
+          <summary className="min-h-11 cursor-pointer rounded-sm py-3 underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Ver referencia técnica</summary>
+          <p className="mb-1">Nota original del registro:</p>
+          <p className="whitespace-pre-wrap break-words rounded bg-muted p-2 font-mono [overflow-wrap:anywhere]">{note}</p>
+        </details>
+      )}
+    </div>
+  );
+}
+
 interface ForkliftStatusHistoryProps {
   logs: Tables<"status_logs">[];
   isLoading?: boolean;
@@ -130,16 +150,7 @@ export function ForkliftStatusHistory({
                       {formatDateTimeMty(log.changed_at)}
                     </time>
                   </div>
-                  {log.note && (
-                    <div className="mt-3 border-t pt-3">
-                      <p className="mb-1 text-xs font-medium text-muted-foreground">
-                        Nota del cambio
-                      </p>
-                      <p className="whitespace-pre-wrap break-words text-sm [overflow-wrap:anywhere]">
-                        {log.note}
-                      </p>
-                    </div>
-                  )}
+                  {log.note && <StatusHistoryNote note={log.note} />}
                 </div>
               </li>
             ))}
