@@ -1,0 +1,14 @@
+{
+  "version": "8.44.30",
+  "date": "2026-10-22",
+  "type": "patch",
+  "category": "improvement",
+  "title": "Historial de estado del montacargas más claro",
+  "description": "Mejora la lectura del historial sin cambiar los registros ni las reglas de estado del equipo.",
+  "changes": [
+    "Presenta los cambios en una línea de tiempo con etiquetas de estado, notas separadas y fecha y hora de Monterrey.",
+    "Adapta las transiciones y notas largas a pantallas pequeñas, conserva todos los registros e identifica claramente los cambios sin estado anterior.",
+    "Distingue carga, historial vacío y errores de consulta, con reintento independiente sin ocultar el detalle del equipo.",
+    "Simplifica las notas automáticas de daños y órdenes de trabajo, conservando el UUID y el texto original en un detalle técnico desplegable."
+  ]
+}

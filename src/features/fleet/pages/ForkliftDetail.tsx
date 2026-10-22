@@ -45,7 +45,7 @@ export default function ForkliftDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
   const { data: forklift, isLoading, isError, refetch } = useForklift(id);
-  const { data: logs } = useStatusLogs(id);
+  const { data: logs, isLoading: logsLoading, isError: logsError, isFetching: logsFetching, refetch: refetchLogs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
   // R9-FE: mismo criterio operativo que FleetPage — el `status` crudo se
@@ -140,7 +140,7 @@ export default function ForkliftDetail() {
       </FinancialAccessGuard>
       {id && <DamagePhotosSection entityType="damage_forklift" entityId={id} title="Fotos de Daño" showUploader={canUploadDamagePhotos} />}
       {id && <DocumentAttachments entityType="forklift" entityId={id} accessModule="Flota" />}
-      <ForkliftStatusHistory logs={logs || []} />
+      <ForkliftStatusHistory logs={logs || []} isLoading={logsLoading} isError={logsError} isFetching={logsFetching} onRetry={() => { void refetchLogs(); }} />
     </PageContainer>
   );
 }
