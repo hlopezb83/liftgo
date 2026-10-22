@@ -29,7 +29,10 @@ export default function InventoryPage() {
   const formDialog = useToggleDialog();
   const activateDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
-  const detail = useDialogState<PartInventory>();
+  const detail = useDialogState<PartInventory["id"]>();
+  // Resolve selection against current query data, not the row snapshot from
+  // opening the sheet. The adjustment dialog owns its separate open snapshot.
+  const selectedPart = parts.find((part) => part.id === detail.selected) ?? null;
 
   const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount, hasActive, reset } =
     useInventoryFilters(parts);
@@ -89,11 +92,11 @@ export default function InventoryPage() {
   const mobileCard = (p: PartInventory) => {
     const isLow = p.stock_quantity <= p.min_stock_level;
     return (
-      <Card onClick={() => detail.open(p)} role="button" tabIndex={0}
+      <Card onClick={() => detail.open(p.id)} role="button" tabIndex={0}
         onKeyDown={(event) => {
           if (event.key !== "Enter" && event.key !== " ") return;
           event.preventDefault();
-          detail.open(p);
+          detail.open(p.id);
         }}
         className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <CardContent className="p-4 space-y-2">
@@ -154,7 +157,7 @@ export default function InventoryPage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         table={table}
-        onRowClick={(p) => detail.open(p)}
+        onRowClick={(p) => detail.open(p.id)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={InventoryIcon}
         emptyActionLabel={canWrite ? "Habilitar refacción" : undefined}
@@ -163,12 +166,13 @@ export default function InventoryPage() {
         mobileCardRender={mobileCard}
       />
 
-      <PartDetailSheet
-        part={detail.selected}
+      {selectedPart && <PartDetailSheet
+        key={selectedPart.id}
+        part={selectedPart}
         open={detail.isOpen}
         onOpenChange={detail.onOpenChange}
         onEdit={(p) => openEdit(p)}
-      />
+      />}
 
       {canWrite && <PartFormDialog open={formDialog.open} onOpenChange={formDialog.setOpen} part={editing} />}
       {canWrite && <ActivatePartDialog open={activateDialog.open} onOpenChange={activateDialog.setOpen} />}

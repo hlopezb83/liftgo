@@ -21,7 +21,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
   const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
   // FIX-FE-01: agregación server-side vía RPC; useMaintenanceLogs() está capado
   // a 501 filas y el costo total quedaba subestimado sin aviso.
-  const { data = [], isError, isFetching, refetch } = useMaintenanceCostByUnitReport(startDate, endDate);
+  const { data = [], isPending, isError, isFetching, refetch } = useMaintenanceCostByUnitReport(startDate, endDate);
 
   const chartData = [...data].sort((a, b) => b.totalCost - a.totalCost);
 
@@ -55,32 +55,38 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Costos de Mantenimiento por Unidad</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("costos-mantenimiento.csv", chartData.map((r) => ({ name: r.name, totalCost: r.totalCost, count: r.count })))}>
+          <Button variant="outline" size="sm" disabled={isPending || chartData.length === 0} onClick={() => exportToCsv("costos-mantenimiento.csv", chartData.map((r) => ({ name: r.name, totalCost: r.totalCost, count: r.count })))}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
-          <div className={chartHeightClass}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
-                {/* R6-FE-11e: nombres de unidad se cortaban a 402px; mismo
-                    patrón que UtilizationReport (ángulo + altura). */}
-                <XAxis dataKey="name" tick={tick} {...rotatedXAxis} />
-                <YAxis tick={tick} width={moneyAxisWidth} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
-                <Tooltip formatter={(val) => formatCurrency(Number(val))} />
-                <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
-              </BarChart>
+          {isPending ? (
+            <p role="status" className="py-8 text-center text-sm text-muted-foreground">Cargando costos de mantenimiento…</p>
+          ) : (
+            <div className={chartHeightClass}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
+                  {/* R6-FE-11e: nombres de unidad se cortaban a 402px; mismo
+                      patrón que UtilizationReport (ángulo + altura). */}
+                  <XAxis dataKey="name" tick={tick} {...rotatedXAxis} />
+                  <YAxis tick={tick} width={moneyAxisWidth} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
+                  <Tooltip formatter={(val) => formatCurrency(Number(val))} />
+                  <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
+                </BarChart>
 
-            </ResponsiveContainer>
-          </div>
+              </ResponsiveContainer>
+            </div>
+          )}
         </CardContent>
       </Card>
-      <Card>
-        <CardContent className="p-0">
-          <DataTableV2 table={table} emptyMessage="Sin mantenimientos en el rango" />
-        </CardContent>
-      </Card>
+      {!isPending && (
+        <Card>
+          <CardContent className="p-0">
+            <DataTableV2 table={table} emptyMessage="Sin mantenimientos en el rango" />
+          </CardContent>
+        </Card>
+      )}
     </>
   );
 }

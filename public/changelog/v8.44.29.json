@@ -1,0 +1,9 @@
+{
+  "description": "Corrige seis hallazgos de acceso al portal, coherencia de reportes, exportaciones y actualización de inventario.",
+  "changes": [
+    "El acceso a CFDI desde el portal verifica la actividad de la empresa y falla de forma segura si no puede comprobarla; requiere desplegar la función por separado.",
+    "El detalle mensual y su exportación distinguen los importes sin tipo de cambio válido. Las pérdidas de rentabilidad se exportan como números sin quitar la protección antifórmulas de los textos.",
+    "Los reportes distinguen carga, error y ausencia de datos, y no ofrecen una exportación vacía mientras esperan una respuesta.",
+    "El detalle de refacciones refleja el stock actualizado para el siguiente ajuste, conservando la verificación de concurrencia de un ajuste que ya está abierto."
+  ]
+}

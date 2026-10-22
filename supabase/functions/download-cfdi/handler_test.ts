@@ -734,3 +734,90 @@ Deno.test("portal: recuperación desde el PAC usa deps.fetchImpl y SOLO la llave
   assertEquals(seen[0].auth, "Bearer sk_live_de_mi_empresa");
   assertEquals(seen[0].url.includes("fapi_p1"), true);
 });
+
+// Organization suspension must apply to portal users as well as internal users.
+for (
+  const scenario of [
+    {
+      name: "suspended",
+      data: [{ id: ORG_ID, is_active: false }],
+      error: null,
+      status: 403,
+    },
+    { name: "missing", data: [], error: null, status: 403 },
+    {
+      name: "unknown status",
+      data: [{ id: ORG_ID }],
+      error: null,
+      status: 403,
+    },
+    {
+      name: "null status",
+      data: [{ id: ORG_ID, is_active: null }],
+      error: null,
+      status: 403,
+    },
+    {
+      name: "lookup error",
+      data: null,
+      error: { message: "offline" },
+      status: 503,
+    },
+  ]
+) {
+  Deno.test(`portal: organization ${scenario.name} denies before documents, secrets, Storage or PAC`, async () => {
+    let downloads = 0, pac = 0;
+    const reads: string[] = [];
+    const { deps, serviceState } = makePortalDeps({
+      portal: {},
+      selects: {
+        organizations: { data: scenario.data, error: scenario.error },
+        invoices: { data: invoiceRow(), error: null },
+      },
+      download: { data: new Blob(["<xml/>"]), error: null },
+      onDownload: () => downloads++,
+      onFacturapiFetch: () => pac++,
+    });
+    const original = deps.createServiceClient;
+    deps.createServiceClient = () => {
+      const client = original();
+      return {
+        ...client,
+        from: (table: string) => {
+          reads.push(table);
+          return client.from(table);
+        },
+      };
+    };
+    const res = await handleDownloadCfdi(
+      makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+      deps,
+    );
+    assertEquals(res.status, scenario.status);
+    assertEquals(reads.includes("organizations"), true);
+    assertEquals(reads.includes("invoices"), false);
+    assertEquals(reads.includes("billing_secrets"), false);
+    assertEquals(downloads, 0);
+    assertEquals(pac, 0);
+    assertEquals(serviceState.updates.length, 0);
+    assertEquals(serviceState.uploads.length, 0);
+  });
+}
+
+Deno.test("portal: active organization does not override a mismatched membership", async () => {
+  let downloads = 0, pac = 0;
+  const { deps } = makePortalDeps({
+    portal: { membershipOrg: OTHER_ORG_ID },
+    selects: { invoices: { data: invoiceRow(), error: null } },
+    download: { data: new Blob(["<xml/>"]), error: null },
+    onDownload: () => downloads++,
+    onFacturapiFetch: () => pac++,
+  });
+  const res = await handleDownloadCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, format: "xml" }),
+    deps,
+  );
+  assertEquals(res.status, 403);
+  assertEquals(downloads, 0);
+  assertEquals(pac, 0);
+});
