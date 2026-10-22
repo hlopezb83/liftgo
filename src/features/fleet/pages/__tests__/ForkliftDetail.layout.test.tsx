@@ -1,8 +1,8 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ForkliftDetail from "../ForkliftDetail";
 
-const state = vi.hoisted(() => ({ costs: true, financials: true, financialAccess: true, notes: "Notas del equipo" }));
+const state = vi.hoisted(() => ({ costs: true, financials: true, financialAccess: true, notes: "Notas del equipo", logsLoading: false, logsError: false, logsFetching: false, retryLogs: vi.fn() }));
 vi.mock("@/lib/router-compat", () => ({ useParams: () => ({ id: "equipment-demo" }) }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
@@ -17,7 +17,7 @@ vi.mock("../../hooks/useCanSeeFinancialCosts", () => ({ useCanSeeFinancialCosts:
 vi.mock("../../hooks/forklifts/useForklifts", () => ({
   useForklift: () => ({ data: { id: "equipment-demo", name: "Equipo demo", model: "FD50", manufacturer: "LIFT GO",
     status: "available", notes: state.notes, daily_rate: 500, weekly_rate: 3000, monthly_rate: 15000, acquisition_cost: 250000 } }),
-  useStatusLogs: () => ({ data: [] }), useDeleteForklift: () => ({ mutate: vi.fn() }),
+  useStatusLogs: () => ({ data: [], isLoading: state.logsLoading, isError: state.logsError, isFetching: state.logsFetching, refetch: state.retryLogs }), useDeleteForklift: () => ({ mutate: vi.fn() }),
 }));
 vi.mock("../../hooks/forklifts/useForkliftLocation", () => ({ useForkliftLocation: () => ({ data: null }) }));
 vi.mock("../../hooks/forklifts/useForkliftFinancials", () => ({ useForkliftFinancials: () => ({ data: state.financials ? {
@@ -28,9 +28,9 @@ vi.mock("../../components/forklift-detail/DocumentAttachments", () => ({ Documen
 vi.mock("../../components/forklift-detail/ForkliftBookingsList", () => ({ ForkliftBookingsList: () => null }));
 vi.mock("../../components/forklift-detail/ForkliftMaintenanceList", () => ({ ForkliftMaintenanceList: () => null }));
 vi.mock("../../components/forklift-detail/ForkliftHourometerHistory", () => ({ ForkliftHourometerHistory: () => <section aria-label="Historial de horómetro" /> }));
-vi.mock("../../components/forklift-detail/ForkliftStatusHistory", () => ({ ForkliftStatusHistory: () => null }));
 
-beforeEach(() => { state.costs = true; state.financials = true; state.financialAccess = true; state.notes = "Notas del equipo"; });
+
+beforeEach(() => { state.costs = true; state.financials = true; state.financialAccess = true; state.notes = "Notas del equipo"; state.logsLoading = false; state.logsError = false; state.logsFetching = false; state.retryLogs.mockClear(); });
 afterEach(cleanup);
 
 describe("ubicación del resumen financiero (componentes de tarjetas reales)", () => {
@@ -86,5 +86,30 @@ describe("ubicación del resumen financiero (componentes de tarjetas reales)", (
     render(<ForkliftDetail />);
     expect(screen.queryByLabelText("Notas")).not.toBeInTheDocument();
     expect(screen.getByText("Resumen Financiero")).toBeInTheDocument();
+  });
+});
+
+
+describe("consulta independiente del historial de estado", () => {
+  it("conecta carga sin presentar un historial vacío", () => {
+    state.logsLoading = true;
+    render(<ForkliftDetail />);
+    expect(screen.getByRole("status", { name: "Cargando historial de estado" })).toBeInTheDocument();
+    expect(screen.queryByText("Sin cambios de estado registrados")).not.toBeInTheDocument();
+  });
+  it("reintenta sólo historial sin ocultar el detalle", () => {
+    state.logsError = true;
+    render(<ForkliftDetail />);
+    expect(screen.getByText("Equipo demo")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Reintentar" }));
+    expect(state.retryLogs).toHaveBeenCalledOnce();
+  });
+  it("deshabilita reintento durante consulta y recupera vacío exitoso", () => {
+    state.logsError = true; state.logsFetching = true;
+    const { rerender } = render(<ForkliftDetail />);
+    expect(screen.getByRole("button", { name: "Reintentando…" })).toBeDisabled();
+    state.logsError = false; state.logsFetching = false;
+    rerender(<ForkliftDetail />);
+    expect(screen.getByText("Sin cambios de estado registrados")).toBeInTheDocument();
   });
 });
