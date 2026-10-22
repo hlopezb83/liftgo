@@ -1,6 +1,7 @@
+import type { BillableBooking } from "../bookingCompatibility";
 import { describe, expect, it } from "vitest";
 import { completedRecurringBooking } from "../completedRecurringBooking";
-const booking = { id: "b1", forklift_id: "f1", status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" };
+const booking: BillableBooking & { forklift_id: string } = { id: "b1", forklift_id: "f1", status: "completed", recurring_billing: true, start_date: "2026-07-15", end_date: "2026-09-30" };
 const returned = { booking_id: "b1", forklift_id: "f1", inspected_at: "2026-08-10T18:00:00Z" };
 const now = new Date("2026-10-21T18:00:00Z");
 const claim = { booking_id: "b1", invoice_id: "i1", status: "paid", line_items: [{ line_kind: "rental" }], billing_period_start: "2026-07-15", billing_period_end: "2026-07-31" };

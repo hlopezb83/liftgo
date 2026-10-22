@@ -1,9 +1,10 @@
+import type { BillableBooking } from "../bookingCompatibility";
 import { describe, expect, it } from "vitest";
 import { verifiedRecurringCoverage } from "../verifiedRecurringCoverage";
 import { completedRecurringBooking } from "../completedRecurringBooking";
 import { buildLinesForBooking } from "../../hooks/invoiceForm/useInvoiceFormHandlers";
 import type { Forklift } from "@/features/fleet";
-const booking = { id: "b1", forklift_id: "f1", start_date: "2026-09-01", end_date: "2026-09-20", status: "completed", recurring_billing: true, monthly_rate: 10000, currency: "MXN" };
+const booking: BillableBooking & { forklift_id: string } = { id: "b1", forklift_id: "f1", start_date: "2026-09-01", end_date: "2026-09-20", status: "completed", recurring_billing: true, monthly_rate: 10000, currency: "MXN" };
 const claim = { invoice_id: "i1", booking_id: "b1", status: "paid", billing_period_start: "2026-09-01", billing_period_end: "2026-09-20", moneda: "MXN", line_items: [{ line_kind: "rental", quantity: 1, unit_price: 6666.67, total: 6666.67 }] };
 const returned = [{ booking_id: "b1", forklift_id: "f1", inspected_at: "2026-09-25T18:00:00Z" }];
 const now = new Date("2026-10-21T18:00:00Z");
