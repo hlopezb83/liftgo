@@ -143,7 +143,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
       </Card>
       <RevenueMonthDetailSheet
         returnTo={`${location.pathname}?${returnParams.toString()}`}
-        open={selected !== null}
+        open={Boolean(selected)}
         onOpenChange={(o) => { if (!o) setSelectedKey(null); }}
         monthLabel={selected?.month ?? null}
         invoiced={selected?.invoiced ?? 0}

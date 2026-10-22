@@ -7,15 +7,16 @@ vi.mock("@/lib/router-compat", () => ({
 type Row = { invoiced: number };
 type SheetProps = {
   open: boolean;
+  onOpenChange: (open: boolean) => void;
   returnTo: string;
   invoiced: number;
   paid: number;
   invoices: Array<{ total: number }>;
 };
-const state = vi.hoisted(() => ({ amount: 100, paid: 0 }));
+const state = vi.hoisted(() => ({ amount: 100, paid: 0, hasMonth: true }));
 vi.mock("@/features/reports/hooks/useRevenueByMonthReport", () => ({
   useRevenueByMonthReport: () => ({
-    data: [
+    data: state.hasMonth ? [
       {
         monthKey: "2026-10",
         invoiced: state.amount,
@@ -23,7 +24,7 @@ vi.mock("@/features/reports/hooks/useRevenueByMonthReport", () => ({
         invoiceCount: 1,
         fxMissingCount: 0,
       },
-    ],
+    ] : [],
     isLoading: false,
     isError: false,
   }),
@@ -50,11 +51,11 @@ vi.mock("@/components/dataTable/v2", () => ({
   }: {
     table: { data: Row[] };
     onRowClick: (row: Row) => void;
-  }) => (
-    <button onClick={() => onRowClick(table.data[0])}>
-      Fila actual {table.data[0].invoiced}
+  }) => table.data.map((row, index) => (
+    <button key={index} onClick={() => onRowClick(row)}>
+      Fila actual {row.invoiced}
     </button>
-  ),
+  )),
 }));
 vi.mock("@/lib/charts/useChartSizing", () => ({ useChartSizing: () => ({}) }));
 vi.mock("recharts", () => {
@@ -78,9 +79,11 @@ vi.mock(
       paid,
       invoices,
       returnTo,
+      onOpenChange,
     }: SheetProps) =>
       open ? (
         <div data-testid="sheet" data-return-to={returnTo}>
+          <button onClick={() => onOpenChange(false)}>Cerrar detalle</button>
           Resumen {invoiced}; Pagado {paid}; Detalle {invoices[0]?.total}
         </div>
       ) : null,
@@ -93,6 +96,7 @@ it("refreshes selected revenue summary along with current rows", () => {
     endDate: new Date(2026, 9, 31),
   };
   const view = render(<RevenueReport {...props} />);
+  expect(screen.queryByTestId("sheet")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "Fila actual 100" }));
   expect(screen.getByTestId("sheet")).toHaveTextContent(
     "Resumen 100; Pagado 0; Detalle 100",
@@ -111,4 +115,11 @@ it("refreshes selected revenue summary along with current rows", () => {
   expect(screen.getByTestId("sheet")).toHaveTextContent(
     "Resumen 200; Pagado 50; Detalle 200",
   );
+  fireEvent.click(screen.getByRole("button", { name: "Cerrar detalle" }));
+  expect(screen.queryByTestId("sheet")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Fila actual 200" }));
+  expect(screen.getByTestId("sheet")).toBeInTheDocument();
+  state.hasMonth = false;
+  view.rerender(<RevenueReport {...props} />);
+  expect(screen.queryByTestId("sheet")).not.toBeInTheDocument();
 });
