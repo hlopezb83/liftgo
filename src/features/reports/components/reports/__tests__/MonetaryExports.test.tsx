@@ -79,6 +79,7 @@ describe("profitability real CSV", () => {
   it("exports losses and gains as numeric fields but sanitizes malicious model text", async () => {
     render(<ProfitabilityByModelReport startDate={new Date(2026, 9, 1)} endDate={new Date(2026, 9, 31)} />);
     const { csv, rows } = await exportRows();
+    expect(rows[0]).toMatchObject({ Desde: "2026-10-01", Hasta: "2026-10-31", Moneda: "MXN" });
     expect(rows[0]["Ganancia Neta"]).toBe("-50");
     expect(rows[0]["Margen %"]).toBe("-50");
     expect(rows[1]).toMatchObject({ Ingresos: "200.12", Mantenimiento: "50.12", "Ganancia Neta": "150", "Margen %": "75" });

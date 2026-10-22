@@ -52,7 +52,7 @@ function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isCon
       );
     }
     return (
-      <Button size="sm" variant="default" onClick={() => navigate(ROUTES.bookings.detail(linkedBookingId))}>
+      <Button size="sm" variant="default" onClick={() => navigate(ROUTES.bookings.detail(linkedBookingId), { state: { quoteReturnTo: ROUTES.quotes.detail(quote.id) } })}>
         <BookOpen className="h-4 w-4 mr-1" />Ver reserva
       </Button>
     );

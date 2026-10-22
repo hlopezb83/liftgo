@@ -37,6 +37,7 @@ export function useInvoicesFilters() {
     (mutate: (params: URLSearchParams) => void) => {
       const next = new URLSearchParams(location.search);
       mutate(next);
+      next.delete("tablePage");
       const nextSearch = next.toString();
       navigate(
         { pathname: location.pathname, search: nextSearch ? `?${nextSearch}` : "" },

@@ -11,6 +11,7 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { Link } from "@/lib/router-compat-ui";
@@ -104,7 +105,9 @@ export default function BookingsPage() {
     },
   });
 
+  const tableViewState = useTableViewState(filtered.length);
   const table = useLiftgoTable<Booking>({
+    ...tableViewState,
     data: filtered,
     columns,
     getRowId: (b: Booking) => b.id,

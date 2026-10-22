@@ -5,6 +5,7 @@ import { BANK_LINE_STATUS_LABELS, type BankLineStatus } from "../lib/bankReconci
 import { BankLineMatchPanel } from "./BankLineMatchPanel";
 import { BankStatementLinesTable } from "./BankStatementLinesTable";
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
+import type { SortingState } from "@tanstack/react-table";
 
 interface Props {
   lines: BankStatementLine[];
@@ -31,6 +32,7 @@ export function BankReconciliationWorkspace({
   lines, bankAccountId, currency, isLoading, virtualized,
   status, search, onStatusChange, onSearchChange,
 }: Props) {
+  const [sorting, setSorting] = useState<SortingState>([{ id: "posted_date", desc: true }]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
   const focusLineId = useRef<string | null>(null);
@@ -101,6 +103,9 @@ export function BankReconciliationWorkspace({
 
   const table = (
     <BankStatementLinesTable
+      key={JSON.stringify([bankAccountId, status, search])}
+      sorting={sorting}
+      onSortingChange={setSorting}
       lines={visible}
       bankAccountId={bankAccountId}
       isLoading={isLoading}

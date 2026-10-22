@@ -1,3 +1,7 @@
+## [8.44.31] - 2026-10-22
+
+- Conserva captura manual, tarifas negociadas, contexto de navegación, selección bancaria y notas por orden. Actualiza el stock/costo de refacciones y el resumen mensual vigente; añade período y moneda al CSV de rentabilidad. Sin migraciones ni cambios de permisos o reglas monetarias.
+
 ## [8.44.30] - 2026-10-22
 
 - Pule el historial de estado del montacargas con una línea de tiempo legible, notas separadas, fechas de Monterrey y controles independientes de carga, error y reintento. Conserva todos los registros y las reglas operativas, sin cambios de datos o permisos. Las referencias técnicas de las notas automáticas se pueden desplegar sin saturar la lectura.

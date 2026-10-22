@@ -6,6 +6,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -75,7 +76,9 @@ export default function FleetPage() {
     },
   });
 
+  const tableViewState = useTableViewState(filtered.length, [{ id: "name", desc: false }]);
   const table = useLiftgoTable<Forklift>({
+    ...tableViewState,
     data: filtered,
     columns,
     getRowId: (f: Forklift) => f.id,

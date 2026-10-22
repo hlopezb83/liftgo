@@ -9,7 +9,10 @@ vi.mock("@/lib/router-compat", () => ({
   useSearchParams: () => [state.params, (update: (previous: URLSearchParams) => URLSearchParams) => { state.params = update(state.params); }],
 }));
 vi.mock("@/components/layout/PageTransition", () => ({ PageTransition: ({ children }: { children: ReactNode }) => <>{children}</> }));
-vi.mock("@/components/forms/DateRangePickerField", () => ({ DateRangePickerField: () => <div>Date range</div> }));
+vi.mock("@/components/forms/DateRangePickerField", () => ({ DateRangePickerField: ({ dateRange, onSelect }: { dateRange: { from?: Date; to?: Date }; onSelect: (range: { from: Date; to?: Date }) => void }) => <div>
+    <output data-testid="range">{dateRange.from?.toISOString().slice(0, 10)} / {dateRange.to?.toISOString().slice(0, 10)}</output>
+    <button onClick={() => onSelect({ from: new Date(2026, 0, 1), to: new Date(2026, 1, 28) })}>Select QA range</button>
+  </div> }));
 vi.mock("@/components/ui/select", () => ({
   Select: ({ children, value, onValueChange }: { children: ReactNode; value: string; onValueChange: (value: string) => void }) => <select aria-label="Tipo de reporte" value={value} onChange={(event) => onValueChange(event.target.value)}>{children}</select>,
   SelectTrigger: () => null,
@@ -69,5 +72,25 @@ describe("Reports dispatcher financial boundary", () => {
     state.canSeeFinancials = true;
     rerender(<ReportsPage />);
     expect(screen.getByText("Financial aging")).toBeInTheDocument();
+  });
+});
+
+
+describe("report period URL continuity", () => {
+  it("restores a valid period and writes changes alongside report type", () => {
+    state.canSeeFinancials = true;
+    state.params = new URLSearchParams({ type: "revenue", from: "2026-03-01", to: "2026-03-31" });
+    const view = render(<ReportsPage />);
+    expect(screen.getByTestId("range")).toHaveTextContent("2026-03-01 / 2026-03-31");
+    fireEvent.click(screen.getByText("Select QA range"));
+    expect(Object.fromEntries(state.params)).toMatchObject({ type: "revenue", from: "2026-01-01", to: "2026-02-28" });
+    view.unmount();
+    render(<ReportsPage />);
+    expect(screen.getByTestId("range")).toHaveTextContent("2026-01-01 / 2026-02-28");
+  });
+  it.each([["2026-02-31", "2026-03-01"], ["2026-04-10", "2026-04-01"]])("rejects malformed or reversed date ranges", (from, to) => {
+    state.params = new URLSearchParams({ from, to });
+    render(<ReportsPage />);
+    expect(screen.getByTestId("range")).not.toHaveTextContent(`${from} / ${to}`);
   });
 });

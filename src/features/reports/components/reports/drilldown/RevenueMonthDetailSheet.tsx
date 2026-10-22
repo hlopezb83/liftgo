@@ -21,6 +21,7 @@ interface Props {
   isError: boolean;
   isRetrying: boolean;
   onRetry: () => void;
+  returnTo?: string;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -34,13 +35,13 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export function RevenueMonthDetailSheet({
   open, onOpenChange, monthLabel, invoiced, paid, invoices,
-  isLoading, isError, isRetrying, onRetry,
+  isLoading, isError, isRetrying, onRetry, returnTo,
 }: Props) {
   const navigate = useNavigateTransition();
 
   const go = (id: string) => {
     onOpenChange(false);
-    navigate(`/invoices/${id}`);
+    navigate(`/invoices/${id}`, { state: { reportInvoiceBackTo: returnTo } });
   };
 
   const handleExport = () => {

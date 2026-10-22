@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasFinancialAccess, useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { useLocation } from "@/lib/router-compat";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateRange } from "@/lib/utils";
 import { extensionBillableRange } from "../../lib/extensionBilling";
@@ -36,6 +37,7 @@ function billingBadgeLabel(isBilled: boolean, isPendingIssue: boolean, days: num
 
 export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
   const navigate = useNavigateTransition();
+  const location = useLocation();
   const canSeeFinancials = useHasFinancialAccess();
   const canInvoice = useHasModuleAccess("Facturas", "full");
   const showBilling = canSeeFinancials && !recurringBilling;
@@ -90,7 +92,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
                       size="sm"
                       variant="ghost"
                       onClick={() =>
-                        navigate(ROUTES.invoices.detail((invoiceId ?? pendingInvoiceId) as string))
+                        navigate(ROUTES.invoices.detail((invoiceId ?? pendingInvoiceId) as string), { state: { bookingInvoiceBackTo: `${location.pathname}${location.search}`, bookingReturnState: location.state } })
                       }
                     >
                       Ver factura

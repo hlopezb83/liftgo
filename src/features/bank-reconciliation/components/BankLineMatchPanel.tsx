@@ -82,7 +82,9 @@ function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine
 export function BankLineMatchPanel({ line, currency, onDone }: Props) {
   const [search, setSearch] = useState("");
   const [dateWindow, setDateWindow] = useState<DateWindow>(15);
-  const [ignoreReason, setIgnoreReason] = useState("");
+  const [ignoreDraft, setIgnoreDraft] = useState({ lineId: line.id, reason: "" });
+  const ignoreReason = ignoreDraft.lineId === line.id ? ignoreDraft.reason : "";
+  const setIgnoreReason = (reason: string) => setIgnoreDraft({ lineId: line.id, reason });
 
   const confirmMut = useConfirmBankMatch();
   const ignoreMut = useIgnoreBankLine();
