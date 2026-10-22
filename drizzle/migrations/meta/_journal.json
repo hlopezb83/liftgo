@@ -855,6 +855,13 @@
       "when": 1792627200001,
       "tag": "0121_completed_recurring_invoice_overlap",
       "breakpoints": true
+    },
+    {
+      "idx": 122,
+      "version": "7",
+      "when": 1792627200002,
+      "tag": "0122_preserve_completed_recurring_billing",
+      "breakpoints": true
     }
   ]
 }

@@ -93,3 +93,23 @@ describe("BookingBillingCard — permisos y elegibilidad de recurrencia", () => 
     expect(screen.getByLabelText("Activar facturación recurrente mensual")).toBeEnabled();
   });
 });
+
+it("distinguishes preserved monthly modality from stopped automatic billing after return", () => {
+  roleRef.current = "administrativo";
+  renderCard({ ...bookingData, status: "completed", recurring_billing: true } as never);
+  expect(screen.getByText("Modalidad mensual")).toBeInTheDocument();
+  expect(screen.getByText(/Facturación automática detenida/)).toBeInTheDocument();
+  expect(screen.queryByLabelText("Activar facturación recurrente mensual")).toBeNull();
+  expect(screen.queryByText("Recurrente")).toBeNull();
+  expect(screen.queryByText(/Próx. factura/)).toBeNull();
+});
+
+
+it("does not reinterpret cancelled nonrecurring bookings as monthly", () => {
+  roleRef.current = "administrativo";
+  renderCard({ ...bookingData, status: "cancelled", recurring_billing: false } as never);
+  expect(screen.getByText("No activa")).toBeInTheDocument();
+  expect(screen.queryByText("Modalidad mensual")).toBeNull();
+  expect(screen.queryByText(/Facturación automática detenida/)).toBeNull();
+  expect(screen.queryByLabelText("Activar facturación recurrente mensual")).toBeNull();
+});
