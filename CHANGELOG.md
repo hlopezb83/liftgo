@@ -1,3 +1,7 @@
+## [8.44.29] - 2026-10-22
+
+- Corrige seis hallazgos de suspensión del portal, tipo de cambio del detalle mensual, exportación de pérdidas, estados de carga/error de reportes y stock del detalle de refacciones. Mantiene los controles de pertenencia, antifórmulas y concurrencia. La activación de la función de descarga se verifica por separado.
+
 ## [8.44.28] - 2026-10-21
 
 - Conserva la modalidad mensual al completar la devolución para recuperar renta pendiente sin reactivar facturación automática. Añade regresión de selección, prorrateo e impuestos; la migración y la reparación específica de datos se activan por separado.

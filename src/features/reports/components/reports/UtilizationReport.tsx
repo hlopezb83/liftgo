@@ -110,11 +110,15 @@ function toDrilldownBooking(b: {
     status: b.status,
   };
 }
-function SelectedUnitSheet({ selected, onClose, totalDaysRange, bookings }: {
+function SelectedUnitSheet({ selected, onClose, totalDaysRange, bookings, bookingsPending, bookingsError, bookingsFetching, onRetryBookings }: {
   selected: Row | null;
   onClose: () => void;
   totalDaysRange: number;
   bookings: ClampedBooking[];
+  bookingsPending: boolean;
+  bookingsError: boolean;
+  bookingsFetching: boolean;
+  onRetryBookings: () => void;
 }) {
   return (
     <UtilizationDetailSheet
@@ -125,6 +129,10 @@ function SelectedUnitSheet({ selected, onClose, totalDaysRange, bookings }: {
       totalDays={selected?.totalDays ?? totalDaysRange}
       utilization={selected?.utilization ?? 0}
       bookings={bookings}
+      bookingsPending={bookingsPending}
+      bookingsError={bookingsError}
+      bookingsFetching={bookingsFetching}
+      onRetryBookings={onRetryBookings}
     />
   );
 }
@@ -135,7 +143,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   // capados a 501 filas). La unión de días anti-traslape vive en SQL.
   const { data = [], isError, isFetching, refetch } = useUtilizationByUnitReport(startDate, endDate);
   // Drilldown: solo reservas que se traslapan con el rango (filtro server-side).
-  const { data: bookingsRaw = [] } = useBookingsRange(startDate, endDate);
+  const { data: bookingsRaw = [], isPending: bookingsPending, isError: bookingsError, isFetching: bookingsFetching, refetch: refetchBookings } = useBookingsRange(startDate, endDate);
   // R2 Bajo 13b: el drilldown está capado a BOOKINGS_RANGE_LIMIT reservas; antes
   // solo había un console.warn invisible para el usuario. Recortar y avisar.
   const rangeTruncated = bookingsRaw.length > BOOKINGS_RANGE_LIMIT;
@@ -175,7 +183,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
 
   return (
     <>
-      {rangeTruncated ? <TruncatedRangeAlert /> : null}
+      {!bookingsError && !bookingsPending && rangeTruncated ? <TruncatedRangeAlert /> : null}
       <UtilizationChartCard data={data} />
       <Card>
         <CardContent className="p-0 overflow-x-auto">
@@ -191,6 +199,10 @@ export function UtilizationReport({ startDate, endDate }: Props) {
         onClose={() => setSelected(null)}
         totalDaysRange={totalDaysRange}
         bookings={selectedBookings}
+        bookingsPending={bookingsPending}
+        bookingsError={bookingsError}
+        bookingsFetching={bookingsFetching}
+        onRetryBookings={() => { void refetchBookings(); }}
       />
     </>
 

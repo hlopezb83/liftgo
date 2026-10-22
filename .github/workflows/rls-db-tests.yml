@@ -83,6 +83,7 @@ jobs:
       pull-requests: write
 
     env:
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
       # URL fija del Postgres que expone `supabase start` en local/CI.
       DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
 

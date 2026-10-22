@@ -113,3 +113,22 @@ describe("invoicesForMonth", () => {
     expect(invoiceNetMxn(invoice({ total: 100, moneda: "USD", tipo_cambio: 18, credited_mxn: 180 }))).toBe(1620);
   });
 });
+
+
+describe("invoice MXN values preserve unknown FX", () => {
+  it.each([null, undefined, 0, 1, "1", -2, "invalid", Infinity])("rejects foreign FX %s without inventing gross or net MXN", (tipo_cambio) => {
+    const inv = invoice({ total: 100, moneda: "USD", tipo_cambio, credited_mxn: 20 });
+    expect(invoiceTotalMxn(inv)).toBeNull();
+    expect(invoiceNetMxn(inv)).toBeNull();
+  });
+
+  it.each([17.5, "17.5"])("converts valid FX %s and deducts credits", (tipo_cambio) => {
+    const inv = invoice({ total: 100, moneda: "USD", tipo_cambio, credited_mxn: 20 });
+    expect(invoiceTotalMxn(inv)).toBe(1750);
+    expect(invoiceNetMxn(inv)).toBe(1730);
+  });
+
+  it.each([null, 0, 1])("does not require FX %s for MXN", (tipo_cambio) => {
+    expect(invoiceTotalMxn(invoice({ total: 100, tipo_cambio }))).toBe(100);
+  });
+});

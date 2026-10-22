@@ -1,6 +1,6 @@
 import { differenceInCalendarDays, parseISO, startOfMonth } from "date-fns";
 import { toYMD } from "@/lib/date/toYMD";
-import { toMxn } from "@/lib/money";
+import { isFxMissing, toMxn } from "@/lib/money";
 
 /** Reserva mínima requerida para el drill-down de utilización. */
 export interface DrilldownBooking {
@@ -86,8 +86,7 @@ export interface DrilldownInvoice {
 /** Total de la factura normalizado a MXN. */
 export function invoiceTotalMxn(inv: DrilldownInvoice): number | null {
   const currency = (inv.moneda ?? "MXN").toUpperCase();
-  const rate = Number(inv.tipo_cambio ?? 0);
-  if (currency !== "MXN" && (!Number.isFinite(rate) || rate <= 0)) return null;
+  if (isFxMissing(currency, inv.tipo_cambio)) return null;
   return toMxn(Number(inv.total), currency, inv.tipo_cambio);
 }
 

@@ -35,11 +35,11 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
     exportToCsv("rentabilidad_por_modelo.csv", rows.map((r) => ({
       Modelo: r.model,
       Unidades: r.units,
-      Ingresos: r.revenue.toFixed(2),
-      Mantenimiento: r.maintenance.toFixed(2),
-      Daños: r.damages.toFixed(2),
-      "Ganancia Neta": r.profit.toFixed(2),
-      "Margen %": r.margin.toFixed(1),
+      Ingresos: Number(r.revenue.toFixed(2)),
+      Mantenimiento: Number(r.maintenance.toFixed(2)),
+      Daños: Number(r.damages.toFixed(2)),
+      "Ganancia Neta": Number(r.profit.toFixed(2)),
+      "Margen %": Number(r.margin.toFixed(1)),
     })));
   };
 

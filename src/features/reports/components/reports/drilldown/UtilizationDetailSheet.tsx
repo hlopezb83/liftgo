@@ -14,6 +14,10 @@ interface Props {
   totalDays: number;
   utilization: number;
   bookings: ClampedBooking[];
+  bookingsPending: boolean;
+  bookingsError: boolean;
+  bookingsFetching: boolean;
+  onRetryBookings: () => void;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -27,6 +31,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export function UtilizationDetailSheet({
   open, onOpenChange, forkliftName, bookedDays, totalDays, utilization, bookings,
+  bookingsPending, bookingsError, bookingsFetching, onRetryBookings,
 }: Props) {
   const navigate = useNavigateTransition();
   const overlapped = hasOverlappingBookings(bookings);
@@ -53,16 +58,27 @@ export function UtilizationDetailSheet({
             <Stat label="Ocupación reservada" value={`${utilization}%`} />
           </div>
           <Separator />
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold">Reservas en el rango ({bookings.length})</h3>
-              <span className="font-mono text-sm font-bold">{sumDays} días</span>
+          {bookingsError ? (
+            <div role="alert" className="space-y-2">
+              <p className="text-sm font-medium">No se pudieron cargar las reservas del detalle.</p>
+              <p className="text-xs text-muted-foreground">El resumen de ocupación sigue disponible. Reintenta para consultar las reservas.</p>
+              <Button type="button" variant="outline" size="sm" onClick={onRetryBookings} disabled={bookingsFetching}>
+                Reintentar reservas
+              </Button>
             </div>
-            {overlapped && sumDays !== bookedDays && (
-              <p className="text-xs text-muted-foreground mb-2">
-                Hay reservas traslapadas: los días compartidos se cuentan una sola vez, por eso el total
-                del reporte ({bookedDays}) es menor a la suma de esta lista ({sumDays}).
-              </p>
+          ) : bookingsPending ? (
+            <p role="status" className="text-sm text-muted-foreground">Cargando reservas…</p>
+          ) : (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold">Reservas en el rango ({bookings.length})</h3>
+                <span className="font-mono text-sm font-bold">{sumDays} días</span>
+              </div>
+              {overlapped && sumDays !== bookedDays && (
+                <p className="text-xs text-muted-foreground mb-2">
+                  Hay reservas traslapadas: los días compartidos se cuentan una sola vez, por eso el total
+                  del reporte ({bookedDays}) es menor a la suma de esta lista ({sumDays}).
+                </p>
             )}
             {bookings.length === 0 ? (
               <p className="text-xs text-muted-foreground italic">Sin reservas en el rango</p>
@@ -94,6 +110,7 @@ export function UtilizationDetailSheet({
               </ul>
             )}
           </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>

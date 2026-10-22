@@ -166,7 +166,8 @@ export type PortalAccessResult = PortalAccessOk | OrgContextFail;
  * ruta propia del portal y exige, con la identidad del JWT ya verificada:
  *  - una fila ACTIVA en `customer_portal_accounts` (organización + cliente), y
  *  - la membresía `organization_memberships` con `member_type = 'portal'` de la
- *    MISMA organización.
+ *    MISMA organización, y
+ *  - una organización existente con `is_active = true`.
  * Cada correo del portal pertenece a una sola organización y a un solo
  * cliente, así que cualquier ambigüedad (0 o >1 filas) se rechaza.
  */
@@ -215,6 +216,20 @@ export async function resolvePortalAccess(
   }
   if (memberships[0]?.organization_id !== organizationId) {
     return { ok: false, status: 403, message: ORG_DOCUMENT_MISMATCH };
+  }
+
+  // La cuenta y la membresía pueden permanecer activas al suspender la empresa.
+  // No permitir documentos, Storage ni PAC sin verificar su estado actual.
+  const organization = await admin.from("organizations")
+    .select("is_active").eq("id", organizationId).limit(1);
+  if (organization?.error) {
+    return { ok: false, status: 503, message: PORTAL_LOOKUP_UNAVAILABLE };
+  }
+  if (
+    !Array.isArray(organization?.data) || organization.data.length !== 1 ||
+    organization.data[0]?.is_active !== true
+  ) {
+    return { ok: false, status: 403, message: "La empresa no está activa." };
   }
 
   return { ok: true, organizationId, customerId };
