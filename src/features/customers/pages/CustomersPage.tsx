@@ -7,6 +7,7 @@ import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { useLocation, useSearchParams } from "@/lib/router-compat";
@@ -98,6 +99,7 @@ export default function CustomersPage() {
   const columns = useCustomersColumns();
 
   const table = useLiftgoTable<Customer>({
+    ...useTableViewState(filtered.length, [{ id: "name", desc: false }]),
     data: filtered,
     columns,
     getRowId: (c) => c.id,

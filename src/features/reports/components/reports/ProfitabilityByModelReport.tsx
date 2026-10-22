@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toYMD } from "@/lib/date/toYMD";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useProfitByModelReport, type ModelRow } from "../../hooks/useProfitByModelReport";
 import { ProfitabilityChart } from "./profitabilityByModel/ProfitabilityChart";
@@ -32,7 +33,10 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   });
 
   const handleExport = () => {
-    exportToCsv("rentabilidad_por_modelo.csv", rows.map((r) => ({
+    exportToCsv(`rentabilidad_por_modelo_${toYMD(startDate)}_${toYMD(endDate)}_MXN.csv`, rows.map((r) => ({
+      "Desde": toYMD(startDate),
+      "Hasta": toYMD(endDate),
+      "Moneda": "MXN",
       Modelo: r.model,
       Unidades: r.units,
       Ingresos: Number(r.revenue.toFixed(2)),

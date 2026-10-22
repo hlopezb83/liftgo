@@ -80,7 +80,11 @@ function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
   );
 }
 
-export function RegisterSupplierPaymentDialog({
+export function RegisterSupplierPaymentDialog(props: Props) {
+  return <SupplierPaymentSession key={`${props.billId}:${props.open}`} {...props} />;
+}
+
+function SupplierPaymentSession({
   open, onOpenChange, billId, billNumber, balance, currency = "MXN",
 }: Props) {
   const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
@@ -105,19 +109,6 @@ export function RegisterSupplierPaymentDialog({
     ),
     defaultValues: buildDefaults(balance),
   });
-
-  const [prevOpen, setPrevOpen] = useState(open);
-  const [prevBalance, setPrevBalance] = useState(balance);
-  if (open !== prevOpen || balance !== prevBalance) {
-    setPrevOpen(open);
-    setPrevBalance(balance);
-    if (open) {
-      if (!prevOpen) setServerBlock(null);
-      setReceiptFile(null);
-      form.reset(buildDefaults(balance));
-    }
-  }
-
 
   const onSubmit = async (data: SupplierPaymentFormData) => {
     setServerBlock(null);

@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useConfirmBankMatches, useIgnoreBankLines } from "../hooks/mutations/useBankBulkActions";
 import { BANK_LINE_STATUS_LABELS } from "../lib/bankReconciliationConstants";
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
+import type { SortingState, Updater } from "@tanstack/react-table";
 
 interface Props {
   lines: BankStatementLine[];
@@ -18,6 +19,8 @@ interface Props {
   activeId?: string | null;
   onSelect: (line: BankStatementLine) => void;
   virtualized?: boolean;
+  sorting?: SortingState;
+  onSortingChange?: (updater: Updater<SortingState>) => void;
 }
 
 // Mapea el estado de la línea al tono semántico del StatusBadge global.
@@ -90,6 +93,8 @@ export function BankStatementLinesTable({
   activeId,
   onSelect,
   virtualized,
+  sorting,
+  onSortingChange,
 }: Props) {
   const [bulkReason, setBulkReason] = useState("");
   const confirmManyMut = useConfirmBankMatches();
@@ -100,6 +105,8 @@ export function BankStatementLinesTable({
     columns,
     getRowId: (l) => l.id,
     initialSorting: [{ id: "posted_date", desc: true }],
+    controlledSorting: sorting,
+    onControlledSortingChange: onSortingChange,
     paginated: false,
     enableRowSelection: (l) => l.status === "unmatched" || l.status === "suggested",
   });
@@ -121,8 +128,13 @@ export function BankStatementLinesTable({
           virtualized={virtualized}
           enableRowSelection
           rowClassName={(l) => (l.id === activeId ? "bg-accent/60" : undefined)}
-          selectionToolbar={({ selectedIds, selectedRows, clearSelection }) => {
-            const suggested = selectedRows.filter((l) => l.status === "suggested");
+          selectionToolbar={({ selectedRows, clearSelection }) => {
+            // Never apply a bulk action to stale, hidden, or no-longer-actionable rows.
+            const actionable = selectedRows.filter((line) => line.bank_account_id === bankAccountId &&
+              (line.status === "unmatched" || line.status === "suggested"));
+            const selectedIds = actionable.map((line) => line.id);
+            if (selectedIds.length === 0) return null;
+            const suggested = actionable.filter((l) => l.status === "suggested");
             return (
               <div
                 className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs"

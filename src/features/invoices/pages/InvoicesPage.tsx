@@ -8,6 +8,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
+import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
@@ -24,7 +25,6 @@ import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePrev
 import { useInvoiceCsvExport } from "../hooks/invoices/useInvoiceCsvExport";
 import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
-import type { SortingState } from "@tanstack/react-table";
 
 type Invoice = Tables<"invoices">;
 
@@ -99,7 +99,8 @@ export default function InvoicesPage() {
     dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll,
   } = useInvoicesFilters();
 
-  const [sorting, setSorting] = useState<SortingState>([{ id: "invoice_number", desc: true }]);
+  const tableViewState = useTableViewState(undefined, [{ id: "invoice_number", desc: true }]);
+  const sorting = tableViewState.controlledSorting;
   const invoicesQuery = useInvoicesInfinite(queryFilters, sorting);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
   const isUpdatingFilters = invoicesQuery.isPlaceholderData;
@@ -121,12 +122,28 @@ export default function InvoicesPage() {
     data: isUpdatingFilters ? [] : invoiceRows,
     columns,
     getRowId: (i) => i.id,
-    controlledSorting: sorting,
-    onControlledSortingChange: setSorting,
+    ...tableViewState,
+    controlledPagination: {
+      ...tableViewState.controlledPagination,
+      pageIndex: Math.min(tableViewState.controlledPagination.pageIndex,
+        Math.max(0, Math.ceil(invoiceRows.length / tableViewState.controlledPagination.pageSize) - 1)),
+    },
     manualSorting: true,
     resetKey: `${filterKey}|${JSON.stringify(sorting)}`,
     preservePaginationOnAppend: true,
   });
+
+  // A crafted or expired page URL must not trigger a crawl of every remote page.
+  // Restore only rows already available for this query; normal end-of-page loading remains below.
+  const restoredMaxPage = Math.max(0, Math.ceil(invoiceRows.length / tableViewState.controlledPagination.pageSize) - 1);
+  const requestedPage = tableViewState.controlledPagination.pageIndex;
+  const requestedSize = tableViewState.controlledPagination.pageSize;
+  const clampRestoredPage = tableViewState.onControlledPaginationChange;
+  useEffect(() => {
+    if (!isLoading && !isUpdatingFilters && !isError && requestedPage > restoredMaxPage) {
+      clampRestoredPage({ pageIndex: restoredMaxPage, pageSize: requestedSize });
+    }
+  }, [isLoading, isUpdatingFilters, isError, requestedPage, restoredMaxPage, requestedSize, clampRestoredPage]);
 
   // Hallazgo 2: convivían dos paginaciones (páginas + "Cargar más"); se
   // conserva sólo la paginación por páginas. La siguiente página del servidor

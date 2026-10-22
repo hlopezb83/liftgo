@@ -14,7 +14,7 @@ vi.mock('@/lib/exportCsv', () => ({ exportToCsvGuarded: state.save }));
 vi.mock('@/contexts/OrganizationContext', () => ({ useVerifiedOrganizationId: () => 'org-a' }));
 vi.mock('@/lib/query/useVerifiedIdentityScope', () => ({ useVerifiedIdentityScope: () => 'user:org-a' }));
 vi.mock('../../hooks/invoices/invoiceQueries', () => ({ fetchInvoicesForExport: state.fetch }));
-vi.mock('@/lib/router-compat', () => ({ useLocation: () => ({ pathname: '/invoices', search: '', hash: '' }) }));
+vi.mock('@/lib/router-compat', () => ({ useLocation: () => ({ pathname: '/invoices', search: '', hash: '' }), useSearchParams: () => [new URLSearchParams(), vi.fn()] }));
 vi.mock('@/lib/ui/appFeedback', () => ({ notifyError: vi.fn(), notifySuccess: vi.fn() }));
 vi.mock('../../components/list/InvoiceMobileCard', () => ({ InvoiceMobileCard: () => null }));
 vi.mock('../../components/list/InvoicesToolbar', () => ({ InvoicesActionsBar: ({ onExport }: { onExport: () => void }) => <button onClick={onExport}>Exportar CSV</button>, InvoicesFiltersBar: () => null }));

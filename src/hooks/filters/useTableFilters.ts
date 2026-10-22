@@ -104,6 +104,7 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
       const dflt = defaultForFacet(facet);
       const paramKey = `${prefix}${String(key)}`;
       setRaw((next) => {
+        next.delete("tablePage");
         if (!normalized || normalized === dflt) next.delete(paramKey);
         else next.set(paramKey, normalized);
       });
@@ -113,6 +114,7 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
 
   const reset = useCallback(() => {
     setRaw((next) => {
+      next.delete("tablePage");
       for (const key of Object.keys(facets)) next.delete(`${prefix}${key}`);
     });
   }, [facets, prefix, setRaw]);

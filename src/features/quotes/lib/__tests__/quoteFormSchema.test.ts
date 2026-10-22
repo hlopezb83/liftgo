@@ -209,3 +209,10 @@ it("allows the unchanged historical header for notes edits, leaving line compari
   expect(createQuoteFormSchema("11").safeParse({ ...baseRental, taxRate: "11", notes: "Reviewed" }).success).toBe(true);
   expect(createQuoteFormSchema("16").safeParse({ ...baseRental, taxRate: "11" }).success).toBe(false);
 });
+
+
+it("strips UI tariff provenance before producing the persistence payload", () => {
+  const result = quoteFormSchema.parse({ ...baseRental, rentalLines: [{ ...baseRental.rentalLines[0], rateSources: { monthlyRate: "auto" } }] });
+  expect(result.rentalLines[0]).not.toHaveProperty("rateSources");
+  expect(result.rentalLines[0].monthlyRate).toBe(15000);
+});

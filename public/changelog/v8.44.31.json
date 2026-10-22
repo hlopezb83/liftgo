@@ -1,0 +1,14 @@
+{
+  "version": "8.44.31",
+  "date": "2026-10-22",
+  "type": "patch",
+  "category": "fix",
+  "title": "Continuidad de captura y navegación operativa",
+  "description": "Corrige diez grupos de inconsistencias de contexto en captura, navegación, bancos, mantenimiento y reportes, incluida la selección de refacciones actualizada.",
+  "changes": [
+    "Conserva la captura de pagos ante actualizaciones de saldo, los datos manuales al retirar XML y las tarifas negociadas al cambiar de modelo. Sólo reemplaza tarifas autocompletadas.",
+    "Recupera página y orden de los listados, período de reportes y origen de navegación entre cotizaciones, reservas y facturas, con destinos locales validados.",
+    "Limita la selección bancaria a los movimientos visibles del contexto actual y separa los motivos y notas entre movimientos y órdenes de trabajo.",
+    "Refleja stock y costo vigentes de refacciones, actualiza el encabezado del detalle mensual de ingresos y añade período y moneda al CSV de rentabilidad sin modificar importes."
+  ]
+}

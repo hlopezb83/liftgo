@@ -20,14 +20,21 @@ interface Props {
   readOnly?: boolean;
 }
 
-export function MaintenancePartsSection({ maintenanceLogId, currentCost, readOnly = false }: Props) {
+export function MaintenancePartsSection(props: Props) {
+  return <MaintenancePartsSession key={props.maintenanceLogId} {...props} />;
+}
+
+function MaintenancePartsSession({ maintenanceLogId, currentCost, readOnly = false }: Props) {
   const [open, setOpen] = useState(false);
-  const [selectedPart, setSelectedPart] = useState<PartInventory | null>(null);
+  const [selectedPartId, setSelectedPartId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
 
   const { data: parts = [], isLoading: loadingParts } = usePartsInventory();
   const { data: usedParts = [], isLoading: loadingUsed } = useMaintenanceParts(maintenanceLogId);
   const addPart = useAddMaintenancePart();
+
+  const selectedPart = parts.find((part) => part.id === selectedPartId) ?? null;
+  const setSelectedPart = (part: PartInventory | null) => setSelectedPartId(part?.id ?? null);
 
   const availableParts = parts.filter((p) => p.stock_quantity > 0);
 

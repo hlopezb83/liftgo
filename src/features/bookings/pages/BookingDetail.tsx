@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { deliveryQueries } from "@/features/deliveries";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { isValidUuid } from "@/lib/isValidUuid";
 import { useLocation, useParams } from "@/lib/router-compat";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
@@ -23,6 +24,8 @@ import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHouromete
 import { useBooking } from "../hooks/bookings/useBookings";
 
 function bookingBackTo(state: unknown): string {
+  const quoteOrigin = (state as { quoteReturnTo?: unknown } | null)?.quoteReturnTo;
+  if (typeof quoteOrigin === "string" && quoteOrigin.startsWith("/quotes/") && isValidUuid(quoteOrigin.slice(8))) return quoteOrigin;
   const origin = (state as { calendarReturnTo?: unknown } | null)?.calendarReturnTo;
   return typeof origin === "string" && /^\/calendar(?:\?[^#]*)?$/.test(origin) ? origin : "/bookings";
 }

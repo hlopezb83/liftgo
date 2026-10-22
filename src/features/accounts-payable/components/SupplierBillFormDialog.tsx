@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { TextareaField, type SelectOption } from "@/components/forms/fields";
 import { SupplierField } from "@/components/forms/fields";
@@ -7,9 +7,8 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { useCxpApprovalThreshold } from "@/features/company-settings";
-import { nowMty } from "@/lib/utils";
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
-import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";
+import { useSupplierBillForm, type SupplierBillFormOverrides, type SupplierBillFormData } from "../hooks/useSupplierBillForm";
 import { CURRENCIES } from "../lib/supplierBillConstants";
 import { SupplierBillCfdiDropzone } from "./SupplierBillCfdiDropzone";
 import { SupplierBillFormFields } from "./SupplierBillFormFields";
@@ -26,20 +25,18 @@ interface Props {
 
 const CURRENCY_OPTIONS: SelectOption[] = CURRENCIES.map((c) => ({ value: c, label: c }));
 
-const EMPTY_FORM = {
-  supplier_id: "", category: "", description: "",
-  issue_date: nowMty(), currency: "MXN" as const, exchange_rate: 1,
-  subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
-  cfdi_uuid: "",
-};
-
 
 export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
   const isEdit = !!bill;
   const allowImport = !isEdit && !overrides;
 
   const cfdi = useImportSupplierBillCfdi();
+  const importSnapshot = useRef<{ before: SupplierBillFormData; imported: Partial<SupplierBillFormData> } | null>(null);
   const [importedValues, setImportedValues] = useState<SupplierBillFormOverrides | undefined>(undefined);
+
+  useEffect(() => {
+    if (!open) importSnapshot.current = null;
+  }, [open]);
 
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
@@ -65,15 +62,31 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const handleFile = async (file: File) => {
     const r = await cfdi.importXml(file);
     if (r) {
+      const before = form.getValues();
+      importSnapshot.current = { before, imported: r.initialValues };
       setImportedValues({ initialValues: r.initialValues, cfdiXmlUrl: r.uploaded.path });
-      form.reset({ ...EMPTY_FORM, ...r.initialValues });
+      form.reset({ ...before, ...r.initialValues }, { keepDefaultValues: true });
     }
   };
 
   const handleClear = () => {
     cfdi.reset();
     setImportedValues(undefined);
-    form.reset(EMPTY_FORM);
+    const snapshot = importSnapshot.current;
+    if (snapshot) {
+      const current = form.getValues();
+      const restored = { ...current };
+      for (const key of Object.keys(snapshot.imported) as Array<keyof SupplierBillFormData>) {
+        const value = current[key];
+        const imported = snapshot.imported[key];
+        const unchanged = value instanceof Date && imported instanceof Date
+          ? value.getTime() === imported.getTime()
+          : value === imported;
+        if (unchanged) Object.assign(restored, { [key]: snapshot.before[key] });
+      }
+      form.reset(restored, { keepDefaultValues: true });
+    }
+    importSnapshot.current = null;
   };
 
   return (

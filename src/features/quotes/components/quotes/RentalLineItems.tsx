@@ -15,6 +15,8 @@ export interface RentalLine {
   /** R13-FE-01: importe histórico de partidas legacy sin modelo. */
   legacyTotal?: number;
   legacyDescription?: string;
+  /** UI-only provenance; quote payload/schema persist only actual prices. */
+  rateSources?: Partial<Record<"dailyRate" | "weeklyRate" | "monthlyRate", "auto" | "manual">>;
 }
 
 interface RentalLineItemsProps {
@@ -27,27 +29,39 @@ interface RentalLineItemsProps {
 }
 
 export function RentalLineItems({ lines, onChange, models, modelsLoading, startDate, endDate }: RentalLineItemsProps) {
+  // Track only values filled during this editing session. Existing/historical
+  // prices are never inferred to be automatic just because they match a catalog.
   const updateLine = (index: number, field: keyof RentalLine, value: string | number) => {
-    onChange(lines.map((line, i) => (i === index ? { ...line, [field]: value } : line)));
+    onChange(lines.map((line, i) => {
+      if (i !== index) return line;
+      const next = { ...line, [field]: value };
+      const sources = { ...line.rateSources };
+      if (field === "dailyRate" || field === "weeklyRate" || field === "monthlyRate") sources[field] = "manual";
+      next.rateSources = sources;
+      return next;
+    }));
   };
 
   const handleModelChange = (index: number, modelId: string) => {
     const model = models.find((m) => m.id === modelId);
-    onChange(
-      lines.map((line, i) =>
-        i === index
-          ? {
-              ...line,
-              modelId,
-              // R12-FE-02 (P1 r11): sólo rellenar desde catálogo las tarifas
-              // en 0 — no pisar el precio histórico/pactado de la línea.
-              dailyRate: line.dailyRate || model?.default_daily_rate || 0,
-              weeklyRate: line.weeklyRate || model?.default_weekly_rate || 0,
-              monthlyRate: line.monthlyRate || model?.default_monthly_rate || 0,
-            }
-          : line,
-      ),
-    );
+    onChange(lines.map((line, i) => {
+      if (i !== index) return line;
+      const next = { ...line, modelId };
+      const sources = { ...line.rateSources };
+      const defaults = {
+        dailyRate: model?.default_daily_rate ?? 0,
+        weeklyRate: model?.default_weekly_rate ?? 0,
+        monthlyRate: model?.default_monthly_rate ?? 0,
+      };
+      for (const field of ["dailyRate", "weeklyRate", "monthlyRate"] as const) {
+        if (sources[field] === "auto" || (!line.modelId && !line[field] && sources[field] !== "manual")) {
+          next[field] = defaults[field];
+          sources[field] = "auto";
+        }
+      }
+      next.rateSources = sources;
+      return next;
+    }));
   };
 
   const addLine = () => {

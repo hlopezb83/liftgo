@@ -33,7 +33,11 @@ interface Props {
  * silencioso en el kanban: aquí el usuario ve el costo final, se le avisa
  * que las secciones quedarán bloqueadas y puede sellar fecha y notas.
  */
-export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCancel }: Props) {
+export function CloseWorkOrderDialog(props: Props) {
+  return <CloseWorkOrderSession key={props.open ? props.log?.id ?? "empty" : "closed"} {...props} />;
+}
+
+function CloseWorkOrderSession({ open, onOpenChange, log, onClosed, onCancel }: Props) {
   const close = useCloseWorkOrder();
   const { data: openDamage } = useOpenDamageForLog(open ? log?.id : null);
   const damageBlock = openDamage ? describeBusinessBlock("maintenance_open_damage") : null;

@@ -1,5 +1,4 @@
-import { subMonths } from "date-fns";
-import { useState } from "react";
+import { parseISO, isValid, subMonths } from "date-fns";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -47,6 +46,20 @@ const REPORT_TYPES = [
   { value: "accountant-export", label: "Exportar para contador" },
 ];
 
+function readReportDate(value: string | null): Date | undefined {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined;
+  const date = parseISO(value);
+  return isValid(date) && toYMD(date) === value ? date : undefined;
+}
+
+function readReportRange(params: URLSearchParams): DateRange {
+  const from = readReportDate(params.get("from"));
+  const to = readReportDate(params.get("to"));
+  return from && (!params.has("to") || (to && from <= to))
+    ? { from, to }
+    : { from: subMonths(nowMty(), 3), to: nowMty() };
+}
+
 export default function ReportsPage() {
   // FIX-FE-12b: el tipo de reporte vive en la URL (sincronización bidireccional).
   // Antes se leía solo en mount: links a /reports?type=aging no hacían nada
@@ -67,9 +80,20 @@ export default function ReportsPage() {
       return next;
     }, { replace: true });
   };
-  const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(nowMty(), 3), to: nowMty() });
+  const dateRange = readReportRange(searchParams);
+  const setDateRange = (range: DateRange) => {
+    const from = range.from;
+    if (!from) return;
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("from", toYMD(from));
+      if (range.to) next.set("to", toYMD(range.to));
+      else next.delete("to");
+      return next;
+    }, { replace: true, expectedPathname: "/reports" });
+  };
   const startDate = dateRange?.from ?? subMonths(nowMty(), 3);
-  const endDate = dateRange?.to ?? nowMty();
+  const endDate = dateRange?.to ?? dateRange?.from ?? nowMty();
 
   return (
     <PageTransition>

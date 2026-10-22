@@ -9,8 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useChartSizing } from "@/lib/charts/useChartSizing";
 import { exportToCsv } from "@/lib/exportCsv";
+import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
+import { useLocation } from "@/lib/router-compat";
 import { useRevenueByMonthReport, useRevenueMonthInvoices } from "../../hooks/useRevenueByMonthReport";
 import { invoicesWithinRange } from "../../lib/drilldown";
 import { RevenueMonthDetailSheet } from "./drilldown/RevenueMonthDetailSheet";
@@ -38,12 +40,16 @@ function revenueQueryState(isError: boolean, isLoading: boolean, isFetching: boo
 }
 
 export function RevenueReport({ startDate, endDate }: Props) {
+  const location = useLocation();
+  const returnParams = new URLSearchParams(location.search);
+  returnParams.set("from", toYMD(startDate));
+  returnParams.set("to", toYMD(endDate));
   // FIX-FE-01: agregación server-side (patrón useProfitByModelReport).
   // useInvoices() está capado a LIST_FETCH_LIMIT (501 filas) y el reporte
   // subestimaba ingresos silenciosamente con más de 500 facturas.
   const { tick, rotatedXAxis, moneyAxisWidth, chartHeightClass } = useChartSizing();
   const { data: rows = [], isLoading, isError, isFetching, refetch } = useRevenueByMonthReport(startDate, endDate);
-  const [selected, setSelected] = useState<Row | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const data: Row[] = rows.map((r) => ({
     key: r.monthKey,
     month: formatMonthShortEsFromDate(parseISO(`${r.monthKey}-01`)),
@@ -51,6 +57,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
     paid: r.paid,
     count: r.invoiceCount,
   }));
+  const selected = data.find((row) => row.key === selectedKey);
   // H-2: facturas en divisa sin tipo de cambio quedan fuera de los importes.
   const fxMissingTotal = rows.reduce((s, r) => s + r.fxMissingCount, 0);
 
@@ -130,13 +137,14 @@ export function RevenueReport({ startDate, endDate }: Props) {
           <DataTableV2
             table={table}
             emptyMessage="Sin facturas en el rango"
-            onRowClick={(r) => setSelected(r)}
+            onRowClick={(r) => setSelectedKey(r.key)}
           />
         </CardContent>
       </Card>
       <RevenueMonthDetailSheet
-        open={selected !== null}
-        onOpenChange={(o) => { if (!o) setSelected(null); }}
+        returnTo={`${location.pathname}?${returnParams.toString()}`}
+        open={Boolean(selected)}
+        onOpenChange={(o) => { if (!o) setSelectedKey(null); }}
         monthLabel={selected?.month ?? null}
         invoiced={selected?.invoiced ?? 0}
         paid={selected?.paid ?? 0}
