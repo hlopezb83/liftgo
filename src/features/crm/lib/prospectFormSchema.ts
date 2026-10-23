@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { STAGE_LABELS } from "@/features/crm/lib/constants";
 import { optionalEmail } from "@/lib/schemas/common";
+import { STAGE_LABELS } from "./constants";
 
 export const STAGES_REQUIRING_DEAL_VALUE = [
   "cotizacion_enviada",

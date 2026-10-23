@@ -1,9 +1,9 @@
-import currency from "currency.js";
 import { useRef, useState } from "react";
 import type { Forklift } from "@/features/fleet";
 import { resolveBookingRates } from "@/lib/domain/bookingRates";
 import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
+import { proratedMonthlyAmount } from "@/lib/domain/invoiceTotals";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { prefillBillingPeriod } from "../../lib/bookingCompatibility";
@@ -96,7 +96,7 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
     if (!cycle) return [];
     const monthly = booking.monthly_rate ?? forklift.monthly_rate;
     if (monthly == null || !Number.isFinite(monthly) || monthly < 0) throw new Error("La reserva recurrente no tiene una tarifa mensual válida. Revisa la tarifa pactada antes de facturar.");
-    const amount = Math.round(currency(monthly).intValue * cycle.billedDays / cycle.daysInMonth) / 100;
+    const amount = proratedMonthlyAmount(monthly, cycle.billedDays, cycle.daysInMonth);
     return [{ description: `${forklift.name} — Renta mensual ${monthLabel(cycle.start)} (${cycle.billedDays} días)`,
       quantity: 1, unit_price: amount, total: amount, ...SAT_LINE_DEFAULTS, clave_unidad: "E48" }];
   }

@@ -67,3 +67,25 @@ describe("mapProspectRow", () => {
     expect(p.createdByName).toBeNull();
   });
 });
+
+
+describe(`prospect timestamps use Monterrey, not the browser calendar day (${Intl.DateTimeFormat().resolvedOptions().timeZone})`, () => {
+  it("normalizes year and midnight boundaries", () => {
+    const result = mapProspectRow({
+      ...baseRow,
+      created_at: "2026-01-01T05:59:59Z",
+      closed_at: "2026-01-01T06:00:00Z",
+    }, { creatorName: null });
+    expect(result.createdAtLabel).toBe("31/12/2025");
+    expect(result.closedAtLabel).toBe("01/01/2026");
+    expect(result.createdAt).toBe("2026-01-01T05:59:59Z");
+    expect(result.closedAt).toBe("2026-01-01T06:00:00Z");
+  });
+
+  it("keeps missing or invalid timestamp labels empty without changing data", () => {
+    const result = mapProspectRow({ ...baseRow, created_at: "invalid", closed_at: null }, { creatorName: null });
+    expect(result.createdAtLabel).toBe("");
+    expect(result.closedAtLabel).toBeNull();
+    expect(result.createdAt).toBe("invalid");
+  });
+});

@@ -2,9 +2,8 @@
 // `downloadPaymentsXlsx` para no cargarlo al montar la ruta CxP. `buildPaymentsWorkbook`
 // sigue siendo síncrono porque solo lo consume `downloadPaymentsXlsx` (y el test
 // que lo importa vía top-level dynamic import).
-import { format } from "date-fns";
 import { roundMoney } from "@/lib/money";
-import { nowMty } from "@/lib/utils";
+import { formatMtyDate } from "@/lib/utils";
 import type * as XLSX from "@e965/xlsx";
 
 export interface PaymentExportRow {
@@ -86,7 +85,7 @@ export async function downloadPaymentsXlsx(rows: PaymentExportRow[], batchId?: s
   const xlsx = await import("@e965/xlsx");
   const wb = buildPaymentsWorkbook(xlsx, rows);
   const suffix = batchId ? `-${batchId.slice(0, 8)}` : "";
-  const filename = `pagos-proveedores-${format(nowMty(), "ddMMyyyy-HHmm")}${suffix}.xlsx`;
+  const filename = `pagos-proveedores-${formatMtyDate(new Date(), "ddMMyyyy-HHmm")}${suffix}.xlsx`;
   xlsx.writeFile(wb, filename);
   return filename;
 }

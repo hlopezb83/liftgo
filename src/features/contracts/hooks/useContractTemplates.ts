@@ -1,19 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useOrganizationContext } from "@/contexts/OrganizationContext";
-import {
-  ContractTemplateUnavailableError,
-  resolveSingleDefaultTemplate,
-} from "@/features/contracts/lib/contractTemplateResolution";
-import type { ContractClause, ChecklistSection } from "@/features/contracts/lib/contractTypes";
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import {
+  ContractTemplateUnavailableError,
+  resolveSingleDefaultTemplate,
+} from "../lib/contractTemplateResolution";
+import {
   normalizeLegalTemplateOverrides,
   type LegalTemplateOverrides,
 } from "../lib/legalTemplateOverrides";
 import { contractTemplateKeys } from "../lib/queryKeys";
+import type { ContractClause, ChecklistSection } from "../lib/contractTypes";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/features/contracts/lib/contractTypes`.

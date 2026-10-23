@@ -1,6 +1,6 @@
 
 import type { ColumnDef } from "@/components/dataTable/v2";
-import { DeleteIcon, EditIcon, KeyIcon, ShieldCheck as ShieldIcon } from "@/components/icons";
+import { DeleteIcon, EditIcon, KeyIcon, SecurityIcon as ShieldIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

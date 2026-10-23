@@ -1,9 +1,8 @@
-import { format } from "date-fns";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { CalendarDays } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
-import { parseDateLocal } from "@/lib/utils";
+import { formatMtyDate } from "@/lib/utils";
 
 
 interface ForkliftBookingsListProps {
@@ -22,7 +21,7 @@ export function ForkliftBookingsList({ bookings }: ForkliftBookingsListProps) {
                 <div>
                   <span className="font-medium">{b.customer_name || "Desconocido"}</span>
                   <span className="text-muted-foreground ml-2">
-                    {format(parseDateLocal(b.start_date), "dd/MM")} – {format(parseDateLocal(b.end_date), "dd/MM/yyyy")}
+                    {formatMtyDate(b.start_date, "dd/MM")} – {formatMtyDate(b.end_date, "dd/MM/yyyy")}
                   </span>
                 </div>
                 <StatusBadge status={b.status} />

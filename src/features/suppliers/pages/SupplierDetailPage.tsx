@@ -36,7 +36,7 @@ function LinkedTotal({ loading, error, total, count, entity, excluded = 0 }: {
   return <>
     <p className="text-xl font-bold tabular-nums">{formatCurrency(total)}</p>
     <p className="text-xs text-muted-foreground">{count} registro(s)</p>
-    {excluded > 0 && <p role="status" className="text-sm text-amber-700">
+    {excluded > 0 && <p role="status" className="text-sm text-warning-text">
       Total parcial en MXN: {excluded} registro(s) sin tipo de cambio válido excluidos.
     </p>}
   </>;

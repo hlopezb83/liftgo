@@ -1,8 +1,6 @@
-import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { parseDateLocal } from "@/lib/utils";
 
 type Props = {
   startDate: string;
@@ -38,7 +36,7 @@ export function ContractDetailsCard({
           <div><span className="text-muted-foreground block">Tarifa Diaria</span>{formatCurrency(num(dailyRate))}</div>
           <div><span className="text-muted-foreground block">Tarifa Semanal</span>{formatCurrency(num(weeklyRate))}</div>
           <div><span className="text-muted-foreground block">Tarifa Mensual</span>{formatCurrency(num(monthlyRate))}</div>
-          {signedAt && <div><span className="text-muted-foreground block">Firmado</span>{format(parseDateLocal(signedAt), "dd/MM/yyyy")}</div>}
+          {signedAt && <div><span className="text-muted-foreground block">Firmado</span>{formatDateMty(signedAt)}</div>}
           {signedBy && <div><span className="text-muted-foreground block">Firmado por</span>{signedBy}</div>}
         </div>
       </CardContent>

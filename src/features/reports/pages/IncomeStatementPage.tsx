@@ -1,4 +1,4 @@
-import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
+import { subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { toYMD } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { nowMty } from "@/lib/utils";
 import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
@@ -16,7 +17,7 @@ function generateMonthOptions(count: number) {
   const options: { value: string; label: string }[] = [];
   for (let i = 0; i < count; i++) {
     const d = subMonths(now, i);
-    const value = format(d, "yyyy-MM");
+    const value = toYMD(d).slice(0, 7);
     const label = formatMonthLongEs(d);
     options.push({ value, label });
   }
@@ -26,8 +27,8 @@ function generateMonthOptions(count: number) {
 export default function IncomeStatementPage() {
   const monthOptions = generateMonthOptions(24);
 
-  const [startMonth, setStartMonth] = useState(() => format(subMonths(nowMty(), 3), "yyyy-MM"));
-  const [endMonth, setEndMonth] = useState(() => format(nowMty(), "yyyy-MM"));
+  const [startMonth, setStartMonth] = useState(() => toYMD(subMonths(nowMty(), 3)).slice(0, 7));
+  const [endMonth, setEndMonth] = useState(() => toYMD(nowMty()).slice(0, 7));
   const [accountingBasis, setAccountingBasis] = useState<"accrual" | "cash">("accrual");
 
   const [sy, sm] = startMonth.split("-").map(Number);

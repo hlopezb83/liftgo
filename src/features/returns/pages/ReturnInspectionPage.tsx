@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
@@ -10,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useForkliftMap } from "@/features/fleet";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { useSearchParams } from "@/lib/router-compat";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
@@ -56,7 +55,7 @@ export default function ReturnInspectionPage() {
           // líneas 37-41), no en la TZ del navegador. El día del picker ya
           // viene como fecha local elegida por el usuario.
           return (
-            formatDateMty(i.inspected_at) === format(filterDate, "dd/MM/yyyy")
+            formatDateMty(i.inspected_at) === formatDateMty(toYMD(filterDate))
           );
         });
 

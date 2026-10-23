@@ -35,9 +35,9 @@ export function OrganizationReadinessCard({
               className="flex items-start gap-3 py-4 first:pt-0 last:pb-0"
             >
               {item.ready ? (
-                <SuccessIcon className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                <SuccessIcon className="mt-0.5 h-5 w-5 shrink-0 text-success" />
               ) : (
-                <WarnIcon className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                <WarnIcon className="mt-0.5 h-5 w-5 shrink-0 text-warning-text" />
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center justify-between gap-2">

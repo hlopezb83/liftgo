@@ -1,9 +1,8 @@
 // R-Perf P2-8: import dinámico para no cargar 106 KB gz al montar la ruta.
-import { format } from "date-fns";
 import { isFxMissing } from "@/features/cash-flow";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { toMxn } from "@/lib/money";
-import { nowMty } from "@/lib/utils";
+import { formatMtyDate } from "@/lib/utils";
 import type { ReconciliationRow } from "../hooks/reconciliation/useReconciliationData";
 
 const HEADERS = [
@@ -97,7 +96,7 @@ export async function downloadReconciliationXlsx(rows: ReconciliationRow[]): Pro
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Conciliación");
-  const filename = `conciliacion-facturas-${format(nowMty(), "ddMMyyyy-HHmm")}.xlsx`;
+  const filename = `conciliacion-facturas-${formatMtyDate(new Date(), "ddMMyyyy-HHmm")}.xlsx`;
   XLSX.writeFile(wb, filename);
   return filename;
 }
