@@ -3,11 +3,7 @@ import {
   assertStringIncludes,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-// Import the actual executePlan without starting an HTTP listener.
-const originalServe = Deno.serve;
-Deno.serve = (() => ({})) as unknown as typeof Deno.serve;
-const { executePlan } = await import("./index.ts");
-Deno.serve = originalServe;
+import { executePlan } from "./handler.ts";
 
 for (const lineRate of [undefined, 11]) {
   Deno.test(`recurrence rejects inherited obsolete VAT without creating or advancing booking: ${lineRate}`, async () => {

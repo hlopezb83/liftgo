@@ -1,127 +1,322 @@
-// Catch-up loop (v7.138.0): garantiza que reservas atrasadas ≥ 2 meses
-// recuperen los periodos omitidos en una sola corrida en vez de quedar
-// atrapadas por la guarda period_too_old (removida).
-import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+// The real planner owns catch-up, history, eligibility and amount calculations.
+import {
+  assertEquals,
+  assertRejects,
+} from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { buildPlan } from "./handler.ts";
+import { dateOnlyToMty, MAX_CATCHUP_ITERATIONS } from "./periods.ts";
+import {
+  bookingFixture,
+  invoiceFixture,
+  planningFixture,
+} from "./testFixtures.ts";
 
-const MAX_CATCHUP_ITERATIONS = 24;
-
-function dateOnlyToMty(s: string): Date {
-  const [y, m, d] = s.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d));
-}
-function toIso(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-function lastOfMonth(d: Date): Date {
-  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0));
-}
-
-// Simula el loop de buildPlan (sin BD): devuelve la lista de periodos que
-// SÍ se facturarían para una reserva con historial `lastBilled` y `endDate`,
-// tomando `today` como hoy. Refleja el mismo predicado que index.ts.
-function planPeriods(
+async function plan(
   lastBilled: string | null,
   startDate: string,
   endDate: string | null,
   today: string,
-): Array<{ start: string; end: string }> {
-  const now = dateOnlyToMty(today);
-  let virtual = lastBilled;
-  const periods: Array<{ start: string; end: string }> = [];
-
-  for (let i = 0; i < MAX_CATCHUP_ITERATIONS; i++) {
-    let billingStart: Date;
-    if (virtual) {
-      const lb = dateOnlyToMty(virtual);
-      billingStart = new Date(
-        Date.UTC(lb.getUTCFullYear(), lb.getUTCMonth() + 1, 1),
-      );
-    } else {
-      const sd = dateOnlyToMty(startDate);
-      billingStart = sd.getUTCDate() === 1 ? sd : sd;
-    }
-    const billingEnd = lastOfMonth(billingStart);
-
-    if (endDate && dateOnlyToMty(endDate) < billingStart) break;
-    if (now < billingStart) break;
-
-    periods.push({ start: toIso(billingStart), end: toIso(billingEnd) });
-    virtual = toIso(billingEnd);
-  }
-  return periods;
+) {
+  const mock = planningFixture({
+    bookings: [
+      bookingFixture({
+        start_date: startDate,
+        end_date: endDate,
+        last_billed_date: lastBilled,
+      }),
+    ],
+    direct: lastBilled
+      ? [invoiceFixture({ billing_period_end: lastBilled })]
+      : [],
+  });
+  return await buildPlan(mock.client, "org-A", dateOnlyToMty(today));
 }
 
-function pendingAfterLimit(
-  lastPeriodEnd: string,
-  endDate: string | null,
-  today: string,
-): number {
-  const last = dateOnlyToMty(lastPeriodEnd);
-  const next = new Date(
-    Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 1),
+Deno.test("catch-up: delayed booking recovers May, June and current July", async () => {
+  const result = await plan(
+    "2026-04-30",
+    "2025-01-01",
+    "2029-01-01",
+    "2026-07-21",
   );
-  const now = dateOnlyToMty(today);
-  const end = endDate ? dateOnlyToMty(endDate) : now;
-  const limit = end < now ? end : now;
-  if (next > limit) return 0;
-  return (limit.getUTCFullYear() - next.getUTCFullYear()) * 12 +
-    limit.getUTCMonth() - next.getUTCMonth() + 1;
-}
-
-Deno.test("catch-up: 2 meses atrasado genera 2 facturas de recuperación", () => {
-  // lastBilled=2026-04-30, hoy=2026-07-21 → debe generar may/jun/jul (jul
-  // porque ya estamos dentro del mes actual).
-  const r = planPeriods("2026-04-30", "2025-01-01", "2029-01-01", "2026-07-21");
-  assertEquals(r.length, 3);
-  assertEquals(r[0], { start: "2026-05-01", end: "2026-05-31" });
-  assertEquals(r[1], { start: "2026-06-01", end: "2026-06-30" });
-  assertEquals(r[2], { start: "2026-07-01", end: "2026-07-31" });
+  assertEquals(result.items.map((item) => [item.startStr, item.endStr]), [
+    ["2026-05-01", "2026-05-31"],
+    ["2026-06-01", "2026-06-30"],
+    ["2026-07-01", "2026-07-31"],
+  ]);
+  assertEquals(result.truncated, false);
+  assertEquals(result.pendingCount, 0);
 });
 
-Deno.test("catch-up: reserva al día sólo genera el mes actual", () => {
-  // lastBilled=2026-06-30, hoy=2026-07-21 → sólo julio.
-  const r = planPeriods("2026-06-30", "2025-01-01", "2029-01-01", "2026-07-21");
-  assertEquals(r.length, 1);
-  assertEquals(r[0], { start: "2026-07-01", end: "2026-07-31" });
+Deno.test("catch-up: current booking only generates current month", async () => {
+  const result = await plan(
+    "2026-06-30",
+    "2025-01-01",
+    "2029-01-01",
+    "2026-07-21",
+  );
+  assertEquals(result.items.map((item) => [item.startStr, item.endStr]), [[
+    "2026-07-01",
+    "2026-07-31",
+  ]]);
 });
 
-Deno.test("catch-up: reserva ya al día del mes actual no factura nada", () => {
-  const r = planPeriods("2026-07-31", "2025-01-01", "2029-01-01", "2026-07-21");
-  assertEquals(r.length, 0);
+Deno.test("catch-up: paid current month emits existing/future preview but no item", async () => {
+  const mock = planningFixture({
+    direct: [
+      invoiceFixture({
+        billing_period_start: "2026-07-01",
+        billing_period_end: "2026-07-31",
+      }),
+    ],
+  });
+  const result = await buildPlan(
+    mock.client,
+    "org-A",
+    dateOnlyToMty("2026-07-21"),
+  );
+  assertEquals(result.items, []);
+  assertEquals(result.lines.map((line) => line.reason), [
+    "already_invoiced",
+    "period_in_future",
+  ]);
+  assertEquals(result.lines[0].existingInvoiceId, "invoice-1");
 });
 
-Deno.test("catch-up: end_date corta el loop antes de rebasarlo", () => {
-  // Reserva terminó en junio; hoy es julio → sólo se factura junio, no julio.
-  const r = planPeriods("2026-04-30", "2025-01-01", "2026-06-30", "2026-07-21");
-  assertEquals(r.length, 2);
-  assertEquals(r[1].end, "2026-06-30");
+Deno.test("catch-up: month-end contract boundary stops before July", async () => {
+  const result = await plan(
+    "2026-04-30",
+    "2025-01-01",
+    "2026-06-30",
+    "2026-07-21",
+  );
+  assertEquals(result.items.length, 2);
+  assertEquals(result.items[1].endStr, "2026-06-30");
+  assertEquals(result.lines.every((line) => line.eligible), true);
 });
 
-Deno.test("catch-up: reserva pausada 6 meses recupera todos", () => {
-  const r = planPeriods("2025-12-31", "2025-01-01", "2029-01-01", "2026-07-21");
-  assertEquals(r.length, 7); // ene–jul 2026
-  assertEquals(r[0].start, "2026-01-01");
-  assertEquals(r[6].end, "2026-07-31");
+Deno.test("catch-up: paused six months recovers all seven due months", async () => {
+  const result = await plan(
+    "2025-12-31",
+    "2025-01-01",
+    "2029-01-01",
+    "2026-07-21",
+  );
+  assertEquals(result.items.length, 7);
+  assertEquals(result.items[0].startStr, "2026-01-01");
+  assertEquals(result.items[6].endStr, "2026-07-31");
 });
 
-Deno.test("catch-up: tope duro MAX_CATCHUP_ITERATIONS respetado", () => {
-  // lastBilled muy antiguo, hoy muy adelante → no debe exceder 24 iteraciones.
-  const r = planPeriods("2020-01-31", "2019-01-01", "2050-01-01", "2026-07-21");
-  assertEquals(r.length, MAX_CATCHUP_ITERATIONS);
+Deno.test("catch-up: actual loop caps 24 periods and reports 54 pending", async () => {
+  const result = await plan(
+    "2020-01-31",
+    "2019-01-01",
+    "2050-01-01",
+    "2026-07-21",
+  );
+  assertEquals(MAX_CATCHUP_ITERATIONS, 24);
+  assertEquals(result.items.length, 24);
+  assertEquals(result.items.at(-1)?.endStr, "2022-01-31");
+  assertEquals(result.truncated, true);
+  assertEquals(result.pendingCount, 54);
+});
+
+Deno.test("catch-up: exactly 24 due periods is not truncated", async () => {
+  const result = await plan("2024-07-31", "2020-01-01", null, "2026-07-21");
+  assertEquals(result.items.length, 24);
+  assertEquals(result.truncated, false);
+  assertEquals(result.pendingCount, 0);
+});
+
+Deno.test("catch-up: first partial period preserves inclusive days and next starts on first", async () => {
+  const result = await plan(null, "2026-09-12", "2027-09-11", "2026-10-20");
   assertEquals(
-    pendingAfterLimit(r.at(-1)?.end ?? "", "2050-01-01", "2026-07-21"),
-    54,
+    result.items.map((
+      item,
+    ) => [
+      item.startStr,
+      item.endStr,
+      item.isProrated,
+      item.proratedDays,
+      item.billedAmount,
+    ]),
+    [
+      ["2026-09-12", "2026-09-30", true, 19, 1963.33],
+      ["2026-10-01", "2026-10-31", false, 0, 3100],
+    ],
   );
 });
 
-Deno.test("catch-up: primer periodo prorrateado conserva su rango exacto", () => {
-  const first = planPeriods(null, "2026-09-12", "2027-09-11", "2026-09-20");
-  assertEquals(first[0], { start: "2026-09-12", end: "2026-09-30" });
-  const afterInvoice = planPeriods(
-    first[0].end,
-    "2026-09-12",
-    "2027-09-11",
-    "2026-10-20",
+Deno.test("catch-up: final partial period is prorated, not billed through month end", async () => {
+  const result = await plan(
+    "2026-05-31",
+    "2025-01-01",
+    "2026-06-15",
+    "2026-07-21",
   );
-  assertEquals(afterInvoice[0], { start: "2026-10-01", end: "2026-10-31" });
+  assertEquals(
+    result.items.map((
+      item,
+    ) => [item.startStr, item.endStr, item.proratedDays, item.billedAmount]),
+    [["2026-06-01", "2026-06-15", 15, 1550]],
+  );
+  assertEquals(result.lines[0].isProrated, true);
+});
+
+Deno.test("catch-up: end on next period start bills that one inclusive day", async () => {
+  const result = await plan(
+    "2026-06-30",
+    "2025-01-01",
+    "2026-07-01",
+    "2026-07-21",
+  );
+  assertEquals(
+    result.items.map((
+      item,
+    ) => [item.startStr, item.endStr, item.proratedDays, item.billedAmount]),
+    [["2026-07-01", "2026-07-01", 1, 100]],
+  );
+});
+
+Deno.test("catch-up: leap year partial cycle uses February 29", async () => {
+  const result = await plan(null, "2024-02-15", "2024-02-29", "2024-03-01");
+  assertEquals(
+    result.items.map((
+      item,
+    ) => [item.startStr, item.endStr, item.proratedDays, item.billedAmount]),
+    [["2024-02-15", "2024-02-29", 15, 1603.45]],
+  );
+});
+
+Deno.test("catch-up: ended before first computed period is ineligible", async () => {
+  const result = await plan(
+    "2026-06-30",
+    "2025-01-01",
+    "2026-06-15",
+    "2026-07-21",
+  );
+  assertEquals(result.items, []);
+  assertEquals(result.lines[0].reason, "booking_ended");
+});
+
+Deno.test("history: direct + pivot merge overrides stale cursor, cancelled rows do not advance", async () => {
+  const june = invoiceFixture();
+  const mock = planningFixture({
+    bookings: [
+      bookingFixture({
+        start_date: "2026-05-01",
+        last_billed_date: "2029-12-31",
+      }),
+    ],
+    linked: [{ invoices: june }, {
+      invoices: invoiceFixture({
+        id: "cancelled",
+        billing_period_end: "2026-09-30",
+        status: "cancelled",
+        cfdi_status: "cancelled",
+      }),
+    }],
+    direct: [
+      june,
+      invoiceFixture({ id: "may", billing_period_end: "2026-05-31" }),
+    ],
+  });
+  const result = await buildPlan(
+    mock.client,
+    "org-A",
+    dateOnlyToMty("2026-07-21"),
+  );
+  assertEquals(result.items.map((item) => item.startStr), ["2026-07-01"]);
+  for (const table of ["invoice_bookings", "invoices"]) {
+    const query = mock.queries.find((query) => query.table === table)!;
+    assertEquals(query.filters, [
+      { col: "booking_id", val: "booking-1" },
+      {
+        col: table === "invoices"
+          ? "organization_id"
+          : "invoices.organization_id",
+        val: "org-A",
+      },
+    ]);
+  }
+});
+
+Deno.test("history: pending fiscal cancellation still occupies a direct-link period", async () => {
+  const mock = planningFixture({
+    direct: [
+      invoiceFixture({
+        billing_period_end: "2026-07-31",
+        status: "cancelled",
+        cfdi_status: "stamped",
+        cfdi_uuid: "uuid",
+        cancellation_status: "pending",
+      }),
+    ],
+  });
+  assertEquals(
+    (await buildPlan(mock.client, "org-A", dateOnlyToMty("2026-07-21"))).items,
+    [],
+  );
+});
+
+Deno.test("history: no live history clears cached cursor; legacy without period retains it", async () => {
+  const booking = bookingFixture({
+    last_billed_date: "2026-06-30",
+    start_date: "2026-05-01",
+  });
+  const empty = planningFixture({ bookings: [booking] });
+  assertEquals(
+    (await buildPlan(empty.client, "org-A", dateOnlyToMty("2026-07-21"))).items
+      .length,
+    3,
+  );
+  const legacy = planningFixture({
+    bookings: [booking],
+    direct: [
+      invoiceFixture({ billing_period_start: null, billing_period_end: null }),
+    ],
+  });
+  assertEquals(
+    (await buildPlan(legacy.client, "org-A", dateOnlyToMty("2026-07-21"))).items
+      .map((item) => item.startStr),
+    ["2026-07-01"],
+  );
+});
+
+for (
+  const failTable of [
+    "bookings",
+    "organization_customers",
+    "invoice_bookings",
+    "invoices",
+  ]
+) {
+  Deno.test(`planner fails closed on ${failTable} read error`, async () => {
+    const mock = planningFixture({ failTable });
+    await assertRejects(
+      () => buildPlan(mock.client, "org-A", dateOnlyToMty("2026-07-21")),
+      Error,
+      `failed ${failTable}`,
+    );
+    assertEquals(mock.rpcCalls, []);
+  });
+}
+
+Deno.test("planner: zero agreed rate is valid, only absent configured rate blocks", async () => {
+  const mock = planningFixture({
+    bookings: [
+      bookingFixture({ id: "zero", monthly_rate: 0 }),
+      bookingFixture({ id: "missing", monthly_rate: null, forklifts: null }),
+    ],
+  });
+  const result = await buildPlan(
+    mock.client,
+    "org-A",
+    dateOnlyToMty("2026-07-21"),
+  );
+  assertEquals(
+    result.items.map((item) => [item.bookingId, item.billedAmount]),
+    [["zero", 0]],
+  );
+  assertEquals(result.lines[1].reason, "no_monthly_rate");
 });

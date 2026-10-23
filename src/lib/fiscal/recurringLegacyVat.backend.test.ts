@@ -2,7 +2,7 @@ import { it, vi } from "vitest";
 import assert from "node:assert/strict";
 vi.mock("../../../supabase/functions/_shared/supabaseClients.ts", () => ({ getAdminClient: vi.fn() }));
 vi.stubGlobal("Deno", { serve: vi.fn(), env: { get: () => undefined } });
-const edgeModulePath = "../../../supabase/functions/generate-recurring-invoices/index.ts";
+const edgeModulePath = "../../../supabase/functions/generate-recurring-invoices/handler.ts";
 const { executePlan } = await import(/* @vite-ignore */ edgeModulePath);
 for (const lineRate of [undefined, 11]) {
   it(`recurrence rejects inherited obsolete VAT without creating or advancing booking: ${lineRate}`, async () => {
