@@ -36,6 +36,11 @@ versionadas y ejecuta suites SQL de RLS. Una base limpia demuestra que la
 cadena del repositorio se reconstruye; no prueba que Lovable Cloud tenga el
 mismo ledger.
 
+Después del replay verificado, CI exporta un artefacto de revisión de las dos
+funciones de Estado de Resultados: definición efectiva, hashes, ACL,
+INVOKER/search_path y referencias a migraciones. No es otro origen editable ni
+se ejecuta su contenido. Consulta el [método y límites del reporte](./income-statement-effective-sql.md).
+
 Consulta [docs/ci.md](./ci.md) y
 [supabase/tests/rls/README.md](../supabase/tests/rls/README.md) para los detalles.
 

@@ -205,6 +205,12 @@ jobs:
         if: failure() && steps.drizzle.outcome == 'failure'
         run: bun scripts/ci-drizzle-diagnostics.mjs
 
+      # Review-only, exact function allowlist. Never execute the extracted bodies
+      # or read business tables. Uses the already replayed disposable CI DB.
+      - name: Exportar definiciones efectivas de Estado de Resultados
+        if: success() && steps.drizzle.outcome == 'success'
+        run: node scripts/ci-drizzle-function-report.mjs
+
       - name: Prepare reports directory
         run: mkdir -p reports
 
