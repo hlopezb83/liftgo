@@ -1,21 +1,6 @@
-// Fix D v7.90.0 (BL-13): verifica que la guarda "booking_ended" descarta
-// reservas cuyo end_date es anterior al inicio del período que tocaría facturar.
-// La lógica vive inline en index.ts (buildPlan); aquí replicamos el predicado
-// exacto para blindarlo contra regresiones futuras.
+// Exercise the same inclusive end-date predicate used by buildPlan.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-
-function dateOnlyToMty(yyyyMmDd: string): Date {
-  const [y, m, d] = yyyyMmDd.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d));
-}
-
-function isBookingEnded(
-  endDate: string | null | undefined,
-  billingStart: Date,
-): boolean {
-  if (!endDate) return false;
-  return dateOnlyToMty(endDate) < billingStart;
-}
+import { dateOnlyToMty, isBookingEnded } from "./periods.ts";
 
 Deno.test("booking_ended: reserva vencida antes del período → true", () => {
   const billingStart = dateOnlyToMty("2026-07-01");

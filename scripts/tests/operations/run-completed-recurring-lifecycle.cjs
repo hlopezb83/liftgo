@@ -138,7 +138,7 @@ async function main() {
 
   // Bind the SQL predicate exercised above to the actual Edge planner's filters.
   // This proves the selection contract, not a full Edge/PAC execution.
-  const edge = read('supabase/functions/generate-recurring-invoices/index.ts');
+  const edge = read('supabase/functions/generate-recurring-invoices/handler.ts');
   const plan = edge.slice(edge.indexOf('let bookingsQuery ='), edge.indexOf('if (organizationId)', edge.indexOf('let bookingsQuery =')));
   assert.match(plan, /\.eq\("recurring_billing", true\)/);
   assert.match(plan, /\.eq\("status", "confirmed"\)/);
