@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # scripts/arch-check.sh — Guardrails de arquitectura (v7.178.0).
 #
-# Verificaciones estáticas rápidas (rg-based, sin instalar dependencias):
+# Verificaciones estáticas (filesystem + AST TypeScript ya instalado):
 #
 #   G1. Prohibido re-introducir carpetas `src/features/*/api/`.
 #       Consolidado en v7.177.0 → toda I/O va en `hooks/`.
@@ -17,9 +17,8 @@
 #       o `src/features/*/components/**` (ya lo cubre ESLint como `error`;
 #       re-verificado aquí porque un rule crash silencioso puede saltárselo).
 #
-#   G5. Cross-feature deep imports: se listan como advertencia.
-#       El guardrail duro es ESLint (`no-restricted-imports` cross-feature,
-#       nivel `warn`). Aquí publicamos el conteo para trend.
+#   G5. Cross-feature deep imports: bloqueante, sólo barrels públicos.
+#       Las fronteras G4/G5 se analizan mediante AST y rutas normalizadas.
 #
 # Uso local: `bun run arch:check`
 # En CI: consumido por `.github/workflows/ci.yml` (job `arch-check`).
@@ -91,50 +90,12 @@ else
   echo "${GREEN}OK${RESET}"
 fi
 
-# ---------- G4: Supabase en pages/components ----------
-# v7.218.0 · ARQ2-A3: usar --iglob absoluto en lugar de patrones shell-expandidos.
-# Antes: `src/features/**/pages` no expandía sin globstar → rg recibía patrones
-# literales y devolvía 0 sin escanear (falso verde).
-echo "-- G4: no supabase en features/*/pages|components"
-sup_leak=$(rg -l "from ['\"]@/integrations/supabase/client['\"]" \
-  src/features \
-  --iglob 'src/features/*/pages/**' \
-  --iglob 'src/features/*/components/**' \
-  --glob '!**/__tests__/**' --glob '!**/*.test.*' 2>/dev/null || true)
-sup_leak=$(printf "%s\n" "$sup_leak" | grep -v "^src/features/auth/pages/AuthPage.tsx$" | grep -v '^$' || true)
-if [ -n "$sup_leak" ]; then
-  echo "${RED}FAIL${RESET} — supabase importado en UI:"
-  echo "$sup_leak"
+# ---------- G4/G5: module boundaries (TypeScript AST) ----------
+# Imports, re-exports, type imports and literal dynamic imports/require;
+# both @/ aliases and relative paths, independent of line breaks/subdirectory.
+echo "-- G4/G5: fronteras de módulos (AST, bloqueante)"
+if ! node scripts/check-feature-imports.mjs; then
   FAIL=1
-else
-  echo "${GREEN}OK${RESET}"
-fi
-
-# ---------- G5: cross-feature deep imports (bloqueante) ----------
-# v7.218.0 · ARQ2-A3: umbral 0 tras migrar todos los sitios al barrel público.
-echo "-- G5: cross-feature deep imports (bloqueante, umbral 0)"
-cf_count=0
-cf_list=""
-while IFS= read -r file; do
-  [ -z "$file" ] && continue
-  src_feat=$(echo "$file" | awk -F/ '{print $3}')
-  while IFS= read -r tgt; do
-    [ -z "$tgt" ] && continue
-    if [ "$src_feat" != "$tgt" ]; then
-      cf_count=$((cf_count + 1))
-      cf_list="${cf_list}${file} -> ${tgt}\n"
-    fi
-  done < <(rg -oN "@/features/[a-z-]+/" "$file" 2>/dev/null | sed 's|@/features/||;s|/||' | sort -u)
-done < <(rg -lN "^import .* from ['\"]@/features/[a-z-]+/(hooks|components|lib|pages)/" \
-  src/features --glob '!**/__tests__/**' --glob '!**/*.test.*' 2>/dev/null || true)
-
-if [ "$cf_count" -gt 0 ]; then
-  echo "${RED}FAIL${RESET} — $cf_count cross-feature deep imports (umbral 0)."
-  printf "$cf_list"
-  echo "  Regla: importa desde el barrel público @/features/<feature>."
-  FAIL=1
-else
-  echo "${GREEN}OK${RESET} — 0 cross-feature deep imports."
 fi
 
 echo ""

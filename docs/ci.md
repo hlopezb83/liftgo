@@ -102,6 +102,50 @@ señal (archivos, dependencias, exports y tipos sin uso) se revisa en local con
 `bun run knip`. La configuración y sus excepciones se explican en
 [architecture-guardrails.md](./architecture-guardrails.md#revisión-de-código-sin-uso-con-knip).
 
+### Integridad de los guardrails y pruebas de navegador
+
+`quality` prueba los controles mismos antes de usarlos: identidad de release,
+configuración efectiva de ESLint, fronteras de imports, procedencia de blobs y
+alcance del proyecto TypeScript de navegador. Los sentinelas negativos deben
+rechazar entradas deliberadamente incorrectas; no sustituyen lint, typecheck,
+build ni ejecución de pruebas.
+
+`tsconfig.browser-tests.json` incluye `tests/e2e/**/*.ts`: los 17 specs actuales,
+su setup, teardown y fixtures, además de smoke, móvil y A/B. El contrato compara
+las raíces del proyecto con todos los archivos E2E y comprueba semánticamente
+una asignación incompatible inyectada en memoria en un spec antes excluido.
+Ese sentinela no carga dependencias ni ejecuta el spec; el paso separado
+`typecheck:browser-tests` comprueba el grafo completo. Ninguna de estas
+comprobaciones inicia Playwright ni operaciones de red, datos o fiscales.
+
+### Procedencia de los seis blobs de Vitest
+
+Cada shard genera `blob.json` en un directorio nuevo de `RUNNER_TEMP` creado con
+`mktemp`, sin consumir `.vitest-reports/` del checkout. El reporter exige una
+ruta explícita cuando `VITEST_SHARD_BLOB=1`. Tras la ejecución se sella un
+manifiesto con repositorio, ID e intento de corrida, commit, versión de Vitest,
+shard/total y SHA-256 de los bytes. El artifact sólo admite ese blob y su
+manifiesto; el nombre también identifica corrida e intento.
+
+Para reintentar esta corrida se debe elegir **Re-run all jobs** en GitHub Actions.
+**Re-run failed jobs** o reejecutar sólo el merge no vuelve a producir los shards
+que ya estaban verdes: sus artifacts pertenecen al intento anterior y se rechazan
+intencionalmente. No renombrar artifacts antiguos ni omitir la validación para
+hacer pasar un reintento parcial; generar nuevamente los seis shards.
+
+El merge descarga seis artifacts nominales en seis subdirectorios aislados.
+`scripts/vitest-blob-provenance.mjs` rechaza faltantes, sobrantes, symlinks,
+procedencias distintas, hashes incorrectos y un destino contaminado. Sólo
+tras validar todo copia exactamente seis blobs a otro directorio vacío que
+Vitest consume explícitamente. Los manifiestos nunca se pasan al lector de
+Vitest. Un shard fallido conserva diagnóstico, pero impide ejecutar el merge.
+
+`.vitest-reports/` está ignorado y no contiene artifacts versionados. El reporte
+histórico retirado sigue recuperable en Git. Esta limpieza evita mezclar
+conteos o diagnósticos entre corridas; no se atribuye inflación porcentual de
+cobertura al blob antiguo, que no incluía cobertura. Los umbrales se mantienen
+sin cambios y se aplican únicamente al merge completo.
+
 ### Smoke de arranque
 
 `playwright.smoke.config.ts` + `tests/smoke/app-boot.spec.ts`. Sirve el `dist/`

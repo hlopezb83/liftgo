@@ -25,6 +25,7 @@ dist-ssr
 
 # Test reports & Playwright artifacts (CI uploads them)
 /reports/
+/.vitest-reports/
 playwright-report/
 test-results/
 

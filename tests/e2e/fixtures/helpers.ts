@@ -88,7 +88,7 @@ export const TIMEOUTS = {
 export function waitForSupabaseResponse(
   page: Page,
   urlPattern: RegExp,
-  timeoutMs = TIMEOUTS.medium,
+  timeoutMs: number = TIMEOUTS.medium,
 ) {
   return page.waitForResponse(
     (res) => urlPattern.test(res.url()) && res.status() < 400,

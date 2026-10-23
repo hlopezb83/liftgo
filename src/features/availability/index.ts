@@ -1,2 +1,2 @@
 export { useServerTodayMty } from "./hooks/useServerTodayMty";
-export { computeFleetAvailability } from "./utils/fleetAvailability";
+export { computeFleetAvailability, deriveForkliftDisplayStatus } from "./utils/fleetAvailability";
