@@ -70,3 +70,32 @@ test('build refuses stale manifest after a source edit, independent of prebuild 
   await writeFile(path.join(root, 'src/money.ts'), 'changed after prebuild');
   await assert.rejects(validatedBuildIdentity(root), /identities differ/);
 });
+
+for (const directory of ['reports', 'dist', 'test-results']) {
+  test(`legitimate nested ${directory} source participates in identity`, async (t) => {
+    const root = await fixture(t);
+    const file = path.join(root, 'src/features', directory, 'finance.ts');
+    const before = await sourceIdentity(root);
+    await mkdir(path.dirname(file), { recursive: true });
+    await writeFile(file, 'first');
+    const added = await sourceIdentity(root);
+    assert.notEqual(added, before);
+    await writeFile(file, 'second');
+    assert.notEqual(await sourceIdentity(root), added);
+    await rm(file);
+    assert.equal(await sourceIdentity(root), before);
+    await mkdir(path.join(root, directory), { recursive: true });
+    await writeFile(path.join(root, directory, 'artifact.json'), 'ignored artifact');
+    assert.equal(await sourceIdentity(root), before);
+  });
+}
+
+test('reports edits invalidate a previously generated manifest', async (t) => {
+  const root = await fixture(t);
+  await writeFile(path.join(root, 'public/changelog.json'), JSON.stringify([{ version: '8.44.31' }]));
+  const manifest = { version: '8.44.31', sourceSha256: await sourceIdentity(root) };
+  await writeFile(path.join(root, 'public/version.json'), JSON.stringify(manifest));
+  await mkdir(path.join(root, 'src/features/reports'), { recursive: true });
+  await writeFile(path.join(root, 'src/features/reports/report.ts'), 'new report');
+  await assert.rejects(validatedBuildIdentity(root), /identities differ/);
+});
