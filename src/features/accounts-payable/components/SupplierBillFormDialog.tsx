@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { TextareaField, type SelectOption } from "@/components/forms/fields";
-import { SupplierField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { useCxpApprovalThreshold } from "@/features/company-settings";
+import { SupplierField } from "@/features/suppliers";
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
 import { useSupplierBillForm, type SupplierBillFormOverrides, type SupplierBillFormData } from "../hooks/useSupplierBillForm";
 import { CURRENCIES } from "../lib/supplierBillConstants";

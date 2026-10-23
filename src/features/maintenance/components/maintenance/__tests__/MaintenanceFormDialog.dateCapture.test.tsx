@@ -8,7 +8,7 @@ vi.mock("../../../hooks/maintenance/useMaintenanceLogs", () => ({
   useCreateMaintenanceLog: () => ({ mutate: mutations.create, isPending: false }),
   useUpdateMaintenanceLog: () => ({ mutate: mutations.update, isPending: false }),
 }));
-vi.mock("@/features/suppliers", () => ({ useSuppliers: () => ({ data: [], isLoading: false }) }));
+vi.mock("@/features/suppliers/hooks/useSuppliers", () => ({ useSuppliers: () => ({ data: [], isLoading: false }) }));
 vi.mock("@/lib/ui/appFeedback", () => ({ notifySuccess: vi.fn(), notifyValidation: vi.fn() }));
 vi.mock("@/lib/utils", async (importOriginal) => ({
   ...await importOriginal<typeof import("@/lib/utils")>(),

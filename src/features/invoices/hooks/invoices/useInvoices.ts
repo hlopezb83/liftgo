@@ -21,3 +21,5 @@ export {
 } from "./invoiceMutations";
 
 export type { SaveInvoiceWithBookingsArgs } from "./invoiceMutations";
+
+export type { InvoiceListItem } from "./invoiceQueries";

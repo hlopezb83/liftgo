@@ -17,14 +17,19 @@ const QUOTE_COLUMNS = sel(
   "id, quote_number, customer_id, customer_name, forklift_id, start_date, end_date, line_items, subtotal, tax_rate, tax_amount, total, status, valid_until, notes, created_at, updated_at, quote_type, equipment_model_id, rental_meta, currency, tipo_cambio, accepted_at, accepted_ip, accepted_by_user_id, rejected_at, rejection_reason, is_e2e, e2e_scope, version"
 );
 
-const QUOTE_LIST_COLUMNS = sel(
-  "id, quote_number, customer_id, customer_name, forklift_id, start_date, end_date, subtotal, tax_rate, tax_amount, total, status, valid_until, quote_type, currency, tipo_cambio"
-);
+const QUOTE_LIST_FIELDS = [
+  "id", "quote_number", "customer_id", "customer_name", "forklift_id", "start_date",
+  "end_date", "subtotal", "tax_rate", "tax_amount", "total", "status",
+  "valid_until", "quote_type", "currency", "tipo_cambio",
+] as const satisfies readonly (keyof Quote)[];
+const QUOTE_LIST_COLUMNS = QUOTE_LIST_FIELDS.join(", ");
 
-type QuoteListRow = Quote;
+/** Exact list projection. Load detail before reading document-only fields. */
+export type QuoteListItem = Pick<Quote, (typeof QUOTE_LIST_FIELDS)[number]>;
+
 type QuoteRow = Quote | null;
 
-export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteRow>(
+export const quoteQueries = defineEntityQueries<"quotes", QuoteListItem[], QuoteRow>(
   "quotes",
   {
     list: () => async () => {
@@ -39,7 +44,7 @@ export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteR
         .or("is_e2e.is.null,is_e2e.eq.false")
         .order("created_at", { ascending: false })
         .limit(LIST_FETCH_LIMIT)
-        .returns<QuoteListRow[]>();
+        .returns<QuoteListItem[]>();
       if (error) throw error;
       return data ?? [];
     },

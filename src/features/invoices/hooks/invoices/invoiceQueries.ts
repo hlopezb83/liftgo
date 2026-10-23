@@ -38,18 +38,21 @@ const INVOICE_COLUMNS = sel(
 );
 // Sin `cfdi_xml` ni `line_items`. Suficiente para render de listas + filtros.
 // Consumidores que necesiten esos campos deben cargar el detalle por id.
-const INVOICE_LIST_COLUMNS = sel(
-  "id, invoice_number, folio, serie, customer_id, customer_name, booking_id, quote_id, " +
-  "status, cfdi_status, cfdi_uuid, cfdi_pdf_url, cfdi_xml_url, cfdi_error_message, " +
-  "cancellation_status, cancellation_motive, cancellation_reason, cancelled_at, substitution_uuid, " +
-  "acuse_pdf_url, acuse_xml_url, facturapi_invoice_id, facturapi_env, stamping_attempts, " +
-  "stamp_variance, stamp_variance_checked_at, invoice_type, forma_pago, metodo_pago, uso_cfdi, " +
-  "moneda, tipo_cambio, global_months, global_periodicity, global_year, " +
-  "receptor_rfc, receptor_razon_social, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, " +
-  "subtotal, tax_rate, tax_amount, total, notes, version, " +
-  "billing_period_start, billing_period_end, issued_at, due_date, paid_at, " +
-  "e2e_scope, is_e2e, created_at, updated_at",
-);
+const INVOICE_LIST_FIELDS = [
+  "id", "invoice_number", "folio", "serie", "customer_id", "customer_name",
+  "booking_id", "quote_id", "status", "cfdi_status", "cfdi_uuid", "cfdi_pdf_url",
+  "cfdi_xml_url", "cfdi_error_message", "cancellation_status", "cancellation_motive", "cancellation_reason", "cancelled_at",
+  "substitution_uuid", "acuse_pdf_url", "acuse_xml_url", "facturapi_invoice_id", "facturapi_env", "stamping_attempts",
+  "stamp_variance", "stamp_variance_checked_at", "invoice_type", "forma_pago", "metodo_pago", "uso_cfdi",
+  "moneda", "tipo_cambio", "global_months", "global_periodicity", "global_year", "receptor_rfc",
+  "receptor_razon_social", "receptor_regimen_fiscal", "receptor_domicilio_fiscal_cp", "subtotal", "tax_rate", "tax_amount",
+  "total", "notes", "version", "billing_period_start", "billing_period_end", "issued_at",
+  "due_date", "paid_at", "e2e_scope", "is_e2e", "created_at", "updated_at",
+] as const satisfies readonly (keyof InvoiceRow)[];
+const INVOICE_LIST_COLUMNS = INVOICE_LIST_FIELDS.join(", ");
+
+/** Exact list projection. Load detail before reading document-only fields. */
+export type InvoiceListItem = Pick<InvoiceRow, (typeof INVOICE_LIST_FIELDS)[number]>;
 
 function baseInvoiceQuery(normalized: InvoiceListFilters) {
   let q = supabase.from("invoices").select(INVOICE_LIST_COLUMNS).or(e2eVisibilityFilter());
@@ -82,7 +85,7 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const { data, error } = await baseInvoiceQuery(normalized)
     .order("created_at", { ascending: false })
     .limit(LIST_FETCH_LIMIT)
-    .returns<InvoiceRow[]>();
+    .returns<InvoiceListItem[]>();
   if (error) throw error;
   return data ?? [];
 }
@@ -99,7 +102,7 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number, 
   const { data, error } = await query
     .order("id", { ascending: false })
     .range(from, to)
-    .returns<InvoiceRow[]>();
+    .returns<InvoiceListItem[]>();
   if (error) throw error;
   const rows = data ?? [];
   return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
@@ -111,7 +114,7 @@ export async function fetchInvoicesForExport(
 ) {
   if (!scope.organizationId) throw new Error("Empresa no verificada");
   const normalized = createInvoiceListFilters(filters);
-  const rows: InvoiceRow[] = [];
+  const rows: InvoiceListItem[] = [];
   // Continue to an empty page instead of treating a server row cap as EOF.
   // Advance by the actual count so a smaller server cap cannot skip invoices.
   for (;;) {
@@ -122,7 +125,7 @@ export async function fetchInvoicesForExport(
       .order("created_at", { ascending: false })
       .order("id", { ascending: false })
       .range(rows.length, rows.length + LIST_PAGE_LIMIT - 1)
-      .returns<InvoiceRow[]>();
+      .returns<InvoiceListItem[]>();
     scope.signal.throwIfAborted();
     if (error) throw error; // Never return a partially downloaded export.
     if (!data?.length) return rows;

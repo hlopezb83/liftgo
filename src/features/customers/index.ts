@@ -5,4 +5,5 @@ export * from "./components/customers/CustomerSelector";
 export * from "./hooks/customers/useCustomerPortal";
 export * from "./hooks/customers/useCustomerSummary";
 export * from "./hooks/customers/useCustomers";
-export * from "./hooks/useParseCsf";
+// Compatibility export; the shared fiscal capability is not owned by customers.
+export { useParseCsf, type ParsedCsfData } from "@/lib/fiscal/useParseCsf";
