@@ -7,7 +7,7 @@ import { allowReadOnlyRequest, PUBLISHED_APP_ORIGIN, type SmokeRequest } from ".
 
 const ORIGIN = PUBLISHED_APP_ORIGIN;
 const TRANSPORT = "Failed to load resource: net::ERR_FAILED";
-const URLS = [`${ORIGIN}/~flock.js`, `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js`, `${ORIGIN}/__l5e/events.b21a279f52bb8621.js`];
+const URLS = [`${ORIGIN}/__l5e/events.js`, `${ORIGIN}/~flock.js`, `${ORIGIN}/__l5e/events.4d3abd1f6b7321c2.js`, `${ORIGIN}/__l5e/events.b21a279f52bb8621.js`];
 const script = (url: string): SmokeRequest => ({ url, method: "GET", resourceType: "script" });
 const noiseContext = (urls: string[] = []) => ({
   origin: ORIGIN,
@@ -31,6 +31,11 @@ async function fixture(origin = ORIGIN) {
 // Includes aliases new URL() would otherwise canonicalize (default port,
 // host case, empty credentials and dot segments). Only fragments are ignored.
 const INVALID_URLS = [
+  `${ORIGIN}/__l5e/events.js?`, `${ORIGIN}/__l5e/events.js?event=1`,
+  `${ORIGIN}/__l5e/events.js.map`, `${ORIGIN}/__l5e/events.jsx`,
+  `${ORIGIN}/__l5e/Events.js`, `${ORIGIN}/other/events.js`,
+  `https://other.invalid/__l5e/events.js`,
+
   "invalid", "//liftgo.lovable.app/~flock.js",
   "https://other.invalid/~flock.js", "https://liftgo.lovable.app.attacker.invalid/~flock.js",
   "http://liftgo.lovable.app/~flock.js", "https://liftgo.lovable.app:444/~flock.js",

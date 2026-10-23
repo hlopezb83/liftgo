@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 export const SOURCE_DIRECTORIES = ['src', 'public', 'scripts', 'supabase/functions', 'drizzle/migrations'];
 export const SOURCE_FILES = ['package.json', 'bun.lock', 'vite.config.ts', 'tsconfig.json', 'wrangler.jsonc'];
 const GENERATED = new Set(['public/version.json', 'public/changelog-recent.json']);
-const SKIP_NAMES = new Set(['node_modules', '.git', '.state', '.auth', '.aws', '.ssh', '.secrets', 'dist', 'reports', 'test-results']);
+const SKIP_NAMES = new Set(['node_modules', '.git', '.state', '.auth', '.aws', '.ssh', '.secrets']);
+// Artifact exclusions are repository-relative, never feature basenames.
+const ARTIFACT_PATHS = new Set(['dist', 'reports', 'test-results']);
 const MAX_FILES = 30_000;
 const MAX_BYTES = 512 * 1024 * 1024;
 
@@ -17,7 +19,7 @@ export async function sourceIdentity(root) {
   let bytes = 0;
   async function visit(relative) {
     const name = path.posix.basename(relative);
-    if (GENERATED.has(relative) || SKIP_NAMES.has(name) || name.startsWith('.env') || name.endsWith('.log')
+    if (GENERATED.has(relative) || ARTIFACT_PATHS.has(relative) || SKIP_NAMES.has(name) || name.startsWith('.env') || name.endsWith('.log')
       || /\.(?:pem|key|p12|pfx)$/i.test(name) || name === 'credentials.json') return;
     const stat = await lstat(path.join(root, relative));
     if (stat.isSymbolicLink()) throw new Error(`Release input is a symlink: ${relative}`);
