@@ -26,6 +26,17 @@ configuración y este documento en el mismo cambio.
 | G4 | No importar el cliente Supabase desde páginas o componentes de features, salvo Auth. |
 | G5 | Cero imports profundos entre features; usar el barrel público `@/features/<feature>`. |
 
+G4/G5 usan el AST de TypeScript (`scripts/check-feature-imports.mjs`), no una
+lista de subcarpetas ni regex de líneas. Detectan import/export-from, import de
+tipos y cargas dinámicas/require con specifier literal, tanto `@/` como rutas
+relativas normalizadas. Sólo el barrel raíz (`<feature>` o `<feature>/index`)
+se permite entre features; los imports dentro de la misma feature son válidos.
+Las únicas excepciones del escaneo son archivos de tests/fixtures y, para G4,
+`src/features/auth/pages/AuthPage.tsx`. Los specifiers computados en ejecución
+no se resuelven: este control no afirma analizar dependencias dinámicas
+arbitrarias. Sus fixtures negativas y excepciones corren en el job `quality`.
+
+
 El script escanea los archivos actuales y falla si detecta una violación. La
 allowlist de `src/lib/domain/` de `scripts/arch-check.sh` es la fuente de
 verdad para G2.

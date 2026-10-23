@@ -9,6 +9,10 @@ const CPUS = typeof os.availableParallelism === "function" ? os.availableParalle
 // `--shard` en CI: cada runner corre una porción y emite un reporte "blob"
 // que el job de merge une para aplicar umbrales de cobertura globales.
 const IS_SHARD = process.env.VITEST_SHARD_BLOB === "1";
+const BLOB_OUTPUT_FILE = process.env.VITEST_BLOB_OUTPUT_FILE;
+if (IS_SHARD && !BLOB_OUTPUT_FILE) {
+  throw new Error("Sharded reports require VITEST_BLOB_OUTPUT_FILE in a fresh per-run directory");
+}
 
 export default defineConfig({
   // Sin `babel-plugin-react-compiler` aquí: el compiler no aporta valor bajo
@@ -59,7 +63,7 @@ export default defineConfig({
     // En modo shard añadimos el reporter humano junto al blob: el merge sigue
     // consumiendo el blob, pero el log del shard muestra QUÉ test falló.
     reporters: IS_SHARD
-      ? ["default", "blob"]
+      ? ["default", ["blob", { outputFile: BLOB_OUTPUT_FILE }]]
       : process.env.VITEST_RLS_JUNIT
       ? ["default", ["junit", { outputFile: "reports/rls-junit.xml" }]]
       : process.env.CI
