@@ -4,10 +4,14 @@ import {
   type Locator,
   type Page,
 } from "@playwright/test";
-import { installOfflineDispatcher } from "./offlineDispatcher";
+import {
+  installOfflineDispatcher,
+  type OfflineProfile,
+} from "./offlineDispatcher";
 
 type Fixtures = {
   authenticated: boolean;
+  profile: OfflineProfile;
   mockBackend: Awaited<ReturnType<typeof installOfflineDispatcher>>;
   pageErrors: string[];
 };
@@ -16,12 +20,14 @@ type Fixtures = {
 // checks every scenario for unexpected backend calls and uncaught JS errors.
 export const test = base.extend<Fixtures>({
   authenticated: [true, { option: true }],
+  profile: ["dispatcher", { option: true }],
   mockBackend: [
-    async ({ context, baseURL, authenticated }, use) => {
+    async ({ context, baseURL, authenticated, profile }, use) => {
       const mockBackend = await installOfflineDispatcher(
         context,
         new URL(baseURL!).origin,
         authenticated,
+        profile,
       );
       await use(mockBackend);
       expect(mockBackend.unexpected, "unexpected backend requests").toEqual([]);

@@ -17,12 +17,20 @@ vi.mock("node:fs", async (importOriginal) => {
 });
 vi.mock("@playwright/test", () => ({ expect }));
 
-import { installOfflineDispatcher } from "../../tests/mobile/offlineDispatcher";
+import {
+  installOfflineDispatcher,
+  portalInvoices,
+  portalQuotes,
+  type OfflineProfile,
+} from "../../tests/mobile/offlineDispatcher";
 
 const ORIGIN = "http://localhost:4173";
 const BACKEND = "http://127.0.0.1:54321";
 
-async function fixture(authenticated = true) {
+async function fixture(
+  authenticated = true,
+  profile: OfflineProfile = "dispatcher",
+) {
   let handler!: (route: Route) => Promise<unknown>;
   const context = {
     addInitScript: vi.fn(),
@@ -35,20 +43,25 @@ async function fixture(authenticated = true) {
     context as unknown as BrowserContext,
     ORIGIN,
     authenticated,
+    profile,
   );
   const request = async (
     url: string,
     method = "GET",
     headers: Record<string, string> = {},
+    body: unknown = {},
+    responseStatus = 200,
   ) => {
     const route = {
       request: () => ({
         url: () => url,
         method: () => method,
         headers: () => headers,
+        postDataJSON: () => body,
       }),
       abort: vi.fn(),
       continue: vi.fn(),
+      fetch: vi.fn(async () => ({ status: () => responseStatus })),
       fulfill: vi.fn(),
     };
     await handler(route as unknown as Route);
@@ -60,10 +73,12 @@ async function fixture(authenticated = true) {
 beforeEach(() => vi.clearAllMocks());
 
 describe("mobile offline fixture isolation", () => {
-  it("only continues same-origin GET assets and closes every websocket", async () => {
+  it("fetches local GET assets without following redirects and closes every websocket", async () => {
     const { context, request } = await fixture();
     const asset = await request(`${ORIGIN}/assets/index.js`);
-    expect(asset.continue).toHaveBeenCalledOnce();
+    expect(asset.fetch).toHaveBeenCalledWith({ maxRedirects: 0 });
+    expect(asset.fulfill).toHaveBeenCalledOnce();
+    expect(asset.continue).not.toHaveBeenCalled();
     const external = await request(
       "https://unrelated.example.invalid/asset.js",
     );
@@ -121,5 +136,105 @@ describe("mobile offline fixture isolation", () => {
     await expect(
       installOfflineDispatcher({} as BrowserContext, "https://example.invalid"),
     ).rejects.toThrow();
+  });
+});
+
+describe("portal mobile read-only fixtures", () => {
+  it("provides a customer role, portal membership and synthetic list/detail rows", async () => {
+    const { state, request } = await fixture(true, "portal");
+    const membership = await request(`${ORIGIN}/_serverFn/abc123`);
+    expect(
+      JSON.parse(membership.fulfill.mock.calls[0][0].body).result.context,
+    ).toMatchObject({
+      memberType: "portal",
+      customerId: "00000000-0000-4000-8000-000000000010",
+    });
+    const role = await request(`${BACKEND}/rest/v1/user_roles`);
+    expect(JSON.parse(role.fulfill.mock.calls[0][0].body)[0].role).toBe(
+      "customer",
+    );
+    const list = await request(
+      `${BACKEND}/rest/v1/rpc/get_portal_invoices_page`,
+      "POST",
+      {},
+      {
+        p_page_size: 25,
+        p_offset: 0,
+        p_only_balance: false,
+      },
+    );
+    expect(JSON.parse(list.fulfill.mock.calls[0][0].body)).toEqual({
+      rows: portalInvoices,
+      total_count: 2,
+    });
+    const invoice = await request(
+      `${BACKEND}/rest/v1/rpc/get_portal_invoice`,
+      "POST",
+      {},
+      {
+        p_invoice_id: portalInvoices[1].id,
+      },
+    );
+    expect(JSON.parse(invoice.fulfill.mock.calls[0][0].body)).toEqual([
+      portalInvoices[1],
+    ]);
+    const quote = await request(
+      `${BACKEND}/rest/v1/quotes?id=eq.${portalQuotes[1].id}`,
+      "GET",
+      {
+        accept: "application/vnd.pgrst.object+json",
+      },
+    );
+    expect(JSON.parse(quote.fulfill.mock.calls[0][0].body)).toEqual(
+      portalQuotes[1],
+    );
+    expect(state.observed).toContain("get_portal_invoices_page");
+    expect(state.unexpected).toEqual([]);
+  });
+
+  it.each([
+    ["/rest/v1/quotes", "POST", {}],
+    ["/rest/v1/quotes", "PATCH", {}],
+    ["/rest/v1/quotes", "DELETE", {}],
+    ["/rest/v1/rpc/accept_quote_from_portal", "POST", {}],
+    ["/rest/v1/rpc/reject_quote_from_portal", "POST", {}],
+    ["/rest/v1/rpc/get_portal_invoice", "POST", { p_invoice_id: "unknown" }],
+    [
+      "/rest/v1/rpc/get_portal_invoices_page",
+      "POST",
+      { p_offset: 25, p_page_size: 25, p_only_balance: false },
+    ],
+    ["/rest/v1/quotes?id=eq.unknown", "GET", {}],
+    ["/rest/v1/bookings", "GET", {}],
+    ["/auth/v1/token", "POST", {}],
+  ])(
+    "blocks unknown or mutating portal requests: %s %s",
+    async (path, method, body) => {
+      const { state, request } = await fixture(true, "portal");
+      const result = await request(`${BACKEND}${path}`, method, {}, body);
+      expect(result.abort).toHaveBeenCalledOnce();
+      expect(result.fulfill).not.toHaveBeenCalled();
+      expect(result.fetch).not.toHaveBeenCalled();
+      expect(state.unexpected).toHaveLength(1);
+    },
+  );
+
+  it("does not expand the dispatcher RPC allowlist", async () => {
+    const { request } = await fixture();
+    const result = await request(
+      `${BACKEND}/rest/v1/rpc/get_portal_invoices_page`,
+      "POST",
+    );
+    expect(result.abort).toHaveBeenCalledOnce();
+  });
+
+  it("rejects local redirects before they can contact an external origin", async () => {
+    const { state, request } = await fixture(true, "portal");
+    const result = await request(`${ORIGIN}/redirect`, "GET", {}, {}, 302);
+    expect(result.fetch).toHaveBeenCalledWith({ maxRedirects: 0 });
+    expect(result.abort).toHaveBeenCalledOnce();
+    expect(result.fulfill).not.toHaveBeenCalled();
+    expect(result.continue).not.toHaveBeenCalled();
+    expect(state.unexpected).toEqual(["GET /redirect"]);
   });
 });

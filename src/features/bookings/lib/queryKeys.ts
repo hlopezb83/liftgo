@@ -15,6 +15,10 @@ export const bookingKeys = {
     [...bookingKeys.all, "forklift", forkliftId] as const,
   /** M-17: prefijo para invalidar TODOS los listados por montacargas. */
   byForkliftAll: () => [...bookingKeys.all, "forklift"] as const,
+  /** Selector de entregas: incluye todas las variantes de visibilidad. */
+  deliveryConfirmedAll: () => [...bookingKeys.all, "delivery-confirmed"] as const,
+  deliveryConfirmed: (visibility: string) =>
+    [...bookingKeys.deliveryConfirmedAll(), visibility] as const,
   /** Prefijo del listado por rango de fechas (drilldown de utilización / calendario). */
   range: () => [...bookingKeys.all, "range"] as const,
   extensions: (bookingId: string) =>
