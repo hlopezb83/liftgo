@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
 import { usePortalQuotesPage } from "../hooks/usePortalExtras";
 import { quoteStatusLabel } from "../lib/quoteStatus";
 import type { PortalQuoteListRow } from "../lib/queryKeys";
@@ -72,28 +73,30 @@ export default function PortalQuotes() {
                 keyExtractor={(q) => q.id}
                 emptyMessage="Aún no tienes cotizaciones. Cuando solicites una cotización aparecerá aquí; contáctanos para cotizar tu próximo montacargas."
                 renderCard={(q) => (
-                  <Card
-                    className="cursor-pointer active:bg-accent/40"
-                    onClick={() => navigate(`/portal/quotes/${q.id}`)}
+                  <Link
+                    to={`/portal/quotes/${q.id}`}
+                    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
-                    <CardContent className="p-3 space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium">{q.quote_number}</span>
-                        <StatusBadge status={q.status} label={quoteStatusLabel(q.status)} />
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{formatDateMty(q.created_at)}</span>
-                        <span className="tabular-nums font-semibold text-foreground">
-                          {formatCurrencyWithCode(Number(q.total), q.currency ?? "MXN")}
-                        </span>
-                      </div>
-                      {q.valid_until ? (
-                        <div className="text-xs text-muted-foreground">
-                          Válida hasta: {formatDateMty(q.valid_until)}
+                    <Card className="active:bg-accent/40">
+                      <CardContent className="p-3 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium">{q.quote_number}</span>
+                          <StatusBadge status={q.status} label={quoteStatusLabel(q.status)} />
                         </div>
-                      ) : null}
-                    </CardContent>
-                  </Card>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>{formatDateMty(q.created_at)}</span>
+                          <span className="tabular-nums font-semibold text-foreground">
+                            {formatCurrencyWithCode(Number(q.total), q.currency ?? "MXN")}
+                          </span>
+                        </div>
+                        {q.valid_until ? (
+                          <div className="text-xs text-muted-foreground">
+                            Válida hasta: {formatDateMty(q.valid_until)}
+                          </div>
+                        ) : null}
+                      </CardContent>
+                    </Card>
+                  </Link>
                 )}
               />
             </div>

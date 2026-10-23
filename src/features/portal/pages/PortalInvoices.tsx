@@ -13,6 +13,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { Link } from "@/lib/router-compat-ui";
 
 type Invoice = PortalInvoiceRow;
 
@@ -96,26 +97,28 @@ export default function PortalInvoices() {
                 keyExtractor={(i) => i.id}
                 emptyMessage="Aún no tienes facturas. Cuando se emita tu primera factura aparecerá aquí. ¿Dudas? Contáctanos."
                 renderCard={(inv) => (
-                  <Card
-                    className="cursor-pointer active:bg-accent/40"
-                    onClick={() => navigate(`/portal/invoices/${inv.id}`)}
+                  <Link
+                    to={`/portal/invoices/${inv.id}`}
+                    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   >
-                    <CardContent className="p-3 space-y-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-medium">{inv.invoice_number}</span>
-                        <StatusBadge status={inv.status} />
-                      </div>
-                      <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{formatDateMty(inv.issued_at)}</span>
-                        <span className="tabular-nums font-semibold text-foreground">
-                          {formatCurrencyWithCode(Number(inv.total), inv.moneda ?? "MXN")}
-                        </span>
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Vence: {formatDateMty(inv.due_date)}
-                      </div>
-                    </CardContent>
-                  </Card>
+                    <Card className="active:bg-accent/40">
+                      <CardContent className="p-3 space-y-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-medium">{inv.invoice_number}</span>
+                          <StatusBadge status={inv.status} />
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>{formatDateMty(inv.issued_at)}</span>
+                          <span className="tabular-nums font-semibold text-foreground">
+                            {formatCurrencyWithCode(Number(inv.total), inv.moneda ?? "MXN")}
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Vence: {formatDateMty(inv.due_date)}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 )}
               />
             </div>

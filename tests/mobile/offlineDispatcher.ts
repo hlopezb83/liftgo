@@ -3,6 +3,8 @@ import { readFileSync, readdirSync } from "node:fs";
 import { expect, type BrowserContext } from "@playwright/test";
 
 const BACKEND = "http://127.0.0.1:54321";
+export type OfflineProfile = "dispatcher" | "portal";
+
 const USER = "00000000-0000-4000-8000-000000000001";
 const ORG = "00000000-0000-4000-8000-000000000002";
 const BOOKING = "00000000-0000-4000-8000-000000000003";
@@ -115,10 +117,48 @@ const rows: Record<string, unknown[]> = {
   user_preferences: [],
 };
 
+// Portal rows are synthetic and read-only. No live customer or fiscal data.
+export const portalInvoices = [1, 2].map((n) => ({
+  id: `00000000-0000-4000-8000-00000000001${n}`,
+  invoice_number: `QA-FAC-00${n}`,
+  status: "paid",
+  issued_at: "2026-10-01",
+  due_date: "2026-10-31",
+  total: 1160,
+  subtotal: 1000,
+  tax_rate: 16,
+  tax_amount: 160,
+  moneda: n === 1 ? "MXN" : "USD",
+  paid_amount: 1160,
+  balance: 0,
+  cfdi_uuid: null,
+  line_items: [],
+}));
+export const portalQuotes = [1, 2].map((n) => ({
+  id: `00000000-0000-4000-8000-00000000002${n}`,
+  quote_number: `QA-COT-00${n}`,
+  status: "accepted",
+  created_at: "2026-10-01T12:00:00Z",
+  valid_until: n === 1 ? "2026-10-31" : null,
+  total: 1160,
+  subtotal: 1000,
+  tax_rate: 16,
+  tax_amount: 160,
+  currency: n === 1 ? "MXN" : "USD",
+  accepted_at: null,
+  line_items: [],
+}));
+const portalRows: Record<string, unknown[]> = {
+  user_roles: [{ role: "customer", user_id: USER }],
+  role_permissions: [],
+  quotes: portalQuotes,
+  payments: [],
+};
+
 // Resolve generated IDs from this exact compiled artifact, never hard-code a
 // hash or inject application internals. Only these two read server functions
 // are mocked; an unexpected server function fails closed.
-function serverFunctionIds(): Map<string, unknown> {
+function serverFunctionIds(profile: OfflineProfile): Map<string, unknown> {
   const files = readdirSync("dist/server/_ssr").filter((f) =>
     /^server-.*\.mjs$/.test(f),
   );
@@ -130,8 +170,9 @@ function serverFunctionIds(): Map<string, unknown> {
       context: {
         status: "ready",
         organizationId: ORG,
-        memberType: "internal",
-        customerId: null,
+        memberType: profile === "portal" ? "portal" : "internal",
+        customerId:
+          profile === "portal" ? "00000000-0000-4000-8000-000000000010" : null,
       },
       errorCode: null,
     },
@@ -154,13 +195,15 @@ export async function installOfflineDispatcher(
   context: BrowserContext,
   origin: string,
   authenticated = true,
+  profile: OfflineProfile = "dispatcher",
 ) {
   expect(["localhost", "127.0.0.1", "[::1]"]).toContain(
     new URL(origin).hostname,
   );
   const functions = authenticated
-    ? serverFunctionIds()
+    ? serverFunctionIds(profile)
     : new Map<string, unknown>();
+  const activeRows = profile === "portal" ? portalRows : rows;
   const unexpected: string[] = [];
   const observed = new Set<string>();
   const now = Math.floor(Date.now() / 1000);
@@ -170,7 +213,7 @@ export async function installOfflineDispatcher(
     id: USER,
     aud: "authenticated",
     role: "authenticated",
-    email: "dispatcher@example.invalid",
+    email: `${profile}@example.invalid`,
     app_metadata: { provider: "email", providers: ["email"] },
     user_metadata: {},
     created_at: "2026-01-01T00:00:00Z",
@@ -223,7 +266,11 @@ export async function installOfflineDispatcher(
         observed.add(id);
         return json(functions.get(id));
       }
-      return method === "GET" ? route.continue() : reject();
+      if (method !== "GET") return reject();
+      // Do not let a local redirect bypass the external-network guard.
+      const response = await route.fetch({ maxRedirects: 0 });
+      if (response.status() >= 300 && response.status() < 400) return reject();
+      return route.fulfill({ response });
     }
     if (url.origin !== BACKEND) return route.abort();
     if (method === "OPTIONS")
@@ -235,6 +282,30 @@ export async function installOfflineDispatcher(
       get_public_branding: [{ razon_social: "QA Empresa ficticia móvil" }],
       get_sidebar_badge_counts: {},
     };
+    if (profile === "portal" && method === "POST") {
+      if (rpc === "get_portal_invoices_page") {
+        const input = request.postDataJSON();
+        if (
+          input.p_offset !== 0 ||
+          input.p_page_size !== 25 ||
+          input.p_only_balance !== false
+        )
+          return reject();
+        observed.add(rpc);
+        return json({
+          rows: portalInvoices,
+          total_count: portalInvoices.length,
+        });
+      }
+      if (rpc === "get_portal_invoice") {
+        const invoice = portalInvoices.find(
+          (row) => row.id === request.postDataJSON().p_invoice_id,
+        );
+        if (!invoice) return reject();
+        observed.add(rpc);
+        return json([invoice]);
+      }
+    }
     if (
       url.pathname.startsWith("/rest/v1/rpc/") &&
       rpc in readRpcs &&
@@ -249,11 +320,21 @@ export async function installOfflineDispatcher(
       const table = url.pathname.split("/").pop()!;
       observed.add(table);
       // Unknown table reads are surfaced, not silently treated as empty success.
-      if (!(table in rows)) return reject();
+      if (!(table in activeRows)) return reject();
+      let result = activeRows[table];
+      if (
+        profile === "portal" &&
+        table === "quotes" &&
+        url.searchParams.has("id")
+      ) {
+        const id = url.searchParams.get("id")?.replace(/^eq\./, "");
+        result = portalQuotes.filter((row) => row.id === id);
+        if (result.length !== 1) return reject();
+      }
       return json(
         request.headers().accept?.includes("vnd.pgrst.object")
-          ? (rows[table][0] ?? null)
-          : rows[table],
+          ? (result[0] ?? null)
+          : result,
       );
     }
     return reject();

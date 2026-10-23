@@ -90,7 +90,7 @@ async function fetchConfirmedDeliveryBookings(page: number, visibility: string):
 export function useConfirmedBookingsForDelivery(enabled: boolean) {
   const visibility = e2eVisibilityFilter();
   return useInfiniteQuery({
-    queryKey: [...bookingKeys.all, "delivery-confirmed", visibility],
+    queryKey: bookingKeys.deliveryConfirmed(visibility),
     enabled,
     initialPageParam: 0,
     queryFn: ({ pageParam }) => fetchConfirmedDeliveryBookings(pageParam, visibility),
