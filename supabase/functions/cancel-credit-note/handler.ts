@@ -22,10 +22,15 @@ import {
 import { resolveDocumentOrganization } from "../_shared/orgContext.ts";
 import { loadRetryAwareFacturapiConfig } from "../_shared/facturapi/retryContext.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
-import type { StampCfdiDeps } from "../stamp-cfdi/handler.ts";
 
 export type { SupabaseLike };
-export type CancelCreditNoteDeps = StampCfdiDeps;
+// Preserve this operation's legacy contract independently of CFDI-I stamping.
+export interface CancelCreditNoteDeps {
+  createCallerClient: (authHeader: string) => SupabaseLike;
+  createServiceClient: () => SupabaseLike;
+  fetchImpl: typeof fetch;
+  env: (key: string) => string | undefined;
+}
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 

@@ -3,7 +3,7 @@ import { cancellationResult } from "../_shared/facturapi/cancellationResult.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
-import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   cancelInvoiceWithSignal,
@@ -22,7 +22,13 @@ import {
 } from "../_shared/cfdiRetryQueue.ts";
 
 export type { SupabaseLike };
-export type CancelRepDeps = StampCfdiDeps;
+// Preserve this operation's legacy contract independently of CFDI-I stamping.
+export interface CancelRepDeps {
+  createCallerClient: (authHeader: string) => SupabaseLike;
+  createServiceClient: () => SupabaseLike;
+  fetchImpl: typeof fetch;
+  env: (key: string) => string | undefined;
+}
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 // M-7: mismos estados SAT que cancel-cfdi/handler.ts.

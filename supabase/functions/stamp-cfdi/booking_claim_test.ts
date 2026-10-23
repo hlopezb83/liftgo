@@ -46,9 +46,9 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
       }],
     },
   });
-  let fetchCalls = 0;
+  let gatewayCalls = 0;
   let fiscalConfigReads = 0;
-  // The official SDK uses globalThis.fetch, independently of deps.fetchImpl.
+  // Neither a gateway nor its provider transport may be reached before claim.
   const pac = installFacturapiMock({});
   try {
     const response = await handleStampCfdi(
@@ -63,8 +63,8 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
       {
         createCallerClient: () => caller.client,
         createServiceClient: () => service.client,
-        fetchImpl: () => {
-          fetchCalls++;
+        createInvoiceGateway: () => {
+          gatewayCalls++;
           throw new Error("Network forbidden in offline test");
         },
         env: () => {
@@ -77,7 +77,7 @@ Deno.test("booking guard claim rejection stops before PAC without compensating w
     assertEquals(await response.json(), {
       error: "Invoice already stamped or in progress",
     });
-    assertEquals(fetchCalls, 0);
+    assertEquals(gatewayCalls, 0);
     assertEquals(pac.calls, []);
     assertEquals(fiscalConfigReads, 0);
     assertEquals(service.updates, [{

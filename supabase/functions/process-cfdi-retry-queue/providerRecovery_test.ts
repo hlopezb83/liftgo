@@ -163,7 +163,9 @@ Deno.test("queue y timbrado reales: rotación durante GET bloquea la nueva llave
             {
               createCallerClient: () => caller,
               createServiceClient: () => service,
-              fetchImpl: globalThis.fetch,
+              createInvoiceGateway: () => {
+                throw new Error("Fiscal retry guard must stop before PAC");
+              },
               env: () => undefined,
             },
           );

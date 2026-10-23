@@ -1,3 +1,4 @@
+import { createInvoiceGateway } from "./invoiceGateway.ts";
 // Unit tests for stamp-cfdi pure handler (no network, no Supabase).
 import {
   assert,
@@ -108,7 +109,7 @@ function makeDeps(opts: {
   caller?: MockConfig;
   service?: MockConfig;
   env?: Record<string, string>;
-  fetchImpl?: typeof fetch;
+  createInvoiceGateway?: StampCfdiDeps["createInvoiceGateway"];
 }): {
   deps: StampCfdiDeps;
   serviceState: ReturnType<typeof buildSupabaseMock>;
@@ -136,7 +137,7 @@ function makeDeps(opts: {
     deps: {
       createCallerClient: () => caller.client,
       createServiceClient: () => service.client,
-      fetchImpl: opts.fetchImpl ?? (globalThis.fetch),
+      createInvoiceGateway: opts.createInvoiceGateway ?? createInvoiceGateway,
       env: (k) => env[k],
     },
   };
@@ -272,7 +273,6 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
   try {
     const { deps, serviceState } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -408,7 +408,6 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
   try {
     const { deps, serviceState } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -499,7 +498,6 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
   try {
     const { deps, serviceState } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -581,7 +579,6 @@ Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", 
   try {
     const { deps, serviceState } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -693,7 +690,6 @@ Deno.test("handler: claim atómico — 2ª petición concurrente NO invoca al PA
   try {
     const { deps } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -756,7 +752,6 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
   try {
     const { deps, serviceState } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -825,7 +820,6 @@ Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llama
   try {
     const { deps, serviceState } = makeDeps({
       env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      fetchImpl: globalThis.fetch,
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
@@ -1065,10 +1059,10 @@ for (
   Deno.test(`obsolete VAT rejected before claim or provider: ${JSON.stringify(taxFields)}`, async () => {
     let providerCalls = 0;
     const { deps, serviceState } = makeDeps({
-      fetchImpl: (() => {
+      createInvoiceGateway: () => {
         providerCalls++;
         throw new Error("Provider must not run");
-      }) as typeof fetch,
+      },
       service: {
         selects: {
           user_roles: { data: [{ role: "admin" }], error: null },
