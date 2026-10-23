@@ -6,9 +6,8 @@
  *   navigate(ROUTES.invoices.detail(id));
  *   navigate(ROUTES.bookings.list);
  *
- * ⚠️ Cualquier ruta añadida aquí DEBE existir también en `appRoutes`
- *    (src/routes/routes-config.tsx) o vivir bajo `/portal/*`.
- *    Guardrail: `src/routes/__tests__/routes.test.ts`.
+ * Cada ruta debe existir en el árbol activo de TanStack, incluido el portal.
+ * Guardrail: `src/app-routes/__tests__/routes.test.ts`.
  */
 
 export const ROUTES = {

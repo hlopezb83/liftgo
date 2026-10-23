@@ -10,7 +10,6 @@ import { usePageActions } from "@/contexts/pageActions";
 import { useHasModuleAccess } from "@/features/users";
 import { useTableViewState } from "@/hooks/filters/useTableViewState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useLocation } from "@/lib/router-compat";
@@ -23,10 +22,10 @@ import { RecurringInvoicesResultDialog } from "../components/recurring/Recurring
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
 import { useInvoiceCsvExport } from "../hooks/invoices/useInvoiceCsvExport";
-import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
+import { invoiceQueries, useInvoicesInfinite, type InvoiceListItem } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 
-type Invoice = Tables<"invoices">;
+type Invoice = InvoiceListItem;
 
 function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {
   const generateRecurring = useGenerateRecurringInvoices({ onShowDetails: () => setResultOpen(true) });
@@ -71,7 +70,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
         cell: ({ row }) => row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—" },
       { id: "total", header: "Total", accessorFn: (i) => Number(i.total), meta: { kind: "money" },
         cell: ({ row }) => {
-          const moneda = (row.original as Invoice & { moneda?: string | null }).moneda ?? "MXN";
+          const moneda = row.original.moneda ?? "MXN";
           return (
             <span className="font-mono inline-flex items-center gap-1 justify-end">
               {formatCurrency(Number(row.original.total))}

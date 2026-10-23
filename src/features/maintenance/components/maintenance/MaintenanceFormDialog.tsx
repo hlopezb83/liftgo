@@ -3,12 +3,12 @@ import {
   SelectField,
   DateField,
   CurrencyField,
-  SupplierField,
 } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
+import { SupplierField } from "@/features/suppliers";
 import { SERVICE_TYPES } from "@/lib/constants";
 import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
 import type { FormEvent as ReactFormEvent } from "react";

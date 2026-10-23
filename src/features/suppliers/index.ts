@@ -3,3 +3,5 @@
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./hooks/useSupplierBankAccounts";
 export * from "./hooks/useSuppliers";
+
+export { SupplierField } from "./components/SupplierField";

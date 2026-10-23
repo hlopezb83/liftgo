@@ -39,8 +39,8 @@ vi.mock("../SupplierBillTotalPanel", () => ({
 vi.mock("../SupplierBillFormFields", () => ({
   SupplierBillFormFields: () => null,
 }));
+vi.mock("@/features/suppliers", () => ({ SupplierField: () => null }));
 vi.mock("@/components/forms/fields", () => ({
-  SupplierField: () => null,
   TextareaField: () => null,
 }));
 vi.mock("../../hooks/useSupplierBillForm", () => ({
