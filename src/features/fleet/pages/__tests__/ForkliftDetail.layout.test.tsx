@@ -6,7 +6,10 @@ const state = vi.hoisted(() => ({ costs: true, financials: true, financialAccess
 vi.mock("@/lib/router-compat", () => ({ useParams: () => ({ id: "equipment-demo" }) }));
 vi.mock("@/hooks/useNavigateTransition", () => ({ useNavigateTransition: () => vi.fn() }));
 vi.mock("@/features/users", () => ({ useHasModuleAccess: () => false }));
-vi.mock("@/features/availability", () => ({ useServerTodayMty: () => "2026-10-18" }));
+vi.mock("@/features/availability", async (importOriginal) => ({
+  ...await importOriginal<typeof import("@/features/availability")>(),
+  useServerTodayMty: () => "2026-10-18",
+}));
 vi.mock("@/features/bookings", () => ({ useBookings: () => ({ data: [] }) }));
 vi.mock("@/features/maintenance", () => ({ useMaintenanceLogs: () => ({ data: [] }) }));
 vi.mock("@/features/damage", () => ({ DamagePhotosSection: () => null }));
