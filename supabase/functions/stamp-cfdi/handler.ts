@@ -1,20 +1,14 @@
 import { hasLegacyVat, LEGACY_VAT_MESSAGE } from "../_shared/legacyVat.ts";
 // Pure handler for stamp-cfdi, deps-injected for testability.
-// The Deno.serve entry in index.ts wires real createClient + fetch + env.
+// The Deno.serve entry wires Supabase, the invoice PAC gateway and env.
 import { handleCors } from "../_shared/cors.ts";
-import { buildNotesSection } from "../_shared/facturapi/notesSection.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { organizationStoragePath } from "../_shared/storagePath.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
-  binaryToBytes,
-  binaryToText,
-  createFacturapiClient,
-  createInvoiceWithSignal,
   describeFacturapiError,
   isFacturapiConfigError,
-  retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 import { classifyPacInvoice } from "../_shared/facturapi/invoiceRecovery.ts";
 import {
@@ -26,16 +20,10 @@ import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
-import { computeStampVariance, roundMoney } from "../_shared/money.ts";
-import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+import { computeStampVariance } from "../_shared/money.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
-import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
-import {
-  isValidRegimenFiscalCode,
-  resolveReceptorRegimenFiscal,
-} from "../_shared/regimenFiscal.ts";
-import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
-import { checkStampFx } from "../_shared/fxGate.ts";
+import { buildInvoicePayload } from "./invoicePayload.ts";
+import type { InvoiceGateway } from "./invoiceGateway.ts";
 
 // Re-exports usados por las pruebas y por cancel-payment-complement.
 export { computeStampVariance };
@@ -44,7 +32,7 @@ export type { SupabaseLike };
 export interface StampCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
-  fetchImpl: typeof fetch;
+  createInvoiceGateway: (apiKey: string) => InvoiceGateway;
   env: (key: string) => string | undefined;
 }
 
@@ -325,258 +313,14 @@ export async function handleStampCfdi(
       );
     }
 
-    const client = createFacturapiClient(apiKey);
+    const gateway = deps.createInvoiceGateway(apiKey);
 
-    // BL-01: distinguir tasa cero legítima (0) de "no capturada" (null/undefined).
-    const taxRatePct = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
-
-    const items = Array.isArray(inv.line_items)
-      ? (inv.line_items as Array<
-        {
-          description?: string;
-          quantity?: number;
-          unit_price?: number;
-          // M19: los line_items persisten las claves SAT con estos nombres
-          // (ver invoiceFormBuilders.ts / nonRentalLines.ts). `product_key`
-          // NUNCA existió: todo timbraba con el genérico 78101803.
-          clave_prod_serv?: string;
-          clave_unidad?: string;
-          objeto_imp?: string;
-          tax_rate?: number;
-          discount?: number;
-          discount_type?: "%" | "$";
-        }
-      >).map((li) => {
-        const quantity = li.quantity || 1;
-        const unitPrice = li.unit_price || 0;
-        const objetoImp = li.objeto_imp ?? "02";
-        // C-1: tasa por línea con fallback línea → factura (taxRatePct ya
-        // cae a 16 cuando invoices.tax_rate no es numérico), igual que
-        // `computeTotals` en src/lib/domain/invoiceTotals.ts.
-        const lineRatePct =
-          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
-            ? li.tax_rate
-            : taxRatePct;
-        const lineRateFraction = lineRatePct / 100;
-        const item: Record<string, unknown> = {
-          product: {
-            description: li.description || "Servicio de renta",
-            product_key: li.clave_prod_serv || "78101803",
-            unit_key: li.clave_unidad || "E48",
-            price: unitPrice,
-            tax_included: false,
-            // M19: ObjetoImp 01 = no objeto de impuesto → línea sin traslados.
-            taxes: objetoImp === "01"
-              ? []
-              : [{ type: "IVA", rate: lineRateFraction }],
-          },
-          quantity,
-        };
-        // BL-02: propagar descuento al CFDI. Facturapi acepta `discount` como
-        // monto absoluto por línea (antes de impuestos). Convertimos porcentaje
-        // a monto para que el XML timbrado coincida con el total de la app.
-        if (li.discount && li.discount > 0) {
-          const base = unitPrice * quantity;
-          // S2-2.2: el porcentaje se capea en [0,100] igual que
-          // `applyDiscountToBase` en src/lib/domain/invoiceTotals.ts.
-          const discountPct = Math.min(100, Math.max(0, li.discount ?? 0));
-          const discountAmount = li.discount_type === "$"
-            ? Math.min(li.discount, base)
-            : (base * discountPct) / 100;
-          if (discountAmount > 0) {
-            // BL-A5: `roundMoney` (2 decimales, centavos enteros) reemplaza el
-            // `Math.round(*100)/100` histórico para eliminar drift IEEE-754.
-            item.discount = roundMoney(discountAmount);
-          }
-        }
-
-        return item;
-      })
-      : [];
-
-    const receptorRfc = String(inv.receptor_rfc ?? "XAXX010101000")
-      .toUpperCase();
-    const isGlobal = receptorRfc === "XAXX010101000";
-
-    // A4-05: dígito verificador del RFC validado en el servidor; el regex de
-    // formato por sí solo acepta RFCs inventados y el timbre se pierde.
-    {
-      const rfcError = validateRfcOrMessage(receptorRfc);
-      if (rfcError) {
-        await releaseClaim(rfcError);
-        return json({ error: rfcError }, 400, jsonHeaders);
-      }
+    const built = buildInvoicePayload({ invoiceId: invoice_id, invoice: inv });
+    if (!built.ok) {
+      await releaseClaim(built.claimError);
+      return json({ error: built.error }, built.status, jsonHeaders);
     }
-
-    // Overrides fiscales obligatorios para Público en General (CFDI 4.0)
-    const paymentMethod = isGlobal ? "PUE" : (inv.metodo_pago || "PUE");
-    // SAT CFDI 4.0: cuando metodo_pago = PPD, forma_pago DEBE ser "99" (Por definir)
-    const paymentForm = isGlobal
-      ? "01"
-      : (paymentMethod === "PPD" ? "99" : (inv.forma_pago || "99"));
-    const usoCfdi = isGlobal ? "S01" : String(inv.uso_cfdi || "G03");
-    const legalName = isGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
-      String(
-        inv.receptor_razon_social ?? inv.customer_name ?? "Público General",
-      ),
-    );
-    // R9-04: misma resolución compartida que NC y REP (global XAXX -> "616").
-    const taxSystem = resolveReceptorRegimenFiscal(
-      isGlobal,
-      inv.receptor_regimen_fiscal as string | null | undefined,
-    );
-    const zipCode = isGlobal
-      ? String(inv.receptor_domicilio_fiscal_cp ?? "06600")
-      : String(inv.receptor_domicilio_fiscal_cp ?? "");
-
-    // A4-04: para receptores con RFC real, el régimen fiscal y el CP fiscal
-    // deben venir del cliente. Los antiguos defaults ("616" / "06600")
-    // timbraban CFDI con datos fiscales genéricos que el SAT puede rechazar
-    // o dejar no deducibles para el cliente.
-    if (!isGlobal) {
-      const missingFiscal: string[] = [];
-      if (!taxSystem.trim()) missingFiscal.push("régimen fiscal del receptor");
-      if (!zipCode.trim()) {
-        missingFiscal.push("código postal fiscal del receptor");
-      }
-      if (missingFiscal.length > 0) {
-        await releaseClaim(
-          `Faltan datos fiscales del receptor: ${missingFiscal.join(", ")}`,
-        );
-        return json(
-          {
-            error: `Faltan datos fiscales del receptor: ${
-              missingFiscal.join(", ")
-            }. Captúralos en el cliente o en la factura antes de timbrar.`,
-          },
-          400,
-          jsonHeaders,
-        );
-      }
-
-      // R6 A4B-08: fail-fast del régimen fiscal. Un valor con descripción
-      // ("601 - General de Ley…") o fuera del catálogo c_RegimenFiscal llegaba
-      // crudo a Facturapi y el PAC lo rechazaba (o peor: quedaba persistido).
-      if (!isValidRegimenFiscalCode(taxSystem)) {
-        const msg =
-          `El régimen fiscal del receptor "${taxSystem}" no es un código válido del catálogo del SAT (c_RegimenFiscal). Debe ser el código de 3 dígitos, p. ej. "601". Corrígelo en el cliente antes de timbrar.`;
-        await releaseClaim(msg);
-        return json({ error: msg }, 422, jsonHeaders);
-      }
-
-      // A4B-07: el default "G03" (Gastos en general) no es válido para todos
-      // los regímenes (p. ej. 616 "Sin obligaciones fiscales" sólo admite
-      // S01/CP01). Rechazar ANTES de timbrar en vez de dejar que el SAT
-      // regrese el CFDI rechazado tras consumir el timbre.
-      if (!isUsoCfdiCompatible(usoCfdi, taxSystem)) {
-        const msg =
-          `El uso de CFDI "${usoCfdi}" no es válido para el régimen fiscal ${taxSystem} del receptor. Corrige el uso de CFDI del cliente o de la factura antes de timbrar.`;
-        await releaseClaim(msg);
-        return json({ error: msg }, 422, jsonHeaders);
-      }
-    }
-
-    if (isGlobal) {
-      const missing: string[] = [];
-      if (!inv.global_periodicity) missing.push("periodicidad");
-      if (!inv.global_months) missing.push("meses");
-      if (!inv.global_year) missing.push("año");
-      if (missing.length > 0) {
-        // BL-03: revertir claim antes de salir para que la factura pueda re-timbrarse.
-        await releaseClaim(
-          `Faltan datos de Información Global: ${missing.join(", ")}`,
-        );
-        return json(
-          {
-            error: `Faltan datos de Información Global (Público en General): ${
-              missing.join(", ")
-            }. Captúralos en el formulario de la factura antes de timbrar.`,
-          },
-          400,
-          jsonHeaders,
-        );
-      }
-    }
-
-    // R9-02: gate canónico de tipo de cambio (moneda != MXN exige TC finito,
-    // > 0 y != 1) ANTES de construir el payload / llamar a Facturapi. Ver
-    // `_shared/fxGate.ts` — misma regla que ya rige CxP/Cash-Flow/Portal.
-    const fxGate = checkStampFx(
-      inv.moneda as string | null | undefined,
-      inv.tipo_cambio as number | string | null | undefined,
-    );
-    if (!fxGate.ok) {
-      await releaseClaim(fxGate.message);
-      return json({ error: fxGate.message }, 422, jsonHeaders);
-    }
-    const moneda = fxGate.currency;
-    const tipoCambio = fxGate.exchange;
-
-    const payload: Record<string, unknown> = {
-      type: "I",
-      customer: {
-        legal_name: legalName,
-        tax_id: receptorRfc,
-        tax_system: taxSystem,
-        address: { zip: zipCode },
-      },
-      items,
-      payment_form: paymentForm,
-      payment_method: paymentMethod,
-      use: usoCfdi,
-      currency: moneda,
-      exchange: moneda === "MXN" ? 1 : tipoCambio,
-      series: inv.serie || undefined,
-
-      // BL-20: validar folio numérico antes de castear (Number("BORRADOR")=NaN
-      // rompía el payload JSON hacia Facturapi).
-      folio_number: (() => {
-        if (!inv.folio) return undefined;
-        const n = Number(inv.folio);
-        return Number.isFinite(n) && n > 0 ? n : undefined;
-      })(),
-      // R12 B2: external_id permite que `reconcile-stamping-invoices` recupere
-      // el CFDI vía `invoices.list({ external_id })` cuando el timeout impidió persistir
-      // facturapi_invoice_id — evita re-timbrar y por ende un CFDI duplicado.
-      external_id: invoice_id as string,
-      idempotency_key: invoice_id as string,
-    };
-    // 8.44.4: las notas de la factura se imprimen en el PDF de Facturapi.
-    const notesSection = buildNotesSection(inv.notes);
-    if (notesSection) payload.pdf_custom_section = notesSection;
-
-    if (isGlobal) {
-      const PERIODICITY_MAP: Record<string, string> = {
-        "01": "day",
-        "02": "week",
-        "03": "fortnight",
-        "04": "month",
-        "05": "two_months",
-      };
-      const FACTURAPI_ENUM = new Set([
-        "day",
-        "week",
-        "fortnight",
-        "month",
-        "two_months",
-      ]);
-      const raw = String(inv.global_periodicity);
-      const periodicity = PERIODICITY_MAP[raw] ??
-        (FACTURAPI_ENUM.has(raw) ? raw : null);
-      if (!periodicity) {
-        // BL-03: revertir claim antes de propagar error — antes se lanzaba y la
-        // factura quedaba atascada en "stamping".
-        const msg =
-          `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`;
-        await releaseClaim(msg);
-        return json({ error: msg }, 400, jsonHeaders);
-      }
-      payload.global = {
-        periodicity,
-        months: String(inv.global_months),
-        year: Number(inv.global_year),
-      };
-    }
+    const payload = built.payload;
 
     let facturApiInvoice: { id: string; uuid?: string; status?: string };
     // EC-A2: timeout hard-cap con AbortController (abort real del fetch en
@@ -603,7 +347,7 @@ export async function handleStampCfdi(
     }, FACTURAPI_TIMEOUT_MS);
     try {
       facturApiInvoice = await Promise.race([
-        createInvoiceWithSignal(client, payload, { signal: stampAbort.signal }),
+        gateway.create(payload, { signal: stampAbort.signal }),
         timeoutPromise,
       ]) as { id: string; uuid?: string; status?: string };
     } catch (err) {
@@ -727,11 +471,7 @@ export async function handleStampCfdi(
     let pdfStoragePath: string | null = null;
 
     try {
-      cfdiXml = await binaryToText(
-        await retryOnFacturapi5xx(() =>
-          client.invoices.downloadXml(facturApiId)
-        ),
-      );
+      cfdiXml = await gateway.downloadXml(facturApiId);
       const path = organizationStoragePath(
         inv.organization_id,
         `${invoice_id}/${cfdiUuid}.xml`,
@@ -755,11 +495,7 @@ export async function handleStampCfdi(
     }
 
     try {
-      const pdfBytes = await binaryToBytes(
-        await retryOnFacturapi5xx(() =>
-          client.invoices.downloadPdf(facturApiId)
-        ),
-      );
+      const pdfBytes = await gateway.downloadPdf(facturApiId);
       const path = organizationStoragePath(
         inv.organization_id,
         `${invoice_id}/${cfdiUuid}.pdf`,
