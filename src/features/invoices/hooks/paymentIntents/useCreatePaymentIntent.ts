@@ -1,7 +1,7 @@
-import { paymentIntentsQueries } from "@/features/invoices/lib/paymentIntentsQueryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { organizationStoragePathForSession } from "@/lib/storage/organizationPath";
+import { paymentIntentsQueries } from "../../lib/paymentIntentsQueryKeys";
 
 export interface PaymentIntentInput {
   invoice_id: string;

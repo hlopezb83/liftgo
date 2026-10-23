@@ -82,7 +82,7 @@ export function AlreadyInvoicedNotice({
 }) {
   if (eligibleCount > 0 || alreadyInvoicedCount === 0 || hasOtherReasons) return null;
   return (
-    <div className="mb-3 flex items-start gap-3 rounded-md border border-blue-500/40 bg-blue-500/10 p-3 text-sm">
+    <div className="mb-3 flex items-start gap-3 rounded-md border border-info/40 bg-info/10 p-3 text-sm">
       <InfoAlertIcon className="mt-0.5 h-4 w-4 shrink-0" />
       <div>
         <p className="font-medium">El periodo en curso ya está facturado</p>
@@ -109,7 +109,7 @@ export function StaleRateNotice({
 }) {
   if (staleCount === 0) return null;
   return (
-    <div className="flex items-start gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+    <div className="flex items-start gap-3 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">
       <Checkbox
         checked={allowStaleRate}
         onCheckedChange={(v) => onChange(v === true)}
@@ -162,7 +162,7 @@ function LineRow({
         <div className="text-xs text-muted-foreground">
           {line.periodLabel}
           {line.isProrated ? (
-            <span className="ml-1 text-amber-600 dark:text-amber-400">
+            <span className="ml-1 text-warning-text">
               · prorrateado {line.proratedDays} días
             </span>
           ) : null}

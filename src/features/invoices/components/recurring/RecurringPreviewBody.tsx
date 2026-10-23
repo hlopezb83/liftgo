@@ -70,7 +70,7 @@ export function RecurringPreviewBody({
       <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalsLabel={totalsLabel} />
       <div className="mt-3">
         {truncated && (
-          <div role="status" className="mb-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <div role="status" className="mb-3 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm">
             <p className="font-medium">Vista previa parcial</p>
             <p className="text-xs text-muted-foreground">
               Hay periodos adicionales fuera de este lote{pendingCount > 0 ? ` (aproximadamente ${pendingCount})` : ""}.

@@ -113,3 +113,15 @@ export function computeTotals(lineItems: LineItem[], taxRate: number) {
   };
 }
 
+
+/** Monthly rental prorating: normalize the agreed rate to cents, then round
+ * only the final fraction. This intentionally differs from daily-price lines.
+ * Callers validate the monthly rate and obtain days from firstBillingPeriod.
+ */
+export function proratedMonthlyCents(monthlyRate: number, billedDays: number, daysInMonth: number): number {
+  return Math.round(currency(monthlyRate).intValue * billedDays / daysInMonth);
+}
+
+export function proratedMonthlyAmount(monthlyRate: number, billedDays: number, daysInMonth: number): number {
+  return proratedMonthlyCents(monthlyRate, billedDays, daysInMonth) / 100;
+}

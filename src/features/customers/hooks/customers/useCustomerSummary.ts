@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import type { CustomerSummary } from "@/features/customers/lib/customerTypes";
 import { callRpc } from "@/lib/rpc";
 import { customerKeys } from "../../lib/queryKeys";
+import type { CustomerSummary } from "../../lib/customerTypes";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/features/customers/lib/customerTypes`.

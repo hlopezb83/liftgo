@@ -5,9 +5,9 @@
  * intents (revisión admin + creación desde portal). Portal re-exporta desde
  * aquí para preservar su API pública sin generar ciclo `invoices → portal`.
  */
-import type { PaymentIntentStatus } from "@/features/invoices/lib/paymentIntentStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import type { PaymentIntentStatus } from "./paymentIntentStatus";
 
 const sel = (s: string): string => s;
 

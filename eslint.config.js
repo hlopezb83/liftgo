@@ -1,4 +1,5 @@
 import js from "@eslint/js";
+import { builtinRules } from "eslint/use-at-your-own-risk";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
@@ -8,6 +9,24 @@ import importPlugin from "eslint-plugin-import-x";
 import playwright from "eslint-plugin-playwright";
 import tseslint from "typescript-eslint";
 
+
+// Flat config reemplaza opciones de una regla; no acumula restricciones entre
+// bloques. Aliases independientes de las reglas core conservan cada ámbito,
+// severidad y excepción, y permiten que todos los guardrails se ejecuten juntos.
+// Los contratos de scripts/tests/eslint-guardrails.test.mjs validan la
+// configuración efectiva y detectan incompatibilidades al actualizar ESLint.
+const guardrails = {
+  rules: {
+    "no-inline-money": builtinRules.get("no-restricted-syntax"),
+    "no-ui-supabase": builtinRules.get("no-restricted-imports"),
+    "no-direct-ui-imports": builtinRules.get("no-restricted-imports"),
+    "no-direct-sonner": builtinRules.get("no-restricted-imports"),
+    "no-deep-feature-imports": builtinRules.get("no-restricted-imports"),
+    "no-unlocalized-dates": builtinRules.get("no-restricted-imports"),
+    "no-unwrapped-navigation": builtinRules.get("no-restricted-imports"),
+    "no-raw-colors": builtinRules.get("no-restricted-syntax"),
+  },
+};
 
 export default tseslint.config(
   {
@@ -50,6 +69,7 @@ export default tseslint.config(
       "react-compiler": reactCompiler,
       "jsx-a11y": jsxA11y,
       "import-x": importPlugin,
+      liftgo: guardrails,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -157,7 +177,7 @@ export default tseslint.config(
       "src/features/invoices/hooks/invoiceForm/*.ts",
     ],
     rules: {
-      "no-restricted-syntax": ["error",
+      "liftgo/no-inline-money": ["error",
         {
           selector: "BinaryExpression[operator='*']",
           message: "Aritmética monetaria prohibida fuera de src/lib/domain/invoiceTotals.ts. Usar lineItemTotal / applyDiscountToBase / saleLineTotal.",
@@ -176,7 +196,7 @@ export default tseslint.config(
     files: ["src/features/**/pages/**/*.{ts,tsx}", "src/features/**/components/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
     ignores: ["src/features/auth/pages/AuthPage.tsx", "src/components/ui/**"],
     rules: {
-      "no-restricted-imports": ["error", {
+      "liftgo/no-ui-supabase": ["error", {
         paths: [
           {
             name: "@/integrations/supabase/client",
@@ -195,15 +215,11 @@ export default tseslint.config(
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/components/icons/**"],
     rules: {
-      "no-restricted-imports": ["error", {
+      "liftgo/no-direct-ui-imports": ["error", {
         paths: [
           {
             name: "lucide-react",
             message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos (DeleteIcon, EditIcon, SuccessIcon, etc.).",
-          },
-          {
-            name: "sonner",
-            message: "Usa notifySuccess/notifyError/notifyInfo/notifyWarning/notifyAsync de @/lib/ui/appFeedback en lugar de importar `sonner` directamente.",
           },
           {
             name: "@/components/icons",
@@ -237,14 +253,29 @@ export default tseslint.config(
   },
 
   {
+    // El wrapper canónico es el único consumidor de sonner fuera de las
+    // excepciones originales (ui/** global e icons/**). La excepción sólo
+    // afecta a sonner: appFeedback sigue sujeto al registry de iconos.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/components/icons/**", "src/lib/ui/appFeedback.ts"],
+    rules: {
+      "liftgo/no-direct-sonner": ["error", {
+        paths: [{
+          name: "sonner",
+          message: "Usa notifySuccess/notifyError/notifyInfo/notifyWarning/notifyAsync de @/lib/ui/appFeedback en lugar de importar `sonner` directamente.",
+        }],
+      }],
+    },
+  },
+
+  {
     // Auditoría arquitectura — paso 2: desincentivar imports profundos
     // cross-feature. Cada feature debería exponer su API pública vía
     // `src/features/<feature>/index.ts`. Importar rutas internas de OTRA
     // feature acopla refactors internos con consumidores remotos.
     //
-    // Scope acotado a hooks/ y lib/ para NO sobreescribir el guardrail
-    // de Supabase definido sobre pages/components (en flat config, dos
-    // bloques que coinciden y definen la misma regla, la última gana).
+    // Se conserva el scope original de hooks/ y lib/. El alias independiente
+    // evita sobreescribir las restricciones de imports de otros bloques.
     //
     // v7.218.0 · ARQ2-A4: se mantiene `warn` — el patrón `@/features/*/…`
     // también matchea la MISMA feature (los deep imports intra-feature son
@@ -253,7 +284,7 @@ export default tseslint.config(
     files: ["src/features/**/hooks/**/*.{ts,tsx}", "src/features/**/lib/**/*.{ts,tsx}"],
     ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["warn", {
+      "liftgo/no-deep-feature-imports": ["warn", {
         patterns: [
           {
             group: ["@/features/*/hooks/**", "@/features/*/components/**", "@/features/*/lib/**", "@/features/*/pages/**"],
@@ -290,7 +321,7 @@ export default tseslint.config(
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "no-restricted-imports": ["warn", {
+      "liftgo/no-unlocalized-dates": ["warn", {
         paths: [
           {
             name: "date-fns",
@@ -323,7 +354,7 @@ export default tseslint.config(
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "no-restricted-imports": ["warn", {
+      "liftgo/no-unwrapped-navigation": ["warn", {
         paths: [
           {
             name: "react-router-dom",
@@ -357,9 +388,9 @@ export default tseslint.config(
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "no-restricted-syntax": ["warn",
+      "liftgo/no-raw-colors": ["warn",
         {
-          selector: "Literal[value=/\\\\b(bg|text|border|from|to|via|ring|divide|outline|placeholder|caret|fill|stroke|shadow|decoration|accent)-(white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\\\d{2,3}\\\\b/]",
+          selector: "Literal[value=/\\b(bg|text|border|from|to|via|ring|divide|outline|placeholder|caret|fill|stroke|shadow|decoration|accent)-(white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\d{2,3}\\b/]",
           message: "Usa un token semántico (bg-primary, text-muted-foreground, border-warning/40, bg-status-*, bg-gantt-*, …) en lugar de la paleta cruda de Tailwind. Los tokens están en src/index.css.",
         },
       ],

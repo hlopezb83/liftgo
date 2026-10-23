@@ -1,5 +1,6 @@
 import currency from "currency.js";
 import { firstBillingPeriod } from "@/lib/domain/firstBillingPeriod";
+import { proratedMonthlyCents } from "@/lib/domain/invoiceTotals";
 import type { BillableBooking } from "./bookingCompatibility";
 import type { BookingInvoiceClaim } from "./originalBookingPeriod";
 
@@ -16,7 +17,7 @@ export function verifiedRecurringCoverage(booking: BillableBooking, claim: Booki
   if (!start || !end || start.slice(0, 7) !== end.slice(0, 7)) return false;
   const period = firstBillingPeriod(start, end);
   if (!period || !Array.isArray(claim.line_items) || claim.line_items.length !== 1) return false;
-  const expectedCents = Math.round(currency(monthlyRate).intValue * period.billedDays / period.daysInMonth);
+  const expectedCents = proratedMonthlyCents(monthlyRate, period.billedDays, period.daysInMonth);
   return verifiedRentalLine(claim.line_items[0], expectedCents, period.billedDays);
 }
 

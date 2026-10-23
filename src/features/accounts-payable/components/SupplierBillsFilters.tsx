@@ -1,9 +1,7 @@
-import { format } from "date-fns";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { capitalize, parseDateLocal } from "@/lib/utils";
+import { capitalize, formatMtyDate } from "@/lib/utils";
 import {
   EXPENSE_CATEGORY_LABELS, EXPENSE_CATEGORY_GROUPS,
   SUPPLIER_BILL_STATUSES, SUPPLIER_BILL_STATUS_LABELS,
@@ -57,7 +55,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
             <SelectItem value="all">Todos los meses</SelectItem>
             {f.availableMonths.map((m) => (
               <SelectItem key={m} value={m}>
-                {capitalize(format(parseDateLocal(m + "-15"), "MMM yyyy", { locale: APP_LOCALE }))}
+                {capitalize(formatMtyDate(m + "-15", "MMM yyyy"))}
               </SelectItem>
             ))}
           </SelectContent>
