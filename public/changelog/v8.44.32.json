@@ -1,0 +1,15 @@
+{
+  "version": "8.44.32",
+  "date": "2026-10-23",
+  "type": "patch",
+  "category": "improvement",
+  "title": "Consistencia de captura y controles de calidad reforzados",
+  "description": "Actualiza reservas y precarga de facturas, mejora el acceso con teclado al portal y refuerza la organización y verificación del ERP sin cambiar las reglas fiscales.",
+  "changes": [
+    "Actualiza las reservas disponibles después de editar, cancelar o eliminar, y conserva la captura manual y los datos fiscales guardados al completar información del cliente.",
+    "Permite abrir cotizaciones y facturas del portal con teclado en pantallas pequeñas y cancela consultas de facturación que ya no se necesitan.",
+    "Separa el armado de facturas y la comunicación fiscal, con pruebas del comportamiento existente y de la recurrencia real; las funciones requieren despliegue independiente.",
+    "Refuerza la identidad de versión, las reglas de código y la procedencia de las pruebas; verifica el SQL efectivo únicamente en la base efímera de CI.",
+    "Ordena los tipos de listas, rutas y componentes compartidos sin modificar permisos, fórmulas de importes ni datos de operación."
+  ]
+}
