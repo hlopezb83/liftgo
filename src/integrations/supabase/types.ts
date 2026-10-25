@@ -7155,6 +7155,7 @@ export type Database = {
       is_internal_member: { Args: { _user_id?: string }; Returns: boolean }
       is_inventory_reader: { Args: never; Returns: boolean }
       is_maintenance_reader: { Args: never; Returns: boolean }
+      is_obsolete_vat_rate: { Args: { p_rate: string }; Returns: boolean }
       is_ops_staff: { Args: never; Returns: boolean }
       is_parts_writer: { Args: never; Returns: boolean }
       is_platform_operator: { Args: never; Returns: boolean }
