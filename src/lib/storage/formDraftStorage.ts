@@ -1,3 +1,5 @@
+import { createLocalId } from "@/lib/ids/localId";
+
 /** Small local drafts only. No sessions, credentials, customer records or free text. */
 export const FORM_DRAFT_PREFIX = "liftgo:form-drafts:v1:";
 export const FORM_DRAFT_IDENTITY_KEY = `${FORM_DRAFT_PREFIX}identity`;
@@ -6,6 +8,8 @@ export const FORM_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 interface Identity { scope: string | null; epoch: string }
 // Logout must revoke this tab even if the browser refuses all storage operations.
 let runtimeIdentity: Identity | null = null;
+// Do not reuse persisted bytes after an identity change whose rotation failed.
+let pendingStorageRotation = false;
 export interface LocalFormDraft<T> {
   version: 1;
   id: string;
@@ -20,7 +24,7 @@ export interface LocalFormDraft<T> {
 export class DraftStorageError extends Error {
   constructor(public readonly reason: "unavailable" | "conflict" | "expired") { super(reason); }
 }
-const token = () => crypto.randomUUID();
+const token = createLocalId;
 export const formDraftKey = (scope: string) => `${FORM_DRAFT_PREFIX}booking:${scope}`;
 const revokedKey = (id: string) => `${FORM_DRAFT_PREFIX}revoked:${id}`;
 const browserStorage = () => {
@@ -59,18 +63,28 @@ function validEnvelope<T>(draft: LocalFormDraft<T>, scope: string, epoch: string
     draft.expiresAt === draft.createdAt + FORM_DRAFT_TTL_MS;
 }
 
+function syncRuntimeIdentity(scope: string | null) {
+  if (scope === null || (runtimeIdentity && runtimeIdentity.scope !== scope)) pendingStorageRotation = true;
+  if (!runtimeIdentity || runtimeIdentity.scope !== scope || scope === null) runtimeIdentity = { scope, epoch: token() };
+}
+
 /** Only call for a VERIFIED identity, or explicit sign-out. Never for loading. */
 export function syncFormDraftIdentity(scope: string | null, storage = browserStorage()) {
-  if (!runtimeIdentity || runtimeIdentity.scope !== scope || scope === null) runtimeIdentity = { scope, epoch: token() };
+  syncRuntimeIdentity(scope);
   if (!storage) return;
   try {
-    if (scope !== null && identity(storage)?.scope === scope) {
+    if (!pendingStorageRotation && scope !== null && identity(storage)?.scope === scope) {
       pruneExpiredEntries(storage);
       return;
     }
     // Rotate the epoch first. Late writes from previous tabs cannot be read.
-    try { storage.setItem(FORM_DRAFT_IDENTITY_KEY, JSON.stringify({ scope, epoch: token() })); }
-    catch { storage.removeItem(FORM_DRAFT_IDENTITY_KEY); }
+    try {
+      storage.setItem(FORM_DRAFT_IDENTITY_KEY, JSON.stringify({ scope, epoch: token() }));
+      pendingStorageRotation = false;
+    } catch {
+      pendingStorageRotation = true;
+      storage.removeItem(FORM_DRAFT_IDENTITY_KEY);
+    }
     const remove: string[] = [];
     for (let i = 0; i < storage.length; i++) {
       const key = storage.key(i);
@@ -87,7 +101,7 @@ export function openFormDraftStore<T>(scope: string, parseValues: (input: unknow
   try { lease = storage ? identity(storage) : null; } catch { /* memory only */ }
   const guard = () => {
     if (runtimeIdentity?.scope !== scope || runtimeIdentity?.epoch !== runtimeEpoch) throw new DraftStorageError("conflict");
-    if (!storage || !lease) throw new DraftStorageError("unavailable");
+    if (pendingStorageRotation || !storage || !lease) throw new DraftStorageError("unavailable");
     if (lease.scope !== scope || identity(storage)?.epoch !== lease.epoch) throw new DraftStorageError("conflict");
     return storage;
   };

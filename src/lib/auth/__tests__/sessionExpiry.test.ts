@@ -1,3 +1,4 @@
+import { notifyWarning } from "@/lib/ui/appFeedback";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const sdk = vi.hoisted(() => ({ signOut: vi.fn(async () => {}) }));
 vi.mock("@/integrations/supabase/client", () => ({ supabase: { auth: sdk } }));
@@ -6,6 +7,16 @@ vi.mock("@/lib/ui/appFeedback", () => ({ notifyWarning: vi.fn() }));
 describe("sesión vencida por ámbito", () => {
   beforeEach(() => { vi.resetModules(); sdk.signOut.mockClear(); });
   afterEach(() => vi.unstubAllGlobals());
+  it("revokes and redirects even if optional feedback throws", async () => {
+    const assign = vi.fn();
+    vi.stubGlobal("window", { location: { pathname: "/bookings", search: "", assign } });
+    vi.mocked(notifyWarning).mockImplementationOnce(() => { throw new Error("feedback unavailable"); });
+    sdk.signOut.mockRejectedValueOnce(new Error("offline"));
+    const { handleSessionExpired } = await import("../sessionExpiry");
+    await expect(handleSessionExpired({ status: 401 })).resolves.toBe(true);
+    expect(sdk.signOut).toHaveBeenCalledOnce();
+    expect(assign).toHaveBeenCalledExactlyOnceWith("/login?redirect=%2Fbookings");
+  });
   it.each([
     ["/platform", "", "/platform/login?next=%2Fplatform"],
     ["/platform/organizations", "?page=2", "/platform/login?next=%2Fplatform%2Forganizations"],

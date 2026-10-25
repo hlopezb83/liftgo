@@ -102,6 +102,15 @@ function AvailabilityErrorAlert({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+function AvailabilityDateErrorAlert({ message }: { message: string }) {
+  return (
+    <Alert variant="destructive">
+      <WarnIcon className="h-4 w-4" />
+      <AlertDescription>{message}. Corrige las fechas de la cotización antes de asignar equipos.</AlertDescription>
+    </Alert>
+  );
+}
+
 export function EquipmentAssignmentDialog({
   open, onOpenChange, startDate, endDate, rentalMeta, models, forklifts, onConfirm, isLoading,
 }: EquipmentAssignmentDialogProps) {
@@ -110,13 +119,13 @@ export function EquipmentAssignmentDialog({
   // para no ofrecer unidades con OT en curso o dentro del buffer de mantenimiento
   // (create_booking las rechazaría al confirmar).
   const {
-    availableForklifts, datesSelected,
+    availableForklifts, datesSelected, dateRangeError,
     isLoading: availabilityLoading, isSuccess: availabilityReady,
     isError: availabilityError, refetch: retryAvailability,
   } = useAvailableForklifts(
     startDate && endDate ? { from: parseISO(startDate), to: parseISO(endDate) } : undefined,
   );
-  const availabilityUnresolved = datesSelected && !availabilityReady;
+  const availabilityUnresolved = !!dateRangeError || (datesSelected && !availabilityReady);
   const rpcAvailableIds = datesSelected && availabilityReady
     ? new Set(availableForklifts.map((f) => f.id)) : null;
   // El estado físico es canónico; la RPC valida por separado compromisos de la
@@ -174,6 +183,7 @@ export function EquipmentAssignmentDialog({
   );
 
   const onSubmit = form.handleSubmit((values) => {
+    if (availabilityUnresolved) return;
     onConfirm(
       values.assignments.map((a) => ({
         forkliftId: a.forkliftId,
@@ -198,6 +208,8 @@ export function EquipmentAssignmentDialog({
             <span className="text-sm text-muted-foreground">Unidades asignadas</span>
             <span className="text-sm font-semibold">{assignedCount} de {fields.length}</span>
           </div>
+
+          {dateRangeError && <AvailabilityDateErrorAlert message={dateRangeError} />}
 
           {availabilityError && <AvailabilityErrorAlert onRetry={() => { void retryAvailability(); }} />}
 
@@ -227,7 +239,7 @@ export function EquipmentAssignmentDialog({
                       </div>
                       {available.length === 0 ? (
                         <p className="text-sm text-muted-foreground py-2">
-                          {availabilityLoading ? "Comprobando disponibilidad…" : availabilityError
+                          {dateRangeError ? "Corrige el rango de fechas" : availabilityLoading ? "Comprobando disponibilidad…" : availabilityError
                             ? "No se pudo verificar la disponibilidad" : "No hay unidades disponibles"}
                         </p>
                       ) : (

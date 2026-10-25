@@ -42,10 +42,12 @@ export async function handleSessionExpired(error: unknown): Promise<boolean> {
   if (["/login", "/auth", "/platform/login"].includes(pathname)) return true;
 
   handling = true;
-  notifyWarning("Tu sesión expiró", {
-    description: "Te llevamos a la pantalla de acceso para iniciar sesión de nuevo.",
-    dedupeKey: "session-expired",
-  });
+  try {
+    notifyWarning("Tu sesión expiró", {
+      description: "Te llevamos a la pantalla de acceso para iniciar sesión de nuevo.",
+      dedupeKey: "session-expired",
+    });
+  } catch { /* Optional feedback must never block session revocation. */ }
   try {
     await supabase.auth.signOut();
   } catch {

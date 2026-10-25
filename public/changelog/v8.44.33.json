@@ -1,0 +1,14 @@
+{
+  "version": "8.44.33",
+  "date": "2026-10-25",
+  "type": "patch",
+  "category": "bugfix",
+  "title": "Acceso resistente y fechas de disponibilidad válidas",
+  "description": "Evita que identificadores locales interrumpan el acceso y valida las fechas antes de consultar equipos disponibles, sin cambiar permisos ni reglas fiscales.",
+  "changes": [
+    "Mantiene el inicio y cierre de sesión cuando el navegador no ofrece randomUUID, con identificadores locales compatibles y separación de borradores entre identidades.",
+    "Evita que un fallo de avisos opcionales interrumpa la recuperación de una sesión expirada.",
+    "Bloquea consultas de disponibilidad con fechas incompletas, inválidas o invertidas, incluido el reintento manual, y muestra una indicación local para corregir el rango.",
+    "Conserva las rentas de un solo día y añade pruebas de regresión de acceso, borradores y disponibilidad."
+  ]
+}

@@ -1,3 +1,7 @@
+## [8.44.33] - 2026-10-25
+
+- Evita que los IDs locales interrumpan autenticación y recuperación de sesión; conserva aislamiento de borradores. Valida fechas de disponibilidad antes de la consulta y el reintento, con aviso local y regresiones. Sin migraciones, permisos, operaciones fiscales ni despliegue de funciones.
+
 ## [8.44.31] - 2026-10-22
 
 - Conserva captura manual, tarifas negociadas, contexto de navegación, selección bancaria y notas por orden. Actualiza el stock/costo de refacciones y el resumen mensual vigente; añade período y moneda al CSV de rentabilidad. Sin migraciones ni cambios de permisos o reglas monetarias.

@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { DraftStorageError, FORM_DRAFT_IDENTITY_KEY, FORM_DRAFT_TTL_MS, formDraftKey, openFormDraftStore, syncFormDraftIdentity } from "../formDraftStorage";
 import { bookingDraftSchema } from "@/features/bookings/lib/bookingDraft";
 
@@ -18,7 +18,32 @@ const open = (key = scope) => openFormDraftStore(key, (v) => bookingDraftSchema.
 const now = Date.now();
 beforeEach(() => { vi.restoreAllMocks(); storage.clear(); syncFormDraftIdentity(scope, storage); });
 
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+
 describe("local form draft storage", () => {
+  it("works without crypto and revokes stale leases across logout and identity changes", () => {
+    vi.stubGlobal("crypto", undefined);
+    syncFormDraftIdentity(scope, storage);
+    const store = open();
+    const draft = store.write(values, null, now);
+    expect(store.read(now)).toEqual(draft);
+    expect(() => syncFormDraftIdentity(null, storage)).not.toThrow();
+    syncFormDraftIdentity(other, storage);
+    expect(open(other).read()).toBeNull();
+    expect(() => store.write(values, draft, now + 1)).toThrow(new DraftStorageError("conflict"));
+  });
+  it("does not resurrect a draft after storage denied logout and same-user login", () => {
+    const store = open();
+    const draft = store.write(values, null, now);
+    vi.stubGlobal("crypto", undefined);
+    const denied = new Proxy(storage, { get() { throw new Error("storage denied"); } });
+    expect(() => syncFormDraftIdentity(null, denied)).not.toThrow();
+    expect(() => syncFormDraftIdentity(scope, denied)).not.toThrow();
+    expect(() => open().read()).toThrow(new DraftStorageError("unavailable"));
+    syncFormDraftIdentity(scope, storage);
+    expect(open().read()).toBeNull();
+    expect(() => store.write(values, draft, now + 1)).toThrow(new DraftStorageError("conflict"));
+  });
   it("round-trips only allowlisted fields and fixes expiry at creation", () => {
     const store = open();
     const first = store.write(values, null, now);

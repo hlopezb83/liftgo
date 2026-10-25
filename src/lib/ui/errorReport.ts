@@ -1,4 +1,5 @@
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
+import { createLocalId } from "@/lib/ids/localId";
 import { getAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { extractErrorDetails, deriveErrorCode, type ExtractedErrorDetails } from "@/lib/ui/errorDetailsExtract";
 import { diagnosticSnapshot, redactDiagnosticText } from "@/lib/ui/errorReportJson";
@@ -53,12 +54,6 @@ function getAppVersion(): string {
   return compiledVersion && compiledVersion !== "unknown" ? compiledVersion : cachedVersion ?? "unknown";
 }
 
-function safeUuid(): string {
-  // `crypto.randomUUID` está disponible en todos los navegadores objetivo del app
-  // y en el runtime de Node de las Edge Functions. No requerimos fallback.
-  return crypto.randomUUID();
-}
-
 function currentRoute(): string {
   if (typeof window === "undefined") return "";
   const { pathname, search, hash } = window.location;
@@ -82,7 +77,7 @@ export function buildErrorReport(input: BuildErrorReportInput): ErrorReport {
   const snap = getAuthSnapshot();
 
   return {
-    requestId: safeUuid(),
+    requestId: createLocalId(),
     errorCode: code,
     method: input.method,
     title: redactDiagnosticText(input.title),

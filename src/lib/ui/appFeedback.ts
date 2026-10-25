@@ -4,6 +4,7 @@ import { ErrorReportActions } from "@/components/feedback/ErrorReportActions";
 import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
 import { translatePgError } from "@/lib/errors/pgErrorCatalog";
+import { createLocalId } from "@/lib/ids/localId";
 import { captureOperationalError } from "@/lib/observability/captureOperationalError";
 import { closeErrorReport, openErrorReport } from "@/lib/ui/errorDetailsStore";
 import { buildErrorReport } from "@/lib/ui/errorReport";
@@ -317,7 +318,7 @@ export interface NotifyAsyncMessages<T> {
  * Retorna la misma promesa para que se pueda hacer `await`.
  */
 export function notifyAsync<T>(promise: Promise<T>, msgs: NotifyAsyncMessages<T>): Promise<T> {
-  const id = crypto.randomUUID();
+  const id = createLocalId();
   toast.promise(promise, {
     id,
     loading: msgs.loading,
